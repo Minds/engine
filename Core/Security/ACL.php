@@ -140,7 +140,7 @@ class ACL
      */
     public function interact($entity, $user = null)
     {
-        if (!$user) {
+        if (!$user || !is_object($user)) {
             $user = Core\Session::getLoggedinUser();
         }
 
@@ -159,6 +159,13 @@ class ACL
           ($entity->container_guid && $entity->container_guid == $user->guid) ||
           ($entity->guid && $entity->guid == $user->guid)
       ) {
+          return true;
+      }
+
+      /**
+       * Is this user an admin?
+       */
+      if ($user->isAdmin()) {
           return true;
       }
 

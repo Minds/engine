@@ -62,11 +62,11 @@ class Documents
       }
 
       $params = [
-      'body' => $body,
-      'index' => $this->index,
-      'type' => $data['type'],
-      'id' => $data['guid'],
-    ];
+        'body' => $body,
+        'index' => $this->index,
+        'type' => $data['type'],
+        'id' => $data['guid'],
+      ];
 
     // error_log("indexing for search: {$this->index}/{$data['type']}/{$data['guid']}");
     // error_log(print_r($body, 1));
@@ -84,19 +84,19 @@ class Documents
   public function query($query, array $opts = [])
   {
       $opts = array_merge([
-      'limit' => 12,
-      'type' => null,
-      'offset' => '',
-      'flags' => [ ]
-    ], $opts);
+        'limit' => 12,
+        'type' => null,
+        'offset' => '',
+        'flags' => [ ]
+      ], $opts);
 
       $query = preg_replace('/[^A-Za-z0-9_\-#"]/', ' ', $query);
       $flags = '';
 
-    // Passed flags (type, subtype, ~, etc.)
-    if (!is_array($opts['flags'])) {
-        $opts['flags'] = [ $opts['flags'] ];
-    }
+      // Passed flags (type, subtype, ~, etc.)
+      if (!is_array($opts['flags'])) {
+          $opts['flags'] = [ $opts['flags'] ];
+      }
 
       foreach ($opts['flags'] as $flag) {
           if ($flag != '~') {
@@ -106,9 +106,9 @@ class Documents
           $flags .= $flag;
       }
 
-    // Transform hashtags to `field:"value"` form and put into $flags
-    // Then remove the hashtags from main query
-    $htRe = '/(^|\s)#(\w*[a-zA-Z_]+\w*)/';
+      // Transform hashtags to `field:"value"` form and put into $flags
+      // Then remove the hashtags from main query
+      $htRe = '/(^|\s)#(\w*[a-zA-Z_]+\w*)/';
       $matches = [];
 
       $hashtags = false;
@@ -125,26 +125,26 @@ class Documents
           $query = preg_replace($htRe, '', $query);
       }
 
-    // Setup parameters
-    $params = [
-      'size' => $opts['limit'],
-      'index' => $this->index,
-      'body' => [
-        'query' => [
-          'query_string' => [
-            'query' => $query . $flags,
-            'default_operator' => 'AND',
-            'minimum_should_match' => '75%',
-            'fields' => [ '_all', 'name^6', 'title^8', 'username^8', 'tags^12', 'hashtags^12' ],
+      // Setup parameters
+      $params = [
+        'size' => $opts['limit'],
+        'index' => $this->index,
+        'body' => [
+          'query' => [
+            'query_string' => [
+              'query' => $query . $flags,
+              'default_operator' => 'AND',
+              'minimum_should_match' => '75%',
+              'fields' => [ '_all', 'name^6', 'title^8', 'username^8', 'tags^12', 'hashtags^12' ],
+            ]
           ]
         ]
-      ]
-    ];
+      ];
 
       if ($hashtags) {
           $params['body']['sort'] = [
-           [ '_uid' => 'desc' ]
-         ];
+            [ '_uid' => 'desc' ]
+          ];
       }
 
       if ($opts['type']) {
@@ -167,8 +167,54 @@ class Documents
           var_dump($e);
           exit;
       }
-    
+
       return $guids;
+  }
+
+  public function suggestQuery($query, array $opts = [])
+  {
+      $params = [
+        'index' => $this->index,
+        'body' => [
+          'suggestion' => [
+            'text' => $query,
+            'completion' => [
+              'field' => 'suggest',
+             // 'fuzzy' => [ 'fuzziness' => 2 ]
+            ]
+          ]
+        ]
+      ];
+
+      try {
+          $suggestions = $this->client->suggest($params);
+          return $suggestions;
+      } catch (\Exception $e) {
+        echo 2;
+          var_dump($e);
+          exit;
+      }
+
+  }
+
+  public function setupSuggestedMappings()
+  {
+      $this->client->indices()->putMapping([
+        'index' => $this->index,
+        'type' => 'user',
+        'body' => [
+          'user' => [
+            'properties' => [
+              'suggest' => [
+                'type' => 'completion',
+                'analyzer' => 'simple',
+                'search_analyzer' => 'simple',
+                'payloads' => true
+              ]
+            ]
+          ]
+        ]
+      ]);
   }
 
   /**
@@ -182,7 +228,7 @@ class Documents
 
       if ($call++ >= 10) {
           // Do no index 10 levels deep
-      return null;
+          return null;
       }
 
       if (isset($data['ownerObj'])) {
@@ -205,7 +251,46 @@ class Documents
           $body[$item] = $value;
       }
 
+      if($body['type'] == 'user'){
+        $inputs = [ $body['username'], $body['name'] ];
+        //split out the name based on CamelCase
+        $nameParts = preg_split('/([\s])?(?=[A-Z])/', $body['name'], -1, PREG_SPLIT_NO_EMPTY);
+        $inputs = array_unique(array_merge($inputs, $this->permutateInputs($nameParts)));
+        $body['suggest'] = [
+          'input' => array_values($inputs),
+          'output' => "@{$body['username']}",
+          'weight' => 1,
+          'payload' => [
+            'guid' => $body['guid'],
+            'name' => $body['name'],
+            'username' => $body['username']
+          ]
+        ];
+        if($body['featured_id']){
+            $body['suggest']['weight'] += 50;
+        }
+        if($body['admin']){
+            $body['suggest']['weight'] += 100;
+        }
+      }
+
       return $body;
+  }
+
+  protected function permutateInputs($inputs, $calls = 0)
+  {
+      if (count($inputs) <= 1 || count($inputs) >= 4 || $calls > 5) {
+          return $inputs;
+      }
+
+      $result = [];
+      foreach ($inputs as $key => $item) {
+          foreach ($this->permutateInputs(array_diff_key($inputs, [$key => $item]), $calls++) as $p) {
+              $result[] = "$item $p";
+          }
+      }
+
+      return $result;
   }
 
   /**

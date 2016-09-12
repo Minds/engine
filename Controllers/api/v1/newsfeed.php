@@ -102,7 +102,7 @@ class newsfeed implements Interfaces\Api
 
         //daily campaign reward
         if (Core\Session::isLoggedIn()) {
-            Helpers\Campaigns\DailyRewards::reward();
+            Helpers\Campaigns\HourlyRewards::reward();
         }
 
         $activity = Core\Entities::get(array_merge(array(
@@ -202,7 +202,7 @@ class newsfeed implements Interfaces\Api
                 $message = '';
 
                 if (isset($_POST['message'])) {
-                    $message = urldecode($_POST['message']);
+                    $message = rawurldecode($_POST['message']);
                 }
 
                 /*if ($embeded->owner_guid != Core\Session::getLoggedinUser()->guid) {
@@ -343,14 +343,14 @@ class newsfeed implements Interfaces\Api
                 $activity->setMature(isset($_POST['mature']) && !!$_POST['mature']);
 
                 if (isset($_POST['message'])) {
-                    $activity->setMessage(urldecode($_POST['message']));
+                    $activity->setMessage(rawurldecode($_POST['message']));
                 }
 
                 if (isset($_POST['title']) && $_POST['title']) {
-                    $activity->setTitle(urldecode($_POST['title']))
-                        ->setBlurb(urldecode($_POST['description']))
-                        ->setURL(\elgg_normalize_url(urldecode($_POST['url'])))
-                        ->setThumbnail(urldecode($_POST['thumbnail']));
+                    $activity->setTitle(rawurldecode($_POST['title']))
+                        ->setBlurb(rawurldecode($_POST['description']))
+                        ->setURL(\elgg_normalize_url(rawurldecode($_POST['url'])))
+                        ->setThumbnail(rawurldecode($_POST['thumbnail']));
                 }
 
                 if (isset($_POST['attachment_guid']) && $_POST['attachment_guid']) {
@@ -413,10 +413,10 @@ class newsfeed implements Interfaces\Api
                             'twitter' => isset($_POST['twitter']) && $_POST['twitter'] ? $_POST['twitter'] : false
                         ),
                         'data' => array(
-                            'message' => urldecode($_POST['message']),
-                            'perma_url'=> isset($_POST['url']) ? \elgg_normalize_url(urldecode($_POST['url'])) : \elgg_normalize_url($activity->getURL()),
-                            'thumbnail_src' =>  isset($_POST['thumbnail']) ? urldecode($_POST['thumbnail']) : null,
-                            'description' => isset($_POST['description']) ? $_POST['description'] : null
+                            'message' => rawurldecode($_POST['message']),
+                            'perma_url'=> isset($_POST['url']) ? \elgg_normalize_url(rawurldecode($_POST['url'])) : \elgg_normalize_url($activity->getURL()),
+                            'thumbnail_src' =>  isset($_POST['thumbnail']) ? rawurldecode($_POST['thumbnail']) : null,
+                            'description' => isset($_POST['description']) ? rawurldecode($_POST['description']) : null
                         )
                     ));
 
@@ -476,12 +476,31 @@ class newsfeed implements Interfaces\Api
     public function delete($pages)
     {
         $activity = new Entities\Activity($pages[0]);
+
         if (!$activity->guid) {
             return Factory::response(array('status'=>'error', 'message'=>'could not find activity post'));
         }
 
         if (!$activity->canEdit()) {
             return Factory::response(array('status'=>'error', 'message'=>'you don\'t have permission'));
+        }
+
+        $owner = $activity->getOwnerEntity();
+
+        if (
+            $activity->entity_guid &&
+            in_array($activity->custom_type, ['batch', 'video'])
+        ) {
+            // Delete attachment object
+            try {
+                $attachment = Entities\Factory::build($activity->entity_guid);
+
+                if ($attachment && $owner->guid == $attachment->owner_guid) {
+                    $attachment->delete();
+                }
+            } catch (\Exception $e) {
+                error_log("Cannot delete attachment: {$activity->entity_guid}");
+            }
         }
 
         if ($activity->delete()) {
