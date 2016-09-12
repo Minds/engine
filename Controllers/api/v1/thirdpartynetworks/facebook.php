@@ -39,11 +39,16 @@ class facebook implements Interfaces\Api, Interfaces\ApiIgnorePam
               break;
           case "link":
               $helper = $facebook->getFb()->getRedirectLoginHelper();
-              $url = $helper->getLoginUrl(Core\Config::_()->site_url . 'api/v1/thirdpartynetworks/facebook/callback', [
-                'manage_pages',
+              $perms = [
                 'publish_pages',
                 'publish_actions'
-              ]);
+              ];
+
+              if (!isset($_GET['no_pages']) || !$_GET['no_pages']) {
+                  $perms[] = 'manage_pages';
+              }
+
+              $url = $helper->getLoginUrl(Core\Config::_()->site_url . 'api/v1/thirdpartynetworks/facebook/callback', $perms);
               forward($url);
               exit;
               break;
@@ -193,6 +198,13 @@ class facebook implements Interfaces\Api, Interfaces\ApiIgnorePam
                 $user->save();
                 break;
             case "complete-register": //changes username of a facebook account and sends welcome email
+
+                if(!Core\Security\XSRF::validateRequest()){
+                    return Factory::response([
+                      'status' => 'error',
+                      'message' => 'XSRF token not found or does not match'
+                    ]);
+                }
 
                 $user = Core\Session::getLoggedinUser();
 
