@@ -875,9 +875,9 @@ function validate_username($username) {
 		throw new RegistrationException($msg);
 	}
 
-	// username in the database has a limit of 128 characters
-	if (strlen($username) > 128) {
-		$msg = elgg_echo('registration:usernametoolong', array(128));
+	// username in the database has a limit of 64 characters
+	if (strlen($username) > 64) {
+		$msg = elgg_echo('registration:usernametoolong', array(64));
 		throw new RegistrationException($msg);
 	}
 
