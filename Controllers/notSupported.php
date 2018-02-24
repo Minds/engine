@@ -24,8 +24,8 @@ class notSupported extends core\page implements Interfaces\page
             <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
 
             <link rel="stylesheet" crossorigin="anonymous" href="https://storage.googleapis.com/code.getmdl.io/1.0.5/material.blue_grey-amber.min.css" />
-            <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-            <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Roboto:400,700'>
+            <link rel="stylesheet" crossorigin="anonymous" integrity="sha256-84ef1bXQjXdmG+bNbSbO0Y+4fsZP2/ErjAn4GDn+D44=" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+            <link rel='stylesheet' crossorigin="anonymous" integrity="sha256-8MVHE8E/ZgANWGKD1HYQ9Ia4vDzIF9OculKcF1vK1JI=" href='https://fonts.googleapis.com/css?family=Roboto:400,700'>
             <link rel="stylesheet" href="stylesheets/main.css"/>
             <script src="//storage.googleapis.com/code.getmdl.io/1.0.5/material.min.js"></script>
             <script src="//tinymce.cachefly.net/4.2/tinymce.min.js"></script>
