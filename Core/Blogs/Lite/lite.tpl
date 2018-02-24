@@ -2,8 +2,8 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-    <link rel="stylesheet" href="https://storage.googleapis.com/code.getmdl.io/1.1.2/material.blue_grey-amber.min.css" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" crossorigin="anonymous" href="https://storage.googleapis.com/code.getmdl.io/1.1.2/material.blue_grey-amber.min.css" />
+    <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Roboto:400,700'>
     <script src="//storage.googleapis.com/code.getmdl.io/1.1.2/material.min.js"></script>
     <!-- inject:css -->
@@ -55,7 +55,7 @@
           ga('create', 'UA-35146796-1', 'auto');
           ga('send', 'pageview');
 
-      </script>      
+      </script>
     <!-- End Google Analytics -->
 
   </body>

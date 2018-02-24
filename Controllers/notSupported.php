@@ -23,8 +23,8 @@ class notSupported extends core\page implements Interfaces\page
             <link rel="icon" type="image/png" href="/assets/icon.png" />
             <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
 
-            <link rel="stylesheet" href="https://storage.googleapis.com/code.getmdl.io/1.0.5/material.blue_grey-amber.min.css" />
-            <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+            <link rel="stylesheet" crossorigin="anonymous" href="https://storage.googleapis.com/code.getmdl.io/1.0.5/material.blue_grey-amber.min.css" />
+            <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/icon?family=Material+Icons">
             <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Roboto:400,700'>
             <link rel="stylesheet" href="stylesheets/main.css"/>
             <script src="//storage.googleapis.com/code.getmdl.io/1.0.5/material.min.js"></script>
