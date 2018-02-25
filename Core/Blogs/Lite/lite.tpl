@@ -5,7 +5,7 @@
     <link rel="stylesheet" crossorigin="anonymous" integrity="sha256-cwNKGvxkCC8PXO3zGjY2oHaU3TTUG8e+cNHE8uC+B+E=" href="https://storage.googleapis.com/code.getmdl.io/1.1.2/material.blue_grey-amber.min.css" />
     <link rel="stylesheet" crossorigin="anonymous" integrity="sha256-84ef1bXQjXdmG+bNbSbO0Y+4fsZP2/ErjAn4GDn+D44=" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel='stylesheet' crossorign="anonymous" integrity="sha256-8MVHE8E/ZgANWGKD1HYQ9Ia4vDzIF9OculKcF1vK1JI=" href='https://fonts.googleapis.com/css?family=Roboto:400,700'>
-    <script src="//storage.googleapis.com/code.getmdl.io/1.1.2/material.min.js"></script>
+    <script crossorign="anonymous" integrity="sha256-s0bGtNviXkzZc69iS+m80CI5K83r7r5sA4+2/NhZ8Zw=" src="//storage.googleapis.com/code.getmdl.io/1.1.2/material.min.js"></script>
     <!-- inject:css -->
     <link rel="stylesheet" href="/stylesheets/main.css?v=1500394555112">
 
