@@ -13,15 +13,28 @@ use Minds\Core;
 use Minds\Core\Security;
 use Minds\Entities;
 use Minds\Entities\Activity;
+use Minds\Entities\User;
 use Minds\Helpers;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Helpers\Counters;
+use Minds\Helpers\NewsfeedActivityActivityPubClient;
 use Minds\Interfaces;
 use Minds\Interfaces\Flaggable;
 use Minds\Core\Di\Di;
+use Minds\Interfaces\ActivityPubClient;
 
 class newsfeed implements Interfaces\Api
 {
+    /** @var ActivityPubClient */
+    protected $pubSubClient;
+
+    public function __construct(ActivityPubClient $pubSubClient = null)
+    {
+        $this->pubSubClient = $pubSubClient ?? new NewsfeedActivityActivityPubClient();
+        // See https://project.hubzilla.org for how to set your own ActivityPub server.
+        $this->pubSubClient->setActivityPubServer('https://project.hubzilla.org');
+    }
+
     /**
      * Returns the newsfeed
      * @param array $pages
@@ -420,6 +433,18 @@ class newsfeed implements Interfaces\Api
                     Helpers\Wallet::createTransaction($embeded->owner_guid, 5, $activity->guid, 'Remind');
                 }
 
+                // Post via ActivityPub:
+                /** @var User $user */
+                $user = Core\Session::getLoggedinUser();
+
+                $this->pubSubClient->setActor($user->name, "https://pub.minds.com/{$user->username}");
+
+                $this->pubSubClient->postArticle(
+                    $embeded->getTitle(),
+                    $embeded->description,
+                    "https://pub.minds.com/{$user->username}/friends"
+                );
+
                 // Follow activity
                 (new Core\Notification\PostSubscriptions\Manager())
                     ->setEntityGuid($activity->guid)
@@ -746,7 +771,7 @@ class newsfeed implements Interfaces\Api
         if (!$activity->canEdit()) {
             return Factory::response(array('status' => 'error', 'message' => 'you don\'t have permission'));
         }
-        /** @var Entities\User $owner */
+        /** @var User $owner */
         $owner = $activity->getOwnerEntity();
 
         if (
