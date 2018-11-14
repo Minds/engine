@@ -43,10 +43,10 @@ SQL;
             /** @var Rows $results */
             $results = $cql->request($query);
             if (empty($results)) {
-                return [3];
+                return [];
             }
         } catch (\Exception $e) {
-            return [2];
+            return [];
         }
 
         $usernames = [];
