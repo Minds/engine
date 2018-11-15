@@ -5,10 +5,16 @@ namespace Minds\Helpers;
 use GuzzleHttp\Client as Guzzle_Client;
 use GuzzleHttp\Psr7\Response;
 use LogicException;
+use Minds\Core\Blogs\Blog;
+use Minds\Core\Config;
+use Minds\Core\Di\Di;
 use Minds\Interfaces\ActivityPubClient;
 
 class NewsfeedActivityActivityPubClient implements ActivityPubClient
 {
+    /** @var Config */
+    protected $config;
+
     /** @var Guzzle_Client */
     protected $client;
 
@@ -26,6 +32,7 @@ class NewsfeedActivityActivityPubClient implements ActivityPubClient
 
     public function __construct(Guzzle_Client $client = null)
     {
+        $this->config = Di::_()->get('Config');
         $this->client = $client ?? new Guzzle_Client();
     }
 
@@ -65,23 +72,27 @@ class NewsfeedActivityActivityPubClient implements ActivityPubClient
      *
      * @param string $title
      * @param string $body
-     * @param string[] $to
+     * @param string $to
      * @param string[]|null $cc
      * @return int The HTTP Status code of the request.
      */
-    public function postArticle(string $title, string $body, array $to, ?array $cc = null)
+    public function postArticle(Blog $article, ?string $to, ?array $cc = null)
     {
         $this->validate();
+
+        // Default the "To" to the user's subscribers, although it could be any other user,
+        // even a user on another ActivityPub site.
+        $to = $to ?? $this->actorURI . '/subscribers';
 
         $params = [
             '@context' => [
                 'https://www.w3.org/ns/activitystreams',
-                '@language' => 'en-GB'
+                '@language' => 'en-US'
             ],
-            'id'           => 'https://rhiaro.co.uk/2016/05/minimal-activitypub',
+            'id'           => $this->config->site_url . "newsfeed/{$article->guid}",
             'type'         => 'Article',
-            'name'         => $title,
-            'content'      => $body,
+            'name'         => $article->getTitle(),
+            'content'      => $article->getBody(),
             'attributedTo' => $this->actorURI,
             'to'           => $to,
             'cc'           => $cc,
@@ -98,16 +109,21 @@ class NewsfeedActivityActivityPubClient implements ActivityPubClient
     /**
      * See: https://w3c.github.io/activitypub/#create-activity-outbox
      */
-    public function like(string $refObjectURI, array $to, ?string $summary = null, ?array $cc = null)
+    public function like(string $refObjectURI, ?string $to, ?string $summary = null, ?array $cc = null)
     {
         $this->validate();
+
+        // Default the "To" to the user's subscribers, although it could be any other user,
+        // even a user on another ActivityPub site.
+        $to = $to ?? $this->actorURI . '/subscribers';
 
         $params = [
             '@context' => [
                 'https://www.w3.org/ns/activitystreams',
-                '@language' => 'en-GB'
+                '@language' => 'en-US'
             ],
-            'id'      => 'https://rhiaro.co.uk/2016/05/minimal-activitypub',
+            // Use the item's GUID as the basis for the unique ActivityPub ID.
+            'id'      => $this->config->site_url . $this->actorURI . '/activitypub/' . $refObjectURI,
             'type'    => 'Like',
             'actor'   => $this->actorURI,
             'summary' => $summary ?? "{$this->actorName} liked the post",

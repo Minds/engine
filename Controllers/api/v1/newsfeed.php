@@ -437,13 +437,9 @@ class newsfeed implements Interfaces\Api
                 /** @var User $user */
                 $user = Core\Session::getLoggedinUser();
 
-                $this->pubSubClient->setActor($user->name, "https://pub.minds.com/{$user->username}");
+                $this->pubSubClient->setActor($user->name, "https://www.minds.com/{$user->username}");
 
-                $this->pubSubClient->postArticle(
-                    $embeded->getTitle(),
-                    $embeded->description,
-                    "https://pub.minds.com/{$user->username}/friends"
-                );
+                $this->pubSubClient->postArticle($embeded);
 
                 // Follow activity
                 (new Core\Notification\PostSubscriptions\Manager())

@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
 namespace Minds\Interfaces;
+use Minds\Core\Blogs\Blog;
 
 /**
  * The basic interface for creating a client/server Activity for Posting articles via the PubSub spec.
@@ -14,13 +15,13 @@ interface ActivityPubClient
 
     /**
      * See: https://w3c.github.io/activitypub/#create-activity-outbox
-     * @param $to string[]
+     * @param $to string
      * @param $cc string[]
      */
-    public function postArticle(string $title, string $body, array $to, ?array $cc = null);
+    public function postArticle(Blog $article, ?string $to, ?array $cc = null);
 
     /**
      * See: https://w3c.github.io/activitypub/#create-activity-outbox
      */
-    public function like(string $refObjectURI, array $to, ?string $sumary = null, ?array $cc = null);
+    public function like(string $refObjectURI, ?string $to, ?string $sumary = null, ?array $cc = null);
 }
