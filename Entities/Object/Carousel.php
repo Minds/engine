@@ -6,7 +6,7 @@ use Minds\Entities;
 /**
  * Carousel Entity
  */
-class Carousel extends Entities\Object
+class Carousel extends Entities\MindsObject
 {
     /**
      * Initialize entity attributes

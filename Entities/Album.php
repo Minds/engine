@@ -10,7 +10,7 @@ use Minds\Api;
 use Minds\Core;
 use Minds\Core\Data;
 
-class Album extends Object
+class Album extends MindsObject
 {
     protected function initializeAttributes()
     {

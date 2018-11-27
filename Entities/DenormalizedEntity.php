@@ -26,7 +26,7 @@ class DenormalizedEntity
 
     /**
      * Set this entity's database store
-     * @param object $db
+     * @param MindsObject $db
      */
     public function setDb($db)
     {
