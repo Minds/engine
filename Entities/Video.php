@@ -97,10 +97,13 @@ class Video extends MindsObject
 
     /**
      * Extend the default delete function to remove from the remote service
+     *
+     * @param bool $recursive Whether to delete all the entities contained by this entity
+     * @return bool
      */
-    public function delete()
+    public function delete($recursive = true)
     {
-        $result = parent::delete();
+        $result = parent::delete($recursive);
 
         return $result;
     }

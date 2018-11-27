@@ -150,9 +150,12 @@ class ElggUser extends ElggEntity
 	/**
 	 * Saves this user to the database.
 	 *
-	 * @return bool
-	 */
-	public function save() {
+     * @param bool $unused Needed for PHP 7.2 support.
+     * @return bool
+     * @throws IOException
+     */
+    public function save($unused = true) {
+
 			if(!$this->cache){
 					//return false;
 			}
@@ -265,9 +268,11 @@ class ElggUser extends ElggEntity
 	/**
 	 * User specific override of the entity delete method.
 	 *
+     * @param bool $unused Needed for PHP 7.2 support.
+     *
 	 * @return bool
 	 */
-	public function delete() {
+	public function delete($unused = true) {
 		global $USERNAME_TO_GUID_MAP_CACHE, $CODE_TO_GUID_MAP_CACHE;
 
 		// clear cache
