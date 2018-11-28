@@ -10,7 +10,7 @@ use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Interfaces\ActivityPubClient;
 
-class NewsfeedActivityActivityPubClient implements ActivityPubClient
+class NewsfeedActivityPubClient implements ActivityPubClient
 {
     /** @var Config */
     protected $config;

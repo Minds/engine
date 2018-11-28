@@ -17,7 +17,7 @@ use Minds\Entities\User;
 use Minds\Helpers;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Helpers\Counters;
-use Minds\Helpers\NewsfeedActivityActivityPubClient;
+use Minds\Helpers\NewsfeedActivityPubClient;
 use Minds\Interfaces;
 use Minds\Interfaces\Flaggable;
 use Minds\Core\Di\Di;
@@ -30,7 +30,7 @@ class newsfeed implements Interfaces\Api
 
     public function __construct(ActivityPubClient $pubSubClient = null)
     {
-        $this->pubSubClient = $pubSubClient ?? new NewsfeedActivityActivityPubClient();
+        $this->pubSubClient = $pubSubClient ?? new NewsfeedActivityPubClient();
         // See https://project.hubzilla.org for how to set your own ActivityPub server.
         $this->pubSubClient->setActivityPubServer('https://project.hubzilla.org');
     }
