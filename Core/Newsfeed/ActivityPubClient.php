@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Minds\Helpers;
+namespace Minds\Core\Newsfeed;
 
 use GuzzleHttp\Client as Guzzle_Client;
 use GuzzleHttp\Psr7\Response;
@@ -8,9 +8,9 @@ use LogicException;
 use Minds\Core\Blogs\Blog;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
-use Minds\Interfaces\ActivityPubClient;
+use Minds\Interfaces\ActivityPubClient as iActivityPubClient;
 
-class NewsfeedActivityPubClient implements ActivityPubClient
+class ActivityPubClient implements iActivityPubClient
 {
     /** @var Config */
     protected $config;

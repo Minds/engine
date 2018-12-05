@@ -1,20 +1,20 @@
 <?php
 
-namespace Spec\Minds\Helpers;
+namespace Spec\Minds\Core\Newsfeed;
 
 use GuzzleHttp\Client as Guzzle_Client;
 use GuzzleHttp\Psr7\Response;
 use Minds\Core\Blogs\Blog;
-use Minds\Helpers\NewsfeedActivityPubClient;
+use Minds\Helpers\ActivityPubClient;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 /**
  * Class NewsfeedActivityPubClientSpec
  * @package Spec\Minds\Helpers
- * @mixin NewsfeedActivityPubClient
+ * @mixin ActivityPubClient
  */
-class NewsfeedActivityPubClientSpec extends ObjectBehavior
+class ActivityPubClientSpec extends ObjectBehavior
 {
     protected function buildTestBlog(): Blog
     {
@@ -44,7 +44,7 @@ class NewsfeedActivityPubClientSpec extends ObjectBehavior
 
     public function it_is_initializable()
     {
-        $this->shouldHaveType('Minds\Helpers\NewsfeedActivityPubClient');
+        $this->shouldHaveType('Minds\Core\Newsfeed\ActivityPubClient');
     }
 
     public function it_should_not_post_blog_without_a_pub_server()
