@@ -96,9 +96,12 @@ class Activity extends Entity
 
     /**
      * Deletes the activity entity and indexes
+     *
+     * @param bool $unused Needed for PHP 7.2 support.
      * @return bool
+     * @throws \Minds\Exceptions\StopEventException
      */
-    public function delete()
+    public function delete($unused = true)
     {
         if ($this->p2p_boosted) {
             return false;

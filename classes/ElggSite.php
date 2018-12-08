@@ -122,7 +122,12 @@ class ElggSite extends ElggEntity {
 		return true;
 	}
 
-	public function save(){
+    /**
+     * @param bool $unused Needed for PHP 7.2 support.
+     * @return bool
+     * @throws IOException
+     */
+	public function save($unused = true){
 		global $CONFIG;
 		if(isset($CONFIG->site_name)){
 			return; //the site is not an entitiy, it is static from settings
@@ -136,16 +141,17 @@ class ElggSite extends ElggEntity {
 	 *
 	 * @note You cannot delete the current site.
 	 *
+     * @param bool $recursive Whether to delete all the entities contained by this entity
 	 * @return bool
 	 * @throws SecurityException
 	 */
-	public function delete() {
+	public function delete($recursive = true) {
 		global $CONFIG;
 		if ($CONFIG->site->getGUID() == $this->guid) {
 			throw new SecurityException('SecurityException:deletedisablecurrentsite');
 		}
 
-		return parent::delete();
+		return parent::delete($recursive);
 	}
 
 	/**

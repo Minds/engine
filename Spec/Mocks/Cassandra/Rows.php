@@ -17,8 +17,8 @@ class Rows implements \IteratorAggregate, \ArrayAccess
     public function getIterator()
     {
         return call_user_func(function () {
-            while (list($key, $val) = each($this->_items)) {
-                yield $key => $val;
+            foreach ($this->_items as $key => $value) {
+                yield $key => $value;
             }
         });
     }

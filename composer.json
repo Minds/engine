@@ -17,7 +17,7 @@
         "stripe/stripe-php": "~4.12",
 	      "thobbs/phpcassa": "dev-minds-legacy",
         "tijsverkoyen/twitteroauth": "dev-master@dev",
-        "twilio/sdk": "3.13.*",
+        "twilio/sdk": "dev-3.13.1-create-function-fix",
         "videlalvaro/php-amqplib": "dev-master@dev",
         "vscn/cruftflake": "dev-master#cab1b9ee9869072e7a58a1eb593b602ec5bedcd3",
         "zircote/swagger-php": "2.*@dev",
@@ -48,6 +48,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/davegardnerisme/cruftflake.git"
+        },
+        {
+            "type": "git",
+            "url": "https://github.com/hopeseekr/twilio-php"
         }
     ],
     "autoload": {

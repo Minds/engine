@@ -6,7 +6,7 @@ use Minds\Entities;
 /**
  * Points Transaction Entity
  */
-class Points_transaction extends Entities\Object
+class Points_transaction extends Entities\MindsObject
 {
     /**
      * Initialize attributes

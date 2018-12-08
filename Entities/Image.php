@@ -69,10 +69,14 @@ class Image extends File
 
     /**
      * Extend the default delete function to remove from the remote service
+     *
+     * @param bool $recursive Whether to delete all the entities contained by this entity
+     * @return bool
+     * @throws \ClassNotFoundException
      */
-    public function delete()
+    public function delete($recursive = true)
     {
-        return parent::delete();
+        return parent::delete($recursive);
 
         //remove from the filestore
     }

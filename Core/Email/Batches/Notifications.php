@@ -56,6 +56,7 @@ class Notifications implements EmailBatchInterface
                     /** @var Notification[] $notifications */
                     $notifications = $this->repository->getAll(['limit' => $count])['notifications'];
                 } catch (\Exception $e) {
+
                     error_log($e->getMessage());
                     continue;
                 }
@@ -63,6 +64,11 @@ class Notifications implements EmailBatchInterface
                 $today = Timestamps::get(['day'])['day'];
 
                 $i = 0;
+
+                // Needed for PHP 7.2 compatibility with the new `count`.
+                if (!$notifications) {
+                    $notifications = [];
+                }
 
                 //count all notifications created today
                 while ($i < count($notifications) && $today <= $notifications[$i]->getTimeCreated()) {

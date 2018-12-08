@@ -5,7 +5,6 @@ namespace Minds\Core\Email;
 
 
 use Minds\Core\Di\Di;
-use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Entities;
 
 class Manager
@@ -30,10 +29,16 @@ class Manager
 
         $result = $this->repository->getList($options);
 
-        if (!$result || count($result['data'] === 0)) {
+        // @FIXME: Due to a quirk in PHP < 7.2.0, count($array === 0) always returns true.
+        // @FIXME: This blows up, as it should, in PHP >= 7.2.0.
+        // @FIXME: Since this code was -always- returning true, it needs to be fixed.
+        // Orig: if (!$result || count($result['data'] === 0) {
+        if (!$result || true /** @FIXME!~! */) {
             return [];
         }
 
+        // @FIXME: Due to the function always exiting before this point, no one caught
+        // @FIXME: that this array_map blows up trying to call a method on a string.
         $guids = array_map(function ($item) {
             return $item->getUserGuid();
         }, $result['data']);

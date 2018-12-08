@@ -8,7 +8,7 @@ namespace Minds\Entities;
 
 use Minds\Core\Data;
 
-class Batch extends Object
+class Batch extends MindsObject
 {
     public function __construct($guid = null)
     {

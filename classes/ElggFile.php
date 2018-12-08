@@ -271,12 +271,15 @@ class ElggFile extends ElggObject {
 	/**
 	 * Delete this file.
 	 *
+     * @param bool $recursive Whether to delete all the entities contained by this entity
+     *
 	 * @return bool
-	 */
-	public function delete() {
+     * @throws ClassNotFoundException
+     */
+	public function delete($recursive = true) {
 		$fs = $this->getFilestore();
 		//if ($fs->delete($this)) {
-			return parent::delete();
+			return parent::delete($recursive);
 		//}
 	}
 
