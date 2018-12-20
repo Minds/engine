@@ -95,7 +95,10 @@ class Install extends Cli\Controller implements Interfaces\CliControllerInterfac
         openssl_pkey_export($ssl, $privateKey);
         $publicKey = openssl_pkey_get_details($ssl)['key'];
         
-        mkdir($target);
+        if (!file_exists($target)) {
+            mkdir($target);
+        };
+
         file_put_contents("{$target}minds.pem", $privateKey);
         file_put_contents("{$target}minds.pub", $publicKey);
 
