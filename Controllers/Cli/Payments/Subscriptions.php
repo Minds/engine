@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Payments\Subscriptions\Manager;
 use Minds\Core\Payments\Subscriptions\Queue;
+use Minds\Core\Security\ACL;
 use Minds\Helpers\Cql;
 use Minds\Interfaces;
 
@@ -30,6 +31,8 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
         // Initialize events
         \Minds\Core\Events\Defaults::_();
 
+        ACL::$ignore = true; // we need to save to channels
+
         /** @var Manager $manager */
         $manager = Di::_()->get('Payments\Subscriptions\Manager');
 
@@ -42,6 +45,7 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
         foreach ($subscriptions as $subscription) {
             $this->out("Subscription:`{$subscription->getId()}`");
             $billing = date('d-m-Y', $subscription->getNextBilling());
+            
             $user_guid = $subscription->getUser()->guid;
             $this->out("\t$billing | $user_guid");
 
@@ -53,5 +57,72 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
         }
         
         $this->out("Done");
+    }
+
+    public function fixPlusWires()
+    {
+        ACL::$ignore = true; // we need to save to channels
+        $delegate = new \Minds\Core\Wire\Delegates\Plus;
+        $usersLastPlus = [];
+        foreach ($this->getWires() as $wire) {
+            $sender_guid = $wire->getSender()->getGuid();
+            $friendly = date('d-m-Y', $wire->getTimestamp());
+            echo "\n$sender_guid";
+            if ($wire->getTimestamp() < $usersLastPlus[$sender_guid] ?? time()) {
+                echo " $friendly already given plus to this user";
+                continue;
+            }
+            $usersLastPlus[$sender_guid] = $wire->getTimestamp();
+            $friendly = date('d-m-Y', $wire->getTimestamp());
+            echo " $friendly sending plus update";
+
+            if ($delegate->onWire($wire, '0x6f2548b1bee178a49c8ea09be6845f6aeaf3e8da')) {
+                echo " done";
+            }
+            //exit;
+        }
+    }
+
+    public function getWires()
+    {
+        $cql = \Minds\Core\Di\Di::_()->get('Database\Cassandra\Cql');
+
+        $prepared = new \Minds\Core\Data\Cassandra\Prepared\Custom;
+
+        $statement = "SELECT * FROM blockchain_transactions_mainnet WHERE contract='offchain:wire' and user_guid=? ALLOW FILTERING";
+        $statement = "SELECT * FROM blockchain_transactions_mainnet WHERE user_guid=? ALLOW FILTERING";
+
+        $offset = "";
+
+        while (true) {
+            $prepared->query($statement, [ new \Cassandra\Varint(730071191229833224) ]);
+            $prepared->setOpts([
+                'paging_state_token' => $offset,
+                'page_size' => 100,
+            ]);
+
+            try {
+                $result = $cql->request($prepared);
+                if (!$result) {
+                    break;
+                }
+
+                $offset = $result->pagingStateToken();
+            } catch (\Exception $e) {
+                var_dump($e);
+            }
+            foreach ($result as $row) {
+                $data = json_decode($row['data'], true);
+
+                $wire = new \Minds\Core\Wire\Wire();
+                $wire
+                    ->setSender(new \Minds\Entities\User($data['sender_guid']))
+                    ->setReceiver(new \Minds\Entities\User($data['receiver_guid']))
+                    ->setEntity(\Minds\Entities\Factory::build($data['entity_guid']))
+                    ->setAmount((string) $data['amount'])
+                    ->setTimestamp((int) $row['timestamp']->time());
+                yield $wire;
+            }
+        }
     }
 }
