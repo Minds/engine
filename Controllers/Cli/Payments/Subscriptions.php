@@ -76,7 +76,8 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
             $friendly = date('d-m-Y', $wire->getTimestamp());
             echo " $friendly sending plus update";
 
-            if ($delegate->onWire($wire, '0x6f2548b1bee178a49c8ea09be6845f6aeaf3e8da')) {
+            //if ($delegate->onWire($wire, '0x6f2548b1bee178a49c8ea09be6845f6aeaf3e8da')) {
+            if ($delegate->onWire($wire, 'offchain')) {
                 echo " done";
             }
             //exit;
