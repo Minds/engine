@@ -75,6 +75,17 @@ class Events
             $e->setResponse(($group->isOwner($user->guid) || $group->isModerator($user->guid)) && $group->isMember($user->guid));
         });
 
+        Dispatcher::register('acl:interact', 'group', function ($e) {
+            $params = $e->getParameters();
+            $group = $params['entity'];
+            $user = $params['user'];
+            $interaction = $params['interaction'];
+
+            if ($group instanceof GroupEntity && $interaction === 'comment') {
+                $e->setResponse($group->isMember($user->guid));
+            }
+        });
+
         Dispatcher::register('delete', 'activity', function ($e) {
             $params = $e->getParameters();
             $activity = $params['entity'];
@@ -126,8 +137,16 @@ class Events
             $params = $e->getParameters();
             $group = $params['container'];
             $user = $params['user'];
+            $entity = $params['entity'];
 
-            $e->setResponse($group->isOwner($user->guid) && $group->isMember($user->guid));
+            if ($group->isOwner($user->guid)) {
+                return $e->setResponse(true);
+            }
+
+            // If member and we own the post
+            if ($group->isMember($user->guid) && $entity->owner_guid == $user->guid) {
+                return $e->setResponse(true);
+            }
         });
 
         Dispatcher::register('activity:container:prepare', 'group', function ($e) {

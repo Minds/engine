@@ -88,23 +88,25 @@ class Manager
         $trending = [];
 
         if ($opts['trending']) {
-            $cached =  $this->cacher->get($this->getCacheKey('trending'));
+            $cached = $this->cacher->get($this->getCacheKey('trending'));
 
             if ($cached !== false) {
                 $trending = json_decode($cached, true);
             } else {
-                $results = $this->trendingRepository->getTrending($opts);
+                $results = $this->trendingRepository->getList($opts);
 
                 if ($results) {
-                    $trending = array_column($results, 'hashtag');
-                    $this->cacher->set($this->getCacheKey('trending'), json_encode($trending), 15 * 60 * 60); // 15 minutes
+                    $trending = $results;
+                    $this->cacher->set($this->getCacheKey('trending'), json_encode($trending), 60 * 15); // 15 minutes
                 }
             }
         }
 
         // Default hashtags
 
-        $defaults = $opts['defaults'] ? $this->config->get('tags') : [];
+        if ($opts['defaults']) {
+            $defaults = $opts['defaults'] ? $this->config->get('tags') : [];
+        }
 
         // Merge and output
 
@@ -144,7 +146,7 @@ class Manager
             ];
         }
 
-        return array_slice(array_values($output), 0, $opts['limit']);
+        return array_slice(array_values($output), 0, count($selected) + $opts['limit']);
     }
 
     /**

@@ -7,12 +7,13 @@
 
 namespace Minds\Core\Feeds\Top;
 
-
 use Minds\Core\Blogs\Blog;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Activity;
+use Minds\Entities\Group;
 use Minds\Entities\Image;
+use Minds\Entities\User;
 use Minds\Entities\Video;
 
 class Entities
@@ -47,7 +48,7 @@ class Entities
             $entity = $this->entitiesBuilder->build($entity);
         }
 
-        if ($entity instanceof Activity) {
+        if ($entity instanceof Activity || $entity instanceof User || $entity instanceof Group) {
             return $entity;
         }
 
@@ -71,6 +72,7 @@ class Entities
             'thumbs:up:count',
             'thumbs:down:user_guids',
             'thumbs:down:count',
+            'nsfw',
         ];
 
         $activity = new Activity();
@@ -79,6 +81,8 @@ class Entities
         if ($entity instanceof Blog) {
             // New entities
             $fromExport = $entity->export();
+
+            $activity->set('message', implode(' ', array_map(function($tag) { return "#$tag"; }, $entity->getTags())));
 
             foreach ($fields as $field) {
                 if (isset($fromExport[$field])) {

@@ -68,8 +68,7 @@ class UserMapping extends EntityMapping implements MappingInterface
         $username = preg_replace('/[0-9]*/', '', $this->entity->username);
 
         if (!$name && !$username) {
-            error_log('[es]: tried to save user without username or name');
-            error_log(print_r(debug_backtrace(true), true));
+            error_log('[es]: tried to save user without username or name ' . $this->entity->guid);
             return $map;
         }
 
@@ -80,7 +79,7 @@ class UserMapping extends EntityMapping implements MappingInterface
 
         $map = array_merge($map, [
             'input' => array_values($inputs),
-            'weight' => count(array_values($inputs)) == 1 ? 2 : 2
+            'weight' => count(array_values($inputs)) == 1 ? 4 : 2
         ]);
 
         if ($this->entity->featured_id) {
@@ -89,6 +88,10 @@ class UserMapping extends EntityMapping implements MappingInterface
 
         if ($this->entity->isAdmin()) {
             $map['weight'] += 100;
+        }
+
+        if (strlen($username) > 30) {
+            $map['weight'] = 1; //spammy username
         }
 
         return $map;

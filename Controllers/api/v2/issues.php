@@ -37,6 +37,13 @@ class issues implements Interfaces\Api
         $title = $_POST['title'];
         $description = $_POST['description'];
 
+        if ($description === "wow it works!") {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Sorry, we need to fix a few things. Please visit gitlab.com/minds to report issues.'
+            ]);
+        }
+
         $description .= " reported by: @" . Session::getLoggedInUser()->username;
 
         $manager = Di::_()->get('Issues\Manager');
@@ -44,7 +51,7 @@ class issues implements Interfaces\Api
         $issue = new Issue;
         $issue->setTitle($title)
             ->setDescription($description)
-            ->setLabels('by user');
+            ->setLabels('S - Triage (New), T - Bug (Triage)');
 
         // call gitlab api
         $res = $manager->postIssue($issue, $pages[0]);

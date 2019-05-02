@@ -47,6 +47,7 @@ class ACLSpec extends ObjectBehavior
 
     public function it_should_not_allow_read_of_private_entities(Entity $entity)
     {
+        $entity->getType()->willReturn('specy');
         $entity->get('access_id')->willReturn(0);
         $this->read($entity)->shouldReturn(false);
     }
@@ -81,6 +82,9 @@ class ACLSpec extends ObjectBehavior
         $this->mock_session(true);
 
         $entity->get('owner_guid')
+            ->willReturn(123);
+        
+        $entity->get('container_guid')
             ->willReturn(123);
 
         $this->write($entity)->shouldReturn(true);

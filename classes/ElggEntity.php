@@ -66,6 +66,7 @@ abstract class ElggEntity extends ElggData implements
 		$this->attributes['last_action'] = NULL;
 		$this->attributes['enabled'] = "yes";
 		$this->attributes['tags'] = null;
+        $this->attributes['nsfw'] = [];
 
 	}
 
@@ -1065,7 +1066,10 @@ abstract class ElggEntity extends ElggData implements
                 }
             } else {
                 $this->guid = Minds\Core\Guid::build();
-                elgg_trigger_event('create', $this->type, $this);
+				elgg_trigger_event('create', $this->type, $this);
+				if (!$this->canEdit()) {
+					return false;
+				}
             }
 
             $db = new Minds\Core\Data\Call('entities');
@@ -1370,6 +1374,7 @@ abstract class ElggEntity extends ElggData implements
 			'site_guid',
 			'access_id',
             'tags',
+            'nsfw',
 		);
 	}
 
@@ -1381,7 +1386,8 @@ abstract class ElggEntity extends ElggData implements
 			}
 		}
 		$export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'all', array('entity'=>$this), []) ?: []);
-		$export = \Minds\Helpers\Export::sanitize($export);
+        $export = \Minds\Helpers\Export::sanitize($export);
+        $export['nsfw'] = $this->getNsfw();
 		return $export;
 	}
 
@@ -1535,6 +1541,39 @@ abstract class ElggEntity extends ElggData implements
             $this->rating = 1;
         }
         $this->rating = $value;
+        return $this;
+    }
+
+    /**
+     * Get NSFW options
+     * @return array
+     */
+    public function getNsfw()
+    {
+        $array = [];
+        if (!$this->nsfw) {
+            return $array;
+        }
+        foreach ($this->nsfw as $reason) {
+            $array[] = (int) $reason;
+        }
+        return $array;
+    }
+
+    /**
+     * Set NSFW tags
+     * @param array $array
+     * @return $this
+     */
+    public function setNsfw($array)
+    {
+        $array = array_unique($array);
+        foreach ($array as $reason) {
+            if ($reason < 1 || $reason > 6) {
+                throw \Exception('Incorrect NSFW value provided');
+            }
+        }
+        $this->nsfw = $array;
         return $this;
     }
 }

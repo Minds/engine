@@ -21,8 +21,8 @@ class EntityMapping implements MappingInterface
         'time_created' => [ 'type' => 'integer', '$exportField' => 'time_created' ],
         'access_id' => [ 'type' => 'text', '$exportField' => 'access_id' ],
         'public' => [ 'type' => 'boolean' ],
-        'owner_guid' => [ 'type' => 'text', '$exportField' => 'owner_guid' ],
-        'container_guid' => [ 'type' => 'text', '$exportField' => 'container_guid' ],
+        'owner_guid' => [ 'type' => 'text', 'fielddata' => true, '$exportField' => 'owner_guid' ],
+        'container_guid' => [ 'type' => 'text', 'fielddata' => true, '$exportField' => 'container_guid' ],
         'mature' => [ 'type' => 'boolean', '$exportField' => 'mature' ],
         'message' => [ 'type' => 'text', '$exportField' => 'message' ],
         'name' => [ 'type' => 'text', '$exportField' => 'name' ],
@@ -30,6 +30,7 @@ class EntityMapping implements MappingInterface
         'blurb' => [ 'type' => 'text', '$exportField' => 'blurb' ],
         'description' => [ 'type' => 'text', '$exportField' => 'description' ],
         'tags' => [ 'type' => 'text' ],
+        'nsfw' => [ 'type' => 'integer' ],
         'paywall' => [ 'type' => 'boolean', '$exportField' => 'paywall' ],
         'rating' => [ 'type' => 'integer', '$exportField' => 'rating' ],
     ];
@@ -184,6 +185,8 @@ class EntityMapping implements MappingInterface
         }
 
         $map['tags'] = array_unique(array_merge($map['tags'], array_map('strtolower', $tags)));
+
+        $map['nsfw'] = array_unique($this->entity->getNsfw());
 
         //
 

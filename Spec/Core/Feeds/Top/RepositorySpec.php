@@ -2,8 +2,9 @@
 
 namespace Spec\Minds\Core\Feeds\Top;
 
+use Minds\Core\Config;
 use Minds\Core\Data\ElasticSearch\Client;
-use Minds\Core\Data\ElasticSearch\Prepared\Update;
+use Minds\Core\Data\ElasticSearch\Prepared\Search;
 use Minds\Core\Feeds\Top\MetricsSync;
 use Minds\Core\Feeds\Top\Repository;
 use PhpSpec\ObjectBehavior;
@@ -14,15 +15,161 @@ class RepositorySpec extends ObjectBehavior
     /** @var Client */
     protected $client;
 
-    function let(Client $client)
+    /** @var Config */
+    protected $config;
+
+    function let(Client $client, Config $config)
     {
         $this->client = $client;
-        $this->beConstructedWith($client);
+        $this->config = $config;
+
+        $config->get('elasticsearch')
+            ->shouldBeCalled()
+            ->willReturn(['index' => 'minds']);
+
+        $this->beConstructedWith($client, $config);
     }
 
     function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
+    }
+
+    function it_should_query_a_list_of_activity_guids()
+    {
+        $opts = [
+            'type' => 'activity',
+            'algorithm' => 'top',
+            'period' => '1y',
+            'query' => 'test'
+        ];
+
+        $this->client->request(Argument::type(Search::class))
+            ->shouldBeCalled()
+            ->willReturn([
+                'hits' => [
+                    'hits' => [
+                        [
+                            '_source' => [
+                                'guid' => '1',
+                                'owner_guid' => '1000',
+                                'time_created' => 1,
+                            ],
+                            '_score' => 100
+                        ],
+                        [
+                            '_source' => [
+                                'guid' => '2',
+                                'owner_guid' => '1000',
+                                'time_created' => 1,
+                            ],
+                            '_score' => 50
+                        ],
+                    ]
+                ]
+            ]);
+
+        $gen = $this->getList($opts);
+
+        $gen->current()->getGuid()->shouldReturn('1');
+        $gen->current()->getScore()->shouldReturn(100.0);
+        $gen->next();
+        $gen->current()->getGuid()->shouldReturn('2');
+        $gen->current()->getScore()->shouldReturn(50.0);
+    }
+
+    function it_should_query_a_list_of_channel_guids()
+    {
+        $opts = [
+            'type' => 'user',
+            'algorithm' => 'top',
+            'period' => '1y',
+            'query' => 'test'
+        ];
+
+        $this->client->request(Argument::that(function ($query) {
+            $query = $query->build();
+            return $query['type'] === 'activity' && in_array('owner_guid', $query['body']['_source']);
+        }))
+            ->shouldBeCalled()
+            ->willReturn([
+                'hits' => [
+                    'hits' => [
+                        [
+                            '_source' => [
+                                'guid' => '1',
+                                'owner_guid' => '1',
+                                'time_created' => 1,
+                            ],
+                            '_score' => 100
+                        ],
+                        [
+                            '_source' => [
+                                'guid' => '2',
+                                'owner_guid' => '2',
+                                'time_created' => 2,
+                            ],
+                            '_score' => 50
+                        ],
+                    ]
+                ]
+            ]);
+
+        $gen = $this->getList($opts);
+
+        $gen->current()->getGuid()->shouldReturn('1');
+        $gen->current()->getScore()->shouldReturn(100.0);
+        $gen->next();
+        $gen->current()->getGuid()->shouldReturn('2');
+        $gen->current()->getScore()->shouldReturn(50.0);
+    }
+
+    function it_should_query_a_list_of_group_guids()
+    {
+        $opts = [
+            'type' => 'group',
+            'algorithm' => 'top',
+            'period' => '1y',
+            'query' => 'test'
+        ];
+
+        $this->client->request(Argument::that(function ($query) {
+            $query = $query->build();
+            return $query['type'] === 'activity' && in_array('container_guid', $query['body']['_source']);
+        }))
+            ->shouldBeCalled()
+            ->willReturn([
+                'hits' => [
+                    'hits' => [
+                        [
+                            '_source' => [
+                                'guid' => '1',
+                                'owner_guid' => '1000',
+                                'time_created' => 1,
+                                'container_guid' => '1',
+                            ],
+                            '_score' => 100
+                        ],
+                        [
+                            '_source' => [
+                                'guid' => '2',
+                                'owner_guid' => '1001',
+                                'time_created' => 2,
+                                'container_guid' => '2',
+                            ],
+                            '_score' => 50
+                        ],
+                    ]
+                ]
+            ]);
+
+        $gen = $this->getList($opts);
+
+        $gen->current()->getGuid()->shouldReturn('1');
+        $gen->current()->getScore()->shouldReturn(100.0);
+        $gen->next();
+        $gen->current()->getGuid()->shouldReturn('2');
+        $gen->current()->getScore()->shouldReturn(50.0);
     }
 
     // Seems like yielded functions have issues with PHPSpec
@@ -86,12 +233,16 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(5000);
 
-        $this->client->request(Argument::type(Update::class))
+        $this->client->bulk(Argument::that(function ($arr) {
+            return isset($arr['body']);
+        }))
             ->shouldBeCalled()
             ->willReturn(true);
 
         $this
             ->add($metric)
             ->shouldReturn(true);
+
+        $this->bulk();
     }
 }
