@@ -136,6 +136,14 @@ class subscribe implements Interfaces\Api
                 'status' => 'error'
             ]);
         }
+        
+        $isSubscribed = elgg_get_logged_in_user_entity()->isSubscribed($pages[0]);
+        
+        if($isSubscribed) {
+            /*Return a success or error?, eaither way...do not transact a point*/
+            $response = array('status'=>'success');
+            return Factory::response($response);
+        }
 
         $success = elgg_get_logged_in_user_entity()->subscribe($pages[0]);
         $response = array('status'=>'success');
@@ -164,6 +172,14 @@ class subscribe implements Interfaces\Api
     public function delete($pages)
     {
         Factory::isLoggedIn();
+        
+        $Subscribed = elgg_get_logged_in_user_entity()->isSubscribed($pages[0]);
+        if(!$Subscribed) {
+            /*Return a success or error?, eaither way...do not transact a point*/
+            $response = array('status'=>'success');
+            return Factory::response($response);
+        }
+        
         $success = elgg_get_logged_in_user_entity()->unSubscribe($pages[0]);
 
         $event = new Core\Analytics\Metrics\Event();
