@@ -54,6 +54,7 @@ class RepositorySpec extends ObjectBehavior
                                 'guid' => '1',
                                 'owner_guid' => '1000',
                                 'time_created' => 1,
+                                '@timestamp' => 1000,
                             ],
                             '_score' => 100
                         ],
@@ -62,6 +63,7 @@ class RepositorySpec extends ObjectBehavior
                                 'guid' => '2',
                                 'owner_guid' => '1000',
                                 'time_created' => 1,
+                                '@timestamp' => 1000,
                             ],
                             '_score' => 50
                         ],
@@ -89,7 +91,7 @@ class RepositorySpec extends ObjectBehavior
 
         $this->client->request(Argument::that(function ($query) {
             $query = $query->build();
-            return $query['type'] === 'activity' && in_array('owner_guid', $query['body']['_source']);
+            return $query['type'] === 'user' && in_array('guid', $query['body']['_source']);
         }))
             ->shouldBeCalled()
             ->willReturn([
@@ -100,6 +102,7 @@ class RepositorySpec extends ObjectBehavior
                                 'guid' => '1',
                                 'owner_guid' => '1',
                                 'time_created' => 1,
+                                '@timestamp' => 1000,
                             ],
                             '_score' => 100
                         ],
@@ -108,6 +111,7 @@ class RepositorySpec extends ObjectBehavior
                                 'guid' => '2',
                                 'owner_guid' => '2',
                                 'time_created' => 2,
+                                '@timestamp' => 2000,
                             ],
                             '_score' => 50
                         ],
@@ -135,7 +139,7 @@ class RepositorySpec extends ObjectBehavior
 
         $this->client->request(Argument::that(function ($query) {
             $query = $query->build();
-            return $query['type'] === 'activity' && in_array('container_guid', $query['body']['_source']);
+            return $query['type'] === 'group' && in_array('guid', $query['body']['_source']);
         }))
             ->shouldBeCalled()
             ->willReturn([
@@ -146,6 +150,7 @@ class RepositorySpec extends ObjectBehavior
                                 'guid' => '1',
                                 'owner_guid' => '1000',
                                 'time_created' => 1,
+                                '@timestamp' => 1000,
                                 'container_guid' => '1',
                             ],
                             '_score' => 100
@@ -155,6 +160,7 @@ class RepositorySpec extends ObjectBehavior
                                 'guid' => '2',
                                 'owner_guid' => '1001',
                                 'time_created' => 2,
+                                '@timestamp' => 2000,
                                 'container_guid' => '2',
                             ],
                             '_score' => 50

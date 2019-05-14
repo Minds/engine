@@ -75,16 +75,19 @@ class Index
                 'index' => $this->esIndex,
                 'type' => $mapper->getType(),
                 'id' => $mapper->getId(),
-                'body' => $body
+                'body' => [
+                    'doc' => $body,
+                    'doc_as_upsert' => true,
+                ],
             ];
 
-            $prepared = new Prepared\Index();
+            $prepared = new Prepared\Update();
             $prepared->query($query);
 
             $result = (bool) $this->client->request($prepared);
 
             // if hashtags were found, index them separately
-            if(in_array('tags', $body)) {
+            if (in_array('tags', $body) && is_array($body['tags'])) {
                 foreach($body['tags'] as $tag) {
                     $this->hashtagsManager->index($tag);
                 }
