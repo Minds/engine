@@ -36,6 +36,14 @@ class Router
       '/checkout' => '\\Minds\\Controllers\\checkout',
     );
 
+    /** @var Manager $frontendManager */
+    private $frontendManager;
+
+    public function __construct($frontendManager = null)
+    {
+        $this->frontendManager = $frontendManager ?: new Frontend\Manager;
+    }
+
     /**
      * Route the pages
      * (fallback to elgg page handler if we fail).
@@ -143,7 +151,9 @@ class Router
         }
 
         if (!$this->legacyRoute($uri)) {
-            (new I18n())->serveIndex();
+            echo $this->frontendManager->serve($request);
+            exit; // Terminate here
+            //(new I18n())->serveIndex();
         }
 
         return null;
@@ -206,4 +216,5 @@ class Router
     {
         return self::$routes = array_merge(self::$routes, $routes);
     }
+
 }
