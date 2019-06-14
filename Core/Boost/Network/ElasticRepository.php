@@ -30,11 +30,12 @@ class ElasticRepository
             'rating' => 3,
             'token' => 0,
             'offset' => null,
+            'sort' => 'asc',
         ], $opts);
         
         $must = [];
         $must_not = [];
-        $sort = [ '@timestamp' => 'asc' ];
+        $sort = [ '@timestamp' => $opts['sort'] ?: 'asc' ];
 
         $must[] = [
             'term' => [
@@ -42,18 +43,26 @@ class ElasticRepository
             ],
         ];
 
-        $must[] = [
-            'term' => [
-                'type' => $opts['type'],
-            ],
-        ];
-
-        if ($opts['offset']) {
+        if ($opts['type']) {
             $must[] = [
-                'range' => [
-                    '@timestamp' => [
-                        'gt' => $opts['offset'],
-                    ],
+                'term' => [
+                    'type' => $opts['type'],
+                ],
+            ];
+        }
+
+        if ($opts['guid']) {
+            $must[] = [
+                'term' => [
+                    '_id' => (string) $opts['guid'],
+                ],
+            ];
+        }
+
+        if ($opts['owner_guid']) {
+            $must[] = [
+                'term' => [
+                    'owner_guid' => (string) $opts['owner_guid'],
                 ],
             ];
         }
@@ -88,6 +97,7 @@ class ElasticRepository
                 ],
             ];
             $sort = ['@timestamp' => 'asc'];
+            $opts['sort'] = 'asc';
         }
 
         if ($opts['state'] === 'approved' || $opts['state'] === 'review') {
@@ -104,6 +114,16 @@ class ElasticRepository
             $must_not[] = [
                 'exists' => [
                     'field' => '@revoked',
+                ],
+            ];
+        }
+
+        if ($opts['offset']) {
+            $must[] = [
+                'range' => [
+                    '@timestamp' => [
+                        ($opts['sort'] === 'asc' ? 'gt' : 'lt') => $opts['offset'],
+                    ],
                 ],
             ];
         }
