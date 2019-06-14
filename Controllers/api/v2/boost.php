@@ -206,6 +206,7 @@ class boost implements Interfaces\Api
                     $bidType = isset($_POST['bidType']) ? $_POST['bidType'] : null;
                     $categories = isset($_POST['categories']) ? $_POST['categories'] : [];
                     $checksum =  isset($_POST['checksum']) ? $_POST['checksum'] : '';
+                    $tags = isset($_POST['tags']) ? $_POST['tags'] : [];
 
                     $amount = $impressions / $this->rate;
                     if ($priority) {
@@ -275,6 +276,7 @@ class boost implements Interfaces\Api
                         $state = 'pending';
                     }
 
+                    /** @var Network\Manager $manager */
                     $manager = Di::_()->get('Boost\Network\Manager');
 
                     $boost = (new Network\Boost())
@@ -287,6 +289,7 @@ class boost implements Interfaces\Api
                         ->setOwner(Core\Session::getLoggedInUser())
                         ->setCreatedTimestamp(round(microtime(true) * 1000))
                         ->setType(lcfirst($pages[0]))
+                        ->setTags($tags)
                         ->setPriority(false);
 
                     // Pre-set GUID

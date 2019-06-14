@@ -79,7 +79,7 @@ class ElasticRepository
                     'field' => '@reviewed',
                 ],
             ];
-            $sort = [ '@timestamp' => 'asc' ];
+            $sort = ['@timestamp' => 'asc'];
         }
 
         if ($opts['state'] === 'approved' || $opts['state'] === 'review') {
@@ -141,7 +141,8 @@ class ElasticRepository
                 ->setImpressions($doc['_source']['impressions'])
                 ->setImpressionsMet($doc['_source']['impressions_met'])
                 ->setBid($doc['_source']['bid'])
-                ->setBidType($doc['_source']['bid_type']);
+                ->setBidType($doc['_source']['bid_type'])
+                ->setTags($doc['_source']['tags']);
             $offset = $boost->getCreatedTimestamp();
             $response[] = $boost;
         }
@@ -164,6 +165,7 @@ class ElasticRepository
      * Add a boost
      * @param Boost $boost
      * @return bool
+     * @throws \Exception
      */
     public function add($boost)
     {
@@ -179,6 +181,7 @@ class ElasticRepository
                 'rating' => $boost->getRating(),
                 'type' => $boost->getType(),
                 'priority' => (bool) $boost->isPriority(),
+                'tags' => $boost->getTags(),
             ],
             'doc_as_upsert' => true,
         ];
@@ -223,6 +226,7 @@ class ElasticRepository
      * Update a boost
      * @param Boost $boost
      * @return bool
+     * @throws \Exception
      */
     public function update($boost, $fields = [])
     {
