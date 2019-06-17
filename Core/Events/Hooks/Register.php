@@ -3,8 +3,10 @@
 namespace Minds\Core\Events\Hooks;
 
 use Minds\Core;
+use Minds\Core\Referrals\Referral;
 use Minds\Entities;
 use Minds\Core\Events\Dispatcher;
+use Minds\Core\Di\Di;
 
 class Register
 {
@@ -36,6 +38,16 @@ class Register
                     $params['user']->save();
                     $params['user']->subscribe($user->guid);
                 }
+     
+                // OJMQ: should I put a null value for joinTimestamp here?
+                $referral = new Referral();
+                $referral->setProspectGuid(Core\Session::getLoggedInUserGuid())
+                    ->setReferrerGuid((string) $user->guid)
+                    ->setRegisterTimestamp(time());
+
+                $manager = Di::_()->get('Referrals\Manager');        
+                $manager->add($referral);
+                // OJMTODO: make sure it happens? do something if return(!true)?
             }
         });
 

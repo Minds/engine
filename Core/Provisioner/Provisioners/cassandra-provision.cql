@@ -1407,3 +1407,11 @@ CREATE TABLE minds.update_markers (
     updated_timestamp timestamp,
     PRIMARY KEY (user_guid, entity_type, entity_guid, marker)
 );
+
+CREATE TABLE minds.referrals (
+    referrer_guid bigint,
+    prospect_guid bigint,
+    register_timestamp timestamp,
+    join_timestamp timestamp,
+    PRIMARY KEY (referrer_guid, prospect_guid)
+) WITH CLUSTERING ORDER BY (prospect_guid DESC);

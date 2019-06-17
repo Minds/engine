@@ -6,6 +6,7 @@ namespace Minds\Core\Rewards;
 
 use Minds\Core\Di\Di;
 use Minds\Core;
+use Minds\Core\Referrals\Referral;
 use Minds\Entities\User;
 use Minds\Core\Util\BigNumber;
 
@@ -181,6 +182,15 @@ class Join
                         ->setEntityType('user')
                         ->setAction('referral')
                         ->push();
+
+                    
+                    $referral = new Referral();
+                    $referral->setProspectGuid(Core\Session::getLoggedInUserGuid())
+                        ->setJoinTimestamp(time());
+                
+                    $manager = Di::_()->get('Referrals\Manager');
+                    $manager->update($referral);                   
+                    // OJMQ: do I make sure it happens? or do something if return(!true)?
                 }
             }
         } else {

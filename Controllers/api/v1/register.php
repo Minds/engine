@@ -99,6 +99,10 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
               'guid' => $guid,
               'user' => $user->export()
             ];
+
+            // OJMTODO: if the response is successful AND isset($_COOKIE['referrer'])
+            // then  use referral manager to setProspect($user) and createPendingReferral()
+            // or should I put this in frontend post('api/v2/referrals') 
         } catch (\Exception $e) {
             $response = array('status'=>'error', 'message'=>$e->getMessage());
         }
