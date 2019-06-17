@@ -24,9 +24,11 @@ class Repository
      * @param array $opts
      * @return Response
      */
-    public function getList($referrerGuid)
+    public function getList($referral)
     {
 
+        $referrerGuid = $referral->getReferrerGuid();
+        
         $template = "SELECT * FROM referrals WHERE referrer_guid = ?";
         $values = [ (string) $referrerGuid ];
 
@@ -39,15 +41,15 @@ class Repository
             $result = $this->client->request($query);
 
             foreach ($result as $row) {
-                $referral = new Referral(); 
+                $referralRow = new Referral(); 
 
-                // OJMQ: what to do about pending referrals aka null/empty join_timestamps?
-                $referral->setProspectGuid((string) $row['prospect_guid'])
+                // OJMQ: what happens when pending referrals have no join_timestamps?
+                $referralRow->setProspectGuid((string) $row['prospect_guid'])
                     ->setReferrerGuid((string) $row['referrer_guid'])
                     ->setRegisterTimestamp((string) $row['register_timestamp'])
                     ->setJoinTimestamp((string) $row['join_timestamp']);
 
-                $response[] = $referral;
+                $response[] = $referralRow;
             }
 
         } catch (\Exception $e) {
