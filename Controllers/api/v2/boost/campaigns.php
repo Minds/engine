@@ -48,10 +48,10 @@ class campaigns implements Interfaces\Api
             $guid = (string) $urn->getNss();
         }
 
-        /** @var Repository $repository */
-        $repository = Di::_()->get('Boost\Campaigns\Repository');
+        /** @var Manager $manager */
+        $manager = Di::_()->get('Boost\Campaigns\Manager');
 
-        $response = $repository->getList([
+        $response = $manager->getList([
             'owner_guid' => Session::getLoggedinUserGuid(),
             'limit' => $limit,
             'offset' => $offset,
@@ -77,7 +77,7 @@ class campaigns implements Interfaces\Api
             ->setOwner(Session::getLoggedInUser())
             ->setName(trim($_POST['name'] ?? ''))
             ->setType($_POST['type'] ?? '')
-            ->setEntityUrns($_POST['entity_urns'] ?? null)
+            ->setEntityUrns($_POST['entity_urns'] ?? [])
             ->setHashtags($_POST['hashtags'] ?? [])
             ->setStart((int) ($_POST['start'] ?? 0))
             ->setEnd((int) ($_POST['end'] ?? 0))

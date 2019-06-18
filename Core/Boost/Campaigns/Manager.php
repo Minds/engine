@@ -6,6 +6,8 @@
 
 namespace Minds\Core\Boost\Campaigns;
 
+use Minds\Common\Repository\Response;
+
 class Manager
 {
     /** @var Repository  */
@@ -53,6 +55,15 @@ class Manager
         $this->normalizeEntityUrnsDelegate = $normalizeEntityUrnsDelegate ?: new Delegates\NormalizeEntityUrnsDelegate();
         $this->normalizeHashtagsDelegate = $normalizeHashtagsDelegate ?: new Delegates\NormalizeHashtagsDelegate();
         $this->budgetDelegate = $budgetDelegate ?: new Delegates\BudgetDelegate();
+    }
+
+    /**
+     * @param array $opts
+     * @return Response
+     */
+    public function getList(array $opts = [])
+    {
+        return $this->repository->getList($opts);
     }
 
     /**
