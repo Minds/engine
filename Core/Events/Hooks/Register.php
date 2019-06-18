@@ -39,15 +39,14 @@ class Register
                     $params['user']->subscribe($user->guid);
                 }
      
-                // OJMQ: should I put a null value for joinTimestamp here?
                 $referral = new Referral();
+                // OJMTODO: get prospect guid from something other than Session
                 $referral->setProspectGuid(Core\Session::getLoggedInUserGuid())
                     ->setReferrerGuid((string) $user->guid)
                     ->setRegisterTimestamp(time());
 
                 $manager = Di::_()->get('Referrals\Manager');        
                 $manager->add($referral);
-                // OJMTODO: make sure it happens? do something if return(!true)?
             }
         });
 

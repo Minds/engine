@@ -26,7 +26,7 @@ class Repository
      */
     public function getList($referral)
     {
-
+        // incoming $referral contains only referrerGuid
         $referrerGuid = $referral->getReferrerGuid();
         
         $template = "SELECT * FROM referrals WHERE referrer_guid = ?";
@@ -49,6 +49,8 @@ class Repository
                     ->setRegisterTimestamp((string) $row['register_timestamp'])
                     ->setJoinTimestamp((string) $row['join_timestamp']);
 
+                // OJMTODO: check if joinTimestamp exists, add it to the referralRow
+
                 $response[] = $referralRow;
             }
 
@@ -69,18 +71,17 @@ class Repository
      */
     public function add(Referral $referral)
     {
-        // OJMQ: are these validation checks necessary?
-        // if (!$referral->getReferrerGuid()) {
-        //     throw new \Exception('Referrer GUID is required');
-        // }
+        if (!$referral->getReferrerGuid()) {
+            throw new \Exception('Referrer GUID is required');
+        }
 
-        // if (!$referral->getProspectGuid()) {
-        //     throw new \Exception('Prospect GUID is required');
-        // }
+        if (!$referral->getProspectGuid()) {
+            throw new \Exception('Prospect GUID is required');
+        }
 
-        // if (!$referral->getRegisterTimestamp()) {
-        //     throw new \Exception('Register timestamp is required');
-        // }
+        if (!$referral->getRegisterTimestamp()) {
+            throw new \Exception('Register timestamp is required');
+        }
 
         $template = "INSERT INTO referrals
             (referrer_guid, prospect_guid, register_timestamp)
@@ -89,8 +90,8 @@ class Repository
         ";
 
         $values = [
-            new Cassandra\Varint($referral->getReferrerGuid()),
-            new Cassandra\Varint($referral->getProspectGuid()),
+            new Cassandra\Bigint($referral->getReferrerGuid()),
+            new Cassandra\Bigint($referral->getProspectGuid()),
             new Cassandra\Timestamp($referral->getRegisterTimestamp()),
         ];
 
@@ -113,14 +114,12 @@ class Repository
      */
     public function update(Referral $referral)
     {
-        // incoming $referral will have prospectGuid and joinTimestamp
-
-        // OJMTODO: check - shouldn't need IF EXISTS because referralValidator
-        $template = "UPDATE referrals SET join_timestamp = ? WHERE prospect_guid = ?";
+        $template = "UPDATE referrals SET join_timestamp = ? WHERE referrer_guid = ? AND prospect_guid = ?";
         
         $values = [
             new Cassandra\Timestamp($referral->getJoinTimestamp()),
-            new Cassandra\Varint($referral->getProspectGuid()),
+            new Cassandra\Bigint($referral->getReferrerGuid()),
+            new Cassandra\Bigint($referral->getProspectGuid()),
         ];
 
         $query = new Prepared\Custom();

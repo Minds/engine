@@ -49,6 +49,9 @@ class Join
     /** @var Call */
     private $db;
 
+    /** @var ReferralDelegate $eventsDelegate */
+    private $referralDelegate;
+
     public function __construct(
         $twofactor = null,
         $sms = null,
@@ -58,7 +61,8 @@ class Join
         $db = null,
         $joinedValidator = null,
         $ofacBlacklist = null,
-        $testnetBalance = null
+        $testnetBalance = null,
+        $referralDelegate = null
     )
     {
         $this->twofactor = $twofactor ?: Di::_()->get('Security\TwoFactor');
@@ -70,6 +74,7 @@ class Join
         $this->joinedValidator = $joinedValidator ?: Di::_()->get('Rewards\JoinedValidator');
         $this->ofacBlacklist = $ofacBlacklist ?: Di::_()->get('Rewards\OfacBlacklist');
         $this->testnetBalance = $testnetBalance ?: Di::_()->get('Blockchain\Wallets\OffChain\TestnetBalance');
+        $this->referralDelegate = $referralDelegate ?: new Join\Delegates\ReferralDelegate;
     }
 
     public function setUser(&$user)
@@ -169,6 +174,8 @@ class Join
                 $transaction = $transactions->create();
             }
 
+            // OJMQ: how is this the second half of this if statement working? 
+            // OJMQ: i.e. user->guid will never equal user->referrer because referrer is stored as username?
             if ($this->user->referrer && $this->user->guid != $this->user->referrer) {
                 $this->validator->setHash($hash);
 
@@ -183,14 +190,17 @@ class Join
                         ->setAction('referral')
                         ->push();
 
-                    
+                    // OJMQ: should I move this file into the Join folder that I made to hold the delegate?
+                    // OJMQ: and if yes, do I need to change everything that currently points to 'Core/Join' to 'Core/Join/Join'? 
+
                     $referral = new Referral();
-                    $referral->setProspectGuid(Core\Session::getLoggedInUserGuid())
+                    // OJMQ: will this setReferrerGuid work?
+                    $referral->setReferrerGuid((string) $this->user->referrer)
+                        ->setProspectGuid($this->user->guid)
                         ->setJoinTimestamp(time());
                 
-                    $manager = Di::_()->get('Referrals\Manager');
-                    $manager->update($referral);                   
-                    // OJMQ: do I make sure it happens? or do something if return(!true)?
+                    $this->referralDelegate->update($referral);
+
                 }
             }
         } else {

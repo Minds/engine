@@ -13,10 +13,12 @@ class Manager
     private $repository;
 
     public function __construct(
-        $repository = null
+        $repository = null,
+        $entitiesBuilder = null
     )
     {
         $this->repository = $repository ?: new Repository;
+        $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -26,8 +28,8 @@ class Manager
      */
     public function add($referral)
     {
-        // OJMQ: what happens if the add() fails?
-        // i.e. how is it that there's no scenario here where outcome returns false?     
+        // OJMTODO: return the value of repository add to solve
+        // OJMQ: what does 'return the value of repository add to solve' mean?  
         $this->repository->add($referral);
         
         return true;
@@ -40,8 +42,7 @@ class Manager
      */
     public function update($referral)
     {
-        // OJMQ: what happens if the update() fails?
-        // i.e. how is it that there's no scenario here where outcome returns false?    
+        // OJMTODO: return the value of repository update to solve   
         $this->repository->update($referral);
         
         return true;
@@ -55,7 +56,16 @@ class Manager
     public function getList($referral)
     {
         $response = $this->repository->getList($referral);
-        
+
+        // OJMQ: if I hydrate here, does it mean I'd have to change the data model 
+        // OJMQ: to include the prospect entity? (did it)
+
+        // OJMQ: if this works - how is it that I am accessing getProspectGuid()? 
+        // OJMQ: i.e. how is it accessing the data model
+        foreach ($response as $i => $referralRow) {           
+            $referralRow->setProspect($this->entitiesBuilder->single($referralRow->getProspectGuid()));
+        }
+
         return $response;
     }
 

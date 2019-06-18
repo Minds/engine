@@ -38,7 +38,10 @@ class referrals implements Interfaces\Api
             ));
         }
 
-        // OJMQ: hydrate here? or frontend as needed?
+        // OJMTODO: make a foreach here
+        // OJMQ: do I get the entity details here? 
+        // OJMQ: should I also calculate referralStatus and convert timestamps to dates here?
+
         $response['referrals'] = Factory::exportable(array_values($referrals->toArray()));
 
         return Factory::response($response);
