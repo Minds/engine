@@ -8,11 +8,16 @@ namespace Minds\Core\Boost\Campaigns;
 
 use JsonSerializable;
 use Minds\Entities\Boost\BoostEntityInterface;
+use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
 /**
  * Class Campaign
  * @package Minds\Core\Boost\Campaigns
+ * @method string getUrn()
+ * @method Campaign setUrn(string $urn)
+ * @method int|string getOwnerGuid()
+ * @method Campaign setOwnerGuid(int|string $ownerGuid)
  * @method string getName()
  * @method Campaign setName(string $name)
  * @method string getType()
@@ -27,8 +32,6 @@ use Minds\Traits\MagicAttributes;
  * @method Campaign setEnd(int $end)
  * @method string getBudget()
  * @method Campaign setBudget(string $budget)
- * @method string getUrn()
- * @method Campaign setUrn(string $urn)
  * @method string getDeliveryStatus()
  * @method Campaign setDeliveryStatus(string $deliveryStatus)
  * @method int getImpressions()
@@ -41,6 +44,12 @@ use Minds\Traits\MagicAttributes;
 class Campaign implements JsonSerializable
 {
     use MagicAttributes;
+
+    /** @var string */
+    protected $urn;
+
+    /** @var int|string */
+    protected $ownerGuid;
 
     /** @var string */
     protected $name;
@@ -64,9 +73,6 @@ class Campaign implements JsonSerializable
     protected $budget;
 
     /** @var string */
-    protected $urn;
-
-    /** @var string */
     protected $deliveryStatus;
 
     /** @var int */
@@ -77,6 +83,16 @@ class Campaign implements JsonSerializable
 
     /** @var BoostEntityInterface */
     protected $boost;
+
+    /**
+     * @param User $owner
+     * @return Campaign
+     */
+    public function setOwner(User $owner = null)
+    {
+        $this->ownerGuid = $owner ? $owner->guid : null;
+        return $this;
+    }
 
     /**
      * @return array

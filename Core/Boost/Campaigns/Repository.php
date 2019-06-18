@@ -106,7 +106,7 @@ class Repository
      * @param Campaign $campaign
      * @return bool
      */
-    public function udpate(Campaign $campaign)
+    public function update(Campaign $campaign)
     {
         // TODO: Store to Cassandra + ElasticSearch
         return true;

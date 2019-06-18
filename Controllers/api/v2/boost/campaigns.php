@@ -74,6 +74,7 @@ class campaigns implements Interfaces\Api
         $campaign = new Campaign();
 
         $campaign
+            ->setOwner(Session::getLoggedInUser())
             ->setName(trim($_POST['name'] ?? ''))
             ->setType($_POST['type'] ?? '')
             ->setEntityUrns($_POST['entity_urns'] ?? null)
