@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Boost;
 
+use Minds\Core\Boost\Campaigns\Manager as CampaignsManager;
 use Minds\Core\Boost\Campaigns\Repository as CampaignsRepository;
 use Minds\Core\Boost\Network;
 use Minds\Core\Data;
@@ -59,6 +60,9 @@ class BoostProvider extends Provider
         }, ['useFactory' => false]);
         $this->di->bind('Boost\Payment', function ($di) {
             return new Payment();
+        }, ['useFactory' => true]);
+        $this->di->bind('Boost\Campaigns\Manager', function ($di) {
+            return new CampaignsManager();
         }, ['useFactory' => true]);
         $this->di->bind('Boost\Campaigns\Repository', function ($di) {
             return new CampaignsRepository();

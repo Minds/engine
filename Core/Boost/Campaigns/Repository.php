@@ -55,6 +55,7 @@ class Repository
         ], $opts);
 
         $result = $this->esRepository->getList([
+            'is_campaign' => true,
             'owner_guid' => $opts['owner_guid'],
             'limit' => $opts['limit'],
             'offset' => $opts['offset'],
@@ -73,30 +74,8 @@ class Repository
 
             $campaign = new Campaign();
 
-            $title = "Boost #{$boost->getGuid()}";
-
-            if ($boost->getEntity()) {
-                $entity = $boost->getEntity();
-
-                if ($entity instanceof User) {
-                    $title = "Channel: @{$entity->username}";
-                } elseif ($entity instanceof Activity) {
-                    $title = $entity->message;
-                } elseif ($entity instanceof Image || $entity instanceof Video) {
-                    $title = $entity->title;
-                } elseif ($entity instanceof Blog) {
-                    $title = $entity->getTitle();
-                } elseif ($entity instanceof Group) {
-                    $title = $entity->getName();
-                }
-            }
-
-            if (strlen($title) > 30) {
-                $title = substr($title, 0, 30) + '…';
-            }
-
             $campaign
-                ->setName($title)
+                ->setName($boost->getGuid())
                 ->setType($boost->getType())
                 ->setEntityUrns(["urn:entity:{$boost->getEntityGuid()}"])
                 ->setHashtags([])
@@ -115,11 +94,22 @@ class Repository
 
     /**
      * @param Campaign $campaign
-     * @throws NotImplementedException
+     * @return bool
      */
     public function add(Campaign $campaign)
     {
-        throw new NotImplementedException();
+        // TODO: Store to Cassandra + ElasticSearch
+        return true;
+    }
+
+    /**
+     * @param Campaign $campaign
+     * @return bool
+     */
+    public function udpate(Campaign $campaign)
+    {
+        // TODO: Store to Cassandra + ElasticSearch
+        return true;
     }
 
     /**

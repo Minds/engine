@@ -31,6 +31,7 @@ class ElasticRepository
             'token' => 0,
             'offset' => null,
             'sort' => 'asc',
+            'is_campaign' => null,
         ], $opts);
         
         $must = [];
@@ -42,6 +43,14 @@ class ElasticRepository
                 'bid_type' => 'tokens',
             ],
         ];
+
+        if ($opts['is_campaign'] !== null) {
+            $must[] = [
+                'term' => [
+                    'is_campaign' => (bool) $opts['is_campaign'],
+                ],
+            ];
+        }
 
         if ($opts['type']) {
             $must[] = [

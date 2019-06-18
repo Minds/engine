@@ -12,6 +12,8 @@ namespace Minds\Controllers\api\v2\boost;
 use Exception;
 use Minds\Api\Exportable;
 use Minds\Common\Urn;
+use Minds\Core\Boost\Campaigns\Campaign;
+use Minds\Core\Boost\Campaigns\Manager;
 use Minds\Core\Boost\Campaigns\Repository;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
@@ -69,7 +71,32 @@ class campaigns implements Interfaces\Api
      */
     public function post($pages)
     {
-        // TODO: Implement post() method.
+        $campaign = new Campaign();
+
+        $campaign
+            ->setName(trim($_POST['name'] ?? ''))
+            ->setType($_POST['type'] ?? '')
+            ->setEntityUrns($_POST['entity_urns'] ?? null)
+            ->setHashtags($_POST['hashtags'] ?? [])
+            ->setStart((int) ($_POST['start'] ?? 0))
+            ->setEnd((int) ($_POST['end'] ?? 0))
+            ->setBudget((float) ($_POST['budget'] ?? 0));
+
+        /** @var Manager $manager */
+        $manager = Di::_()->get('Boost\Campaigns\Manager');
+
+        try {
+            $campaign = $manager->create($campaign);
+
+            return Factory::response([
+                'campaign' => $campaign,
+            ]);
+        } catch (\Exception $e) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
