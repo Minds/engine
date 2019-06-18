@@ -7,12 +7,14 @@
 namespace Minds\Core\Boost\Campaigns\Delegates;
 
 use Minds\Core\Boost\Campaigns\Campaign;
+use Minds\Core\Boost\Campaigns\CampaignException;
 
 class NormalizeHashtagsDelegate
 {
     /**
      * @param Campaign $campaign
      * @return Campaign
+     * @throws CampaignException
      */
     public function onCreate(Campaign $campaign)
     {
@@ -26,6 +28,10 @@ class NormalizeHashtagsDelegate
             return preg_replace('/[^a-zA-Z_]/', '', $hashtag);
         }, $hashtags))));
 
+        if (count($hashtags) > 5) {
+            throw new CampaignException('Campaigns should have 5 hashtags or less');
+        }
+
         $campaign->setHashtags($hashtags);
 
         return $campaign;
@@ -35,6 +41,7 @@ class NormalizeHashtagsDelegate
      * @param Campaign $campaign
      * @param Campaign $oldCampaign
      * @return Campaign
+     * @throws CampaignException
      */
     public function onUpdate(Campaign $campaign, Campaign $oldCampaign)
     {
