@@ -75,6 +75,10 @@ class Text
      */
     public static function buildArray($value)
     {
+        if (!$value) {
+            return [];
+        }
+
         if (is_array($value)) {
             return array_map('static::_buildArrayElement', $value);
         }

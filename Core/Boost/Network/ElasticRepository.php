@@ -4,19 +4,26 @@
  */
 namespace Minds\Core\Boost\Network;
 
+use Exception;
 use Minds\Common\Repository\Response;
-use Minds\Core\Di\Di;
-use Minds\Core\Data\ElasticSearch\Prepared;
+use Minds\Core\Boost\Elastic\RawElasticBoost;
+use Minds\Core\Boost\Elastic\Repository as ElasticBoostRepository;
 use Minds\Core\Util\BigNumber;
 
 class ElasticRepository
 {
-    /** @var Client $es */
-    protected $es;
+    /** @var ElasticBoostRepository $elasticBoostRepository */
+    protected $elasticBoostRepository;
 
-    public function __construct($es = null)
+    /**
+     * ElasticRepository constructor.
+     * @param ElasticBoostRepository $elasticBoostRepository
+     */
+    public function __construct(
+        $elasticBoostRepository = null
+    )
     {
-        $this->es = $es ?: Di::_()->get('Database\ElasticSearch');
+        $this->elasticBoostRepository = $elasticBoostRepository ?: new ElasticBoostRepository();
     }
 
     /**
@@ -27,164 +34,32 @@ class ElasticRepository
     public function getList($opts = [])
     {
         $opts = array_merge([
-            'rating' => 3,
-            'token' => 0,
-            'offset' => null,
-            'sort' => 'asc',
-            'is_campaign' => null,
+            'is_campaign' => false,
         ], $opts);
-        
-        $must = [];
-        $must_not = [];
-        $sort = [ '@timestamp' => $opts['sort'] ?: 'asc' ];
 
-        $must[] = [
-            'term' => [
-                'bid_type' => 'tokens',
-            ],
-        ];
+        $response = $this->elasticBoostRepository->getList($opts);
 
-        if ($opts['is_campaign'] !== null) {
-            $must[] = [
-                'term' => [
-                    'is_campaign' => (bool) $opts['is_campaign'],
-                ],
-            ];
-        }
-
-        if ($opts['type']) {
-            $must[] = [
-                'term' => [
-                    'type' => $opts['type'],
-                ],
-            ];
-        }
-
-        if ($opts['guid']) {
-            $must[] = [
-                'term' => [
-                    '_id' => (string) $opts['guid'],
-                ],
-            ];
-        }
-
-        if ($opts['owner_guid']) {
-            $must[] = [
-                'term' => [
-                    'owner_guid' => (string) $opts['owner_guid'],
-                ],
-            ];
-        }
-
-        if ($opts['entity_guid']) {
-            $must[] = [
-                'term' => [
-                    'entity_guid' => $opts['entity_guid']
-                ]
-            ];
-        }
-
-        if ($opts['state'] === 'approved') {
-            $must[] = [
-                'exists' => [
-                    'field' => '@reviewed',
-                ],
-            ];
-            $must[] = [
-                'range' => [
-                    'rating' => [
-                        'lte' => $opts['rating'],
-                    ],
-                ],
-            ];
-        }
-
-        if ($opts['state'] === 'review') {
-            $must_not[] = [
-                'exists' => [
-                    'field' => '@reviewed',
-                ],
-            ];
-            $sort = ['@timestamp' => 'asc'];
-            $opts['sort'] = 'asc';
-        }
-
-        if ($opts['state'] === 'approved' || $opts['state'] === 'review') {
-            $must_not[] = [
-                'exists' => [
-                    'field' => '@completed',
-                ],
-            ];
-            $must_not[] = [
-                'exists' => [
-                    'field' => '@rejected',
-                ],
-            ];
-            $must_not[] = [
-                'exists' => [
-                    'field' => '@revoked',
-                ],
-            ];
-        }
-
-        if ($opts['offset']) {
-            $must[] = [
-                'range' => [
-                    '@timestamp' => [
-                        ($opts['sort'] === 'asc' ? 'gt' : 'lt') => $opts['offset'],
-                    ],
-                ],
-            ];
-        }
-
-        $body = [
-            'query' => [
-                'bool' => [
-                    'must' => $must,
-                    'must_not' => $must_not, 
-                ],
-            ],
-            'sort' => $sort,
-        ];
-
-        $prepared = new Prepared\Search();
-        $prepared->query([
-            'index' => 'minds-boost',
-            'type' => '_doc',
-            'body' => $body,
-            'size' => $opts['limit'],
-            'from' => (int) $opts['token'],
-        ]);
-
-        $result = $this->es->request($prepared);
-        
-        $response = new Response;
-
-        $offset = 0;
-        foreach ($result['hits']['hits'] as $doc) {
+        return $response->map(function (RawElasticBoost $rawElasticBoost) {
             $boost = new Boost();
             $boost
-                ->setGuid($doc['_id'])
-                ->setEntityGuid($doc['_source']['entity_guid'])
-                ->setOwnerGuid($doc['_source']['owner_guid'])
-                ->setCreatedTimestamp($doc['_source']['@timestamp'])
-                ->setReviewedTimestamp($doc['_source']['@reviewed'] ?? null)
-                ->setRevokedTimestamp($doc['_source']['@revoked'] ?? null)
-                ->setRejectedTimestamp($doc['_source']['@rejected'] ?? null)
-                ->setCompletedTimestamp($doc['_source']['@completed'] ?? null)
-                ->setPriority($doc['_source']['priority'] ?? false)
-                ->setType($doc['_source']['type'])
-                ->setRating($doc['_source']['rating'])
-                ->setImpressions($doc['_source']['impressions'])
-                ->setImpressionsMet($doc['_source']['impressions_met'])
-                ->setBid($doc['_source']['bid'])
-                ->setBidType($doc['_source']['bid_type']);
-            $offset = $boost->getCreatedTimestamp();
-            $response[] = $boost;
-        }
+                ->setGuid($rawElasticBoost->getGuid())
+                ->setEntityGuid($rawElasticBoost->getEntityGuid())
+                ->setOwnerGuid($rawElasticBoost->getOwnerGuid())
+                ->setCreatedTimestamp($rawElasticBoost->getCreatedTimestamp())
+                ->setReviewedTimestamp($rawElasticBoost->getReviewedTimestamp() ?? null)
+                ->setRevokedTimestamp($rawElasticBoost->getRevokedTimestamp() ?? null)
+                ->setRejectedTimestamp($rawElasticBoost->getRejectedTimestamp() ?? null)
+                ->setCompletedTimestamp($rawElasticBoost->getCompletedTimestamp() ?? null)
+                ->setPriority((bool) $rawElasticBoost->isPriority())
+                ->setType($rawElasticBoost->getType())
+                ->setRating($rawElasticBoost->getRating())
+                ->setImpressions($rawElasticBoost->getImpressions())
+                ->setImpressionsMet($rawElasticBoost->getImpressionsMet())
+                ->setBid($rawElasticBoost->getBid())
+                ->setBidType($rawElasticBoost->getBidType());
 
-        $response->setPagingToken($offset);
-        return $response;
+            return $boost;
+        });
     }
 
     /**
@@ -201,67 +76,49 @@ class ElasticRepository
      * Add a boost
      * @param Boost $boost
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function add($boost)
     {
-        $body = [
-            'doc' => [
-                '@timestamp' => $boost->getCreatedTimestamp(),
-                'bid' => $boost->getBidType() === 'tokens' ?
-                    (string) BigNumber::fromPlain($boost->getBid(), 18)->toDouble() : $boost->getBid(),
-                'bid_type' => $boost->getBidType(),
-                'entity_guid' => $boost->getEntityGuid(),
-                'impressions' => $boost->getImpressions(),
-                'owner_guid' => $boost->getOwnerGuid(),
-                'rating' => $boost->getRating(),
-                'type' => $boost->getType(),
-                'priority' => (bool) $boost->isPriority(),
-            ],
-            'doc_as_upsert' => true,
-        ];
+        $rawElasticBoost = new RawElasticBoost();
+
+        $rawElasticBoost
+            ->setGuid($boost->getGuid())
+            ->setOwnerGuid($boost->getOwnerGuid())
+            ->setType($boost->getType())
+            ->setEntityGuid($boost->getEntityGuid())
+            ->setBid(
+                $boost->getBidType() === 'tokens' ?
+                    (string) BigNumber::fromPlain($boost->getBid(), 18)->toDouble() :
+                    $boost->getBid()
+            )
+            ->setBidType($boost->getBidType())
+            ->setPriority((bool) $boost->isPriority())
+            ->setRating($boost->getRating())
+            ->setImpressions($boost->getImpressions())
+            ->setImpressionsMet($boost->getImpressionsMet())
+            ->setCreatedTimestamp($boost->getCreatedTimestamp())
+            ->setReviewedTimestamp($boost->getReviewedTimestamp())
+            ->setRevokedTimestamp($boost->getRevokedTimestamp())
+            ->setRejectedTimestamp($boost->getRejectedTimestamp())
+            ->setCompletedTimestamp($boost->getCompletedTimestamp());
 
         if ($boost->getBidType() === 'tokens') {
-            $body['doc']['token_method'] = (strpos($boost->getTransactionId(), '0x', 0) === 0) 
-                ? 'onchain' : 'offchain';
+            $rawElasticBoost->setTokenMethod(
+                (strpos($boost->getTransactionId(), '0x', 0) === 0) ?
+                    'onchain' :
+                    'offchain'
+            );
         }
 
-        if ($boost->getImpressionsMet()) {
-            $body['doc']['impressions_met'] = $boost->getImpressionsMet();
-        }
-
-        if ($boost->getCompletedTimestamp()) {
-            $body['doc']['@completed'] = $boost->getCompletedTimestamp();
-        }
-
-        if ($boost->getReviewedTimestamp()) {
-            $body['doc']['@reviewed'] = $boost->getReviewedTimestamp();
-        }
-
-        if ($boost->getRevokedTimestamp()) {
-            $body['doc']['@revoked'] = $boost->getRevokedTimestamp();
-        }
-
-        if ($boost->getRejectedTimestamp()) {
-            $body['doc']['@rejected'] = $boost->getRejectedTimestamp();
-        }
-
-        $prepared = new Prepared\Update();
-        $prepared->query([
-            'index' => 'minds-boost',
-            'type' => '_doc',
-            'body' => $body,
-            'id' => $boost->getGuid(),
-        ]);
-
-        return (bool) $this->es->request($prepared);
+        return $this->elasticBoostRepository->add($rawElasticBoost);
     }
 
     /**
      * Update a boost
      * @param Boost $boost
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function update($boost, $fields = [])
     {

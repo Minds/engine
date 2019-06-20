@@ -7,7 +7,6 @@
 namespace Minds\Core\Boost\Campaigns;
 
 use JsonSerializable;
-use Minds\Entities\Boost\BoostEntityInterface;
 use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
@@ -36,10 +35,8 @@ use Minds\Traits\MagicAttributes;
  * @method Campaign setDeliveryStatus(string $deliveryStatus)
  * @method int getImpressions()
  * @method Campaign setImpressions(int $impressions)
- * @method int getCpm()
- * @method Campaign setCpm(int $cpm)
- * @method BoostEntityInterface getBoost()
- * @method Campaign setBoost(BoostEntityInterface $boost)
+ * @method int getImpressionsMet()
+ * @method Campaign setImpressionsMet(int $impressionsMet)
  */
 class Campaign implements JsonSerializable
 {
@@ -79,10 +76,7 @@ class Campaign implements JsonSerializable
     protected $impressions;
 
     /** @var int */
-    protected $cpm;
-
-    /** @var BoostEntityInterface */
-    protected $boost;
+    protected $impressionsMet;
 
     /**
      * @param User $owner
@@ -92,6 +86,18 @@ class Campaign implements JsonSerializable
     {
         $this->ownerGuid = $owner ? $owner->guid : null;
         return $this;
+    }
+
+    /**
+     * @return float
+     */
+    public function cpm()
+    {
+        if (!$this->impressions || $this->impressions === 0) {
+            return 0;
+        }
+
+        return ($this->budget / $this->impressions) * 1000;
     }
 
     /**
@@ -110,7 +116,8 @@ class Campaign implements JsonSerializable
             'urn' => $this->urn,
             'delivery_status' => $this->deliveryStatus,
             'impressions' => $this->impressions,
-            'cpm' => $this->cpm,
+            'impressions_met' => $this->impressionsMet,
+            'cpm' => $this->cpm(),
         ];
     }
 
