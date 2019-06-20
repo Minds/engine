@@ -195,6 +195,7 @@ class Repository
                 ->setRating($doc['_source']['rating'])
                 ->setImpressions($doc['_source']['impressions'])
                 ->setImpressionsMet($doc['_source']['impressions_met'])
+                ->setTags($doc['_source']['tags'])
                 ->setCampaign((bool) $doc['_source']['is_campaign'] ?? false)
                 ->setCampaignName($doc['_source']['campaign_name'] ?? null)
                 ->setCampaignStart($doc['_source']['campaign_start'] ?? null)
