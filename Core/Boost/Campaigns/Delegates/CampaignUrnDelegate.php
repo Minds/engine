@@ -53,7 +53,7 @@ class CampaignUrnDelegate
      * @return Campaign
      * @throws CampaignException
      */
-    public function onUpdate(Campaign $campaign, Campaign $oldCampaign)
+    public function onUpdate(Campaign $campaign, Campaign $oldCampaign = null)
     {
         if (!$campaign->getUrn()) {
             throw new CampaignException('Campaign must have an URN');

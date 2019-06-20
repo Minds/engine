@@ -71,10 +71,19 @@ class campaigns implements Interfaces\Api
      */
     public function post($pages)
     {
+        $isEditing = false;
+        $urn = null;
+
+        if ($pages[0]) {
+            $isEditing = true;
+            $urn = $pages[0];
+        }
+
         $campaign = new Campaign();
 
         $campaign
             ->setOwner(Session::getLoggedInUser())
+            ->setUrn($urn)
             ->setName(trim($_POST['name'] ?? ''))
             ->setType($_POST['type'] ?? '')
             ->setEntityUrns($_POST['entity_urns'] ?? [])
@@ -87,7 +96,11 @@ class campaigns implements Interfaces\Api
         $manager = Di::_()->get('Boost\Campaigns\Manager');
 
         try {
-            $campaign = $manager->create($campaign);
+            if (!$isEditing) {
+                $campaign = $manager->create($campaign);
+            } else {
+                $campaign = $manager->update($campaign);
+            }
 
             return Factory::response([
                 'campaign' => $campaign,

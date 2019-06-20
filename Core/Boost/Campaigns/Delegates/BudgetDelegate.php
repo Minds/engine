@@ -40,16 +40,7 @@ class BudgetDelegate
             throw new CampaignException('Campaign should have a budget');
         }
 
-        $cpm = (float) $this->config->get('boost')['cpm'];
-
-        if (!$cpm) {
-            throw new CampaignException('Missing CPM');
-        }
-
-        $impressions = floor((1000 * $campaign->getBudget()) / $cpm);
-
-        $campaign
-            ->setImpressions($impressions);
+        $campaign = $this->updateImpressionsByCpm($campaign);
 
         // TODO: Validate offchain balance, or set as pending for onchain
 
@@ -67,9 +58,32 @@ class BudgetDelegate
         // TODO: Validate offchain balance, or set as pending for onchain
         // TODO: Ensure budget didn't go lower than impressions met threshold
 
+        $campaign = $this->updateImpressionsByCpm($campaign);
+
         if (!$campaign->getImpressions()) {
             throw new CampaignException('Impressions value cannot be 0');
         }
+
+        return $campaign;
+    }
+
+    /**
+     * @param Campaign $campaign
+     * @return Campaign
+     * @throws CampaignException
+     */
+    protected function updateImpressionsByCpm(Campaign $campaign)
+    {
+        $cpm = (float) $this->config->get('boost')['cpm'];
+
+        if (!$cpm) {
+            throw new CampaignException('Missing CPM');
+        }
+
+        $impressions = floor((1000 * $campaign->getBudget()) / $cpm);
+
+        $campaign
+            ->setImpressions($impressions);
 
         return $campaign;
     }

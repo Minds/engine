@@ -6,7 +6,9 @@
 
 namespace Minds\Core\Boost\Campaigns;
 
+use Exception;
 use Minds\Common\Repository\Response;
+use Minds\Common\Urn;
 
 class Manager
 {
@@ -67,6 +69,31 @@ class Manager
     }
 
     /**
+     * @param $urn
+     * @return Campaign|null
+     * @throws Exception
+     */
+    public function get($urn)
+    {
+        $urn = new Urn($urn);
+        $guid = $urn->getNss();
+
+        if (!$guid) {
+            return null;
+        }
+
+        $campaigns = $this->repository->getList([
+            'guid' => $guid
+        ])->toArray();
+
+        if (!$campaigns) {
+            return null;
+        }
+
+        return $campaigns[0];
+    }
+
+    /**
      * @param Campaign $campaign
      * @return Campaign
      * @throws CampaignException
@@ -104,8 +131,6 @@ class Manager
 
         $done = $this->repository->add($campaign);
 
-        // TODO: Assign ->setBoost()
-
         if (!$done) {
             throw new CampaignException('Cannot save campaign');
         }
@@ -122,14 +147,22 @@ class Manager
     {
         $campaign = $this->campaignUrnDelegate->onUpdate($campaign, null);
 
-        // TODO: Check that campaign exists
-        // TODO: Load old campaign for comparison, compare owners!!
-        $oldCampaign = new Campaign();
+        $oldCampaign = $this->get($campaign->getUrn());
+
+        if (!$campaign) {
+            throw new CampaignException('Campaign does not exist');
+        }
 
         // Validate that there's an owner
 
         if (!$campaign->getOwnerGuid()) {
             throw new CampaignException('Campaign should have an owner');
+        }
+
+        // Validate that owner didn't change
+
+        if ($campaign->getOwnerGuid() !== $oldCampaign->getOwnerGuid()) {
+            throw new CampaignException('Campaign cannot change owners after created');
         }
 
         // Validate that there's a name
@@ -152,8 +185,6 @@ class Manager
         $campaign = $this->budgetDelegate->onUpdate($campaign, $oldCampaign); // Should be ALWAYS called after normalizing dates
 
         $done = $this->repository->update($campaign);
-
-        // TODO: Assign ->setBoost()
 
         if (!$done) {
             throw new CampaignException('Cannot save campaign');
