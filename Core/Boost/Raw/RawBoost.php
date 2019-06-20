@@ -1,62 +1,62 @@
 <?php
 /**
- * RawElasticBoost
+ * RawBoost
  * @author edgebal
  */
 
-namespace Minds\Core\Boost\Elastic;
+namespace Minds\Core\Boost\Raw;
 
 use Minds\Traits\MagicAttributes;
 
 /**
- * Class RawElasticBoost
- * @package Minds\Core\Boost\Elastic
+ * Class RawBoost
+ * @package Minds\Core\Boost\Raw
  * @method int|string getGuid()
- * @method RawElasticBoost setGuid(int|string $guid)
+ * @method RawBoost setGuid(int|string $guid)
  * @method int|string getOwnerGuid()
- * @method RawElasticBoost setOwnerGuid(int|string $ownerGuid)
+ * @method RawBoost setOwnerGuid(int|string $ownerGuid)
  * @method string getType()
- * @method RawElasticBoost setType(string $type)
+ * @method RawBoost setType(string $type)
  * @method int|string getEntityGuid()
- * @method RawElasticBoost setEntityGuid(int|string $entityGuid)
+ * @method RawBoost setEntityGuid(int|string $entityGuid)
  * @method string[] getEntityUrns()
- * @method RawElasticBoost setEntityUrns(string[] $entityUrns)
+ * @method RawBoost setEntityUrns(string[] $entityUrns)
  * @method string getBid()
- * @method RawElasticBoost setBid(string $bid)
+ * @method RawBoost setBid(string $bid)
  * @method string getBidType()
- * @method RawElasticBoost setBidType(string $bidType)
+ * @method RawBoost setBidType(string $bidType)
  * @method string getTokenMethod()
- * @method RawElasticBoost setTokenMethod(string $tokenMethod)
+ * @method RawBoost setTokenMethod(string $tokenMethod)
  * @method bool isPriority()
- * @method RawElasticBoost setPriority(bool $priority)
+ * @method RawBoost setPriority(bool $priority)
  * @method int getRating()
- * @method RawElasticBoost setRating(int $rating)
+ * @method RawBoost setRating(int $rating)
  * @method string[] getTags()
- * @method RawElasticBoost setTags(string[] $tags)
+ * @method RawBoost setTags(string[] $tags)
  * @method int getImpressions()
- * @method RawElasticBoost setImpressions(int $impressions)
+ * @method RawBoost setImpressions(int $impressions)
  * @method int getImpressionsMet()
- * @method RawElasticBoost setImpressionsMet(int $impressionsMet)
+ * @method RawBoost setImpressionsMet(int $impressionsMet)
  * @method bool isCampaign()
- * @method RawElasticBoost setCampaign(bool $campaign)
+ * @method RawBoost setCampaign(bool $campaign)
  * @method string getCampaignName()
- * @method RawElasticBoost setCampaignName(string $campaignName)
+ * @method RawBoost setCampaignName(string $campaignName)
  * @method int getCampaignStart()
- * @method RawElasticBoost setCampaignStart(int $campaignStart)
+ * @method RawBoost setCampaignStart(int $campaignStart)
  * @method int getCampaignEnd()
- * @method RawElasticBoost setCampaignEnd(int $campaignEnd)
+ * @method RawBoost setCampaignEnd(int $campaignEnd)
  * @method int getCreatedTimestamp()
- * @method RawElasticBoost setCreatedTimestamp(int $createdTimestamp)
+ * @method RawBoost setCreatedTimestamp(int $createdTimestamp)
  * @method int getReviewedTimestamp()
- * @method RawElasticBoost setReviewedTimestamp(int $reviewedTimestamp)
+ * @method RawBoost setReviewedTimestamp(int $reviewedTimestamp)
  * @method int getRevokedTimestamp()
- * @method RawElasticBoost setRevokedTimestamp(int $revokedTimestamp)
+ * @method RawBoost setRevokedTimestamp(int $revokedTimestamp)
  * @method int getRejectedTimestamp()
- * @method RawElasticBoost setRejectedTimestamp(int $rejectedTimestamp)
+ * @method RawBoost setRejectedTimestamp(int $rejectedTimestamp)
  * @method int getCompletedTimestamp()
- * @method RawElasticBoost setCompletedTimestamp(int $completedTimestamp)
+ * @method RawBoost setCompletedTimestamp(int $completedTimestamp)
  */
-class RawElasticBoost
+class RawBoost
 {
     use MagicAttributes;
 

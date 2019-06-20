@@ -1,20 +1,19 @@
 <?php
 /**
- * Repository
+ * ElasticRepository
  * @author edgebal
  */
 
-namespace Minds\Core\Boost\Elastic;
+namespace Minds\Core\Boost\Raw;
 
 use Minds\Common\Repository\Response;
 use Minds\Core\Data\ElasticSearch\Client as ElasticSearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared\Search;
 use Minds\Core\Data\ElasticSearch\Prepared\Update;
 use Minds\Core\Di\Di;
-use Minds\Core\Util\BigNumber;
 use NotImplementedException;
 
-class Repository
+class ElasticRepository
 {
     /** @var ElasticSearchClient */
     protected $elasticsearch;
@@ -181,7 +180,7 @@ class Repository
         $offset = 0;
 
         foreach ($result['hits']['hits'] as $doc) {
-            $boost = new RawElasticBoost();
+            $boost = new RawBoost();
             $boost
                 ->setGuid($doc['_id'])
                 ->setOwnerGuid($doc['_source']['owner_guid'])
@@ -217,54 +216,54 @@ class Repository
     }
 
     /**
-     * @param RawElasticBoost $rawElasticBoost
+     * @param RawBoost $rawBoost
      * @return bool
      */
-    public function add(RawElasticBoost $rawElasticBoost)
+    public function add(RawBoost $rawBoost)
     {
         $body = [
             'doc' => [
-                'owner_guid' => $rawElasticBoost->getOwnerGuid(),
-                'type' => $rawElasticBoost->getType(),
-                'entity_guid' => $rawElasticBoost->getEntityGuid(),
-                'entity_urns' => $rawElasticBoost->getEntityUrns(),
-                'bid' => $rawElasticBoost->getBid(),
-                'bid_type' => $rawElasticBoost->getBidType(),
-                'priority' => (bool) $rawElasticBoost->isPriority(),
-                'rating' => $rawElasticBoost->getRating(),
-                'impressions' => $rawElasticBoost->getImpressions(),
-                'tags' => $rawElasticBoost->getTags() ?: [],
-                'is_campaign' => $rawElasticBoost->isCampaign(),
-                'campaign_name' => $rawElasticBoost->getCampaignName(),
-                'campaign_start' => $rawElasticBoost->getCampaignStart(),
-                'campaign_end' => $rawElasticBoost->getCampaignEnd(),
-                '@timestamp' => $rawElasticBoost->getCreatedTimestamp(),
+                'owner_guid' => $rawBoost->getOwnerGuid(),
+                'type' => $rawBoost->getType(),
+                'entity_guid' => $rawBoost->getEntityGuid(),
+                'entity_urns' => $rawBoost->getEntityUrns(),
+                'bid' => $rawBoost->getBid(),
+                'bid_type' => $rawBoost->getBidType(),
+                'priority' => (bool) $rawBoost->isPriority(),
+                'rating' => $rawBoost->getRating(),
+                'impressions' => $rawBoost->getImpressions(),
+                'tags' => $rawBoost->getTags() ?: [],
+                'is_campaign' => $rawBoost->isCampaign(),
+                'campaign_name' => $rawBoost->getCampaignName(),
+                'campaign_start' => $rawBoost->getCampaignStart(),
+                'campaign_end' => $rawBoost->getCampaignEnd(),
+                '@timestamp' => $rawBoost->getCreatedTimestamp(),
             ],
             'doc_as_upsert' => true,
         ];
 
-        if ($rawElasticBoost->getTokenMethod()) {
-            $body['doc']['token_method'] = $rawElasticBoost->getTokenMethod();
+        if ($rawBoost->getTokenMethod()) {
+            $body['doc']['token_method'] = $rawBoost->getTokenMethod();
         }
 
-        if ($rawElasticBoost->getImpressionsMet()) {
-            $body['doc']['impressions_met'] = $rawElasticBoost->getImpressionsMet();
+        if ($rawBoost->getImpressionsMet()) {
+            $body['doc']['impressions_met'] = $rawBoost->getImpressionsMet();
         }
 
-        if ($rawElasticBoost->getReviewedTimestamp()) {
-            $body['doc']['@reviewed'] = $rawElasticBoost->getReviewedTimestamp();
+        if ($rawBoost->getReviewedTimestamp()) {
+            $body['doc']['@reviewed'] = $rawBoost->getReviewedTimestamp();
         }
 
-        if ($rawElasticBoost->getRevokedTimestamp()) {
-            $body['doc']['@revoked'] = $rawElasticBoost->getRevokedTimestamp();
+        if ($rawBoost->getRevokedTimestamp()) {
+            $body['doc']['@revoked'] = $rawBoost->getRevokedTimestamp();
         }
 
-        if ($rawElasticBoost->getRejectedTimestamp()) {
-            $body['doc']['@rejected'] = $rawElasticBoost->getRejectedTimestamp();
+        if ($rawBoost->getRejectedTimestamp()) {
+            $body['doc']['@rejected'] = $rawBoost->getRejectedTimestamp();
         }
 
-        if ($rawElasticBoost->getCompletedTimestamp()) {
-            $body['doc']['@completed'] = $rawElasticBoost->getCompletedTimestamp();
+        if ($rawBoost->getCompletedTimestamp()) {
+            $body['doc']['@completed'] = $rawBoost->getCompletedTimestamp();
         }
 
         $prepared = new Update();
@@ -273,22 +272,22 @@ class Repository
             'index' => 'minds-boost',
             'type' => '_doc',
             'body' => $body,
-            'id' => $rawElasticBoost->getGuid(),
+            'id' => $rawBoost->getGuid(),
         ]);
 
         return (bool) $this->elasticsearch->request($prepared);
     }
 
-    public function update(RawElasticBoost $rawElasticBoost)
+    public function update(RawBoost $rawBoost)
     {
-        return $this->add($rawElasticBoost);
+        return $this->add($rawBoost);
     }
 
     /**
-     * @param RawElasticBoost $rawElasticBoost
+     * @param RawBoost $rawBoost
      * @throws NotImplementedException
      */
-    public function delete(RawElasticBoost $rawElasticBoost)
+    public function delete(RawBoost $rawBoost)
     {
         throw new NotImplementedException();
     }

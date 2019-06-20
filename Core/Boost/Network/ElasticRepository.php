@@ -6,24 +6,24 @@ namespace Minds\Core\Boost\Network;
 
 use Exception;
 use Minds\Common\Repository\Response;
-use Minds\Core\Boost\Elastic\RawElasticBoost;
-use Minds\Core\Boost\Elastic\Repository as ElasticBoostRepository;
+use Minds\Core\Boost\Raw\RawBoost;
+use Minds\Core\Boost\Raw\ElasticRepository as RawElasticRepository;
 use Minds\Core\Util\BigNumber;
 
 class ElasticRepository
 {
-    /** @var ElasticBoostRepository $elasticBoostRepository */
-    protected $elasticBoostRepository;
+    /** @var RawElasticRepository $rawElasticRepository */
+    protected $rawElasticRepository;
 
     /**
      * ElasticRepository constructor.
-     * @param ElasticBoostRepository $elasticBoostRepository
+     * @param RawElasticRepository $rawElasticRepository
      */
     public function __construct(
-        $elasticBoostRepository = null
+        $rawElasticRepository = null
     )
     {
-        $this->elasticBoostRepository = $elasticBoostRepository ?: new ElasticBoostRepository();
+        $this->rawElasticRepository = $rawElasticRepository ?: new RawElasticRepository();
     }
 
     /**
@@ -37,26 +37,26 @@ class ElasticRepository
             'is_campaign' => false,
         ], $opts);
 
-        $response = $this->elasticBoostRepository->getList($opts);
+        $response = $this->rawElasticRepository->getList($opts);
 
-        return $response->map(function (RawElasticBoost $rawElasticBoost) {
+        return $response->map(function (RawBoost $rawBoost) {
             $boost = new Boost();
             $boost
-                ->setGuid($rawElasticBoost->getGuid())
-                ->setEntityGuid($rawElasticBoost->getEntityGuid())
-                ->setOwnerGuid($rawElasticBoost->getOwnerGuid())
-                ->setCreatedTimestamp($rawElasticBoost->getCreatedTimestamp())
-                ->setReviewedTimestamp($rawElasticBoost->getReviewedTimestamp() ?? null)
-                ->setRevokedTimestamp($rawElasticBoost->getRevokedTimestamp() ?? null)
-                ->setRejectedTimestamp($rawElasticBoost->getRejectedTimestamp() ?? null)
-                ->setCompletedTimestamp($rawElasticBoost->getCompletedTimestamp() ?? null)
-                ->setPriority((bool) $rawElasticBoost->isPriority())
-                ->setType($rawElasticBoost->getType())
-                ->setRating($rawElasticBoost->getRating())
-                ->setImpressions($rawElasticBoost->getImpressions())
-                ->setImpressionsMet($rawElasticBoost->getImpressionsMet())
-                ->setBid($rawElasticBoost->getBid())
-                ->setBidType($rawElasticBoost->getBidType());
+                ->setGuid($rawBoost->getGuid())
+                ->setEntityGuid($rawBoost->getEntityGuid())
+                ->setOwnerGuid($rawBoost->getOwnerGuid())
+                ->setCreatedTimestamp($rawBoost->getCreatedTimestamp())
+                ->setReviewedTimestamp($rawBoost->getReviewedTimestamp() ?? null)
+                ->setRevokedTimestamp($rawBoost->getRevokedTimestamp() ?? null)
+                ->setRejectedTimestamp($rawBoost->getRejectedTimestamp() ?? null)
+                ->setCompletedTimestamp($rawBoost->getCompletedTimestamp() ?? null)
+                ->setPriority((bool) $rawBoost->isPriority())
+                ->setType($rawBoost->getType())
+                ->setRating($rawBoost->getRating())
+                ->setImpressions($rawBoost->getImpressions())
+                ->setImpressionsMet($rawBoost->getImpressionsMet())
+                ->setBid($rawBoost->getBid())
+                ->setBidType($rawBoost->getBidType());
 
             return $boost;
         });
@@ -80,9 +80,9 @@ class ElasticRepository
      */
     public function add($boost)
     {
-        $rawElasticBoost = new RawElasticBoost();
+        $rawBoost = new RawBoost();
 
-        $rawElasticBoost
+        $rawBoost
             ->setGuid($boost->getGuid())
             ->setOwnerGuid($boost->getOwnerGuid())
             ->setType($boost->getType())
@@ -104,14 +104,14 @@ class ElasticRepository
             ->setCompletedTimestamp($boost->getCompletedTimestamp());
 
         if ($boost->getBidType() === 'tokens') {
-            $rawElasticBoost->setTokenMethod(
+            $rawBoost->setTokenMethod(
                 (strpos($boost->getTransactionId(), '0x', 0) === 0) ?
                     'onchain' :
                     'offchain'
             );
         }
 
-        return $this->elasticBoostRepository->add($rawElasticBoost);
+        return $this->rawElasticRepository->add($rawBoost);
     }
 
     /**

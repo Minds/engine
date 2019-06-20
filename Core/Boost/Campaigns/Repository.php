@@ -9,9 +9,8 @@ namespace Minds\Core\Boost\Campaigns;
 use Exception;
 use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
-use Minds\Core\Boost\Elastic\RawElasticBoost;
-use Minds\Core\Boost\Elastic\Repository as ElasticBoostRepository;
-use Minds\Core\Boost\Network\Boost;
+use Minds\Core\Boost\Raw\RawBoost;
+use Minds\Core\Boost\Raw\ElasticRepository as RawElasticRepository;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Helpers\Text;
@@ -19,8 +18,8 @@ use NotImplementedException;
 
 class Repository
 {
-    /** @var ElasticBoostRepository $elasticBoostRepository */
-    protected $elasticBoostRepository;
+    /** @var RawElasticRepository $rawElasticRepository */
+    protected $rawElasticRepository;
 
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
@@ -28,15 +27,15 @@ class Repository
     /**
      * Repository constructor.
      * @param EntitiesBuilder $entitiesBuilder
-     * @param ElasticBoostRepository $elasticBoostRepository
+     * @param RawElasticRepository $rawElasticRepository
      */
     public function __construct(
         $entitiesBuilder = null,
-        $elasticBoostRepository = null
+        $rawElasticRepository = null
     )
     {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
-        $this->elasticBoostRepository = $elasticBoostRepository ?: new ElasticBoostRepository();
+        $this->rawElasticRepository = $rawElasticRepository ?: new RawElasticRepository();
     }
 
     /**
@@ -52,7 +51,7 @@ class Repository
             'guid' => null,
         ], $opts);
 
-        $result = $this->elasticBoostRepository->getList([
+        $result = $this->rawElasticRepository->getList([
             'is_campaign' => true,
             'owner_guid' => $opts['owner_guid'],
             'limit' => $opts['limit'],
@@ -61,7 +60,7 @@ class Repository
             'sort' => 'desc',
         ]);
 
-        return $result->map(function (RawElasticBoost $rawElasticBoost) {
+        return $result->map(function (RawBoost $rawBoost) {
             $campaign = new Campaign();
 
             // Entities
@@ -72,11 +71,11 @@ class Repository
                 }
 
                 return $entityUrn;
-            }, Text::buildArray($rawElasticBoost->getEntityUrns()));
+            }, Text::buildArray($rawBoost->getEntityUrns()));
 
             // Hashtags
 
-            $tags = Text::buildArray($rawElasticBoost->getTags());
+            $tags = Text::buildArray($rawBoost->getTags());
 
             // Delivery Status
 
@@ -86,18 +85,18 @@ class Repository
             // Campaign
 
             $campaign
-                ->setOwnerGuid($rawElasticBoost->getOwnerGuid())
-                ->setName($rawElasticBoost->getCampaignName())
-                ->setType($rawElasticBoost->getType())
+                ->setOwnerGuid($rawBoost->getOwnerGuid())
+                ->setName($rawBoost->getCampaignName())
+                ->setType($rawBoost->getType())
                 ->setEntityUrns($entityUrns)
                 ->setHashtags($tags)
-                ->setStart($rawElasticBoost->getCampaignStart())
-                ->setEnd($rawElasticBoost->getCampaignEnd())
-                ->setBudget($rawElasticBoost->getBid())
+                ->setStart($rawBoost->getCampaignStart())
+                ->setEnd($rawBoost->getCampaignEnd())
+                ->setBudget($rawBoost->getBid())
                 ->setDeliveryStatus($deliveryStatus)
-                ->setUrn("urn:campaign:{$rawElasticBoost->getGuid()}")
-                ->setImpressions($rawElasticBoost->getImpressions())
-                ->setImpressionsMet($rawElasticBoost->getImpressionsMet());
+                ->setUrn("urn:campaign:{$rawBoost->getGuid()}")
+                ->setImpressions($rawBoost->getImpressions())
+                ->setImpressionsMet($rawBoost->getImpressionsMet());
 
             return $campaign;
         });
@@ -117,9 +116,9 @@ class Repository
 
         // Raw Boost
 
-        $rawElasticBoost = new RawElasticBoost();
+        $rawBoost = new RawBoost();
 
-        $rawElasticBoost
+        $rawBoost
             ->setOwnerGuid($campaign->getOwnerGuid())
             ->setCampaignName($campaign->getName())
             ->setType($campaign->getType())
@@ -136,7 +135,7 @@ class Repository
             ->setPriority(false);
 
         $cqlSave = true; // TODO: Implement Cassandra Repo
-        $esSave = $this->elasticBoostRepository->add($rawElasticBoost);
+        $esSave = $this->rawElasticRepository->add($rawBoost);
 
         return $cqlSave && $esSave;
     }
