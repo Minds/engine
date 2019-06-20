@@ -8,6 +8,7 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\Cassandra\Prepared; 
 use Cassandra;
+use Cassandra\Bigint;
 
 class Repository
 {
@@ -24,13 +25,19 @@ class Repository
      * @param array $opts
      * @return Response
      */
-    public function getList($referral)
+    public function getList($opts = [])
     {
-        // incoming $referral contains only referrerGuid
-        $referrerGuid = $referral->getReferrerGuid();
-        
+        $opts = array_merge([
+            'limit' => 12,
+            'referrer_guid' => null,
+        ], $opts);
+
+        if (!$opts['referrer_guid']) {
+            throw new \Exception('Referrer guid not provided');
+        }
+
         $template = "SELECT * FROM referrals WHERE referrer_guid = ?";
-        $values = [ (string) $referrerGuid ];
+        $values = [ new Bigint($opts['referrer_guid']) ];
 
         $query = new Prepared\Custom();
         $query->query($template, $values);
@@ -39,19 +46,19 @@ class Repository
 
         try {
             $result = $this->client->request($query);
-
+            
             foreach ($result as $row) {
-                $referralRow = new Referral(); 
 
-                // OJMQ: what happens when pending referrals have no join_timestamps?
-                $referralRow->setProspectGuid((string) $row['prospect_guid'])
+                $referral = new Referral(); 
+
+                $referral->setProspectGuid((string) $row['prospect_guid'])
                     ->setReferrerGuid((string) $row['referrer_guid'])
                     ->setRegisterTimestamp((string) $row['register_timestamp'])
                     ->setJoinTimestamp((string) $row['join_timestamp']);
 
-                // OJMTODO: check if joinTimestamp exists, add it to the referralRow
+                // OJMTODO: check if joinTimestamp exists, add it to the referral
 
-                $response[] = $referralRow;
+                $response[] = $referral;
             }
 
         } catch (\Exception $e) {

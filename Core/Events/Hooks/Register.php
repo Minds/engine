@@ -40,8 +40,7 @@ class Register
                 }
      
                 $referral = new Referral();
-                // OJMTODO: get prospect guid from something other than Session
-                $referral->setProspectGuid(Core\Session::getLoggedInUserGuid())
+                $referral->setProspectGuid($params['user']->getGuid())
                     ->setReferrerGuid((string) $user->guid)
                     ->setRegisterTimestamp(time());
 

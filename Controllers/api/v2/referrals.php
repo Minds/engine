@@ -11,6 +11,7 @@ use Minds\Core;
 use Minds\Core\Referrals\Referral;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Di\Di;
 
 
 class referrals implements Interfaces\Api
@@ -23,11 +24,11 @@ class referrals implements Interfaces\Api
     {
         $response = [];
 
-        $referral = new Referral();
-        $referral->setReferrerGuid(Core\Session::getLoggedInUserGuid());
-   
         $manager = Di::_()->get('Referrals\Manager');
-        $referrals = $manager->getList($referral);
+        $opts = ['referrer_guid'=>Core\Session::getLoggedInUserGuid()];
+
+        $referrals = $manager->getList($opts);
+
 
         // OJMTODO: confirm what is the outcome for request with no referrals 
         // OJMTODO: incorporate no referral case into UI
@@ -38,11 +39,47 @@ class referrals implements Interfaces\Api
             ));
         }
 
-        // OJMTODO: make a foreach here
-        // OJMQ: do I get the entity details here? 
-        // OJMQ: should I also calculate referralStatus and convert timestamps to dates here?
-
         $response['referrals'] = Factory::exportable(array_values($referrals->toArray()));
+
+        // OJMTODO: remove all this when done testing
+        // OJMTODO: learn syntax for objects/arrays more betterer
+        $tempProspect1 = (object) [
+            "guid" => "988145006634078224",
+            "verified" => true,
+            "username" => "oldprospector",
+            "name" => "oldprospector",
+            "icontime" => "1560987887"
+          ];
+        
+        $tempRef1 = (object) [
+            'referrer_guid' => '987892327202689039',
+            'state' => 'complete',
+            'score' => 10,
+            'register_timestamp' => "1560857128000",
+            'join_timestamp' => "1560867128000",
+            'prospect' => $tempProspect1
+        ];
+
+        $tempProspect2 = (object) [
+            "guid" => "988145006634077224",
+            "verified" => true,
+            "username" => "doge",
+            "name" => "doge",
+            "icontime" => "1560987887"
+          ];
+        
+        $tempRef2 = (object) [
+            'referrer_guid' => '987892327202689039',
+            'state' => 'complete',
+            'score' => 10,
+            'register_timestamp' => "1440837128000",
+            'join_timestamp' => "1550867108000",
+            'prospect' => $tempProspect2
+        ];
+
+        array_push($response['referrals'], $tempRef1);
+        array_push($response['referrals'], $tempRef2);
+
 
         return Factory::response($response);
     }

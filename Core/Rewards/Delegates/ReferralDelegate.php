@@ -14,7 +14,7 @@ class ReferralDelegate
 
     public function __construct($manager = null)
     {
-        $this->manager = $manager ?: Di::_()->get('Core\Referrals\Manager');
+        $this->manager = $manager ?: Di::_()->get('Referrals\Manager');
     }
 
     /**
@@ -22,10 +22,14 @@ class ReferralDelegate
      * @param Referral $referral
      * @return void
      */
-    public function update($referral)
+    public function onReferral(User $user)
     {
-        $this->manager->update($referral);
-
+        $referral = new Referral();
+        $referral->setReferrerGuid((string) $user->referrer)
+            ->setProspectGuid($user->guid)
+            ->setJoinTimestamp(time());
+    
+        $this->manager->update($referral);           
     }
 
 }

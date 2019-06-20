@@ -76,7 +76,7 @@ class DataProvider extends Provider
                 $username,
                 null,
                 [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT,
                     PDO::ATTR_EMULATE_PREPARES => true,
                     PDO::ATTR_PERSISTENT => isset($config['persistent']) ? $config['persistent'] : false,
                 ]);

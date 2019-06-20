@@ -174,8 +174,7 @@ class Join
                 $transaction = $transactions->create();
             }
 
-            // OJMQ: how is this the second half of this if statement working? 
-            // OJMQ: i.e. user->guid will never equal user->referrer because referrer is stored as username?
+            // $this->user->referrer is a guid
             if ($this->user->referrer && $this->user->guid != $this->user->referrer) {
                 $this->validator->setHash($hash);
 
@@ -190,16 +189,8 @@ class Join
                         ->setAction('referral')
                         ->push();
 
-                    // OJMQ: should I move this file into the Join folder that I made to hold the delegate?
-                    // OJMQ: and if yes, do I need to change everything that currently points to 'Core/Join' to 'Core/Join/Join'? 
 
-                    $referral = new Referral();
-                    // OJMQ: will this setReferrerGuid work?
-                    $referral->setReferrerGuid((string) $this->user->referrer)
-                        ->setProspectGuid($this->user->guid)
-                        ->setJoinTimestamp(time());
-                
-                    $this->referralDelegate->update($referral);
+                    $this->referralDelegate->onReferral($this->user);
 
                 }
             }

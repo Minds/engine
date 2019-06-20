@@ -5,6 +5,7 @@
 namespace Minds\Core\Referrals;
 
 use Minds\Core\Referrals\Repository;
+use Minds\Core\Di\Di;
 
 class Manager
 {
@@ -53,17 +54,22 @@ class Manager
      * @param array $opts
      * @return Response
      */
-    public function getList($referral)
+    public function getList($opts = [])
     {
-        $response = $this->repository->getList($referral);
+        $opts = array_merge([
+            'limit' => 12,
+            'referrer_guid' => null,
+            'hydrate' => true,
+        ], $opts);
 
-        // OJMQ: if I hydrate here, does it mean I'd have to change the data model 
-        // OJMQ: to include the prospect entity? (did it)
+        $response = $this->repository->getList($opts);
 
-        // OJMQ: if this works - how is it that I am accessing getProspectGuid()? 
-        // OJMQ: i.e. how is it accessing the data model
-        foreach ($response as $i => $referralRow) {           
-            $referralRow->setProspect($this->entitiesBuilder->single($referralRow->getProspectGuid()));
+        // hydrate prospect here
+        if ($opts['hydrate']) { 
+            foreach ($response as $referral) {           
+                $prospect = $this->entitiesBuilder->single($referral->getProspectGuid());
+                $referral->setProspect($prospect);
+            }
         }
 
         return $response;
