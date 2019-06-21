@@ -17,7 +17,7 @@ class MediaProvider extends Provider
         }, ['useFactory' => true]);
 
         $this->di->bind('Media\Feeds', function ($di) {
-            return new Feeds(new Core\Data\Call('entities_by_time'), new Core\Data\Call('entities'));
+            return new Feeds();
         }, ['useFactory' => true]);
 
         $this->di->bind('Media\Repository', function ($di) {
