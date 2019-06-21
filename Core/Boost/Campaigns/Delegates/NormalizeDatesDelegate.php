@@ -51,8 +51,7 @@ class NormalizeDatesDelegate
     public function onUpdate(Campaign $campaign, Campaign $campaignRef)
     {
         // TODO: Ensure date updates from ref are valid against original campaign budget, etc.
-        // TODO: Disallow changing start date after campaign started distributing
-        // NOTE: Careful about the today comparison on onCreate()
+        // TODO: Disallow changing start date after campaign started
 
         $campaign
             ->setStart($campaignRef->getStart())

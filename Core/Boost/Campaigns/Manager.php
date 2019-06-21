@@ -179,7 +179,7 @@ class Manager
             throw new CampaignException('Campaign does not exist');
         }
 
-        $isOwner = (string) $this->actor->guid !== (string) $campaign->getOwnerGuid();
+        $isOwner = (string) $this->actor->guid === (string) $campaign->getOwnerGuid();
 
         if ($this->actor && !$this->actor->isAdmin() && !$isOwner) {
             throw new CampaignException('You\'re not allowed to edit this campaign');
@@ -270,7 +270,7 @@ class Manager
             throw new CampaignException('Campaign does not exist');
         }
 
-        $isOwner = (string) $this->actor->guid !== (string) $campaign->getOwnerGuid();
+        $isOwner = (string) $this->actor->guid === (string) $campaign->getOwnerGuid();
 
         if ($this->actor && !$this->actor->isAdmin() && !$isOwner) {
             throw new CampaignException('You\'re not allowed to cancel this campaign');
