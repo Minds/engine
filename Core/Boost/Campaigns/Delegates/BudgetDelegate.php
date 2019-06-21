@@ -55,7 +55,7 @@ class BudgetDelegate
      */
     public function onUpdate(Campaign $campaign, Campaign $oldCampaign)
     {
-        // TODO: Validate offchain balance, or set as pending for onchain
+        // TODO: Validate balance, or set as pending for onchain
         // TODO: Ensure budget didn't go lower than impressions met threshold
 
         $campaign = $this->updateImpressionsByCpm($campaign);
@@ -63,6 +63,19 @@ class BudgetDelegate
         if (!$campaign->getImpressions()) {
             throw new CampaignException('Impressions value cannot be 0');
         }
+
+        return $campaign;
+    }
+
+    /**
+     * @param Campaign $campaign
+     * @return Campaign
+     */
+    public function refund(Campaign $campaign)
+    {
+        // TODO: Check that campaign is in a final incomplete status (revoked/rejected)
+        // TODO: Refund!
+        // TODO: Store refund info onto Campaign/Boost metadata
 
         return $campaign;
     }

@@ -51,6 +51,24 @@ class Campaign implements JsonSerializable
     use MagicAttributes;
 
     /** @var string */
+    const COMPLETED_STATUS = 'completed';
+
+    /** @var string */
+    const REJECTED_STATUS = 'rejected';
+
+    /** @var string */
+    const REVOKED_STATUS = 'revoked';
+
+    /** @var string */
+    const APPROVED_STATUS = 'approved';
+
+    /** @var string */
+    const CREATED_STATUS = 'created';
+
+    /** @var string */
+    const PENDING_STATUS = 'pending';
+
+    /** @var string */
     protected $urn;
 
     /** @var int|string */
@@ -114,18 +132,18 @@ class Campaign implements JsonSerializable
     public function getDeliveryStatus()
     {
         if ($this->completedTimestamp) {
-            return 'completed';
+            return static::COMPLETED_STATUS;
         } elseif ($this->rejectedTimestamp) {
-            return 'rejected';
+            return static::REJECTED_STATUS;
         } elseif ($this->revokedTimestamp) {
-            return 'revoked';
+            return static::REVOKED_STATUS;
         } elseif ($this->reviewedTimestamp) {
-            return 'approved';
+            return static::APPROVED_STATUS;
         } elseif ($this->createdTimestamp) {
-            return 'created';
+            return static::CREATED_STATUS;
         }
 
-        return 'pending';
+        return static::PENDING_STATUS;
     }
 
     /**

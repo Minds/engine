@@ -195,4 +195,103 @@ class Manager
 
         return $campaign;
     }
+
+    /**
+     * @param Campaign $campaign
+     * @return Campaign
+     * @throws CampaignException
+     */
+    public function start(Campaign $campaign)
+    {
+        if ($campaign->getDeliveryStatus() !== Campaign::CREATED_STATUS) {
+            throw new CampaignException('Campaign should be in [created] state in order to start it');
+        }
+
+        $now = time() * 1000;
+
+        $campaign
+            ->setStart($now) // Update start date so we can calculate distribution correctly
+            ->setReviewedTimestamp($now);
+
+        $done = $this->repository->update($campaign);
+
+        if (!$done) {
+            throw new CampaignException('Cannot save campaign');
+        }
+
+        return $campaign;
+    }
+
+    /**
+     * @param Campaign $campaign
+     * @return Campaign
+     * @throws CampaignException
+     */
+    public function cancel(Campaign $campaign)
+    {
+        if (!in_array($campaign->getDeliveryStatus(), [Campaign::CREATED_STATUS, Campaign::APPROVED_STATUS])) {
+            throw new CampaignException('Campaign should be in [created] or [approved] state in order to cancel it');
+        }
+
+        $campaign
+            ->setRevokedTimestamp(time() * 1000);
+
+        $done = $this->repository->update($campaign);
+
+        if (!$done) {
+            throw new CampaignException('Cannot save campaign');
+        }
+
+        $this->budgetDelegate->refund($campaign);
+
+        return $campaign;
+    }
+
+    /**
+     * @param Campaign $campaign
+     * @return Campaign
+     * @throws CampaignException
+     */
+    public function reject(Campaign $campaign)
+    {
+        if ($campaign->getDeliveryStatus() !== Campaign::CREATED_STATUS) {
+            throw new CampaignException('Campaign should be in [created] state in order to reject it');
+        }
+
+        $campaign
+            ->setRejectedTimestamp(time() * 1000);
+
+        $done = $this->repository->update($campaign);
+
+        if (!$done) {
+            throw new CampaignException('Cannot save campaign');
+        }
+
+        $this->budgetDelegate->refund($campaign);
+
+        return $campaign;
+    }
+
+    /**
+     * @param Campaign $campaign
+     * @return Campaign
+     * @throws CampaignException
+     */
+    public function complete(Campaign $campaign)
+    {
+        if ($campaign->getDeliveryStatus() !== Campaign::CREATED_STATUS) {
+            throw new CampaignException('Campaign should be in [approved] state in order to complete it');
+        }
+
+        $campaign
+            ->setCompletedTimestamp(time() * 1000);
+
+        $done = $this->repository->update($campaign);
+
+        if (!$done) {
+            throw new CampaignException('Cannot save campaign');
+        }
+
+        return $campaign;
+    }
 }
