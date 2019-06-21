@@ -4,23 +4,25 @@
  */
 namespace Minds\Core\Boost\Network;
 
+use Exception;
 use Minds\Common\Urn;
 use Minds\Common\Repository\Response;
-use Minds\Core\Di\Di;
-use Minds\Core\Data\Cassandra\Prepared; 
+use Minds\Core\Boost\Raw\RawBoost;
+use Minds\Core\Boost\Raw\Repository as RawRepository;
+use Minds\Core\Data\Cassandra\Prepared;
 use Cassandra;
 
 class Repository
 {
-    /** @var Client $client */
-    private $client;
+    /** @var RawRepository $rawRepository */
+    private $rawRepository;
 
     /** @var Urn $urn */
     private $urn;
 
-    public function __construct($client = null, $urn = null)
+    public function __construct($rawRepository = null, $urn = null)
     {
-        $this->client = $client ?: Di::_()->get('Database\Cassandra\Cql');
+        $this->rawRepository = $rawRepository ?: new RawRepository();
         $this->urn = $urn ?: new Urn(); 
     }
 
@@ -31,84 +33,39 @@ class Repository
      */
     public function getList($opts = [])
     {
-        $opts = array_merge([
-            'limit' => 12,
-            'token' => null
-        ], $opts);
+        $opts['offset'] = $opts['token'] ?? '';
 
-        $template = "SELECT * FROM boosts WHERE type = ?";
-        $values = [ (string) $opts['type'] ];
+        return $this->rawRepository->getList($opts)
+            ->map(function (RawBoost $rawBoost) {
+                $boost = new Boost();
 
-        if ($opts['guids']) {
-            $collection = Cassandra\Type::collection(Cassandra\Type::varint())->create(...array_values(array_map(function ($guid) {
-                return new Cassandra\Varint($guid);
-            }, $opts['guids'])));
+                $boost
+                    ->setGuid($rawBoost->getGuid())
+                    ->setEntityGuid($rawBoost->getEntityGuid())
+                    ->setBid($rawBoost->getBid())
+                    ->setImpressions($rawBoost->getImpressions())
+                    ->setBidType($rawBoost->getBidType())
+                    ->setOwnerGuid($rawBoost->getOwnerGuid())
+                    ->setTransactionId($rawBoost->getTransactionId())
+                    ->setType($rawBoost->getType())
+                    ->setPriority($rawBoost->isPriority())
+                    ->setRating($rawBoost->getRating())
+                    ->setTags($rawBoost->getTags())
+                    ->setNsfw($rawBoost->getNsfw())
+                    ->setRejectionReason($rawBoost->getRejectionReason())
+                    ->setChecksum($rawBoost->getChecksum())
+                    ->setCreatedTimestamp($rawBoost->getCreatedTimestamp())
+                    ->setReviewedTimestamp($rawBoost->getReviewedTimestamp())
+                    ->setRejectedTimestamp($rawBoost->getRejectedTimestamp())
+                    ->setRevokedTimestamp($rawBoost->getRevokedTimestamp())
+                    ->setCompletedTimestamp($rawBoost->getCompletedTimestamp())
+                    ->setMongoId($rawBoost->getMongoId())
+                    ->setEntity($rawBoost->getEntity())
+                    ->setOwner($rawBoost->getOwner())
+                    ->setState($rawBoost->getState());
 
-            $template .= " AND guid IN ?";
-            $values[] = $collection;
-        }
-
-        $query = new Prepared\Custom();
-        $query->query($template, $values);
-        
-        $query->setOpts([
-            'page_size' => (int) $opts['limit'],
-            'paging_state_token' => base64_decode($opt['token'])
-        ]);
-
-        $response = new Response();
-
-        try {
-            $result = $this->client->request($query);
-
-            foreach ($result as $row) {
-                $boost = new Boost(); 
-                $data = json_decode($row['data'], true);
-
-                if (!isset($data['schema']) && $data['schema'] != '04-2019') {
-                    $data['entity_guid'] = $data['entity']['guid'];
-                    $data['owner_guid'] = $data['owner']['guid'];
-                    $data['@created'] = $data['time_created'] * 1000;
-                    $data['@reviewed'] = $data['state'] === 'accepted' ? ($data['last_updated'] * 1000) : null;
-                    $data['@revoked'] = $data['state'] === 'revoked' ? ($data['last_updated'] * 1000) : null;
-                    $data['@rejected'] = $data['state'] === 'rejected' ? ($data['last_updated'] * 1000) : null;
-                    $data['@completed'] = $data['state'] === 'completed' ? ($data['last_updated'] * 1000) : null;
-                }
-
-                if ($data['@created'] < 1055503139000) {
-                    $data['@created'] = $data['@created'] * 1000;
-                }
-
-                $boost->setGuid((string) $row['guid'])
-                    ->setMongoId($data['_id'])
-                    ->setEntityGuid($data['entity_guid'])
-                    ->setOwnerGuid($data['owner_guid'])
-                    ->setType($row['type'])
-                    ->setCreatedTimestamp($data['@created'])
-                    ->setReviewedTimestamp($data['@reviewed'])
-                    ->setRevokedTimestamp($data['@revoked'])
-                    ->setRejectedTimestamp($data['@rejected'])
-                    ->setCompletedTimestamp($data['@completed'])
-                    ->setBid($data['bid'])
-                    ->setBidType($data['bidType'])
-                    ->setImpressions($data['impressions'])
-                    ->setTransactionId($data['transactionId'])
-                    ->setPriority($data['priority'])
-                    ->setRating($data['rating'])
-                    ->setTags($data['tags'])
-                    ->setNsfw($data['nsfw'])
-                    ->setRejectReason($data['rejection_reason'])
-                    ->setChecksum($data['checksum']); 
-                
-                $response[] = $boost;
-            }
-
-            $response->setPagingToken(base64_encode($result->pagingStateToken()));
-        } catch (\Exception $e) {
-            // TODO: Log or warning
-        }
-
-        return $response;
+                return $boost;
+            });
     }
 
     /**
@@ -129,84 +86,45 @@ class Repository
      * Add a boost
      * @param Boost $boost
      * @return bool
+     * @throws Exception
      */
     public function add($boost)
     {
-        if (!$boost->getType()) {
-            throw new \Exception('Type is required');
-        }
+        $rawBoost = new RawBoost();
 
-        if (!$boost->getGuid()) {
-            throw new \Exception('GUID is required');
-        }
+        $rawBoost
+            ->setGuid($boost->getGuid())
+            ->setEntityGuid($boost->getEntityGuid())
+            ->setBid($boost->getBid())
+            ->setImpressions($boost->getImpressions())
+            ->setBidType(in_array($boost->getBidType(), [ 'onchain', 'offchain' ]) ? 'tokens' : $boost->getBidType())
+            ->setOwnerGuid($boost->getOwnerGuid())
+            ->setTransactionId($boost->getTransactionId())
+            ->setType($boost->getType())
+            ->setPriority($boost->isPriority())
+            ->setRating($boost->getRating())
+            ->setTags($boost->getTags())
+            ->setNsfw($boost->getNsfw())
+            ->setRejectionReason($boost->getRejectionReason())
+            ->setChecksum($boost->getChecksum())
+            ->setCreatedTimestamp($boost->getCreatedTimestamp())
+            ->setReviewedTimestamp($boost->getReviewedTimestamp())
+            ->setRejectedTimestamp($boost->getRejectedTimestamp())
+            ->setRevokedTimestamp($boost->getRevokedTimestamp())
+            ->setCompletedTimestamp($boost->getCompletedTimestamp())
+            ->setMongoId($boost->getMongoId())
+            ->setEntity($boost->getEntity())
+            ->setOwner($boost->getOwner())
+            ->setState($boost->getState());
 
-        if (!$boost->getOwnerGuid()) {
-            throw new \Exception('Owner is required');
-        }
-
-        $template = "INSERT INTO boosts
-            (type, guid, owner_guid, destination_guid, mongo_id, state, data)
-            VALUES
-            (?, ?, ?, ?, ?, ?, ?)
-        ";
-
-        $data = [
-            'guid' => $boost->getGuid(),
-            'schema' => '04-2019',
-            '_id' => $boost->getMongoId(), //TODO: remove once on production
-            'entity_guid' => $boost->getEntityGuid(),
-            'entity' => $boost->getEntity() ? $boost->getEntity()->export() : null, //TODO: remove once on production
-            'bid' => $boost->getBid(),
-            'impressions' => $boost->getImpressions(),
-            //'bidType' => $boost->getBidType(),
-            'bidType' => in_array($boost->getBidType(), [ 'onchain', 'offchain' ]) ? 'tokens' : $boost->getBidType(), //TODO: remove once on production
-            'owner_guid' => $boost->getOwnerGuid(),
-            'owner' => $boost->getOwner() ? $boost->getOwner()->export() : null, //TODO: remove once on production
-            '@created' => $boost->getCreatedTimestamp(),
-            'time_created' => $boost->getCreatedTimestamp(), //TODO: remove once on production
-            'last_updated' => time(), //TODO: remove once on production
-            '@reviewed' => $boost->getReviewedTimestamp(),
-            '@rejected' => $boost->getRejectedTimestamp(),
-            '@revoked' => $boost->getRevokedTimestamp(),
-            '@completed' => $boost->getCompletedTimestamp(),
-            'transactionId' => $boost->getTransactionId(),
-            'type' => $boost->getType(),
-            'handler' => $boost->getType(), //TODO: remove once on production
-            'state' => $boost->getState(), //TODO: remove once on production
-            'priority' => $boost->isPriority(),
-            'rating' => $boost->getRating(),
-            'tags' => $boost->getTags(),
-            'nsfw' => $boost->getNsfw(),
-            'rejection_reason'=> $boost->getRejectReason(),
-            'checksum' => $boost->getChecksum(),
-        ];
-
-        $values = [
-            (string) $boost->getType(),
-            new Cassandra\Varint($boost->getGuid()),
-            new Cassandra\Varint($boost->getOwnerGuid()),
-            null,
-            (string) $boost->getMongoId(),
-            (string) $boost->getState(),
-            json_encode($data)
-        ];
-
-        $query = new Prepared\Custom();
-        $query->query($template, $values);
-
-        try {
-            $success = $this->client->request($query);
-        } catch (\Exception $e) {
-            return false;
-        }
-
-        return $success;
+        return $this->rawRepository->add($rawBoost);
     }
 
     /**
      * Update a boost
      * @param Boost $boost
      * @return bool
+     * @throws Exception
      */
     public function update($boost, $fields = [])
     {

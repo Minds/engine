@@ -33,10 +33,18 @@ use Minds\Traits\MagicAttributes;
  * @method RawBoost setRating(int $rating)
  * @method string[] getTags()
  * @method RawBoost setTags(string[] $tags)
+ * @method string[] getNsfw()
+ * @method RawBoost setNsfw(string[] $nsfw)
  * @method int getImpressions()
  * @method RawBoost setImpressions(int $impressions)
  * @method int getImpressionsMet()
  * @method RawBoost setImpressionsMet(int $impressionsMet)
+ * @method string getTransactionId()
+ * @method RawBoost setTransactionId(string $transactionId)
+ * @method string getChecksum()
+ * @method RawBoost setChecksum(string $checksum)
+ * @method int getRejectionReason()
+ * @method RawBoost setRejectionReason(int $rejectionReason)
  * @method bool isCampaign()
  * @method RawBoost setCampaign(bool $campaign)
  * @method string getCampaignName()
@@ -55,6 +63,14 @@ use Minds\Traits\MagicAttributes;
  * @method RawBoost setRejectedTimestamp(int $rejectedTimestamp)
  * @method int getCompletedTimestamp()
  * @method RawBoost setCompletedTimestamp(int $completedTimestamp)
+ * @method mixed getMongoId()
+ * @method RawBoost setMongoId(mixed $deprecatedValue)
+ * @method mixed getEntity()
+ * @method RawBoost setEntity(mixed $deprecatedValue)
+ * @method mixed getOwner()
+ * @method RawBoost setOwner(mixed $deprecatedValue)
+ * @method mixed getState()
+ * @method RawBoost setState(mixed $deprecatedValue)
  */
 class RawBoost
 {
@@ -93,11 +109,23 @@ class RawBoost
     /** @var string[] */
     protected $tags = [];
 
+    /** @var int[] */
+    protected $nsfw = [];
+
     /** @var int */
     protected $impressions;
 
     /** @var int */
     protected $impressionsMet;
+
+    /** @var string */
+    protected $transactionId;
+
+    /** @var string */
+    protected $checksum;
+
+    /** @var int */
+    protected $rejectionReason;
 
     /** @var string */
     protected $campaignName;
@@ -122,4 +150,18 @@ class RawBoost
 
     /** @var int */
     protected $completedTimestamp;
+
+    // Legacy below. Do not use.
+
+    /** @var mixed */
+    protected $mongoId;
+
+    /** @var mixed */
+    protected $entity;
+
+    /** @var mixed */
+    protected $owner;
+
+    /** @var mixed */
+    protected $state;
 }

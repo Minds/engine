@@ -278,6 +278,10 @@ class ElasticRepository
         return (bool) $this->elasticsearch->request($prepared);
     }
 
+    /**
+     * @param RawBoost $rawBoost
+     * @return bool
+     */
     public function update(RawBoost $rawBoost)
     {
         return $this->add($rawBoost);
