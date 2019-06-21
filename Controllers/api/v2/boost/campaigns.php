@@ -50,6 +50,7 @@ class campaigns implements Interfaces\Api
 
         /** @var Manager $manager */
         $manager = Di::_()->get('Boost\Campaigns\Manager');
+        $manager->setActor(Session::getLoggedInUser());
 
         $response = $manager->getList([
             'owner_guid' => Session::getLoggedinUserGuid(),
@@ -82,18 +83,24 @@ class campaigns implements Interfaces\Api
         $campaign = new Campaign();
 
         $campaign
-            ->setOwner(Session::getLoggedInUser())
-            ->setUrn($urn)
             ->setName(trim($_POST['name'] ?? ''))
-            ->setType($_POST['type'] ?? '')
-            ->setEntityUrns($_POST['entity_urns'] ?? [])
             ->setHashtags($_POST['hashtags'] ?? [])
             ->setStart((int) ($_POST['start'] ?? 0))
             ->setEnd((int) ($_POST['end'] ?? 0))
             ->setBudget((float) ($_POST['budget'] ?? 0));
 
+        if (!$isEditing) {
+            $campaign
+                ->setType($_POST['type'] ?? '')
+                ->setEntityUrns($_POST['entity_urns'] ?? []);
+        } else {
+            $campaign
+                ->setUrn($urn);
+        }
+
         /** @var Manager $manager */
         $manager = Di::_()->get('Boost\Campaigns\Manager');
+        $manager->setActor(Session::getLoggedInUser());
 
         try {
             if (!$isEditing) {
@@ -120,7 +127,7 @@ class campaigns implements Interfaces\Api
      */
     public function put($pages)
     {
-        // TODO: Implement put() method.
+        return Factory::response([]);
     }
 
     /**
@@ -130,6 +137,35 @@ class campaigns implements Interfaces\Api
      */
     public function delete($pages)
     {
-        // TODO: Implement delete() method.
+        $urn = $pages[0] ?? null;
+
+        if (!$urn[0]) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Missing URN',
+            ]);
+        }
+
+        $campaign = new Campaign();
+
+        $campaign
+            ->setUrn($urn);
+
+        /** @var Manager $manager */
+        $manager = Di::_()->get('Boost\Campaigns\Manager');
+        $manager->setActor(Session::getLoggedInUser());
+
+        try {
+            $campaign = $manager->cancel($campaign);
+
+            return Factory::response([
+                'campaign' => $campaign,
+            ]);
+        } catch (\Exception $e) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ]);
+        }
     }
 }

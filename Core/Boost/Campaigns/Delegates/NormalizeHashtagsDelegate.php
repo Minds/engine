@@ -32,19 +32,23 @@ class NormalizeHashtagsDelegate
             throw new CampaignException('Campaigns should have 5 hashtags or less');
         }
 
-        $campaign->setHashtags($hashtags);
+        $campaign
+            ->setHashtags($hashtags);
 
         return $campaign;
     }
 
     /**
      * @param Campaign $campaign
-     * @param Campaign $oldCampaign
+     * @param Campaign $campaignRef
      * @return Campaign
      * @throws CampaignException
      */
-    public function onUpdate(Campaign $campaign, Campaign $oldCampaign)
+    public function onUpdate(Campaign $campaign, Campaign $campaignRef)
     {
+        $campaign
+            ->setHashtags($campaignRef->getHashtags());
+
         return $this->onCreate($campaign);
     }
 }

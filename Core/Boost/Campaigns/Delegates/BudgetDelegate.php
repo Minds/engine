@@ -49,13 +49,20 @@ class BudgetDelegate
 
     /**
      * @param Campaign $campaign
-     * @param Campaign $oldCampaign
+     * @param Campaign $campaignRef
      * @return Campaign
      * @throws CampaignException
      */
-    public function onUpdate(Campaign $campaign, Campaign $oldCampaign)
+    public function onUpdate(Campaign $campaign, Campaign $campaignRef)
     {
-        // TODO: Validate balance, or set as pending for onchain
+        if (!$campaignRef->getBudget() || $campaignRef->getBudget() <= 0) {
+            throw new CampaignException('Campaign should have a budget');
+        }
+
+        $campaign
+            ->setBudget($campaignRef->getBudget());
+
+        // TODO: Validate balance, set as pending for onchain, refund if needed
         // TODO: Ensure budget didn't go lower than impressions met threshold
 
         $campaign = $this->updateImpressionsByCpm($campaign);
@@ -71,7 +78,7 @@ class BudgetDelegate
      * @param Campaign $campaign
      * @return Campaign
      */
-    public function refund(Campaign $campaign)
+    public function onStateChange(Campaign $campaign)
     {
         // TODO: Check that campaign is in a final incomplete status (revoked/rejected)
         // TODO: Refund!

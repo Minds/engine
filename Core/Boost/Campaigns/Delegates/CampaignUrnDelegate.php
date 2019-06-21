@@ -46,19 +46,4 @@ class CampaignUrnDelegate
 
         return $campaign;
     }
-
-    /**
-     * @param Campaign $campaign
-     * @param Campaign $oldCampaign Unused.
-     * @return Campaign
-     * @throws CampaignException
-     */
-    public function onUpdate(Campaign $campaign, Campaign $oldCampaign = null)
-    {
-        if (!$campaign->getUrn()) {
-            throw new CampaignException('Campaign must have an URN');
-        }
-
-        return $campaign;
-    }
 }

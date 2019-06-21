@@ -85,21 +85,4 @@ class NormalizeEntityUrnsDelegate
 
         return $campaign;
     }
-
-    /**
-     * @param Campaign $campaign
-     * @param Campaign $oldCampaign
-     * @return Campaign
-     * @throws CampaignException
-     */
-    public function onUpdate(Campaign $campaign, Campaign $oldCampaign)
-    {
-        $campaign = $this->onCreate($campaign);
-
-        if ($campaign->getEntityUrns() !== $oldCampaign->getEntityUrns()) {
-            throw new CampaignException("Campaigns cannot change their content after created");
-        }
-
-        return $campaign;
-    }
 }

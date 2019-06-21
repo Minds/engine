@@ -44,16 +44,20 @@ class NormalizeDatesDelegate
 
     /**
      * @param Campaign $campaign
-     * @param Campaign $oldCampaign
+     * @param Campaign $campaignRef
      * @return Campaign
      * @throws CampaignException
      */
-    public function onUpdate(Campaign $campaign, Campaign $oldCampaign)
+    public function onUpdate(Campaign $campaign, Campaign $campaignRef)
     {
-        $campaign = $this->onCreate($campaign);
+        // TODO: Ensure date updates from ref are valid against original campaign budget, etc.
+        // TODO: Disallow changing start date after campaign started distributing
+        // NOTE: Careful about the today comparison on onCreate()
 
-        // TODO: Ensure date updates are valid agains old campaign
+        $campaign
+            ->setStart($campaignRef->getStart())
+            ->setEnd($campaignRef->getEnd());
 
-        return $campaign;
+        return $this->onCreate($campaign);
     }
 }
