@@ -31,12 +31,20 @@ use Minds\Traits\MagicAttributes;
  * @method Campaign setEnd(int $end)
  * @method string getBudget()
  * @method Campaign setBudget(string $budget)
- * @method string getDeliveryStatus()
- * @method Campaign setDeliveryStatus(string $deliveryStatus)
  * @method int getImpressions()
  * @method Campaign setImpressions(int $impressions)
  * @method int getImpressionsMet()
  * @method Campaign setImpressionsMet(int $impressionsMet)
+ * @method int getCreatedTimestamp()
+ * @method Campaign setCreatedTimestamp(int $createdTimestamp)
+ * @method int getReviewedTimestamp()
+ * @method Campaign setReviewedTimestamp(int $reviewedTimestamp)
+ * @method int getRevokedTimestamp()
+ * @method Campaign setRevokedTimestamp(int $revokedTimestamp)
+ * @method int getRejectedTimestamp()
+ * @method Campaign setRejectedTimestamp(int $rejectedTimestamp)
+ * @method int getCompletedTimestamp()
+ * @method Campaign setCompletedTimestamp(int $completedTimestamp)
  */
 class Campaign implements JsonSerializable
 {
@@ -69,14 +77,26 @@ class Campaign implements JsonSerializable
     /** @var string */
     protected $budget;
 
-    /** @var string */
-    protected $deliveryStatus;
-
     /** @var int */
     protected $impressions;
 
     /** @var int */
     protected $impressionsMet;
+
+    /** @var int */
+    protected $createdTimestamp;
+
+    /** @var int */
+    protected $reviewedTimestamp;
+
+    /** @var int */
+    protected $revokedTimestamp;
+
+    /** @var int */
+    protected $rejectedTimestamp;
+
+    /** @var int */
+    protected $completedTimestamp;
 
     /**
      * @param User $owner
@@ -86,6 +106,26 @@ class Campaign implements JsonSerializable
     {
         $this->ownerGuid = $owner ? $owner->guid : null;
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDeliveryStatus()
+    {
+        if ($this->completedTimestamp) {
+            return 'completed';
+        } elseif ($this->rejectedTimestamp) {
+            return 'rejected';
+        } elseif ($this->revokedTimestamp) {
+            return 'revoked';
+        } elseif ($this->reviewedTimestamp) {
+            return 'approved';
+        } elseif ($this->createdTimestamp) {
+            return 'created';
+        }
+
+        return 'pending';
     }
 
     /**
@@ -114,9 +154,14 @@ class Campaign implements JsonSerializable
             'end' => $this->end,
             'budget' => $this->budget,
             'urn' => $this->urn,
-            'delivery_status' => $this->deliveryStatus,
             'impressions' => $this->impressions,
             'impressions_met' => $this->impressionsMet,
+            'created_timestamp' => $this->createdTimestamp,
+            'reviewed_timestamp' => $this->reviewedTimestamp,
+            'revoked_timestamp' => $this->revokedTimestamp,
+            'rejected_timestamp' => $this->rejectedTimestamp,
+            'completed_timestamp' => $this->completedTimestamp,
+            'delivery_status' => $this->getDeliveryStatus(),
             'cpm' => $this->cpm(),
         ];
     }

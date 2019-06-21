@@ -84,11 +84,6 @@ class Repository
 
             $tags = Text::buildArray($rawBoost->getTags());
 
-            // Delivery Status
-
-            $deliveryStatus = 'created';
-            // TODO: Calculate based on timestamps
-
             // Campaign
 
             $campaign
@@ -100,10 +95,14 @@ class Repository
                 ->setStart($rawBoost->getCampaignStart())
                 ->setEnd($rawBoost->getCampaignEnd())
                 ->setBudget($rawBoost->getBid())
-                ->setDeliveryStatus($deliveryStatus)
                 ->setUrn("urn:campaign:{$rawBoost->getGuid()}")
                 ->setImpressions($rawBoost->getImpressions())
-                ->setImpressionsMet($rawBoost->getImpressionsMet());
+                ->setImpressionsMet($rawBoost->getImpressionsMet())
+                ->setCreatedTimestamp($rawBoost->getCreatedTimestamp())
+                ->setReviewedTimestamp($rawBoost->getReviewedTimestamp())
+                ->setRejectedTimestamp($rawBoost->getRejectedTimestamp())
+                ->setRevokedTimestamp($rawBoost->getRevokedTimestamp())
+                ->setCompletedTimestamp($rawBoost->getCompletedTimestamp());
 
             return $campaign;
         });
@@ -138,8 +137,13 @@ class Repository
             ->setBidType('tokens')
             ->setGuid($guid)
             ->setImpressions($campaign->getImpressions())
-            ->setRating(2)
-            ->setPriority(false);
+            ->setRating(1)
+            ->setPriority(true)
+            ->setCreatedTimestamp($campaign->getCreatedTimestamp())
+            ->setReviewedTimestamp($campaign->getReviewedTimestamp())
+            ->setRejectedTimestamp($campaign->getRejectedTimestamp())
+            ->setRevokedTimestamp($campaign->getRevokedTimestamp())
+            ->setCompletedTimestamp($campaign->getCompletedTimestamp());
 
         $cqlSave = $this->rawRepository->add($rawBoost);
         $esSave = $this->rawElasticRepository->add($rawBoost);

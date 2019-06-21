@@ -129,6 +129,9 @@ class Manager
 
         //
 
+        $campaign
+            ->setCreatedTimestamp(time() * 1000);
+
         $done = $this->repository->add($campaign);
 
         if (!$done) {
