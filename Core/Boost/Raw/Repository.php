@@ -82,25 +82,32 @@ class Repository
 
                 $rawBoost
                     ->setGuid((string) $row['guid'])
-                    ->setMongoId($data['_id'])
-                    ->setEntityGuid((string) $data['entity_guid'])
                     ->setOwnerGuid((string) $data['owner_guid'])
                     ->setType($row['type'])
+                    ->setEntityGuid((string) $data['entity_guid'])
+                    ->setEntityUrns($data['entity_urns'] ?? [])
+                    ->setBid($data['bid'])
+                    ->setBidType($data['bidType'])
+                    ->setTokenMethod($data['token_method'] ?? null)
+                    ->setPriority($data['priority'])
+                    ->setRating($data['rating'])
+                    ->setImpressions($data['impressions'])
+                    ->setTags($data['tags'])
+                    ->setNsfw($data['nsfw'])
+                    ->setTransactionId($data['transactionId'])
+                    ->setRejectionReason($data['rejection_reason'])
+                    ->setChecksum($data['checksum'])
+                    ->setCampaign((bool) $data['is_campaign'] ?? false)
+                    ->setCampaignName($data['campaign_name'] ?? null)
+                    ->setCampaignStart($data['campaign_start'] ?? null)
+                    ->setCampaignEnd($data['campaign_end'] ?? null)
                     ->setCreatedTimestamp($data['@created'])
                     ->setReviewedTimestamp($data['@reviewed'])
                     ->setRevokedTimestamp($data['@revoked'])
                     ->setRejectedTimestamp($data['@rejected'])
                     ->setCompletedTimestamp($data['@completed'])
-                    ->setBid($data['bid'])
-                    ->setBidType($data['bidType'])
-                    ->setImpressions($data['impressions'])
-                    ->setTransactionId($data['transactionId'])
-                    ->setPriority($data['priority'])
-                    ->setRating($data['rating'])
-                    ->setTags($data['tags'])
-                    ->setNsfw($data['nsfw'])
-                    ->setRejectionReason($data['rejection_reason'])
-                    ->setChecksum($data['checksum']);
+                    ->setMongoId($data['_id'])
+                ;
 
                 $response[] = $rawBoost;
             }
@@ -142,6 +149,7 @@ class Repository
             'schema' => '04-2019',
             'guid' => $rawBoost->getGuid(),
             'entity_guid' => $rawBoost->getEntityGuid(),
+            'entity_urns' => $rawBoost->getEntityUrns(),
             'bid' => $rawBoost->getBid(),
             'impressions' => $rawBoost->getImpressions(),
             'bidType' => $rawBoost->getBidType(),
@@ -159,6 +167,11 @@ class Repository
             '@rejected' => $rawBoost->getRejectedTimestamp(),
             '@revoked' => $rawBoost->getRevokedTimestamp(),
             '@completed' => $rawBoost->getCompletedTimestamp(),
+            'token_method' => $rawBoost->getTokenMethod(),
+            'is_campaign' => $rawBoost->isCampaign(),
+            'campaign_name' => $rawBoost->getCampaignName(),
+            'campaign_start' => $rawBoost->getCampaignStart(),
+            'campaign_end' => $rawBoost->getCampaignEnd(),
 
             // Legacy.
 

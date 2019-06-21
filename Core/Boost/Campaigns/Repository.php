@@ -11,6 +11,7 @@ use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
 use Minds\Core\Boost\Raw\RawBoost;
 use Minds\Core\Boost\Raw\ElasticRepository as RawElasticRepository;
+use Minds\Core\Boost\Raw\Repository as RawRepository;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Helpers\Text;
@@ -21,20 +22,26 @@ class Repository
     /** @var RawElasticRepository $rawElasticRepository */
     protected $rawElasticRepository;
 
+    /** @var RawRepository $rawRepository */
+    protected $rawRepository;
+
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
     /**
      * Repository constructor.
      * @param EntitiesBuilder $entitiesBuilder
+     * @param RawRepository $rawRepository
      * @param RawElasticRepository $rawElasticRepository
      */
     public function __construct(
         $entitiesBuilder = null,
+        $rawRepository = null,
         $rawElasticRepository = null
     )
     {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
+        $this->rawRepository = $rawRepository ?: new RawRepository();
         $this->rawElasticRepository = $rawElasticRepository ?: new RawElasticRepository();
     }
 
@@ -134,7 +141,7 @@ class Repository
             ->setRating(2)
             ->setPriority(false);
 
-        $cqlSave = true; // TODO: Implement Cassandra Repo
+        $cqlSave = $this->rawRepository->add($rawBoost);
         $esSave = $this->rawElasticRepository->add($rawBoost);
 
         return $cqlSave && $esSave;
