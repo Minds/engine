@@ -10,6 +10,7 @@ namespace Minds\Controllers\api\v1;
 
 use Minds\Api\Factory;
 use Minds\Core;
+use Minds\Core\Groups\AdminQueue;
 use Minds\Core\Security;
 use Minds\Entities;
 use Minds\Entities\Activity;
@@ -784,6 +785,15 @@ class newsfeed implements Interfaces\Api
 
         // remove from pinned
         $owner->removePinned($activity->guid);
+
+        // if it was posted to a group
+        if($activity->container_guid !== $activity->owner_guid) {
+            $group = Entities\Factory::build($activity->container_guid);
+
+            /** @var AdminQueue $adminQueue */
+            $adminQueue = Di::_()->get('Groups\AdminQueue');
+            $adminQueue->delete($group, $activity);
+        }
 
         if ($activity->delete()) {
             if ($activity->remind_object && $activity->remind_object['owner_guid'] != Core\Session::getLoggedinUser()->guid) {
