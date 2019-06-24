@@ -172,15 +172,15 @@ class Campaign implements JsonSerializable
             'end' => $this->end,
             'budget' => $this->budget,
             'urn' => $this->urn,
+            'delivery_status' => $this->getDeliveryStatus(),
             'impressions' => $this->impressions,
             'impressions_met' => $this->impressionsMet,
+            'cpm' => $this->cpm(),
             'created_timestamp' => $this->createdTimestamp,
             'reviewed_timestamp' => $this->reviewedTimestamp,
             'revoked_timestamp' => $this->revokedTimestamp,
             'rejected_timestamp' => $this->rejectedTimestamp,
             'completed_timestamp' => $this->completedTimestamp,
-            'delivery_status' => $this->getDeliveryStatus(),
-            'cpm' => $this->cpm(),
         ];
     }
 

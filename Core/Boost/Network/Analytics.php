@@ -42,6 +42,11 @@ class Analytics
                     ],
                     'must_not' => [
                         [
+                            'term' => [
+                                'is_campaign' => true,
+                            ]
+                        ],
+                        [
                             'exists' => [
                                 'field' => '@rejected',
                             ],
