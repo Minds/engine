@@ -80,6 +80,11 @@ class Repository
                     $data['@created'] = $data['@created'] * 1000;
                 }
 
+                if ($data['is_campaign'] ?? false) {
+                    // Skip campaigns
+                    continue;
+                }
+
                 $rawBoost
                     ->setGuid((string) $row['guid'])
                     ->setOwnerGuid((string) $data['owner_guid'])
