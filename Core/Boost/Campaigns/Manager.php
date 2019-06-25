@@ -185,6 +185,12 @@ class Manager
             throw new CampaignException('You\'re not allowed to edit this campaign');
         }
 
+        // Check state
+
+        if (!in_array($campaign->getDeliveryStatus(), [Campaign::PENDING_STATUS, Campaign::CREATED_STATUS, Campaign::APPROVED_STATUS])) {
+            throw new CampaignException('Campaign should be in [pending], [created], [approved] state in order to edit it');
+        }
+
         // Validate that there's a name
 
         if (!$campaignRef->getName()) {
