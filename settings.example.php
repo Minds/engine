@@ -21,6 +21,7 @@ $CONFIG->database = [
 ];
 
 $CONFIG->redis = [
+    'pubsub' => 'redis_pubsub',
     'master' => 'redis',
     'slave' => 'redis'
 ];
