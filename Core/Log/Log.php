@@ -8,6 +8,7 @@ namespace Minds\Core\Log;
 
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Throwable;
 
 class Log
 {
@@ -46,6 +47,16 @@ class Log
     }
 
     /**
+     * @param string $namespace
+     * @return string
+     */
+    public static function buildContext($namespace = '')
+    {
+        $tokens = str_ireplace(['\\Minds\\Core', '\\Minds', '\\'], ' ', '\\' . $namespace);
+        return str_replace(' ', '', ucwords(trim($tokens)));
+    }
+
+    /**
      * @return Log
      */
     public static function _()
@@ -58,90 +69,90 @@ class Log
     }
 
     /**
-     * @param string $message
+     * @param string|Throwable $message
      * @param string $context
      * @param array $payload
      * @return bool
      */
     public static function emergency($message, $context = 'Default', array $payload = [])
     {
-        return static::_()->get($context)->emergency($message, $payload);
+        return static::_()->get(static::buildContext($context))->emergency($message, $payload);
     }
 
     /**
-     * @param string $message
+     * @param string|Throwable $message
      * @param string $context
      * @param array $payload
      * @return bool
      */
     public static function alert($message, $context = 'Default', array $payload = [])
     {
-        return static::_()->get($context)->alert($message, $payload);
+        return static::_()->get(static::buildContext($context))->alert($message, $payload);
     }
 
     /**
-     * @param string $message
+     * @param string|Throwable $message
      * @param string $context
      * @param array $payload
      * @return bool
      */
     public static function critical($message, $context = 'Default', array $payload = [])
     {
-        return static::_()->get($context)->critical($message, $payload);
+        return static::_()->get(static::buildContext($context))->critical($message, $payload);
     }
 
     /**
-     * @param string $message
+     * @param string|Throwable $message
      * @param string $context
      * @param array $payload
      * @return bool
      */
     public static function error($message, $context = 'Default', array $payload = [])
     {
-        return static::_()->get($context)->error($message, $payload);
+        return static::_()->get(static::buildContext($context))->error($message, $payload);
     }
 
     /**
-     * @param string $message
+     * @param string|Throwable $message
      * @param string $context
      * @param array $payload
      * @return bool
      */
     public static function warning($message, $context = 'Default', array $payload = [])
     {
-        return static::_()->get($context)->warning($message, $payload);
+        return static::_()->get(static::buildContext($context))->warning($message, $payload);
     }
 
     /**
-     * @param string $message
+     * @param string|Throwable $message
      * @param string $context
      * @param array $payload
      * @return bool
      */
     public static function notice($message, $context = 'Default', array $payload = [])
     {
-        return static::_()->get($context)->notice($message, $payload);
+        return static::_()->get(static::buildContext($context))->notice($message, $payload);
     }
 
     /**
-     * @param string $message
+     * @param string|Throwable $message
      * @param string $context
      * @param array $payload
      * @return bool
      */
     public static function info($message, $context = 'Default', array $payload = [])
     {
-        return static::_()->get($context)->info($message, $payload);
+        return static::_()->get(static::buildContext($context))->info($message, $payload);
     }
 
     /**
-     * @param string $message
+     * @param string|Throwable $message
      * @param string $context
      * @param array $payload
      * @return bool
      */
     public static function debug($message, $context = 'Default', array $payload = [])
     {
-        return static::_()->get($context)->debug($message, $payload);
+        return static::_()->get(static::buildContext($context))->debug($message, $payload);
     }
 }

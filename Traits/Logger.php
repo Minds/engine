@@ -7,6 +7,7 @@
 namespace Minds\Traits;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Log\Log;
 use Minds\Core\Log\LoggerContext;
 
 trait Logger
@@ -17,11 +18,13 @@ trait Logger
      */
     protected function logger($context = null)
     {
+        /** @var Log $logger */
+        $logger = Di::_()->get('Log');
+
         if (!$context) {
-            $tokens = str_ireplace(['\\Minds\\Core', '\\Minds', '\\'], ' ', '\\' . get_called_class());
-            $context = str_replace(' ', '', ucwords(trim($tokens)));
+            $context = get_called_class();
         }
 
-        return Di::_()->get('Log')->get($context);
+        return $logger->get($logger::buildContext($context));
     }
 }

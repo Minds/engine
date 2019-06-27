@@ -15,6 +15,7 @@ use Monolog\Handler\ErrorLogHandler;
 use Monolog\Handler\FirePHPHandler;
 use Monolog\Handler\PHPConsoleHandler;
 use Monolog\Logger as MonologLogger;
+use Throwable;
 
 class LoggerContext
 {
@@ -110,7 +111,7 @@ class LoggerContext
     }
 
     /**
-     * @param string $message
+     * @param string|Throwable $message
      * @param array $payload
      * @return bool
      */
@@ -123,7 +124,7 @@ class LoggerContext
     }
 
     /**
-     * @param string $message
+     * @param string|Throwable $message
      * @param array $payload
      * @return bool
      */
@@ -136,7 +137,7 @@ class LoggerContext
     }
 
     /**
-     * @param string $message
+     * @param string|Throwable $message
      * @param array $payload
      * @return bool
      */
@@ -149,7 +150,7 @@ class LoggerContext
     }
 
     /**
-     * @param string $message
+     * @param string|Throwable $message
      * @param array $payload
      * @return bool
      */
@@ -162,7 +163,7 @@ class LoggerContext
     }
 
     /**
-     * @param string $message
+     * @param string|Throwable $message
      * @param array $payload
      * @return bool
      */
@@ -175,7 +176,7 @@ class LoggerContext
     }
 
     /**
-     * @param string $message
+     * @param string|Throwable $message
      * @param array $payload
      * @return bool
      */
@@ -188,7 +189,7 @@ class LoggerContext
     }
 
     /**
-     * @param string $message
+     * @param string|Throwable $message
      * @param array $payload
      * @return bool
      */
@@ -201,7 +202,7 @@ class LoggerContext
     }
 
     /**
-     * @param string $message
+     * @param string|Throwable $message
      * @param array $payload
      * @return bool
      */
