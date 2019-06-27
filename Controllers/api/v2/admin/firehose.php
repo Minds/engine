@@ -8,9 +8,12 @@ use Minds\Interfaces;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Entities\Activity;
+use Minds\Traits\Logger;
 
 class firehose implements Interfaces\Api, Interfaces\ApiAdminPam
 {
+    use Logger;
+
     /**
      * Gets a list of entities sorted for admin approval.
      *
@@ -109,7 +112,7 @@ class firehose implements Interfaces\Api, Interfaces\ApiAdminPam
             $manager = Di::_()->get('Feeds\Firehose\Manager');
             $activities = $manager->getList($opts);
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             return Factory::response(['status' => 'error', 'message' => $e->getMessage()]);
         }
 

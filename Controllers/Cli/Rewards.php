@@ -13,9 +13,11 @@ use Minds\Helpers\Flags;
 use Minds\Interfaces;
 use Minds\Core\Rewards\Contributions\UsersIterator;
 use Minds\Core\Events\Dispatcher;
+use Minds\Traits\Logger;
 
 class Rewards extends Cli\Controller implements Interfaces\CliControllerInterface
 {
+    use Logger;
 
     private $start;
     private $elasticsearch;
@@ -82,7 +84,7 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
                 $amnt = (int) $reward->getAmount();
                 echo "\n [$i][$guid]: synced past 48 hours. {$amnt}/$total";
             } catch (\Exception $e) {
-                var_dump($e);
+                $this->logger()->error($e);
                 echo "\n [$i][$guid]: failed synced past 48 hours. {$reward->getAmount()}/$total";
             }
         }

@@ -8,12 +8,14 @@ use Minds\Cli;
 use Minds\Interfaces;
 use Minds\Exceptions;
 use Minds\Entities;
+use Minds\Traits\Logger;
 use Stripe;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Analytics\Iterators\SignupsOffsetIterator;
 
 class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
 {
+    use Logger;
 
     private $db;
     private $es;
@@ -76,7 +78,7 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
                 $rows = $rows->nextPage();
             }
         } catch (\Exception $e) {
-            var_dump($e);
+            $this->logger()->error($e);
         }
         $this->bulkIndex();
     }

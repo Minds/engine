@@ -13,9 +13,12 @@ use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Helpers;
 use Minds\Core\Payments;
+use Minds\Traits\Logger;
 
 class stripe implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+    use Logger;
+
     /**
    * NOT AVAILABLE
    */
@@ -28,7 +31,7 @@ class stripe implements Interfaces\Api, Interfaces\ApiIgnorePam
    */
   public function post($pages)
   {
-      error_log("\n [webhooks][stripe]:: hit first entrace point");
+      $this->logger()->info("\n [webhooks][stripe]:: hit first entrace point");
       $input = @file_get_contents("php://input");
 
 

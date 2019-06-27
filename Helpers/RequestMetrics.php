@@ -42,7 +42,7 @@ class RequestMetrics
                 $count =  0;
             }
         } catch (\Exception $e) {
-            var_dump($e);
+            Core\Log\Log::error($e, static::class);
             exit;
             return 0;
         }

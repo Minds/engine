@@ -4,9 +4,11 @@ namespace Minds\Core\Payments\Plans;
 use Minds\Core;
 use Minds\Entities;
 use Minds\Core\Di\Di;
+use Minds\Traits\Logger;
 
 class PaywallReview
 {
+    use Logger;
 
     private $db;
     private $config;
@@ -57,7 +59,7 @@ class PaywallReview
             }
             return $guids;
         } catch (\Exception $e) {
-            var_dump($e); exit;
+            $this->logger()->error($e); exit;
             return [];
         }
     }
@@ -75,7 +77,7 @@ class PaywallReview
         try {
             $result = $this->db->request($query);
         } catch (\Exception $e) {
-          var_dump($e); exit;
+            $this->logger()->error($e); exit;
         }
         return $this;
     }

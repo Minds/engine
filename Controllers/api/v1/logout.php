@@ -11,9 +11,12 @@ use Minds\Core;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Traits\Logger;
 
 class logout implements Interfaces\Api
 {
+    use Logger;
+
     public function get($pages)
     {
     }
@@ -30,7 +33,7 @@ class logout implements Interfaces\Api
      */
     public function post($pages)
     {
-        error_log("logout request received");
+        $this->logger()->info("logout request received");
         $db = new Core\Data\Call('entities');
         $db->removeAttributes(Core\Session::getLoggedinUser()->guid, array('surge_token'));
 

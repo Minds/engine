@@ -16,6 +16,7 @@ use Minds\Helpers;
 use Minds\Api\Factory;
 use Minds\Entities;
 use Minds\Entities\Notification as NotificationEntity;
+use Minds\Traits\Logger;
 
 /**
  *
@@ -27,6 +28,8 @@ use Minds\Entities\Notification as NotificationEntity;
 // @codingStandardsIgnoreStart
 class notifications implements Interfaces\Api
 {
+    use Logger;
+
     // @codingStandardsIgnoreEnd
 
     use \Minds\Traits\HttpMethodsInput;
@@ -183,7 +186,7 @@ class notifications implements Interfaces\Api
         // Formatting for legacy notification handling in frontend
         foreach ($notifications as $key => $entity) {
             if ($entity->getToGuid() != Core\Session::getLoggedInUser()->guid) {
-                error_log('[notification]: Mismatch of to_guid with uuid ' . $entity->getUuid());
+                $this->logger()->error('[notification]: Mismatch of to_guid with uuid ' . $entity->getUuid());
                 continue;
             }
             $entityObj = Entities\Factory::build($entity->getEntityGuid());

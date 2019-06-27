@@ -10,10 +10,13 @@ use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Helpers\Counters;
 use Minds\Interfaces;
+use Minds\Traits\Logger;
 
 
 class views implements Interfaces\Api
 {
+    use Logger;
+
     public function get($pages)
     {
         return Factory::response([]);
@@ -58,7 +61,7 @@ class views implements Interfaces\Api
                             ->setClientMeta($_POST['client_meta'] ?? [])
                     );
                 } catch (\Exception $e) {
-                    error_log($e);
+                    $this->logger()->error($e);
                 }
 
                 return Factory::response([
@@ -100,7 +103,7 @@ class views implements Interfaces\Api
                         ->setKey($activity->owner_guid)
                         ->increment();
                 } catch (\Exception $e) {
-                    error_log($e->getMessage());
+                    $this->logger()->error($e);
                 }
 
                 try {
@@ -110,7 +113,7 @@ class views implements Interfaces\Api
                             ->setClientMeta($_POST['client_meta'] ?? [])
                     );
                 } catch (\Exception $e) {
-                    error_log($e);
+                    $this->logger()->error($e);
                 }
 
                 break;

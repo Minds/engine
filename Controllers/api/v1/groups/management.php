@@ -13,9 +13,12 @@ use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Entities\User;
 
 use Minds\Exceptions\GroupOperationException;
+use Minds\Traits\Logger;
 
 class management implements Interfaces\Api
 {
+    use Logger;
+
     public function get($pages)
     {
         return Factory::response([]);
@@ -95,7 +98,7 @@ class management implements Interfaces\Api
             try {
                 $saved = $group->save();
             } catch (\Exception $e) {
-                error_log($e->getMessage());
+                $this->logger()->error($e);
             }
             return Factory::response(['done' => $saved]);
         }

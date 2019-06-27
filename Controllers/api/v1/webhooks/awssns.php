@@ -16,9 +16,12 @@ use Minds\Helpers;
 
 use Aws\Sns\Message;
 use Aws\Sns\MessageValidator;
+use Minds\Traits\Logger;
 
 class awssns implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+    use Logger;
+
     /**
      * GET
      */
@@ -33,21 +36,21 @@ class awssns implements Interfaces\Api, Interfaces\ApiIgnorePam
         $validator = new MessageValidator();
 
         if (!$validator->isValid($message)) {
-            error_log('[AWS-SES] Invalid Amazon SNS message');
+            $this->logger()->error('[AWS-SES] Invalid Amazon SNS message');
             return Factory::response([ 'status' => 'error' ]);
         }
 
         $snsSecret = Di::_()->get('Config')->get('sns_secret');
 
         if (!$snsSecret || $pages[0] !== $snsSecret) {
-            error_log('[AWS-SES] Received request, but got an invalid secret key');
+            $this->logger()->error('[AWS-SES] Received request, but got an invalid secret key');
             return Factory::response([ 'status' => 'error' ]);
         }
 
         // Check if we're getting a subscription confirmation URL
         if ($message['Type'] === 'SubscriptionConfirmation') {
             // Dump to the error log
-            error_log('[AWS-SES] Subscribed to URL: ' . $message['SubscribeURL']);
+            $this->logger()->notice('[AWS-SES] Subscribed to URL: ' . $message['SubscribeURL']);
 
             // Subscribe
             if (stripos($message['SubscribeURL'], 'https:') === 0) {
@@ -116,7 +119,7 @@ class awssns implements Interfaces\Api, Interfaces\ApiIgnorePam
 
             Di::_()->get('Email\Manager')->unsubscribe($user);
 
-            error_log('[AWS-SES] Disabled emails for ' . $guid);
+            $this->logger()->info('[AWS-SES] Disabled emails for ' . $guid);
             return Factory::response([]);
         }
 

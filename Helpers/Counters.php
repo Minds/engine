@@ -103,7 +103,7 @@ class Counters
         try {
             //$client->request($prepared);
         } catch (\Exception $e) {
-            error_log("exception in batch increment " . $e->getMessage());
+            Core\Log\Log::error($e);
         }
     }
 

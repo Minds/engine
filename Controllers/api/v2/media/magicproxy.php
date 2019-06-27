@@ -11,9 +11,12 @@ namespace Minds\Controllers\api\v2\media;
 use Minds\Core\Di\Di;
 use Minds\Interfaces;
 use Minds\Core\Media\Proxy\MagicResize;
+use Minds\Traits\Logger;
 
 class MagicProxy implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+    use Logger;
+
     const MAX_TIME = 5;
 
     private $downloader;
@@ -77,7 +80,7 @@ class MagicProxy implements Interfaces\Api, Interfaces\ApiIgnorePam
 
             /** @var Resize $resizer */
             $magicResizer = Di::_()->get('Media\Proxy\MagicResize');
-            error_log($src);
+            $this->logger()->debug($src);
             $binaryString = $this->downloader
                 ->setSrc($src)
                 ->setTimeout(static::MAX_TIME)
@@ -105,7 +108,7 @@ class MagicProxy implements Interfaces\Api, Interfaces\ApiIgnorePam
 
             echo $output;
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             header("X-Minds-Exception: {$e->getMessage()}");
             http_response_code(415);
         }

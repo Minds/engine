@@ -107,7 +107,7 @@ class FFMpeg implements ServiceInterface
                 return $this;
             }
         } catch (\Exception $e) {
-            var_dump($e->getMessage());
+            $this->logger()->error($e);
             exit;
         }
         throw new \Exception('Sorry, only strings and stream resource are accepted');

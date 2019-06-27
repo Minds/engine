@@ -9,9 +9,12 @@ use Minds\Core\Di\Di;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Entities\User;
 use Minds\Interfaces;
+use Minds\Traits\Logger;
 
 class feeds implements Interfaces\Api
 {
+    use Logger;
+
     /**
      * Gets a list of suggested hashtags, including the ones the user has opted in
      * @param array $pages
@@ -203,7 +206,7 @@ class feeds implements Interfaces\Api
                 'load-next' => $limit + $offset,
             ]);
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             return Factory::response(['status' => 'error', 'message' => $e->getMessage()]);
         }
     }

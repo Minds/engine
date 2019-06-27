@@ -13,9 +13,12 @@ use Minds\Core\Di\Di;
 use Minds\Core\Torrent\TorrentMeta;
 use Minds\Entities\Video;
 use Minds\Interfaces;
+use Minds\Traits\Logger;
 
 class torrent implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+    use Logger;
+
     /**
      * Equivalent to HTTP GET method
      * @param  array $pages
@@ -52,7 +55,7 @@ class torrent implements Interfaces\Api, Interfaces\ApiIgnorePam
 
             echo $torrentMeta->torrent();
         } catch (\Exception $e) {
-            error_log("[torrent::get] {$e->getMessage()} : " . get_class($e));
+            $this->logger()->error($e);
         }
 
         exit;

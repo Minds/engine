@@ -8,10 +8,13 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Queue\Client as Queue;
 use Minds\Entities;
+use Minds\Traits\Logger;
 use PHPMailer;
 
 class Mailer
 {
+    use Logger;
+
     private $mailer;
     private $queue;
     private $stats;
@@ -86,7 +89,8 @@ class Mailer
                     "message" => serialize($message)
                 ]);
         } catch (\Exception $e) {
-            var_dump($e); exit;
+            $this->logger()->error($e);
+            exit;
         }
     }
 

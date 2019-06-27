@@ -9,9 +9,12 @@ use Minds\Core\Di\Di;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Entities\User;
 use Minds\Interfaces;
+use Minds\Traits\Logger;
 
 class container implements Interfaces\Api
 {
+    use Logger;
+
     /**
      * Equivalent to HTTP GET method
      * @param array $pages
@@ -159,7 +162,7 @@ class container implements Interfaces\Api
                 'load-next' => $result->getPagingToken(),
             ]);
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             return Factory::response(['status' => 'error', 'message' => $e->getMessage()]);
         }
     }

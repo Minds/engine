@@ -16,9 +16,12 @@ use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Config;
+use Minds\Traits\Logger;
 
 class ban implements Interfaces\Api, Interfaces\ApiAdminPam
 {
+    use Logger;
+
     /**
      *
      */
@@ -81,7 +84,7 @@ class ban implements Interfaces\Api, Interfaces\ApiAdminPam
             $elastic->getClient()->delete($params);
 
         } catch (\Exception $e) {
-            error_log(print_r($e->getMessage()));
+            $this->logger()->error($e);
         }
 
         Dispatcher::trigger('ban', 'user', $user);

@@ -6,9 +6,12 @@ use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Interfaces;
+use Minds\Traits\Logger;
 
 class analytics implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+    use Logger;
+
     public function get($pages)
     {
         if (!isset($pages[0])) {
@@ -52,7 +55,7 @@ class analytics implements Interfaces\Api, Interfaces\ApiIgnorePam
             }
             $data = $graph->getData();
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             return Factory::response([
                 'status' => 'error',
                 'message' => $e->getMessage()

@@ -15,9 +15,12 @@ use Minds\Helpers;
 use Minds\Core\Payments;
 
 use Braintree_WebhookNotification;
+use Minds\Traits\Logger;
 
 class braintree implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+    use Logger;
+
     /**
    * NOT AVAILABLE
    */
@@ -30,7 +33,7 @@ class braintree implements Interfaces\Api, Interfaces\ApiIgnorePam
    */
   public function post($pages)
   {
-      error_log("[webhooks]:: hit first entrace point");
+      $this->logger()->info("[webhooks]:: hit first entrace point");
 
       $gateway = isset($pages[0]) ? $pages[0] : 'default';
 

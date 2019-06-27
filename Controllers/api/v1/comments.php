@@ -17,9 +17,12 @@ use Minds\Api\Factory;
 use Minds\Helpers;
 use Minds\Core\Sockets;
 use Minds\Core\Security;
+use Minds\Traits\Logger;
 
 class comments implements Interfaces\Api
 {
+    use Logger;
+
     /**
      * Returns the comments
      * @param array $pages
@@ -223,7 +226,7 @@ class comments implements Interfaces\Api
                     'message' => "The comment couldn't be saved because {$parentOwnerUsername} has blocked you."
                 ];
             } catch (\Exception $e) {
-                error_log($e);
+                $this->logger()->error($e);
                 $error = true;
 
                 $response = [

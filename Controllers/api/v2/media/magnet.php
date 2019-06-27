@@ -13,9 +13,12 @@ use Minds\Core\Di\Di;
 use Minds\Core\Torrent\TorrentMeta;
 use Minds\Entities\Video;
 use Minds\Interfaces;
+use Minds\Traits\Logger;
 
 class magnet implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+    use Logger;
+
     /**
      * Equivalent to HTTP GET method
      * @param  array $pages
@@ -59,7 +62,7 @@ class magnet implements Interfaces\Api, Interfaces\ApiIgnorePam
                 'encodedTorrent' => $torrentMeta->encodedTorrent()
             ]);
         } catch (\Exception $e) {
-            error_log("[magnet::get] {$e->getMessage()} : " . get_class($e));
+            $this->logger()->error($e);
 
             return Factory::response([
                 'status' => 'error',

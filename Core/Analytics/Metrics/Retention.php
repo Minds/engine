@@ -5,12 +5,15 @@ use Minds\Helpers;
 use Minds\Core;
 use Minds\Core\Analytics\Timestamps;
 use Minds\Interfaces\AnalyticsMetric;
+use Minds\Traits\Logger;
 
 /**
  * Retention Metric
  */
 class Retention implements AnalyticsMetric
 {
+    use Logger;
+
     private $db;
     private $namespace = "analytics:retention";
     private $key;
@@ -161,7 +164,7 @@ class Retention implements AnalyticsMetric
         try {
             $result = Core\Di\Di::_()->get('Database\ElasticSearch')->request($prepared);
         } catch (\Exception $e) {
-            var_dump($e); exit;
+            $this->logger()->error($e); exit;
             return [];
         }
 

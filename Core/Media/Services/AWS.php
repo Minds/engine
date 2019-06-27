@@ -10,9 +10,11 @@ use Aws\S3\S3Client;
 use GuzzleHttp\Psr7\Stream;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Traits\Logger;
 
 class AWS implements ServiceInterface
 {
+    use Logger;
 
     private $s3;
     private $et;
@@ -85,7 +87,7 @@ class AWS implements ServiceInterface
 
             }
         } catch (\Exception $e) {
-            var_dump($e->getMessage()); exit;
+            $this->logger()->error($e); exit;
         }
         throw new \Exception('Sorry, only strings and stream resource are accepted');
     }

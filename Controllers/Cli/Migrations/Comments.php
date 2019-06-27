@@ -14,9 +14,12 @@ use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Exceptions\CliException;
 use Minds\Interfaces;
+use Minds\Traits\Logger;
 
 class Comments extends Cli\Controller implements Interfaces\CliControllerInterface
 {
+    use Logger;
+
     /** @var int */
     const IN_MEMORY_JSON_CACHE_POOL = 1000;
 
@@ -181,7 +184,7 @@ class Comments extends Cli\Controller implements Interfaces\CliControllerInterfa
             try { 
                 $this->client->request($query);
             } catch (\Exception $e) {
-                var_dump($e); 
+                $this->logger()->error($e);
             }
         }
     }
@@ -219,7 +222,7 @@ class Comments extends Cli\Controller implements Interfaces\CliControllerInterfa
             try {
                 $value = json_encode((new User($user_guid, false))->export());
             } catch (\Exception $e) {
-                error_log(get_class($e) . ': ' . $e->getMessage());
+                $this->logger()->error($e);
             }
         }
 

@@ -20,10 +20,13 @@ use Minds\Interfaces;
 use Minds\Interfaces\Flaggable;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Traits\Logger;
 
 
 class newsfeed implements Interfaces\Api
 {
+    use Logger;
+
     /**
      * Returns the newsfeed
      * @param array $pages
@@ -778,7 +781,7 @@ class newsfeed implements Interfaces\Api
                     $attachment->delete();
                 }
             } catch (\Exception $e) {
-                error_log("Cannot delete attachment: {$activity->entity_guid}");
+                $this->logger()->error($e, ['entity_guid' => $activity->entity_guid]);
             }
         }
 

@@ -10,9 +10,11 @@ namespace Minds\Controllers\api\v1\thirdpartynetworks;
 use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Interfaces;
+use Minds\Traits\Logger;
 
 class facebook implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+    use Logger;
 
   /**
    * Get request
@@ -94,7 +96,7 @@ class facebook implements Interfaces\Api, Interfaces\ApiIgnorePam
                   echo "<script>window.opener.onSuccessCallback($json); window.close();</script>";
                   exit;
               } catch (\Exception $e) {
-                  error_log("[fbreg]: " . $e->getMessage());
+                  $this->logger()->error($e);
                   echo "<script>window.opener.onErrorCallback($e->getMessage()); window.close();</script>";
                   exit;
               }

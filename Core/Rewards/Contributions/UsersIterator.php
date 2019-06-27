@@ -152,7 +152,7 @@ class UsersIterator implements \Iterator
         try {
             $result = $this->client->request($prepared);
         } catch (\Exception $e) {
-            var_dump($e); exit;
+            $this->logger()->error($e); exit;
             return false;
         }
         

@@ -9,9 +9,12 @@ use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Entities;
+use Minds\Traits\Logger;
 
 class Documents
 {
+    use Logger;
+
     /** @var Core\Data\ElasticSearch\Client $client */
     protected $client;
 
@@ -134,7 +137,7 @@ class Documents
               $guids[] = $result['_id'];
           }    
       } catch (\Exception $e) {
-          var_dump($e);
+          $this->logger()->error($e);
           exit;
       }
 
@@ -166,7 +169,7 @@ class Documents
           return $suggestions;
       } catch (\Exception $e) {
         echo 2;
-          var_dump($e);
+          $this->logger()->error($e);
           exit;
       }
 

@@ -13,10 +13,13 @@ use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Payments;
 use Minds\Entities;
+use Minds\Traits\Logger;
 
 class merchant implements Interfaces\Api
 {
-    /**
+   use Logger;
+
+   /**
    * Returns merchant information
    * @param array $pages
    *
@@ -307,7 +310,7 @@ class merchant implements Interfaces\Api
             try {
                 Payments\Factory::build('braintree', ['gateway'=>'merchants'])->chargeSale($sale);
             } catch (\Exception $e) {
-                var_dump($e);
+                $this->logger()->error($e);
                 exit;
             }
             exit;
