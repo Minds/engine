@@ -12,9 +12,12 @@ use Minds\Core\Data\Cassandra\Client as CassandraClient;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
+use Minds\Traits\Logger;
 
 class Subscriptions
 {
+    use Logger;
+
     /** @var CassandraClient */
     protected $db;
 
@@ -77,7 +80,7 @@ class Subscriptions
 
             return $result;
         } catch (Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             return [];
         }
     }

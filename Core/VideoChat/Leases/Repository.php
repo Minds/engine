@@ -8,9 +8,11 @@ use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
 
     /** @var Client */
     private $db;
@@ -48,7 +50,7 @@ class Repository
         try {
             $this->db->request($query);
         } catch (\Exception $e) {
-            error_log("[VideoChat\Leases\Repository::add] {$e->getMessage()} > " . get_class($e));
+            $this->logger()->error($e);
             return false;
         }
 
@@ -94,7 +96,7 @@ class Repository
         try{
             $rows = $this->db->request($query);
         } catch(\Exception $e) {
-            error_log($e->getMessage());
+            $this->logger()->error($e);
         }
 
         foreach($rows as $row) {

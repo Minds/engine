@@ -16,9 +16,12 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Data\Cassandra\Client as CassandraClient;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
+
     /** @var CassandraClient */
     protected $db;
 
@@ -159,7 +162,7 @@ class Repository
             $this->db->request($prepared, true);
             return true;
         } catch (Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             return false;
         }
     }

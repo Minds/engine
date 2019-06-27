@@ -7,9 +7,12 @@ namespace Minds\Core\Data;
 
 use Minds\Core\Data\cache\Redis;
 use Minds\Core;
+use Minds\Traits\Logger;
 
 class Sessions implements \SessionHandlerInterface
 {
+    use Logger;
+
     /** @var Call */
     private $db;
     /** @var Redis */
@@ -25,29 +28,29 @@ class Sessions implements \SessionHandlerInterface
 
     public function open($save_path, $name)
     {
-        error_log('DEPRECATED: Sessions->open called');
+        $this->logger()->warning('DEPRECATED: Sessions->open called');
         return true;
     }
 
     public function close()
     {
-        error_log('DEPRECATED: Sessions->close called');
+        $this->logger()->warning('DEPRECATED: Sessions->close called');
         return true;
     }
 
     public function read($session_id)
     {
-        error_log('DEPRECATED: Sessions->read called');
+        $this->logger()->warning('DEPRECATED: Sessions->read called');
     }
 
     public function write($session_id, $session_data)
     {
-        error_log('DEPRECATED: Sessions->write called');
+        $this->logger()->warning('DEPRECATED: Sessions->write called');
     }
 
     public function destroy($session_id)
     {
-        error_log('DEPRECATED: Sessions->destroy'); 
+        $this->logger()->warning('DEPRECATED: Sessions->destroy');
     }
 
     public function gc($maxlifetime)
@@ -62,7 +65,7 @@ class Sessions implements \SessionHandlerInterface
      */
     public function destroyAll($guid)
     {
-        error_log('DEPRECATED: Sessions->destroyAll called'); 
+        $this->logger()->warning('DEPRECATED: Sessions->destroyAll called');
     }
 
     /**
@@ -72,7 +75,7 @@ class Sessions implements \SessionHandlerInterface
      */
     public function syncAll($guid)
     {
-        error_log('DEPRECATED: Sessions->syncAll called'); 
+        $this->logger()->warning('DEPRECATED: Sessions->syncAll called');
     }
 
     /**
@@ -82,7 +85,7 @@ class Sessions implements \SessionHandlerInterface
      */
     public function syncRemote($guid, $user)
     {
-        error_log('DEPRECATED: Sessions->syncRemote called');
+        $this->logger()->warning('DEPRECATED: Sessions->syncRemote called');
     }
 
     /**
@@ -92,7 +95,7 @@ class Sessions implements \SessionHandlerInterface
      */
     public function count($guid)
     {
-        error_log('DEPRECATED: Sessions->count called');
+        $this->logger()->warning('DEPRECATED: Sessions->count called');
     }
 
     /**
@@ -103,7 +106,7 @@ class Sessions implements \SessionHandlerInterface
      */
     protected function addIndex($session_id, $ttl)
     {
-        error_log('DEPRECATED: Sessions->addIndex called');
+        $this->logger()->warning('DEPRECATED: Sessions->addIndex called');
     }
 
     /**
@@ -113,7 +116,7 @@ class Sessions implements \SessionHandlerInterface
      */
     protected function removeIndex($session_id)
     {
-        error_log('DEPRECATED: Sessions->removeIndex called');
+        $this->logger()->warning('DEPRECATED: Sessions->removeIndex called');
     }
 
     /**

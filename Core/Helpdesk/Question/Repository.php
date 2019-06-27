@@ -13,9 +13,12 @@ use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Di\Di;
 use Minds\Core\Helpdesk\Category;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
+
     /** @var Core\Data\Cassandra\Client */
     protected $cassandraClient;
 
@@ -89,7 +92,7 @@ class Repository
             }
             $response->setPagingToken($data->pagingStateToken());
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
         }
 
         return $response;
@@ -127,7 +130,7 @@ class Repository
                     ->setPosition($row['position'] ?: 10);
             }
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
         }
 
         return $question;
@@ -221,7 +224,7 @@ class Repository
 
             return $entities;
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
         }
     }
 
@@ -276,7 +279,7 @@ class Repository
 
             $this->esClient->request($prepared);
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             return false;
         }
         return $uuid;
@@ -345,7 +348,7 @@ class Repository
 
             return !!$result;
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
         }
 
         return false;
@@ -371,7 +374,7 @@ class Repository
 
             return !!$result;
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             return false;
         }
     }

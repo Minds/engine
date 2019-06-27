@@ -14,9 +14,12 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
+
     /** @var Client */
     protected $db;
 
@@ -153,7 +156,7 @@ class Repository
         try {
             $result = $this->db->request($prepared);
         } catch (\Exception $e) {
-            error_log('[PostSubscriptions/Repository::update]' . get_class($e) . ': ' . $e->getMessage());
+            $this->logger()->error($e);
             return false;
         }
 
@@ -189,7 +192,7 @@ class Repository
         try {
             $result = $this->db->request($prepared);
         } catch (\Exception $e) {
-            error_log('[PostSubscriptions/Repository::update]' . get_class($e) . ': ' . $e->getMessage());
+            $this->logger()->error($e);
             return false;
         }
 

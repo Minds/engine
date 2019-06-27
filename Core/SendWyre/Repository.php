@@ -12,9 +12,12 @@ use Cassandra\Varint;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
+
     /**
      * @var Client
      */
@@ -46,7 +49,7 @@ class Repository
         try {
             $result = $this->db->request($query);
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
         }
 
         if ($result && $result->count() > 0) {

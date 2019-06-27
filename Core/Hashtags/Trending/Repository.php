@@ -5,12 +5,15 @@ namespace Minds\Core\Hashtags\Trending;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\ElasticSearch\Prepared\Search as Prepared;
 use Minds\Common\Repository\Response;
+use Minds\Traits\Logger;
 
 /**
  * Hashtags Trending Repository
  */
 class Repository
 {
+    use Logger;
+
     /** @var \PDO $db */
     protected $db;
 
@@ -182,7 +185,7 @@ class Repository
 
             return $statement->execute([$tag, date('c'), $admin_guid]);
         } catch (\Exception $e) {
-            error_log($e->getMessage());
+            $this->logger()->error($e);
         }
 
         return false;
@@ -203,7 +206,7 @@ class Repository
 
             return $statement->execute([$tag]);
         } catch (\Exception $e) {
-            error_log($e->getMessage());
+            $this->logger()->error($e);
         }
 
         return false;
@@ -242,7 +245,7 @@ class Repository
 
             return $statement->execute();
         } catch (\Exception $e) {
-            error_log($e->getMessage());
+            $this->logger()->error($e);
         }
 
         return false;

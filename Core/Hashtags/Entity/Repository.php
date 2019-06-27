@@ -4,9 +4,12 @@ namespace Minds\Core\Hashtags\Entity;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Hashtags\HashtagEntity;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
+
     /** @var \PDO */
     protected $db;
 
@@ -55,7 +58,7 @@ class Repository
 
                 return $statement->execute([$hashtag->getGuid(), $hashtag->getHashtag()]);
             } catch (\Exception $e) {
-                error_log($e->getMessage());
+                $this->logger()->error($e);
             }
         }
         return false;

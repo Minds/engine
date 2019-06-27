@@ -7,10 +7,13 @@ namespace Minds\Core\SMS\Services;
 
 use Minds\Core\Di\Di;
 use Minds\Core\SMS\SMSServiceInterface;
+use Minds\Traits\Logger;
 use Twilio\Rest\Client as TwilioClient;
 
 class Twilio implements SMSServiceInterface
 {
+    use Logger;
+
     /** @var TwilioClient */
     protected $client;
     /** @var array */
@@ -40,7 +43,7 @@ class Twilio implements SMSServiceInterface
 
             return $phone_number->carrier['type'] !== 'voip';
         } catch (\Exception $e) {
-            error_log("[guard] Twilio error: {$e->getMessage()}");
+            $this->logger()->error($e);
         }
         return false;
     }

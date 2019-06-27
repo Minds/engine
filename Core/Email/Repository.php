@@ -15,9 +15,12 @@ use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Entities\User;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
+
     /**
      * @var Client
      */
@@ -116,7 +119,7 @@ class Repository
         try {
             $result = $this->db->request($query);
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
         }
 
         if ($result) {

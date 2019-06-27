@@ -11,9 +11,12 @@ use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Cassandra;
 use Cassandra\Varint;
 use Cassandra\Timestamp;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
+
     private $db;
     private $config;
     private $entitiesBuilder;
@@ -133,7 +136,7 @@ class Repository
         try {
             $rows = $this->db->request($query);
         } catch (\Exception $e) {
-            error_log($e->getMessage());
+            $this->logger()->error($e);
 
             return [];
         }

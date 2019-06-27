@@ -18,9 +18,12 @@ use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Legacy\Repository as FeedsRepository;
 use Minds\Core\Feeds\FeedItem;
 use Minds\Core\Security\ACL;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
+
     /** @var Client */
     protected $cql;
 
@@ -97,7 +100,7 @@ class Repository
             try {
                 $requests[$guid] = $this->cql->request($prepared, true);
             } catch (\Exception $e) {
-                error_log('Blogs/Legacy/Repository::getList/entities ' . get_class($e) . ' ' . $e->getMessage());
+                $this->logger()->error($e);
                 return (new Response())->setException($e);
             }
         }
@@ -165,7 +168,7 @@ class Repository
                 return null;
             }
         } catch (\Exception $e) {
-            error_log('Blogs/Legacy/Repository::get ' . get_class($e) . ' ' . $e->getMessage());
+            $this->logger()->error($e);
             return null;
         }
 
@@ -231,7 +234,7 @@ class Repository
         try {
             $this->cql->batchRequest($requests, Cassandra::BATCH_UNLOGGED, false);
         } catch (\Exception $e) {
-            error_log('Blogs/Legacy/Repository::add ' . get_class($e) . ' ' . $e->getMessage());
+            $this->logger()->error($e);
             return false;
         }
 
@@ -266,7 +269,7 @@ class Repository
         try {
             $this->cql->request($prepared);
         } catch (\Exception $e) {
-            error_log('Blogs/Legacy/Repository::delete ' . get_class($e) . ' ' . $e->getMessage());
+            $this->logger()->error($e);
             return false;
         }
 

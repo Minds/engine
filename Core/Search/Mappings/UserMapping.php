@@ -9,9 +9,12 @@
 namespace Minds\Core\Search\Mappings;
 
 use Minds\Exceptions\BannedException;
+use Minds\Traits\Logger;
 
 class UserMapping extends EntityMapping implements MappingInterface
 {
+    use Logger;
+
     /**
      * UserMapping constructor.
      */
@@ -70,7 +73,7 @@ class UserMapping extends EntityMapping implements MappingInterface
         $username = preg_replace('/[0-9]*/', '', $this->entity->username);
 
         if (!$name && !$username) {
-            error_log('[es]: tried to save user without username or name ' . $this->entity->guid);
+            $this->logger()->warning('[es]: tried to save user without username or name ' . $this->entity->guid);
             return $map;
         }
 

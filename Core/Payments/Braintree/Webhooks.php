@@ -25,9 +25,12 @@ use Braintree_Subscription;
 use Braintree_Test_MerchantAccount;
 use Braintree_WebhookNotification;
 use Minds\Core\Payments\Subscriptions\Subscription;
+use Minds\Traits\Logger;
 
 class Webhooks
 {
+    use Logger;
+
     protected $payload;
     protected $signature;
     protected $notification;
@@ -204,6 +207,6 @@ class Webhooks
      */
     protected function check()
     {
-        error_log("[webook]:: check is OK!");
+        $this->logger()->notice("[webook]:: check is OK!");
     }
 }

@@ -18,9 +18,12 @@ use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
 use Minds\Helpers\Cql;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
+
     /** @var Client */
     protected $cql;
 
@@ -188,7 +191,7 @@ class Repository
             if ($rows)
               $comments->setPagingToken(base64_encode($rows->pagingStateToken()));
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
         }
 
         return $comments;
@@ -416,7 +419,7 @@ class Repository
         try {
             $this->cql->request($query);
         } catch (\Exception $e) {
-            error_log("[Comments\Repository::add] {$e->getMessage()} > " . get_class($e));
+            $this->logger()->error($e);
             return false;
         }
 
@@ -465,13 +468,13 @@ class Repository
                 $this->legacyRepository->delete($comment);
             }
         } catch (\Exception $e) {
-            error_log("[Comments\Repository::delete/legacy] {$e->getMessage()} > " . get_class($e));
+            $this->logger()->error($e);
         }
 
         try {
             $this->cql->request($query);
         } catch (\Exception $e) {
-            error_log("[Comments\Repository::delete] {$e->getMessage()} > " . get_class($e));
+            $this->logger()->error($e);
             return false;
         }
 

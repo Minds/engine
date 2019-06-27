@@ -14,9 +14,12 @@ use Minds\Core\Util\BigNumber;
 use Minds\Core\Wire\Manager;
 use Minds\Core\Wire\Wire;
 use Minds\Entities\User;
+use Minds\Traits\Logger;
 
 class WireEvent implements BlockchainEventInterface
 {
+    use Logger;
+
     public static $eventsMap = [
         '0xce785fa87dd60f986617d1c5e02218c5b233399cc29e9a326a41a76fabc95d66' => 'wireSent'
     ];
@@ -84,7 +87,7 @@ class WireEvent implements BlockchainEventInterface
         try {
             $this->manager->confirm($wire, $transaction);
         } catch (\Exception $e) {
-            error_log(print_r($e, true));
+            $this->logger()->error($e);
         }
 
     }

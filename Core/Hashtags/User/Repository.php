@@ -9,9 +9,12 @@ use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
 use Minds\Core\Hashtags\HashtagEntity;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
+
     /** @var Client */
     protected $db;
 
@@ -82,7 +85,7 @@ class Repository
 
             return $response;
         } catch (\Exception $e) {
-            error_log(static::class . '::getAll() CQL Exception ' . $e->getMessage());
+            $this->logger()->error($e);
             return false;
         }
     }
@@ -107,7 +110,7 @@ class Repository
 
                 $this->db->request($prepared, true);
             } catch (\Exception $e) {
-                error_log(static::class . '::add() CQL Exception ' . $e->getMessage());
+                $this->logger()->error($e);
                 return false;
             }
         }
@@ -144,7 +147,7 @@ class Repository
         try {
             $this->db->request($prepared, true);
         } catch (\Exception $e) {
-            error_log(static::class . '::remove() CQL Exception ' . $e->getMessage());
+            $this->logger()->error($e);
             return false;
         }
 

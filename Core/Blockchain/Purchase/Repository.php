@@ -12,9 +12,12 @@ use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
 use Minds\Core\Util\BigNumber;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
+
     /** @var Client */
     private $db;
 
@@ -122,7 +125,7 @@ class Repository
         try {
             $rows = $this->db->request($query);
         } catch (\Exception $e) {
-            error_log($e->getMessage());
+            $this->logger()->error($e);
             return [];
         }
 
@@ -164,7 +167,7 @@ class Repository
         try {
             $rows = $this->db->request($query);
         } catch (\Exception $e) {
-            error_log($e->getMessage());
+            $this->logger()->error($e);
             return null;
         }
 
@@ -200,7 +203,7 @@ class Repository
         try {
             $this->db->request($query);
         } catch (\Exception $e) {
-            error_log($e->getMessage());
+            $this->logger()->error($e);
             return false;
         }
 

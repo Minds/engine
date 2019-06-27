@@ -8,9 +8,12 @@ use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
 use Minds\Core\Util\UUIDGenerator;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
+
     /** @var Client */
     protected $client;
 
@@ -74,7 +77,7 @@ class Repository
 
             $response->setPagingToken((int) $opts['offset'] + (int) $opts['limit']);
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
         }
 
         return $response;
@@ -108,7 +111,7 @@ class Repository
 
             return $category;
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             return null;
         }
     }
@@ -165,7 +168,7 @@ class Repository
                 return false;
             }
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             return false;
         }
 
@@ -190,7 +193,7 @@ class Repository
 
             return !!$this->client->request($prepared);
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             return false;
         }
     }
@@ -213,7 +216,7 @@ class Repository
             return $response->current()['branch'] . ':' . $uuid;
 
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
         }
         return $uuid;
     }

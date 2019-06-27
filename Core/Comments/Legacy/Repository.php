@@ -13,9 +13,12 @@ use Minds\Core\Comments\Comment;
 use Minds\Core\Data\Call;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Di\Di;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
+
     /** @var Client */
     protected $cql;
 
@@ -268,7 +271,7 @@ class Repository
 
             return $this->legacyEntity->build($row);
         } catch (\Exception $e) {
-            error_log("[Comments\Legacy\Repository::getByGuid] {$e->getMessage()} > " . get_class($e));
+            $this->logger()->error($e);
         }
 
         return null;

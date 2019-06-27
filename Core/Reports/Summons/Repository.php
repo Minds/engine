@@ -13,9 +13,12 @@ use Generator;
 use Minds\Core\Data\Cassandra\Client as CassandraClient;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
+
     /** @var CassandraClient */
     protected $db;
 
@@ -93,7 +96,7 @@ class Repository
                 yield $summons;
             }
         } catch (Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             return [];
         }
     }
@@ -122,7 +125,7 @@ class Repository
         try {
             return (bool) $this->db->request($prepared, true);
         } catch (Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             return false;
         }
     }
@@ -148,7 +151,7 @@ class Repository
 
             return $response[0]['total'] > 0;
         } catch (Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             return false;
         }
     }
@@ -206,7 +209,7 @@ class Repository
         try {
             return (bool) $this->db->request($prepared, true);
         } catch (Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             return false;
         }
     }

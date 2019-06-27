@@ -6,9 +6,11 @@ use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Security\TwoFactor;
 use Minds\Exceptions;
+use Minds\Traits\Logger;
 
 class Spam
 {
+    use Logger;
 
     public function check($entity)
     {
@@ -33,7 +35,7 @@ class Spam
                 $foundSpam = $this->strposa($entity->getBriefDescription(), $this->prohibitedDomains());
                 break;
             default:
-                error_log("[spam-check]: $entity->type:$entity->subtype not supported");
+                $this->logger()->warning("[spam-check]: $entity->type:$entity->subtype not supported");
          }
 
          if ($foundSpam) {

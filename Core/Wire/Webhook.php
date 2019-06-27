@@ -15,9 +15,11 @@ use Minds\Core\Payments;
 use Minds\Core\Payments\HookInterface;
 use Minds\Entities\Wire;
 use Minds\Entities\Factory;
+use Minds\Traits\Logger;
 
 class Webhook implements HookInterface
 {
+    use Logger;
 
     public function onCharged($subscription)
     {
@@ -75,7 +77,7 @@ class Webhook implements HookInterface
 
     public function onActive($subscription)
     {
-        error_log("[webhook]:: gotOnActive");
+        $this->logger()->notice("[webhook]:: gotOnActive");
     }
 
     public function onExpired($subscription)
@@ -88,7 +90,7 @@ class Webhook implements HookInterface
 
     public function onCanceled($subscription)
     {
-        error_log("[webhook]:: canceled");
+        $this->logger()->notice("[webhook]:: canceled");
         $user = $subscription->getCustomer()->getUser();
 
         //$plus = new Subscription();

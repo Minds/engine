@@ -14,9 +14,12 @@ use Minds\Core\Blockchain\Util;
 use Minds\Core\Di\Di;
 use Minds\Core\Rewards\Withdraw;
 use Minds\Core\Util\BigNumber;
+use Minds\Traits\Logger;
 
 class WithdrawEvent implements BlockchainEventInterface
 {
+    use Logger;
+
     /** @var array $eventsMap */
     public static $eventsMap = [
         '0x317c0f5ab60805d3e3fb6aaa61ccb77253bbb20deccbbe49c544de4baa4d7f8f' => 'onRequest',
@@ -97,7 +100,7 @@ class WithdrawEvent implements BlockchainEventInterface
             $this->manager->complete($request, $transaction);
         } catch (\Exception $e) {
             var_dump($e);
-            error_log(print_r($e, true));
+            $this->logger()->error($e);
         }
 
     }

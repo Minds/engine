@@ -5,12 +5,15 @@ namespace Minds\Core\Analytics\Iterators;
 use Minds\Core;
 use Minds\Core\Analytics\Timestamps;
 use Minds\Core\Data;
+use Minds\Traits\Logger;
 
 /**
  * Iterator that loops through all signups after a set period
  */
 class SignupsOffsetIterator implements \Iterator
 {
+    use Logger;
+
     private $cursor = -1;
     private $period = 0;
 
@@ -98,7 +101,7 @@ class SignupsOffsetIterator implements \Iterator
         }
 
         if (!$pushed) {
-            error_log("no users past period " . date('d-m-Y', end($users)->time_created));
+            $this->logger()->warning("no users past period " . date('d-m-Y', end($users)->time_created));
             $this->getUsers();
         }
     }

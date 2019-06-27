@@ -6,12 +6,15 @@ namespace Minds\Core\Analytics\Iterators;
 use Minds\Core;
 use Minds\Core\Data;
 use Minds\Core\Data\Cassandra;
+use Minds\Traits\Logger;
 
 /**
  * Iterator that loops through all signups after a set period
  */
 class UsersWithFacebookIterator  implements \Iterator
 {
+    use Logger;
+
     private $cursor = -1;
     private $period = 0;
     private $limit = 400;
@@ -78,7 +81,7 @@ class UsersWithFacebookIterator  implements \Iterator
             //return;
         }
         if (!count($guids)) {
-            error_log("no users with facebook login" . date('d-m-Y', end($users)->time_created));
+            $this->logger()->warning("no users with facebook login" . date('d-m-Y', end($users)->time_created));
             $this->getUsers();
         }
     }

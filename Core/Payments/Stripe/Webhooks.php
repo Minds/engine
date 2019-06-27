@@ -9,10 +9,13 @@ use Minds\Core;
 use Minds\Core\Guid;
 use Minds\Core\Payments;
 use Minds\Entities;
+use Minds\Traits\Logger;
 
 
 class Webhooks
 {
+    use Logger;
+
     protected $stripe;
     protected $payload;
     protected $signature;
@@ -193,6 +196,6 @@ class Webhooks
      */
     protected function check()
     {
-        error_log("[webook]:: check is OK!");
+        $this->logger()->notice("[webook]:: check is OK!");
     }
 }

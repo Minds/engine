@@ -33,7 +33,7 @@ class Session extends base
      */
     public static function regenerate($new_id = true, $user = null)
     {
-        error_log('DEPRECATED: session->regenerate');
+        Core\Log\Log::warning('DEPRECATED: session->regenerate', static::class);
     }
 
     /**

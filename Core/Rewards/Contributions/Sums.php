@@ -9,9 +9,12 @@ use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
+use Minds\Traits\Logger;
 
 class Sums
 {
+    use Logger;
+
     /** @var Client */
     private $db;
 
@@ -62,7 +65,7 @@ class Sums
         try{
             $rows = $this->db->request($query);
         } catch(\Exception $e) {
-            error_log($e->getMessage());
+            $this->logger()->error($e);
         }
         
         return (string) BigNumber::_($rows[0]['amount']);
@@ -92,7 +95,7 @@ class Sums
         try{
             $rows = $this->db->request($query);
         } catch(\Exception $e) {
-            error_log($e->getMessage());
+            $this->logger()->error($e);
         }
         
         return (int) $rows[0]['score'];

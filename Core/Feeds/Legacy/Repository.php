@@ -14,9 +14,12 @@ use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds\FeedItem;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
+
     /** @var Client */
     protected $cql;
 
@@ -110,7 +113,7 @@ class Repository
             /** @var Rows $result */
             $result = $this->cql->request($prepared);
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             // TODO: Attempt a couple of times?
             return (new Response())->setException($e);
         }
@@ -158,7 +161,7 @@ class Repository
             try {
                 $this->cql->request($prepared, true);
             } catch (\Exception $e) {
-                error_log(static::class . '::' . __METHOD__ . ' ' . $e);
+                $this->logger()->error($e);
                 $failed = true;
             }
         }
@@ -199,7 +202,7 @@ class Repository
             try {
                 $this->cql->request($prepared, true);
             } catch (\Exception $e) {
-                error_log(static::class . '::' . __METHOD__ . ' ' . $e);
+                $this->logger()->error($e);
                 $failed = true;
             }
         }
