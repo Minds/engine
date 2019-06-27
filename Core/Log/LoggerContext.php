@@ -69,7 +69,7 @@ class LoggerContext
     public function setUp()
     {
         $isProduction = !$this->config->get('development_mode');
-        $level = $this->config->get('min_log_level') ?: ($isProduction ? MonologLogger::NOTICE : MonologLogger::DEBUG);
+        $level = $this->config->get('min_log_level') ?: ($isProduction ? MonologLogger::INFO : MonologLogger::DEBUG);
 
         $this->logger = new MonologLogger('minds');
 
