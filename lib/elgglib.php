@@ -840,7 +840,7 @@ function elgg_trigger_plugin_hook($hook, $type, $params = null, $returnvalue = n
  */
 function _elgg_php_exception_handler($exception) {
 	try {
-		\Minds\Core\Log\Log::error($exception, 'Elgg');
+		\Minds\Core\Log\Log::critical($exception, 'Elgg');
 	} catch (\Exception $e) {
 		$timestamp = time();
 		error_log("Exception #$timestamp: $exception");
@@ -885,7 +885,7 @@ function _elgg_php_error_handler($errno, $errmsg, $filename, $linenum, $vars = a
 
 	switch ($errno) {
 		case E_USER_ERROR:
-			\Minds\Core\Log\Log::error($error, 'Elgg');
+			\Minds\Core\Log\Log::critical($error, 'Elgg');
 			register_error("ERROR: $error");
 
 			// Since this is a fatal error, we want to stop any further execution but do so gracefully.
