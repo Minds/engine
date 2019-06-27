@@ -11,9 +11,12 @@ use Minds\Core\Data\Cassandra\Prepared;
 use Minds\Entities;
 use Minds\Entities\DenormalizedEntity;
 use Minds\Entities\NormalizedEntity;
+use Minds\Traits\Logger;
 
 class Manager
 {
+    use Logger;
+
     const INITIAL_JURY_SIZE = 1;
     const INITIAL_JURY_MAJORITY = 1;
 
@@ -89,8 +92,8 @@ class Manager
         foreach ($verdicts as $verdict) {
             $this->decide($verdict);
         }
-       
-       error_log('done');
+
+        $this->logger()->info('run() done', compact('juryType'));
     }
 
     /**
@@ -117,10 +120,10 @@ class Manager
         $verdict->setTimestamp(time());
 
         if ($verdict->isUpheld() === null) {
-            error_log("{$verdict->getReport()->getEntityUrn()} not actionable");
+            $this->logger()->error("{$verdict->getReport()->getEntityUrn()} not actionable");
             return false;
         } else {
-            error_log("{$verdict->getReport()->getEntityUrn()} decided with {$verdict->getAction()}");
+            $this->logger()->info("{$verdict->getReport()->getEntityUrn()} decided with {$verdict->getAction()}");
             return $this->cast($verdict);
         }
     }

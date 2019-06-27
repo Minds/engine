@@ -6,9 +6,12 @@ use Minds\Core\Di\Di;
 use Minds\Core\Data\Redis\Client as Redis;
 use Minds\Core\Config;
 use Minds\Entities\User;
+use Minds\Traits\Logger;
 
 class ModerationCache
 {
+    use Logger;
+
     const MODERATION_CACHE_TTL = 60 * 60; // 1 hour
     const MODERATION_PREFIX = 'moderation_leases';
 
@@ -45,7 +48,7 @@ class ModerationCache
             ]);
             $this->redis->sAdd(ModerationCache::MODERATION_PREFIX, $lease);
         } catch (\Exception $e) {
-            error_log($e->getMessage());
+            $this->logger()->error($e);
         }
     }
 
@@ -71,7 +74,7 @@ class ModerationCache
                 }
             }
         } catch (Exception $e) {
-            error_log($e->getMessage());
+            $this->logger()->error($e);
         }
 
         return $locks;

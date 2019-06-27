@@ -9,9 +9,11 @@ use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Queue;
 use Minds\Core\Di\Di;
+use Minds\Traits\Logger;
 
 class Manager
 {
+    use Logger;
 
     /** @var string $contract */
     private $contract;
@@ -152,9 +154,9 @@ class Manager
                 foreach ($topics[$topic] as $topicHandlerClass) {
                     try {
                         (new $topicHandlerClass())->event($topic, $log, $transaction);
-                        error_log("Tx[{$this->tx}][{$topicHandlerClass}] {$topic}... OK!");
+                        $this->logger()->info("Tx[{$this->tx}][{$topicHandlerClass}] {$topic}... OK!");
                     } catch (\Exception $e) {
-                        error_log("Tx[{$this->tx}][{$topicHandlerClass}] {$topic} threw " . get_class($e) . ": {$e->getMessage()}");
+                        $this->logger()->error("Tx[{$this->tx}][{$topicHandlerClass}] {$topic} threw: {$e}");
                     }
                 }
             }

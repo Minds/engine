@@ -8,10 +8,13 @@
 namespace Minds\Core\Data\cache;
 
 use Minds\Core\Di\Di;
+use Minds\Traits\Logger;
 use Redis as RedisServer;
 
 class Redis extends abstractCacher
 {
+    use Logger;
+
     private $master = '127.0.0.1';
     private $slave = '127.0.0.1';
     private $redisMaster;
@@ -97,7 +100,7 @@ class Redis extends abstractCacher
             $redis = $this->getSlave(); 
             return  $redis->scan($iterator, $pattern);       
         } catch (\Exception $e) {
-            error_log($e->getMessage());
+            $this->logger()->error($e);
         }
     }
 

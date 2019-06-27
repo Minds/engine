@@ -16,9 +16,12 @@ use Minds\Core\Session;
 use Minds\Entities\User;
 use Minds\Exceptions\BlockedUserException;
 use Minds\Exceptions\InvalidLuidException;
+use Minds\Traits\Logger;
 
 class Manager
 {
+    use Logger;
+
     /** @var Repository */
     protected $repository;
 
@@ -149,7 +152,7 @@ class Manager
                 $this->legacyRepository->add($comment, Repository::$allowedEntityAttributes, false);
             }
         } catch (\Exception $e) {
-            error_log("[Comments\Repository::add/legacy] {$e->getMessage()} > " . get_class($e));
+            $this->logger()->error($e);
         }
 
         $success = $this->repository->add($comment);
@@ -246,7 +249,7 @@ class Manager
         try {
             $count = $this->repository->count($entity_guid, $parent_guid);
         } catch (\Exception $e) {
-            error_log('Comments\Manager::count ' . get_class($e) . ':' . $e->getMessage());
+            $this->logger()->error($e);
             $count = 0;
         }
 

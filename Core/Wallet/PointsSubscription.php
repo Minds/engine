@@ -11,9 +11,12 @@ use Minds\Helpers\Wallet as WalletHelper;
 use Minds\Entities;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Di\Di;
+use Minds\Traits\Logger;
 
 class PointsSubscription implements HookInterface
 {
+    use Logger;
+
     private $rate = 0.001;
 
     public function onCharged($subscription)
@@ -46,7 +49,7 @@ class PointsSubscription implements HookInterface
 
     public function onActive($subscription)
     {
-        error_log("[webhook]:: gotOnActive");
+        $this->logger()->notice("[webhook]:: gotOnActive");
     }
 
     public function onExpired($subscription)

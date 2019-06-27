@@ -8,10 +8,13 @@ use Minds\Core\Email\Campaigns\WhenNotifications;
 use Minds\Core\Email\EmailSubscribersIterator;
 use Minds\Core\Notification\Counters;
 use Minds\Core\Notification\Repository;
+use Minds\Traits\Logger;
 use Minds\Traits\MagicAttributes;
 
 class Notifications implements EmailBatchInterface
 {
+    use Logger;
+
     use MagicAttributes;
 
     /** @var Repository */
@@ -59,7 +62,7 @@ class Notifications implements EmailBatchInterface
                 try {
                     $notifications = $this->repository->getList(['limit' => $count, 'to_guid' => $user->guid])->toArray();
                 } catch (\Exception $e) {
-                    error_log($e->getMessage());
+                    $this->logger()->error($e);
                     continue;
                 }
 
@@ -71,7 +74,7 @@ class Notifications implements EmailBatchInterface
                 }
 
                 if ($i >= 1) {
-                    error_log("Sending email to {$user->guid} for {$i} notifications");
+                    $this->logger()->info("Sending email to {$user->guid} for {$i} notifications");
                     $campaign = new WhenNotifications();
                     $campaign->setUser($user)
                         ->setAmount($i)

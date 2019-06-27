@@ -5,9 +5,12 @@ namespace Minds\Core\Hashtags\User;
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Di\Di;
 use Minds\Core\Hashtags\HashtagEntity;
+use Minds\Traits\Logger;
 
 class LegacyRepository
 {
+    use Logger;
+
     /** @var \PDO */
     protected $db;
 
@@ -74,7 +77,7 @@ class LegacyRepository
 
                 return $statement->execute([$hashtag->getGuid(), $hashtag->getHashtag()]);
             } catch (\Exception $e) {
-                error_log($e->getMessage());
+                $this->logger()->error($e);
             }
         }
         return false;

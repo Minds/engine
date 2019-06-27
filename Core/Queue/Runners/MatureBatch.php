@@ -9,12 +9,15 @@ use Minds\Core\Queue\Interfaces;
 use Minds\Entities;
 use Minds\Helpers\MagicAttributes;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Traits\Logger;
 
 /**
  * triggered when an admin marks a channel as explicit. It sets every post from that channel as explicit too.
  */
 class MatureBatch implements Interfaces\QueueRunner
 {
+    use Logger;
+
     public function run()
     {
         Core\Security\ACL::$ignore = true;
@@ -54,7 +57,7 @@ class MatureBatch implements Interfaces\QueueRunner
 
                             echo "Updated mature flag ($value) for $type:{$entity->guid} \n";
                         } catch (\Exception $e) {
-                            error_log($e);
+                            $this->logger()->error($e);
                             echo "Skipped {$entity->guid} because of exception \n";
                         }
                     }

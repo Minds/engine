@@ -15,9 +15,12 @@ use Minds\Core\Payments;
 use Minds\Core\Events\Dispatcher;
 use Minds\Entities\Factory;
 use Minds\Entities\User;
+use Minds\Traits\Logger;
 
 class Manager
 {
+    use Logger;
+
     public static $allowedRecurring = [
         'daily',
         'monthly',
@@ -63,7 +66,7 @@ class Manager
             $this->subscription->setLastBilling(time());
             $this->subscription->setNextBilling($this->getNextBilling());
         } catch (\Exception $e) {
-            error_log("Payment failed: " . $e->getMessage());
+            $this->logger()->error($e);
             $this->subscription->setStatus('failed');
         }
 

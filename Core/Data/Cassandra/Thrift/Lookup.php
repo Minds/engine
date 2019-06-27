@@ -4,8 +4,11 @@
  */
 namespace Minds\Core\Data\Cassandra\Thrift;
 
+use Minds\Traits\Logger;
+
 class Lookup
 {
+    use Logger;
     use Namespaced;
     
     protected $db;
@@ -52,7 +55,7 @@ class Lookup
         try {
             return $this->db->getRow($this->buildNamespace($name), $opts);
         } catch (\Exception $e) {
-            error_log('Lookup->get(): ' . $e->getMessage());
+            $this->logger()->error($e);
             return false;
         }
     }

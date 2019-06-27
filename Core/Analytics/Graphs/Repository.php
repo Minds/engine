@@ -7,9 +7,12 @@ use Minds\Core\Data\Cassandra;
 use Minds\Core\Di\Di;
 use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
+use Minds\Traits\Logger;
 
 class Repository
 {
+    use Logger;
+
     /** @var Cassandra\Client */
     protected $client;
 
@@ -72,7 +75,7 @@ class Repository
                 $response[] = $graph;
             }
         } catch (\Exception $e) {
-            error_log("[Analytics\Graphs\Repository::getList] {$e->getMessage()} > " . get_class($e));
+            $this->logger()->error($e);
             return null;
         }
 
@@ -114,7 +117,7 @@ class Repository
         try {
             $this->client->request($query);
         } catch (\Exception $e) {
-            error_log("[Analytics\Graphs\Repository::add] {$e->getMessage()} > " . get_class($e));
+            $this->logger()->error($e);
             return false;
         }
         return true;

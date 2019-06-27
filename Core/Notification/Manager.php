@@ -10,9 +10,11 @@ use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Core\Features\Manager as FeaturesManager;
+use Minds\Traits\Logger;
 
 class Manager
 {
+    use Logger;
 
     /** @var Config $config */
     private $config;
@@ -158,7 +160,7 @@ class Manager
 
             return $uuid;
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             if (php_sapi_name() === 'cli') {
                 //exit;
             }

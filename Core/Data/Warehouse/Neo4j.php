@@ -8,9 +8,12 @@ namespace Minds\Core\Data\Warehouse;
 use Minds\Core;
 use Minds\Core\Data\Interfaces;
 use Minds\Core\Data\Neo4j\Prepared;
+use Minds\Traits\Logger;
 
 class Neo4j implements Interfaces\WarehouseJobInterface
 {
+    use Logger;
+
     private $client;
  
     /**
@@ -38,7 +41,7 @@ class Neo4j implements Interfaces\WarehouseJobInterface
                 $this->syncUsers();
             break;
             case 'subscriptions':
-                error_log('Sorry, please transfer users first..');
+                $this->logger()->warning('Sorry, please transfer users first..');
             break;
             case 'videos':
                 $this->syncVideos();
@@ -66,7 +69,7 @@ class Neo4j implements Interfaces\WarehouseJobInterface
         $attempts = 0;
         $offset = '100000000000002247';
         while (true) {
-            error_log("Syncing 50 users from $offset");
+            $this->logger()->info("Syncing 50 users from $offset");
             $users = core\Entities::get(array('type'=>'user', 'offset'=>$offset, 'limit'=>50));
             if (!is_array($users) || end($users)->guid == $offset) {
                 break;
@@ -75,15 +78,15 @@ class Neo4j implements Interfaces\WarehouseJobInterface
             $offset = end($users)->guid;
             try {
                 $this->client->request($prepared->createBulkUsers($users));
-                error_log("Imported users");
+                $this->logger()->info("Imported users");
             } catch (\Exception $e) {
                 if ($attempts == 0) {
-                    error_log("Hmm.. slight issue, re-running ({$e->getMessage()})");
+                    $this->logger()->error("Hmm.. slight issue, re-running ({$e->getMessage()})");
                     $offset = $last_offset;
                     $attempts++;
                     continue;
                 } else {
-                    error_log("Hmm.. slight issue, skipping ({$e->getMessage()})");
+                    $this->logger()->error("Hmm.. slight issue, skipping ({$e->getMessage()})");
                 }
             }
             $guids = array();
@@ -95,10 +98,10 @@ class Neo4j implements Interfaces\WarehouseJobInterface
                 foreach ($bulk_subscriptions as $subscriber => $us) {
                     $us = array_splice($us, 0, 200);
                     $this->client->request($prepared->createBulkSubscriptions(array($subscriber=>$us)));
-                    error_log("Imported subscriptions");
+                    $this->logger()->info("Imported subscriptions");
                 }
             } catch (\Exception $e) {
-                error_log("Hmm.. slight issue, re-running ({$e->getMessage()})");
+                $this->logger()->error("Hmm.. slight issue, re-running ({$e->getMessage()})");
             }
            // break;
            // exit;
@@ -115,14 +118,14 @@ class Neo4j implements Interfaces\WarehouseJobInterface
         //transfer over videos
         $offset = "";
         while (true) {
-            error_log("Syncing 250 videos from $offset");
+            $this->logger()->info("Syncing 250 videos from $offset");
             $videos = core\Entities::get(array('subtype'=>'video', 'offset'=>$offset, 'limit'=>250));
             if (!is_array($videos) || end($videos)->guid == $offset) {
                 break;
             }
             $offset = end($videos)->guid;
             $this->client->request($prepared->createBulkObjects($videos, 'video'));
-            error_log("Imported videos");
+            $this->logger()->info("Imported videos");
         }
     }
 
@@ -134,14 +137,14 @@ class Neo4j implements Interfaces\WarehouseJobInterface
         $prepared = new Prepared\Common();
         $offset = "";
         while (true) {
-            error_log("Syncing 250 images from $offset");
+            $this->logger()->info("Syncing 250 images from $offset");
             $images = core\Entities::get(array('subtype'=>'image', 'offset'=>$offset, 'limit'=>250));
             if (!is_array($images) || end($images)->guid == $offset) {
                 break;
             }
             $offset = end($images)->guid;
             $this->client->request($prepared->createBulkObjects($images, 'image'));
-            error_log("Imported images");
+            $this->logger()->info("Imported images");
         }
     }
 

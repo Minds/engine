@@ -9,9 +9,11 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Guid;
 use Minds\Entities\Factory;
 use Minds\Entities\User;
+use Minds\Traits\Logger;
 
 class Manager
 {
+    use Logger;
 
     /** @var Config $config */
     private $config;
@@ -82,8 +84,8 @@ class Manager
         try {
             $subscription = $this->buildBatchSubscription();
             return $this->repository->add($subscription);
-        } catch (\Exception $e) { 
-            error_log(print_r($e->getMessage(), true));
+        } catch (\Exception $e) {
+            $this->logger()->error($e);
             return false;
         }
     }

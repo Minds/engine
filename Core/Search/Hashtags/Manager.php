@@ -7,9 +7,12 @@ use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Di\Di;
 use Minds\Core\Search\Search;
+use Minds\Traits\Logger;
 
 class Manager
 {
+    use Logger;
+
     /** @var Client */
     private $client;
     /** @var Search */
@@ -79,7 +82,7 @@ class Manager
         try {
             $result = (bool) $this->client->request($prepared);
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
             return false;
         }
 

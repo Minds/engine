@@ -10,9 +10,12 @@ namespace Minds\Core\Features;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
+use Minds\Traits\Logger;
 
 class Manager
 {
+    use Logger;
+
     /** @var User $user */
     private $user;
 
@@ -45,7 +48,7 @@ class Manager
         $features = $this->config->get('features') ?: [];
 
         if (!isset($features[$feature])) {
-            error_log("[Features\Manager] Feature '{$feature}' is not declared. Assuming true.");
+            $this->logger()->info("[Features\Manager] Feature '{$feature}' is not declared. Assuming true.");
 
             return true;
         }
