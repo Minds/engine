@@ -62,8 +62,12 @@ class Minds extends base
             return new GuidBuilder();
         }, ['useFactory' => true]);
 
-        (new \Minds\Entities\EntitiesProvider())->register();
+        // Config + Log should go first
         (new Config\ConfigProvider())->register();
+        (new Log\LogProvider())->register();
+
+        // ... then, the rest
+        (new \Minds\Entities\EntitiesProvider())->register();
         (new OAuth\OAuthProvider())->register();
         (new Sessions\SessionsProvider())->register();
         (new Boost\BoostProvider())->register();

@@ -2,6 +2,9 @@
 $CONFIG = Minds\Core\Di\Di::_()->get('Config');
 
 $CONFIG->minds_debug = true;
+$CONFIG->set('development_mode', false);
+$CONFIG->set('min_log_level', null); // null = default for env; or use from \Monolog\Logger::DEBUG to Monolog\Logger::EMERGENCY
+$CONFIG->set('devtools_logger', false); /* 'firephp', 'chromelogger' or 'phpconsole' */
 
 /*
  * Cassandra configuration
@@ -464,7 +467,6 @@ $CONFIG->set('tags', [
 
 $CONFIG->set('steward_guid', '');
 $CONFIG->set('steward_autoconfirm', false);
-$CONFIG->set('development_mode', false);
 
 $CONFIG->set('max_video_length', 900);
 

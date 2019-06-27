@@ -839,8 +839,14 @@ function elgg_trigger_plugin_hook($hook, $type, $params = null, $returnvalue = n
  * @access private
  */
 function _elgg_php_exception_handler($exception) {
-	$timestamp = time();
-	error_log("Exception #$timestamp: $exception");
+	try {
+		\Minds\Core\Log\Log::error($exception->getMessage(), 'Elgg', [
+			'trace' => $exception->getTraceAsString(),
+		]);
+	} catch (\Exception $e) {
+		$timestamp = time();
+		error_log("Exception #$timestamp: $exception");
+	}
 
 	// Wipe any existing output buffer
 	ob_end_clean();
@@ -877,11 +883,11 @@ function _elgg_php_exception_handler($exception) {
  * @todo Replace error_log calls with elgg_log calls.
  */
 function _elgg_php_error_handler($errno, $errmsg, $filename, $linenum, $vars = array()) {
-	$error = date("Y-m-d H:i:s (T)") . ": \"$errmsg\" in file $filename (line $linenum)";
+	$error = "\"$errmsg\" in file $filename (line $linenum)";
 
 	switch ($errno) {
 		case E_USER_ERROR:
-			error_log("PHP ERROR: $error");
+			\Minds\Core\Log\Log::error($error, 'Elgg');
 			register_error("ERROR: $error");
 
 			// Since this is a fatal error, we want to stop any further execution but do so gracefully.
@@ -894,14 +900,14 @@ function _elgg_php_error_handler($errno, $errmsg, $filename, $linenum, $vars = a
 
 			// check if the error wasn't suppressed by the error control operator (@)
 			if (error_reporting()) {
-				error_log("PHP WARNING: $error");
+				\Minds\Core\Log\Log::warning($error, 'Elgg');
 			}
 			break;
 
 		default:
 			global $CONFIG;
 			if (isset($CONFIG->debug) && $CONFIG->debug === 'NOTICE') {
-				error_log("PHP NOTICE: $error");
+				\Minds\Core\Log\Log::notice($error, 'Elgg');
 			}
 	}
 
