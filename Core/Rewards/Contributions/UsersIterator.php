@@ -6,12 +6,15 @@ use Minds\Core\Entities;
 use Minds\Core\Data;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Analytics\Timestamps;
+use Minds\Traits\Logger;
 
 /**
  * Iterator that loops through all signups after a set period
  */
 class UsersIterator implements \Iterator
 {
+    use Logger;
+
     private $cursor = -1;
     private $period = 0;
 
