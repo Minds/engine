@@ -39,7 +39,7 @@ class LoggerContext
         $this->config = $config ?: Di::_()->get('Config');
 
         $this->setUp();
-        $this->setContext('default');
+        $this->setContext('Default');
     }
 
     /**

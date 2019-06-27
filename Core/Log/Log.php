@@ -63,7 +63,7 @@ class Log
      * @param array $payload
      * @return bool
      */
-    public static function emergency($message, $context = 'default', array $payload = [])
+    public static function emergency($message, $context = 'Default', array $payload = [])
     {
         return static::_()->get($context)->emergency($message, $payload);
     }
@@ -74,7 +74,7 @@ class Log
      * @param array $payload
      * @return bool
      */
-    public static function alert($message, $context = 'default', array $payload = [])
+    public static function alert($message, $context = 'Default', array $payload = [])
     {
         return static::_()->get($context)->alert($message, $payload);
     }
@@ -85,7 +85,7 @@ class Log
      * @param array $payload
      * @return bool
      */
-    public static function critical($message, $context = 'default', array $payload = [])
+    public static function critical($message, $context = 'Default', array $payload = [])
     {
         return static::_()->get($context)->critical($message, $payload);
     }
@@ -96,7 +96,7 @@ class Log
      * @param array $payload
      * @return bool
      */
-    public static function error($message, $context = 'default', array $payload = [])
+    public static function error($message, $context = 'Default', array $payload = [])
     {
         return static::_()->get($context)->error($message, $payload);
     }
@@ -107,7 +107,7 @@ class Log
      * @param array $payload
      * @return bool
      */
-    public static function warning($message, $context = 'default', array $payload = [])
+    public static function warning($message, $context = 'Default', array $payload = [])
     {
         return static::_()->get($context)->warning($message, $payload);
     }
@@ -118,7 +118,7 @@ class Log
      * @param array $payload
      * @return bool
      */
-    public static function notice($message, $context = 'default', array $payload = [])
+    public static function notice($message, $context = 'Default', array $payload = [])
     {
         return static::_()->get($context)->notice($message, $payload);
     }
@@ -129,7 +129,7 @@ class Log
      * @param array $payload
      * @return bool
      */
-    public static function info($message, $context = 'default', array $payload = [])
+    public static function info($message, $context = 'Default', array $payload = [])
     {
         return static::_()->get($context)->info($message, $payload);
     }
@@ -140,7 +140,7 @@ class Log
      * @param array $payload
      * @return bool
      */
-    public static function debug($message, $context = 'default', array $payload = [])
+    public static function debug($message, $context = 'Default', array $payload = [])
     {
         return static::_()->get($context)->debug($message, $payload);
     }
