@@ -13,37 +13,40 @@ use Minds\Core\Email\Campaigns\UserRetention\WelcomeComplete;
 use Minds\Core\Email\Campaigns\UserRetention\WelcomeIncomplete;
 use Minds\Entities\User;
 use Minds\Core\Suggestions\Manager as SuggestionManager;
+use Minds\Traits\Logger;
 
 class Events
 {
+    use Logger;
+
     public function register()
     {
         Dispatcher::register('user_state_change', 'all', function ($opts) {
-            error_log('user_state_change all');
+            $this->logger()->info('user_state_change all');
         });
 
         Dispatcher::register('user_state_change', UserActivityBuckets::STATE_CASUAL, function ($opts) {
-            error_log('user_state_change casual');
+            $this->logger()->info('user_state_change casual');
         });
 
         Dispatcher::register('user_state_change', UserActivityBuckets::STATE_CORE, function ($opts) {
-            error_log('user_state_change core');
+            $this->logger()->info('user_state_change core');
         });
 
         Dispatcher::register('user_state_change', UserActivityBuckets::STATE_CURIOUS, function ($opts) {
-            error_log('user_state_change curious');
+            $this->logger()->info('user_state_change curious');
         });
 
         Dispatcher::register('user_state_change', UserActivityBuckets::STATE_NEW, function ($opts) {
-            error_log('user_state_change new');
+            $this->logger()->info('user_state_change new');
         });
 
         Dispatcher::register('user_state_change', UserActivityBuckets::STATE_RESURRECTED, function ($opts) {
-            error_log('user_state_change resurrected');
+            $this->logger()->info('user_state_change resurrected');
         });
 
         Dispatcher::register('user_state_change', UserActivityBuckets::STATE_COLD, function ($opts) {
-            error_log('user_state_change cold');
+            $this->logger()->info('user_state_change cold');
             $params = $opts->getParameters();
             $user = new User($params['user_guid']);
             $manager = new SuggestionManager();
@@ -56,7 +59,7 @@ class Events
         });
 
         Dispatcher::register('welcome_email', 'all', function ($opts) {
-            error_log('welcome_email');
+            $this->logger()->info('welcome_email');
             $params = $opts->getParameters();
             $user = new User($params['user_guid']);
             $onboardingManager = Di::_()->get('Onboarding\Manager');
@@ -70,7 +73,7 @@ class Events
                 $campaign->setSuggestions($suggestions);
             } else {
                 $campaign = (new WelcomeIncomplete());
-                error_log('Sending Welcome Incomplete');
+                $this->logger()->info('Sending Welcome Incomplete');
             }
             $campaign->setUser($user);
             $campaign->send();

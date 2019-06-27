@@ -4,10 +4,12 @@ namespace Minds\Core\Rewards\Contributions;
 
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Data\cache\factory as CacheFactory;
+use Minds\Traits\Logger;
 
 
 class DailyCollection
 {
+    use Logger;
 
     /** @var array $contributions */
     protected $contributions = [];
@@ -62,7 +64,7 @@ class DailyCollection
             try {
                 $totalScore = $this->getTotalScore($timestamp);
             } catch (\Exception $e) {
-                error_log($e->getMessage());
+                $this->logger()->error($e);
             }
 
             $export[$timestamp]['share'] += ($contribution->getScore() / $totalScore) * 100;

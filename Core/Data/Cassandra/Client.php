@@ -9,9 +9,12 @@ use Minds\Core;
 use Minds\Core\Data\Interfaces;
 use Minds\Core\Config;
 use Minds\Core\Events\Dispatcher;
+use Minds\Traits\Logger;
 
 class Client implements Interfaces\ClientInterface
 {
+    use Logger;
+
     private $cluster;
     private $session;
     private $prepared;
@@ -55,9 +58,10 @@ class Client implements Interfaces\ClientInterface
                 return $response = $future->get();
             }
         }catch(\Exception $e){
+            $this->logger()->error($e);
+
             if ($this->debug) {
-                error_log('[CQL Error: ' . get_class($e) . '] ' . $e->getMessage());
-                error_log(json_encode($cql));
+                $this->logger()->debug(json_encode($cql));
             }
             return false;
         }

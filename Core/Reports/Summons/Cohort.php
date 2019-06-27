@@ -11,9 +11,12 @@ use Exception;
 use Minds\Core\Channels\Subscriptions;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
+use Minds\Traits\Logger;
 
 class Cohort
 {
+    use Logger;
+
     /** @var Repository */
     protected $repository;
 
@@ -83,7 +86,7 @@ class Cohort
         while (true) {
             if ($page >= $this->maxPages) {
                 // Max = PoolSize * MaxPages
-                error_log("Warning: Cannot gather a full cohort on {$this->maxPages} partitions");
+                $this->logger()->warning("Cannot gather a full cohort on {$this->maxPages} partitions");
                 break;
             }
 
@@ -107,7 +110,7 @@ class Cohort
                             continue;
                         }
                     } catch (Exception $e) {
-                        error_log("Cannot double-check subscriptions {$userGuid}");
+                        $this->logger()->warning("Cannot double-check subscriptions {$userGuid}");
                     }
                 }
 

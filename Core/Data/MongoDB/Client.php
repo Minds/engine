@@ -5,11 +5,14 @@
 namespace Minds\Core\Data\MongoDB;
 
 use Minds\Core\Data\Interfaces;
+use Minds\Traits\Logger;
 use MongoDB\BSON\ObjectID;
 use MongoDB\Client as MongoClient;
 
 class Client implements Interfaces\ClientInterface
 {
+    use Logger;
+
     private $mongodb;
     private $prepared;
     private $db_name = 'minds';
@@ -48,7 +51,7 @@ class Client implements Interfaces\ClientInterface
                 $this->mongodb = new MongoClient("mongodb://{$servers}/", $options, $driverOptions);
             }
         } catch (\Exception $e) {
-            error_log("MongoDB Connection [" . get_class($e) . "]: {$e->getMessage()}");
+            $this->logger()->error($e);
         }
     }
 
@@ -66,7 +69,7 @@ class Client implements Interfaces\ClientInterface
     public function insert($table, array $data = [])
     {
         if (!$this->mongodb) {
-            error_log("MongoDB Insert: No connection");
+            $this->logger()->error('No connection');
             return false;
         }
 
@@ -77,7 +80,7 @@ class Client implements Interfaces\ClientInterface
 
             return $result->getInsertedId();
         } catch (\Exception $e) {
-            error_log("MongoDB Insert [" . get_class($e) . "]: {$e->getMessage()}");
+            $this->logger()->error($e);
         }
 
         return false;
@@ -94,7 +97,7 @@ class Client implements Interfaces\ClientInterface
     public function update($table, array $query = [], array $data = [])
     {
         if (!$this->mongodb) {
-            error_log("MongoDB Update: No connection");
+            $this->logger()->error('No connection');
             return false;
         }
 
@@ -107,7 +110,7 @@ class Client implements Interfaces\ClientInterface
 
             return $result->getMatchedCount();
         } catch (\Exception $e) {
-            error_log("MongoDB Update [" . get_class($e) . "]: {$e->getMessage()}");
+            $this->logger()->error($e);
         }
 
         return false;
@@ -122,7 +125,7 @@ class Client implements Interfaces\ClientInterface
     public function find($table, array $query = [], array $options = [])
     {
         if (!$this->mongodb) {
-            error_log("MongoDB Find: No connection");
+            $this->logger()->error('No connection');
             return false;
         }
 
@@ -145,7 +148,7 @@ class Client implements Interfaces\ClientInterface
             return $cursor;
 
         } catch (\exception $e) {
-            error_log("MongoDB Find [" . get_class($e) . "]: {$e->getMessage()}");
+            $this->logger()->error($e);
         }
 
         return false;
@@ -160,7 +163,7 @@ class Client implements Interfaces\ClientInterface
     public function remove($table, array $query = [])
     {
         if (!$this->mongodb) {
-            error_log("MongoDB Remove: No connection");
+            $this->logger()->error('No connection');
             return false;
         }
 
@@ -182,7 +185,7 @@ class Client implements Interfaces\ClientInterface
     public function count($table, array $query = [])
     {
         if (!$this->mongodb) {
-            error_log("MongoDB Count: No connection");
+            $this->logger()->error('No connection');
             return false;
         }
 
@@ -202,7 +205,7 @@ class Client implements Interfaces\ClientInterface
     public function aggregate($table, array $pipeline)
     {
         if (!$this->mongodb) {
-            error_log("MongoDB Count: No connection");
+            $this->logger()->error('No connection');
             return false;
         }
 

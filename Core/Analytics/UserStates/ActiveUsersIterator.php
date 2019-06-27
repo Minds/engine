@@ -5,6 +5,7 @@ namespace Minds\Core\Analytics\UserStates;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Data;
+use Minds\Traits\Logger;
 
 /*
 * Iterator that loops through users and counts their action.active entries for the past N days
@@ -14,6 +15,8 @@ use Minds\Core\Data;
 
 class ActiveUsersIterator implements \Iterator
 {
+    use Logger;
+
     private $cursor = -1;
     private $period = 0;
     private $item;
@@ -148,7 +151,7 @@ class ActiveUsersIterator implements \Iterator
         try {
             $result = $this->client->request($prepared);
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
 
             return false;
         }

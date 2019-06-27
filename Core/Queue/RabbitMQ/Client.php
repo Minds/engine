@@ -4,6 +4,7 @@ namespace Minds\Core\Queue\RabbitMQ;
 use Minds\Core\Di\Di;
 use Minds\Core\Queue\Interfaces;
 use Minds\Core\Queue\Message;
+use Minds\Traits\Logger;
 use PhpAmqpLib\Connection\AMQPConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
@@ -13,6 +14,8 @@ use PhpAmqpLib\Message\AMQPMessage;
 
 class Client implements Interfaces\QueueClient
 {
+    use Logger;
+
     private $config;
     private $connection;
     private $channel;
@@ -84,7 +87,7 @@ class Client implements Interfaces\QueueClient
         if ($this->connection->isConnected()) {
             $this->channel->basic_publish($msg, $this->exchange, $this->binder);
         } else {
-            error_log("Not connected.. but tried to send message to channel");
+            $this->logger()->error('Disconnected from RabbitMQ while trying to send a message');
         }
         return $this;
     }

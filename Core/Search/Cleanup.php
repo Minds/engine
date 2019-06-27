@@ -12,9 +12,12 @@ use Minds\Core;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Di\Di;
 use Minds\Entities\Entity;
+use Minds\Traits\Logger;
 
 class Cleanup
 {
+    use Logger;
+
     /** @var Core\Data\ElasticSearch\Client $client */
     protected $client;
 
@@ -44,7 +47,7 @@ class Cleanup
     public function prune($entity)
     {
         if (!$entity) {
-            error_log("[Search/Index] Cannot cleanup an empty entity's index");
+            $this->logger()->warning('Cannot cleanup an empty entity\'s index');
             return false;
         }
 
@@ -68,8 +71,7 @@ class Cleanup
             $prepared->query($query);
             $result = (bool) $this->client->request($prepared);
         } catch (\Exception $e) {
-            error_log('[Search/Cleanup] ' . get_class($e) . ": {$e->getMessage()}");
-            print_r($e);
+            $this->logger()->error($e);
         }
 
         return $result;

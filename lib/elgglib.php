@@ -840,9 +840,7 @@ function elgg_trigger_plugin_hook($hook, $type, $params = null, $returnvalue = n
  */
 function _elgg_php_exception_handler($exception) {
 	try {
-		\Minds\Core\Log\Log::error($exception->getMessage(), 'Elgg', [
-			'trace' => $exception->getTraceAsString(),
-		]);
+		\Minds\Core\Log\Log::error($exception, 'Elgg');
 	} catch (\Exception $e) {
 		$timestamp = time();
 		error_log("Exception #$timestamp: $exception");

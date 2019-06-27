@@ -6,6 +6,7 @@
 
 namespace Minds\Core\Data;
 
+use Minds\Traits\Logger;
 use phpcassa\ColumnFamily;
 use phpcassa\ColumnSlice;
 use phpcassa\Connection\ConnectionPool;
@@ -20,6 +21,8 @@ use Minds\Core\config;
 
 class Call
 {
+    use Logger;
+
     public static $keys = array();
     public static $reads = 0;
     public static $writes = 0;
@@ -108,7 +111,7 @@ class Call
         try {
             $this->client->batchRequest($requests, \Cassandra::BATCH_UNLOGGED, $silent);
         } catch (\Exception $e) {
-            error_log(print_r($e, true));
+            $this->logger()->error($e);
             return false;
         }
 
@@ -359,7 +362,7 @@ class Call
         try {
             $this->client->batchRequest($requests, \Cassandra::BATCH_UNLOGGED);
         } catch (\Exception $e) {
-            error_log(print_r($e, true));
+            $this->logger()->error($e);
             return false;
         }
 

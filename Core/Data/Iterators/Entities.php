@@ -6,9 +6,12 @@ use Cassandra\Rows;
 use Minds\Core;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
+use Minds\Traits\Logger;
 
 class Entities implements \Iterator
 {
+    use Logger;
+
     /** @var Client */
     protected $db;
 
@@ -124,7 +127,7 @@ class Entities implements \Iterator
             /** @var Rows $result */
             $result = $this->db->request($query);
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
 
             usleep(500000);
             $this->getData();
@@ -167,7 +170,7 @@ class Entities implements \Iterator
         try {
             return $this->db->request($query, true);
         } catch (\Exception $e) {
-            error_log($e);
+            $this->logger()->error($e);
         }
 
         return null;

@@ -6,9 +6,12 @@ namespace Minds\Core\Blockchain;
 use Minds\Core\Di\Di;
 use Minds\Core\Http\Curl\Json\Client;
 use Minds\Core\Util\BigNumber;
+use Minds\Traits\Logger;
 
 class GasPrice
 {
+    use Logger;
+
     /** @var Client */
     private $client;
 
@@ -27,7 +30,7 @@ class GasPrice
         $response = $this->client->get('https://api.infura.io/v1/jsonrpc/mainnet/eth_gasPrice');
 
         if (!is_array($response) || !isset($response['result'])) {
-            error_log('Core\Blockchain\GasPrice: Invalid Infura response');
+            $this->logger()->error('Invalid Infura response');
             return BigNumber::_($defaultGasPrice * 1000000000)->toHex(true);
         }
 

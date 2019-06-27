@@ -11,9 +11,12 @@ use Minds\Common\Urn;
 use Minds\Core\Reports\Report;
 use Minds\Core\Reports\Strikes\Strike;
 use Minds\Core\Entities\Actions\Save as SaveAction;
+use Minds\Traits\Logger;
 
 class ActionDelegate
 {
+    use Logger;
+
     /** @var EntitiesBuilder $entitiesBuilder */
     private $entitiesBuilder;
 
@@ -52,7 +55,7 @@ class ActionDelegate
     public function onAction(Verdict $verdict)
     {
         if ($verdict->isAppeal() || !$verdict->isUpheld()) {
-            error_log('Not upheld so no action');
+            $this->logger()->warning('Not upheld so no action');
             return; // Can not 
         }
 

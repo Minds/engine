@@ -13,9 +13,12 @@ use Minds\Core\Queue\Interfaces\QueueClient;
 use Minds\Core\Queue\Message;
 use Aws\Sqs\SqsClient;
 use Aws\Sqs\Exception\SqsException;
+use Minds\Traits\Logger;
 
 class Client implements QueueClient
 {
+    use Logger;
+
     /** @var SqsClient $client */
     protected $client;
 
@@ -107,7 +110,7 @@ class Client implements QueueClient
                 $response = $asyncMessageResponse->wait();
             }
         } catch (SqsException $e) {
-            error_log('[SQS Queue:send] '.get_class($e).': '.$e->getMessage());
+            $this->logger()->error($e);
         }
 
         // Reset exchange

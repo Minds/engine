@@ -14,9 +14,12 @@ use Minds\Core\Config;
 use Minds\Entities\Video;
 use Minds\Core\Di\Di;
 use Minds\Core\Media\TranscodingStatus;
+use Minds\Traits\Logger;
 
 class FFMpeg implements ServiceInterface
 {
+    use Logger;
+
     /** @var Queue $queue */
     private $queue;
 
@@ -154,7 +157,7 @@ class FFMpeg implements ServiceInterface
             // get video metadata
             $tags = $videostream->get('tags');
         } catch (\Exception $e) {
-            error_log('Error getting videostream information');
+            $this->logger()->error('Error getting videostream information');
         }
 
         try {

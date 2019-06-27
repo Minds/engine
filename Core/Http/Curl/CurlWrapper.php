@@ -2,10 +2,12 @@
 
 namespace Minds\Core\Http\Curl;
 
+use Minds\Traits\Logger;
 use Minds\Traits\MagicAttributes;
 
 class CurlWrapper
 {
+    use Logger;
     use MagicAttributes;
 
     private $handle;
@@ -29,7 +31,7 @@ class CurlWrapper
         curl_setopt($this->handle, CURLOPT_PROGRESSFUNCTION, function (
             $downloadSize, $downloaded, $uploadSize, $uploaded
         ) use ($limitKb) {
-            error_log($downloaded);
+            $this->logger()->debug("Downloaded: {$downloaded}");
             if ($downloaded) {
                 return ($downloaded > ($limitKb * 1000)) ? 1 : 0;
             } elseif ($uploaded) {

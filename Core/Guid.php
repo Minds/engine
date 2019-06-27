@@ -1,6 +1,9 @@
 <?php
 namespace Minds\Core;
 
+use Minds\Core\Log\Log;
+use Minds\Traits\Logger;
+
 /**
  * GUID Builder (ZQM servers + fallbacks)
  * @todo Avoid static and use DI
@@ -25,7 +28,7 @@ class Guid
                 self::$socket->send('GEN');
                 $guid = self::$socket->recv();
             } catch (\Exception $e) {
-                error_log("Could not connect to GUID server, conflicts possible");
+                Log::critical('Could not connect to GUID server, conflicts possible', static::class);
             }
         }
         if (!$guid) {

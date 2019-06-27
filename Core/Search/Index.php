@@ -13,9 +13,12 @@ use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Di\Di;
 use Minds\Entities\Entity;
 use Minds\Exceptions\BannedException;
+use Minds\Traits\Logger;
 
 class Index
 {
+    use Logger;
+
     /** @var Core\Data\ElasticSearch\Client $client */
     protected $client;
 
@@ -51,7 +54,7 @@ class Index
     public function index($entity)
     {
         if (!$entity) {
-            error_log('[Search/Index] Cannot index an empty entity');
+            $this->logger()->warning('Cannot index an empty entity');
             return false;
         }
 
@@ -95,7 +98,7 @@ class Index
         } catch (BannedException $e) {
             $result = false;
         } catch (\Exception $e) {
-            error_log('[Search/Index] ' . get_class($e) . ": {$e->getMessage()}");
+            $this->logger()->error($e);
             $result = false;
         }
 
@@ -110,7 +113,7 @@ class Index
     public function update($entity, $opts)
     {
         if (!$entity) {
-            error_log("[Search/Index] Cannot update an empty entity's index");
+            $this->logger()->warning("Cannot update an empty entity's index");
             return false;
         }
 
@@ -134,7 +137,7 @@ class Index
             $prepared->query($query);
             $result = (bool) $this->client->request($prepared);
         } catch (\Exception $e) {
-            error_log('[Search/Index] ' . get_class($e) . ": {$e->getMessage()}");
+            $this->logger()->error($e);
             print_r($e);
         }
 

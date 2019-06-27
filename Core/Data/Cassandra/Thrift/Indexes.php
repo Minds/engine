@@ -4,8 +4,11 @@
  */
 namespace Minds\Core\Data\Cassandra\Thrift;
 
+use Minds\Traits\Logger;
+
 class Indexes
 {
+    use Logger;
     use Namespaced;
 
     protected $db;
@@ -55,7 +58,7 @@ class Indexes
         try {
             return $this->db->getRow($this->buildNamespace($name), $opts);
         } catch (\Exception $e) {
-            error_log('Indexes->get(): ' . $e->getMessage());
+            $this->logger()->error($e);
             return false;
         }
     }
@@ -79,7 +82,7 @@ class Indexes
         try {
             return (int) $this->db->countRow($this->buildNamespace($name));
         } catch (\Exception $e) {
-            error_log('Indexes->count(): ' . $e->getMessage());
+            $this->logger()->error($e);
             return 0;
         }
     }

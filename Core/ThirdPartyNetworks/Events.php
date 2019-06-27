@@ -4,9 +4,12 @@ namespace Minds\Core\ThirdPartyNetworks;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
+use Minds\Traits\Logger;
 
 class Events
 {
+    use Logger;
+
     /**
      * Register Third-Party Networks events
      * @return void
@@ -35,7 +38,7 @@ class Events
                         $results[$service] = $handler->post($entity);
                     } catch (\Exception $e) {
                         // Let's just fail silently
-                        error_log('[social.dispatch Exception] ' . $e->getMessage());
+                        $this->logger()->error($e);
                     }
                 }
             }

@@ -8,9 +8,12 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Event;
 use Minds\Entities;
+use Minds\Traits\Logger;
 
 class Events
 {
+    use Logger;
+
     public function register()
     {
         /** @var Core\Events\Dispatcher $dispatcher */
@@ -43,7 +46,7 @@ class Events
                 }
 
             } catch (\Exception $e) {
-                error_log('[Search/Events/search:index] ' . get_class($e) . ': ' . $e->getMessage());
+                $this->logger()->error($e);
             }
         });
 
@@ -63,7 +66,7 @@ class Events
                     ->queue($params['entity']);
 
             } catch (\Exception $e) {
-                error_log('[Search/Events/search:index:queue] ' . get_class($e) . ': ' . $e->getMessage());
+                $this->logger()->error($e);
             }
         });
 
@@ -87,7 +90,7 @@ class Events
                     );
 
             } catch (\Exception $e) {
-                error_log('[Search/Events/search:index:dispatch] ' . get_class($e) . ': ' . $e->getMessage());
+                $this->logger()->error($e);
             }
         });
 
@@ -118,7 +121,7 @@ class Events
                 }
 
             } catch (\Exception $e) {
-                error_log('[Search/Events/search:cleanup] ' . get_class($e) . ': ' . $e->getMessage());
+                $this->logger()->error($e);
             }
         });
 
@@ -138,7 +141,7 @@ class Events
                     ->queueCleanup($params['entity']);
 
             } catch (\Exception $e) {
-                error_log('[Search/Events/search:cleanup:queue] ' . get_class($e) . ': ' . $e->getMessage());
+                $this->logger()->error($e);
             }
         });
 
@@ -162,7 +165,7 @@ class Events
                     );
 
             } catch (\Exception $e) {
-                error_log('[Search/Events/search:cleanup:dispatch] ' . get_class($e) . ': ' . $e->getMessage());
+                $this->logger()->error($e);
             }
         });
 
