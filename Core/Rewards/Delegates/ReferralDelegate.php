@@ -2,7 +2,7 @@
 /**
  * Trigger referral update
  */
-namespace Minds\Core\Rewards\Join\Delegates;
+namespace Minds\Core\Rewards\Delegates;
 
 use Minds\Core\Di\Di;
 

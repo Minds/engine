@@ -8,6 +8,7 @@ use Minds\Traits\MagicAttributes;
 
 /**
  * Referral
+ * @package Minds\Core\Referrals
  * @method Referral setReferrerGuid()
  * @method long getReferrerGuid()
  * @method Referral setProspectGuid()
@@ -38,6 +39,7 @@ class Referral
     private $joinTimestamp;
 
     /**
+     * Return the state
      * @return string
      */
     public function getState()
@@ -46,17 +48,6 @@ class Referral
             return 'complete';
         }
         return 'pending';
-    }
-
-    /**
-     * @return int
-     */
-    public function getScore()
-    {
-        if ($this->joinTimestamp) {
-            return 10;
-        }
-        return 0;
     }
 
     /**
@@ -70,10 +61,8 @@ class Referral
             // 'prospect_guid' => $this->prospectGuid,
             'prospect' => $this->prospect ? $this->prospect->export() : null,
             'state' => $this->getState(),
-            'score' => $this->getScore(),
             'register_timestamp' => $this->registerTimestamp,
             'join_timestamp' => $this->joinTimestamp,
         ];
     }
-
 }

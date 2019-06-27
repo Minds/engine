@@ -29,11 +29,21 @@ class Repository
     {
         $opts = array_merge([
             'limit' => 12,
+            'offset' => '',
             'referrer_guid' => null,
         ], $opts);
 
         if (!$opts['referrer_guid']) {
-            throw new \Exception('Referrer guid not provided');
+            throw new \Exception('Referrer GUID is required');
+        }
+
+        $cqlOpts = [];
+        if ($opts['limit']) {
+            $cqlOpts['page_size'] = (int) $opts['limit'];
+        }
+
+        if ($opts['offset']) {
+            $cqlOpts['paging_state_token'] = base64_decode($opts['offset']);
         }
 
         $template = "SELECT * FROM referrals WHERE referrer_guid = ?";
@@ -41,13 +51,14 @@ class Repository
 
         $query = new Prepared\Custom();
         $query->query($template, $values);
+        $query->setOpts($cqlOpts);
 
         $response = new Response();
 
         try {
-            $result = $this->client->request($query);
-            
-            foreach ($result as $row) {
+            $rows = $this->client->request($query);
+
+            foreach ($rows as $row) {
 
                 $referral = new Referral(); 
 
@@ -56,10 +67,11 @@ class Repository
                     ->setRegisterTimestamp((string) $row['register_timestamp'])
                     ->setJoinTimestamp((string) $row['join_timestamp']);
 
-                // OJMTODO: check if joinTimestamp exists, add it to the referral
-
                 $response[] = $referral;
             }
+            
+            $response->setPagingToken(base64_encode($rows->pagingStateToken()));
+            $response->setLastPage($rows->isLastPage()); 
 
         } catch (\Exception $e) {
             // return false;
@@ -121,6 +133,10 @@ class Repository
      */
     public function update(Referral $referral)
     {
+        if (!$referral->getJoinTimestamp()) {
+            throw new \Exception('Join timestamp is required');
+        }
+        
         $template = "UPDATE referrals SET join_timestamp = ? WHERE referrer_guid = ? AND prospect_guid = ?";
         
         $values = [
@@ -138,7 +154,7 @@ class Repository
             return false;
         }
 
-        return $success;
+        return true;
     }
 
     /**

@@ -174,7 +174,6 @@ class Join
                 $transaction = $transactions->create();
             }
 
-            // $this->user->referrer is a guid
             if ($this->user->referrer && $this->user->guid != $this->user->referrer) {
                 $this->validator->setHash($hash);
 

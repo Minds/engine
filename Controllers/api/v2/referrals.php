@@ -24,14 +24,19 @@ class referrals implements Interfaces\Api
     {
         $response = [];
 
+        $referrer_guid = isset($pages[0]) ? $pages[0] : Core\Session::getLoggedInUser()->guid;
+        $limit = isset($_GET['limit']) ? $_GET['limit'] : 3;
+        $offset = isset($_GET['offset']) ? $_GET['offset'] : "";
+
         $manager = Di::_()->get('Referrals\Manager');
-        $opts = ['referrer_guid'=>Core\Session::getLoggedInUserGuid()];
+        $opts = [
+            'referrer_guid'=>$referrer_guid,
+            'limit'=>$limit,
+            'offset'=>$offset
+        ];
 
         $referrals = $manager->getList($opts);
 
-
-        // OJMTODO: confirm what is the outcome for request with no referrals 
-        // OJMTODO: incorporate no referral case into UI
         if (!$referrals) {
             return Factory::response(array(
                 'status' => 'error',
@@ -40,57 +45,17 @@ class referrals implements Interfaces\Api
         }
 
         $response['referrals'] = Factory::exportable(array_values($referrals->toArray()));
-
-        // OJMTODO: remove all this when done testing
-        // OJMTODO: learn syntax for objects/arrays more betterer
-        $tempProspect1 = (object) [
-            "guid" => "988145006634078224",
-            "verified" => true,
-            "username" => "oldprospector",
-            "name" => "oldprospector",
-            "icontime" => "1560987887"
-          ];
-        
-        $tempRef1 = (object) [
-            'referrer_guid' => '987892327202689039',
-            'state' => 'complete',
-            'score' => 10,
-            'register_timestamp' => "1560857128000",
-            'join_timestamp' => "1560867128000",
-            'prospect' => $tempProspect1
-        ];
-
-        $tempProspect2 = (object) [
-            "guid" => "988145006634077224",
-            "verified" => true,
-            "username" => "doge",
-            "name" => "doge",
-            "icontime" => "1560987887"
-          ];
-        
-        $tempRef2 = (object) [
-            'referrer_guid' => '987892327202689039',
-            'state' => 'complete',
-            'score' => 10,
-            'register_timestamp' => "1440837128000",
-            'join_timestamp' => "1550867108000",
-            'prospect' => $tempProspect2
-        ];
-
-        array_push($response['referrals'], $tempRef1);
-        array_push($response['referrals'], $tempRef2);
-
+        $response['load-next'] = (string) $referrals->getPagingToken();
 
         return Factory::response($response);
     }
     
-
-    // Not implemented
+    // Not implemented - new referrals are added in Core/Events/Hooks/Register.php (when prospect registers for Minds)
     public function post($pages)
     {
     }
 
-    // Not implemented
+    // Not implemented - referrals are updated in ReferralDelegate.php (when prospect joins rewards)
     public function put($pages)
     {
     }
