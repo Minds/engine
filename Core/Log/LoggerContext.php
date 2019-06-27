@@ -117,10 +117,7 @@ class LoggerContext
      */
     public function emergency($message, array $payload = [])
     {
-        $monologContext = $payload;
-        $monologContext['context'] = $this->context;
-
-        return $this->logger->emergency($message, $monologContext);
+        return $this->logger->emergency(...$this->buildMonologCall($message, $payload));
     }
 
     /**
@@ -130,10 +127,7 @@ class LoggerContext
      */
     public function alert($message, array $payload = [])
     {
-        $monologContext = $payload;
-        $monologContext['context'] = $this->context;
-
-        return $this->logger->alert($message, $monologContext);
+        return $this->logger->alert(...$this->buildMonologCall($message, $payload));
     }
 
     /**
@@ -143,10 +137,7 @@ class LoggerContext
      */
     public function critical($message, array $payload = [])
     {
-        $monologContext = $payload;
-        $monologContext['context'] = $this->context;
-
-        return $this->logger->critical($message, $monologContext);
+        return $this->logger->critical(...$this->buildMonologCall($message, $payload));
     }
 
     /**
@@ -156,10 +147,7 @@ class LoggerContext
      */
     public function error($message, array $payload = [])
     {
-        $monologContext = $payload;
-        $monologContext['context'] = $this->context;
-
-        return $this->logger->error($message, $monologContext);
+        return $this->logger->error(...$this->buildMonologCall($message, $payload));
     }
 
     /**
@@ -169,10 +157,7 @@ class LoggerContext
      */
     public function warning($message, array $payload = [])
     {
-        $monologContext = $payload;
-        $monologContext['context'] = $this->context;
-
-        return $this->logger->warning($message, $monologContext);
+        return $this->logger->warning(...$this->buildMonologCall($message, $payload));
     }
 
     /**
@@ -182,10 +167,7 @@ class LoggerContext
      */
     public function notice($message, array $payload = [])
     {
-        $monologContext = $payload;
-        $monologContext['context'] = $this->context;
-
-        return $this->logger->notice($message, $monologContext);
+        return $this->logger->notice(...$this->buildMonologCall($message, $payload));
     }
 
     /**
@@ -195,10 +177,7 @@ class LoggerContext
      */
     public function info($message, array $payload = [])
     {
-        $monologContext = $payload;
-        $monologContext['context'] = $this->context;
-
-        return $this->logger->info($message, $monologContext);
+        return $this->logger->info(...$this->buildMonologCall($message, $payload));
     }
 
     /**
@@ -208,9 +187,25 @@ class LoggerContext
      */
     public function debug($message, array $payload = [])
     {
-        $monologContext = $payload;
-        $monologContext['context'] = $this->context;
+        return $this->logger->debug(...$this->buildMonologCall($message, $payload));
+    }
 
-        return $this->logger->debug($message, $monologContext);
+    /**
+     * @param string|Throwable $message
+     * @param array $payload
+     * @return array
+     */
+    protected function buildMonologCall($message, array $payload = [])
+    {
+        $monologMessage = $message;
+        $monologContext = array_merge(['_log' => $this->context], $payload ?: []);
+
+        if ($message instanceof Throwable) {
+            $throwableClass = trim(get_class($message), '\\');
+            $monologMessage = "[{$throwableClass}] {$message->getMessage()}";
+            $monologContext['_trace'] = $message->getTraceAsString();
+        }
+
+        return [$monologMessage, $monologContext];
     }
 }
