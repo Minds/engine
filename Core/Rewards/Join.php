@@ -74,7 +74,7 @@ class Join
         $this->joinedValidator = $joinedValidator ?: Di::_()->get('Rewards\JoinedValidator');
         $this->ofacBlacklist = $ofacBlacklist ?: Di::_()->get('Rewards\OfacBlacklist');
         $this->testnetBalance = $testnetBalance ?: Di::_()->get('Blockchain\Wallets\OffChain\TestnetBalance');
-        $this->referralDelegate = $referralDelegate ?: new Join\Delegates\ReferralDelegate;
+        $this->referralDelegate = $referralDelegate ?: new Delegates\ReferralDelegate;
     }
 
     public function setUser(&$user)
