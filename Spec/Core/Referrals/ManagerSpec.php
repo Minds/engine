@@ -24,8 +24,8 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_pass_referral_to_repository()
-    {
+    // function it_should_pass_referral_to_repository()
+    // {
         // $referral = new Referral();
         // $referral->setProspectGuid(Core\Session::getLoggedInUserGuid())
         //     ->setReferrerGuid('1234')
@@ -34,7 +34,7 @@ class ManagerSpec extends ObjectBehavior
         //     ->shouldBeCalled();
         // $this->add('123')
         //     ->shouldReturn(true);
-    }
+    // }
 }
 
 // '$this' is the class of the spec
