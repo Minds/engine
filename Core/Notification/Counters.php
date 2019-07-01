@@ -50,7 +50,7 @@ class Counters
      */
     public function getCount(array $options = [])
     {
-        // return Helpers\Counters::get($this->user, 'notifications:count', false);
+        return Helpers\Counters::get($this->user, 'notifications:count', false);
 
         // TODO: Remove below once settled
 
@@ -104,21 +104,25 @@ class Counters
 
         // TODO: Remove below once settled
 
-        $query = "BEGIN;
-                    UPDATE notifications
-                        SET read_timestamp = NOW()
-                        WHERE to_guid = ?
-                        ORDER BY created_timestamp DESC
-                        LIMIT 6
-                        RETURNING NOTHING;
-                    COMMIT;";
-        
-        $params = [
-            (int) $this->user->getGuid(),
-        ];
+        try {
+            $query = "BEGIN;
+                        UPDATE notifications
+                            SET read_timestamp = NOW()
+                            WHERE to_guid = ?
+                            ORDER BY created_timestamp DESC
+                            LIMIT 6
+                            RETURNING NOTHING;
+                        COMMIT;";
+            
+            $params = [
+                (int) $this->user->getGuid(),
+            ];
 
-        $statement = $this->sql->prepare($query);
-        
-        $statement->execute($params);
+            $statement = $this->sql->prepare($query);
+            
+            $statement->execute($params);
+        } catch (\Exception $e) {
+            
+        }
     }
 }
