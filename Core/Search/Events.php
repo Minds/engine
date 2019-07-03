@@ -11,6 +11,20 @@ use Minds\Entities;
 
 class Events
 {
+    /** @var Delegates\DispatchIndexDelegate */
+    protected $dispatchIndexDelegate;
+
+    /**
+     * Events constructor.
+     * @param Delegates\DispatchIndexDelegate $dispatchIndexDelegate
+     */
+    public function __construct(
+        $dispatchIndexDelegate = null
+    )
+    {
+        $this->dispatchIndexDelegate = $dispatchIndexDelegate ?: new Delegates\DispatchIndexDelegate();
+    }
+
     public function register()
     {
         /** @var Core\Events\Dispatcher $dispatcher */
@@ -79,13 +93,11 @@ class Events
                     return;
                 }
 
-                Di::_()->get('Search\Index')
-                    ->index(
-                        is_string($params['entity']) ?
-                            unserialize($params['entity']) :
-                            $params['entity']
-                    );
+                $entity = is_string($params['entity']) ?
+                    unserialize($params['entity']) :
+                    $params['entity'];
 
+                $this->dispatchIndexDelegate->index($entity);
             } catch (\Exception $e) {
                 error_log('[Search/Events/search:index:dispatch] ' . get_class($e) . ': ' . $e->getMessage());
             }
