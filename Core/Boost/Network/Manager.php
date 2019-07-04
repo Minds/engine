@@ -157,4 +157,23 @@ class Manager
 
         return $existingBoost->count() > 0;
     }
+
+    /**
+     * Gets the users last offchain boosts, from the most recent boost backwards in time.
+     *
+     * @param string $type the type of the boost
+     * @param integer $limit default to 10.
+     * @return $existingBoosts
+     */
+    public function getOffchainBoosts($type, $limit = 10) {
+        $existingBoosts = $this->getList([
+            'useElastic' => true,
+            'state' => 'review',
+            'type' => $type,
+            'limit' => $limit,
+            'order' => 'desc',
+            'offchain' => true 
+        ]);
+        return $existingBoosts;
+    }
 }

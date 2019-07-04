@@ -296,4 +296,25 @@ class ManagerSpec extends ObjectBehavior
 
         $this->checkExisting($boost)->shouldReturn(true);
     }
+
+    function it_should_request_offchain_boosts(Boost $boost)
+    {
+        $this->elasticRepository->getList(["hydrate" => true, "useElastic" => true, "state" => "review", "type" => "newsfeed", "entity_guid" => "123", "limit" => 1])
+            ->shouldBeCalled()
+            ->willReturn(new Response([$boost], ''));
+
+        $this->repository->getList(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(new Response([$boost]));
+
+        $boost->getType()
+            ->shouldBeCalled()
+            ->willReturn('newsfeed');
+
+        $boost->getEntityGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $this->checkExisting($boost)->shouldReturn(true);
+    }
 }

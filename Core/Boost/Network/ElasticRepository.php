@@ -22,6 +22,7 @@ class ElasticRepository
     /**
      * Return a list of boosts
      * @param array $opts
+     * @param array $order - optional - null, asc, desc.
      * @return Response
      */
     public function getList($opts = [])
@@ -30,11 +31,13 @@ class ElasticRepository
             'rating' => 3,
             'token' => 0,
             'offset' => null,
+            'order' => null,
+            'offchain' => null
         ], $opts);
-        
+
         $must = [];
         $must_not = [];
-        $sort = [ '@timestamp' => 'asc' ];
+        $sort = [ '@timestamp' => $opts['order'] ?? 'asc' ];
 
         $must[] = [
             'term' => [
@@ -78,6 +81,14 @@ class ElasticRepository
                         'lte' => $opts['rating'],
                     ],
                 ],
+            ];
+        }
+
+        if ($opts['offchain']) {
+            $must[] = [
+                "term" => [
+                    "token_method" => "offchain"
+                ]
             ];
         }
 
