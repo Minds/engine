@@ -164,12 +164,23 @@ class Manager
      * @return boolean true if the boost limit has been reached.
      */
     public function boostLimitReached($boost) {
+        //get offchain boosts
         $offchain = $this->getOffchainBoosts($boost);
+        
+        //filter to get todays offchain transactions
         $offlineToday = array_filter($offchain->toArray(), function($result) {
-            return $result->getCreatedTimestamp() > time() - (60*60*24);
+            return $result->getCreatedTimestamp() > time() - (60 * 60 * 24);
+        }); 
+        
+        //reduce the impressions to count the days boosts.
+        $acc = array_reduce($offlineToday, function($acc, $_boost) {
+            $acc += $_boost->getImpressions();
+            return $acc;
         });
-        return count($offlineToday) >= 10;
+        return $acc + $boost->getImpressions() > 10000; //still allow 10k
     }
+    
+
     /**
      * Gets the users last offchain boosts, from the most recent boost backwards in time.
      *

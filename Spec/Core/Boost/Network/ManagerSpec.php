@@ -321,45 +321,51 @@ class ManagerSpec extends ObjectBehavior
     function it_should_recognise_a_user_has_reached_the_offchain_boost_limit(Boost $boost)
     {  
         $boostArray = [];
-        for ($i = 1; $i <= 10; $i++) {
+        for ($i = 1; $i < 11; $i++) {
             $newBoost = new Boost();
             $newBoost->setCreatedTimestamp('9999999999999999');
+            $newBoost->setImpressions(1000);
             array_push($boostArray, $newBoost);
         }
-        $this->elasticRepository->getList(["hydrate" => true, "useElastic" => true, "state" => "review", "type" => "newsfeed", "limit" => 10, "order" => "desc", "offchain" => true, "owner_guid" => "123"])
-            ->shouldBeCalled()
-            ->willReturn(new Response($boostArray, ''));
-            
-        $this->repository->getList(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(new Response($boostArray));
-
-        $boost->getType()
-            ->shouldBeCalled()
-            ->willReturn('newsfeed');
-
-        $boost->getOwnerGuid()
-            ->shouldBeCalled()
-            ->willReturn('123');
-
+        $this->runThroughGetList($boost, $boostArray);
         $this->boostLimitReached($boost)->shouldReturn(true);
     }
 
     function it_should_recognise_a_user_has_NOT_reached_the_offchain_boost_limit(Boost $boost)
     {  
         $boostArray = [];
-        for ($i = 1; $i <= 9; $i++) {
+        for ($i = 1; $i < 10; $i++) {
             $newBoost = new Boost();
             $newBoost->setCreatedTimestamp('9999999999999999');
+            $newBoost->setImpressions(1000);
             array_push($boostArray, $newBoost);
         }
+        $this->runThroughGetList($boost, $boostArray);
+        $this->boostLimitReached($boost)->shouldReturn(false);
+    }
+
+
+    function it_should_recognise_a_boost_would_take_user_above_offchain_limit(Boost $boost)
+    {  
+        $boostArray = [];
+        for ($i = 1; $i < 2; $i++) {
+            $newBoost = new Boost();
+            $newBoost->setCreatedTimestamp('9999999999999999');
+            $newBoost->setImpressions(4501);
+            array_push($boostArray, $newBoost);
+        }
+        $this->runThroughGetList($boost, $boostArray);
+        $this->boostLimitReached($boost)->shouldReturn(false);
+    }
+
+    function runThroughGetList($boost, $existingBoosts) {
         $this->elasticRepository->getList(["hydrate" => true, "useElastic" => true, "state" => "review", "type" => "newsfeed", "limit" => 10, "order" => "desc", "offchain" => true, "owner_guid" => "123"])
             ->shouldBeCalled()
-            ->willReturn(new Response($boostArray, ''));
-            
+            ->willReturn(new Response($existingBoosts, ''));
+        
         $this->repository->getList(Argument::any())
             ->shouldBeCalled()
-            ->willReturn(new Response($boostArray));
+            ->willReturn(new Response($existingBoosts));
 
         $boost->getType()
             ->shouldBeCalled()
@@ -368,7 +374,9 @@ class ManagerSpec extends ObjectBehavior
         $boost->getOwnerGuid()
             ->shouldBeCalled()
             ->willReturn('123');
-
-        $this->boostLimitReached($boost)->shouldReturn(false);
+        
+        $boost->getImpressions()
+            ->shouldBeCalled()
+            ->willReturn(1000);
     }
 }

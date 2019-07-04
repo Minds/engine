@@ -300,7 +300,7 @@ class boost implements Interfaces\Api
                     if ($manager->boostLimitReached($boost)) {
                         return Factory::response([
                             'status' => 'error',
-                            'message' => "Maximum of 10 offchain tokens per day exceeded."
+                            'message' => "This boost would exceeded the maximum of 10 offchain tokens per day."
                         ]);
                     }   
                     
