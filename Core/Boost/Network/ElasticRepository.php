@@ -22,7 +22,6 @@ class ElasticRepository
     /**
      * Return a list of boosts
      * @param array $opts
-     * @param array $order - optional - null, asc, desc.
      * @return Response
      */
     public function getList($opts = [])
