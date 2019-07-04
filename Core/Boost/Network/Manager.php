@@ -157,7 +157,19 @@ class Manager
 
         return $existingBoost->count() > 0;
     }
-
+    /**
+     * True if the boost is invalid due to the offchain boost limit being reached
+     *
+     * @param Boost $type the Boost object.
+     * @return boolean true if the boost limit has been reached.
+     */
+    public function boostLimitReached($boost) {
+        $offchain = $this->getOffchainBoosts($boost);
+        $offlineToday = array_filter($offchain->toArray(), function($result) {
+            return $result->getCreatedTimestamp() > time() - (60*60*24);
+        });
+        return count($offlineToday) >= 10;
+    }
     /**
      * Gets the users last offchain boosts, from the most recent boost backwards in time.
      *
@@ -165,14 +177,15 @@ class Manager
      * @param integer $limit default to 10.
      * @return $existingBoosts
      */
-    public function getOffchainBoosts($type, $limit = 10) {
+    public function getOffchainBoosts($boost, $limit = 10) {
         $existingBoosts = $this->getList([
             'useElastic' => true,
             'state' => 'review',
-            'type' => $type,
+            'type' => $boost->getType(),
             'limit' => $limit,
             'order' => 'desc',
-            'offchain' => true 
+            'offchain' => true,
+            'owner_guid' => $boost->getOwnerGuid(),
         ]);
         return $existingBoosts;
     }

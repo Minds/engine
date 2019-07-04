@@ -272,12 +272,12 @@ class ManagerSpec extends ObjectBehavior
     function it_should_check_if_the_entity_was_already_boosted(Boost $boost)
     {
         $this->elasticRepository->getList([
-            'useElastic' => true,
-            'state' => 'review',
-            'type' => 'newsfeed',
-            'entity_guid' => '123',
-            'limit' => 1,
-            'hydrate' => true,
+            "hydrate" => true, 
+            "useElastic" => true, 
+            "state" => "review", 
+            "type" => "newsfeed", 
+            "entity_guid" => "123", 
+            "limit" => 1
         ])
             ->shouldBeCalled()
             ->willReturn(new Response([$boost], ''));
@@ -298,8 +298,8 @@ class ManagerSpec extends ObjectBehavior
     }
 
     function it_should_request_offchain_boosts(Boost $boost)
-    {
-        $this->elasticRepository->getList(["hydrate" => true, "useElastic" => true, "state" => "review", "type" => "newsfeed", "entity_guid" => "123", "limit" => 1])
+    {       
+        $this->elasticRepository->getList(["hydrate" => true, "useElastic" => true, "state" => "review", "type" => "newsfeed", "limit" => 10, "order" => "desc", "offchain" => true, "owner_guid" => "123"])
             ->shouldBeCalled()
             ->willReturn(new Response([$boost], ''));
 
@@ -311,10 +311,64 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('newsfeed');
 
-        $boost->getEntityGuid()
+        $boost->getOwnerGuid()
             ->shouldBeCalled()
             ->willReturn('123');
 
-        $this->checkExisting($boost)->shouldReturn(true);
+        $this->getOffchainBoosts($boost)->shouldHaveType('Minds\Common\Repository\Response');
+    }
+
+    function it_should_recognise_a_user_has_reached_the_offchain_boost_limit(Boost $boost)
+    {  
+        $boostArray = [];
+        for ($i = 1; $i <= 10; $i++) {
+            $newBoost = new Boost();
+            $newBoost->setCreatedTimestamp('9999999999999999');
+            array_push($boostArray, $newBoost);
+        }
+        $this->elasticRepository->getList(["hydrate" => true, "useElastic" => true, "state" => "review", "type" => "newsfeed", "limit" => 10, "order" => "desc", "offchain" => true, "owner_guid" => "123"])
+            ->shouldBeCalled()
+            ->willReturn(new Response($boostArray, ''));
+            
+        $this->repository->getList(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(new Response($boostArray));
+
+        $boost->getType()
+            ->shouldBeCalled()
+            ->willReturn('newsfeed');
+
+        $boost->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $this->boostLimitReached($boost)->shouldReturn(true);
+    }
+
+    function it_should_recognise_a_user_has_NOT_reached_the_offchain_boost_limit(Boost $boost)
+    {  
+        $boostArray = [];
+        for ($i = 1; $i <= 9; $i++) {
+            $newBoost = new Boost();
+            $newBoost->setCreatedTimestamp('9999999999999999');
+            array_push($boostArray, $newBoost);
+        }
+        $this->elasticRepository->getList(["hydrate" => true, "useElastic" => true, "state" => "review", "type" => "newsfeed", "limit" => 10, "order" => "desc", "offchain" => true, "owner_guid" => "123"])
+            ->shouldBeCalled()
+            ->willReturn(new Response($boostArray, ''));
+            
+        $this->repository->getList(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(new Response($boostArray));
+
+        $boost->getType()
+            ->shouldBeCalled()
+            ->willReturn('newsfeed');
+
+        $boost->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $this->boostLimitReached($boost)->shouldReturn(false);
     }
 }

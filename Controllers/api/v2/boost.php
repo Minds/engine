@@ -297,12 +297,7 @@ class boost implements Interfaces\Api
                         ]);
                     }
                   
-                    $offchain = $manager->getOffchainBoosts($boost->getType());
-                    $offchainToday = array_filter($offchain->toArray(), function($result) {
-                        return $result->getCreatedTimestamp() > time() - (60*60*24);
-                    });
-
-                    if (count($offchainToday) >= 10) {
+                    if ($manager->boostLimitReached($boost)) {
                         return Factory::response([
                             'status' => 'error',
                             'message' => "Maximum of 10 offchain tokens per day exceeded."
