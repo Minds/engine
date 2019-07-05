@@ -10,6 +10,7 @@ use Minds\Core\Payments\Subscriptions\Queue;
 use Minds\Core\Security\ACL;
 use Minds\Helpers\Cql;
 use Minds\Interfaces;
+use Minds\Core\Util\BigNumber;
 
 class Subscriptions extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -59,12 +60,18 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
         $this->out("Done");
     }
 
+    /**
+     * Sometimes, plus doesn't hit the delegate so the badge
+     * doesn't apply. This is designed to run regularly via
+     * a cron job to fix that
+     * @return void
+     */
     public function fixPlusWires()
     {
         ACL::$ignore = true; // we need to save to channels
         $delegate = new \Minds\Core\Wire\Delegates\Plus;
         $usersLastPlus = [];
-        foreach ($this->getWires() as $wire) {
+        foreach ($this->getWires(false) as $wire) {
             $sender_guid = $wire->getSender()->getGuid();
             $friendly = date('d-m-Y', $wire->getTimestamp());
             echo "\n$sender_guid";
@@ -74,29 +81,36 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
             }
             $usersLastPlus[$sender_guid] = $wire->getTimestamp();
             $friendly = date('d-m-Y', $wire->getTimestamp());
-            echo " $friendly sending plus update";
+            echo " $friendly sending plus update ({$wire->getAmount()})";
 
-            //if ($delegate->onWire($wire, '0x6f2548b1bee178a49c8ea09be6845f6aeaf3e8da')) {
-            if ($delegate->onWire($wire, 'offchain')) {
+            if ($delegate->onWire($wire, 'offchain') || $delegate->onWire($wire, '0x6f2548b1bee178a49c8ea09be6845f6aeaf3e8da')) {
                 echo " done";
             }
-            //exit;
         }
     }
 
-    public function getWires()
+    public function getWires($onchain = false)
     {
         $cql = \Minds\Core\Di\Di::_()->get('Database\Cassandra\Cql');
 
         $prepared = new \Minds\Core\Data\Cassandra\Prepared\Custom;
 
         $statement = "SELECT * FROM blockchain_transactions_mainnet WHERE contract='offchain:wire' and user_guid=? ALLOW FILTERING";
-        $statement = "SELECT * FROM blockchain_transactions_mainnet WHERE user_guid=? ALLOW FILTERING";
+        if ($onchain) {
+            $statement = "SELECT * FROM blockchain_transactions_mainnet WHERE wallet_address=? ALLOW FILTERING";
+        } else {
+            $statement = "SELECT * FROM blockchain_transactions_mainnet WHERE user_guid=? and amount>=? ALLOW FILTERING";
+        }
 
         $offset = "";
 
         while (true) {
-            $prepared->query($statement, [ new \Cassandra\Varint(730071191229833224) ]);
+            if ($onchain) {
+                $prepared->query($statement, [ '0x6f2548b1bee178a49c8ea09be6845f6aeaf3e8da' ]);
+            } else {
+                $prepared->query($statement, [ new \Cassandra\Varint(730071191229833224), new \Cassandra\Varint(5) ]);
+            }
+
             $prepared->setOpts([
                 'paging_state_token' => $offset,
                 'page_size' => 100,
@@ -115,6 +129,13 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
             foreach ($result as $row) {
                 $data = json_decode($row['data'], true);
 
+                if ($row['timestamp']->time() < strtotime('35 days ago')) {
+                    return; // Do not sync old
+                }
+
+                if (!$data['sender_guid']) {
+                    var_dump($row);
+                }
                 $wire = new \Minds\Core\Wire\Wire();
                 $wire
                     ->setSender(new \Minds\Entities\User($data['sender_guid']))
