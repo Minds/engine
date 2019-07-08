@@ -139,6 +139,18 @@ class Defaults
             }
         });
 
+        Manager::add('/about', function ($slugs = []) {
+            $meta = [
+                'title' => 'About',
+                'description' => 'About us',
+                'og:title' => 'About',
+                'og:description' => 'About us',
+                'og:url' => $this->config->site_url . 'about'
+            ];
+
+            return $meta;
+        });
+
         /**
          * Pages
          */
