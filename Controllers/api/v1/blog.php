@@ -10,8 +10,8 @@ namespace Minds\Controllers\api\v1;
 
 use Minds\Api\Exportable;
 use Minds\Api\Factory;
+use Minds\Common\Access;
 use Minds\Core;
-use Minds\Entities\Activity;
 use Minds\Helpers;
 use Minds\Interfaces;
 
@@ -93,7 +93,7 @@ class blog implements Interfaces\Api
                 
                 $export = [];
                 foreach ($blogs as $blog) {
-                    if ($blog->getOwnerGuid() != Core\Session::getLoggedInUserGuid() && $blog->getAccessId() != 2) {
+                    if ($blog->getOwnerGuid() != Core\Session::getLoggedInUserGuid() && $blog->getAccessId() != Access::PUBLIC) {
                         continue;
                     }
                     $export[] = $blog;
@@ -157,13 +157,14 @@ class blog implements Interfaces\Api
         $header = new Core\Blogs\Header();
 
         $response = [];
+        $alreadyPublished = false;
 
         $editing = isset($pages[0]) && (is_numeric($pages[0]) || Core\Luid::isValid($pages[0]));
 
         if ($editing) {
             $blog = $manager->get($pages[0]);
 
-            $originallyPublished = $blog->isPublished();
+            $alreadyPublished = $blog->isPublished();
         } else {
             $blog = new Core\Blogs\Blog();
             $blog
@@ -237,9 +238,9 @@ class blog implements Interfaces\Api
             }
         }
 
-        //draft
+        /* Draft post overrides access_id to Unlisted and saves target accessId to draftAccessId */
         if (!$_POST['published'] || $_POST['published'] === 'false') {
-            $blog->setAccessId(0);
+            $blog->setAccessId(Access::UNLISTED);
             $blog->setDraftAccessId($_POST['access_id']);
         } elseif ($blog->getTimePublished() == '') {
             $blog->setTimePublished(time());
@@ -281,7 +282,6 @@ class blog implements Interfaces\Api
                 }
             }
         }
-
 
         if (isset($_POST['mature']) && $_POST['mature']) {
             $user = Core\Session::getLoggedInUser();
@@ -333,19 +333,10 @@ class blog implements Interfaces\Api
         if ($saved) {
             $createActivity = new Core\Blogs\Delegates\CreateActivity();
 
-            if (
-                !$editing &&
-                $blog->isPublished() &&
-                $blog->getAccessId() == 2
-            ) {
-                $createActivity->save($blog);
-            } elseif (
-                $editing &&
-                !$originallyPublished &&
-                $blog->isPublished() &&
-                $blog->getAccessId() == 2
-            ) {
-                $createActivity->save($blog);
+            if ($blog->isPublished() && $blog->getAccessId() == Access::PUBLIC) {
+                if (!$editing || ($editing && !$alreadyPublished)) {
+                    $createActivity->save($blog);
+                }
             }
 
             $response['guid'] = (string) $blog->getGuid();
