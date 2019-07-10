@@ -158,6 +158,7 @@ class blog implements Interfaces\Api
 
         $response = [];
         $alreadyPublished = false;
+        $oldAccessId = Access::UNKNOWN;
 
         $editing = isset($pages[0]) && (is_numeric($pages[0]) || Core\Luid::isValid($pages[0]));
 
@@ -165,6 +166,7 @@ class blog implements Interfaces\Api
             $blog = $manager->get($pages[0]);
 
             $alreadyPublished = $blog->isPublished();
+            $oldAccessId = $alreadyPublished ? $blog->getAccessId() : $blog->getDraftAccessId();
         } else {
             $blog = new Core\Blogs\Blog();
             $blog
@@ -334,7 +336,7 @@ class blog implements Interfaces\Api
             $createActivity = new Core\Blogs\Delegates\CreateActivity();
 
             if ($blog->isPublished() && $blog->getAccessId() == Access::PUBLIC) {
-                if (!$editing || ($editing && !$alreadyPublished)) {
+                if (!$editing || ($editing && !$alreadyPublished) || ($editing && $oldAccessId == Access::UNLISTED)) {
                     $createActivity->save($blog);
                 }
             }
