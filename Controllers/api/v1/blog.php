@@ -221,7 +221,8 @@ class blog implements Interfaces\Api
         }
 
         if (isset($_POST['published'])) {
-            $blog->setPublished(!!$_POST['published']);
+            $published = is_string($_POST['published']) ? json_decode($_POST['published']) : $_POST['published'];
+            $blog->setPublished($published);
         }
 
         if (isset($_POST['monetized'])) {
@@ -240,8 +241,7 @@ class blog implements Interfaces\Api
             }
         }
 
-        /* Draft post overrides access_id to Unlisted and saves target accessId to draftAccessId */
-        if (!$_POST['published'] || $_POST['published'] === 'false') {
+        if (!$blog->isPublished()) {
             $blog->setAccessId(Access::UNLISTED);
             $blog->setDraftAccessId($_POST['access_id']);
         } elseif ($blog->getTimePublished() == '') {
