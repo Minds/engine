@@ -56,7 +56,7 @@ class SNS implements SMSServiceInterface
         $args = [
             "SenderID" => "Minds",
             "SMSType" => "Transactional",
-            "Message" => $message,
+            "Message" => 'From Minds.com: Your code is '. $message,
             "PhoneNumber" => $number
         ];
         $result = $this->client->publish($args);
