@@ -14,6 +14,7 @@ use Minds\Common\Access;
 use Minds\Core;
 use Minds\Helpers;
 use Minds\Interfaces;
+use Minds\Core\Blogs\Delegates\CreateActivity;
 
 class blog implements Interfaces\Api
 {
@@ -333,11 +334,12 @@ class blog implements Interfaces\Api
         }
 
         if ($saved) {
-            $createActivity = new Core\Blogs\Delegates\CreateActivity();
-
             if ($blog->isPublished() && $blog->getAccessId() == Access::PUBLIC) {
-                if (!$editing || ($editing && !$alreadyPublished) || ($editing && $oldAccessId == Access::UNLISTED)) {
-                    $createActivity->save($blog);
+                $db = new Core\Data\Call('entities_by_time');
+                $activities = $db->getRow("activity:entitylink:{$blog->getGUID()}");
+
+                if (empty($activities)) {
+                    (new CreateActivity())->save($blog);
                 }
             }
 
