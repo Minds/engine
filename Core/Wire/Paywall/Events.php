@@ -128,5 +128,27 @@ class Events
 
             return $event->setResponse(false);
         });
+
+        /*
+         * Legcacy compatability for exclusive content
+         */
+        Dispatcher::register('export:extender', 'activity', function ($event) {
+            $params = $event->getParameters();
+            $activity = $params['entity'];
+            if ($activity->type != 'activity') {
+                return;
+            }
+            $export = $event->response() ?: [];
+            $currentUser = Session::getLoggedInUserGuid();
+
+            if ($activity->isPaywall() && !$activity->getWireThreshold()) {
+                $export['wire_threshold'] = [
+                  'type' => 'money',
+                  'min' => $activity->getOwnerEntity()->getMerchant()['exclusive']['amount'],
+                ];
+
+                return $event->setResponse($export);
+            }
+        });
     }
 }

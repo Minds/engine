@@ -190,6 +190,14 @@ class Manager
                 ->setReceiver($this->receiver);
         }
 
+        $wire = new Wire();
+        $wire
+            ->setSender($this->sender)
+            ->setReceiver($this->receiver)
+            ->setEntity($this->entity)
+            ->setAmount($this->amount)
+            ->setTimestamp(time());
+
         switch ($this->payload['method']) {
             case 'onchain':
                 //add transaction to the senders transaction log
@@ -236,6 +244,7 @@ class Manager
                     'entity_guid' => (string) $this->entity->guid,
                 ];
 
+                // Charge offchain wallet
                 $this->offchainTxs
                     ->setAmount($this->amount)
                     ->setType('wire')
@@ -243,29 +252,59 @@ class Manager
                     ->setData($txData)
                     ->transferFrom($this->sender);
 
-                $wire = new Wire();
-                $wire
-                    ->setSender($this->sender)
-                    ->setReceiver($this->receiver)
-                    ->setEntity($this->entity)
-                    ->setAmount($this->amount)
-                    ->setTimestamp(time());
+                // Save the wire to the Repository
                 $this->repository->add($wire);
 
+                // Notify plus
                 $this->plusDelegate
                     ->onWire($wire, 'offchain');
 
+                // Send notification
                 $this->sendNotification($wire);
 
+                // Clear caches
                 $this->clearWireCache($wire);
 
-                //is this a subscription?
+                // Register the next subscription, if needed
                 if ($this->recurring) {
                     $this->subscriptionsManager
                         ->setAddress('offchain')
                         ->create();
                 }
 
+                break;
+            case 'erc20':
+                throw new \Exception("Not implemented ERC20 yet");
+                break;
+            case 'eth':
+                throw new \Exception("Not implemented ETH yet");
+                break;
+            case 'money':
+                $intent = new StripePaymentIntent();
+                $intent
+                    ->setUserGuid($this->sender->getGuid())
+                    ->setAmount($this->amount)
+                    ->setDestination($this->receiver->getStripeAccount());
+
+                // Charge stripe
+                $this->stripeManager->charge($intent);    
+
+                // Register the next subscription, if needed
+                if ($this->recurring) {
+                    $this->subscriptionsManager
+                        ->setMethod('money')
+                        ->setAddress('stripe')
+                        ->create();
+                }
+
+                // Save the wire to the Repository
+                $this->repository->add($wire);
+
+                // Send notification
+                $this->sendNotification($wire);
+
+                // Clear caches
+                $this->clearWireCache($wire);
                 break;
         }
 
@@ -300,14 +339,6 @@ class Manager
             ->setCompleted(true);
         $this->txRepo->add($transaction);
 
-        /*Dispatcher::trigger('wire-payment-email', 'object', [
-            'charged' => false,
-            'amount' => $wire->getAmount,
-            'unit' => 'tokens',
-            'description' => 'Wire',
-            'user' => $wire->getReceiver(),
-        ]);*/
-
         $this->plusDelegate
             ->onWire($wire, $data['receiver_address']);
 
@@ -316,57 +347,6 @@ class Manager
         $this->clearWireCache($wire);
 
         return $success;
-    }
-
-    /**
-     * Call when a recurring wire is triggered.
-     *
-     * @param Core\Payments\Subscriptions\Subscription $subscription
-     */
-    public function onRecurring($subscription)
-    {
-        $sender = $subscription->getUser();
-        $receiver = new User($subscription->getEntity()->guid);
-        $amount = $subscription->getAmount();
-
-        $id = $subscription->getId();
-        if (strpos($id, 'urn:', 0) !== 0)  {
-            error_log("[wire][recurring]: $id was expecting a urn");
-            return false;
-        }
-
-        $urn = new Urn($id);
-        list ($address, , ,) = explode('-', $urn->getNss());
-
-        if ($address === 'offchain') {
-            $this->setPayload([
-                'method' => 'offchain',
-            ]);
-        } else { //onchain
-            $txHash = $this->client->sendRawTransaction($this->config->get('blockchain')['contracts']['wire']['wallet_pkey'],
-                [
-                    'from' => $this->config->get('blockchain')['contracts']['wire']['wallet_address'],
-                    'to' => $this->config->get('blockchain')['contracts']['wire']['contract_address'],
-                    'gasLimit' => BigNumber::_(200000)->toHex(true),
-                    'data' => $this->client->encodeContractMethod('wireFromDelegate(address,address,uint256)', [
-                        $address,
-                        $receiver->getEthWallet(),
-                        BigNumber::_($this->token->toTokenUnit($amount))->toHex(true),
-                    ]),
-                ]);
-            $this->setPayload([
-                'method' => 'onchain',
-                'address' => $address, //sender address
-                'receiver' => $receiver->getEthWallet(),
-                'txHash' => $txHash,
-            ]);
-        }
-
-        $this->setSender($sender)
-            ->setEntity($receiver)
-            ->setAmount($subscription->getAmount());
-
-        $this->create();
     }
 
     /**

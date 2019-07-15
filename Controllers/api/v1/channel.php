@@ -299,14 +299,6 @@ class channel implements Interfaces\Api
                 $channel->enabled = 'no';
                 $channel->save();
 
-                $customer = (new Core\Payments\Customer())
-                    ->setUser($channel);
-
-                $stripe = Core\Di\Di::_()->get('StripePayments');
-                $customer = $stripe->getCustomer($customer);
-                if ($customer) {
-                    $stripe->deleteCustomer($customer);
-                }
                 (new Core\Data\Sessions())->destroyAll($channel->guid);
         }
 
