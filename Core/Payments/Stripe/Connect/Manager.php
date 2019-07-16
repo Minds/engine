@@ -22,7 +22,7 @@ class Manager
     public function __construct(
         Save $save = null,
         NotificationDelegate $notificationDelegate = null,
-        AccountInstance $accountInstance
+        AccountInstance $accountInstance = null
     )
     {
         $this->save = $save ?: new Save();

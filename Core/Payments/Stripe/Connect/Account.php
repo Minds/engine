@@ -116,6 +116,7 @@ class Account
         'destination',
         'status',
         'verified',
+        'bankAccount',
     ];
 
     /**

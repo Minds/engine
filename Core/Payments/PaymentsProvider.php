@@ -51,5 +51,11 @@ class PaymentsProvider extends Provider
             $config = $di->get('Config');
             return new Stripe\Stripe($di->get('Config'));
         }, ['useFactory'=>true]);
+
+        // Stripe
+
+        $this->di->bind('Stripe\Connect\Manager', function ($di) {
+            return new Stripe\Connect\Manager();
+        }, ['useFactory'=>true]);
     }
 }
