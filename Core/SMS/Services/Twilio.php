@@ -55,7 +55,7 @@ class Twilio implements SMSServiceInterface
         try {
             $result = $this->client->messages->create(
                 $number, [
-                'from' => 'Minds',
+                'from' => $this->config['from'],
                 'body' => $message,
             ]);
         } catch (\Exception $e) {
