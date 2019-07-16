@@ -33,7 +33,7 @@ class StaticToInstance
     public function __call($method, $arguments)
     {
         $instance = $this->class->newInstanceWithoutConstructor();
-        return $instance::$method($arguments);
+        return $instance::$method(...$arguments);
     }
 
 }
