@@ -59,7 +59,7 @@ class usd implements Interfaces\Api
                     ]);
                 }
 
-                $response['merchant'] = $merchant->export();
+                $response['account'] = $account->export();
 
                 break;
         }
