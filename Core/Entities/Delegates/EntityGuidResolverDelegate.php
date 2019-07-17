@@ -34,7 +34,15 @@ class EntityGuidResolverDelegate implements ResolverDelegate
      */
     public function shouldResolve(Urn $urn)
     {
-        return $urn->getNid() === 'entity' || $urn->getNid() === 'activity' || $urn->getNid() === 'user';
+        return in_array($urn->getNid(), [
+                'entity',
+                'activity',
+                'image',
+                'video',
+                'blog',
+                'user',
+                'group',
+            ]);
     }
 
     /**
@@ -71,6 +79,7 @@ class EntityGuidResolverDelegate implements ResolverDelegate
     }
 
     /**
+     * @param $urn
      * @param mixed $entity
      * @return mixed
      */

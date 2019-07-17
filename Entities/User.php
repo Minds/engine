@@ -43,7 +43,7 @@ class User extends \ElggUser
 		$this->attributes['briefdescription'] = '';
 		$this->attributes['rating'] = 1;
 		$this->attributes['p2p_media_enabled'] = 0;
-		$this->attributes['is_mature'] = 0;
+        $this->attributes['is_mature'] = 0;
 		$this->attributes['mature_lock'] = 0;
 		$this->attributes['opted_in_hashtags'] = 0;
         $this->attributes['last_accepted_tos'] = Core\Config::_()->get('last_tos_update');
@@ -51,6 +51,8 @@ class User extends \ElggUser
         $this->attributes['creator_frequency'] = null;
         $this->attributes['last_avatar_upload'] = 0;
         $this->attributes['canary'] = 0;
+        $this->attributes['onchain_booster'] = null;
+        $this->attributes['toaster_notifications'] = 1;
 
         parent::initializeAttributes();
     }
@@ -737,6 +739,8 @@ class User extends \ElggUser
         $export['canary'] = (bool) $this->isCanary();
         $export['is_admin'] = $this->attributes['admin'] == 'yes';
         $export['theme'] = $this->getTheme();
+        $export['onchain_booster'] = $this->getOnchainBooster();
+        $export['toaster_notifications'] = $this->getToasterNotifications();
 
         if (is_string($export['social_profiles'])) {
             $export['social_profiles'] = json_decode($export['social_profiles']);
@@ -985,6 +989,8 @@ class User extends \ElggUser
             'last_avatar_upload',
             'canary',
             'theme',
+            'onchain_booster',
+            'toaster_notifications'
         ));
     }
 
@@ -1044,4 +1050,49 @@ class User extends \ElggUser
         return "urn:user:{$this->getGuid()}";
     }
 
+    /**
+     * Returns whether the user has onchain_booster status.
+     * @return boolean true if the date set in onchain_booster is larger than the current time.
+     */
+    public function isOnchainBooster()
+    {
+        return (bool) (time() < $this->onchain_booster);
+    }
+
+    /**
+     * Gets the unix timestamp for the last time the user boosted onchain.
+     * @return int the date that a booster last boosted on chain
+     */
+    public function getOnchainBooster()
+    {
+        return (int) $this->onchain_booster;
+    }
+
+    /**
+     * Sets the unix timestamp for the last time the user boosted onchain 
+     * @param int $time - the time to set the users onchain_booster variable to.
+     * @return $this
+     */
+    public function setOnchainBooster($time)
+    {
+        $this->onchain_booster = (int) $time;
+        return $this;
+    }
+
+    /**
+     * Returns toaster notifications state.
+     * @return boolean true if toaster notifications is enabled.
+     */
+    public function getToasterNotifications()
+    {
+        return (bool) $this->toaster_notifications;
+    }
+
+    /**
+     * Set on/off toaster notifications
+     */
+    public function setToasterNotifications($enabled = true)
+    {
+        $this->toaster_notifications = $enabled ? 1 : 0;
+    }
 }

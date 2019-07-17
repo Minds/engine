@@ -21,8 +21,17 @@ class Manager
         'emailweb.xyz',
         'buydiscountdeal.com',
         'palantirmails.com',
-	'vincentralpark.com',
+        'vincentralpark.com',
         'clickmail.info',
+        'marketlink.info',
+        'atnextmail.com',
+        'hostguru.top',
+        'daymailonline.com',
+        'uber-mail.com',
+        'mailmetal.com',
+        'email-24x7.com',
+        'getsimpleemail.com',
+        'mailsoul.com',
     ];
 
     public function __construct($service = null, $spamBlocksManager = null)

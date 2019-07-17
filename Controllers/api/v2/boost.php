@@ -292,6 +292,13 @@ class boost implements Interfaces\Api
                         ->setTags($tags)
                         ->setPriority(false);
 
+                if ($manager->checkExisting($boost)) {
+                    return Factory::response([
+                        'status' => 'error',
+                        'message' => "There's already an ongoing boost for this entity"
+                    ]);
+                }
+
                     // Pre-set GUID
 
                     if ($bidType == 'tokens' && isset($_POST['guid'])) {

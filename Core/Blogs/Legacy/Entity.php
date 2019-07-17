@@ -49,6 +49,9 @@ class Entity
         'boostRejectionReason' => 'boost_rejection_reason',
         'ownerObj' => 'ownerObj',
         'nsfw' => 'nsfw',
+        'moderatorGuid' => 'moderator_guid',
+        'timeModerated' => 'time_moderated',
+        'allowComments' => 'allow_comments',
     ];
 
     static $jsonEncodedFields = [
@@ -68,6 +71,7 @@ class Entity
         'header_bg',
         'monetized',
         'paywall',
+        'allow_comments'
     ];
 
     /**

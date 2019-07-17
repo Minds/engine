@@ -16,6 +16,8 @@ $CONFIG->cassandra = new stdClass;
 $CONFIG->cassandra->keyspace = 'phpspec';
 $CONFIG->cassandra->servers = ['127.0.0.1'];
 $CONFIG->cassandra->cql_servers = ['127.0.0.1'];
+$CONFIG->cassandra->username = 'cassandra';
+$CONFIG->cassandra->password = 'cassandra';
 
 $CONFIG->payments = [
   'braintree' => [
@@ -56,6 +58,11 @@ class Mock
     }
 
     public function withDefaultConsistency()
+    {
+        return $this;
+    }
+
+    public function withCredentials($username, $password)
     {
         return $this;
     }
@@ -297,6 +304,7 @@ if (!class_exists('Cassandra')) {
     class_alias('MockSet', 'Cassandra\Set');
     class_alias('MockMap', 'Cassandra\Map');
     class_alias('Mock', 'Cassandra\Uuid');
+    class_alias('Mock', 'Cassandra\Timeuuid');
     class_alias('Mock', 'Cassandra\Boolean');
     class_alias('Mock', 'MongoDB\BSON\UTCDateTime');
     class_alias('Mock', 'Cassandra\RetryPolicy\Logging');

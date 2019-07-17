@@ -471,7 +471,7 @@ CREATE TABLE minds.comments (
     votes_down set<varint>,
     votes_up set<varint>,
     PRIMARY KEY (entity_guid, parent_guid_l1, parent_guid_l2, parent_guid_l3, guid)
-) WITH CLUSTERING ORDER BY (parent_guid_l1 ASC, parent_guid_l2 ASC, parent_guid_l3 ASC, guid DESC)
+) WITH CLUSTERING ORDER BY (parent_guid_l1 ASC, parent_guid_l2 ASC, parent_guid_l3 ASC, guid DESC);
 
 CREATE TABLE minds.recurring_subscriptions (
     type text,
@@ -905,26 +905,28 @@ CREATE TABLE minds.translations (
     AND speculative_retry = '99PERCENTILE';
 
 CREATE TABLE minds.notifications (
-    owner_guid varint,
-    guid varint,
-    data text,
+    to_guid bigint,
+    uuid timeuuid,
     type text,
-    PRIMARY KEY (owner_guid, guid)
-) WITH CLUSTERING ORDER BY (guid DESC)
-    AND bloom_filter_fp_chance = 0.01
-    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-    AND comment = ''
-    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-    AND crc_check_chance = 1.0
-    AND dclocal_read_repair_chance = 0.1
-    AND default_time_to_live = 0
-    AND gc_grace_seconds = 864000
-    AND max_index_interval = 2048
-    AND memtable_flush_period_in_ms = 0
-    AND min_index_interval = 128
-    AND read_repair_chance = 0.0
-    AND speculative_retry = '99PERCENTILE';
+    type_group text,
+    from_guid bigint,
+    entity_guid text,
+    entity_urn text,
+    created_timestamp timestamp,
+    read_timestamp timestamp,
+    data text,
+    PRIMARY KEY (to_guid, uuid)
+)  WITH CLUSTERING ORDER BY (uuid DESC);
+
+CREATE MATERIALIZED VIEW minds.notifications_by_type_group AS
+    SELECT *
+    FROM minds.notifications
+    WHERE to_guid IS NOT NULL 
+    AND uuid IS NOT NULL
+    AND type_group IS NOT NULL
+    PRIMARY KEY (to_guid, type_group, uuid)
+    WITH CLUSTERING ORDER BY (type_group DESC, uuid DESC);
+
 
 CREATE TABLE minds.friendsof (
     key text,
@@ -1336,7 +1338,7 @@ CREATE TABLE minds.spam_blocks (
     key text,
     value text,
     PRIMARY KEY (key, value)
-) WITH CLUSTERING ORDER BY (value ASC)
+) WITH CLUSTERING ORDER BY (value ASC);
 
 
 CREATE TABLE minds.user_hashtags (
@@ -1371,3 +1373,66 @@ CREATE TABLE minds.sendwyre_accounts (
     sendwyre_account_id text,
     PRIMARY KEY (user_guid)
 );
+
+CREATE TABLE minds.analytics_graphs (
+  key text,
+  last_synced timestamp,
+  data text,
+  PRIMARY KEY(key)
+);
+
+CREATE TABLE minds.views (
+    year int,
+    month tinyint,
+    day tinyint,
+    uuid timeuuid,
+    entity_urn text,
+    page_token text,
+    position int,
+    platform text,
+    source text,
+    medium text,
+    campaign text,
+    delta int,
+    PRIMARY KEY (year, month, day, uuid, entity_urn, page_token)
+);
+
+CREATE TABLE minds.update_markers (
+    user_guid varint,
+    entity_type text,
+    entity_guid varint,
+    marker text,
+    disabled boolean,
+    read_timestamp timestamp,
+    updated_timestamp timestamp,
+    PRIMARY KEY (user_guid, entity_type, entity_guid, marker)
+);
+
+CREATE TABLE minds.hidden_hashtags (
+    hashtag text,
+    admin_guid bigint,
+    hidden_since timestamp,
+    PRIMARY KEY (hashtag)
+);
+
+CREATE TABLE minds.search_dispatcher_queue (
+    entity_urn text,
+    last_retry timestamp,
+    retries int,
+    PRIMARY KEY (entity_urn)
+);
+
+CREATE TABLE minds.user_snapshots (
+  user_guid varint,
+  type text,
+  key text,
+  json_data text,
+  PRIMARY KEY (user_guid, type, key)
+) WITH CLUSTERING ORDER BY (type ASC, key ASC);
+
+CREATE TABLE minds.email_campaign_logs (
+  receiver_guid varint,
+  time_sent timestamp,
+  email_campaign_id text,
+  PRIMARY KEY (receiver_guid, time_sent)
+) WITH CLUSTERING ORDER BY (time_sent desc);

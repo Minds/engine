@@ -76,7 +76,10 @@ class fetch implements Interfaces\Api
                 $iterator->setIncrement(true);
 
                 foreach ($iterator as $guid => $entity) {
-                    $response['boosts'][] = array_merge($entity->export(), ['boosted_guid' => (string) $guid]);
+                    $response['boosts'][] = array_merge($entity->export(), [
+                        'boosted_guid' => (string) $guid,
+                        'urn' => "urn:boost:content:{$guid}",
+                    ]);
                     Counters::increment($entity->guid, "impression");
                     Counters::increment($entity->owner_guid, "impression");
                 }
@@ -97,7 +100,11 @@ class fetch implements Interfaces\Api
                 break;
             case 'newsfeed':
                 foreach ($iterator as $guid => $entity) {
-                    $response['boosts'][] = array_merge($entity->export(), ['boosted' => true, 'boosted_guid' => (string)$guid]);
+                    $response['boosts'][] = array_merge($entity->export(), [
+                        'boosted' => true,
+                        'boosted_guid' => (string) $guid,
+                        'urn' => "urn:boost:newsfeed:{$guid}",
+                    ]);
                 }
                 $response['load-next'] = $iterator->getOffset();
                 if (isset($_GET['rating']) && $pages[0] == 'newsfeed') {
@@ -171,32 +178,8 @@ class fetch implements Interfaces\Api
 
     private function getSuggestedPosts($opts = [])
     {
-        $opts = array_merge([
-            'offset' => 0,
-            'limit' => 12,
-            'rating' => 1,
-        ], $opts);
-
-        /** @var Core\Feeds\Suggested\Manager $repo */
-        $repo = Di::_()->get('Feeds\Suggested\Manager');
-
-        $opts = [
-            'user_guid' => Core\Session::getLoggedInUserGuid(),
-            'rating' => $opts['rating'],
-            'limit' => $opts['limit'],
-            'offset' => $opts['offset'],
-            'type' => 'newsfeed',
-            'all' => true,
-        ];
-
-        $result = $repo->getFeed($opts);
-
-        // Remove all unlisted content if it appears
-        $result = array_values(array_filter($result, function($entity) {
-            return $entity->getAccessId() != 0;
-        }));
-
-        return $result;
+        // @deprecated
+        return [];
     }
 }
 

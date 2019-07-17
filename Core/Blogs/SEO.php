@@ -5,6 +5,7 @@ namespace Minds\Core\Blogs;
 use Minds\Core;
 use Minds\Entities;
 use Minds\Helpers;
+use Minds\Helpers\Counters;
 
 class SEO
 {
@@ -113,7 +114,7 @@ class SEO
             $body = substr($body, 0, 139) . '…';
         }
 
-        $url = $blog->getPermaURL();
+        $url = $blog->getPermaURL() ?: $blog->getUrl();
         $ssl = (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
             (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https');
 
@@ -123,8 +124,12 @@ class SEO
 
         $custom_meta = $blog->getCustomMeta();
 
+        // More than 2 votes allows indexing to search engines (prevents spam)
+
+        $allowIndexing = Counters::get($blog->getGuid(), 'thumbs:up') >= 2;
+
         return $meta = array(
-            'title' => $custom_meta['title'] ?: $blog->getTitle(),
+            'title' => ($custom_meta['title'] ?: $blog->getTitle()) . ' | ' .  Core\Di\Di::_()->get('Config')->site_name,
             'description' => $custom_meta['description'] ?: $body,
             'author' => $custom_meta['author'] ?: '@' . $blog->getOwnerObj()['username'],
             'og:title' => $custom_meta['title'] ?: $blog->getTitle(),
@@ -136,7 +141,7 @@ class SEO
             'og:image:height' => 1000,
             'al:ios:url' => 'minds://blog/view/' . $blog->getGuid(),
             'al:android:url' => 'minds://blog/view/' . $blog->getGuid(),
-            'robots' => $blog->getRating() == 1 ? 'all' : 'noindex',
+            'robots' => $allowIndexing ? 'all' : 'noindex',
         );
     }
 }

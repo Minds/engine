@@ -89,6 +89,12 @@ use Minds\Traits\MagicAttributes;
  * @method bool isEphemeral()
  * @method Blog setHidden(bool $value)
  * @method bool isHidden()
+ * @method Blog setModeratorGuid(int $moderatorGuid)
+ * @method int getModeratorGuid()
+ * @method Blog setTimeModerated(int $timeModerated)
+ * @method int getTimeModerated()
+ * @method Blog setAllowComments(bool $allowComments)
+ * @method bool getAllowComments()
  */
 class Blog extends RepositoryEntity
 {
@@ -222,7 +228,17 @@ class Blog extends RepositoryEntity
     /** @var array */
     protected $nsfw = [];
 
+    /** @var array */
     protected $nsfwLock = [];
+
+    /** @var int */
+    protected $moderatorGuid;
+
+    /** @var int */
+    protected $timeModerated;
+
+    /** @var bool */
+    protected $allowComments = true;
 
     /**
      * Blog constructor.
@@ -380,6 +396,8 @@ class Blog extends RepositoryEntity
             'description' => FILTER_SANITIZE_SPECIAL_CHARS,
             'author' => FILTER_SANITIZE_SPECIAL_CHARS
         ]);
+
+        $this->markAsDirty('customMeta');
 
         return $this;
     }
@@ -560,6 +578,7 @@ class Blog extends RepositoryEntity
             'tags',
             'nsfw',
             'nsfw_lock',
+            'allow_comments',
             function ($export) {
                 return $this->_extendExport($export);
             }
@@ -586,6 +605,7 @@ class Blog extends RepositoryEntity
         $output['tags'] = $this->getTags();
         $output['nsfw'] = $this->getNsfw();
         $output['nsfw_lock'] = $this->getNsfwLock();
+        $output['allow_comments'] = $this->getAllowComments();
         $output['header_bg'] = $export['has_header_bg'];
 
         if (!$this->isEphemeral()) {
@@ -622,11 +642,22 @@ class Blog extends RepositoryEntity
             unset($output['deleted']);
         }
 
+        $output['urn'] = $this->getUrn();
+
         $output = array_merge(
             $output,
             $this->_eventsDispatcher->trigger('export:extender', 'blog', [ 'entity' => $this ], [])
         );
 
         return $output;
+    }
+
+    /**
+     * Return the URN
+     * @return string
+     */
+    public function getUrn()
+    {
+        return "urn:blog:{$this->getGuid()}";
     }
 }

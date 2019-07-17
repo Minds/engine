@@ -99,7 +99,14 @@ class comments implements Interfaces\Api
         switch ($pages[0]) {
           case "update":
             $comment = $manager->getByLuid($pages[1]);
-            if (!$comment || !$comment->canEdit()) {
+
+            $canEdit = $comment->canEdit();
+
+            if ($canEdit && $comment->getOwnerGuid() != Core\Session::getLoggedInUserGuid()) {
+                $canEdit = false;
+            }
+
+            if (!$comment || !$canEdit) {
                 $response = array('status' => 'error', 'message' => 'This comment can not be edited');
                 break;
             }
@@ -149,6 +156,13 @@ class comments implements Interfaces\Api
                   'message' => 'We could not find that post'
                 ]);
             }
+
+            if (!$entity->getAllowComments()) {
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => 'Comments are disabled for this post'
+                ]);
+            } 
 
             if (!$_POST['comment'] && !$_POST['attachment_guid']) {
                 return Factory::response([

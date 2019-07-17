@@ -394,6 +394,7 @@ class newsfeed implements Interfaces\Api
                                         'mature' => $embeded instanceof Flaggable ? $embeded->getFlag('mature') : false,
                                         'width' => $embeded->width,
                                         'height' => $embeded->height,
+                                        'gif' => (bool) $embeded->gif ?? false,
                                     ]])
                                         ->setMature($embeded instanceof Flaggable ? $embeded->getFlag('mature') : false)
                                         ->setFromEntity($embeded)
@@ -410,6 +411,7 @@ class newsfeed implements Interfaces\Api
                                                 'mature' => $embeded instanceof Flaggable ? $embeded->getFlag('mature') : false,
                                                 'width' => $embeded->width,
                                                 'height' => $embeded->height,
+                                                'gif' => (bool) $embeded->gif ?? false,
                                             ]])
                                             ->setMature($embeded instanceof Flaggable ? $embeded->getFlag('mature') : false)
                                             ->setFromEntity($embeded)
@@ -513,6 +515,9 @@ class newsfeed implements Interfaces\Api
 
                     $activity->indexes = ["activity:$activity->owner_guid:edits"]; //don't re-index on edit
                     (new Core\Translation\Storage())->purge($activity->guid);
+
+                    $attachmentPaywallDelegate = new Core\Feeds\Activity\Delegates\AttachmentPaywallDelegate();
+                    $attachmentPaywallDelegate->onUpdate($activity);
                     
                     $save->setEntity($activity)
                         ->save();
@@ -596,7 +601,7 @@ class newsfeed implements Interfaces\Api
 
                     $attachment->setNsfw($activity->getNsfw());
 
-                    $attachment->save();
+                    $save->setEntity($attachment)->save();
 
                     switch ($attachment->subtype) {
                         case "image":
@@ -606,6 +611,7 @@ class newsfeed implements Interfaces\Api
                                 'mature' => $attachment instanceof Flaggable ? $attachment->getFlag('mature') : false,
                                 'width' => $attachment->width,
                                 'height' => $attachment->height,
+                                'gif' => (bool) $attachment->gif ?? false,
                             ]])
                                 ->setFromEntity($attachment)
                                 ->setTitle($attachment->message);
@@ -644,7 +650,7 @@ class newsfeed implements Interfaces\Api
 
                     if ($activity->getPending() && $attachment) {
                         $attachment->access_id = 0;
-                        $attachment->save();
+                        $save->setEntity($attachment)->save();
                     }
                 }
 

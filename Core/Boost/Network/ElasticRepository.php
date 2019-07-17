@@ -58,6 +58,14 @@ class ElasticRepository
             ];
         }
 
+        if ($opts['entity_guid']) {
+            $must[] = [
+                'term' => [
+                    'entity_guid' => $opts['entity_guid']
+                ]
+            ];
+        }
+
         if ($opts['state'] === 'approved') {
             $must[] = [
                 'exists' => [

@@ -10,10 +10,11 @@ namespace Minds\Controllers\api\v1;
 
 use Minds\Api\Exportable;
 use Minds\Api\Factory;
+use Minds\Common\Access;
 use Minds\Core;
-use Minds\Entities\Activity;
 use Minds\Helpers;
 use Minds\Interfaces;
+use Minds\Core\Blogs\Delegates\CreateActivity;
 
 class blog implements Interfaces\Api
 {
@@ -93,7 +94,7 @@ class blog implements Interfaces\Api
                 
                 $export = [];
                 foreach ($blogs as $blog) {
-                    if ($blog->getOwnerGuid() != Core\Session::getLoggedInUserGuid() && $blog->getAccessId() != 2) {
+                    if ($blog->getOwnerGuid() != Core\Session::getLoggedInUserGuid() && $blog->getAccessId() != Access::PUBLIC) {
                         continue;
                     }
                     $export[] = $blog;
@@ -157,13 +158,16 @@ class blog implements Interfaces\Api
         $header = new Core\Blogs\Header();
 
         $response = [];
+        $alreadyPublished = false;
+        $oldAccessId = Access::UNKNOWN;
 
         $editing = isset($pages[0]) && (is_numeric($pages[0]) || Core\Luid::isValid($pages[0]));
 
         if ($editing) {
             $blog = $manager->get($pages[0]);
 
-            $originallyPublished = $blog->isPublished();
+            $alreadyPublished = $blog->isPublished();
+            $oldAccessId = $alreadyPublished ? $blog->getAccessId() : $blog->getDraftAccessId();
         } else {
             $blog = new Core\Blogs\Blog();
             $blog
@@ -204,7 +208,7 @@ class blog implements Interfaces\Api
         }
 
         if (isset($_POST['tags']) && $_POST['tags'] !== '') {
-            $tags = !is_array($_POST['tags']) ? explode(',', $_POST['tags']) : $_POST['tags'];
+            $tags = !is_array($_POST['tags']) ? json_decode($_POST['tags']) : $_POST['tags'];
             $blog->setTags($tags);
         }
 
@@ -213,11 +217,13 @@ class blog implements Interfaces\Api
         }
 
         if (isset($_POST['wire_threshold'])) {
-            $blog->setWireThreshold($_POST['wire_threshold']);
+            $threshold = is_string($_POST['wire_threshold']) ? json_decode($_POST['wire_threshold']) : $_POST['wire_threshold'];
+            $blog->setWireThreshold($threshold);
         }
 
         if (isset($_POST['published'])) {
-            $blog->setPublished(!!$_POST['published']);
+            $published = is_string($_POST['published']) ? json_decode($_POST['published']) : $_POST['published'];
+            $blog->setPublished($published);
         }
 
         if (isset($_POST['monetized'])) {
@@ -228,13 +234,16 @@ class blog implements Interfaces\Api
             $blog->setSlug($_POST['slug']);
         }
 
-        if (isset($_POST['custom_meta']) && is_array($_POST['custom_meta'])) {
-            $blog->setCustomMeta($_POST['custom_meta']);
+        if (isset($_POST['custom_meta'])) {
+            $meta = is_string($_POST['custom_meta']) ? json_decode($_POST['custom_meta'], true) : $_POST['custom_meta'];
+
+            if (is_array($meta)) {
+                $blog->setCustomMeta($meta);
+            }
         }
 
-        //draft
-        if (!$_POST['published'] || $_POST['published'] === 'false') {
-            $blog->setAccessId(0);
+        if (!$blog->isPublished()) {
+            $blog->setAccessId(Access::UNLISTED);
             $blog->setDraftAccessId($_POST['access_id']);
         } elseif ($blog->getTimePublished() == '') {
             $blog->setTimePublished(time());
@@ -277,7 +286,6 @@ class blog implements Interfaces\Api
             }
         }
 
-
         if (isset($_POST['mature']) && $_POST['mature']) {
             $user = Core\Session::getLoggedInUser();
 
@@ -315,26 +323,21 @@ class blog implements Interfaces\Api
         }
 
         if ($saved && is_uploaded_file($_FILES['file']['tmp_name'])) {
-            $image = get_resized_image_from_uploaded_file('file', 2000, 10000);
-            $header->write($blog, $image, isset($_POST['header_top']) ? (int) $_POST['header_top'] : 0);
+
+            /** @var Core\Media\Imagick\Manager $manager */
+            $manager = Core\Di\Di::_()->get('Media\Imagick\Manager');
+
+            $manager->setImage($_FILES['file']['tmp_name'])
+                ->resize(2000, 1000);
+
+            $header->write($blog, $manager->getJpeg(), isset($_POST['header_top']) ? (int) $_POST['header_top'] : 0);
         }
 
         if ($saved) {
-            $createActivity = new Core\Blogs\Delegates\CreateActivity();
-
-            if (
-                !$editing &&
-                $blog->isPublished() &&
-                $blog->getAccessId() == 2
-            ) {
-                $createActivity->save($blog);
-            } elseif (
-                $editing &&
-                !$originallyPublished &&
-                $blog->isPublished() &&
-                $blog->getAccessId() == 2
-            ) {
-                $createActivity->save($blog);
+            if ($blog->isPublished() && $blog->getAccessId() == Access::PUBLIC) {
+                if (!$editing || ($editing && !$alreadyPublished) || ($editing && $oldAccessId == Access::UNLISTED)) {
+                    (new CreateActivity())->save($blog);
+                }
             }
 
             $response['guid'] = (string) $blog->getGuid();
@@ -359,8 +362,10 @@ class blog implements Interfaces\Api
         }
 
         if (is_uploaded_file($_FILES['header']['tmp_name'])) {
-            $image = get_resized_image_from_uploaded_file('header', 2000, 10000);
-            $header->write($blog, $image, isset($_POST['header_top']) ? (int) $_POST['header_top'] : 0);
+            $manager->setImage($_FILES['header']['tmp_name'])
+                ->resize(2000, 1000);
+
+            $header->write($blog, $manager->getJpeg(), isset($_POST['header_top']) ? (int) $_POST['header_top'] : 0);
         }
 
         return Factory::response([]);
