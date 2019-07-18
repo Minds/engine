@@ -100,6 +100,9 @@ class Manager
                     'friends',
                     'welcome_chat',
                     'welcome_discover',
+                    'referral_ping',
+                    'referral_pending',
+                    'referral_complete',
                 ];
                 break;
             case "groups":
@@ -187,6 +190,9 @@ class Manager
             case 'friends':
             case 'welcome_chat':
             case 'welcome_discover':
+            case 'referral_ping':
+            case 'referral_pending':
+            case 'referral_complete':
                 return 'subscriptions';
                 break;
             case 'group_invite':

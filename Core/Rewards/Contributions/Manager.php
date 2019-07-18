@@ -96,6 +96,15 @@ class Manager
         return $contributions; 
     }
 
+    /**
+     * Add a contibution score row manually
+     * @param Contribution $contribution
+     * @return bool
+     */
+    public function add(Contribution $contribution)  : bool
+    {
+        return (bool) $this->repository->add($contribution);
+    }
 
     public function issueCheckins($count)
     {

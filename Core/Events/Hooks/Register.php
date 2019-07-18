@@ -3,8 +3,10 @@
 namespace Minds\Core\Events\Hooks;
 
 use Minds\Core;
+use Minds\Core\Referrals\Referral;
 use Minds\Entities;
 use Minds\Core\Events\Dispatcher;
+use Minds\Core\Di\Di;
 
 class Register
 {
@@ -36,6 +38,15 @@ class Register
                     $params['user']->save();
                     $params['user']->subscribe($user->guid);
                 }
+     
+                $referral = new Referral();
+                $referral->setProspectGuid($params['user']->getGuid())
+                    ->setReferrerGuid((string) $user->guid)
+                    ->setRegisterTimestamp(time());
+
+                $manager = Di::_()->get('Referrals\Manager');        
+                $manager->add($referral);
+                
             }
         });
 
