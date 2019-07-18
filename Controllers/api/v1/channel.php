@@ -190,7 +190,7 @@ class channel implements Interfaces\Api
                  'src'=> Core\Config::build()->cdn_url . "fs/v1/banners/$item->guid/fat/$item->last_updated"
               );
 
-              if (is_uploaded_file($_FILES['file']['tmp_name'])) {
+              if ($item->canEdit() && is_uploaded_file($_FILES['file']['tmp_name'])) {
                   $manager->setImage($_FILES['file']['tmp_name'])
                       ->autorotate()
                       ->resize(2000, 10000);
