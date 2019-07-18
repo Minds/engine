@@ -1415,6 +1415,15 @@ CREATE TABLE minds.hidden_hashtags (
     PRIMARY KEY (hashtag)
 );
 
+CREATE TABLE minds.referrals (
+    referrer_guid bigint,
+    prospect_guid bigint,
+    register_timestamp timestamp,
+    join_timestamp timestamp,
+    ping_timestamp timestamp,
+    PRIMARY KEY (referrer_guid, prospect_guid)
+) WITH CLUSTERING ORDER BY (prospect_guid DESC);
+
 CREATE TABLE minds.search_dispatcher_queue (
     entity_urn text,
     last_retry timestamp,

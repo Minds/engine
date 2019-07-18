@@ -23,6 +23,7 @@ class Minds extends base
         Subscriptions\Module::class,
         SendWyre\Module::class,
         Suggestions\Module::class,
+        Referrals\Module::class,
         Reports\Module::class,
         VideoChat\Module::class,
     ];
