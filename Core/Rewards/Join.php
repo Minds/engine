@@ -6,6 +6,7 @@ namespace Minds\Core\Rewards;
 
 use Minds\Core\Di\Di;
 use Minds\Core;
+use Minds\Core\Referrals\Referral;
 use Minds\Entities\User;
 use Minds\Core\Util\BigNumber;
 
@@ -41,12 +42,15 @@ class Join
 
     /** @var OfacBlacklist */
     private $ofacBlacklist;
-    
+
     /** @var TestnetBalance */
     private $testnetBalance;
 
     /** @var Call */
     private $db;
+
+    /** @var ReferralDelegate $eventsDelegate */
+    private $referralDelegate;
 
     public function __construct(
         $twofactor = null,
@@ -57,7 +61,8 @@ class Join
         $db = null,
         $joinedValidator = null,
         $ofacBlacklist = null,
-        $testnetBalance = null
+        $testnetBalance = null,
+        $referralDelegate = null
     )
     {
         $this->twofactor = $twofactor ?: Di::_()->get('Security\TwoFactor');
@@ -69,6 +74,7 @@ class Join
         $this->joinedValidator = $joinedValidator ?: Di::_()->get('Rewards\JoinedValidator');
         $this->ofacBlacklist = $ofacBlacklist ?: Di::_()->get('Rewards\OfacBlacklist');
         $this->testnetBalance = $testnetBalance ?: Di::_()->get('Blockchain\Wallets\OffChain\TestnetBalance');
+        $this->referralDelegate = $referralDelegate ?: new Delegates\ReferralDelegate;
     }
 
     public function setUser(&$user)
@@ -132,11 +138,10 @@ class Join
 
     public function confirm()
     {
-
         if ($this->user->getPhoneNumberHash()) {
             return false; //already joined
         }
- 
+
         if ($this->twofactor->verifyCode($this->secret, $this->code, 8)) {
             $hash = hash('sha256', $this->number . $this->config->get('phone_number_hash_salt'));
             $this->user->setPhoneNumberHash($hash);
@@ -152,22 +157,17 @@ class Join
                     ->setAction('joined')
                     ->push();
 
-                $this->testnetBalance->setUser($this->user);
-                $testnetBalanceVal = BigNumber::_($this->testnetBalance->get());
-               
-                if ($testnetBalanceVal->lt(0)) { 
-                    return false; //balance negative
-                }
-                
+                // User receives one free token automatically when they join rewards
                 $transactions = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
                 $transactions
                     ->setUser($this->user)
                     ->setType('joined')
-                    ->setAmount((string) $testnetBalanceVal);
+                    ->setAmount(pow(10,18));
 
                 $transaction = $transactions->create();
             }
 
+            // Validate referral and give both prospect and referrer +50 contribution score
             if ($this->user->referrer && $this->user->guid != $this->user->referrer) {
                 $this->validator->setHash($hash);
 
@@ -181,6 +181,10 @@ class Join
                         ->setEntityType('user')
                         ->setAction('referral')
                         ->push();
+
+                    // TODO: give prospect +50 contribution score as well
+
+                    $this->referralDelegate->onReferral($this->user);
                 }
             }
         } else {
