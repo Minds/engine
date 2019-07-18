@@ -20,9 +20,6 @@ class PushSettings
       'friends' => true,
       'remind' => true,
       'boost_gift' => true,
-      'friends' => true,
-      'remind' => true,
-      'boost_gift' => true,
       'boost_request' => true,
       'boost_accepted' => true,
       'boost_rejected' => true,
@@ -30,6 +27,9 @@ class PushSettings
       'boost_completed' => true,
       'group_invite' => true,
       'messenger_invite' => true,
+      'referral_ping' => true,
+      'referral_pending' => true,
+      'referral_complete' => true,
     ];
     protected $userGuid;
     protected $toBeSaved = [];
