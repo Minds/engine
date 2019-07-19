@@ -50,6 +50,9 @@ class Manager
     /** @var bool $recurring */
     protected $recurring;
 
+    /** @var string $tier */
+    protected $tier;
+
     /** @var array $payload */
     protected $payload;
 
@@ -156,7 +159,14 @@ class Manager
 
         return $this;
     }
+    
+    public function setTier($tier = '')
+    {
+        $this->tier = $tier;
 
+        return $this;
+    }    
+    
     /**
      * Set the payload of the transaction.
      *
@@ -191,7 +201,7 @@ class Manager
         }
 
         switch ($this->payload['method']) {
-            case 'onchain':
+            case 'onchain': 
                 //add transaction to the senders transaction log
                 $transaction = new Core\Blockchain\Transactions\Transaction();
                 $transaction
@@ -251,9 +261,8 @@ class Manager
                     ->setAmount($this->amount)
                     ->setTimestamp(time());
                 $this->repository->add($wire);
-
-                $this->plusDelegate
-                    ->onWire($wire, 'offchain');
+                
+                $this->plusDelegate->onWire($wire, 'offchain', $this->tier);
 
                 $this->sendNotification($wire);
 
@@ -268,7 +277,6 @@ class Manager
 
                 break;
         }
-
         return true;
     }
 
@@ -307,9 +315,8 @@ class Manager
             'description' => 'Wire',
             'user' => $wire->getReceiver(),
         ]);*/
-
         $this->plusDelegate
-            ->onWire($wire, $data['receiver_address']);
+            ->onWire($wire, $data['receiver_address'], $tier);
 
         $this->sendNotification($wire);
 

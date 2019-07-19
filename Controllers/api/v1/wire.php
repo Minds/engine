@@ -69,6 +69,9 @@ class wire implements Interfaces\Api
         }
 
         $manager = Core\Di\Di::_()->get('Wire\Manager');
+        
+        $tier = $_POST['tier'] ?? '';
+        $payload = (array) $_POST['payload'] ?? [];
 
         try {
             $manager
@@ -76,7 +79,9 @@ class wire implements Interfaces\Api
                 ->setRecurring($recurring)
                 ->setSender(Core\Session::getLoggedInUser())
                 ->setEntity($entity)
-                ->setPayload((array) $_POST['payload']);
+                ->setPayload($payload)
+                ->setTier($tier);
+
             $result = $manager->create();
 
             if (!$result) {

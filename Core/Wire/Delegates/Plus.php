@@ -28,8 +28,11 @@ class Plus
      * @param string $receiver_address
      * @return Wire $wire
      */
-    public function onWire($wire, $receiver_address)
+    public function onWire($wire, $receiver_address, $tier = null)
     {
+        error_log("IN THE DELEGATE^^^^^^^");
+        error_log(var_export($tier, true));
+        die();
         if ($wire->getReceiver()->guid != $this->config->get('blockchain')['contracts']['wire']['plus_guid']) {
             return $wire; //not sent to plus
         }
