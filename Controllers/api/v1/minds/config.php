@@ -34,6 +34,7 @@ class config implements Interfaces\Api, Interfaces\ApiIgnorePam
             "max_video_length" => (Core\Session::getLoggedInUser() && Core\Session::getLoggedInUser()->isPlus())
                 ? Minds\Core\Config::_()->get('max_video_length_plus')
                 : Minds\Core\Config::_()->get('max_video_length'),
+            "max_video_file_size" => Minds\Core\Config::_()->get('max_video_file_size') ?: 0,
             "features" => (object) (Minds\Core\Config::_()->get('features') ?: []),
             "blockchain" => (object) Minds\Core\Di\Di::_()->get('Blockchain\Manager')->getPublicSettings(),
             "plus" => Minds\Core\Config::_()->get('plus'),
