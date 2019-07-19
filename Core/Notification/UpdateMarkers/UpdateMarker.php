@@ -37,9 +37,9 @@ class UpdateMarker
     public function export()
     {
         return [
-            'user_guid' => $this->userGuid,
+            'user_guid' => (string) $this->userGuid,
             'entity_type' => $this->entityType,
-            'entity_guid' => $this->entityGuid,
+            'entity_guid' => (string) $this->entityGuid,
             'marker' => $this->marker,
             'updated_timestamp' => $this->updatedTimestamp,
             'disabled' => (bool) $this->disabled,
