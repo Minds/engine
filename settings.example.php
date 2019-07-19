@@ -482,9 +482,14 @@ $CONFIG->set('email', [
     ]
 ]);
 
+/* Maximum video length for non-plus users */
 $CONFIG->set('max_video_length', 900);
 
+/* Maximum video length for plus */
 $CONFIG->set('max_video_length_plus', 1860);
+
+/* Maximum video file size, in bytes */
+$CONFIG->set('max_video_file_size', 3900000000);
 
 $CONFIG->set('aws', [
     'key' => '',
