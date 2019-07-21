@@ -89,7 +89,8 @@ class Plus
      * @param [Integer] $previousTimestamp - the users previous subscription unix timestamp.
      * @return [Integer] the new unix expiry date. 
      */
-    public function calculatePlusExpires($timespan, $wireTimestamp, $previousTimestamp = null) {
+    public function calculatePlusExpires($timespan, $wireTimestamp, $previousTimestamp = null) 
+    {
         if ($previousTimestamp === 9999999999) {
             throw new \Exception('Already existing lifetime subscription');
         }
