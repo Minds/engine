@@ -50,6 +50,10 @@ class PlusSpec extends ObjectBehavior
 
         $sender->setPlusExpires(Argument::any())
             ->shouldBeCalled();
+
+        $sender->get('plus_expires')
+            ->willReturn(222);
+
         $sender->save()
             ->shouldBeCalled();
 
@@ -124,6 +128,10 @@ class PlusSpec extends ObjectBehavior
 
         $sender->setPlusExpires(Argument::any())
             ->shouldBeCalled();
+
+        $sender->get('plus_expires')
+            ->willReturn(222);
+
         $sender->save()
             ->shouldBeCalled();
 

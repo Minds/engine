@@ -23,16 +23,13 @@ class Plus
     }
 
     /**
-     * On Wire
-     * @param Wire $wire
-     * @param string $receiver_address
-     * @return Wire $wire
+     * To be called on an incoming wire.
+     * @param Wire $wire - the wire object.
+     * @param string $receiver_address - the recieving address.
+     * @return Wire $wire - the wire object.
      */
     public function onWire($wire, $receiver_address, $tier = null)
     {
-        error_log("IN THE DELEGATE^^^^^^^");
-        error_log(var_export($tier, true));
-        die();
         if ($wire->getReceiver()->guid != $this->config->get('blockchain')['contracts']['wire']['plus_guid']) {
             return $wire; //not sent to plus
         }
@@ -62,12 +59,45 @@ class Plus
         if (!$user) {
             return $wire;
         }
+        // error_log(var_export($wire->getTimestamp(), true));
+        // check the users tier if passed in. If not, it's a standard monthly subscription.
+        switch ($tier) {
+            case 'lifetime':
+                $user->setPlusExpires(9999999999); //life
+                break;
 
-        $user->setPlusExpires(strtotime('+30 days', $wire->getTimestamp()));
+            case 'yearly':
+                $user->setPlusExpires($this->calculatePlusExpires('+1 year', $wire->getTimestamp(), $user->plus_expires));
+                break;
+
+            default:
+                $user->setPlusExpires($this->calculatePlusExpires('+30 days', $wire->getTimestamp(), $user->plus_expires));
+                break;
+        }
+
         $user->save();
 
         //$wire->setSender($user);
         return $wire;
     }
 
+    /**
+     * Calculates a user's plus expirey date - factoring in upgrades to existing subscriptions. 
+     *
+     * @param [String] $timespan - first param of strtotime().
+     * @param [Integer] $wireTimestamp - the unix timestamp on the wire transaction. 
+     * @param [Integer] $previousTimestamp - the users previous subscription unix timestamp.
+     * @return [Integer] the new unix expiry date. 
+     */
+    public function calculatePlusExpires($timespan, $wireTimestamp, $previousTimestamp = null) {
+        if ($previousTimestamp === 9999999999) {
+            throw new \Exception('Already existing lifetime subscription');
+        }
+
+        if($previousTimestamp === null || $previousTimestamp < time()) {
+            return strtotime($timespan, $wireTimestamp);
+        }
+
+        return strtotime($timespan, $previousTimestamp);
+    }
 }

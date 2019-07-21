@@ -315,8 +315,9 @@ class Manager
             'description' => 'Wire',
             'user' => $wire->getReceiver(),
         ]);*/
+        
         $this->plusDelegate
-            ->onWire($wire, $data['receiver_address'], $tier);
+            ->onWire($wire, $data['receiver_address'], $this->tier);
 
         $this->sendNotification($wire);
 
