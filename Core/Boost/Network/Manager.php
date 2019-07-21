@@ -177,7 +177,9 @@ class Manager
             $acc += $_boost->getImpressions();
             return $acc;
         });
-        return $acc + $boost->getImpressions() > 10000; //still allow 10k
+
+        $maxDaily = Di::_()->get('Config')->get('max_daily_boost_views');
+        return $acc + $boost->getImpressions() > $maxDaily; //still allow 10k
     }
     
 

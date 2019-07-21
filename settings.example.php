@@ -275,6 +275,9 @@ $CONFIG->set('boost', [
     ],
 ]);
 
+/* Maximum view per day */
+$config->set('max_daily_boost_views', 10000);
+
 $CONFIG->set('encryptionKeys', [
     'email' => [
         'private' => '{{email-private-key}}',

@@ -298,9 +298,10 @@ class boost implements Interfaces\Api
                     }
                   
                     if ($manager->boostLimitReached($boost)) {
+                        $maxDaily = Di::_()->get('Config')->get('max_daily_boost_views');
                         return Factory::response([
                             'status' => 'error',
-                            'message' => "This boost would exceeded the maximum of 10 offchain tokens per day."
+                            'message' => "This boost would exceeded the maximum of ".$maxDaily." offchain tokens per day."
                         ]);
                     }   
                     
