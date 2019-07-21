@@ -59,7 +59,7 @@ class Plus
         if (!$user) {
             return $wire;
         }
-        // error_log(var_export($wire->getTimestamp(), true));
+
         // check the users tier if passed in. If not, it's a standard monthly subscription.
         switch ($tier) {
             case 'lifetime':

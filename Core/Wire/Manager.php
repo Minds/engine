@@ -201,7 +201,7 @@ class Manager
         }
 
         switch ($this->payload['method']) {
-            case 'onchain': 
+            case 'onchain':
                 //add transaction to the senders transaction log
                 $transaction = new Core\Blockchain\Transactions\Transaction();
                 $transaction
@@ -277,6 +277,7 @@ class Manager
 
                 break;
         }
+        
         return true;
     }
 
