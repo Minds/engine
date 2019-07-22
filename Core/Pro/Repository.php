@@ -86,6 +86,9 @@ class Repository
                         ->setUserGuid($row['user_guid']->toInt())
                         ->setDomain($row['domain']);
 
+                    $valuesEntityJsonData = json_decode($row['json_data'] ?: '{}', true);
+                    // TODO: Set entity data
+
                     $response[] = $valuesEntity;
                 }
 
@@ -112,10 +115,15 @@ class Repository
             throw new Exception('Invalid user GUID');
         }
 
-        $cql = "INSERT INTO pro (user_guid, domain) VALUES (?, ?)";
+        $cql = "INSERT INTO pro (user_guid, domain, json_data) VALUES (?, ?, ?)";
         $values = [
             new Bigint($values->getUserGuid()),
             $values->getDomain(),
+            json_encode([
+                'user_guid' => (string) $values->getUserGuid(),
+                'domain' => $values->getDomain(),
+                // TODO: Set entity data
+            ]),
         ];
 
         $prepared = new Custom();
