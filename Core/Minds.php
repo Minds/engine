@@ -98,6 +98,7 @@ class Minds extends base
         (new Faq\FaqProvider())->register();
         (new Rewards\RewardsProvider())->register();
         (new Plus\PlusProvider())->register();
+        (new Pro\ProProvider())->register();
         (new Hashtags\HashtagsProvider())->register();
         (new Feeds\FeedsProvider())->register();
         (new Analytics\AnalyticsProvider())->register();

@@ -28,6 +28,7 @@ class User extends \ElggUser
         $this->attributes['tags'] = [];
         $this->attributes['plus'] = 0; //TODO: REMOVE
         $this->attributes['plus_expires'] = 0;
+        $this->attributes['pro_expires'] = 0;
         $this->attributes['verified'] = 0;
         $this->attributes['founder'] = 0;
         $this->attributes['disabled_boost'] = 0;
@@ -721,6 +722,7 @@ class User extends \ElggUser
         $export['merchant'] = $this->getMerchant() ?: false;
         $export['programs'] = $this->getPrograms();
         $export['plus'] = (bool) $this->isPlus();
+        $export['pro'] = (bool) $this->isPro();
         $export['verified'] = (bool) $this->verified;
         $export['founder'] = (bool) $this->founder;
         $export['disabled_boost'] = (bool) $this->disabled_boost;
@@ -807,6 +809,32 @@ class User extends \ElggUser
     {
         $this->plus_expires = $expires;
         return $this;
+    }
+
+    /**
+     * @param int $proExpires
+     * @return User
+     */
+    public function setProExpires($proExpires)
+    {
+        $this->pro_expires = $proExpires;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getProExpires()
+    {
+        return $this->pro_expires ?: 0;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPro()
+    {
+        return $this->getProExpires() >= time();
     }
 
     /**
