@@ -13,6 +13,7 @@ use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Minds\Core\Di\Di;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -321,12 +322,13 @@ class ManagerSpec extends ObjectBehavior
     function it_should_recognise_a_user_has_reached_the_offchain_boost_limit(Boost $boost)
     {  
         $boostArray = [];
-        for ($i = 1; $i < 11; $i++) {
+        for ($i = 0; $i < 10; $i++) {
             $newBoost = new Boost();
             $newBoost->setCreatedTimestamp('9999999999999999');
             $newBoost->setImpressions(1000);
             array_push($boostArray, $newBoost);
         }
+        Di::_()->get('Config')->set('max_daily_boost_views', 10000);
         $this->runThroughGetList($boost, $boostArray);
         $this->boostLimitReached($boost)->shouldReturn(true);
     }
@@ -334,12 +336,13 @@ class ManagerSpec extends ObjectBehavior
     function it_should_recognise_a_user_has_NOT_reached_the_offchain_boost_limit(Boost $boost)
     {  
         $boostArray = [];
-        for ($i = 1; $i < 10; $i++) {
+        for ($i = 0; $i < 9; $i++) {
             $newBoost = new Boost();
             $newBoost->setCreatedTimestamp('9999999999999999');
             $newBoost->setImpressions(1000);
             array_push($boostArray, $newBoost);
         }
+        Di::_()->get('Config')->set('max_daily_boost_views', 10000);
         $this->runThroughGetList($boost, $boostArray);
         $this->boostLimitReached($boost)->shouldReturn(false);
     }
@@ -348,14 +351,15 @@ class ManagerSpec extends ObjectBehavior
     function it_should_recognise_a_boost_would_take_user_above_offchain_limit(Boost $boost)
     {  
         $boostArray = [];
-        for ($i = 1; $i < 2; $i++) {
+        for ($i = 0; $i < 2; $i++) {
             $newBoost = new Boost();
             $newBoost->setCreatedTimestamp('9999999999999999');
             $newBoost->setImpressions(4501);
             array_push($boostArray, $newBoost);
         }
+        Di::_()->get('Config')->set('max_daily_boost_views', 10000);
         $this->runThroughGetList($boost, $boostArray);
-        $this->boostLimitReached($boost)->shouldReturn(false);
+        $this->boostLimitReached($boost)->shouldReturn(true);
     }
 
     function runThroughGetList($boost, $existingBoosts) {
