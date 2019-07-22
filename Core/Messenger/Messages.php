@@ -71,9 +71,19 @@ class Messages
             }
         }
 
+        // The below code sucks, but it works, kind of...
+        // The legacy entities_by_time table uses strings, not integers
+        // and cassandra interprets a 9 as being larger than a 10.
+        // Here, if we don't get back as many results as we asked for, then we attempt to load
+        // all the older posts, which cassandra sees as newer.
+        // If this doesn't make sense then speak to @mark or @edgebal
+
         if ((!$idFix || (int) $cassandraOffset > 999999999999999999) && count($messages) < $limit) {
-            $olderEntities = $this->getMessages($limit - count($messages), $offset, "", true);
+            $olderEntities = $this->getMessages($limit - count($messages), 999999999999999999, "", true);
             foreach ($olderEntities as $guid => $entity) {
+                if ($guid > 999999999999999999) {
+                    continue;
+                }
                 $entities[$guid] = $entity;
             }
         }
