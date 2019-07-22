@@ -36,16 +36,25 @@ class Messages
         return $this;
     }
 
-    public function getMessages($limit = 12, $offset = "", $finish = "")
+    public function getMessages($limit = 12, $offset = "", $finish = "", $idFix = false)
     {
         $this->conversation->setGuid(null); //legacy messages get confused here
         $guid = $this->conversation->getGuid();
 
+        $cassandraOffset = $offset;
+        if ($cassandraOffset) {
+            $idFix = true;
+        }
+
+        if (!$idFix) {
+            $cassandraOffset = "1900076691505463296";
+        }
+
         $opts = [
           'limit' => $limit,
-          'offset'=> $offset,
+          'offset'=> $cassandraOffset,
           'finish'=> $finish,
-          'reversed'=> true
+          'reversed'=> true, 
         ];
 
         $messages = $this->indexes->get("object:gathering:conversation:$guid", $opts) ?: [];
@@ -58,6 +67,13 @@ class Messages
             $entity->loadFromArray($message);
 
             if ($this->acl->read($entity)) {
+                $entities[$guid] = $entity;
+            }
+        }
+
+        if ((!$idFix || (int) $cassandraOffset > 999999999999999999) && count($messages) < $limit) {
+            $olderEntities = $this->getMessages($limit - count($messages), $offset, "", true);
+            foreach ($olderEntities as $guid => $entity) {
                 $entities[$guid] = $entity;
             }
         }
