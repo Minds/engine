@@ -62,6 +62,10 @@ class Messages
         $entities = [];
 
         foreach ($messages as $guid => $json) {
+            if ($cassandraOffset < 999999999999999999 && $guid > 999999999999999999) {
+                continue;
+            }
+
             $message = json_decode($json, true);
             $entity = new Entities\Message();
             $entity->loadFromArray($message);
