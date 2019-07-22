@@ -1090,17 +1090,6 @@ abstract class ElggEntity extends ElggData implements
                     $db->insert($index, $data);
                 }
 
-                if (in_array($this->access_id, array(2, -2, 1))) {
-                    Minds\Core\Queue\Client::build()->setQueue("FeedDispatcher")
-                        ->send(array(
-                            "guid" => $this->guid,
-                            "owner_guid" => $this->owner_guid,
-                            "type" => $this->type,
-                            "subtype" => $this->subtype,
-                            "super_subtype" => $this->super_subtype
-                        ));
-                 }
-
                  if(!$new && $this->access_id != ACCESS_PUBLIC){
                      $remove = array("$this->type", "$this->type:$this->subtype", "$this->type:$this->super_subtype");
 			//	foreach($remove as $index)
