@@ -7,14 +7,30 @@ namespace Minds\Core\Analytics\UserStates;
 
 use Minds\Traits\MagicAttributes;
 
+
+/**
+ * Class UserState
+ * @package Minds\Core\Analytics\UserStates
+ *
+ * @method UserState setUserGuid(int $userGuid)
+ * @method int getUserGuid()
+ * @method UserState setReferenceDateMs(int $referenceDateMs)
+ * @method int getReferenceDateMs()
+ * @method UserState setState(string $state)
+ * @method string getState()
+ * @method UserState setPreviousState(string $state)
+ * @method string getPreviousState()
+ * @method UserState setActivityPercentage(float $activityPercentage)
+ * @method float getActivityPercentage()
+ */
 class UserState
 {
     use MagicAttributes;
 
-    /** @var long $userGuid */
+    /** @var int $userGuid */
     private $userGuid;
 
-    /** @var long $referenceDateMs */
+    /** @var int $referenceDateMs */
     private $referenceDateMs;
 
     /** @var string $state */
@@ -26,7 +42,7 @@ class UserState
     /** @var float $activityPercentage */
     private $activityPercentage;
 
-    public function export()
+    public function export(): array
     {
         return [
             'user_guid' => $this->userGuid,
@@ -35,5 +51,14 @@ class UserState
             'previous_state' => $this->previousState,
             'activity_percentage' => $this->activityPercentage,
         ];
+    }
+
+    public static function fromArray(array $data): UserState {
+        return (new UserState())
+            ->setUserGuid($data['user_guid'])
+            ->setReferenceDateMs($data['reference_date'])
+            ->setState($data['state'])
+            ->setPreviousState($data['previous_state'])
+            ->setActivityPercentage($data['activity_percentage']);
     }
 }
