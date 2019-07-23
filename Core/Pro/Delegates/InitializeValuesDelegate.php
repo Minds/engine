@@ -39,10 +39,12 @@ class InitializeValuesDelegate
 
         if (!$values) {
             $values = new Values();
+            $values
+                ->setUserGuid($user->guid);
         }
 
         if (!$values->getDomain()) {
-            $values->setDomain("pro-{$user->username}.minds.com");
+            $values->setDomain("pro-{$user->guid}.minds.com");
         }
 
         $this->repository

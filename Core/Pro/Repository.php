@@ -49,11 +49,11 @@ class Repository
         $cqlOpts = [];
 
         if ($opts['user_guid']) {
-            $where .= 'user_guid = ?';
+            $where[] = 'user_guid = ?';
             $values[] = new Bigint($opts['user_guid']);
         } elseif ($opts['domain']) {
             $cql = "SELECT * FROM pro_by_domain";
-            $where = 'domain = ?';
+            $where[] = 'domain = ?';
             $values[] = $opts['domain'];
         }
 

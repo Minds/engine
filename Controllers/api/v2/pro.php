@@ -29,7 +29,8 @@ class pro implements Interfaces\Api
             ->setUser(Session::getLoggedinUser());
 
         return Factory::response([
-            'active' => $manager->isActive()
+            'isActive' => $manager->isActive(),
+            /* TODO: Send values */
         ]);
     }
 
@@ -45,11 +46,26 @@ class pro implements Interfaces\Api
         $manager
             ->setUser(Session::getLoggedinUser());
 
-        $success = $manager->enable(time() + (365 * 86400));
+        switch ($pages[0]) {
+            case 'enable':
+                // TODO: Send and process payment data
+                $success = $manager->enable(time() + (365 * 86400));
 
-        return Factory::response([
-            'done' => $success,
-        ]);
+                if (!$success) {
+                    return Factory::response([
+                        'status' => 'error',
+                        'message' => 'Error activating Pro',
+                    ]);
+                }
+
+                return Factory::response([/* TODO: Send values */]);
+
+            default:
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => 'Unknown method'
+                ]);
+        }
     }
 
     /**
@@ -76,8 +92,13 @@ class pro implements Interfaces\Api
 
         $success = $manager->disable();
 
-        return Factory::response([
-            'done' => $success,
-        ]);
+        if (!$success) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Error disabling Pro',
+            ]);
+        }
+
+        return Factory::response([]);
     }
 }
