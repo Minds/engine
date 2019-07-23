@@ -176,8 +176,8 @@ class Manager
      * @param string $tier - the tier
      * @return $this
      */
-    public function setTier($tier = MONTHLY)
-    {
+    public function setTier($tier = null) {
+        $tier ?? static::MONTHLY;
         $this->tier = $tier;
 
         return $this;
