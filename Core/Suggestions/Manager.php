@@ -2,9 +2,11 @@
 
 namespace Minds\Core\Suggestions;
 
-use Minds\Core\EntitiesBuilder;
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Suggestions\Delegates\CheckRateLimit;
+use Minds\Entities\User;
 
 class Manager
 {
@@ -14,8 +16,14 @@ class Manager
     /** @var EntitiesBuilder $entitiesBuilder */
     private $entitiesBuilder;
 
+    /** @var \Minds\Core\Subscriptions\Manager */
+    private $subscriptionsManager;
+
     /** @var User $user */
     private $user;
+
+    /** @var CheckRateLimit */
+    private $checkRateLimit;
 
     /** @var string $type */
     private $type;
@@ -23,11 +31,16 @@ class Manager
     public function __construct(
         $repository = null,
         $entitiesBuilder = null,
-        $subscriptionsManager = null
-    ) {
+        $suggestedFeedsManager = null,
+        $subscriptionsManager = null,
+        $checkRateLimit = null
+    )
+    {
         $this->repository = $repository ?: new Repository();
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder();
+        //$this->suggestedFeedsManager = $suggestedFeedsManager ?: Di::_()->get('Feeds\Suggested\Manager');
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Subscriptions\Manager');
+        $this->checkRateLimit = $checkRateLimit ?: new CheckRateLimit();
     }
 
     /**
@@ -71,6 +84,10 @@ class Manager
             'limit' => 12,
             'paging-token' => '',
         ], $opts);
+
+        if (!$this->checkRateLimit->check($this->user->guid)) {
+            return new Response([]);
+        }
 
         $opts['user_guid'] = $this->user->getGuid();
 

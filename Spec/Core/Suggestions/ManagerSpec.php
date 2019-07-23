@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Suggestions;
 
+use Minds\Core\Suggestions\Delegates\CheckRateLimit;
 use Minds\Entities\User;
 use Minds\Common\Repository\Response;
 use Minds\Core\Suggestions\Manager;
@@ -15,18 +16,25 @@ use Prophecy\Argument;
 class ManagerSpec extends ObjectBehavior
 {
 
+    /** @var Repository */
     private $repository;
+    /** @var EntitiesBuilder */
     private $entitiesBuilder;
+    /** @var CheckRateLimit */
+    private $checkRateLimit;
 
     function let(
         Repository $repository,
         EntitiesBuilder $entitiesBuilder,
-        SubscriptionsManager $subscriptionsManager
+        SubscriptionsManager $subscriptionsManager,
+        CheckRateLimit $checkRateLimit
     )
     {
-        $this->beConstructedWith($repository, $entitiesBuilder, $subscriptionsManager);
         $this->repository = $repository;
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->checkRateLimit = $checkRateLimit;
+
+        $this->beConstructedWith($repository, $entitiesBuilder, null, $subscriptionsManager, $checkRateLimit);
     }
 
     function it_is_initializable()
@@ -43,11 +51,15 @@ class ManagerSpec extends ObjectBehavior
         $response[] = (new Suggestion)
             ->setEntityGuid(789);
 
+        $this->checkRateLimit->check(123)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->repository->getList([
-                'limit' => 24,
-                'paging-token' => '',
-                'user_guid' => 123,
-            ])
+            'limit' => 24,
+            'paging-token' => '',
+            'user_guid' => 123,
+        ])
             ->shouldBeCalled()
             ->willReturn($response);
 
@@ -61,7 +73,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn((new User)->set('guid', 789));
 
-        $newResponse = $this->getList([ 'limit' => 24 ]);
+        $newResponse = $this->getList(['limit' => 24]);
 
         $newResponse[0]->getEntityGuid()
             ->shouldBe(456);
@@ -74,6 +86,18 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(789);
     }
 
-    
+    function it_shouldnt_return_a_list_of_suggested_users_if_close_too_close_to_the_rate_limit_threshold()
+    {
+        $this->checkRateLimit->check(123)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->setUser((new User)->set('guid', 123));
+
+        $newResponse = $this->getList(['limit' => 24]);
+
+        $newResponse->count()->shouldBe(0);
+    }
+
 
 }
