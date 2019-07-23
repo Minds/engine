@@ -250,6 +250,9 @@ $CONFIG->set('google', [
             'key_path' => __DIR__ . '/.auth/analytics.json',
         ],
         'ads' => '', // get it from https://ga-dev-tools.appspot.com/account-explorer/
+    ],
+    'recaptcha' => [
+        'site_key' => '12345'
     ]
 ]);
 
