@@ -20,6 +20,7 @@ class ActiveUsersIterator implements \Iterator
     private $limit = 400;
     private $partitions = 200;
     private $page = -1;
+    /** @var UserState[] $data */
     private $data = [];
     private $active;
     private $valid = true;
