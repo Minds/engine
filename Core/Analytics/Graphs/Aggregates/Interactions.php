@@ -8,7 +8,6 @@ use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Data\ElasticSearch\Prepared\Count;
 use Minds\Core\Data\ElasticSearch\Prepared\Search;
 use Minds\Core\Di\Di;
-use Minds\Core\Analytics\Graphs\Manager;
 
 class Interactions implements AggregateInterface
 {
@@ -55,14 +54,20 @@ class Interactions implements AggregateInterface
         $from = null;
         switch ($options['unit']) {
             case "day":
-                $from = (new DateTime('midnight'))->modify("-{$options['span']} days");
-                $to = (new DateTime('midnight'));
+                $to = new DateTime('now');
+                $from = (new DateTime())
+                    ->setTimestamp($to->getTimestamp())
+                    ->modify("-{$options['span']} hours");
+
                 $interval = '1d';
                 $this->dateFormat = 'y-m-d';
                 break;
             case "month":
-                $from = (new DateTime('midnight first day of next month'))->modify("-{$options['span']} months");
                 $to = new DateTime('midnight first day of next month');
+                $from = (new DateTime())
+                    ->setTimestamp($to->getTimestamp())
+                    ->modify("-{$options['span']} months");
+
                 $interval = '1M';
                 $this->dateFormat = 'y-m';
                 break;

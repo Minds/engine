@@ -337,6 +337,23 @@ class Defaults
             return $meta;
         });
 
+        Manager::add('/wallet/tokens/referrals', function ($slugs = []) {
+            $meta = [
+                'title' => 'Referrals',
+                'description' => 'Share links and track your referrals',
+                'og:title' => 'Referrals',
+                'og:description' => 'Share links and track your referrals',
+                'og:url' => $this->config->site_url . 'wallet/tokens/referrals',
+                'og:image' => $this->config->cdn_assets_url . 'assets/photos/graph.jpg',
+                'og:image:width' => 2000,
+                'og:image:height' => 1000,
+                'twitter:site' => '@minds',
+                'twitter:card' => 'summary',
+            ];
+
+            return $meta;
+        });
+
         $marketing = [
             'plus' => [
                 'title' => 'Minds Plus',
@@ -429,7 +446,7 @@ class Defaults
         }
     }
 
-    public function channelHandler($slugs = []) 
+    public function channelHandler($slugs = [])
     {
         $username = ($slugs[0] == 'blog') ? $slugs[1]: $slugs[0];
         if (isset($username) && is_string($username)) {

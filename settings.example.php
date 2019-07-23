@@ -470,6 +470,7 @@ $CONFIG->set('features', [
     'top-feeds' => true,
     'cassandra-notifications' => true,
     'dark-mode' => true,
+    'allow-comments-toggle' => false
 ]);
 
 $CONFIG->set('email', [ 
@@ -481,9 +482,14 @@ $CONFIG->set('email', [
     ]
 ]);
 
+/* Maximum video length for non-plus users */
 $CONFIG->set('max_video_length', 900);
 
+/* Maximum video length for plus */
 $CONFIG->set('max_video_length_plus', 1860);
+
+/* Maximum video file size, in bytes */
+$CONFIG->set('max_video_file_size', 3900000000);
 
 $CONFIG->set('aws', [
     'key' => '',
@@ -558,7 +564,7 @@ $CONFIG->set('gitlab', [
         'mobile' => '10171280', // project id mobile
         'front' => '10152778', // project id front
     ],
-    'private_key' => '{{private-key}}'
+    'private_key' => ''
 ]);
 
 

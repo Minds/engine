@@ -16,7 +16,7 @@ use Minds\Entities\Boost\BoostEntityInterface;
 class BoostGuidResolverDelegate implements ResolverDelegate
 {
     /**
-     * @var Manager 
+     * @var Manager
      */
     protected $manager;
 

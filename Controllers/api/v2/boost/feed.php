@@ -94,6 +94,7 @@ class feed implements Interfaces\Api
                     $feedSyncEntity
                         ->setGuid((string) $boost->getGuid())
                         ->setOwnerGuid((string) $boost->getOwnerGuid())
+                        ->setTimestamp($boost->getCreatedTimestamp())
                         ->setUrn(new Urn("urn:boost:{$boost->getType()}:{$boost->getGuid()}"));
 
                     $boosts[] = $feedSyncEntity;
@@ -101,7 +102,19 @@ class feed implements Interfaces\Api
                // $boosts = iterator_to_array($iterator, false);
 
                 $next = $iterator->getOffset();
+
                 $cacher->set(Core\Session::getLoggedinUser()->guid . ':boost-offset-rotator', $next);
+
+                if (isset($boosts[1])) { // Always offset to 2rd in list
+                    $next = $boosts[1]->getTimestamp();
+                }
+
+                $ttl = 1800; // 30 minutes
+                if (($next / 1000) < strtotime('48 hours ago')) {
+                    $ttl = 30; // 0.5 minutes;
+                }
+
+                $cacher->set(Core\Session::getLoggedinUser()->guid . ':boost-offset-rotator', $next, $ttl);
                 break;
 
             case 'content':
