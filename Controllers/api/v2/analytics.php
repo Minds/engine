@@ -18,34 +18,34 @@ class analytics implements Interfaces\Api, Interfaces\ApiIgnorePam
             ]);
         }
 
-        $span = 12;
+        $span = 13;
         $unit = 'month';
 
         switch ($_GET['timespan'] ?? null) {
             case 'hourly':
-                $span = 24;
+                $span = 25;
                 $unit = 'hour';
                 break;
             case 'daily':
-                $span = 7;
+                $span = 17;
                 $unit = 'day';
                 break;
             case 'monthly':
-                $span = 12;
+                $span = 13;
                 $unit = 'month';
                 break;
         }
 
-        /** @var Core\Analytics\Metrics\Manager $manager */
+        /** @var Core\Analytics\Graphs\Manager $manager */
         $manager = Di::_()->get('Analytics\Graphs\Manager');
 
         try {
             $urn = "urn:graph:" . $manager::buildKey([
-                'aggregate' => $pages[0],
-                'key' => $_GET['key'] ?? null,
-                'span' => $span,
-                'unit' => $unit,
-            ]); 
+                    'aggregate' => $pages[0],
+                    'key' => $_GET['key'] ?? null,
+                    'span' => $span,
+                    'unit' => $unit,
+                ]);
             $graph = $manager->get($urn);
             if (!$graph) {
                 throw new \Exception("Graph not found");
