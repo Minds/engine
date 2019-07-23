@@ -17,6 +17,7 @@ use Minds\Core\Wire\Subscriptions\Manager as SubscriptionsManager;
 use Minds\Common\Urn;
 use Minds\Entities;
 use Minds\Entities\User;
+use Twilio\Rest\Api\V2010\Account\Usage\Record\YearlyInstance;
 
 class Manager
 {
@@ -79,6 +80,15 @@ class Manager
 
     /** @var Core\Blockchain\Wallets\OffChain\Transactions */
     protected $offchainTxs;
+
+    /** @var const MONTHLY **/
+    const MONTHLY = 'month';
+
+    /** @var const YEARLY **/
+    const YEARLY = 'year';
+    
+    /** @var const LIFETIME **/
+    const LIFETIME = 'lifetime';
 
     public function __construct(
         $cache = null,
@@ -160,7 +170,13 @@ class Manager
         return $this;
     }
     
-    public function setTier($tier = '')
+    /**
+     * Sets the tier of the wire e.g. 'monthly', 'yearly', 'lifetime
+     *
+     * @param string $tier - the tier
+     * @return $this
+     */
+    public function setTier($tier = MONTHLY)
     {
         $this->tier = $tier;
 

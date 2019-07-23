@@ -6,9 +6,12 @@ namespace Minds\Core\Wire\Delegates;
 
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Wire\Manager;
 
 class Plus
-{
+{   
+    /* @var const LIFETIME_TIMESTAMP */
+    const LIFETIME_TIMESTAMP = 9999999999;
 
     /** @var Config $config */
     private $config;
@@ -62,11 +65,11 @@ class Plus
 
         // check the users tier if passed in. If not, it's a standard monthly subscription.
         switch ($tier) {
-            case 'lifetime':
-                $user->setPlusExpires(9999999999); //life
+            case Manager::LIFETIME:
+                $user->setPlusExpires(static::LIFETIME_TIMESTAMP); //life
                 break;
 
-            case 'yearly':
+            case Manager::YEARLY:
                 $user->setPlusExpires($this->calculatePlusExpires('+1 year', $wire->getTimestamp(), $user->plus_expires));
                 break;
 
@@ -91,7 +94,7 @@ class Plus
      */
     public function calculatePlusExpires($timespan, $wireTimestamp, $previousTimestamp = null) 
     {
-        if ($previousTimestamp === 9999999999) {
+        if ($previousTimestamp === static::LIFETIME_TIMESTAMP) {
             throw new \Exception('Already existing lifetime subscription');
         }
 

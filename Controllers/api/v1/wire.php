@@ -70,7 +70,7 @@ class wire implements Interfaces\Api
 
         $manager = Core\Di\Di::_()->get('Wire\Manager');
         
-        $tier = $_POST['tier'] ?? '';
+        $tier = $_POST['tier'] ?? MONTHLY;
         $payload = (array) $_POST['payload'] ?? [];
 
         try {
