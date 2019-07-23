@@ -20,9 +20,12 @@ class Events
         $this->eventsDispatcher->register('user_state_change', 'all', function (Core\Events\Event $event) {
             $userState = Core\Analytics\UserStates\UserState::fromArray($event->getParameters());
             $user = new \Minds\Entities\User($userState->getUserGuid());
-            $user->setUserState($userState->getState())
-                ->setUserStateUpdatedMs($userState->getReferenceDateMs())
-                ->save();
+
+            if ($user->getUserState() !== $userState->getState()) {
+                $user->setUserState($userState->getState())
+                    ->setUserStateUpdatedMs($userState->getReferenceDateMs())
+                    ->save();
+            }
         });
     }
 }
