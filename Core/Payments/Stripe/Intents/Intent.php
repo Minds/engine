@@ -11,34 +11,19 @@ class Intent
     use MagicAttributes;
 
     /** @var string $id */
-    private $id;
-
-    /** @var int $amount */
-    private $amount = 0;
-
-    /** @var int $quantity */
-    private $quantity = 1;
-
-    /** @var string $currency */
-    private $currency = 'usd';
-
-    /** @var int $serviceFeePct */
-    private $serviceFeePct = 0;
+    protected $id;
 
     /** @var string $customerId */
-    private $customerId;
+    protected $customerId;
+
+    /** @var string $paymentMethod */
+    protected $paymentMethod;
 
     /** @var string $stripeAccountId */
-    private $stripeAccountId;
+    protected $stripeAccountId;
 
-    /**
-     * Return the service
-     * @return int
-     */
-    public function getServiceFee(): int
-    {
-        return $this->amount * ($this->serviceFeePct / 100);
-    }
+    /** @var string $clientSecret */
+    protected $clientSecret;
 
     /**
      * Expose to the public apis
@@ -48,6 +33,8 @@ class Intent
     public function export($extend = [])
     {
         return [
+            'id' => $this->id,
+            'client_secret' => $this->clientSecret,
         ];
     }
 

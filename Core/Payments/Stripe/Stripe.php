@@ -321,7 +321,7 @@ class Stripe implements SubscriptionPaymentServiceInterface
         );
 
         $params = [
-            'type' => 'charge',
+            'type' => 'payment',
             'limit' => $hasFilter ? 100 : (int) $options[$limit]
         ];
 
@@ -552,7 +552,7 @@ class Stripe implements SubscriptionPaymentServiceInterface
         } catch (\Exception $e) {
             return false;
         }
-
+        
         $customer->setPaymentMethods($result->sources->data);
 
         return $customer;

@@ -3,6 +3,8 @@
 namespace Minds\Core\Payments\Stripe\Customers;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Payments\Stripe\Instances\CustomerInstance;
+use Minds\Core\Payments\Stripe\Instances\PaymentMethodInstance;
 
 class Manager
 {
@@ -10,9 +12,15 @@ class Manager
     /** @var Lookup $lookup */
     private $lookup;
 
-    public function __construct($lookup = null)
+    private $customerInstance;
+
+    private $paymentMethodInstance;
+
+    public function __construct($lookup = null, $customerInstance = null, $paymentMethodInstance = null)
     {
         $this->lookup = $lookup ?: Di::_()->get('Database\Cassandra\Lookup');
+        $this->customerInstance = $customerInstance ?? new CustomerInstance();
+        $this->paymentMethodInstance = $paymentMethodInstance ?? new PaymentMethodInstance();
     }
 
     /**
@@ -47,18 +55,20 @@ class Manager
      * @param Customer $customer
      * @return boolean
      */
-    public function add(Customer $customer)
+    public function add(Customer $customer) : Customer
     {
-        $customer = \Stripe\Customer::create([
-            'source' => $customer->getPaymentSource(),
-            'email' => $customer->getUser()->getEmail(),
-        ]);
+        $stripeCustomer = $this->customerInstance->create([
+            'payment_method' => $customer->getPaymentMethod(),
+        ]); 
 
         $this->lu->set("{$customer->getUserGuid()}:payments", [
-            'customer_id' => (string) $customer->id
+            'customer_id' => (string) $stripeCustomer->id
         ]);
 
-        return (bool) $customer->id;
+
+        $customer->setId($stripeCustomer->id);
+
+        return $customer;
     }
 
 }

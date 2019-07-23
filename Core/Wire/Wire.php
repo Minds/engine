@@ -29,8 +29,11 @@ class Wire
     /** @var bool **/
     private $recurring = false;
 
-    /** @var method **/
+    /** @var string $method */
     private $method = 'tokens';
+
+    /** @var string $address */
+    private $address;
 
     /** @var int $timestamp **/
     private $timestamp;

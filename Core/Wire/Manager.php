@@ -17,17 +17,13 @@ use Minds\Core\Wire\Subscriptions\Manager as SubscriptionsManager;
 use Minds\Common\Urn;
 use Minds\Entities;
 use Minds\Entities\User;
+use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
+use Minds\Core\Payments\Stripe\Intents\Manager as StripeIntentsManager;
 
 class Manager
 {
-    /** @var Data\cache\Redis */
-    protected $cache;
-
     /** @var Repository */
     protected $repository;
-
-    /** @var SubscriptionsManager $subscriptionsManager */
-    protected $subscriptionsManager;
 
     /** @var Core\Blockchain\Transactions\Manager */
     protected $txManager;
@@ -56,9 +52,6 @@ class Manager
     /** @var Core\Config */
     protected $config;
 
-    /** @var Core\Queue\Client */
-    protected $queue;
-
     /** @var Core\Blockchain\Services\Ethereum */
     protected $client;
 
@@ -67,44 +60,53 @@ class Manager
 
     /** @var Core\Blockchain\Wallets\OffChain\Cap $cap */
     protected $cap;
-
-    /** @var Core\Events\EventsDispatcher */
-    protected $dispatcher;
-
+    
     /** @var Delegates\Plus $plusDelegate */
     protected $plusDelegate;
+
+    /** @var Delegates\RecurringDelegate $recurringDelegate */
+    protected $recurringDelegate;
+
+    /** @var Delegates\NotificationDelegate $notificationDelegate */
+    protected $notificationDelegate;
+
+    /** @var Delegates\CacheDelete $cacheDelegate */
+    protected $cacheDelegate;
 
     /** @var Core\Blockchain\Wallets\OffChain\Transactions */
     protected $offchainTxs;
 
+    /** @var StripeIntentsManager $stripeIntentsManager */
+    protected $stripeIntentsManager;
+
     public function __construct(
-        $cache = null,
         $repository = null,
-        $subscriptionsManager = null,
         $txManager = null,
         $txRepo = null,
         $config = null,
-        $queue = null,
         $client = null,
         $token = null,
         $cap = null,
-        $dispatcher = null,
         $plusDelegate = null,
-        $offchainTxs = null
+        $recurringDelegate = null,
+        $notificationDelegate = null,
+        $cacheDelegate = null,
+        $offchainTxs = null,
+        $stripeIntentsManager = null
     ) {
-        $this->cache = $cache ?: Di::_()->get('Cache');
         $this->repository = $repository ?: Di::_()->get('Wire\Repository');
-        $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Wire\Subscriptions\Manager');
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
         $this->txRepo = $txRepo ?: Di::_()->get('Blockchain\Transactions\Repository');
         $this->config = $config ?: Di::_()->get('Config');
-        $this->queue = $queue ?: Core\Queue\Client::build();
         $this->client = $client ?: Di::_()->get('Blockchain\Services\Ethereum');
         $this->token = $token ?: Di::_()->get('Blockchain\Token');
         $this->cap = $cap ?: Di::_()->get('Blockchain\Wallets\OffChain\Cap');
-        $this->dispatcher = $dispatcher ?: Di::_()->get('EventsDispatcher');
         $this->plusDelegate = $plusDelegate ?: new Delegates\Plus();
+        $this->recurringDelegate = $recurringDelegate ?: new Delegates\RecurringDelegate();
+        $this->notificationDelegate = $notificationDelegate ?: new Delegates\NotificationDelegate();
+        $this->cacheDelegate = $cacheDelegate ?: new Delegates\CacheDelegate();
         $this->offchainTxs = $offchainTxs ?: new Core\Blockchain\Wallets\OffChain\Transactions();
+        $this->stripeIntentsManager = $stripeIntentsManager ?? Di::_()->get('Stripe\Intents\Manager');
     }
 
     /**
@@ -183,13 +185,6 @@ class Manager
             throw new WalletNotSetupException();
         }
 
-        if ($this->recurring) {
-            $this->subscriptionsManager
-                ->setAmount($this->amount)
-                ->setSender($this->sender)
-                ->setReceiver($this->receiver);
-        }
-
         $wire = new Wire();
         $wire
             ->setSender($this->sender)
@@ -220,11 +215,7 @@ class Manager
                     ]);
                 $this->txManager->add($transaction);
 
-                if ($this->recurring) {
-                    $this->subscriptionsManager
-                        ->setAddress($this->payload['address'])
-                        ->create();
-                }
+                $wire->setAddress($this->payload['address']);
 
                 break;
             case 'offchain':
@@ -255,22 +246,17 @@ class Manager
                 // Save the wire to the Repository
                 $this->repository->add($wire);
 
+                $wire->setAddress('offchain');
+
                 // Notify plus
                 $this->plusDelegate
                     ->onWire($wire, 'offchain');
 
                 // Send notification
-                $this->sendNotification($wire);
+                $this->notificationDelegate->onAdd($wire);
 
                 // Clear caches
-                $this->clearWireCache($wire);
-
-                // Register the next subscription, if needed
-                if ($this->recurring) {
-                    $this->subscriptionsManager
-                        ->setAddress('offchain')
-                        ->create();
-                }
+                $this->cacheDelegate->onAdd($wire);
 
                 break;
             case 'erc20':
@@ -279,33 +265,35 @@ class Manager
             case 'eth':
                 throw new \Exception("Not implemented ETH yet");
                 break;
-            case 'money':
-                $intent = new StripePaymentIntent();
+            case 'usd':
+                $intent = new PaymentIntent();
                 $intent
                     ->setUserGuid($this->sender->getGuid())
                     ->setAmount($this->amount)
-                    ->setDestination($this->receiver->getStripeAccount());
+                    ->setPaymentMethod($this->payload['paymentMethodId'])
+                    ->setOffSession(true)
+                    ->setConfirm(true)
+                    ->setStripeAccountId($this->receiver->getMerchant()['id']);
 
                 // Charge stripe
-                $this->stripeManager->charge($intent);    
+                $this->stripeIntentsManager->add($intent);    
 
-                // Register the next subscription, if needed
-                if ($this->recurring) {
-                    $this->subscriptionsManager
-                        ->setMethod('money')
-                        ->setAddress('stripe')
-                        ->create();
-                }
+                $wire->setAddress('stripe')
+                    ->setMethod('usd');
 
                 // Save the wire to the Repository
                 $this->repository->add($wire);
 
                 // Send notification
-                $this->sendNotification($wire);
+                $this->notificationDelegate->onAdd($wire);
 
                 // Clear caches
-                $this->clearWireCache($wire);
+                $this->cacheDelegate->onAdd($wire);
                 break;
+        }
+
+        if ($this->recurring) {
+            $this->recurringDelegate->onAdd($wire);
         }
 
         return true;
@@ -342,29 +330,12 @@ class Manager
         $this->plusDelegate
             ->onWire($wire, $data['receiver_address']);
 
-        $this->sendNotification($wire);
+        $this->notificationDelegate->onAdd($wire);
 
-        $this->clearWireCache($wire);
+        $this->cacheDelegate->onAdd($wire);
 
         return $success;
     }
 
-    /**
-     * @param Wire $wire
-     */
-    protected function clearWireCache(Wire $wire)
-    {
-        $this->cache->destroy(Counter::getIndexName($wire->getEntity()->guid, null, 'tokens', null, true));
-    }
 
-    protected function sendNotification(Wire $wire = null)
-    {
-        $this->queue->setQueue('WireNotification')
-            ->send(
-                [
-                    'wire' => serialize($wire),
-                    'entity' => serialize($wire->getEntity()),
-                ]
-        );
-    }
 }
