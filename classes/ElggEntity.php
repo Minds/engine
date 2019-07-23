@@ -1377,18 +1377,19 @@ abstract class ElggEntity extends ElggData implements
 		);
 	}
 
-	public function export(){
-		$export = array();
-		foreach($this->getExportableValues() as $v){
-			if(!is_null($this->$v)){
-			    $export[$v] = $this->$v;
-			}
-		}
-		$export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'all', array('entity'=>$this), []) ?: []);
+    public function export(){
+        $export = array();
+        foreach($this->getExportableValues() as $v) {
+            if (!is_null($this->$v)) {
+                    $export[$v] = $this->$v;
+            }
+        }
+        $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'all', array('entity'=>$this), []) ?: []);
         $export = \Minds\Helpers\Export::sanitize($export);
-		$export['nsfw'] = $this->getNsfw();
+        $export['nsfw'] = $this->getNsfw();
         $export['nsfw_lock'] = $this->getNsfwLock();
-        $export['urn']= $this->getUrn();
+        $export['urn'] = $this->getUrn();
+        $export['allow_comments'] = $this->getAllowComments();
 		return $export;
 	}
 
@@ -1673,6 +1674,6 @@ abstract class ElggEntity extends ElggData implements
      * Gets the flag for allowing comments on an entity
      */
     public function getAllowComments() {
-        return $this->allow_comments;
+        return (bool) $this->allow_comments;
 	}
 }
