@@ -564,7 +564,7 @@ $CONFIG->set('gitlab', [
         'mobile' => '10171280', // project id mobile
         'front' => '10152778', // project id front
     ],
-    'private_key' => '{{private-key}}'
+    'private_key' => ''
 ]);
 
 
