@@ -263,28 +263,6 @@ class Payment
         switch ($currency) {
             case 'points':
                 return true; // Already charged
-            case 'usd':
-            case 'money':
-                $sale = (new Payments\Sale())
-                    ->setId($boost->getTransactionId());
-
-                if ($boost->getOwner()->referrer) {
-                    $referrer = new User($boost->getOwner()->referrer);
-                    $sale->setMerchant($referrer);
-                }
-
-                $charged = $this->stripePayments->chargeSale($sale);
-
-                if ($charged) {
-                    Core\Events\Dispatcher::trigger('invoice:email', 'all', [
-                        'user' => $boost->getOwner(),
-                        'amount' => $boost->getBid(),
-                        'description' => 'Boost'
-                    ]);
-                }
-
-                return $charged;
-
             case 'tokens':
                 $method = '';
                 $txIdMeta = '';
@@ -331,61 +309,6 @@ class Payment
                         }
 
                         break;
-
-                    case 'creditcard':
-                        $sale = (new Payments\Sale())
-                            ->setId($txIdMeta);
-
-                        $charged = $this->stripePayments->chargeSale($sale);
-
-                        if ($charged) {
-                            $sale = $this->stripePayments->getSale($txIdMeta);
-
-                            $usdAmount = $sale->getAmount();
-                            $tokenAmount = $boost->getBid() / 10 ** 18;
-
-                            Core\Events\Dispatcher::trigger('invoice:email', 'all', [
-                                'user' => $boost->getOwner(),
-                                'amount' => $usdAmount,
-                                'description' => $tokenAmount . ' tokens'
-                            ]);
-                        }
-
-                        if ($boost->getHandler() === 'peer') {
-                            // what the receiver gets
-                            $receiversTx = new Core\Blockchain\Transactions\Transaction();
-                            $receiversTx
-                                ->setTx($boost->getTransactionId())
-                                ->setContract('boost')
-                                ->setWalletAddress('offchain')
-                                ->setAmount($boost->getBid())
-                                ->setTimestamp(time())
-                                ->setUserGuid($boost->getDestination()->guid)
-                                ->setCompleted(false)
-                                ->setData([
-                                    'amount' => (string) $boost->getBid(),
-                                    'guid' => (string) $boost->getGuid(),
-                                    'handler' => (string) $boost->getHandler(),
-                                    'sender_guid' => (string) $boost->getOwner()->guid,
-                                    'receiver_guid' => (string) $boost->getDestination()->guid,
-                                ]);
-                            $this->txManager->add($receiversTx);
-
-                            $withholding = new Core\Blockchain\Wallets\OffChain\Withholding\Withholding();
-                            $withholding
-                                ->setUserGuid($boost->getDestination())
-                                ->setTimestamp(time())
-                                ->setTx($boost->getTransactionId())
-                                ->setType('boost')
-                                ->setWalletAddress('offchain')
-                                ->setAmount($boost->getBid())
-                                ->setTtl($this->config->get('blockchain')['offchain']['withholding']['boost']);
-
-                            Di::_()->get('Blockchain\Wallets\OffChain\Withholding\Repository')
-                                ->add($withholding);
-                        }
-
-                        return $charged;
                 }
 
                 return true; // Already charged

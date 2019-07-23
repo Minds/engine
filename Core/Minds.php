@@ -45,6 +45,13 @@ class Minds extends base
         $modules = [];
         foreach ($this->modules as $module) {
             $modules[] = new $module();
+
+            // Submodules han be registered with the ->submodules[] property
+            if (property_exists($module, 'submodules')) {
+                foreach ($modules->submodules as $submodule) {
+                    $modules[] = $submodule;
+                }
+            }
         }
 
         /*

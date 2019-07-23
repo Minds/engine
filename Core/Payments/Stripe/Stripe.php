@@ -1,6 +1,7 @@
 <?php
 /**
  * Stripe service controller
+ * DEPRECATED. Use managers
  */
 
 namespace Minds\Core\Payments\Stripe;
@@ -18,12 +19,15 @@ use Minds\Core\Payments\Subscriptions\SubscriptionPaymentServiceInterface;
 use Minds\Core\Payments\Transfers\Transfer;
 use Stripe as StripeSDK;
 
-class Stripe implements PaymentServiceInterface, SubscriptionPaymentServiceInterface
+class Stripe implements SubscriptionPaymentServiceInterface
 {
     private $config;
 
-    public function __construct(Config $config)
+    public function __construct(Config $config = null)
     {
+        if (!$config) {
+            $config = new Config;
+        }
         $this->config = $config;
         if ($config->payments && isset($config->payments['stripe'])) {
             $this->setConfig($config->payments['stripe']);
@@ -317,7 +321,7 @@ class Stripe implements PaymentServiceInterface, SubscriptionPaymentServiceInter
         );
 
         $params = [
-            'type' => 'charge',
+            'type' => 'payment',
             'limit' => $hasFilter ? 100 : (int) $options[$limit]
         ];
 
@@ -505,199 +509,6 @@ class Stripe implements PaymentServiceInterface, SubscriptionPaymentServiceInter
         return $totals;
      }
 
-    /**
-     * Add a merchant to Stripe
-     * @param Merchant $merchant
-     * @return string - the ID of the merchant
-     * @throws \Exception error message from failed account creation
-     */
-    public function addMerchant(Merchant $merchant)
-    {
-        $dob = explode('-', $merchant->getDateOfBirth());
-        $data = [
-          'managed' => true,
-          'country' => $merchant->getCountry(),
-          'legal_entity' => [
-            'type' => 'individual',
-            'first_name' => $merchant->getFirstName(),
-            'last_name' => $merchant->getLastName(),
-            'address' => [
-              'city' => $merchant->getCity(),
-              'line1' => $merchant->getStreet(),
-              'postal_code' => $merchant->getPostCode(),
-              'state' => $merchant->getState(),
-            ],
-            'dob' => [
-              'day' => $dob[2],
-              'month' => $dob[1],
-              'year' => $dob[0]
-            ],
-          ],
-          'tos_acceptance' => [
-            'date' => time(),
-            'ip' => '0.0.0.0' // @todo: Should we set the actual IP?
-          ]
-        ];
-
-        if ($merchant->getGender()) {
-            $data['legal_entity']['gender'] = $merchant->getGender();
-        }
-
-        if ($merchant->getPhoneNumber()) {
-            $data['legal_entity']['phone_number'] = $merchant->getPhoneNumber();
-        }
-
-        if ($merchant->getSSN()) {
-            $data['legal_entity']['ssn_last_4'] = $merchant->getSSN();
-        }
-
-        if ($merchant->getPersonalIdNumber()) {
-            $data['legal_entity']['personal_id_number'] = $merchant->getPersonalIdNumber();
-        }
-
-        $result = StripeSDK\Account::create($data);
-
-        if ($result->id) {
-            $merchant->setGuid($result->id);
-            return $result;
-        }
-
-        throw new \Exception($result->message);
-    }
-
-    /**
-     * Return a merchant from an id
-     * @param $id
-     * @return Merchant
-     * @throws \Exception
-     */
-    public function getMerchant($id)
-    {
-        try {
-            $result = StripeSDK\Account::retrieve($id);
-
-            $merchant = (new Merchant())
-              ->setId($result->id)
-              ->setStatus('active')
-              ->setCountry($result->country)
-              ->setFirstName($result->legal_entity['first_name'])
-              ->setLastName($result->legal_entity['last_name'])
-              ->setGender($result->legal_entity['gender'])
-              ->setDateOfBirth($result->legal_entity['dob']['year'] . '-' . str_pad($result->legal_entity['dob']['month'], 2, '0', STR_PAD_LEFT) . '-' . str_pad($result->legal_entity['dob']['day'], 2, '0', STR_PAD_LEFT))
-              ->setStreet($result->legal_entity['address']['line1'])
-              ->setCity($result->legal_entity['address']['city'])
-              ->setPostCode($result->legal_entity['address']['postal_code'])
-              ->setState($result->legal_entity['address']['state'])
-              ->setPhoneNumber($result->legal_entity['phone_number'])
-              ->setSSN($result->legal_entity['ssn_last_4'])
-              ->setPersonalIdNumber($result->legal_entity['personal_id_number'])
-              ->setBankAccount($result->external_accounts->data[0])
-              ->setAccountNumber($result->external_accounts->data[0]['last4'])
-              ->setRoutingNumber($result->external_accounts->data[0]['routing_number'])
-              ->setDestination('bank');
-
-            //verifiction check
-            if ($result->legal_entity->verification->status === 'verified') {
-                $merchant->markAsVerified();
-            }
-
-            if ($result->verification->disabled_reason == 'fields_needed') {
-                if ($result->verification->fields_needed[0] == 'legal_entity.verification.document') {
-                    $merchant->setStatus('awaiting-document');
-                }
-            }
-
-            return $merchant;
-        } catch (\Exception $e) {
-            throw new \Exception($e->getMessage());
-        }
-    }
-
-    /**
-     * Updates a merchant in Stripe
-     * @param $merchant
-     * @return string Merchant's id
-     * @throws \Exception
-     */
-    public function updateMerchant(Merchant $merchant)
-    {
-        try {
-            $account = StripeSDK\Account::retrieve($merchant->getId());
-
-            if ($account->legal_entity->verification->status !== 'verified') {
-                $account->legal_entity->first_name = $merchant->getFirstName();
-                $account->legal_entity->last_name = $merchant->getLastName();
-
-                $account->legal_entity->address->city = $merchant->getCity();
-                $account->legal_entity->address->line1 = $merchant->getStreet();
-                $account->legal_entity->address->postal_code = $merchant->getPostCode();
-                $account->legal_entity->address->state = $merchant->getState();
-
-                $dob = explode('-', $merchant->getDateOfBirth());
-                $account->legal_entity->dob->day = $dob[2];
-                $account->legal_entity->dob->month = $dob[1];
-                $account->legal_entity->dob->year = $dob[0];
-
-                if ($merchant->getGender()) {
-                    $account->legal_entity->gender = $merchant->getGender();
-                }
-
-                if ($merchant->getPhoneNumber()) {
-                    $account->legal_entity->phone_number = $merchant->getPhoneNumber();
-                }
-            } else {
-                if (!$account->legal_entity->ssn_last_4_provided && $merchant->getSSN()) {
-                    $account->legal_entity->ssn_last_4 = $merchant->getSSN();
-                }
-
-                if (!$account->legal_entity->personal_id_number_provided && $merchant->getPersonalIdNumber()) {
-                    $account->legal_entity->personal_id_number = $merchant->getPersonalIdNumber();
-                }
-            }
-
-            if ($merchant->getAccountNumber()) {
-                $account->external_account->account_number = $merchant->getAccountNumber();
-            }
-
-            if ($merchant->getRoutingNumber()) {
-                $account->external_account->routing_number = $merchant->getRoutingNumber();
-            }
-
-            $account->save();
-        } catch (\Exception $e) {
-            throw new \Exception($e->getMessage());
-        }
-
-        return $account->id;
-    }
-
-    public function updateMerchantAccount($merchant)
-    {
-        $account = StripeSDK\Account::retrieve($merchant->getId());
-        $account->external_account = [
-          'object' => 'bank_account',
-          'account_number' => $merchant->getAccountNumber(),
-          'country' => $merchant->getCountry(),
-          'currency' => $this->getCurrencyFor($merchant->getCountry())
-        ];
-
-        if ($merchant->getRoutingNumber()) {
-            $account->external_account['routing_number'] = $merchant->getRoutingNumber();
-        }
-
-        $account->save();
-
-        return $account;
-    }
-
-    public function deleteMerchantAccount($merchant)
-    {
-        $account = StripeSDK\Account::retrieve($merchant->getId());
-        $result = $account->delete();
-
-        return $result->deleted;
-    }
-
     public function verifyMerchant($id, $file)
     {
         $result = StripeSDK\FileUpload::create([
@@ -711,10 +522,6 @@ class Stripe implements PaymentServiceInterface, SubscriptionPaymentServiceInter
         $account->save();
 
         return $result->id;
-    }
-
-    public function confirmMerchant(Merchant $merchant)
-    {
     }
 
     /* Subscriptions */
@@ -745,7 +552,7 @@ class Stripe implements PaymentServiceInterface, SubscriptionPaymentServiceInter
         } catch (\Exception $e) {
             return false;
         }
-
+        
         $customer->setPaymentMethods($result->sources->data);
 
         return $customer;
@@ -966,4 +773,5 @@ class Stripe implements PaymentServiceInterface, SubscriptionPaymentServiceInter
 
         return $countryToCurrency[$country];
     }
+
 }

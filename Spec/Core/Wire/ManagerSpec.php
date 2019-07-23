@@ -228,146 +228,146 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_charge_a_recurring_onchain_subscription(
-        User $user,
-        User $user2,
-        Core\Payments\Subscriptions\Subscription $subscription
-    ) {
-        $this->call->getRow(Argument::any(), Argument::any())
-            ->shouldBeCalled()
-            ->willReturn([
-                'guid' => '1234',
-                'type' => 'user',
-                'eth_wallet' => 'wallet',
-            ]);
+    // public function it_should_charge_a_recurring_onchain_subscription(
+    //     User $user,
+    //     User $user2,
+    //     Core\Payments\Subscriptions\Subscription $subscription
+    // ) {
+    //     $this->call->getRow(Argument::any(), Argument::any())
+    //         ->shouldBeCalled()
+    //         ->willReturn([
+    //             'guid' => '1234',
+    //             'type' => 'user',
+    //             'eth_wallet' => 'wallet',
+    //         ]);
 
-        $this->config->get('blockchain')
-            ->shouldBeCalled()
-            ->willReturn([
-                'contracts' => [
-                    'wire' => [
-                        'wallet_pkey' => 'key',
-                        'wallet_address' => 'address',
-                        'contract_address' => 'contract_address',
-                    ],
-                ],
-            ]);
+    //     $this->config->get('blockchain')
+    //         ->shouldBeCalled()
+    //         ->willReturn([
+    //             'contracts' => [
+    //                 'wire' => [
+    //                     'wallet_pkey' => 'key',
+    //                     'wallet_address' => 'address',
+    //                     'contract_address' => 'contract_address',
+    //                 ],
+    //             ],
+    //         ]);
 
-        $subscription->getUser()
-            ->shouldBeCalled()
-            ->willReturn($user);
+    //     $subscription->getUser()
+    //         ->shouldBeCalled()
+    //         ->willReturn($user);
 
-        $subscription->getEntity()
-            ->shouldBeCalled()
-            ->willReturn($user2);
+    //     $subscription->getEntity()
+    //         ->shouldBeCalled()
+    //         ->willReturn($user2);
 
-        $user2->get('guid')
-            ->shouldBeCalled()
-            ->willReturn('5678');
+    //     $user2->get('guid')
+    //         ->shouldBeCalled()
+    //         ->willReturn('5678');
 
-        $subscription->getAmount()
-            ->shouldBeCalled()
-            ->willReturn(1000000000000000000);
+    //     $subscription->getAmount()
+    //         ->shouldBeCalled()
+    //         ->willReturn(1000000000000000000);
 
-        $subscription->getId()
-            ->shouldBeCalled()
-            ->willReturn('urn:subscription:0x123-1234-5678');
+    //     $subscription->getId()
+    //         ->shouldBeCalled()
+    //         ->willReturn('urn:subscription:0x123-1234-5678');
 
-        $this->client->encodeContractMethod('wireFromDelegate(address,address,uint256)', [
-            '0x123',
-            'wallet',
-            Core\Util\BigNumber::_(1000000000000000000)->toHex(true),
-        ])
-            ->shouldBeCalled()
-            ->willReturn('data hash');
+    //     $this->client->encodeContractMethod('wireFromDelegate(address,address,uint256)', [
+    //         '0x123',
+    //         'wallet',
+    //         Core\Util\BigNumber::_(1000000000000000000)->toHex(true),
+    //     ])
+    //         ->shouldBeCalled()
+    //         ->willReturn('data hash');
 
-        $this->token->toTokenUnit(1000000000000000000)
-            ->shouldBeCalled()
-            ->willReturn(1000000000000000000);
+    //     $this->token->toTokenUnit(1000000000000000000)
+    //         ->shouldBeCalled()
+    //         ->willReturn(1000000000000000000);
 
-        $this->client->sendRawTransaction('key', [
-            'from' => 'address',
-            'to' => 'contract_address',
-            'gasLimit' => Core\Util\BigNumber::_(200000)->toHex(true),
-            'data' => 'data hash',
-        ])
-            ->shouldBeCalled()
-            ->willReturn('0x123asd');
+    //     $this->client->sendRawTransaction('key', [
+    //         'from' => 'address',
+    //         'to' => 'contract_address',
+    //         'gasLimit' => Core\Util\BigNumber::_(200000)->toHex(true),
+    //         'data' => 'data hash',
+    //     ])
+    //         ->shouldBeCalled()
+    //         ->willReturn('0x123asd');
 
-        $this->onRecurring($subscription);
-    }
+    //     $this->onRecurring($subscription);
+    // }
 
-    public function it_should_charge_a_recurring_offchain_subscription(
-        User $user,
-        User $user2,
-        Core\Payments\Subscriptions\Subscription $subscription
-    ) {
-        $this->call->getRow(Argument::any(), Argument::any())
-            ->shouldBeCalled()
-            ->willReturn([
-                'guid' => '1234',
-                'type' => 'user',
-                'eth_wallet' => 'wallet',
-            ]);
+    // public function it_should_charge_a_recurring_offchain_subscription(
+    //     User $user,
+    //     User $user2,
+    //     Core\Payments\Subscriptions\Subscription $subscription
+    // ) {
+    //     $this->call->getRow(Argument::any(), Argument::any())
+    //         ->shouldBeCalled()
+    //         ->willReturn([
+    //             'guid' => '1234',
+    //             'type' => 'user',
+    //             'eth_wallet' => 'wallet',
+    //         ]);
 
-        $subscription->getUser()
-            ->shouldBeCalled()
-            ->willReturn($user);
+    //     $subscription->getUser()
+    //         ->shouldBeCalled()
+    //         ->willReturn($user);
 
-        $subscription->getEntity()
-            ->shouldBeCalled()
-            ->willReturn($user2);
+    //     $subscription->getEntity()
+    //         ->shouldBeCalled()
+    //         ->willReturn($user2);
 
-        $user2->get('guid')
-            ->shouldBeCalled()
-            ->willReturn('5678');
+    //     $user2->get('guid')
+    //         ->shouldBeCalled()
+    //         ->willReturn('5678');
 
-        $subscription->getAmount()
-            ->shouldBeCalled()
-            ->willReturn(1000000000000000000);
+    //     $subscription->getAmount()
+    //         ->shouldBeCalled()
+    //         ->willReturn(1000000000000000000);
 
-        $subscription->getId()
-            ->shouldBeCalled()
-            ->willReturn('urn:subscription:offchain-1234-5678');
+    //     $subscription->getId()
+    //         ->shouldBeCalled()
+    //         ->willReturn('urn:subscription:offchain-1234-5678');
 
-        $this->cap->setUser(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn($this->cap);
+    //     $this->cap->setUser(Argument::any())
+    //         ->shouldBeCalled()
+    //         ->willReturn($this->cap);
 
-        $this->cap->setContract('wire')
-            ->shouldBeCalled();
+    //     $this->cap->setContract('wire')
+    //         ->shouldBeCalled();
 
-        $this->cap->isAllowed(1000000000000000000)
-            ->shouldBeCalled()
-            ->willReturn(true);
+    //     $this->cap->isAllowed(1000000000000000000)
+    //         ->shouldBeCalled()
+    //         ->willReturn(true);
 
-        $this->offchainTxs->setAmount(1000000000000000000)
-            ->shouldBeCalled()
-            ->willReturn($this->offchainTxs);
+    //     $this->offchainTxs->setAmount(1000000000000000000)
+    //         ->shouldBeCalled()
+    //         ->willReturn($this->offchainTxs);
 
-        $this->offchainTxs->setType('wire')
-            ->shouldBeCalled()
-            ->willReturn($this->offchainTxs);
+    //     $this->offchainTxs->setType('wire')
+    //         ->shouldBeCalled()
+    //         ->willReturn($this->offchainTxs);
 
-        $this->offchainTxs->setUser(Argument::type(User::class))
-            ->shouldBeCalled()
-            ->willReturn($this->offchainTxs);
+    //     $this->offchainTxs->setUser(Argument::type(User::class))
+    //         ->shouldBeCalled()
+    //         ->willReturn($this->offchainTxs);
 
-        $this->offchainTxs->setData(Argument::type('array'))
-            ->shouldBeCalled()
-            ->willReturn($this->offchainTxs);
+    //     $this->offchainTxs->setData(Argument::type('array'))
+    //         ->shouldBeCalled()
+    //         ->willReturn($this->offchainTxs);
 
-        $this->offchainTxs->transferFrom(Argument::type(User::class))
-            ->shouldBeCalled()
-            ->willReturn(true);
+    //     $this->offchainTxs->transferFrom(Argument::type(User::class))
+    //         ->shouldBeCalled()
+    //         ->willReturn(true);
 
-        $this->queue->setQueue('WireNotification')
-            ->shouldBeCalled()
-            ->willReturn($this->queue);
+    //     $this->queue->setQueue('WireNotification')
+    //         ->shouldBeCalled()
+    //         ->willReturn($this->queue);
 
-        $this->queue->send(Argument::any())
-            ->shouldBeCalled();
+    //     $this->queue->send(Argument::any())
+    //         ->shouldBeCalled();
 
-        $this->onRecurring($subscription);
-    }
+    //     $this->onRecurring($subscription);
+    // }
 }

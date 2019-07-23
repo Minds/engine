@@ -103,6 +103,8 @@ class feed implements Interfaces\Api
 
                 $next = $iterator->getOffset();
 
+                $cacher->set(Core\Session::getLoggedinUser()->guid . ':boost-offset-rotator', $next);
+
                 if (isset($boosts[1])) { // Always offset to 2rd in list
                     $next = $boosts[1]->getTimestamp();
                 }
