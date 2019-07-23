@@ -40,14 +40,32 @@ class Rewards implements AggregateInterface
     {
         $result = [];
         foreach ([ 'day', 'month' ] as $unit) {
+            switch ($unit) {
+                case 'day':
+                    $span = 17;
+                    break;
+                case 'month':
+                    $span = 13;
+                    break;
+            }
             $k = Manager::buildKey([
                 'aggregate' => $opts['aggregate'] ?? 'rewards',
                 'key' => null,
                 'unit' => $unit,
+                'span' => $span,
             ]);
             $result[$k] = $this->fetch([
                 'unit' => $unit,
+                'span' => $span,
             ]);
+
+            $avgKey = Manager::buildKey([
+                'aggregate' => $opts['aggregate'] ?? 'rewards',
+                'key' => 'avg',
+                'unit' => $unit,
+                'span' => $span,
+            ]);
+            $result[$avgKey] = Manager::calculateAverages($result[$k]);
         }
         return $result;
     }
@@ -55,21 +73,25 @@ class Rewards implements AggregateInterface
     public function fetch(array $options = [])
     {
         $options = array_merge([
-            'span' => 12,
+            'span' => 13,
             'unit' => 'month', // day / month
         ], $options);
 
         $from = null;
         switch ($options['unit']) {
             case "day":
-                $from = (new DateTime('midnight'))->modify("-{$options['span']} days");
-                $to = (new DateTime('midnight'));
+                $to = new DateTime('now');
+                $from = (new DateTime('midnight'))
+                    ->modify("-{$options['span']} days");
+
                 $interval = '1d';
                 $this->dateFormat = 'y-m-d';
                 break;
             case "month":
-                $from = (new DateTime('midnight first day of next month'))->modify("-{$options['span']} months");
                 $to = new DateTime('midnight first day of next month');
+                $from = (new DateTime())
+                    ->setTimestamp($to->getTimestamp())
+                    ->modify("-{$options['span']} months");
                 $interval = '1M';
                 $this->dateFormat = 'y-m';
                 break;
@@ -178,11 +200,13 @@ class Rewards implements AggregateInterface
 
         $response = [
             [
+                'key' => 'transactions',
                 'name' => 'Reward Transactions',
                 'x' => [],
                 'y' => [],
             ],
             [
+                'key' => 'tokens',
                 'name' => 'Rewarded Tokens',
                 'x' => [],
                 'y' => [],
