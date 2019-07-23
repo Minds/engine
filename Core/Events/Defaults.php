@@ -151,6 +151,9 @@ class Defaults
 
         // Channels events
         (new Core\Channels\Events())->register();
+
+        // Analytics events
+        (new Core\Analytics\Events())->register();
     }
 
     public static function _()
