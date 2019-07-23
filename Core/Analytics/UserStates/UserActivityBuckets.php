@@ -8,6 +8,24 @@ namespace Minds\Core\Analytics\UserStates;
 use Minds\Traits\MagicAttributes;
 use GUID;
 
+/**
+ * Class UserActivityBuckets
+ * @package Minds\Core\Analytics\UserStates
+ *
+ * @method UserActivityBuckets setUserGuid(string $userGuid)
+ * @method string getUserGuid()
+ * @method UserActivityBuckets setReferenceDateMs(int $referenceDateMs)
+ * @method int getReferenceDateMs()
+ * @ignore UserActivityBuckets setDaysActiveBuckets(array $daysActiveBuckets)
+ * @method array getDaysActiveBuckets()
+ * @method UserActivityBuckets setNumberOfDays(int $numberOfDays)
+ * @method int getNumberOfDays()
+ * @method UserActivityBuckets setMostRecentDaysCount(int $mostRecentDaysCount)
+ * @method int getMostRecentDaysCount()
+ * @method UserActivityBuckets setOldestDaysCount(int $oldestDaysCount)
+ * @method int getOldestDaysCount()
+ * @method UserActivityBuckets setActivityPercentage(int $activityPercentage)
+ */
 class UserActivityBuckets
 {
     use MagicAttributes;
@@ -18,6 +36,8 @@ class UserActivityBuckets
     const STATE_CURIOUS = 'curious';
     const STATE_NEW = 'new';
     const STATE_RESURRECTED = 'resurrected';
+    const STATE_UNKNOWN = 'unknown';
+
     const THRESHOLD_CASUAL_USER = .25;
     const THRESHOLD_CORE_USER = .75;
     const NEW_USER_AGE_HOURS = 24;
@@ -25,10 +45,10 @@ class UserActivityBuckets
     /** @var string $userGuid */
     private $userGuid;
 
-    /** @var long $referenceDateMs */
+    /** @var int $referenceDateMs */
     private $referenceDateMs;
 
-    /** @var string $daysActiveBucket */
+    /** @var array $daysActiveBuckets */
     private $daysActiveBuckets = [];
 
     //Values derived from buckets
@@ -37,7 +57,7 @@ class UserActivityBuckets
     private $oldestDayCount = 0;
     private $activityPercentage = 0;
 
-    public function isNewUser()
+    public function isNewUser(): bool
     {
         $guid = new Guid();
         $newUserThresholdTimestamp = strtotime('-'.static::NEW_USER_AGE_HOURS.' hours', $this->referenceDateMs / 1000);
@@ -52,7 +72,7 @@ class UserActivityBuckets
         return $is;
     }
 
-    public function setActiveDaysBuckets($buckets)
+    public function setActiveDaysBuckets(array $buckets): self
     {
         $this->daysActiveBuckets = $buckets;
         $this->numberOfDays = count($this->daysActiveBuckets);
@@ -62,7 +82,7 @@ class UserActivityBuckets
         return $this;
     }
 
-    public function getActiveDayCount()
+    public function getActiveDayCount(): int
     {
         $activeDayCount = 0;
         //increment activity for each day save for the oldest day used to to determine if a user went cold
@@ -75,12 +95,12 @@ class UserActivityBuckets
         return $activeDayCount;
     }
 
-    public function getActivityPercentage()
+    public function getActivityPercentage(): string
     {
         return number_format($this->getActiveDayCount() / ($this->numberOfDays - 1), 2);
     }
 
-    public function getState()
+    public function getState() : string
     {
         if ($this->isNewUser()) {
             return static::STATE_NEW;
@@ -95,5 +115,7 @@ class UserActivityBuckets
         } elseif ($this->getActiveDayCount() >= 1) {
             return static::STATE_CURIOUS;
         }
+
+        return static::STATE_UNKNOWN;
     }
 }
