@@ -53,6 +53,8 @@ class User extends \ElggUser
         $this->attributes['canary'] = 0;
         $this->attributes['onchain_booster'] = null;
         $this->attributes['toaster_notifications'] = 1;
+        $this->attributes['user_state'] = Core\Analytics\UserStates\UserActivityBuckets::STATE_UNKNOWN;
+        $this->attributes['user_state_updated_ms'] = 0;
 
         parent::initializeAttributes();
     }
@@ -765,6 +767,8 @@ class User extends \ElggUser
 
         $export['eth_wallet'] = $this->getEthWallet() ?: '';
         $export['rating'] = $this->getRating();
+        $export['user_state'] = $this->getUserState();
+        $export['user_state_updated_ms'] = (int) $this->getUserStateUpdatedMs();
 
         return $export;
     }
@@ -1094,5 +1098,41 @@ class User extends \ElggUser
     public function setToasterNotifications($enabled = true)
     {
         $this->toaster_notifications = $enabled ? 1 : 0;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserState(): string
+    {
+        return $this->user_state;
+    }
+
+    /**
+     * @param string $state
+     * @return $this
+     */
+    public function setUserState(string $state): self
+    {
+        $this->user_state = $state;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getUserStateUpdatedMs(): int
+    {
+        return $this->user_state_updated_ms;
+    }
+
+    /**
+     * @param int $msTimestamp
+     * @return $this
+     */
+    public function setUserStateUpdatedMs(int $msTimestamp): self
+    {
+        $this->user_state_updated_ms = $msTimestamp;
+        return $this;
     }
 }
