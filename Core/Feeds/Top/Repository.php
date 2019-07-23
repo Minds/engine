@@ -191,6 +191,18 @@ class Repository
             ];
         }
 
+        if (!$opts['container_guid'] && !$opts['owner_guid']) {
+            if (!isset($body['query']['function_score']['query']['bool']['must_not'])) {
+                $body['query']['function_score']['query']['bool']['must_not'] = [];
+            }
+
+            $body['query']['function_score']['query']['bool']['must_not'][] = [
+                'term' => [
+                    'deleted' => true,
+                ],
+            ];
+        }
+
         if ($opts['custom_type']) {
             $customTypes = Text::buildArray($opts['custom_type']);
 
