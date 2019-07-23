@@ -3,11 +3,11 @@
 namespace Minds\Core\Analytics\Graphs\Aggregates;
 
 use DateTime;
+use Minds\Core\Analytics\Graphs\Manager;
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Di\Di;
-use Minds\Core\Analytics\Graphs\Manager;
 
 class Withdraw implements AggregateInterface
 {
@@ -48,48 +48,63 @@ class Withdraw implements AggregateInterface
     public function fetchAll($opts = [])
     {
         $result = [];
-        foreach ([
-            'average',
-            'average_tokens',
-            'average_users',
-            null,
-        ] as $key) {
-            foreach ([ 'day', 'month' ] as $unit) {
-                $k = Manager::buildKey([
-                    'aggregate' => $opts['aggregate'] ?? 'withdraw',
-                    'key' => $key,
-                    'unit' => $unit,
-                ]);
-                $result[$k] = $this->fetch([ 
-                    'key' => $key,
-                    'unit' => $unit,
-                ]);
+        foreach (['day', 'month'] as $unit) {
+            switch ($unit) {
+                case 'day':
+                    $span = 17;
+                    break;
+                case 'month':
+                    $span = 13;
+                    break;
             }
+            $k = Manager::buildKey([
+                'aggregate' => $opts['aggregate'] ?? 'withdraw',
+                'key' => null,
+                'unit' => $unit,
+                'span' => $span,
+            ]);
+            $result[$k] = $this->fetch([
+                'key' => null,
+                'unit' => $unit,
+                'span' => $span,
+            ]);
+
+            $avgKey = Manager::buildKey([
+                'aggregate' => $opts['aggregate'] ?? 'withdraw',
+                'key' => 'avg',
+                'unit' => $unit,
+                'span' => $span,
+            ]);
+            $result[$avgKey] = Manager::calculateAverages($result[$k]);
         }
+
         return $result;
     }
 
     public function fetch(array $options = [])
     {
         $options = array_merge([
-            'span' => 12,
+            'span' => 13,
             'unit' => 'month', // day / month
             'key' => null,
         ], $options);
 
-        $key = $options['key'];
-
         $from = null;
         switch ($options['unit']) {
             case "day":
-                $from = (new DateTime('midnight'))->modify("-{$options['span']} days");
-                $to = (new DateTime('midnight'));
+                $to = new DateTime('now');
+                $from = (new DateTime('midnight'))
+                    ->modify("-{$options['span']} days");
+
                 $interval = '1d';
                 $this->dateFormat = 'y-m-d';
                 break;
             case "month":
-                $from = (new DateTime('midnight first day of next month'))->modify("-{$options['span']} months");
                 $to = new DateTime('midnight first day of next month');
+                $from = (new DateTime())
+                    ->setTimestamp($to->getTimestamp())
+                    ->modify("-{$options['span']} months");
+
                 $interval = '1M';
                 $this->dateFormat = 'y-m';
                 break;
@@ -97,241 +112,7 @@ class Withdraw implements AggregateInterface
                 throw new \Exception("{$options['unit']} is not an accepted unit");
         }
 
-
-        switch ($key) {
-            case 'average':
-                return $this->getAverageTransactions($from, $to, $interval);
-                break;
-            case 'average_tokens':
-                return $this->getAverageTokens($from, $to, $interval);
-                break;
-            case 'average_users':
-                return $this->getAverageUsers($from, $to, $interval);
-                break;
-            default:
-                return $this->getGraph($from, $to, $interval);
-        }
-    }
-
-    private function getAverageTransactions($from, $to, $interval)
-    {
-        $must = [
-            [
-                "match_all" => (object) []
-            ],
-            [
-                "range" => [
-                    "@timestamp" => [
-                        "gte" => $from->getTimestamp() * 1000,
-                        "lte" => $to->getTimestamp() * 1000,
-                        "format" => "epoch_millis"
-                    ]
-                ]
-            ],
-            [
-                "match_phrase" => [
-                    "transactionCategory" => [
-                        "query" => "withdraw"
-                    ]
-                ]
-            ]
-        ];
-
-        $query = [
-            'index' => $this->index,
-            'size' => 0,
-            "stored_fields" => [
-                "*"
-            ],
-            "docvalue_fields" => [
-                (object) [
-                    "field" => "@timestamp",
-                    "format" => "date_time"
-                ]
-            ],
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must
-                    ]
-                ],
-                "aggs" => [
-                    "avg" => [
-                        "avg_bucket" => [
-                            "buckets_path" => "1-bucket>_count"
-                        ]
-                    ],
-                    "1-bucket" => [
-                        "date_histogram" => [
-                            "field" => "@timestamp",
-                            "interval" => $interval,
-                            "min_doc_count" => 1
-                        ]
-                    ]
-                ],
-            ]
-        ];
-
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
-
-        $result = $this->client->request($prepared);
-
-        $response = $result['aggregations']['avg']['value'] ?? 0;
-
-        return $response;
-    }
-
-    private function getAverageTokens($from, $to, $interval)
-    {
-        $must = [
-            [
-                "match_all" => (object) []
-            ],
-            [
-                "range" => [
-                    "@timestamp" => [
-                        "gte" => $from->getTimestamp() * 1000,
-                        "lte" => $to->getTimestamp() * 1000,
-                        "format" => "epoch_millis"
-                    ]
-                ]
-            ],
-            [
-                "match_phrase" => [
-                    "transactionCategory" => [
-                        "query" => "withdraw"
-                    ]
-                ]
-            ]
-        ];
-
-        $query = [
-            'index' => $this->index,
-            'size' => 0,
-            "stored_fields" => [
-                "*"
-            ],
-            "docvalue_fields" => [
-                (object) [
-                    "field" => "@timestamp",
-                    "format" => "date_time"
-                ]
-            ],
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must
-                    ]
-                ],
-                "aggs" => [
-                    "avg" => [
-                        "avg_bucket" => [
-                            "buckets_path" => "1-bucket>1-metric"
-                        ]
-                    ],
-                    "1-bucket" => [
-                        "date_histogram" => [
-                            "field" => "@timestamp",
-                            "interval" => $interval,
-                            "min_doc_count" => 1
-                        ],
-                        "aggs" => [
-                            "1-metric" => [
-                                "sum" => [
-                                    "field" => "tokenValue"
-                                ]
-                            ]
-                        ]
-                    ]
-                ],
-            ]
-        ];
-
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
-
-        $result = $this->client->request($prepared);
-
-        $response = $result['aggregations']['avg']['value'] ?? 0;
-
-        return $response;
-    }
-
-    private function getAverageUsers($from, $to, $interval)
-    {
-        $must = [
-            [
-                "match_all" => (object) []
-            ],
-            [
-                "range" => [
-                    "@timestamp" => [
-                        "gte" => $from->getTimestamp() * 1000,
-                        "lte" => $to->getTimestamp() * 1000,
-                        "format" => "epoch_millis"
-                    ]
-                ]
-            ],
-            [
-                "match_phrase" => [
-                    "transactionCategory" => [
-                        "query" => "withdraw"
-                    ]
-                ]
-            ]
-        ];
-
-        $query = [
-            'index' => $this->index,
-            'size' => 0,
-            "stored_fields" => [
-                "*"
-            ],
-            "docvalue_fields" => [
-                (object) [
-                    "field" => "@timestamp",
-                    "format" => "date_time"
-                ]
-            ],
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must
-                    ]
-                ],
-                "aggs" => [
-                    "avg" => [
-                        "avg_bucket" => [
-                            "buckets_path" => "1-bucket>1-metric"
-                        ]
-                    ],
-                    "1-bucket" => [
-                        "date_histogram" => [
-                            "field" => "@timestamp",
-                            "interval" => $interval,
-                            "min_doc_count" => 1
-                        ],
-                        "aggs" => [
-                            "1-metric" => [
-                                "cardinality" => [
-                                    "field" => "from"
-                                ]
-                            ]
-                        ]
-                    ]
-                ],
-            ]
-        ];
-
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
-
-        $result = $this->client->request($prepared);
-
-        $response = $result['aggregations']['avg']['value'] ?? 0;
-
-        return $response;
+        return $this->getGraph($from, $to, $interval);
     }
 
     private function getGraph($from, $to, $interval)
@@ -352,24 +133,10 @@ class Withdraw implements AggregateInterface
             [
                 "match_phrase" => [
                     "transactionCategory" => [
-                        "query" => "wire"
+                        "query" => "withdraw"
                     ]
                 ]
             ],
-            [
-                "match_phrase" => [
-                    "isTokenTransaction" => [
-                        "query" => true
-                    ]
-                ]
-            ],
-            [
-                "match_phrase" => [
-                    "function" => [
-                        "query" => "approveAndCall"
-                    ]
-                ]
-            ]
         ];
 
         $query = [
@@ -401,7 +168,7 @@ class Withdraw implements AggregateInterface
                         "aggs" => [
                             "users" => [
                                 "cardinality" => [
-                                    "field" => "from"
+                                    "field" => "to"
                                 ]
                             ],
                             "tokens" => [
@@ -422,16 +189,19 @@ class Withdraw implements AggregateInterface
 
         $response = [
             [
+                'key' => 'transactions',
                 'name' => 'Withdraw Transactions',
                 'x' => [],
                 'y' => [],
             ],
             [
+                'key' => 'users',
                 'name' => 'Withdrawing Users',
                 'x' => [],
                 'y' => [],
             ],
             [
+                'key' => 'tokens',
                 'name' => 'Withdrawn Tokens',
                 'x' => [],
                 'y' => [],

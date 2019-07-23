@@ -3,11 +3,11 @@
 namespace Minds\Core\Analytics\Graphs\Aggregates;
 
 use DateTime;
+use Minds\Core\Analytics\Graphs\Manager;
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Di\Di;
-use Minds\Core\Analytics\Graphs\Manager;
 
 class AvgPageviews implements AggregateInterface
 {
@@ -34,23 +34,27 @@ class AvgPageviews implements AggregateInterface
     {
         $result = [];
         foreach ([
-            'mau_unique',
-            'mau_loggedin',
-            'dau_loggedin',
-            'dau_unique',
-            'total_pageviews',
-            'hau_unique',
-            'hau_loggedin',
-        ] as $key) {
-            foreach ([ 'day', 'month' ] as $unit) {
+                     'total_pageviews',
+                 ] as $key) {
+            foreach ([/*'day',*/ 'month'] as $unit) {
+                switch ($unit) {
+                    case 'day':
+                        $span = 17;
+                        break;
+                    case 'month':
+                        $span = 13;
+                        break;
+                }
                 $k = Manager::buildKey([
                     'aggregate' => $opts['aggregate'] ?? 'avgpageviews',
                     'key' => $key,
                     'unit' => $unit,
+                    'span' => $span,
                 ]);
-                $result[$k] = $this->fetch([ 
+                $result[$k] = $this->fetch([
                     'key' => $key,
-                    'unit' => $unit
+                    'unit' => $unit,
+                    'span' => $span,
                 ]);
             }
         }
@@ -60,7 +64,7 @@ class AvgPageviews implements AggregateInterface
     public function fetch(array $options = [])
     {
         $options = array_merge([
-            'span' => 12,
+            'span' => 13,
             'unit' => 'month', // day / month
             'key' => null,
         ], $options);
@@ -74,14 +78,15 @@ class AvgPageviews implements AggregateInterface
         $from = null;
         switch ($options['unit']) {
             case "day":
-                $from = (new DateTime('midnight'))->modify("-{$options['span']} days");
-                $to = (new DateTime('midnight'));
-                $interval = '1d';
+                $to = new DateTime('now');
+                $from = (new DateTime('midnight'))
+                    ->modify("-{$options['span']} days");
                 break;
             case "month":
-                $from = (new DateTime('midnight first day of next month'))->modify("-{$options['span']} months");
                 $to = new DateTime('midnight first day of next month');
-                $interval = '1M';
+                $from = (new DateTime())
+                    ->setTimestamp($to->getTimestamp())
+                    ->modify("-{$options['span']} months");
                 break;
             default:
                 throw new \Exception("{$options['unit']} is not an accepted unit");
@@ -89,26 +94,8 @@ class AvgPageviews implements AggregateInterface
 
         $response = null;
         switch ($key) {
-            case 'mau_unique':
-                $response = $this->getMauUnique($from, $to, $interval);
-                break;
-            case 'mau_loggedin':
-                $response = $this->getMauLoggedIn($from, $to, $interval);
-                break;
-            case 'dau_loggedin':
-                $response = $this->getDauLoggedIn($from, $to);
-                break;
-            case 'dau_unique':
-                $response = $this->getDauUnique($from, $to);
-                break;
             case 'total_pageviews':
                 $response = $this->getTotalPageviews($from, $to);
-                break;
-            case 'hau_unique':
-                $response = $this->getHauUnique($from, $to);
-                break;
-            case 'hau_loggedin':
-                $response = $this->getHauLoggedIn($from, $to);
                 break;
         }
 

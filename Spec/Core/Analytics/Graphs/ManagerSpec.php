@@ -51,14 +51,14 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_sync_aggregates_to_graphs(AvgPageviews $avgPageviewsAggregate)
+    function it_should_sync_aggregates_to_graphs_with_a_12_month_interval(AvgPageviews $avgPageviewsAggregate)
     {
         $avgPageviewsAggregate->fetch(Argument::any())
             ->shouldBeCalled()
             ->willReturn(12);
     
         $graph = new Graph();
-        $graph->setKey('avgpageviews-mau_unique-month')
+        $graph->setKey('avgpageviews-mau_unique-month-12')
             ->setLastSynced(time())
             ->setData(12);
 
@@ -72,6 +72,32 @@ class ManagerSpec extends ObjectBehavior
         $this->sync([
             'aggregate' => 'avgpageviews',
             'key' => 'mau_unique',
+        ]);
+    }
+
+    function it_should_sync_aggregates_to_graphs_with_a_10_day_interval(AvgPageviews $avgPageviewsAggregate)
+    {
+        $avgPageviewsAggregate->fetch(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(12);
+
+        $graph = new Graph();
+        $graph->setKey('avgpageviews-mau_unique-day-10')
+            ->setLastSynced(time())
+            ->setData(12);
+
+        $this->repository->add($graph)
+            ->shouldBeCalled();
+
+        $this->mappings->getMapping('avgpageviews')
+            ->shouldBeCalled()
+            ->willReturn($avgPageviewsAggregate);
+
+        $this->sync([
+            'aggregate' => 'avgpageviews',
+            'key' => 'mau_unique',
+            'span' => 10,
+            'unit' => 'day',
         ]);
     }
 

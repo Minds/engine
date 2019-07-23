@@ -3,12 +3,11 @@
 namespace Minds\Core\Analytics\Graphs\Aggregates;
 
 use DateTime;
+use Minds\Core\Analytics\Graphs\Manager;
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Di\Di;
-use Minds\Interfaces\AnalyticsMetric;
-use Minds\Core\Analytics\Graphs\Manager;
 
 class TokenSales implements AggregateInterface
 {
@@ -49,33 +48,47 @@ class TokenSales implements AggregateInterface
     {
         $result = [];
         foreach ([
-            'average_sold',
-            'average_sales',
-            'average_buyers',
-            'average_eth_earned',
-            'average_eth_usd_rate',
-            'monthly_rate',
-            null,
-        ] as $key) {
-            foreach ([ 'day', 'month' ] as $unit) {
+                     'monthly_rate',
+                     null,
+                 ] as $key) {
+            foreach (['day', 'month'] as $unit) {
+                switch ($unit) {
+                    case 'day':
+                        $span = 17;
+                        break;
+                    case 'month':
+                        $span = 13;
+                        break;
+                }
                 $k = Manager::buildKey([
                     'aggregate' => $opts['aggregate'] ?? 'tokensales',
                     'key' => $key,
                     'unit' => $unit,
+                    'span' => $span,
                 ]);
-                $result[$k] = $this->fetch([ 
+                $result[$k] = $this->fetch([
                     'key' => $key,
                     'unit' => $unit,
+                    'span' => $span,
                 ]);
+
+                $avgKey = Manager::buildKey([
+                    'aggregate' => $opts['aggregate'] ?? 'tokensales',
+                    'key' => $key . '_avg',
+                    'unit' => $unit,
+                    'span' => $span,
+                ]);
+                $result[$avgKey] = Manager::calculateAverages($result[$k]);
             }
         }
+
         return $result;
     }
 
     public function fetch(array $options = [])
     {
         $options = array_merge([
-            'span' => 12,
+            'span' => 13,
             'unit' => 'month', // day / month
             'key' => null,
         ], $options);
@@ -85,14 +98,19 @@ class TokenSales implements AggregateInterface
         $from = null;
         switch ($options['unit']) {
             case "day":
-                $from = (new DateTime('midnight'))->modify("-{$options['span']} days");
-                $to = (new DateTime('midnight'));
+                $to = new DateTime('now');
+                $from = (new DateTime('midnight'))
+                    ->modify("-{$options['span']} days");
+
                 $interval = '1d';
                 $this->dateFormat = 'y-m-d';
                 break;
             case "month":
-                $from = (new DateTime('midnight first day of next month'))->modify("-{$options['span']} months");
                 $to = new DateTime('midnight first day of next month');
+                $from = (new DateTime())
+                    ->setTimestamp($to->getTimestamp())
+                    ->modify("-{$options['span']} months");
+
                 $interval = '1M';
                 $this->dateFormat = 'y-m';
                 break;
@@ -102,386 +120,12 @@ class TokenSales implements AggregateInterface
 
 
         switch ($key) {
-            case 'average_sold':
-                return $this->getAverageSold($from, $to, $interval);
-                break;
-            case 'average_sales':
-                return $this->getAverageSales($from, $to, $interval);
-                break;
-            case 'average_buyers':
-                return $this->getAverageBuyers($from, $to, $interval);
-                break;
-            case 'average_eth_earned':
-                return $this->getAverageEthUsdEarned($from, $to, $interval);
-                break;
-            case 'average_eth_usd_rate':
-                return $this->getAverageEthUsdRate($from, $to, $interval);
-                break;
             case 'monthly_rate':
                 return $this->getMonthlyRateGraph($from, $to, $interval);
                 break;
             default:
                 return $this->getGraph($from, $to, $interval);
         }
-    }
-
-    private function getAverageSold($from, $to, $interval)
-    {
-        $must = [
-            [
-                "match_all" => (object) []
-            ],
-            [
-                "range" => [
-                    "@timestamp" => [
-                        "gte" => $from->getTimestamp() * 1000,
-                        "lte" => $to->getTimestamp() * 1000,
-                        "format" => "epoch_millis"
-                    ]
-                ]
-            ],
-            [
-                "match_phrase" => [
-                    "transactionCategory" => [
-                        "query" => "sale"
-                    ]
-                ]
-            ]
-        ];
-
-        $query = [
-            'index' => $this->index,
-            'size' => 0,
-            "stored_fields" => [
-                "*"
-            ],
-            "docvalue_fields" => [
-                (object) [
-                    "field" => "@timestamp",
-                    "format" => "date_time"
-                ]
-            ],
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must
-                    ]
-                ],
-                "aggs" => [
-                    "avg" => [
-                        "avg_bucket" => [
-                            "buckets_path" => "1-bucket>1-metric"
-                        ]
-                    ],
-                    "1-bucket" => [
-                        "date_histogram" => [
-                            "field" => "@timestamp",
-                            "interval" => $interval,
-                            "min_doc_count" => 1
-                        ],
-                        "aggs" => [
-                            "1-metric" => [
-                                "sum" => [
-                                    "field" => "tokenValue"
-                                ]
-                            ]
-                        ]
-                    ]
-                ],
-            ]
-        ];
-
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
-
-        $result = $this->client->request($prepared);
-
-        $response = $result['aggregations']['avg']['value'] ?? 0;
-
-        return $response;
-    }
-
-    private function getAverageSales($from, $to, $interval)
-    {
-        $must = [
-            [
-                "match_all" => (object) []
-            ],
-            [
-                "range" => [
-                    "@timestamp" => [
-                        "gte" => $from->getTimestamp() * 1000,
-                        "lte" => $to->getTimestamp() * 1000,
-                        "format" => "epoch_millis"
-                    ]
-                ]
-            ],
-            [
-                "match_phrase" => [
-                    "transactionCategory" => [
-                        "query" => "sale"
-                    ]
-                ]
-            ]
-        ];
-
-        $query = [
-            'index' => $this->index,
-            'size' => 0,
-            "stored_fields" => [
-                "*"
-            ],
-            "docvalue_fields" => [
-                (object) [
-                    "field" => "@timestamp",
-                    "format" => "date_time"
-                ]
-            ],
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must
-                    ]
-                ],
-                "aggs" => [
-                    "avg" => [
-                        "avg_bucket" => [
-                            "buckets_path" => "1-bucket>_count"
-                        ]
-                    ],
-                    "1-bucket" => [
-                        "date_histogram" => [
-                            "field" => "@timestamp",
-                            "interval" => $interval,
-                            "min_doc_count" => 1
-                        ]
-                    ]
-                ],
-            ]
-        ];
-
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
-
-        $result = $this->client->request($prepared);
-
-        $response = $result['aggregations']['avg']['value'] ?? 0;
-
-        return $response;
-    }
-
-    private function getAverageBuyers($from, $to, $interval)
-    {
-        $must = [
-            [
-                "match_all" => (object) []
-            ],
-            [
-                "range" => [
-                    "@timestamp" => [
-                        "gte" => $from->getTimestamp() * 1000,
-                        "lte" => $to->getTimestamp() * 1000,
-                        "format" => "epoch_millis"
-                    ]
-                ]
-            ],
-            [
-                "match_phrase" => [
-                    "transactionCategory" => [
-                        "query" => "sale"
-                    ]
-                ]
-            ]
-        ];
-
-        $query = [
-            'index' => $this->index,
-            'size' => 0,
-            "stored_fields" => [
-                "*"
-            ],
-            "docvalue_fields" => [
-                (object) [
-                    "field" => "@timestamp",
-                    "format" => "date_time"
-                ]
-            ],
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must
-                    ]
-                ],
-                "aggs" => [
-                    "avg" => [
-                        "avg_bucket" => [
-                            "buckets_path" => "1-bucket>1-metric"
-                        ]
-                    ],
-                    "1-bucket" => [
-                        "date_histogram" => [
-                            "field" => "@timestamp",
-                            "interval" => $interval,
-                            "min_doc_count" => 1
-                        ],
-                        "aggs" => [
-                            "1-metric" => [
-                                "cardinality" => [
-                                    "field" => "to"
-                                ]
-                            ]
-                        ]
-                    ]
-                ],
-            ]
-        ];
-
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
-
-        $result = $this->client->request($prepared);
-
-        $response = $result['aggregations']['avg']['value'] ?? 0;
-
-        return $response;
-    }
-
-    private function getAverageEthUsdEarned($from, $to, $interval)
-    {
-        $must = [
-            [
-                "match_all" => (object) []
-            ],
-            [
-                "range" => [
-                    "@timestamp" => [
-                        "gte" => $from->getTimestamp() * 1000,
-                        "lte" => $to->getTimestamp() * 1000,
-                        "format" => "epoch_millis"
-                    ]
-                ]
-            ],
-            [
-                "match_phrase" => [
-                    "transactionCategory" => [
-                        "query" => "sale_internal"
-                    ]
-                ]
-            ]
-        ];
-
-        $query = [
-            'index' => $this->index,
-            'size' => 0,
-            "stored_fields" => [
-                "*"
-            ],
-            "docvalue_fields" => [
-                (object) [
-                    "field" => "@timestamp",
-                    "format" => "date_time"
-                ]
-            ],
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must
-                    ]
-                ],
-                "aggs" => [
-                    "avg" => [
-                        "avg_bucket" => [
-                            "buckets_path" => "1-bucket>1-metric"
-                        ]
-                    ],
-                    "1-bucket" => [
-                        "date_histogram" => [
-                            "field" => "@timestamp",
-                            "interval" => $interval,
-                            "min_doc_count" => 1
-                        ],
-                        "aggs" => [
-                            "1-metric" => [
-                                "cardinality" => [
-                                    "field" => "ethValue"
-                                ]
-                            ]
-                        ]
-                    ]
-                ],
-            ]
-        ];
-
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
-
-        $result = $this->client->request($prepared);
-
-        $response = $result['aggregations']['avg']['value'] ?? 0;
-
-        return $response;
-    }
-
-    private function getAverageEthUsdRate($from, $to, $interval)
-    {
-        $must = [
-            [
-                "match_all" => (object) []
-            ],
-            [
-                "range" => [
-                    "@timestamp" => [
-                        "gte" => $from->getTimestamp() * 1000,
-                        "lte" => $to->getTimestamp() * 1000,
-                        "format" => "epoch_millis"
-                    ]
-                ]
-            ],
-            [
-                "match_phrase"=> [
-                    "transactionCategory"=> [
-                        "query"=> "sale_internal"
-                    ]
-                ]
-            ]
-        ];
-
-        $query = [
-            'index' => $this->index,
-            'size' => 0,
-            "stored_fields" => [
-                "*"
-            ],
-            "docvalue_fields" => [
-                (object) [
-                    "field" => "@timestamp",
-                    "format" => "date_time"
-                ]
-            ],
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must
-                    ]
-                ],
-                "aggs" => [
-                    "avgs" => [
-                        "avg" => [
-                            "field" => "ethUsdRate"
-                        ]
-                    ]
-                ],
-            ]
-        ];
-
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
-
-        $result = $this->client->request($prepared);
-
-        $response = $result['aggregations']['avgs']['value'] ?? 0;
-
-        return $response;
     }
 
     private function getMonthlyRateGraph($from, $to, $interval)
@@ -558,11 +202,13 @@ class TokenSales implements AggregateInterface
 
         $response = [
             [
+                'key' => 'ethValue',
                 'name' => 'Eth Value',
                 'x' => [],
                 'y' => [],
             ],
             [
+                'key' => 'ethUsdRate',
                 'name' => 'Eth / Usd Rate',
                 'x' => [],
                 'y' => [],
@@ -603,20 +249,6 @@ class TokenSales implements AggregateInterface
                     ]
                 ]
             ],
-            /*[
-                "match_phrase" => [
-                    "isTokenTransaction" => [
-                        "query" => true
-                    ]
-                ]
-            ],
-            [
-                "match_phrase" => [
-                    "function" => [
-                        "query" => "approveAndCall"
-                    ]
-                ]
-            ]*/
         ];
 
         $query = [
@@ -669,16 +301,19 @@ class TokenSales implements AggregateInterface
 
         $response = [
             [
+                'key' => 'transactions',
                 'name' => 'Token Sale Transactions',
                 'x' => [],
                 'y' => [],
             ],
             [
+                'key' => 'buyers',
                 'name' => 'Token Buyers',
                 'x' => [],
                 'y' => [],
             ],
             [
+                'key' => 'tokens',
                 'name' => 'Sold Tokens',
                 'x' => [],
                 'y' => [],

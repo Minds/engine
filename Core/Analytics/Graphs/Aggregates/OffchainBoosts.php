@@ -3,11 +3,11 @@
 namespace Minds\Core\Analytics\Graphs\Aggregates;
 
 use DateTime;
+use Minds\Core\Analytics\Graphs\Manager;
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Di\Di;
-use Minds\Core\Analytics\Graphs\Manager;
 
 class OffchainBoosts implements AggregateInterface
 {
@@ -49,25 +49,47 @@ class OffchainBoosts implements AggregateInterface
     {
         $result = [];
         foreach ([
-            'completed',
-            'not_completed',
-            'revoked',
-            'rejected',
-            'users_who_completed',
-            'users_waiting_for_completion',
-            'reclaimed_tokens',
-            'impressions_served',
-        ] as $key) {
-            foreach ([ 'day', 'month' ] as $unit) {
+                     'completed',
+                     'not_completed',
+                     'revoked',
+                     'rejected',
+                     'users_who_completed',
+                     'users_waiting_for_completion',
+                     'reclaimed_tokens',
+                     'impressions_served',
+                 ] as $key) {
+            foreach (['day', 'month'] as $unit) {
+                switch ($unit) {
+                    case 'hour':
+                        $span = 25;
+                        break;
+                    case 'day':
+                        $span = 17;
+                        break;
+                    case 'month':
+                        $span = 13;
+                        break;
+                }
                 $k = Manager::buildKey([
                     'aggregate' => $opts['aggregate'] ?? 'offchainboosts',
                     'key' => $key,
                     'unit' => $unit,
+                    'span' => $span,
                 ]);
                 $result[$k] = $this->fetch([
                     'key' => $key,
                     'unit' => $unit,
+                    'span' => $span,
                 ]);
+
+                $avgKey = Manager::buildKey([
+                    'aggregate' => $opts['aggregate'] ?? 'offchainboosts',
+                    'key' => $key . '_avg',
+                    'unit' => $unit,
+                    'span' => $span,
+                ]);
+
+                $result[$avgKey] = Manager::calculateAverages($result[$k]);
             }
         }
         return $result;
@@ -76,7 +98,7 @@ class OffchainBoosts implements AggregateInterface
     public function fetch(array $options = [])
     {
         $options = array_merge([
-            'span' => 12,
+            'span' => 13,
             'unit' => 'month', // day / month
             'key' => null,
         ], $options);
@@ -86,14 +108,18 @@ class OffchainBoosts implements AggregateInterface
         $from = null;
         switch ($options['unit']) {
             case "day":
-                $from = (new DateTime('midnight'))->modify("-{$options['span']} days");
-                $to = (new DateTime('midnight'));
+                $to = new DateTime('now');
+                $from = (new DateTime('midnight'))
+                    ->modify("-{$options['span']} days");
+
                 $interval = '1d';
                 $this->dateFormat = 'y-m-d';
                 break;
             case "month":
-                $from = (new DateTime('midnight first day of next month'))->modify("-{$options['span']} months");
                 $to = new DateTime('midnight first day of next month');
+                $from = (new DateTime())
+                    ->setTimestamp($to->getTimestamp())
+                    ->modify("-{$options['span']} months");
                 $interval = '1M';
                 $this->dateFormat = 'y-m';
                 break;
@@ -178,26 +204,6 @@ class OffchainBoosts implements AggregateInterface
             "stored_fields" => [
                 "*"
             ],
-            /*"script_fields" => [
-                "ReviewedToCompleted" => [
-                    "script" => [
-                        "inline" => "(doc['@completed'].value.millis -doc['@reviewed'].value.millis)",
-                        "lang" => "painless"
-                    ]
-                ],
-                "CreatedToReviewed" => [
-                    "script" => [
-                        "inline" => "(doc['@reviewed'].value.millis -doc['@timestamp'].value.millis)",
-                        "lang" => "painless"
-                    ]
-                ],
-                "CreatedToCompleted" => [
-                    "script" => [
-                        "inline" => "(doc['@completed'].value.millis -doc['@timestamp'].value.millis) ",
-                        "lang" => "painless"
-                    ]
-                ]
-            ],*/
             "docvalue_fields" => [
                 (object) [
                     "field" => "@completed",
@@ -277,12 +283,14 @@ class OffchainBoosts implements AggregateInterface
 
         $response = [
             [
-                'name' => 'newsfeed',
+                'key' => 'newsfeed',
+                'name' => 'Newsfeed',
                 'x' => [],
                 'y' => [],
             ],
             [
-                'name' => 'content',
+                'key' => 'content',
+                'name' => 'Content',
                 'x' => [],
                 'y' => [],
             ]
@@ -340,26 +348,6 @@ class OffchainBoosts implements AggregateInterface
             "stored_fields" => [
                 "*"
             ],
-            /*"script_fields" => [
-                "ReviewedToCompleted" => [
-                    "script" => [
-                        "inline" => "(doc['@completed'].value.millis -doc['@reviewed'].value.millis)",
-                        "lang" => "painless"
-                    ]
-                ],
-                "CreatedToReviewed" => [
-                    "script" => [
-                        "inline" => "(doc['@reviewed'].value.millis -doc['@timestamp'].value.millis)",
-                        "lang" => "painless"
-                    ]
-                ],
-                "CreatedToCompleted" => [
-                    "script" => [
-                        "inline" => "(doc['@completed'].value.millis -doc['@timestamp'].value.millis) ",
-                        "lang" => "painless"
-                    ]
-                ]
-            ],*/
             "docvalue_fields" => [
                 (object) [
                     "field" => "@completed",
@@ -439,12 +427,14 @@ class OffchainBoosts implements AggregateInterface
 
         $response = [
             [
-                'name' => 'newsfeed',
+                'key' => 'newsfeed',
+                'name' => 'Newsfeed',
                 'x' => [],
                 'y' => [],
             ],
             [
-                'name' => 'content',
+                'key' => 'content',
+                'name' => 'Content',
                 'x' => [],
                 'y' => [],
             ]
@@ -489,26 +479,6 @@ class OffchainBoosts implements AggregateInterface
             "stored_fields" => [
                 "*"
             ],
-            /*"script_fields" => [
-                "ReviewedToCompleted" => [
-                    "script" => [
-                        "inline" => "(doc['@completed'].value.millis -doc['@reviewed'].value.millis)",
-                        "lang" => "painless"
-                    ]
-                ],
-                "CreatedToReviewed" => [
-                    "script" => [
-                        "inline" => "(doc['@reviewed'].value.millis -doc['@timestamp'].value.millis)",
-                        "lang" => "painless"
-                    ]
-                ],
-                "CreatedToCompleted" => [
-                    "script" => [
-                        "inline" => "(doc['@completed'].value.millis -doc['@timestamp'].value.millis) ",
-                        "lang" => "painless"
-                    ]
-                ]
-            ],*/
             "docvalue_fields" => [
                 (object) [
                     "field" => "@completed",
@@ -587,12 +557,14 @@ class OffchainBoosts implements AggregateInterface
 
         $response = [
             [
-                'name' => 'newsfeed',
+                'key' => 'newsfeed',
+                'name' => 'Newsfeed',
                 'x' => [],
                 'y' => [],
             ],
             [
-                'name' => 'content',
+                'key' => 'content',
+                'name' => 'Content',
                 'x' => [],
                 'y' => [],
             ]
@@ -637,26 +609,6 @@ class OffchainBoosts implements AggregateInterface
             "stored_fields" => [
                 "*"
             ],
-            /*"script_fields" => [
-                "ReviewedToCompleted" => [
-                    "script" => [
-                        "inline" => "(doc['@completed'].value.millis -doc['@reviewed'].value.millis)",
-                        "lang" => "painless"
-                    ]
-                ],
-                "CreatedToReviewed" => [
-                    "script" => [
-                        "inline" => "(doc['@reviewed'].value.millis -doc['@timestamp'].value.millis)",
-                        "lang" => "painless"
-                    ]
-                ],
-                "CreatedToCompleted" => [
-                    "script" => [
-                        "inline" => "(doc['@completed'].value.millis -doc['@timestamp'].value.millis) ",
-                        "lang" => "painless"
-                    ]
-                ]
-            ],*/
             "docvalue_fields" => [
                 (object) [
                     "field" => "@completed",
@@ -735,12 +687,14 @@ class OffchainBoosts implements AggregateInterface
 
         $response = [
             [
-                'name' => 'newsfeed',
+                'key' => 'newsfeed',
+                'name' => 'Newsfeed',
                 'x' => [],
                 'y' => [],
             ],
             [
-                'name' => 'content',
+                'key' => 'content',
+                'name' => 'Content',
                 'x' => [],
                 'y' => [],
             ]
@@ -891,12 +845,14 @@ class OffchainBoosts implements AggregateInterface
 
         $response = [
             [
-                'name' => 'newsfeed',
+                'key' => 'newsfeed',
+                'name' => 'Newsfeed',
                 'x' => [],
                 'y' => [],
             ],
             [
-                'name' => 'content',
+                'key' => 'content',
+                'name' => 'Content',
                 'x' => [],
                 'y' => [],
             ]
@@ -1059,12 +1015,14 @@ class OffchainBoosts implements AggregateInterface
 
         $response = [
             [
-                'name' => 'newsfeed',
+                'key' => 'newsfeed',
+                'name' => 'Newsfeed',
                 'x' => [],
                 'y' => [],
             ],
             [
-                'name' => 'content',
+                'key' => 'content',
+                'name' => 'Content',
                 'x' => [],
                 'y' => [],
             ]
@@ -1206,7 +1164,7 @@ class OffchainBoosts implements AggregateInterface
                                     ]
                                 ],
                                 "aggs" => [
-                                    "sum" => [ 
+                                    "sum" => [
                                         "sum" => [
                                             "field" => "bid",
                                         ],
@@ -1226,17 +1184,19 @@ class OffchainBoosts implements AggregateInterface
 
         $response = [
             [
-                'name' => 'newsfeed',
+                'key' => 'newsfeed',
+                'name' => 'Newsfeed',
                 'x' => [],
                 'y' => [],
             ],
             [
-                'name' => 'content',
+                'key' => 'content',
+                'name' => 'Content',
                 'x' => [],
                 'y' => [],
             ]
         ];
- 
+
         foreach ($result['aggregations']['histogram']['buckets'] as $count) {
             $date = date($this->dateFormat, $count['key'] / 1000);
 
@@ -1270,6 +1230,13 @@ class OffchainBoosts implements AggregateInterface
             [
                 "exists" => [
                     "field" => "@completed"
+                ]
+            ],
+            [
+                "match_phrase" => [
+                    "token_method" => [
+                        "query" => "offchain"
+                    ]
                 ]
             ]
         ];
@@ -1362,12 +1329,12 @@ class OffchainBoosts implements AggregateInterface
                                     "field" => "type",
                                     "size" => 5,
                                     "order" => [
-                                        "_count" => "desc"
+                                        "users" => "desc"
                                     ]
                                 ],
                                 "aggs" => [
                                     "users" => [
-                                        "cardinality" => [
+                                        "sum" => [
                                             "field" => "impressions"
                                         ]
                                     ]
@@ -1386,12 +1353,14 @@ class OffchainBoosts implements AggregateInterface
 
         $response = [
             [
-                'name' => 'newsfeed',
+                'key' => 'newsfeed',
+                'name' => 'Newsfeed',
                 'x' => [],
                 'y' => [],
             ],
             [
-                'name' => 'content',
+                'key' => 'content',
+                'name' => 'Content',
                 'x' => [],
                 'y' => [],
             ]
