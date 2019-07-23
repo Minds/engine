@@ -354,6 +354,7 @@ $CONFIG->set('blockchain', [
             'contract_address' => '0x4b637bba81d24657d4c6acc173275f3e11a8d5d7',
             'wallet_address' => '0x4CDc1C1fd1A3F4DD63231afF8c16501BcC11Df95',
             'wallet_pkey' => '',
+            'plus_address' => '12345'
         ],
      ],
 
@@ -365,7 +366,11 @@ $CONFIG->set('blockchain', [
         'cap' => 1000
     ],
 
-    'mw3' => '/usr/bin/env node ' . __MINDS_ROOT__ . '/../mw3/index.js'
+    'mw3' => '/usr/bin/env node ' . __MINDS_ROOT__ . '/../mw3/index.js',
+
+    'token_distribution_event_address' => '12345',
+    'wallet_address' => '12345',
+    'network_address' => '12345'
 ]);
 
 $CONFIG->set('blockchain_override', [
