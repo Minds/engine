@@ -56,6 +56,11 @@ class Analytics
                                 'field' => '@reviewed',
                             ],
                         ],
+                        [
+                            'term' => [
+                                'is_campaign' => true
+                            ],
+                        ],
                     ],
                 ],
             ],
