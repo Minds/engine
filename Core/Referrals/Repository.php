@@ -9,21 +9,55 @@ use Minds\Core\Di\Di;
 use Minds\Core\Data\Cassandra\Prepared;
 use Cassandra;
 use Cassandra\Bigint;
+use Minds\Common\Urn;
 
 class Repository
 {
     /** @var Client $client */
     private $client;
 
-    public function __construct($client = null)
+    /** @var Urn $urn */
+    protected $urn;
+
+    public function __construct($client = null, $urn = null)
     {
         $this->client = $client ?: Di::_()->get('Database\Cassandra\Cql');
+        $this->urn = $urn ?: new Urn;
+    }
+
+    /**
+     * Return a single referral
+     * @param string $urn
+     * @return Referral
+     */
+    public function get($urn)
+    {
+        $parts = explode('-', $this->urn->setUrn($urn)->getNss());
+
+        if (!$parts[0] && !$parts[1]) {
+            return null;
+        }
+
+        $referrerGuid = $parts[0];
+        $prospectGuid = $parts[1];
+
+        $response = $this->getList([
+            'referrer_guid' => $referrerGuid,
+            'prospect_guid' => $prospectGuid,
+        ]);
+
+        if (!$response[0]) {
+            return null;
+        }
+
+        return $response[0];
     }
 
     /**
      * Return a list of referrals
-     * @param array $opts
+     * @param array $opts 'limit', 'offset', 'referrer_guid', 'prospect_guid'
      * @return Response
+     * @throws \Exception
      */
     public function getList($opts = [])
     {
@@ -31,11 +65,27 @@ class Repository
             'limit' => 12,
             'offset' => '',
             'referrer_guid' => null,
+            'prospect_guid' => null,
         ], $opts);
 
         if (!$opts['referrer_guid']) {
             throw new \Exception('Referrer GUID is required');
         }
+
+        $response = new Response;
+
+        $statement = "SELECT * FROM referrals";
+
+        $where = ["referrer_guid = ?"];
+        $values = [new Bigint($opts['referrer_guid'])];
+
+        if ($opts['prospect_guid']) {
+            $where[] = "prospect_guid = ?";
+            $values[] = new Bigint($opts['prospect_guid']);
+        }
+
+        $statement .= " WHERE " . implode(' AND ', $where);
+
 
         $cqlOpts = [];
         if ($opts['limit']) {
@@ -46,14 +96,9 @@ class Repository
             $cqlOpts['paging_state_token'] = base64_decode($opts['offset']);
         }
 
-        $template = "SELECT * FROM referrals WHERE referrer_guid = ?";
-        $values = [ new Bigint($opts['referrer_guid']) ];
-
         $query = new Prepared\Custom();
-        $query->query($template, $values);
+        $query->query($statement, $values);
         $query->setOpts($cqlOpts);
-
-        $response = new Response();
 
         try {
             $rows = $this->client->request($query);
@@ -87,6 +132,7 @@ class Repository
      * Add a referral
      * @param Referral $referral
      * @return bool
+     * @throws \Exception
      */
     public function add(Referral $referral)
     {
@@ -130,6 +176,7 @@ class Repository
      * Update a referral when the prospect joins rewards program
      * @param Referral $referral
      * @return bool
+     * @throws \Exception
      */
     public function update(Referral $referral)
     {
@@ -169,6 +216,7 @@ class Repository
      * Update referral when prospect is notified by the referrer to urge them to join rewards
      * @param Referral $referral
      * @return bool
+     * @throws \Exception
      */
     public function ping(Referral $referral)
     {
