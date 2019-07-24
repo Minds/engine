@@ -306,9 +306,12 @@ if (!class_exists('Cassandra')) {
     class_alias('Mock', 'Cassandra\Uuid');
     class_alias('Mock', 'Cassandra\Timeuuid');
     class_alias('Mock', 'Cassandra\Boolean');
-    class_alias('Mock', 'MongoDB\BSON\UTCDateTime');
     class_alias('Mock', 'Cassandra\RetryPolicy\Logging');
     class_alias('Mock', 'Cassandra\RetryPolicy\DowngradingConsistency');
+}
+
+if (!class_exists('MongoDB\BSON\UTCDateTime')) {
+    class_alias('Mock', 'MongoDB\BSON\UTCDateTime');
 }
 
 Minds\Core\Di\Di::_()->bind('Database\Cassandra\Cql', function($di) {
