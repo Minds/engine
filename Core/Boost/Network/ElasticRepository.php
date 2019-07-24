@@ -48,6 +48,12 @@ class ElasticRepository
             ],
         ];
 
+        $must_not[] = [
+            'term' => [
+                'is_campaign' => true,
+            ]
+        ];
+
         if ($opts['offset']) {
             $must[] = [
                 'range' => [
