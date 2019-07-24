@@ -78,10 +78,12 @@ class feed implements Interfaces\Api
             case 'newsfeed':
                 // Newsfeed boosts
 
+                $resolver = new Core\Entities\Resolver();
+
                 /** @var Core\Boost\Network\Iterator $iterator */
                 $iterator = Core\Di\Di::_()->get('Boost\Network\Iterator');
                 $iterator
-                    ->setLimit($limit)
+                    ->setLimit(12)
                     ->setOffset($offset)
                     ->setRating($rating)
                     ->setQuality($quality)
@@ -96,6 +98,13 @@ class feed implements Interfaces\Api
                         ->setOwnerGuid((string) $boost->getOwnerGuid())
                         ->setTimestamp($boost->getCreatedTimestamp())
                         ->setUrn(new Urn("urn:boost:{$boost->getType()}:{$boost->getGuid()}"));
+
+                    $entity = $resolver->single(new Urn("urn:boost:{$boost->getType()}:{$boost->getGuid()}"));
+                    if (!$entity) {
+                        continue; // Duff entity?
+                    }
+
+                    $feedSyncEntity->setEntity($entity);
 
                     $boosts[] = $feedSyncEntity;
                 }
