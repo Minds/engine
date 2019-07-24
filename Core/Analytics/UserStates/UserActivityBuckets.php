@@ -30,14 +30,6 @@ class UserActivityBuckets
 {
     use MagicAttributes;
 
-    const STATE_CASUAL = 'casual';
-    const STATE_COLD = 'cold';
-    const STATE_CORE = 'core';
-    const STATE_CURIOUS = 'curious';
-    const STATE_NEW = 'new';
-    const STATE_RESURRECTED = 'resurrected';
-    const STATE_UNKNOWN = 'unknown';
-
     const THRESHOLD_CASUAL_USER = .25;
     const THRESHOLD_CORE_USER = .75;
     const NEW_USER_AGE_HOURS = 24;
@@ -103,19 +95,19 @@ class UserActivityBuckets
     public function getState() : string
     {
         if ($this->isNewUser()) {
-            return static::STATE_NEW;
+            return UserState::STATE_NEW;
         } elseif ($this->getActivityPercentage() >= static::THRESHOLD_CORE_USER) {
-            return static::STATE_CORE;
+            return UserState::STATE_CORE;
         } elseif ($this->getActivityPercentage() >= static::THRESHOLD_CASUAL_USER) {
-            return static::STATE_CASUAL;
+            return UserState::STATE_CASUAL;
         } elseif ($this->mostRecentDayCount > 0 && $this->getActiveDayCount() == 1) {
-            return static::STATE_RESURRECTED;
+            return UserState::STATE_RESURRECTED;
         } elseif ($this->oldestDayCount > 0 && $this->getActiveDayCount() == 0) {
-            return static::STATE_COLD;
+            return UserState::STATE_COLD;
         } elseif ($this->getActiveDayCount() >= 1) {
-            return static::STATE_CURIOUS;
+            return UserState::STATE_CURIOUS;
         }
 
-        return static::STATE_UNKNOWN;
+        return UserState::STATE_UNKNOWN;
     }
 }

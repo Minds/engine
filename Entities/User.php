@@ -53,7 +53,7 @@ class User extends \ElggUser
         $this->attributes['canary'] = 0;
         $this->attributes['onchain_booster'] = null;
         $this->attributes['toaster_notifications'] = 1;
-        $this->attributes['user_state'] = Core\Analytics\UserStates\UserActivityBuckets::STATE_UNKNOWN;
+        $this->attributes['user_state'] = Core\Analytics\UserStates\UserState::STATE_UNKNOWN;
         $this->attributes['user_state_updated_ms'] = 0;
 
         parent::initializeAttributes();

@@ -5,15 +5,10 @@
 
 namespace Minds\Core\Email;
 
-use Minds\Core\Di\Di;
+use Minds\Core\Analytics\UserStates\UserState;
 use Minds\Core\Events\Dispatcher;
-use Minds\Core\Analytics\UserStates\UserActivityBuckets;
-
-use Minds\Core\Email\Campaigns\UserRetention\WelcomeComplete;
-use Minds\Core\Email\Campaigns\UserRetention\WelcomeIncomplete;
+use Minds\Core\Events\Event;
 use Minds\Entities\User;
-use Minds\Core\Email\Manager;
-use Minds\Core\Suggestions\Manager as SuggestionManager;
 use Minds\Interfaces\SenderInterface;
 
 class Events
@@ -24,33 +19,33 @@ class Events
             error_log('user_state_change all');
         });
 
-        Dispatcher::register('user_state_change', UserActivityBuckets::STATE_CASUAL, function ($opts) {
+        Dispatcher::register('user_state_change', UserState::STATE_CASUAL, function ($opts) {
             error_log('user_state_change casual');
         });
 
-        Dispatcher::register('user_state_change', UserActivityBuckets::STATE_CORE, function ($opts) {
+        Dispatcher::register('user_state_change', UserState::STATE_CORE, function ($opts) {
             error_log('user_state_change core');
         });
 
-        Dispatcher::register('user_state_change', UserActivityBuckets::STATE_CURIOUS, function ($opts) {
+        Dispatcher::register('user_state_change', UserState::STATE_CURIOUS, function ($opts) {
             error_log('user_state_change curious');
         });
 
-        Dispatcher::register('user_state_change', UserActivityBuckets::STATE_NEW, function ($opts) {
+        Dispatcher::register('user_state_change', UserState::STATE_NEW, function (Event $event) {
             error_log('user_state_change new');
-            $this->sendCampaign(new Delegates\WelcomeSender(), $opts->getParameters());
+            $this->sendCampaign(new Delegates\WelcomeSender(), $event->getParameters());
         });
 
-        Dispatcher::register('user_state_change', UserActivityBuckets::STATE_RESURRECTED, function ($opts) {
+        Dispatcher::register('user_state_change', UserState::STATE_RESURRECTED, function ($opts) {
             error_log('user_state_change resurrected');
         });
 
-        Dispatcher::register('user_state_change', UserActivityBuckets::STATE_COLD, function ($opts) {
-            $this->sendCampaign(new Delegates\GoneColdSender(), $opts->getParameters()); 
+        Dispatcher::register('user_state_change', UserState::STATE_COLD, function (Event $event) {
+            $this->sendCampaign(new Delegates\GoneColdSender(), $event->getParameters());
         });
 
-        Dispatcher::register('welcome_email', 'all', function ($opts) {
-            $this->sendCampaign(new Delegates\WelcomeSender(), $opts->getParameters());
+        Dispatcher::register('welcome_email', 'all', function (Event $event) {
+            $this->sendCampaign(new Delegates\WelcomeSender(), $event->getParameters());
         });
 
     }

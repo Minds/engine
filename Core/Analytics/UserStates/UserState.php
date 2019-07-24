@@ -25,6 +25,14 @@ use Minds\Traits\MagicAttributes;
  */
 class UserState
 {
+    const STATE_CASUAL = 'casual';
+    const STATE_COLD = 'cold';
+    const STATE_CORE = 'core';
+    const STATE_CURIOUS = 'curious';
+    const STATE_NEW = 'new';
+    const STATE_RESURRECTED = 'resurrected';
+    const STATE_UNKNOWN = 'unknown';
+
     use MagicAttributes;
 
     /** @var int $userGuid */
