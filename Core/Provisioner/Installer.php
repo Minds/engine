@@ -22,6 +22,7 @@ class Installer
             'domain' => 'http://localhost:8080',
             'username' => 'minds',
             'password' => 'Pa$$w0rd',
+            'development_mode' => true,
             'email' => 'minds@minds.com',
             'email-private-key' => '/.dev/minds.pem',
             'email-public-key' => '/.dev/minds.pub',
