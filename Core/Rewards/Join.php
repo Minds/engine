@@ -182,8 +182,6 @@ class Join
                         ->setAction('referral')
                         ->push();
 
-                    // TODO: give prospect +50 contribution score as well
-
                     $this->referralDelegate->onReferral($this->user);
                 }
             }

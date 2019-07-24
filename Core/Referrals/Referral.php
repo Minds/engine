@@ -64,23 +64,38 @@ class Referral
      */
     public function getPingable()
     {
+        // Disable ping if prospect has already joined rewards
+        if ($this->joinTimestamp) {
+            return false;
+        }
+
         // Duration referrer must wait before re-pinging (in seconds)
-        $waitTime= 60*60*24*7; // 7 days
+        $waitTime = 60*60*24*7; // 7 days
 
         $now = time();
         $elapsedTime = $now - $this->pingTimestamp;
 
+        // Not enough time has elapsed
         if ($this->pingTimestamp && $elapsedTime < $waitTime) {
-            return false;
-        }
-
-        // Also disable ping if they've already joined rewards
-        if ($this->joinTimestamp) {
             return false;
         }
 
         return true;
     }
+
+    /**
+     * Return the URN of this referral
+     * @return string
+     */
+    public function getUrn()
+    {
+        $parts = [
+            $this->getReferrerGuid(),
+            $this->getProspectGuid(),
+        ];
+        return "urn:referral:" . implode('-', $parts);
+    }
+
 
     /**
      * Export
@@ -95,7 +110,8 @@ class Referral
             'pingable' => $this->getPingable(),
             'register_timestamp' => $this->registerTimestamp * 1000,
             'join_timestamp' => $this->joinTimestamp * 1000,
-            'ping_timestamp' => $this->pingTimestamp * 1000
+            'ping_timestamp' => $this->pingTimestamp * 1000,
+            'urn' => $this->getUrn(),
         ];
     }
 }
