@@ -64,18 +64,71 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_update_ping_timestamp_and_trigger_ping_notification()
+    function it_should_ping_if_pingable()
     {
+        $response = new Referral();
+
+        $response->setReferrerGuid(456)
+            ->setProspectGuid(123)
+            ->setPingTimestamp(111)
+            ->setRegisterTimestamp(11)
+            ->setJoinTimestamp(null);
+
         $referral = new Referral();
         $referral->setProspectGuid(123)
             ->setReferrerGuid(456)
-            ->setPingTimestamp(111);
+            ->setPingTimestamp(111); // Pingable because >7 days has passed since 111
+        $this->repository->get($referral->getUrn())
+            ->shouldBeCalled()
+            ->willReturn($response);
         $this->repository->ping($referral)
             ->shouldBeCalled();
         $this->notificationDelegate->notifyProspect($referral)
             ->shouldBeCalled();
         $this->ping($referral)
             ->shouldReturn(true);
+    }
+
+    function it_should_not_ping_during_ping_waiting_period()
+    {
+        $referral = new Referral();
+        $referral->setProspectGuid(123)
+            ->setReferrerGuid(456)
+            ->setPingTimestamp(32503742874); // Jan 1, 3000; !pingable because ping timestamp is not less than now
+        $this->repository->get($referral->getUrn())
+            ->shouldBeCalled()
+            ->willReturn(null);
+        $this->repository->ping($referral)
+            ->shouldNotBeCalled();
+        $this->notificationDelegate->notifyProspect($referral)
+            ->shouldNotBeCalled();
+        $this->ping($referral)
+            ->shouldReturn(false);
+    }
+
+    function it_should_not_ping_if_current_user_is_not_referrer()
+    {
+        $response = new Response();
+        $response[] = (new Referral)
+            ->setReferrerGuid(789)
+            ->setProspectGuid(123)
+            ->setPingTimestamp(111)
+            ->setRegisterTimestamp(11)
+            ->setJoinTimestamp(null);
+
+        $referral = new Referral();
+        $referral->setProspectGuid(123)
+            ->setReferrerGuid(456)
+            ->setPingTimestamp(111); // Pingable because >7 days has passed since 111
+        $this->repository->get($referral->getUrn())
+            ->shouldBeCalled()
+            ->willReturn(null);
+        $this->repository->ping($referral)
+            ->shouldNotBeCalled();
+        $this->notificationDelegate->notifyProspect($referral)
+            ->shouldNotBeCalled();
+        $this->ping($referral)
+            ->shouldReturn(false);
     }
 
     function it_should_get_a_list_of_referrals()
@@ -102,10 +155,10 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn((new User)->set('guid', 456));
 
         $newResponse = $this->getList([
-                'limit' => 12,
-                'offset' => '',
-                'referrer_guid' => 123,
-                'hydrate' => true
+            'limit' => 12,
+            'offset' => '',
+            'referrer_guid' => 123,
+            'hydrate' => true
         ]);
 
         $newResponse[0]->getReferrerGuid()

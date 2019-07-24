@@ -80,8 +80,7 @@ class referrals implements Interfaces\Api
         $prospect_guid = $pages[0];
         $referral = new Referral;
         $referral->setReferrerGuid($referrer_guid)
-            ->setProspectGuid($prospect_guid)
-            ->setPingTimestamp(time());
+            ->setProspectGuid($prospect_guid);
 
         $manager = Di::_()->get('Referrals\Manager');
         if(!$manager->ping($referral)){
