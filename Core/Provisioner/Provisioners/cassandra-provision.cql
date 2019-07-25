@@ -1449,7 +1449,8 @@ CREATE TABLE minds.email_campaign_logs (
 CREATE TABLE minds.pro (
     user_guid bigint,
     domain text,
-    json_data text
+    json_data text,
+    PRIMARY KEY (user_guid)
 );
 
 CREATE MATERIALIZED VIEW minds.pro_by_domain AS
