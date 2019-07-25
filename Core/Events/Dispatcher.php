@@ -22,10 +22,11 @@ class Dispatcher
 
     /**
      * Register a handler for an event.
-     * @param type $event The event
-     * @param type $namespace Namespace for this event (e.g. object type)
+     * @param string $event The event
+     * @param string $namespace Namespace for this event (e.g. object type)
      * @param \callable $handler a callable handler
-     * @param type $priority Priority - lower numbers executed first.
+     * @param int $priority Priority - lower numbers executed first.
+     * @return bool
      */
     public static function register($event, $namespace, $handler, $priority = 500)
     {

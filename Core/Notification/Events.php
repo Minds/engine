@@ -93,7 +93,7 @@ class Events
                 $notification
             ]);
 
-	});
+	    });
 
         /**
          * Create a notification upon @mentioning on activities or comments

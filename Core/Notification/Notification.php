@@ -32,6 +32,8 @@ use Minds\Traits\MagicAttributes;
  */
 class Notification
 {
+    const SYSTEM_ENTITY = 100000000000000519;
+
     use MagicAttributes;
 
     /** @param string $uuid */
