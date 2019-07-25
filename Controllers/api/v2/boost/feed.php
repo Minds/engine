@@ -78,10 +78,12 @@ class feed implements Interfaces\Api
             case 'newsfeed':
                 // Newsfeed boosts
 
+                $resolver = new Core\Entities\Resolver();
+
                 /** @var Core\Boost\Network\Iterator $iterator */
                 $iterator = Core\Di\Di::_()->get('Boost\Network\Iterator');
                 $iterator
-                    ->setLimit($limit)
+                    ->setLimit(12)
                     ->setOffset($offset)
                     ->setRating($rating)
                     ->setQuality($quality)
@@ -97,19 +99,26 @@ class feed implements Interfaces\Api
                         ->setTimestamp($boost->getCreatedTimestamp())
                         ->setUrn(new Urn("urn:boost:{$boost->getType()}:{$boost->getGuid()}"));
 
+                    $entity = $resolver->single(new Urn("urn:boost:{$boost->getType()}:{$boost->getGuid()}"));
+                    if (!$entity) {
+                        continue; // Duff entity?
+                    }
+
+                    $feedSyncEntity->setEntity($entity);
+
                     $boosts[] = $feedSyncEntity;
                 }
                // $boosts = iterator_to_array($iterator, false);
 
                 $next = $iterator->getOffset();
 
-                if (isset($boosts[2])) { // Always offset to 3rd in list
-                    $next = $boosts[2]->getTimestamp();
+                if (isset($boosts[1])) { // Always offset to 2rd in list
+                    $next = $boosts[1]->getTimestamp();
                 }
 
                 $ttl = 1800; // 30 minutes
                 if (($next / 1000) < strtotime('48 hours ago')) {
-                    $ttl = 300; // 5 minutes;
+                    $ttl = 30; // 0.5 minutes;
                 }
 
                 $cacher->set(Core\Session::getLoggedinUser()->guid . ':boost-offset-rotator', $next, $ttl);

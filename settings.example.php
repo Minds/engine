@@ -458,7 +458,7 @@ $CONFIG->set('tags', [
 
 $CONFIG->set('steward_guid', '');
 $CONFIG->set('steward_autoconfirm', false);
-$CONFIG->set('development_mode', false);
+$CONFIG->set('development_mode', '{{development-mode}}');
 
 $CONFIG->set('max_video_length', 900);
 
@@ -564,7 +564,7 @@ $CONFIG->set('gitlab', [
         'mobile' => '10171280', // project id mobile
         'front' => '10152778', // project id front
     ],
-    'private_key' => '{{private-key}}'
+    'private_key' => ''
 ]);
 
 

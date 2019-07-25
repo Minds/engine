@@ -3,11 +3,11 @@
 namespace Minds\Core\Analytics\Graphs\Aggregates;
 
 use DateTime;
+use Minds\Core\Analytics\Graphs\Manager;
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Di\Di;
-use Minds\Core\Analytics\Graphs\Manager;
 
 class OffchainPlus implements AggregateInterface
 {
@@ -45,23 +45,26 @@ class OffchainPlus implements AggregateInterface
     public function fetchAll($opts = [])
     {
         $result = [];
-        foreach ([
-            'average_reclaimed_tokens',
-            'average_plus_users',
-            'average_plus_tx',
-            null,
-        ] as $key) {
-            foreach ([ 'month' ] as $unit) {
-                $k = Manager::buildKey([
-                    'aggregate' => $opts['aggregate'] ?? 'offchainplus',
-                    'key' => $key,
-                    'unit' => $unit,
-                ]);
-                $result[$k] = $this->fetch([ 
-                    'key' => $key,
-                    'unit' => $unit,
-                ]);
-            }
+        foreach (['month'] as $unit) {
+            $k = Manager::buildKey([
+                'aggregate' => $opts['aggregate'] ?? 'offchainplus',
+                'key' => null,
+                'unit' => $unit,
+                'span' => 13,
+            ]);
+            $result[$k] = $this->fetch([
+                'key' => null,
+                'unit' => $unit,
+                'span' => 13,
+            ]);
+
+            $avgKey = Manager::buildKey([
+                'aggregate' => $opts['aggregate'] ?? 'offchainplus',
+                'key' => 'avg',
+                'unit' => $unit,
+                'span' => 13,
+            ]);
+            $result[$avgKey] = Manager::calculateAverages($result[$k]);
         }
         return $result;
     }
@@ -69,18 +72,18 @@ class OffchainPlus implements AggregateInterface
     public function fetch(array $options = [])
     {
         $options = array_merge([
-            'span' => 12,
+            'span' => 13,
             'unit' => 'month', // day / month
             'key' => null,
         ], $options);
 
-        $key = $options['key'];
-
         $from = null;
         switch ($options['unit']) {
             case "month":
-                $from = (new DateTime('midnight first day of next month'))->modify("-{$options['span']} months");
                 $to = new DateTime('midnight first day of next month');
+                $from = (new DateTime('midnight'))
+                    ->modify("-{$options['span']} months");
+
                 $interval = '1M';
                 $this->dateFormat = 'y-m';
                 break;
@@ -88,263 +91,7 @@ class OffchainPlus implements AggregateInterface
                 throw new \Exception("{$options['unit']} is not an accepted unit");
         }
 
-
-        switch ($key) {
-            case 'average_reclaimed_tokens':
-                return $this->getAverageReclaimedTokens($from, $to, $interval);
-                break;
-            case 'average_plus_users':
-                return $this->getPlusUsers($from, $to, $interval);
-                break;
-            case 'average_plus_tx':
-                return $this->getAveragePlusTx($from, $to, $interval);
-                break;
-            default:
-                return $this->getGraph($from, $to, $interval);
-        }
-    }
-
-    private function getAverageReclaimedTokens($from, $to, $interval)
-    {
-        $must = [
-            [
-                "match_all" => (object) []
-            ],
-            [
-                "range" => [
-                    "@timestamp" => [
-                        "gte" => $from->getTimestamp() * 1000,
-                        "lte" => $to->getTimestamp() * 1000,
-                        "format" => "epoch_millis"
-                    ]
-                ]
-            ],
-            [
-                "match_phrase" => [
-                    "amount" => [
-                        "query" => -20
-                    ]
-                ]
-            ],
-            [
-                "match" => [
-                    "wire_receiver_guid" => "730071191229833224"
-                ]
-            ]
-        ];
-
-        $query = [
-            'index' => $this->index,
-            'size' => 0,
-            "stored_fields" => [
-                "*"
-            ],
-            "docvalue_fields" => [
-                (object) [
-                    "field" => "@timestamp",
-                    "format" => "date_time"
-                ]
-            ],
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must
-                    ]
-                ],
-                "aggs" => [
-                    "avg" => [
-                        "avg_bucket" => [
-                            "buckets_path" => "1-bucket>1-metric"
-                        ]
-                    ],
-                    "1-bucket" => [
-                        "date_histogram" => [
-                            "field" => "@timestamp",
-                            "interval" => $interval,
-                            "min_doc_count" => 1
-                        ],
-                        "aggs" => [
-                            "1-metric" => [
-                                "sum" => [
-                                    "field" => "amount",
-                                    "script" => [
-                                        "lang" => "expression",
-                                        "inline" => "doc['amount'] * multiplier",
-                                        "params" => [
-                                            "multiplier" => -1
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ],
-            ]
-        ];
-
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
-
-        $result = $this->client->request($prepared);
-
-        $response = $result['aggregations']['avg']['value'] ?? 0;
-
-        return $response;
-    }
-
-    private function getPlusUsers($from, $to, $interval)
-    {
-        $must = [
-            [
-                "match_all" => (object) []
-            ],
-            [
-                "range" => [
-                    "@timestamp" => [
-                        "gte" => $from->getTimestamp() * 1000,
-                        "lte" => $to->getTimestamp() * 1000,
-                        "format" => "epoch_millis"
-                    ]
-                ]
-            ],
-            [
-                "match" => [
-                    "wire_receiver_guid" => "730071191229833224"
-                ]
-            ],
-            [
-                "match_phrase" => [
-                    "amount" => [
-                        "query" => -20
-                    ]
-                ]
-            ]
-        ];
-
-        $query = [
-            'index' => $this->index,
-            'size' => 0,
-            "stored_fields" => [
-                "*"
-            ],
-            "docvalue_fields" => [
-                (object) [
-                    "field" => "@timestamp",
-                    "format" => "date_time"
-                ]
-            ],
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must
-                    ]
-                ],
-                "aggs" => [
-                    "avg" => [
-                        "avg_bucket" => [
-                            "buckets_path" => "1-bucket>1-metric"
-                        ]
-                    ],
-                    "1-bucket" => [
-                        "date_histogram" => [
-                            "field" => "@timestamp",
-                            "interval" => $interval,
-                            "min_doc_count" => 1
-                        ],
-                        "aggs" => [
-                            "1-metric" => [
-                                "cardinality" => [
-                                    "field" => "wire_sender_guid"
-                                ]
-                            ]
-                        ]
-                    ]
-                ],
-            ]
-        ];
-
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
-
-        $result = $this->client->request($prepared);
-
-        $response = $result['aggregations']['avg']['value'] ?? 0;
-
-        return $response;
-    }
-
-    private function getAveragePlusTx($from, $to, $interval)
-    {
-        $must = [
-            [
-                "match_all" => (object) []
-            ],
-            [
-                "range" => [
-                    "@timestamp" => [
-                        "gte" => $from->getTimestamp() * 1000,
-                        "lte" => $to->getTimestamp() * 1000,
-                        "format" => "epoch_millis"
-                    ]
-                ]
-            ],
-            [
-                "match_phrase" => [
-                    "amount" => [
-                        "query" => -20
-                    ]
-                ]
-            ],
-            [
-                "match" => [
-                    "wire_receiver_guid" => "730071191229833224"
-                ]
-            ]
-        ];
-
-        $query = [
-            'index' => $this->index,
-            'size' => 0,
-            "stored_fields" => [
-                "*"
-            ],
-            "docvalue_fields" => [
-                (object) [
-                    "field" => "@timestamp",
-                    "format" => "date_time"
-                ]
-            ],
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must
-                    ]
-                ],
-                "aggs" => [
-                    "avg" => [
-                        "avg_bucket" => [
-                            "buckets_path" => "1-bucket>_count"
-                        ]
-                    ],
-                    "1-bucket" => [
-                        "date_histogram" => [
-                            "field" => "@timestamp",
-                            "interval" => $interval,
-                            "min_doc_count" => 1
-                        ]
-                    ]
-                ],
-            ]
-        ];
-
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
-
-        $result = $this->client->request($prepared);
-
-        $response = $result['aggregations']['avg']['value'] ?? 0;
-
-        return $response;
+        return $this->getGraph($from, $to, $interval);
     }
 
     private function getGraph($from, $to, $interval)
@@ -430,19 +177,22 @@ class OffchainPlus implements AggregateInterface
         $prepared->query($query);
 
         $result = $this->client->request($prepared);
-        
+
         $response = [
             [
+                'key' => 'tokens',
                 'name' => 'OffChain Plus Tokens',
                 'x' => [],
                 'y' => [],
             ],
             [
+                'key' => 'users',
                 'name' => 'OffChain Plus Users',
                 'x' => [],
                 'y' => [],
             ],
             [
+                'key' => 'transactions',
                 'name' => 'OffChain Plus Transactions',
                 'x' => [],
                 'y' => [],
@@ -452,7 +202,7 @@ class OffchainPlus implements AggregateInterface
         foreach ($result['aggregations']['histogram']['buckets'] as $count) {
             $date = date($this->dateFormat, $count['key'] / 1000);
             $response[0]['x'][] = $date;
-            $response[0]['y'][] = $count['sums']['value'] ?? 0;
+            $response[0]['y'][] = $count['amount']['value'] ?? 0;
 
             $response[1]['x'][] = $date;
             $response[1]['y'][] = $count['users']['value'] ?? 0;
