@@ -40,7 +40,6 @@ class config implements Interfaces\Api, Interfaces\ApiIgnorePam
             "plus" => Minds\Core\Config::_()->get('plus'),
             "report_reasons" => Minds\Core\Config::_()->get('report_reasons'),
             "last_tos_update" => (Minds\Core\Config::_()->get('last_tos_update') ?: time()),
-            "plus_guid" => Minds\Core\Config::_()->get('plus_guid') ?: 0,
         ];
 
         return Factory::response($minds);
