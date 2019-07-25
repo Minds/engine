@@ -3,11 +3,11 @@
 namespace Minds\Core\Analytics\Graphs\Aggregates;
 
 use DateTime;
+use Minds\Core\Analytics\Graphs\Manager;
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Di\Di;
-use Minds\Core\Analytics\Graphs\Manager;
 
 class UserSegments implements AggregateInterface
 {
@@ -38,21 +38,35 @@ class UserSegments implements AggregateInterface
     public function fetchAll($opts = [])
     {
         $result = [];
-        foreach ([
-            null,
-            'avg',
-        ] as $key) {
-            foreach ([ 'day', 'month' ] as $unit) {
-                $k = Manager::buildKey([
-                    'aggregate' => $opts['aggregate'] ?? 'usersegments',
-                    'key' => $key,
-                    'unit' => $unit,
-                ]);
-                $result[$k] = $this->fetch([ 
-                    'key' => $key,
-                    'unit' => $unit,
-                ]);
+        foreach (['day', 'month'] as $unit) {
+            switch ($unit) {
+                case 'day':
+                    $span = 17;
+                    break;
+                case 'month':
+                    $span = 13;
+                    break;
             }
+            $k = Manager::buildKey([
+                'aggregate' => $opts['aggregate'] ?? 'usersegments',
+                'key' => null,
+                'unit' => $unit,
+                'span' => $span,
+            ]);
+            $result[$k] = $this->fetch([
+                'key' => null,
+                'unit' => $unit,
+                'span' => $span,
+            ]);
+
+            $avgKey = Manager::buildKey([
+                'aggregate' => $opts['aggregate'] ?? 'usersegments',
+                'key' => 'avg',
+                'unit' => $unit,
+                'span' => $span,
+            ]);
+
+            $result[$avgKey] = Manager::calculateAverages($result[$k]);
         }
         return $result;
     }
@@ -60,24 +74,26 @@ class UserSegments implements AggregateInterface
     public function fetch(array $options = [])
     {
         $options = array_merge([
-            'span' => 12,
+            'span' => 13,
             'unit' => 'month', // day / month
-            'key' => null,
         ], $options);
-
-        $key = $options['key'];
 
         $from = null;
         switch ($options['unit']) {
             case "day":
-                $from = (new DateTime('midnight'))->modify("-{$options['span']} days");
-                $to = (new DateTime('midnight'));
+                $to = new DateTime('now');
+                $from = (new DateTime('midnight'))
+                    ->modify("-{$options['span']} days");
+
                 $interval = '1d';
                 $this->dateFormat = 'y-m-d';
                 break;
             case "month":
-                $from = (new DateTime('midnight first day of next month'))->modify("-{$options['span']} months");
                 $to = new DateTime('midnight first day of next month');
+                $from = (new DateTime())
+                    ->setTimestamp($to->getTimestamp())
+                    ->modify("-{$options['span']} months");
+
                 $interval = '1M';
                 $this->dateFormat = 'y-m';
                 break;
@@ -85,13 +101,7 @@ class UserSegments implements AggregateInterface
                 throw new \Exception("{$options['unit']} is not an accepted unit");
         }
 
-        $response = null;
-
-        if ($key && $key == 'avg') {
-            $response = $this->getAverages($from, $to, $interval);
-        } else {
-            $response = $this->getGraph($from, $to, $interval);
-        }
+        $response = $this->getGraph($from, $to, $interval);
 
         return $response;
     }
@@ -104,83 +114,6 @@ class UserSegments implements AggregateInterface
     public function buildCacheKey(array $opts = [])
     {
         return "usersegments:{$opts['key']}:{$opts['unit']}";
-    }
-
-    private function getAverages($from, $to, $interval)
-    {
-        $must = [
-            [
-                "match_all" => (object) []
-            ],
-            [
-                "range" => [
-                    "reference_date" => [
-                        "gte" => $from->getTimestamp() * 1000,
-                        "lte" => $to->getTimestamp() * 1000,
-                        "format" => "epoch_millis"
-                    ]
-                ]
-            ],
-        ];
-
-        $query = [
-            'index' => $this->index,
-            'size' => 0,
-            "stored_fields" => [
-                "*"
-            ],
-            "docvalue_fields" => [
-                (object) [
-                    "field" => "reference_date",
-                    "format" => "date_time"
-                ]
-            ],
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must
-                    ]
-                ],
-                "aggs" => [
-                    "states" => [
-                        "terms" => [
-                            "field" => "state",
-                            "size" => 6,
-                            "order" => [
-                                "_key" => "desc"
-                            ]
-                        ],
-                        "aggs" => [
-                            "avg" => [
-                                "avg_bucket" => [
-                                    "buckets_path" => "1-bucket>_count"
-                                ]
-                            ],
-                            "1-bucket" => [
-                                "date_histogram" => [
-                                    "field" => "reference_date",
-                                    "interval" => $interval,
-                                    "min_doc_count" => 1
-                                ]
-                            ]
-                        ]
-                    ]
-                ],
-            ]
-        ];
-
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
-
-        $result = $this->client->request($prepared);
-
-        $response = [];
-
-        foreach ($result['aggregations']['states']['buckets'] as $count) {
-            $response[$count['key']] = $count['avg']['value'] ?? 0;
-        }
-
-        return $response;
     }
 
     private function getGraph($from, $to, $interval)
@@ -248,31 +181,37 @@ class UserSegments implements AggregateInterface
 
         $response = [
             [
+                'key' => 'curious',
                 'name' => 'Curious',
                 'x' => [],
                 'y' => []
             ],
             [
+                'key' => 'casual',
                 'name' => 'Casual',
                 'x' => [],
                 'y' => []
             ],
             [
+                'key' => 'core',
                 'name' => 'Core',
                 'x' => [],
                 'y' => []
             ],
             [
+                'key' => 'cold',
                 'name' => 'Cold',
                 'x' => [],
                 'y' => []
             ],
             [
+                'key' => 'resurrected',
                 'name' => 'Resurrected',
                 'x' => [],
                 'y' => []
             ],
             [
+                'key' => 'new',
                 'name' => 'New',
                 'x' => [],
                 'y' => []
