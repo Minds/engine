@@ -58,6 +58,8 @@ class UserState
             'state' => $this->state,
             'previous_state' => $this->previousState,
             'activity_percentage' => $this->activityPercentage,
+            'reward_factor' => RewardFactor::getForUserState($this->state),
+            'previous_reward_factor' => RewardFactor::getForUserState($this->previousState),
         ];
     }
 
