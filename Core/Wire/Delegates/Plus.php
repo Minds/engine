@@ -46,8 +46,8 @@ class Plus
             return $wire; //not offchain or potential onchain fraud 
         }
 
-        // 20 tokens
-        if ($wire->getAmount() != "20000000000000000000") {
+        // 20 tokens, 180 tokens, 500 tokens.
+        if ($wire->getAmount() != "20000000000000000000" && $wire->getAmount() != "180000000000000000000" && $wire->getAmount() != "500000000000000000000") {
             return $wire; //incorrect wire amount sent
         }
 
