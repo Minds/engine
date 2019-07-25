@@ -91,7 +91,6 @@ class Manager
                 'token_distribution_event_address' => $blockchainConfig['contracts']['token_sale_event']['contract_address'],
                 'plus_address' => $blockchainConfig['contracts']['wire']['plus_address'],
                 'default_gas_price' => $blockchainConfig['default_gas_price'],
-                "plus_guid" => $blockchainConfig['contracts']['wire']['plus_guid'],
             ];
         }
 
