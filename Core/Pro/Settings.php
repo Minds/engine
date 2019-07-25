@@ -26,6 +26,10 @@ use Minds\Traits\MagicAttributes;
  * @method Settings setPrimaryColor(string $primaryColor)
  * @method string getPlainBackgroundColor()
  * @method Settings setPlainBackgroundColor(string $plainBackgroundColor)
+ * @method string getBackgroundImage()
+ * @method Settings setBackgroundImage(string $backgroundImage)
+ * @method string getLogoImage()
+ * @method Settings setLogoImage(string $logoImage)
  */
 class Settings implements JsonSerializable
 {
@@ -52,6 +56,12 @@ class Settings implements JsonSerializable
     /** @var string */
     protected $plainBackgroundColor;
 
+    /** @var string */
+    protected $backgroundImage;
+
+    /** @var string */
+    protected $logoImage;
+
     /**
      * @return array
      */
@@ -65,6 +75,8 @@ class Settings implements JsonSerializable
             'text_color' => $this->textColor,
             'primary_color' => $this->primaryColor,
             'plain_background_color' => $this->plainBackgroundColor,
+            'background_image' => $this->backgroundImage,
+            'logo_image' => $this->logoImage,
         ];
     }
 

@@ -21,6 +21,9 @@ class Manager
     /** @var Delegates\InitializeSettingsDelegate */
     protected $initializeSettingsDelegate;
 
+    /** @var Delegates\HydrateSettingsDelegate */
+    protected $hydrateSettingsDelegate;
+
     /** @var User */
     protected $user;
 
@@ -29,16 +32,19 @@ class Manager
      * @param Repository $repository
      * @param Save $saveAction
      * @param Delegates\InitializeSettingsDelegate $initializeSettingsDelegate
+     * @param Delegates\HydrateSettingsDelegate $hydrateSettingsDelegate
      */
     public function __construct(
         $repository = null,
         $saveAction = null,
-        $initializeSettingsDelegate = null
+        $initializeSettingsDelegate = null,
+        $hydrateSettingsDelegate = null
     )
     {
         $this->repository = $repository ?: new Repository();
         $this->saveAction = $saveAction ?: new Save();
         $this->initializeSettingsDelegate = $initializeSettingsDelegate ?: new Delegates\InitializeSettingsDelegate();
+        $this->hydrateSettingsDelegate = $hydrateSettingsDelegate ?: new Delegates\HydrateSettingsDelegate();
     }
 
     /**
@@ -120,9 +126,16 @@ class Manager
             throw new Exception('Invalid user');
         }
 
-        return $this->repository->getList([
+        $settings = $this->repository->getList([
             'user_guid' => $this->user->guid
         ])->first();
+
+        if (!$settings) {
+            return null;
+        }
+
+        return $this->hydrateSettingsDelegate
+            ->onGet($this->user, $settings);
     }
 
     /**
