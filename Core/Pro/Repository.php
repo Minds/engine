@@ -81,15 +81,20 @@ class Repository
 
             if ($rows) {
                 foreach ($rows as $row) {
-                    $valuesEntity = new Values();
-                    $valuesEntity
+                    $settings = new Settings();
+                    $settings
                         ->setUserGuid($row['user_guid']->toInt())
                         ->setDomain($row['domain']);
 
-                    $valuesEntityJsonData = json_decode($row['json_data'] ?: '{}', true);
-                    // TODO: Set entity data
+                    $data = json_decode($row['json_data'] ?: '{}', true);
+                    $settings
+                        ->setTitle($data['title'] ?? '')
+                        ->setHeadline($data['headline'] ?? '')
+                        ->setTextColor($data['text_color'] ?? '')
+                        ->setPrimaryColor($data['primary_color'] ?? '')
+                        ->setPlainBackgroundColor($data['plain_background_color'] ?? '');
 
-                    $response[] = $valuesEntity;
+                    $response[] = $settings;
                 }
 
                 $response
@@ -105,61 +110,65 @@ class Repository
     }
 
     /**
-     * @param Values $values
+     * @param Settings $settings
      * @return bool
      * @throws Exception
      */
-    public function add(Values $values)
+    public function add(Settings $settings)
     {
-        if (!$values->getUserGuid()) {
+        if (!$settings->getUserGuid()) {
             throw new Exception('Invalid user GUID');
         }
 
         $cql = "INSERT INTO pro (user_guid, domain, json_data) VALUES (?, ?, ?)";
-        $values = [
-            new Bigint($values->getUserGuid()),
-            $values->getDomain(),
+        $settings = [
+            new Bigint($settings->getUserGuid()),
+            $settings->getDomain(),
             json_encode([
-                'user_guid' => (string) $values->getUserGuid(),
-                'domain' => $values->getDomain(),
-                // TODO: Set entity data
+                'user_guid' => (string) $settings->getUserGuid(),
+                'domain' => $settings->getDomain(),
+                'title' => $settings->getTitle(),
+                'headline' => $settings->getHeadline(),
+                'text_color' => $settings->getTextColor(),
+                'primary_color' => $settings->getPrimaryColor(),
+                'plain_background_color' => $settings->getPlainBackgroundColor(),
             ]),
         ];
 
         $prepared = new Custom();
-        $prepared->query($cql, $values);
+        $prepared->query($cql, $settings);
 
         return (bool) $this->db->request($prepared, true);
     }
 
     /**
-     * @param Values $values
+     * @param Settings $settings
      * @return bool
      * @throws Exception
      */
-    public function update(Values $values)
+    public function update(Settings $settings)
     {
-        return $this->add($values);
+        return $this->add($settings);
     }
 
     /**
-     * @param Values $values
+     * @param Settings $settingsRef
      * @return bool
      * @throws Exception
      */
-    public function delete(Values $values)
+    public function delete(Settings $settingsRef)
     {
-        if (!$values->getUserGuid()) {
+        if (!$settingsRef->getUserGuid()) {
             throw new Exception('Invalid user GUID');
         }
 
         $cql = "DELETE FROM pro WHERE user_guid = ?";
-        $values = [
-            new Bigint($values->getUserGuid()),
+        $settingsRef = [
+            new Bigint($settingsRef->getUserGuid()),
         ];
 
         $prepared = new Custom();
-        $prepared->query($cql, $values);
+        $prepared->query($cql, $settingsRef);
 
         return (bool) $this->db->request($prepared, true);
     }

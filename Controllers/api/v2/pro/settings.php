@@ -1,10 +1,10 @@
 <?php
 /**
- * pro
+ * settings
  * @author edgebal
  */
 
-namespace Minds\Controllers\api\v2;
+namespace Minds\Controllers\api\v2\pro;
 
 use Exception;
 use Minds\Core\Di\Di;
@@ -13,13 +13,12 @@ use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 
-class pro implements Interfaces\Api
+class settings implements Interfaces\Api
 {
     /**
      * Equivalent to HTTP GET method
      * @param array $pages
      * @return mixed|null
-     * @throws Exception
      */
     public function get($pages)
     {
@@ -30,13 +29,14 @@ class pro implements Interfaces\Api
 
         return Factory::response([
             'isActive' => $manager->isActive(),
+            'settings' => $manager->get(),
         ]);
     }
 
     /**
      * Equivalent to HTTP POST method
      * @param array $pages
-     * @return mixed
+     * @return mixed|null
      */
     public function post($pages)
     {
@@ -45,20 +45,27 @@ class pro implements Interfaces\Api
         $manager
             ->setUser(Session::getLoggedinUser());
 
-        // TODO: Send and process payment data
-        $success = $manager->enable(time() + (365 * 86400));
-
-        if (!$success) {
+        if (!$manager->isActive()) {
             return Factory::response([
                 'status' => 'error',
-                'message' => 'Error activating Pro',
+                'message' => 'You are not Pro',
             ]);
         }
 
-        return Factory::response([
-            'isActive' => $manager->isActive(),
-            'settings' => $manager->get(),
-        ]);
+        try {
+            $success = $manager->set($_POST);
+
+            if (!$success) {
+                throw new Exception('Cannot save Pro settings');
+            }
+        } catch (\Exception $e) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        return Factory::response([]);
     }
 
     /**
@@ -74,24 +81,10 @@ class pro implements Interfaces\Api
     /**
      * Equivalent to HTTP DELETE method
      * @param array $pages
-     * @return mixed
+     * @return mixed|null
      */
     public function delete($pages)
     {
-        /** @var Manager $manager */
-        $manager = Di::_()->get('Pro\Manager');
-        $manager
-            ->setUser(Session::getLoggedinUser());
-
-        $success = $manager->disable();
-
-        if (!$success) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => 'Error disabling Pro',
-            ]);
-        }
-
         return Factory::response([]);
     }
 }

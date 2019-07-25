@@ -1,6 +1,6 @@
 <?php
 /**
- * InitializeValuesDelegate
+ * InitializeSettingsDelegate
  * @author edgebal
  */
 
@@ -8,16 +8,16 @@ namespace Minds\Core\Pro\Delegates;
 
 use Exception;
 use Minds\Core\Pro\Repository;
-use Minds\Core\Pro\Values;
+use Minds\Core\Pro\Settings;
 use Minds\Entities\User;
 
-class InitializeValuesDelegate
+class InitializeSettingsDelegate
 {
     /** @var Repository */
     protected $repository;
 
     /**
-     * InitializeValuesDelegate constructor.
+     * InitializeSettingsDelegate constructor.
      * @param Repository $repository
      */
     public function __construct(
@@ -33,21 +33,26 @@ class InitializeValuesDelegate
      */
     public function onEnable(User $user)
     {
-        $values = $this->repository
+        /** @var Settings|null $settings */
+        $settings = $this->repository
             ->getList(['user_guid' => $user->guid])
-            ->toArray()[0] ?? null;
+            ->first();
 
-        if (!$values) {
-            $values = new Values();
-            $values
+        if (!$settings) {
+            $settings = new Settings();
+            $settings
                 ->setUserGuid($user->guid);
         }
 
-        if (!$values->getDomain()) {
-            $values->setDomain("pro-{$user->guid}.minds.com");
+        if (!$settings->getDomain()) {
+            $settings->setDomain("pro-{$user->guid}.minds.com");
+        }
+
+        if (!$settings->getTitle()) {
+            $settings->setTitle($user->name ?: $user->username);
         }
 
         $this->repository
-            ->add($values);
+            ->add($settings);
     }
 }
