@@ -40,7 +40,8 @@ class WireSent extends EmailCampaign
         ];
 
         $timestamp = gettype($this->wire->getTimestamp()) === 'object' ? $this->wire->getTimestamp()->time() : $this->wire->getTimestamp();
-        $amount = $this->wire->getMethod() === 'tokens' ? BigNumber::fromPlain($this->wire->getAmount(), 18)->toDouble() : $this->wire->getAmount();
+        // $amount = $this->wire->getMethod() === 'tokens' ? BigNumber::fromPlain($this->wire->getAmount(), 18)->toDouble() : $this->wire->getAmount();
+        $amount = $this->getAmountString($this->wire);
         $contract = $this->wire->getMethod() === 'onchain' ? 'wire' : 'offchain:wire';
 
         $this->template->setTemplate('default.tpl');
@@ -73,5 +74,23 @@ class WireSent extends EmailCampaign
         if ($this->canSend()) {
             $this->mailer->queue($this->build());
         }
+    }
+
+
+    private function getAmountString($wire)
+    {
+        $amount = $wire->getAmount();
+        if ($wire->getMethod() === 'tokens') {
+            $amount = BigNumber::fromPlain($wire->getAmount(), 18)->toDouble();
+            $currency = $amount > 1 ? 'tokens' : 'token';
+        } else {
+            $currency = strtoupper($wire->getMethod());
+        }
+
+        if ($wire->getMethod() === 'usd') {
+            $amount = $amount / 100;
+        }
+
+        return "$amount $currency";
     }
 }
