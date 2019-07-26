@@ -16,6 +16,8 @@ use Minds\Interfaces;
 
 class channel implements Interfaces\Api
 {
+    const MIN_COUNT = 6;
+
     public function get($pages)
     {
         /** @var User $currentUser */
@@ -54,6 +56,10 @@ class channel implements Interfaces\Api
                 break;
             case 'blogs':
                 $type = 'object:blog';
+                break;
+            case 'groups':
+                $type = 'group';
+                $container_guid = null;
                 break;
         }
 
@@ -122,7 +128,7 @@ class channel implements Interfaces\Api
             'limit' => $limit,
             'type' => $type,
             'algorithm' => 'top',
-            'period' => '1y',
+            'period' => '7d',
             'sync' => $sync,
             'from_timestamp' => $fromTimestamp,
             'query' => $query,
@@ -138,7 +144,7 @@ class channel implements Interfaces\Api
         try {
             $result = $this->getData($entities, $opts, $asActivities, $sync);
 
-            if ($result->count() === 0) {
+            if ($result->count() <= static::MIN_COUNT) {
                 $opts['algorithm'] = 'latest';
                 $result = $this->getData($entities, $opts, $asActivities, $sync);
             }
