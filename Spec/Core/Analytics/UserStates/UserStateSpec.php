@@ -18,7 +18,8 @@ class UserStateSpec extends ObjectBehavior
             ->setReferenceDateMs(1549497600)
             ->setState('cold')
             ->setPreviousState('curious')
-            ->setActivityPercentage(0.14);
+            ->setActivityPercentage(0.14)
+            ->setStateChange(UserState::stateChange('curious', 'cold'));
         $export = $this->export();
         $export->shouldBeArray();
         $export['user_guid']->shouldEqual($this->getUserGuid());
@@ -26,5 +27,6 @@ class UserStateSpec extends ObjectBehavior
         $export['state']->shouldEqual($this->getState());
         $export['previous_state']->shouldEqual($this->getPreviousState());
         $export['activity_percentage']->shouldEqual($this->getActivityPercentage());
+        $export['state_change']->shouldEqual($this->getStateChange());
     }
 }

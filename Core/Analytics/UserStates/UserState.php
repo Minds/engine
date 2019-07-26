@@ -22,6 +22,8 @@ use Minds\Traits\MagicAttributes;
  * @method string getPreviousState()
  * @method UserState setActivityPercentage(float $activityPercentage)
  * @method float getActivityPercentage()
+ * @method UserState setStateChange(int $stateChange)
+ * @method int getUserState()
  */
 class UserState
 {
@@ -32,6 +34,16 @@ class UserState
     const STATE_NEW = 'new';
     const STATE_RESURRECTED = 'resurrected';
     const STATE_UNKNOWN = 'unknown';
+
+    const STATE_INDEXES = [
+        self::STATE_UNKNOWN => 0,
+        self::STATE_NEW => 1,
+        self::STATE_COLD => 2,
+        self::STATE_RESURRECTED => 3,
+        self::STATE_CURIOUS => 4,
+        self::STATE_CASUAL => 5,
+        self::STATE_CORE => 6,
+    ];
 
     use MagicAttributes;
 
@@ -50,8 +62,12 @@ class UserState
     /** @var float $activityPercentage */
     private $activityPercentage;
 
+    /** @var int $stateChange */
+    private $stateChange;
+
     public function export(): array
     {
+        $this->deriveStateChange();
         return [
             'user_guid' => $this->userGuid,
             'reference_date' => $this->referenceDateMs,
@@ -60,7 +76,21 @@ class UserState
             'activity_percentage' => $this->activityPercentage,
             'reward_factor' => RewardFactor::getForUserState($this->state),
             'previous_reward_factor' => RewardFactor::getForUserState($this->previousState),
+            'state_change' => $this->stateChange
         ];
+    }
+
+    private function deriveStateChange(): void
+    {
+        $this->stateChange = self::stateChange($this->previousState, $this->state);
+    }
+
+    public static function stateChange(?string $oldState, ?string $newState): int
+    {
+        $oldStateIndex = self::STATE_INDEXES[$oldState] ?? 0;
+        $newStateIndex = self::STATE_INDEXES[$newState] ?? 0;
+
+        return $newStateIndex - $oldStateIndex;
     }
 
     public static function fromArray(array $data): UserState {
@@ -69,6 +99,7 @@ class UserState
             ->setReferenceDateMs($data['reference_date'])
             ->setState($data['state'])
             ->setPreviousState($data['previous_state'])
-            ->setActivityPercentage($data['activity_percentage']);
+            ->setActivityPercentage($data['activity_percentage'])
+            ->setStateChange(self::stateChange($data['previous_state'], $data['state']));
     }
 }

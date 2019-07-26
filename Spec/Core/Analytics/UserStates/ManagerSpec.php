@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Analytics\UserStates;
 
 use Minds\Core\Analytics\UserStates\Manager;
+use Minds\Core\Analytics\UserStates\UserState;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Analytics\UserStates\ActiveUsersIterator;
 use Minds\Core\Analytics\UserStates\UserStateIterator;
@@ -78,7 +79,8 @@ class ManagerSpec extends ObjectBehavior
                 'previous_state' => 'resurrected',
                 'activity_percentage' => '0.14',
                 'reward_factor' => 1,
-                'previous_reward_factor' => 1.5
+                'previous_reward_factor' => 1.5,
+                'state_change' => UserState::stateChange('resurrected', 'curious')
             ],
         ];
     }
