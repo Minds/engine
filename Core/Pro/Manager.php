@@ -139,11 +139,11 @@ class Manager
     }
 
     /**
-     * @param array $settings
+     * @param array $values
      * @return bool
      * @throws Exception
      */
-    public function set(array $settings = [])
+    public function set(array $values = [])
     {
         if (!$this->user) {
             throw new Exception('Invalid user');
@@ -154,46 +154,46 @@ class Manager
         $settings
             ->setUserGuid($this->user->guid);
 
-        if (isset($settings['domain'])) {
+        if (isset($values['domain'])) {
             // TODO: Validate!
 
             $settings
-                ->setDomain($settings['domain']);
+                ->setDomain($values['domain']);
         }
 
-        if (isset($settings['title'])) {
+        if (isset($values['title'])) {
             // TODO: Validate!
 
             $settings
-                ->setTitle($settings['title']);
+                ->setTitle($values['title']);
         }
 
-        if (isset($settings['headline'])) {
+        if (isset($values['headline'])) {
             // TODO: Validate!
 
             $settings
-                ->setHeadline($settings['headline']);
+                ->setHeadline($values['headline']);
         }
 
-        if (isset($settings['text_color'])) {
+        if (isset($values['text_color'])) {
             // TODO: Validate!
 
             $settings
-                ->setTextColor($settings['text_color']);
+                ->setTextColor($values['text_color']);
         }
 
-        if (isset($settings['primary_color'])) {
+        if (isset($values['primary_color'])) {
             // TODO: Validate!
 
             $settings
-                ->setPrimaryColor($settings['primary_color']);
+                ->setPrimaryColor($values['primary_color']);
         }
 
-        if (isset($settings['plain_background_color'])) {
+        if (isset($values['plain_background_color'])) {
             // TODO: Validate!
 
             $settings
-                ->setPlainBackgroundColor($settings['plain_background_color']);
+                ->setPlainBackgroundColor($values['plain_background_color']);
         }
 
         return $this->repository->update($settings);

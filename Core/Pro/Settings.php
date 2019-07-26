@@ -77,6 +77,11 @@ class Settings implements JsonSerializable
             'plain_background_color' => $this->plainBackgroundColor,
             'background_image' => $this->backgroundImage,
             'logo_image' => $this->logoImage,
+            'styles' => [
+                'text_color' => $this->textColor ?: '#000000',
+                'primary_color' => $this->primaryColor ?: '#4690df',
+                'plain_background_color' => $this->plainBackgroundColor ?: '#ffffff',
+            ],
         ];
     }
 
