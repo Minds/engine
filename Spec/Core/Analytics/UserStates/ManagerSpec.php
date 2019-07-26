@@ -77,6 +77,8 @@ class ManagerSpec extends ObjectBehavior
                 'state' => 'curious',
                 'previous_state' => 'resurrected',
                 'activity_percentage' => '0.14',
+                'reward_factor' => 1,
+                'previous_reward_factor' => 1.5
             ],
         ];
     }
