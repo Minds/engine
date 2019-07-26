@@ -23,7 +23,7 @@ use Minds\Traits\MagicAttributes;
  * @method UserState setActivityPercentage(float $activityPercentage)
  * @method float getActivityPercentage()
  * @method UserState setStateChange(int $stateChange)
- * @method int getUserState()
+ * @method int getStateChange()
  */
 class UserState
 {

@@ -26,10 +26,8 @@ class UpdateUserState
 
     public function update(): void
     {
-        if ($this->user->getUserState() !== $this->userState->getState()) {
-            $this->updateUserEntity();
-            $this->sendStateChangeNotification();
-        }
+        $this->updateUserEntity();
+        $this->sendStateChangeNotification();
     }
 
     private function updateUserEntity(): void
@@ -41,14 +39,17 @@ class UpdateUserState
 
     private function sendStateChangeNotification(): void
     {
-        Dispatcher::trigger('notification', 'reward', [
-            'to'=> [
-                $this->userState->getUserGuid()
-            ],
-            'from' => Notification::SYSTEM_ENTITY,
-            'notification_view' => 'rewards_state_change',
-            'params' => $this->userState->export()
-        ]);
+        if ($this->userState->getStateChange() !== 0) {
+            $notificationView = ($this->userState->getStateChange() > 0) ?
+                'reward_state_increase' : 'reward_state_decrease';
+            Dispatcher::trigger('notification', 'reward', [
+                'to' => [
+                    $this->userState->getUserGuid()
+                ],
+                'from' => Notification::SYSTEM_ENTITY,
+                'notification_view' => $notificationView,
+                'params' => $this->userState->export()
+            ]);
+        }
     }
-
 }
