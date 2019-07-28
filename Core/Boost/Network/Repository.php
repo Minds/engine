@@ -53,7 +53,7 @@ class Repository
         
         $query->setOpts([
             'page_size' => (int) $opts['limit'],
-            'paging_state_token' => base64_decode($opt['token'])
+            'paging_state_token' => base64_decode($opts['token'])
         ]);
 
         $response = new Response();
@@ -77,6 +77,11 @@ class Repository
 
                 if ($data['@created'] < 1055503139000) {
                     $data['@created'] = $data['@created'] * 1000;
+                }
+
+                if ($data['is_campaign'] ?? false) {
+                    // Skip campaigns
+                    continue;
                 }
 
                 $boost->setGuid((string) $row['guid'])

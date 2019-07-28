@@ -95,7 +95,22 @@ class Manager
      */
     public function ping($referral)
     {
+        // Ensure ping is triggered by referrer
+        $urn = $referral->getUrn();
+        $response = $this->repository->get($urn);
+        // No response if repo finds no matches for incoming referral/prospect combo
+        if (!$response) {
+            return false;
+        }
+
+        // Don't ping if prospect isn't pingable
+        $pingable = $response->getPingable();
+        if (!$pingable) {
+            return false;
+        }
+
         // Update ping_timestamp
+        $referral->setPingTimestamp(time());
         $this->repository->ping($referral);
 
         // Send a ping notification to the prospect

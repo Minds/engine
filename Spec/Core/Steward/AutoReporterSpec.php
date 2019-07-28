@@ -116,6 +116,30 @@ class AutoReporterSpec extends ObjectBehavior
         expect($scoredReason->getSubreasonCode())->toEqual(Reason::REASON_NSFW_PORNOGRAPHY);
         expect($scoredReason->getWeight())->toEqual(4);
     }
+    public function it_should_report_more_bad_words()
+    {
+        $entity = (new Entity())
+            ->set('guid', 456)
+            ->set('owner_guid', 789)
+            ->set('message', 'this is only a test: anilingus');
+
+        $report = (new Reports\Report())
+            ->setEntityGuid($entity->guid)
+            ->setEntityOwnerGuid($entity->get('owner_guid'));
+
+        $autoReport = (new Reports\UserReports\UserReport())
+            ->setReport($report)
+            ->setReporterGuid($this->stewardUser->guid)
+            ->setReasonCode(Reason::REASON_NSFW)
+            ->setSubReasonCode(Reason::REASON_NSFW_PORNOGRAPHY)
+            ->setTimestamp(1);
+
+        $this->reportManager->add($autoReport)->shouldBeCalled();
+        $scoredReason = $this->validate($entity, 1)->getWrappedObject();
+        expect($scoredReason->getReasonCode())->toEqual(Reason::REASON_NSFW);
+        expect($scoredReason->getSubreasonCode())->toEqual(Reason::REASON_NSFW_PORNOGRAPHY);
+        expect($scoredReason->getWeight())->toEqual(4);
+    }
 
     public function it_should_not_report_words()
     {

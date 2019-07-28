@@ -271,11 +271,7 @@ class group implements Interfaces\Api
             return Factory::response([]);
         }
 
-        $canDelete = Session::isAdmin();
-
-        if (!$canDelete && $group->isCreator($user)) {
-            $canDelete = $group->getMembersCount() <= 1;
-        }
+        $canDelete = Session::isAdmin() || $group->isCreator($user);
 
         if (!$canDelete) {
             return Factory::response([
