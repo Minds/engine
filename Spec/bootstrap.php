@@ -8,6 +8,7 @@ date_default_timezone_set('UTC');
 
 $minds = new Minds\Core\Minds();
 $minds->loadLegacy();
+$minds->loadConfigs();
 
 $CONFIG = Minds\Core\Di\Di::_()->get('Config');
 $CONFIG->default_access = 2;
