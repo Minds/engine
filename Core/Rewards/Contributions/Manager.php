@@ -6,16 +6,26 @@ namespace Minds\Core\Rewards\Contributions;
 
 use Minds\Core\Analytics;
 use Minds\Core\Util\BigNumber;
+use Minds\Entities\User;
 
 class Manager
 {
+    /** @var Analytics\Manager */
     protected $analytics;
+    /** @var Repository */
     protected $repository;
+    /** @var User */
     protected $user;
+    /** @var int */
     protected $from;
+    /** @var int */
     protected $to;
+    /** @var bool */
     protected $dryRun = false;
+    /** @var array */
     protected $site_contribution_score_cache = [];
+    /** @var Sums */
+    protected $sums;
 
     public function __construct($analytics = null, $repository = null, $sums = null)
     {
@@ -26,7 +36,7 @@ class Manager
         $this->to = time() * 1000;
     }
 
-    public function setUser($user)
+    public function setUser($user): self
     {
         $this->user = $user;
         return $this;
@@ -38,25 +48,25 @@ class Manager
      * @param bool $dryRun
      * @return $this
      */
-    public function setDryRun($dryRun)
+    public function setDryRun($dryRun): self
     {
         $this->dryRun = $dryRun;
         return $this;
     }
 
-    public function setFrom($from)
+    public function setFrom($from): self
     {
         $this->from = $from;
         return $this;
     }
 
-    public function setTo($to)
+    public function setTo($to): self
     {
         $this->to = $to;
         return $this;
     }
 
-    public function sync()
+    public function sync(): array
     {
         $this->analytics
             ->setFrom($this->from)
@@ -100,12 +110,12 @@ class Manager
      * @param Contribution $contribution
      * @return bool
      */
-    public function add(Contribution $contribution)  : bool
+    public function add(Contribution $contribution): bool
     {
         return (bool) $this->repository->add($contribution);
     }
 
-    public function issueCheckins($count)
+    public function issueCheckins($count): void
     {
         $multiplier = ContributionValues::$multipliers['checkin'];
         $contribution = new Contribution();
@@ -136,7 +146,7 @@ class Manager
      * Gather the contribution score for the user
      * @return int
      */
-    public function getUserContributionScore()
+    public function getUserContributionScore(): int
     {
         return $this->sums
             ->setTimestamp($this->from)
@@ -148,7 +158,7 @@ class Manager
      * Return the number of tokens to be rewarded
      * @return string
      */
-    public function getRewardsAmount()
+    public function getRewardsAmount(): string
     {
         //$share = BigNumber::_($this->getUserContributionScore(), 18)->div($this->getSiteContribtionScore());
         //$pool = BigNumber::toPlain('100000000', 18)->div(15)->div(365);
