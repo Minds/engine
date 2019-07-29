@@ -118,7 +118,7 @@ class feed implements Interfaces\Api
 
                 $ttl = 1800; // 30 minutes
                 if (($next / 1000) < strtotime('48 hours ago')) {
-                    $ttl = 30; // 0.5 minutes;
+                    $ttl = 300; // 5 minutes;
                 }
 
                 $cacher->set(Core\Session::getLoggedinUser()->guid . ':boost-offset-rotator', $next, $ttl);
