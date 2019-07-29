@@ -40,7 +40,6 @@ class WireReceived extends EmailCampaign
         ];
 
         $timestamp = gettype($this->wire->getTimestamp()) === 'object' ? $this->wire->getTimestamp()->time() : $this->wire->getTimestamp();
-        $amount = $this->wire->getMethod() === 'tokens' ? BigNumber::fromPlain($this->wire->getAmount(), 18)->toDouble() : $this->wire->getAmount();
         $contract = $this->wire->getMethod() === 'onchain' ? 'wire' : 'offchain:wire';
 
         $this->template->setTemplate('default.tpl');
@@ -50,7 +49,7 @@ class WireReceived extends EmailCampaign
         $this->template->set('email', $this->user->getEmail());
         $this->template->set('guid', $this->user->getGUID());
         $this->template->set('timestamp', $timestamp);
-        $this->template->set('amount', $amount);
+        $this->template->set('amount', $this->getAmountString($this->wire));
         $this->template->set('sender', $this->wire->getSender());
         $this->template->set('contract', $contract);
         $this->template->set('campaign', $this->campaign);
@@ -72,5 +71,22 @@ class WireReceived extends EmailCampaign
         if ($this->canSend()) {
             $this->mailer->queue($this->build());
         }
+    }
+
+    private function getAmountString($wire)
+    {
+        $amount = $wire->getAmount();
+        if ($wire->getMethod() === 'tokens') {
+            $amount = BigNumber::fromPlain($wire->getAmount(), 18)->toDouble();
+            $currency = $amount === 1 ? 'token' : 'tokens';
+        } else {
+            $currency = strtoupper($wire->getMethod());
+        }
+
+        if ($wire->getMethod() === 'usd') {
+            $amount = $amount / 100;
+        }
+
+        return "$amount $currency";
     }
 }
