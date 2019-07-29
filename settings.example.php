@@ -351,6 +351,8 @@ $CONFIG->set('blockchain', [
             'wallet_pkey' => '',
         ],
         'wire' => [
+            'plus_address' => '',
+            'plus_guid' => '', // Your plus user's guid.
             'contract_address' => '0x4b637bba81d24657d4c6acc173275f3e11a8d5d7',
             'wallet_address' => '0x4CDc1C1fd1A3F4DD63231afF8c16501BcC11Df95',
             'wallet_pkey' => '',
