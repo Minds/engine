@@ -99,7 +99,7 @@ class Overview
 
         $this->manager->setUser($this->user);
         $this->manager->setFrom($timestamp);
-        $this->totalNetworkContribution = $this->manager->getSiteContribtionScore();
+        $this->totalNetworkContribution = $this->manager->getSiteContributionScore();
         $this->yourContribution = $this->manager->getUserContributionScore();
         $this->currentReward = $this->manager->getRewardsAmount();
 

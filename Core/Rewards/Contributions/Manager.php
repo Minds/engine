@@ -9,14 +9,13 @@ use Minds\Core\Util\BigNumber;
 
 class Manager
 {
-
     protected $analytics;
     protected $repository;
     protected $user;
     protected $from;
     protected $to;
     protected $dryRun = false;
-    protected $site_contribtion_score_cache = [];
+    protected $site_contribution_score_cache = [];
 
     public function __construct($analytics = null, $repository = null, $sums = null)
     {
@@ -122,12 +121,12 @@ class Manager
     /**
      * Gather the entire site contribution score
      */
-    public function getSiteContribtionScore()
+    public function getSiteContributionScore()
     {
-        if (isset($this->site_contribtion_score_cache[$this->from])) {
-            return $this->site_contribtion_score_cache[$this->from];
+        if (isset($this->site_contribution_score_cache[$this->from])) {
+            return $this->site_contribution_score_cache[$this->from];
         }
-        return $this->site_contribtion_score_cache[$this->from] = $this->sums
+        return $this->site_contribution_score_cache[$this->from] = $this->sums
             ->setTimestamp($this->from)
             ->setUser(null)
             ->getScore();
