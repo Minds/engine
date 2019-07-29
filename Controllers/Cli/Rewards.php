@@ -16,17 +16,33 @@ use Minds\Core\Events\Dispatcher;
 
 class Rewards extends Cli\Controller implements Interfaces\CliControllerInterface
 {
-
-    private $start;
-    private $elasticsearch;
-
     public function help($command = null)
     {
-        $this->out('Syntax usage: cli trending <type>');
+        switch ($command) {
+            case 'sync':
+                $this->out('Get rewards for all users');
+                $this->out('--timestamp={timestamp} the day to start from. Default is yesterday at midnight');
+                $this->out('--action={string action} ');
+                $this->out('--dryRun={true|false} true prevents saving the data');
+                break;
+            case 'single':
+                $this->out('Get rewards for a single user');
+                $this->out('--guid={guid} the guid of the user to get rewards for');
+                $this->out('--timestamp={timestamp} the day to start from. Default is yesterday at midnight');
+                break;
+            case 'issue':
+                $this->out('Issue tokens to a user');
+                $this->out('--username={string username} username of the user to issue tokens to');
+                $this->out('--amount={number of tokens} Number of tokens to issue');
+            default:
+                $this->out('Syntax usage: cli rewards <type>');
+                $this->displayCommandHelp();
+        }
     }
 
     public function exec()
     {
+        return $this->help();
     }
 
     public function sync()
