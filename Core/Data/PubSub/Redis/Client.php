@@ -18,7 +18,7 @@ class Client
 
             $config = Config::_()->get('redis');
             try {
-                $this->redis->connect(@$config['pubsub'] ?: $config['master'] ?: '127.0.0.1');
+                $this->redis->connect($config['pubsub'] ?: $config['master'] ?: '127.0.0.1');
             } catch (\Exception $e) { }
         }
     }

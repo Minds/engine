@@ -33,7 +33,7 @@ class Mailer
         $this->mailer->isSMTP();
         //$this->mailer->SMTPKeepAlive = true;
         $this->mailer->Host = Core\Config::_()->email['smtp']['host'];
-        $this->mailer->AuthType = @Core\Config::_()->email['smtp']['auth'];
+        $this->mailer->Auth = Core\Config::_()->email['smtp']['auth'];
         $this->mailer->SMTPAuth = true;
         $this->mailer->Username = Core\Config::_()->email['smtp']['username'];
         $this->mailer->Password = Core\Config::_()->email['smtp']['password'];

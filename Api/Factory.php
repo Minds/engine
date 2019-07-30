@@ -149,7 +149,7 @@ class Factory
             'status' => 'success', //should success be assumed?
         ), $data);
 
-        @ob_end_clean();
+        ob_end_clean();
 
         header('Content-type: application/json');
         header("Access-Control-Allow-Origin: *");
@@ -173,9 +173,7 @@ class Factory
             }
 
             $entities[$k] = $entity->export();
-            if (isset($entities[$k]['guid'])) {
-                $entities[$k]['guid'] = (string)$entities[$k]['guid']; //javascript doesn't like long numbers..
-            }
+            $entities[$k]['guid'] = (string) $entities[$k]['guid']; //javascript doesn't like long numbers..
             if (isset($entities[$k]['ownerObj']['guid'])) {
                 $entities[$k]['ownerObj']['guid'] = (string) $entity->ownerObj['guid'];
             }
