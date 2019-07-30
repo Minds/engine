@@ -38,7 +38,6 @@ class Events
          */
         Core\Events\Dispatcher::register('export:extender', 'all', function ($event) {
             $params = $event->getParameters();
-            $export = null;
 
             if ($params['entity'] instanceof User) {
                 $keystore = (new Messenger\Keystore())

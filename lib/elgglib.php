@@ -933,10 +933,10 @@ function fatalErrorShutdownHandler(){
 	if($last_error['type'] == E_ERROR && php_sapi_name() != "cli"){
 		error_log('Fatal error: '.nl2br(htmlentities(print_r($last_error, true), ENT_QUOTES, 'UTF-8')));
 		// Wipe any existing output buffer
-		@ob_end_clean();
+		ob_end_clean();
 		_elgg_php_error_handler($last_error['type'], $last_error['message'], $last_error['file'], $last_error['line']);
 		// Wipe any existing output buffer
-		@ob_end_clean();
+		ob_end_clean();
 		header('Fatal error', true, 500);
 
 		echo file_get_contents(dirname(dirname(dirname(__FILE__))) . '/errors/500.html');
