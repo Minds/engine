@@ -14,6 +14,7 @@ use Minds\Entities\User;
 
 class Manager
 {
+    const MAX_SUBSCRIPTIONS = 5000;
 
     /** @var Repository $repository */
     private $repository;
@@ -102,10 +103,15 @@ class Manager
         $subscription->setSubscriberGuid($this->subscriber->getGuid())
             ->setPublisherGuid($publisher->getGuid());
 
+        if ($this->getSubscriptionsCount() >= static::MAX_SUBSCRIPTIONS) {
+            $this->sendNotificationDelegate->onMaxSubscriptions($subscription);
+            throw new TooManySubscriptionsException();
+        }
+
         $subscription = $this->repository->add($subscription);
 
         $this->eventsDelegate->trigger($subscription);
-        $this->feedsDelegate->copy($subscription);
+        //$this->feedsDelegate->copy($subscription);
         $this->copyToElasticSearchDelegate->copy($subscription);
         $this->cacheDelegate->cache($subscription);
         $this->checkRateLimitDelegate->incrementCache($this->subscriber->guid);
@@ -145,7 +151,7 @@ class Manager
      */
     public function getSubscriptionsCount()
     {
-        return $this->subscriber->getSubscriptonsCount(); //TODO: Refactor so we are the source of truth
+        return $this->subscriber->getSubscriptionsCount(); //TODO: Refactor so we are the source of truth
     }
 
 }

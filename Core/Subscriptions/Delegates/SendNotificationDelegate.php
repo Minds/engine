@@ -34,4 +34,18 @@ class SendNotificationDelegate
 
     }
 
+    public function onMaxSubscriptions($subscription)
+    {
+        $message = "You are unable to subscribe to new channels as you have over 5000 subscriptions.";
+        $this->eventsDispatcher->trigger('notification', 'all', [
+            'to' => [ $subscription->getSubscriberGuid() ],
+            'entity' => $subscription->getPublisherGuid(),
+            'notification_view' => 'custom_message',
+            'from' => 100000000000000519,
+            'message' => $message,
+            'params' => [ 'message' => $message],
+        ]);
+
+    }
+
 }
