@@ -69,7 +69,7 @@ class Entities extends base
             }
         }
 
-	    if (!property_exists($row, 'type') || !$row->type) {
+	    if (!isset($row->type)) {
 	        $row->type = 'Unknown';
         }
         $default = "Minds\\Entities\\" . ucfirst($row->type);
