@@ -293,7 +293,6 @@ class Manager
 
                 break;
         }
-        
         return true;
     }
 
