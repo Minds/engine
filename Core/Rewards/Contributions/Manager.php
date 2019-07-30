@@ -82,10 +82,11 @@ class Manager
         foreach($this->analytics->getCounts() as $ts => $data) {
             foreach($data as $metric => $count) {
                 $multiplier = ContributionValues::$multipliers[$metric];
+                $userStateMultiplier = Analytics\UserStates\RewardFactor::getForUserState($this->user->getUserState());
                 $contribution = new Contribution();
                 $contribution->setMetric($metric)
                     ->setTimestamp($ts)
-                    ->setScore($count * $multiplier)
+                    ->setScore($count * $multiplier * $userStateMultiplier)
                     ->setAmount($count);
 
                 if ($this->user) {
@@ -94,7 +95,6 @@ class Manager
                 $contributions[] = $contribution;
             }
         }
-
 
         if ($this->dryRun) {
             return $contributions;
