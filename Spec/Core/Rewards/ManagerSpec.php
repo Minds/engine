@@ -73,7 +73,7 @@ class ManagerSpec extends ObjectBehavior
             ->setFrom($from)
             ->setTo($to);
 
-        $this->sync()->getAmount()->shouldBe(20);
+        $this->sync()->getAmount()->shouldBe("20");
         $this->sync()->getContract()->shouldBe('offchain:reward');
         $this->sync()->getTimestamp()->shouldBe(strtotime('-1 second', $to / 1000));
     }
