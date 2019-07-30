@@ -121,6 +121,8 @@ class ManagerSpec extends ObjectBehavior
 
         $subscriber->getSubscriptionsCount()
             ->willReturn(5000);
+        $subscriber->getGUID()
+            ->willReturn(123);
         $this->setSubscriber($subscriber);
 
         $this->shouldThrow('Minds\Core\Subscriptions\TooManySubscriptionsException')

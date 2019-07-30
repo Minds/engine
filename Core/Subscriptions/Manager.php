@@ -99,13 +99,14 @@ class Manager
      */
     public function subscribe($publisher)
     {
-        if ($this->getSubscriptionsCount() >= static::MAX_SUBSCRIPTIONS) {
-            throw new TooManySubscriptionsException();
-        }
-
         $subscription = new Subscription();
         $subscription->setSubscriberGuid($this->subscriber->getGuid())
             ->setPublisherGuid($publisher->getGuid());
+
+        if ($this->getSubscriptionsCount() >= static::MAX_SUBSCRIPTIONS) {
+            $this->sendNotificationDelegate->onMaxSubscriptions($subscription);
+            throw new TooManySubscriptionsException();
+        }
 
         $subscription = $this->repository->add($subscription);
 
