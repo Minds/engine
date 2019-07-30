@@ -98,10 +98,6 @@ class ManagerSpec extends ObjectBehavior
         $this->eventsDelegate->trigger($subscription)
             ->shouldBeCalled();
 
-        // Call the feeds delegate
-        $this->feedsDelegate->copy($subscription)
-            ->shouldBeCalled();
-
         // Call the es delegate
         $this->copyToElasticSearchDelegate->copy($subscription)
             ->shouldBeCalled();
@@ -117,6 +113,20 @@ class ManagerSpec extends ObjectBehavior
         $newSubscription = $this->subscribe($publisher);
         $newSubscription->isActive()
             ->shouldBe(true);
+    }
+
+    function it_should_not_allow_if_over_5000_subscriptions(User $subscriber)
+    {
+        $publisher = (new User)->set('guid', 456);
+
+        $subscriber->getSubscriptionsCount()
+            ->willReturn(5000);
+        $subscriber->getGUID()
+            ->willReturn(123);
+        $this->setSubscriber($subscriber);
+
+        $this->shouldThrow('Minds\Core\Subscriptions\TooManySubscriptionsException')
+            ->duringSubscribe($publisher);
     }
 
     function it_should_unsubscribe()
