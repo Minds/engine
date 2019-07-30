@@ -22,8 +22,8 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
             case 'sync':
                 $this->out('Get rewards for all users');
                 $this->out('--timestamp={timestamp} the day to start from. Default is yesterday at midnight');
-                $this->out('--action={string action} ');
-                $this->out('--dryRun={true|false} true prevents saving the data');
+                $this->out('--action={active|subscribe|jury-duty} Type of action');
+                $this->out('--dry-run={true|false} true prevents saving the data');
                 break;
             case 'single':
                 $this->out('Get rewards for a single user');
@@ -50,9 +50,13 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
 
-
         $timestamp = $this->getOpt('timestamp') ?: (strtotime('midnight -24 hours') * 1000);
         $to = strtotime("+24 hours", $timestamp / 1000) * 1000;
+        $dryRun = $this->getOpt('dry-run') === 'true';
+
+        if ($dryRun) {
+            $this->out('DRY RUN');
+        }
 
         $users = new UsersIterator;
         $users->setFrom($timestamp)
@@ -84,7 +88,7 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
                 $manager->setFrom($timestamp)
                     ->setTo($to);
                 $manager->setUser($user);
-                $manager->setDryRun($this->getOpt('dry-run'));
+                $manager->setDryRun($dryRun);
                 $reward = $manager->sync();
                 $total = $total->add($reward->getAmount());
                 $leaderboard[$user->guid] = ($reward->getAmount() / (10**18));
