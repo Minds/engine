@@ -8,7 +8,9 @@ stages:
   - test
   - prepare
   - review
-  - deploy
+  - deploy:staging
+  - deploy:canary
+  - deploy:production
 
 cache:
   paths:
@@ -94,44 +96,100 @@ review:stop:
       - master
       - test/gitlab-ci
 
-deploy:fpm:
-  stage: deploy
+staging:fpm:
+  stage: deploy:staging
   image: minds/ci:latest
   script:
+    - IMAGE_LABEL="staging"
     - $(aws ecr get-login --no-include-email --region us-east-1)
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - docker pull $CI_REGISTRY_IMAGE/fpm:$CI_BUILD_REF
-    # Push to production registry
-    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_BUILD_REF $REPOSITORY_URL_FPM
-    - docker push $REPOSITORY_URL_FPM
-    # Push to gitlab register
-    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_BUILD_REF $CI_REGISTRY_IMAGE/fpm:latest
-    - docker push $CI_REGISTRY_IMAGE/fpm:latest
-    - aws ecs update-service --service=$SERVICE_FPM --force-new-deployment --region us-east-1 --cluster=$CLUSTER
+    # Push to AWS registry
+    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_BUILD_REF $ECR_REPOSITORY_URL_FPM:$IMAGE_LABEL
+    - docker push $ECR_REPOSITORY_URL_FPM:$IMAGE_LABEL
+    # Push to Gitlab registry
+    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_BUILD_REF $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
+    - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
+    # Deploy to staging
+    - aws ecs update-service --service=$ECS_APP_STAGING_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
+  environment:
+    name: staging
+    url: https://www.minds.com/?staging=1
+  only: 
+    refs:
+      - master
+      - test/gitlab-ci
+
+canary:fpm:
+  stage: deploy:canary
+  image: minds/ci:latest
+  script:
+    - IMAGE_LABEL="canary"
+    - $(aws ecr get-login --no-include-email --region us-east-1)
+    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
+    - docker pull $CI_REGISTRY_IMAGE/fpm:$CI_BUILD_REF
+    # Push to AWS registry
+    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_BUILD_REF $ECR_REPOSITORY_URL_FPM:$IMAGE_LABEL
+    - docker push $ECR_REPOSITORY_URL_FPM:$IMAGE_LABEL
+    # Push to Gitlab registry
+    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_BUILD_REF $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
+    - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
+    # Deploy to ECS
+    - aws ecs update-service --service=$ECS_APP_CANARY_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
+  only:
+    refs:
+      - master
+      - test/gitlab-ci
+  environment:
+    name: canary
+    url: https://www.minds.com/?canary=1 # requires canary cookie
+  when: manual
+  allow_failure: false # prevents auto deploy to full production
+
+production:fpm:
+  stage: deploy:production
+  image: minds/ci:latest
+  script:
+    - IMAGE_LABEL="production"
+    - $(aws ecr get-login --no-include-email --region us-east-1)
+    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
+    - docker pull $CI_REGISTRY_IMAGE/fpm:$CI_BUILD_REF
+    # Push to AWS registry
+    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_BUILD_REF $ECR_REPOSITORY_URL_FPM:$IMAGE_LABEL
+    - docker push $ECR_REPOSITORY_URL_FPM:$IMAGE_LABEL
+    # Push to Gitlab registry
+    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_BUILD_REF $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
+    - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
+    # Delpoy to ECS
+    - aws ecs update-service --service=$ECS_APP_PRODUCTION_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
   only:
     refs:
       - master
       - test/gitlab-ci
   environment:
     name: production
+    url: https://www.minds.com/
+  when: delayed
+  start_in: 2 hours # reduce? can always be deployed manually earlier too
 
-deploy:runners:
-  stage: deploy
+production:runners:
+  stage: deploy:production
   image: minds/ci:latest
   script:
     - $(aws ecr get-login --no-include-email --region us-east-1)
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - docker pull $CI_REGISTRY_IMAGE/runners:$CI_BUILD_REF
     # Push to production register
-    - docker tag $CI_REGISTRY_IMAGE/runners:$CI_BUILD_REF $REPOSITORY_URL_RUNNERS
-    - docker push $REPOSITORY_URL_RUNNERS
+    - docker tag $CI_REGISTRY_IMAGE/runners:$CI_BUILD_REF $ECR_REPOSITORY_URL_RUNNERS
+    - docker push $ECR_REPOSITORY_URL_RUNNERS:production
     # Push gitlab registry
     - docker tag $CI_REGISTRY_IMAGE/runners:$CI_BUILD_REF $CI_REGISTRY_IMAGE/runners:latest
     - docker push $CI_REGISTRY_IMAGE/runners:latest
-    - aws ecs update-service --service=$SERVICE_RUNNERS --force-new-deployment --region us-east-1 --cluster=$CLUSTER
+    - aws ecs update-service --service=$ECS_RUNNERS_PRODUCTION_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
   only:
     refs:
       - master
       - test/gitlab-ci
   environment:
     name: production
+    url: https://www.minds.com/
