@@ -10,6 +10,7 @@ namespace Minds\Controllers\api\v1;
 use Minds\Core;
 use Minds\Core\Security;
 use Minds\Core\Session;
+use Minds\Core\Features;
 use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Interfaces;
@@ -98,6 +99,10 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         Session::generateJWTCookie($sessions->getSession()); 
         Security\XSRF::setCookie(true);
+
+        // Set the canary cookie
+        Di::_()->get('Features\Manager')
+            ->setCanaryCookie($user->isCanary());
 
         $response['status'] = 'success';
         $response['user'] = $user->export();
