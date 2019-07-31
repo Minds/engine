@@ -32,7 +32,6 @@ class Repository
             user_guid,
             metric,
             amount,
-            score,
             score_decimal
             ) 
             VALUES (?,?,?,?,?)";
@@ -44,7 +43,6 @@ class Repository
                     new Varint($contribution->getUser()->guid),
                     $contribution->getMetric(),
                     new Varint($contribution->getAmount()),
-                    null,
                     new Decimal($contribution->getScore())
                 ]
             ];
