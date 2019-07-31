@@ -2,29 +2,41 @@
 
 namespace Minds\Controllers\Cli;
 
-use DateTime;
-use Elasticsearch\ClientBuilder;
 use Minds\Cli;
 use Minds\Core;
-use Minds\Core\Di\Di;
 use Minds\Entities;
-use Minds\Helpers\Flags;
 use Minds\Interfaces;
 use Minds\Core\Rewards\Contributions\UsersIterator;
 
 class Contributions extends Cli\Controller implements Interfaces\CliControllerInterface
 {
-
-    private $start;
-    private $elasticsearch;
-
     public function help($command = null)
     {
-        $this->out('Syntax usage: cli trending <type>');
+        switch ($command) {
+            case 'sync':
+                $this->out('Get contributions for all users');
+                $this->out('--from={timestamp} the day to start from. Default is yesterday at midnight');
+                $this->out('--incremental={true|false} Provide estimates during current day');
+                $this->out('--action={active|subscribe|jury-duty} Type of action');
+                $this->out('--dry-run={true|false} true prevents saving the data');
+                break;
+            case 'syncCheckins':
+                $this->out('--from={timestamp} the day to start from. Default is yesterday at midnight');
+                $this->out('--incremental={true|false} Provide estimates during current day');
+                break;
+            case 'test':
+                $this->out('Test contributions for a user');
+                $this->out('--from={timestamp} the day to start from. Default is 7 days ago');
+                $this->out('--guid={guid} the guid of the user to get contributions for');
+            default:
+                $this->out('Syntax usage: cli contributions <command>');
+                $this->displayCommandHelp();
+        }
     }
 
     public function exec()
     {
+        return $this->help();
     }
 
     public function sync()
@@ -33,6 +45,7 @@ class Contributions extends Cli\Controller implements Interfaces\CliControllerIn
         ini_set('display_errors', 1);
 
         $from = $this->getOpt('from');
+        $dryRun = $this->getOpt('dry-run') === 'true';
 
         if (!$from && $this->getOpt('incremental')) {
             $from = strtotime('midnight') * 1000; //run throughout the day, provides estimates
@@ -65,8 +78,8 @@ class Contributions extends Cli\Controller implements Interfaces\CliControllerIn
 
             $manager = new Core\Rewards\Contributions\Manager();
             $manager->setFrom($from)
-                ->setUser($user);
-            //$manager->setDryRun(true);
+                ->setUser($user)
+                ->setDryRun($dryRun);
             $results = $manager->sync();
 
             foreach ($results as $result) {
