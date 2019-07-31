@@ -4,6 +4,7 @@ namespace Minds\Core\Rewards\Contributions;
 use Cassandra;
 use Cassandra\Varint;
 use Cassandra\Timestamp;
+use Cassandra\Decimal;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
@@ -31,7 +32,8 @@ class Repository
             user_guid,
             metric,
             amount,
-            score
+            score,
+            score_decimal
             ) 
             VALUES (?,?,?,?,?)";
         foreach ($contributions as $contribution) {
@@ -42,7 +44,8 @@ class Repository
                     new Varint($contribution->getUser()->guid),
                     $contribution->getMetric(),
                     new Varint($contribution->getAmount()),
-                    new Varint($contribution->getScore())
+                    null,
+                    new Decimal($contribution->getScore())
                 ]
             ];
         }
@@ -114,7 +117,7 @@ class Repository
                 ->setMetric((string) $row['metric'])
                 ->setTimestamp($row['timestamp']->time() * 1000)
                 ->setAmount((string) BigNumber::_($row['amount']))
-                ->setScore((int) $row['score']);
+                ->setScore((float) $row['score_decimal'] ?? $row['score']);
 
             $contributions[] = $contribution;
         }

@@ -3,7 +3,6 @@ namespace Minds\Core\Rewards\Contributions;
 
 class Contribution
 {
-
     protected $metric;
     protected $timestamp;
     protected $amount = 0;

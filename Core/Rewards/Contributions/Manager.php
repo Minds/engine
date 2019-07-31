@@ -102,7 +102,7 @@ class Manager
 
         $this->repository->add($contributions);       
 
-        return $contributions; 
+        return $contributions;
     }
 
     /**
@@ -131,7 +131,7 @@ class Manager
     /**
      * Gather the entire site contribution score
      */
-    public function getSiteContributionScore()
+    public function getSiteContributionScore(): float
     {
         if (isset($this->site_contribution_score_cache[$this->from])) {
             return $this->site_contribution_score_cache[$this->from];
@@ -144,9 +144,9 @@ class Manager
 
     /**
      * Gather the contribution score for the user
-     * @return int
+     * @return float
      */
-    public function getUserContributionScore(): int
+    public function getUserContributionScore(): float
     {
         return $this->sums
             ->setTimestamp($this->from)
@@ -160,13 +160,6 @@ class Manager
      */
     public function getRewardsAmount(): string
     {
-        //$share = BigNumber::_($this->getUserContributionScore(), 18)->div($this->getSiteContribtionScore());
-        //$pool = BigNumber::toPlain('100000000', 18)->div(15)->div(365);
-
-        //$velocity = 10;
-
-        //$pool = $pool->div($velocity);
-        
         $tokensPerScore = BigNumber::_(pi())->mul(10 ** 18)->div(200);
         $tokens = BigNumber::_($this->getUserContributionScore())->mul($tokensPerScore);
         return (string) $tokens;

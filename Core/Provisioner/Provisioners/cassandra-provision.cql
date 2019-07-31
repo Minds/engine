@@ -260,6 +260,7 @@ CREATE TABLE minds.contributions (
     metric text,
     amount varint,
     score varint,
+    score_decimal decimal,
     PRIMARY KEY (user_guid, timestamp, metric)
 ) WITH CLUSTERING ORDER BY (timestamp DESC, metric ASC)
     AND bloom_filter_fp_chance = 0.01
@@ -278,9 +279,9 @@ CREATE TABLE minds.contributions (
     AND speculative_retry = '99PERCENTILE';
 
 CREATE MATERIALIZED VIEW minds.contributions_by_timestamp AS
-    SELECT timestamp, user_guid, metric, amount, score
+    SELECT timestamp, user_guid, metric, amount, score, score_decimal
     FROM minds.contributions
-    WHERE user_guid IS NOT NULL AND timestamp IS NOT NULL AND metric IS NOT NULL AND amount IS NOT NULL AND score IS NOT NULL
+    WHERE user_guid IS NOT NULL AND timestamp IS NOT NULL AND metric IS NOT NULL AND amount IS NOT NULL
     PRIMARY KEY (timestamp, user_guid, metric)
     WITH CLUSTERING ORDER BY (user_guid ASC, metric ASC)
     AND bloom_filter_fp_chance = 0.01

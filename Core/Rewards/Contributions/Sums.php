@@ -76,14 +76,14 @@ class Sums
         $query = new Custom();
 
         if ($this->user) {
-            $query->query("SELECT SUM(score) as score from contributions WHERE user_guid = ? 
+            $query->query("SELECT SUM(score_decimal) as score from contributions WHERE user_guid = ? 
                 AND timestamp = ?", 
                 [
                     new Varint((int) $this->user->guid),
                     new Timestamp($this->timestamp / 1000)
                 ]);
         } else {
-            $query->query("SELECT SUM(score) as score from contributions_by_timestamp WHERE timestamp = ?", 
+            $query->query("SELECT SUM(score_decimal) as score from contributions_by_timestamp WHERE timestamp = ?",
                 [
                     new Timestamp($this->timestamp / 1000)
                 ]);
@@ -95,7 +95,6 @@ class Sums
             error_log($e->getMessage());
         }
         
-        return (int) $rows[0]['score'];
+        return (float) $rows[0]['score'];
     }
-
 }
