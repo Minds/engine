@@ -71,8 +71,6 @@ abstract class ElggEntity extends ElggData implements
 		$this->attributes['tags'] = null;
 		$this->attributes['nsfw'] = [];
 		$this->attributes['nsfw_lock'] = [];
-		$this->attributes['nsfw'] = [];
-		$this->attributes['nsfw_lock'] = [];
 		$this->attributes['moderator_guid'] = null;
 		$this->attributes['time_moderated'] = null;
 		$this->attributes['allow_comments'] = true;
