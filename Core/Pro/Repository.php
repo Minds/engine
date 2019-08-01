@@ -92,7 +92,9 @@ class Repository
                         ->setHeadline($data['headline'] ?? '')
                         ->setTextColor($data['text_color'] ?? '')
                         ->setPrimaryColor($data['primary_color'] ?? '')
-                        ->setPlainBackgroundColor($data['plain_background_color'] ?? '');
+                        ->setPlainBackgroundColor($data['plain_background_color'] ?? '')
+                        ->setFooterText($data['footer_text'] ?? '')
+                        ->setFooterLinks($data['footer_links'] ?? []);
 
                     $response[] = $settings;
                 }
@@ -132,6 +134,8 @@ class Repository
                 'text_color' => $settings->getTextColor(),
                 'primary_color' => $settings->getPrimaryColor(),
                 'plain_background_color' => $settings->getPlainBackgroundColor(),
+                'footer_text' => $settings->getFooterText(),
+                'footer_links' => $settings->getFooterLinks(),
             ]),
         ];
 

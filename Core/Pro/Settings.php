@@ -26,6 +26,10 @@ use Minds\Traits\MagicAttributes;
  * @method Settings setPrimaryColor(string $primaryColor)
  * @method string getPlainBackgroundColor()
  * @method Settings setPlainBackgroundColor(string $plainBackgroundColor)
+ * @method string getFooterText()
+ * @method Settings setFooterText(string $footerText)
+ * @method array getFooterLinks()
+ * @method Settings setFooterLinks(array $footerLinks)
  * @method string getBackgroundImage()
  * @method Settings setBackgroundImage(string $backgroundImage)
  * @method string getLogoImage()
@@ -34,6 +38,12 @@ use Minds\Traits\MagicAttributes;
 class Settings implements JsonSerializable
 {
     use MagicAttributes;
+
+    const DEFAULT_TEXT_COLOR = '#000000';
+
+    const DEFAULT_PRIMARY_COLOR = '#4690df';
+
+    const DEFAULT_PLAIN_BACKGROUND_COLOR = '#ffffff';
 
     /** @var int */
     protected $userGuid;
@@ -62,6 +72,12 @@ class Settings implements JsonSerializable
     /** @var string */
     protected $logoImage;
 
+    /** @var string */
+    protected $footerText;
+
+    /** @var array */
+    protected $footerLinks = [];
+
     /**
      * @return array
      */
@@ -72,15 +88,17 @@ class Settings implements JsonSerializable
             'domain' => $this->domain,
             'title' => $this->title,
             'headline' => $this->headline,
-            'text_color' => $this->textColor,
-            'primary_color' => $this->primaryColor,
-            'plain_background_color' => $this->plainBackgroundColor,
+            'text_color' => $this->textColor ?: static::DEFAULT_TEXT_COLOR,
+            'primary_color' => $this->primaryColor ?: static::DEFAULT_PRIMARY_COLOR,
+            'plain_background_color' => $this->plainBackgroundColor ?: static::DEFAULT_PLAIN_BACKGROUND_COLOR,
+            'footer_text' => $this->footerText,
+            'footer_links' => $this->footerLinks,
             'background_image' => $this->backgroundImage,
             'logo_image' => $this->logoImage,
             'styles' => [
-                'text_color' => $this->textColor ?: '#000000',
-                'primary_color' => $this->primaryColor ?: '#4690df',
-                'plain_background_color' => $this->plainBackgroundColor ?: '#ffffff',
+                'text_color' => $this->textColor ?: static::DEFAULT_TEXT_COLOR,
+                'primary_color' => $this->primaryColor ?: static::DEFAULT_PRIMARY_COLOR,
+                'plain_background_color' => $this->plainBackgroundColor ?: static::DEFAULT_PLAIN_BACKGROUND_COLOR,
             ],
         ];
     }

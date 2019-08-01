@@ -196,6 +196,27 @@ class Manager
                 ->setPlainBackgroundColor($values['plain_background_color']);
         }
 
+        if (isset($values['footer_text'])) {
+            // TODO: Validate!
+
+            $settings
+                ->setFooterText($values['footer_text']);
+        }
+
+        if (isset($values['footer_links']) && is_array($values['footer_links'])) {
+            $footerLinks = array_map(function ($item) {
+                $href = $item['href'];
+                $title = ($item['title'] ?? null) ?: $item['href'];
+
+                return compact('title', 'href');
+            }, array_filter($values['footer_links'], function ($item) {
+                return $item && $item['href'] && filter_var($item['href'], FILTER_VALIDATE_URL);
+            }));
+
+            $settings
+                ->setFooterLinks(array_values($footerLinks));
+        }
+
         return $this->repository->update($settings);
     }
 }
