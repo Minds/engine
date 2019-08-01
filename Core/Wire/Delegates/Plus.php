@@ -47,7 +47,11 @@ class Plus
         }
 
         // 20 tokens, 180 tokens, 500 tokens.
-        if ($wire->getAmount() != "20000000000000000000" && $wire->getAmount() != "180000000000000000000" && $wire->getAmount() != "500000000000000000000") {
+        if (($wire->getAmount() != "20000000000000000000" && $receiver_address === 'offchain')        // 20 offchain
+            && ($wire->getAmount() != "200000000000000000000" && $receiver_address === 'offchain')    // 200 offchain
+            && ($wire->getAmount() != "5000000000000000000000" && $receiver_address === 'offchain')   // 5000 offchain
+            && ($wire->getAmount() != "40000000000000000000" && $receiver_address !== 'offchain')     // 40 onchain
+            && ($wire->getAmount() != "400000000000000000000" && $receiver_address !== 'offchain')) { // 400 onchain
             return $wire; //incorrect wire amount sent
         }
 
