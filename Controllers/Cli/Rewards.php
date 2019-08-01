@@ -92,13 +92,14 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
                 $reward = $manager->sync();
                 $total = $total->add($reward->getAmount());
                 $leaderboard[$user->guid] = ($reward->getAmount() / (10**18));
-                /*Dispatcher::trigger('notification', 'contributions', [
-                    'to' => [$user->guid],
-                    'from' => 100000000000000519,
-                    'notification_view' => 'contributions',
-                    'params' => [ 'amount' => (string) BigNumber::_($reward->getAmount()) ],
-                    'message' => ''
-                    ]);*/
+                if ($reward->getAmount() > 0) {
+                    Dispatcher::trigger('notification', 'reward', [
+                        'to' => [$user->guid],
+                        'from' => Core\Notification\Notification::SYSTEM_ENTITY,
+                        'notification_view' => 'rewards_summary',
+                        'params' => ['amount' => (string)BigNumber::_($reward->getAmount())],
+                    ]);
+                }
                 $amnt = (int) $reward->getAmount();
                 echo "\n [$i][$guid]: synced past 48 hours. {$amnt}/$total";
             } catch (\Exception $e) {
