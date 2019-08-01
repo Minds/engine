@@ -273,12 +273,12 @@ class ManagerSpec extends ObjectBehavior
     function it_should_check_if_the_entity_was_already_boosted(Boost $boost)
     {
         $this->elasticRepository->getList([
-            "hydrate" => true, 
-            "useElastic" => true, 
-            "state" => "review", 
-            "type" => "newsfeed", 
-            "entity_guid" => "123", 
-            "limit" => 1
+            'hydrate' => true, 
+            'useElastic' => true, 
+            'state' => 'review', 
+            'type' => 'newsfeed', 
+            'entity_guid' => '123', 
+            'limit' => 1
         ])
             ->shouldBeCalled()
             ->willReturn(new Response([$boost], ''));
@@ -300,7 +300,16 @@ class ManagerSpec extends ObjectBehavior
 
     function it_should_request_offchain_boosts(Boost $boost)
     {       
-        $this->elasticRepository->getList(["hydrate" => true, "useElastic" => true, "state" => "review", "type" => "newsfeed", "limit" => 10, "order" => "desc", "offchain" => true, "owner_guid" => "123"])
+        $this->elasticRepository->getList([
+            "hydrate" => true,
+            "useElastic" => true,
+            "state" => "review",
+            "type" => "newsfeed",
+            "limit" => 10,
+            "order" => "desc",
+            "offchain" => true,
+            "owner_guid" => "123"
+        ])
             ->shouldBeCalled()
             ->willReturn(new Response([$boost], ''));
 
@@ -363,7 +372,16 @@ class ManagerSpec extends ObjectBehavior
     }
 
     function runThroughGetList($boost, $existingBoosts) {
-        $this->elasticRepository->getList(["hydrate" => true, "useElastic" => true, "state" => "review", "type" => "newsfeed", "limit" => 10, "order" => "desc", "offchain" => true, "owner_guid" => "123"])
+        $this->elasticRepository->getList([
+            "hydrate" => true,
+            "useElastic" => true,
+            "state" => "review",
+            "type" => "newsfeed",
+            "limit" => 10,
+            "order" => "desc",
+            "offchain" => true,
+            "owner_guid" => "123"
+        ])
             ->shouldBeCalled()
             ->willReturn(new Response($existingBoosts, ''));
         

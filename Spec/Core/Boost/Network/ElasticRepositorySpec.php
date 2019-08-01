@@ -65,4 +65,5 @@ class ElasticRepositorySpec extends ObjectBehavior
         $this->add($boost)
             ->shouldReturn(true);
     }
+
 }

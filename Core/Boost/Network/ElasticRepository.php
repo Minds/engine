@@ -72,7 +72,7 @@ class ElasticRepository
             $must[] = [
                 'term' => [
                     'owner_guid' => $opts['owner_guid'],
-                ]
+                ],
             ];
         }
 
@@ -94,8 +94,8 @@ class ElasticRepository
         if ($opts['offchain']) {
             $must[] = [
                 'term' => [
-                    'token_method' => 'offchain'
-                ]
+                    'token_method' => 'offchain',
+                ],
             ];
         }
 
