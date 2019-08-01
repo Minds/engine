@@ -33,6 +33,7 @@ class overview implements Interfaces\Api
             'yourContribution' => $overview->getYourContribution(),
             'totalNetworkContribution' => $overview->getTotalNetworkContribution(),
             'yourShare' => $overview->getYourShare(),
+            'yourRewardFactor' => $overview->getYourRewardFactor()
         ];
         return Factory::response($response);
     }

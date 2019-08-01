@@ -8,6 +8,7 @@
 
 namespace Minds\Core\Rewards\Contributions;
 
+use Minds\Core\Analytics\UserStates\RewardFactor;
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Di\Di;
 use Minds\Core\Util\BigNumber;
@@ -41,6 +42,8 @@ class Overview
 
     /** @var float */
     protected $yourShare = 0;
+    /** @var float */
+    protected $yourRewardFactor = 1;
 
     public function __construct($sums = null, $repository = null, $manager = null, $cache = null)
     {
@@ -62,6 +65,7 @@ class Overview
         $this->yourContribution = 0;
         $this->totalNetworkContribution = 0;
         $this->yourShare = 0;
+        $this->yourRewardFactor = RewardFactor::getForUserState($this->user->getUserState());
 
         return $this;
     }
@@ -159,6 +163,14 @@ class Overview
     public function getYourShare()
     {
         return $this->yourShare;
+    }
+
+    /**
+     * @return float
+     */
+    public function getYourRewardFactor()
+    {
+        return $this->yourRewardFactor;
     }
 
     /**
