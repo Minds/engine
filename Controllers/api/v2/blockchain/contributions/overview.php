@@ -8,6 +8,7 @@
 
 namespace Minds\Controllers\api\v2\blockchain\contributions;
 
+use Minds\Core\Analytics\UserStates\RewardFactor;
 use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Api\Factory;
@@ -22,20 +23,29 @@ class overview implements Interfaces\Api
      */
     public function get($pages)
     {
-        $overview = new Contributions\Overview();
-        $overview
-            ->setUser(Session::getLoggedinUser())
-            ->calculate();
+        if (Factory::isLoggedIn()) {
+            $user = Session::getLoggedinUser();
+            $overview = new Contributions\Overview();
+            $overview
+                ->setUser($user)
+                ->calculate();
 
-        $response = [
-            'nextPayout' => $overview->getNextPayout(),
-            'currentReward' => $overview->getCurrentReward(),
-            'yourContribution' => $overview->getYourContribution(),
-            'totalNetworkContribution' => $overview->getTotalNetworkContribution(),
-            'yourShare' => $overview->getYourShare(),
-            'yourRewardFactor' => $overview->getYourRewardFactor()
-        ];
-        return Factory::response($response);
+            $rewardFactor = RewardFactor::getForUserState($user->getUserState());
+            $contributionValues = array_map(function($value) use ($rewardFactor) {
+                return $value * $rewardFactor;
+            }, Contributions\ContributionValues::$multipliers);
+
+            $response = [
+                'nextPayout' => $overview->getNextPayout(),
+                'currentReward' => $overview->getCurrentReward(),
+                'yourContribution' => $overview->getYourContribution(),
+                'totalNetworkContribution' => $overview->getTotalNetworkContribution(),
+                'yourShare' => $overview->getYourShare(),
+                'yourRewardFactor' => $overview->getYourRewardFactor(),
+                'contributionValues' => $contributionValues
+            ];
+            return Factory::response($response);
+        }
     }
 
     /**
