@@ -335,6 +335,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         // Create activity post
+        /** @var Core\Media\Feeds $feeds */
         $feeds = Di::_()->get('Media\Feeds')->setEntity($entity);
 
         if (
