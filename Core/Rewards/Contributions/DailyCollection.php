@@ -65,7 +65,7 @@ class DailyCollection
                 error_log($e->getMessage());
             }
 
-            $export[$timestamp]['share'] += ($contribution->getScore() / $totalScore) * 100;
+            $export[$timestamp]['share'] += ($totalScore == 0) ? 0 : ($contribution->getScore() / $totalScore) * 100;
         }
 
         return array_values($export);
