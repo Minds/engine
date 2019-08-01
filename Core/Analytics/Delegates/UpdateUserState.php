@@ -41,7 +41,7 @@ class UpdateUserState
     {
         if ($this->userState->getStateChange() !== 0) {
             $notificationView = ($this->userState->getStateChange() > 0) ?
-                'reward_state_increase' : 'reward_state_decrease';
+                'rewards_state_increase' : 'rewards_state_decrease';
             Dispatcher::trigger('notification', 'reward', [
                 'to' => [
                     $this->userState->getUserGuid()
