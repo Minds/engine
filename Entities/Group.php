@@ -41,6 +41,7 @@ class Group extends NormalizedEntity
     protected $mature = false;
     protected $rating = 1;
     protected $videoChatDisabled = 0; // enable by default
+    protected $conversationDisabled = 0; // enable by default
     protected $pinned_posts = [];
     protected $nsfw = [];
     protected $nsfw_lock = [];
@@ -63,6 +64,7 @@ class Group extends NormalizedEntity
         'mature',
         'rating',
         'videoChatDisabled',
+        'conversationDisabled',
         'pinned_posts',
     ];
 
@@ -103,6 +105,7 @@ class Group extends NormalizedEntity
             'rating' => $this->rating,
             'mature' => $this->mature,
             'videoChatDisabled' => $this->videoChatDisabled,
+            'conversationDisabled' => $this->conversationDisabled,
             'pinned_posts' => $this->pinned_posts,
             'nsfw' => $this->getNSFW(),
             'nsfw_lock' => $this->getNSFWLock()
@@ -400,6 +403,24 @@ class Group extends NormalizedEntity
     public function setVideoChatDisabled($value)
     {
         $this->videoChatDisabled = $value ? 1 : 0;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isConversationDisabled()
+    {
+        return (bool) $this->conversationDisabled;
+    }
+
+    /**
+     * @param $value
+     * @return $this
+     */
+    public function setConversationDisabled($value)
+    {
+        $this->conversationDisabled = $value ? 1 : 0;
         return $this;
     }
 

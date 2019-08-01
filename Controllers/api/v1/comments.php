@@ -144,7 +144,7 @@ class comments implements Interfaces\Api
             break;
           case is_numeric($pages[0]):
           default:
-            $entity = new \Minds\Entities\Entity($pages[0]);
+            $entity = Core\Di\Di::_()->get('EntitiesBuilder')->single($pages[0]);
 
             if ($entity instanceof Entities\Activity && $entity->remind_object) {
                 $entity = (object) $entity->remind_object;
@@ -207,7 +207,13 @@ class comments implements Interfaces\Api
                 $comment->setParentGuidL2($_POST['parentGuidL2']);
             }
 
-            if ($entity->type == 'group') {
+            if ($entity instanceof Entities\Group) {
+                if ($entity->isConversationDisabled()) {
+                    return Factory::response([
+                        'status' => 'error',
+                        'message' => 'Conversation has been disabled for this group',
+                    ]);
+                }
                 $comment->setGroupConversation(true);
             }
 
