@@ -25,17 +25,23 @@ class Manager
     /** @var GuidBuilder $guidBuilder */
     private $guidBuilder;
 
+    /** @var Config $config */
+    private $config;
+
     public function __construct(
         $repository = null,
         $elasticRepository = null,
         $entitiesBuilder = null,
-        $guidBuilder = null
+        $guidBuilder = null,
+        $config = null
     )
     {
         $this->repository = $repository ?: new Repository;
         $this->elasticRepository = $elasticRepository ?: new ElasticRepository;
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->guidBuilder = $guidBuilder ?: new GuidBuilder;
+        $this->config = $config ?: Di::_()->get('Config');
+
     }
 
     /**
@@ -145,7 +151,7 @@ class Manager
      * @param $boost
      * @return bool
      */
-    public function checkExisting($boost)
+    public function isDuplicateBoost($boost)
     {
         $existingBoost = $this->getList([
             'useElastic' => true,
@@ -157,6 +163,7 @@ class Manager
 
         return $existingBoost->count() > 0;
     }
+
     /**
      * True if the boost is invalid due to the offchain boost limit being reached
      *
@@ -173,12 +180,12 @@ class Manager
         }); 
         
         //reduce the impressions to count the days boosts.
-        $acc = array_reduce($offlineToday, function($acc, $_boost) {
-            $acc += $_boost->getImpressions();
-            return $acc;
+        $acc = array_reduce($offlineToday, function($carry = 0, $_boost) {
+            $carry += $_boost->getImpressions();
+            return $carry;
         });
 
-        $maxDaily = Di::_()->get('Config')->get('max_daily_boost_views');
+        $maxDaily = $this->config->get('max_daily_boost_views');
         return $acc + $boost->getImpressions() > $maxDaily; //still allow 10k
     }
     

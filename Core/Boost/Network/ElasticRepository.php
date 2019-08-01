@@ -31,7 +31,7 @@ class ElasticRepository
             'token' => 0,
             'offset' => null,
             'order' => null,
-            'offchain' => null
+            'offchain' => null,
         ], $opts);
 
         $must = [];
@@ -63,15 +63,15 @@ class ElasticRepository
         if ($opts['entity_guid']) {
             $must[] = [
                 'term' => [
-                    'entity_guid' => $opts['entity_guid']
-                ]
+                    'entity_guid' => $opts['entity_guid'],
+                ],
             ];
         }
 
         if ($opts['owner_guid']) {
             $must[] = [
                 'term' => [
-                    'owner_guid' => $opts['owner_guid']
+                    'owner_guid' => $opts['owner_guid'],
                 ]
             ];
         }
@@ -93,8 +93,8 @@ class ElasticRepository
 
         if ($opts['offchain']) {
             $must[] = [
-                "term" => [
-                    "token_method" => "offchain"
+                'term' => [
+                    'token_method' => 'offchain'
                 ]
             ];
         }
