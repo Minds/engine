@@ -43,11 +43,15 @@ class HydrateSettingsDelegate
     public function onGet(User $user, Settings $settings)
     {
         try {
-            $avatarUrl = $user->getIconURL('large');
+            $logoImage = $settings->getLogoGuid() ? sprintf(
+                '%sfs/v1/thumbnail/%s/master',
+                $this->config->get('cdn_url'),
+                $settings->getLogoGuid()
+            ) : $user->getIconURL('large');
 
-            if ($avatarUrl) {
+            if ($logoImage) {
                 $settings
-                    ->setLogoImage($avatarUrl);
+                    ->setLogoImage($logoImage);
             }
         } catch (\Exception $e) {
             error_log($e);

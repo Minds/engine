@@ -26,6 +26,8 @@ use Minds\Traits\MagicAttributes;
  * @method Settings setPrimaryColor(string $primaryColor)
  * @method string getPlainBackgroundColor()
  * @method Settings setPlainBackgroundColor(string $plainBackgroundColor)
+ * @method int|string getLogoGuid()
+ * @method Settings setLogoGuid(int|string $logoGuid)
  * @method string getFooterText()
  * @method Settings setFooterText(string $footerText)
  * @method array getFooterLinks()
@@ -66,6 +68,9 @@ class Settings implements JsonSerializable
     /** @var string */
     protected $plainBackgroundColor;
 
+    /** @var int */
+    protected $logoGuid;
+
     /** @var string */
     protected $backgroundImage;
 
@@ -93,6 +98,7 @@ class Settings implements JsonSerializable
             'plain_background_color' => $this->plainBackgroundColor ?: static::DEFAULT_PLAIN_BACKGROUND_COLOR,
             'footer_text' => $this->footerText,
             'footer_links' => $this->footerLinks,
+            'logo_guid' => (string) $this->logoGuid,
             'background_image' => $this->backgroundImage,
             'logo_image' => $this->logoImage,
             'styles' => [

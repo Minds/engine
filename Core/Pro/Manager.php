@@ -196,6 +196,13 @@ class Manager
                 ->setPlainBackgroundColor($values['plain_background_color']);
         }
 
+        if (isset($values['logo_guid'])) {
+            // TODO: Validate!
+
+            $settings
+                ->setLogoGuid($values['logo_guid']);
+        }
+
         if (isset($values['footer_text'])) {
             // TODO: Validate!
 
