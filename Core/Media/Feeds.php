@@ -1,21 +1,21 @@
 <?php
+
 namespace Minds\Core\Media;
 
 use Minds\Core;
 use Minds\Entities;
 use Minds\Helpers;
+use Minds\Core\Media;
 
 class Feeds
 {
-    private $indexDb;
-    private $entityDb;
+    private $updateActivitiesDelegate;
 
     protected $entity;
 
-    public function __construct($indexDb, $entityDb)
+    public function __construct($updateActivitiesDelegate = null)
     {
-        $this->indexDb = $indexDb;
-        $this->entityDb = $entityDb;
+        $this->updateActivitiesDelegate = $updateActivitiesDelegate ?: new Delegates\UpdateActivities();
     }
 
     public function setEntity($entity)
@@ -54,11 +54,7 @@ class Feeds
             throw new \Exception('Entity not set');
         }
 
-        foreach ($this->indexDb->getRow("activity:entitylink:{$this->entity->guid}") as $guid => $ts) {
-            $this->entityDb->insert($guid, [ 'message' => $this->entity->title ]);
-        }
-
-        return true;
+        $this->updateActivitiesDelegate->updateActivities($this->entity);
     }
 
     public function dispatch(array $targets = [])
