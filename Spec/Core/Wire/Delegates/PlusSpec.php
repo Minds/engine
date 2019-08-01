@@ -65,38 +65,6 @@ class PlusSpec extends ObjectBehavior
         $this->onWire($wire, 'offchain');
     }
 
-    function it_should_not_make_a_user_plus_if_offchain_wire_is_wrong_guid_sent(
-        Config $config
-    )
-    {
-        $this->beConstructedWith($config);
-
-        $config->get('blockchain')
-            ->willReturn([
-                'contracts' => [
-                    'wire' => [
-                        'plus_guid' => 123,
-                        'plus_address' => '0xaddr',
-                    ]
-                ]
-            ]);
-
-        $receiver = new User;
-        $receiver->guid = 123;
-
-        $sender = new User;
-        $sender->guid = 456;
-
-        $wire = new Wire();
-
-        $wire->setReceiver($receiver)
-            ->setAmount("10000000000000000000")
-            ->setSender($sender);
-
-        $wire = $this->onWire($wire, 'offchain');
-        $wire->getSender()->isPlus()->shouldBe(false);
-    }
-
     function it_should_make_a_user_plus_if_onchain_wire_sent(
         Config $config,
         User $receiver,
