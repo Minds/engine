@@ -295,7 +295,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('123');
 
-        $this->checkExisting($boost)->shouldReturn(true);
+        $this->isDuplicateBoost($boost)->shouldReturn(true);
     }
 
     function it_should_request_offchain_boosts(Boost $boost)
