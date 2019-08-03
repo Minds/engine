@@ -151,7 +151,7 @@ class Manager
      * @param $boost
      * @return bool
      */
-    public function isDuplicateBoost($boost)
+    public function checkExisting($boost)
     {
         $existingBoost = $this->getList([
             'useElastic' => true,
@@ -170,7 +170,7 @@ class Manager
      * @param Boost $type the Boost object.
      * @return boolean true if the boost limit has been reached.
      */
-    public function boostLimitReached($boost) {
+    public function isBoostLimitExceededBy($boost) {
         //get offchain boosts
         $offchain = $this->getOffchainBoosts($boost);
         
@@ -180,10 +180,10 @@ class Manager
         }); 
         
         //reduce the impressions to count the days boosts.
-        $acc = array_reduce($offlineToday, function($carry = 0, $_boost) {
+        $acc = array_reduce($offlineToday, function($carry, $_boost) {
             $carry += $_boost->getImpressions();
             return $carry;
-        });
+        }, 0);
 
         $maxDaily = $this->config->get('max_daily_boost_views');
         return $acc + $boost->getImpressions() > $maxDaily; //still allow 10k
