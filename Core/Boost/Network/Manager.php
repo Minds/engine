@@ -149,10 +149,9 @@ class Manager
     {
         $existingBoost = $this->getList([
             'useElastic' => true,
-            'state' => 'review',
             'type' => $boost->getType(),
             'entity_guid' => $boost->getEntityGuid(),
-            'limit' => 1
+            'limit' => 1,
         ]);
 
         return $existingBoost->count() > 0;
