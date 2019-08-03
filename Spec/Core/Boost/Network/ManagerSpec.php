@@ -273,7 +273,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $this->elasticRepository->getList([
             'useElastic' => true,
-            'state' => null,
+            'state' => 'review',
             'type' => 'newsfeed',
             'entity_guid' => '123',
             'limit' => 1,
@@ -281,6 +281,10 @@ class ManagerSpec extends ObjectBehavior
         ])
             ->shouldBeCalled()
             ->willReturn(new Response([$boost], ''));
+
+        $this->repository->getList(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(new Response([$boost]));
 
         $boost->getType()
             ->shouldBeCalled()
