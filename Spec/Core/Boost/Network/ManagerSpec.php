@@ -295,7 +295,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('123');
 
-        $this->isDuplicateBoost($boost)->shouldReturn(true);
+        $this->checkExisting($boost)->shouldReturn(true);
     }
 
     function it_should_request_offchain_boosts(Boost $boost)
@@ -339,7 +339,7 @@ class ManagerSpec extends ObjectBehavior
         }
         Di::_()->get('Config')->set('max_daily_boost_views', 10000);
         $this->runThroughGetList($boost, $boostArray);
-        $this->boostLimitReached($boost)->shouldReturn(true);
+        $this->isBoostLimitExceededBy($boost)->shouldReturn(true);
     }
 
     function it_should_recognise_a_user_has_NOT_reached_the_offchain_boost_limit(Boost $boost)
@@ -353,7 +353,7 @@ class ManagerSpec extends ObjectBehavior
         }
         Di::_()->get('Config')->set('max_daily_boost_views', 10000);
         $this->runThroughGetList($boost, $boostArray);
-        $this->boostLimitReached($boost)->shouldReturn(false);
+        $this->isBoostLimitExceededBy($boost)->shouldReturn(false);
     }
 
 
@@ -368,7 +368,7 @@ class ManagerSpec extends ObjectBehavior
         }
         Di::_()->get('Config')->set('max_daily_boost_views', 10000);
         $this->runThroughGetList($boost, $boostArray);
-        $this->boostLimitReached($boost)->shouldReturn(true);
+        $this->isBoostLimitExceededBy($boost)->shouldReturn(true);
     }
 
     function runThroughGetList($boost, $existingBoosts) {
