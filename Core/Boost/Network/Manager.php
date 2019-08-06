@@ -57,14 +57,14 @@ class Manager
             'state' => null,
         ], $opts);
 
-        if ($opts['state'] == 'review') {
+        if ($opts['state'] == 'review' || $opts['state'] == 'active') {
             $opts['useElastic'] = true;
         }
 
         if ($opts['useElastic']) {
             $response = $this->elasticRepository->getList($opts);
 
-            if ($opts['state'] === 'review') {
+            if ($opts['state'] === 'review' || $opts['state'] === 'active') {
                 $opts['guids'] = array_map(function ($boost) {
                     return $boost->getGuid();
                 }, $response->toArray());

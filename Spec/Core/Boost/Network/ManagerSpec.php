@@ -303,7 +303,7 @@ class ManagerSpec extends ObjectBehavior
         $this->elasticRepository->getList([
             "hydrate" => true,
             "useElastic" => true,
-            "state" => "review",
+            "state" => "active",
             "type" => "newsfeed",
             "limit" => 10,
             "order" => "desc",
@@ -375,7 +375,7 @@ class ManagerSpec extends ObjectBehavior
         $this->elasticRepository->getList([
             "hydrate" => true,
             "useElastic" => true,
-            "state" => "review",
+            "state" => "active",
             "type" => "newsfeed",
             "limit" => 10,
             "order" => "desc",
