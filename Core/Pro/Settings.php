@@ -105,6 +105,7 @@ class Settings implements JsonSerializable
                 'text_color' => $this->textColor ?: static::DEFAULT_TEXT_COLOR,
                 'primary_color' => $this->primaryColor ?: static::DEFAULT_PRIMARY_COLOR,
                 'plain_background_color' => $this->plainBackgroundColor ?: static::DEFAULT_PLAIN_BACKGROUND_COLOR,
+                'transparent_background_color' => sprintf("%sa0", $this->plainBackgroundColor ?: static::DEFAULT_PLAIN_BACKGROUND_COLOR),
             ],
         ];
     }
