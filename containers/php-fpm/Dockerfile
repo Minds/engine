@@ -1,5 +1,8 @@
 FROM minds/php:latest
 
+# Install opcache (move to php image)
+RUN docker-php-ext-install -j$(nproc) opcache
+
 # Additional folders
 
 RUN mkdir --parents --mode=0777 /tmp/minds-cache/ \
