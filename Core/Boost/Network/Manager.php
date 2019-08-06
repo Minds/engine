@@ -200,6 +200,7 @@ class Manager
     public function getOffchainBoosts($boost, $limit = 10) {
         $existingBoosts = $this->getList([
             'useElastic' => true,
+            'state' => 'active',
             'type' => $boost->getType(),
             'limit' => $limit,
             'order' => 'desc',

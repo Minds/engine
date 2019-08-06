@@ -108,7 +108,7 @@ class ElasticRepository
             $sort = ['@timestamp' => 'asc'];
         }
 
-        if ($opts['state'] === 'approved' || $opts['state'] === 'review') {
+        if ($opts['state'] === 'approved' || $opts['state'] === 'review' || $opts['state'] === 'active') {
             $must_not[] = [
                 'exists' => [
                     'field' => '@completed',
