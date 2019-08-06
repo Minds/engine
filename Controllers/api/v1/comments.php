@@ -144,11 +144,11 @@ class comments implements Interfaces\Api
             break;
           case is_numeric($pages[0]):
           default:
-            $entity = new \Minds\Entities\Entity($pages[0]);
+            $entity = Core\Di\Di::_()->get('EntitiesBuilder')->single($pages[0]);
 
-            if ($entity instanceof Entities\Activity && $entity->remind_object) {
-                $entity = (object) $entity->remind_object;
-            }
+            // if ($entity instanceof Entities\Activity && $entity->remind_object) {
+            //     $entity = (object) $entity->remind_object;
+            // }
 
             if (!$pages[0] || !$entity || $entity->type == 'comment') {
                 return Factory::response([
@@ -157,24 +157,17 @@ class comments implements Interfaces\Api
                 ]);
             }
 
-            if (!$entity->getAllowComments()) {
+            if (method_exists($entity, 'getAllowComments') && !$entity->getAllowComments()) {
                 return Factory::response([
                     'status' => 'error',
                     'message' => 'Comments are disabled for this post'
                 ]);
-            } 
+            }
 
             if (!$_POST['comment'] && !$_POST['attachment_guid']) {
                 return Factory::response([
                   'status' => 'error',
                   'message' => 'You must enter a message'
-                ]);
-            }
-
-            if ($entity instanceof Entities\Activity && !$entity->commentsEnabled) {
-                return Factory::response([
-                  'status' => 'error',
-                  'message' => 'Comments are disabled for this post'
                 ]);
             }
 
@@ -207,7 +200,13 @@ class comments implements Interfaces\Api
                 $comment->setParentGuidL2($_POST['parentGuidL2']);
             }
 
-            if ($entity->type == 'group') {
+            if ($entity instanceof Entities\Group) {
+                if ($entity->isConversationDisabled()) {
+                    return Factory::response([
+                        'status' => 'error',
+                        'message' => 'Conversation has been disabled for this group',
+                    ]);
+                }
                 $comment->setGroupConversation(true);
             }
 

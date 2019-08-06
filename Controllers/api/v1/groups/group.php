@@ -184,6 +184,10 @@ class group implements Interfaces\Api
             $group->setVideoChatDisabled($_POST['videoChatDisabled']);
         }
 
+        if (isset($_POST['conversationDisabled'])) {
+            $group->setConversationDisabled($_POST['conversationDisabled']);
+        }
+
         if (isset($_POST['tags'])) {
             $tags = $_POST['tags'];
             $sanitized_tags = [];
