@@ -96,7 +96,9 @@ class Repository
                         ->setLogoGuid($data['logo_guid'] ?? '')
                         ->setFooterText($data['footer_text'] ?? '')
                         ->setFooterLinks($data['footer_links'] ?? [])
-                        ->setTagList($data['tag_list'] ?? []);
+                        ->setTagList($data['tag_list'] ?? [])
+                        ->setScheme($data['scheme'] ?? '')
+                    ;
 
                     $response[] = $settings;
                 }
@@ -140,6 +142,7 @@ class Repository
                 'footer_text' => $settings->getFooterText(),
                 'footer_links' => $settings->getFooterLinks(),
                 'tag_list' => $settings->getTagList(),
+                'scheme' => $settings->getScheme(),
             ]),
         ];
 

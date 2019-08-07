@@ -34,6 +34,8 @@ use Minds\Traits\MagicAttributes;
  * @method Settings setFooterLinks(array $footerLinks)
  * @method array getTagList()
  * @method Settings setTagList(array $footerLinks)
+ * @method string getScheme()
+ * @method Settings setScheme(string $scheme)
  * @method string getBackgroundImage()
  * @method Settings setBackgroundImage(string $backgroundImage)
  * @method string getLogoImage()
@@ -88,31 +90,48 @@ class Settings implements JsonSerializable
     /** @var array */
     protected $tagList = [];
 
+    /** @var string */
+    protected $scheme;
+
     /**
      * @return array
      */
     public function export()
     {
+        $textColor = $this->textColor ?: static::DEFAULT_TEXT_COLOR;
+        $primaryColor = $this->primaryColor ?: static::DEFAULT_PRIMARY_COLOR;
+        $plainBackgroundColor = $this->plainBackgroundColor ?: static::DEFAULT_PLAIN_BACKGROUND_COLOR;
+
         return [
             'user_guid' => (string) $this->userGuid,
             'domain' => $this->domain,
             'title' => $this->title,
             'headline' => $this->headline,
-            'text_color' => $this->textColor ?: static::DEFAULT_TEXT_COLOR,
-            'primary_color' => $this->primaryColor ?: static::DEFAULT_PRIMARY_COLOR,
-            'plain_background_color' => $this->plainBackgroundColor ?: static::DEFAULT_PLAIN_BACKGROUND_COLOR,
+            'text_color' => $textColor,
+            'primary_color' => $primaryColor,
+            'plain_background_color' => $plainBackgroundColor,
             'footer_text' => $this->footerText,
             'footer_links' => $this->footerLinks,
             'tag_list' => $this->tagList,
             'logo_guid' => (string) $this->logoGuid,
             'background_image' => $this->backgroundImage,
             'logo_image' => $this->logoImage,
-            'styles' => [
-                'text_color' => $this->textColor ?: static::DEFAULT_TEXT_COLOR,
-                'primary_color' => $this->primaryColor ?: static::DEFAULT_PRIMARY_COLOR,
-                'plain_background_color' => $this->plainBackgroundColor ?: static::DEFAULT_PLAIN_BACKGROUND_COLOR,
-                'transparent_background_color' => sprintf("%sa0", $this->plainBackgroundColor ?: static::DEFAULT_PLAIN_BACKGROUND_COLOR),
-            ],
+            'scheme' => $this->scheme,
+            'styles' => $this->buildStyles(),
+        ];
+    }
+
+    public function buildStyles()
+    {
+        $textColor = $this->textColor ?: static::DEFAULT_TEXT_COLOR;
+        $primaryColor = $this->primaryColor ?: static::DEFAULT_PRIMARY_COLOR;
+        $plainBackgroundColor = $this->plainBackgroundColor ?: static::DEFAULT_PLAIN_BACKGROUND_COLOR;
+
+        return [
+            'text_color' => $textColor,
+            'primary_color' => $primaryColor,
+            'plain_background_color' => $plainBackgroundColor,
+            'transparent_background_color' => sprintf("%sa0", $plainBackgroundColor),
         ];
     }
 

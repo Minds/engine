@@ -239,6 +239,13 @@ class Manager
                 ->setTagList(array_values($tagList));
         }
 
+        if (isset($values['scheme'])) {
+            // TODO: Validate!
+
+            $settings
+                ->setScheme($values['scheme']);
+        }
+
         return $this->repository->update($settings);
     }
 }
