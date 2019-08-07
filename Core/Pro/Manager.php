@@ -224,6 +224,21 @@ class Manager
                 ->setFooterLinks(array_values($footerLinks));
         }
 
+
+        if (isset($values['tag_list']) && is_array($values['tag_list'])) {
+            $tagList = array_map(function ($item) {
+                $tag = trim($item['tag'], "#\t\n\r");
+                $label = ($item['label'] ?? null) ?: "#{$item['tag']}";
+
+                return compact('label', 'tag');
+            }, array_filter($values['tag_list'], function ($item) {
+                return $item && $item['tag'];
+            }));
+
+            $settings
+                ->setTagList(array_values($tagList));
+        }
+
         return $this->repository->update($settings);
     }
 }

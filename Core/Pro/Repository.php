@@ -95,7 +95,8 @@ class Repository
                         ->setPlainBackgroundColor($data['plain_background_color'] ?? '')
                         ->setLogoGuid($data['logo_guid'] ?? '')
                         ->setFooterText($data['footer_text'] ?? '')
-                        ->setFooterLinks($data['footer_links'] ?? []);
+                        ->setFooterLinks($data['footer_links'] ?? [])
+                        ->setTagList($data['tag_list'] ?? []);
 
                     $response[] = $settings;
                 }
@@ -138,6 +139,7 @@ class Repository
                 'logo_guid' => $settings->getLogoGuid(),
                 'footer_text' => $settings->getFooterText(),
                 'footer_links' => $settings->getFooterLinks(),
+                'tag_list' => $settings->getTagList(),
             ]),
         ];
 
