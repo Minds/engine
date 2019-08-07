@@ -33,13 +33,15 @@ use Minds\Traits\MagicAttributes;
  * @method array getFooterLinks()
  * @method Settings setFooterLinks(array $footerLinks)
  * @method array getTagList()
- * @method Settings setTagList(array $footerLinks)
+ * @method Settings setTagList(array $tagList)
  * @method string getScheme()
  * @method Settings setScheme(string $scheme)
  * @method string getBackgroundImage()
  * @method Settings setBackgroundImage(string $backgroundImage)
  * @method string getLogoImage()
  * @method Settings setLogoImage(string $logoImage)
+ * @method array getFeaturedContent()
+ * @method Settings setFeaturedContent(array $featuredContent)
  */
 class Settings implements JsonSerializable
 {
@@ -93,6 +95,9 @@ class Settings implements JsonSerializable
     /** @var string */
     protected $scheme;
 
+    /** @var array */
+    protected $featuredContent = [];
+
     /**
      * @return array
      */
@@ -116,6 +121,7 @@ class Settings implements JsonSerializable
             'logo_guid' => (string) $this->logoGuid,
             'background_image' => $this->backgroundImage,
             'logo_image' => $this->logoImage,
+            'featured_content' => $this->featuredContent,
             'scheme' => $this->scheme,
             'styles' => $this->buildStyles(),
         ];

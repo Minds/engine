@@ -12,6 +12,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Pro\Settings;
 use Minds\Entities\Object\Carousel;
 use Minds\Entities\User;
+use Minds\Helpers\Text;
 
 class HydrateSettingsDelegate
 {
@@ -69,6 +70,28 @@ class HydrateSettingsDelegate
                         $carousel->guid,
                         $carousel->last_updated
                     ));
+            }
+        } catch (\Exception $e) {
+            error_log($e);
+        }
+
+        try {
+            if ($user->getPinnedPosts()) {
+                $pinnedPosts = $this->entitiesBuilder->get(['guids' => Text::buildArray($user->getPinnedPosts())]);
+
+                uasort($pinnedPosts, function ($a, $b) {
+                    if (!$a || !$b) {
+                        return 0;
+                    }
+
+                    return ($a->time_created < $b->time_created) ? 1 : -1;
+                });
+
+                $featuredContent = Text::buildArray(array_values(array_filter(array_map(function ($pinnedPost) {
+                    return $pinnedPost->entity_guid ?: $pinnedPost->guid ?: null;
+                }, $pinnedPosts))));
+
+                $settings->setFeaturedContent($featuredContent);
             }
         } catch (\Exception $e) {
             error_log($e);
