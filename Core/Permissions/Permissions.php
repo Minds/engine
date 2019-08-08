@@ -5,9 +5,12 @@ namespace Minds\Core\Permissions;
 use Minds\Core\Di\Di;
 use Minds\Traits\MagicAttributes;
 use Minds\Entities\User;
-use Minds\Entities\Group;
-use Minds\Core\Permissions\Roles\Roles;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Permissions\Roles\Roles;
+use Minds\Core\Permissions\Delegates\ChannelRoleCalculator;
+use Minds\Core\Permissions\Delegates\GroupRoleCalculator;
+
+use Minds\Common\Access;
 
 class Permissions implements \JsonSerializable
 {
@@ -22,17 +25,14 @@ class Permissions implements \JsonSerializable
     /** @var Roles */
     private $roles;
     /** @var array */
-    private $channels;
-    /** @var array */
-    private $groups;
-    /** @var array */
     private $entities;
-    /** @var EntitiesBuilder */
-    private $entitiesBuilder;
+    /** @var ChannelRoleCalculator */
+    private $channelRoleCalculator;
+    /** @var GroupRoleCalculator */
+    private $groupRoleCalculator;
 
-    public function __construct(User $user, EntitiesBuilder $entitiesBuilder = null, Roles $roles = null)
+    public function __construct(User $user, Roles $roles = null, EntitiesBuilder $entitiesBuilder)
     {
-        $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->roles = $roles ?: new Roles();
         $this->user = $user;
         $this->isAdmin = $user->isAdmin();
@@ -40,30 +40,42 @@ class Permissions implements \JsonSerializable
         $this->groups = [];
         $this->channels = [];
         $this->entities = [];
-        $this->channels[$user->guid] = $user;
+        $this->channels[$user->getGUID()] = $user;
+        $this->channelRoleCalculator = new ChannelRoleCalculator($this->user, $this->roles);
+        $this->groupRoleCalculator = new GroupRoleCalculator($this->user, $this->roles, $entitiesBuilder);
     }
 
     /**
      * @param array entities an array of entities for calculating permissions
+     * Takes an array of entities and checks their permissions
+     * Builds up collections of permissions based on the user's relationships to the entity
+     * Any found channels and their roles are accessible in the channelRoleCalculator
+     * Any found groups and their roles are in the groupRoleCalculator
+     * All requested entities and the user's role is available in $this->entities
+     * @return void
      */
     public function calculate(array $entities = [])
     {
         foreach ($entities as $entity) {
-            $role = $this->getRoleForEntity($entity);
-            $this->entities[$entity->guid] = $role;
+            $this->entities[$entity->getGUID()] = $this->getRoleForEntity($entity);
         }
     }
 
     private function getRoleForEntity($entity)
     {
         $role = null;
-        error_log("get role for entity");
-        error_log(var_export($entity->getContainerEntity() instanceof User, true));
-        if ($entity->getContainerEntity() instanceof User) {
-            $role = $this->getChannelRole($entity->getContainerEntity());
-        }
-        if ($entity->getContainerEntity() instanceof Group) {
-            $role = $this->getGroupRole($entity->getContainerEntity());
+        //Access id is the best way to determine what the parent entity is
+        //Any of the access flags are a channel
+        //Anything else is a group guid
+        switch ($entity->getAccessId()) {
+            case Access::UNLISTED:
+            case Access::LOGGED_IN:
+            case Access::PUBLIC:
+            case Access::UNKNOWN:
+                $role = $this->channelRoleCalculator->calculate($entity);
+                break;
+            default:
+                $role = $this->groupRoleCalculator->calculate($entity);
         }
         //Apply global overrides
         if ($this->isAdmin) {
@@ -76,32 +88,24 @@ class Permissions implements \JsonSerializable
         return $role;
     }
 
-    private function getChannelRole(User $channel)
-    {
-        error_log("Getting channel role");
-        $this->channels[$channel->guid] = $channel;
-        if($channel->guid === $this->user->guid) {
-            return $this->roles->getRole(Roles::ROLE_CHANNEL_OWNER);
-        }
-        if ($this->user->isSubscribed($owner->guid)) {
-            return $this->roles->getRole(Roles::ROLE_CHANNEL_SUBSCRIBER);
-        } else {
-            return $this->roles->getRole(Roles::ROLE_CHANNEL_NON_SUBSCRIBER);
-        }
-    }
-
-    private function getGroupOwner(Group $group)
-    {
-        $this->groups[$group->guid] = $group;
-    }
-
+    /* Export the nested objects */
     public function export()
     {
         $export = [];
         $export['user'] = $this->user->export();
+        $export['channels'] = $this->getChannels();
+        $export['groups'] = $this->getGroups();
         $export['entities'] = $this->entities;
 
         return $export;
+    }
+
+    public function getChannels() {
+        return $this->channelRoleCalculator->getChannels();
+    }
+
+    public function getGroups() {
+        return $this->groupRoleCalculator->getGroups();
     }
 
     public function jsonSerialize()

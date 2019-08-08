@@ -31,9 +31,7 @@ class Manager {
        
         $user = $this->entitiesBuilder->single($opts['user_guid']);
         $entities = $this->entitiesBuilder->get($opts);
-        foreach($entities as $entity) {
-            error_log(var_export($entity, true));
-        }
+        error_log(var_export($user->getGroupMembership(), true));
         if ($user->getType() !== 'user') {
             throw new \InvalidArgumentException('Entity is not a user');
         }

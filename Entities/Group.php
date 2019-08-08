@@ -541,7 +541,7 @@ class Group extends NormalizedEntity
      */
     public function isBanned($user = null)
     {
-        return (new Membership($this))->isInvited($user);
+        return Membership::_($this)->isBanned($user);
     }
 
     /**
