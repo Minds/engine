@@ -141,6 +141,20 @@ class channel implements Interfaces\Api
             $opts['nsfw'] = explode(',', $nsfw);
         }
 
+        $hashtag = null;
+
+        if (isset($_GET['hashtag'])) {
+            $hashtag = strtolower($_GET['hashtag']);
+        }
+
+        if ($hashtag) {
+            $opts['hashtags'] = [$hashtag];
+            $opts['filter_hashtags'] = true;
+        } elseif (isset($_GET['hashtags']) && $_GET['hashtags']) {
+            $opts['hashtags'] = explode(',', $_GET['hashtags']);
+            $opts['filter_hashtags'] = true;
+        }
+
         try {
             $result = $this->getData($entities, $opts, $asActivities, $sync);
 
