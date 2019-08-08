@@ -23,12 +23,13 @@ class roles implements Interfaces\Api
             $manager = Di::_()->get('Permissions\Manager');
             $opts = [
                 'user_guid' => $pages[0],
-                'guids' => $_GET['guids']
+                'guids' => $_GET['guids'],
             ];
             $permissions = $manager->getList($opts);
+
             return Factory::response([
                 'status' => 'success',
-                'roles' => $permissions
+                'roles' => $permissions,
             ]);
         } catch (Exception $ex) {
             return Factory::response([

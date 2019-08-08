@@ -2,14 +2,12 @@
 
 namespace Minds\Core\Permissions;
 
-use Minds\Core\Di\Di;
 use Minds\Traits\MagicAttributes;
 use Minds\Entities\User;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Permissions\Roles\Roles;
 use Minds\Core\Permissions\Delegates\ChannelRoleCalculator;
 use Minds\Core\Permissions\Delegates\GroupRoleCalculator;
-
 use Minds\Common\Access;
 
 class Permissions implements \JsonSerializable
@@ -46,13 +44,13 @@ class Permissions implements \JsonSerializable
     }
 
     /**
-     * @param array entities an array of entities for calculating permissions
      * Takes an array of entities and checks their permissions
      * Builds up collections of permissions based on the user's relationships to the entity
      * Any found channels and their roles are accessible in the channelRoleCalculator
      * Any found groups and their roles are in the groupRoleCalculator
-     * All requested entities and the user's role is available in $this->entities
-     * @return void
+     * All requested entities and the user's role is available in $this->entities.
+     *
+     * @param array entities an array of entities for calculating permissions
      */
     public function calculate(array $entities = [])
     {
@@ -88,7 +86,11 @@ class Permissions implements \JsonSerializable
         return $role;
     }
 
-    /* Export the nested objects */
+    /**
+     * Export the nested objects.
+     *
+     * @return array serialized objects
+     */
     public function export()
     {
         $export = [];
@@ -100,14 +102,25 @@ class Permissions implements \JsonSerializable
         return $export;
     }
 
-    public function getChannels() {
+    /**
+     * @return array channel guids with the user's role
+     */
+    public function getChannels()
+    {
         return $this->channelRoleCalculator->getChannels();
     }
 
-    public function getGroups() {
+    /**
+     * @return array group guids with the user's role
+     */
+    public function getGroups()
+    {
         return $this->groupRoleCalculator->getGroups();
     }
 
+    /**
+     * @return array serialized objects
+     */
     public function jsonSerialize()
     {
         return $this->export();

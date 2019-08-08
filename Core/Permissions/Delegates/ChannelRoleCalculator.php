@@ -12,10 +12,11 @@ class ChannelRoleCalculator extends BaseRoleCalculator
     private $channels = [];
 
     /**
-     * @param $entity an entity from a channel
      * Retrieves permissions for an entity relative to the user's role in a channel
      * Retrieves the role from the in memory cache if we've seen this channel before during this request
-     * Else checks the user's membership against the channel
+     * Else checks the user's membership against the channel.
+     *
+     * @param $entity an entity from a channel
      *
      * @return Role
      */

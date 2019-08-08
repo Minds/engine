@@ -24,10 +24,11 @@ class GroupRoleCalculator extends BaseRoleCalculator
     }
 
     /**
-     * @param $entity an entity belonging to a group
      * Retrieves permissions for an entity relative to the user's role in a group
      * Retrieves the role from the in memory cache if we've seen this group before during this request
-     * Else gets the group and checks the user's membership
+     * Else gets the group and checks the user's membership.
+     *
+     * @param $entity an entity belonging to a group
      *
      * @return Role
      */
