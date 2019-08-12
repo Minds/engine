@@ -61,6 +61,9 @@ class channel implements Interfaces\Api
                 $type = 'group';
                 $container_guid = null;
                 break;
+            case 'all':
+                $type = 'all';
+                break;
         }
 
         //
@@ -101,6 +104,8 @@ class channel implements Interfaces\Api
 
         $forcePublic = (bool) ($_GET['force_public'] ?? false);
 
+        $exclude = explode(',', $_GET['exclude'] ?? '');
+
         $query = null;
 
         if (isset($_GET['query'])) {
@@ -134,6 +139,7 @@ class channel implements Interfaces\Api
             'query' => $query,
             'single_owner_threshold' => 0,
             'pinned_guids' => $type === 'activity' ? array_reverse($container->getPinnedPosts()) : null,
+            'exclude' => $exclude,
         ];
 
         if (isset($_GET['nsfw'])) {
