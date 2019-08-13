@@ -390,16 +390,16 @@ class User extends \ElggUser
     public function addPinned($guid)
     {
         $pinned = $this->getPinnedPosts();
+
         if (!$pinned) {
             $pinned = [];
-        } else if (count($pinned) > 2) {
-            array_shift($pinned);
         }
 
         if (array_search($guid, $pinned) === false) {
-            $pinned[] = (string)$guid;
-            $this->setPinnedPosts($pinned);
+            $pinned[] = (string) $guid;
         }
+
+        $this->setPinnedPosts($pinned);
     }
 
     /**
@@ -425,10 +425,10 @@ class User extends \ElggUser
      * @return $this
      */
     public function setPinnedPosts($pinned) {
-        if (count($pinned) > 3) {
-            $pinned = array_slice($pinned, 0, 3);
-        }
-        $this->pinned_posts = $pinned;
+        $maxPinnedPosts = $this->isPro() ? 12 : 3;
+
+        $this->pinned_posts = array_slice($pinned, -$maxPinnedPosts, null, false);
+
         return $this;
     }
 
