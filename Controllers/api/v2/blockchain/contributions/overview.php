@@ -27,12 +27,16 @@ class overview implements Interfaces\Api
             ->setUser(Session::getLoggedinUser())
             ->calculate();
 
+        $contributionValues = Contributions\ContributionValues::$multipliers;
+
         $response = [
             'nextPayout' => $overview->getNextPayout(),
             'currentReward' => $overview->getCurrentReward(),
             'yourContribution' => $overview->getYourContribution(),
             'totalNetworkContribution' => $overview->getTotalNetworkContribution(),
             'yourShare' => $overview->getYourShare(),
+            'yourRewardFactor' => 1,
+            'contributionValues' => $contributionValues
         ];
         return Factory::response($response);
     }
