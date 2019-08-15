@@ -2,6 +2,8 @@
 
 namespace Minds\Api;
 
+use Minds\Core\Di\Di;
+use Minds\Core\Pro\Domain;
 use Minds\Interfaces;
 use Minds\Helpers;
 use Minds\Core\Security;
@@ -78,15 +80,22 @@ class Factory
      */
     public static function pamCheck($request, $response)
     {
-        if ( $request->getAttribute('oauth_user_id') 
-            || Security\XSRF::validateRequest()
+        /** @var Domain $proDomain */
+        $proDomain = Di::_()->get('Pro\Domain');
+
+        if (
+            $request->getAttribute('oauth_user_id') ||
+            Security\XSRF::validateRequest() ||
+            $proDomain->validateRequest($request)
         ) {
             return true;
         } else {
             //error_log('failed authentication:: OAUTH via API');
             ob_end_clean();
+
+            static::setCORSHeader();
+
             header('Content-type: application/json');
-            header("Access-Control-Allow-Origin: *");
             header('HTTP/1.1 401 Unauthorized', true, 401);
             echo json_encode([
                 'error' => 'Sorry, you are not authenticated', 
@@ -108,8 +117,10 @@ class Factory
         } else {
             error_log('security: unauthorized access to admin api');
             ob_end_clean();
+
+            static::setCORSHeader();
+
             header('Content-type: application/json');
-            header("Access-Control-Allow-Origin: *");
             header('HTTP/1.1 401 Unauthorized', true, 401);
             echo json_encode(array('error'=>'You are not an admin', 'code'=>401));
             exit;
@@ -126,8 +137,10 @@ class Factory
             return true;
         } else {
             ob_end_clean();
+
+            static::setCORSHeader();
+
             header('Content-type: application/json');
-            header("Access-Control-Allow-Origin: *");
             header('HTTP/1.1 401 Unauthorized', true, 401);
             echo json_encode([
               'status' => 'error',
@@ -151,9 +164,24 @@ class Factory
 
         ob_end_clean();
 
+        static::setCORSHeader();
+
         header('Content-type: application/json');
-        header("Access-Control-Allow-Origin: *");
         echo json_encode($data);
+    }
+
+    /**
+     * Sets the CORS header, if not already set
+     */
+    public static function setCORSHeader()
+    {
+        $wasSet = count(array_filter(headers_list(), function ($header) {
+            return stripos($header, 'Access-Control-Allow-Origin:') === 0;
+        })) > 0;
+
+        if (!$wasSet) {
+            header("Access-Control-Allow-Origin: *");
+        }
     }
 
     /**

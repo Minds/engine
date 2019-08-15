@@ -66,6 +66,7 @@ class Minds extends base
 
         (new \Minds\Entities\EntitiesProvider())->register();
         (new Config\ConfigProvider())->register();
+        (new Router\RouterProvider())->register();
         (new OAuth\OAuthProvider())->register();
         (new Sessions\SessionsProvider())->register();
         (new Boost\BoostProvider())->register();

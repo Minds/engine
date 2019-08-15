@@ -70,6 +70,15 @@ class Router
         $request = ServerRequestFactory::fromGlobals();
         $response = new JsonResponse([]);
 
+        /** @var Router\Manager $manager */
+        $manager = Di::_()->get('Router\Manager');
+
+        $result = $manager->handle($request, $response);
+
+        if ($result === false) {
+            return null;
+        }
+
         if ($request->getMethod() === 'OPTIONS') {
             header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
             header('Access-Control-Allow-Credentials: true');
@@ -112,6 +121,7 @@ class Router
         if (isset($_GET['referrer'])) {
             Helpers\Campaigns\Referrals::register($_GET['referrer']);
         }
+
         $loop = count($segments);
         while ($loop >= 0) {
             $offset = $loop - 1;
