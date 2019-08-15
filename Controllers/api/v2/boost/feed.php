@@ -118,7 +118,11 @@ class feed implements Interfaces\Api
                 $next = $iterator->getOffset();
 
                 if (isset($boosts[1]) && !$isBoostFeed) { // Always offset to 2rd in list if in rotator
-                    $next = $boosts[1]->getTimestamp();
+                    if (!$offset) {
+                        $next = $boosts[1]->getTimestamp();
+                    } else {
+                        $next = 0;
+                    }
                 } elseif ($isBoostFeed) {
                     $len = count($boosts);
                     $next = $boosts[$len -1]->getTimestamp();
