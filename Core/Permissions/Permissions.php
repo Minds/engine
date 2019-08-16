@@ -30,12 +30,14 @@ class Permissions implements \JsonSerializable
     private $channelRoleCalculator;
     /** @var GroupRoleCalculator */
     private $groupRoleCalculator;
+    /** @var EntitiesBuilder */
+    private $entitiesBuilder;
 
     public function setUser(User $user) {
         throw new ImmutableException('User can only be set in the constructor');
     }
 
-    public function __construct(User $user, Roles $roles = null)
+    public function __construct(User $user, Roles $roles = null, EntitiesBuilder $entitiesBuilder = null)
     {
         $this->roles = $roles ?: new Roles();
         $this->user = $user;
@@ -44,6 +46,7 @@ class Permissions implements \JsonSerializable
         $this->groups = [];
         $this->channels = [];
         $this->entities = [];
+        $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');;
         $this->channels[$user->getGUID()] = $user;
         $this->channelRoleCalculator = new ChannelRoleCalculator($this->user, $this->roles);
         $this->groupRoleCalculator = new GroupRoleCalculator($this->user, $this->roles, $entitiesBuilder);
