@@ -11,6 +11,7 @@ use Minds\Core\EntitiesBuilder;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Prophet;
 use Minds\Common\Access;
+use Minds\Exceptions\ImmutableException;
 
 class PermissionsSpec extends ObjectBehavior
 {
@@ -37,7 +38,8 @@ class PermissionsSpec extends ObjectBehavior
         $this->subscribedChannel = $subscribedChannel;
         $this->unsubscribedChannel = $unsubscribedChannel;
         $this->entitiesBuilder = $entitiesBuilder;
-
+        $this->user->isAdmin()->willReturn(false);
+        $this->user->isBanned()->willReturn(false);
         $this->user->getGUID()->willReturn(1);
         $this->subscribedChannel->getGUID()->willReturn(2);
         $this->unsubscribedChannel->getGUID()->willReturn(3);
@@ -54,6 +56,11 @@ class PermissionsSpec extends ObjectBehavior
     public function it_is_initializable()
     {
         $this->shouldHaveType(Permissions::class);
+    }
+
+    public function it_should_except_when_setting_a_user() {
+        $this->shouldThrow(new ImmutableException('User can only be set in the constructor'))
+            ->duringSetUser($this->user);
     }
 
     public function it_should_return_admin_permissions()

@@ -10,6 +10,7 @@ use Minds\Core\Permissions\Delegates\ChannelRoleCalculator;
 use Minds\Core\Permissions\Delegates\GroupRoleCalculator;
 use Minds\Common\Access;
 use Minds\Core\Di\Di;
+use Minds\Exceptions\ImmutableException;
 
 class Permissions implements \JsonSerializable
 {
@@ -29,8 +30,12 @@ class Permissions implements \JsonSerializable
     private $channelRoleCalculator;
     /** @var GroupRoleCalculator */
     private $groupRoleCalculator;
-    /** @var EntityBuilder */
-    private $entityBuilder;
+    /** @var EntitiesBuilder */
+    private $entitiesBuilder;
+
+    public function setUser(User $user) {
+        throw new ImmutableException('User can only be set in the constructor');
+    }
 
     public function __construct(User $user, Roles $roles = null, EntitiesBuilder $entitiesBuilder = null)
     {
@@ -42,6 +47,7 @@ class Permissions implements \JsonSerializable
         $this->groups = [];
         $this->channels = [];
         $this->entities = [];
+        $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->channels[$user->getGUID()] = $user;
         $this->channelRoleCalculator = new ChannelRoleCalculator($this->user, $this->roles);
         $this->groupRoleCalculator = new GroupRoleCalculator($this->user, $this->roles, $entitiesBuilder);
