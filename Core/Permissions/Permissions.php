@@ -9,6 +9,7 @@ use Minds\Core\Permissions\Roles\Roles;
 use Minds\Core\Permissions\Delegates\ChannelRoleCalculator;
 use Minds\Core\Permissions\Delegates\GroupRoleCalculator;
 use Minds\Common\Access;
+use Minds\Core\Di\Di;
 
 class Permissions implements \JsonSerializable
 {
@@ -28,9 +29,12 @@ class Permissions implements \JsonSerializable
     private $channelRoleCalculator;
     /** @var GroupRoleCalculator */
     private $groupRoleCalculator;
+    /** @var EntityBuilder */
+    private $entityBuilder;
 
-    public function __construct(User $user, Roles $roles = null, EntitiesBuilder $entitiesBuilder)
+    public function __construct(User $user, Roles $roles = null, EntitiesBuilder $entitiesBuilder = null)
     {
+        $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->roles = $roles ?: new Roles();
         $this->user = $user;
         $this->isAdmin = $user->isAdmin();

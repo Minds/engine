@@ -4,6 +4,7 @@ namespace Minds\Core\Permissions;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Permissions\Permissions;
+use Minds\Core\EntitiesBuilder;
 
 /*
 * Manager for managing role based permissions
@@ -46,7 +47,7 @@ class Manager
         }
 
         /** @var Permissions */
-        $permissions = new Permissions($user);
+        $permissions = new Permissions($user, null, $entitiesBuilder);
         if (is_array($entities)) {
             $permissions->calculate($entities);
         }

@@ -49,4 +49,18 @@ class UserSpec extends ObjectBehavior
         $this->setOnchainBooster(1560192357);
         $this->isOnchainBooster()->shouldReturn(false);
     }
+
+    function it_should_have_a_default_mode_of_open() {
+        $this->getMode()->shouldEqual(User::MODE_OPEN);
+    }
+
+    function it_should_assign_channel_modes() {
+        $this->setMode(User::MODE_CLOSED); 
+        $this->getMode()->shouldEqual(User::MODE_CLOSED);
+    }
+
+    function it_should_export_values() {
+        $export = $this->export()->getWrappedObject();
+        expect($export['mode'])->shouldEqual(User::MODE_OPEN);
+    }
 }
