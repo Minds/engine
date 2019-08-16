@@ -7,7 +7,7 @@ use Minds\Core\Di\Di;
 use Minds\Interfaces;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Session; 
-use Minds\Core\Permissions\Permissions; 
+use Minds\Core\Permissions\Entities\EntityPermissions; 
 
 class comments implements Interfaces\Api
 {
@@ -45,6 +45,13 @@ class comments implements Interfaces\Api
         $entitiesBuilder = Di::_()->get('EntitiesBuilder');
         $entity = $entitiesBuilder->single($pages[0]);
 
+        if (!$entity) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'entity not found',
+            ]);
+        }
+
         if (!$entity->canEdit($owner)) {
             return Factory::response([
                 'status' => 'error',
@@ -53,8 +60,8 @@ class comments implements Interfaces\Api
         }
 
         /** @var PermissionsManager */
-        $manager = Di::_()->get('Permissions\Manager');
-        $permissions = new Permissions();
+        $manager = Di::_()->get('Permissions\Entities\Manager');
+        $permissions = new EntityPermissions();
         $permissions->setAllowComments($allowed);
         $manager->save($entity, $permissions);
 
