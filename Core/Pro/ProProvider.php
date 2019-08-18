@@ -23,5 +23,9 @@ class ProProvider extends Provider
         $this->di->bind('Pro\Domain', function ($di) {
             return new Domain();
         }, ['useFactory' => true]);
+
+        $this->di->bind('Pro\Channel\Manager', function ($di) {
+            return new Channel\Manager();
+        }, ['useFactory' => true]);
     }
 }
