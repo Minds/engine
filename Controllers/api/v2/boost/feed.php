@@ -47,6 +47,7 @@ class feed implements Interfaces\Api
         $rating = intval($_GET['rating'] ?? $currentUser->getBoostRating());
         $platform = $_GET['platform'] ?? 'other';
         $quality = 0;
+        $isBoostFeed = $_GET['boostfeed'] ?? false;
 
         if ($limit === 0) {
             return Factory::response([
@@ -58,6 +59,10 @@ class feed implements Interfaces\Api
 
         $cacher = Core\Data\cache\factory::build('Redis');
         $offset =  $cacher->get(Core\Session::getLoggedinUser()->guid . ':boost-offset-rotator');
+
+        if ($isBoostFeed) {
+            $offset = $_GET['from_timestamp'] ?? 0;
+        }
 
         // Options specific to newly created users (<=1 hour) and iOS users
 
@@ -112,14 +117,21 @@ class feed implements Interfaces\Api
 
                 $next = $iterator->getOffset();
 
-                if (isset($boosts[1])) { // Always offset to 2rd in list
-                    $next = $boosts[1]->getTimestamp();
+                if (isset($boosts[1]) && !$isBoostFeed) { // Always offset to 2rd in list if in rotator
+                    if (!$offset) {
+                        $next = $boosts[1]->getTimestamp();
+                    } else {
+                        $next = 0;
+                    }
+                } elseif ($isBoostFeed) {
+                    $len = count($boosts);
+                    $next = $boosts[$len -1]->getTimestamp();
                 }
 
-                $ttl = 1800; // 30 minutes
-                if (($next / 1000) < strtotime('48 hours ago')) {
-                    $ttl = 300; // 5 minutes;
-                }
+                // $ttl = 1800; // 30 minutes
+                // if (($next / 1000) < strtotime('48 hours ago')) {
+                    $ttl = 150; // 2.5 minutes;
+                // }
 
                 $cacher->set(Core\Session::getLoggedinUser()->guid . ':boost-offset-rotator', $next, $ttl);
                 break;

@@ -176,15 +176,16 @@ production:runners:
   stage: deploy:production
   image: minds/ci:latest
   script:
+    - IMAGE_LABEL="production"
     - $(aws ecr get-login --no-include-email --region us-east-1)
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - docker pull $CI_REGISTRY_IMAGE/runners:$CI_BUILD_REF
     # Push to production register
-    - docker tag $CI_REGISTRY_IMAGE/runners:$CI_BUILD_REF $ECR_REPOSITORY_URL_RUNNERS
-    - docker push $ECR_REPOSITORY_URL_RUNNERS:production
+    - docker tag $CI_REGISTRY_IMAGE/runners:$CI_BUILD_REF $ECR_REPOSITORY_URL_RUNNERS:$IMAGE_LABEL
+    - docker push $ECR_REPOSITORY_URL_RUNNERS:$IMAGE_LABEL
     # Push gitlab registry
-    - docker tag $CI_REGISTRY_IMAGE/runners:$CI_BUILD_REF $CI_REGISTRY_IMAGE/runners:latest
-    - docker push $CI_REGISTRY_IMAGE/runners:latest
+    - docker tag $CI_REGISTRY_IMAGE/runners:$CI_BUILD_REF $CI_REGISTRY_IMAGE/runners:$IMAGE_LABEL
+    - docker push $CI_REGISTRY_IMAGE/runners:$IMAGE_LABEL
     - aws ecs update-service --service=$ECS_RUNNERS_PRODUCTION_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
   only:
     refs:
