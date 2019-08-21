@@ -92,8 +92,7 @@ class Events
             $event->setResponse([
                 $notification
             ]);
-
-	    });
+        });
 
         /**
          * Create a notification upon @mentioning on activities or comments
