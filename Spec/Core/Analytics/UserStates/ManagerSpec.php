@@ -79,7 +79,7 @@ class ManagerSpec extends ObjectBehavior
                 'previous_state' => 'resurrected',
                 'activity_percentage' => '0.14',
                 'reward_factor' => 1,
-                'previous_reward_factor' => 1.5,
+                'previous_reward_factor' => 1.25,
                 'state_change' => UserState::stateChange('resurrected', 'curious')
             ],
         ];
