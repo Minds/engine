@@ -1,10 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "f342e1279b408d73f9f41a414c74de73",
+    "content-hash": "782c23a4fe3da77ee5b7b9bdbc674ec9",
     "packages": [
         {
             "name": "Minds/Surge",
@@ -12,7 +12,7 @@
             "source": {
                 "type": "git",
                 "url": "https://bc220f12a84437201d2bc003c3afe0b543040b36@github.com/minds/Surge.git",
-                "reference": "20dbf78c080504ee67db2eb04070bddabcf9b576"
+                "reference": "28efecd8e6518869aca8e0357cdb869e82caf6d4"
             },
             "type": "library",
             "autoload": {
@@ -21,7 +21,7 @@
                 }
             },
             "description": "A php library for sending push notifications",
-            "time": "2019-01-29T20:04:40+00:00"
+            "time": "2019-08-21 12:40:21"
         },
         {
             "name": "abraham/twitteroauth",
@@ -1536,7 +1536,7 @@
                 "Apache-2.0"
             ],
             "description": "A PHP SDK for cinemr integration",
-            "time": "2014-12-31T09:23:07+00:00"
+            "time": "2014-12-31 09:23:07"
         },
         {
             "name": "lcobucci/jwt",
@@ -1740,7 +1740,7 @@
                 }
             },
             "description": "Minds PHP Web3",
-            "time": "2018-05-10T20:47:33+00:00"
+            "time": "2018-05-10 20:47:33"
         },
         {
             "name": "mongodb/mongodb",
@@ -3101,7 +3101,7 @@
             "support": {
                 "source": "https://github.com/Minds/phpcassa/tree/minds-legacy"
             },
-            "time": "2016-09-27T16:15:29+00:00"
+            "time": "2016-09-27 16:15:29"
         },
         {
             "name": "tijsverkoyen/twitteroauth",
@@ -3141,7 +3141,7 @@
             ],
             "description": "PHP Twitter is a (wrapper)class to communicate with Twitter.",
             "homepage": "https://github.com/tijsverkoyen/TwitterOAuth",
-            "time": "2014-04-30T05:40:02+00:00"
+            "time": "2014-04-30 05:40:02"
         },
         {
             "name": "twilio/sdk",
@@ -3259,7 +3259,7 @@
                 "rabbitmq"
             ],
             "abandoned": "php-amqplib/php-amqplib",
-            "time": "2018-08-10T14:32:08+00:00"
+            "time": "2018-08-10 14:32:08"
         },
         {
             "name": "vscn/cruftflake",
@@ -3308,7 +3308,7 @@
                 "source": "https://github.com/davegardnerisme/cruftflake/tree/master",
                 "issues": "https://github.com/davegardnerisme/cruftflake/issues"
             },
-            "time": "2015-03-26T12:04:57+00:00"
+            "time": "2015-03-26 12:04:57"
         },
         {
             "name": "zendframework/zend-diactoros",
@@ -3434,7 +3434,7 @@
                 "rest",
                 "service discovery"
             ],
-            "time": "2018-01-26T10:07:40+00:00"
+            "time": "2018-01-26 10:07:40"
         }
     ],
     "packages-dev": [
@@ -7127,6 +7127,8 @@
     },
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
+    "platform": {
+        "php": "~7.1"
+    },
     "platform-dev": []
 }
