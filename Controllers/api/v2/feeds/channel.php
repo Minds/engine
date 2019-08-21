@@ -26,6 +26,7 @@ class channel implements Interfaces\Api
         //
 
         $container_guid = $pages[0] ?? null;
+        $owner_guid = null;
 
         if (!$container_guid) {
             return Factory::response([
@@ -60,6 +61,7 @@ class channel implements Interfaces\Api
             case 'groups':
                 $type = 'group';
                 $container_guid = null;
+                $owner_guid = $pages[0];
                 break;
             case 'all':
                 $type = 'all';
@@ -128,6 +130,7 @@ class channel implements Interfaces\Api
         $opts = [
             'cache_key' => $currentUser ? $currentUser->guid : null,
             'container_guid' => $container_guid,
+            'owner_guid' => $owner_guid,
             'access_id' => $isOwner && !$forcePublic ? [0, 1, 2, $container_guid] : [2, $container_guid],
             'custom_type' => $custom_type,
             'limit' => $limit,
