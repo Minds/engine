@@ -8,6 +8,7 @@
 namespace Minds\Controllers\api\v1;
 
 use Minds\Core;
+use Minds\Core\Pro\Domain;
 use Minds\Core\Security;
 use Minds\Core\Session;
 use Minds\Core\Features;
@@ -39,7 +40,16 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function post($pages)
     {
-        if (!Core\Security\XSRF::validateRequest()) {
+        /** @var Domain $proDomain */
+        $proDomain = Di::_()->get('Pro\Domain');
+
+        // TODO: Implement server request
+        $serverRequest = new \Zend\Diactoros\ServerRequest();
+
+        if (
+            !Core\Security\XSRF::validateRequest() &&
+            !$proDomain->validateRequest($serverRequest)
+        ) {
             return false;
         }
 
