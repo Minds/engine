@@ -243,7 +243,7 @@ class channel implements Interfaces\Api
                     }
                 }
 
-                if ($_POST['mode'] && ChannelMode::isValid($_POST['mode'])) {
+                if (isset($_POST['mode']) && ChannelMode::isValid($_POST['mode'])) {
                     $update['mode'] = $_POST['mode'];
                 }
 
