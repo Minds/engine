@@ -6,8 +6,10 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Referrals\Referral;
 use Minds\Core\Referrals\Repository;
 use Minds\Core\Data\Cassandra\Client;
+use Minds\Common\Urn;
 use Cassandra\Bigint;
 use Cassandra\Timestamp;
+
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Spec\Minds\Mocks\Cassandra\Rows;
@@ -18,11 +20,13 @@ class RepositorySpec extends ObjectBehavior
 {
 
     private $client;
+    protected $urn;
 
-    function let(Client $client)
+    function let(Client $client, Urn $urn)
     {
-        $this->beConstructedWith($client);
+        $this->beConstructedWith($client, $urn);
         $this->client = $client;
+        $this->urn = $urn;
     }
 
     function it_is_initializable()
@@ -59,7 +63,6 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-
     function it_should_update_a_referral()
     {
         $referral = new Referral();
@@ -70,6 +73,47 @@ class RepositorySpec extends ObjectBehavior
         $this
             ->update($referral)
             ->shouldReturn(true);
+    }
+
+    function it_should_return_a_single_referral()
+    {
+
+        $this->urn->setUrn('urn:referral:123-456')
+            ->shouldBeCalled()
+            ->willReturn($this->urn);
+
+        $this->urn->getNss()
+            ->shouldBeCalled()
+            ->willReturn('123-456');
+
+
+        $this->client->request(Argument::that(function($prepared) {
+            return true;
+        }))
+            ->shouldBeCalled()
+            ->willReturn(new Rows([
+                [
+                    'referrer_guid' => new Bigint(123),
+                    'prospect_guid' => new Bigint(456),
+                    'register_timestamp' => new Timestamp(1545451597777),
+                    'join_timestamp' => null,
+                    'ping_timestamp' => null,
+                ],
+            ], 'my-cool-paging-token'));
+
+        $response = $this->get('urn:referral:123-456');
+
+        $response->getReferrerGuid()
+            ->shouldBe('123');
+        $response->getProspectGuid()
+            ->shouldBe('456');
+        $response->getRegisterTimestamp()
+            ->shouldBe(1545451597777);
+        $response->getJoinTimestamp()
+            ->shouldBe(null);
+        $response->getPingTimestamp()
+            ->shouldBe(null);
+
     }
 
     function it_should_return_a_list_of_referrals()
@@ -107,10 +151,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(1545451597777);
         $response[0]->getJoinTimestamp()
             ->shouldBe(1545451597778);
-
-
     }
-
 
     function it_should_throw_if_no_referrer_guid_during_get_list()
     {

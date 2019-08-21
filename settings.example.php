@@ -351,6 +351,8 @@ $CONFIG->set('blockchain', [
             'wallet_pkey' => '',
         ],
         'wire' => [
+            'plus_address' => '',
+            'plus_guid' => '', // Your plus user's guid.
             'contract_address' => '0x4b637bba81d24657d4c6acc173275f3e11a8d5d7',
             'wallet_address' => '0x4CDc1C1fd1A3F4DD63231afF8c16501BcC11Df95',
             'wallet_pkey' => '',
@@ -458,7 +460,7 @@ $CONFIG->set('tags', [
 
 $CONFIG->set('steward_guid', '');
 $CONFIG->set('steward_autoconfirm', false);
-$CONFIG->set('development_mode', false);
+$CONFIG->set('development_mode', '{{development_mode}}');
 
 $CONFIG->set('max_video_length', 900);
 
@@ -564,7 +566,7 @@ $CONFIG->set('gitlab', [
         'mobile' => '10171280', // project id mobile
         'front' => '10152778', // project id front
     ],
-    'private_key' => '{{private-key}}'
+    'private_key' => ''
 ]);
 
 

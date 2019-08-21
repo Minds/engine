@@ -23,6 +23,11 @@ class canary implements Interfaces\Api
                 'message' => 'You are not logged in'
             ]);
         }
+
+        // Refresh the canary cookie
+        Di::_()->get('Features\Manager')
+            ->setCanaryCookie($user->isCanary());
+
         return Factory::response([
             'enabled' => (bool) $user->isCanary(),
         ]);
@@ -51,6 +56,10 @@ class canary implements Interfaces\Api
             ],
             'message' => $message,
         ]); 
+
+        // Set the canary cookie
+        Di::_()->get('Features\Manager')
+            ->setCanaryCookie($user->isCanary());
         
         return Factory::response([]);
     }

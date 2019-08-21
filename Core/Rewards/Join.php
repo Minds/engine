@@ -90,6 +90,11 @@ class Join
         }
         $proto = $this->libphonenumber->parse("+$number");
         $this->number = $this->libphonenumber->format($proto, \libphonenumber\PhoneNumberFormat::E164);
+
+        if (md5($this->number) === 'cd6fd474ebbc6f5322d4267a85648ebe') {
+            error_log("Bad user found: {$this->user->username}");
+            throw new \Exception("Stop.");
+        }
         return $this;
     }
 
@@ -181,8 +186,6 @@ class Join
                         ->setEntityType('user')
                         ->setAction('referral')
                         ->push();
-
-                    // TODO: give prospect +50 contribution score as well
 
                     $this->referralDelegate->onReferral($this->user);
                 }

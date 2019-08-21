@@ -2,10 +2,11 @@
 
 namespace Spec\Minds\Core\Subscriptions;
 
+use Minds\Core\Subscriptions\Delegates;
 use Minds\Core\Subscriptions\Manager;
 use Minds\Core\Subscriptions\Repository;
 use Minds\Core\Subscriptions\Subscription;
-use Minds\Core\Subscriptions\Delegates;
+use Minds\Core\Suggestions\Delegates\CheckRateLimit;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -19,6 +20,7 @@ class ManagerSpec extends ObjectBehavior
     private $cacheDelegate;
     private $eventsDelegate;
     private $feedsDelegate;
+    private $checkRateLimitDelegate;
 
 
     function let(
@@ -27,7 +29,8 @@ class ManagerSpec extends ObjectBehavior
         Delegates\SendNotificationDelegate $sendNotificationDelegate = null,
         Delegates\CacheDelegate $cacheDelegate = null,
         Delegates\EventsDelegate $eventsDelegate = null,
-        Delegates\FeedsDelegate $feedsDelegate = null
+        Delegates\FeedsDelegate $feedsDelegate = null,
+        CheckRateLimit $checkRateLimitDelegate = null
     )
     {
         $this->beConstructedWith(
@@ -37,7 +40,7 @@ class ManagerSpec extends ObjectBehavior
             $cacheDelegate,
             $eventsDelegate,
             $feedsDelegate,
-            true
+            $checkRateLimitDelegate
         );
         $this->repository = $repository;
         $this->copyToElasticSearchDelegate = $copyToElasticSearchDelegate;
@@ -45,6 +48,7 @@ class ManagerSpec extends ObjectBehavior
         $this->cacheDelegate = $cacheDelegate;
         $this->eventsDelegate = $eventsDelegate;
         $this->feedsDelegate = $feedsDelegate;
+        $this->checkRateLimitDelegate = $checkRateLimitDelegate;
     }
 
     function it_is_initializable()
@@ -76,13 +80,13 @@ class ManagerSpec extends ObjectBehavior
         $subscription = new Subscription;
         $subscription->setActive(true);
 
-        $this->repository->add(Argument::that(function($sub) {
+        $this->repository->add(Argument::that(function ($sub) {
             return $sub->getSubscriberGuid() == 123
                 && $sub->getPublisherGuid() == 456;
-            }))
+        }))
             ->shouldBeCalled()
             ->willReturn($subscription);
-        
+
         $publisher = (new User)->set('guid', 456);
         $this->setSubscriber((new User)->set('guid', 123));
 
@@ -94,10 +98,6 @@ class ManagerSpec extends ObjectBehavior
         $this->eventsDelegate->trigger($subscription)
             ->shouldBeCalled();
 
-        // Call the feeds delegate
-        $this->feedsDelegate->copy($subscription)
-            ->shouldBeCalled();
-
         // Call the es delegate
         $this->copyToElasticSearchDelegate->copy($subscription)
             ->shouldBeCalled();
@@ -106,9 +106,27 @@ class ManagerSpec extends ObjectBehavior
         $this->cacheDelegate->cache($subscription)
             ->shouldBeCalled();
 
+        // Call the Rate Limit delegate
+        $this->checkRateLimitDelegate->incrementCache(123)
+            ->shouldBeCalled();
+
         $newSubscription = $this->subscribe($publisher);
         $newSubscription->isActive()
             ->shouldBe(true);
+    }
+
+    function it_should_not_allow_if_over_5000_subscriptions(User $subscriber)
+    {
+        $publisher = (new User)->set('guid', 456);
+
+        $subscriber->getSubscriptionsCount()
+            ->willReturn(5000);
+        $subscriber->getGUID()
+            ->willReturn(123);
+        $this->setSubscriber($subscriber);
+
+        $this->shouldThrow('Minds\Core\Subscriptions\TooManySubscriptionsException')
+            ->duringSubscribe($publisher);
     }
 
     function it_should_unsubscribe()
@@ -118,13 +136,13 @@ class ManagerSpec extends ObjectBehavior
         $subscription = new Subscription;
         $subscription->setActive(false);
 
-        $this->repository->delete(Argument::that(function($sub) {
+        $this->repository->delete(Argument::that(function ($sub) {
             return $sub->getSubscriberGuid() == 123
                 && $sub->getPublisherGuid() == 456;
-            }))
+        }))
             ->shouldBeCalled()
             ->willReturn($subscription);
-        
+
         $publisher = (new User)->set('guid', 456);
         $this->setSubscriber((new User)->set('guid', 123));
 
@@ -143,7 +161,7 @@ class ManagerSpec extends ObjectBehavior
         // Call the cache delegate
         $this->cacheDelegate->cache($subscription)
             ->shouldBeCalled();
-    
+
         $newSubscription = $this->unSubscribe($publisher);
         $newSubscription->isActive()
             ->shouldBe(false);

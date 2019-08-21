@@ -49,7 +49,6 @@ class WireNotification implements Interfaces\QueueRunner
                         return;
                     }
 
-                    $amount = $wire->getMethod() === 'tokens' ? BigNumber::fromPlain($wire->getAmount(), 18)->toDouble() : $wire->getAmount();
                     $senderUser = $wire->getSender();
 
                     //send notification to receiver
@@ -58,7 +57,7 @@ class WireNotification implements Interfaces\QueueRunner
                         'from' => $senderUser->guid,
                         'notification_view' => 'wire_happened',
                         'params' => [
-                            'amount' => $this->getAmountString($amount),
+                            'amount' => $this->getAmountString($wire),
                             'from_guid' => $senderUser->guid,
                             'from_username' => $senderUser->username,
                             'to_guid' => $receiverUser->guid,
@@ -83,7 +82,7 @@ class WireNotification implements Interfaces\QueueRunner
                         'from' => $receiverUser->guid,
                         'notification_view' => 'wire_happened',
                         'params' => [
-                            'amount' => $amount,
+                            'amount' => $this->getAmountString($wire),
                             'from_guid' => $senderUser->guid,
                             'from_username' => $senderUser->username,
                             'to_guid' => $receiverUser->guid,
@@ -97,10 +96,20 @@ class WireNotification implements Interfaces\QueueRunner
             });
     }
 
-    private function getAmountString($amount)
+    private function getAmountString($wire)
     {
-        $currency = $amount > 1 ? ' tokens' : ' token';
+        $amount = $wire->getAmount();
+        if ($wire->getMethod() === 'tokens') {
+            $amount = BigNumber::fromPlain($wire->getAmount(), 18)->toDouble();
+            $currency = $amount > 1 ? 'tokens' : 'token';
+        } else {
+            $currency = strtoupper($wire->getMethod());
+        }
 
-        return $amount.$currency;
+        if ($wire->getMethod() === 'usd') {
+            $amount = $amount / 100;
+        }
+
+        return "$amount $currency";
     }
 }

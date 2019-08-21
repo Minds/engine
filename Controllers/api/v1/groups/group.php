@@ -184,6 +184,10 @@ class group implements Interfaces\Api
             $group->setVideoChatDisabled($_POST['videoChatDisabled']);
         }
 
+        if (isset($_POST['conversationDisabled'])) {
+            $group->setConversationDisabled($_POST['conversationDisabled']);
+        }
+
         if (isset($_POST['tags'])) {
             $tags = $_POST['tags'];
             $sanitized_tags = [];
@@ -271,11 +275,7 @@ class group implements Interfaces\Api
             return Factory::response([]);
         }
 
-        $canDelete = Session::isAdmin();
-
-        if (!$canDelete && $group->isCreator($user)) {
-            $canDelete = $group->getMembersCount() <= 1;
-        }
+        $canDelete = Session::isAdmin() || $group->isCreator($user);
 
         if (!$canDelete) {
             return Factory::response([

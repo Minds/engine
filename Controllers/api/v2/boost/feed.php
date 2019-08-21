@@ -47,6 +47,7 @@ class feed implements Interfaces\Api
         $rating = intval($_GET['rating'] ?? $currentUser->getBoostRating());
         $platform = $_GET['platform'] ?? 'other';
         $quality = 0;
+        $isBoostFeed = $_GET['boostfeed'] ?? false;
 
         if ($limit === 0) {
             return Factory::response([
@@ -58,6 +59,10 @@ class feed implements Interfaces\Api
 
         $cacher = Core\Data\cache\factory::build('Redis');
         $offset =  $cacher->get(Core\Session::getLoggedinUser()->guid . ':boost-offset-rotator');
+
+        if ($isBoostFeed) {
+            $offset = $_GET['from_timestamp'] ?? 0;
+        }
 
         // Options specific to newly created users (<=1 hour) and iOS users
 
@@ -78,10 +83,12 @@ class feed implements Interfaces\Api
             case 'newsfeed':
                 // Newsfeed boosts
 
+                $resolver = new Core\Entities\Resolver();
+
                 /** @var Core\Boost\Network\Iterator $iterator */
                 $iterator = Core\Di\Di::_()->get('Boost\Network\Iterator');
                 $iterator
-                    ->setLimit($limit)
+                    ->setLimit(12)
                     ->setOffset($offset)
                     ->setRating($rating)
                     ->setQuality($quality)
@@ -97,20 +104,34 @@ class feed implements Interfaces\Api
                         ->setTimestamp($boost->getCreatedTimestamp())
                         ->setUrn(new Urn("urn:boost:{$boost->getType()}:{$boost->getGuid()}"));
 
+                    $entity = $resolver->single(new Urn("urn:boost:{$boost->getType()}:{$boost->getGuid()}"));
+                    if (!$entity) {
+                        continue; // Duff entity?
+                    }
+
+                    $feedSyncEntity->setEntity($entity);
+
                     $boosts[] = $feedSyncEntity;
                 }
                // $boosts = iterator_to_array($iterator, false);
 
                 $next = $iterator->getOffset();
 
-                if (isset($boosts[2])) { // Always offset to 3rd in list
-                    $next = $boosts[2]->getTimestamp();
+                if (isset($boosts[1]) && !$isBoostFeed) { // Always offset to 2rd in list if in rotator
+                    if (!$offset) {
+                        $next = $boosts[1]->getTimestamp();
+                    } else {
+                        $next = 0;
+                    }
+                } elseif ($isBoostFeed) {
+                    $len = count($boosts);
+                    $next = $boosts[$len -1]->getTimestamp();
                 }
 
-                $ttl = 1800; // 30 minutes
-                if (($next / 1000) < strtotime('48 hours ago')) {
-                    $ttl = 300; // 5 minutes;
-                }
+                // $ttl = 1800; // 30 minutes
+                // if (($next / 1000) < strtotime('48 hours ago')) {
+                    $ttl = 150; // 2.5 minutes;
+                // }
 
                 $cacher->set(Core\Session::getLoggedinUser()->guid . ':boost-offset-rotator', $next, $ttl);
                 break;

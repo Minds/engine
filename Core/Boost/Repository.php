@@ -152,6 +152,12 @@ class Repository
                 $boost = (new Entities\Boost\Factory())->build($row['type']);
                 $boost->loadFromArray($row['data']);
 
+                $data = @json_decode($row['data'], true);
+                
+                if ($data && $data['is_campaign']) {
+                    continue;
+                }
+
                 $boosts[] = $boost;
             }
 

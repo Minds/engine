@@ -7,11 +7,11 @@
 namespace Minds\Core\Analytics\Graphs\Aggregates;
 
 use DateTime;
+use Minds\Core\Analytics\Graphs\Manager;
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Data\ElasticSearch\Prepared\Search;
 use Minds\Core\Di\Di;
-use Minds\Core\Analytics\Graphs\Manager;
 
 class Comments implements AggregateInterface
 {
@@ -42,15 +42,37 @@ class Comments implements AggregateInterface
     public function fetchAll($opts = [])
     {
         $result = [];
-        foreach ([ 'hour', 'day', 'month' ] as $unit) {
+        foreach (['hour', 'day', 'month'] as $unit) {
+            switch ($unit) {
+                case 'hour':
+                    $span = 25;
+                    break;
+                case 'day':
+                    $span = 17;
+                    break;
+                case 'month':
+                    $span = 13;
+                    break;
+            }
             $k = Manager::buildKey([
                 'aggregate' => $opts['aggregate'] ?? 'comments',
                 'key' => null,
                 'unit' => $unit,
+                'span' => $span,
             ]);
-            $result[$k] = $this->fetch([ 
+            $result[$k] = $this->fetch([
                 'unit' => $unit,
+                'span' => $span,
             ]);
+
+            $avgKey = Manager::buildKey([
+                'aggregate' => $opts['aggregate'] ?? 'comments',
+                'key' => 'avg',
+                'unit' => $unit,
+                'span' => $span,
+            ]);
+
+            $result[$avgKey] = Manager::calculateAverages($result[$k]);
         }
         return $result;
     }
@@ -58,7 +80,7 @@ class Comments implements AggregateInterface
     public function fetch(array $options = [])
     {
         $options = array_merge([
-            'span' => 12,
+            'span' => 13,
             'unit' => 'month', // day / month
             'userGuid' => null,
         ], $options);
@@ -68,20 +90,28 @@ class Comments implements AggregateInterface
         $from = null;
         switch ($options['unit']) {
             case "hour":
-                $from = (new DateTime('midnight'))->modify("-{$options['span']} hours");
-                $to = (new DateTime('midnight'));
+                $to = new DateTime('now');
+                $from = (new DateTime())
+                    ->setTimestamp($to->getTimestamp())
+                    ->modify("-{$options['span']} hours");
+
                 $interval = '1h';
                 $this->dateFormat = 'y-m-d H:i';
                 break;
             case "day":
-                $from = (new DateTime('midnight'))->modify("-{$options['span']} days");
-                $to = (new DateTime('midnight'));
+                $to = new DateTime('now');
+                $from = (new DateTime('midnight'))
+                    ->modify("-{$options['span']} days");
+
                 $interval = '1d';
                 $this->dateFormat = 'y-m-d';
                 break;
             case "month":
-                $from = (new DateTime('midnight first day of next month'))->modify("-{$options['span']} months");
                 $to = new DateTime('midnight first day of next month');
+                $from = (new DateTime())
+                    ->setTimestamp($to->getTimestamp())
+                    ->modify("-{$options['span']} months");
+
                 $interval = '1M';
                 $this->dateFormat = 'y-m';
                 break;
@@ -165,6 +195,7 @@ class Comments implements AggregateInterface
 
         $response = [
             [
+                'key' => 'comments',
                 'name' => 'Comments',
                 'x' => [],
                 'y' => []
@@ -172,7 +203,8 @@ class Comments implements AggregateInterface
         ];
         if (!$userGuid) {
             $response[] = [
-                'name' => 'Number of Commenting Users',
+                'key' => 'commentingUsers',
+                'name' => 'Commenting Users',
                 'x' => [],
                 'y' => []
             ];

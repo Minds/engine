@@ -358,6 +358,8 @@ class Events
             $twofactor = new TwoFactor();
             $secret = $twofactor->createSecret(); //we have a new secret for each request
 
+            error_log('2fa - sending SMS to ' . $user->guid);
+
             $this->sms->send($user->telno, $twofactor->getCode($secret));
 
             // create a lookup of a random key. The user can then use this key along side their twofactor code
