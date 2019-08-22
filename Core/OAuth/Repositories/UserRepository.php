@@ -15,12 +15,16 @@ class UserRepository implements UserRepositoryInterface
     /** @var Password $password */
     private $password;
 
+    /** @var SentryScopeDelegate $sentryScopeDelegate */
+    private $sentryScopeDelegate;
+
     /** @var User $mock */
     public $mockUser = false;
 
-    public function __construct(Password $password = null)
+    public function __construct(Password $password = null, SentryScopeDelegate $sentryScopeDelegate = null)
     {
         $this->password = $password ?: Di::_()->get('Security\Password');
+        $this->sentryScopeDelegate = $sentryScopeDelegate ?? new Delegates\SentryScopeDelegate;
     }
 
     /**
@@ -52,6 +56,10 @@ class UserRepository implements UserRepositoryInterface
 
         $entity = new UserEntity();
         $entity->setIdentifier($user->getGuid());
+
+        // Update Sentry scope with our user
+        $this->sentryScopeDelegate->onGetUserEntity($entity);
+
         return $entity;
     }
 }
