@@ -197,7 +197,7 @@ abstract class ElggEntity extends ElggData implements
 	 * @param string $name  Name
 	 * @param mixed  $value Value
 	 *
-	 * @return bool
+	 * @return self
 	 */
 	public function set($name, $value) {
 
@@ -209,9 +209,7 @@ abstract class ElggEntity extends ElggData implements
 				$this->attributes[$name] = $value;
 				break;
 		}
-		if($this->guid){
-	//		$this->save();
-		}
+
 		return $this;
 	}
 

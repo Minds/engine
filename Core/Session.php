@@ -12,6 +12,7 @@ use Minds\Entities\User;
  */
 class Session extends base
 {
+    /** @var User $user */
     private static $user;
 
     private $session_name = 'minds';
