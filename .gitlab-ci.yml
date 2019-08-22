@@ -40,7 +40,13 @@ prepare:fpm:
   image: minds/ci:latest
   script:
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY} 
-    - docker build -t $CI_REGISTRY_IMAGE/fpm:$CI_BUILD_REF -f containers/php-fpm/Dockerfile .
+    - |
+      docker build \
+        -t $CI_REGISTRY_IMAGE/fpm:$CI_BUILD_REF \
+        -f containers/php-fpm/Dockerfile \
+        --build-arg MINDS_VERSION=$CI_BUILD_REF \
+        --build-arg SENTRY_DSN=$SENTRY_DSN \
+        .
     - docker push $CI_REGISTRY_IMAGE/fpm:$CI_BUILD_REF
 
 prepare:runners:
@@ -48,8 +54,24 @@ prepare:runners:
   image: minds/ci:latest
   script:
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
-    - docker build -t $CI_REGISTRY_IMAGE/runners:$CI_BUILD_REF -f containers/php-runners/Dockerfile .
+    - |
+      docker build \
+        -t $CI_REGISTRY_IMAGE/runners:$CI_BUILD_REF \
+        -f containers/php-runners/Dockerfile \
+        --build-arg MINDS_VERSION=$CI_BUILD_REF \
+        --build-arg SENTRY_DSN=$SENTRY_DSN \
+        .
     - docker push $CI_REGISTRY_IMAGE/runners:$CI_BUILD_REF
+
+prepare:all:sentry:
+  stage: prepare
+  image: getsentry/sentry-cli
+  script:
+    - echo "Create a new release $CI_COMMIT_SHA"
+    - sentry-cli releases new $CI_COMMIT_SHA
+    - sentry-cli releases set-commits --auto $CI_COMMIT_SHA
+    - sentry-cli releases finalize $CI_COMMIT_SHA
+    - echo "Finalized release for $CI_COMMIT_SHA"
 
 review:start:
   stage: review
@@ -69,6 +91,7 @@ review:start:
         --wait \
         $CI_BUILD_REF_SLUG \
         ./helm-charts/minds"
+    - sentry-cli releases deploys $CI_COMMIT_SHA new -e review-$CI_COMMIT_REF_SLUG
   environment:
     name: review/$CI_COMMIT_REF_NAME
     url: https://$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
@@ -112,6 +135,8 @@ staging:fpm:
     - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
     # Deploy to staging
     - aws ecs update-service --service=$ECS_APP_STAGING_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
+    # Update sentry
+    - sentry-cli releases deploys $CI_COMMIT_SHA new -e $IMAGE_LABEL
   environment:
     name: staging
     url: https://www.minds.com/?staging=1
@@ -136,6 +161,8 @@ canary:fpm:
     - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
     # Deploy to ECS
     - aws ecs update-service --service=$ECS_APP_CANARY_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
+    # Update sentry
+    - sentry-cli releases deploys $CI_COMMIT_SHA new -e $IMAGE_LABEL
   only:
     refs:
       - master
@@ -162,6 +189,8 @@ production:fpm:
     - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
     # Delpoy to ECS
     - aws ecs update-service --service=$ECS_APP_PRODUCTION_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
+    # Update sentry
+    - sentry-cli releases deploys $CI_COMMIT_SHA new -e $IMAGE_LABEL
   only:
     refs:
       - master

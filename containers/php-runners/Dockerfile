@@ -22,4 +22,12 @@ COPY containers/php-runners/pull-secrets.sh pull-secrets.sh
 COPY ./containers/php-runners/supervisord.conf /etc
 COPY ./containers/php-runners/minds.conf /etc/supervisor/conf.d
 
+# Specify the build args
+
+ARG MINDS_VERSION="Unknown"
+ENV MINDS_VERSION=${MINDS_VERSION}
+
+ARG SENTRY_DSN=""
+ENV SENTRY_DSN=${SENTRY_DSN}
+
 ENTRYPOINT ["supervisord", "--nodaemon", "--configuration", "/etc/supervisord.conf"]
