@@ -32,7 +32,7 @@ class braintree implements Interfaces\Api, Interfaces\ApiIgnorePam
   {
       error_log("[webhooks]:: hit first entrace point");
 
-      $gateway = isset($pages[0]) ? $pages[0] : 'default';
+      /*$gateway = isset($pages[0]) ? $pages[0] : 'default';
 
       $bt = Payments\Factory::build('braintree', ['gateway'=>$gateway]);
 
@@ -42,7 +42,7 @@ class braintree implements Interfaces\Api, Interfaces\ApiIgnorePam
       $webhooks = new Payments\Braintree\Webhooks($hooks, $bt);
       $webhooks->setSignature($_POST['bt_signature'])
         ->setPayload($_POST['bt_payload'])
-        ->run();
+        ->run();*/
   }
 
 
