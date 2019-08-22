@@ -101,9 +101,13 @@ class Manager
         // TODO: make this a bulk request vs sequential
         foreach ($response as $suggestion) {
             $entity = $suggestion->getEntity() ?: $this->entitiesBuilder->single($suggestion->getEntityGuid());
+            if (!$entity) {
+                error_log("{$suggestion->getEntityGuid()} suggested user not found");
+                continue;
+            }
             if ($entity->getDeleted()) {
                 error_log("Deleted entity ".$entity->guid." has been omitted from suggestions t-".time());
-                break;
+                continue;
             }
             $suggestion->setEntity($entity);
         }
