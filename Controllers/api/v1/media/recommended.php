@@ -43,7 +43,10 @@ class recommended implements Interfaces\Api
 
         // Get the next entity
         if ($next) {
-            $entities[] = Entities\Factory::build($next);
+            $entity = Entities\Factory::build($next);
+            if ($entity) {
+                $entities[] = $entity;
+            }
         }
 
         // Calculate free slots

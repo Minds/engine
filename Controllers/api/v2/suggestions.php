@@ -16,6 +16,13 @@ class suggestions implements Interfaces\Api
         $type = $pages[0] ?? 'user';
         $loggedInUser = Core\Session::getLoggedinUser();
 
+        if (!$loggedInUser) {
+			return Factory::response([
+                'status' => 'error',
+                'message' => 'You must be logged in to receive suggestions',
+            ]);
+        }
+
         if ($loggedInUser->getSubscriptionsCount() >= 5000) {
             return Factory::response([
                 'status' => 'error',
