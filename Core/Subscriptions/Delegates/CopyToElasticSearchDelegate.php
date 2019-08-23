@@ -53,6 +53,7 @@ class CopyToElasticSearchDelegate
             'type' => 'subscriptions',
             'id' => $subscription->getSubscriberGuid(),
             'body' => $body,
+            'retry_on_conflict' => 5, // Retry 5 times
         ];
         
         $prepared = new Prepared();
