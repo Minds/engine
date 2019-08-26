@@ -13,7 +13,6 @@ use Minds\Core\Blockchain\Transactions\Transaction;
 
 class Manager
 {
-
     /** @var Repository $repo */
     private $repo;
 
@@ -51,8 +50,7 @@ class Manager
         $issuedTokenEmail = null,
         $newPurchaseEmail = null,
         $ethRate = null
-    )
-    {
+    ) {
         $this->repo = $repo ?: Di::_()->get('Blockchain\Purchase\Repository');
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
         $this->config = $config ?: Di::_()->get('Config');

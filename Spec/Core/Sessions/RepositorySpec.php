@@ -13,23 +13,23 @@ use Cassandra\Timestamp;
 
 class RepositorySpec extends ObjectBehavior
 {
-
     /** @var Client $client */
     private $client;
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    function let(Client $client) {
+    public function let(Client $client)
+    {
         $this->client = $client;
         $this->beConstructedWith($this->client);
     }
 
-    function it_should_return_a_session_from_id()
+    public function it_should_return_a_session_from_id()
     {
-        $this->client->request(Argument::that(function($prepared) {
+        $this->client->request(Argument::that(function ($prepared) {
             $query = $prepared->build();
 
             $template = $query['string'];
@@ -37,7 +37,7 @@ class RepositorySpec extends ObjectBehavior
 
             return $values[0] == new Varint(123)
                 && $values[1] == 'sess_id';
-            }))
+        }))
             ->shouldBeCalled()
             ->willReturn([
                 [
@@ -52,9 +52,9 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn('sess_id');
     }
 
-    function it_should_not_return_a_session_from_id()
+    public function it_should_not_return_a_session_from_id()
     {
-        $this->client->request(Argument::that(function($prepared) {
+        $this->client->request(Argument::that(function ($prepared) {
             $query = $prepared->build();
 
             $template = $query['string'];
@@ -62,19 +62,19 @@ class RepositorySpec extends ObjectBehavior
 
             return $values[0] == new Varint(123)
                 && $values[1] == 'sess_id';
-            }))
+        }))
             ->shouldBeCalled()
             ->willReturn([
             ]);
         
         $session = $this->get(123, 'sess_id');
         $session->shouldReturn(null);
-    }   
+    }
     
-    function it_should_save_session_to_database()
+    public function it_should_save_session_to_database()
     {
         $time = time();
-        $this->client->request(Argument::that(function($prepared) use ($time) {
+        $this->client->request(Argument::that(function ($prepared) use ($time) {
             $query = $prepared->build();
 
             $template = $query['string'];
@@ -83,7 +83,7 @@ class RepositorySpec extends ObjectBehavior
             return $values[0] == new Varint(123)
                 && $values[1] == 'sess_id'
                 && $values[2] == new Timestamp($time);
-            }))
+        }))
             ->shouldBeCalled();
 
         $session = new Session();
@@ -94,10 +94,10 @@ class RepositorySpec extends ObjectBehavior
         $this->add($session);
     }
 
-    function it_should_remove_session_from_database()
+    public function it_should_remove_session_from_database()
     {
         $time = time();
-        $this->client->request(Argument::that(function($prepared) use ($time) {
+        $this->client->request(Argument::that(function ($prepared) use ($time) {
             $query = $prepared->build();
 
             $template = $query['string'];
@@ -106,7 +106,7 @@ class RepositorySpec extends ObjectBehavior
             return $template == "DELETE FROM jwt_sessions WHERE user_guid = ? AND id = ?"
                 && $values[0] == new Varint(123)
                 && $values[1] == 'sess_id';
-            }))
+        }))
             ->shouldBeCalled();
 
         $session = new Session();
@@ -116,5 +116,4 @@ class RepositorySpec extends ObjectBehavior
         
         $this->delete($session);
     }
-
 }

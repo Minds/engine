@@ -9,12 +9,12 @@ use Prophecy\Argument;
 
 class BriefdescriptionDelegateSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(BriefdescriptionDelegate::class);
     }
 
-    function it_should_check_if_completed(User $user)
+    public function it_should_check_if_completed(User $user)
     {
         $user->get('briefdescription')
             ->shouldBeCalled()
@@ -25,7 +25,7 @@ class BriefdescriptionDelegateSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_check_if_not_completed(User $user)
+    public function it_should_check_if_not_completed(User $user)
     {
         $user->get('briefdescription')
             ->shouldBeCalled()

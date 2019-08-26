@@ -25,7 +25,7 @@ class Url
             return '';
         }
 
-        if (isset($url['scheme']) && !in_array(strtolower($url['scheme']), ['http', 'https'])) {
+        if (isset($url['scheme']) && !in_array(strtolower($url['scheme']), ['http', 'https'], true)) {
             return '';
         } elseif (!isset($url['scheme'])) {
             $url['scheme'] = 'https';

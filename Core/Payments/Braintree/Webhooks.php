@@ -143,7 +143,7 @@ class Webhooks
         //WalletHelper::createTransaction($user->guid, ($subscription->getPrice() * 1000) * 1.1, null, "Purchase (Recurring)");
         //$this->hooks->onCharged($subscription);
 
-        $transaction = new Transaction(); 
+        $transaction = new Transaction();
         $transaction
             ->setUserGuid($user->guid)
             ->setWalletAddress('offchain')

@@ -14,7 +14,6 @@ use Minds\Interfaces;
 
 class boost implements Interfaces\Api
 {
-
     /**
      * Equivalent to HTTP GET method
      * @param  array $pages

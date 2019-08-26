@@ -46,7 +46,7 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
         if (function_exists('pcntl_signal')) {
             // Intercept Ctrl+C
 
-            pcntl_signal(SIGINT, function() {
+            pcntl_signal(SIGINT, function () {
                 $this->filterCleanup();
                 exit;
             });
@@ -106,7 +106,6 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
                         }
                     }
                 }
-
             }
             
             usleep(500 * 1000); // 500ms
@@ -143,24 +142,24 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
     {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
-while (true) {
-        $ethereum = Di::_()->get('Blockchain\Services\Ethereum');
-        $config = Di::_()->get('Config');
-        $ethRate = new EthRate;
-        $ethPrice = new EthPrice;
-        $ethPrice->setFrom(strtotime('24 hours ago'))
+        while (true) {
+            $ethereum = Di::_()->get('Blockchain\Services\Ethereum');
+            $config = Di::_()->get('Config');
+            $ethRate = new EthRate;
+            $ethPrice = new EthPrice;
+            $ethPrice->setFrom(strtotime('24 hours ago'))
             ->setTo(time())
             ->get();
 
-        $eth = round($ethPrice->getNearestPrice(strtotime('1 minute ago')));
-        $usd = 1.25;
+            $eth = round($ethPrice->getNearestPrice(strtotime('1 minute ago')));
+            $usd = 1.25;
 
-        $rate = round($eth/$usd);
-        if ($rate % 2 !== 0) {
-           $rate++;
-        }
+            $rate = round($eth/$usd);
+            if ($rate % 2 !== 0) {
+                $rate++;
+            }
         
-        $txHash = $ethereum->sendRawTransaction($config->blockchain['contracts']['token_sale_event']['rate_pkey'], [
+            $txHash = $ethereum->sendRawTransaction($config->blockchain['contracts']['token_sale_event']['rate_pkey'], [
             'from' => $config->blockchain['contracts']['token_sale_event']['rate_address'],
             'to' => $config->blockchain['contracts']['token_sale_event']['contract_address'],
             'gasLimit' => BigNumber::_(200000)->toHex(true),
@@ -170,31 +169,31 @@ while (true) {
             ])
         ]);
 
-        // Wait until mined before updating our backend
+            // Wait until mined before updating our backend
 
-        while (true) {
-            sleep(1);
-            $receipt = $ethereum->request('eth_getTransactionReceipt', [ $txHash ]);
-            echo "\n Waiting for $txHash";
-            if ($receipt && $receipt['status']) {
-                if ($receipt['status'] !== '0x1') {
-                    echo "\n$txHash failed";
+            while (true) {
+                sleep(1);
+                $receipt = $ethereum->request('eth_getTransactionReceipt', [ $txHash ]);
+                echo "\n Waiting for $txHash";
+                if ($receipt && $receipt['status']) {
+                    if ($receipt['status'] !== '0x1') {
+                        echo "\n$txHash failed";
+                    }
+                    break;
                 }
-                break;
             }
-        }
 
-        $ethRate->set($rate);
-        echo "\n Completed: new rate is $rate: $txHash";
-        echo "\n Now sleeping for one hour";
-        sleep(3600);
-}
+            $ethRate->set($rate);
+            echo "\n Completed: new rate is $rate: $txHash";
+            echo "\n Now sleeping for one hour";
+            sleep(3600);
+        }
     }
 
     public function balance()
     {
         error_reporting(E_ALL);
-                ini_set('display_errors', 1);
+        ini_set('display_errors', 1);
 
         $username = $this->getOpt('username');
         $user = new \Minds\Entities\User($username);

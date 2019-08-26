@@ -110,9 +110,9 @@ class Repository
 
         $rows = $result['aggregations']['tags']['buckets'];
 
-        usort($rows, function($a, $b) {
+        usort($rows, function ($a, $b) {
             $a_score = $this->getConfidenceScore($a['owners']['value'], $a['doc_count']);
-            $b_score = $this->getConfidenceScore($b['owners']['value'], $b['doc_count']);     
+            $b_score = $this->getConfidenceScore($b['owners']['value'], $b['doc_count']);
 
             return $a_score < $b_score ? 1 : 0;
         });
@@ -133,11 +133,12 @@ class Repository
      * @param int $total
      * @return int
      */
-    private function getConfidenceScore($positive, $total) {
+    private function getConfidenceScore($positive, $total)
+    {
         $z = 1.9208;
         $phat = 1.0 * $positive / $total;
         $n = $phat + $z * $z / (2 * $total) - $z * sqrt(($phat * (1 - $phat) + $z * $z / (4 * $total)) / $total);
-        $d  = 1 + $z * $z / $total; 
+        $d  = 1 + $z * $z / $total;
 
         return $n / $d;
     }

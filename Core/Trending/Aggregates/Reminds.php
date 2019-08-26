@@ -8,7 +8,6 @@ use Minds\Core\Data\ElasticSearch;
 
 class Reminds extends Aggregate
 {
-
     protected $multiplier = 1;
 
     public function get()
@@ -69,7 +68,7 @@ class Reminds extends Aggregate
                 ],
                 'aggs' => [
                     'entities' => [
-                        'terms' => [ 
+                        'terms' => [
                             'field' => "$field.keyword",
                             'size' => $this->limit,
                             'order' => [
@@ -99,5 +98,4 @@ class Reminds extends Aggregate
         }
         return $entities;
     }
-
 }

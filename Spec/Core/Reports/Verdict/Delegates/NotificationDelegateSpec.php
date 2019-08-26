@@ -27,7 +27,7 @@ class NotificationDelegateSpec extends ObjectBehavior
     /** @var Resolver */
     private $entitiesResolver;
 
-    function let(EventsDispatcher $dispatcher, EntitiesBuilder $entitiesBuilder, Urn $urn, Resolver $entitiesResolver)
+    public function let(EventsDispatcher $dispatcher, EntitiesBuilder $entitiesBuilder, Urn $urn, Resolver $entitiesResolver)
     {
         $this->beConstructedWith($dispatcher, $entitiesBuilder, $urn, $entitiesResolver);
         $this->dispatcher = $dispatcher;
@@ -36,12 +36,12 @@ class NotificationDelegateSpec extends ObjectBehavior
         $this->entitiesResolver = $entitiesResolver;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(NotificationDelegate::class);
     }
 
-    function it_should_send_a_marked_as_nsfw_notification(Verdict $verdict, Report $report, Entity $entity)
+    public function it_should_send_a_marked_as_nsfw_notification(Verdict $verdict, Report $report, Entity $entity)
     {
         $report->getEntityUrn()
             ->shouldBeCalled()
@@ -84,7 +84,7 @@ class NotificationDelegateSpec extends ObjectBehavior
         $this->onAction($verdict);
     }
 
-    function it_should_send_a_marked_as_nsfw_notification_but_resolving_urn_with_entitiesResolver(Verdict $verdict, Report $report, Entity $entity)
+    public function it_should_send_a_marked_as_nsfw_notification_but_resolving_urn_with_entitiesResolver(Verdict $verdict, Report $report, Entity $entity)
     {
         $report->getEntityUrn()
             ->shouldBeCalled()
@@ -120,7 +120,7 @@ class NotificationDelegateSpec extends ObjectBehavior
         $this->onAction($verdict);
     }
 
-    function it_should_send_a_removed_notification(Verdict $verdict, Report $report, Entity $entity)
+    public function it_should_send_a_removed_notification(Verdict $verdict, Report $report, Entity $entity)
     {
         $report->getEntityUrn()
             ->shouldBeCalled()
@@ -163,7 +163,7 @@ class NotificationDelegateSpec extends ObjectBehavior
         $this->onAction($verdict);
     }
 
-    function it_should_send_a_restored_notification(Verdict $verdict, Report $report, Entity $entity)
+    public function it_should_send_a_restored_notification(Verdict $verdict, Report $report, Entity $entity)
     {
         $report->getEntityUrn()
             ->shouldBeCalled()
@@ -202,7 +202,7 @@ class NotificationDelegateSpec extends ObjectBehavior
         $this->onAction($verdict);
     }
 
-    function it_should_not_send_a_notification(Verdict $verdict, Report $report, Entity $entity)
+    public function it_should_not_send_a_notification(Verdict $verdict, Report $report, Entity $entity)
     {
         $report->getEntityUrn()
             ->shouldBeCalled()
@@ -238,5 +238,4 @@ class NotificationDelegateSpec extends ObjectBehavior
 
         $this->onAction($verdict);
     }
-
 }

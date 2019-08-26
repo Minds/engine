@@ -118,7 +118,7 @@ class ElasticRepository
             'query' => [
                 'bool' => [
                     'must' => $must,
-                    'must_not' => $must_not, 
+                    'must_not' => $must_not,
                 ],
             ],
             'sort' => $sort,
@@ -199,7 +199,7 @@ class ElasticRepository
         ];
 
         if ($boost->getBidType() === 'tokens') {
-            $body['doc']['token_method'] = (strpos($boost->getTransactionId(), '0x', 0) === 0) 
+            $body['doc']['token_method'] = (strpos($boost->getTransactionId(), '0x', 0) === 0)
                 ? 'onchain' : 'offchain';
         }
 
@@ -251,6 +251,4 @@ class ElasticRepository
     public function delete($boost)
     {
     }
-
 }
-

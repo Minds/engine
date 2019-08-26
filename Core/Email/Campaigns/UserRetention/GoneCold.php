@@ -71,7 +71,7 @@ class GoneCold extends EmailCampaign
     }
 
     public function send($time = null)
-    {   
+    {
         $time = $time ?: time();
         //send email
         if ($this->canSend()) {

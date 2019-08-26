@@ -69,7 +69,7 @@ class Translations
                         $content = $entity->getMessage();
                     } elseif (property_exists($entity, 'message') || isset($entity->message)) {
                         $content = $entity->message;
-                    } 
+                    }
                     break;
 
                 case 'body':
@@ -77,7 +77,7 @@ class Translations
                         $content = $entity->getBody();
                     } elseif (property_exists($entity, 'body') || isset($entity->body)) {
                         $content = $entity->body;
-                    } 
+                    }
                     break;
                 
                 case 'description':
@@ -85,7 +85,7 @@ class Translations
                         $content = $entity->getDescription();
                     } elseif (property_exists($entity, 'description') || isset($entity->description)) {
                         $content = $entity->description;
-                    } 
+                    }
                     break;
 
                 case 'title':

@@ -21,7 +21,7 @@ class explicit implements Interfaces\Api
 {
     public function get($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     /**
@@ -35,7 +35,7 @@ class explicit implements Interfaces\Api
         $entity = Entities\Factory::build($pages[0]);
 
         if (!$entity->canEdit()) {
-            return Factory::response(array('status' => 'error', 'message' => 'Can´t edit this Post'));
+            return Factory::response(['status' => 'error', 'message' => 'Can´t edit this Post']);
         }
 
         $value = (bool) $_POST['value'];
@@ -47,7 +47,7 @@ class explicit implements Interfaces\Api
             $isAdmin = Session::isAdmin();
 
             if ($matureLock && !$isAdmin) {
-                 return Factory::response([
+                return Factory::response([
                      'status' => 'error',
                      'message' => 'You can not remove the mature flag from your channel',
                  ]);
@@ -70,7 +70,7 @@ class explicit implements Interfaces\Api
         } else {
             // mature locked channels are not allowed to remove explicit
             if ($value === false && Session::getLoggedInUser()->getMatureLock()) {
-                return Factory::response(array('status' => 'error', 'message' => 'You can not remove the explicit flag'));
+                return Factory::response(['status' => 'error', 'message' => 'You can not remove the explicit flag']);
             }
 
             if (Helpers\MagicAttributes::setterExists($entity, 'setMature')) {
@@ -123,11 +123,11 @@ class explicit implements Interfaces\Api
 
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     public function delete($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }

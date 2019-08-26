@@ -62,7 +62,7 @@ class Install extends Cli\Controller implements Interfaces\CliControllerInterfac
 
             try {
                 if ($installType == "all" || $installType == "cassandra") {
-                    $this->out('- Provisioning Cassandra:',  $this::OUTPUT_INLINE);
+                    $this->out('- Provisioning Cassandra:', $this::OUTPUT_INLINE);
                     $isCleanCassandra = $this->getopt("cleanCassandra") != null;
                     $provisioner->provisionCassandra(null, $isCleanCassandra);
                     $this->out('OK');
@@ -72,7 +72,7 @@ class Install extends Cli\Controller implements Interfaces\CliControllerInterfac
                     $this->out('OK');
                 }
             } catch (Exception $ex) {
-                $this->out('Something BAD happened while provisioning Cassandra' . $ex->getMessage()); 
+                $this->out('Something BAD happened while provisioning Cassandra' . $ex->getMessage());
             }
 
             if (($installType == "all") || ($installType == "site")) {

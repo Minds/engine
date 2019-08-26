@@ -6,15 +6,15 @@ class Item
 {
     private $name;
     private $path = "/";
-    private $params = array();
-    private $subItems = array();
+    private $params = [];
+    private $subItems = [];
     private $title;
     private $text;
     private $icon = "home";
     private $class = "";
     private $priority = 500;
     private $visibility = 2;
-    private $extras = array();
+    private $extras = [];
 
     /**
      * Set name
@@ -61,7 +61,7 @@ class Item
      * @param string $params
      * @return $this
      */
-    public function setParams(array $params = array())
+    public function setParams(array $params = [])
     {
         $this->params = $params;
         return $this;
@@ -192,7 +192,7 @@ class Item
      * @param array $extras
      * @return $this
      */
-    public function setExtras($extras = array())
+    public function setExtras($extras = [])
     {
         $this->extras = $extras;
         return $this;
@@ -213,7 +213,7 @@ class Item
      */
     public function export()
     {
-        $subitems = array();
+        $subitems = [];
 
         @usort($this->subItems, function ($a, $b) {
             if ($a->getPriority() > $b->getPriority()) {
@@ -228,7 +228,7 @@ class Item
         foreach ($this->subItems as $subitem) {
             $subitems[] = $subitem->export();
         }
-        return array(
+        return [
             "name" => $this->name,
             "path" => $this->path,
             "params" => $this->params,
@@ -239,6 +239,6 @@ class Item
             "class" => $this->class,
             "visibility" => $this->visibility,
             "extras" => $this->extras
-        );
+        ];
     }
 }

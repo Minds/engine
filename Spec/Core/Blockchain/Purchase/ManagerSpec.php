@@ -12,7 +12,6 @@ use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
-
     /** @var Repository $repo */
     private $repo;
 
@@ -41,7 +40,7 @@ class ManagerSpec extends ObjectBehavior
     /** @var Delegates\EthRate */
     private $ethRate;
 
-    function let(
+    public function let(
         Repository $repo,
         \Minds\Core\Blockchain\Transactions\Manager $txManager,
         Config $config,
@@ -77,17 +76,17 @@ class ManagerSpec extends ObjectBehavior
             ]);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blockchain\Purchase\Manager');
     }
 
-    function it_should_get_auto_issue_cap()
+    public function it_should_get_auto_issue_cap()
     {
         $this->getAutoIssueCap()->shouldReturn(100);
     }
 
-    function it_should_get_eth_token_rate()
+    public function it_should_get_eth_token_rate()
     {
         $this->ethRate->get()
             ->shouldBeCalled()
@@ -95,7 +94,7 @@ class ManagerSpec extends ObjectBehavior
         $this->getEthTokenRate()->shouldReturn(1);
     }
 
-    function it_should_get_a_purchase(Purchase $purchase)
+    public function it_should_get_a_purchase(Purchase $purchase)
     {
         $this->repo->get('hash', '0x123123')
             ->shouldBeCalled()
@@ -104,7 +103,7 @@ class ManagerSpec extends ObjectBehavior
         $this->getPurchase('hash', '0x123123')->shouldReturnAnInstanceOf(Purchase::class);
     }
 
-    function it_should_register_a_purchase_transaction(Purchase $purchase)
+    public function it_should_register_a_purchase_transaction(Purchase $purchase)
     {
         $purchase->getTx()
             ->shouldBeCalled()
@@ -144,7 +143,7 @@ class ManagerSpec extends ObjectBehavior
         $this->purchase($purchase);
     }
 
-    function it_should_add_a_purchase_to_the_database(Purchase $purchase)
+    public function it_should_add_a_purchase_to_the_database(Purchase $purchase)
     {
         $this->repo->add($purchase)
             ->shouldBeCalled();
@@ -152,7 +151,7 @@ class ManagerSpec extends ObjectBehavior
         $this->add($purchase);
     }
 
-    function it_should_issue_a_purchase(Purchase $purchase)
+    public function it_should_issue_a_purchase(Purchase $purchase)
     {
         $this->issueTokens->issue($purchase)
             ->shouldBeCalled();
@@ -177,7 +176,7 @@ class ManagerSpec extends ObjectBehavior
         $this->issue($purchase);
     }
 
-    function it_should_reject_a_purchase(Purchase $purchase)
+    public function it_should_reject_a_purchase(Purchase $purchase)
     {
         $purchase->setStatus('rejected')
             ->shouldBeCalled();

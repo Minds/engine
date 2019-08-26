@@ -26,12 +26,11 @@ class ManagerSpec extends ObjectBehavior
     /** @var  QueueClient */
     protected $queueClient;
 
-    function let(
+    public function let(
         Delegates\Artifacts\Factory $artifactsDelegatesFactory,
         Delegates\Logout $logoutDelegate,
         QueueClient $queueClient
-    )
-    {
+    ) {
         $this->beConstructedWith(
             $artifactsDelegatesFactory,
             $logoutDelegate,
@@ -43,16 +42,15 @@ class ManagerSpec extends ObjectBehavior
         $this->queueClient = $queueClient;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_snapshot_a_channel(
+    public function it_should_snapshot_a_channel(
         User $user,
         ArtifactsDelegateInterface $artifactsDelegateMock
-    )
-    {
+    ) {
         $user->get('guid')
             ->shouldBeCalled()
             ->willReturn(1000);
@@ -84,10 +82,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_delete_a_channel(
+    public function it_should_delete_a_channel(
         User $user
-    )
-    {
+    ) {
         $user->get('guid')
             ->shouldBeCalled()
             ->willReturn(1000);
@@ -113,11 +110,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_cleanup_a_deleted_channel(
+    public function it_should_cleanup_a_deleted_channel(
         User $user,
         ArtifactsDelegateInterface $artifactsDelegateMock
-    )
-    {
+    ) {
         $user->get('guid')
             ->shouldBeCalled()
             ->willReturn(1000);
@@ -153,10 +149,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_restore_a_channel(
+    public function it_should_restore_a_channel(
         ArtifactsDelegateInterface $artifactsDelegateMock
-    )
-    {
+    ) {
         $deletionDelegates = [
             Artifacts\EntityDelegate::class,
             Artifacts\LookupDelegate::class,

@@ -17,7 +17,7 @@ class TokenDistributionEventSpec extends ObjectBehavior
     /** @var MindsTokenSaleEvent */
     private $contract;
 
-    function let(Manager $manager, Ethereum $client, MindsTokenSaleEvent $contract)
+    public function let(Manager $manager, Ethereum $client, MindsTokenSaleEvent $contract)
     {
         $this->manager = $manager;
         $this->client = $client;
@@ -34,12 +34,12 @@ class TokenDistributionEventSpec extends ObjectBehavior
         $this->beConstructedWith($manager, $client);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(TokenDistributionEvent::class);
     }
 
-    function it_should_get_the_rate()
+    public function it_should_get_the_rate()
     {
         $this->client->call('0x123', 'rate()', [])
             ->shouldBeCalled()
@@ -48,7 +48,7 @@ class TokenDistributionEventSpec extends ObjectBehavior
         $this->rate()->shouldReturn('255');
     }
 
-    function it_should_get_the_total_of_eth_raised()
+    public function it_should_get_the_total_of_eth_raised()
     {
         $this->client->call('0x123', 'weiRaised()', [])
             ->shouldBeCalled()
@@ -57,7 +57,7 @@ class TokenDistributionEventSpec extends ObjectBehavior
         $this->raised()->shouldReturn(1.0);
     }
 
-    function it_should_get_the_end_time_of_the_event()
+    public function it_should_get_the_end_time_of_the_event()
     {
         $this->client->call('0x123', 'endTime()', [])
             ->shouldBeCalled()

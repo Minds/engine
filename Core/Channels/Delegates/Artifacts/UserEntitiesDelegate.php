@@ -47,8 +47,7 @@ class UserEntitiesDelegate implements ArtifactsDelegateInterface
         $repository = null,
         $db = null,
         $scroll = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository();
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
         $this->scroll = $scroll ?: Di::_()->get('Database\Cassandra\Cql\Scroll');

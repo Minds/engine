@@ -1,6 +1,6 @@
 <?php
 /**
- * Boost stats 
+ * Boost stats
  */
 namespace Minds\Core\Boost\Network;
 
@@ -9,7 +9,7 @@ use Minds\Core\Di\Di;
 use Minds\Helpers;
 use Minds\Core\Data\ElasticSearch\Prepared;
 
-class Analytics 
+class Analytics
 {
     /** @var Client $es */
     protected $es;
@@ -73,7 +73,7 @@ class Analytics
             ],
         ];
 
-        if ($this->type ) {
+        if ($this->type) {
             $body['query']['bool']['must'][] = [
                 'term' => [
                     'type' => $this->type,
@@ -174,16 +174,16 @@ class Analytics
 
     public function getApprovedBacklog()
     {
-        return (time() - ($this->getApproved()['oldest'] / 1000)) / (60 * 60);   
+        return (time() - ($this->getApproved()['oldest'] / 1000)) / (60 * 60);
     }
 
     public function getImpressions()
     {
-         $total = 0;
-         foreach ($this->getApproved()['docs'] as $doc) {
-             $total += $doc['_source']['impressions'];
-         }
-         return $total;
+        $total = 0;
+        foreach ($this->getApproved()['docs'] as $doc) {
+            $total += $doc['_source']['impressions'];
+        }
+        return $total;
     }
 
     public function getImpressionsMet()
@@ -194,5 +194,4 @@ class Analytics
         //}
         return $met;
     }
-    
 }

@@ -27,8 +27,7 @@ class Manager
     public function __construct(
         $eventsDispatcher = null,
         $repository = null
-    )
-    {
+    ) {
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->repository = $repository ?: new Repository();
     }

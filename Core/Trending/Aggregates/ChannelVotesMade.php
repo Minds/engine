@@ -8,13 +8,12 @@ use Minds\Core\Data\ElasticSearch;
 
 class ChannelVotesMade extends Aggregate
 {
-
     protected $multiplier = -1.5;
 
     public function get()
     {
         $this->limit = 500;
-        $filter = [ 
+        $filter = [
         //    'term' => [
         //        'action' => 'vote:up'
         //    ]
@@ -65,7 +64,7 @@ class ChannelVotesMade extends Aggregate
                 ],
                 'aggs' => [
                     'entities' => [
-                        'terms' => [ 
+                        'terms' => [
                             'field' => 'user_guid.keyword',
                             'size' => $this->limit,
                             'order' => [
@@ -89,12 +88,11 @@ class ChannelVotesMade extends Aggregate
         $prepared->query($query);
 
         $result = $this->client->request($prepared);
-//var_dump($result); exit;       
+        //var_dump($result); exit;
         $entities = [];
         foreach ($result['aggregations']['entities']['buckets'] as $entity) {
             $entities[$entity['key']] = $entity['uniques']['value'] * $this->multiplier;
         }
         return $entities;
     }
-
 }

@@ -15,7 +15,7 @@ class QueueProvider extends Provider
 {
     public function register()
     {
-        $this->di->bind('Queue', function($di) {
+        $this->di->bind('Queue', function ($di) {
             $client = $di->get('Config')->get('queue_engine') ?: 'RabbitMQ';
             return $di->get('Queue\\' . $client);
         });

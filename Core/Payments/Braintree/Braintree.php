@@ -156,7 +156,7 @@ class Braintree implements PaymentServiceInterface, SubscriptionPaymentServiceIn
      * @param array $options - limit, offset
      * @return array
      */
-    public function getSales(Merchant $merchant, array $options = array())
+    public function getSales(Merchant $merchant, array $options = [])
     {
         $results = $this->gateway->transaction()->search([
           Braintree_TransactionSearch::merchantAccountId()->is($merchant->getGuid()),

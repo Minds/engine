@@ -193,7 +193,7 @@ class FFMpeg implements ServiceInterface
         } catch (\Exception $e) {
         }
 
-        $rotated = isset($tags['rotate']) && in_array($tags['rotate'], [270, 90]);
+        $rotated = isset($tags['rotate']) && in_array($tags['rotate'], [270, 90], true);
 
         $outputs = [];
         $presets = $this->config->get('transcoder')['presets'];

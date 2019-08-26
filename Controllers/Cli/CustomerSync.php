@@ -12,7 +12,6 @@ use Stripe;
 
 class CustomerSync extends Cli\Controller implements Interfaces\CliControllerInterface
 {
-
     private $db;
 
     public function __construct()
@@ -35,7 +34,7 @@ class CustomerSync extends Cli\Controller implements Interfaces\CliControllerInt
         $this->db = Di::_()->get('Database\Cassandra\Cql'); //construct not being hit?
         $fo = fopen("/home/ubuntu/customers.csv", "r");
         $row = 0;
-        while (($data = fgetcsv($fo, 10000, ",")) !== FALSE) {
+        while (($data = fgetcsv($fo, 10000, ",")) !== false) {
             $row++;
             $id = $data[0];
             $guid = $data[29];
@@ -50,9 +49,8 @@ class CustomerSync extends Cli\Controller implements Interfaces\CliControllerInt
                 $this->db->request($insert);
                 $this->out("$guid with customer id $id done");
             } catch (\Exception $e) {
-                 $this->out("$guid with customer id $id failed");
+                $this->out("$guid with customer id $id failed");
             }
-
         }
         $this->out($count);
     }

@@ -48,7 +48,7 @@ class EthPrice
      */
     public function setResolution($resolution)
     {
-        if (!in_array((int) $resolution, Poloniex::VALID_RESOLUTIONS)) {
+        if (!in_array((int) $resolution, Poloniex::VALID_RESOLUTIONS, true)) {
             throw new \Exception("EthPrice: Invalid resolution $resolution");
         }
         $this->resolution = $resolution;
@@ -66,7 +66,9 @@ class EthPrice
      */
     public function getNearestPrice($date)
     {
-        if (!$this->data) throw new \Exception('EthPrice: no data loaded, call get() first');
+        if (!$this->data) {
+            throw new \Exception('EthPrice: no data loaded, call get() first');
+        }
         if ($date < $this->firstDate) {
             throw new \Exception("EthPrice: given date ($date) is not in price list");
         }
@@ -89,7 +91,9 @@ class EthPrice
      */
     public function get()
     {
-        if (!$this->from || !$this->to) throw new \Exception('EthPrice: set the date range before call get()');
+        if (!$this->from || !$this->to) {
+            throw new \Exception('EthPrice: set the date range before call get()');
+        }
 
         $this->data = array_column(
             $this->service->getChartData($this->from, $this->to, $this->resolution),

@@ -12,19 +12,17 @@ use Prophecy\Argument;
 
 class PlusSpec extends ObjectBehavior
 {
-
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Plus::class);
     }
 
-    function it_should_make_a_user_plus_if_offchain_wire_sent(
+    public function it_should_make_a_user_plus_if_offchain_wire_sent(
         Config $config,
         User $receiver,
         User $sender,
         EntitiesBuilder $entitiesBuilder
-    )
-    {
+    ) {
         $this->beConstructedWith($config, $entitiesBuilder);
 
         $config->get('blockchain')
@@ -61,10 +59,9 @@ class PlusSpec extends ObjectBehavior
         $this->onWire($wire, 'offchain');
     }
 
-    function it_should_not_make_a_user_plus_if_offchain_wire_is_wrong_guid_sent(
+    public function it_should_not_make_a_user_plus_if_offchain_wire_is_wrong_guid_sent(
         Config $config
-    )
-    {
+    ) {
         $this->beConstructedWith($config);
 
         $config->get('blockchain')
@@ -93,13 +90,12 @@ class PlusSpec extends ObjectBehavior
         $wire->getSender()->isPlus()->shouldBe(false);
     }
 
-    function it_should_make_a_user_plus_if_onchain_wire_sent(
+    public function it_should_make_a_user_plus_if_onchain_wire_sent(
         Config $config,
         User $receiver,
         User $sender,
         EntitiesBuilder $entitiesBuilder
-    )
-    {
+    ) {
         $this->beConstructedWith($config, $entitiesBuilder);
 
         $config->get('blockchain')
@@ -136,10 +132,9 @@ class PlusSpec extends ObjectBehavior
         $this->onWire($wire, '0xaddr');
     }
 
-    function it_should_not_make_a_user_plus_if_onchain_wire_wrong(
+    public function it_should_not_make_a_user_plus_if_onchain_wire_wrong(
         Config $config
-    )
-    {
+    ) {
         $this->beConstructedWith($config);
 
         $config->get('blockchain')
@@ -167,5 +162,4 @@ class PlusSpec extends ObjectBehavior
         $wire = $this->onWire($wire, '0xwrongaddr');
         $wire->getSender()->isPlus()->shouldBe(false);
     }
-
 }

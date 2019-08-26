@@ -34,14 +34,14 @@ class markers implements Interfaces\Api
         $opts = [
             'user_guid' => $user->guid,
             'entity_type' => $entity_type,
-        ];        
+        ];
 
         $manager = (new Manager());
         $list = $manager->getList($opts);
 
 
         return Factory::response([
-            'markers' => Factory::exportable($list), 
+            'markers' => Factory::exportable($list),
         ]);
     }
 

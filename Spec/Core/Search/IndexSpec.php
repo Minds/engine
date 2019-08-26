@@ -17,7 +17,7 @@ class IndexSpec extends ObjectBehavior
     protected $_index = 'phpspec';
     protected $_mappingsFactory;
 
-    function let(
+    public function let(
         Client $client,
         Factory $mappingsFactory
     ) {
@@ -31,16 +31,15 @@ class IndexSpec extends ObjectBehavior
         });
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Search\Index');
     }
 
-    function it_should_index(
+    public function it_should_index(
         \ElggEntity $entity,
         MappingInterface $mapper
-    )
-    {
+    ) {
         $this->_mappingsFactory->build($entity)
             ->shouldBeCalled()
             ->willReturn($mapper);
@@ -91,7 +90,7 @@ class IndexSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_return_false_during_index_if_no_entity()
+    public function it_should_return_false_during_index_if_no_entity()
     {
         $this
             ->index(null)

@@ -13,7 +13,6 @@ use Minds\Core\Di\Di;
 
 class Manager
 {
-
     /** @var Repository $repository */
     private $repository;
 
@@ -25,8 +24,7 @@ class Manager
         $repository = null,
         $notificationDelegate = null,
         $entitiesBuilder = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository;
         $this->notificationDelegate = $notificationDelegate ?: new Delegates\NotificationDelegate;
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');

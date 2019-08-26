@@ -2,7 +2,6 @@
 
 namespace Minds\Core\Media\Imagick;
 
-
 use Minds\Core\Di\Di;
 use Minds\Core\Media\Imagick\Autorotate;
 use Minds\Core\Media\Imagick\Resize;

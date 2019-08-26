@@ -51,8 +51,8 @@ class Repository
         }
 
         if ($opts['user_guid']) {
-           $where[] = "user_guid = ?";
-           $values[] = new Varint($opts['user_guid']);
+            $where[] = "user_guid = ?";
+            $values[] = new Varint($opts['user_guid']);
         }
 
         if ($where) {
@@ -76,7 +76,7 @@ class Repository
         $prepared->setOpts([
             'page_size' => (int) $opts['limit'],
             'paging_state_token' => (string) $opts['token'],
-        ]); 
+        ]);
 
         return $this->db->request($prepared);
     }
@@ -150,7 +150,8 @@ class Repository
         $prepared = new Prepared;
         $prepared->query($query, $values);
 
-        return $this->db->request($prepared);;
+        return $this->db->request($prepared);
+        ;
     }
 
     /**

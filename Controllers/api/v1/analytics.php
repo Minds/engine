@@ -127,7 +127,7 @@ class analytics implements Interfaces\Api, Interfaces\ApiIgnorePam
               break;
         }
 
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     public function delete($pages)

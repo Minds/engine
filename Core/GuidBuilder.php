@@ -3,7 +3,6 @@
 
 namespace Minds\Core;
 
-
 class GuidBuilder
 {
     public function __get($name)

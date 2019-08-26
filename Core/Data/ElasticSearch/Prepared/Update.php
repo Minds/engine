@@ -10,7 +10,6 @@ namespace Minds\Core\Data\ElasticSearch\Prepared;
 
 use Minds\Core\Data\Interfaces\PreparedMethodInterface;
 
-
 class Update implements PreparedMethodInterface
 {
     protected $_query;

@@ -15,7 +15,6 @@ use Minds\Api\Factory;
 
 class contributions implements Interfaces\Api
 {
-
     /**
      * Equivalent to HTTP GET method
      * @param  array $pages

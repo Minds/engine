@@ -123,7 +123,9 @@ class Resolver
 
         // Filter out invalid entities
 
-        $sorted = array_filter($sorted, function ($entity) { return (bool) $entity; });
+        $sorted = array_filter($sorted, function ($entity) {
+            return (bool) $entity;
+        });
 
         // Filter out forbidden entities
 

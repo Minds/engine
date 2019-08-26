@@ -21,7 +21,7 @@ class Subscriptions
      * @param  array $data      - metadata. Optional.
      * @return boolean
      */
-    public static function subscribe($user_guid, $to_guid, $data = array())
+    public static function subscribe($user_guid, $to_guid, $data = [])
     {
         if (static::isSubscribed($user_guid, $to_guid)) {
             return false;
@@ -102,7 +102,7 @@ class Subscriptions
 
         $return = 0;
         $db = new Core\Data\Call('friendsof');
-        $row = $db->getRow($user, array('limit'=> 1, 'offset'=>$to));
+        $row = $db->getRow($user, ['limit'=> 1, 'offset'=>$to]);
         if ($row && key($row) == $to) {
             $return = true;
         }
@@ -144,7 +144,7 @@ class Subscriptions
             Wallet::createTransaction($params['from_guid'], -5, $params['user_guid'], 'Subscription Removed');
         });
 
-        Events\Dispatcher::register('subscription:dispatch', 'all', function(Events\Event $event) {
+        Events\Dispatcher::register('subscription:dispatch', 'all', function (Events\Event $event) {
             $params = $event->getParameters();
 
             $currentUser = new User($params['currentUser']);

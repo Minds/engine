@@ -30,8 +30,7 @@ class Manager
         $elasticRepository = null,
         $entitiesBuilder = null,
         $guidBuilder = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository;
         $this->elasticRepository = $elasticRepository ?: new ElasticRepository;
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
@@ -85,7 +84,7 @@ class Manager
 
             if (!$boost->getEntity() || !$boost->getOwner()) {
                 $boost->setEntity(new \Minds\Entities\Entity());
-            //    unset($response[$i]);
+                //    unset($response[$i]);
             }
         }
 

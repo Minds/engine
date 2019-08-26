@@ -19,7 +19,6 @@ class reports implements Interfaces\Api
 
     public function post($pages)
     {
-        
         return Factory::response([]);
     }
 
@@ -32,5 +31,4 @@ class reports implements Interfaces\Api
     {
         return Factory::response([]);
     }
-
 }

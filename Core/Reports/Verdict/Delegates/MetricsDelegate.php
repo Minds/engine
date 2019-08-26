@@ -29,7 +29,7 @@ class MetricsDelegate
             $verdict->getReport()->getAppealJuryDecisions() :
             $verdict->getReport()->getInitialJuryDecisions();
 
-        $jurorGuids = array_map(function(Decision $decision) {
+        $jurorGuids = array_map(function (Decision $decision) {
             return $decision->getJurorGuid();
         }, $decisions);
 

@@ -139,7 +139,7 @@ class Repository
 
         $query->setOpts([
             'page_size' => (int) $options['limit'],
-            'paging_state_token' => base64_decode($options['offset'])
+            'paging_state_token' => base64_decode($options['offset'], true)
         ]);
 
         $boosts = [];
@@ -301,4 +301,3 @@ class Repository
         return $success;
     }
 }
-

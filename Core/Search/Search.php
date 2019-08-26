@@ -98,7 +98,7 @@ class Search
             }
 
             foreach ($options['taxonomies'] as $taxonomy) {
-                if (!in_array($taxonomy, $this->allowedTypes)) {
+                if (!in_array($taxonomy, $this->allowedTypes, true)) {
                     throw new \Exception('Unknown taxonomy: ' . $taxonomy);
                 }
             }
@@ -145,13 +145,13 @@ class Search
                 [
                     'rating' => [
                         'lte' => $options['rating'],
-                    ]   
+                    ]
                 ]
             ]);
         } elseif ($options['sort'] == 'top') {
             $match['fields'] = [ 'name^6', 'title^8', 'message^8', 'username^8', 'tags^64'  ];
             $prepared->setRange([
-                [ 
+                [
                     'interactions' => [
                         'gt' => '0'
                     ]
@@ -168,7 +168,7 @@ class Search
                 ]
             ]);
             //prevent people gaming the hashtags
-            $prepared->setScripts([ "doc['tags.keyword'].values.size() < 3" ]); 
+            $prepared->setScripts([ "doc['tags.keyword'].values.size() < 3" ]);
             $params['field_value_factor'] = [
                 'field' => 'interactions',
                 'modifier' => 'log1p',
@@ -177,7 +177,7 @@ class Search
             ];
             $params['sort'] = [
                 [ 'interactions' => 'desc' ]
-            ]; 
+            ];
         } elseif ($options['sort'] === 'relevant') {
             $match['fields'] = [ 'name^6', 'title^8', 'message^8', 'username^8', 'tags^64'  ];
             $match['type'] = 'phrase';

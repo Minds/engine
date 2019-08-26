@@ -122,7 +122,7 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
         foreach ($aggregates as $aggregate) {
             $this->out("Syncing {$aggregate}");
 
-            try { 
+            try {
                 $manager->sync([
                     'aggregate' => $aggregate,
                     'all' => true,
@@ -132,7 +132,7 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
         }
 
         $this->out('Completed caching site metrics');
-   }
+    }
 
     public function syncViews()
     {
@@ -158,5 +158,4 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
         }
         $this->out('Done');
     }
-
 }

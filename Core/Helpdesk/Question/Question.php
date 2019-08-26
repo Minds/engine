@@ -62,8 +62,8 @@ class Question
         $export['answer'] = $this->getAnswer();
         $export['category_uuid'] = $this->getCategoryUuid();
         $export['category'] = $this->getCategory() ? $this->getCategory()->export() : null;
-        $export['thumb_up'] = in_array(Session::getLoggedInUserGuid(), $this->getThumbsUp());
-        $export['thumb_down'] = in_array(Session::getLoggedInUserGuid(), $this->getThumbsDown());
+        $export['thumb_up'] = in_array(Session::getLoggedInUserGuid(), $this->getThumbsUp(), true);
+        $export['thumb_down'] = in_array(Session::getLoggedInUserGuid(), $this->getThumbsDown(), true);
         $export['position'] = $this->getPosition();
 
         return $export;

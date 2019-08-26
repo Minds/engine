@@ -10,14 +10,14 @@ use Minds\Core\Monetization\Manager;
 
 class AdminSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Monetization\Admin');
     }
 
-    function it_should_get_admin_queue(Manager $manager)
+    public function it_should_get_admin_queue(Manager $manager)
     {
-        Di::_()->bind('Monetization\Manager', function($di) use ($manager) {
+        Di::_()->bind('Monetization\Manager', function ($di) use ($manager) {
             return $manager->getWrappedObject();
         });
 

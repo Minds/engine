@@ -31,7 +31,7 @@ class lookup
     public function set($key, $values)
     {
         if (!is_array($values)) {
-            $values = array($values);
+            $values = [$values];
         }
         return $this->call->insert($this->namespace.$key, $values);
     }
@@ -43,7 +43,7 @@ class lookup
     
     public function removeColumn($key, $column)
     {
-        return $this->call->removeAttributes($key, array($column));
+        return $this->call->removeAttributes($key, [$column]);
     }
     
     public function get($name, array $options = [])

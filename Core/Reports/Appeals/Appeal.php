@@ -40,5 +40,4 @@ class Appeal
 
         return $export;
     }
-
 }

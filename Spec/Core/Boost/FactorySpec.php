@@ -20,6 +20,6 @@ class FactorySpec extends ObjectBehavior
 
     public function it_should_throw_an_error_if_handler_doesnt_exist()
     {
-        $this->shouldThrow("\Exception")->during("build", array("FakeBoost"));
+        $this->shouldThrow("\Exception")->during("build", ["FakeBoost"]);
     }
 }

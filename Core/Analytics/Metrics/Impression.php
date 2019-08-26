@@ -45,7 +45,7 @@ class Impression implements AnalyticsMetric
     public function increment()
     {
         Helpers\Counters::increment($this->key, "{$this->namespace}impression");
-        foreach (Timestamps::get(array('day', 'month')) as $p => $ts) {
+        foreach (Timestamps::get(['day', 'month']) as $p => $ts) {
             Helpers\Counters::increment($this->key, "{$this->namespace}impression:$p:$ts");
         }
         return true;
@@ -61,13 +61,13 @@ class Impression implements AnalyticsMetric
     public function get($span = 3, $unit = 'day', $timestamp = null)
     {
         $timestamps = Timestamps::span($span, $unit);
-        $data = array();
+        $data = [];
         foreach ($timestamps as $ts) {
-            $data[] = array(
+            $data[] = [
                 'timestamp' => $ts,
                 'date' => date('d-m-Y', $ts),
                 'total' => Helpers\Counters::get($this->key, "{$this->namespace}impression:$unit:$ts")
-            );
+            ];
         }
         return $data;
     }

@@ -13,12 +13,12 @@ use Prophecy\Argument;
 
 class NewPurchaseEmailSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(NewPurchaseEmail::class);
     }
 
-    function it_should_send(Config $config, Custom $campaign, lookup $lookup, Purchase $purchase)
+    public function it_should_send(Config $config, Custom $campaign, lookup $lookup, Purchase $purchase)
     {
         $this->beConstructedWith($config, $campaign);
 
