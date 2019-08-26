@@ -143,7 +143,6 @@ class Client implements Interfaces\ClientInterface
                 //$cursor->sort($options['sort']);
             }
             return $cursor;
-
         } catch (\exception $e) {
             error_log("MongoDB Find [" . get_class($e) . "]: {$e->getMessage()}");
         }
@@ -244,13 +243,15 @@ class Client implements Interfaces\ClientInterface
         if (is_string($query['_id']) && $query['_id']) {
             try {
                 $query['_id'] = new ObjectId($query['_id']);
-            } catch (\Exception $e) { /* No conversion */ }
+            } catch (\Exception $e) { /* No conversion */
+            }
         } elseif (is_array($query['_id'])) {
-            array_walk($query['_id'], function(&$value) {
+            array_walk($query['_id'], function (&$value) {
                 if (is_string($value) && $value) {
                     try {
                         $value = new ObjectId($value);
-                    } catch (\Exception $e) { /* No conversion */ }
+                    } catch (\Exception $e) { /* No conversion */
+                    }
                 }
             });
         }

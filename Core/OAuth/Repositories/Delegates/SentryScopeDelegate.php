@@ -6,7 +6,6 @@ use Minds\Core\OAuth\Entities\UserEntity;
 
 class SentryScopeDelegate
 {
-
     /**
      * Pass through a user guid to sentry
      * @param UserEntity $entity
@@ -20,6 +19,4 @@ class SentryScopeDelegate
             ]);
         });
     }
-
 }
-

@@ -66,7 +66,7 @@ class CassandraRepository
         $query->query($statement, $values);
         $query->setOpts([
             'page_size' => $opts['limit'],
-            'paging_state_token' => base64_decode($opts['offset']),
+            'paging_state_token' => base64_decode($opts['offset'], true),
         ]);
 
         try {
@@ -105,7 +105,7 @@ class CassandraRepository
      */
     public function get($urn)
     {
-        list ($to_guid, $uuid) = explode('-', $this->urn->setUrn($urn)->getNss(), 2);
+        list($to_guid, $uuid) = explode('-', $this->urn->setUrn($urn)->getNss(), 2);
 
         $response = $this->getList([
             'to_guid' => $to_guid,

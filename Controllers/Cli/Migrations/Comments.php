@@ -178,10 +178,10 @@ class Comments extends Cli\Controller implements Interfaces\CliControllerInterfa
         $query->query($cql, $values);
         
         if (!$dry) {
-            try { 
+            try {
                 $this->client->request($query);
             } catch (\Exception $e) {
-                var_dump($e); 
+                var_dump($e);
             }
         }
     }
@@ -230,7 +230,7 @@ class Comments extends Cli\Controller implements Interfaces\CliControllerInterfa
 
     // Poor-man's in memory json cache
 
-    static $jsonCache = [];
+    public static $jsonCache = [];
 
     public static function _saveToJsonCache($key, $value)
     {

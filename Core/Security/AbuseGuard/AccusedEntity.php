@@ -10,7 +10,6 @@ use Minds\Entities;
 
 class AccusedEntity
 {
-
     private $user;
     private $score = 0;
     private $metrics = [];
@@ -57,5 +56,4 @@ class AccusedEntity
         //echo "\n{$this->user->guid} ($this->score * $multiplier)";
         return $this->score * $multiplier;
     }
-
 }

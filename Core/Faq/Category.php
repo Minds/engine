@@ -6,7 +6,6 @@ namespace Minds\Core\Faq;
 
 class Category implements \JsonSerializable
 {
-
     protected $category;
     protected $questions;
 
@@ -39,5 +38,4 @@ class Category implements \JsonSerializable
             'questions' => $this->getQuestions()
         ];
     }
-    
 }

@@ -41,7 +41,7 @@ class Category
     protected $branch;
 
     /** @var int $position */
-    protected $position = 10;    
+    protected $position = 10;
     
     protected $questions;
 

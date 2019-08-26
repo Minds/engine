@@ -8,7 +8,6 @@ use Minds\Traits\MagicAttributes;
 
 class VideoChatLease
 {
-
     use MagicAttributes;
 
     /** @var string $key */
@@ -22,5 +21,4 @@ class VideoChatLease
 
     /** @var int $lastRefreshed */
     private $lastRefreshed;
-
 }

@@ -12,10 +12,8 @@ use Minds\Api\Factory;
 
 class token extends core\page implements Interfaces\page
 {
-
     public function get($pages)
     {
-
     }
 
     public function post($pages)
@@ -34,5 +32,4 @@ class token extends core\page implements Interfaces\page
     public function delete($pages)
     {
     }
-
 }

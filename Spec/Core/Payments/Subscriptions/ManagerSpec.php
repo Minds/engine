@@ -15,21 +15,20 @@ class ManagerSpec extends ObjectBehavior
 {
     protected $repository;
 
-    function let(
+    public function let(
         Repository $repository
-    )
-    {
+    ) {
         $this->repository = $repository;
 
         $this->beConstructedWith($repository);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Payments\Subscriptions\Manager');
     }
 
-    function it_should_charge_a_subscription(Subscription $subscription)
+    public function it_should_charge_a_subscription(Subscription $subscription)
     {
         $this->setSubscription($subscription);
 
@@ -40,7 +39,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->add($subscription)
             ->shouldBeCalled();
 
-        Dispatcher::register('subscriptions:process', 'spec', function($event) {
+        Dispatcher::register('subscriptions:process', 'spec', function ($event) {
             return $event->setResponse(true);
         });
 
@@ -61,7 +60,7 @@ class ManagerSpec extends ObjectBehavior
         $this->charge()->shouldReturn(true);
     }
 
-    function it_should_create()
+    public function it_should_create()
     {
         $user = new User;
         $user->guid = 123;
@@ -77,11 +76,11 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->setSubscription($subscription);
-         $this->create()
+        $this->create()
             ->shouldReturn(true);
     }
 
-    function it_should_calculate_the_next_billing_during_create()
+    public function it_should_calculate_the_next_billing_during_create()
     {
         $user = new User;
         $user->guid = 123;
@@ -103,7 +102,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_throw_if_not_valid()
+    public function it_should_throw_if_not_valid()
     {
         $subscription = new Subscription;
         $subscription->setId('sub_test');
@@ -112,7 +111,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow('\Exception')->duringCreate();
     }
 
-    function it_should_update()
+    public function it_should_update()
     {
         $user = new User;
         $user->guid = 123;
@@ -132,7 +131,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_cancel()
+    public function it_should_cancel()
     {
         $user = new User;
         $user->guid = 123;
@@ -152,7 +151,7 @@ class ManagerSpec extends ObjectBehavior
         $this->cancel()->shouldReturn(true);
     }
 
-    function it_should_throw_if_no_type_during_cancel()
+    public function it_should_throw_if_no_type_during_cancel()
     {
         $subscription = new Subscription;
         $subscription->setId('sub_test');
@@ -161,7 +160,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow('\Exception')->duringCancel();
     }
 
-    function it_should_get_next_billing_for_daily_recurring()
+    public function it_should_get_next_billing_for_daily_recurring()
     {
         $subscription = new Subscription;
         $subscription->setInterval('daily');
@@ -173,7 +172,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn($next);
     }
 
-    function it_should_get_next_billing_for_monthly_recurring()
+    public function it_should_get_next_billing_for_monthly_recurring()
     {
         $subscription = new Subscription;
         $subscription->setInterval('monthly');
@@ -185,7 +184,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn($next);
     }
 
-    function it_should_get_next_billing_for_yearly_recurring()
+    public function it_should_get_next_billing_for_yearly_recurring()
     {
         $subscription = new Subscription;
         $subscription->setInterval('yearly');
@@ -197,12 +196,12 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn($next);
     }
 
-    function it_should_return_false_if_cancelling_all_subscriptions_with_no_user_set()
+    public function it_should_return_false_if_cancelling_all_subscriptions_with_no_user_set()
     {
         $this->cancelAllSubscriptions()->shouldReturn(false);
     }
 
-    function it_should_cancel_all_subscriptions_from_and_to_a_user(User $user)
+    public function it_should_cancel_all_subscriptions_from_and_to_a_user(User $user)
     {
         $sub = new Subscription();
         $sub->setId('1')
@@ -285,5 +284,4 @@ class ManagerSpec extends ObjectBehavior
             ->shouldThrow(new \Exception('Invalid recurring value'))
             ->duringGetNextBilling($last_billing, '^}invalid-recurring-value');
     }*/
-
 }

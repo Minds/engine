@@ -68,6 +68,6 @@ class EthRate
             $rows = $this->cql->request($query);
         } catch (\Exception $e) {
             return null;
-        }  
+        }
     }
 }

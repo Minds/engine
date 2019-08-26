@@ -29,7 +29,7 @@ class EmailDelegate
 
     /**
      * On Strike
-     * @param Strike $strike 
+     * @param Strike $strike
      * @return void
      */
     public function onStrike(Strike $strike)
@@ -63,5 +63,4 @@ class EmailDelegate
 
         $this->campaign->send();
     }
-
 }

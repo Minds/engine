@@ -117,7 +117,7 @@ class Entities implements \Iterator
 
         $query->setOpts([
             'page_size' => (int)$this->fetchLimit,
-            'paging_state_token' => base64_decode($this->offset),
+            'paging_state_token' => base64_decode($this->offset, true),
         ]);
 
         try {
@@ -229,4 +229,3 @@ class Entities implements \Iterator
         return $this->valid && isset($this->data[$this->cursor]);
     }
 }
-

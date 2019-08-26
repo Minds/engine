@@ -7,7 +7,6 @@ use Minds\Entities\Factory;
 
 class EntitiesBuilder
 {
-
     /**
      * Build by a single guid
      * @param $guid number
@@ -24,7 +23,7 @@ class EntitiesBuilder
      * @param  array  $options
      * @return array
      */
-    public function get(array $options = array())
+    public function get(array $options = [])
     {
         return \elgg_get_entities($options);
     }

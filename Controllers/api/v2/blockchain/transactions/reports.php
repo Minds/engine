@@ -23,7 +23,8 @@ class reports implements Interfaces\Api, Interfaces\ApiAdminPam
      * Contructor
      * @param Core\Config\Config $config
      */
-    public function __construct($config = null) {
+    public function __construct($config = null)
+    {
         $config = $config ?: Di::_()->get('Config');
 
         $blockchainConfig = $config->get('blockchain');
@@ -74,9 +75,11 @@ class reports implements Interfaces\Api, Interfaces\ApiAdminPam
         $export = CsvExporter::create();
 
         // add title
-        if ($withTitles) $export->addLine($manager->getColumns());
+        if ($withTitles) {
+            $export->addLine($manager->getColumns());
+        }
 
-        foreach($data as $row) {
+        foreach ($data as $row) {
             $export->addLine($row);
         }
 

@@ -38,7 +38,7 @@ class RepositorySpec extends ObjectBehavior
 
     protected $_client;
 
-    function let(Cassandra\Client $client)
+    public function let(Cassandra\Client $client)
     {
         $this->beConstructedWith($client);
 
@@ -47,12 +47,12 @@ class RepositorySpec extends ObjectBehavior
 
     // getAll()
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Boost\Repository');
     }
 
-    function it_should_get_a_list_of_boosts()
+    public function it_should_get_a_list_of_boosts()
     {
         $rows = new Mocks\Cassandra\Rows([
             [ 'type' => 'network', 'data' => $this::$boostEntityDataMock ],
@@ -71,7 +71,7 @@ class RepositorySpec extends ObjectBehavior
         $return['next']->shouldReturn('');
     }
 
-    function it_should_get_a_list_of_boosts_by_owner()
+    public function it_should_get_a_list_of_boosts_by_owner()
     {
         $rows = new Mocks\Cassandra\Rows([
             [ 'type' => 'network', 'data' => $this::$boostEntityDataMock ],
@@ -100,7 +100,7 @@ class RepositorySpec extends ObjectBehavior
         $return['next']->shouldReturn('');
     }
 
-    function it_should_get_a_list_of_boosts_by_destination()
+    public function it_should_get_a_list_of_boosts_by_destination()
     {
         $rows = new Mocks\Cassandra\Rows([
             [ 'type' => 'network', 'data' => $this::$boostEntityDataMock ],
@@ -129,7 +129,7 @@ class RepositorySpec extends ObjectBehavior
         $return['next']->shouldReturn('');
     }
 
-    function it_should_get_a_list_of_boosts_by_owner_and_destination()
+    public function it_should_get_a_list_of_boosts_by_owner_and_destination()
     {
         $rows = new Mocks\Cassandra\Rows([
             [ 'type' => 'network', 'data' => $this::$boostEntityDataMock ],
@@ -160,7 +160,7 @@ class RepositorySpec extends ObjectBehavior
         $return['next']->shouldReturn('');
     }
 
-    function it_should_get_a_list_of_specific_boosts_by_guid()
+    public function it_should_get_a_list_of_specific_boosts_by_guid()
     {
         $rows = new Mocks\Cassandra\Rows([
             [ 'type' => 'network', 'data' => $this::$boostEntityDataMock ],
@@ -189,7 +189,7 @@ class RepositorySpec extends ObjectBehavior
         $return['next']->shouldReturn('');
     }
 
-    function it_should_not_get_a_list_of_boosts_if_no_type()
+    public function it_should_not_get_a_list_of_boosts_if_no_type()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -201,7 +201,7 @@ class RepositorySpec extends ObjectBehavior
 
     // getEntity()
 
-    function it_should_get_a_single_boost()
+    public function it_should_get_a_single_boost()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -214,7 +214,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturnAnInstanceOf(Entities\Boost\Network::class);
     }
 
-    function it_should_not_get_a_single_boost_if_no_type()
+    public function it_should_not_get_a_single_boost_if_no_type()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -224,7 +224,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    function it_should_not_get_a_single_boost_if_no_guid()
+    public function it_should_not_get_a_single_boost_if_no_guid()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -234,7 +234,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    function it_should_not_get_a_single_boost_if_not_exists()
+    public function it_should_not_get_a_single_boost_if_not_exists()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -247,7 +247,7 @@ class RepositorySpec extends ObjectBehavior
 
     // getEntityById()
 
-    function it_should_get_a_single_boost_based_on_mongo()
+    public function it_should_get_a_single_boost_based_on_mongo()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -260,7 +260,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturnAnInstanceOf(Entities\Boost\Network::class);
     }
 
-    function it_should_not_get_a_single_boost_based_on_mongo_if_no_type()
+    public function it_should_not_get_a_single_boost_based_on_mongo_if_no_type()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -270,7 +270,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    function it_should_not_get_a_single_boost_based_on_mongo_if_no_id()
+    public function it_should_not_get_a_single_boost_based_on_mongo_if_no_id()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -280,7 +280,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    function it_should_not_get_a_single_boost_based_on_mongo_if_not_exists()
+    public function it_should_not_get_a_single_boost_based_on_mongo_if_not_exists()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -293,7 +293,7 @@ class RepositorySpec extends ObjectBehavior
  
     // upsert()
 
-    function it_should_store_a_boost()
+    public function it_should_store_a_boost()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -309,7 +309,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_store_a_boost_with_a_destination()
+    public function it_should_store_a_boost_with_a_destination()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -326,7 +326,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_not_store_a_boost_if_no_type()
+    public function it_should_not_store_a_boost_if_no_type()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -340,7 +340,7 @@ class RepositorySpec extends ObjectBehavior
             ]);
     }
 
-    function it_should_not_store_a_boost_if_no_guid()
+    public function it_should_not_store_a_boost_if_no_guid()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -353,7 +353,7 @@ class RepositorySpec extends ObjectBehavior
             ]);
     }
 
-    function it_should_not_store_a_boost_if_no_owner()
+    public function it_should_not_store_a_boost_if_no_owner()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -367,7 +367,7 @@ class RepositorySpec extends ObjectBehavior
             ]);
     }
 
-    function it_should_not_store_a_boost_if_no_state()
+    public function it_should_not_store_a_boost_if_no_state()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -380,7 +380,7 @@ class RepositorySpec extends ObjectBehavior
             ]);
     }
 
-    function it_should_not_store_a_boost_if_db_fails()
+    public function it_should_not_store_a_boost_if_db_fails()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -398,11 +398,11 @@ class RepositorySpec extends ObjectBehavior
 
     //
 
-    function getMatchers()
+    public function getMatchers()
     {
         $matchers = [];
 
-        $matchers['haveKeys'] = function($subject, array $keys) {
+        $matchers['haveKeys'] = function ($subject, array $keys) {
             $valid = true;
 
             foreach ($keys as $key) {

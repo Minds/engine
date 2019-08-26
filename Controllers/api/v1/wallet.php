@@ -49,9 +49,9 @@ class wallet implements Interfaces\Api
                 $response['cap'] = $config['network']['max'];
                 $response['min'] = $config['network']['min'];
                 $response['boost_rate'] = 1;
-                $response['ex'] = array(
+                $response['ex'] = [
                     'usd' => 0.001
-                );
+                ];
                 $response['satoshi'] = $satoshi;
                 $response['btc'] = sprintf('%.9f', $btc);
                 $response['usd'] = round($count / 10000, 2);
@@ -59,7 +59,7 @@ class wallet implements Interfaces\Api
 
             case "transactions":
                 Factory::isLoggedIn();
-                $entities = Core\Entities::get(array('subtype'=>'points_transaction', 'owner_guid'=> Core\Session::getLoggedinUser()->guid, 'limit'=>isset($_GET['limit']) ? $_GET['limit'] : 12, 'offset'=>isset($_GET['offset']) ? $_GET['offset'] : ""));
+                $entities = Core\Entities::get(['subtype'=>'points_transaction', 'owner_guid'=> Core\Session::getLoggedinUser()->guid, 'limit'=>isset($_GET['limit']) ? $_GET['limit'] : 12, 'offset'=>isset($_GET['offset']) ? $_GET['offset'] : ""]);
                 if (isset($_GET['offset']) && $_GET['offset']) {
                     array_shift($entities);
                 }
@@ -92,7 +92,7 @@ class wallet implements Interfaces\Api
                 $ex_rate = $this->ex_rate;
                 $points = $_POST['points'];
                 $usd = $ex_rate * $points;
-                return Factory::response(array('usd'=>$usd));
+                return Factory::response(['usd'=>$usd]);
                 break;
             case "purchase-once":
                 /** @var Payments\Points\Manager $pointsManager */

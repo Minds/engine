@@ -3,7 +3,6 @@
 
 namespace Minds\Core\Email\Campaigns;
 
-
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Message;
 use Minds\Core\Email\Template;
@@ -43,7 +42,6 @@ class MissedSinceLogin extends EmailCampaign
     {
         $this->subject = $subject;
         return $this;
-
     }
 
     public function setEntities($entities)
@@ -58,7 +56,7 @@ class MissedSinceLogin extends EmailCampaign
      */
     public function send()
     {
-        if(!$this->templateKey || $this->templateKey == '') {
+        if (!$this->templateKey || $this->templateKey == '') {
             throw new \Exception('You must set a templatePath');
         }
         $this->template->setTemplate('default.tpl');
@@ -87,5 +85,4 @@ class MissedSinceLogin extends EmailCampaign
         $this->mailer->send($message);
         exit;
     }
-
 }

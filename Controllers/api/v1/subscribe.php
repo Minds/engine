@@ -26,16 +26,16 @@ class subscribe implements Interfaces\Api
      */
     public function get($pages)
     {
-        $response = array();
+        $response = [];
 
         switch ($pages[0]) {
             case 'subscriptions':
                 $db = new \Minds\Core\Data\Call('friends');
-                $subscribers= $db->getRow($pages[1], array('limit'=>get_input('limit', 12), 'offset'=>get_input('offset', '')));
+                $subscribers= $db->getRow($pages[1], ['limit'=>get_input('limit', 12), 'offset'=>get_input('offset', '')]);
                 if (!$subscribers) {
                     return Factory::response([]);
                 }
-                $users = array();
+                $users = [];
                 foreach ($subscribers as $guid => $subscriber) {
                     if ($guid == get_input('offset')) {
                         continue;
@@ -64,11 +64,11 @@ class subscribe implements Interfaces\Api
                 }
 
                 $db = new \Minds\Core\Data\Call('friendsof');
-                $subscribers= $db->getRow($pages[1], array('limit'=>get_input('limit', 12), 'offset'=>get_input('offset', '')));
+                $subscribers= $db->getRow($pages[1], ['limit'=>get_input('limit', 12), 'offset'=>get_input('offset', '')]);
                 if (!$subscribers) {
                     return Factory::response([]);
                 }
-                $users = array();
+                $users = [];
                 if (get_input('offset') && key($subscribers) != get_input('offset')) {
                     $response['load-previous'] = (string) get_input('offset');
                 } else {
@@ -178,7 +178,7 @@ class subscribe implements Interfaces\Api
 
         $manager = new Subscriptions\Manager();
         $subscription = $manager->setSubscriber(Core\Session::getLoggedinUser())
-            ->unSubscribe($publisher); 
+            ->unSubscribe($publisher);
 
         $event = new Core\Analytics\Metrics\Event();
         $event->setType('action')
@@ -189,11 +189,11 @@ class subscribe implements Interfaces\Api
             ->setEntityGuid((string) $pages[0])
             ->push();
 
-        $response = array('status'=>'success');
+        $response = ['status'=>'success'];
         if (!$subscription) {
-            $response = array(
+            $response = [
                 'status' => 'error'
-            );
+            ];
         }
 
         return Factory::response($response);

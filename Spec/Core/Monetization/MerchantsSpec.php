@@ -11,12 +11,12 @@ use Minds\Entities;
 
 class MerchantsSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Monetization\Merchants');
     }
 
-    function it_should_set_and_get_a_user(Entities\User $user)
+    public function it_should_set_and_get_a_user(Entities\User $user)
     {
         $user->get('guid')->shouldBeCalled()->willReturn(10);
 
@@ -24,7 +24,7 @@ class MerchantsSpec extends ObjectBehavior
         $this->getUser()->shouldReturn($user);
     }
 
-    function it_should_get_monetization_on_merchant_users(Entities\User $user)
+    public function it_should_get_monetization_on_merchant_users(Entities\User $user)
     {
         $user->get('guid')->shouldBeCalled()->willReturn(10);
         $user->get('ban_monetization')->shouldBeCalled()->willReturn('no');
@@ -38,7 +38,7 @@ class MerchantsSpec extends ObjectBehavior
         $this->getId()->shouldReturn('phpspec_01');
     }
 
-    function it_should_not_get_monetization_on_non_merchant_users(Entities\User $user)
+    public function it_should_not_get_monetization_on_non_merchant_users(Entities\User $user)
     {
         $user->get('guid')->shouldBeCalled()->willReturn(10);
         $user->get('ban_monetization')->shouldBeCalled()->willReturn('no');
@@ -49,7 +49,7 @@ class MerchantsSpec extends ObjectBehavior
         $this->getId()->shouldReturn(false);
     }
 
-    function it_should_not_get_monetization_on_banned_users(Entities\User $user)
+    public function it_should_not_get_monetization_on_banned_users(Entities\User $user)
     {
         $user->get('guid')->shouldBeCalled()->willReturn(10);
         $user->get('ban_monetization')->shouldBeCalled()->willReturn('yes');
@@ -60,12 +60,11 @@ class MerchantsSpec extends ObjectBehavior
         $this->getId()->shouldReturn(false);
     }
 
-    function it_should_ban_merchants(
+    public function it_should_ban_merchants(
         Monetization\Payouts $payouts,
         Entities\User $user
-    )
-    {
-        Di::_()->bind('Monetization\Payouts', function($di) use ($payouts) {
+    ) {
+        Di::_()->bind('Monetization\Payouts', function ($di) use ($payouts) {
             return $payouts->getWrappedObject();
         });
 
@@ -81,12 +80,11 @@ class MerchantsSpec extends ObjectBehavior
         $this->ban()->shouldReturn(true);
     }
 
-    function it_should_ban_merchants_and_cancel_last_payout(
+    public function it_should_ban_merchants_and_cancel_last_payout(
         Monetization\Payouts $payouts,
         Entities\User $user
-    )
-    {
-        Di::_()->bind('Monetization\Payouts', function($di) use ($payouts) {
+    ) {
+        Di::_()->bind('Monetization\Payouts', function ($di) use ($payouts) {
             return $payouts->getWrappedObject();
         });
 
@@ -105,7 +103,7 @@ class MerchantsSpec extends ObjectBehavior
         $this->ban()->shouldReturn(true);
     }
 
-    function it_should_unban_merchants(Entities\User $user)
+    public function it_should_unban_merchants(Entities\User $user)
     {
         $user->get('guid')->shouldBeCalled()->willReturn(10);
         $user->set('ban_monetization', 'no')->shouldBeCalled();
@@ -115,7 +113,7 @@ class MerchantsSpec extends ObjectBehavior
         $this->unban()->shouldReturn(true);
     }
 
-    function it_should_check_if_banned(Entities\User $user)
+    public function it_should_check_if_banned(Entities\User $user)
     {
         $user->get('guid')->shouldBeCalled()->willReturn(10);
         $user->get('ban_monetization')->shouldBeCalled()->willReturn('yes');
@@ -124,7 +122,7 @@ class MerchantsSpec extends ObjectBehavior
         $this->isBanned()->shouldReturn(true);
     }
 
-    function it_should_check_if_not_banned(Entities\User $user)
+    public function it_should_check_if_not_banned(Entities\User $user)
     {
         $user->get('guid')->shouldBeCalled()->willReturn(10);
         $user->get('ban_monetization')->shouldBeCalled()->willReturn('no');

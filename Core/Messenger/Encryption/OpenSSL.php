@@ -4,6 +4,7 @@
  */
 
 namespace Minds\Core\Messenger\Encryption;
+
 use Minds\Core\Messenger\Keystore;
 
 class OpenSSL implements EncryptionInterface
@@ -70,7 +71,7 @@ class OpenSSL implements EncryptionInterface
     {
         $encrypted = $this->message->getMessage($this->user->guid);
         $private_key = $this->keystore->setUser($this->user)->getUnlockedPrivateKey();
-        openssl_private_decrypt(base64_decode($encrypted), $decrypted, openssl_get_privatekey($private_key, $this->password));
+        openssl_private_decrypt(base64_decode($encrypted, true), $decrypted, openssl_get_privatekey($private_key, $this->password));
 
         if (!$decrypted) {
             $decrypted = "(Could not decrypt. Try logging back in to messenger)";

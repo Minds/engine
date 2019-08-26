@@ -12,7 +12,6 @@ use Minds\Entities\Video;
 
 class Manager
 {
-
     /** @var FFMepg */
     private $ffmpeg;
 
@@ -26,8 +25,7 @@ class Manager
         FFMpeg $FFMpeg = null,
         GuidBuilder $guid = null,
         Save $save = null
-    )
-    {
+    ) {
         $this->ffmpeg = $FFMpeg ?: Di::_()->get('Media\Services\FFMpeg');
         $this->guid = $guid ?: new GuidBuilder();
         $this->save = $save ?: new Save();
@@ -83,6 +81,4 @@ class Manager
 
         return true;
     }
-
 }
-

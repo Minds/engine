@@ -41,7 +41,6 @@ class Events
                         'entity' => $params['entity']
                     ]);
                 }
-
             } catch (\Exception $e) {
                 error_log('[Search/Events/search:index] ' . get_class($e) . ': ' . $e->getMessage());
             }
@@ -61,7 +60,6 @@ class Events
 
                 Di::_()->get('Search\Queue')
                     ->queue($params['entity']);
-
             } catch (\Exception $e) {
                 error_log('[Search/Events/search:index:queue] ' . get_class($e) . ': ' . $e->getMessage());
             }
@@ -103,7 +101,6 @@ class Events
                         $retryQueueManager->retry($entity);
                     }
                 }
-
             } catch (\Exception $e) {
                 error_log('[Search/Events/search:index:dispatch] ' . get_class($e) . ': ' . $e->getMessage());
             }
@@ -134,7 +131,6 @@ class Events
                         'entity' => $params['entity']
                     ]);
                 }
-
             } catch (\Exception $e) {
                 error_log('[Search/Events/search:cleanup] ' . get_class($e) . ': ' . $e->getMessage());
             }
@@ -154,7 +150,6 @@ class Events
 
                 Di::_()->get('Search\Queue')
                     ->queueCleanup($params['entity']);
-
             } catch (\Exception $e) {
                 error_log('[Search/Events/search:cleanup:queue] ' . get_class($e) . ': ' . $e->getMessage());
             }
@@ -178,7 +173,6 @@ class Events
                             unserialize($params['entity']) :
                             $params['entity']
                     );
-
             } catch (\Exception $e) {
                 error_log('[Search/Events/search:cleanup:dispatch] ' . get_class($e) . ': ' . $e->getMessage());
             }
@@ -207,7 +201,7 @@ class Events
                 $key .= ':' . $entity->subtype;
             }
 
-            if (in_array($key, $allowedTypes)) {
+            if (in_array($key, $allowedTypes, true)) {
                 /** @var Core\Events\Dispatcher $dispatcher */
                 $dispatcher = Di::_()->get('EventsDispatcher');
 
@@ -246,7 +240,7 @@ class Events
                 $key .= ':' . $entity->subtype;
             }
 
-            if (in_array($key, $allowedTypes)) {
+            if (in_array($key, $allowedTypes, true)) {
                 /** @var Core\Events\Dispatcher $dispatcher */
                 $dispatcher = Di::_()->get('EventsDispatcher');
 

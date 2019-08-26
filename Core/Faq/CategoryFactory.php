@@ -6,10 +6,9 @@ namespace Minds\Core\Faq;
 
 class CategoryFactory
 {
+    protected static $categories = [];
 
-    static protected $categories = [];
-
-    static public function _($id)
+    public static function _($id)
     {
         $id = strtolower($id);
         if (isset(static::$categories[$id])) {
@@ -21,5 +20,4 @@ class CategoryFactory
 
         return static::$categories[$id] = $category;
     }
-
 }

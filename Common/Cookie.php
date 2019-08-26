@@ -8,16 +8,15 @@ use Minds\Traits\MagicAttributes;
 /**
  * Class Cookie
  * @method Cookie setName(string $name)
- * @method Cookie setValue(string $value) 
+ * @method Cookie setValue(string $value)
  * @method Cookie setExpire(int $value)
  * @method Cookie setPath(string $path)
- * @method Cookie setDomain(string $domain) 
+ * @method Cookie setDomain(string $domain)
  * @method Cookie setSecure(bool $secure)
  * @method Cookie setHttpOnly(bool $httpOnly)
  */
 class Cookie
 {
-
     use MagicAttributes;
 
     /** @var CONFIG $config */
@@ -71,5 +70,4 @@ class Cookie
         setcookie($this->name, $this->value, $this->expire, $this->path, $this->domain, $this->secure, $this->httpOnly);
         $_COOKIE[$this->name] = $this->value; //set the global cookie
     }
-
 }

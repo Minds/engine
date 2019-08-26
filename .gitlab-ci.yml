@@ -35,6 +35,12 @@ test:
   script:
     - bin/phpspec run
 
+lint:
+  stage: test
+  image: minds/php-tests:latest
+  script:
+    - bin/php-cs-fixer fix --allow-risky=yes --verbose --dry-run
+
 prepare:fpm:
   stage: prepare
   image: minds/ci:latest

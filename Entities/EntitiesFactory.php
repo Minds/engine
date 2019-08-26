@@ -3,7 +3,6 @@
 
 namespace Minds\Entities;
 
-
 class EntitiesFactory
 {
     /**

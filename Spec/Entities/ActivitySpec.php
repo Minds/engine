@@ -32,7 +32,8 @@ class ActivitySpec extends ObjectBehavior
         ]);
     }
 
-    public function it_allows_comments() {
+    public function it_allows_comments()
+    {
         $this->getAllowComments()->shouldBe(true);
         $this->setAllowComments(false);
         $this->getAllowComments()->shouldBe(false);

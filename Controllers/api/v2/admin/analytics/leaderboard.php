@@ -14,14 +14,14 @@ class leaderboard implements Interfaces\Api, Interfaces\ApiAdminPam
     {
         if (!isset($pages[0])) {
             return Factory::response([
-                'status'=>'error', 
+                'status'=>'error',
                 'message'=> "You must send a type ('actors' or 'beneficiaries')"
             ]);
         }
 
         $type = $pages[0];
 
-        if($type !== 'actors' && $type !== 'beneficiaries') {
+        if ($type !== 'actors' && $type !== 'beneficiaries') {
             $type = 'actors';
         }
 
@@ -42,7 +42,7 @@ class leaderboard implements Interfaces\Api, Interfaces\ApiAdminPam
             ->setTo($to)
             ->setMetric($metric);
 
-        switch($type) {
+        switch ($type) {
             case 'actors':
                 $manager->setTerm('user_guid')
                     ->useUniques(false);
@@ -60,7 +60,7 @@ class leaderboard implements Interfaces\Api, Interfaces\ApiAdminPam
         }
         $result = $manager->getTopCounts();
 
-        $counts[$type] = array_map(function($item) {
+        $counts[$type] = array_map(function ($item) {
             $item['user'] = (new User($item['user_guid']))->export();
             return $item;
         }, $result);
@@ -82,5 +82,4 @@ class leaderboard implements Interfaces\Api, Interfaces\ApiAdminPam
     {
         return Factory::response([]);
     }
-
 }

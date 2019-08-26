@@ -31,7 +31,7 @@ class Manager
                 $handler = Factory::build($network);
 
                 $handler->getApiCredentials();
-                $status[$network] = $handler->export(); 
+                $status[$network] = $handler->export();
             } else {
                 $status[$network] = false;
             }
@@ -46,7 +46,7 @@ class Manager
      */
     public function availableNetworks()
     {
-        $availableNetworks = []; 
+        $availableNetworks = [];
 
         foreach ($this->networks as $network) {
             $availableNetworks[$network] = !!$this->config->get($network);

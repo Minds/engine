@@ -15,10 +15,10 @@ class Carousel extends Entities\Object
     public function initializeAttributes()
     {
         parent::initializeAttributes();
-        $this->attributes = array_merge($this->attributes, array(
+        $this->attributes = array_merge($this->attributes, [
             'owner_guid' => elgg_get_logged_in_user_guid(),
             'access_id' => 2,
             'subtype' => 'carousel'
-        ));
+        ]);
     }
 }

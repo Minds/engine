@@ -12,7 +12,6 @@ use Minds\Traits\MagicAttributes;
 
 class Subscription
 {
-
     use MagicAttributes;
 
     private $payment_method;
@@ -294,5 +293,4 @@ class Subscription
             throw new \Exception('User is required');
         }
     }
-
 }

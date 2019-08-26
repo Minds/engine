@@ -22,12 +22,11 @@ class RepositorySpec extends ObjectBehavior
     /** @var \Minds\Core\Helpdesk\Category\Repository */
     private $categoryRepo;
 
-    function let(
+    public function let(
         Cassandra\Client $cassandraClient,
         ElasticSearch\Client $esClient,
         \Minds\Core\Helpdesk\Category\Repository $categoryRepo
-    )
-    {
+    ) {
         $this->cassandraClient = $cassandraClient;
         $this->esClient = $esClient;
         $this->categoryRepo = $categoryRepo;
@@ -35,12 +34,12 @@ class RepositorySpec extends ObjectBehavior
         $this->beConstructedWith($cassandraClient, $esClient, $categoryRepo);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    function it_should_get_list_of_questions()
+    public function it_should_get_list_of_questions()
     {
         $this->cassandraClient->request(Argument::any())
             ->shouldBeCalled()
@@ -70,7 +69,7 @@ class RepositorySpec extends ObjectBehavior
         $this->getList()[0]->shouldBeAnInstanceOf(Question::class);
     }
 
-    function it_should_return_a_single_question()
+    public function it_should_return_a_single_question()
     {
         $this->cassandraClient->request(Argument::any())
             ->shouldBeCalled()
@@ -94,5 +93,4 @@ class RepositorySpec extends ObjectBehavior
         $question->getAnswer()
             ->shouldBe('yes');
     }
-
 }

@@ -19,7 +19,6 @@ use Minds\Core\Entities\Actions\Save;
 
 class media implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
-
     /**
      * Return the media items
      * @param array $pages
@@ -31,7 +30,6 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
         $response = [];
 
         if (isset($pages[0]) && is_numeric($pages[0])) {
-
             $entity = Di::_()->get('Media\Repository')->getEntity($pages[0]);
 
             if (!$entity || Helpers\Flags::shouldFail($entity)) {
@@ -95,7 +93,6 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                         Security\ACL::$ignore = $ignore;
                     }
                 }
-
         }
 
         return Factory::response($response);
@@ -226,7 +223,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         // @note: Sometimes images are uploaded as videos. Polyfill:
         $mimeIsImage = strpos($media['type'], 'image/') !== false;
-        $mimeIsVideo = strpos($media['type'], 'video/') !== false;        
+        $mimeIsVideo = strpos($media['type'], 'video/') !== false;
 
         if ($clientType == 'video') {
             $detectIsImage = @is_array(getimagesize($media['file']));
@@ -241,7 +238,8 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                 if ($checkIsVideo->validate($media)) {
                     $clientType = 'video';
                 }
-            } catch (\Exception $e){}
+            } catch (\Exception $e) {
+            }
         } elseif ($mimeIsImage) {
             $clientType = 'image';
         } elseif ($mimeIsVideo) {

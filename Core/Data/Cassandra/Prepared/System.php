@@ -9,14 +9,14 @@ use  Minds\Core\Data\Interfaces;
 class System implements Interfaces\PreparedInterface
 {
     private $template;
-    private $values = array();
+    private $values = [];
 
     public function build()
     {
-        return array(
+        return [
             'string' => $this->template,
             'values'=>$this->values
-            );
+            ];
     }
 
     /**

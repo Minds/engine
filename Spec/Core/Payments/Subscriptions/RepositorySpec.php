@@ -14,22 +14,21 @@ class RepositorySpec extends ObjectBehavior
 {
     protected $cql;
 
-    function let(
+    public function let(
         Client $cql
-    )
-    {
+    ) {
         $this->cql = $cql;
 
         $this->beConstructedWith($cql);
     }
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Payments\Subscriptions\Repository');
     }
 
-    function it_should_getList()
+    public function it_should_getList()
     {
-        $rows = [ 
+        $rows = [
             [
                 'plan_id' => 'a',
                 'payment_method' => 'spec',
@@ -71,9 +70,9 @@ class RepositorySpec extends ObjectBehavior
         $results[1]->getPlanId()->shouldBe('b');
     }
 
-    function it_should_select_filtering_by_status()
+    public function it_should_select_filtering_by_status()
     {
-        $rows = [ 
+        $rows = [
             [
                 'plan_id' => 'a',
                 'payment_method' => 'spec',
@@ -101,10 +100,10 @@ class RepositorySpec extends ObjectBehavior
             ->shouldHaveCount(1);
     }
 
-    function it_should_select_filtering_by_next_billing()
+    public function it_should_select_filtering_by_next_billing()
     {
         $next_billing = strtotime('2000-01-01T12:00:00+00:00');
-        $rows = [ 
+        $rows = [
             [
                 'plan_id' => 'a',
                 'payment_method' => 'spec',
@@ -132,10 +131,10 @@ class RepositorySpec extends ObjectBehavior
         $results->shouldHaveCount(1);
     }
 
-    function it_should_select_filtering_by_next_billing_using_datetime()
+    public function it_should_select_filtering_by_next_billing_using_datetime()
     {
         $next_billing = strtotime('2000-01-01T12:00:00+00:00');
-        $rows = [ 
+        $rows = [
             [
                 'plan_id' => 'a',
                 'payment_method' => 'spec',
@@ -163,7 +162,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldHaveCount(1);
     }
 
-    function it_should_add(Subscription $subscription, User $user)
+    public function it_should_add(Subscription $subscription, User $user)
     {
         $this->cql->request(Argument::that(function ($query) {
             $values = $query->build()['values'];
@@ -234,7 +233,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_delete(Subscription $subscription, Entity $entity, User $user)
+    public function it_should_delete(Subscription $subscription, Entity $entity, User $user)
     {
         $this->cql->request(Argument::that(function ($query) {
             return stripos($query->build()['string'], 'delete from subscriptions') === 0;
@@ -274,5 +273,4 @@ class RepositorySpec extends ObjectBehavior
             ->delete($subscription)
             ->shouldReturn(true);
     }
-
 }

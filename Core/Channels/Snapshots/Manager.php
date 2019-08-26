@@ -28,8 +28,7 @@ class Manager
     public function __construct(
         $repository = null,
         $artifactsDelegatesFactory = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository();
         $this->artifactsDelegatesFactory = $artifactsDelegatesFactory ?: new Artifacts\Factory();
     }

@@ -30,7 +30,7 @@ class FeedDispatcher implements Interfaces\QueueRunner
                    $offset = "";
                    while (true) {
                        try {
-                           $guids = $fof->getRow($entity->owner_guid, array('limit'=>500, 'offset'=>$offset));
+                           $guids = $fof->getRow($entity->owner_guid, ['limit'=>500, 'offset'=>$offset]);
                            if (!$guids) {
                                break;
                            }
@@ -55,14 +55,14 @@ class FeedDispatcher implements Interfaces\QueueRunner
 
                            $ninetyDays = (60 * 60 * 24 * 90);
 
-                            foreach ($followers as $follower) {
-                                $db->insert("$entity->type:network:$follower", 
+                           foreach ($followers as $follower) {
+                               $db->insert("$entity->type:network:$follower",
                                     [ $entity->guid => $entity->guid ],
                                     $ninetyDays, //ttl
                                     true //async (silent)
                                 );
-                                if ($entity->subtype) {
-                                    $db->insert("$entity->type:$entity->subtype:network:$follower",
+                               if ($entity->subtype) {
+                                   $db->insert("$entity->type:$entity->subtype:network:$follower",
                                         [ $entity->guid => $entity->guid ],
                                         $ninetyDays, //ttl
                                         true //async (silent)
@@ -71,11 +71,11 @@ class FeedDispatcher implements Interfaces\QueueRunner
                            }
 
                            echo "First batch for $entity->guid dispatched. Loading next from $offset... \n";
-                          //  var_dump($offset);
-                            if ($offset == 0 || !$offset) {
-                                echo "done..";
-                                break;
-                            }
+                           //  var_dump($offset);
+                           if ($offset == 0 || !$offset) {
+                               echo "done..";
+                               break;
+                           }
                        } catch (\Exception $e) {
                            echo "Ooops... slight bump, there.. " . $e->getMessage() . " \n";
                        }

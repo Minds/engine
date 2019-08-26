@@ -13,19 +13,19 @@ class RepositorySpec extends ObjectBehavior
     /** @var Client */
     private $db;
 
-    function let(Client $db)
+    public function let(Client $db)
     {
         $this->db = $db;
 
         $this->beConstructedWith($db);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    function it_should_add_a_withholding(Withholding $w)
+    public function it_should_add_a_withholding(Withholding $w)
     {
         $w->getUserGuid()
             ->shouldBeCalled()

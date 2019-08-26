@@ -37,8 +37,7 @@ class Manager
         $sessions = null,
         $notificationDelegate = null,
         $analyticsDelegate = null
-    )
-    {
+    ) {
         $this->sessions = $sessions ?: new Sessions;
         $this->notificationDelegate = $notificationDelegate ?: new Delegates\Notification;
         $this->analyticsDelegate = $analyticsDelegate ?: new Delegates\Analytics;
@@ -130,5 +129,4 @@ class Manager
 
         return true;
     }
-
 }

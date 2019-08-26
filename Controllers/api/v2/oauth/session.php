@@ -17,7 +17,6 @@ use Zend\Diactoros\Response\SapiEmitter;
 
 class session implements Interfaces\Api
 {
-
     public function get($pages = [])
     {
         $user = Sess::getLoggedInUser();
@@ -46,5 +45,4 @@ class session implements Interfaces\Api
     public function delete($pages = [])
     {
     }
-
 }

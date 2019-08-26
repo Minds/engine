@@ -8,7 +8,6 @@
 
 namespace Minds\Core\FounderRewards;
 
-
 class Founder
 {
     public $uuid = '';

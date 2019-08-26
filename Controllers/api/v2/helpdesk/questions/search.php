@@ -58,5 +58,4 @@ class search implements Api
     {
         return Factory::response([]);
     }
-
 }

@@ -2,7 +2,6 @@
 
 namespace Spec\Minds\Core\Email\CampaignLogs;
 
-
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Email\CampaignLogs\Repository;
 use Minds\Core\Email\CampaignLogs\CampaignLog;
@@ -26,7 +25,7 @@ class RepositorySpec extends ObjectBehavior
         $this->shouldHaveType(Repository::class);
     }
 
-    public function it_should_write_a_log ()
+    public function it_should_write_a_log()
     {
         $campaignLog = (new CampaignLog())
             ->setReceiverGuid(123)
@@ -60,12 +59,12 @@ class RepositorySpec extends ObjectBehavior
                 [
                     'receiver_guid' => new Varint(123),
                     'time_sent' => 1,
-                    'email_campaign_id' => 'test' 
+                    'email_campaign_id' => 'test'
                 ],
                 [
                     'receiver_guid' => new Varint(123),
                     'time_sent' => 1,
-                    'email_campaign_id' => 'test2' 
+                    'email_campaign_id' => 'test2'
                 ],
             ], ''));
 

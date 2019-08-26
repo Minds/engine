@@ -23,24 +23,23 @@ class SubscribersDelegateSpec extends ObjectBehavior
     /** @var SubscriptionsManager */
     protected $subscriptionsManager;
 
-    function let(
+    public function let(
         Repository $repository,
         Scroll $scroll,
         SubscriptionsManager $subscriptionsManager
-    )
-    {
+    ) {
         $this->beConstructedWith($repository, $scroll, $subscriptionsManager);
         $this->repository = $repository;
         $this->scroll = $scroll;
         $this->subscriptionsManager = $subscriptionsManager;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(SubscribersDelegate::class);
     }
 
-    function it_should_snapshot()
+    public function it_should_snapshot()
     {
         $this->scroll->request(Argument::that(function (Custom $prepared) {
             $query = $prepared->build();
@@ -65,10 +64,9 @@ class SubscribersDelegateSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_restore(
+    public function it_should_restore(
         Snapshot $snapshotMock
-    )
-    {
+    ) {
         $this->repository->getList([
             'user_guid' => 1000,
             'type' => 'friendsof',
@@ -100,7 +98,7 @@ class SubscribersDelegateSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_hide()
+    public function it_should_hide()
     {
         $this->scroll->request(Argument::that(function (Custom $prepared) {
             $query = $prepared->build();
@@ -140,7 +138,7 @@ class SubscribersDelegateSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_delete()
+    public function it_should_delete()
     {
         $this->scroll->request(Argument::that(function (Custom $prepared) {
             $query = $prepared->build();

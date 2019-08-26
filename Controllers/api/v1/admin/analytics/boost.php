@@ -53,7 +53,7 @@ class boost implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function post($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     /**
@@ -61,7 +61,7 @@ class boost implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     /**
@@ -69,6 +69,6 @@ class boost implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function delete($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }

@@ -12,7 +12,7 @@ class ProvisionerSpec extends ObjectBehavior
     protected $_client;
     protected $_index = 'phpspec';
 
-    function let(
+    public function let(
         Client $client
     ) {
         $this->_client = $client;
@@ -20,16 +20,15 @@ class ProvisionerSpec extends ObjectBehavior
         $this->beConstructedWith($client, $this->_index);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Search\Provisioner');
     }
 
-    function it_should_set_up(
+    public function it_should_set_up(
         \Elasticsearch\Client $esClient,
         \Elasticsearch\Namespaces\IndicesNamespace $indicesNamespace
-    )
-    {
+    ) {
         $this->_client->getClient()
             ->shouldBeCalled()
             ->willReturn($esClient);

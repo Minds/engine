@@ -8,15 +8,14 @@ use Prophecy\Argument;
 
 class ObjectImageMappingSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Search\Mappings\ObjectImageMapping');
     }
 
-    function it_should_map_an_image(
+    public function it_should_map_an_image(
         Image $image
-    )
-    {
+    ) {
         $now = time();
 
         $image->get('rating')->willReturn(1);

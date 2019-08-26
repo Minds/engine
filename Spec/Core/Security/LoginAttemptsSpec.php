@@ -9,27 +9,27 @@ use Prophecy\Argument;
 
 class LoginAttemptsSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Security\LoginAttempts');
     }
 
-    function it_logFailure_should_throw_if_user_isnt_set()
+    public function it_logFailure_should_throw_if_user_isnt_set()
     {
         $this->shouldThrow(UserNotSetupException::class)->during('logFailure');
     }
 
-    function it_checkFailures_should_throw_if_user_isnt_set()
+    public function it_checkFailures_should_throw_if_user_isnt_set()
     {
         $this->shouldThrow(UserNotSetupException::class)->during('checkFailures');
     }
 
-    function it_resetFailuresCount_should_throw_if_user_isnt_set()
+    public function it_resetFailuresCount_should_throw_if_user_isnt_set()
     {
         $this->shouldThrow(UserNotSetupException::class)->during('resetFailuresCount');
     }
 
-    function it_should_log_the_failure(User $user)
+    public function it_should_log_the_failure(User $user)
     {
         $user->guid = '123';
 
@@ -51,10 +51,9 @@ class LoginAttemptsSpec extends ObjectBehavior
         $this->setUser($user);
 
         $this->logFailure()->shouldReturn(true);
-
     }
 
-    function it_should_return_false_if_attempts_limit_was_reached(User $user)
+    public function it_should_return_false_if_attempts_limit_was_reached(User $user)
     {
         $user->guid = '123';
 
@@ -73,10 +72,9 @@ class LoginAttemptsSpec extends ObjectBehavior
         $this->setUser($user);
 
         $this->checkFailures()->shouldReturn(true);
-
     }
 
-    function it_should_return_true_if_attempts_limit_wasnt_reached(User $user)
+    public function it_should_return_true_if_attempts_limit_wasnt_reached(User $user)
     {
         $user->guid = '123';
 
@@ -93,7 +91,7 @@ class LoginAttemptsSpec extends ObjectBehavior
         $this->checkFailures()->shouldReturn(false);
     }
 
-    function it_should_reset_failures_count(User $user)
+    public function it_should_reset_failures_count(User $user)
     {
         $user->guid = '123';
 

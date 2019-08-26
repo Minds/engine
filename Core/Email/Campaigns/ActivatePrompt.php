@@ -15,7 +15,7 @@ use Minds\Helpers;
 use Minds\Entities\User;
 use Minds\Core\Analytics\Iterators;
 
-class ActivatePrompt 
+class ActivatePrompt
 {
     protected $db;
     protected $template;

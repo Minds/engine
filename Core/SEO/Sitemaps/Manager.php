@@ -17,7 +17,8 @@ class Manager
         $this->config = Di::_()->get('Config');
     }
 
-    public function addModules($routes) {
+    public function addModules($routes)
+    {
         $this->routes = array_merge($this->routes, $routes);
     }
 

@@ -23,7 +23,7 @@ class block extends Controller implements Interfaces\Api
      */
     public function get($pages)
     {
-        $response = array();
+        $response = [];
 
         if (!isset($pages[0])) {
             $pages[0] = "list";
@@ -67,7 +67,7 @@ class block extends Controller implements Interfaces\Api
      */
     public function post($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     /**
@@ -101,7 +101,7 @@ class block extends Controller implements Interfaces\Api
             }
         }
 
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     /**
@@ -114,6 +114,6 @@ class block extends Controller implements Interfaces\Api
         $block = $this->di->get('Security\ACL\Block');
         $block->unBlock($pages[0]);
 
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }
