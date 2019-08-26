@@ -9,12 +9,12 @@ abstract class ChannelMode
     const MODERATED = 1;
     const CLOSED = 2;
 
-    final public static function toArray()
+    final public static function toArray() : array
     {
         return (new ReflectionClass(static::class))->getConstants();
     }
 
-    final public static function isValid($value)
+    final public static function isValid($value) : bool
     {
         return in_array($value, static::toArray());
     }

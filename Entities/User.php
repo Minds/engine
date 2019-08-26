@@ -3,6 +3,7 @@ namespace Minds\Entities;
 
 use Minds\Core;
 use Minds\Helpers;
+use Minds\Common\ChannelMode;
 
 /**
  * User Entity
@@ -10,9 +11,6 @@ use Minds\Helpers;
  */
 class User extends \ElggUser
 {
-    public const MODE_OPEN = 0;
-    public const MODE_MODERATED = 1;
-    public const MODE_CLOSED = 2;
     public $fullExport = true;
     public $exportCounts = false;
 
@@ -55,7 +53,7 @@ class User extends \ElggUser
         $this->attributes['canary'] = 0;
         $this->attributes['onchain_booster'] = null;
         $this->attributes['toaster_notifications'] = 1;
-        $this->attributes['mode'] = User::MODE_OPEN;
+        $this->attributes['mode'] = ChannelMode::OPEN;
 
         parent::initializeAttributes();
     }
