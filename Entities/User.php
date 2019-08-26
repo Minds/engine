@@ -3,6 +3,7 @@ namespace Minds\Entities;
 
 use Minds\Core;
 use Minds\Helpers;
+use Minds\Common\ChannelMode;
 
 /**
  * User Entity
@@ -10,7 +11,6 @@ use Minds\Helpers;
  */
 class User extends \ElggUser
 {
-
     public $fullExport = true;
     public $exportCounts = false;
 
@@ -53,6 +53,7 @@ class User extends \ElggUser
         $this->attributes['canary'] = 0;
         $this->attributes['onchain_booster'] = null;
         $this->attributes['toaster_notifications'] = 1;
+        $this->attributes['mode'] = ChannelMode::OPEN;
 
         parent::initializeAttributes();
     }
@@ -741,6 +742,7 @@ class User extends \ElggUser
         $export['theme'] = $this->getTheme();
         $export['onchain_booster'] = $this->getOnchainBooster();
         $export['toaster_notifications'] = $this->getToasterNotifications();
+        $export['mode'] = $this->getMode();
 
         if (is_string($export['social_profiles'])) {
             $export['social_profiles'] = json_decode($export['social_profiles']);
@@ -990,7 +992,8 @@ class User extends \ElggUser
             'canary',
             'theme',
             'onchain_booster',
-            'toaster_notifications'
+            'toaster_notifications',
+            'mode'
         ));
     }
 
@@ -1090,9 +1093,30 @@ class User extends \ElggUser
 
     /**
      * Set on/off toaster notifications
+     * @return User
      */
     public function setToasterNotifications($enabled = true)
     {
         $this->toaster_notifications = $enabled ? 1 : 0;
+        return $this;
     }
+    
+    /**
+    * Returns channel mode value
+    * @return integer channel mode
+    */
+    public function getMode()
+    {
+        return (int) $this->mode;
+    }
+
+    /** 
+    * Sets the channel mode
+    * @return User
+    */
+    public function setMode(int $mode) {
+        $this->mode = $mode;
+        return $this;
+    }
+
 }

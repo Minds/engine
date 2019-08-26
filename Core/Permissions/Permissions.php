@@ -39,6 +39,7 @@ class Permissions implements \JsonSerializable
 
     public function __construct(User $user, Roles $roles = null, EntitiesBuilder $entitiesBuilder = null)
     {
+        $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->roles = $roles ?: new Roles();
         $this->user = $user;
         $this->isAdmin = $user->isAdmin();
