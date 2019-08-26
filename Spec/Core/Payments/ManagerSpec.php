@@ -10,21 +10,20 @@ class ManagerSpec extends ObjectBehavior
 {
     protected $repository;
 
-    function let(
+    public function let(
         Repository $repository
-    )
-    {
+    ) {
         $this->repository = $repository;
 
         $this->beConstructedWith($repository);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Payments\Manager');
     }
 
-    function it_should_create()
+    public function it_should_create()
     {
         $type = 'test';
         $user_guid = 1000;
@@ -51,7 +50,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn($payment_id);
     }
 
-    function it_should_create_generating_a_payment_id()
+    public function it_should_create_generating_a_payment_id()
     {
         $type = 'test';
         $user_guid = 1000;
@@ -76,7 +75,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn($this->getPaymentId());
     }
 
-    function it_should_throw_if_no_type_during_create()
+    public function it_should_throw_if_no_type_during_create()
     {
         $user_guid = 1000;
         $time_created = 10000000;
@@ -94,7 +93,7 @@ class ManagerSpec extends ObjectBehavior
             ->duringCreate($data);
     }
 
-    function it_should_throw_if_no_user_guid_during_create()
+    public function it_should_throw_if_no_user_guid_during_create()
     {
         $type = 'test';
         $time_created = 10000000;
@@ -112,7 +111,7 @@ class ManagerSpec extends ObjectBehavior
             ->duringCreate($data);
     }
 
-    function it_should_throw_if_no_time_created_during_create()
+    public function it_should_throw_if_no_time_created_during_create()
     {
         $type = 'test';
         $user_guid = 1000;
@@ -128,10 +127,9 @@ class ManagerSpec extends ObjectBehavior
             ->setPaymentId($payment_id)
             ->shouldThrow(new \Exception('Time created is required'))
             ->duringCreate($data);
-
     }
 
-    function it_should_throw_if_upsert_fails_during_create()
+    public function it_should_throw_if_upsert_fails_during_create()
     {
         $type = 'test';
         $user_guid = 1000;
@@ -158,7 +156,7 @@ class ManagerSpec extends ObjectBehavior
             ->duringCreate($data);
     }
 
-    function it_should_update_payment_by_id()
+    public function it_should_update_payment_by_id()
     {
         $payment_id = 'test:5000';
         $payment_row = [
@@ -188,7 +186,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn($payment_id);
     }
 
-    function it_should_return_false_if_no_row_during_update_payment_by_id()
+    public function it_should_return_false_if_no_row_during_update_payment_by_id()
     {
         $payment_id = 'test:5000';
         $payment_row = false;
@@ -207,7 +205,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    function it_should_throw_if_upsert_fails_during_update_payment_by_id()
+    public function it_should_throw_if_upsert_fails_during_update_payment_by_id()
     {
         $payment_id = 'test:5000';
         $payment_row = [

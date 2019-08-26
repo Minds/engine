@@ -10,15 +10,15 @@ use Prophecy\Argument;
 
 class NotificationDelegateSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(NotificationDelegate::class);
     }
 
-    function it_should_send_a_notification(EventsDispatcher $eventsDispatcher)
+    public function it_should_send_a_notification(EventsDispatcher $eventsDispatcher)
     {
         $this->beConstructedWith($eventsDispatcher);
-        $eventsDispatcher->trigger('notification', 'all', Argument::that(function($arr) {
+        $eventsDispatcher->trigger('notification', 'all', Argument::that(function ($arr) {
             return $arr['to'] === [ 123 ]
                 && $arr['message'] === 'Thank you for submitting your report. The reported content or channel will be reviewed as soon as possible.';
         }))

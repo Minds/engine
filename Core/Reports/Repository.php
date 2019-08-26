@@ -170,7 +170,6 @@ class Repository
      */
     public function add(Report $report)
     {
-        
     }
 
     private function buildReports($set)
@@ -198,7 +197,7 @@ class Repository
                 continue; // avoid duplicate reports
             }
 
-            $jurorGuids[$jurorGuid] = true; 
+            $jurorGuids[$jurorGuid] = true;
 
             $decision = new Jury\Decision();
             $decision
@@ -219,7 +218,7 @@ class Repository
     }
 
     /**
-     * Build from a row 
+     * Build from a row
      * @param array $row
      * @return Report
      */
@@ -233,7 +232,7 @@ class Repository
             ->setTimestamp($row['timestamp']->time())
             //->setState((string) $row['state'])
             ->setUphold(isset($row['uphold']) ? (bool) $row['uphold'] : null)
-            ->setStateChanges(isset($row['state_changes']) ? 
+            ->setStateChanges(isset($row['state_changes']) ?
                 array_map(function ($timestamp) {
                     return $timestamp->time();
                 }, $this->mapToAssoc($row['state_changes']))
@@ -254,10 +253,9 @@ class Repository
                     $this->buildDecisions($this->mapToAssoc($row['appeal_jury']))
                     : null
             )
-            ->setUserHashes(isset($row['user_hashes']) ? 
+            ->setUserHashes(isset($row['user_hashes']) ?
                 $row['user_hashes']->values() : null
             );
         return $report;
     }
-
 }

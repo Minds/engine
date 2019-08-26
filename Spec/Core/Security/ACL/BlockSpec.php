@@ -19,15 +19,15 @@ class BlockSpec extends ObjectBehavior
     }
 
     //function it_should_listen_to_interact_acl_event(Entity $entity){
-      //$this->
+    //$this->
     //}
 
     public function it_should_return_if_blocked(Call $db, Indexes $indexes, Client $cql)
     {
         //$db->beConstructedWith($indexes, $db);
-        $db->getRow("acl:blocked:foo", Argument::any())->willReturn(array(
+        $db->getRow("acl:blocked:foo", Argument::any())->willReturn([
         "bar" => time()
-      ));
+      ]);
         $cql->request(Argument::any())->willReturn([['column1' => 'bar'], ['column1' => 'foo']]);
 
         $this->beConstructedWith($indexes, $cql);
@@ -46,7 +46,7 @@ class BlockSpec extends ObjectBehavior
 
     public function it_should_remove_a_user_from_the_list(Indexes $indexes, Client $cql)
     {
-        $indexes->remove("acl:blocked:foo", array("bar"))->willReturn(true);
+        $indexes->remove("acl:blocked:foo", ["bar"])->willReturn(true);
 
 
         $this->beConstructedWith($indexes, $cql);

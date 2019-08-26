@@ -16,7 +16,6 @@ use Minds\Api\Factory;
 
 class search implements Interfaces\Api
 {
-
     /**
      * Returns users and conversation guids
      * @param array $pages

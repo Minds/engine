@@ -20,7 +20,7 @@ class UserSpec extends ObjectBehavior
 
     public function it_should_throw_on_no_metric()
     {
-        $this->shouldThrow('\Exception')->during('setMetric', array('foobar'));
+        $this->shouldThrow('\Exception')->during('setMetric', ['foobar']);
     }
 
     public function it_should_set_a_metric_key()
@@ -30,7 +30,7 @@ class UserSpec extends ObjectBehavior
 
     public function it_should_get_data_for_a_metric_period(AnalyticsMetric $metric)
     {
-        $data = array(array('timestamp' => time(), 'date' => date('d-m-Y'), 'total' => 10));
+        $data = [['timestamp' => time(), 'date' => date('d-m-Y'), 'total' => 10]];
         $metric->get(Argument::type('int'), Argument::type('string'), Argument::any())->willReturn($data);
         $metric->setNamespace(Argument::type('string'))->willReturn();
         $metric->setKey(Argument::any())->willReturn();

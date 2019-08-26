@@ -77,5 +77,4 @@ class pin implements Interfaces\Api
 
         return Factory::response([]);
     }
-
 }

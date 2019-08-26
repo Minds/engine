@@ -63,7 +63,7 @@ class ACL
             return false;
         }
 
-        // If logged out and public and not container        
+        // If logged out and public and not container
         if (!Core\Session::isLoggedIn()) {
             if (
                 (int) $entity->access_id == ACCESS_PUBLIC
@@ -101,7 +101,7 @@ class ACL
          * And check the owner is the container_guid too
          */
         if (
-            in_array($entity->getAccessId(), [ACCESS_LOGGED_IN, ACCESS_PUBLIC])
+            in_array($entity->getAccessId(), [ACCESS_LOGGED_IN, ACCESS_PUBLIC], true)
             && (
                 $entity->owner_guid == $entity->container_guid
                 || $entity->container_guid == 0
@@ -132,7 +132,7 @@ class ACL
         /**
          * Allow plugins to extend the ACL check
          */
-        if (Core\Events\Dispatcher::trigger('acl:read', $entity->getType(), array('entity'=>$entity, 'user'=>$user), false) === true) {
+        if (Core\Events\Dispatcher::trigger('acl:read', $entity->getType(), ['entity'=>$entity, 'user'=>$user], false) === true) {
             return true;
         }
 
@@ -196,7 +196,7 @@ class ACL
         /**
          * Allow plugins to extend the ACL check
          */
-        if (Core\Events\Dispatcher::trigger('acl:write', $entity->type, array('entity'=>$entity, 'user'=>$user), false) === true) {
+        if (Core\Events\Dispatcher::trigger('acl:write', $entity->type, ['entity'=>$entity, 'user'=>$user], false) === true) {
             return true;
         }
 

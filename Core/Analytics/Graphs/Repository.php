@@ -82,7 +82,7 @@ class Repository
     /**
      * Return a single report
      * @param string $urn
-     * @return 
+     * @return
      */
     public function get($urn)
     {
@@ -125,7 +125,6 @@ class Repository
      */
     public function update($graph, $fields = [])
     {
-
     }
 
     /**
@@ -133,7 +132,5 @@ class Repository
      */
     public function delete($graph, $fields = [])
     {
-        
     }
-
 }

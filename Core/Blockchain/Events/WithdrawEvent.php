@@ -93,16 +93,16 @@ class WithdrawEvent implements BlockchainEventInterface
             ->setTimestamp($transaction->getTimestamp())
             ->setAmount($amount);
 
-        try {        
+        try {
             $this->manager->complete($request, $transaction);
         } catch (\Exception $e) {
             var_dump($e);
             error_log(print_r($e, true));
         }
-
     }
 
-    public function withdrawFail($log, $transaction) {
+    public function withdrawFail($log, $transaction)
+    {
         if ($transaction->getContract() !== 'withdraw') {
             throw new \Exception("Failed but not a withdrawal");
             return;

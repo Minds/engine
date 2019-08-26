@@ -6,8 +6,6 @@
 
 namespace Minds\Controllers\api\v1\webhooks;
 
-
 class wire
 {
-
 }

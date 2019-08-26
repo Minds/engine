@@ -4,7 +4,6 @@ namespace Minds\Core\Storage\Services;
 
 class Disk implements ServiceInterface
 {
-
     private $filepath;
     public $resource; //filepointer
     protected $redirect = false;
@@ -40,7 +39,7 @@ class Disk implements ServiceInterface
 
     public function read($length = 0)
     {
-        if(!$this->resource){
+        if (!$this->resource) {
             return false;
         }
 
@@ -65,8 +64,5 @@ class Disk implements ServiceInterface
 
     public function destroy()
     {
-
     }
-
-
 }

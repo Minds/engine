@@ -21,8 +21,7 @@ use Minds\Core\Data\Call;
 
 class JoinSpec extends ObjectBehavior
 {
-
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Rewards\Join');
     }
@@ -349,5 +348,4 @@ class JoinSpec extends ObjectBehavior
             ->setSecret('secret');
         $this->confirm()->shouldReturn(true);
     }*/
-
 }

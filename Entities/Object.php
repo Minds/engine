@@ -80,7 +80,7 @@ class Object extends \ElggObject implements Flaggable
             if ($this->dirtyIndexes) {
                 $db = new Core\Data\Call('entities_by_time');
 
-                foreach($this->getIndexKeys(true) as $idx) {
+                foreach ($this->getIndexKeys(true) as $idx) {
                     $db->removeAttributes($idx, [$this->guid], false);
                 }
             }
@@ -105,8 +105,8 @@ class Object extends \ElggObject implements Flaggable
                 "$this->type:$this->subtype:user:$this->owner_guid",
             ];
 
-            foreach($remove as $index) {
-                $db->removeAttributes($index, array($this->guid), false);
+            foreach ($remove as $index) {
+                $db->removeAttributes($index, [$this->guid], false);
             }
         }
     }
@@ -114,7 +114,8 @@ class Object extends \ElggObject implements Flaggable
     /**
      * Returns the sum of every wire that's been made to this entity
      */
-     public function getWireTotals() {
+    public function getWireTotals()
+    {
         $totals = [];
         // $totals['bitcoin'] = \Minds\Core\Wire\Counter::getSumByEntity($this->guid, 'bitcoin');
         return $totals;

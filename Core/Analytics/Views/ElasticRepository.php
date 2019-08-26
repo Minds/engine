@@ -1,7 +1,7 @@
 <?php
 /**
  * ElasticRepository
- * @author Mark 
+ * @author Mark
  */
 
 namespace Minds\Core\Analytics\Views;
@@ -23,12 +23,11 @@ class ElasticRepository
 
     /**
      * Repository constructor.
-     * @param ElasticClient $es 
+     * @param ElasticClient $es
      */
     public function __construct(
         $es = null
-    )
-    {
+    ) {
         $this->es = $es ?: Di::_()->get('Database\ElasticSearch');
     }
 
@@ -65,7 +64,7 @@ class ElasticRepository
             'source' => $view->getSource(),
         ];
 
-        $body = array_filter($body, function($val) {
+        $body = array_filter($body, function ($val) {
             if ($val === '' || $val === null) {
                 return false;
             }

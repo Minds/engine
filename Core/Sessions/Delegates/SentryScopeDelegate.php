@@ -6,7 +6,6 @@ use Minds\Core\Sessions\Session;
 
 class SentryScopeDelegate
 {
-
     /**
      * Pass through a user guid to sentry
      * @param Session $session
@@ -20,6 +19,4 @@ class SentryScopeDelegate
             ]);
         });
     }
-
 }
-

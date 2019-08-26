@@ -16,5 +16,4 @@ use Minds\Api\Factory;
 
 class thumbs extends votes
 {
-    
 }

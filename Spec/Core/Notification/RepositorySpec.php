@@ -11,19 +11,19 @@ class RepositorySpec extends ObjectBehavior
     /** @var \PDO */
     private $sql;
 
-    function let(\PDO $sql)
+    public function let(\PDO $sql)
     {
         $this->sql = $sql;
 
         $this->beConstructedWith($sql);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    function it_should_get_a_single_notification(\PDOStatement $statement)
+    public function it_should_get_a_single_notification(\PDOStatement $statement)
     {
         $this->sql->prepare('SELECT * FROM notifications WHERE uuid = ?')
             ->shouldBeCalled()

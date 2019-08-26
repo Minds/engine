@@ -22,7 +22,7 @@ class twitter implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         $twitter = ThirdPartyNetworks\Factory::build('twitter');
 
-        switch($pages[0]) {
+        switch ($pages[0]) {
             case 'link':
                 forward($twitter->buildAuthorizeUrl());
                 break;

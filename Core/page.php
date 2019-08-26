@@ -60,13 +60,13 @@ class page extends base
      * @param  array  $params - options to pass
      * @return string - the page.
      */
-    public function render(array $params = array())
+    public function render(array $params = [])
     {
-        $default = array(
+        $default = [
             'title' => null,
             'body' => null,
             'page_shell' => 'default'
-        );
+        ];
         $params = array_merge($default, $params);
         return \elgg_view_page($params['title'], $params['body'], $params['page_shell'], $params);
     }
@@ -86,7 +86,7 @@ class page extends base
 
             // return new forward location or false to stop the forward or empty string to exit
             $current_page = \current_page_url();
-            $params = array('current_url' => $current_page, 'forward_url' => $location);
+            $params = ['current_url' => $current_page, 'forward_url' => $location];
             $location = \elgg_trigger_plugin_hook('forward', $reason, $params, $location);
 
             if ($location) {

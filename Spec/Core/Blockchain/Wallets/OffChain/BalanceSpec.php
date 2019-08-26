@@ -15,7 +15,7 @@ class BalanceSpec extends ObjectBehavior
     /** @var WithholdingSums */
     private $withholdingSums;
 
-    function let(Sums $sums, WithholdingSums $withholdingSums)
+    public function let(Sums $sums, WithholdingSums $withholdingSums)
     {
         $this->sums = $sums;
         $this->withholdingSums = $withholdingSums;
@@ -23,12 +23,12 @@ class BalanceSpec extends ObjectBehavior
         $this->beConstructedWith($sums, $withholdingSums);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blockchain\Wallets\OffChain\Balance');
     }
 
-    function it_should_return_the_balance()
+    public function it_should_return_the_balance()
     {
         $user = new User;
         $user->guid = 123;
@@ -44,7 +44,7 @@ class BalanceSpec extends ObjectBehavior
         $this->get()->shouldReturn('50');
     }
 
-    function it_should_return_the_available()
+    public function it_should_return_the_available()
     {
         $user = new User;
         $user->guid = 123;
@@ -69,7 +69,7 @@ class BalanceSpec extends ObjectBehavior
         $this->getAvailable()->shouldReturn((string) BigNumber::toPlain(40, 18));
     }
 
-    function it_should_return_0_when_getting_available()
+    public function it_should_return_0_when_getting_available()
     {
         $user = new User;
         $user->guid = 123;
@@ -94,7 +94,7 @@ class BalanceSpec extends ObjectBehavior
         $this->getAvailable()->shouldReturn('0');
     }
 
-    function it_should_return_the_balance_by_contract()
+    public function it_should_return_the_balance_by_contract()
     {
         $user = new User;
         $user->guid = 123;
@@ -115,7 +115,7 @@ class BalanceSpec extends ObjectBehavior
         $this->getByContract('spec')->shouldReturn('50');
     }
 
-    function it_should_return_the_balance_by_contract_with_timestamp()
+    public function it_should_return_the_balance_by_contract_with_timestamp()
     {
         $user = new User;
         $user->guid = 123;
@@ -137,7 +137,7 @@ class BalanceSpec extends ObjectBehavior
     }
 
 
-    function it_should_return_the_negative_balance_by_contract_with_timestamp()
+    public function it_should_return_the_negative_balance_by_contract_with_timestamp()
     {
         $user = new User;
         $user->guid = 123;
@@ -157,5 +157,4 @@ class BalanceSpec extends ObjectBehavior
         $this->setUser($user);
         $this->getByContract('spec', 1000000, true)->shouldReturn('50');
     }
-
 }

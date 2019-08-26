@@ -11,7 +11,6 @@ use Minds\Core\Reports\Appeals\Appeal;
 
 class Manager
 {
-
     const STRIKE_TIME_WINDOW = (60 * 60) * 24; // 24 hours
     //const STRIKE_TIME_WINDOW = 60;
     const STRIKE_RETENTION_WINDOW = (60 * 60) * 24 * 90; // 90 days
@@ -29,8 +28,7 @@ class Manager
         $repository = null,
         $reportsManager = null,
         $emailDelegate = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository;
         $this->reportsManager = $reportsManager ?: new ReportsManager();
         $this->emailDelegate = $emailDelegate ?: new Delegates\EmailDelegate();
@@ -73,7 +71,8 @@ class Manager
                         ->setReport($report)
                         ->setNote($report->getAppealNote());
                     $strike->setAppeal($appeal);
-                } catch (\Exception $e) { }
+                } catch (\Exception $e) {
+                }
 
                 return $strike;
             });
@@ -122,5 +121,4 @@ class Manager
     {
         return $this->repository->delete($strike);
     }
-
 }

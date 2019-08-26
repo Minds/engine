@@ -8,15 +8,14 @@ use Prophecy\Argument;
 
 class ObjectVideoMappingSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Search\Mappings\ObjectVideoMapping');
     }
 
-    function it_should_map_a_video(
+    public function it_should_map_a_video(
         Video $video
-    )
-    {
+    ) {
         $now = time();
 
         $video->get('rating')->willReturn(1);

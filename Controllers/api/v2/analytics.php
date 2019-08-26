@@ -79,5 +79,4 @@ class analytics implements Interfaces\Api, Interfaces\ApiIgnorePam
     {
         // TODO: Implement delete() method.
     }
-
 }

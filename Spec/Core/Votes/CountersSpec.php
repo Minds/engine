@@ -19,25 +19,23 @@ class CountersSpec extends ObjectBehavior
     public function let(
         Client $cql,
         abstractCacher $cacher
-    )
-    {
+    ) {
         $this->cql = $cql;
         $this->cacher = $cacher;
 
         $this->beConstructedWith($cql, $cacher);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Votes\Counters');
     }
 
-    function it_should_update_counters(
+    public function it_should_update_counters(
         Vote $vote,
         Activity $entity,
         User $user
-    )
-    {
+    ) {
         $entity->get('guid')->willReturn(5000);
         $entity->get('type')->willReturn('activity');
         $entity->get('entity_guid')->willReturn(null);
@@ -59,12 +57,11 @@ class CountersSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_update_counters_with_existing_count(
+    public function it_should_update_counters_with_existing_count(
         Vote $vote,
         Activity $entity,
         User $user
-    )
-    {
+    ) {
         $entity->get('guid')->willReturn(5000);
         $entity->get('type')->willReturn('activity');
         $entity->get('entity_guid')->willReturn(null);
@@ -86,10 +83,9 @@ class CountersSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_get_count(
+    public function it_should_get_count(
         Activity $activity
-    )
-    {
+    ) {
         $activity->get('thumbs:up:count')
             ->shouldBeCalled()
             ->willReturn(3);
@@ -98,15 +94,13 @@ class CountersSpec extends ObjectBehavior
             ->shouldReturn(3);
     }
 
-    function it_should_throw_during_count_if_invalid_direction(
+    public function it_should_throw_during_count_if_invalid_direction(
         Activity $activity
-    )
-    {
+    ) {
         $activity->get('thumbs:upside_down:count')
             ->shouldNotBeCalled();
 
         $this->shouldThrow(new \Exception('Invalid direction'))
             ->duringGet($activity, 'upside_down');
     }
-
 }

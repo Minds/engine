@@ -19,8 +19,7 @@ class SummonDelegate
 
     public function __construct(
         $queue = null
-    )
-    {
+    ) {
         $this->queue = $queue ?: Client::build();
     }
 

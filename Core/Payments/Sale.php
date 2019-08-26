@@ -25,56 +25,56 @@ class Sale
     {
     }
 
-  /**
-   * Set the ID of the order
-   * @param string $status
-   * @return $this;
-   */
-  public function setId($id)
-  {
-      $this->id = $id;
-      return $this;
-  }
+    /**
+     * Set the ID of the order
+     * @param string $status
+     * @return $this;
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+        return $this;
+    }
 
-  /**
-   * Get the ID the order
-   * @return string
-   */
-  public function getId()
-  {
-      return $this->id;
-  }
+    /**
+     * Get the ID the order
+     * @return string
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
 
-  /**
-   * Set the status of the order
-   * @param string $status
-   * @return $this;
-   */
-  public function setStatus($status)
-  {
-      $this->status = $status;
-      return $this;
-  }
+    /**
+     * Set the status of the order
+     * @param string $status
+     * @return $this;
+     */
+    public function setStatus($status)
+    {
+        $this->status = $status;
+        return $this;
+    }
 
-  /**
-   * Get the status opf the order
-   * @return string
-   */
-  public function getStatus()
-  {
-      return $this->status;
-  }
+    /**
+     * Get the status opf the order
+     * @return string
+     */
+    public function getStatus()
+    {
+        return $this->status;
+    }
 
-  /**
-   * Set the amount of the sale
-   * @param string $amout
-   * @return $this
-   */
-  public function setAmount($amount)
-  {
-      $this->amount = $amount;
-      return $this;
-  }
+    /**
+     * Set the amount of the sale
+     * @param string $amout
+     * @return $this
+     */
+    public function setAmount($amount)
+    {
+        $this->amount = $amount;
+        return $this;
+    }
 
     public function getAmount()
     {
@@ -189,32 +189,32 @@ class Sale
         return $this->settle;
     }
 
-  /**
-   * Set the time the sale was made
-   * @param int $time
-   * @return $this
-   */
-  public function setCreatedAt($time)
-  {
-      $this->createdAt = $time;
-      return $this;
-  }
+    /**
+     * Set the time the sale was made
+     * @param int $time
+     * @return $this
+     */
+    public function setCreatedAt($time)
+    {
+        $this->createdAt = $time;
+        return $this;
+    }
 
     public function getCreatedAt()
     {
         return $this->createdAt;
     }
 
-  /**
-   * Set the time the sale was settled
-   * @param int $time
-   * @return $this
-   */
-  public function setSettledAt($time)
-  {
-      $this->settledAt = $time;
-      return $this;
-  }
+    /**
+     * Set the time the sale was settled
+     * @param int $time
+     * @return $this
+     */
+    public function setSettledAt($time)
+    {
+        $this->settledAt = $time;
+        return $this;
+    }
 
     public function getSettledAt()
     {

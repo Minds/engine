@@ -17,5 +17,4 @@ interface SMSServiceInterface
      * @return string - id
      */
     public function send($number, $message);
-
 }

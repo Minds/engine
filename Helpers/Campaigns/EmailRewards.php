@@ -48,7 +48,8 @@ class EmailRewards
                 $points = 500;
                 $wire = true;
             } else {
-                echo "Validator failed"; exit;
+                echo "Validator failed";
+                exit;
             }
             break;
           case "when":
@@ -78,7 +79,7 @@ class EmailRewards
                   $tokens = 5 * (10 ** 18);
                   $campaign = $validator; //hack
               } else {
-                return;
+                  return;
               }
               break;
           default:
@@ -95,7 +96,7 @@ class EmailRewards
         if (!$row || key($row) != $user_guid) {
             $db->insert("analytics:rewarded:email:$campaign", [ $user_guid => time()]);
 
-            $transaction = new Transaction(); 
+            $transaction = new Transaction();
             $transaction
                 ->setUserGuid($user->guid)
                 ->setWalletAddress('offchain')

@@ -148,7 +148,7 @@ class Conversations
 
             foreach ($conversations as $key => $conversation) {
                 foreach ($conversation->getParticipants() as $participant) {
-                    if (in_array($participant, $online)) {
+                    if (in_array($participant, $online, true)) {
                         $conversations[$key] = $conversation->setOnline(true);
                     }
                 }

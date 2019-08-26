@@ -52,8 +52,7 @@ class Repository
         $ltGuid = null,
         $legacyEntity = null,
         $fallbackEnabled = null
-    )
-    {
+    ) {
         $this->cql = $cql ?: Di::_()->get('Database\Cassandra\Cql');
         $this->entities = $entities ?: new Call('entities');
         $this->indexes = $indexes ?: new Call('entities_by_time');
@@ -100,7 +99,7 @@ class Repository
 
         $guids = $this->indexes->getRow("comments:{$opts['entity_guid']}", [
             'limit' => $opts['limit'],
-            'offset' => $opts['token'] ? base64_decode($opts['token']) : '',
+            'offset' => $opts['token'] ? base64_decode($opts['token'], true) : '',
             'reversed' => $opts['descending']
         ]);
 
@@ -111,7 +110,7 @@ class Repository
         $rows = $this->entities->getRows(array_keys($guids));
 
         if ($opts['offset'] && $opts['limit'] > 1) {
-            unset($rows[base64_decode($opts['offset'])]);
+            unset($rows[base64_decode($opts['offset'], true)]);
         }
 
         if (!$rows) {
@@ -152,23 +151,23 @@ class Repository
     {
         $fields = [];
 
-        if (in_array('ownerGuid', $attributes)) {
+        if (in_array('ownerGuid', $attributes, true)) {
             $fields['owner_guid'] = (string) $comment->getOwnerGuid();
         }
 
-        if (in_array('timeCreated', $attributes)) {
+        if (in_array('timeCreated', $attributes, true)) {
             $fields['time_created'] = (string) $comment->getTimeCreated();
         }
 
-        if (in_array('timeUpdated', $attributes)) {
+        if (in_array('timeUpdated', $attributes, true)) {
             $fields['time_updated'] = (string) $comment->getTimeUpdated();
         }
 
-        if (in_array('body', $attributes)) {
+        if (in_array('body', $attributes, true)) {
             $fields['description'] = (string) $comment->getBody();
         }
 
-        if (in_array('attachments', $attributes)) {
+        if (in_array('attachments', $attributes, true)) {
             $attachments = $comment->getAttachments() ?: [];
 
             foreach ($attachments as $key => $value) {
@@ -176,23 +175,23 @@ class Repository
             }
         }
 
-        if (in_array('mature', $attributes)) {
+        if (in_array('mature', $attributes, true)) {
             $fields['mature'] = $comment->isMature() ? '1' : '';
         }
 
-        if (in_array('edited', $attributes)) {
+        if (in_array('edited', $attributes, true)) {
             $fields['edited'] = $comment->isEdited() ? '1' : '';
         }
 
-        if (in_array('spam', $attributes)) {
+        if (in_array('spam', $attributes, true)) {
             $fields['spam'] = $comment->isSpam() ? '1' : '';
         }
 
-        if (in_array('deleted', $attributes)) {
+        if (in_array('deleted', $attributes, true)) {
             $fields['deleted'] = $comment->isDeleted() ? '1' : '';
         }
 
-        if (in_array('ownerObj', $attributes)) {
+        if (in_array('ownerObj', $attributes, true)) {
             $fields['owner_obj'] = $comment->getOwnerObj() ? json_encode($comment->getOwnerObj()) : null;
         }
 
@@ -260,7 +259,7 @@ class Repository
                 $row['type'] = 'comment';
             }
 
-            if (!$row || $row['type'] !== 'comment') { 
+            if (!$row || $row['type'] !== 'comment') {
                 return null;
             }
 

@@ -56,16 +56,16 @@ class geolocation implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         switch ($pages[0]) {
             case 'list':
-                return Factory::response(array('results'=>$results));
+                return Factory::response(['results'=>$results]);
                 break;
             default:
                 $city = isset($data[0]['address']['city']) ? $data[0]['address']['city'] : $data[0]['address']['town'];
                 $coorinates = $data[0]['lat'] . ',' . $data[0]['lon'];
 
-                return Factory::response(array(
+                return Factory::response([
                     'city' => $city,
                     'coordinates' => $coorinates
-                ));
+                ]);
         }
     }
     

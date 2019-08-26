@@ -18,23 +18,22 @@ class ManagerSpec extends ObjectBehavior
     /** @var Repository */
     protected $repository;
 
-    function let(
+    public function let(
         EventsDispatcher $eventsDispatcher,
         Repository $repository
-    )
-    {
+    ) {
         $this->beConstructedWith($eventsDispatcher, $repository);
 
         $this->eventsDispatcher = $eventsDispatcher;
         $this->repository = $repository;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_prune(Entity $entity)
+    public function it_should_prune(Entity $entity)
     {
         $entity->get('guid')
             ->shouldBeCalled()
@@ -49,7 +48,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_retry(Entity $entity, RetryQueueEntry $retryQueueEntry)
+    public function it_should_retry(Entity $entity, RetryQueueEntry $retryQueueEntry)
     {
         $entity->get('guid')
             ->shouldBeCalled()
@@ -86,7 +85,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_not_retry_if_too_many_attempts(Entity $entity, RetryQueueEntry $retryQueueEntry)
+    public function it_should_not_retry_if_too_many_attempts(Entity $entity, RetryQueueEntry $retryQueueEntry)
     {
         $entity->get('guid')
             ->shouldBeCalled()

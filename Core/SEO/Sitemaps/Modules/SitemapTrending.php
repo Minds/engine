@@ -88,6 +88,6 @@ class SitemapTrending extends SitemapModule
             'period' => $period,
         ]);
         
-        return $result; 
+        return $result;
     }
 }

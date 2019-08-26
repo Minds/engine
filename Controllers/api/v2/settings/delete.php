@@ -13,14 +13,13 @@ use Minds\Core;
 
 class delete implements Interfaces\Api
 {
-
     public function get($pages)
     {
         return Factory::response(['status'=>'error', 'message'=>'GET is not supported for this endpoint']);
     }
 
     public function post($pages)
-    {   
+    {
         $validator = Di::_()->get('Security\Password');
 
         if (!$validator->check(Core\Session::getLoggedinUser(), $_POST['password'])) {
@@ -39,12 +38,11 @@ class delete implements Interfaces\Api
 
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     public function delete($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
-
 }

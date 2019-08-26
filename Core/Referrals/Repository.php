@@ -93,7 +93,7 @@ class Repository
         }
 
         if ($opts['offset']) {
-            $cqlOpts['paging_state_token'] = base64_decode($opts['offset']);
+            $cqlOpts['paging_state_token'] = base64_decode($opts['offset'], true);
         }
 
         $query = new Prepared\Custom();
@@ -104,7 +104,6 @@ class Repository
             $rows = $this->client->request($query);
 
             foreach ($rows as $row) {
-
                 $referral = new Referral();
 
                 $referral->setProspectGuid((string) $row['prospect_guid'])
@@ -118,7 +117,6 @@ class Repository
 
             $response->setPagingToken(base64_encode($rows->pagingStateToken()));
             $response->setLastPage($rows->isLastPage());
-
         } catch (\Exception $e) {
             // $response = $e;
             return $response;
@@ -259,5 +257,4 @@ class Repository
     public function delete($referral)
     {
     }
-
 }

@@ -6,8 +6,8 @@ use Minds\Api\Factory;
 use Minds\Core\Di\Di;
 use Minds\Interfaces;
 use Minds\Core\Entities\Actions\Save;
-use Minds\Core\Session; 
-use Minds\Core\Permissions\Permissions; 
+use Minds\Core\Session;
+use Minds\Core\Permissions\Permissions;
 
 class comments implements Interfaces\Api
 {

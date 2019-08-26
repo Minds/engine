@@ -7,12 +7,12 @@ use PhpSpec\ObjectBehavior;
 
 class EmailSubscriptionSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(EmailSubscription::class);
     }
 
-    function it_should_load_from_an_array()
+    public function it_should_load_from_an_array()
     {
         $this->beConstructedWith([
             'userGuid' => '123',
@@ -27,7 +27,7 @@ class EmailSubscriptionSpec extends ObjectBehavior
         $this->getValue()->shouldReturn(true);
     }
 
-    function it_should_export_the_entity()
+    public function it_should_export_the_entity()
     {
         $this->beConstructedWith([
             'userGuid' => '123',

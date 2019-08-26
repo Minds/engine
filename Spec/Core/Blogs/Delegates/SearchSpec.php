@@ -15,20 +15,19 @@ class SearchSpec extends ObjectBehavior
      */
     protected $eventsDispatcher;
 
-    function let(
+    public function let(
         EventsDispatcher $eventsDispatcher
-    )
-    {
+    ) {
         $this->beConstructedWith($eventsDispatcher);
         $this->eventsDispatcher = $eventsDispatcher;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Search::class);
     }
 
-    function it_should_react_to_index(Blog $blog)
+    public function it_should_react_to_index(Blog $blog)
     {
         $this->eventsDispatcher->trigger('search:index', 'object:blog', [
             'entity' => $blog,
@@ -41,7 +40,7 @@ class SearchSpec extends ObjectBehavior
             ->duringIndex($blog);
     }
 
-    function it_should_react_to_prune(Blog $blog)
+    public function it_should_react_to_prune(Blog $blog)
     {
         $this->eventsDispatcher->trigger('search:cleanup', 'object:blog', [
             'entity' => $blog,

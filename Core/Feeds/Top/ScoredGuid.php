@@ -7,7 +7,6 @@
 
 namespace Minds\Core\Feeds\Top;
 
-
 use Minds\Traits\MagicAttributes;
 
 /**

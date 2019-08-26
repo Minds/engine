@@ -91,13 +91,13 @@ class fetch implements Interfaces\Api
 
                 if ($sync) {
                     foreach ($iterator as $boost) {
-                            $feedSyncEntity = new Core\Feeds\FeedSyncEntity();
-                            $feedSyncEntity
+                        $feedSyncEntity = new Core\Feeds\FeedSyncEntity();
+                        $feedSyncEntity
                                 ->setGuid((string) $boost->getGuid())
                                 ->setOwnerGuid((string) $boost->getOwnerGuid())
                                 ->setUrn(new Urn("urn:boost:{$boost->getType()}:{$boost->getGuid()}"));
 
-                            $boosts[] = $feedSyncEntity;
+                        $boosts[] = $feedSyncEntity;
                     }
                 } else {
                     $boosts = iterator_to_array($iterator, false);

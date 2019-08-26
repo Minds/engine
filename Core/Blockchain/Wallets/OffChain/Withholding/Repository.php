@@ -26,7 +26,8 @@ class Repository
      * @param Withholding|Withholding[] $withholdings
      * @return bool
      */
-    public function add($withholdings) {
+    public function add($withholdings)
+    {
         if (!is_array($withholdings)) {
             $withholdings = [ $withholdings ];
         }

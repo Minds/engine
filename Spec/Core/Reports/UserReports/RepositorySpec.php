@@ -13,31 +13,31 @@ class RepositorySpec extends ObjectBehavior
 {
     private $cql;
 
-    function let(Client $cql)
+    public function let(Client $cql)
     {
         $this->beConstructedWith($cql);
         $this->cql = $cql;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    function it_should_add_a_report(UserReport $userReport)
+    public function it_should_add_a_report(UserReport $userReport)
     {
         $ts = (int) microtime(true);
-        $this->cql->request(Argument::that(function($prepared) use ($ts) {
-                $query = $prepared->build();
-                $values = $query['values'];
+        $this->cql->request(Argument::that(function ($prepared) use ($ts) {
+            $query = $prepared->build();
+            $values = $query['values'];
 
-                return $values[0]->values()[0]->value() == 456
+            return $values[0]->values()[0]->value() == 456
                     && $values[2]->values()[0]->value() == 'hash'
                     && $values[3] === 'urn:activity:123'
                     && $values[4]->value() == 2
                     && $values[5]->value() == 4
                     && $values[6]->time() == $ts;
-            }))
+        }))
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -61,5 +61,4 @@ class RepositorySpec extends ObjectBehavior
         $this->add($userReport)
             ->shouldBe(true);
     }
-
 }

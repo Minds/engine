@@ -38,23 +38,23 @@ class Client implements Interfaces\QueueClient
         register_shutdown_function(function ($channel, $connection) {
             $channel->close();
             $connection->close();
-            //error_log("SHUTDOWN RABBITMQ CONNECTIONS");
+        //error_log("SHUTDOWN RABBITMQ CONNECTIONS");
         }, $this->channel, $this->connection);
     }
 
     public function setExchange($name = "default_exchange", $type = "direct")
     {
         $this->exchange = $name;
-       //also create exchange if doesn't exist
-       //name/type/passive/durable/auto_delete
-       $this->channel->exchange_declare($this->exchange, $type, false, true, false);
+        //also create exchange if doesn't exist
+        //name/type/passive/durable/auto_delete
+        $this->channel->exchange_declare($this->exchange, $type, false, true, false);
 
         return $this;
     }
 
     public function setQueue($name = "", $binder = "")
     {
-        if (!$this->exchange) { 
+        if (!$this->exchange) {
             $this->setExchange(
                 Di::_()->get('Config')->get('queue')['exchange'] ?: 'mindsqueue'
             );
@@ -67,9 +67,9 @@ class Client implements Interfaces\QueueClient
         $this->queue = $name;
         $this->binder = $binder;
 
-       //this is idempotent.. it will only be created if it doesn't exist
-       //name/passive/durable/exclusive/auto_delete
-       list($this->queue, , ) = $this->channel->queue_declare($name, false, true, false, false);
+        //this is idempotent.. it will only be created if it doesn't exist
+        //name/passive/durable/exclusive/auto_delete
+        list($this->queue, , ) = $this->channel->queue_declare($name, false, true, false, false);
         $this->channel->queue_bind($this->queue, $this->exchange, $this->binder);
 
         return $this;

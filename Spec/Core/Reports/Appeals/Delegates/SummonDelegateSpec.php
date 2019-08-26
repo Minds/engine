@@ -15,20 +15,19 @@ class SummonDelegateSpec extends ObjectBehavior
     /** @var QueueClient */
     protected $queue;
 
-    function let(
+    public function let(
         QueueClient $queue
-    )
-    {
+    ) {
         $this->beConstructedWith($queue);
         $this->queue = $queue;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(SummonDelegate::class);
     }
 
-    function it_should_queue_on_appeal(Report $report)
+    public function it_should_queue_on_appeal(Report $report)
     {
         $report = new Report();
         $report->setReasonCode(2);

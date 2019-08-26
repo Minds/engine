@@ -15,19 +15,19 @@ class ManagerSpec extends ObjectBehavior
     private $repository;
     private $mappings;
 
-    function let(Repository $repository, Mappings $mappings)
+    public function let(Repository $repository, Mappings $mappings)
     {
         $this->beConstructedWith($repository, $mappings);
         $this->repository = $repository;
         $this->mappings = $mappings;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_return_a_graph_by_urn()
+    public function it_should_return_a_graph_by_urn()
     {
         $graph = new Graph();
 
@@ -39,7 +39,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn($graph);
     }
 
-    function it_should_add_a_graph()
+    public function it_should_add_a_graph()
     {
         $graph = new Graph();
 
@@ -51,7 +51,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_sync_aggregates_to_graphs_with_a_12_month_interval(AvgPageviews $avgPageviewsAggregate)
+    public function it_should_sync_aggregates_to_graphs_with_a_12_month_interval(AvgPageviews $avgPageviewsAggregate)
     {
         $avgPageviewsAggregate->fetch(Argument::any())
             ->shouldBeCalled()
@@ -75,7 +75,7 @@ class ManagerSpec extends ObjectBehavior
         ]);
     }
 
-    function it_should_sync_aggregates_to_graphs_with_a_10_day_interval(AvgPageviews $avgPageviewsAggregate)
+    public function it_should_sync_aggregates_to_graphs_with_a_10_day_interval(AvgPageviews $avgPageviewsAggregate)
     {
         $avgPageviewsAggregate->fetch(Argument::any())
             ->shouldBeCalled()
@@ -100,5 +100,4 @@ class ManagerSpec extends ObjectBehavior
             'unit' => 'day',
         ]);
     }
-
 }
