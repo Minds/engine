@@ -249,7 +249,7 @@ class Wire extends NormalizedEntity
     /**
      * @return bool
      */
-    public function isRecurring()    
+    public function isRecurring()
     {
         return $this->recurring;
     }

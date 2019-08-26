@@ -23,7 +23,7 @@ use Minds\Traits\MagicAttributes;
  * @method long getOwnerGuid()
  * @method Boost setOwner()
  * @method User getOwner()
- * 
+ *
  * @method Boost setRejectedReason(int $reason)
  * @method int getRejectedReason()
  * @method Boost setCompletedTimestamp(int $ts)

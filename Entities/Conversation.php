@@ -14,7 +14,6 @@ use Minds\Traits;
 
 class Conversation extends DenormalizedEntity
 {
-
     use Traits\MagicAttributes;
 
     protected $rowKey;
@@ -198,5 +197,4 @@ class Conversation extends DenormalizedEntity
     {
         return -1;
     }
-
 }

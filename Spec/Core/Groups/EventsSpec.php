@@ -10,7 +10,6 @@ use Minds\Core\Groups;
 use Minds\Entities\Activity;
 use Minds\Entities\Group;
 
-
 class EventsSpec extends ObjectBehavior
 {
     public function it_is_initializable()

@@ -33,7 +33,7 @@ class analytics extends Controller implements Interfaces\Api
         $stripe = Core\Di\Di::_()->get('StripePayments');
         $merchant = (new Merchant)->setId($user->getMerchant()['id']);
         if (!$merchant->getId()) {
-          return Factory::response([
+            return Factory::response([
             'status' => 'error',
             'message' => 'User is not a merchant'
           ]);
@@ -73,15 +73,15 @@ class analytics extends Controller implements Interfaces\Api
             case 'list':
                 $type = isset($_GET['type']) ? $_GET['type'] : 'payments';
 
-                if($type == 'earnings') {
-                  $results = $stripe->getTransactions($merchant, [
+                if ($type == 'earnings') {
+                    $results = $stripe->getTransactions($merchant, [
                       'limit' => isset($_GET['limit']) ? (int) $_GET['limit'] : 12,
                       'offset' => isset($_GET['offset']) ? $_GET['offset'] : '',
                       'orderIdPrefix' => isset($_GET['orderIdPrefix']) ? $_GET['orderIdPrefix'] : ''
                   ]);
                 }
 
-                if($type == 'payouts'){
+                if ($type == 'payouts') {
                     $results = $stripe->getPayouts($merchant, [
                         'limit' => isset($_GET['limit']) ? (int) $_GET['limit'] : 12,
                         'offset' => isset($_GET['offset']) ? $_GET['offset'] : ''
@@ -105,8 +105,8 @@ class analytics extends Controller implements Interfaces\Api
                     ];
 
                     if ($type == 'payouts') {
-                      $transactions[$i]['amount'] = $record->amount / 100;
-                      $transactions[$i]['account'] = [
+                        $transactions[$i]['amount'] = $record->amount / 100;
+                        $transactions[$i]['account'] = [
                         'bank' => $record->bank_account->bank_name,
                         'last4' => $record->bank_account->last4
                       ];

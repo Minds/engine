@@ -7,5 +7,5 @@ namespace Minds\Core\Data\Interfaces;
 
 interface WarehouseJobInterface
 {
-    public function run(array $slugs = array());
+    public function run(array $slugs = []);
 }

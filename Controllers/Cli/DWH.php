@@ -34,18 +34,18 @@ class DWH extends Cli\Controller implements Interfaces\CliControllerInterface
         $offset = "";
         Core\Security\ACL::$ignore = false;
         $i=0;
-        while(true){
+        while (true) {
             echo "\n[$offset]: ";
             $users = Core\Entities::get(['type'=>'user', 'limit' => $limit, 'offset'=>$offset]);
-            foreach($users as $user){
+            foreach ($users as $user) {
                 $i++;
                 $joined = date('d-m-Y h:i', $user->time_created);
-                echo "\n[$i/$joined]: $user->guid"; 
+                echo "\n[$i/$joined]: $user->guid";
                 $ts = Core\Analytics\Timestamps::get(['day', 'month'], $user->time_created);
                 //$db->insert("analytics:signup:day:{$ts['day']}", [$user->guid => $user->time_created]);
                 //$db->insert("analytics:signup:month:{$ts['month']}", [$user->guid => $user->time_created]);
             }
-            if(count($users) < $limit/2){
+            if (count($users) < $limit/2) {
                 //break;
             }
             $offset = end($users)->guid;
@@ -63,5 +63,4 @@ class DWH extends Cli\Controller implements Interfaces\CliControllerInterface
           ->increment();
         $this->out('Done.');
     }
-
 }

@@ -225,20 +225,24 @@ class UserSegments implements AggregateInterface
             $response[0]['y'][] = $count['states']['buckets'][0]['doc_count'];
 
             $response[1]['x'][] = $date;
-            $response[1]['y'][] = $count['states']['buckets'][1]['doc_count'];;
+            $response[1]['y'][] = $count['states']['buckets'][1]['doc_count'];
+            ;
 
             $response[2]['x'][] = $date;
-            $response[2]['y'][] = $count['states']['buckets'][2]['doc_count'];;
+            $response[2]['y'][] = $count['states']['buckets'][2]['doc_count'];
+            ;
 
             $response[3]['x'][] = $date;
-            $response[3]['y'][] = $count['states']['buckets'][3]['doc_count'];;
+            $response[3]['y'][] = $count['states']['buckets'][3]['doc_count'];
+            ;
 
             $response[4]['x'][] = $date;
-            $response[4]['y'][] = $count['states']['buckets'][4]['doc_count'];;
+            $response[4]['y'][] = $count['states']['buckets'][4]['doc_count'];
+            ;
 
             $response[5]['x'][] = $date;
-            $response[5]['y'][] = $count['states']['buckets'][5]['doc_count'];;
-
+            $response[5]['y'][] = $count['states']['buckets'][5]['doc_count'];
+            ;
         }
 
         return $response;

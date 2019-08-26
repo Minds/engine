@@ -16,25 +16,25 @@ class RepositorySpec extends ObjectBehavior
     private $cql;
     private $reportsRepository;
 
-    function let(Client $cql, ReportsRepository $reportsRepository)
+    public function let(Client $cql, ReportsRepository $reportsRepository)
     {
         $this->beConstructedWith($cql, $reportsRepository);
         $this->cql = $cql;
         $this->reportsRepository = $reportsRepository;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    function it_should_add_a_verdict(Verdict $verdict)
+    public function it_should_add_a_verdict(Verdict $verdict)
     {
         $ts = (int) microtime(true);
-        $this->cql->request(Argument::that(function($prepared) {
-                $query = $prepared->build();
-                return true;
-            }))
+        $this->cql->request(Argument::that(function ($prepared) {
+            $query = $prepared->build();
+            return true;
+        }))
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -56,13 +56,13 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    function it_should_add_a_verdict_as_overturned(Verdict $verdict)
+    public function it_should_add_a_verdict_as_overturned(Verdict $verdict)
     {
         $ts = (int) microtime(true);
-        $this->cql->request(Argument::that(function($prepared) use ($ts) {
-                $query = $prepared->build();
-                return true;
-            }))
+        $this->cql->request(Argument::that(function ($prepared) use ($ts) {
+            $query = $prepared->build();
+            return true;
+        }))
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -84,13 +84,13 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    function it_should_add_an_appeal_verdict(Verdict $verdict)
+    public function it_should_add_an_appeal_verdict(Verdict $verdict)
     {
         $ts = (int) microtime(true);
-        $this->cql->request(Argument::that(function($prepared) use ($ts) {
-                $query = $prepared->build();
-                return true;
-            }))
+        $this->cql->request(Argument::that(function ($prepared) use ($ts) {
+            $query = $prepared->build();
+            return true;
+        }))
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -112,13 +112,13 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    function it_should_add_an_appeal_verdict_as_overturned(Verdict $verdict)
+    public function it_should_add_an_appeal_verdict_as_overturned(Verdict $verdict)
     {
         $ts = (int) microtime(true);
-        $this->cql->request(Argument::that(function($prepared) use ($ts) {
-                $query = $prepared->build();
-                return true;
-            }))
+        $this->cql->request(Argument::that(function ($prepared) use ($ts) {
+            $query = $prepared->build();
+            return true;
+        }))
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -183,7 +183,7 @@ class RepositorySpec extends ObjectBehavior
                             ->setJurorGuid(4),
                     ]),
             ]);
-        
+
         $verdict = $this->get(123);
 
         $verdict->getReport()->getEntityGuid()
@@ -194,5 +194,4 @@ class RepositorySpec extends ObjectBehavior
         $decisions[0]->getJurorGuid()
                     ->shouldBe(4);
     }*/
-
 }

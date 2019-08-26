@@ -9,7 +9,6 @@ use Minds\Core\Sockets;
 
 class Manager
 {
-
     public function __construct($repository = null, $sockets = null)
     {
         $this->repository = $repository ?: new Repository;
@@ -45,5 +44,4 @@ class Manager
           ->setRoom("marker:{$marker->getEntityGuid()}")
           ->emit("marker:{$marker->getEntityGuid()}", json_encode($marker->export()));
     }
-
 }

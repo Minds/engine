@@ -10,21 +10,20 @@ use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
-
     private $repository;
 
-    function let(Repository $repository)
+    public function let(Repository $repository)
     {
         $this->beConstructedWith($repository);
         $this->repository = $repository;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_return_true_if_spam_record_exists()
+    public function it_should_return_true_if_spam_record_exists()
     {
         $model = new SpamBlock;
         $model->setKey('k1')
@@ -37,7 +36,7 @@ class ManagerSpec extends ObjectBehavior
         $this->isSpam($model)->shouldReturn(true);
     }
 
-    function it_should_return_false_if_spam_record_does_not_exists()
+    public function it_should_return_false_if_spam_record_does_not_exists()
     {
         $model = new SpamBlock;
         $model->setKey('k1')
@@ -50,7 +49,7 @@ class ManagerSpec extends ObjectBehavior
         $this->isSpam($model)->shouldReturn(false);
     }
 
-    function it_should_add_a_record_to_the_repository()
+    public function it_should_add_a_record_to_the_repository()
     {
         $model = new SpamBlock;
         $model->setKey('k1')

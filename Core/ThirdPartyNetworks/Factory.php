@@ -12,7 +12,7 @@ class Factory
      * @param array $options (optional)
      * @return BoostHandlerInterface
      */
-    public static function build($handler, $options = array())
+    public static function build($handler, $options = [])
     {
         $handler = ucfirst($handler);
         $handler = "Minds\\Core\\ThirdPartyNetworks\\Networks\\$handler";

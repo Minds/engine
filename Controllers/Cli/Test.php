@@ -29,7 +29,6 @@ class Test extends Cli\Controller implements Interfaces\CliControllerInterface
         ]);
 
         $this->out($namespace);
-
     }
 
     private function getTrendingActivities()
@@ -43,8 +42,7 @@ class Test extends Cli\Controller implements Interfaces\CliControllerInterface
 
         $activities = Core\Entities::get(array_merge([
                 'type' => 'activity'
-            ]
-            , $options));
+            ], $options));
 
         $activities = array_filter($activities, function ($activity) {
             if ($activity->paywall) {

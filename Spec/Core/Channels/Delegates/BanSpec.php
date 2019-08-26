@@ -13,18 +13,18 @@ class BanSpec extends ObjectBehavior
     /** @var EventsDispatcher */
     protected $eventsDispatcher;
 
-    function let(EventsDispatcher $eventsDispatcher)
+    public function let(EventsDispatcher $eventsDispatcher)
     {
         $this->beConstructedWith($eventsDispatcher);
         $this->eventsDispatcher = $eventsDispatcher;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Ban::class);
     }
 
-    function it_should_ban(User $user)
+    public function it_should_ban(User $user)
     {
         $user->set('ban_reason', 'phpspec')
             ->shouldBeCalled();

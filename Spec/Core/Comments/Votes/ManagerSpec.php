@@ -19,7 +19,7 @@ class ManagerSpec extends ObjectBehavior
     /** @var LegacyCommentsRepository */
     protected $legacyRepository;
 
-    function let(
+    public function let(
         Repository $repository,
         LegacyCommentsRepository $legacyRepository
     ) {
@@ -29,17 +29,16 @@ class ManagerSpec extends ObjectBehavior
         $this->legacyRepository = $legacyRepository;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Comments\Votes\Manager');
     }
 
-    function it_has_vote_up(
+    public function it_has_vote_up(
         Vote $vote,
         Comment $comment,
         User $actor
-    )
-    {
+    ) {
         $comment->getVotesUp()
             ->shouldBeCalled()
             ->willReturn([ 1000, 1001 ]);
@@ -73,12 +72,11 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_does_not_have_vote_up(
+    public function it_does_not_have_vote_up(
         Vote $vote,
         Comment $comment,
         User $actor
-    )
-    {
+    ) {
         $comment->getVotesUp()
             ->shouldBeCalled()
             ->willReturn([ 1000, 1001 ]);
@@ -112,12 +110,11 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    function it_has_vote_down(
+    public function it_has_vote_down(
         Vote $vote,
         Comment $comment,
         User $actor
-    )
-    {
+    ) {
         $comment->getVotesDown()
             ->shouldBeCalled()
             ->willReturn([ 1000, 1001 ]);
@@ -151,12 +148,11 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_does_not_have_vote_down(
+    public function it_does_not_have_vote_down(
         Vote $vote,
         Comment $comment,
         User $actor
-    )
-    {
+    ) {
         $comment->getVotesDown()
             ->shouldBeCalled()
             ->willReturn([ 1000, 1001 ]);
@@ -190,7 +186,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    function it_should_cast(
+    public function it_should_cast(
         Vote $vote,
         Comment $comment
     ) {
@@ -212,7 +208,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_cancel(
+    public function it_should_cancel(
         Vote $vote,
         Comment $comment
     ) {

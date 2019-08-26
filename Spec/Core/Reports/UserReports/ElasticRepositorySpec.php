@@ -13,30 +13,30 @@ class ElasticRepositorySpec extends ObjectBehavior
 {
     private $es;
 
-    function let(Client $es)
+    public function let(Client $es)
     {
         $this->beConstructedWith($es);
         $this->es = $es;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(ElasticRepository::class);
     }
 
-    function it_should_add_a_report(UserReport $report)
+    public function it_should_add_a_report(UserReport $report)
     {
         $ts = (int) microtime(true);
-        $this->es->request(Argument::that(function($prepared) use ($ts) {
-                $query = $prepared->build();
-                $params = $query['body']['script']['params']['report'];
-                return $params[0]['reporter_guid'] === 456
+        $this->es->request(Argument::that(function ($prepared) use ($ts) {
+            $query = $prepared->build();
+            $params = $query['body']['script']['params']['report'];
+            return $params[0]['reporter_guid'] === 456
                     && $params[0]['reason'] === 2
                     && $params[0]['sub_reason'] === 4
                     && $params[0]['@timestamp'] === $ts
                     && $query['body']['upsert']['entity_guid'] === 123
                     && $query['id'] === 123;
-            }))
+        }))
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -64,5 +64,4 @@ class ElasticRepositorySpec extends ObjectBehavior
         $this->add($report)
             ->shouldBe(true);
     }
-
 }

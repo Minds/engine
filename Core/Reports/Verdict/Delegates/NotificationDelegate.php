@@ -81,5 +81,4 @@ class NotificationDelegate
             'params' => ['action' => $readableAction],
         ]);
     }
-
 }

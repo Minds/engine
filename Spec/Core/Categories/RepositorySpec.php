@@ -14,7 +14,7 @@ class RepositorySpec extends ObjectBehavior
     protected $client;
     protected $config;
 
-    function let(Client $client, Config $config)
+    public function let(Client $client, Config $config)
     {
         $this->beConstructedWith($client, $config);
 
@@ -22,12 +22,12 @@ class RepositorySpec extends ObjectBehavior
         $this->config = $config;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    function it_should_get_the_categories()
+    public function it_should_get_the_categories()
     {
         $this->config->get('categories')
             ->shouldBeCalled()
@@ -35,7 +35,7 @@ class RepositorySpec extends ObjectBehavior
         $this->getCategories()->shouldReturn(['art', 'music']);
     }
 
-    function it_should_set_the_categories()
+    public function it_should_set_the_categories()
     {
         $this->config->get('categories')
             ->shouldBeCalled()
@@ -46,7 +46,7 @@ class RepositorySpec extends ObjectBehavior
         $this->getCategories()->shouldReturn(['art', 'music']);
     }
 
-    function it_should_reset_the_categories()
+    public function it_should_reset_the_categories()
     {
         $this->config->get('categories')
             ->shouldBeCalled()
@@ -60,7 +60,7 @@ class RepositorySpec extends ObjectBehavior
         $this->getCategories()->shouldReturn(['art', 'music', 'news']);
     }
 
-    function it_should_get_categories_from_the_database()
+    public function it_should_get_categories_from_the_database()
     {
         $this->config->get('categories')
             ->shouldBeCalled()
@@ -85,7 +85,7 @@ class RepositorySpec extends ObjectBehavior
         $this->get()->shouldReturn(['art', 'music', 'programming']);
     }
 
-    function it_should_save_a_new_category()
+    public function it_should_save_a_new_category()
     {
         $this->config->get('categories')
             ->shouldBeCalled()
@@ -100,7 +100,7 @@ class RepositorySpec extends ObjectBehavior
               (type, category, filter, guid)
               VALUES (?, ?, ?, ?)"
                 && $built['values'][0] === 'activity'
-                && in_array($built['values'][1], ['art', 'music'])
+                && in_array($built['values'][1], ['art', 'music'], true)
                 && $built['values'][2] === 'featured';
         }))
             ->shouldBeCalled()
@@ -111,7 +111,8 @@ class RepositorySpec extends ObjectBehavior
         $this->add('music');
     }
 
-    function it_should_remove_a_category() {
+    public function it_should_remove_a_category()
+    {
         $this->config->get('categories')
             ->shouldBeCalled()
             ->willReturn(['art' => 'art', 'music' => 'music', 'news' => 'news']);
@@ -124,7 +125,7 @@ class RepositorySpec extends ObjectBehavior
             return $built['string'] === "DELETE FROM categories
               WHERE type = ? AND category = ? AND filter = ? AND guid = ?"
                 && $built['values'][0] === 'activity'
-                && in_array($built['values'][1], ['art', 'music'])
+                && in_array($built['values'][1], ['art', 'music'], true)
                 && $built['values'][2] === 'featured';
         }))
             ->shouldBeCalled()

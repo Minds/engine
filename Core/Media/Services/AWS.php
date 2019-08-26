@@ -13,7 +13,6 @@ use Minds\Core\Di\Di;
 
 class AWS implements ServiceInterface
 {
-
     private $s3;
     private $et;
 
@@ -61,7 +60,6 @@ class AWS implements ServiceInterface
     {
         try {
             if (is_string($file)) {
-                
                 $result =  $this->s3->putObject([
                   'ACL' => 'public-read',
                   'Bucket' => 'cinemr',
@@ -71,9 +69,7 @@ class AWS implements ServiceInterface
                   'Body' => fopen($file, 'r'),
                   ]);
                 return $this;
-
             } elseif (is_resource($file)) {
-
                 $result =  $this->client->putObject([
                   'ACL' => 'public-read',
                   'Bucket' => 'cinemr',
@@ -82,10 +78,10 @@ class AWS implements ServiceInterface
                   'Body' => $file
                 ]);
                 return $this;
-
             }
         } catch (\Exception $e) {
-            var_dump($e->getMessage()); exit;
+            var_dump($e->getMessage());
+            exit;
         }
         throw new \Exception('Sorry, only strings and stream resource are accepted');
     }
@@ -115,13 +111,12 @@ class AWS implements ServiceInterface
             ];
         }
         $params = [
-		       'PipelineId' => Config::_()->aws['elastic_transcoder']['pipeline_id'],
-		       'Input' => ['Key' => "$this->dir/$this->key/source"],
-		       'Outputs' => $outputs,
-		  	];
+               'PipelineId' => Config::_()->aws['elastic_transcoder']['pipeline_id'],
+               'Input' => ['Key' => "$this->dir/$this->key/source"],
+               'Outputs' => $outputs,
+            ];
         $this->et->createJob($params);
 
         return $this;
     }
-
 }

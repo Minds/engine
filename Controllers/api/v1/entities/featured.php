@@ -78,12 +78,12 @@ class featured implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         //the allowed, plus default, options
-        $options = array(
+        $options = [
             'type' => $type,
             'subtype' => $subtype,
             'limit'=>12,
             'offset'=>get_input('offset', '')
-            );
+            ];
 
         foreach ($options as $key => $value) {
             if (isset($_GET[$key])) {
@@ -98,7 +98,7 @@ class featured implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         $guids = core\Data\indexes::fetch($key, $options);
         if (!$guids) {
-            return Factory::response(array('status'=>'error', 'message'=>'not found'));
+            return Factory::response(['status'=>'error', 'message'=>'not found']);
         }
 
         if (isset($_GET['offset']) && $_GET['offset']) {

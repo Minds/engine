@@ -16,8 +16,7 @@ class paywall implements Interfaces\FS
 {
     public function get($pages)
     {
-
-        switch($pages[0]){
+        switch ($pages[0]) {
             case "preview":
               $channel = Entities\Factory::build($pages[1]);
 
@@ -44,6 +43,5 @@ class paywall implements Interfaces\FS
 
               break;
         }
-
     }
 }

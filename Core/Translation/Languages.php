@@ -65,7 +65,7 @@ class Languages
     protected function sortAndPrependPreferred(array $languages, array $prepend)
     {
         array_walk($languages, function (&$language) use ($prepend) {
-            if (in_array($language['language'], $prepend)) {
+            if (in_array($language['language'], $prepend, true)) {
                 $language['isPreferred'] = true;
             }
         });

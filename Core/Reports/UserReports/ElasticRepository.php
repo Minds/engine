@@ -11,7 +11,6 @@ use Minds\Entities;
 use Minds\Entities\DenormalizedEntity;
 use Minds\Entities\NormalizedEntity;
 
-
 class ElasticRepository
 {
     /** @var Data\ElasticSearch\Client $es */
@@ -34,7 +33,6 @@ class ElasticRepository
             'state' => '',
             'owner' => null
         ], $opts);
-
     }
 
     /**
@@ -79,5 +77,4 @@ class ElasticRepository
 
         return (bool) $this->es->request($prepared);
     }
-
 }

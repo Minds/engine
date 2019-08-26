@@ -144,10 +144,10 @@ class OptInRequest extends DenormalizedEntity
         return $this;
     }
 
-     /**
-     * Returns the value of `program` property
-     * @return mixed
-     */
+    /**
+    * Returns the value of `program` property
+    * @return mixed
+    */
     public function getProgram()
     {
         return $this->program;

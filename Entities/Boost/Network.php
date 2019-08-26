@@ -354,12 +354,14 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
         return $this->categories ?: [];
     }
 
-    public function setRejectionReason($value = 0) {
+    public function setRejectionReason($value = 0)
+    {
         $this->rejection_reason = (int) $value;
         return $this;
     }
 
-    public function getRejectionReason() {
+    public function getRejectionReason()
+    {
         return $this->rejection_reason;
     }
 
@@ -442,7 +444,7 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
     {
         $this->owner->fullExport = false; //don't grab counts etc
         $export = parent::export();
-        $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'all', array('entity' => $this), array()));
+        $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'all', ['entity' => $this], []));
         $export = \Minds\Helpers\Export::sanitize($export);
 
         $export['met_impressions'] = Counters::get((string) $this->getId(), "boost_impressions")

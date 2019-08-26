@@ -219,7 +219,7 @@ class Defaults
             $allowedSections = ['top', 'subscriptions', 'subscribers'];
             $meta = [];
 
-            if(array_search($slugs[0], $allowedSections) !== false) {
+            if (array_search($slugs[0], $allowedSections, true) !== false) {
                 $meta = [
                     'og:url' => Core\Di\Di::_()->get('Config')->site_url . implode('/', $slugs),
                     'og:image' => Core\Di\Di::_()->get('Config')->site_url . 'assets/share/master.jpg',
@@ -227,7 +227,7 @@ class Defaults
                     'og:image:height' => 681
                 ];
 
-                switch($slugs[0]){
+                switch ($slugs[0]) {
                     case 'top':
                         $meta = array_merge([
                                 'title' => 'Top Channels',
@@ -452,7 +452,7 @@ class Defaults
         if (isset($username) && is_string($username)) {
             $user = new Entities\User(strtolower($username));
             if (!$user->guid) {
-                return array();
+                return [];
             }
 
             if (!$user->enabled || $user->banned == 'yes' || Helpers\Flags::shouldFail($user)) {

@@ -151,11 +151,11 @@ class Review implements BoostReviewInterface
     /**
      * Gets a single boost entity
      * @param  mixed $guid
-     * @return Boost 
+     * @return Boost
      */
     public function getBoostEntity($guid)
     {
-        return $this->manager->get("urn:boost:{$this->type}:{$guid}", [ 'hydrate' => true ]); 
+        return $this->manager->get("urn:boost:{$this->type}:{$guid}", [ 'hydrate' => true ]);
     }
 
     protected function enableBoostRejectionReasonFlag($entity = null, $reason = -1)

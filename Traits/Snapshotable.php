@@ -28,7 +28,7 @@ trait Snapshotable
         }
 
         return array_filter($properties, function ($key) use ($snapshotable) {
-            return in_array($key, $snapshotable);
+            return in_array($key, $snapshotable, true);
         }, ARRAY_FILTER_USE_KEY);
     }
 
@@ -48,5 +48,5 @@ trait Snapshotable
     /**
      * @return string[]|bool
      */
-    abstract function getSnapshotable();
+    abstract public function getSnapshotable();
 }

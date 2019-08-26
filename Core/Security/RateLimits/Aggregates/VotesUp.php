@@ -58,5 +58,4 @@ class VotesUp extends Aggregate
         }
         return $entities;
     }
-
 }

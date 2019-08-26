@@ -11,7 +11,7 @@ class CreateEventDispatcherSpec extends ObjectBehavior
 {
     protected $eventsDispatcher;
 
-    function let(
+    public function let(
         Dispatcher $eventsDispatcher
     ) {
         $this->beConstructedWith($eventsDispatcher);
@@ -19,7 +19,7 @@ class CreateEventDispatcherSpec extends ObjectBehavior
         $this->eventsDispatcher = $eventsDispatcher;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Comments\Delegates\CreateEventDispatcher');
     }

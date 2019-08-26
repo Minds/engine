@@ -7,7 +7,6 @@
 
 namespace Minds\Core\Channels\Delegates\Artifacts;
 
-
 interface ArtifactsDelegateInterface
 {
     /**

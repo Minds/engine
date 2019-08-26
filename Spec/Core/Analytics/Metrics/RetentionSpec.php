@@ -10,13 +10,12 @@ use Minds\Core\Analytics\Timestamps;
 
 class RetentionSpec extends ObjectBehavior
 {
-
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Analytics\Metrics\Retention');
     }
 
-    function it_should_increment_the_metric(Call $db)
+    public function it_should_increment_the_metric(Call $db)
     {
         $this->beConstructedWith($db);
 
@@ -32,14 +31,14 @@ class RetentionSpec extends ObjectBehavior
         });
 
         $now = Timestamps::span(2, 'day')[0];
-        foreach([1,3,7,28] as $x){
+        foreach ([1,3,7,28] as $x) {
             $db->insert("analytics:retention:$x:" . $now, ['foo'=>time(), 'bar'=>time()])->willReturn("analytics:retention:$x");
         }
 
         $this->increment()->shouldReturn(true);
     }
 
-    function it_should_return_metrics(Call $db)
+    public function it_should_return_metrics(Call $db)
     {
         $this->beConstructedWith($db);
 
@@ -62,5 +61,4 @@ class RetentionSpec extends ObjectBehavior
         $return[0]['totals'][2]['total']->shouldBe(0.2);
         $return[0]['totals'][3]['total']->shouldBe(0.1);
     }
-
 }

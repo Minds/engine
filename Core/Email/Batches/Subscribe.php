@@ -39,7 +39,7 @@ class Subscribe implements EmailBatchInterface
         $subscriptions = $config->get('default_email_subscriptions');
 
         while (true) {
-            $guids = $indexes->getRow('user', array('limit' => 750, 'offset' => $this->offset, 'reversed' => true));
+            $guids = $indexes->getRow('user', ['limit' => 750, 'offset' => $this->offset, 'reversed' => true]);
             if (count($guids) <= 1) {
                 break;
             }

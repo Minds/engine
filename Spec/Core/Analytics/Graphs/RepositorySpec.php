@@ -12,20 +12,20 @@ class RepositorySpec extends ObjectBehavior
 {
     private $client;
 
-    function let(Client $client)
+    public function let(Client $client)
     {
         $this->beConstructedWith($client);
         $this->client = $client;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    function it_should_get_list_of_graphs()
+    public function it_should_get_list_of_graphs()
     {
-        $this->client->request(Argument::that(function($prepared) {
+        $this->client->request(Argument::that(function ($prepared) {
             return true;
         }))
             ->shouldBeCalled()
@@ -57,9 +57,9 @@ class RepositorySpec extends ObjectBehavior
             ]);
     }
 
-    function it_should_return_a_single_graph()
+    public function it_should_return_a_single_graph()
     {
-        $this->client->request(Argument::that(function($prepared) {
+        $this->client->request(Argument::that(function ($prepared) {
             return true;
         }))
             ->shouldBeCalled()
@@ -80,7 +80,7 @@ class RepositorySpec extends ObjectBehavior
             ]);
     }
 
-    function it_should_add_a_graph()
+    public function it_should_add_a_graph()
     {
         $graph = new Graph();
         $graph->setKey('avgpageviews-mau_unique-month')
@@ -88,7 +88,7 @@ class RepositorySpec extends ObjectBehavior
             ->setData([
                 'key' => 'value',
             ]);
-        $this->client->request(Argument::that(function($prepared) {
+        $this->client->request(Argument::that(function ($prepared) {
             $values = $prepared->build()['values'];
             return $values[0] === 'avgpageviews-mau_unique-month'
                 && $values[1]->time() == strtotime('midnight')
@@ -98,5 +98,4 @@ class RepositorySpec extends ObjectBehavior
         $this->add($graph)
             ->shouldBe(true);
     }
-
 }

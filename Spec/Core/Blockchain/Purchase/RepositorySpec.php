@@ -12,13 +12,12 @@ use Spec\Minds\Mocks;
 
 class RepositorySpec extends ObjectBehavior
 {
-
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blockchain\Purchase\Repository');
     }
 
-    function it_should_add_a_purchase(Client $db)
+    public function it_should_add_a_purchase(Client $db)
     {
         $this->beConstructedWith($db);
 
@@ -46,7 +45,7 @@ class RepositorySpec extends ObjectBehavior
         $this->add($purchase);
     }
 
-    function it_should_get_a_list_of_purchases(Client $db)
+    public function it_should_get_a_list_of_purchases(Client $db)
     {
         $this->beConstructedWith($db);
 
@@ -107,7 +106,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(49);
     }
 
-    function it_should_fail_to_get_a_list_of_purchases(Client $db)
+    public function it_should_fail_to_get_a_list_of_purchases(Client $db)
     {
         $this->beConstructedWith($db);
 
@@ -128,7 +127,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn([]);
     }
 
-    function it_shouldnt_find_any_purchases(Client $db)
+    public function it_shouldnt_find_any_purchases(Client $db)
     {
         $this->beConstructedWith($db);
 
@@ -149,7 +148,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn([]);
     }
 
-    function it_should_get_a_single_transaction(Client $db)
+    public function it_should_get_a_single_transaction(Client $db)
     {
         $this->beConstructedWith($db);
 
@@ -193,7 +192,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe('50');
     }
 
-    function it_should_fail_to_get_a_single_transaction(Client $db)
+    public function it_should_fail_to_get_a_single_transaction(Client $db)
     {
         $this->beConstructedWith($db);
 
@@ -207,7 +206,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(null);
     }
 
-    function it_shouldnt_find_a_single_transaction(Client $db)
+    public function it_shouldnt_find_a_single_transaction(Client $db)
     {
         $this->beConstructedWith($db);
 
@@ -221,7 +220,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(null);
     }
 
-    function it_should_delete_a_transaction(Client $db)
+    public function it_should_delete_a_transaction(Client $db)
     {
         $this->beConstructedWith($db);
 
@@ -236,7 +235,7 @@ class RepositorySpec extends ObjectBehavior
         $this->delete('hash')->shouldReturn(true);
     }
 
-    function it_should_fail_to_delete_a_transaction(Client $db)
+    public function it_should_fail_to_delete_a_transaction(Client $db)
     {
         $this->beConstructedWith($db);
 

@@ -14,33 +14,31 @@ class AppealsSpec extends ObjectBehavior
     public $_repository;
     public $_actions;
 
-    function let(
+    public function let(
         Core\Reports\PreFeb2019Repository $repository,
         Core\Reports\Actions $actions
-    )
-    {
+    ) {
         $this->_repository = $repository;
-        Di::_()->bind('Reports\Repository', function($di) use ($repository) {
+        Di::_()->bind('Reports\Repository', function ($di) use ($repository) {
             return $repository->getWrappedObject();
         });
 
         $this->_actions = $actions;
-        Di::_()->bind('Reports\Actions', function($di) use ($actions) {
+        Di::_()->bind('Reports\Actions', function ($di) use ($actions) {
             return $actions->getWrappedObject();
         });
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Reports\Appeals');
     }
 
     // appeal()
 
-    function it_should_appeal_a_report(
+    public function it_should_appeal_a_report(
         Entities\Report $report
-    )
-    {
+    ) {
         $report->getOwnerGuid()->willReturn(1000);
         $report->getState()->willReturn('actioned');
 
@@ -59,10 +57,9 @@ class AppealsSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_not_appeal_if_no_guid(
+    public function it_should_not_appeal_if_no_guid(
         Entities\Report $report
-    )
-    {
+    ) {
         $report->getOwnerGuid()->willReturn(1000);
         $report->getState()->willReturn('actioned');
 
@@ -76,10 +73,9 @@ class AppealsSpec extends ObjectBehavior
             ->duringAppeal(null, 1000, 'phpspec');
     }
 
-    function it_should_not_appeal_if_no_user(
+    public function it_should_not_appeal_if_no_user(
         Entities\Report $report
-    )
-    {
+    ) {
         $report->getOwnerGuid()->willReturn(1000);
         $report->getState()->willReturn('actioned');
 
@@ -93,10 +89,9 @@ class AppealsSpec extends ObjectBehavior
             ->duringAppeal(5000, null, 'phpspec');
     }
 
-    function it_should_not_appeal_if_no_report(
+    public function it_should_not_appeal_if_no_report(
         Entities\Report $report
-    )
-    {
+    ) {
         $report->getOwnerGuid()->willReturn(1000);
         $report->getState()->willReturn('actioned');
 
@@ -111,10 +106,9 @@ class AppealsSpec extends ObjectBehavior
             ->duringAppeal(5404, 1000, 'phpspec');
     }
 
-    function it_should_not_appeal_if_report_is_not_users(
+    public function it_should_not_appeal_if_report_is_not_users(
         Entities\Report $report
-    )
-    {
+    ) {
         $report->getOwnerGuid()->willReturn(1001);
         $report->getState()->willReturn('actioned');
 
@@ -129,10 +123,9 @@ class AppealsSpec extends ObjectBehavior
             ->duringAppeal(5401, 1000, 'phpspec');
     }
 
-    function it_should_not_appeal_if_report_is_other_than_actioned(
+    public function it_should_not_appeal_if_report_is_other_than_actioned(
         Entities\Report $report
-    )
-    {
+    ) {
         $report->getOwnerGuid()->willReturn(1000);
         $report->getState()->willReturn('review');
 
@@ -149,10 +142,9 @@ class AppealsSpec extends ObjectBehavior
 
     // approve()
 
-    function it_should_approve_an_appeal(
+    public function it_should_approve_an_appeal(
         Entities\Report $report
-    )
-    {
+    ) {
         $report->getState()->willReturn('appealed');
 
         $this->_repository->getRow(5000)
@@ -173,10 +165,9 @@ class AppealsSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_not_approve_an_appeal_if_no_guid(
+    public function it_should_not_approve_an_appeal_if_no_guid(
         Entities\Report $report
-    )
-    {
+    ) {
         $report->getState()->willReturn('appealed');
 
         $this->_repository->getRow(Argument::any())
@@ -192,10 +183,9 @@ class AppealsSpec extends ObjectBehavior
             ->duringApprove(null);
     }
 
-    function it_should_not_approve_an_appeal_if_no_report(
+    public function it_should_not_approve_an_appeal_if_no_report(
         Entities\Report $report
-    )
-    {
+    ) {
         $report->getState()->willReturn('appealed');
 
         $this->_repository->getRow(5404)
@@ -212,10 +202,9 @@ class AppealsSpec extends ObjectBehavior
             ->duringApprove(5404);
     }
 
-    function it_should_not_approve_an_appeal_if_no_report_is_other_than_appealed(
+    public function it_should_not_approve_an_appeal_if_no_report_is_other_than_appealed(
         Entities\Report $report
-    )
-    {
+    ) {
         $report->getState()->willReturn('review');
 
         $this->_repository->getRow(5000)
@@ -234,10 +223,9 @@ class AppealsSpec extends ObjectBehavior
 
     // reject()
 
-    function it_should_reject_an_appeal(
+    public function it_should_reject_an_appeal(
         Entities\Report $report
-    )
-    {
+    ) {
         $report->getState()->willReturn('appealed');
 
         $this->_repository->getRow(5000)
@@ -257,10 +245,9 @@ class AppealsSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_not_reject_an_appeal_if_no_guid(
+    public function it_should_not_reject_an_appeal_if_no_guid(
         Entities\Report $report
-    )
-    {
+    ) {
         $report->getState()->willReturn('appealed');
 
         $this->_repository->getRow(Argument::any())
@@ -276,10 +263,9 @@ class AppealsSpec extends ObjectBehavior
             ->duringReject(null);
     }
 
-    function it_should_not_reject_an_appeal_if_no_report(
+    public function it_should_not_reject_an_appeal_if_no_report(
         Entities\Report $report
-    )
-    {
+    ) {
         $report->getState()->willReturn('appealed');
 
         $this->_repository->getRow(5404)
@@ -296,10 +282,9 @@ class AppealsSpec extends ObjectBehavior
             ->duringReject(5404);
     }
 
-    function it_should_not_reject_an_appeal_if_no_report_is_other_than_appealed(
+    public function it_should_not_reject_an_appeal_if_no_report_is_other_than_appealed(
         Entities\Report $report
-    )
-    {
+    ) {
         $report->getState()->willReturn('review');
 
         $this->_repository->getRow(5000)

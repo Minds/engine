@@ -22,7 +22,6 @@ class featured implements Interfaces\Api
      */
     public function get($pages)
     {
-
         $repository = Di::_()->get('Categories\Repository');
         $repository->setFilter('featured');
 
@@ -30,7 +29,7 @@ class featured implements Interfaces\Api
             $repository->setCategories(explode(',', $_GET['categories']));
         }
 
-        switch($pages[0]){
+        switch ($pages[0]) {
           case "object":
               $repository->setType($pages[1]);
               break;

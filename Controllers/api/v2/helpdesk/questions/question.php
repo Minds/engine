@@ -46,5 +46,4 @@ class question implements Api
     {
         return Factory::response([]);
     }
-
 }

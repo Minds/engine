@@ -126,5 +126,4 @@ class WirePayment
         //send email
         $this->mailer->queue($message);
     }
-
 }

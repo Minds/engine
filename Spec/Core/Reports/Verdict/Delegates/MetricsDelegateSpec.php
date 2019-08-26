@@ -8,7 +8,7 @@ use Prophecy\Argument;
 
 class MetricsDelegateSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(MetricsDelegate::class);
     }

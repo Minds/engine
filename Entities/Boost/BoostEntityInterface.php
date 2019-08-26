@@ -14,32 +14,32 @@ interface BoostEntityInterface
    * @return $this
    * @todo   Create an interface for setEntity parameters
    */
-  public function setEntity($entity);
+    public function setEntity($entity);
 
-  /**
-   * Get the entity
-   * @return Entity
-   */
-  public function getEntity();
+    /**
+     * Get the entity
+     * @return Entity
+     */
+    public function getEntity();
 
-  /**
-   * Set the state of the boost
-   * @param string $state
-   * @return $this
-   */
-  public function setState($state);
+    /**
+     * Set the state of the boost
+     * @param string $state
+     * @return $this
+     */
+    public function setState($state);
 
-  /**
-   * Return the state of the boost
-   * @return string
-   */
-  public function getState();
+    /**
+     * Return the state of the boost
+     * @return string
+     */
+    public function getState();
 
-  /**
-   * Set the rating of the boost
-   * @param string $rating
-   * @return $this
-   */
+    /**
+     * Set the rating of the boost
+     * @param string $rating
+     * @return $this
+     */
   //public function setRating($rating);
 
   /**

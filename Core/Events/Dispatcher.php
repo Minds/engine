@@ -9,7 +9,7 @@ class Dispatcher
     /**
      * Register of event listeners and their handlers.
      */
-    private static $events = array();
+    private static $events = [];
 
     /**
      * Initialise Core event listeners
@@ -34,13 +34,13 @@ class Dispatcher
         }
 
         if (!isset(self::$events)) {
-            self::$events = array();
+            self::$events = [];
         }
         if (!isset(self::$events[$namespace])) {
-            self::$events[$namespace] = array();
+            self::$events[$namespace] = [];
         }
         if (!isset(self::$events[$namespace][$event])) {
-            self::$events[$namespace][$event] = array();
+            self::$events[$namespace][$event] = [];
         }
 
 
@@ -81,7 +81,7 @@ class Dispatcher
      */
     public static function trigger($event, $namespace, $params, $default_return = null)
     {
-        $calls = array();
+        $calls = [];
 
         if (isset(self::$events[$namespace][$event])) {
             $calls[] = self::$events[$namespace][$event];
@@ -90,7 +90,7 @@ class Dispatcher
             $calls[] = self::$events[$namespace]['all'];
         }
         //always trigger the all listener for namespace
-        foreach (array('all', 'elgg/hook/all', 'elgg/event/all') as $ns) {
+        foreach (['all', 'elgg/hook/all', 'elgg/event/all'] as $ns) {
             if (isset(self::$events[$ns][$event])) {
                 $calls[] = self::$events[$ns][$event];
             }
@@ -98,57 +98,57 @@ class Dispatcher
 
         $calls = array_unique($calls, SORT_REGULAR);
 
-      // New event format, expects event object
-        $eventobj = new Event(array(
+        // New event format, expects event object
+        $eventobj = new Event([
           'namespace' => $namespace,
           'event' => $event,
           'parameters' => $params
-        ));
+        ]);
         $eventobj->setResponse($default_return);
 
         try {
             // Dispatch event
-        foreach ($calls as $callbacks) {
-            if (!is_array($callbacks)) {
-                continue;
-            }
-
-            foreach ($callbacks as $callback) {
-                if (!is_callable($callback)) {
+            foreach ($calls as $callbacks) {
+                if (!is_array($callbacks)) {
                     continue;
                 }
 
-                $ns = $namespace;
-                $ev = $event;
+                foreach ($callbacks as $callback) {
+                    if (!is_callable($callback)) {
+                        continue;
+                    }
 
-            // There's a potential namespace collision on old style elgg events/hooks, so we namespace them off, however some hooks/events check this parameter.
-            // Therefore we need to normalise the namespace before dispatch
-            if (strpos($ns, 'elgg/event/') === 0) {
-                // old style event
-              $ns = str_replace('elgg/event/', '', $ns);
+                    $ns = $namespace;
+                    $ev = $event;
 
-                $args = array($ev, $ns, $params);
-                if (call_user_func_array($callback, $args) === false) {
-                    throw new Exceptions\StopEventException("Event propagation for old style $ns/$ev stopped by $callback");
+                    // There's a potential namespace collision on old style elgg events/hooks, so we namespace them off, however some hooks/events check this parameter.
+                    // Therefore we need to normalise the namespace before dispatch
+                    if (strpos($ns, 'elgg/event/') === 0) {
+                        // old style event
+                        $ns = str_replace('elgg/event/', '', $ns);
+
+                        $args = [$ev, $ns, $params];
+                        if (call_user_func_array($callback, $args) === false) {
+                            throw new Exceptions\StopEventException("Event propagation for old style $ns/$ev stopped by $callback");
+                        }
+                    } elseif (strpos($ns, 'elgg/hook/') === 0) {
+                        // Old style hook
+                        $ns = str_replace('elgg/hook/', '', $ns);
+
+                        $args = [$ev, $ns, $eventobj->response(), $params];
+                        $temp_return_value = call_user_func_array($callback, $args);
+                        if (!is_null($temp_return_value)) {
+                            $eventobj->setResponse($temp_return_value);
+                        }
+                    } else {
+                        $args = [$eventobj];
+                        call_user_func_array($callback, $args);
+                    }
                 }
-            } elseif (strpos($ns, 'elgg/hook/') === 0) {
-                // Old style hook
-              $ns = str_replace('elgg/hook/', '', $ns);
-
-                $args = array($ev, $ns, $eventobj->response(), $params);
-                $temp_return_value = call_user_func_array($callback, $args);
-                if (!is_null($temp_return_value)) {
-                    $eventobj->setResponse($temp_return_value);
-                }
-            } else {
-                $args = array($eventobj);
-                call_user_func_array($callback, $args);
             }
-            }
-        }
         } catch (\Minds\Core\exceptions\StopEventException $ex) {
             // Stop execution when we get this exception, all other exceptions bubble up.
-        return false;
+            return false;
         }
 
         return $eventobj->response();

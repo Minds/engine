@@ -15,7 +15,6 @@ use Minds\Core\Messenger;
 
 class keys implements Interfaces\Api
 {
-
     /**
      * Returns the private key belonging to a user
      * @param array $pages
@@ -54,7 +53,8 @@ class keys implements Interfaces\Api
         return Factory::response($response);
     }
 
-    private function createMessengerCookie($secret) {
+    private function createMessengerCookie($secret)
+    {
         $cookie = new Cookie();
         $cookie
             ->setName('messenger-secret')
@@ -75,7 +75,7 @@ class keys implements Interfaces\Api
 
         switch ($pages[0]) {
             case "setup":
-                $response = array();
+                $response = [];
                 $keypair = $openssl->generateKeypair($_POST['password']);
 
                 $keystore->setPublicKey($keypair['public'])
@@ -133,11 +133,11 @@ class keys implements Interfaces\Api
 
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     public function delete($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }

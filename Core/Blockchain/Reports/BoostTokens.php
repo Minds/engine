@@ -39,7 +39,8 @@ class BoostTokens extends AbstractReport
      * Contructor
      * @param Core\Config\Config $config
      */
-    public function __construct($config = null) {
+    public function __construct($config = null)
+    {
         $config = $config ?: Di::_()->get('Config');
 
         $blockchainConfig = $config->get('blockchain');
@@ -66,7 +67,7 @@ class BoostTokens extends AbstractReport
             ->getRange($this->from, $this->to);
 
         // format output
-        return array_map(function($row) use($ethPrice) {
+        return array_map(function ($row) use ($ethPrice) {
             $minds = BigNumber::fromPlain($row['value'], 18);
 
             return [

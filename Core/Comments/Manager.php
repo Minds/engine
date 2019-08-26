@@ -61,8 +61,7 @@ class Manager
         $countCache = null,
         $entitiesBuilder = null,
         $spam = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository();
         $this->legacyRepository = $legacyRepository ?: new Legacy\Repository();
         $this->acl = $acl ?: ACL::_();

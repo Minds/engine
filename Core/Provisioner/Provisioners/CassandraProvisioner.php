@@ -42,7 +42,5 @@ class CassandraProvisioner implements ProvisionerInterface
         }
  
         return true;
-
     }
-
 }

@@ -13,18 +13,18 @@ class ManagerSpec extends ObjectBehavior
     /** @var Config */
     protected $config;
 
-    function let(Config $config)
+    public function let(Config $config)
     {
         $this->beConstructedWith($config);
         $this->config = $config;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_check_if_a_feature_exists_unsuccessfully_and_assume_its_inactive()
+    public function it_should_check_if_a_feature_exists_unsuccessfully_and_assume_its_inactive()
     {
         $this->config->get('features')
             ->shouldBeCalled()
@@ -33,7 +33,7 @@ class ManagerSpec extends ObjectBehavior
         $this->has('boost')->shouldReturn(false);
     }
 
-    function it_should_check_if_a_feature_exists_and_return_its_deactivated()
+    public function it_should_check_if_a_feature_exists_and_return_its_deactivated()
     {
         $this->config->get('features')
             ->shouldBeCalled()
@@ -42,7 +42,7 @@ class ManagerSpec extends ObjectBehavior
         $this->has('wire')->shouldReturn(false);
     }
 
-    function it_should_check_if_a_user_is_active_for_an_admin_and_return_true(User $user)
+    public function it_should_check_if_a_user_is_active_for_an_admin_and_return_true(User $user)
     {
         $user->isAdmin()
             ->shouldBeCalled()
@@ -60,7 +60,7 @@ class ManagerSpec extends ObjectBehavior
         $this->has('wire')->shouldReturn(true);
     }
 
-    function it_should_check_if_a_user_is_active_for_an_admin_and_return_false(User $user)
+    public function it_should_check_if_a_user_is_active_for_an_admin_and_return_false(User $user)
     {
         $user->guid = '1234';
         $user->admin = false;
@@ -78,7 +78,7 @@ class ManagerSpec extends ObjectBehavior
         $this->has('wire')->shouldReturn(false);
     }
 
-    function it_should_export_all_features()
+    public function it_should_export_all_features()
     {
         $features = [
             'plus' => true,

@@ -67,14 +67,11 @@ class room implements Interfaces\Api
 
     public function put($pages)
     {
-
         return Factory::response([]);
     }
 
     public function delete($pages)
     {
-
         return Factory::response([]);
     }
-
 }

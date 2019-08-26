@@ -74,5 +74,4 @@ class appeals implements Interfaces\Api
     {
         return Factory::response([]);
     }
-
 }

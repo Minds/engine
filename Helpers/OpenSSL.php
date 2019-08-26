@@ -13,12 +13,12 @@ class OpenSSL
      */
     public static function newKeypair($password = null)
     {
-        $config = array(
+        $config = [
             "digest_alg" => "sha512",
             "private_key_bits" => 4096,
             "private_key_type" => OPENSSL_KEYTYPE_RSA,
             'encrypt_key' => true
-        );
+        ];
 
         $res = openssl_pkey_new($config);
 
@@ -29,10 +29,10 @@ class OpenSSL
         $pubKey = openssl_pkey_get_details($res);
         $pubKey = $pubKey["key"];
 
-        return array(
+        return [
             'public' => $pubKey,
             'private' => $privKey
-            );
+            ];
     }
 
     /**

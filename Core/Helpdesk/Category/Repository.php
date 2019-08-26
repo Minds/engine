@@ -123,7 +123,9 @@ class Repository
     {
         $leaf = $this->get($uuid);
 
-        if (!$leaf) return null;
+        if (!$leaf) {
+            return null;
+        }
 
         $branch = explode(':', $leaf->getBranch());
         array_pop($branch);
@@ -211,7 +213,6 @@ class Repository
         try {
             $response = $this->client->request($prepared);
             return $response->current()['branch'] . ':' . $uuid;
-
         } catch (\Exception $e) {
             error_log($e);
         }

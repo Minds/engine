@@ -39,7 +39,7 @@ class Sums
     }
 
     /**
-     * Get the amount 
+     * Get the amount
      */
     public function getAmount()
     {
@@ -47,21 +47,21 @@ class Sums
 
         if ($this->user) {
             $query->query("SELECT SUM(amount) as amount from contributions WHERE user_guid = ? 
-                AND timestamp = ?", 
+                AND timestamp = ?",
                 [
                     new Varint((int) $this->user->guid),
                     new Timestamp($this->timestamp / 1000)
                 ]);
         } else {
-            $query->query("SELECT SUM(amount) as amount from contributions_by_timestamp WHERE timestamp = ?", 
+            $query->query("SELECT SUM(amount) as amount from contributions_by_timestamp WHERE timestamp = ?",
                 [
                     new Timestamp($this->timestamp / 1000)
                 ]);
         }
 
-        try{
+        try {
             $rows = $this->db->request($query);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             error_log($e->getMessage());
         }
         
@@ -77,25 +77,24 @@ class Sums
 
         if ($this->user) {
             $query->query("SELECT SUM(score) as score from contributions WHERE user_guid = ? 
-                AND timestamp = ?", 
+                AND timestamp = ?",
                 [
                     new Varint((int) $this->user->guid),
                     new Timestamp($this->timestamp / 1000)
                 ]);
         } else {
-            $query->query("SELECT SUM(score) as score from contributions_by_timestamp WHERE timestamp = ?", 
+            $query->query("SELECT SUM(score) as score from contributions_by_timestamp WHERE timestamp = ?",
                 [
                     new Timestamp($this->timestamp / 1000)
                 ]);
         }
 
-        try{
+        try {
             $rows = $this->db->request($query);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             error_log($e->getMessage());
         }
         
         return (int) $rows[0]['score'];
     }
-
 }

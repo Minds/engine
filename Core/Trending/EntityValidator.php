@@ -5,7 +5,6 @@ use Minds\Entities;
 
 class EntityValidator
 {
-
     public function isValid($entity, $rating = 1)
     {
         //if (!$entity || !method_exists($entity, 'getRating')) {
@@ -29,10 +28,10 @@ class EntityValidator
             return false;
         }
 
-        return $this->isEnabled($entity) 
+        return $this->isEnabled($entity)
             && ($entity->type == 'user' || $this->isOwnerEnabled($entity->getOwnerEntity()))
             && !$this->isMature($entity);
-            //&& !$this->isMature($entity->getOwnerEntity());
+        //&& !$this->isMature($entity->getOwnerEntity());
     }
 
     protected function isMature($entity)
@@ -61,8 +60,8 @@ class EntityValidator
             echo "\n$entity->guid is not valid [banned: $entity->banned] [enabled: $entity->enabled]\n";
             return false;
         }
-        if (method_exists($entity, 'getFlag') && $entity->getFlag('paywall') ) {
-            echo "\n $entity->guid has a paywall flag"; 
+        if (method_exists($entity, 'getFlag') && $entity->getFlag('paywall')) {
+            echo "\n $entity->guid has a paywall flag";
             return false;
         }
         if ($entity->type == 'object' && $entity->access_id != 2) {
@@ -83,10 +82,9 @@ class EntityValidator
         }
         if (method_exists($entity, 'isMature') && $entity->isMature()) {
             echo " mature owner";
-           return $entity->isMature();
+            return $entity->isMature();
         }
 
         return true;
     }
-
 }
