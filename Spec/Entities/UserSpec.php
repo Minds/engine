@@ -6,6 +6,7 @@ use Minds\Entities\User;
 use Minds\Core\Di\Di;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Minds\Common\ChannelMode;
 
 class UserSpec extends ObjectBehavior
 {
@@ -48,5 +49,21 @@ class UserSpec extends ObjectBehavior
     function it_should_recognise_a_user_is_not_in_the_onchain_booster_timeframe() {
         $this->setOnchainBooster(1560192357);
         $this->isOnchainBooster()->shouldReturn(false);
+    }
+
+    function it_should_have_a_default_mode_of_open() {
+        $this->getMode()->shouldEqual(ChannelMode::OPEN);
+    }
+
+    function it_should_assign_channel_modes() {
+        $this->setMode(ChannelMode::CLOSED); 
+        $this->getMode()->shouldEqual(ChannelMode::CLOSED);
+        $this->setMode(ChannelMode::MODERATED); 
+        $this->getMode()->shouldEqual(ChannelMode::MODERATED);
+    }
+
+    function it_should_export_values() {
+        $export = $this->export()->getWrappedObject();
+        expect($export['mode'])->shouldEqual(ChannelMode::OPEN);
     }
 }
