@@ -483,6 +483,10 @@ class newsfeed implements Interfaces\Api
                         $activity->setTags($_POST['tags']);
                     }
 
+                    if (isset($_POST['nsfw'])) {
+                        $activity->setNsfw($_POST['nsfw']);
+                    }
+
                     $user = Core\Session::getLoggedInUser();
                     if ($user->isMature()) {
                         $activity->setMature(true);

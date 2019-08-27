@@ -17,7 +17,6 @@ class Transcode implements Interfaces\QueueRunner
                 $transcoder = new Core\Media\Services\FFMpeg();
                 $transcoder->setKey($data->getData()['key']);
                 $transcoder->onQueue();
-            }, [ 'max_messages' => 1 });
+            }, [ 'max_messages' => 1 ]);
     }
-
 }
