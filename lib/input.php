@@ -24,31 +24,31 @@
  *
  * @return mixed
  */
-function get_input($variable, $default = null, $filter_result = true)
-{
-    global $CONFIG;
+function get_input($variable, $default = NULL, $filter_result = TRUE) {
 
-    $result = $default;
+	global $CONFIG;
 
-    if (isset($CONFIG->input[$variable])) {
-        $result = $CONFIG->input[$variable];
+	$result = $default;
 
-        if ($filter_result) {
-            $result = filter_tags($result);
-        }
-    } elseif (isset($_REQUEST[$variable])) {
-        if (is_array($_REQUEST[$variable])) {
-            $result = $_REQUEST[$variable];
-        } else {
-            $result = trim($_REQUEST[$variable]);
-        }
+	if (isset($CONFIG->input[$variable])) {
+		$result = $CONFIG->input[$variable];
 
-        if ($filter_result) {
-            $result = filter_tags($result);
-        }
-    }
+		if ($filter_result) {
+			$result = filter_tags($result);
+		}
+	} elseif (isset($_REQUEST[$variable])) {
+		if (is_array($_REQUEST[$variable])) {
+			$result = $_REQUEST[$variable];
+		} else {
+			$result = trim($_REQUEST[$variable]);
+		}
 
-    return $result;
+		if ($filter_result) {
+			$result = filter_tags($result);
+		}
+	}
+
+	return $result;
 }
 
 /**
@@ -61,19 +61,18 @@ function get_input($variable, $default = null, $filter_result = true)
  *
  * @return void
  */
-function set_input($variable, $value)
-{
-    global $CONFIG;
-    if (!isset($CONFIG->input)) {
-        $CONFIG->input = [];
-    }
+function set_input($variable, $value) {
+	global $CONFIG;
+	if (!isset($CONFIG->input)) {
+		$CONFIG->input = array();
+	}
 
-    if (is_array($value)) {
-        array_walk_recursive($value, create_function('&$v, $k', '$v = trim($v);'));
-        $CONFIG->input[trim($variable)] = $value;
-    } else {
-        $CONFIG->input[trim($variable)] = trim($value);
-    }
+	if (is_array($value)) {
+		array_walk_recursive($value, create_function('&$v, $k', '$v = trim($v);'));
+		$CONFIG->input[trim($variable)] = $value;
+	} else {
+		$CONFIG->input[trim($variable)] = trim($value);
+	}
 }
 
 /**
@@ -84,9 +83,8 @@ function set_input($variable, $value)
  *
  * @return mixed The filtered result - everything will be strings
  */
-function filter_tags($var)
-{
-    return elgg_trigger_plugin_hook('validate', 'input', null, $var);
+function filter_tags($var) {
+	return elgg_trigger_plugin_hook('validate', 'input', null, $var);
 }
 
 /**
@@ -96,9 +94,8 @@ function filter_tags($var)
  *
  * @return bool
  */
-function is_email_address($address)
-{
-    return filter_var($address, FILTER_VALIDATE_EMAIL) === $address;
+function is_email_address($address) {
+	return filter_var($address, FILTER_VALIDATE_EMAIL) === $address;
 }
 
 /**
@@ -113,22 +110,22 @@ function is_email_address($address)
  * @link http://docs.elgg.org/Tutorials/UI/StickyForms
  * @since 1.8.0
  */
-function elgg_make_sticky_form($form_name)
-{
-    elgg_clear_sticky_form($form_name);
-    
-    $cookie_id = 'mindsStickyForm';
-    $sticky = isset($_COOKIE[$cookie_id]) ? json_decode($_COOKIE[$cookie_id], true) : [];
+function elgg_make_sticky_form($form_name) {
 
-    $sticky[$form_name] = [];
+	elgg_clear_sticky_form($form_name);
+	
+	$cookie_id = 'mindsStickyForm';
+	$sticky = isset($_COOKIE[$cookie_id]) ? json_decode($_COOKIE[$cookie_id], true) : array();
 
-    foreach ($_REQUEST as $key => $var) {
-        // will go through XSS filtering on the get function
-        $sticky[$form_name][$key] = $var;
-    }
+	$sticky[$form_name] = array();
 
-    //keep for one minute
-    setCookie($cookie_id, json_encode($sticky), time()+(60*60*60), '/');
+	foreach ($_REQUEST as $key => $var) {
+		// will go through XSS filtering on the get function
+		$sticky[$form_name][$key] = $var;
+	}
+
+	//keep for one minute
+	setCookie($cookie_id, json_encode($sticky), time()+(60*60*60), '/');
 }
 
 /**
@@ -144,14 +141,14 @@ function elgg_make_sticky_form($form_name)
  * @link http://docs.elgg.org/Tutorials/UI/StickyForms
  * @since 1.8.0
  */
-function elgg_clear_sticky_form($form_name)
-{
-    $cookie_id = 'mindsStickyForm';
-    $sticky = isset($_COOKIE[$cookie_id]) ? json_decode($_COOKIE[$cookie_id], true) : [];
+function elgg_clear_sticky_form($form_name) {
+	
+	$cookie_id = 'mindsStickyForm';
+	$sticky = isset($_COOKIE[$cookie_id]) ? json_decode($_COOKIE[$cookie_id], true) : array();
 
-    unset($sticky[$form_name]);
-    //keep for 1 minute
-    setCookie($cookie_id, json_encode($sticky), time()+60, '/');
+	unset($sticky[$form_name]);
+	//keep for 1 minute
+	setCookie($cookie_id, json_encode($sticky), time()+60, '/');
 }
 
 /**
@@ -163,12 +160,11 @@ function elgg_clear_sticky_form($form_name)
  * @link http://docs.elgg.org/Tutorials/UI/StickyForms
  * @since 1.8.0
  */
-function elgg_is_sticky_form($form_name)
-{
-    $cookie_id = 'mindsStickyForm';
-    $sticky = isset($_COOKIE[$cookie_id]) ? json_decode($_COOKIE[$cookie_id], true) : [];
-    
-    return isset($sticky[$form_name]);
+function elgg_is_sticky_form($form_name) {
+	$cookie_id = 'mindsStickyForm';
+	$sticky = isset($_COOKIE[$cookie_id]) ? json_decode($_COOKIE[$cookie_id], true) : array();
+	
+	return isset($sticky[$form_name]);
 }
 
 /**
@@ -185,20 +181,19 @@ function elgg_is_sticky_form($form_name)
  * @link http://docs.elgg.org/Tutorials/UI/StickyForms
  * @since 1.8.0
  */
-function elgg_get_sticky_value($form_name, $variable = '', $default = null, $filter_result = true)
-{
-    $cookie_id = 'mindsStickyForm';
-    $sticky = isset($_COOKIE[$cookie_id]) ? json_decode($_COOKIE[$cookie_id], true) : [];
-    
-    if (isset($sticky[$form_name][$variable])) {
-        $value = $sticky[$form_name][$variable];
-        if ($filter_result) {
-            // XSS filter result
-            $value = filter_tags($value);
-        }
-        return $value;
-    }
-    return $default;
+function elgg_get_sticky_value($form_name, $variable = '', $default = NULL, $filter_result = true) {
+	$cookie_id = 'mindsStickyForm';
+	$sticky = isset($_COOKIE[$cookie_id]) ? json_decode($_COOKIE[$cookie_id], true) : array();
+	
+	if (isset($sticky[$form_name][$variable])) {
+		$value = $sticky[$form_name][$variable];
+		if ($filter_result) {
+			// XSS filter result
+			$value = filter_tags($value);
+		}
+		return $value;
+	}
+	return $default;
 }
 
 /**
@@ -210,23 +205,23 @@ function elgg_get_sticky_value($form_name, $variable = '', $default = null, $fil
  * @return array
  * @since 1.8.0
  */
-function elgg_get_sticky_values($form_name, $filter_result = true)
-{
-    $cookie_id = 'mindsStickyForm';
-    $sticky = isset($_COOKIE[$cookie_id]) ? json_decode($_COOKIE[$cookie_id], true) : [];
+function elgg_get_sticky_values($form_name, $filter_result = true) {
 
-    if (!isset($sticky[$form_name])) {
-        return false;
-    }
+	$cookie_id = 'mindsStickyForm';
+	$sticky = isset($_COOKIE[$cookie_id]) ? json_decode($_COOKIE[$cookie_id], true) : array();
 
-    $values = $sticky[$form_name];
-    if ($filter_result) {
-        foreach ($values as $key => $value) {
-            // XSS filter result
-            $values[$key] = filter_tags($value);
-        }
-    }
-    return $values;
+	if(!isset($sticky[$form_name])){
+		return false;
+	}
+
+	$values = $sticky[$form_name]; 
+	if ($filter_result) {
+		foreach ($values as $key => $value) {
+			// XSS filter result
+			$values[$key] = filter_tags($value);
+		}
+	}
+	return $values;
 }
 
 /**
@@ -239,13 +234,12 @@ function elgg_get_sticky_values($form_name, $filter_result = true)
  * @link http://docs.elgg.org/Tutorials/UI/StickyForms
  * @since 1.8.0
  */
-function elgg_clear_sticky_value($form_name, $variable)
-{
-    $cookie_id = 'mindsStickyForm';
-    $sticky = isset($_COOKIE[$cookie_id]) ? json_decode($_COOKIE[$cookie_id], true) : [];
-    
-    unset($sticky[$form_name][$variable]);
-    setCookie($cookie_id, json_encode($sticky), time() - 3600, '/');
+function elgg_clear_sticky_value($form_name, $variable) {
+	$cookie_id = 'mindsStickyForm';
+	$sticky = isset($_COOKIE[$cookie_id]) ? json_decode($_COOKIE[$cookie_id], true) : array();
+	
+	unset($sticky[$form_name][$variable]);
+	setCookie($cookie_id, json_encode($sticky), time() - 3600, '/');
 }
 
 /**
@@ -264,49 +258,48 @@ function elgg_clear_sticky_value($form_name, $variable)
  * @return string JSON string is returned and then exit
  * @access private
  */
-function input_livesearch_page_handler($page)
-{
-    global $CONFIG;
+function input_livesearch_page_handler($page) {
+	global $CONFIG;
 
-    // only return results to logged in users.
-    if (!$user = elgg_get_logged_in_user_entity()) {
-        exit;
-    }
+	// only return results to logged in users.
+	if (!$user = elgg_get_logged_in_user_entity()) {
+		exit;
+	}
 
-    if (!$q = get_input('term', get_input('q'))) {
-        exit;
-    }
+	if (!$q = get_input('term', get_input('q'))) {
+		exit;
+	}
 
-    $q = sanitise_string($q);
+	$q = sanitise_string($q);
 
-    // replace mysql vars with escaped strings
-    $q = str_replace(['_', '%'], ['\_', '\%'], $q);
+	// replace mysql vars with escaped strings
+	$q = str_replace(array('_', '%'), array('\_', '\%'), $q);
 
-    $match_on = get_input('match_on', 'all');
+	$match_on = get_input('match_on', 'all');
 
-    if (!is_array($match_on)) {
-        $match_on = [$match_on];
-    }
+	if (!is_array($match_on)) {
+		$match_on = array($match_on);
+	}
 
-    // all = users and groups
-    if (in_array('all', $match_on, true)) {
-        $match_on = ['users', 'groups'];
-    }
+	// all = users and groups
+	if (in_array('all', $match_on)) {
+		$match_on = array('users', 'groups');
+	}
 
-    if (get_input('match_owner', false)) {
-        $owner_where = 'AND e.owner_guid = ' . $user->getGUID();
-    } else {
-        $owner_where = '';
-    }
+	if (get_input('match_owner', false)) {
+		$owner_where = 'AND e.owner_guid = ' . $user->getGUID();
+	} else {
+		$owner_where = '';
+	}
 
-    $limit = sanitise_int(get_input('limit', 10));
+	$limit = sanitise_int(get_input('limit', 10));
 
-    // grab a list of entities and send them in json.
-    $results = [];
-    foreach ($match_on as $match_type) {
-        switch ($match_type) {
-            case 'users':
-                $query = "SELECT * FROM {$CONFIG->dbprefix}users_entity as ue, {$CONFIG->dbprefix}entities as e
+	// grab a list of entities and send them in json.
+	$results = array();
+	foreach ($match_on as $match_type) {
+		switch ($match_type) {
+			case 'users':
+				$query = "SELECT * FROM {$CONFIG->dbprefix}users_entity as ue, {$CONFIG->dbprefix}entities as e
 					WHERE e.guid = ue.guid
 						AND e.enabled = 'yes'
 						AND ue.banned = 'no'
@@ -314,93 +307,93 @@ function input_livesearch_page_handler($page)
 					LIMIT $limit
 				";
 
-                if ($entities = get_data($query)) {
-                    foreach ($entities as $entity) {
-                        // @todo use elgg_get_entities (don't query in a loop!)
-                        $entity = get_entity($entity->guid);
-                        /* @var ElggUser $entity */
-                        if (!$entity) {
-                            continue;
-                        }
+				if ($entities = get_data($query)) {
+					foreach ($entities as $entity) {
+						// @todo use elgg_get_entities (don't query in a loop!)
+						$entity = get_entity($entity->guid);
+						/* @var ElggUser $entity */
+						if (!$entity) {
+							continue;
+						}
 
-                        if (in_array('groups', $match_on, true)) {
-                            $value = $entity->guid;
-                        } else {
-                            $value = $entity->username;
-                        }
+						if (in_array('groups', $match_on)) {
+							$value = $entity->guid;
+						} else {
+							$value = $entity->username;
+						}
 
-                        $output = elgg_view_list_item($entity, [
-                            'use_hover' => false,
-                            'class' => 'elgg-autocomplete-item',
-                        ]);
+						$output = elgg_view_list_item($entity, array(
+							'use_hover' => false,
+							'class' => 'elgg-autocomplete-item',
+						));
 
-                        $icon = elgg_view_entity_icon($entity, 'tiny', [
-                            'use_hover' => false,
-                        ]);
+						$icon = elgg_view_entity_icon($entity, 'tiny', array(
+							'use_hover' => false,
+						));
 
-                        $result = [
-                            'type' => 'user',
-                            'name' => $entity->name,
-                            'desc' => $entity->username,
-                            'guid' => $entity->guid,
-                            'label' => $output,
-                            'value' => $value,
-                            'icon' => $icon,
-                            'url' => $entity->getURL(),
-                        ];
-                        $results[$entity->name . rand(1, 100)] = $result;
-                    }
-                }
-                break;
+						$result = array(
+							'type' => 'user',
+							'name' => $entity->name,
+							'desc' => $entity->username,
+							'guid' => $entity->guid,
+							'label' => $output,
+							'value' => $value,
+							'icon' => $icon,
+							'url' => $entity->getURL(),
+						);
+						$results[$entity->name . rand(1, 100)] = $result;
+					}
+				}
+				break;
 
-            case 'groups':
-                // don't return results if groups aren't enabled.
-                if (!elgg_is_active_plugin('groups')) {
-                    continue;
-                }
-                $query = "SELECT * FROM {$CONFIG->dbprefix}groups_entity as ge, {$CONFIG->dbprefix}entities as e
+			case 'groups':
+				// don't return results if groups aren't enabled.
+				if (!elgg_is_active_plugin('groups')) {
+					continue;
+				}
+				$query = "SELECT * FROM {$CONFIG->dbprefix}groups_entity as ge, {$CONFIG->dbprefix}entities as e
 					WHERE e.guid = ge.guid
 						AND e.enabled = 'yes'
 						$owner_where
 						AND (ge.name LIKE '$q%' OR ge.name LIKE '% $q%' OR ge.description LIKE '% $q%')
 					LIMIT $limit
 				";
-                if ($entities = get_data($query)) {
-                    foreach ($entities as $entity) {
-                        // @todo use elgg_get_entities (don't query in a loop!)
-                        $entity = get_entity($entity->guid);
-                        /* @var ElggGroup $entity */
-                        if (!$entity) {
-                            continue;
-                        }
+				if ($entities = get_data($query)) {
+					foreach ($entities as $entity) {
+						// @todo use elgg_get_entities (don't query in a loop!)
+						$entity = get_entity($entity->guid);
+						/* @var ElggGroup $entity */
+						if (!$entity) {
+							continue;
+						}
 
-                        $output = elgg_view_list_item($entity, [
-                            'use_hover' => false,
-                            'class' => 'elgg-autocomplete-item',
-                        ]);
+						$output = elgg_view_list_item($entity, array(
+							'use_hover' => false,
+							'class' => 'elgg-autocomplete-item',
+						));
 
-                        $icon = elgg_view_entity_icon($entity, 'tiny', [
-                            'use_hover' => false,
-                        ]);
+						$icon = elgg_view_entity_icon($entity, 'tiny', array(
+							'use_hover' => false,
+						));
 
-                        $result = [
-                            'type' => 'group',
-                            'name' => $entity->name,
-                            'desc' => strip_tags($entity->description),
-                            'guid' => $entity->guid,
-                            'label' => $output,
-                            'value' => $entity->guid,
-                            'icon' => $icon,
-                            'url' => $entity->getURL(),
-                        ];
+						$result = array(
+							'type' => 'group',
+							'name' => $entity->name,
+							'desc' => strip_tags($entity->description),
+							'guid' => $entity->guid,
+							'label' => $output,
+							'value' => $entity->guid,
+							'icon' => $icon,
+							'url' => $entity->getURL(),
+						);
 
-                        $results[$entity->name . rand(1, 100)] = $result;
-                    }
-                }
-                break;
+						$results[$entity->name . rand(1, 100)] = $result;
+					}
+				}
+				break;
 
-            case 'friends':
-                $query = "SELECT * FROM
+			case 'friends':
+				$query = "SELECT * FROM
 						{$CONFIG->dbprefix}users_entity as ue,
 						{$CONFIG->dbprefix}entity_relationships as er,
 						{$CONFIG->dbprefix}entities as e
@@ -414,49 +407,49 @@ function input_livesearch_page_handler($page)
 					LIMIT $limit
 				";
 
-                if ($entities = get_data($query)) {
-                    foreach ($entities as $entity) {
-                        // @todo use elgg_get_entities (don't query in a loop!)
-                        $entity = get_entity($entity->guid);
-                        /* @var ElggUser $entity */
-                        if (!$entity) {
-                            continue;
-                        }
+				if ($entities = get_data($query)) {
+					foreach ($entities as $entity) {
+						// @todo use elgg_get_entities (don't query in a loop!)
+						$entity = get_entity($entity->guid);
+						/* @var ElggUser $entity */
+						if (!$entity) {
+							continue;
+						}
 
-                        $output = elgg_view_list_item($entity, [
-                            'use_hover' => false,
-                            'class' => 'elgg-autocomplete-item',
-                        ]);
+						$output = elgg_view_list_item($entity, array(
+							'use_hover' => false,
+							'class' => 'elgg-autocomplete-item',
+						));
 
-                        $icon = elgg_view_entity_icon($entity, 'tiny', [
-                            'use_hover' => false,
-                        ]);
+						$icon = elgg_view_entity_icon($entity, 'tiny', array(
+							'use_hover' => false,
+						));
 
-                        $result = [
-                            'type' => 'user',
-                            'name' => $entity->name,
-                            'desc' => $entity->username,
-                            'guid' => $entity->guid,
-                            'label' => $output,
-                            'value' => $entity->username,
-                            'icon' => $icon,
-                            'url' => $entity->getURL(),
-                        ];
-                        $results[$entity->name . rand(1, 100)] = $result;
-                    }
-                }
-                break;
+						$result = array(
+							'type' => 'user',
+							'name' => $entity->name,
+							'desc' => $entity->username,
+							'guid' => $entity->guid,
+							'label' => $output,
+							'value' => $entity->username,
+							'icon' => $icon,
+							'url' => $entity->getURL(),
+						);
+						$results[$entity->name . rand(1, 100)] = $result;
+					}
+				}
+				break;
 
-            default:
-                header("HTTP/1.0 400 Bad Request", true);
-                echo "livesearch: unknown match_on of $match_type";
-                exit;
-                break;
-        }
-    }
+			default:
+				header("HTTP/1.0 400 Bad Request", true);
+				echo "livesearch: unknown match_on of $match_type";
+				exit;
+				break;
+		}
+	}
 
-    ksort($results);
-    header("Content-Type: application/json");
-    echo json_encode(array_values($results));
+	ksort($results);
+	header("Content-Type: application/json");
+	echo json_encode(array_values($results));
     exit;
 }

@@ -5,14 +5,12 @@
  * @package    Elgg.Core
  * @subpackage XMLRPC
  */
-abstract class XMLRPCParameter
-{
-    protected $value;
+abstract class XMLRPCParameter {
+	protected $value;
 
-    /**
-     * Set initial values
-     */
-    public function __construct()
-    {
-    }
+	/**
+	 * Set initial values
+	 */
+	function __construct() { }
+
 }

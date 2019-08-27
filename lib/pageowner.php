@@ -15,24 +15,23 @@
  * @return int The current page owner guid (0 if none).
  * @since 1.8.0
  */
-function elgg_get_page_owner_guid($guid = 0)
-{
-    static $page_owner_guid;
+function elgg_get_page_owner_guid($guid = 0) {
+	static $page_owner_guid;
 
-    if ($guid) {
-        $page_owner_guid = $guid;
-    }
+	if ($guid) {
+		$page_owner_guid = $guid;
+	}
 
-    if (isset($page_owner_guid)) {
-        return $page_owner_guid;
-    }
+	if (isset($page_owner_guid)) {
+		return $page_owner_guid;
+	}
 
-    // return guid of page owner entity
-    $guid = elgg_trigger_plugin_hook('page_owner', 'system', null, 0);
+	// return guid of page owner entity
+	$guid = elgg_trigger_plugin_hook('page_owner', 'system', NULL, 0);
 
-    $page_owner_guid = $guid;
+	$page_owner_guid = $guid;
 
-    return $guid;
+	return $guid;
 }
 
 /**
@@ -44,20 +43,18 @@ function elgg_get_page_owner_guid($guid = 0)
  *
  * @since 1.8.0
  */
-function elgg_get_page_owner_entity()
-{
-    $guid = elgg_get_page_owner_guid();
-    if ($guid) {
-        $ia = elgg_set_ignore_access(true);
-        $owner = get_entity($guid);
-        elgg_set_ignore_access($ia);
+function elgg_get_page_owner_entity() {
+	$guid = elgg_get_page_owner_guid(); 
+	if ($guid) {
+		$ia = elgg_set_ignore_access(true);
+		$owner = get_entity($guid);
+		elgg_set_ignore_access($ia);
 
-        if ($owner instanceof ElggUser || $owner instanceof ElggGroup) {
-            return $owner;
-        }
-    }
+		if($owner instanceof ElggUser || $owner instanceof ElggGroup)
+			return $owner;
+	}
 
-    return false;
+	return false;
 }
 
 /**
@@ -67,9 +64,8 @@ function elgg_get_page_owner_entity()
  * @return void
  * @since 1.8.0
  */
-function elgg_set_page_owner_guid($guid)
-{
-    elgg_get_page_owner_guid($guid);
+function elgg_set_page_owner_guid($guid) {
+	elgg_get_page_owner_guid($guid);
 }
 
 /**
@@ -97,82 +93,82 @@ function elgg_set_page_owner_guid($guid)
  * @return int GUID
  * @access private
  */
-function default_page_owner_handler($hook, $entity_type, $returnvalue, $params)
-{
-    if ($returnvalue) {
-        return $returnvalue;
-    }
+function default_page_owner_handler($hook, $entity_type, $returnvalue, $params) {
 
-    $ia = elgg_set_ignore_access(true);
+	if ($returnvalue) {
+		return $returnvalue;
+	}
 
-    $username = get_input("username");
-    if ($username) {
-        // @todo using a username of group:<guid> is deprecated
-        if (substr_count($username, 'group:')) {
-            preg_match('/group\:([0-9]+)/i', $username, $matches);
-            $guid = $matches[1];
-            if ($entity = get_entity($guid, 'group')) {
-                elgg_set_ignore_access($ia);
-                return $entity->getGUID();
-            }
-        }
+	$ia = elgg_set_ignore_access(true);
 
-        if ($user = get_user_by_username($username)) {
-            elgg_set_ignore_access($ia);
-            return $user->getGUID();
-        }
-    }
-    
-    $owner = get_input("owner_guid");
-    if ($owner) {
-        if ($user = get_entity($owner, 'user')) {
-            elgg_set_ignore_access($ia);
-            return $user->getGUID();
-        }
-    }
+	$username = get_input("username");
+	if ($username) {
+		// @todo using a username of group:<guid> is deprecated
+		if (substr_count($username, 'group:')) {
+			preg_match('/group\:([0-9]+)/i', $username, $matches);
+			$guid = $matches[1];
+			if ($entity = get_entity($guid,'group')) {
+				elgg_set_ignore_access($ia);
+				return $entity->getGUID();
+			}
+		}
 
-    // ignore root and query
-    $uri = current_page_url();
-    $path = str_replace(elgg_get_site_url(), '', $uri);
-    $path = trim($path, "/");
-    if (strpos($path, "?")) {
-        $path = substr($path, 0, strpos($path, "?"));
-    }
+		if ($user = get_user_by_username($username)) {
+			elgg_set_ignore_access($ia);
+			return $user->getGUID();
+		}
+	}
+	
+	$owner = get_input("owner_guid");
+	if ($owner) {
+		if ($user = get_entity($owner, 'user')) {
+			elgg_set_ignore_access($ia);
+			return $user->getGUID();
+		}
+	}
 
-    // @todo feels hacky
-    if (get_input('page', false)) {
-        $segments = explode('/', $path);
-        if (isset($segments[1]) && isset($segments[2])) {
-            switch ($segments[1]) {
-                case 'owner':
-                case 'friends':
-                    $user = get_user_by_username($segments[2]);
-                    if ($user) {
-                        elgg_set_ignore_access($ia);
-                        return $user->getGUID();
-                    }
-                    break;
-                case 'view':
-                case 'edit':
-                    $entity = get_entity($segments[2], 'user');
-                    if ($entity) {
-                        elgg_set_ignore_access($ia);
-                        return $entity->getContainerGUID();
-                    }
-                    break;
-                case 'add':
-                case 'group':
-                    $entity = get_entity($segments[2], 'group');
-                    if ($entity) {
-                        elgg_set_ignore_access($ia);
-                        return $entity->getGUID();
-                    }
-                    break;
-            }
-        }
-    }
+	// ignore root and query
+	$uri = current_page_url();
+	$path = str_replace(elgg_get_site_url(), '', $uri);
+	$path = trim($path, "/");
+	if (strpos($path, "?")) {
+		$path = substr($path, 0, strpos($path, "?"));
+	}
 
-    elgg_set_ignore_access($ia);
+	// @todo feels hacky
+	if (get_input('page', FALSE)) {
+		$segments = explode('/', $path);
+		if (isset($segments[1]) && isset($segments[2])) {
+			switch ($segments[1]) {
+				case 'owner':
+				case 'friends':
+					$user = get_user_by_username($segments[2]);
+					if ($user) {
+						elgg_set_ignore_access($ia);
+						return $user->getGUID();
+					}
+					break;
+				case 'view':
+				case 'edit':
+					$entity = get_entity($segments[2], 'user');
+					if ($entity) {
+						elgg_set_ignore_access($ia);
+						return $entity->getContainerGUID();
+					}
+					break;
+				case 'add':
+				case 'group':
+					$entity = get_entity($segments[2], 'group');
+					if ($entity) {
+						elgg_set_ignore_access($ia);
+						return $entity->getGUID();
+					}
+					break;
+			}
+		}
+	}
+
+	elgg_set_ignore_access($ia);
 }
 
 /**
@@ -183,7 +179,7 @@ function default_page_owner_handler($hook, $entity_type, $returnvalue, $params)
  * output could be different for those two contexts ('blog' vs 'widget').
  *
  * Pages that pass through the page handling system set the context to the
- * first string after the root url. Example: http://example.org/elgg/bookmarks/
+ * first string after the root url. Example: http://example.org/elgg/bookmarks/ 
  * results in the initial context being set to 'bookmarks'.
  *
  * The context is a stack so that for a widget on a profile, the context stack
@@ -198,22 +194,21 @@ function default_page_owner_handler($hook, $entity_type, $returnvalue, $params)
  * @return bool
  * @since 1.8.0
  */
-function elgg_set_context($context)
-{
-    global $CONFIG;
+function elgg_set_context($context) {
+	global $CONFIG;
 
-    $context = trim($context);
+	$context = trim($context);
 
-    if (empty($context)) {
-        return false;
-    }
+	if (empty($context)) {
+		return false;
+	}
 
-    $context = strtolower($context);
+	$context = strtolower($context);
 
-    array_pop($CONFIG->context);
-    array_push($CONFIG->context, $context);
+	array_pop($CONFIG->context);
+	array_push($CONFIG->context, $context);
 
-    return true;
+	return true;
 }
 
 /**
@@ -224,15 +219,14 @@ function elgg_set_context($context)
  * @return string|NULL
  * @since 1.8.0
  */
-function elgg_get_context()
-{
-    global $CONFIG;
+function elgg_get_context() {
+	global $CONFIG;
 
-    if (!$CONFIG->context) {
-        return null;
-    }
+	if (!$CONFIG->context) {
+		return null;
+	}
 
-    return $CONFIG->context[count($CONFIG->context) - 1];
+	return $CONFIG->context[count($CONFIG->context) - 1];
 }
 
 /**
@@ -242,12 +236,11 @@ function elgg_get_context()
  * @return void
  * @since 1.8.0
  */
-function elgg_push_context($context)
-{
-    global $CONFIG;
+function elgg_push_context($context) {
+	global $CONFIG;
 
-    $CONFIG->context = isset($CONFIG->context) && is_array($CONFIG->context) ? $CONFIG->context : [];
-    array_push($CONFIG->context, $context);
+	$CONFIG->context = isset($CONFIG->context) && is_array($CONFIG->context) ? $CONFIG->context : array(); 
+	array_push($CONFIG->context, $context);
 }
 
 /**
@@ -256,11 +249,10 @@ function elgg_push_context($context)
  * @return string|NULL
  * @since 1.8.0
  */
-function elgg_pop_context()
-{
-    global $CONFIG;
+function elgg_pop_context() {
+	global $CONFIG;
 
-    return array_pop($CONFIG->context);
+	return array_pop($CONFIG->context);
 }
 
 /**
@@ -275,11 +267,10 @@ function elgg_pop_context()
  * @return bool
  * @since 1.8.0
  */
-function elgg_in_context($context)
-{
-    global $CONFIG;
+function elgg_in_context($context) {
+	global $CONFIG;
 
-    return in_array($context, $CONFIG->context, true);
+	return in_array($context, $CONFIG->context);
 }
 
 /**
@@ -290,17 +281,17 @@ function elgg_in_context($context)
  * @return void
  * @access private
  */
-function page_owner_boot()
-{
-    elgg_register_plugin_hook_handler('page_owner', 'system', 'default_page_owner_handler');
+function page_owner_boot() {
+	
+	elgg_register_plugin_hook_handler('page_owner', 'system', 'default_page_owner_handler');
 
-    // Bootstrap the context stack by setting its first entry to the handler.
-    // This is the first segment of the URL and the handler is set by the rewrite rules.
-    // @todo this does not work for actions
-    $handler = get_input('handler', false);
-    if ($handler) {
-        elgg_set_context($handler);
-    }
+	// Bootstrap the context stack by setting its first entry to the handler.
+	// This is the first segment of the URL and the handler is set by the rewrite rules.
+	// @todo this does not work for actions
+	$handler = get_input('handler', FALSE);
+	if ($handler) {
+		elgg_set_context($handler);
+	}
 }
 
 elgg_register_event_handler('boot', 'system', 'page_owner_boot');

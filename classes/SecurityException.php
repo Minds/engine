@@ -7,6 +7,4 @@
  * @package    Elgg.Core
  * @subpackage Exception
  */
-class SecurityException extends Exception
-{
-}
+class SecurityException extends Exception {}

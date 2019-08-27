@@ -21,87 +21,82 @@
  * @subpackage Plugins
  * @since      1.8
  */
-abstract class ElggPluginManifestParser
-{
-    /**
-     * The XmlElement object
-     *
-     * @var XmlElement
-     */
-    protected $manifestObject;
+abstract class ElggPluginManifestParser {
+	/**
+	 * The XmlElement object
+	 *
+	 * @var XmlElement
+	 */
+	protected $manifestObject;
 
-    /**
-     * The manifest array
-     *
-     * @var array
-     */
-    protected $manifest;
+	/**
+	 * The manifest array
+	 *
+	 * @var array
+	 */
+	protected $manifest;
 
-    /**
-     * All valid manifest attributes with default values.
-     *
-     * @var array
-     */
-    protected $validAttributes;
+	/**
+	 * All valid manifest attributes with default values.
+	 *
+	 * @var array
+	 */
+	protected $validAttributes;
 
-    /**
-     * The object we're doing parsing for.
-     *
-     * @var object
-     */
-    protected $caller;
+	/**
+	 * The object we're doing parsing for.
+	 *
+	 * @var object
+	 */
+	protected $caller;
 
-    /**
-     * Loads the manifest XML to be parsed.
-     *
-     * @param ElggXmlElement $xml    The Manifest XML object to be parsed
-     * @param object         $caller The object calling this parser.
-     */
-    public function __construct(ElggXMLElement $xml, $caller)
-    {
-        $this->manifestObject = $xml;
-        $this->caller = $caller;
-    }
+	/**
+	 * Loads the manifest XML to be parsed.
+	 *
+	 * @param ElggXmlElement $xml    The Manifest XML object to be parsed
+	 * @param object         $caller The object calling this parser.
+	 */
+	public function __construct(ElggXMLElement $xml, $caller) {
+		$this->manifestObject = $xml;
+		$this->caller = $caller;
+	}
 
-    /**
-     * Returns the manifest XML object
-     *
-     * @return XmlElement
-     */
-    public function getManifestObject()
-    {
-        return $this->manifestObject;
-    }
+	/**
+	 * Returns the manifest XML object
+	 *
+	 * @return XmlElement
+	 */
+	public function getManifestObject() {
+		return $this->manifestObject;
+	}
 
-    /**
-     * Return the parsed manifest array
-     *
-     * @return array
-     */
-    public function getManifest()
-    {
-        return $this->manifest;
-    }
+	/**
+	 * Return the parsed manifest array
+	 *
+	 * @return array
+	 */
+	public function getManifest() {
+		return $this->manifest;
+	}
 
-    /**
-     * Return an attribute in the manifest.
-     *
-     * @param string $name Attribute name
-     * @return mixed
-     */
-    public function getAttribute($name)
-    {
-        if (in_array($name, $this->validAttributes, true) && isset($this->manifest[$name])) {
-            return $this->manifest[$name];
-        }
+	/**
+	 * Return an attribute in the manifest.
+	 *
+	 * @param string $name Attribute name
+	 * @return mixed
+	 */
+	public function getAttribute($name) {
+		if (in_array($name, $this->validAttributes) && isset($this->manifest[$name])) {
+			return $this->manifest[$name];
+		}
 
-        return false;
-    }
+		return false;
+	}
 
-    /**
-     * Parse the XML object into an array
-     *
-     * @return bool
-     */
-    abstract public function parse();
+	/**
+	 * Parse the XML object into an array
+	 *
+	 * @return bool
+	 */
+	abstract public function parse();
 }

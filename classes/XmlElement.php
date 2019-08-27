@@ -5,17 +5,16 @@
  * @package    Elgg.Core
  * @subpackage XML
  */
-class XmlElement
-{
-    /** The name of the element */
-    public $name;
+class XmlElement {
+	/** The name of the element */
+	public $name;
 
-    /** The attributes */
-    public $attributes;
+	/** The attributes */
+	public $attributes;
 
-    /** CData */
-    public $content;
+	/** CData */
+	public $content;
 
-    /** Child elements */
-    public $children;
+	/** Child elements */
+	public $children;
 };

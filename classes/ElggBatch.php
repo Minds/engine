@@ -55,345 +55,339 @@
  * @link       http://docs.elgg.org/DataModel/ElggBatch
  * @since      1.8
  */
-class ElggBatch implements Iterator
-{
-    /**
-     * The objects to interator over.
-     *
-     * @var array
-     */
-    private $results = [];
+class ElggBatch
+	implements Iterator {
 
-    /**
-     * The function used to get results.
-     *
-     * @var mixed A string, array, or closure, or lamda function
-     */
-    private $getter = null;
+	/**
+	 * The objects to interator over.
+	 *
+	 * @var array
+	 */
+	private $results = array();
 
-    /**
-     * The number of results to grab at a time.
-     *
-     * @var int
-     */
-    private $chunkSize = 25;
+	/**
+	 * The function used to get results.
+	 *
+	 * @var mixed A string, array, or closure, or lamda function
+	 */
+	private $getter = null;
 
-    /**
-     * A callback function to pass results through.
-     *
-     * @var mixed A string, array, or closure, or lamda function
-     */
-    private $callback = null;
+	/**
+	 * The number of results to grab at a time.
+	 *
+	 * @var int
+	 */
+	private $chunkSize = 25;
 
-    /**
-     * Start after this many results.
-     *
-     * @var int
-     */
-    private $offset = 0;
+	/**
+	 * A callback function to pass results through.
+	 *
+	 * @var mixed A string, array, or closure, or lamda function
+	 */
+	private $callback = null;
 
-    /**
-     * Stop after this many results.
-     *
-     * @var int
-     */
-    private $limit = 0;
+	/**
+	 * Start after this many results.
+	 *
+	 * @var int
+	 */
+	private $offset = 0;
 
-    /**
-     * Number of processed results.
-     *
-     * @var int
-     */
-    private $retrievedResults = 0;
+	/**
+	 * Stop after this many results.
+	 *
+	 * @var int
+	 */
+	private $limit = 0;
 
-    /**
-     * The index of the current result within the current chunk
-     *
-     * @var int
-     */
-    private $resultIndex = 0;
+	/**
+	 * Number of processed results.
+	 *
+	 * @var int
+	 */
+	private $retrievedResults = 0;
 
-    /**
-     * The index of the current chunk
-     *
-     * @var int
-     */
-    private $chunkIndex = 0;
+	/**
+	 * The index of the current result within the current chunk
+	 *
+	 * @var int
+	 */
+	private $resultIndex = 0;
 
-    /**
-     * The number of results iterated through
-     *
-     * @var int
-     */
-    private $processedResults = 0;
+	/**
+	 * The index of the current chunk
+	 *
+	 * @var int
+	 */
+	private $chunkIndex = 0;
 
-    /**
-     * Is the getter a valid callback
-     *
-     * @var bool
-     */
-    private $validGetter = null;
+	/**
+	 * The number of results iterated through
+	 *
+	 * @var int
+	 */
+	private $processedResults = 0;
 
-    /**
-     * The result of running all entities through the callback function.
-     *
-     * @var mixed
-     */
-    public $callbackResult = null;
+	/**
+	 * Is the getter a valid callback
+	 *
+	 * @var bool
+	 */
+	private $validGetter = null;
 
-    /**
-     * If false, offset will not be incremented. This is used for callbacks/loops that delete.
-     *
-     * @var bool
-     */
-    private $incrementOffset = true;
+	/**
+	 * The result of running all entities through the callback function.
+	 *
+	 * @var mixed
+	 */
+	public $callbackResult = null;
 
-    /**
-     * Batches operations on any elgg_get_*() or compatible function that supports
-     * an options array.
-     *
-     * Instead of returning all objects in memory, it goes through $chunk_size
-     * objects, then requests more from the server.  This avoids OOM errors.
-     *
-     * @param string $getter     The function used to get objects.  Usually
-     *                           an elgg_get_*() function, but can be any valid PHP callback.
-     * @param array  $options    The options array to pass to the getter function. If limit is
-     *                           not set, 10 is used as the default. In most cases that is not
-     *                           what you want.
-     * @param mixed  $callback   An optional callback function that all results will be passed
-     *                           to upon load.  The callback needs to accept $result, $getter,
-     *                           $options.
-     * @param int    $chunk_size The number of entities to pull in before requesting more.
-     *                           You have to balance this between running out of memory in PHP
-     *                           and hitting the db server too often.
-     * @param bool   $inc_offset Increment the offset on each fetch. This must be false for
-     *                           callbacks that delete rows. You can set this after the
-     *                           object is created with {@see ElggBatch::setIncrementOffset()}.
-     */
-    public function __construct($getter, $options, $callback = null, $chunk_size = 25,
-            $inc_offset = true)
-    {
-        $this->getter = $getter;
-        $this->options = $options;
-        $this->callback = $callback;
-        $this->chunkSize = $chunk_size;
-        $this->setIncrementOffset($inc_offset);
+	/**
+	 * If false, offset will not be incremented. This is used for callbacks/loops that delete.
+	 *
+	 * @var bool
+	 */
+	private $incrementOffset = true;
 
-        if ($this->chunkSize <= 0) {
-            $this->chunkSize = 25;
-        }
+	/**
+	 * Batches operations on any elgg_get_*() or compatible function that supports
+	 * an options array.
+	 *
+	 * Instead of returning all objects in memory, it goes through $chunk_size
+	 * objects, then requests more from the server.  This avoids OOM errors.
+	 *
+	 * @param string $getter     The function used to get objects.  Usually
+	 *                           an elgg_get_*() function, but can be any valid PHP callback.
+	 * @param array  $options    The options array to pass to the getter function. If limit is
+	 *                           not set, 10 is used as the default. In most cases that is not
+	 *                           what you want.
+	 * @param mixed  $callback   An optional callback function that all results will be passed
+	 *                           to upon load.  The callback needs to accept $result, $getter,
+	 *                           $options.
+	 * @param int    $chunk_size The number of entities to pull in before requesting more.
+	 *                           You have to balance this between running out of memory in PHP
+	 *                           and hitting the db server too often.
+	 * @param bool   $inc_offset Increment the offset on each fetch. This must be false for
+	 *                           callbacks that delete rows. You can set this after the
+	 *                           object is created with {@see ElggBatch::setIncrementOffset()}.
+	 */
+	public function __construct($getter, $options, $callback = null, $chunk_size = 25,
+			$inc_offset = true) {
+		
+		$this->getter = $getter;
+		$this->options = $options;
+		$this->callback = $callback;
+		$this->chunkSize = $chunk_size;
+		$this->setIncrementOffset($inc_offset);
 
-        // store these so we can compare later
-        $this->offset = elgg_extract('offset', $options, 0);
-        $this->limit = elgg_extract('limit', $options, 10);
+		if ($this->chunkSize <= 0) {
+			$this->chunkSize = 25;
+		}
 
-        // if passed a callback, create a new ElggBatch with the same options
-        // and pass each to the callback.
-        if ($callback && is_callable($callback)) {
-            $batch = new ElggBatch($getter, $options, null, $chunk_size, $inc_offset);
+		// store these so we can compare later
+		$this->offset = elgg_extract('offset', $options, 0);
+		$this->limit = elgg_extract('limit', $options, 10);
 
-            $all_results = null;
+		// if passed a callback, create a new ElggBatch with the same options
+		// and pass each to the callback.
+		if ($callback && is_callable($callback)) {
+			$batch = new ElggBatch($getter, $options, null, $chunk_size, $inc_offset);
 
-            foreach ($batch as $result) {
-                if (is_string($callback)) {
-                    $result = $callback($result, $getter, $options);
-                } else {
-                    $result = call_user_func_array($callback, [$result, $getter, $options]);
-                }
+			$all_results = null;
 
-                if (!isset($all_results)) {
-                    if ($result === true || $result === false || $result === null) {
-                        $all_results = $result;
-                    } else {
-                        $all_results = [];
-                    }
-                }
+			foreach ($batch as $result) {
+				if (is_string($callback)) {
+					$result = $callback($result, $getter, $options);
+				} else {
+					$result = call_user_func_array($callback, array($result, $getter, $options));
+				}
 
-                if (($result === true || $result === false || $result === null) && !is_array($all_results)) {
-                    $all_results = $result && $all_results;
-                } else {
-                    $all_results[] = $result;
-                }
-            }
+				if (!isset($all_results)) {
+					if ($result === true || $result === false || $result === null) {
+						$all_results = $result;
+					} else {
+						$all_results = array();
+					}
+				}
 
-            $this->callbackResult = $all_results;
-        }
-    }
+				if (($result === true || $result === false || $result === null) && !is_array($all_results)) {
+					$all_results = $result && $all_results;
+				} else {
+					$all_results[] = $result;
+				}
+			}
 
-    /**
-     * Fetches the next chunk of results
-     *
-     * @return bool
-     */
-    private function getNextResultsChunk()
-    {
-        // reset memory caches after first chunk load
-        if ($this->chunkIndex > 0) {
-            global $DB_QUERY_CACHE, $ENTITY_CACHE;
-            $DB_QUERY_CACHE = $ENTITY_CACHE = [];
-        }
+			$this->callbackResult = $all_results;
+		}
+	}
 
-        // always reset results.
-        $this->results = [];
+	/**
+	 * Fetches the next chunk of results
+	 *
+	 * @return bool
+	 */
+	private function getNextResultsChunk() {
+		// reset memory caches after first chunk load
+		if ($this->chunkIndex > 0) {
+			global $DB_QUERY_CACHE, $ENTITY_CACHE;
+			$DB_QUERY_CACHE = $ENTITY_CACHE = array();
+		}
 
-        if (!isset($this->validGetter)) {
-            $this->validGetter = is_callable($this->getter);
-        }
+		// always reset results.
+		$this->results = array();
 
-        if (!$this->validGetter) {
-            return false;
-        }
+		if (!isset($this->validGetter)) {
+			$this->validGetter = is_callable($this->getter);
+		}
 
-        $limit = $this->chunkSize;
+		if (!$this->validGetter) {
+			return false;
+		}
 
-        // if someone passed limit = 0 they want everything.
-        if ($this->limit != 0) {
-            if ($this->retrievedResults >= $this->limit) {
-                return false;
-            }
+		$limit = $this->chunkSize;
 
-            // if original limit < chunk size, set limit to original limit
-            // else if the number of results we'll fetch if greater than the original limit
-            if ($this->limit < $this->chunkSize) {
-                $limit = $this->limit;
-            } elseif ($this->retrievedResults + $this->chunkSize > $this->limit) {
-                // set the limit to the number of results remaining in the original limit
-                $limit = $this->limit - $this->retrievedResults;
-            }
-        }
+		// if someone passed limit = 0 they want everything.
+		if ($this->limit != 0) {
+			if ($this->retrievedResults >= $this->limit) {
+				return false;
+			}
 
-        if ($this->incrementOffset) {
-            $offset = $this->offset + $this->retrievedResults;
-        } else {
-            $offset = $this->offset;
-        }
+			// if original limit < chunk size, set limit to original limit
+			// else if the number of results we'll fetch if greater than the original limit
+			if ($this->limit < $this->chunkSize) {
+				$limit = $this->limit;
+			} elseif ($this->retrievedResults + $this->chunkSize > $this->limit) {
+				// set the limit to the number of results remaining in the original limit
+				$limit = $this->limit - $this->retrievedResults;
+			}
+		}
 
-        $current_options = [
-            'limit' => $limit,
-            'offset' => $offset
-        ];
+		if ($this->incrementOffset) {
+			$offset = $this->offset + $this->retrievedResults;
+		} else {
+			$offset = $this->offset;
+		}
 
-        $options = array_merge($this->options, $current_options);
-        $getter = $this->getter;
+		$current_options = array(
+			'limit' => $limit,
+			'offset' => $offset
+		);
 
-        if (is_string($getter)) {
-            $this->results = $getter($options);
-        } else {
-            $this->results = call_user_func_array($getter, [$options]);
-        }
+		$options = array_merge($this->options, $current_options);
+		$getter = $this->getter;
 
-        if ($this->results) {
-            $this->chunkIndex++;
-            $this->resultIndex = 0;
-            $this->retrievedResults += count($this->results);
-            return true;
-        } else {
-            return false;
-        }
-    }
+		if (is_string($getter)) {
+			$this->results = $getter($options);
+		} else {
+			$this->results = call_user_func_array($getter, array($options));
+		}
 
-    /**
-     * Increment the offset from the original options array? Setting to
-     * false is required for callbacks that delete rows.
-     *
-     * @param bool $increment Set to false when deleting data
-     * @return void
-     */
-    public function setIncrementOffset($increment = true)
-    {
-        $this->incrementOffset = (bool) $increment;
-    }
+		if ($this->results) {
+			$this->chunkIndex++;
+			$this->resultIndex = 0;
+			$this->retrievedResults += count($this->results);
+			return true;
+		} else {
+			return false;
+		}
+	}
 
-    /**
-     * Implements Iterator
-     */
+	/**
+	 * Increment the offset from the original options array? Setting to
+	 * false is required for callbacks that delete rows.
+	 *
+	 * @param bool $increment Set to false when deleting data
+	 * @return void
+	 */
+	public function setIncrementOffset($increment = true) {
+		$this->incrementOffset = (bool) $increment;
+	}
 
-    /**
-     * PHP Iterator Interface
-     *
-     * @see Iterator::rewind()
-     * @return void
-     */
-    public function rewind()
-    {
-        $this->resultIndex = 0;
-        $this->retrievedResults = 0;
-        $this->processedResults = 0;
+	/**
+	 * Implements Iterator
+	 */
 
-        // only grab results if we haven't yet or we're crossing chunks
-        if ($this->chunkIndex == 0 || $this->limit > $this->chunkSize) {
-            $this->chunkIndex = 0;
-            $this->getNextResultsChunk();
-        }
-    }
+	/**
+	 * PHP Iterator Interface
+	 *
+	 * @see Iterator::rewind()
+	 * @return void
+	 */
+	public function rewind() {
+		$this->resultIndex = 0;
+		$this->retrievedResults = 0;
+		$this->processedResults = 0;
 
-    /**
-     * PHP Iterator Interface
-     *
-     * @see Iterator::current()
-     * @return mixed
-     */
-    public function current()
-    {
-        return current($this->results);
-    }
+		// only grab results if we haven't yet or we're crossing chunks
+		if ($this->chunkIndex == 0 || $this->limit > $this->chunkSize) {
+			$this->chunkIndex = 0;
+			$this->getNextResultsChunk();
+		}
+	}
 
-    /**
-     * PHP Iterator Interface
-     *
-     * @see Iterator::key()
-     * @return int
-     */
-    public function key()
-    {
-        return $this->processedResults;
-    }
+	/**
+	 * PHP Iterator Interface
+	 *
+	 * @see Iterator::current()
+	 * @return mixed
+	 */
+	public function current() {
+		return current($this->results);
+	}
 
-    /**
-     * PHP Iterator Interface
-     *
-     * @see Iterator::next()
-     * @return mixed
-     */
-    public function next()
-    {
-        // if we'll be at the end.
-        if (($this->processedResults + 1) >= $this->limit && $this->limit > 0) {
-            $this->results = [];
-            return false;
-        }
+	/**
+	 * PHP Iterator Interface
+	 *
+	 * @see Iterator::key()
+	 * @return int
+	 */
+	public function key() {
+		return $this->processedResults;
+	}
 
-        // if we'll need new results.
-        if (($this->resultIndex + 1) >= $this->chunkSize) {
-            if (!$this->getNextResultsChunk()) {
-                $this->results = [];
-                return false;
-            }
+	/**
+	 * PHP Iterator Interface
+	 *
+	 * @see Iterator::next()
+	 * @return mixed
+	 */
+	public function next() {
+		// if we'll be at the end.
+		if (($this->processedResults + 1) >= $this->limit && $this->limit > 0) {
+			$this->results = array();
+			return false;
+		}
 
-            $result = current($this->results);
-        } else {
-            // the function above resets the indexes, so only inc if not
-            // getting new set
-            $this->resultIndex++;
-            $result = next($this->results);
-        }
+		// if we'll need new results.
+		if (($this->resultIndex + 1) >= $this->chunkSize) {
+			if (!$this->getNextResultsChunk()) {
+				$this->results = array();
+				return false;
+			}
 
-        $this->processedResults++;
-        return $result;
-    }
+			$result = current($this->results);
+		} else {
+			// the function above resets the indexes, so only inc if not
+			// getting new set
+			$this->resultIndex++;
+			$result = next($this->results);
+		}
 
-    /**
-     * PHP Iterator Interface
-     *
-     * @see Iterator::valid()
-     * @return bool
-     */
-    public function valid()
-    {
-        if (!is_array($this->results)) {
-            return false;
-        }
-        $key = key($this->results);
-        return ($key !== null && $key !== false);
-    }
+		$this->processedResults++;
+		return $result;
+	}
+
+	/**
+	 * PHP Iterator Interface
+	 *
+	 * @see Iterator::valid()
+	 * @return bool
+	 */
+	public function valid() {
+		if (!is_array($this->results)) {
+			return false;
+		}
+		$key = key($this->results);
+		return ($key !== NULL && $key !== FALSE);
+	}
 }

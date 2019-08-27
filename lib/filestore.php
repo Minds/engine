@@ -16,22 +16,21 @@
  *
  * @return int The size of the directory.
  */
-function get_dir_size($dir, $totalsize = 0)
-{
-    $handle = @opendir($dir);
-    while ($file = @readdir($handle)) {
-        if (eregi("^\.{1,2}$", $file)) {
-            continue;
-        }
-        if (is_dir($dir . $file)) {
-            $totalsize = get_dir_size($dir . $file . "/", $totalsize);
-        } else {
-            $totalsize += filesize($dir . $file);
-        }
-    }
-    @closedir($handle);
+function get_dir_size($dir, $totalsize = 0) {
+	$handle = @opendir($dir);
+	while ($file = @readdir($handle)) {
+		if (eregi("^\.{1,2}$", $file)) {
+			continue;
+		}
+		if (is_dir($dir . $file)) {
+			$totalsize = get_dir_size($dir . $file . "/", $totalsize);
+		} else {
+			$totalsize += filesize($dir . $file);
+		}
+	}
+	@closedir($handle);
 
-    return($totalsize);
+	return($totalsize);
 }
 
 /**
@@ -42,13 +41,12 @@ function get_dir_size($dir, $totalsize = 0)
  *
  * @return mixed|false The contents of the file, or false on failure.
  */
-function get_uploaded_file($input_name)
-{
-    // If the file exists ...
-    if (isset($_FILES[$input_name]) && $_FILES[$input_name]['error'] == 0) {
-        return file_get_contents($_FILES[$input_name]['tmp_name']);
-    }
-    return false;
+function get_uploaded_file($input_name) {
+	// If the file exists ...
+	if (isset($_FILES[$input_name]) && $_FILES[$input_name]['error'] == 0) {
+		return file_get_contents($_FILES[$input_name]['tmp_name']);
+	}
+	return false;
 }
 
 /**
@@ -67,16 +65,15 @@ function get_uploaded_file($input_name)
  * @throws Exception
  */
 function get_resized_image_from_uploaded_file($input_name, $maxwidth, $maxheight,
-$square = false, $upscale = false, $output = "jpeg")
-{
+$square = false, $upscale = false, $output = "jpeg") {
 
-    // If our file exists ...
-    if (isset($_FILES[$input_name]) && $_FILES[$input_name]['error'] == 0) {
-        return get_resized_image_from_existing_file($_FILES[$input_name]['tmp_name'], $maxwidth,
-            $maxheight, $square, 0, 0, 0, 0, $upscale, $output);
-    }
+	// If our file exists ...
+	if (isset($_FILES[$input_name]) && $_FILES[$input_name]['error'] == 0) {
+		return get_resized_image_from_existing_file($_FILES[$input_name]['tmp_name'], $maxwidth,
+			$maxheight, $square, 0, 0, 0, 0, $upscale, $output);
+	}
 
-    return false;
+	return false;
 }
 
 /**
@@ -101,25 +98,24 @@ $square = false, $upscale = false, $output = "jpeg")
  *
  * @return false|mixed The contents of the resized image, or false on failure
  */
-function get_resized_image_from_existing_file($input_name, $maxwidth, $maxheight, $square = false,
-$x1 = 0, $y1 = 0, $x2 = 0, $y2 = 0, $upscale = false, $output = 'jpeg', $quality=90)
-{
+function get_resized_image_from_existing_file($input_name, $maxwidth, $maxheight, $square = FALSE,
+$x1 = 0, $y1 = 0, $x2 = 0, $y2 = 0, $upscale = FALSE, $output = 'jpeg', $quality=90) {
 
-    // Get the size information from the image
-    $imgsizearray = getimagesize($input_name);
-    if ($imgsizearray == false) {
-        return false;
-    }
+	// Get the size information from the image
+	$imgsizearray = getimagesize($input_name);
+	if ($imgsizearray == FALSE) {
+		return FALSE;
+	}
 
-    $width = $imgsizearray[0];
-    $height = $imgsizearray[1];
+	$width = $imgsizearray[0];
+	$height = $imgsizearray[1];
 
-    $accepted_formats = [
-        'image/jpeg' => 'jpeg',
-        'image/pjpeg' => 'jpeg',
-        'image/png' => 'png',
-        'image/x-png' => 'png',
-        'image/gif' => 'gif',
+	$accepted_formats = [
+		'image/jpeg' => 'jpeg',
+		'image/pjpeg' => 'jpeg',
+		'image/png' => 'png',
+		'image/x-png' => 'png',
+		'image/gif' => 'gif',
     ];
 
     //unsupported format
@@ -127,11 +123,11 @@ $x1 = 0, $y1 = 0, $x2 = 0, $y2 = 0, $upscale = false, $output = 'jpeg', $quality
         throw new \Exception("{$imgsizearray['mime']} is not a supported format");
     }
 
-    // make sure the function is available
-    $load_function = "imagecreatefrom" . $accepted_formats[$imgsizearray['mime']];
-    if (!is_callable($load_function)) {
-        return false;
-    }
+	// make sure the function is available
+	$load_function = "imagecreatefrom" . $accepted_formats[$imgsizearray['mime']];
+	if (!is_callable($load_function)) {
+		return FALSE;
+	}
 
     if (exif_imagetype($input_name)) {
         $exif = @exif_read_data($input_name);
@@ -156,84 +152,84 @@ $x1 = 0, $y1 = 0, $x2 = 0, $y2 = 0, $upscale = false, $output = 'jpeg', $quality
         }
     }
 
-    // get the parameters for resizing the image
-    $options = [
-        'maxwidth' => $maxwidth,
-        'maxheight' => $maxheight,
-        'square' => $square,
-        'upscale' => $upscale,
-        'x1' => $x1,
-        'y1' => $y1,
-        'x2' => $x2,
-        'y2' => $y2,
-    ];
-    $params = get_image_resize_parameters($width, $height, $options);
-    if ($params == false) {
-        return false;
-    }
+	// get the parameters for resizing the image
+	$options = array(
+		'maxwidth' => $maxwidth,
+		'maxheight' => $maxheight,
+		'square' => $square,
+		'upscale' => $upscale,
+		'x1' => $x1,
+		'y1' => $y1,
+		'x2' => $x2,
+		'y2' => $y2,
+	);
+	$params = get_image_resize_parameters($width, $height, $options);
+	if ($params == FALSE) {
+		return FALSE;
+	}
 
-    // load original image
-    $original_image = $load_function($input_name);
-    if (!$original_image) {
-        return false;
-    }
+	// load original image
+	$original_image = $load_function($input_name);
+	if (!$original_image) {
+		return FALSE;
+	}
 
     
 
-    // allocate the new image
-    $new_image = imagecreatetruecolor($params['newwidth'], $params['newheight']);
-    if (!$new_image) {
-        return false;
-    }
+	// allocate the new image
+	$new_image = imagecreatetruecolor($params['newwidth'], $params['newheight']);
+	if (!$new_image) {
+		return FALSE;
+	}
 
-    // color transparencies white (default is black)
-    if ($output == 'jpeg') {
-        imagefilledrectangle(
-            $new_image, 0, 0, $params['newwidth'], $params['newheight'],
-            imagecolorallocate($new_image, 255, 255, 255)
-        );
-    } else {
-        imagealphablending($new_image, false);
-        imagesavealpha($new_image, true);
-        imagefilledrectangle(
-              $new_image, 0, 0, $params['newwidth'], $params['newheight'],
-                        imagecolorallocatealpha($new_image, 255, 255, 255, 127)
+	// color transparencies white (default is black)
+	if($output == 'jpeg'){
+		imagefilledrectangle(
+			$new_image, 0, 0, $params['newwidth'], $params['newheight'],
+			imagecolorallocate($new_image, 255, 255, 255)
+		);
+	} else {
+		imagealphablending($new_image, false);
+		imagesavealpha($new_image,true);
+		imagefilledrectangle(
+			  $new_image, 0, 0, $params['newwidth'], $params['newheight'],
+                        imagecolorallocatealpha($new_image, 255,255,255, 127)
                 );
-    }
+	}
 
-    $rtn_code = imagecopyresampled($new_image,
-                                    $original_image,
-                                    0,
-                                    0,
-                                    $params['xoffset'],
-                                    $params['yoffset'],
-                                    $params['newwidth'],
-                                    $params['newheight'],
-                                    $params['selectionwidth'],
-                                    $params['selectionheight']);
-    if (!$rtn_code) {
-        return false;
-    }
-    
-    // @todo Enable interlancing
-    //imageinterlace($new_image, true);
+	$rtn_code = imagecopyresampled(	$new_image,
+									$original_image,
+									0,
+									0,
+									$params['xoffset'],
+									$params['yoffset'],
+									$params['newwidth'],
+									$params['newheight'],
+									$params['selectionwidth'],
+									$params['selectionheight']);
+	if (!$rtn_code) {
+		return FALSE;
+	}
+	
+	// @todo Enable interlancing
+	//imageinterlace($new_image, true);
 
     //correct orientation
     $new_image = imagerotate($new_image, $angle, 0);
 
-    // grab a compressed jpeg version of the image
-    ob_start();
-    if ($output == 'png') {
-        imagepng($new_image);
-    } else {
-        imagejpeg($new_image, null, $quality);
-    }
-    $img = ob_get_clean();
+	// grab a compressed jpeg version of the image
+	ob_start();
+	if($output == 'png'){
+		imagepng($new_image);	
+	} else {
+		imagejpeg($new_image, NULL, $quality);
+	} 
+	$img = ob_get_clean();
 
-    imagedestroy($new_image);
-    imagedestroy($original_image);
-    
-    return $img;
+	imagedestroy($new_image);
+	imagedestroy($original_image);
+	
+	return $img;
 }
 
 /**
@@ -246,112 +242,112 @@ $x1 = 0, $y1 = 0, $x2 = 0, $y2 = 0, $upscale = false, $output = 'jpeg', $quality
  * @return array or FALSE
  * @since 1.7.2
  */
-function get_image_resize_parameters($width, $height, $options)
-{
-    $defaults = [
-        'maxwidth' => 100,
-        'maxheight' => 100,
+function get_image_resize_parameters($width, $height, $options) {
 
-        'square' => false,
-        'upscale' => false,
+	$defaults = array(
+		'maxwidth' => 100,
+		'maxheight' => 100,
 
-        'x1' => 0,
-        'y1' => 0,
-        'x2' => 0,
-        'y2' => 0,
-    ];
+		'square' => FALSE,
+		'upscale' => FALSE,
 
-    $options = array_merge($defaults, $options);
+		'x1' => 0,
+		'y1' => 0,
+		'x2' => 0,
+		'y2' => 0,
+	);
 
-    extract($options);
+	$options = array_merge($defaults, $options);
 
-    // crop image first?
-    $crop = true;
-    if ($x1 == 0 && $y1 == 0 && $x2 == 0 && $y2 == 0) {
-        $crop = false;
-    }
+	extract($options);
 
-    // how large a section of the image has been selected
-    if ($crop) {
-        $selection_width = $x2 - $x1;
-        $selection_height = $y2 - $y1;
-    } else {
-        // everything selected if no crop parameters
-        $selection_width = $width;
-        $selection_height = $height;
-    }
+	// crop image first?
+	$crop = TRUE;
+	if ($x1 == 0 && $y1 == 0 && $x2 == 0 && $y2 == 0) {
+		$crop = FALSE;
+	}
 
-    // determine cropping offsets
-    if ($square) {
-        // asking for a square image back
+	// how large a section of the image has been selected
+	if ($crop) {
+		$selection_width = $x2 - $x1;
+		$selection_height = $y2 - $y1;
+	} else {
+		// everything selected if no crop parameters
+		$selection_width = $width;
+		$selection_height = $height;
+	}
 
-        // detect case where someone is passing crop parameters that are not for a square
-        if ($crop == true && $selection_width != $selection_height) {
-            return false;
-        }
+	// determine cropping offsets
+	if ($square) {
+		// asking for a square image back
 
-        // size of the new square image
-        $new_width = $new_height = min($maxwidth, $maxheight);
+		// detect case where someone is passing crop parameters that are not for a square
+		if ($crop == TRUE && $selection_width != $selection_height) {
+			return FALSE;
+		}
 
-        // find largest square that fits within the selected region
-        $selection_width = $selection_height = min($selection_width, $selection_height);
+		// size of the new square image
+		$new_width = $new_height = min($maxwidth, $maxheight);
 
-        // set offsets for crop
-        if ($crop) {
-            $widthoffset = $x1;
-            $heightoffset = $y1;
-            $width = $x2 - $x1;
-            $height = $width;
-        } else {
-            // place square region in the center
-            $widthoffset = floor(($width - $selection_width) / 2);
-            $heightoffset = floor(($height - $selection_height) / 2);
-        }
-    } else {
-        // non-square new image
-        $new_width = $maxwidth;
-        $new_height = $maxheight;
-        
-        // maintain aspect ratio of original image/crop
-        if (($selection_height / (float)$new_height) > ($selection_width / (float)$new_width)) {
-            $new_width = floor($new_height * $selection_width / (float)$selection_height);
-        } else {
-            $new_height = floor($new_width * $selection_height / (float)$selection_width);
-        }
+		// find largest square that fits within the selected region
+		$selection_width = $selection_height = min($selection_width, $selection_height);
 
-        // by default, use entire image
-        $widthoffset = 0;
-        $heightoffset = 0;
+		// set offsets for crop
+		if ($crop) {
+			$widthoffset = $x1;
+			$heightoffset = $y1;
+			$width = $x2 - $x1;
+			$height = $width;
+		} else {
+			// place square region in the center
+			$widthoffset = floor(($width - $selection_width) / 2);
+			$heightoffset = floor(($height - $selection_height) / 2);
+		}
+	} else {
+		// non-square new image
+		$new_width = $maxwidth;
+		$new_height = $maxheight;
+		
+		// maintain aspect ratio of original image/crop
+		if (($selection_height / (float)$new_height) > ($selection_width / (float)$new_width)) {
+			$new_width = floor($new_height * $selection_width / (float)$selection_height);
+		} else {
+			$new_height = floor($new_width * $selection_height / (float)$selection_width);
+		}
 
-        if ($crop) {
-            $widthoffset = $x1;
-            $heightoffset = $y1;
-        }
-    }
+		// by default, use entire image
+		$widthoffset = 0;
+		$heightoffset = 0;
 
-    if (!$upscale && ($selection_height < $new_height || $selection_width < $new_width)) {
-        // we cannot upscale and selected area is too small so we decrease size of returned image
-        if ($square) {
-            $new_height = $selection_height;
-            $new_width = $selection_width;
-        } else {
-            if ($selection_height < $new_height && $selection_width < $new_width) {
-                $new_height = $selection_height;
-                $new_width = $selection_width;
-            }
-        }
-    }
+		if ($crop) {
+			$widthoffset = $x1;
+			$heightoffset = $y1;
+		}
+	}
 
-    $params = [
-        'newwidth' => $new_width,
-        'newheight' => $new_height,
-        'selectionwidth' => $selection_width,
-        'selectionheight' => $selection_height,
-        'xoffset' => $widthoffset,
-        'yoffset' => $heightoffset,
-    ];
+	if (!$upscale && ($selection_height < $new_height || $selection_width < $new_width)) {
+		// we cannot upscale and selected area is too small so we decrease size of returned image
+		if ($square) {
+			$new_height = $selection_height;
+			$new_width = $selection_width;
+		} else {
+			if ($selection_height < $new_height && $selection_width < $new_width) {
+				$new_height = $selection_height;
+				$new_width = $selection_width;
+			}
+		}
+	}
 
-    return $params;
+	$params = array(
+		'newwidth' => $new_width,
+		'newheight' => $new_height,
+		'selectionwidth' => $selection_width,
+		'selectionheight' => $selection_height,
+		'xoffset' => $widthoffset,
+		'yoffset' => $heightoffset,
+	);
+
+	return $params;
 }
 
 /**
@@ -361,37 +357,36 @@ function get_image_resize_parameters($width, $height, $options)
  *
  * @return bool
  */
-function file_delete($guid)
-{
-    if ($file = get_entity($guid)) {
-        if ($file->canEdit()) {
-            $thumbnail = $file->thumbnail;
-            $smallthumb = $file->smallthumb;
-            $largethumb = $file->largethumb;
-            if ($thumbnail) {
-                $delfile = new ElggFile();
-                $delfile->owner_guid = $file->owner_guid;
-                $delfile->setFilename($thumbnail);
-                $delfile->delete();
-            }
-            if ($smallthumb) {
-                $delfile = new ElggFile();
-                $delfile->owner_guid = $file->owner_guid;
-                $delfile->setFilename($smallthumb);
-                $delfile->delete();
-            }
-            if ($largethumb) {
-                $delfile = new ElggFile();
-                $delfile->owner_guid = $file->owner_guid;
-                $delfile->setFilename($largethumb);
-                $delfile->delete();
-            }
+function file_delete($guid) {
+	if ($file = get_entity($guid)) {
+		if ($file->canEdit()) {
+			$thumbnail = $file->thumbnail;
+			$smallthumb = $file->smallthumb;
+			$largethumb = $file->largethumb;
+			if ($thumbnail) {
+				$delfile = new ElggFile();
+				$delfile->owner_guid = $file->owner_guid;
+				$delfile->setFilename($thumbnail);
+				$delfile->delete();
+			}
+			if ($smallthumb) {
+				$delfile = new ElggFile();
+				$delfile->owner_guid = $file->owner_guid;
+				$delfile->setFilename($smallthumb);
+				$delfile->delete();
+			}
+			if ($largethumb) {
+				$delfile = new ElggFile();
+				$delfile->owner_guid = $file->owner_guid;
+				$delfile->setFilename($largethumb);
+				$delfile->delete();
+			}
 
-            return $file->delete();
-        }
-    }
+			return $file->delete();
+		}
+	}
 
-    return false;
+	return false;
 }
 
 /**
@@ -401,39 +396,38 @@ function file_delete($guid)
  *
  * @return string The overall type
  */
-function file_get_general_file_type($mimetype)
-{
-    switch ($mimetype) {
+function file_get_general_file_type($mimetype) {
+	switch($mimetype) {
 
-        case "application/msword":
-            return "document";
-            break;
-        case "application/pdf":
-            return "document";
-            break;
-    }
+		case "application/msword":
+			return "document";
+			break;
+		case "application/pdf":
+			return "document";
+			break;
+	}
 
-    if (substr_count($mimetype, 'text/')) {
-        return "document";
-    }
+	if (substr_count($mimetype, 'text/')) {
+		return "document";
+	}
 
-    if (substr_count($mimetype, 'audio/')) {
-        return "audio";
-    }
+	if (substr_count($mimetype, 'audio/')) {
+		return "audio";
+	}
 
-    if (substr_count($mimetype, 'image/')) {
-        return "image";
-    }
+	if (substr_count($mimetype, 'image/')) {
+		return "image";
+	}
 
-    if (substr_count($mimetype, 'video/')) {
-        return "video";
-    }
+	if (substr_count($mimetype, 'video/')) {
+		return "video";
+	}
 
-    if (substr_count($mimetype, 'opendocument')) {
-        return "document";
-    }
+	if (substr_count($mimetype, 'opendocument')) {
+		return "document";
+	}
 
-    return "general";
+	return "general";
 }
 
 /**
@@ -443,34 +437,33 @@ function file_get_general_file_type($mimetype)
  *
  * @return bool
  */
-function delete_directory($directory)
-{
-    // sanity check: must be a directory
-    if (!$handle = opendir($directory)) {
-        return false;
-    }
+function delete_directory($directory) {
+	// sanity check: must be a directory
+	if (!$handle = opendir($directory)) {
+		return FALSE;
+	}
 
-    // loop through all files
-    while (($file = readdir($handle)) !== false) {
-        if (in_array($file, ['.', '..'], true)) {
-            continue;
-        }
+	// loop through all files
+	while (($file = readdir($handle)) !== FALSE) {
+		if (in_array($file, array('.', '..'))) {
+			continue;
+		}
 
-        $path = "$directory/$file";
-        if (is_dir($path)) {
-            // recurse down through directory
-            if (!delete_directory($path)) {
-                return false;
-            }
-        } else {
-            // delete file
-            unlink($path);
-        }
-    }
+		$path = "$directory/$file";
+		if (is_dir($path)) {
+			// recurse down through directory
+			if (!delete_directory($path)) {
+				return FALSE;
+			}
+		} else {
+			// delete file
+			unlink($path);
+		}
+	}
 
-    // remove empty directory
-    closedir($handle);
-    return rmdir($directory);
+	// remove empty directory
+	closedir($handle);
+	return rmdir($directory);
 }
 
 /**
@@ -483,31 +476,29 @@ function delete_directory($directory)
  *
  * @return void
  */
-function clear_user_files($user)
-{
-    global $CONFIG;
+function clear_user_files($user) {
+	global $CONFIG;
 
-    $time_created = date('Y/m/d', (int)$user->time_created);
-    $file_path = "$CONFIG->dataroot$time_created/$user->guid";
-    if (file_exists($file_path)) {
-        delete_directory($file_path);
-    }
+	$time_created = date('Y/m/d', (int)$user->time_created);
+	$file_path = "$CONFIG->dataroot$time_created/$user->guid";
+	if (file_exists($file_path)) {
+		delete_directory($file_path);
+	}
 }
 
 
 /// Variable holding the default datastore
-$DEFAULT_FILE_STORE = null;
+$DEFAULT_FILE_STORE = NULL;
 
 /**
  * Return the default filestore.
  *
  * @return ElggFilestore
  */
-function get_default_filestore()
-{
-    global $DEFAULT_FILE_STORE;
+function get_default_filestore() {
+	global $DEFAULT_FILE_STORE;
 
-    return $DEFAULT_FILE_STORE;
+	return $DEFAULT_FILE_STORE;
 }
 
 /**
@@ -517,13 +508,12 @@ function get_default_filestore()
  *
  * @return true
  */
-function set_default_filestore(ElggFilestore $filestore)
-{
-    global $DEFAULT_FILE_STORE;
+function set_default_filestore(ElggFilestore $filestore) {
+	global $DEFAULT_FILE_STORE;
 
-    $DEFAULT_FILE_STORE = $filestore;
+	$DEFAULT_FILE_STORE = $filestore;
 
-    return true;
+	return true;
 }
 
 /**
@@ -533,10 +523,9 @@ function set_default_filestore(ElggFilestore $filestore)
  * @return void
  * @access private
  */
-function filestore_run_once()
-{
-    // Register a class
-    add_subtype("object", "file", "ElggFile");
+function filestore_run_once() {
+	// Register a class
+	add_subtype("object", "file", "ElggFile");
 }
 
 /**
@@ -546,17 +535,16 @@ function filestore_run_once()
  * @return void
  * @access private
  */
-function filestore_init()
-{
-    global $CONFIG;
+function filestore_init() {
+	global $CONFIG;
 
-    // Now register a default filestore
-    if (isset($CONFIG->dataroot)) {
-        set_default_filestore(new ElggDiskFilestore($CONFIG->dataroot));
-    }
-    
-    // Now run this stuff, but only once
-    run_function_once("filestore_run_once");
+	// Now register a default filestore
+	if (isset($CONFIG->dataroot)) {
+		set_default_filestore(new ElggDiskFilestore($CONFIG->dataroot));
+	}
+	
+	// Now run this stuff, but only once
+	run_function_once("filestore_run_once");
 }
 
 /**
@@ -570,11 +558,10 @@ function filestore_init()
  * @return array
  * @access private
  */
-function filestore_test($hook, $type, $value, $params)
-{
-    global $CONFIG;
-    $value[] = "{$CONFIG->path}engine/tests/objects/filestore.php";
-    return $value;
+function filestore_test($hook, $type, $value, $params) {
+	global $CONFIG;
+	$value[] = "{$CONFIG->path}engine/tests/objects/filestore.php";
+	return $value;
 }
 
 

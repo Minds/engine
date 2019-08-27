@@ -26,7 +26,7 @@ class GUID
      *
      * @staticvar array
      */
-    private static $hexdec = [
+    private static $hexdec = array(
         '0' => 0,
         '1' => 1,
         '2' => 2,
@@ -43,7 +43,7 @@ class GUID
         'd' => 13,
         'e' => 14,
         'f' => 15,
-        ];
+        );
 
     /**
      * Timer.
@@ -164,12 +164,12 @@ class GUID
      */
     public function status()
     {
-        return [
+        return array(
             'machine' => $this->machine,
             'lastTime' => $this->lastTime,
             'sequence' => $this->sequence,
             'is32Bit' => (PHP_INT_SIZE === 4),
-            ];
+            );
     }
 
     private function mintId32($timestamp, $machine, $sequence)

@@ -5,27 +5,25 @@
  * @package    Elgg.Core
  * @subpackage XMLRPC
  */
-class XMLRPCIntParameter extends XMLRPCParameter
-{
-    /**
-     * A new XML int
-     *
-     * @param int $value Value
-     */
-    public function __construct($value)
-    {
-        parent::__construct();
+class XMLRPCIntParameter extends XMLRPCParameter {
 
-        $this->value = (int)$value;
-    }
+	/**
+	 * A new XML int
+	 *
+	 * @param int $value Value
+	 */
+	function __construct($value) {
+		parent::__construct();
 
-    /**
-     * Convert to string
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        return "<value><i4>{$this->value}</i4></value>";
-    }
+		$this->value = (int)$value;
+	}
+
+	/**
+	 * Convert to string
+	 *
+	 * @return string
+	 */
+	function __toString() {
+		return "<value><i4>{$this->value}</i4></value>";
+	}
 }

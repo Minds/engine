@@ -7,6 +7,4 @@
  * @package    Elgg
  * @subpackage Exceptions.Stub
  */
-class ConfigurationException extends Exception
-{
-}
+class ConfigurationException extends Exception {}

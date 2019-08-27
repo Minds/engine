@@ -5,32 +5,29 @@
  * @package    Elgg.Core
  * @subpackage XMLRPC
  */
-class XMLRPCDateParameter extends XMLRPCParameter
-{
-    /**
-     * Construct a date
-     *
-     * @param int $timestamp The unix timestamp, or blank for "now".
-     */
-    public function __construct($timestamp = 0)
-    {
-        parent::__construct();
+class XMLRPCDateParameter extends XMLRPCParameter {
+	/**
+	 * Construct a date
+	 *
+	 * @param int $timestamp The unix timestamp, or blank for "now".
+	 */
+	function __construct($timestamp = 0) {
+		parent::__construct();
 
-        $this->value = $timestamp;
+		$this->value = $timestamp;
 
-        if (!$timestamp) {
-            $this->value = time();
-        }
-    }
+		if (!$timestamp) {
+			$this->value = time();
+		}
+	}
 
-    /**
-     * Convert to string
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        $value = date('c', $this->value);
-        return "<value><dateTime.iso8601>{$value}</dateTime.iso8601></value>";
-    }
+	/**
+	 * Convert to string
+	 *
+	 * @return string
+	 */
+	function __toString() {
+		$value = date('c', $this->value);
+		return "<value><dateTime.iso8601>{$value}</dateTime.iso8601></value>";
+	}
 }
