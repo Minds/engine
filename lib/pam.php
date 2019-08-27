@@ -21,7 +21,7 @@
  */
 
 global $_PAM_HANDLERS;
-$_PAM_HANDLERS = array();
+$_PAM_HANDLERS = [];
 
 /**
  * Register a PAM handler.
@@ -39,25 +39,26 @@ $_PAM_HANDLERS = array();
  *
  * @return bool
  */
-function register_pam_handler($handler, $importance = "sufficient", $policy = "user") {
-	global $_PAM_HANDLERS;
+function register_pam_handler($handler, $importance = "sufficient", $policy = "user")
+{
+    global $_PAM_HANDLERS;
 
-	// setup array for this type of pam if not already set
-	if (!isset($_PAM_HANDLERS[$policy])) {
-		$_PAM_HANDLERS[$policy] = array();
-	}
+    // setup array for this type of pam if not already set
+    if (!isset($_PAM_HANDLERS[$policy])) {
+        $_PAM_HANDLERS[$policy] = [];
+    }
 
-	// @todo remove requirement that $handle be a global function
-	if (is_string($handler) && is_callable($handler, true)) {
-		$_PAM_HANDLERS[$policy][$handler] = new stdClass;
+    // @todo remove requirement that $handle be a global function
+    if (is_string($handler) && is_callable($handler, true)) {
+        $_PAM_HANDLERS[$policy][$handler] = new stdClass;
 
-		$_PAM_HANDLERS[$policy][$handler]->handler = $handler;
-		$_PAM_HANDLERS[$policy][$handler]->importance = strtolower($importance);
+        $_PAM_HANDLERS[$policy][$handler]->handler = $handler;
+        $_PAM_HANDLERS[$policy][$handler]->importance = strtolower($importance);
 
-		return true;
-	}
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 /**
@@ -69,8 +70,9 @@ function register_pam_handler($handler, $importance = "sufficient", $policy = "u
  * @return void
  * @since 1.7.0
  */
-function unregister_pam_handler($handler, $policy = "user") {
-	global $_PAM_HANDLERS;
+function unregister_pam_handler($handler, $policy = "user")
+{
+    global $_PAM_HANDLERS;
 
-	unset($_PAM_HANDLERS[$policy][$handler]);
+    unset($_PAM_HANDLERS[$policy][$handler]);
 }

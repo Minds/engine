@@ -8,8 +8,9 @@
  *
  * @return ElggUser
  */
-function elgg_get_logged_in_user_entity() {
-	return Minds\Core\Session::getLoggedinUser();
+function elgg_get_logged_in_user_entity()
+{
+    return Minds\Core\Session::getLoggedinUser();
 }
 
 /**
@@ -18,13 +19,14 @@ function elgg_get_logged_in_user_entity() {
  * @see elgg_get_logged_in_user_entity()
  * @return int
  */
-function elgg_get_logged_in_user_guid() {
-	$user = elgg_get_logged_in_user_entity();
-	if ($user) {
-		return $user->guid;
-	}
+function elgg_get_logged_in_user_guid()
+{
+    $user = elgg_get_logged_in_user_entity();
+    if ($user) {
+        return $user->guid;
+    }
 
-	return 0;
+    return 0;
 }
 
 /**
@@ -32,8 +34,9 @@ function elgg_get_logged_in_user_guid() {
  *
  * @return bool
  */
-function elgg_is_logged_in() {
-	return Minds\Core\Session::isLoggedin();
+function elgg_is_logged_in()
+{
+    return Minds\Core\Session::isLoggedin();
 }
 
 /**
@@ -41,13 +44,13 @@ function elgg_is_logged_in() {
  *
  * @return bool
  */
-function elgg_is_admin_logged_in() {
-	$user = elgg_get_logged_in_user_entity();
+function elgg_is_admin_logged_in()
+{
+    $user = elgg_get_logged_in_user_entity();
 
-	if ((elgg_is_logged_in()) && $user->isAdmin()) {
-		return TRUE;
-	}
+    if ((elgg_is_logged_in()) && $user->isAdmin()) {
+        return true;
+    }
 
-	return FALSE;
+    return false;
 }
-

@@ -6,4 +6,6 @@
  * @subpackage Exception
  *
  */
-class ExportException extends DataFormatException {}
+class ExportException extends DataFormatException
+{
+}

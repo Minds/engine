@@ -17,14 +17,15 @@
  * @return array
  * @access private
  */
-function xmlrpc_parse_params($parameters) {
-	$result = array();
+function xmlrpc_parse_params($parameters)
+{
+    $result = [];
 
-	foreach ($parameters as $parameter) {
-		$result[] = xmlrpc_scalar_value($parameter);
-	}
+    foreach ($parameters as $parameter) {
+        $result[] = xmlrpc_scalar_value($parameter);
+    }
 
-	return $result;
+    return $result;
 }
 
 /**
@@ -35,61 +36,62 @@ function xmlrpc_parse_params($parameters) {
  * @return mixed
  * @access private
  */
-function xmlrpc_scalar_value($object) {
-	if ($object->name == 'param') {
-		$object = $object->children[0]->children[0];
-	}
+function xmlrpc_scalar_value($object)
+{
+    if ($object->name == 'param') {
+        $object = $object->children[0]->children[0];
+    }
 
-	switch ($object->name) {
-		case 'string':
-			return $object->content;
+    switch ($object->name) {
+        case 'string':
+            return $object->content;
 
-		case 'array':
-			foreach ($object->children[0]->children as $child) {
-				$value[] = xmlrpc_scalar_value($child);
-			}
-			return $value;
+        case 'array':
+            foreach ($object->children[0]->children as $child) {
+                $value[] = xmlrpc_scalar_value($child);
+            }
+            return $value;
 
-		case 'struct':
-			foreach ($object->children as $child) {
-				if (isset($child->children[1]->children[0])) {
-					$value[$child->children[0]->content] = xmlrpc_scalar_value($child->children[1]->children[0]);
-				} else {
-					$value[$child->children[0]->content] = $child->children[1]->content;
-				}
-			}
-			return $value;
+        case 'struct':
+            foreach ($object->children as $child) {
+                if (isset($child->children[1]->children[0])) {
+                    $value[$child->children[0]->content] = xmlrpc_scalar_value($child->children[1]->children[0]);
+                } else {
+                    $value[$child->children[0]->content] = $child->children[1]->content;
+                }
+            }
+            return $value;
 
-		case 'boolean':
-			return (boolean) $object->content;
+        case 'boolean':
+            return (boolean) $object->content;
 
-		case 'i4':
-		case 'int':
-			return (int) $object->content;
+        case 'i4':
+        case 'int':
+            return (int) $object->content;
 
-		case 'double':
-			return (double) $object->content;
+        case 'double':
+            return (double) $object->content;
 
-		case 'dateTime.iso8601':
-			return (int) strtotime($object->content);
+        case 'dateTime.iso8601':
+            return (int) strtotime($object->content);
 
-		case 'base64':
-			return base64_decode($object->content);
+        case 'base64':
+            return base64_decode($object->content, true);
 
-		case 'value':
-			return xmlrpc_scalar_value($object->children[0]);
+        case 'value':
+            return xmlrpc_scalar_value($object->children[0]);
 
-		default:
-			// @todo unsupported, throw an error
-			return false;
-	}
+        default:
+            // @todo unsupported, throw an error
+            return false;
+    }
 }
 
 // Functions for adding handlers //////////////////////////////////////////////////////////
 
 /** XML-RPC Handlers */
 global $XML_RPC_HANDLERS;
-$XML_RPC_HANDLERS = array();
+$XML_RPC_HANDLERS = [];
 
 /**
  * Register a method handler for a given XML-RPC method.
@@ -100,10 +102,11 @@ $XML_RPC_HANDLERS = array();
  *
  * @return bool
  */
-function register_xmlrpc_handler($method, $handler) {
-	global $XML_RPC_HANDLERS;
+function register_xmlrpc_handler($method, $handler)
+{
+    global $XML_RPC_HANDLERS;
 
-	$XML_RPC_HANDLERS[$method] = $handler;
+    $XML_RPC_HANDLERS[$method] = $handler;
 }
 
 /**
@@ -114,28 +117,29 @@ function register_xmlrpc_handler($method, $handler) {
  * @return XMLRPCCall
  * @access private
  */
-function trigger_xmlrpc_handler(XMLRPCCall $parameters) {
-	global $XML_RPC_HANDLERS;
+function trigger_xmlrpc_handler(XMLRPCCall $parameters)
+{
+    global $XML_RPC_HANDLERS;
 
-	// Go through and see if we have a handler
-	if (isset($XML_RPC_HANDLERS[$parameters->getMethodName()])) {
-		$handler = $XML_RPC_HANDLERS[$parameters->getMethodName()];
-		$result  = $handler($parameters);
+    // Go through and see if we have a handler
+    if (isset($XML_RPC_HANDLERS[$parameters->getMethodName()])) {
+        $handler = $XML_RPC_HANDLERS[$parameters->getMethodName()];
+        $result  = $handler($parameters);
 
-		if (!($result instanceof XMLRPCResponse)) {
-			$msg = elgg_echo('InvalidParameterException:UnexpectedReturnFormat',
-				array($parameters->getMethodName()));
-			throw new InvalidParameterException($msg);
-		}
+        if (!($result instanceof XMLRPCResponse)) {
+            $msg = elgg_echo('InvalidParameterException:UnexpectedReturnFormat',
+                [$parameters->getMethodName()]);
+            throw new InvalidParameterException($msg);
+        }
 
-		// Result in right format, return it.
-		return $result;
-	}
+        // Result in right format, return it.
+        return $result;
+    }
 
-	// if no handler then throw exception
-	$msg = elgg_echo('NotImplementedException:XMLRPCMethodNotImplemented',
-		array($parameters->getMethodName()));
-	throw new NotImplementedException($msg);
+    // if no handler then throw exception
+    $msg = elgg_echo('NotImplementedException:XMLRPCMethodNotImplemented',
+        [$parameters->getMethodName()]);
+    throw new NotImplementedException($msg);
 }
 
 /**
@@ -153,26 +157,27 @@ function trigger_xmlrpc_handler(XMLRPCCall $parameters) {
  * @return void
  * @access private
  */
-function _php_xmlrpc_error_handler($errno, $errmsg, $filename, $linenum, $vars) {
-	$error = date("Y-m-d H:i:s (T)") . ": \"" . $errmsg . "\" in file "
-		. $filename . " (line " . $linenum . ")";
+function _php_xmlrpc_error_handler($errno, $errmsg, $filename, $linenum, $vars)
+{
+    $error = date("Y-m-d H:i:s (T)") . ": \"" . $errmsg . "\" in file "
+        . $filename . " (line " . $linenum . ")";
 
-	switch ($errno) {
-		case E_USER_ERROR:
-				error_log("ERROR: " . $error);
+    switch ($errno) {
+        case E_USER_ERROR:
+                error_log("ERROR: " . $error);
 
-				// Since this is a fatal error, we want to stop any further execution but do so gracefully.
-				throw new Exception("ERROR: " . $error);
-			break;
+                // Since this is a fatal error, we want to stop any further execution but do so gracefully.
+                throw new Exception("ERROR: " . $error);
+            break;
 
-		case E_WARNING :
-		case E_USER_WARNING :
-				error_log("WARNING: " . $error);
-			break;
+        case E_WARNING:
+        case E_USER_WARNING:
+                error_log("WARNING: " . $error);
+            break;
 
-		default:
-			error_log("DEBUG: " . $error);
-	}
+        default:
+            error_log("DEBUG: " . $error);
+    }
 }
 
 /**
@@ -183,21 +188,21 @@ function _php_xmlrpc_error_handler($errno, $errmsg, $filename, $linenum, $vars) 
  * @return void
  * @access private
  */
-function _php_xmlrpc_exception_handler($exception) {
+function _php_xmlrpc_exception_handler($exception)
+{
+    error_log("*** FATAL EXCEPTION (XML-RPC) *** : " . $exception);
 
-	error_log("*** FATAL EXCEPTION (XML-RPC) *** : " . $exception);
+    $code = $exception->getCode();
 
-	$code = $exception->getCode();
+    if ($code == 0) {
+        $code = -32400;
+    }
 
-	if ($code == 0) {
-		$code = -32400;
-	}
+    $result = new XMLRPCErrorResponse($exception->getMessage(), $code);
 
-	$result = new XMLRPCErrorResponse($exception->getMessage(), $code);
+    $vars = ['result' => $result];
 
-	$vars = array('result' => $result);
+    $content = elgg_view("xml-rpc/output", $vars);
 
-	$content = elgg_view("xml-rpc/output", $vars);
-
-	echo elgg_view_page($exception->getMessage(), $content);
+    echo elgg_view_page($exception->getMessage(), $content);
 }

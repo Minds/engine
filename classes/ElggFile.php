@@ -20,347 +20,369 @@
  * @package    Elgg.Core
  * @subpackage DataModel.File
  */
-class ElggFile extends ElggObject {
-	/** Filestore */
-	private $filestore;
+class ElggFile extends ElggObject
+{
+    /** Filestore */
+    private $filestore;
 
-	/** File handle used to identify this file in a filestore. Created by open. */
-	private $handle;
+    /** File handle used to identify this file in a filestore. Created by open. */
+    private $handle;
 
-	/**
-	 * Set subtype to 'file'.
-	 *
-	 * @return void
-	 */
-	protected function initializeAttributes() {
-		parent::initializeAttributes();
+    /**
+     * Set subtype to 'file'.
+     *
+     * @return void
+     */
+    protected function initializeAttributes()
+    {
+        parent::initializeAttributes();
 
-		$this->attributes['subtype'] = "file";
-	}
+        $this->attributes['subtype'] = "file";
+    }
 
-	/**
-	 * Loads an ElggFile entity.
-	 *
-	 * @param int $guid GUID of the ElggFile object
-	 */
-	public function __construct($guid = null) {
-		parent::__construct($guid);
+    /**
+     * Loads an ElggFile entity.
+     *
+     * @param int $guid GUID of the ElggFile object
+     */
+    public function __construct($guid = null)
+    {
+        parent::__construct($guid);
 
-		// Set default filestore
-		$this->filestore = $this->getFilestore();
-	}
+        // Set default filestore
+        $this->filestore = $this->getFilestore();
+    }
 
-	/**
-	 * Set the filename of this file.
-	 *
-	 * @param string $name The filename.
-	 *
-	 * @return void
-	 */
-	public function setFilename($name) {
-		$this->filename = $name;
-	}
+    /**
+     * Set the filename of this file.
+     *
+     * @param string $name The filename.
+     *
+     * @return void
+     */
+    public function setFilename($name)
+    {
+        $this->filename = $name;
+    }
 
-	/**
-	 * Return the filename.
-	 *
-	 * @return string
-	 */
-	public function getFilename() {
-		return $this->filename;
-	}
+    /**
+     * Return the filename.
+     *
+     * @return string
+     */
+    public function getFilename()
+    {
+        return $this->filename;
+    }
 
-	/**
-	 * Return the filename of this file as it is/will be stored on the
-	 * filestore, which may be different to the filename.
-	 *
-	 * @return string
-	 */
-	public function getFilenameOnFilestore() {
-		return $this->filestore->getFilenameOnFilestore($this);
-	}
+    /**
+     * Return the filename of this file as it is/will be stored on the
+     * filestore, which may be different to the filename.
+     *
+     * @return string
+     */
+    public function getFilenameOnFilestore()
+    {
+        return $this->filestore->getFilenameOnFilestore($this);
+    }
 
-	/**
-	 * Return the size of the filestore associated with this file
-	 *
-	 * @param string $prefix         Storage prefix
-	 * @param int    $container_guid The container GUID of the checked filestore
-	 *
-	 * @return int
-	 */
-	public function getFilestoreSize($prefix = '', $container_guid = 0) {
-		if (!$container_guid) {
-			$container_guid = $this->container_guid;
-		}
-		$fs = $this->getFilestore();
-		// @todo add getSize() to ElggFilestore
-		return $fs->getSize($prefix, $container_guid);
-	}
+    /**
+     * Return the size of the filestore associated with this file
+     *
+     * @param string $prefix         Storage prefix
+     * @param int    $container_guid The container GUID of the checked filestore
+     *
+     * @return int
+     */
+    public function getFilestoreSize($prefix = '', $container_guid = 0)
+    {
+        if (!$container_guid) {
+            $container_guid = $this->container_guid;
+        }
+        $fs = $this->getFilestore();
+        // @todo add getSize() to ElggFilestore
+        return $fs->getSize($prefix, $container_guid);
+    }
 
-	/**
-	 * Get the mime type of the file.
-	 *
-	 * @return string
-	 */
-	public function getMimeType() {
-		if ($this->mimetype) {
-			return $this->mimetype;
-		}
+    /**
+     * Get the mime type of the file.
+     *
+     * @return string
+     */
+    public function getMimeType()
+    {
+        if ($this->mimetype) {
+            return $this->mimetype;
+        }
 
-		// @todo Guess mimetype if not here
-	}
+        // @todo Guess mimetype if not here
+    }
 
-	/**
-	 * Set the mime type of the file.
-	 *
-	 * @param string $mimetype The mimetype
-	 *
-	 * @return bool
-	 */
-	public function setMimeType($mimetype) {
-		return $this->mimetype = $mimetype;
-	}
+    /**
+     * Set the mime type of the file.
+     *
+     * @param string $mimetype The mimetype
+     *
+     * @return bool
+     */
+    public function setMimeType($mimetype)
+    {
+        return $this->mimetype = $mimetype;
+    }
 
-	/**
-	 * Detects mime types based on filename or actual file.
-	 *
-	 * @param mixed $file    The full path of the file to check. For uploaded files, use tmp_name.
-	 * @param mixed $default A default. Useful to pass what the browser thinks it is.
-	 * @since 1.7.12
-	 *
-	 * @note If $file is provided, this may be called statically
-	 *
-	 * @return mixed Detected type on success, false on failure.
-	 */
-	public function detectMimeType($file = null, $default = null) {
-		if (!$file) {
-			if (isset($this) && $this->filename) {
-				$file = $this->filename;
-			} else {
-				return false;
-			}
-		}
+    /**
+     * Detects mime types based on filename or actual file.
+     *
+     * @param mixed $file    The full path of the file to check. For uploaded files, use tmp_name.
+     * @param mixed $default A default. Useful to pass what the browser thinks it is.
+     * @since 1.7.12
+     *
+     * @note If $file is provided, this may be called statically
+     *
+     * @return mixed Detected type on success, false on failure.
+     */
+    public function detectMimeType($file = null, $default = null)
+    {
+        if (!$file) {
+            if (isset($this) && $this->filename) {
+                $file = $this->filename;
+            } else {
+                return false;
+            }
+        }
 
-		$mime = false;
+        $mime = false;
 
-		// for PHP5 folks.
-		if (function_exists('finfo_file') && defined('FILEINFO_MIME_TYPE')) {
-			$resource = finfo_open(FILEINFO_MIME_TYPE);
-			if ($resource) {
-				$mime = finfo_file($resource, $file);
-			}
-		}
+        // for PHP5 folks.
+        if (function_exists('finfo_file') && defined('FILEINFO_MIME_TYPE')) {
+            $resource = finfo_open(FILEINFO_MIME_TYPE);
+            if ($resource) {
+                $mime = finfo_file($resource, $file);
+            }
+        }
 
-		// for everyone else.
-		if (!$mime && function_exists('mime_content_type')) {
-			$mime = mime_content_type($file);
-		}
+        // for everyone else.
+        if (!$mime && function_exists('mime_content_type')) {
+            $mime = mime_content_type($file);
+        }
 
-		// default
-		if (!$mime) {
-			return $default;
-		}
+        // default
+        if (!$mime) {
+            return $default;
+        }
 
-		return $mime;
-	}
+        return $mime;
+    }
 
-	/**
-	 * Set the optional file description.
-	 *
-	 * @param string $description The description.
-	 *
-	 * @return bool
-	 */
-	public function setDescription($description) {
-		$this->description = $description;
-	}
+    /**
+     * Set the optional file description.
+     *
+     * @param string $description The description.
+     *
+     * @return bool
+     */
+    public function setDescription($description)
+    {
+        $this->description = $description;
+    }
 
-	/**
-	 * Open the file with the given mode
-	 *
-	 * @param string $mode Either read/write/append
-	 *
-	 * @return resource File handler
-	 *
-	 * @throws IOException|InvalidParameterException
-	 */
-	public function open($mode) {
-		if (!$this->getFilename()) {
-			throw new IOException(elgg_echo('IOException:MissingFileName'));
-		}
+    /**
+     * Open the file with the given mode
+     *
+     * @param string $mode Either read/write/append
+     *
+     * @return resource File handler
+     *
+     * @throws IOException|InvalidParameterException
+     */
+    public function open($mode)
+    {
+        if (!$this->getFilename()) {
+            throw new IOException(elgg_echo('IOException:MissingFileName'));
+        }
 
-		// See if file has already been saved
-		// seek on datastore, parameters and name?
+        // See if file has already been saved
+        // seek on datastore, parameters and name?
 
-		// Sanity check
-		if (
-			($mode != "read") &&
-			($mode != "write") &&
-			($mode != "append")
-		) {
-			$msg = elgg_echo('InvalidParameterException:UnrecognisedFileMode', array($mode));
-			throw new InvalidParameterException($msg);
-		}
+        // Sanity check
+        if (
+            ($mode != "read") &&
+            ($mode != "write") &&
+            ($mode != "append")
+        ) {
+            $msg = elgg_echo('InvalidParameterException:UnrecognisedFileMode', [$mode]);
+            throw new InvalidParameterException($msg);
+        }
 
-		// Get the filestore
-		$fs = $this->getFilestore();
+        // Get the filestore
+        $fs = $this->getFilestore();
 
-		// Ensure that we save the file details to object store
-		//$this->save();
+        // Ensure that we save the file details to object store
+        //$this->save();
 
-		// Open the file handle
-		$this->handle = $fs->open($this, $mode);
+        // Open the file handle
+        $this->handle = $fs->open($this, $mode);
 
-		return $this->handle;
-	}
+        return $this->handle;
+    }
 
-	/**
-	 * Write data.
-	 *
-	 * @param string $data The data
-	 *
-	 * @return bool
-	 */
-	public function write($data) {
-		$fs = $this->getFilestore();
+    /**
+     * Write data.
+     *
+     * @param string $data The data
+     *
+     * @return bool
+     */
+    public function write($data)
+    {
+        $fs = $this->getFilestore();
 
-		return $fs->write($this->handle, $data);
-	}
+        return $fs->write($this->handle, $data);
+    }
 
-	/**
-	 * Read data.
-	 *
-	 * @param int $length Amount to read.
-	 * @param int $offset The offset to start from.
-	 *
-	 * @return mixed Data or false
-	 */
-	public function read($length = 0, $offset = 0) {
-		$fs = $this->getFilestore();
+    /**
+     * Read data.
+     *
+     * @param int $length Amount to read.
+     * @param int $offset The offset to start from.
+     *
+     * @return mixed Data or false
+     */
+    public function read($length = 0, $offset = 0)
+    {
+        $fs = $this->getFilestore();
 
-		return $fs->read($this->handle, $length, $offset);
-	}
+        return $fs->read($this->handle, $length, $offset);
+    }
 
-	/**
-	 * Gets the full contents of this file.
-	 *
-	 * @return mixed The file contents.
-	 */
-	public function grabFile() {
-		$fs = $this->getFilestore();
-		return $fs->grabFile($this);
-	}
+    /**
+     * Gets the full contents of this file.
+     *
+     * @return mixed The file contents.
+     */
+    public function grabFile()
+    {
+        $fs = $this->getFilestore();
+        return $fs->grabFile($this);
+    }
 
-	/**
-	 * Close the file and commit changes
-	 *
-	 * @return bool
-	 */
-	public function close() {
-		$fs = $this->getFilestore();
+    /**
+     * Close the file and commit changes
+     *
+     * @return bool
+     */
+    public function close()
+    {
+        $fs = $this->getFilestore();
 
-		if ($fs->close($this->handle)) {
-			$this->handle = NULL;
+        if ($fs->close($this->handle)) {
+            $this->handle = null;
 
-			return true;
-		}
+            return true;
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	/**
-	 * Delete this file.
-	 *
-	 * @return bool
-	 */
-	public function delete() {
-		$fs = $this->getFilestore();
-		//if ($fs->delete($this)) {
-			return parent::delete();
-		//}
-	}
+    /**
+     * Delete this file.
+     *
+     * @return bool
+     */
+    public function delete()
+    {
+        $fs = $this->getFilestore();
+        //if ($fs->delete($this)) {
+        return parent::delete();
+        //}
+    }
 
-	/**
-	 * Seek a position in the file.
-	 *
-	 * @param int $position Position in bytes
-	 *
-	 * @return bool
-	 */
-	public function seek($position) {
-		$fs = $this->getFilestore();
+    /**
+     * Seek a position in the file.
+     *
+     * @param int $position Position in bytes
+     *
+     * @return bool
+     */
+    public function seek($position)
+    {
+        $fs = $this->getFilestore();
 
-		// @todo add seek() to ElggFilestore
-		return $fs->seek($this->handle, $position);
-	}
+        // @todo add seek() to ElggFilestore
+        return $fs->seek($this->handle, $position);
+    }
 
-	/**
-	 * Return the current position of the file.
-	 *
-	 * @return int The file position
-	 */
-	public function tell() {
-		$fs = $this->getFilestore();
+    /**
+     * Return the current position of the file.
+     *
+     * @return int The file position
+     */
+    public function tell()
+    {
+        $fs = $this->getFilestore();
 
-		return $fs->tell($this->handle);
-	}
+        return $fs->tell($this->handle);
+    }
 
-	/**
-	 * Return the size of the file in bytes.
-	 *
-	 * @return int
-	 */
-	public function size() {
-		return $this->filestore->getFileSize($this);
-	}
+    /**
+     * Return the size of the file in bytes.
+     *
+     * @return int
+     */
+    public function size()
+    {
+        return $this->filestore->getFileSize($this);
+    }
 
-	/**
-	 * Return a boolean value whether the file handle is at the end of the file
-	 *
-	 * @return bool
-	 */
-	public function eof() {
-		$fs = $this->getFilestore();
+    /**
+     * Return a boolean value whether the file handle is at the end of the file
+     *
+     * @return bool
+     */
+    public function eof()
+    {
+        $fs = $this->getFilestore();
 
-		return $fs->eof($this->handle);
-	}
+        return $fs->eof($this->handle);
+    }
 
-	/**
-	 * Returns if the file exists
-	 *
-	 * @return bool
-	 */
-	public function exists() {
-		$fs = $this->getFilestore();
+    /**
+     * Returns if the file exists
+     *
+     * @return bool
+     */
+    public function exists()
+    {
+        $fs = $this->getFilestore();
 
-		return $fs->exists($this);
-	}
+        return $fs->exists($this);
+    }
 
-	/**
-	 * Set a filestore.
-	 *
-	 * @param ElggFilestore $filestore The file store.
-	 *
-	 * @return void
-	 */
-	public function setFilestore(ElggFilestore $filestore) {
-		$this->filestore = $filestore;
-	}
+    /**
+     * Set a filestore.
+     *
+     * @param ElggFilestore $filestore The file store.
+     *
+     * @return void
+     */
+    public function setFilestore(ElggFilestore $filestore)
+    {
+        $this->filestore = $filestore;
+    }
 
-	/**
-	 * Return a filestore suitable for saving this file.
-	 * This filestore is either a pre-registered filestore,
-	 * a filestore as recorded in metadata or the system default.
-	 *
-	 * @return ElggFilestore
-	 *
-	 * @throws ClassNotFoundException
-	 */
-	protected function getFilestore() {
-
-		$this->filestore = get_default_filestore();
-		
-		return $this->filestore;
-	}
-
+    /**
+     * Return a filestore suitable for saving this file.
+     * This filestore is either a pre-registered filestore,
+     * a filestore as recorded in metadata or the system default.
+     *
+     * @return ElggFilestore
+     *
+     * @throws ClassNotFoundException
+     */
+    protected function getFilestore()
+    {
+        $this->filestore = get_default_filestore();
+        
+        return $this->filestore;
+    }
 }

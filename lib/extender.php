@@ -18,21 +18,22 @@
  *
  * @return string
  */
-function detect_extender_valuetype($value, $value_type = "") {
-	if ($value_type != "" && ($value_type == 'integer' || $value_type == 'text')) {
-		return $value_type;
-	}
+function detect_extender_valuetype($value, $value_type = "")
+{
+    if ($value_type != "" && ($value_type == 'integer' || $value_type == 'text')) {
+        return $value_type;
+    }
 
-	// This is crude
-	if (is_int($value)) {
-		return 'integer';
-	}
-	// Catch floating point values which are not integer
-	if (is_numeric($value)) {
-		return 'text';
-	}
+    // This is crude
+    if (is_int($value)) {
+        return 'integer';
+    }
+    // Catch floating point values which are not integer
+    if (is_numeric($value)) {
+        return 'text';
+    }
 
-	return 'text';
+    return 'text';
 }
 
 /**
@@ -46,33 +47,34 @@ function detect_extender_valuetype($value, $value_type = "") {
  * @return bool
  * @access private
  */
-function oddmetadata_to_elggextender(ElggEntity $entity, ODDMetaData $element) {
-	// Get the type of extender (metadata, type, attribute etc)
-	$type = $element->getAttribute('type');
-	$attr_name = $element->getAttribute('name');
-	$attr_val = $element->getBody();
+function oddmetadata_to_elggextender(ElggEntity $entity, ODDMetaData $element)
+{
+    // Get the type of extender (metadata, type, attribute etc)
+    $type = $element->getAttribute('type');
+    $attr_name = $element->getAttribute('name');
+    $attr_val = $element->getBody();
 
-	switch ($type) {
-		// Ignore volatile items
-		case 'volatile' :
-			break;
-		case 'annotation' :
-			$entity->annotate($attr_name, $attr_val);
-			break;
-		case 'metadata' :
-			$entity->setMetaData($attr_name, $attr_val, "", true);
-			break;
-		default : // Anything else assume attribute
-			$entity->set($attr_name, $attr_val);
-	}
+    switch ($type) {
+        // Ignore volatile items
+        case 'volatile':
+            break;
+        case 'annotation':
+            $entity->annotate($attr_name, $attr_val);
+            break;
+        case 'metadata':
+            $entity->setMetaData($attr_name, $attr_val, "", true);
+            break;
+        default: // Anything else assume attribute
+            $entity->set($attr_name, $attr_val);
+    }
 
-	// Set time if appropriate
-	$attr_time = $element->getAttribute('published');
-	if ($attr_time) {
-		$entity->set('time_updated', $attr_time);
-	}
+    // Set time if appropriate
+    $attr_time = $element->getAttribute('published');
+    if ($attr_time) {
+        $entity->set('time_updated', $attr_time);
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -89,31 +91,32 @@ function oddmetadata_to_elggextender(ElggEntity $entity, ODDMetaData $element) {
  * @throws ImportException
  * @access private
  */
-function import_extender_plugin_hook($hook, $entity_type, $returnvalue, $params) {
-	$element = $params['element'];
+function import_extender_plugin_hook($hook, $entity_type, $returnvalue, $params)
+{
+    $element = $params['element'];
 
-	$tmp = NULL;
+    $tmp = null;
 
-	if ($element instanceof ODDMetaData) {
-		/* @var ODDMetaData $element */
-		// Recall entity
-		$entity_uuid = $element->getAttribute('entity_uuid');
-		$entity = get_entity_from_uuid($entity_uuid);
-		if (!$entity) {
-			throw new ImportException(elgg_echo('ImportException:GUIDNotFound', array($entity_uuid)));
-		}
+    if ($element instanceof ODDMetaData) {
+        /* @var ODDMetaData $element */
+        // Recall entity
+        $entity_uuid = $element->getAttribute('entity_uuid');
+        $entity = get_entity_from_uuid($entity_uuid);
+        if (!$entity) {
+            throw new ImportException(elgg_echo('ImportException:GUIDNotFound', [$entity_uuid]));
+        }
 
-		oddmetadata_to_elggextender($entity, $element);
+        oddmetadata_to_elggextender($entity, $element);
 
-		// Save
-		if (!$entity->save()) {
-			$attr_name = $element->getAttribute('name');
-			$msg = elgg_echo('ImportException:ProblemUpdatingMeta', array($attr_name, $entity_uuid));
-			throw new ImportException($msg);
-		}
+        // Save
+        if (!$entity->save()) {
+            $attr_name = $element->getAttribute('name');
+            $msg = elgg_echo('ImportException:ProblemUpdatingMeta', [$attr_name, $entity_uuid]);
+            throw new ImportException($msg);
+        }
 
-		return true;
-	}
+        return true;
+    }
 }
 
 /**
@@ -125,42 +128,43 @@ function import_extender_plugin_hook($hook, $entity_type, $returnvalue, $params)
  *
  * @return bool
  */
-function can_edit_extender($extender_id, $type, $user_guid = 0) {
-	if (!elgg_is_logged_in()) {
-		return false;
-	}
+function can_edit_extender($extender_id, $type, $user_guid = 0)
+{
+    if (!elgg_is_logged_in()) {
+        return false;
+    }
 
-	$user_guid = (int)$user_guid;
-	$user = get_entity($user_guid);
-	if (!$user) {
-		$user = elgg_get_logged_in_user_entity();
-	}
+    $user_guid = (int)$user_guid;
+    $user = get_entity($user_guid);
+    if (!$user) {
+        $user = elgg_get_logged_in_user_entity();
+    }
 
-	$functionname = "elgg_get_{$type}_from_id";
-	if (is_callable($functionname)) {
-		$extender = call_user_func($functionname, $extender_id);
-	} else {
-		return false;
-	}
+    $functionname = "elgg_get_{$type}_from_id";
+    if (is_callable($functionname)) {
+        $extender = call_user_func($functionname, $extender_id);
+    } else {
+        return false;
+    }
 
-	if (!($extender instanceof ElggExtender)) {
-		return false;
-	}
-	/* @var ElggExtender $extender */
+    if (!($extender instanceof ElggExtender)) {
+        return false;
+    }
+    /* @var ElggExtender $extender */
 
-	// If the owner is the specified user, great! They can edit.
-	if ($extender->getOwnerGUID() == $user->getGUID()) {
-		return true;
-	}
+    // If the owner is the specified user, great! They can edit.
+    if ($extender->getOwnerGUID() == $user->getGUID()) {
+        return true;
+    }
 
-	// If the user can edit the entity this is attached to, great! They can edit.
-	if (can_edit_entity($extender->entity_guid, $user->getGUID())) {
-		return true;
-	}
+    // If the user can edit the entity this is attached to, great! They can edit.
+    if (can_edit_entity($extender->entity_guid, $user->getGUID())) {
+        return true;
+    }
 
-	// Trigger plugin hooks
-	$params = array('entity' => $extender->getEntity(), 'user' => $user);
-	return elgg_trigger_plugin_hook('permissions_check', $type, $params, false);
+    // Trigger plugin hooks
+    $params = ['entity' => $extender->getEntity(), 'user' => $user];
+    return elgg_trigger_plugin_hook('permissions_check', $type, $params, false);
 }
 
 /**
@@ -174,23 +178,23 @@ function can_edit_extender($extender_id, $type, $user_guid = 0) {
  *
  * @return bool
  */
-function elgg_register_extender_url_handler($extender_type, $extender_name, $function_name) {
+function elgg_register_extender_url_handler($extender_type, $extender_name, $function_name)
+{
+    global $CONFIG;
 
-	global $CONFIG;
+    if (!is_callable($function_name, true)) {
+        return false;
+    }
 
-	if (!is_callable($function_name, true)) {
-		return false;
-	}
+    if (!isset($CONFIG->extender_url_handler)) {
+        $CONFIG->extender_url_handler = [];
+    }
+    if (!isset($CONFIG->extender_url_handler[$extender_type])) {
+        $CONFIG->extender_url_handler[$extender_type] = [];
+    }
+    $CONFIG->extender_url_handler[$extender_type][$extender_name] = $function_name;
 
-	if (!isset($CONFIG->extender_url_handler)) {
-		$CONFIG->extender_url_handler = array();
-	}
-	if (!isset($CONFIG->extender_url_handler[$extender_type])) {
-		$CONFIG->extender_url_handler[$extender_type] = array();
-	}
-	$CONFIG->extender_url_handler[$extender_type][$extender_name] = $function_name;
-
-	return true;
+    return true;
 }
 
 /**
@@ -201,42 +205,43 @@ function elgg_register_extender_url_handler($extender_type, $extender_name, $fun
  *
  * @return string
  */
-function get_extender_url(ElggExtender $extender) {
-	global $CONFIG;
+function get_extender_url(ElggExtender $extender)
+{
+    global $CONFIG;
 
-	$view = elgg_get_viewtype();
+    $view = elgg_get_viewtype();
 
-	$guid = $extender->entity_guid;
-	$type = $extender->type;
+    $guid = $extender->entity_guid;
+    $type = $extender->type;
 
-	$url = "";
+    $url = "";
 
-	$function = "";
-	if (isset($CONFIG->extender_url_handler[$type][$extender->name])) {
-		$function = $CONFIG->extender_url_handler[$type][$extender->name];
-	}
+    $function = "";
+    if (isset($CONFIG->extender_url_handler[$type][$extender->name])) {
+        $function = $CONFIG->extender_url_handler[$type][$extender->name];
+    }
 
-	if (isset($CONFIG->extender_url_handler[$type]['all'])) {
-		$function = $CONFIG->extender_url_handler[$type]['all'];
-	}
+    if (isset($CONFIG->extender_url_handler[$type]['all'])) {
+        $function = $CONFIG->extender_url_handler[$type]['all'];
+    }
 
-	if (isset($CONFIG->extender_url_handler['all']['all'])) {
-		$function = $CONFIG->extender_url_handler['all']['all'];
-	}
+    if (isset($CONFIG->extender_url_handler['all']['all'])) {
+        $function = $CONFIG->extender_url_handler['all']['all'];
+    }
 
-	if (is_callable($function)) {
-		$url = call_user_func($function, $extender);
-	}
+    if (is_callable($function)) {
+        $url = call_user_func($function, $extender);
+    }
 
-	if ($url == "") {
-		$nameid = $extender->id;
-		if ($type == 'volatile') {
-			$nameid = $extender->name;
-		}
-		$url = "export/$view/$guid/$type/$nameid/";
-	}
+    if ($url == "") {
+        $nameid = $extender->id;
+        if ($type == 'volatile') {
+            $nameid = $extender->name;
+        }
+        $url = "export/$view/$guid/$type/$nameid/";
+    }
 
-	return elgg_normalize_url($url);
+    return elgg_normalize_url($url);
 }
 
 /** Register the hook */

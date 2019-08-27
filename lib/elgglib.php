@@ -16,12 +16,13 @@
  * @return void
  * @since 1.8.0
  */
-function elgg_register_classes($dir) {
-	$classes = elgg_get_file_list($dir, array(), array(), array('.php'));
+function elgg_register_classes($dir)
+{
+    $classes = elgg_get_file_list($dir, [], [], ['.php']);
 
-	foreach ($classes as $class) {
-		elgg_register_class(basename($class, '.php'), $class);
-	}
+    foreach ($classes as $class) {
+        elgg_register_class(basename($class, '.php'), $class);
+    }
 }
 
 /**
@@ -33,16 +34,17 @@ function elgg_register_classes($dir) {
  * @return true
  * @since 1.8.0
  */
-function elgg_register_class($class, $location) {
-	global $CONFIG;
+function elgg_register_class($class, $location)
+{
+    global $CONFIG;
 
-	if (!isset($CONFIG->classes)) {
-		$CONFIG->classes = array();
-	}
+    if (!isset($CONFIG->classes)) {
+        $CONFIG->classes = [];
+    }
 
-	$CONFIG->classes[$class] = $location;
+    $CONFIG->classes[$class] = $location;
 
-	return true;
+    return true;
 }
 
 /**
@@ -54,14 +56,15 @@ function elgg_register_class($class, $location) {
  * @return void
  * @since 1.8.0
  */
-function elgg_register_library($name, $location) {
-	global $CONFIG;
+function elgg_register_library($name, $location)
+{
+    global $CONFIG;
 
-	if (!isset($CONFIG->libraries)) {
-		$CONFIG->libraries = array();
-	}
+    if (!isset($CONFIG->libraries)) {
+        $CONFIG->libraries = [];
+    }
 
-	$CONFIG->libraries[$name] = $location;
+    $CONFIG->libraries[$name] = $location;
 }
 
 /**
@@ -73,32 +76,34 @@ function elgg_register_library($name, $location) {
  * @throws InvalidParameterException
  * @since 1.8.0
  */
-function elgg_load_library($name) {
-	global $CONFIG;
+function elgg_load_library($name)
+{
+    global $CONFIG;
 
-	if (!isset($CONFIG->libraries)) {
-		$CONFIG->libraries = array();
-	}
+    if (!isset($CONFIG->libraries)) {
+        $CONFIG->libraries = [];
+    }
 
-	if (!isset($CONFIG->libraries[$name])) {
-		$error = elgg_echo('InvalidParameterException:LibraryNotRegistered', array($name));
-		throw new InvalidParameterException($error);
-	}
+    if (!isset($CONFIG->libraries[$name])) {
+        $error = elgg_echo('InvalidParameterException:LibraryNotRegistered', [$name]);
+        throw new InvalidParameterException($error);
+    }
 
-	if (!include_once($CONFIG->libraries[$name])) {
-		$error = elgg_echo('InvalidParameterException:LibraryNotFound', array(
-			$name,
-			$CONFIG->libraries[$name])
-		);
-		throw new InvalidParameterException($error);
-	}
+    if (!include_once($CONFIG->libraries[$name])) {
+        $error = elgg_echo('InvalidParameterException:LibraryNotFound', [
+            $name,
+            $CONFIG->libraries[$name]]
+        );
+        throw new InvalidParameterException($error);
+    }
 }
 
 /**
  * Is the request using SSL?
  */
-function isSSL(){
-	return $_SERVER['SERVER_PORT'] == 443 || $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https';
+function isSSL()
+{
+    return $_SERVER['SERVER_PORT'] == 443 || $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https';
 }
 
 /**
@@ -113,26 +118,28 @@ function isSSL(){
  * @return false False if headers have been sent. Terminates execution if forwarding.
  * @throws SecurityException
  */
-function forward($location = "", $reason = 'system') {
-	if (!headers_sent()) {
-		if ($location === REFERER) {
-			$location = $_SERVER['HTTP_REFERER'];
-		}
+function forward($location = "", $reason = 'system')
+{
+    if (!headers_sent()) {
+        if ($location === REFERER) {
+            $location = $_SERVER['HTTP_REFERER'];
+        }
 
-		// return new forward location or false to stop the forward or empty string to exit
-		$current_page = current_page_url();
-		$params = array('current_url' => $current_page, 'forward_url' => $location);
-		$location = elgg_trigger_plugin_hook('forward', $reason, $params, $location);
+        // return new forward location or false to stop the forward or empty string to exit
+        $current_page = current_page_url();
+        $params = ['current_url' => $current_page, 'forward_url' => $location];
+        $location = elgg_trigger_plugin_hook('forward', $reason, $params, $location);
 
-		if ($location) {
-			header("Location: {$location}");
-			exit;
-		} else if ($location === '') {
-			exit;
-		}
-	} else {exit;
-		throw new SecurityException(elgg_echo('SecurityException:ForwardFailedToRedirect'));
-	}
+        if ($location) {
+            header("Location: {$location}");
+            exit;
+        } elseif ($location === '') {
+            exit;
+        }
+    } else {
+        exit;
+        throw new SecurityException(elgg_echo('SecurityException:ForwardFailedToRedirect'));
+    }
 }
 
 /**
@@ -159,8 +166,9 @@ function forward($location = "", $reason = 'system') {
  * @return bool
  * @since 1.8.0
  */
-function elgg_register_js($name, $url, $location = 'footer', $priority = null) {
-	return elgg_register_external_file('js', $name, $url, $location, $priority);
+function elgg_register_js($name, $url, $location = 'footer', $priority = null)
+{
+    return elgg_register_external_file('js', $name, $url, $location, $priority);
 }
 
 /**
@@ -171,8 +179,9 @@ function elgg_register_js($name, $url, $location = 'footer', $priority = null) {
  * @return bool
  * @since 1.8.0
  */
-function elgg_unregister_js($name) {
-	return elgg_unregister_external_file('js', $name);
+function elgg_unregister_js($name)
+{
+    return elgg_unregister_external_file('js', $name);
 }
 
 /**
@@ -186,8 +195,9 @@ function elgg_unregister_js($name) {
  * @return void
  * @since 1.8.0
  */
-function elgg_load_js($name) {
-	elgg_load_external_file('js', $name);
+function elgg_load_js($name)
+{
+    elgg_load_external_file('js', $name);
 }
 
 /**
@@ -198,8 +208,9 @@ function elgg_load_js($name) {
  * @return array
  * @since 1.8.0
  */
-function elgg_get_loaded_js($location = 'head') {
-	return elgg_get_loaded_external_files('js', $location);
+function elgg_get_loaded_js($location = 'head')
+{
+    return elgg_get_loaded_external_files('js', $location);
 }
 
 /**
@@ -212,8 +223,9 @@ function elgg_get_loaded_js($location = 'head') {
  * @return bool
  * @since 1.8.0
  */
-function elgg_register_css($name, $url, $priority = 500) {
-	return elgg_register_external_file('css', $name, $url, 'header', $priority);
+function elgg_register_css($name, $url, $priority = 500)
+{
+    return elgg_register_external_file('css', $name, $url, 'header', $priority);
 }
 
 /**
@@ -224,8 +236,9 @@ function elgg_register_css($name, $url, $priority = 500) {
  * @return bool
  * @since 1.8.0
  */
-function elgg_unregister_css($name) {
-	return elgg_unregister_external_file('css', $name);
+function elgg_unregister_css($name)
+{
+    return elgg_unregister_external_file('css', $name);
 }
 
 /**
@@ -239,8 +252,9 @@ function elgg_unregister_css($name) {
  * @return void
  * @since 1.8.0
  */
-function elgg_load_css($name) {
-	elgg_load_external_file('css', $name);
+function elgg_load_css($name)
+{
+    elgg_load_external_file('css', $name);
 }
 
 /**
@@ -249,8 +263,9 @@ function elgg_load_css($name) {
  * @return array
  * @since 1.8.0
  */
-function elgg_get_loaded_css() {
-	return elgg_get_loaded_external_files('css', 'head');
+function elgg_get_loaded_css()
+{
+    return elgg_get_loaded_external_files('css', 'head');
 }
 
 /**
@@ -264,7 +279,8 @@ function elgg_get_loaded_css() {
  *
  * @return void
  */
-function elgg_register_external_file($type, $name, $url, $location, $priority = 500) {
+function elgg_register_external_file($type, $name, $url, $location, $priority = 500)
+{
 }
 
 /**
@@ -276,7 +292,8 @@ function elgg_register_external_file($type, $name, $url, $location, $priority = 
  * @return bool
  * @since 1.8.0
  */
-function elgg_unregister_external_file($type, $name) {
+function elgg_unregister_external_file($type, $name)
+{
 }
 
 /**
@@ -288,7 +305,8 @@ function elgg_unregister_external_file($type, $name) {
  * @return void
  * @since 1.8.0
  */
-function elgg_load_external_file($type, $name) {
+function elgg_load_external_file($type, $name)
+{
 }
 
 /**
@@ -300,14 +318,16 @@ function elgg_load_external_file($type, $name) {
  * @return array
  * @since 1.8.0
  */
-function elgg_get_loaded_external_files($type, $location) {
+function elgg_get_loaded_external_files($type, $location)
+{
 }
 
 /**
  * @deprecated
  */
-function elgg_bootstrap_externals_data_structure($type) {
-	return false;
+function elgg_bootstrap_externals_data_structure($type)
+{
+    return false;
 }
 
 /**
@@ -322,28 +342,28 @@ function elgg_bootstrap_externals_data_structure($type) {
  *
  * @return array Filenames in $directory, in the form $directory/filename.
  */
-function elgg_get_file_list($directory, $exceptions = array(), $list = array(),
-$extensions = NULL) {
+function elgg_get_file_list($directory, $exceptions = [], $list = [],
+$extensions = null)
+{
+    $directory = sanitise_filepath($directory);
+    if ($handle = opendir($directory)) {
+        while (($file = readdir($handle)) !== false) {
+            if (!is_file($directory . $file) || in_array($file, $exceptions, true)) {
+                continue;
+            }
 
-	$directory = sanitise_filepath($directory);
-	if ($handle = opendir($directory)) {
-		while (($file = readdir($handle)) !== FALSE) {
-			if (!is_file($directory . $file) || in_array($file, $exceptions)) {
-				continue;
-			}
+            if (is_array($extensions)) {
+                if (in_array(strrchr($file, '.'), $extensions, true)) {
+                    $list[] = $directory . $file;
+                }
+            } else {
+                $list[] = $directory . $file;
+            }
+        }
+        closedir($handle);
+    }
 
-			if (is_array($extensions)) {
-				if (in_array(strrchr($file, '.'), $extensions)) {
-					$list[] = $directory . $file;
-				}
-			} else {
-				$list[] = $directory . $file;
-			}
-		}
-		closedir($handle);
-	}
-
-	return $list;
+    return $list;
 }
 
 /**
@@ -354,23 +374,24 @@ $extensions = NULL) {
  *
  * @return string
  */
-function sanitise_filepath($path, $append_slash = TRUE) {
-	// Convert to correct UNIX paths
-	$path = str_replace('\\', '/', $path);
-	$path = str_replace('../', '/', $path);
-	// replace // with / except when preceeded by :
-	$path = preg_replace("/([^:])\/\//", "$1/", $path);
+function sanitise_filepath($path, $append_slash = true)
+{
+    // Convert to correct UNIX paths
+    $path = str_replace('\\', '/', $path);
+    $path = str_replace('../', '/', $path);
+    // replace // with / except when preceeded by :
+    $path = preg_replace("/([^:])\/\//", "$1/", $path);
 
-	// Sort trailing slash
-	$path = trim($path);
-	// rtrim defaults plus /
-	$path = rtrim($path, " \n\t\0\x0B/");
+    // Sort trailing slash
+    $path = trim($path);
+    // rtrim defaults plus /
+    $path = rtrim($path, " \n\t\0\x0B/");
 
-	if ($append_slash) {
-		$path = $path . '/';
-	}
+    if ($append_slash) {
+        $path = $path . '/';
+    }
 
-	return $path;
+    return $path;
 }
 
 /**
@@ -402,33 +423,34 @@ function sanitise_filepath($path, $append_slash = TRUE) {
  *                          whether the message addition was successful.
  * @todo Clean up. Separate registering messages and retrieving them.
  */
-function system_messages($message = null, $register = "success", $count = false) {
-
-	static $messageSet = false;
-	$cookie_id = 'mindsMessages';
-	$messages = isset($_COOKIE[$cookie_id]) ? json_decode($_COOKIE[$cookie_id], true) : array('error'=>array(), 'success'=>array());
-
-
-	if(!is_null($message)){
-		if($register == 'error'){
-			$messages['error'][] = $message;
-		}  else {
-			$messages['success'][] = $message;
-		}
-	//	return $message;
-		setcookie($cookie_id, json_encode($messages), time()+360, '/');
-		$messageSet = false;
-		return;
-	}
+function system_messages($message = null, $register = "success", $count = false)
+{
+    static $messageSet = false;
+    $cookie_id = 'mindsMessages';
+    $messages = isset($_COOKIE[$cookie_id]) ? json_decode($_COOKIE[$cookie_id], true) : ['error'=>[], 'success'=>[]];
 
 
-	if (!$count) {
-		if(isset($_COOKIE[$cookie_id]) && !$messageSet)
-			setcookie($cookie_id, '', time()-36000, '/');
-		return $messages[$register];
-	} else {
-		return count($messages[$register]);
-	}
+    if (!is_null($message)) {
+        if ($register == 'error') {
+            $messages['error'][] = $message;
+        } else {
+            $messages['success'][] = $message;
+        }
+        //	return $message;
+        setcookie($cookie_id, json_encode($messages), time()+360, '/');
+        $messageSet = false;
+        return;
+    }
+
+
+    if (!$count) {
+        if (isset($_COOKIE[$cookie_id]) && !$messageSet) {
+            setcookie($cookie_id, '', time()-36000, '/');
+        }
+        return $messages[$register];
+    } else {
+        return count($messages[$register]);
+    }
 }
 
 /**
@@ -438,8 +460,9 @@ function system_messages($message = null, $register = "success", $count = false)
  *
  * @return integer The number of messages
  */
-function count_messages($register = "") {
-	return system_messages(null, $register, true);
+function count_messages($register = "")
+{
+    return system_messages(null, $register, true);
 }
 
 /**
@@ -451,8 +474,9 @@ function count_messages($register = "") {
  *
  * @return bool
  */
-function system_message($message) {
-	return system_messages($message, "success");
+function system_message($message)
+{
+    return system_messages($message, "success");
 }
 
 /**
@@ -464,8 +488,9 @@ function system_message($message) {
  *
  * @return bool
  */
-function register_error($error) {
-	return system_messages($error, "error");
+function register_error($error)
+{
+    return system_messages($error, "error");
 }
 
 /**
@@ -528,36 +553,37 @@ function register_error($error) {
  * @example events/all.php      Example of how to use the 'all' keyword.
  * @deprecated Use Minds\Core\Events
  */
-function elgg_register_event_handler($event, $object_type, $callback, $priority = 500) {
-	return \Minds\Core\Events\Dispatcher::register($event, "elgg/event/$object_type", $callback, $priority); // Register event with new system, but prefix it in the oldstyle namespace
-	/*global $CONFIG;
+function elgg_register_event_handler($event, $object_type, $callback, $priority = 500)
+{
+    return \Minds\Core\Events\Dispatcher::register($event, "elgg/event/$object_type", $callback, $priority); // Register event with new system, but prefix it in the oldstyle namespace
+    /*global $CONFIG;
 
-	if (empty($event) || empty($object_type)) {
-		return false;
-	}
+    if (empty($event) || empty($object_type)) {
+        return false;
+    }
 
-	if (!isset($CONFIG->events)) {
-		$CONFIG->events = array();
-	}
-	if (!isset($CONFIG->events[$event])) {
-		$CONFIG->events[$event] = array();
-	}
-	if (!isset($CONFIG->events[$event][$object_type])) {
-		$CONFIG->events[$event][$object_type] = array();
-	}
+    if (!isset($CONFIG->events)) {
+        $CONFIG->events = array();
+    }
+    if (!isset($CONFIG->events[$event])) {
+        $CONFIG->events[$event] = array();
+    }
+    if (!isset($CONFIG->events[$event][$object_type])) {
+        $CONFIG->events[$event][$object_type] = array();
+    }
 
-	if (!is_callable($callback, true)) {
-		return false;
-	}
+    if (!is_callable($callback, true)) {
+        return false;
+    }
 
-	$priority = max((int) $priority, 0);
+    $priority = max((int) $priority, 0);
 
-	while (isset($CONFIG->events[$event][$object_type][$priority])) {
-		$priority++;
-	}
-	$CONFIG->events[$event][$object_type][$priority] = $callback;
-	ksort($CONFIG->events[$event][$object_type]);
-	return true;*/
+    while (isset($CONFIG->events[$event][$object_type][$priority])) {
+        $priority++;
+    }
+    $CONFIG->events[$event][$object_type][$priority] = $callback;
+    ksort($CONFIG->events[$event][$object_type]);
+    return true;*/
 }
 
 /**
@@ -571,18 +597,19 @@ function elgg_register_event_handler($event, $object_type, $callback, $priority 
  * @since 1.7
  * @deprecated Use Minds\Core\Events
  */
-function elgg_unregister_event_handler($event, $object_type, $callback) {
+function elgg_unregister_event_handler($event, $object_type, $callback)
+{
     return \Minds\Core\Events\Dispatcher::unregister("elgg/event/$object_type", $event);
     /*
-	global $CONFIG;
+    global $CONFIG;
 
-	if (isset($CONFIG->events[$event]) && isset($CONFIG->events[$event][$object_type])) {
-		foreach ($CONFIG->events[$event][$object_type] as $key => $event_callback) {
-			if ($event_callback == $callback) {
-				unset($CONFIG->events[$event][$object_type][$key]);
-			}
-		}
-	}*/
+    if (isset($CONFIG->events[$event]) && isset($CONFIG->events[$event][$object_type])) {
+        foreach ($CONFIG->events[$event][$object_type] as $key => $event_callback) {
+            if ($event_callback == $callback) {
+                unset($CONFIG->events[$event][$object_type][$key]);
+            }
+        }
+    }*/
 }
 
 /**
@@ -617,37 +644,38 @@ function elgg_unregister_event_handler($event, $object_type, $callback) {
  * @internal @example events/emit.php Basic emitting of an Elgg event.
  * @deprecated Use Minds\Core\Events
  */
-function elgg_trigger_event($event, $object_type, $object = null) {
+function elgg_trigger_event($event, $object_type, $object = null)
+{
     return \Minds\Core\Events\Dispatcher::trigger($event, "elgg/event/$object_type", $object, true);
-	/*global $CONFIG;
+    /*global $CONFIG;
 
-	$events = array();
-	if (isset($CONFIG->events[$event][$object_type])) {
-		$events[] = $CONFIG->events[$event][$object_type];
-	}
-	if (isset($CONFIG->events['all'][$object_type])) {
-		$events[] = $CONFIG->events['all'][$object_type];
-	}
-	if (isset($CONFIG->events[$event]['all'])) {
-		$events[] = $CONFIG->events[$event]['all'];
-	}
-	if (isset($CONFIG->events['all']['all'])) {
-		$events[] = $CONFIG->events['all']['all'];
-	}
+    $events = array();
+    if (isset($CONFIG->events[$event][$object_type])) {
+        $events[] = $CONFIG->events[$event][$object_type];
+    }
+    if (isset($CONFIG->events['all'][$object_type])) {
+        $events[] = $CONFIG->events['all'][$object_type];
+    }
+    if (isset($CONFIG->events[$event]['all'])) {
+        $events[] = $CONFIG->events[$event]['all'];
+    }
+    if (isset($CONFIG->events['all']['all'])) {
+        $events[] = $CONFIG->events['all']['all'];
+    }
 
-	$args = array($event, $object_type, $object);
+    $args = array($event, $object_type, $object);
 
-	foreach ($events as $callback_list) {
-		if (is_array($callback_list)) {
-			foreach ($callback_list as $callback) {
-				if (is_callable($callback) && (call_user_func_array($callback, $args) === false)) {
-					return false;
-				}
-			}
-		}
-	}
+    foreach ($events as $callback_list) {
+        if (is_array($callback_list)) {
+            foreach ($callback_list as $callback) {
+                if (is_callable($callback) && (call_user_func_array($callback, $args) === false)) {
+                    return false;
+                }
+            }
+        }
+    }
 
-	return true;*/
+    return true;*/
 }
 
 /**
@@ -717,7 +745,8 @@ function elgg_trigger_event($event, $object_type, $object = null) {
  * @since 1.8.0
  * @deprecated Use Minds\Core\Events
  */
-function elgg_register_plugin_hook_handler($hook, $type, $callback, $priority = 500) {
+function elgg_register_plugin_hook_handler($hook, $type, $callback, $priority = 500)
+{
     return \Minds\Core\Events\Dispatcher::register($hook, "elgg/hook/$type", $callback, $priority);
 }
 
@@ -732,7 +761,8 @@ function elgg_register_plugin_hook_handler($hook, $type, $callback, $priority = 
  * @since 1.8.0
  * @deprecated Use Minds\Core\Events
  */
-function elgg_unregister_plugin_hook_handler($hook, $entity_type, $callback) {
+function elgg_unregister_plugin_hook_handler($hook, $entity_type, $callback)
+{
     return \Minds\Core\Events\Dispatcher::unregister("elgg/hook/$entity_type", $hook, $callback);
 }
 
@@ -785,45 +815,46 @@ function elgg_unregister_plugin_hook_handler($hook, $entity_type, $callback) {
  * @since 1.8.0
  * @deprecated Use Minds\Core\Events
  */
-function elgg_trigger_plugin_hook($hook, $type, $params = null, $returnvalue = null) {
+function elgg_trigger_plugin_hook($hook, $type, $params = null, $returnvalue = null)
+{
     return \Minds\Core\Events\Dispatcher::trigger($hook, "elgg/hook/$type", $params, $returnvalue);
-	/*global $CONFIG;
+    /*global $CONFIG;
 
-	$hooks = array();
-	if (isset($CONFIG->hooks[$hook][$type])) {
-		if ($hook != 'all' && $type != 'all') {
-			$hooks[] = $CONFIG->hooks[$hook][$type];
-		}
-	}
-	if (isset($CONFIG->hooks['all'][$type])) {
-		if ($type != 'all') {
-			$hooks[] = $CONFIG->hooks['all'][$type];
-		}
-	}
-	if (isset($CONFIG->hooks[$hook]['all'])) {
-		if ($hook != 'all') {
-			$hooks[] = $CONFIG->hooks[$hook]['all'];
-		}
-	}
-	if (isset($CONFIG->hooks['all']['all'])) {
-		$hooks[] = $CONFIG->hooks['all']['all'];
-	}
+    $hooks = array();
+    if (isset($CONFIG->hooks[$hook][$type])) {
+        if ($hook != 'all' && $type != 'all') {
+            $hooks[] = $CONFIG->hooks[$hook][$type];
+        }
+    }
+    if (isset($CONFIG->hooks['all'][$type])) {
+        if ($type != 'all') {
+            $hooks[] = $CONFIG->hooks['all'][$type];
+        }
+    }
+    if (isset($CONFIG->hooks[$hook]['all'])) {
+        if ($hook != 'all') {
+            $hooks[] = $CONFIG->hooks[$hook]['all'];
+        }
+    }
+    if (isset($CONFIG->hooks['all']['all'])) {
+        $hooks[] = $CONFIG->hooks['all']['all'];
+    }
 
-	foreach ($hooks as $callback_list) {
-		if (is_array($callback_list)) {
-			foreach ($callback_list as $hookcallback) {
-				if (is_callable($hookcallback)) {
-					$args = array($hook, $type, $returnvalue, $params);
-					$temp_return_value = call_user_func_array($hookcallback, $args);
-					if (!is_null($temp_return_value)) {
-						$returnvalue = $temp_return_value;
-					}
-				}
-			}
-		}
-	}
+    foreach ($hooks as $callback_list) {
+        if (is_array($callback_list)) {
+            foreach ($callback_list as $hookcallback) {
+                if (is_callable($hookcallback)) {
+                    $args = array($hook, $type, $returnvalue, $params);
+                    $temp_return_value = call_user_func_array($hookcallback, $args);
+                    if (!is_null($temp_return_value)) {
+                        $returnvalue = $temp_return_value;
+                    }
+                }
+            }
+        }
+    }
 
-	return $returnvalue;*/
+    return $returnvalue;*/
 }
 
 /**
@@ -838,17 +869,18 @@ function elgg_trigger_plugin_hook($hook, $type, $params = null, $returnvalue = n
  * @return void
  * @access private
  */
-function _elgg_php_exception_handler($exception) {
-	$timestamp = time();
-	error_log("Exception #$timestamp: $exception");
+function _elgg_php_exception_handler($exception)
+{
+    $timestamp = time();
+    error_log("Exception #$timestamp: $exception");
 
-	// Wipe any existing output buffer
-	ob_end_clean();
+    // Wipe any existing output buffer
+    ob_end_clean();
 
-	header('X-Minds: Something is wrong', true, 500);
-	// make sure the error isn't cached
-	header("Cache-Control: no-cache, must-revalidate", true);
-	header('Expires: Fri, 05 Feb 1982 00:00:00 -0500', true);
+    header('X-Minds: Something is wrong', true, 500);
+    // make sure the error isn't cached
+    header("Cache-Control: no-cache, must-revalidate", true);
+    header('Expires: Fri, 05 Feb 1982 00:00:00 -0500', true);
     // @note Do not send a 500 header because it is not a server error
     
     Sentry\captureException($exception);
@@ -878,49 +910,51 @@ function _elgg_php_exception_handler($exception) {
  * @access private
  * @todo Replace error_log calls with elgg_log calls.
  */
-function _elgg_php_error_handler($errno, $errmsg, $filename, $linenum, $vars = array()) {
-	$error = date("Y-m-d H:i:s (T)") . ": \"$errmsg\" in file $filename (line $linenum)";
+function _elgg_php_error_handler($errno, $errmsg, $filename, $linenum, $vars = [])
+{
+    $error = date("Y-m-d H:i:s (T)") . ": \"$errmsg\" in file $filename (line $linenum)";
 
-	switch ($errno) {
-		case E_USER_ERROR:
-			error_log("PHP ERROR: $error");
-			register_error("ERROR: $error");
+    switch ($errno) {
+        case E_USER_ERROR:
+            error_log("PHP ERROR: $error");
+            register_error("ERROR: $error");
 
-			// Since this is a fatal error, we want to stop any further execution but do so gracefully.
-			throw new Exception($error);
-			break;
+            // Since this is a fatal error, we want to stop any further execution but do so gracefully.
+            throw new Exception($error);
+            break;
 
-		case E_WARNING :
-		case E_USER_WARNING :
-		case E_RECOVERABLE_ERROR: // (e.g. type hint violation)
+        case E_WARNING:
+        case E_USER_WARNING:
+        case E_RECOVERABLE_ERROR: // (e.g. type hint violation)
 
-			// check if the error wasn't suppressed by the error control operator (@)
-			if (error_reporting()) {
-				error_log("PHP WARNING: $error");
-			}
-			break;
+            // check if the error wasn't suppressed by the error control operator (@)
+            if (error_reporting()) {
+                error_log("PHP WARNING: $error");
+            }
+            break;
 
-		default:
-			global $CONFIG;
-			if (isset($CONFIG->debug) && $CONFIG->debug === 'NOTICE') {
-				error_log("PHP NOTICE: $error");
-			}
-	}
+        default:
+            global $CONFIG;
+            if (isset($CONFIG->debug) && $CONFIG->debug === 'NOTICE') {
+                error_log("PHP NOTICE: $error");
+            }
+    }
 
-	return true;
+    return true;
 }
 /**
  * Record read stats
  */
 register_shutdown_function('recordStats');
-function recordStats(){
-	if(isset($_REQUEST['debug'])){
-		$db = new Minds\Core\Data\Call();
-       		$keys = implode("|",$db::$keys);
-		$stats = "{$db::$reads} Reads. {$db::$writes} Writes. {$db::$counts} Counts at {$_SERVER['REQUEST_URI']} with $keys called\n";
-		$filename = '/tmp/minds.stats';
-		file_put_contents ($filename, $stats, FILE_APPEND );
-	}
+function recordStats()
+{
+    if (isset($_REQUEST['debug'])) {
+        $db = new Minds\Core\Data\Call();
+        $keys = implode("|", $db::$keys);
+        $stats = "{$db::$reads} Reads. {$db::$writes} Writes. {$db::$counts} Counts at {$_SERVER['REQUEST_URI']} with $keys called\n";
+        $filename = '/tmp/minds.stats';
+        file_put_contents($filename, $stats, FILE_APPEND);
+    }
 }
 
 /**
@@ -928,20 +962,20 @@ function recordStats(){
  */
 register_shutdown_function('fatalErrorShutdownHandler');
 
-function fatalErrorShutdownHandler(){
+function fatalErrorShutdownHandler()
+{
+    $last_error = error_get_last();
 
-	$last_error = error_get_last();
+    if ($last_error['type'] == E_ERROR && php_sapi_name() != "cli") {
+        error_log('Fatal error: '.nl2br(htmlentities(print_r($last_error, true), ENT_QUOTES, 'UTF-8')));
+        // Wipe any existing output buffer
+        ob_end_clean();
+        _elgg_php_error_handler($last_error['type'], $last_error['message'], $last_error['file'], $last_error['line']);
+        // Wipe any existing output buffer
+        ob_end_clean();
+        header('Fatal error', true, 500);
 
-	if($last_error['type'] == E_ERROR && php_sapi_name() != "cli"){
-		error_log('Fatal error: '.nl2br(htmlentities(print_r($last_error, true), ENT_QUOTES, 'UTF-8')));
-		// Wipe any existing output buffer
-		ob_end_clean();
-		_elgg_php_error_handler($last_error['type'], $last_error['message'], $last_error['file'], $last_error['line']);
-		// Wipe any existing output buffer
-		ob_end_clean();
-		header('Fatal error', true, 500);
-
-		echo file_get_contents(dirname(dirname(dirname(__FILE__))) . '/errors/500.html');
+        echo file_get_contents(dirname(dirname(dirname(__FILE__))) . '/errors/500.html');
     }
 
     \Sentry\captureLastError();
@@ -966,39 +1000,40 @@ function fatalErrorShutdownHandler(){
  * @todo This is complicated and confusing.  Using int constants for debug levels will
  * make things easier.
  */
-function elgg_log($message, $level = 'NOTICE') {
-	global $CONFIG;
+function elgg_log($message, $level = 'NOTICE')
+{
+    global $CONFIG;
 
-	// only log when debugging is enabled
-	if (isset($CONFIG->debug)) {
-		// debug to screen or log?
-		$to_screen = !($CONFIG->debug == 'NOTICE');
+    // only log when debugging is enabled
+    if (isset($CONFIG->debug)) {
+        // debug to screen or log?
+        $to_screen = !($CONFIG->debug == 'NOTICE');
 
-		switch ($level) {
-			case 'ERROR':
-				// always report
-				elgg_dump("$level: $message", $to_screen, $level);
-				break;
-			case 'WARNING':
-			case 'DEBUG':
-				// report except if user wants only errors
-				if ($CONFIG->debug != 'ERROR') {
-					elgg_dump("$level: $message", $to_screen, $level);
-				}
-				break;
-			case 'NOTICE':
-			default:
-				// only report when lowest level is desired
-				if ($CONFIG->debug == 'NOTICE') {
-					elgg_dump("$level: $message", FALSE, $level);
-				}
-				break;
-		}
+        switch ($level) {
+            case 'ERROR':
+                // always report
+                elgg_dump("$level: $message", $to_screen, $level);
+                break;
+            case 'WARNING':
+            case 'DEBUG':
+                // report except if user wants only errors
+                if ($CONFIG->debug != 'ERROR') {
+                    elgg_dump("$level: $message", $to_screen, $level);
+                }
+                break;
+            case 'NOTICE':
+            default:
+                // only report when lowest level is desired
+                if ($CONFIG->debug == 'NOTICE') {
+                    elgg_dump("$level: $message", false, $level);
+                }
+                break;
+        }
 
-		return TRUE;
-	}
+        return true;
+    }
 
-	return FALSE;
+    return false;
 }
 
 /**
@@ -1017,33 +1052,34 @@ function elgg_log($message, $level = 'NOTICE') {
  * @return void
  * @since 1.7.0
  */
-function elgg_dump($value, $to_screen = TRUE, $level = 'NOTICE') {
-	global $CONFIG;
+function elgg_dump($value, $to_screen = true, $level = 'NOTICE')
+{
+    global $CONFIG;
 
-	// plugin can return false to stop the default logging method
-	$params = array(
-		'level' => $level,
-		'msg' => $value,
-		'to_screen' => $to_screen,
-	);
-	if (!elgg_trigger_plugin_hook('debug', 'log', $params, true)) {
-		return;
-	}
+    // plugin can return false to stop the default logging method
+    $params = [
+        'level' => $level,
+        'msg' => $value,
+        'to_screen' => $to_screen,
+    ];
+    if (!elgg_trigger_plugin_hook('debug', 'log', $params, true)) {
+        return;
+    }
 
-	// Do not want to write to screen before page creation has started.
-	// This is not fool-proof but probably fixes 95% of the cases when logging
-	// results in data sent to the browser before the page is begun.
-	if (!isset($CONFIG->pagesetupdone)) {
-		$to_screen = FALSE;
-	}
+    // Do not want to write to screen before page creation has started.
+    // This is not fool-proof but probably fixes 95% of the cases when logging
+    // results in data sent to the browser before the page is begun.
+    if (!isset($CONFIG->pagesetupdone)) {
+        $to_screen = false;
+    }
 
-	if ($to_screen == TRUE) {
-		echo '<pre>';
-		print_r($value);
-		echo '</pre>';
-	} else {
-		error_log(print_r($value, TRUE));
-	}
+    if ($to_screen == true) {
+        echo '<pre>';
+        print_r($value);
+        echo '</pre>';
+    } else {
+        error_log(print_r($value, true));
+    }
 }
 
 /**
@@ -1074,68 +1110,70 @@ function elgg_dump($value, $to_screen = TRUE, $level = 'NOTICE') {
  * @return bool
  * @since 1.7.0
  */
-function elgg_deprecated_notice($msg, $dep_version, $backtrace_level = 1) {
-	// if it's a major release behind, visual and logged
-	// if it's a 1 minor release behind, visual and logged
-	// if it's for current minor release, logged.
-	// bugfixes don't matter because we are not deprecating between them
+function elgg_deprecated_notice($msg, $dep_version, $backtrace_level = 1)
+{
+    // if it's a major release behind, visual and logged
+    // if it's a 1 minor release behind, visual and logged
+    // if it's for current minor release, logged.
+    // bugfixes don't matter because we are not deprecating between them
 
-	if (!$dep_version) {
-		return false;
-	}
+    if (!$dep_version) {
+        return false;
+    }
 
-	$elgg_version = Minds\Core\Minds::getVersion();
-	$elgg_version_arr = explode('.', $elgg_version);
-	$elgg_major_version = (int)$elgg_version_arr[0];
-	$elgg_minor_version = (int)$elgg_version_arr[1];
+    $elgg_version = Minds\Core\Minds::getVersion();
+    $elgg_version_arr = explode('.', $elgg_version);
+    $elgg_major_version = (int)$elgg_version_arr[0];
+    $elgg_minor_version = (int)$elgg_version_arr[1];
 
-	$dep_major_version = (int)$dep_version;
-	$dep_minor_version = 10 * ($dep_version - $dep_major_version);
+    $dep_major_version = (int)$dep_version;
+    $dep_minor_version = 10 * ($dep_version - $dep_major_version);
 
-	$visual = false;
+    $visual = false;
 
-	if (($dep_major_version < $elgg_major_version) ||
-		($dep_minor_version < $elgg_minor_version)) {
-		$visual = true;
-	}
+    if (($dep_major_version < $elgg_major_version) ||
+        ($dep_minor_version < $elgg_minor_version)) {
+        $visual = true;
+    }
 
-	$msg = "Deprecated in $dep_major_version.$dep_minor_version: $msg";
+    $msg = "Deprecated in $dep_major_version.$dep_minor_version: $msg";
 
-	if ($visual && elgg_is_admin_logged_in()) {
-		register_error($msg);
-	}
+    if ($visual && elgg_is_admin_logged_in()) {
+        register_error($msg);
+    }
 
-	// Get a file and line number for the log. Never show this in the UI.
-	// Skip over the function that sent this notice and see who called the deprecated
-	// function itself.
-	$msg .= " Called from ";
-	$stack = array();
+    // Get a file and line number for the log. Never show this in the UI.
+    // Skip over the function that sent this notice and see who called the deprecated
+    // function itself.
+    $msg .= " Called from ";
+    $stack = [];
 
-	return false;
-$backtrace = @debug_backtrace(false, 3);
-	if(!$backtrace)
-		return false; //something is odd
-	// never show this call.
-	array_shift($backtrace);
-	$i = count($backtrace);
+    return false;
+    $backtrace = @debug_backtrace(false, 3);
+    if (!$backtrace) {
+        return false;
+    } //something is odd
+    // never show this call.
+    array_shift($backtrace);
+    $i = count($backtrace);
 
-	foreach ($backtrace as $trace) {
-		$stack[] = "[#$i] {$trace['file']}:{$trace['line']}";
-		$i--;
+    foreach ($backtrace as $trace) {
+        $stack[] = "[#$i] {$trace['file']}:{$trace['line']}";
+        $i--;
 
-		if ($backtrace_level > 0) {
-			if ($backtrace_level <= 1) {
-				break;
-			}
-			$backtrace_level--;
-		}
-	}
+        if ($backtrace_level > 0) {
+            if ($backtrace_level <= 1) {
+                break;
+            }
+            $backtrace_level--;
+        }
+    }
 
-	$msg .= implode("<br /> -> ", $stack);
+    $msg .= implode("<br /> -> ", $stack);
 
-	elgg_log($msg, 'WARNING');
+    elgg_log($msg, 'WARNING');
 
-	return true;
+    return true;
 }
 
 /**
@@ -1147,34 +1185,35 @@ $backtrace = @debug_backtrace(false, 3);
  *
  * @return string The current page URL.
  */
-function current_page_url() {
-	$url = parse_url(elgg_get_site_url());
+function current_page_url()
+{
+    $url = parse_url(elgg_get_site_url());
 
-	$page = $url['scheme'] . "://";
+    $page = $url['scheme'] . "://";
 
-	// user/pass
-	if ((isset($url['user'])) && ($url['user'])) {
-		$page .= $url['user'];
-	}
-	if ((isset($url['pass'])) && ($url['pass'])) {
-		$page .= ":" . $url['pass'];
-	}
-	if ((isset($url['user']) && $url['user']) ||
-		(isset($url['pass']) && $url['pass'])) {
-		$page .= "@";
-	}
+    // user/pass
+    if ((isset($url['user'])) && ($url['user'])) {
+        $page .= $url['user'];
+    }
+    if ((isset($url['pass'])) && ($url['pass'])) {
+        $page .= ":" . $url['pass'];
+    }
+    if ((isset($url['user']) && $url['user']) ||
+        (isset($url['pass']) && $url['pass'])) {
+        $page .= "@";
+    }
 
-	$page .= $url['host'];
+    $page .= $url['host'];
 
-	if ((isset($url['port'])) && ($url['port'])) {
-		$page .= ":" . $url['port'];
-	}
+    if ((isset($url['port'])) && ($url['port'])) {
+        $page .= ":" . $url['port'];
+    }
 
-	$page = trim($page, "/");
+    $page = trim($page, "/");
 
-	$page .= $_SERVER['REQUEST_URI'];
+    $page .= $_SERVER['REQUEST_URI'];
 
-	return $page;
+    return $page;
 }
 
 /**
@@ -1183,21 +1222,22 @@ function current_page_url() {
  * @return string The URL
  * @todo Combine / replace with current_page_url()
  */
-function full_url() {
-	$s = empty($_SERVER["HTTPS"]) ? '' : ($_SERVER["HTTPS"] == "on") ? "s" : "";
-	$protocol = substr(strtolower($_SERVER["SERVER_PROTOCOL"]), 0,
-		strpos(strtolower($_SERVER["SERVER_PROTOCOL"]), "/")) . $s;
+function full_url()
+{
+    $s = empty($_SERVER["HTTPS"]) ? '' : ($_SERVER["HTTPS"] == "on") ? "s" : "";
+    $protocol = substr(strtolower($_SERVER["SERVER_PROTOCOL"]), 0,
+        strpos(strtolower($_SERVER["SERVER_PROTOCOL"]), "/")) . $s;
 
-	$port = ($_SERVER["SERVER_PORT"] == "80" || $_SERVER["SERVER_PORT"] == "443") ?
-		"" : (":" . $_SERVER["SERVER_PORT"]);
+    $port = ($_SERVER["SERVER_PORT"] == "80" || $_SERVER["SERVER_PORT"] == "443") ?
+        "" : (":" . $_SERVER["SERVER_PORT"]);
 
-	// This is here to prevent XSS in poorly written browsers used by 80% of the population.
-	// {@trac [5813]}
-	$quotes = array('\'', '"');
-	$encoded = array('%27', '%22');
+    // This is here to prevent XSS in poorly written browsers used by 80% of the population.
+    // {@trac [5813]}
+    $quotes = ['\'', '"'];
+    $encoded = ['%27', '%22'];
 
-	return $protocol . "://" . $_SERVER['SERVER_NAME'] . $port .
-		str_replace($quotes, $encoded, $_SERVER['REQUEST_URI']);
+    return $protocol . "://" . $_SERVER['SERVER_NAME'] . $port .
+        str_replace($quotes, $encoded, $_SERVER['REQUEST_URI']);
 }
 
 /**
@@ -1211,21 +1251,22 @@ function full_url() {
  * @return string Full URL
  * @since 1.7.0
  */
-function elgg_http_build_url(array $parts, $html_encode = TRUE) {
-	// build only what's given to us.
-	$scheme = isset($parts['scheme']) ? "{$parts['scheme']}://" : '';
-	$host = isset($parts['host']) ? "{$parts['host']}" : '';
-	$port = isset($parts['port']) ? ":{$parts['port']}" : '';
-	$path = isset($parts['path']) ? "{$parts['path']}" : '';
-	$query = isset($parts['query']) ? "?{$parts['query']}" : '';
+function elgg_http_build_url(array $parts, $html_encode = true)
+{
+    // build only what's given to us.
+    $scheme = isset($parts['scheme']) ? "{$parts['scheme']}://" : '';
+    $host = isset($parts['host']) ? "{$parts['host']}" : '';
+    $port = isset($parts['port']) ? ":{$parts['port']}" : '';
+    $path = isset($parts['path']) ? "{$parts['path']}" : '';
+    $query = isset($parts['query']) ? "?{$parts['query']}" : '';
 
-	$string = $scheme . $host . $port . $path . $query;
+    $string = $scheme . $host . $port . $path . $query;
 
-	if ($html_encode) {
-		return elgg_format_url($string);
-	} else {
-		return $string;
-	}
+    if ($html_encode) {
+        return elgg_format_url($string);
+    } else {
+        return $string;
+    }
 }
 
 /**
@@ -1246,28 +1287,29 @@ function elgg_http_build_url(array $parts, $html_encode = TRUE) {
  * @since 1.7.0
  * @link http://docs.elgg.org/Tutorials/Actions
  */
-function elgg_add_action_tokens_to_url($url, $html_encode = FALSE) {
-	$components = parse_url(elgg_normalize_url($url));
+function elgg_add_action_tokens_to_url($url, $html_encode = false)
+{
+    $components = parse_url(elgg_normalize_url($url));
 
-	$uri = $components['path'];
+    $uri = $components['path'];
 
-	if (isset($components['query'])) {
-		$query = elgg_parse_str($components['query']);
-	} else {
-		$query = array();
-	}
+    if (isset($components['query'])) {
+        $query = elgg_parse_str($components['query']);
+    } else {
+        $query = [];
+    }
 
-	if (isset($query['__elgg_ts']) && isset($query['__elgg_token'])) {
-		return $url;
-	}
+    if (isset($query['__elgg_ts']) && isset($query['__elgg_token'])) {
+        return $url;
+    }
 
-	// append action tokens to the existing query
-	$query['__elgg_ts'] = time();
-	$query['__elgg_token'] = Minds\Core\token::generate($query['__elgg_ts']);
-	$components['query'] = http_build_query($query);
+    // append action tokens to the existing query
+    $query['__elgg_ts'] = time();
+    $query['__elgg_token'] = Minds\Core\token::generate($query['__elgg_ts']);
+    $components['query'] = http_build_query($query);
 
-	// rebuild the full url
-	return elgg_http_build_url($components, $html_encode);
+    // rebuild the full url
+    return elgg_http_build_url($components, $html_encode);
 }
 
 /**
@@ -1281,23 +1323,24 @@ function elgg_add_action_tokens_to_url($url, $html_encode = FALSE) {
  * @return string The new URL with the query element removed.
  * @since 1.7.0
  */
-function elgg_http_remove_url_query_element($url, $element) {
-	$url_array = parse_url($url);
+function elgg_http_remove_url_query_element($url, $element)
+{
+    $url_array = parse_url($url);
 
-	if (isset($url_array['query'])) {
-		$query = elgg_parse_str($url_array['query']);
-	} else {
-		// nothing to remove. Return original URL.
-		return $url;
-	}
+    if (isset($url_array['query'])) {
+        $query = elgg_parse_str($url_array['query']);
+    } else {
+        // nothing to remove. Return original URL.
+        return $url;
+    }
 
-	if (array_key_exists($element, $query)) {
-		unset($query[$element]);
-	}
+    if (array_key_exists($element, $query)) {
+        unset($query[$element]);
+    }
 
-	$url_array['query'] = http_build_query($query);
-	$string = elgg_http_build_url($url_array);
-	return $string;
+    $url_array['query'] = http_build_query($query);
+    $string = elgg_http_build_url($url_array);
+    return $string;
 }
 
 /**
@@ -1309,23 +1352,24 @@ function elgg_http_remove_url_query_element($url, $element) {
  * @return string The new URL with the query strings added
  * @since 1.7.0
  */
-function elgg_http_add_url_query_elements($url, array $elements) {
-	$url_array = parse_url($url);
+function elgg_http_add_url_query_elements($url, array $elements)
+{
+    $url_array = parse_url($url);
 
-	if (isset($url_array['query'])) {
-		$query = elgg_parse_str($url_array['query']);
-	} else {
-		$query = array();
-	}
+    if (isset($url_array['query'])) {
+        $query = elgg_parse_str($url_array['query']);
+    } else {
+        $query = [];
+    }
 
-	foreach ($elements as $k => $v) {
-		$query[$k] = $v;
-	}
+    foreach ($elements as $k => $v) {
+        $query[$k] = $v;
+    }
 
-	$url_array['query'] = http_build_query($query);
-	$string = elgg_http_build_url($url_array, false);
+    $url_array['query'] = http_build_query($query);
+    $string = elgg_http_build_url($url_array, false);
 
-	return $string;
+    return $string;
 }
 
 /**
@@ -1342,91 +1386,92 @@ function elgg_http_add_url_query_elements($url, array $elements) {
  * @return bool
  * @since 1.8.0
  */
-function elgg_http_url_is_identical($url1, $url2, $ignore_params = array('offset', 'limit')) {
-	// if the server portion is missing but it starts with / then add the url in.
-	// @todo use elgg_normalize_url()
-	if (elgg_substr($url1, 0, 1) == '/') {
-		$url1 = elgg_get_site_url() . ltrim($url1, '/');
-	}
+function elgg_http_url_is_identical($url1, $url2, $ignore_params = ['offset', 'limit'])
+{
+    // if the server portion is missing but it starts with / then add the url in.
+    // @todo use elgg_normalize_url()
+    if (elgg_substr($url1, 0, 1) == '/') {
+        $url1 = elgg_get_site_url() . ltrim($url1, '/');
+    }
 
-	if (elgg_substr($url1, 0, 1) == '/') {
-		$url2 = elgg_get_site_url() . ltrim($url2, '/');
-	}
+    if (elgg_substr($url1, 0, 1) == '/') {
+        $url2 = elgg_get_site_url() . ltrim($url2, '/');
+    }
 
-	// @todo - should probably do something with relative URLs
+    // @todo - should probably do something with relative URLs
 
-	if ($url1 == $url2) {
-		return TRUE;
-	}
+    if ($url1 == $url2) {
+        return true;
+    }
 
-	$url1_info = parse_url($url1);
-	$url2_info = parse_url($url2);
+    $url1_info = parse_url($url1);
+    $url2_info = parse_url($url2);
 
-	if (isset($url1_info['path'])) {
-		$url1_info['path'] = trim($url1_info['path'], '/');
-	}
-	if (isset($url2_info['path'])) {
-		$url2_info['path'] = trim($url2_info['path'], '/');
-	}
+    if (isset($url1_info['path'])) {
+        $url1_info['path'] = trim($url1_info['path'], '/');
+    }
+    if (isset($url2_info['path'])) {
+        $url2_info['path'] = trim($url2_info['path'], '/');
+    }
 
-	// compare basic bits
-	$parts = array('scheme', 'host', 'path');
+    // compare basic bits
+    $parts = ['scheme', 'host', 'path'];
 
-	foreach ($parts as $part) {
-		if ((isset($url1_info[$part]) && isset($url2_info[$part]))
-		&& $url1_info[$part] != $url2_info[$part]) {
-			return FALSE;
-		} elseif (isset($url1_info[$part]) && !isset($url2_info[$part])) {
-			return FALSE;
-		} elseif (!isset($url1_info[$part]) && isset($url2_info[$part])) {
-			return FALSE;
-		}
-	}
+    foreach ($parts as $part) {
+        if ((isset($url1_info[$part]) && isset($url2_info[$part]))
+        && $url1_info[$part] != $url2_info[$part]) {
+            return false;
+        } elseif (isset($url1_info[$part]) && !isset($url2_info[$part])) {
+            return false;
+        } elseif (!isset($url1_info[$part]) && isset($url2_info[$part])) {
+            return false;
+        }
+    }
 
-	// quick compare of get params
-	if (isset($url1_info['query']) && isset($url2_info['query'])
-	&& $url1_info['query'] == $url2_info['query']) {
-		return TRUE;
-	}
+    // quick compare of get params
+    if (isset($url1_info['query']) && isset($url2_info['query'])
+    && $url1_info['query'] == $url2_info['query']) {
+        return true;
+    }
 
-	// compare get params that might be out of order
-	$url1_params = array();
-	$url2_params = array();
+    // compare get params that might be out of order
+    $url1_params = [];
+    $url2_params = [];
 
-	if (isset($url1_info['query'])) {
-		if ($url1_info['query'] = html_entity_decode($url1_info['query'])) {
-			$url1_params = elgg_parse_str($url1_info['query']);
-		}
-	}
+    if (isset($url1_info['query'])) {
+        if ($url1_info['query'] = html_entity_decode($url1_info['query'])) {
+            $url1_params = elgg_parse_str($url1_info['query']);
+        }
+    }
 
-	if (isset($url2_info['query'])) {
-		if ($url2_info['query'] = html_entity_decode($url2_info['query'])) {
-			$url2_params = elgg_parse_str($url2_info['query']);
-		}
-	}
+    if (isset($url2_info['query'])) {
+        if ($url2_info['query'] = html_entity_decode($url2_info['query'])) {
+            $url2_params = elgg_parse_str($url2_info['query']);
+        }
+    }
 
-	// drop ignored params
-	foreach ($ignore_params as $param) {
-		if (isset($url1_params[$param])) {
-			unset($url1_params[$param]);
-		}
-		if (isset($url2_params[$param])) {
-			unset($url2_params[$param]);
-		}
-	}
+    // drop ignored params
+    foreach ($ignore_params as $param) {
+        if (isset($url1_params[$param])) {
+            unset($url1_params[$param]);
+        }
+        if (isset($url2_params[$param])) {
+            unset($url2_params[$param]);
+        }
+    }
 
-	// array_diff_assoc only returns the items in arr1 that aren't in arrN
-	// but not the items that ARE in arrN but NOT in arr1
-	// if arr1 is an empty array, this function will return 0 no matter what.
-	// since we only care if they're different and not how different,
-	// add the results together to get a non-zero (ie, different) result
-	$diff_count = count(array_diff_assoc($url1_params, $url2_params));
-	$diff_count += count(array_diff_assoc($url2_params, $url1_params));
-	if ($diff_count > 0) {
-		return FALSE;
-	}
+    // array_diff_assoc only returns the items in arr1 that aren't in arrN
+    // but not the items that ARE in arrN but NOT in arr1
+    // if arr1 is an empty array, this function will return 0 no matter what.
+    // since we only care if they're different and not how different,
+    // add the results together to get a non-zero (ie, different) result
+    $diff_count = count(array_diff_assoc($url1_params, $url2_params));
+    $diff_count += count(array_diff_assoc($url2_params, $url1_params));
+    if ($diff_count > 0) {
+        return false;
+    }
 
-	return TRUE;
+    return true;
 }
 
 /**
@@ -1444,16 +1489,17 @@ function elgg_http_url_is_identical($url1, $url2, $ignore_params = array('offset
  * @return mixed
  * @since 1.8.0
  */
-function elgg_extract($key, array $array, $default = null, $strict = true) {
-	if (!is_array($array)) {
-		return $default;
-	}
+function elgg_extract($key, array $array, $default = null, $strict = true)
+{
+    if (!is_array($array)) {
+        return $default;
+    }
 
-	if ($strict) {
-		return (isset($array[$key])) ? $array[$key] : $default;
-	} else {
-		return (isset($array[$key]) && !empty($array[$key])) ? $array[$key] : $default;
-	}
+    if ($strict) {
+        return (isset($array[$key])) ? $array[$key] : $default;
+    } else {
+        return (isset($array[$key]) && !empty($array[$key])) ? $array[$key] : $default;
+    }
 }
 
 /**
@@ -1477,19 +1523,19 @@ function elgg_extract($key, array $array, $default = null, $strict = true) {
  * @return bool
  */
 function elgg_sort_3d_array_by_value(&$array, $element, $sort_order = SORT_ASC,
-$sort_type = SORT_LOCALE_STRING) {
+$sort_type = SORT_LOCALE_STRING)
+{
+    $sort = [];
 
-	$sort = array();
+    foreach ($array as $v) {
+        if (isset($v[$element])) {
+            $sort[] = strtolower($v[$element]);
+        } else {
+            $sort[] = null;
+        }
+    };
 
-	foreach ($array as $v) {
-		if (isset($v[$element])) {
-			$sort[] = strtolower($v[$element]);
-		} else {
-			$sort[] = NULL;
-		}
-	};
-
-	return array_multisort($sort, $sort_order, $sort_type, $array);
+    return array_multisort($sort, $sort_order, $sort_type, $array);
 }
 
 /**
@@ -1502,13 +1548,14 @@ $sort_type = SORT_LOCALE_STRING) {
  *
  * @return bool Depending on whether it's on or off
  */
-function ini_get_bool($ini_get_arg) {
-	$temp = strtolower(ini_get($ini_get_arg));
+function ini_get_bool($ini_get_arg)
+{
+    $temp = strtolower(ini_get($ini_get_arg));
 
-	if ($temp == '1' || $temp == 'on' || $temp == 'true') {
-		return true;
-	}
-	return false;
+    if ($temp == '1' || $temp == 'on' || $temp == 'true') {
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -1522,25 +1569,26 @@ function ini_get_bool($ini_get_arg) {
  * @since 1.7.0
  * @link http://www.php.net/manual/en/function.ini-get.php
  */
-function elgg_get_ini_setting_in_bytes($setting) {
-	// retrieve INI setting
-	$val = ini_get($setting);
+function elgg_get_ini_setting_in_bytes($setting)
+{
+    // retrieve INI setting
+    $val = ini_get($setting);
 
-	// convert INI setting when shorthand notation is used
-	$last = strtolower($val[strlen($val) - 1]);
-	switch($last) {
-		case 'g':
-			$val *= 1024;
-			// fallthrough intentional
-		case 'm':
-			$val *= 1024;
-			// fallthrough intentional
-		case 'k':
-			$val *= 1024;
-	}
+    // convert INI setting when shorthand notation is used
+    $last = strtolower($val[strlen($val) - 1]);
+    switch ($last) {
+        case 'g':
+            $val *= 1024;
+            // fallthrough intentional
+        case 'm':
+            $val *= 1024;
+            // fallthrough intentional
+        case 'k':
+            $val *= 1024;
+    }
 
-	// return byte value
-	return $val;
+    // return byte value
+    return $val;
 }
 
 /**
@@ -1553,12 +1601,13 @@ function elgg_get_ini_setting_in_bytes($setting) {
  * @return bool
  * @todo This is used once in metadata.php.  Use a lambda function instead.
  */
-function is_not_null($string) {
-	if (($string === '') || ($string === false) || ($string === null)) {
-		return false;
-	}
+function is_not_null($string)
+{
+    if (($string === '') || ($string === false) || ($string === null)) {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -1574,27 +1623,28 @@ function is_not_null($string) {
  * @since 1.7.0
  * @access private
  */
-function elgg_normalise_plural_options_array($options, $singulars) {
-	foreach ($singulars as $singular) {
-		$plural = $singular . 's';
+function elgg_normalise_plural_options_array($options, $singulars)
+{
+    foreach ($singulars as $singular) {
+        $plural = $singular . 's';
 
-		if (array_key_exists($singular, $options)) {
-			if ($options[$singular] === ELGG_ENTITIES_ANY_VALUE) {
-				$options[$plural] = $options[$singular];
-			} else {
-				// Test for array refs #2641
-				if (!is_array($options[$singular])) {
-					$options[$plural] = array($options[$singular]);
-				} else {
-					$options[$plural] = $options[$singular];
-				}
-			}
-		}
+        if (array_key_exists($singular, $options)) {
+            if ($options[$singular] === ELGG_ENTITIES_ANY_VALUE) {
+                $options[$plural] = $options[$singular];
+            } else {
+                // Test for array refs #2641
+                if (!is_array($options[$singular])) {
+                    $options[$plural] = [$options[$singular]];
+                } else {
+                    $options[$plural] = $options[$singular];
+                }
+            }
+        }
 
-		unset($options[$singular]);
-	}
+        unset($options[$singular]);
+    }
 
-	return $options;
+    return $options;
 }
 
 /**
@@ -1612,21 +1662,22 @@ function elgg_normalise_plural_options_array($options, $singulars) {
  * @see register_shutdown_hook()
  * @access private
  */
-function _elgg_shutdown_hook() {
-	global $START_MICROTIME;
+function _elgg_shutdown_hook()
+{
+    global $START_MICROTIME;
 
-	try {
-		elgg_trigger_event('shutdown', 'system');
+    try {
+        elgg_trigger_event('shutdown', 'system');
 
-		$time = (float)(microtime(TRUE) - $START_MICROTIME);
-		// demoted to NOTICE from DEBUG so javascript is not corrupted
-		elgg_log("Page {$_SERVER['REQUEST_URI']} generated in $time seconds", 'NOTICE');
-	} catch (Exception $e) {
-		$message = 'Error: ' . get_class($e) . ' thrown within the shutdown handler. ';
-		$message .= "Message: '{$e->getMessage()}' in file {$e->getFile()} (line {$e->getLine()})";
-		error_log($message);
-		error_log("Exception trace stack: {$e->getTraceAsString()}");
-	}
+        $time = (float)(microtime(true) - $START_MICROTIME);
+        // demoted to NOTICE from DEBUG so javascript is not corrupted
+        elgg_log("Page {$_SERVER['REQUEST_URI']} generated in $time seconds", 'NOTICE');
+    } catch (Exception $e) {
+        $message = 'Error: ' . get_class($e) . ' thrown within the shutdown handler. ';
+        $message .= "Message: '{$e->getMessage()}' in file {$e->getFile()} (line {$e->getLine()})";
+        error_log($message);
+        error_log("Exception trace stack: {$e->getTraceAsString()}");
+    }
 }
 
 /**
@@ -1641,8 +1692,9 @@ function _elgg_shutdown_hook() {
  * @elgg_pagehandler js
  * @access private
  */
-function elgg_js_page_handler($page) {
-	return elgg_cacheable_view_page_handler($page, 'js');
+function elgg_js_page_handler($page)
+{
+    return elgg_cacheable_view_page_handler($page, 'js');
 }
 
 /**
@@ -1656,33 +1708,34 @@ function elgg_js_page_handler($page) {
  * @elgg_pagehandler ajax
  * @access private
  */
-function elgg_ajax_page_handler($page) {
-	set_input('ajax', true);
-	if (is_array($page) && sizeof($page)) {
-		// throw away 'view' and form the view name
-		unset($page[0]);
-		$view = implode('/', $page);
+function elgg_ajax_page_handler($page)
+{
+    set_input('ajax', true);
+    if (is_array($page) && sizeof($page)) {
+        // throw away 'view' and form the view name
+        unset($page[0]);
+        $view = implode('/', $page);
 
-		$allowed_views = elgg_get_config('allowed_ajax_views');
-		if (!array_key_exists($view, $allowed_views)) {
-			header('HTTP/1.1 403 Forbidden');
-			exit;
-		}
+        $allowed_views = elgg_get_config('allowed_ajax_views');
+        if (!array_key_exists($view, $allowed_views)) {
+            header('HTTP/1.1 403 Forbidden');
+            exit;
+        }
 
-		// pull out GET parameters through filter
-		$vars = array();
-		foreach ($_GET as $name => $value) {
-			$vars[$name] = get_input($name);
-		}
+        // pull out GET parameters through filter
+        $vars = [];
+        foreach ($_GET as $name => $value) {
+            $vars[$name] = get_input($name);
+        }
 
-		if (isset($vars['guid'])) {
-			$vars['entity'] = get_entity($vars['guid']);
-		}
+        if (isset($vars['guid'])) {
+            $vars['entity'] = get_entity($vars['guid']);
+        }
 
-		echo elgg_view($view, $vars);
-		return true;
-	}
-	return false;
+        echo elgg_view($view, $vars);
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -1696,13 +1749,14 @@ function elgg_ajax_page_handler($page) {
  * @elgg_pagehandler css
  * @access private
  */
-function elgg_css_page_handler($page) {
-	if (!isset($page[0])) {
-		// default css
-		$page[0] = 'elgg';
-	}
+function elgg_css_page_handler($page)
+{
+    if (!isset($page[0])) {
+        // default css
+        $page[0] = 'elgg';
+    }
 
-	return elgg_cacheable_view_page_handler($page, 'css');
+    return elgg_cacheable_view_page_handler($page, 'css');
 }
 
 /**
@@ -1716,53 +1770,53 @@ function elgg_css_page_handler($page) {
  * @return bool
  * @access private
  */
-function elgg_cacheable_view_page_handler($page, $type) {
+function elgg_cacheable_view_page_handler($page, $type)
+{
+    switch ($type) {
+        case 'js':
+            $content_type = 'text/javascript';
+            break;
 
-	switch ($type) {
-		case 'js':
-			$content_type = 'text/javascript';
-			break;
+        case 'css':
+            $content_type = 'text/css';
+            break;
 
-		case 'css':
-			$content_type = 'text/css';
-			break;
+        default:
+            return false;
+            break;
+    }
 
-		default:
-			return false;
-			break;
-	}
+    if ($page) {
+        // the view file names can have multiple dots
+        // eg: views/default/js/calendars/jquery.fullcalendar.min.php
+        // translates to the url /js/calendars/jquery.fullcalendar.min.<ts>.js
+        // and the view js/calendars/jquery.fullcalendar.min
+        // we ignore the last two dots for the ts and the ext.
+        // Additionally, the timestamp is optional.
+        $page = implode('/', $page);
+        $regex = '|(.+?)\.([\d]+\.)?\w+$|';
+        preg_match($regex, $page, $matches);
+        $view = $matches[1];
+        $return = elgg_view("$type/$view");
 
-	if ($page) {
-		// the view file names can have multiple dots
-		// eg: views/default/js/calendars/jquery.fullcalendar.min.php
-		// translates to the url /js/calendars/jquery.fullcalendar.min.<ts>.js
-		// and the view js/calendars/jquery.fullcalendar.min
-		// we ignore the last two dots for the ts and the ext.
-		// Additionally, the timestamp is optional.
-		$page = implode('/', $page);
-		$regex = '|(.+?)\.([\d]+\.)?\w+$|';
-		preg_match($regex, $page, $matches);
-		$view = $matches[1];
-		$return = elgg_view("$type/$view");
+        if ($type == 'js') {
+            //	$return = JSMin::minify($return);
+        } elseif ($type == 'css') {
+            $return = CssMin::minify($return);
+        }
 
-		if($type == 'js'){
-		//	$return = JSMin::minify($return);
-		} elseif($type == 'css'){
-			$return = CssMin::minify($return);
-		}
+        header("Content-type: $content_type");
 
-		header("Content-type: $content_type");
+        // @todo should js be cached when simple cache turned off
+        header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', strtotime("+10 days")), true);
+        header("Pragma: public");
+        header("Cache-Control: public");
+        header("Content-Length: " . strlen($return));
 
-		// @todo should js be cached when simple cache turned off
-		header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', strtotime("+10 days")), true);
-		header("Pragma: public");
-		header("Cache-Control: public");
-		header("Content-Length: " . strlen($return));
-
-		echo $return;
-		return true;
-	}
-	return false;
+        echo $return;
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -1776,19 +1830,20 @@ function elgg_cacheable_view_page_handler($page, $type) {
  * @return string
  * @access private
  */
-function elgg_sql_reverse_order_by_clause($order_by) {
-	$order_by = strtolower($order_by);
+function elgg_sql_reverse_order_by_clause($order_by)
+{
+    $order_by = strtolower($order_by);
 
-	if (strpos($order_by, ' asc') !== false) {
-		$return = str_replace(' asc', ' desc', $order_by);
-	} elseif (strpos($order_by, ' desc') !== false) {
-		$return = str_replace(' desc', ' asc', $order_by);
-	} else {
-		// no order specified, so default to desc since mysql defaults to asc
-		$return = $order_by . ' desc';
-	}
+    if (strpos($order_by, ' asc') !== false) {
+        $return = str_replace(' asc', ' desc', $order_by);
+    } elseif (strpos($order_by, ' desc') !== false) {
+        $return = str_replace(' desc', ' asc', $order_by);
+    } else {
+        // no order specified, so default to desc since mysql defaults to asc
+        $return = $order_by . ' desc';
+    }
 
-	return $return;
+    return $return;
 }
 
 /**
@@ -1802,9 +1857,10 @@ function elgg_sql_reverse_order_by_clause($order_by) {
  * @return bool
  * @access private
  */
-function elgg_batch_enable_callback($object) {
-	// our db functions return the number of rows affected...
-	return $object->enable() ? true : false;
+function elgg_batch_enable_callback($object)
+{
+    // our db functions return the number of rows affected...
+    return $object->enable() ? true : false;
 }
 
 /**
@@ -1816,9 +1872,10 @@ function elgg_batch_enable_callback($object) {
  * @return bool
  * @access private
  */
-function elgg_batch_disable_callback($object) {
-	// our db functions return the number of rows affected...
-	return $object->disable() ? true : false;
+function elgg_batch_disable_callback($object)
+{
+    // our db functions return the number of rows affected...
+    return $object->disable() ? true : false;
 }
 
 /**
@@ -1830,9 +1887,10 @@ function elgg_batch_disable_callback($object) {
  * @return bool
  * @access private
  */
-function elgg_batch_delete_callback($object) {
-	// our db functions return the number of rows affected...
-	return $object->delete() ? true : false;
+function elgg_batch_delete_callback($object)
+{
+    // our db functions return the number of rows affected...
+    return $object->delete() ? true : false;
 }
 
 /**
@@ -1844,51 +1902,52 @@ function elgg_batch_delete_callback($object) {
  * @return bool
  * @access private
  */
-function elgg_is_valid_options_for_batch_operation($options, $type) {
-	if (!$options || !is_array($options)) {
-		return false;
-	}
+function elgg_is_valid_options_for_batch_operation($options, $type)
+{
+    if (!$options || !is_array($options)) {
+        return false;
+    }
 
-	// at least one of these is required.
-	$required = array(
-		// generic restraints
-		'guid', 'guids'
-	);
+    // at least one of these is required.
+    $required = [
+        // generic restraints
+        'guid', 'guids'
+    ];
 
-	switch ($type) {
-		case 'metadata':
-			$metadata_required = array(
-				'metadata_owner_guid', 'metadata_owner_guids',
-				'metadata_name', 'metadata_names',
-				'metadata_value', 'metadata_values'
-			);
+    switch ($type) {
+        case 'metadata':
+            $metadata_required = [
+                'metadata_owner_guid', 'metadata_owner_guids',
+                'metadata_name', 'metadata_names',
+                'metadata_value', 'metadata_values'
+            ];
 
-			$required = array_merge($required, $metadata_required);
-			break;
+            $required = array_merge($required, $metadata_required);
+            break;
 
-		case 'annotations':
-		case 'annotation':
-			$annotations_required = array(
-				'annotation_owner_guid', 'annotation_owner_guids',
-				'annotation_name', 'annotation_names',
-				'annotation_value', 'annotation_values'
-			);
+        case 'annotations':
+        case 'annotation':
+            $annotations_required = [
+                'annotation_owner_guid', 'annotation_owner_guids',
+                'annotation_name', 'annotation_names',
+                'annotation_value', 'annotation_values'
+            ];
 
-			$required = array_merge($required, $annotations_required);
-			break;
+            $required = array_merge($required, $annotations_required);
+            break;
 
-		default:
-			return false;
-	}
+        default:
+            return false;
+    }
 
-	foreach ($required as $key) {
-		// check that it exists and is something.
-		if (isset($options[$key]) && $options[$key]) {
-			return true;
-		}
-	}
+    foreach ($required as $key) {
+        // check that it exists and is something.
+        if (isset($options[$key]) && $options[$key]) {
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 /**
@@ -1904,27 +1963,28 @@ function elgg_is_valid_options_for_batch_operation($options, $type) {
  * @return bool
  * @access private
  */
-function elgg_walled_garden_index($hook, $type, $value, $params) {
-	if ($value) {
-		// do not create a second index page so return
-		return;
-	}
+function elgg_walled_garden_index($hook, $type, $value, $params)
+{
+    if ($value) {
+        // do not create a second index page so return
+        return;
+    }
 
-	elgg_load_css('elgg.walled_garden');
-	elgg_load_js('elgg.walled_garden');
+    elgg_load_css('elgg.walled_garden');
+    elgg_load_js('elgg.walled_garden');
 
-	$content = elgg_view('core/walled_garden/login');
+    $content = elgg_view('core/walled_garden/login');
 
-	$params = array(
-		'content' => $content,
-		'class' => 'elgg-walledgarden-double',
-		'id' => 'elgg-walledgarden-login',
-	);
-	$body = elgg_view_layout('walled_garden', $params);
-	echo elgg_view_page('', $body, 'walled_garden');
+    $params = [
+        'content' => $content,
+        'class' => 'elgg-walledgarden-double',
+        'id' => 'elgg-walledgarden-login',
+    ];
+    $body = elgg_view_layout('walled_garden', $params);
+    echo elgg_view_page('', $body, 'walled_garden');
 
-	// return true to prevent other plugins from adding a front page
-	return true;
+    // return true to prevent other plugins from adding a front page
+    return true;
 }
 
 /**
@@ -1934,15 +1994,16 @@ function elgg_walled_garden_index($hook, $type, $value, $params) {
  * @return string
  * @access private
  */
-function _elgg_walled_garden_ajax_handler($page) {
-	$view = $page[0];
-	$params = array(
-		'content' => elgg_view("core/walled_garden/$view"),
-		'class' => 'elgg-walledgarden-single hidden',
-		'id' => str_replace('_', '-', "elgg-walledgarden-$view"),
-	);
-	echo elgg_view_layout('walled_garden', $params);
-	return true;
+function _elgg_walled_garden_ajax_handler($page)
+{
+    $view = $page[0];
+    $params = [
+        'content' => elgg_view("core/walled_garden/$view"),
+        'class' => 'elgg-walledgarden-single hidden',
+        'id' => str_replace('_', '-', "elgg-walledgarden-$view"),
+    ];
+    echo elgg_view_layout('walled_garden', $params);
+    return true;
 }
 
 /**
@@ -1959,16 +2020,17 @@ function _elgg_walled_garden_ajax_handler($page) {
  * @return void
  * @access private
  */
-function elgg_walled_garden() {
-	global $CONFIG;
+function elgg_walled_garden()
+{
+    global $CONFIG;
 
-	elgg_register_css('elgg.walled_garden', '/css/walled_garden.css');
-	elgg_register_js('elgg.walled_garden', '/js/walled_garden.js');
+    elgg_register_css('elgg.walled_garden', '/css/walled_garden.css');
+    elgg_register_js('elgg.walled_garden', '/js/walled_garden.js');
 
-	// check for external page view
-	if (isset($CONFIG->site) && $CONFIG->site instanceof ElggSite) {
-		$CONFIG->site->checkWalledGarden();
-	}
+    // check for external page view
+    if (isset($CONFIG->site) && $CONFIG->site instanceof ElggSite) {
+        $CONFIG->site->checkWalledGarden();
+    }
 }
 
 /**
@@ -1980,11 +2042,12 @@ function elgg_walled_garden() {
  * @return array
  * @access private
  */
-function _elgg_walled_garden_remove_public_access($hook, $type, $accesses) {
-	if (isset($accesses[ACCESS_PUBLIC])) {
-		unset($accesses[ACCESS_PUBLIC]);
-	}
-	return $accesses;
+function _elgg_walled_garden_remove_public_access($hook, $type, $accesses)
+{
+    if (isset($accesses[ACCESS_PUBLIC])) {
+        unset($accesses[ACCESS_PUBLIC]);
+    }
+    return $accesses;
 }
 
 /**
@@ -1999,17 +2062,17 @@ function _elgg_walled_garden_remove_public_access($hook, $type, $accesses) {
  *
  * @access private
  */
-function _elgg_engine_boot() {
-	// Register the error handlers
-	set_error_handler('_elgg_php_error_handler');
-	set_exception_handler('_elgg_php_exception_handler');
+function _elgg_engine_boot()
+{
+    // Register the error handlers
+    set_error_handler('_elgg_php_error_handler');
+    set_exception_handler('_elgg_php_exception_handler');
 
-	verify_installation();
+    verify_installation();
 
-	_elgg_load_application_config();
+    _elgg_load_application_config();
 
-	_elgg_load_site_config();
-
+    _elgg_load_site_config();
 }
 
 /**
@@ -2021,24 +2084,25 @@ function _elgg_engine_boot() {
  * @return void
  * @access private
  */
-function elgg_init() {
-	global $CONFIG;
+function elgg_init()
+{
+    global $CONFIG;
 
-	$base_url = isset($CONFIG->cdn_url) ? $CONFIG->cdn_url : elgg_get_site_url();
+    $base_url = isset($CONFIG->cdn_url) ? $CONFIG->cdn_url : elgg_get_site_url();
 
-	// Trigger the shutdown:system event upon PHP shutdown.
-	register_shutdown_function('_elgg_shutdown_hook');
+    // Trigger the shutdown:system event upon PHP shutdown.
+    register_shutdown_function('_elgg_shutdown_hook');
 
-	// Sets a blacklist of words in the current language.
-	// This is a comma separated list in word:blacklist.
-	// @todo possibly deprecate
-	$CONFIG->wordblacklist = array();
-	$list = explode(',', elgg_echo('word:blacklist'));
-	if ($list) {
-		foreach ($list as $l) {
-			$CONFIG->wordblacklist[] = trim($l);
-		}
-	}
+    // Sets a blacklist of words in the current language.
+    // This is a comma separated list in word:blacklist.
+    // @todo possibly deprecate
+    $CONFIG->wordblacklist = [];
+    $list = explode(',', elgg_echo('word:blacklist'));
+    if ($list) {
+        foreach ($list as $l) {
+            $CONFIG->wordblacklist[] = trim($l);
+        }
+    }
 }
 
 /**
@@ -2046,11 +2110,13 @@ function elgg_init() {
  *
  * @return bool
  */
-function minds_is_multisite(){
-	if(isset($CONFIG->multisite))
-		return true;
+function minds_is_multisite()
+{
+    if (isset($CONFIG->multisite)) {
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 /**
@@ -2065,12 +2131,13 @@ function minds_is_multisite(){
  * @return array
  * @access private
  */
-function elgg_api_test($hook, $type, $value, $params) {
-	global $CONFIG;
-	$value[] = $CONFIG->path . 'engine/tests/api/entity_getter_functions.php';
-	$value[] = $CONFIG->path . 'engine/tests/api/helpers.php';
-	$value[] = $CONFIG->path . 'engine/tests/regression/trac_bugs.php';
-	return $value;
+function elgg_api_test($hook, $type, $value, $params)
+{
+    global $CONFIG;
+    $value[] = $CONFIG->path . 'engine/tests/api/entity_getter_functions.php';
+    $value[] = $CONFIG->path . 'engine/tests/api/helpers.php';
+    $value[] = $CONFIG->path . 'engine/tests/regression/trac_bugs.php';
+    return $value;
 }
 
 /**#@+
@@ -2094,7 +2161,7 @@ define('ACCESS_FRIENDS', -2);
  * @var NULL
  * @since 1.7
  */
-define('ELGG_ENTITIES_ANY_VALUE', NULL);
+define('ELGG_ENTITIES_ANY_VALUE', null);
 
 /**
  * Constant to request the value of a parameter be nothing in elgg_get_*() functions.
@@ -2126,4 +2193,3 @@ define('REFERER', -1);
 
 elgg_register_event_handler('init', 'system', 'elgg_init');
 elgg_register_event_handler('boot', 'system', '_elgg_engine_boot', 1);
-

@@ -15,11 +15,12 @@
  * @return bool
  * @access private
  */
-function get_object_entity_as_row($guid) {
-	global $CONFIG;
+function get_object_entity_as_row($guid)
+{
+    global $CONFIG;
 
-	$guid = (int)$guid;
-	return get_data_row("SELECT * from {$CONFIG->dbprefix}objects_entity where guid=$guid");
+    $guid = (int)$guid;
+    return get_data_row("SELECT * from {$CONFIG->dbprefix}objects_entity where guid=$guid");
 }
 
 /**
@@ -33,45 +34,46 @@ function get_object_entity_as_row($guid) {
  * @return bool
  * @access private
  */
-function create_object_entity($guid, $title, $description) {
-	global $CONFIG;
+function create_object_entity($guid, $title, $description)
+{
+    global $CONFIG;
 
-	$guid = (int)$guid;
+    $guid = (int)$guid;
 
-	$row = get_entity_as_row($guid);
+    $row = get_entity_as_row($guid);
 
-	if ($row) {
-		// Core entities row exists and we have access to it
-		$query = "SELECT guid from {$CONFIG->dbprefix}objects_entity where guid = {$guid}";
-		if ($exists = get_data_row($query)) {
-			$query = "UPDATE {$CONFIG->dbprefix}objects_entity
+    if ($row) {
+        // Core entities row exists and we have access to it
+        $query = "SELECT guid from {$CONFIG->dbprefix}objects_entity where guid = {$guid}";
+        if ($exists = get_data_row($query)) {
+            $query = "UPDATE {$CONFIG->dbprefix}objects_entity
 				set title='$title', description='$description' where guid=$guid";
 
-			$result = update_data($query);
-			if ($result != false) {
-				// Update succeeded, continue
-				$entity = get_entity($guid);
-				elgg_trigger_event('update', $entity->type, $entity);
-				return $guid;
-			}
-		} else {
-			// Update failed, attempt an insert.
-			$query = "INSERT into {$CONFIG->dbprefix}objects_entity
+            $result = update_data($query);
+            if ($result != false) {
+                // Update succeeded, continue
+                $entity = get_entity($guid);
+                elgg_trigger_event('update', $entity->type, $entity);
+                return $guid;
+            }
+        } else {
+            // Update failed, attempt an insert.
+            $query = "INSERT into {$CONFIG->dbprefix}objects_entity
 				(guid, title, description) values ($guid, '$title','$description')";
 
-			$result = insert_data($query);
-			if ($result !== false) {
-				$entity = get_entity($guid);
-				if (elgg_trigger_event('create', $entity->type, $entity)) {
-					return $guid;
-				} else {
-					$entity->delete();
-				}
-			}
-		}
-	}
+            $result = insert_data($query);
+            if ($result !== false) {
+                $entity = get_entity($guid);
+                if (elgg_trigger_event('create', $entity->type, $entity)) {
+                    return $guid;
+                } else {
+                    $entity->delete();
+                }
+            }
+        }
+    }
 
-	return false;
+    return false;
 }
 
 /**
@@ -83,18 +85,19 @@ function create_object_entity($guid, $title, $description) {
  *
  * @return false|array On success, an array of ElggSites
  */
-function get_object_sites($object_guid, $limit = 10, $offset = 0) {
-	$object_guid = (int)$object_guid;
-	$limit = (int)$limit;
-	$offset = (int)$offset;
+function get_object_sites($object_guid, $limit = 10, $offset = 0)
+{
+    $object_guid = (int)$object_guid;
+    $limit = (int)$limit;
+    $offset = (int)$offset;
 
-	return elgg_get_entities_from_relationship(array(
-		'relationship' => 'member_of_site',
-		'relationship_guid' => $object_guid,
-		'type' => 'site',
-		'limit' => $limit,
-		'offset' => $offset,
-	));
+    return elgg_get_entities_from_relationship([
+        'relationship' => 'member_of_site',
+        'relationship_guid' => $object_guid,
+        'type' => 'site',
+        'limit' => $limit,
+        'offset' => $offset,
+    ]);
 }
 
 /**
@@ -108,10 +111,11 @@ function get_object_sites($object_guid, $limit = 10, $offset = 0) {
  * @return array
  * @access private
  */
-function objects_test($hook, $type, $value, $params) {
-	global $CONFIG;
-	$value[] = "{$CONFIG->path}engine/tests/objects/objects.php";
-	return $value;
+function objects_test($hook, $type, $value, $params)
+{
+    global $CONFIG;
+    $value[] = "{$CONFIG->path}engine/tests/objects/objects.php";
+    return $value;
 }
 
 elgg_register_event_handler('init', 'system', 'objects_init', 0);

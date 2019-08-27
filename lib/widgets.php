@@ -20,47 +20,48 @@
  * @return array An 2D array of ElggWidget objects
  * @since 1.8.0
  */
-function elgg_get_widgets($options, $context){
+function elgg_get_widgets($options, $context)
+{
+    if (!is_array($options)) {
+        $user_guid = $options;
+        $options = [];
+        $options['owner_guid'] = $user_guid;
+        if (isset($context)) {
+            $attrs['context'] = $context;
+        }
+    }
 
-	if(!is_array($options)){
-		$user_guid = $options;
-		$options = array();
-		$options['owner_guid'] = $user_guid;
-		if(isset($context)){
-                	$attrs['context'] = $context;
-       		 }
-	}
+    $widgets = elgg_get_entities(
+        [
+            'type'=>'widget',
+            'owner_guid'=> $options['owner_guid'],
+            'limit'=>0
+        ]
+    );
 
-	$widgets = elgg_get_entities(
-		array(
-			'type'=>'widget',
-			'owner_guid'=> $options['owner_guid'],
-			'limit'=>0
-		)
-	);
+    if (!$widgets) {
+        return [];
+    }
 
-	if (!$widgets) {
-		return array();
-	}
+    $sorted_widgets = [];
+    foreach ($widgets as $widget) {
+        if ($widget->context != $context) {
+            continue;
+        }
+        if (!isset($sorted_widgets[(int)$widget->column])) {
+            $sorted_widgets[(int)$widget->column] = [];
+        }
 
-	$sorted_widgets = array();
-	foreach ($widgets as $widget) {
-		if($widget->context != $context){
-			continue;
-		}
-		if (!isset($sorted_widgets[(int)$widget->column])) {
-			$sorted_widgets[(int)$widget->column] = array();
-		}
-
-                if (!isset($sorted_widgets[(int)$widget->column][$widget->order]))
-                    $sorted_widgets[(int)$widget->column][$widget->order] = $widget;
-                else
-                    $sorted_widgets[(int)$widget->column][] = $widget;
-	}
-	foreach ($sorted_widgets as $col => $widgets) {
-		ksort($sorted_widgets[$col]);
-	}
-	return $sorted_widgets;
+        if (!isset($sorted_widgets[(int)$widget->column][$widget->order])) {
+            $sorted_widgets[(int)$widget->column][$widget->order] = $widget;
+        } else {
+            $sorted_widgets[(int)$widget->column][] = $widget;
+        }
+    }
+    foreach ($sorted_widgets as $col => $widgets) {
+        ksort($sorted_widgets[$col]);
+    }
+    return $sorted_widgets;
 }
 
 /**
@@ -74,34 +75,34 @@ function elgg_get_widgets($options, $context){
  * @return int|false Widget GUID or false on failure
  * @since 1.8.0
  */
-function elgg_create_widget($owner_guid, $handler, $context, $access_id = null) {
+function elgg_create_widget($owner_guid, $handler, $context, $access_id = null)
+{
+    if (empty($owner_guid) || empty($handler) || !elgg_is_widget_type($handler)) {
+        return false;
+    }
 
-	if (empty($owner_guid) || empty($handler) || !elgg_is_widget_type($handler)) {
-		return false;
-	}
+    $owner = get_entity($owner_guid, 'user');
+    if (!$owner) {
+        return false;
+    }
 
-	$owner = get_entity($owner_guid, 'user');
-	if (!$owner) {
-		return false;
-	}
+    $widget = new ElggWidget;
+    $widget->owner_guid = $owner_guid;
+    $widget->container_guid = $owner_guid; // @todo - will this work for group widgets
+    if (isset($access_id)) {
+        $widget->access_id = $access_id;
+    } else {
+        $widget->access_id = get_default_access();
+    }
 
-	$widget = new ElggWidget;
-	$widget->owner_guid = $owner_guid;
-	$widget->container_guid = $owner_guid; // @todo - will this work for group widgets
-	if (isset($access_id)) {
-		$widget->access_id = $access_id;
-	} else {
-		$widget->access_id = get_default_access();
-	}
+    $widget->handler = $handler;
+    $widget->context = $context;
 
-	$widget->handler = $handler;
-        $widget->context = $context;
-
-	if ($guid = $widget->save()) {
-      		return $guid;
-	} else {
-		return false;
-	}
+    if ($guid = $widget->save()) {
+        return $guid;
+    } else {
+        return false;
+    }
 }
 
 /**
@@ -115,27 +116,27 @@ function elgg_create_widget($owner_guid, $handler, $context, $access_id = null) 
  * @return bool
  * @since 1.8.0
  */
-function elgg_can_edit_widget_layout($context, $user_guid = 0) {
+function elgg_can_edit_widget_layout($context, $user_guid = 0)
+{
+    $user = get_entity($user_guid, 'user');
+    if (!$user) {
+        $user = elgg_get_logged_in_user_entity();
+    }
 
-	$user = get_entity($user_guid, 'user');
-	if (!$user) {
-		$user = elgg_get_logged_in_user_entity();
-	}
+    $return = false;
+    if (elgg_is_admin_logged_in()) {
+        $return = true;
+    }
+    if (elgg_get_page_owner_guid() == $user->guid) {
+        $return = true;
+    }
 
-	$return = false;
-	if (elgg_is_admin_logged_in()) {
-		$return = true;
-	}
-	if (elgg_get_page_owner_guid() == $user->guid) {
-		$return = true;
-	}
-
-	$params = array(
-		'user' => $user,
-		'context' => $context,
-		'page_owner' => elgg_get_page_owner_entity()
-	);
-	return elgg_trigger_plugin_hook('permissions_check', 'widget_layout', $params, $return);
+    $params = [
+        'user' => $user,
+        'context' => $context,
+        'page_owner' => elgg_get_page_owner_entity()
+    ];
+    return elgg_trigger_plugin_hook('permissions_check', 'widget_layout', $params, $return);
 }
 
 /**
@@ -154,30 +155,30 @@ function elgg_can_edit_widget_layout($context, $user_guid = 0) {
  * @return bool
  * @since 1.8.0
  */
-function elgg_register_widget_type($handler, $name, $description, $context = "all", $multiple = false) {
+function elgg_register_widget_type($handler, $name, $description, $context = "all", $multiple = false)
+{
+    if (!$handler || !$name) {
+        return false;
+    }
 
-	if (!$handler || !$name) {
-		return false;
-	}
+    global $CONFIG;
 
-	global $CONFIG;
+    if (!isset($CONFIG->widgets)) {
+        $CONFIG->widgets = new stdClass;
+    }
+    if (!isset($CONFIG->widgets->handlers)) {
+        $CONFIG->widgets->handlers = [];
+    }
 
-	if (!isset($CONFIG->widgets)) {
-		$CONFIG->widgets = new stdClass;
-	}
-	if (!isset($CONFIG->widgets->handlers)) {
-		$CONFIG->widgets->handlers = array();
-	}
+    $handlerobj = new stdClass;
+    $handlerobj->name = $name;
+    $handlerobj->description = $description;
+    $handlerobj->context = explode(",", $context);
+    $handlerobj->multiple = $multiple;
 
-	$handlerobj = new stdClass;
-	$handlerobj->name = $name;
-	$handlerobj->description = $description;
-	$handlerobj->context = explode(",", $context);
-	$handlerobj->multiple = $multiple;
+    $CONFIG->widgets->handlers[$handler] = $handlerobj;
 
-	$CONFIG->widgets->handlers[$handler] = $handlerobj;
-
-	return true;
+    return true;
 }
 
 /**
@@ -188,21 +189,21 @@ function elgg_register_widget_type($handler, $name, $description, $context = "al
  * @return void
  * @since 1.8.0
  */
-function elgg_unregister_widget_type($handler) {
+function elgg_unregister_widget_type($handler)
+{
+    global $CONFIG;
 
-	global $CONFIG;
+    if (!isset($CONFIG->widgets)) {
+        return;
+    }
 
-	if (!isset($CONFIG->widgets)) {
-		return;
-	}
+    if (!isset($CONFIG->widgets->handlers)) {
+        return;
+    }
 
-	if (!isset($CONFIG->widgets->handlers)) {
-		return;
-	}
-
-	if (isset($CONFIG->widgets->handlers[$handler])) {
-		unset($CONFIG->widgets->handlers[$handler]);
-	}
+    if (isset($CONFIG->widgets->handlers[$handler])) {
+        unset($CONFIG->widgets->handlers[$handler]);
+    }
 }
 
 /**
@@ -213,19 +214,18 @@ function elgg_unregister_widget_type($handler) {
  * @return bool Whether or not that widget type exists
  * @since 1.8.0
  */
-function elgg_is_widget_type($handler) {
+function elgg_is_widget_type($handler)
+{
+    global $CONFIG;
 
-	global $CONFIG;
+    if (!empty($CONFIG->widgets) &&
+        !empty($CONFIG->widgets->handlers) &&
+        is_array($CONFIG->widgets->handlers) &&
+        array_key_exists($handler, $CONFIG->widgets->handlers)) {
+        return true;
+    }
 
-	if (!empty($CONFIG->widgets) &&
-		!empty($CONFIG->widgets->handlers) &&
-		is_array($CONFIG->widgets->handlers) &&
-		array_key_exists($handler, $CONFIG->widgets->handlers)) {
-
-		return true;
-	}
-
-	return false;
+    return false;
 }
 
 /**
@@ -239,35 +239,35 @@ function elgg_is_widget_type($handler) {
  * @return array
  * @since 1.8.0
  */
-function elgg_get_widget_types($context = "", $exact = false) {
+function elgg_get_widget_types($context = "", $exact = false)
+{
+    global $CONFIG;
 
-	global $CONFIG;
+    if (empty($CONFIG->widgets) ||
+        empty($CONFIG->widgets->handlers) ||
+        !is_array($CONFIG->widgets->handlers)) {
+        // no widgets
+        return [];
+    }
 
-	if (empty($CONFIG->widgets) ||
-		empty($CONFIG->widgets->handlers) ||
-		!is_array($CONFIG->widgets->handlers)) {
-		// no widgets
-		return array();
-	}
+    if (!$context) {
+        $context = elgg_get_context();
+    }
 
-	if (!$context) {
-		$context = elgg_get_context();
-	}
+    $widgets = [];
+    foreach ($CONFIG->widgets->handlers as $key => $handler) {
+        if ($exact) {
+            if (in_array($context, $handler->context, true)) {
+                $widgets[$key] = $handler;
+            }
+        } else {
+            if (in_array('all', $handler->context, true) || in_array($context, $handler->context, true)) {
+                $widgets[$key] = $handler;
+            }
+        }
+    }
 
-	$widgets = array();
-	foreach ($CONFIG->widgets->handlers as $key => $handler) {
-		if ($exact) {
-			if (in_array($context, $handler->context)) {
-				$widgets[$key] = $handler;
-			}
-		} else {
-			if (in_array('all', $handler->context) || in_array($context, $handler->context)) {
-				$widgets[$key] = $handler;
-			}
-		}
-	}
-
-	return $widgets;
+    return $widgets;
 }
 
 /**
@@ -276,9 +276,10 @@ function elgg_get_widget_types($context = "", $exact = false) {
  * @return void
  * @access private
  */
-function elgg_widget_run_once() {
-return;
-	add_subtype("object", "widget", "ElggWidget");
+function elgg_widget_run_once()
+{
+    return;
+    add_subtype("object", "widget", "ElggWidget");
 }
 
 /**
@@ -287,9 +288,9 @@ return;
  * @return void
  * @access private
  */
-function elgg_widgets_init() {
-
-	run_function_once("elgg_widget_run_once");
+function elgg_widgets_init()
+{
+    run_function_once("elgg_widget_run_once");
 }
 
 /**
@@ -317,28 +318,28 @@ function elgg_widgets_init() {
  * @return void
  * @access private
  */
-function elgg_default_widgets_init() {
+function elgg_default_widgets_init()
+{
+    global $CONFIG;
+    $default_widgets = elgg_trigger_plugin_hook('get_list', 'default_widgets', null, []);
 
-	global $CONFIG;
-	$default_widgets = elgg_trigger_plugin_hook('get_list', 'default_widgets', null, array());
+    $CONFIG->default_widget_info = $default_widgets;
 
-	$CONFIG->default_widget_info = $default_widgets;
+    if ($default_widgets) {
+        ///elgg_register_admin_menu_item('configure', 'default_widgets', 'appearance');
 
-	if ($default_widgets) {
-		///elgg_register_admin_menu_item('configure', 'default_widgets', 'appearance');
+        // override permissions for creating widget on logged out / just created entities
+        elgg_register_plugin_hook_handler('container_permissions_check', 'object', 'elgg_default_widgets_permissions_override');
 
-		// override permissions for creating widget on logged out / just created entities
-		elgg_register_plugin_hook_handler('container_permissions_check', 'object', 'elgg_default_widgets_permissions_override');
-
-		// only register the callback once per event
-		$events = array();
-		foreach ($default_widgets as $info) {
-			$events[$info['event'] . ',' . $info['entity_type']] = $info;
-		}
-		foreach ($events as $info) {
-			elgg_register_event_handler($info['event'], $info['entity_type'], 'elgg_create_default_widgets');
-		}
-	}
+        // only register the callback once per event
+        $events = [];
+        foreach ($default_widgets as $info) {
+            $events[$info['event'] . ',' . $info['entity_type']] = $info;
+        }
+        foreach ($events as $info) {
+            elgg_register_event_handler($info['event'], $info['entity_type'], 'elgg_create_default_widgets');
+        }
+    }
 }
 
 /**
@@ -354,51 +355,51 @@ function elgg_default_widgets_init() {
  * @return void
  * @access private
  */
-function elgg_create_default_widgets($event, $type, $entity) {
+function elgg_create_default_widgets($event, $type, $entity)
+{
+    $default_widget_info = elgg_get_config('default_widget_info');
 
-	$default_widget_info = elgg_get_config('default_widget_info');
+    if (!$default_widget_info || !$entity) {
+        return;
+    }
 
-	if (!$default_widget_info || !$entity) {
-		return;
-	}
+    $type = $entity->getType();
+    $subtype = $entity->getSubtype();
 
-	$type = $entity->getType();
-	$subtype = $entity->getSubtype();
+    // event is already guaranteed by the hook registration.
+    // need to check subtype and type.
+    foreach ($default_widget_info as $info) {
+        if ($info['entity_type'] == $type) {
+            if ($info['entity_subtype'] == ELGG_ENTITIES_ANY_VALUE || $info['entity_subtype'] == $subtype) {
 
-	// event is already guaranteed by the hook registration.
-	// need to check subtype and type.
-	foreach ($default_widget_info as $info) {
-		if ($info['entity_type'] == $type) {
-			if ($info['entity_subtype'] == ELGG_ENTITIES_ANY_VALUE || $info['entity_subtype'] == $subtype) {
+                // need to be able to access everything
+                $old_ia = elgg_set_ignore_access(true);
+                elgg_push_context('create_default_widgets');
 
-				// need to be able to access everything
-				$old_ia = elgg_set_ignore_access(true);
-				elgg_push_context('create_default_widgets');
+                $guid = elgg_create_widget($entity->guid, $info['name'], $info['widget_context']);
 
-				$guid = elgg_create_widget($entity->guid, $info['name'], $info['widget_context']);
+                if ($guid) {
+                    $widget = get_entity($guid, 'widget');
+                    if (!$widget) {
+                        continue;
+                    }
+                    $widget->column = $info['widget_columns'];
 
-				if ($guid) {
-					$widget = get_entity($guid, 'widget');
-					if(!$widget){
-						continue;
-					}
-					$widget->column = $info['widget_columns'];
+                    /**
+                     * Event hooks are ignored for some reason we need to put an override here
+                     */
+                    if ($widget->handler == 'channel_avatar') {
+                        $widget->title = $entity->name;
+                    }
 
-					/**
-					 * Event hooks are ignored for some reason we need to put an override here
-					 */
-					if($widget->handler == 'channel_avatar'){
-						$widget->title = $entity->name;
-					}
+                    $widget->save();
+                }
 
-					$widget->save();
-				}
-
-				elgg_set_ignore_access($old_ia);
-				elgg_pop_context();
-			}
-		}
-	}
+                elgg_set_ignore_access($old_ia);
+                elgg_pop_context();
+            }
+        }
+    }
 }
 
 /**
@@ -411,13 +412,13 @@ function elgg_create_default_widgets($event, $type, $entity) {
  * @return true|null
  * @access private
  */
-function elgg_default_widgets_permissions_override($hook, $type, $return, $params) {
+function elgg_default_widgets_permissions_override($hook, $type, $return, $params)
+{
+    if ($type == 'object' && $params['subtype'] == 'widget') {
+        return elgg_in_context('create_default_widgets') ? true : null;
+    }
 
-	if ($type == 'object' && $params['subtype'] == 'widget') {
-		return elgg_in_context('create_default_widgets') ? true : null;
-	}
-
-	return null;
+    return null;
 }
 
 elgg_register_event_handler('init', 'system', 'elgg_widgets_init');

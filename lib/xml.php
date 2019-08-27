@@ -20,38 +20,39 @@
  *
  * @return string The serialised XML output.
  */
-function serialise_object_to_xml($data, $name = "", $n = 0) {
-	$classname = ($name == "" ? get_class($data) : $name);
+function serialise_object_to_xml($data, $name = "", $n = 0)
+{
+    $classname = ($name == "" ? get_class($data) : $name);
 
-	$vars = method_exists($data, "export") ? get_object_vars($data->export()) : get_object_vars($data);
+    $vars = method_exists($data, "export") ? get_object_vars($data->export()) : get_object_vars($data);
 
-	$output = "";
+    $output = "";
 
-	if (($n == 0) || ( is_object($data) && !($data instanceof stdClass))) {
-		$output = "<$classname>";
-	}
+    if (($n == 0) || (is_object($data) && !($data instanceof stdClass))) {
+        $output = "<$classname>";
+    }
 
-	foreach ($vars as $key => $value) {
-		$output .= "<$key type=\"" . gettype($value) . "\">";
+    foreach ($vars as $key => $value) {
+        $output .= "<$key type=\"" . gettype($value) . "\">";
 
-		if (is_object($value)) {
-			$output .= serialise_object_to_xml($value, $key, $n + 1);
-		} else if (is_array($value)) {
-			$output .= serialise_array_to_xml($value, $n + 1);
-		} else if (gettype($value) == "boolean") {
-			$output .= $value ? "true" : "false";
-		} else {
-			$output .= htmlspecialchars($value, ENT_NOQUOTES, 'UTF-8');
-		}
+        if (is_object($value)) {
+            $output .= serialise_object_to_xml($value, $key, $n + 1);
+        } elseif (is_array($value)) {
+            $output .= serialise_array_to_xml($value, $n + 1);
+        } elseif (gettype($value) == "boolean") {
+            $output .= $value ? "true" : "false";
+        } else {
+            $output .= htmlspecialchars($value, ENT_NOQUOTES, 'UTF-8');
+        }
 
-		$output .= "</$key>\n";
-	}
+        $output .= "</$key>\n";
+    }
 
-	if (($n == 0) || (is_object($data) && !($data instanceof stdClass))) {
-		$output .= "</$classname>\n";
-	}
+    if (($n == 0) || (is_object($data) && !($data instanceof stdClass))) {
+        $output .= "</$classname>\n";
+    }
 
-	return $output;
+    return $output;
 }
 
 /**
@@ -62,41 +63,42 @@ function serialise_object_to_xml($data, $name = "", $n = 0) {
  *
  * @return string
  */
-function serialise_array_to_xml(array $data, $n = 0) {
-	$output = "";
+function serialise_array_to_xml(array $data, $n = 0)
+{
+    $output = "";
 
-	if ($n == 0) {
-		$output = "<array>\n";
-	}
+    if ($n == 0) {
+        $output = "<array>\n";
+    }
 
-	foreach ($data as $key => $value) {
-		$item = "array_item";
+    foreach ($data as $key => $value) {
+        $item = "array_item";
 
-		if (is_numeric($key)) {
-			$output .= "<$item name=\"$key\" type=\"" . gettype($value) . "\">";
-		} else {
-			$item = $key;
-			$output .= "<$item type=\"" . gettype($value) . "\">";
-		}
+        if (is_numeric($key)) {
+            $output .= "<$item name=\"$key\" type=\"" . gettype($value) . "\">";
+        } else {
+            $item = $key;
+            $output .= "<$item type=\"" . gettype($value) . "\">";
+        }
 
-		if (is_object($value)) {
-			$output .= serialise_object_to_xml($value, "", $n + 1);
-		} else if (is_array($value)) {
-			$output .= serialise_array_to_xml($value, $n + 1);
-		} else if (gettype($value) == "boolean") {
-			$output .= $value ? "true" : "false";
-		} else {
-			$output .= htmlspecialchars($value, ENT_NOQUOTES, 'UTF-8');
-		}
+        if (is_object($value)) {
+            $output .= serialise_object_to_xml($value, "", $n + 1);
+        } elseif (is_array($value)) {
+            $output .= serialise_array_to_xml($value, $n + 1);
+        } elseif (gettype($value) == "boolean") {
+            $output .= $value ? "true" : "false";
+        } else {
+            $output .= htmlspecialchars($value, ENT_NOQUOTES, 'UTF-8');
+        }
 
-		$output .= "</$item>\n";
-	}
+        $output .= "</$item>\n";
+    }
 
-	if ($n == 0) {
-		$output .= "</array>\n";
-	}
+    if ($n == 0) {
+        $output .= "</array>\n";
+    }
 
-	return $output;
+    return $output;
 }
 
 /**
@@ -106,6 +108,7 @@ function serialise_array_to_xml(array $data, $n = 0) {
  *
  * @return ElggXMLElement
  */
-function xml_to_object($xml) {
-	return new ElggXMLElement($xml);
+function xml_to_object($xml)
+{
+    return new ElggXMLElement($xml);
 }

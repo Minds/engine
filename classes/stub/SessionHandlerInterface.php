@@ -10,13 +10,12 @@
  * @license http://www.opensource.org/licenses/bsd-license New BSD License
  * @link http://www.php.net/manual/en/class.sessionhandlerinterface.php
  */
-interface SessionHandlerInterface {
-    
+interface SessionHandlerInterface
+{
     public function close();
     public function destroy($session_id);
-    public function gc($maxlifetime );
-    public function open($save_path , $name );
-    public function read($session_id );
-    public function write($session_id , $session_data);
-    
+    public function gc($maxlifetime);
+    public function open($save_path, $name);
+    public function read($session_id);
+    public function write($session_id, $session_data);
 }

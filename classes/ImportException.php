@@ -5,4 +5,6 @@
  * @package    Elgg.Core
  * @subpackage Exception
  */
-class ImportException extends DataFormatException {}
+class ImportException extends DataFormatException
+{
+}

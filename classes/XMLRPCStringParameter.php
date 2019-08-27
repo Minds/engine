@@ -5,26 +5,28 @@
  * @package    Elgg.Core
  * @subpackage XMLRPC
  */
-class XMLRPCStringParameter extends XMLRPCParameter {
+class XMLRPCStringParameter extends XMLRPCParameter
+{
+    /**
+     * A new XML string
+     *
+     * @param string $value Value
+     */
+    public function __construct($value)
+    {
+        parent::__construct();
 
-	/**
-	 * A new XML string
-	 *
-	 * @param string $value Value
-	 */
-	function __construct($value) {
-		parent::__construct();
+        $this->value = $value;
+    }
 
-		$this->value = $value;
-	}
-
-	/**
-	 * Convert to XML string
-	 *
-	 * @return string
-	 */
-	function __toString() {
-		$value = htmlentities($this->value);
-		return "<value><string>{$value}</string></value>";
-	}
+    /**
+     * Convert to XML string
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        $value = htmlentities($this->value);
+        return "<value><string>{$value}</string></value>";
+    }
 }
