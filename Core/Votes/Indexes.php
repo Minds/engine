@@ -96,7 +96,7 @@ class Indexes
 
         $guids = $entity->{"thumbs:{$direction}:user_guids"} ?: [];
  
-        return in_array($actor->guid, $guids, true);
+        return in_array($actor->guid, $guids, false);
     }
 
     /**

@@ -92,7 +92,7 @@ class Manager
         // Remove the summonses of jurors who have already voted
 
         $summonses = array_filter($summonses, function (Summons $summons) use ($completedJurorGuids) {
-            return !in_array($summons->getJurorGuid(), $completedJurorGuids, true);
+            return !in_array($summons->getJurorGuid(), $completedJurorGuids, false);
         });
 
         // Check how many are missing

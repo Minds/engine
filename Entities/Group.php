@@ -560,7 +560,7 @@ class Group extends NormalizedEntity
 
         $user_guid = is_object($user) ? $user->guid : $user;
 
-        return $this->isCreator($user) || in_array($user_guid, $this->getOwnerGuids(), true);
+        return $this->isCreator($user) || in_array($user_guid, $this->getOwnerGuids(), false);
     }
 
     /**
