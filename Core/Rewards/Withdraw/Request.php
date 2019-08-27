@@ -6,7 +6,6 @@ use Minds\Traits\MagicAttributes;
 
 class Request
 {
-
     use MagicAttributes;
 
     /** @var string $tx **/
@@ -55,7 +54,8 @@ class Request
         return $this->completed_tx;
     }
 
-    public function export() {
+    public function export()
+    {
         return [
             'timestamp' => $this->timestamp,
             'amount' => $this->amount,

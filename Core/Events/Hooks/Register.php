@@ -44,9 +44,8 @@ class Register
                     ->setReferrerGuid((string) $user->guid)
                     ->setRegisterTimestamp(time());
 
-                $manager = Di::_()->get('Referrals\Manager');        
+                $manager = Di::_()->get('Referrals\Manager');
                 $manager->add($referral);
-                
             }
         });
 

@@ -9,12 +9,12 @@ use Prophecy\Argument;
 
 class UnbanSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Unban::class);
     }
 
-    function it_should_ban(User $user)
+    public function it_should_ban(User $user)
     {
         $user->set('ban_reason', '')
             ->shouldBeCalled();

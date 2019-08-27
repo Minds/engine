@@ -14,7 +14,6 @@ use Minds\Core\Issues\Contracts\PostIssueInterface;
  */
 class Gitlab implements PostIssueInterface
 {
-
     /** @var string $privateKey */
     private $privateKey;
 

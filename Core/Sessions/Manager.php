@@ -13,7 +13,6 @@ use Lcobucci\JWT\Signer\Rsa\Sha512;
 
 class Manager
 {
-
     /** @var Repository $repository */
     private $repository;
 
@@ -22,6 +21,9 @@ class Manager
 
     /** @var Cookie $cookie */
     private $cookie;
+
+    /** @var SentryScopeDelegate $sentryScopeDelegate */
+    private $sentryScopeDelegate;
 
     /** @var Session $session */
     private $session;
@@ -34,14 +36,15 @@ class Manager
         $config = null,
         $cookie = null,
         $jwtBuilder = null,
-        $jwtParser = null
-    )
-    {
+        $jwtParser = null,
+        $sentryScopeDelegate = null
+    ) {
         $this->repository = $repository ?: new Repository;
         $this->config = $config ?: Di::_()->get('Config');
         $this->cookie = $cookie ?: new Cookie;
         $this->jwtBuilder = $jwtBuilder ?: new JWT\Builder;
         $this->jwtParser = $jwtParser ?: new JWT\Parser;
+        $this->sentryScopeDelegate = $sentryScopeDelegate ?? new Delegates\SentryScopeDelegate;
     }
 
     /**
@@ -64,7 +67,7 @@ class Manager
         return $this->session;
     }
 
-    /** 
+    /**
      * Set the user for the session
      * @param User $user
      * @return $this
@@ -124,6 +127,9 @@ class Manager
         // Hack, needs refactoring
         Core\Session::generateJWTCookie($session);
 
+        // Allow Sentry to attach user metadata
+        $this->sentryScopeDelegate->onSession($session);
+
         return $this;
     }
 
@@ -144,7 +150,7 @@ class Manager
         }
 
         if (
-            !$session->getId() 
+            !$session->getId()
             || $session->getId() != $validated->getId()
         ) {
             return false;
@@ -248,5 +254,4 @@ class Manager
     {
         return $this->repository->getCount($this->user->getGuid());
     }
-
 }

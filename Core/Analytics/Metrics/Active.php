@@ -61,7 +61,7 @@ class Active implements AnalyticsMetric
         if ($this->cacher->get("{$this->namespace}active:$p:$ts:$this->key") == true) {
             return;
         }
-        $this->db->insert("{$this->namespace}active:$p:$ts", array($this->key => time()));
+        $this->db->insert("{$this->namespace}active:$p:$ts", [$this->key => time()]);
         $this->cacher->set("{$this->namespace}active:$p:$ts:$this->key", time());
     }
 

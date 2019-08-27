@@ -73,17 +73,17 @@ class suggested implements Interfaces\Api, Interfaces\ApiIgnorePam
                     $rows = $result->getRows();
                 }
  
-                $guids = array();
+                $guids = [];
                 foreach ($rows['object'] as $object) {
                     $guids[] = $object['guid'];
                 }
                 if (!$guids) {
                     //show trending videos
-                    $options = array(
+                    $options = [
                         'timespan' => get_input('timespan', 'day')
-                        );
+                        ];
                     $trending = new \MindsTrending(null, $options);
-                    $guids = $trending->getList(array('type'=>'object', 'subtype'=>'kaltura_video', 'limit'=>6));
+                    $guids = $trending->getList(['type'=>'object', 'subtype'=>'kaltura_video', 'limit'=>6]);
                 }
                 break;
             case 'images':
@@ -96,7 +96,7 @@ class suggested implements Interfaces\Api, Interfaces\ApiIgnorePam
                     $rows = $result->getRows();
                 }
                 
-                $guids = array();
+                $guids = [];
                 foreach ($rows['object'] as $object) {
                     $guids[] = $object['guid'];
                 }
@@ -113,14 +113,14 @@ class suggested implements Interfaces\Api, Interfaces\ApiIgnorePam
                         $result = false;
                     }
                     if (!$result) {
-                        return Factory::response(array('status'=>'error', 'message'=>'not found'));
+                        return Factory::response(['status'=>'error', 'message'=>'not found']);
                     }
                 } else {
                     $result= Data\Client::build('Neo4j')->requestRead($prepared->getSubscriptionsOfSubscriptions(Core\Session::getLoggedInUser(), $_GET['skip']));
                 }
 
                 $rows = $result->getRows();
-                $guids = array();
+                $guids = [];
                 if (isset($rows['fof'])) {
                     foreach ($rows['fof'] as $fof) {
                         $guids[] = $fof['guid'];
@@ -129,7 +129,7 @@ class suggested implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
     
         if (!$guids) {
-            return Factory::response(array('status'=>'error', 'message'=>'not found'));
+            return Factory::response(['status'=>'error', 'message'=>'not found']);
         }
         
         $options['guids'] = $guids;
@@ -146,7 +146,7 @@ class suggested implements Interfaces\Api, Interfaces\ApiIgnorePam
         $diff = microtime(true) - $ts;
         //error_log("loaded suggested entities in $diff");
         if ($entities) {
-            $response['entities'] = factory::exportable($entities, array('boosted'));
+            $response['entities'] = factory::exportable($entities, ['boosted']);
             $response['load-next'] = (string) end($entities)->guid;
             $response['load-previous'] = (string) key($entities)->guid;
         }

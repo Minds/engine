@@ -19,7 +19,7 @@ class WithdrawEventSpec extends ObjectBehavior
     /** @var Config */
     protected $config;
 
-    function let(Manager $manager, Repository $txRepo, Config $config)
+    public function let(Manager $manager, Repository $txRepo, Config $config)
     {
         $this->beConstructedWith($manager, $txRepo, $config);
 
@@ -37,12 +37,12 @@ class WithdrawEventSpec extends ObjectBehavior
             ]);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blockchain\Events\WithdrawEvent');
     }
 
-    function it_should_get_topics()
+    public function it_should_get_topics()
     {
         $this->getTopics()->shouldReturn([
             '0x317c0f5ab60805d3e3fb6aaa61ccb77253bbb20deccbbe49c544de4baa4d7f8f',
@@ -50,7 +50,7 @@ class WithdrawEventSpec extends ObjectBehavior
         ]);
     }
 
-    function it_should_complete_withdrawal_on_event()
+    public function it_should_complete_withdrawal_on_event()
     {
         $this->manager->complete(Argument::that(function ($request) {
             return $request->getTx() == '0x62a70ccf3b37b9368efa3dd4785e715139c994ba9957a125e299b14a8eccd00c'
@@ -72,7 +72,7 @@ class WithdrawEventSpec extends ObjectBehavior
         ], new Transaction);
     }
 
-    function it_should_send_a_blockchain_fail_event(Transaction $transaction)
+    public function it_should_send_a_blockchain_fail_event(Transaction $transaction)
     {
         $transaction->getContract()
             ->shouldBeCalled()
@@ -87,13 +87,13 @@ class WithdrawEventSpec extends ObjectBehavior
         $this->event('blockchain:fail', ['address' => '0xasd'], $transaction);
     }
 
-    function it_should_fail_if_the_transaction_address_isnt_the_same_as_the_contract_address(Transaction $transaction)
+    public function it_should_fail_if_the_transaction_address_isnt_the_same_as_the_contract_address(Transaction $transaction)
     {
         $this->shouldThrow(new \Exception("Event does not match address"))->during('event',
             ['blockchain:fail', ['address' => '0x123'], $transaction]);
     }
 
-    function it_should_send_a_blockchain_fail_event_but_it_isnt_the_same_contract(Transaction $transaction)
+    public function it_should_send_a_blockchain_fail_event_but_it_isnt_the_same_contract(Transaction $transaction)
     {
         $transaction->getContract()
             ->shouldBeCalled()
@@ -103,7 +103,7 @@ class WithdrawEventSpec extends ObjectBehavior
             ['blockchain:fail', ['address' => '0xasd'], $transaction]);
     }
 
-    function it_should_abort_if_not_from_address(Manager $manager, Repository $txRepo, Config $config)
+    public function it_should_abort_if_not_from_address(Manager $manager, Repository $txRepo, Config $config)
     {
         $this->beConstructedWith($manager, $txRepo, $config);
 
@@ -125,6 +125,5 @@ class WithdrawEventSpec extends ObjectBehavior
                 'data' => $data,
                 'transactionHash' => '0x62a70ccf3b37b9368efa3dd4785e715139c994ba9957a125e299b14a8eccd00c'
             ], (new Transaction())->setContract('withdraw'));
-
     }
 }

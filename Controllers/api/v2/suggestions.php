@@ -10,11 +10,17 @@ use Minds\Interfaces;
 
 class suggestions implements Interfaces\Api
 {
-
     public function get($pages)
     {
         $type = $pages[0] ?? 'user';
         $loggedInUser = Core\Session::getLoggedinUser();
+
+        if (!$loggedInUser) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'You must be logged in to receive suggestions',
+            ]);
+        }
 
         if ($loggedInUser->getSubscriptionsCount() >= 5000) {
             return Factory::response([
@@ -86,5 +92,4 @@ class suggestions implements Interfaces\Api
     {
         return Factory::response([]);
     }
-
 }

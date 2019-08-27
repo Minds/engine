@@ -10,7 +10,7 @@ use Minds\Core\Data\Cassandra;
 /**
  * Iterator that loops through all signups after a set period
  */
-class UsersWithFacebookIterator  implements \Iterator
+class UsersWithFacebookIterator implements \Iterator
 {
     private $cursor = -1;
     private $period = 0;

@@ -3,7 +3,6 @@
 
 namespace Minds\Core\Security;
 
-
 use Minds\Core\Security\Exceptions\UserNotSetupException;
 use Minds\Entities\User;
 

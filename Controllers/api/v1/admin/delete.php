@@ -32,7 +32,7 @@ class delete implements Interfaces\Api, Interfaces\ApiAdminPam
 
         if (method_exists($entity, 'getDeleted')) {
             $isDeleted = $entity->getDeleted();
-        } else if (method_exists($entity, 'getFlag')) {
+        } elseif (method_exists($entity, 'getFlag')) {
             $isDeleted = $entity->getFlag('deleted');
         }
 
@@ -64,7 +64,7 @@ class delete implements Interfaces\Api, Interfaces\ApiAdminPam
 
         if (method_exists($entity, 'setDeleted')) {
             $entity->setDeleted(true);
-        } else if (method_exists($entity, 'setFlag')) {
+        } elseif (method_exists($entity, 'setFlag')) {
             $entity->setFlag('deleted', true);
         } else {
             return Factory::response([
@@ -78,7 +78,7 @@ class delete implements Interfaces\Api, Interfaces\ApiAdminPam
 
             if (method_exists($child, 'setDeleted')) {
                 $child->setDeleted(true);
-            } else if (method_exists($child, 'setFlag')) {
+            } elseif (method_exists($child, 'setFlag')) {
                 $child->setFlag('deleted', true);
             }
 
@@ -113,7 +113,7 @@ class delete implements Interfaces\Api, Interfaces\ApiAdminPam
 
         if (method_exists($entity, 'setDeleted')) {
             $entity->setDeleted(false);
-        } else if (method_exists($entity, 'setFlag')) {
+        } elseif (method_exists($entity, 'setFlag')) {
             $entity->setFlag('deleted', false);
         } else {
             return Factory::response([
@@ -127,7 +127,7 @@ class delete implements Interfaces\Api, Interfaces\ApiAdminPam
 
             if (method_exists($child, 'setDeleted')) {
                 $child->setDeleted(false);
-            } else if (method_exists($child, 'setFlag')) {
+            } elseif (method_exists($child, 'setFlag')) {
                 $child->setFlag('deleted', false);
             }
 

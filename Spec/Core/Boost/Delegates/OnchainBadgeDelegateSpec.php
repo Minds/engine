@@ -17,18 +17,18 @@ class OnchainBadgeDelegateSpec extends ObjectBehavior
 {
     private $user;
     
-    function let(User $user)
+    public function let(User $user)
     {
         $this->user = $user;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(OnchainBadgeDelegate::class);
     }
 
-    function it_should_update_a_users_plus_badge_expiry(Boost $boost, User $user)
-    {   
+    public function it_should_update_a_users_plus_badge_expiry(Boost $boost, User $user)
+    {
         $boost->getOwner()
             ->shouldBeCalled()
             ->willReturn($user);
@@ -41,7 +41,6 @@ class OnchainBadgeDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->dispatch($boost);   
+        $this->dispatch($boost);
     }
-
 }

@@ -8,7 +8,6 @@ use Minds\Core\Di\Di;
 
 class CacheDelegate
 {
-
     /** @var Cache $cache */
     private $cache;
 

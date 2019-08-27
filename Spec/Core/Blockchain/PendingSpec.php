@@ -13,19 +13,19 @@ class PendingSpec extends ObjectBehavior
     /** @var Client */
     private $cql;
 
-    function let(Client $cql)
+    public function let(Client $cql)
     {
         $this->beConstructedWith($cql);
 
         $this->cql = $cql;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Pending::class);
     }
 
-    function it_should_add_a_new_entry()
+    public function it_should_add_a_new_entry()
     {
         $data = [
             'type' => 'wire',
@@ -49,7 +49,7 @@ class PendingSpec extends ObjectBehavior
         $this->add($data)->shouldReturn(true);
     }
 
-    function it_should_fail_while_adding_a_new_entry()
+    public function it_should_fail_while_adding_a_new_entry()
     {
         $data = [
             'type' => 'wire',
@@ -73,7 +73,7 @@ class PendingSpec extends ObjectBehavior
         $this->add($data)->shouldReturn(false);
     }
 
-    function it_should_get_an_entry()
+    public function it_should_get_an_entry()
     {
         $this->cql->request(Argument::that(function ($query) {
             $built = $query->build();
@@ -95,7 +95,7 @@ class PendingSpec extends ObjectBehavior
         ]);
     }
 
-    function it_shouldnt_find_an_entry()
+    public function it_shouldnt_find_an_entry()
     {
         $this->cql->request(Argument::that(function ($query) {
             $built = $query->build();
@@ -109,7 +109,7 @@ class PendingSpec extends ObjectBehavior
         $this->get('boost', '0x123')->shouldReturn(false);
     }
 
-    function it_should_fail_while_getting_an_entry()
+    public function it_should_fail_while_getting_an_entry()
     {
         $this->cql->request(Argument::that(function ($query) {
             $built = $query->build();
@@ -123,7 +123,7 @@ class PendingSpec extends ObjectBehavior
         $this->get('boost', '0x123')->shouldReturn(false);
     }
 
-    function it_should_delete_an_entry()
+    public function it_should_delete_an_entry()
     {
         $this->cql->request(Argument::that(function ($query) {
             $built = $query->build();
@@ -137,7 +137,7 @@ class PendingSpec extends ObjectBehavior
         $this->delete('boost', '0x123')->shouldReturn(true);
     }
 
-    function it_should_fail_while_deleting_an_entry()
+    public function it_should_fail_while_deleting_an_entry()
     {
         $this->cql->request(Argument::that(function ($query) {
             $built = $query->build();

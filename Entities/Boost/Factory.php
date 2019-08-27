@@ -3,7 +3,6 @@ namespace Minds\Entities\Boost;
 
 class Factory
 {
-
     /**
      * @param string $type
      * @return BoostEntityInterface

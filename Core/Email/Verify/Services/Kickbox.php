@@ -26,10 +26,10 @@ class Kickbox
      */
     public function verify($email)
     {
-        if (!$this->config->get('kickbox_secret'))
+        if (!$this->config->get('kickbox_secret')) {
             return true;
+        }
         $response =  $this->client->verify($email);
         return !($response->body['result'] == 'undeliverable');
     }
-
 }

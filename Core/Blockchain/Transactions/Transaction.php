@@ -88,5 +88,4 @@ class Transaction
         }
         return $export;
     }
-
 }

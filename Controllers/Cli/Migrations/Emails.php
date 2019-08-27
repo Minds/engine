@@ -8,7 +8,6 @@ use Minds\Core;
 use Minds\Entities\User;
 use Minds\Interfaces;
 
-
 class Emails extends Cli\Controller implements Interfaces\CliControllerInterface
 {
     public function __construct()

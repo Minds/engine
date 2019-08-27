@@ -19,7 +19,7 @@ class avatars implements Interfaces\FS
         $entity = Entities\Factory::build($pages[0]);
 
         $size = strtolower($pages[1]);
-        if (!in_array($size, array('large', 'medium', 'small', 'tiny', 'master', 'topbar'))) {
+        if (!in_array($size, ['large', 'medium', 'small', 'tiny', 'master', 'topbar'], true)) {
             $size = "medium";
         }
 

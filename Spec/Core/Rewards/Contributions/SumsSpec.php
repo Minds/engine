@@ -8,13 +8,12 @@ use Minds\Core\Data\Cassandra\Client;
 
 class SumsSpec extends ObjectBehavior
 {
-
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Rewards\Contributions\Sums');
     }
 
-    function it_sould_get_a_balance(Client $db)
+    public function it_sould_get_a_balance(Client $db)
     {
         $this->beConstructedWith($db);
 
@@ -26,5 +25,4 @@ class SumsSpec extends ObjectBehavior
         $this->getAmount()
             ->shouldReturn('12');
     }
-
 }

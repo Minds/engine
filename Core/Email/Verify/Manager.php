@@ -8,7 +8,6 @@ use Minds\Core\Security\SpamBlocks;
 
 class Manager
 {
-
     /** @var $service */
     private $service;
 
@@ -48,7 +47,7 @@ class Manager
     public function verify($email)
     {
         $domain = explode('@', strtolower($email))[1];
-        if (in_array($domain, $this->bannedDomains)) {
+        if (in_array($domain, $this->bannedDomains, true)) {
             return false;
         }
 
@@ -68,5 +67,4 @@ class Manager
 
         return true;
     }
-
 }

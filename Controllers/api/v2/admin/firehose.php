@@ -103,7 +103,7 @@ class firehose implements Interfaces\Api, Interfaces\ApiAdminPam
         }
 
         try {
-              /** @var Core\Feeds\Firehose\Manager $manager */
+            /** @var Core\Feeds\Firehose\Manager $manager */
             $manager = Di::_()->get('Feeds\Firehose\Manager');
             $activities = $manager->getList($opts);
         } catch (\Exception $e) {
@@ -112,7 +112,7 @@ class firehose implements Interfaces\Api, Interfaces\ApiAdminPam
         }
 
         if ($type !== 'activity') {
-             /** @var Core\Feeds\Top\Entities $entities */
+            /** @var Core\Feeds\Top\Entities $entities */
             $entities = new Core\Feeds\Top\Entities();
             $entities->setActor($currentUser);
             $activities = $activities->map([$entities, 'cast']);

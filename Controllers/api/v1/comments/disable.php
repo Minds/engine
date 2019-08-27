@@ -17,15 +17,18 @@ use Minds\Core\Sockets;
 
 class disable implements Interfaces\Api
 {
-    public function get($pages) {
+    public function get($pages)
+    {
         return Factory::response([]);
     }
 
-    public function post($pages) {
+    public function post($pages)
+    {
         return Factory::response([]);
     }
 
-    public function put($pages) {
+    public function put($pages)
+    {
         $response = [];
 
         if (is_numeric($pages[0])) {
@@ -40,13 +43,13 @@ class disable implements Interfaces\Api
             } else {
                 $response = ['entity' => $activity->export()];
             }
-
         }
 
         return Factory::response($response);
     }
 
-    public function delete($pages)  {
+    public function delete($pages)
+    {
         $response = [];
 
         if (is_numeric($pages[0])) {
@@ -64,5 +67,4 @@ class disable implements Interfaces\Api
 
         return Factory::response($response);
     }
-
 }

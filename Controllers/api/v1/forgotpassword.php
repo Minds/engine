@@ -20,7 +20,7 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function get($pages)
     {
-        return Factory::response(array('status'=>'error', 'message'=>'GET is not supported for this endpoint'));
+        return Factory::response(['status'=>'error', 'message'=>'GET is not supported for this endpoint']);
     }
 
     /**
@@ -35,7 +35,7 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function post($pages)
     {
-        $response = array();
+        $response = [];
 
         if (!isset($pages[0])) {
             $pages[0] = "request";
@@ -95,10 +95,10 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
           }
 
           try {
-            if (!validate_password($_POST['password'])) {
-                $response['status'] = "error";
-                $response['message'] = "Password must have more than 8 characters. Including uppercase, numbers, special characters (ie. !,#,@), and cannot have spaces.";    
-            }  
+              if (!validate_password($_POST['password'])) {
+                  $response['status'] = "error";
+                  $response['message'] = "Password must have more than 8 characters. Including uppercase, numbers, special characters (ie. !,#,@), and cannot have spaces.";
+              }
           } catch (\Exception $e) {
               $response['status'] = "error";
               $response['message'] = "Password must have more than 8 characters. Including uppercase, numbers, special characters (ie. !,#,@), and cannot have spaces.";
@@ -122,7 +122,7 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
 
           break;
         default:
-          $response = array('status'=>'error', 'message'=>'Unknown endpoint');
+          $response = ['status'=>'error', 'message'=>'Unknown endpoint'];
       }
 
         return Factory::response($response);

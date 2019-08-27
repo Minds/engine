@@ -31,7 +31,6 @@ class Cap
     {
         $this->config = $config ?: Di::_()->get('Config');
         $this->offChainBalance = $offchainBalance ?: Di::_()->get('Blockchain\Wallets\OffChain\Balance');
-
     }
 
     /**

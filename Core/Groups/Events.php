@@ -177,7 +177,7 @@ class Events
 
             if ($group->getModerated() && !$group->isOwner($activity->owner_guid)) {
                 $key = "activity:container:{$group->guid}";
-                $index = array_search($key, $activity->indexes);
+                $index = array_search($key, $activity->indexes, true);
                 if ($index !== false) {
                     unset($activity->indexes[$index]);
                 }

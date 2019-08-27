@@ -10,7 +10,6 @@ use Minds\Core\OAuth\Entities\AuthCodeEntity;
 
 class AuthCodeRepository implements AuthCodeRepositoryInterface
 {
-
     /** @var Client $client */
     private $client;
 

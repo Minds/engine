@@ -7,7 +7,7 @@ namespace Minds\Core\Boost\Network;
 use Minds\Common\Urn;
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
-use Minds\Core\Data\Cassandra\Prepared; 
+use Minds\Core\Data\Cassandra\Prepared;
 use Cassandra;
 
 class Repository
@@ -21,7 +21,7 @@ class Repository
     public function __construct($client = null, $urn = null)
     {
         $this->client = $client ?: Di::_()->get('Database\Cassandra\Cql');
-        $this->urn = $urn ?: new Urn(); 
+        $this->urn = $urn ?: new Urn();
     }
 
     /**
@@ -53,7 +53,7 @@ class Repository
         
         $query->setOpts([
             'page_size' => (int) $opts['limit'],
-            'paging_state_token' => base64_decode($opts['token'])
+            'paging_state_token' => base64_decode($opts['token'], true)
         ]);
 
         $response = new Response();
@@ -62,7 +62,7 @@ class Repository
             $result = $this->client->request($query);
 
             foreach ($result as $row) {
-                $boost = new Boost(); 
+                $boost = new Boost();
                 $data = json_decode($row['data'], true);
 
                 if (!isset($data['schema']) && $data['schema'] != '04-2019') {
@@ -103,7 +103,7 @@ class Repository
                     ->setTags($data['tags'])
                     ->setNsfw($data['nsfw'])
                     ->setRejectReason($data['rejection_reason'])
-                    ->setChecksum($data['checksum']); 
+                    ->setChecksum($data['checksum']);
                 
                 $response[] = $boost;
             }
@@ -164,7 +164,7 @@ class Repository
             'bid' => $boost->getBid(),
             'impressions' => $boost->getImpressions(),
             //'bidType' => $boost->getBidType(),
-            'bidType' => in_array($boost->getBidType(), [ 'onchain', 'offchain' ]) ? 'tokens' : $boost->getBidType(), //TODO: remove once on production
+            'bidType' => in_array($boost->getBidType(), [ 'onchain', 'offchain' ], true) ? 'tokens' : $boost->getBidType(), //TODO: remove once on production
             'owner_guid' => $boost->getOwnerGuid(),
             'owner' => $boost->getOwner() ? $boost->getOwner()->export() : null, //TODO: remove once on production
             '@created' => $boost->getCreatedTimestamp(),
@@ -224,6 +224,4 @@ class Repository
     public function delete($boost)
     {
     }
-
 }
-

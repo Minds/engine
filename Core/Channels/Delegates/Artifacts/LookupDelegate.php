@@ -28,8 +28,7 @@ class LookupDelegate implements ArtifactsDelegateInterface
     public function __construct(
         $repository = null,
         $db = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository();
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
     }

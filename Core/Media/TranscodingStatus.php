@@ -43,20 +43,20 @@ class TranscodingStatus
      * Looks in the list of keys for the source video
      * All transcodes upload a /source first
      * This should always be there else something went horribly wrong / got deleted.
-     * 
+     *
      * @return bool whether or not a video has a source file
      */
     public function hasSource()
     {
         $needle = "{$this->dir}/{$this->video->guid}/source";
 
-        return in_array($needle, $this->keys);
+        return in_array($needle, $this->keys, true);
     }
 
     /**
      * Looks in the list of keys for the different transcodes based on the transcoder presets
      * Each successfully transcoded file will have their a key with a file named height.format.
-     * 
+     *
      * @return array keys to the transcoded files
      */
     public function getTranscodes()
@@ -74,10 +74,11 @@ class TranscodingStatus
 
     /**
      * Compares the number of transcodes to the expected presets
-     * 
+     *
      * @return boolean whether or not all transcodes have been generated
      */
-    public function isTranscodingComplete() {
+    public function isTranscodingComplete()
+    {
         $transcodes = $this->getTranscodes();
         return (count($transcodes) === $this->getExpectedTranscodeCount());
     }
@@ -85,8 +86,9 @@ class TranscodingStatus
     /**
      * Gets the number of expected trancodes based on the preset and their available formats
      */
-    public function getExpectedTranscodeCount() {
-        return array_reduce($this->presets, function($count, $preset) {
+    public function getExpectedTranscodeCount()
+    {
+        return array_reduce($this->presets, function ($count, $preset) {
             return $count + count($preset['formats']);
         }, 0);
     }
@@ -94,7 +96,7 @@ class TranscodingStatus
     /**
      * Looks in the list of keys for thumbnails
      * FFMpeg generates thumbnails in key/thumbnail-00000.png.
-     * 
+     *
      * @return array keys to the transcoded files thumbnails
      */
     public function getThumbnails()

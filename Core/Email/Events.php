@@ -46,16 +46,16 @@ class Events
         });
 
         Dispatcher::register('user_state_change', UserActivityBuckets::STATE_COLD, function ($opts) {
-            $this->sendCampaign(new Delegates\GoneColdSender(), $opts->getParameters()); 
+            $this->sendCampaign(new Delegates\GoneColdSender(), $opts->getParameters());
         });
 
         Dispatcher::register('welcome_email', 'all', function ($opts) {
             $this->sendCampaign(new Delegates\WelcomeSender(), $opts->getParameters());
         });
-
     }
 
-    private function sendCampaign (SenderInterface $sender, $params) {
+    private function sendCampaign(SenderInterface $sender, $params)
+    {
         $user = new User($params['user_guid']);
         $sender->send($user);
     }

@@ -159,7 +159,7 @@ class Comment extends RepositoryEntity
     {
         if (is_string($value) && $value) {
             $value = json_decode($value, true);
-        } else if ($value instanceof User) {
+        } elseif ($value instanceof User) {
             $value = $value->export();
         }
 
@@ -230,7 +230,7 @@ class Comment extends RepositoryEntity
             return false;
         }
 
-        if (in_array(substr($this->attachments[$attachment], 0, 1), ['[', '{'])) {
+        if (in_array(substr($this->attachments[$attachment], 0, 1), ['[', '{'], true)) {
             return json_decode($this->attachments[$attachment], true);
         }
 
@@ -248,7 +248,7 @@ class Comment extends RepositoryEntity
     }
 
     /**
-     * Get exact path, includes all the partition 
+     * Get exact path, includes all the partition
      * @return string
      */
     public function getPartitionPath()
@@ -270,7 +270,7 @@ class Comment extends RepositoryEntity
     }
 
     /**
-     * Return the partition path to be used to 
+     * Return the partition path to be used to
      * fetch child replies
      */
     public function getChildPath()

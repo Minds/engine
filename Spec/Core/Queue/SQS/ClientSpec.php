@@ -17,7 +17,7 @@ class ClientSpec extends ObjectBehavior
     protected $_config;
     protected $_sqsClient;
 
-    function let(Config $config, SqsClient $sqsClient)
+    public function let(Config $config, SqsClient $sqsClient)
     {
         $this->_config = $config;
         $this->_sqsClient = $sqsClient;
@@ -33,12 +33,12 @@ class ClientSpec extends ObjectBehavior
         $this->beConstructedWith($config, $sqsClient);
     }
 
-    function it_is_initializable_with_roles()
+    public function it_is_initializable_with_roles()
     {
         $this->shouldHaveType('Minds\Core\Queue\SQS\Client');
     }
 
-    function it_is_initializable_without_roles()
+    public function it_is_initializable_without_roles()
     {
         $this->_config->get('aws')
             ->shouldBeCalled()
@@ -55,7 +55,7 @@ class ClientSpec extends ObjectBehavior
 
     //public function it_should_set_exchange()
     //{
-        // TODO: Implement setExchange() and test it
+    // TODO: Implement setExchange() and test it
     //}
 
     public function it_should_set_queue()
@@ -94,8 +94,7 @@ class ClientSpec extends ObjectBehavior
 
     public function it_should_send(
         Promise $response
-    )
-    {
+    ) {
         $msgClass = new Message();
         $body = [
             'queueName' => 'test',
@@ -123,8 +122,7 @@ class ClientSpec extends ObjectBehavior
 
     public function it_should_not_send_if_send_message_async_threw(
         Promise $response
-    )
-    {
+    ) {
         $msgClass = new Message();
         $body = [
             'queueName' => 'test',
@@ -151,8 +149,7 @@ class ClientSpec extends ObjectBehavior
 
     public function it_should_not_send(
         Promise $response
-    )
-    {
+    ) {
         $msgClass = new Message();
         $body = [
             'queueName' => 'test',

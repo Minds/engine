@@ -15,7 +15,6 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 
-
 class tagcloud implements Interfaces\Api, Interfaces\ApiAdminPam
 {
     /**

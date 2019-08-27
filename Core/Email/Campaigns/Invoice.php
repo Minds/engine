@@ -2,7 +2,6 @@
 
 namespace Minds\Core\Email\Campaigns;
 
-
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Message;
 use Minds\Core\Email\Template;
@@ -43,7 +42,8 @@ class Invoice
         return $this;
     }
 
-    public function setDescription($description) {
+    public function setDescription($description)
+    {
         $this->description = $description;
         return $this;
     }
@@ -73,5 +73,4 @@ class Invoice
         //send email
         $this->mailer->queue($message);
     }
-
 }

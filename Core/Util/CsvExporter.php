@@ -90,10 +90,10 @@ class CsvExporter
      * @param string $name
      * @return void
      */
-    public function sendHeaders($name = 'data.csv') {
+    public function sendHeaders($name = 'data.csv')
+    {
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename='.$name);
         return $this;
     }
-
 }

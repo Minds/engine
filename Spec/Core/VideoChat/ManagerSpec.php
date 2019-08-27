@@ -19,7 +19,7 @@ class ManagerSpec extends ObjectBehavior
 
     private $leaseManager;
 
-    function let(Redis $cacher, LeaseManager $leaseManager)
+    public function let(Redis $cacher, LeaseManager $leaseManager)
     {
         $this->cacher = $cacher;
         $this->leaseManager = $leaseManager;
@@ -27,12 +27,12 @@ class ManagerSpec extends ObjectBehavior
         $this->beConstructedWith($cacher, $leaseManager);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_get_the_room_key(Group $group)
+    public function it_should_get_the_room_key(Group $group)
     {
         $lease = new VideoChatLease();
         $lease->setSecret('iamasecret');
@@ -49,15 +49,15 @@ class ManagerSpec extends ObjectBehavior
         $this->getRoomKey()->shouldBe('iamasecret');
     }
 
-    function it_should_create_a_lease_if_not_found(Group $group, User $user)
+    public function it_should_create_a_lease_if_not_found(Group $group, User $user)
     {
         $this->leaseManager->get('groupname')
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->leaseManager->add(Argument::that(function($lease) {
-                return $lease->getKey() == 'groupname';
-            }))
+        $this->leaseManager->add(Argument::that(function ($lease) {
+            return $lease->getKey() == 'groupname';
+        }))
             ->shouldBeCalled()
             ->willReturn(true);
 

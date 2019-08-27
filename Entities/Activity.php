@@ -24,7 +24,7 @@ class Activity extends Entity
     public function initializeAttributes()
     {
         parent::initializeAttributes();
-        $this->attributes = array_merge($this->attributes, array(
+        $this->attributes = array_merge($this->attributes, [
             'type' => 'activity',
             'owner_guid' => elgg_get_logged_in_user_guid(),
             'access_id' => 2, //private,
@@ -40,7 +40,7 @@ class Activity extends Entity
             'rating' => 2, //open by default
             'ephemeral' => false,
             //	'node' => elgg_get_site_url()
-        ));
+        ]);
     }
 
     public function __construct($guid = null)
@@ -55,7 +55,6 @@ class Activity extends Entity
      */
     public function save($index = true)
     {
-
         if ($this->getEphemeral()) {
             throw new \Exception('Cannot save an ephemeral activity');
         }
@@ -121,17 +120,17 @@ class Activity extends Entity
 
         $db = new Core\Data\Call('entities_by_time');
         foreach ($indexes as $index) {
-            $db->removeAttributes($index, array($this->guid));
+            $db->removeAttributes($index, [$this->guid]);
         }
 
         (new Core\Translation\Storage())->purge($this->guid);
 
         Queue\Client::build()->setQueue("FeedCleanup")
-                            ->send(array(
+                            ->send([
                                 "guid" => $this->guid,
                                 "owner_guid" => $this->owner_guid,
                                 "type" => "activity"
-                            ));
+                            ]);
 
         Core\Events\Dispatcher::trigger('delete', 'activity', [ 'entity' => $this ]);
 
@@ -149,9 +148,9 @@ class Activity extends Entity
             return $this->indexes;
         }
 
-        $indexes = array(
+        $indexes = [
             $this->type
-        );
+        ];
 
         $owner = $this->getOwnerEntity();
 
@@ -187,7 +186,7 @@ class Activity extends Entity
     public function getExportableValues()
     {
         return array_merge(parent::getExportableValues(),
-            array(
+            [
                 'title',
                 'blurb',
                 'perma_url',
@@ -219,7 +218,7 @@ class Activity extends Entity
                 'ephemeral',
                 'hide_impressions',
                 'pinned',
-            ));
+            ]);
     }
 
     /**
@@ -250,7 +249,7 @@ class Activity extends Entity
             $export['thumbs:up:count'] = Helpers\Counters::get($this->entity_guid, 'thumbs:up');
             $export['thumbs:down:count'] = Helpers\Counters::get($this->entity_guid, 'thumbs:down');
         } elseif ($this->remind_object) {
-            $export['remind_object']['nsfw'] = array_map(function($reason) {
+            $export['remind_object']['nsfw'] = array_map(function ($reason) {
                 return (int) $reason;
             }, $export['remind_object']['nsfw'] ?? []);
             if ($this->remind_object['entity_guid']) {
@@ -280,7 +279,7 @@ class Activity extends Entity
             $export['hide_impressions'] = $this->hide_impressions;
         }
 
-        switch($this->custom_type) {
+        switch ($this->custom_type) {
             case 'video':
                 if ($this->custom_data['guid']) {
                     $export['play:count'] = Helpers\Counters::get($this->custom_data['guid'], 'plays');
@@ -299,7 +298,7 @@ class Activity extends Entity
             $export['deleted'] = (bool) $this->getDeleted();
         }
 
-        $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'activity', array('entity'=>$this), array()));
+        $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'activity', ['entity'=>$this], []));
 
 
         return $export;
@@ -424,7 +423,7 @@ class Activity extends Entity
      * @param array $data
      * @return $this
      */
-    public function setCustom($type, $data = array())
+    public function setCustom($type, $data = [])
     {
         $this->custom_type = $type;
         $this->custom_data = $data;
@@ -563,11 +562,13 @@ class Activity extends Entity
      * Sets if comments are enabled
      * @param boolean
      */
-    public function enableComments() {
+    public function enableComments()
+    {
         $this->comments_enabled = true;
         return $this;
     }
-    public function disableComments() {
+    public function disableComments()
+    {
         $this->comments_enabled = false;
         return $this;
     }
@@ -576,7 +577,8 @@ class Activity extends Entity
      * Gets if comments are enabled
      * @return boolean
      */
-    public function canComment($user_guid = 0 /* ignored */) {
+    public function canComment($user_guid = 0 /* ignored */)
+    {
         return (bool) $this->comments_enabled;
     }
 
@@ -646,7 +648,8 @@ class Activity extends Entity
     /**
      * Returns the sum of every wire that's been made to this entity
      */
-    public function getWireTotals() {
+    public function getWireTotals()
+    {
         $guid = $this->guid;
 
         if ($this->remind_object) {
@@ -725,5 +728,4 @@ class Activity extends Entity
     {
         return "urn:activity:{$this->getGuid()}";
     }
-
 }

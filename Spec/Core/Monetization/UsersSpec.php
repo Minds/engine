@@ -11,35 +11,35 @@ use Minds\Core\Monetization\Manager;
 
 class UsersSpec extends ObjectBehavior
 {
-    function let(Cassandra\Client $db)
+    public function let(Cassandra\Client $db)
     {
         $this->beConstructedWith($db);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Monetization\Users');
     }
 
-    function it_should_set_and_get_an_user_guid_from_literal()
+    public function it_should_set_and_get_an_user_guid_from_literal()
     {
         $this->setUser(10);
         $this->getUser()->shouldReturn(10);
     }
 
-    function it_should_set_and_get_an_user_guid_from_object()
+    public function it_should_set_and_get_an_user_guid_from_object()
     {
         $this->setUser((object) [ 'guid' => 10 ]);
         $this->getUser()->shouldReturn(10);
     }
 
-    function it_should_get_user_transactions(Manager $manager)
+    public function it_should_get_user_transactions(Manager $manager)
     {
-        Di::_()->bind('Monetization\Manager', function($di) use ($manager) {
+        Di::_()->bind('Monetization\Manager', function ($di) use ($manager) {
             return $manager->getWrappedObject();
         });
 
-        $manager->get(Argument::that(function($options) {
+        $manager->get(Argument::that(function ($options) {
             return isset($options['user_guid']) && $options['user_guid'] === 10;
         }))->willReturn([
             [ 'guid' => 3, 'amount' => 899 ],

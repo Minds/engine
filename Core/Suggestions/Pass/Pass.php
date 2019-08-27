@@ -19,5 +19,4 @@ class Pass
 
     /** @var int $userGuid */
     protected $userGuid;
-
 }

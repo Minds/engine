@@ -19,24 +19,23 @@ class ManagerSpec extends ObjectBehavior
     private $notificationDelegate;
     private $entitiesBuilder;
 
-    function let(
+    public function let(
         Repository $repository,
         NotificationDelegate $notificationDelegate,
         EntitiesBuilder $entitiesBuilder
-    )
-    {
+    ) {
         $this->beConstructedWith($repository, $notificationDelegate, $entitiesBuilder);
         $this->repository = $repository;
         $this->notificationDelegate = $notificationDelegate;
         $this->entitiesBuilder = $entitiesBuilder;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_add_a_referral()
+    public function it_should_add_a_referral()
     {
         $referral = new Referral();
         $referral->setProspectGuid(444)
@@ -50,7 +49,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_update_a_referral()
+    public function it_should_update_a_referral()
     {
         $referral = new Referral();
         $referral->setProspectGuid(555)
@@ -64,7 +63,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_ping_if_pingable()
+    public function it_should_ping_if_pingable()
     {
         $response = new Referral();
 
@@ -89,7 +88,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_not_ping_during_ping_waiting_period()
+    public function it_should_not_ping_during_ping_waiting_period()
     {
         $referral = new Referral();
         $referral->setProspectGuid(123)
@@ -106,7 +105,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    function it_should_not_ping_if_current_user_is_not_referrer()
+    public function it_should_not_ping_if_current_user_is_not_referrer()
     {
         $response = new Response();
         $response[] = (new Referral)
@@ -131,7 +130,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    function it_should_get_a_list_of_referrals()
+    public function it_should_get_a_list_of_referrals()
     {
         $response = new Response();
         $response[] = (new Referral)

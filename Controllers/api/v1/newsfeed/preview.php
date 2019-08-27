@@ -25,7 +25,7 @@ class preview implements Interfaces\Api
         $config = Core\Di\Di::_()->get('Config');
         $iframelyConfig = $config->get('iframely');
         $url = $_GET['url'];
-        $response = array();
+        $response = [];
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "http://open.iframe.ly/api/iframely?origin=".$iframelyConfig['origin']."&api_key=".$iframelyConfig['key']."&url=".urlencode($url));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -38,16 +38,16 @@ class preview implements Interfaces\Api
 
     public function post($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     public function delete($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }

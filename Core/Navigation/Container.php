@@ -6,7 +6,7 @@ namespace Minds\Core\Navigation;
 
 class Container
 {
-    private $items = array();
+    private $items = [];
 
     /**
      * Add an item to the Navigation
@@ -25,7 +25,7 @@ class Container
      */
     public function export()
     {
-        $items = array();
+        $items = [];
 
         @usort($this->items, function ($a, $b) {
             if ($a->getPriority() > $b->getPriority()) {

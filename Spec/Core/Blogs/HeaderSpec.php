@@ -11,21 +11,20 @@ class HeaderSpec extends ObjectBehavior
 {
     protected $config;
 
-    function let(
+    public function let(
         Config $config
-    )
-    {
+    ) {
         $this->beConstructedWith($config);
 
         $this->config = $config;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blogs\Header');
     }
 
-    function it_should_resolve_to_existing_bg(Blog $blog)
+    public function it_should_resolve_to_existing_bg(Blog $blog)
     {
         $this->config->get('cdn_url')
             ->shouldBeCalled()
@@ -48,7 +47,7 @@ class HeaderSpec extends ObjectBehavior
             ->shouldReturn('http://phpspec/fs/v1/banners/5000/123456789');
     }
 
-    function it_should_resolve_to_first_img_on_body(Blog $blog)
+    public function it_should_resolve_to_first_img_on_body(Blog $blog)
     {
         $this->config->get('cdn_url')
             ->shouldBeCalled()

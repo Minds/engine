@@ -42,16 +42,16 @@ class neo implements Interfaces\Api
     
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
     
     public function delete($pages)
     {
         $activity = new Entities\Activity($pages[0]);
         if (!$activity->guid) {
-            return Factory::response(array('status'=>'error', 'message'=>'could not find activity post'));
+            return Factory::response(['status'=>'error', 'message'=>'could not find activity post']);
         }
  
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }

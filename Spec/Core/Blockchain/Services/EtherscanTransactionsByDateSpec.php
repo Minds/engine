@@ -16,7 +16,7 @@ class EtherscanTransactionsByDateSpec extends ObjectBehavior
     private $_eb = 8000;
     private $_eb2;
 
-    function let(Etherscan $service, Config $config)
+    public function let(Etherscan $service, Config $config)
     {
         $config->get('blockchain')
             ->shouldBeCalled()
@@ -25,8 +25,8 @@ class EtherscanTransactionsByDateSpec extends ObjectBehavior
                     'average_block_time' => 14.7
                 ]
             ]);
-            $this->beConstructedWith($service, $config);
-            $this->_eb2 = 2 * $this->_eb;
+        $this->beConstructedWith($service, $config);
+        $this->_eb2 = 2 * $this->_eb;
     }
 
     private function _page($number, $page = 0)
@@ -37,25 +37,25 @@ class EtherscanTransactionsByDateSpec extends ObjectBehavior
         ];
     }
 
-    function it_is_initializable(Etherscan $service)
+    public function it_is_initializable(Etherscan $service)
     {
         $this->shouldHaveType(EtherscanTransactionsByDate::class);
     }
 
-    function it_should_set_the_address(Etherscan $service)
+    public function it_should_set_the_address(Etherscan $service)
     {
         $service->setAddress('0x0101010101')->shouldBeCalled();
         $this->setAddress('0x0101010101')->shouldReturn($this);
     }
 
-    function it_should_estimate_the_blocknumber_for_a_timestamp(Etherscan $service)
+    public function it_should_estimate_the_blocknumber_for_a_timestamp(Etherscan $service)
     {
         $timestamp = time() - (60 * 60 * 2);
         $service->getLastBlockNumber()->willReturn(650000);
         $this->estimateBlock($timestamp)->shouldReturn((double) 649510);
     }
 
-    function it_should_check_if_a_timestamp_is_contained_in_an_array_of_blocks(Etherscan $service)
+    public function it_should_check_if_a_timestamp_is_contained_in_an_array_of_blocks(Etherscan $service)
     {
         $fakeData = [
             ['timeStamp' => 110],
@@ -79,7 +79,7 @@ class EtherscanTransactionsByDateSpec extends ObjectBehavior
         $this->isInRange($fakeData, 8)->shouldReturn(-1);
     }
 
-    function it_should_search_the_nearest_block_to_a_timestamp(Etherscan $service)
+    public function it_should_search_the_nearest_block_to_a_timestamp(Etherscan $service)
     {
         $timestamp = time() - (60 * 60 * 2);
         $service->getLastBlockNumber()->willReturn(650000);
@@ -108,7 +108,7 @@ class EtherscanTransactionsByDateSpec extends ObjectBehavior
         $this->searchBegining($timestamp)->shouldReturn($return);
     }
 
-    function it_should_search_on_the_previous_chunk_if_not_found(Etherscan $service)
+    public function it_should_search_on_the_previous_chunk_if_not_found(Etherscan $service)
     {
         $timestamp = time() - (60 * 60 * 2);
         $service->getLastBlockNumber()->willReturn(650000);
@@ -150,7 +150,7 @@ class EtherscanTransactionsByDateSpec extends ObjectBehavior
         $this->searchBegining($timestamp)->shouldReturn($return);
     }
 
-    function it_should_search_on_the_next_chunk_if_not_found(Etherscan $service)
+    public function it_should_search_on_the_next_chunk_if_not_found(Etherscan $service)
     {
         $timestamp = time() - (60 * 60 * 2);
         $service->getLastBlockNumber()->willReturn(650000);
@@ -192,7 +192,7 @@ class EtherscanTransactionsByDateSpec extends ObjectBehavior
         $this->searchBegining($timestamp)->shouldReturn($return);
     }
 
-    function it_should_detect_if_timestamp_is_on_the_limit_of_data(Etherscan $service)
+    public function it_should_detect_if_timestamp_is_on_the_limit_of_data(Etherscan $service)
     {
         $timestamp = time() - (60 * 60 * 2);
         $service->getLastBlockNumber()->willReturn(650000);
@@ -221,12 +221,12 @@ class EtherscanTransactionsByDateSpec extends ObjectBehavior
         $service->getTransactions($from, $to)->shouldBeCalled()->willReturn($fakeData1);
         // fetch older data
         list($from, $to) = $this->_page(649510, -1);
-        $service->getTransactions( $from, $to)->shouldBeCalled()->willReturn($fakeData2);
+        $service->getTransactions($from, $to)->shouldBeCalled()->willReturn($fakeData2);
 
         $this->searchBegining($timestamp)->shouldReturn($fakeData1);
     }
 
-    function it_should_detect_if_timestamp_is_on_the_limit_of_new_data(Etherscan $service)
+    public function it_should_detect_if_timestamp_is_on_the_limit_of_new_data(Etherscan $service)
     {
         $timestamp = time() - (60 * 60 * 2);
         $service->getLastBlockNumber()->willReturn(650000);
@@ -269,7 +269,7 @@ class EtherscanTransactionsByDateSpec extends ObjectBehavior
         $this->searchBegining($timestamp)->shouldReturn($fakeData2);
     }
 
-    function it_should_throw_error_if_search_fail_after_three_fetchs(Etherscan $service)
+    public function it_should_throw_error_if_search_fail_after_three_fetchs(Etherscan $service)
     {
         $timestamp = time() - (60 * 60 * 2);
         $service->getLastBlockNumber()->willReturn(650000);
@@ -300,7 +300,7 @@ class EtherscanTransactionsByDateSpec extends ObjectBehavior
         $this->shouldThrow('\Exception')->during('searchBegining', [$timestamp]);
     }
 
-    function it_should_return_blocks_for_a_date_range(Etherscan $service)
+    public function it_should_return_blocks_for_a_date_range(Etherscan $service)
     {
         $timestamp = time() - (60 * 60 * 2);
         $toTimestamp = time();
@@ -358,7 +358,7 @@ class EtherscanTransactionsByDateSpec extends ObjectBehavior
         $this->getRange($timestamp, $toTimestamp)->shouldReturn($result);
     }
 
-    function it_should_truncate_the_last_block_if_it_out_date_rage(Etherscan $service)
+    public function it_should_truncate_the_last_block_if_it_out_date_rage(Etherscan $service)
     {
         $timestamp = time() - (60 * 60 * 2);
         $toTimestamp = time();
