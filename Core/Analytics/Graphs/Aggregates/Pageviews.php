@@ -3,11 +3,11 @@
 namespace Minds\Core\Analytics\Graphs\Aggregates;
 
 use DateTime;
+use Minds\Core\Analytics\Graphs\Manager;
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Di\Di;
-use Minds\Core\Analytics\Graphs\Manager;
 
 class Pageviews implements AggregateInterface
 {
@@ -39,19 +39,39 @@ class Pageviews implements AggregateInterface
     {
         $result = [];
         foreach ([
-            null,
-            'routes',
-        ] as $key) {
-            foreach ([ 'day', 'month' ] as $unit) {
+                     null,
+                     'routes',
+                 ] as $key) {
+            foreach (['day', 'month'] as $unit) {
+                switch ($unit) {
+                    case 'day':
+                        $span = 17;
+                        break;
+                    case 'month':
+                        $span = 13;
+                        break;
+                }
                 $k = Manager::buildKey([
                     'aggregate' => $opts['aggregate'] ?? 'pageviews',
                     'key' => $key,
                     'unit' => $unit,
+                    'span' => $span,
                 ]);
-                $result[$k] = $this->fetch([ 
+                $result[$k] = $this->fetch([
                     'key' => $key,
                     'unit' => $unit,
+                    'span' => $span,
                 ]);
+
+                if ($key === null) {
+                    $avgKey = Manager::buildKey([
+                        'aggregate' => $opts['aggregate'] ?? 'pageviews',
+                        'key' => 'avg',
+                        'unit' => $unit,
+                        'span' => $span,
+                    ]);
+                    $result[$avgKey] = Manager::calculateAverages($result[$k]);
+                }
             }
         }
         return $result;
@@ -60,7 +80,7 @@ class Pageviews implements AggregateInterface
     public function fetch(array $options = [])
     {
         $options = array_merge([
-            'span' => 12,
+            'span' => 13,
             'unit' => 'month', // day / month
             'key' => null,
         ], $options);
@@ -70,14 +90,19 @@ class Pageviews implements AggregateInterface
         $from = null;
         switch ($options['unit']) {
             case "day":
-                $from = (new DateTime('midnight'))->modify("-{$options['span']} days");
-                $to = (new DateTime('midnight'));
+                $to = new DateTime('now');
+                $from = (new DateTime('midnight'))
+                    ->modify("-{$options['span']} days");
+
                 $interval = '1d';
                 $this->dateFormat = 'y-m-d';
                 break;
             case "month":
-                $from = (new DateTime('midnight first day of next month'))->modify("-{$options['span']} months");
                 $to = new DateTime('midnight first day of next month');
+                $from = (new DateTime())
+                    ->setTimestamp($to->getTimestamp())
+                    ->modify("-{$options['span']} months");
+
                 $interval = '1M';
                 $this->dateFormat = 'y-m';
                 break;
@@ -175,9 +200,17 @@ class Pageviews implements AggregateInterface
             ]
         ];
 
+        $other = $result['hits']['total'];
+
         foreach ($result['aggregations']['routes']['buckets'] as $count) {
             $response[0]['labels'][] = $count['key'];
             $response[0]['values'][] = $count['doc_count'];
+            $other -= $count['doc_count'];
+        }
+
+        if ($other > 0) {
+            $response[0]['labels'][] = 'Other';
+            $response[0]['values'][] = $other;
         }
 
         return $response;
@@ -244,7 +277,8 @@ class Pageviews implements AggregateInterface
 
         $response = [
             [
-                'name' => 'Number of Pageviews',
+                'key' => 'pageviews',
+                'name' => 'Pageviews',
                 'x' => [],
                 'y' => []
             ]

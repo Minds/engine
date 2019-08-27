@@ -6,9 +6,8 @@ namespace Minds\Core\Subscriptions\Delegates;
 
 use Minds\Core\Di\Di;
 
-class SendNotificationDelegate 
+class SendNotificationDelegate
 {
-
     /** @var EventsDispatcher $eventsDispatcher */
     private $eventsDispatcher;
 
@@ -18,7 +17,7 @@ class SendNotificationDelegate
     }
 
     /**
-     * Send a notifications 
+     * Send a notifications
      * @param Subscription $subscrition
      * @return void
      */
@@ -31,7 +30,18 @@ class SendNotificationDelegate
             'from' => $subscription->getSubscriberGuid(),
             'params' => [],
         ]);
-
     }
 
+    public function onMaxSubscriptions($subscription)
+    {
+        $message = "You are unable to subscribe to new channels as you have over 5000 subscriptions.";
+        $this->eventsDispatcher->trigger('notification', 'all', [
+            'to' => [ $subscription->getSubscriberGuid() ],
+            'entity' => $subscription->getPublisherGuid(),
+            'notification_view' => 'custom_message',
+            'from' => 100000000000000519,
+            'message' => $message,
+            'params' => [ 'message' => $message],
+        ]);
+    }
 }

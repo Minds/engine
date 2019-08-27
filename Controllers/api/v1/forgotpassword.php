@@ -20,7 +20,7 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function get($pages)
     {
-        return Factory::response(array('status'=>'error', 'message'=>'GET is not supported for this endpoint'));
+        return Factory::response(['status'=>'error', 'message'=>'GET is not supported for this endpoint']);
     }
 
     /**
@@ -35,7 +35,7 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function post($pages)
     {
-        $response = array();
+        $response = [];
 
         if (!isset($pages[0])) {
             $pages[0] = "request";
@@ -94,6 +94,17 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
               break;
           }
 
+          try {
+              if (!validate_password($_POST['password'])) {
+                  $response['status'] = "error";
+                  $response['message'] = "Password must have more than 8 characters. Including uppercase, numbers, special characters (ie. !,#,@), and cannot have spaces.";
+              }
+          } catch (\Exception $e) {
+              $response['status'] = "error";
+              $response['message'] = "Password must have more than 8 characters. Including uppercase, numbers, special characters (ie. !,#,@), and cannot have spaces.";
+              break;
+          }
+
           //$user->salt = Core\Security\Password::salt();
           $user->password = Core\Security\Password::generate($user, $_POST['password']);
           $user->password_reset_code = "";
@@ -111,7 +122,7 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
 
           break;
         default:
-          $response = array('status'=>'error', 'message'=>'Unknown endpoint');
+          $response = ['status'=>'error', 'message'=>'Unknown endpoint'];
       }
 
         return Factory::response($response);

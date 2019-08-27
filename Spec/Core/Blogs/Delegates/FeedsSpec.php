@@ -18,7 +18,7 @@ class FeedsSpec extends ObjectBehavior
     /** @var QueueClient */
     protected $queue;
 
-    function let(
+    public function let(
         FeedsRepository $feedsRepository,
         QueueClient $queue
     ) {
@@ -28,15 +28,14 @@ class FeedsSpec extends ObjectBehavior
         $this->queue = $queue;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blogs\Delegates\Feeds');
     }
 
-    function it_should_index(
+    public function it_should_index(
         Blog $blog
-    )
-    {
+    ) {
         $blog->getGuid()
             ->shouldBeCalled()
             ->willReturn(5000);
@@ -58,10 +57,9 @@ class FeedsSpec extends ObjectBehavior
             ->shouldNotThrow();
     }
 
-    function it_should_remove(
+    public function it_should_remove(
         Blog $blog
-    )
-    {
+    ) {
         $blog->getGuid()
             ->shouldBeCalled()
             ->willReturn(5000);
@@ -83,69 +81,9 @@ class FeedsSpec extends ObjectBehavior
             ->shouldNotThrow();
     }
 
-    function it_should_dispatch(
+    public function it_should_get_feed_items(
         Blog $blog
-    )
-    {
-        $blog->getAccessId()
-            ->shouldBeCalled()
-            ->willReturn(2);
-
-        $blog->getGuid()
-            ->shouldBeCalled()
-            ->willReturn(5000);
-
-        $blog->getOwnerGuid()
-            ->shouldBeCalled()
-            ->willReturn(1000);
-
-        $blog->getType()
-            ->shouldBeCalled()
-            ->willReturn('object');
-
-        $blog->getSubtype()
-            ->shouldBeCalled()
-            ->willReturn('blog');
-
-        $this->queue->setQueue('FeedDispatcher')
-            ->shouldBeCalled()
-            ->willReturn($this->queue);
-
-        $this->queue->send([
-            'guid' => 5000,
-            'owner_guid' => 1000,
-            'type' => 'object',
-            'subtype' => 'blog',
-            'super_subtype' => '',
-        ])
-            ->shouldBeCalled()
-            ->willReturn(null);
-
-        $this
-            ->dispatch($blog)
-            ->shouldNotThrow();
-    }
-
-    function it_should_not_dispatch_if_access_id_0(
-        Blog $blog
-    )
-    {
-        $blog->getAccessId()
-            ->shouldBeCalled()
-            ->willReturn(0);
-
-        $this->queue->send(Argument::cetera())
-            ->shouldNotBeCalled();
-
-        $this
-            ->dispatch($blog)
-            ->shouldNotThrow();
-    }
-
-    function it_should_get_feed_items(
-        Blog $blog
-    )
-    {
+    ) {
         $blog->getGuid()
             ->shouldBeCalled()
             ->willReturn(5000);
@@ -165,7 +103,7 @@ class FeedsSpec extends ObjectBehavior
 
     //
 
-    function getMatchers()
+    public function getMatchers()
     {
         $matchers = [];
 

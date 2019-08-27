@@ -101,7 +101,7 @@ class Repository
         }
 
         if ($opts['offset']) {
-            $cqlOpts['paging_state_token'] = base64_decode($opts['offset']);
+            $cqlOpts['paging_state_token'] = base64_decode($opts['offset'], true);
         }
 
         $prepared->setOpts($cqlOpts);

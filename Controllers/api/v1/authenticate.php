@@ -10,6 +10,7 @@ namespace Minds\Controllers\api\v1;
 use Minds\Core;
 use Minds\Core\Security;
 use Minds\Core\Session;
+use Minds\Core\Features;
 use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Interfaces;
@@ -23,7 +24,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function get($pages)
     {
-        return Factory::response(array('status'=>'error', 'message'=>'GET is not supported for this endpoint'));
+        return Factory::response(['status'=>'error', 'message'=>'GET is not supported for this endpoint']);
     }
 
     /**
@@ -87,7 +88,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
             $response['code'] = $e->getCode();
             $response['message'] = $e->getMessage();
             return Factory::response($response);
-        } 
+        }
 
         $sessions = Di::_()->get('Sessions\Manager');
         $sessions->setUser($user);
@@ -96,8 +97,12 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         \set_last_login($user); // TODO: Refactor this
 
-        Session::generateJWTCookie($sessions->getSession()); 
+        Session::generateJWTCookie($sessions->getSession());
         Security\XSRF::setCookie(true);
+
+        // Set the canary cookie
+        Di::_()->get('Features\Manager')
+            ->setCanaryCookie($user->isCanary());
 
         $response['status'] = 'success';
         $response['user'] = $user->export();

@@ -17,7 +17,7 @@ class MediaProvider extends Provider
         }, ['useFactory' => true]);
 
         $this->di->bind('Media\Feeds', function ($di) {
-            return new Feeds(new Core\Data\Call('entities_by_time'), new Core\Data\Call('entities'));
+            return new Feeds();
         }, ['useFactory' => true]);
 
         $this->di->bind('Media\Repository', function ($di) {
@@ -58,6 +58,18 @@ class MediaProvider extends Provider
 
         $this->di->bind('Media\Imagick\Manager', function ($di) {
             return new Imagick\Manager();
+        }, ['useFactory' => false]);
+
+        // ClientUpload
+
+        $this->di->bind('Media\ClientUpload\Manager', function ($di) {
+            return new ClientUpload\Manager();
+        }, ['useFactory' => true]);
+
+        // Services
+
+        $this->di->bind('Media\Services\FFMpeg', function ($di) {
+            return new Services\FFMpeg();
         }, ['useFactory' => false]);
     }
 }

@@ -22,13 +22,12 @@ class ManagerSpec extends ObjectBehavior
     private $entitiesBuilder;
     private $guidBuilder;
 
-    function let(
+    public function let(
         Repository $repository,
         ElasticRepository $elasticRepository,
         EntitiesBuilder $entitiesBuilder,
         GuidBuilder $guidBuilder
-    )
-    {
+    ) {
         $this->beConstructedWith($repository, $elasticRepository, $entitiesBuilder, $guidBuilder);
         $this->repository = $repository;
         $this->elasticRepository = $elasticRepository;
@@ -36,12 +35,12 @@ class ManagerSpec extends ObjectBehavior
         $this->guidBuilder = $guidBuilder;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_return_a_list_of_boosts_to_review()
+    public function it_should_return_a_list_of_boosts_to_review()
     {
         $response = new Response([
             (new Boost)
@@ -112,7 +111,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(100);
     }
 
-    function it_should_return_a_list_of_boosts_to_deliver()
+    public function it_should_return_a_list_of_boosts_to_deliver()
     {
         $this->elasticRepository->getList([
             'state' => 'approved',
@@ -171,7 +170,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(100);
     }
 
-    function it_should_return_a_list_of_boosts_from_guids()
+    public function it_should_return_a_list_of_boosts_from_guids()
     {
         $this->repository->getList([
             'state' => null,
@@ -230,7 +229,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(100);
     }
 
-    function it_should_add_a_boost(Boost $boost)
+    public function it_should_add_a_boost(Boost $boost)
     {
         $this->guidBuilder->build()
             ->shouldBeCalled()
@@ -252,7 +251,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_update_a_boost(Boost $boost)
+    public function it_should_update_a_boost(Boost $boost)
     {
         $this->repository->update($boost, ['@timestamp'])
             ->shouldBeCalled();
@@ -262,7 +261,7 @@ class ManagerSpec extends ObjectBehavior
         $this->update($boost, ['@timestamp']);
     }
 
-    function it_should_resync_a_boost_on_elasticsearch(Boost $boost)
+    public function it_should_resync_a_boost_on_elasticsearch(Boost $boost)
     {
         $this->elasticRepository->update($boost, ['@timestamp'])
             ->shouldBeCalled();
@@ -270,14 +269,14 @@ class ManagerSpec extends ObjectBehavior
         $this->resync($boost, ['@timestamp']);
     }
 
-    function it_should_check_if_the_entity_was_already_boosted(Boost $boost)
+    public function it_should_check_if_the_entity_was_already_boosted(Boost $boost)
     {
         $this->elasticRepository->getList([
-            'hydrate' => true, 
-            'useElastic' => true, 
-            'state' => 'review', 
-            'type' => 'newsfeed', 
-            'entity_guid' => '123', 
+            'hydrate' => true,
+            'useElastic' => true,
+            'state' => 'review',
+            'type' => 'newsfeed',
+            'entity_guid' => '123',
             'limit' => 1
         ])
             ->shouldBeCalled()
@@ -298,8 +297,8 @@ class ManagerSpec extends ObjectBehavior
         $this->checkExisting($boost)->shouldReturn(true);
     }
 
-    function it_should_request_offchain_boosts(Boost $boost)
-    {       
+    public function it_should_request_offchain_boosts(Boost $boost)
+    {
         $this->elasticRepository->getList([
             "hydrate" => true,
             "useElastic" => true,
@@ -328,8 +327,8 @@ class ManagerSpec extends ObjectBehavior
         $this->getOffchainBoosts($boost)->shouldHaveType('Minds\Common\Repository\Response');
     }
 
-    function it_should_recognise_a_user_has_reached_the_offchain_boost_limit(Boost $boost)
-    {  
+    public function it_should_recognise_a_user_has_reached_the_offchain_boost_limit(Boost $boost)
+    {
         $boostArray = [];
         for ($i = 0; $i < 10; $i++) {
             $newBoost = new Boost();
@@ -342,8 +341,8 @@ class ManagerSpec extends ObjectBehavior
         $this->isBoostLimitExceededBy($boost)->shouldReturn(true);
     }
 
-    function it_should_recognise_a_user_has_NOT_reached_the_offchain_boost_limit(Boost $boost)
-    {  
+    public function it_should_recognise_a_user_has_NOT_reached_the_offchain_boost_limit(Boost $boost)
+    {
         $boostArray = [];
         for ($i = 0; $i < 9; $i++) {
             $newBoost = new Boost();
@@ -357,8 +356,8 @@ class ManagerSpec extends ObjectBehavior
     }
 
 
-    function it_should_recognise_a_boost_would_take_user_above_offchain_limit(Boost $boost)
-    {  
+    public function it_should_recognise_a_boost_would_take_user_above_offchain_limit(Boost $boost)
+    {
         $boostArray = [];
         for ($i = 0; $i < 2; $i++) {
             $newBoost = new Boost();
@@ -371,7 +370,8 @@ class ManagerSpec extends ObjectBehavior
         $this->isBoostLimitExceededBy($boost)->shouldReturn(true);
     }
 
-    function runThroughGetList($boost, $existingBoosts) {
+    public function runThroughGetList($boost, $existingBoosts)
+    {
         $this->elasticRepository->getList([
             "hydrate" => true,
             "useElastic" => true,

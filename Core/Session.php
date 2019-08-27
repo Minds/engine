@@ -5,6 +5,7 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Common\Cookie;
 use Minds\Entities\User;
+use Sentry;
 
 /**
  * Minds Session Manager
@@ -71,9 +72,9 @@ class Session extends base
             $server = Di::_()->get('OAuth\Server\Resource');
             $request = $server->validateAuthenticatedRequest($request);
             $user_guid = $request->getAttribute('oauth_user_id');
-            static::setUserByGuid($user_guid); 
+            static::setUserByGuid($user_guid);
         } catch (\Exception $e) {
-           // var_dump($e);
+            // var_dump($e);
         }
     }
 
@@ -96,7 +97,18 @@ class Session extends base
     public static function setUser($user)
     {
         static::$user = $user;
-        if (!$user 
+
+        // Update sentry with the current user
+        // TODO: Move to a delegate
+        if ($user) {
+            Sentry\configureScope(function (Sentry\State\Scope $scope) use ($user): void {
+                $scope->setUser([
+                    'id' => (string) $user->getGuid(),
+                ]);
+            });
+        }
+
+        if (!$user
             || !static::$user->username
             || static::$user->isBanned()
             || !static::$user->isEnabled()

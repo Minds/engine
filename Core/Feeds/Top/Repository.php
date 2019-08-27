@@ -51,7 +51,8 @@ class Repository
             'nsfw' => null,
             'from_timestamp' => null,
             'exclude_moderated' => false,
-            'moderation_reservations' => null
+            'moderation_reservations' => null,
+            'pinned_guids' => null,
         ], $opts);
 
         if (!$opts['type']) {
@@ -62,7 +63,7 @@ class Repository
             throw new \Exception('Algorithm must be provided');
         }
 
-        if (!in_array($opts['period'], ['12h', '24h', '7d', '30d', '1y'])) {
+        if (!in_array($opts['period'], ['12h', '24h', '7d', '30d', '1y'], true)) {
             throw new \Exception('Unsupported period');
         }
 
@@ -190,6 +191,18 @@ class Repository
             ];
         }
 
+        if (!$opts['container_guid'] && !$opts['owner_guid']) {
+            if (!isset($body['query']['function_score']['query']['bool']['must_not'])) {
+                $body['query']['function_score']['query']['bool']['must_not'] = [];
+            }
+
+            $body['query']['function_score']['query']['bool']['must_not'][] = [
+                'term' => [
+                    'deleted' => true,
+                ],
+            ];
+        }
+
         if ($opts['custom_type']) {
             $customTypes = Text::buildArray($opts['custom_type']);
 
@@ -213,7 +226,7 @@ class Repository
                     ],
                 ];
 
-                if (in_array(6, $nsfw)) { // 6 is legacy 'mature'
+                if (in_array(6, $nsfw, false)) { // 6 is legacy 'mature'
                     $body['query']['function_score']['query']['bool']['must_not'][] = [
                         'term' => [
                             'mature' => true,
@@ -291,7 +304,7 @@ class Repository
         if ($opts['moderation_reservations']) {
             $body['query']['function_score']['query']['bool']['must_not'][] = [
                 'terms' => [
-                    'guid' => $opts['moderation_reservations'], 
+                    'guid' => $opts['moderation_reservations'],
                 ],
             ];
         }
@@ -338,6 +351,20 @@ class Repository
 
         $response = $this->client->request($prepared);
 
+        if ($opts['pinned_guids']) { // Hack the response so we can have pinned posts
+            foreach ($opts['pinned_guids'] as $pinned_guid) {
+                array_unshift($response['hits']['hits'], [
+                    '_type' => 'activity',
+                    '_source' => [
+                        'guid' => $pinned_guid,
+                        'owner_guid' => null,
+                        'score' => 0,
+                        'timestamp' => 0,
+                    ],
+                ]);
+            }
+        }
+ 
         $guids = [];
         foreach ($response['hits']['hits'] as $doc) {
             $guid = $doc['_source'][$this->getSourceField($opts['type'])];
@@ -347,6 +374,7 @@ class Repository
             $guids[$guid] = true;
             yield (new ScoredGuid())
                 ->setGuid($doc['_source'][$this->getSourceField($opts['type'])])
+                ->setType($doc['_type'])
                 ->setScore($algorithm->fetchScore($doc))
                 ->setOwnerGuid($doc['_source']['owner_guid'])
                 ->setTimestamp($doc['_source']['@timestamp']);
@@ -407,5 +435,4 @@ class Repository
             $this->pendingBulkInserts = [];
         }
     }
-
 }

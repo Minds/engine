@@ -59,7 +59,7 @@ class group implements Interfaces\Api
             }
 
             $response['group'] = array_filter($response['group'], function ($key) use ($allowed) {
-                return in_array($key, $allowed);
+                return in_array($key, $allowed, true);
             }, ARRAY_FILTER_USE_KEY);
         }
 
@@ -184,6 +184,10 @@ class group implements Interfaces\Api
             $group->setVideoChatDisabled($_POST['videoChatDisabled']);
         }
 
+        if (isset($_POST['conversationDisabled'])) {
+            $group->setConversationDisabled($_POST['conversationDisabled']);
+        }
+
         if (isset($_POST['tags'])) {
             $tags = $_POST['tags'];
             $sanitized_tags = [];
@@ -234,7 +238,7 @@ class group implements Interfaces\Api
             }
         }
 
-        $response = array();
+        $response = [];
         $response['guid'] = $group->getGuid();
 
         if ($creation && isset($_POST['invitees']) && $_POST['invitees']) {
@@ -257,7 +261,7 @@ class group implements Interfaces\Api
 
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     public function delete($pages)
@@ -271,11 +275,7 @@ class group implements Interfaces\Api
             return Factory::response([]);
         }
 
-        $canDelete = Session::isAdmin();
-
-        if (!$canDelete && $group->isCreator($user)) {
-            $canDelete = $group->getMembersCount() <= 1;
-        }
+        $canDelete = Session::isAdmin() || $group->isCreator($user);
 
         if (!$canDelete) {
             return Factory::response([

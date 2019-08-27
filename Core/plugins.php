@@ -7,15 +7,15 @@ namespace Minds\Core;
 class plugins extends base
 {
     public static $path;
-    public static $cache = array();
+    public static $cache = [];
 
     public function __construct()
     {
         self::$path = dirname(__MINDS_ROOT__) . "/plugins/";
         $this->load();
 
-        \elgg_register_event_handler('init', 'system', array($this, 'initPlugins'));
-        \elgg_register_event_handler('activate', 'plugin', array($this, 'clearCache'));
+        \elgg_register_event_handler('init', 'system', [$this, 'initPlugins']);
+        \elgg_register_event_handler('activate', 'plugin', [$this, 'clearCache']);
     }
 
     /**
@@ -29,7 +29,7 @@ class plugins extends base
             $dir = self::$path;
         }
 
-        $plugin_ids = array();
+        $plugin_ids = [];
         $handle = opendir($dir);
 
         if ($handle) {
@@ -58,7 +58,7 @@ class plugins extends base
         if (isset(self::$cache[$status])) {
             return self::$cache[$status];
         } else {
-            self::$cache[$status] = array();
+            self::$cache[$status] = [];
         }
 
         $plugins = self::getFromDir();
@@ -126,11 +126,11 @@ class plugins extends base
                     $plugin->start();
                 } catch (Exception $e) {
                     $plugin->deactivate();
-                    $msg = \elgg_echo('PluginException:CannotStart', array(
+                    $msg = \elgg_echo('PluginException:CannotStart', [
                         $plugin->getID(),
                         $plugin->guid,
                         $e->getMessage()
-                    ));
+                    ]);
                     error_log($msg);
                     \elgg_add_admin_notice('cannot_start' . $plugin->getID(), $msg);
                     $return = false;
@@ -233,18 +233,18 @@ class plugins extends base
      * @param  array  $data - Optional. Settings information.
      * @return object
      */
-     public static function factory($guid, $data = null)
-     {
-         if (!$data) {
-             $data = $guid;
-         }
+    public static function factory($guid, $data = null)
+    {
+        if (!$data) {
+            $data = $guid;
+        }
 
-         $class = "\\minds\\plugin\\$guid\\start";
-         if (class_exists($class)) {
-             return new $class($data);
-         } else {
-             //support legacy plugins
+        $class = "\\minds\\plugin\\$guid\\start";
+        if (class_exists($class)) {
+            return new $class($data);
+        } else {
+            //support legacy plugins
             return new \ElggPlugin($data);
-         }
-     }
+        }
+    }
 }

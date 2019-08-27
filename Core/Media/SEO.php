@@ -13,7 +13,8 @@ class SEO
         Core\SEO\Manager::add('/media', [ $this, 'viewHandler' ]);
     }
 
-    private function getInfo($title, $description, $url) {
+    private function getInfo($title, $description, $url)
+    {
         return [
             'title' => $title,
             'description' => $description,
@@ -29,7 +30,7 @@ class SEO
     public function viewHandler($slugs = [])
     {
         $allowedSections = ['top', 'network', 'my'];
-        if (($slugs[0] === 'images' || $slugs[0] === 'videos') && array_search($slugs[1], $allowedSections) !== false) {
+        if (($slugs[0] === 'images' || $slugs[0] === 'videos') && array_search($slugs[1], $allowedSections, true) !== false) {
             $type = ucfirst($slugs[0]);
             switch ($slugs[1]) {
                 case 'top':

@@ -14,7 +14,7 @@ class TokenSpec extends ObjectBehavior
     /** @var Ethereum */
     private $client;
 
-    function let(Manager $manager, Ethereum $client, MindsToken $contract)
+    public function let(Manager $manager, Ethereum $client, MindsToken $contract)
     {
         $this->manager = $manager;
         $this->client = $client;
@@ -27,12 +27,12 @@ class TokenSpec extends ObjectBehavior
         $this->beConstructedWith($manager, $client);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blockchain\Token');
     }
 
-    function it_should_return_the_balance()
+    public function it_should_return_the_balance()
     {
         $this->client->call('minds_token_addr', 'balanceOf(address)', ['foo'])
             ->shouldBeCalled()
@@ -41,7 +41,7 @@ class TokenSpec extends ObjectBehavior
         $this->balanceOf('foo')->shouldBe('50000000000000000000');
     }
 
-    function it_should_return_the_total_supply()
+    public function it_should_return_the_total_supply()
     {
         $this->client->call('minds_token_addr', 'totalSupply()', [])
             ->shouldBeCalled()
@@ -50,14 +50,13 @@ class TokenSpec extends ObjectBehavior
         $this->totalSupply()->shouldReturn('1.000000000000000000');
     }
 
-    function it_should_transform_an_amount_to_token_unit()
+    public function it_should_transform_an_amount_to_token_unit()
     {
         $this->toTokenUnit(10)->shouldReturn('10000000000000000000');
     }
 
-    function it_should_transform_an_amount_from_token_unit()
+    public function it_should_transform_an_amount_from_token_unit()
     {
         $this->fromTokenUnit(10000000000000000000)->shouldReturn('10.000000000000000000');
     }
-
 }

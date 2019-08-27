@@ -11,8 +11,8 @@ use Minds\Traits\MagicAttributes;
 class Message
 {
     use MagicAttributes;
-    public $from = array();
-    public $to = array();
+    public $from = [];
+    public $to = [];
     public $subject = '';
     public $html = '';
     public $messageId = '';

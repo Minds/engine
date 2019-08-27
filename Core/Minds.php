@@ -19,9 +19,11 @@ class Minds extends base
         Experiments\Module::class,
         Helpdesk\Module::class,
         Onboarding\Module::class,
+        Permissions\Module::class,
         Subscriptions\Module::class,
         SendWyre\Module::class,
         Suggestions\Module::class,
+        Referrals\Module::class,
         Reports\Module::class,
         VideoChat\Module::class,
     ];
@@ -99,6 +101,7 @@ class Minds extends base
         (new Hashtags\HashtagsProvider())->register();
         (new Feeds\FeedsProvider())->register();
         (new Analytics\AnalyticsProvider())->register();
+        (new Channels\ChannelsProvider())->register();
     }
 
     /**
@@ -177,7 +180,7 @@ class Minds extends base
     public function loadLegacy()
     {
         // TODO: Remove when no longer needed
-        $lib_files = array(
+        $lib_files = [
             'elgglib.php',
             'access.php',
             'configuration.php',
@@ -201,7 +204,7 @@ class Minds extends base
             'users.php',
             //'xml.php',
             //'xml-rpc.php'
-        );
+        ];
 
         foreach ($lib_files as $file) {
             $file = __MINDS_ROOT__.$this->legacy_lib_dir.$file;

@@ -9,6 +9,7 @@
 namespace Minds\Core\Features;
 
 use Minds\Core\Di\Di;
+use Minds\Common\Cookie;
 use Minds\Core\Session;
 
 class Manager
@@ -18,10 +19,14 @@ class Manager
 
     /** @var Config $config */
     private $config;
+
+    /** @var Cookie $cookie */
+    private $cookie;
     
-    public function __construct($config = null)
+    public function __construct($config = null, $cookie = null)
     {
         $this->config = $config ?: Di::_()->get('Config');
+        $this->cookie = $cookie ?: new Cookie;
     }
 
     /**
@@ -45,9 +50,9 @@ class Manager
         $features = $this->config->get('features') ?: [];
 
         if (!isset($features[$feature])) {
-            error_log("[Features\Manager] Feature '{$feature}' is not declared. Assuming true.");
+            error_log("[Features\Manager] Feature '{$feature}' is not declared. Assuming false.");
 
-            return true;
+            return false;
         }
 
         if ($features[$feature] === 'admin' && $this->user->isAdmin()) {
@@ -64,5 +69,22 @@ class Manager
     public function export()
     {
         return $this->config->get('features') ?: [];
+    }
+
+    /**
+     * Set the canary cookie
+     * @param bool $enabled
+     * @return void
+     */
+    public function setCanaryCookie(bool $enabled = true) : void
+    {
+        $this->cookie
+            ->setName('canary')
+            ->setValue((int) $enabled)
+            ->setExpire(0)
+            ->setSecure(true) //only via ssl
+            ->setHttpOnly(true) //never by browser
+            ->setPath('/')
+            ->create();
     }
 }

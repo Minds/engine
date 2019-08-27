@@ -17,21 +17,19 @@ use Cassandra\Varint;
 
 class AccessTokenRepositorySpec extends ObjectBehavior
 {
-
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(AccessTokenRepository::class);
     }
 
-    function it_should_save_access_token(
+    public function it_should_save_access_token(
         Client $client,
         AccessTokenEntityInterface $accessTokenEntity,
         ClientEntityInterface $clientEntity
-    )
-    {
+    ) {
         $this->beConstructedWith($client);
 
-        $client->request(Argument::that(function($prepared) {
+        $client->request(Argument::that(function ($prepared) {
             $query = $prepared->build();
 
             $template = $query['string'];
@@ -43,8 +41,8 @@ class AccessTokenRepositorySpec extends ObjectBehavior
                 //&& $values[3] === new Timestamp(strtotime('25th December 2018'))
                 //&& $values[4] === new Timestamp(time())
                 ;
-                //&& $values[5] === new Set();
-            }))
+            //&& $values[5] === new Set();
+        }))
             ->shouldBeCalled();
 
         $accessTokenEntity->getIdentifier()
@@ -68,35 +66,35 @@ class AccessTokenRepositorySpec extends ObjectBehavior
         $this->persistNewAccessToken($accessTokenEntity);
     }
 
-    function it_should_revoke_access_token(Client $client)
+    public function it_should_revoke_access_token(Client $client)
     {
         $this->beConstructedWith($client);
 
-        $client->request(Argument::that(function($prepared) {
+        $client->request(Argument::that(function ($prepared) {
             $query = $prepared->build();
 
             $template = $query['string'];
             $values = $query['values'];
 
             return $values[0] === 'id_1';
-            }))
+        }))
             ->shouldBeCalled();
 
         $this->revokeAccessToken('id_1');
     }
 
-    function it_should_return_access_token_is_revoked(Client $client)
+    public function it_should_return_access_token_is_revoked(Client $client)
     {
         $this->beConstructedWith($client);
 
-        $client->request(Argument::that(function($prepared) {
+        $client->request(Argument::that(function ($prepared) {
             $query = $prepared->build();
 
             $template = $query['string'];
             $values = $query['values'];
 
             return $values[0] === 'id_1';
-            }))
+        }))
             ->shouldBeCalled()
             ->willReturn(false);
 
@@ -104,18 +102,18 @@ class AccessTokenRepositorySpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    function it_should_return_access_token_is_not_revoked(Client $client)
+    public function it_should_return_access_token_is_not_revoked(Client $client)
     {
         $this->beConstructedWith($client);
 
-        $client->request(Argument::that(function($prepared) {
+        $client->request(Argument::that(function ($prepared) {
             $query = $prepared->build();
 
             $template = $query['string'];
             $values = $query['values'];
 
             return $values[0] === 'id_1';
-            }))
+        }))
             ->shouldBeCalled()
             ->willReturn([
                 [ 'token_id' => 'id_1' ]
@@ -125,10 +123,9 @@ class AccessTokenRepositorySpec extends ObjectBehavior
             ->shouldBe(false);
     }
 
-    function it_should_return_an_access_token(
+    public function it_should_return_an_access_token(
         ClientEntityInterface $clientEntity
-    )
-    {
+    ) {
         $clientEntity->getIdentifier()
             ->willReturn('client_1');
 
@@ -143,5 +140,4 @@ class AccessTokenRepositorySpec extends ObjectBehavior
             ->getUserIdentifier()
             ->shouldBe('user_1');
     }
-
 }

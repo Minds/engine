@@ -219,7 +219,7 @@ class Defaults
             $allowedSections = ['top', 'subscriptions', 'subscribers'];
             $meta = [];
 
-            if(array_search($slugs[0], $allowedSections) !== false) {
+            if (array_search($slugs[0], $allowedSections, true) !== false) {
                 $meta = [
                     'og:url' => Core\Di\Di::_()->get('Config')->site_url . implode('/', $slugs),
                     'og:image' => Core\Di\Di::_()->get('Config')->site_url . 'assets/share/master.jpg',
@@ -227,7 +227,7 @@ class Defaults
                     'og:image:height' => 681
                 ];
 
-                switch($slugs[0]){
+                switch ($slugs[0]) {
                     case 'top':
                         $meta = array_merge([
                                 'title' => 'Top Channels',
@@ -337,6 +337,23 @@ class Defaults
             return $meta;
         });
 
+        Manager::add('/wallet/tokens/referrals', function ($slugs = []) {
+            $meta = [
+                'title' => 'Referrals',
+                'description' => 'Share links and track your referrals',
+                'og:title' => 'Referrals',
+                'og:description' => 'Share links and track your referrals',
+                'og:url' => $this->config->site_url . 'wallet/tokens/referrals',
+                'og:image' => $this->config->cdn_assets_url . 'assets/photos/graph.jpg',
+                'og:image:width' => 2000,
+                'og:image:height' => 1000,
+                'twitter:site' => '@minds',
+                'twitter:card' => 'summary',
+            ];
+
+            return $meta;
+        });
+
         $marketing = [
             'plus' => [
                 'title' => 'Minds Plus',
@@ -429,13 +446,13 @@ class Defaults
         }
     }
 
-    public function channelHandler($slugs = []) 
+    public function channelHandler($slugs = [])
     {
         $username = ($slugs[0] == 'blog') ? $slugs[1]: $slugs[0];
         if (isset($username) && is_string($username)) {
             $user = new Entities\User(strtolower($username));
             if (!$user->guid) {
-                return array();
+                return [];
             }
 
             if (!$user->enabled || $user->banned == 'yes' || Helpers\Flags::shouldFail($user)) {

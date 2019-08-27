@@ -78,6 +78,20 @@ class FFMpeg implements ServiceInterface
         return $this;
     }
 
+    /**
+     * Create a PresignedUr for client based uploads
+     * @return string
+     */
+    public function getPresignedUrl()
+    {
+        $cmd = $this->s3->getCommand('PutObject', [
+            'Bucket' => 'cinemr',
+            'Key' => "$this->dir/$this->key/source",
+        ]);
+
+        return (string) $this->s3->createPresignedRequest($cmd, '+20 minutes')->getUri();
+    }
+
     public function saveToFilestore($file)
     {
         try {
@@ -179,7 +193,7 @@ class FFMpeg implements ServiceInterface
         } catch (\Exception $e) {
         }
 
-        $rotated = isset($tags['rotate']) && in_array($tags['rotate'], [270, 90]);
+        $rotated = isset($tags['rotate']) && in_array($tags['rotate'], [270, 90], true);
 
         $outputs = [];
         $presets = $this->config->get('transcoder')['presets'];

@@ -124,7 +124,6 @@ class Reports extends Cli\Controller implements Interfaces\CliControllerInterfac
                     $this->out($success ? 'OK' : 'Fail');
                 }
             }
-
         }
 
         $this->out('Done!');

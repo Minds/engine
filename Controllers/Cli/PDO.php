@@ -25,5 +25,4 @@ class PDO extends Cli\Controller implements Interfaces\CliControllerInterface
         $resp = $dwh->exec('SELECT * FROM suggested');
         var_dump($resp);
     }
-
 }

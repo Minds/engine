@@ -113,10 +113,10 @@ class Image extends File
         return $result;
     }
 
-    public function createThumbnails($sizes = array('small', 'medium','large', 'xlarge'), $filepath = null)
+    public function createThumbnails($sizes = ['small', 'medium','large', 'xlarge'], $filepath = null)
     {
         if (!$sizes) {
-            $sizes = array('small', 'medium','large', 'xlarge');
+            $sizes = ['small', 'medium','large', 'xlarge'];
         }
         $master = $filepath ?: $this->getFilenameOnFilestore();
         foreach ($sizes as $size) {
@@ -181,7 +181,7 @@ class Image extends File
 
     public function getExportableValues()
     {
-        return array_merge(parent::getExportableValues(), array(
+        return array_merge(parent::getExportableValues(), [
             'thumbnail',
             'cinemr_guid',
             'license',
@@ -191,7 +191,7 @@ class Image extends File
             'width',
             'height',
             'gif',
-        ));
+        ]);
     }
 
     public function getAlbumChildrenGuids()
@@ -220,6 +220,7 @@ class Image extends File
         $export['width'] = $this->width ?: 0;
         $export['height'] = $this->height ?: 0;
         $export['gif'] = (bool) $this->gif;
+        $export['urn'] = $this->getUrn();
 
         if (!Helpers\Flags::shouldDiscloseStatus($this) && isset($export['flags']['spam'])) {
             unset($export['flags']['spam']);
@@ -351,5 +352,10 @@ class Image extends File
     public function getBoostRejectionReason()
     {
         return $this->boost_rejection_reason;
+    }
+
+    public function getUrn()
+    {
+        return "urn:image:{$this->guid}";
     }
 }

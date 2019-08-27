@@ -29,15 +29,15 @@ class comments implements Interfaces\Api
     public function get($pages)
     {
         //Factory::isLoggedIn();
-        $response = array();
+        $response = [];
         $guid = $pages[0];
         $parent_guid_l1 = $parent_guid_l2 = 0;
 
-        if(isset($_GET['parent_guid_l1']) && $_GET['parent_guid_l1'] != 0) {
+        if (isset($_GET['parent_guid_l1']) && $_GET['parent_guid_l1'] != 0) {
             $parent_guid_l1 = $_GET['parent_guid_l1'];
         }
 
-        if(isset($_GET['parent_guid_l2'])  && $_GET['parent_guid_l2'] != 0) {
+        if (isset($_GET['parent_guid_l2'])  && $_GET['parent_guid_l2'] != 0) {
             $parent_guid_l2 = $_GET['parent_guid_l2'];
         }
 
@@ -92,7 +92,7 @@ class comments implements Interfaces\Api
     {
         $manager = new Core\Comments\Manager();
 
-        $response = array();
+        $response = [];
         $error = false;
         $emitToSocket = false;
 
@@ -107,7 +107,7 @@ class comments implements Interfaces\Api
             }
 
             if (!$comment || !$canEdit) {
-                $response = array('status' => 'error', 'message' => 'This comment can not be edited');
+                $response = ['status' => 'error', 'message' => 'This comment can not be edited'];
                 break;
             }
 
@@ -144,11 +144,11 @@ class comments implements Interfaces\Api
             break;
           case is_numeric($pages[0]):
           default:
-            $entity = new \Minds\Entities\Entity($pages[0]);
+            $entity = Core\Di\Di::_()->get('EntitiesBuilder')->single($pages[0]);
 
-            if ($entity instanceof Entities\Activity && $entity->remind_object) {
-                $entity = (object) $entity->remind_object;
-            }
+            // if ($entity instanceof Entities\Activity && $entity->remind_object) {
+            //     $entity = (object) $entity->remind_object;
+            // }
 
             if (!$pages[0] || !$entity || $entity->type == 'comment') {
                 return Factory::response([
@@ -157,17 +157,17 @@ class comments implements Interfaces\Api
                 ]);
             }
 
+            if (method_exists($entity, 'getAllowComments') && !$entity->getAllowComments()) {
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => 'Comments are disabled for this post'
+                ]);
+            }
+
             if (!$_POST['comment'] && !$_POST['attachment_guid']) {
                 return Factory::response([
                   'status' => 'error',
                   'message' => 'You must enter a message'
-                ]);
-            }
-
-            if ($entity instanceof Entities\Activity && !$entity->commentsEnabled) {
-                return Factory::response([
-                  'status' => 'error',
-                  'message' => 'Comments are disabled for this post'
                 ]);
             }
 
@@ -200,7 +200,13 @@ class comments implements Interfaces\Api
                 $comment->setParentGuidL2($_POST['parentGuidL2']);
             }
 
-            if ($entity->type == 'group') {
+            if ($entity instanceof Entities\Group) {
+                if ($entity->isConversationDisabled()) {
+                    return Factory::response([
+                        'status' => 'error',
+                        'message' => 'Conversation has been disabled for this group',
+                    ]);
+                }
                 $comment->setGroupConversation(true);
             }
 
@@ -323,7 +329,8 @@ class comments implements Interfaces\Api
                     'reply',
                     (string) ($comment->getParentGuidL2() ?: $comment->getParentGuidL1())
                 );
-            } catch (\Exception $e) { }
+            } catch (\Exception $e) {
+            }
         }
 
         return Factory::response($response);

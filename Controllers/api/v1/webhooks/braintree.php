@@ -21,29 +21,29 @@ class braintree implements Interfaces\Api, Interfaces\ApiIgnorePam
     /**
    * NOT AVAILABLE
    */
-  public function get($pages)
-  {
-      return Factory::response(array('status'=>'error', 'message'=>'GET is not supported for this endpoint'));
-  }
+    public function get($pages)
+    {
+        return Factory::response(['status'=>'error', 'message'=>'GET is not supported for this endpoint']);
+    }
 
-  /**
-   */
-  public function post($pages)
-  {
-      error_log("[webhooks]:: hit first entrace point");
+    /**
+     */
+    public function post($pages)
+    {
+        error_log("[webhooks]:: hit first entrace point");
 
-      $gateway = isset($pages[0]) ? $pages[0] : 'default';
+        /*$gateway = isset($pages[0]) ? $pages[0] : 'default';
 
-      $bt = Payments\Factory::build('braintree', ['gateway'=>$gateway]);
+        $bt = Payments\Factory::build('braintree', ['gateway'=>$gateway]);
 
-      $hooks = new Payments\Hooks();
-      $hooks->loadDefaults();
+        $hooks = new Payments\Hooks();
+        $hooks->loadDefaults();
 
-      $webhooks = new Payments\Braintree\Webhooks($hooks, $bt);
-      $webhooks->setSignature($_POST['bt_signature'])
-        ->setPayload($_POST['bt_payload'])
-        ->run();
-  }
+        $webhooks = new Payments\Braintree\Webhooks($hooks, $bt);
+        $webhooks->setSignature($_POST['bt_signature'])
+          ->setPayload($_POST['bt_payload'])
+          ->run();*/
+    }
 
 
     public function put($pages)

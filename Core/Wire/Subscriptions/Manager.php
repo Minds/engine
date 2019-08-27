@@ -2,7 +2,6 @@
 
 namespace Minds\Core\Wire\Subscriptions;
 
-
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Wire\Exceptions\WalletNotSetupException;
@@ -11,7 +10,6 @@ use Minds\Entities\User;
 
 class Manager
 {
-
     /** @var Core\Payments\Subscriptions\Manager $subscriptionsManager */
     protected $subscriptionsManager;
 
@@ -76,8 +74,14 @@ class Manager
     {
         $this->cancelSubscription();
 
+        $urn = "urn:subscription:" . implode('-', [
+            $this->address, //offchain or onchain wallet
+            $this->sender->getGuid(),
+            $this->receiver->getGuid(),
+        ]);
+
         $subscription = (new Core\Payments\Subscriptions\Subscription())
-            ->setId($this->address)
+            ->setId($urn)
             ->setPlanId('wire')
             ->setPaymentMethod('tokens')
             ->setAmount($this->amount)

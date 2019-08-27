@@ -6,20 +6,30 @@ use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 use Minds\Core\Email\Repository;
+use Minds\Core\Email\CampaignLogs\Repository as CampaignLogsRepository;
 use Minds\Entities\User;
 use Minds\Core\Email\EmailSubscription;
+use Minds\Core\Email\CampaignLogs\CampaignLog;
 
 class ManagerSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    private $repository;
+    private $campaignLogsRepository;
+
+    public function let(Repository $repository, CampaignLogsRepository $campaignLogsRepository)
+    {
+        $this->repository = $repository;
+        $this->campaignLogsRepository = $campaignLogsRepository;
+        $this->beConstructedWith($this->repository, $this->campaignLogsRepository);
+    }
+
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Email\Manager');
     }
 
-    function it_should_get_subscribers(Repository $repository)
+    public function it_should_get_subscribers()
     {
-        $this->beConstructedWith($repository);
-
         $opts = [
             'campaign' => 'when',
             'topic' => 'boost_completed',
@@ -34,7 +44,7 @@ class ManagerSpec extends ObjectBehavior
         $user1->guid = '456';
         $user1->username = 'user2';
 
-        $repository->getList(Argument::type('array'))
+        $this->repository->getList(Argument::type('array'))
             ->shouldBeCalled()
             ->willReturn([
                 'data' => [
@@ -45,30 +55,24 @@ class ManagerSpec extends ObjectBehavior
             ]);
 
         $this->getSubscribers($opts)->shouldBeArray();
-
     }
 
-    function it_should_unsubscribe_a_user_from_a_campaign(Repository $repository)
+    public function it_should_unsubscribe_a_user_from_a_campaign()
     {
-        $this->beConstructedWith($repository);
-
         $user = new User();
         $user->guid = '123';
         $user->username = 'user1';
 
-        $repository->delete(Argument::type('Minds\Core\Email\EmailSubscription'))
+        $this->repository->delete(Argument::type('Minds\Core\Email\EmailSubscription'))
             ->shouldBeCalled()
             ->willReturn(true);
 
         $this->unsubscribe($user, [ 'when' ], [ 'boost_received' ])
             ->shouldReturn(true);
-
     }
 
-    function it_should_unsubscribe_from_all_emails(Repository $repository)
+    public function it_should_unsubscribe_from_all_emails()
     {
-        $this->beConstructedWith($repository);
-
         $user = new User();
         $user->guid = '123';
 
@@ -83,9 +87,9 @@ class ManagerSpec extends ObjectBehavior
                 ->setTopic('top_posts'),
         ];
 
-        $repository->getList([
+        $this->repository->getList([
             'campaigns' => [ 'when', 'with', 'global' ],
-            'topics' => [ 
+            'topics' => [
                 'unread_notifications',
                 'wire_received',
                 'boost_completed',
@@ -102,14 +106,31 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($subscriptions);
 
-        $repository->delete($subscriptions[0])
+        $this->repository->delete($subscriptions[0])
             ->shouldBeCalled();
 
-        $repository->delete($subscriptions[1])
+        $this->repository->delete($subscriptions[1])
             ->shouldBeCalled();
         
         $this->unsubscribe($user)
             ->shouldReturn(true);
     }
 
+    public function it_should_save_a_campaign_log()
+    {
+        $campaignLog = new CampaignLog();
+        $this->campaignLogsRepository->add($campaignLog)->shouldBeCalled();
+        $this->saveCampaignLog($campaignLog);
+    }
+
+    public function it_should_get_campaign_logs()
+    {
+        $user = new User();
+        $user->guid = '123';
+        $options = [
+            'receiver_guid' => $user->guid
+        ];
+        $this->campaignLogsRepository->getList($options)->shouldBeCalled();
+        $this->getCampaignLogs($user);
+    }
 }

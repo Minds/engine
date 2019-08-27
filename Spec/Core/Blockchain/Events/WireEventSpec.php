@@ -16,7 +16,7 @@ class WireEventSpec extends ObjectBehavior
     /** @var Config */
     protected $config;
 
-    function let(Manager $manager, Config $config)
+    public function let(Manager $manager, Config $config)
     {
         $this->beConstructedWith($manager, $config);
 
@@ -33,19 +33,19 @@ class WireEventSpec extends ObjectBehavior
             ]);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(WireEvent::class);
     }
 
-    function it_should_get_the_topics()
+    public function it_should_get_the_topics()
     {
         $this->getTopics()->shouldReturn([
             '0xce785fa87dd60f986617d1c5e02218c5b233399cc29e9a326a41a76fabc95d66',
         ]);
     }
 
-    function it_should_fail_if_address_is_wrong(Transaction $transaction)
+    public function it_should_fail_if_address_is_wrong(Transaction $transaction)
     {
         $log = [
             'address' => '0xaaa',
@@ -57,10 +57,9 @@ class WireEventSpec extends ObjectBehavior
         ];
         $this->shouldThrow(new \Exception('Event does not match address'))->during('event',
             ['0xce785fa87dd60f986617d1c5e02218c5b233399cc29e9a326a41a76fabc95d66', $log, $transaction]);
-
     }
 
-    function it_should_execute_a_wire_sent_event(Transaction $transaction)
+    public function it_should_execute_a_wire_sent_event(Transaction $transaction)
     {
         $this->manager->confirm(Argument::type('Minds\Core\Wire\Wire'), $transaction)
             ->shouldBeCalled();
@@ -76,5 +75,4 @@ class WireEventSpec extends ObjectBehavior
 
         $this->event('0xce785fa87dd60f986617d1c5e02218c5b233399cc29e9a326a41a76fabc95d66', $log, $transaction);
     }
-
 }

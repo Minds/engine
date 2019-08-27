@@ -2,18 +2,25 @@
 
 namespace Minds\Controllers\api\v2;
 
+use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Security\RateLimits\Maps;
 use Minds\Interfaces;
-use Minds\Api\Factory;
 
 class suggestions implements Interfaces\Api
 {
-
     public function get($pages)
     {
-	$type = $pages[0] ?? 'user';
+        $type = $pages[0] ?? 'user';
         $loggedInUser = Core\Session::getLoggedinUser();
+
+        if (!$loggedInUser) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'You must be logged in to receive suggestions',
+            ]);
+        }
 
         if ($loggedInUser->getSubscriptionsCount() >= 5000) {
             return Factory::response([
@@ -85,5 +92,4 @@ class suggestions implements Interfaces\Api
     {
         return Factory::response([]);
     }
-
 }

@@ -14,6 +14,7 @@ use Cassandra\Varint;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
+use Minds\Core\Util\BigNumber;
 
 class Repository
 {
@@ -98,7 +99,7 @@ class Repository
         }
 
         if ($options['offset']) {
-            $cqlOpts['paging_state_token'] = base64_decode($options['offset']);
+            $cqlOpts['paging_state_token'] = base64_decode($options['offset'], true);
         }
 
         if ($options['limit']) {
@@ -124,7 +125,7 @@ class Repository
                 ->setPaymentMethod($row['payment_method'])
                 ->setEntity((string) $row['entity_guid'])
                 ->setUser((string) $row['user_guid'])
-                ->setAmount($row['amount']->toDouble())
+                ->setAmount((string) BigNumber::_($row['amount']))
                 ->setInterval($row['interval'])
                 ->setLastBilling($row['last_billing']->time())
                 ->setNextBilling($row['next_billing']->time())
@@ -226,7 +227,6 @@ class Repository
      */
     public function delete($subscription)
     {
-
         $query = new Custom();
         $query->query("DELETE FROM subscriptions
             WHERE subscription_id = ?
@@ -244,5 +244,4 @@ class Repository
         $result = $this->cql->request($query);
         return (bool) $result;
     }
-
 }

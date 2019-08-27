@@ -31,22 +31,22 @@ class Create extends Cli\Controller implements Interfaces\CliControllerInterface
             "author" => $this->getOpt('author') ?: "Minds"
         ];
 
-        if(!$plugin['name']){
+        if (!$plugin['name']) {
             throw new Exceptions\CliException("You must pass the --name option");
         }
 
-        if(is_dir(str_replace('_template', $plugin['name'], $dir)) && !$this->getOpt('force')){
+        if (is_dir(str_replace('_template', $plugin['name'], $dir)) && !$this->getOpt('force')) {
             throw new Exceptions\CliException("A plugin called {$plugin['name']} currently exists. Use the --force flag to replace");
         }
 
-        foreach($files as $file){
+        foreach ($files as $file) {
             $contents = file_get_contents($file);
 
             $filename = str_replace('_template', $plugin['name'], $file);
             $parts = explode('/', $filename);
             array_pop($parts);
             $parentDir = implode('/', $parts);
-            if(!is_dir($parentDir)) {
+            if (!is_dir($parentDir)) {
                 mkdir($parentDir, 0777, true);
             }
 
@@ -57,18 +57,15 @@ class Create extends Cli\Controller implements Interfaces\CliControllerInterface
 
             file_put_contents($filename, $contents);
         }
-
-
     }
 
     private function getFiles($dir)
     {
-        $d = new \RecursiveDirectoryIterator($dir,\RecursiveDirectoryIterator::SKIP_DOTS);
+        $d = new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS);
 
         $return = [];
-        foreach(new \RecursiveIteratorIterator($d) as $file) {
+        foreach (new \RecursiveIteratorIterator($d) as $file) {
             array_push($return, $file);
-
         }
 
         return $return;

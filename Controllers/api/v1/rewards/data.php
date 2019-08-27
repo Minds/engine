@@ -45,7 +45,7 @@ class data implements Interfaces\Api
         $rewards = $founderRewards->getEligibleRewards($founder->amount);
         $rewardNames = [];
         foreach ($rewards as $reward) {
-             $rewardNames[] = $reward->name;
+            $rewardNames[] = $reward->name;
         }
         $requiresTShirtSize = RewardType::requiresTShirtSize($rewards);
         $requiresCellPhone = RewardType::requiresCellPhone($rewards);
@@ -80,8 +80,7 @@ class data implements Interfaces\Api
         return Factory::response([]);
     }
 
-    public
-    function delete($pages)
+    public function delete($pages)
     {
         return Factory::response([]);
     }

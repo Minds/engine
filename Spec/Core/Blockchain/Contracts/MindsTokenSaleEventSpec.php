@@ -7,17 +7,17 @@ use PhpSpec\ObjectBehavior;
 
 class MindsTokenSaleEventSpec extends ObjectBehavior
 {
-    function let()
+    public function let()
     {
         $this->beConstructedWith('0x123');
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(MindsTokenSaleEvent::class);
     }
 
-    function it_should_get_the_abi()
+    public function it_should_get_the_abi()
     {
         $this->getABI()->shouldBeArray();
     }

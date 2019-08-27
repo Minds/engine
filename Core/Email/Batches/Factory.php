@@ -10,7 +10,7 @@ class Factory
      * @param  array $options (optional)
      * @return EmailBatchInterface
      */
-    public static function build($batch, $options = array(), $db = null)
+    public static function build($batch, $options = [], $db = null)
     {
         $batch = ucfirst($batch);
         $batch = "Minds\\Core\\Email\\Batches\\$batch";

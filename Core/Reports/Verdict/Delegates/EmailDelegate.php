@@ -1,6 +1,6 @@
 <?php
 /**
- * Email Notification delegate for Verdicts 
+ * Email Notification delegate for Verdicts
  */
 namespace Minds\Core\Reports\Verdict\Delegates;
 
@@ -69,5 +69,4 @@ class EmailDelegate
 
         $this->campaign->send();
     }
-
 }

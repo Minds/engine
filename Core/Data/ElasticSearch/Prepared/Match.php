@@ -132,7 +132,7 @@ class Match implements PreparedMethodInterface
         if ($this->_scripts) {
             foreach ($this->_scripts as $script) {
                 $body['query']['bool']['filter'][]['script']['script'] = $script;
-            }    
+            }
         }
 
         // Score

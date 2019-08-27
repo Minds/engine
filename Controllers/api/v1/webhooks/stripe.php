@@ -19,55 +19,55 @@ class stripe implements Interfaces\Api, Interfaces\ApiIgnorePam
     /**
    * NOT AVAILABLE
    */
-  public function get($pages)
-  {
-      return Factory::response(array('status'=>'error', 'message'=>'GET is not supported for this endpoint'));
-  }
+    public function get($pages)
+    {
+        return Factory::response(['status'=>'error', 'message'=>'GET is not supported for this endpoint']);
+    }
 
-  /**
-   */
-  public function post($pages)
-  {
-      error_log("\n [webhooks][stripe]:: hit first entrace point");
-      $input = @file_get_contents("php://input");
+    /**
+     */
+    public function post($pages)
+    {
+        error_log("\n [webhooks][stripe]:: hit first entrace point");
+        $input = @file_get_contents("php://input");
 
 
-      $stripe = Core\Di\Di::_()->get('StripePayments');
+        $stripe = Core\Di\Di::_()->get('StripePayments');
 
-      $config = Core\Di\Di::_()->get('Config');
-      $signingKey = $config->payments['stripe']['webhook_keys']['default'];
+        $config = Core\Di\Di::_()->get('Config');
+        $signingKey = $config->payments['stripe']['webhook_keys']['default'];
 
-      if ($pages[0] == 'connect') {
-          $signingKey = $config->payments['stripe']['webhook_keys']['connect'];
-      }
+        if ($pages[0] == 'connect') {
+            $signingKey = $config->payments['stripe']['webhook_keys']['connect'];
+        }
 
-      $hooks = new Payments\Stripe\Webhooks((new Payments\Hooks())->loadDefaults(), $stripe);
-      $hooks->setSignature($_SERVER["HTTP_STRIPE_SIGNATURE"])
+        $hooks = new Payments\Stripe\Webhooks((new Payments\Hooks())->loadDefaults(), $stripe);
+        $hooks->setSignature($_SERVER["HTTP_STRIPE_SIGNATURE"])
         ->setSigningKey($signingKey)
         ->setPayload($input);
 
-      $hooks->run();
+        $hooks->run();
 
 
-      // Do something with $event_json
+        // Do something with $event_json
 
-      http_response_code(200); // PHP 5.4 or greater
-      exit;
+        http_response_code(200); // PHP 5.4 or greater
+        exit;
 
-      /*$gateway = isset($pages[0]) ? $pages[0] : 'default';
+        /*$gateway = isset($pages[0]) ? $pages[0] : 'default';
 
-      $bt = Payments\Factory::build('braintree', ['gateway'=>$gateway]);
+        $bt = Payments\Factory::build('braintree', ['gateway'=>$gateway]);
 
-      $hooks = new Payments\Hooks();
-      $hooks->loadDefaults();
+        $hooks = new Payments\Hooks();
+        $hooks->loadDefaults();
 
-      $webhooks = new Payments\Braintree\Webhooks($hooks, $bt);
-      $webhooks->setSignature($_POST['bt_signature'])
-        ->setPayload($_POST['bt_payload'])
-        ->run();*/
+        $webhooks = new Payments\Braintree\Webhooks($hooks, $bt);
+        $webhooks->setSignature($_POST['bt_signature'])
+          ->setPayload($_POST['bt_payload'])
+          ->run();*/
 
-      return Factory::response([]);
-  }
+        return Factory::response([]);
+    }
 
 
     public function put($pages)

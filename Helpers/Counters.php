@@ -21,7 +21,7 @@ class Counters
     {
         if (is_numeric($entity) || is_string($entity)) {
             $guid = $entity;
-            //error_log($guid);
+        //error_log($guid);
         } else {
             if ($entity->guid) {
                 $guid = $entity->guid;

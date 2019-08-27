@@ -137,5 +137,4 @@ class Report
 
         return $export;
     }
-
 }

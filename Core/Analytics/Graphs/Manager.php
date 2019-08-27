@@ -65,7 +65,6 @@ class Manager
 
             $this->add($graph);
         }
-
     }
 
     /**
@@ -95,7 +94,33 @@ class Manager
             $opts['aggregate'],
             $opts['key'],
             $opts['unit'],
+            $opts['span'],
         ]);
     }
 
+    public static function calculateAverages($response)
+    {
+        $averages = [];
+        foreach ($response as $userState) {
+            if (!$userState['key']) {
+                continue;
+            }
+
+            $count = count($userState['y']);
+
+            if ($count === 0) {
+                continue;
+            }
+
+            $avg = 0;
+            foreach ($userState['y'] as $value) {
+                $avg += $value ?? 0;
+            }
+            $avg /= $count;
+
+            $averages[$userState['key']] = $avg;
+        }
+
+        return $averages;
+    }
 }

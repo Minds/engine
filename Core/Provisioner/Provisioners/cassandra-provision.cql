@@ -471,7 +471,7 @@ CREATE TABLE minds.comments (
     votes_down set<varint>,
     votes_up set<varint>,
     PRIMARY KEY (entity_guid, parent_guid_l1, parent_guid_l2, parent_guid_l3, guid)
-) WITH CLUSTERING ORDER BY (parent_guid_l1 ASC, parent_guid_l2 ASC, parent_guid_l3 ASC, guid DESC)
+) WITH CLUSTERING ORDER BY (parent_guid_l1 ASC, parent_guid_l2 ASC, parent_guid_l3 ASC, guid DESC);
 
 CREATE TABLE minds.recurring_subscriptions (
     type text,
@@ -1338,7 +1338,7 @@ CREATE TABLE minds.spam_blocks (
     key text,
     value text,
     PRIMARY KEY (key, value)
-) WITH CLUSTERING ORDER BY (value ASC)
+) WITH CLUSTERING ORDER BY (value ASC);
 
 
 CREATE TABLE minds.user_hashtags (
@@ -1379,7 +1379,7 @@ CREATE TABLE minds.analytics_graphs (
   last_synced timestamp,
   data text,
   PRIMARY KEY(key)
-); 
+);
 
 CREATE TABLE minds.views (
     year int,
@@ -1414,3 +1414,34 @@ CREATE TABLE minds.hidden_hashtags (
     hidden_since timestamp,
     PRIMARY KEY (hashtag)
 );
+
+CREATE TABLE minds.referrals (
+    referrer_guid bigint,
+    prospect_guid bigint,
+    register_timestamp timestamp,
+    join_timestamp timestamp,
+    ping_timestamp timestamp,
+    PRIMARY KEY (referrer_guid, prospect_guid)
+) WITH CLUSTERING ORDER BY (prospect_guid DESC);
+
+CREATE TABLE minds.search_dispatcher_queue (
+    entity_urn text,
+    last_retry timestamp,
+    retries int,
+    PRIMARY KEY (entity_urn)
+);
+
+CREATE TABLE minds.user_snapshots (
+  user_guid varint,
+  type text,
+  key text,
+  json_data text,
+  PRIMARY KEY (user_guid, type, key)
+) WITH CLUSTERING ORDER BY (type ASC, key ASC);
+
+CREATE TABLE minds.email_campaign_logs (
+  receiver_guid varint,
+  time_sent timestamp,
+  email_campaign_id text,
+  PRIMARY KEY (receiver_guid, time_sent)
+) WITH CLUSTERING ORDER BY (time_sent desc);

@@ -21,26 +21,24 @@ class EntitiesSpec extends ObjectBehavior
     /** @var ACL */
     protected $acl;
 
-    function let(
+    public function let(
         EntitiesBuilder $entitiesBuilder,
         ACL $acl
-    )
-    {
+    ) {
         $this->beConstructedWith($entitiesBuilder, $acl);
         $this->entitiesBuilder = $entitiesBuilder;
         $this->acl = $acl;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Entities::class);
     }
 
-    function it_should_filter_a_readable_entity(
+    public function it_should_filter_a_readable_entity(
         User $actor,
         Activity $activity
-    )
-    {
+    ) {
         $this->acl->read($activity, $actor)
             ->shouldBeCalled()
             ->willReturn(true);
@@ -51,11 +49,10 @@ class EntitiesSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_filter_out_a_unreadable_entity(
+    public function it_should_filter_out_a_unreadable_entity(
         User $actor,
         Activity $activity
-    )
-    {
+    ) {
         $this->acl->read($activity, $actor)
             ->shouldBeCalled()
             ->willReturn(false);
@@ -67,10 +64,9 @@ class EntitiesSpec extends ObjectBehavior
     }
 
 
-    function it_should_filter_a_readable_entity_being_guest(
+    public function it_should_filter_a_readable_entity_being_guest(
         Activity $activity
-    )
-    {
+    ) {
         $this->acl->read($activity, null)
             ->shouldBeCalled()
             ->willReturn(true);
@@ -81,10 +77,9 @@ class EntitiesSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_filter_out_a_unreadable_entity_being_guest(
+    public function it_should_filter_out_a_unreadable_entity_being_guest(
         Activity $activity
-    )
-    {
+    ) {
         $this->acl->read($activity, null)
             ->shouldBeCalled()
             ->willReturn(false);
@@ -95,14 +90,14 @@ class EntitiesSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    function it_should_not_cast_an_activity(Activity $activity)
+    public function it_should_not_cast_an_activity(Activity $activity)
     {
         $this
             ->cast($activity)
             ->shouldReturn($activity);
     }
 
-    function it_should_cast_an_image(Image $image)
+    public function it_should_cast_an_image(Image $image)
     {
         $image->get('guid')
             ->shouldBeCalled()
@@ -209,7 +204,7 @@ class EntitiesSpec extends ObjectBehavior
             ->shouldReturnAnInstanceOf(Activity::class);
     }
 
-    function it_should_cast_a_video(Video $video)
+    public function it_should_cast_a_video(Video $video)
     {
         $video->get('guid')
             ->shouldBeCalled()
@@ -316,7 +311,7 @@ class EntitiesSpec extends ObjectBehavior
             ->shouldReturnAnInstanceOf(Activity::class);
     }
 
-    function it_should_cast_a_blog(Blog $blog)
+    public function it_should_cast_a_blog(Blog $blog)
     {
         $blog->export()
             ->shouldBeCalled()

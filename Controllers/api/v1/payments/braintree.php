@@ -21,23 +21,23 @@ class braintree implements Interfaces\Api
    *
    * API:: /v1/merchant/:slug
    */
-  public function get($pages)
-  {
-      $response = array();
+    public function get($pages)
+    {
+        $response = [];
 
-      switch ($pages[0]) {
+        switch ($pages[0]) {
         case "token":
           $gateway = isset($pages[1]) ? $pages[1] : 'default';
           $response['token'] = Payments\Factory::build('braintree', ['gateway'=>$gateway])->getToken();
           break;
       }
 
-      return Factory::response($response);
-  }
+        return Factory::response($response);
+    }
 
     public function post($pages)
     {
-        $response = array();
+        $response = [];
 
         switch ($pages[0]) {
           case "charge":
@@ -87,11 +87,11 @@ class braintree implements Interfaces\Api
 
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     public function delete($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }

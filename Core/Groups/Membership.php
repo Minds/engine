@@ -39,8 +39,7 @@ class Membership
         $acl = null,
         $cache = null,
         $updateMarkers = null
-    )
-    {
+    ) {
         $this->relDB = $db ?: Di::_()->get('Database\Cassandra\Relationships');
         $this->notifications = $notifications ?: new Notifications;
         $this->cache = $cache ?: Di::_()->get('Cache');
@@ -337,7 +336,8 @@ class Membership
 
         try {
             $this->notifications->unmute($user_guid);
-        } catch (\Exception $e) { }
+        } catch (\Exception $e) {
+        }
 
         $done = $this->relDB->remove('member', $this->group->getGuid());
 
@@ -579,7 +579,7 @@ class Membership
         $result = [];
 
         foreach ($users as $user) {
-            $result[$user] = in_array($user, $banned_guids);
+            $result[$user] = in_array($user, $banned_guids, false);
         }
 
         return $result;
@@ -657,8 +657,8 @@ class Membership
         ]);
 
         // Populate all groups to markers
-        $markers = array_map(function($guid) use ($markers) {
-            $marker = array_slice(array_filter($markers, function($m) use ($guid) {
+        $markers = array_map(function ($guid) use ($markers) {
+            $marker = array_slice(array_filter($markers, function ($m) use ($guid) {
                 return $m->getEntityGuid() == $guid;
             }), 0, 1)[0];
             if (!$marker) {
@@ -684,7 +684,7 @@ class Membership
         });
 
         // Reduce back to just a guid
-        $guids = array_map(function($marker) {
+        $guids = array_map(function ($marker) {
             return $marker->getEntityGuid();
         }, $markers);
 

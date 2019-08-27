@@ -9,7 +9,8 @@ use Minds\Core\Di\Di;
  * @todo Create a BaseController class (to be used on Api, Cli, etc) with core DI operations.
  * @todo Ensure this class is used EVERYWHERE on Minds\Controllers\api
  */
-class Controller {
+class Controller
+{
     protected $di;
     protected $config;
 

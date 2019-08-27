@@ -10,11 +10,11 @@ use Minds\Helpers;
  */
 class User extends \ElggUser
 {
-
     public $fullExport = true;
     public $exportCounts = false;
 
-    protected function initializeAttributes() {
+    protected function initializeAttributes()
+    {
         $this->attributes['boost_rating'] = 1;
         $this->attributes['mature'] = 0;
         $this->attributes['mature_content'] = 0;
@@ -40,18 +40,19 @@ class User extends \ElggUser
         $this->attributes['phone_number'] = null;
         $this->attributes['phone_number_hash'] = null;
         $this->attributes['icontime'] = time();
-		$this->attributes['briefdescription'] = '';
-		$this->attributes['rating'] = 1;
-		$this->attributes['p2p_media_enabled'] = 0;
-		$this->attributes['is_mature'] = 0;
-		$this->attributes['mature_lock'] = 0;
-		$this->attributes['opted_in_hashtags'] = 0;
+        $this->attributes['briefdescription'] = '';
+        $this->attributes['rating'] = 1;
+        $this->attributes['p2p_media_enabled'] = 0;
+        $this->attributes['is_mature'] = 0;
+        $this->attributes['mature_lock'] = 0;
+        $this->attributes['opted_in_hashtags'] = 0;
         $this->attributes['last_accepted_tos'] = Core\Config::_()->get('last_tos_update');
         $this->attributes['onboarding_shown'] = 0;
         $this->attributes['creator_frequency'] = null;
         $this->attributes['last_avatar_upload'] = 0;
         $this->attributes['canary'] = 0;
         $this->attributes['onchain_booster'] = null;
+        $this->attributes['toaster_notifications'] = 1;
 
         parent::initializeAttributes();
     }
@@ -152,7 +153,7 @@ class User extends \ElggUser
      */
     public function getBoostRating()
     {
-      return $this->boost_rating;
+        return $this->boost_rating;
     }
 
     /**
@@ -161,7 +162,7 @@ class User extends \ElggUser
      */
     public function getViewMature()
     {
-      return $this->attributes['mature'];
+        return $this->attributes['mature'];
     }
 
     /**
@@ -192,7 +193,7 @@ class User extends \ElggUser
      */
     public function getMatureContent()
     {
-      return $this->mature_content;
+        return $this->mature_content;
     }
 
     /**
@@ -260,7 +261,7 @@ class User extends \ElggUser
      */
     public function getLanguage()
     {
-      return $this->language;
+        return $this->language;
     }
 
     /**
@@ -288,7 +289,7 @@ class User extends \ElggUser
         if ($this->email && !base64_decode($this->email, true)) {
             return $this->email;
         }
-        return Helpers\OpenSSL::decrypt(base64_decode($this->email), file_get_contents($CONFIG->encryptionKeys['email']['private']));
+        return Helpers\OpenSSL::decrypt(base64_decode($this->email, true), file_get_contents($CONFIG->encryptionKeys['email']['private']));
     }
 
     /**
@@ -313,7 +314,7 @@ class User extends \ElggUser
         if ($this->phone_number && !base64_decode($this->phone_number, true)) {
             return $this->phone_number;
         }
-        return Helpers\OpenSSL::decrypt(base64_decode($this->phone_number), file_get_contents($CONFIG->encryptionKeys['phone-number']['private']));
+        return Helpers\OpenSSL::decrypt(base64_decode($this->phone_number, true), file_get_contents($CONFIG->encryptionKeys['phone-number']['private']));
     }
 
     public function setPhoneNumberHash($hash)
@@ -390,11 +391,11 @@ class User extends \ElggUser
         $pinned = $this->getPinnedPosts();
         if (!$pinned) {
             $pinned = [];
-        } else if (count($pinned) > 2) {
+        } elseif (count($pinned) > 2) {
             array_shift($pinned);
         }
 
-        if (array_search($guid, $pinned) === false) {
+        if (array_search($guid, $pinned, true) === false) {
             $pinned[] = (string)$guid;
             $this->setPinnedPosts($pinned);
         }
@@ -408,7 +409,7 @@ class User extends \ElggUser
     {
         $pinned = $this->getPinnedPosts();
         if ($pinned && count($pinned) > 0) {
-            $index = array_search((string)$guid, $pinned);
+            $index = array_search((string)$guid, $pinned, true);
             if (is_numeric($index)) {
                 array_splice($pinned, $index, 1);
                 $this->pinned_posts = $pinned;
@@ -422,7 +423,8 @@ class User extends \ElggUser
      * @param array $pinned
      * @return $this
      */
-    public function setPinnedPosts($pinned) {
+    public function setPinnedPosts($pinned)
+    {
         if (count($pinned) > 3) {
             $pinned = array_slice($pinned, 0, 3);
         }
@@ -434,8 +436,9 @@ class User extends \ElggUser
      * Gets the channel's pinned posts
      * @return array
      */
-    public function getPinnedPosts() {
-        if(is_string($this->pinned_posts)) {
+    public function getPinnedPosts()
+    {
+        if (is_string($this->pinned_posts)) {
             return json_decode($this->pinned_posts);
         }
         return $this->pinned_posts;
@@ -555,7 +558,7 @@ class User extends \ElggUser
      * @param  array  $data - metadata
      * @return mixed
      */
-    public function subscribe($guid, $data = array())
+    public function subscribe($guid, $data = [])
     {
         return \Minds\Helpers\Subscriptions::subscribe($this->guid, $guid, $data);
     }
@@ -588,7 +591,7 @@ class User extends \ElggUser
 
         $return = 0;
         $db = new Core\Data\Call('friendsof');
-        $row = $db->getRow($this->guid, array('limit'=> 1, 'offset'=>$guid));
+        $row = $db->getRow($this->guid, ['limit'=> 1, 'offset'=>$guid]);
         if ($row && key($row) == $guid) {
             $return = true;
         }
@@ -665,14 +668,16 @@ class User extends \ElggUser
         return (int) $return;
     }
 
-    public function getMerchant(){
+    public function getMerchant()
+    {
         if ($this->merchant && !is_array($this->merchant)) {
             return json_decode($this->merchant, true);
         }
         return $this->merchant;
     }
 
-    public function setMerchant($merchant){
+    public function setMerchant($merchant)
+    {
         $this->merchant = $merchant;
         return $this;
     }
@@ -739,6 +744,7 @@ class User extends \ElggUser
         $export['is_admin'] = $this->attributes['admin'] == 'yes';
         $export['theme'] = $this->getTheme();
         $export['onchain_booster'] = $this->getOnchainBooster();
+        $export['toaster_notifications'] = $this->getToasterNotifications();
 
         if (is_string($export['social_profiles'])) {
             $export['social_profiles'] = json_decode($export['social_profiles']);
@@ -955,7 +961,7 @@ class User extends \ElggUser
      */
     public function getExportableValues()
     {
-        return array_merge(parent::getExportableValues(), array(
+        return array_merge(parent::getExportableValues(), [
             'website',
             'briefdescription',
             'dob',
@@ -987,8 +993,9 @@ class User extends \ElggUser
             'last_avatar_upload',
             'canary',
             'theme',
-            'onchain_booster'
-        ));
+            'onchain_booster',
+            'toaster_notifications'
+        ]);
     }
 
     public function getTags()
@@ -1066,7 +1073,7 @@ class User extends \ElggUser
     }
 
     /**
-     * Sets the unix timestamp for the last time the user boosted onchain 
+     * Sets the unix timestamp for the last time the user boosted onchain
      * @param int $time - the time to set the users onchain_booster variable to.
      * @return $this
      */
@@ -1074,5 +1081,22 @@ class User extends \ElggUser
     {
         $this->onchain_booster = (int) $time;
         return $this;
+    }
+
+    /**
+     * Returns toaster notifications state.
+     * @return boolean true if toaster notifications is enabled.
+     */
+    public function getToasterNotifications()
+    {
+        return (bool) $this->toaster_notifications;
+    }
+
+    /**
+     * Set on/off toaster notifications
+     */
+    public function setToasterNotifications($enabled = true)
+    {
+        $this->toaster_notifications = $enabled ? 1 : 0;
     }
 }

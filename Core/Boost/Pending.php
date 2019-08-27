@@ -37,8 +37,7 @@ class Pending
         $pendingManager = null,
         $ethereumClient = null,
         $blockchainTx = null
-    )
-    {
+    ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->pendingManager = $pendingManager ?: Di::_()->get('Blockchain\Pending');
         $this->ethereumClient = $ethereumClient ?: Di::_()->get('Blockchain\Services\Ethereum');

@@ -34,14 +34,12 @@ class Manager
         $entitiesBuilder = null,
         $guidBuilder = null,
         $config = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository;
         $this->elasticRepository = $elasticRepository ?: new ElasticRepository;
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->guidBuilder = $guidBuilder ?: new GuidBuilder;
         $this->config = $config ?: Di::_()->get('Config');
-
     }
 
     /**
@@ -91,7 +89,7 @@ class Manager
 
             if (!$boost->getEntity() || !$boost->getOwner()) {
                 $boost->setEntity(new \Minds\Entities\Entity());
-            //    unset($response[$i]);
+                //    unset($response[$i]);
             }
         }
 
@@ -170,17 +168,18 @@ class Manager
      * @param Boost $type the Boost object.
      * @return boolean true if the boost limit has been reached.
      */
-    public function isBoostLimitExceededBy($boost) {
+    public function isBoostLimitExceededBy($boost)
+    {
         //get offchain boosts
         $offchain = $this->getOffchainBoosts($boost);
         
         //filter to get todays offchain transactions
-        $offlineToday = array_filter($offchain->toArray(), function($result) {
+        $offlineToday = array_filter($offchain->toArray(), function ($result) {
             return $result->getCreatedTimestamp() > time() - (60 * 60 * 24);
-        }); 
+        });
         
         //reduce the impressions to count the days boosts.
-        $acc = array_reduce($offlineToday, function($carry, $_boost) {
+        $acc = array_reduce($offlineToday, function ($carry, $_boost) {
             $carry += $_boost->getImpressions();
             return $carry;
         }, 0);
@@ -197,7 +196,8 @@ class Manager
      * @param integer $limit default to 10.
      * @return $existingBoosts
      */
-    public function getOffchainBoosts($boost, $limit = 10) {
+    public function getOffchainBoosts($boost, $limit = 10)
+    {
         $existingBoosts = $this->getList([
             'useElastic' => true,
             'state' => 'active',

@@ -17,7 +17,6 @@ use Minds\Interfaces;
 
 class twofactor implements Interfaces\Api
 {
-
     /**
      * NOT AVAILABLE
      */
@@ -67,7 +66,9 @@ class twofactor implements Interfaces\Api
                 if (!$sms->verify($_POST['tel'])) {
                     return Factory::response(['status' => 'error', 'message' => 'voip phones are not supported']);
                 }
-                if ($sms->send($_POST['tel'], $twofactor->getCode($secret))) {
+
+                $message = 'From Minds.com: Your code is '. $twofactor->getCode($secret);
+                if ($sms->send($_POST['tel'], $message)) {
                     $response['secret'] = $secret;
                 } else {
                     $response['status'] = "error";

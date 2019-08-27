@@ -21,7 +21,7 @@ class IssueTokensSpec extends ObjectBehavior
     /** @var Repository */
     private $repository;
 
-    function let(Config $config, Ethereum $client, Repository $repository)
+    public function let(Config $config, Ethereum $client, Repository $repository)
     {
         $this->config = $config;
         $this->client = $client;
@@ -30,12 +30,12 @@ class IssueTokensSpec extends ObjectBehavior
         $this->beConstructedWith($config, $client, $repository);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(IssueTokens::class);
     }
 
-    function it_shuold_issue_a_purchase(Purchase $purchase)
+    public function it_shuold_issue_a_purchase(Purchase $purchase)
     {
         $this->client->useConfig('pledge')
             ->shouldBeCalled();
@@ -82,7 +82,7 @@ class IssueTokensSpec extends ObjectBehavior
         $this->issue($purchase);
     }
 
-    function it_shuold_issue_a_purchase_but_fail(Purchase $purchase)
+    public function it_shuold_issue_a_purchase_but_fail(Purchase $purchase)
     {
         $this->client->useConfig('pledge')
             ->shouldBeCalled();
