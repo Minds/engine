@@ -207,7 +207,7 @@ production:fpm:
     name: production
     url: https://www.minds.com/
   when: delayed
-  start_in: 2 hours # reduce? can always be deployed manually earlier too
+  start_in: 12 hours # reduce? can always be deployed manually earlier too
 
 production:runners:
   stage: deploy:production
