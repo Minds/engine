@@ -25,8 +25,7 @@ class Repository
      */
     public function __construct(
         $db = null
-    )
-    {
+    ) {
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
     }
 
@@ -66,7 +65,7 @@ class Repository
         }
 
         if ($opts['offset']) {
-            $cqlOpts['paging_state_token'] = base64_decode($opts['offset']);
+            $cqlOpts['paging_state_token'] = base64_decode($opts['offset'], true);
         }
 
         $prepared = new Custom();

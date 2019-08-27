@@ -30,8 +30,7 @@ class HydrateSettingsDelegate
     public function __construct(
         $entitiesBuilder = null,
         $config = null
-    )
-    {
+    ) {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->config = $config ?: Di::_()->get('Config');
     }

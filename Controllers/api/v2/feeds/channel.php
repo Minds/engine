@@ -226,5 +226,4 @@ class channel implements Interfaces\Api
     {
         return Factory::response([]);
     }
-
 }

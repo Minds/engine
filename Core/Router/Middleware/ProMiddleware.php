@@ -22,8 +22,7 @@ class ProMiddleware implements RouterMiddleware
      */
     public function __construct(
         $proDomain = null
-    )
-    {
+    ) {
         $this->proDomain = $proDomain ?: Di::_()->get('Pro\Domain');
     }
 

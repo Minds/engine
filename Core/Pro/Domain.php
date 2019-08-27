@@ -26,8 +26,7 @@ class Domain
     public function __construct(
         $config = null,
         $repository = null
-    )
-    {
+    ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->repository = $repository ?: new Repository();
     }
@@ -40,7 +39,7 @@ class Domain
     {
         $rootDomains = $this->config->get('root_domains') ?: [];
 
-        if (in_array(strtolower($domain), $rootDomains)) {
+        if (in_array(strtolower($domain), $rootDomains, true)) {
             return null;
         }
 

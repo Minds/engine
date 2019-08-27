@@ -31,8 +31,7 @@ class Manager
     public function __construct(
         $repository = null,
         $top = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository();
         $this->top = $top ?: new TopManager();
     }
@@ -73,7 +72,6 @@ class Manager
         $container = (string) $this->user->guid;
 
         foreach ($tags as $tag) {
-
             $opts = [
                 'container_guid' => $container,
                 'access_id' => [2, $container],

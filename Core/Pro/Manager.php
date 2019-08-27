@@ -39,8 +39,7 @@ class Manager
         $saveAction = null,
         $initializeSettingsDelegate = null,
         $hydrateSettingsDelegate = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository();
         $this->saveAction = $saveAction ?: new Save();
         $this->initializeSettingsDelegate = $initializeSettingsDelegate ?: new Delegates\InitializeSettingsDelegate();

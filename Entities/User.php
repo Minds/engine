@@ -424,7 +424,8 @@ class User extends \ElggUser
      * @param array $pinned
      * @return $this
      */
-    public function setPinnedPosts($pinned) {
+    public function setPinnedPosts($pinned)
+    {
         $maxPinnedPosts = $this->isPro() ? 12 : 3;
 
         $this->pinned_posts = array_slice($pinned, -$maxPinnedPosts, null, false);

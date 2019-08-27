@@ -22,8 +22,7 @@ class InitializeSettingsDelegate
      */
     public function __construct(
         $repository = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository();
     }
 

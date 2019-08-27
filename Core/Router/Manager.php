@@ -21,8 +21,7 @@ class Manager
      */
     public function __construct(
         $middleware = null
-    )
-    {
+    ) {
         $this->middleware = $middleware ?: [
             new Middleware\ProMiddleware(),
         ];
