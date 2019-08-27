@@ -226,7 +226,7 @@ class Repository
                     ],
                 ];
 
-                if (in_array(6, $nsfw, true)) { // 6 is legacy 'mature'
+                if (in_array(6, $nsfw, false)) { // 6 is legacy 'mature'
                     $body['query']['function_score']['query']['bool']['must_not'][] = [
                         'term' => [
                             'mature' => true,

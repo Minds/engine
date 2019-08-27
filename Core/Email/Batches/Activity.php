@@ -66,7 +66,7 @@ class Activity implements EmailBatchInterface
 
         foreach ($iterator as $user) {
             $filtered = array_filter($trendingPosts, function ($activity) use ($user, $subscribers_map) {
-                return in_array($activity->owner_guid, $subscribers_map[$user->guid], true);
+                return in_array($activity->owner_guid, $subscribers_map[$user->guid], false);
             });
             if ($filtered && count($filtered) >= 1) {
                 $campaign = new WithActivity();
