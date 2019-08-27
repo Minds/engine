@@ -18,20 +18,20 @@ class RepositorySpec extends ObjectBehavior
 {
     private $cql;
 
-    function let(Client $cql)
+    public function let(Client $cql)
     {
         $this->beConstructedWith($cql);
         $this->cql = $cql;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    function it_should_return_a_single_strike_from_urn()
+    public function it_should_return_a_single_strike_from_urn()
     {
-        $this->cql->request(Argument::that(function($prepared) {
+        $this->cql->request(Argument::that(function ($prepared) {
             return true;
         }))
             ->shouldBeCalled()
@@ -58,9 +58,9 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe('urn:goes:here');
     }
 
-    function it_should_return_a_list_of_strikes_for_a_time_period()
+    public function it_should_return_a_list_of_strikes_for_a_time_period()
     {
-        $this->cql->request(Argument::that(function($prepared) {
+        $this->cql->request(Argument::that(function ($prepared) {
             $values = $prepared->build()['values'];
             return $values[0]->value() == 123
                 && round($values[1]->time(), 5) == round(strtotime('-90 days'), 5)
@@ -110,9 +110,9 @@ class RepositorySpec extends ObjectBehavior
            ->shouldBe('urn:goes:here');
     }
 
-    function it_should_save_a_strike_to_the_database(Strike $strike)
+    public function it_should_save_a_strike_to_the_database(Strike $strike)
     {
-        $this->cql->request(Argument::that(function($prepared) {
+        $this->cql->request(Argument::that(function ($prepared) {
             $values = $prepared->build()['values'];
             return $values[0]->value() == 123
                 && $values[1]->time() == 1549451597000
@@ -146,5 +146,4 @@ class RepositorySpec extends ObjectBehavior
         $this->add($strike)
             ->shouldReturn(true);
     }
-
 }

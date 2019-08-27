@@ -56,7 +56,7 @@ class boosts implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function post($pages)
     {
-        $response = array();
+        $response = [];
 
         $type = strtolower($pages[0]);
         $guid = $pages[1];
@@ -67,17 +67,17 @@ class boosts implements Interfaces\Api, Interfaces\ApiAdminPam
         $mature = isset($_POST['mature']) ? $_POST['mature'] : 0;
 
         if (!$guid) {
-            return Factory::response(array(
+            return Factory::response([
                 'status' => 'error',
                 'message' => "We couldn't find that boost"
-            ));
+            ]);
         }
 
         if (!$action) {
-            return Factory::response(array(
+            return Factory::response([
                 'status' => 'error',
                 'message' => "You must provide an action: accept or reject"
-            ));
+            ]);
         }
 
         /** @var Core\Boost\Network\Review $review */
@@ -106,7 +106,7 @@ class boosts implements Interfaces\Api, Interfaces\ApiAdminPam
 
         $dirty = false;
         // explicit
-        if($reason == 1 || $mature) {
+        if ($reason == 1 || $mature) {
             $dirty = $this->enableMatureFlag($entity);
         }
 
@@ -126,7 +126,6 @@ class boosts implements Interfaces\Api, Interfaces\ApiAdminPam
                 $response['status'] = 'error';
                 $response['message'] = $e->getMessage();
             }
-
         } elseif ($action == 'reject') {
             $review->setBoost($boost);
             try {
@@ -135,7 +134,7 @@ class boosts implements Interfaces\Api, Interfaces\ApiAdminPam
                 $event->setAction('reject')
                     ->setBoostRejectReason($reason)
                     ->push();
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 $response['status'] = 'error';
                 $response['message'] = $e->getMessage();
             }
@@ -195,7 +194,7 @@ class boosts implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     /**
@@ -203,6 +202,6 @@ class boosts implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function delete($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }

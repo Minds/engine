@@ -22,7 +22,7 @@ class Factory
         $type = MagicAttributes::getterExists($entity, 'getType') ?
             $entity->getType() : $entity->type;
 
-        $subtype = MagicAttributes::getterExists($entity , 'getSubtype') ?
+        $subtype = MagicAttributes::getterExists($entity, 'getSubtype') ?
             $entity->getSubtype() : $entity->subtype;
 
         $guid = MagicAttributes::getterExists($entity, 'getGuid') ?

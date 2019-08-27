@@ -22,7 +22,7 @@ class feature implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function get($pages)
     {
-        $response = array();
+        $response = [];
         return Factory::response($response);
     }
 
@@ -31,7 +31,7 @@ class feature implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function post($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     /**
@@ -69,7 +69,7 @@ class feature implements Interfaces\Api, Interfaces\ApiAdminPam
 
         $entity->save();
 
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     /**
@@ -81,10 +81,10 @@ class feature implements Interfaces\Api, Interfaces\ApiAdminPam
         $category = isset($pages[1]) ? $pages[1] : $entity->category;
 
         if (!$entity) {
-            return Factory::response(array(
+            return Factory::response([
           'status' => 'error',
           'message' => "Entity not found"
-        ));
+        ]);
         }
 
         $entity->unFeature();
@@ -96,6 +96,6 @@ class feature implements Interfaces\Api, Interfaces\ApiAdminPam
           ->setType($entity->subtype ?: $entity->type)
           ->remove($entity->guid);
 
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }

@@ -11,7 +11,6 @@ use Minds\Helpers\Cql;
 
 class Repository
 {
-
     /** @var Client $cql */
     private $cql;
 
@@ -87,7 +86,6 @@ class Repository
 
     public function get()
     {
-
     }
 
     /**
@@ -99,9 +97,9 @@ class Repository
     {
         $statement = "INSERT INTO update_markers";
 
-        $columns = [ 
+        $columns = [
             'user_guid' => new Varint($marker->getUserGuid()),
-            'entity_type' => $marker->getEntityType(), 
+            'entity_type' => $marker->getEntityType(),
             'entity_guid' => new Varint($marker->getEntityGuid()),
             'marker' => $marker->getMarker(),
         ];
@@ -147,6 +145,5 @@ class Repository
      */
     public function delete(UpdateMarker $marker)
     {
-
     }
 }

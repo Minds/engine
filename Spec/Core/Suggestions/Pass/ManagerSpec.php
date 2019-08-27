@@ -10,21 +10,20 @@ use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
-
     private $repository;
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function let(Repository $repository)
+    public function let(Repository $repository)
     {
         $this->beConstructedWith($repository);
         $this->repository = $repository;
     }
 
-    function it_should_add_pass_to_the_repository()
+    public function it_should_add_pass_to_the_repository()
     {
         $pass = new Pass;
         
@@ -35,5 +34,4 @@ class ManagerSpec extends ObjectBehavior
         $this->add($pass)
             ->shouldReturn(true);
     }
-
 }

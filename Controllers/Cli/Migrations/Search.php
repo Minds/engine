@@ -57,7 +57,7 @@ class Search extends Cli\Controller implements Interfaces\CliControllerInterface
         //
 
         $client = Di::_()->get('Database\ElasticSearch');
-        $esIndex = Di::_()->get('Config')->elasticsearch['index']; 
+        $esIndex = Di::_()->get('Config')->elasticsearch['index'];
 
 
         /** @var Core\Data\Call $db */
@@ -94,7 +94,7 @@ class Search extends Cli\Controller implements Interfaces\CliControllerInterface
                     $key .= ':' . $row['subtype'];
                 }
 
-                if (!in_array($key, $allowedTypes)) {
+                if (!in_array($key, $allowedTypes, true)) {
                     continue;
                 }
 
@@ -154,20 +154,19 @@ class Search extends Cli\Controller implements Interfaces\CliControllerInterface
         $client = Di::_()->get('Database\ElasticSearch');
     
         $sFails = 0;
-        while(true){
-            $guids = $indexes->getRow($type, array('limit' => 750, 'offset' => $offset, 'reversed'=> true));
-            if(count($guids) <= 1)
+        while (true) {
+            $guids = $indexes->getRow($type, ['limit' => 750, 'offset' => $offset, 'reversed'=> true]);
+            if (count($guids) <= 1) {
                 break;
+            }
         
-            foreach($guids as $guid => $ts){
-
+            foreach ($guids as $guid => $ts) {
                 if ($sFails > 5) {
                     $this->out("Too many failures [pausing for 5 seconds]");
                     sleep(5);
                 }
 
                 try {
-
                     $entity = EntityFactory::build($guid);
                     $mapper = Di::_()->get('Search\Mappings')->build($entity);
 
@@ -198,15 +197,10 @@ class Search extends Cli\Controller implements Interfaces\CliControllerInterface
                     echo " [failed]";
                     $sFails++;
                 }
-
             }
         
             end($guids);
             $offset = key($guids);
-        
         }
-        
-
     }
-
 }

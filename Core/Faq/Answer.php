@@ -35,5 +35,4 @@ class Answer implements \JsonSerializable
     {
         return $this->getAnswer();
     }
-    
 }

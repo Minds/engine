@@ -8,7 +8,6 @@ use Minds\Traits\MagicAttributes;
 
 class SpamBlock
 {
-
     use MagicAttributes;
 
     /** @var $key */
@@ -16,5 +15,4 @@ class SpamBlock
 
     /** @var $value */
     private $value;
-
 }

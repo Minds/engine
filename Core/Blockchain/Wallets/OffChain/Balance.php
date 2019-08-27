@@ -7,7 +7,6 @@ use Minds\Entities\User;
 
 class Balance
 {
-
     /** @var Sums */
     private $sums;
 
@@ -72,5 +71,4 @@ class Balance
             ->setTimestamp($ts)
             ->getContractBalance($contract, $onlySpend);
     }
-
 }

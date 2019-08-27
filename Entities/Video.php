@@ -11,7 +11,6 @@ use Minds\Core\Media\Services\Factory as ServiceFactory;
 use cinemr;
 use Minds\Helpers;
 
-
 class Video extends Object
 {
     private $cinemr;
@@ -107,14 +106,14 @@ class Video extends Object
 
     public function getExportableValues()
     {
-        return array_merge(parent::getExportableValues(), array(
+        return array_merge(parent::getExportableValues(), [
             'thumbnail',
             'cinemr_guid',
             'license',
             'monetized',
             'mature',
             'boost_rejection_reason'
-        ));
+        ]);
     }
 
     public function getAlbumChildrenGuids()
@@ -135,10 +134,10 @@ class Video extends Object
     {
         $export = parent::export();
         $export['thumbnail_src'] = $this->getIconUrl();
-        $export['src'] = array(
+        $export['src'] = [
             '360.mp4' => $this->getSourceUrl('360.mp4'),
             '720.mp4' => $this->getSourceUrl('720.mp4')
-        );
+        ];
         $export['play:count'] = Helpers\Counters::get($this->guid, 'plays');
         $export['thumbs:up:count'] = Helpers\Counters::get($this->guid, 'thumbs:up');
         $export['thumbs:down:count'] = Helpers\Counters::get($this->guid, 'thumbs:down');
@@ -153,7 +152,7 @@ class Video extends Object
             unset($export['flags']['deleted']);
         }
 
-	$export['boost_rejection_reason'] = $this->getBoostRejectionReason() ?: -1;
+        $export['boost_rejection_reason'] = $this->getBoostRejectionReason() ?: -1;
         return $export;
     }
 

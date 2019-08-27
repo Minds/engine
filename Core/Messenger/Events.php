@@ -75,14 +75,14 @@ class Events
             $user = $params['user'];
 
             if ($entity instanceof Entities\Message) {
-                if (in_array($user->guid, array_keys($entity->getMessages()))) {
+                if (in_array($user->guid, array_keys($entity->getMessages()), true)) {
                     $event->setResponse(true);
                 } else {
                     $event->setResponse(false);
                 }
             }
             if ($entity instanceof Entities\Conversation) {
-                if (in_array($user->guid, $entity->getParticipants())) {
+                if (in_array($user->guid, $entity->getParticipants(), true)) {
                     $event->setResponse(true);
                 } else {
                     $event->setResponse(false);

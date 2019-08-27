@@ -17,7 +17,7 @@ class Neo4j implements Interfaces\WarehouseJobInterface
      * Run the job
      * @return void
      */
-    public function run(array $slugs = array())
+    public function run(array $slugs = [])
     {
         $this->client = \Minds\Core\Data\Client::build('Neo4j');
         switch ($slugs[0]) {
@@ -31,7 +31,7 @@ class Neo4j implements Interfaces\WarehouseJobInterface
     /**
      * Syncronise the data
      */
-    public function sync($slugs = array())
+    public function sync($slugs = [])
     {
         switch ($slugs[0]) {
             case 'users':
@@ -67,7 +67,7 @@ class Neo4j implements Interfaces\WarehouseJobInterface
         $offset = '100000000000002247';
         while (true) {
             error_log("Syncing 50 users from $offset");
-            $users = core\Entities::get(array('type'=>'user', 'offset'=>$offset, 'limit'=>50));
+            $users = core\Entities::get(['type'=>'user', 'offset'=>$offset, 'limit'=>50]);
             if (!is_array($users) || end($users)->guid == $offset) {
                 break;
             }
@@ -86,7 +86,7 @@ class Neo4j implements Interfaces\WarehouseJobInterface
                     error_log("Hmm.. slight issue, skipping ({$e->getMessage()})");
                 }
             }
-            $guids = array();
+            $guids = [];
             foreach ($users as $user) {
                 $guids[] = $user->guid;
             }
@@ -94,13 +94,13 @@ class Neo4j implements Interfaces\WarehouseJobInterface
                 $bulk_subscriptions = $subscriptions->getRows($guids);
                 foreach ($bulk_subscriptions as $subscriber => $us) {
                     $us = array_splice($us, 0, 200);
-                    $this->client->request($prepared->createBulkSubscriptions(array($subscriber=>$us)));
+                    $this->client->request($prepared->createBulkSubscriptions([$subscriber=>$us]));
                     error_log("Imported subscriptions");
                 }
             } catch (\Exception $e) {
                 error_log("Hmm.. slight issue, re-running ({$e->getMessage()})");
             }
-           // break;
+            // break;
            // exit;
         }
     }
@@ -116,7 +116,7 @@ class Neo4j implements Interfaces\WarehouseJobInterface
         $offset = "";
         while (true) {
             error_log("Syncing 250 videos from $offset");
-            $videos = core\Entities::get(array('subtype'=>'video', 'offset'=>$offset, 'limit'=>250));
+            $videos = core\Entities::get(['subtype'=>'video', 'offset'=>$offset, 'limit'=>250]);
             if (!is_array($videos) || end($videos)->guid == $offset) {
                 break;
             }
@@ -135,7 +135,7 @@ class Neo4j implements Interfaces\WarehouseJobInterface
         $offset = "";
         while (true) {
             error_log("Syncing 250 images from $offset");
-            $images = core\Entities::get(array('subtype'=>'image', 'offset'=>$offset, 'limit'=>250));
+            $images = core\Entities::get(['subtype'=>'image', 'offset'=>$offset, 'limit'=>250]);
             if (!is_array($images) || end($images)->guid == $offset) {
                 break;
             }
@@ -159,7 +159,7 @@ class Neo4j implements Interfaces\WarehouseJobInterface
         }
     
         foreach ($users as $user) {
-            $thumbs_up = array();
+            $thumbs_up = [];
         }
     }
 }

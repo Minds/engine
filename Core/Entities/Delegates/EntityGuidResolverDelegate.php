@@ -42,7 +42,7 @@ class EntityGuidResolverDelegate implements ResolverDelegate
                 'blog',
                 'user',
                 'group',
-            ]);
+            ], true);
     }
 
     /**

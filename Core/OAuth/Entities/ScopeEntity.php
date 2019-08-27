@@ -15,5 +15,4 @@ class ScopeEntity implements ScopeEntityInterface
     {
         return $this->getIdentifier();
     }
-
 }

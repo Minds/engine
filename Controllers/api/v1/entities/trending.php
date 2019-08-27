@@ -58,7 +58,7 @@ class trending implements Interfaces\Api, Interfaces\ApiIgnorePam
     {
         //temp hack..
         //if(isset($pages[1]) && $pages[1] == 'video')
-          //  $pages[1] = 'kaltura_video';
+        //  $pages[1] = 'kaltura_video';
         if (!isset($pages[1])) {
             $pages[1] = $pages[0];
         }
@@ -125,7 +125,7 @@ class trending implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         ksort($result['guids']);
-        $entities = core\Entities::get(array('guids'=>$result['guids']));
+        $entities = core\Entities::get(['guids'=>$result['guids']]);
         $response['entities'] = Factory::exportable($entities);
         $response['load-next'] = base64_encode($result['token']);
 

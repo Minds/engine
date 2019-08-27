@@ -34,54 +34,54 @@ class Peer implements BoostEntityInterface
         $this->db = null;
     }
 
-  /**
-   * Loads from database using a GUID
-   * @param  $guid
-   * @throws \Exception
-   */
-  public function loadFromDB($guid)
-  {
-      throw new \Exception("Can not load a boost pro directly from the database, please loadFromArray()");
-  }
+    /**
+     * Loads from database using a GUID
+     * @param  $guid
+     * @throws \Exception
+     */
+    public function loadFromDB($guid)
+    {
+        throw new \Exception("Can not load a boost pro directly from the database, please loadFromArray()");
+    }
 
-  /**
-   * Loads from an array
-   * @param  array $array
-   * @return $this
-   */
-  public function loadFromArray($array)
-  {
-      $array = is_array($array) ? $array : json_decode($array, true);
+    /**
+     * Loads from an array
+     * @param  array $array
+     * @return $this
+     */
+    public function loadFromArray($array)
+    {
+        $array = is_array($array) ? $array : json_decode($array, true);
 
-      $this->guid = $array['guid'];
-      $this->_type = $array['type'];
-      $this->entity = Entities\Factory::build($array['entity']);
-      $this->bid = $array['bid'];
-      $this->destination = Entities\Factory::build($array['destination']);
-      $this->owner = Entities\Factory::build($array['owner']);
-      $this->state = $array['state'];
-      $this->time_created = $array['time_created'];
-      $this->last_updated = $array['last_updated'];
-      $this->transactionId = $array['transactionId'];
-      $this->scheduledTs = isset($array['scheduledTs']) ? $array['scheduledTs'] : null;
-      $this->postToFacebook = isset($array['postToFacebook']) ? $array['postToFacebook'] : false;
-      $this->checksum = isset($array['checksum']) ? $array['checksum'] : null;
-      $this->method = isset($array['method']) ? $array['method'] : '';
-      return $this;
-  }
+        $this->guid = $array['guid'];
+        $this->_type = $array['type'];
+        $this->entity = Entities\Factory::build($array['entity']);
+        $this->bid = $array['bid'];
+        $this->destination = Entities\Factory::build($array['destination']);
+        $this->owner = Entities\Factory::build($array['owner']);
+        $this->state = $array['state'];
+        $this->time_created = $array['time_created'];
+        $this->last_updated = $array['last_updated'];
+        $this->transactionId = $array['transactionId'];
+        $this->scheduledTs = isset($array['scheduledTs']) ? $array['scheduledTs'] : null;
+        $this->postToFacebook = isset($array['postToFacebook']) ? $array['postToFacebook'] : false;
+        $this->checksum = isset($array['checksum']) ? $array['checksum'] : null;
+        $this->method = isset($array['method']) ? $array['method'] : '';
+        return $this;
+    }
 
-  /**
-   * Write to the database
-   * @return string - $guid
-   */
-  public function save()
-  {
-      if (!$this->guid) {
-          $this->guid = Core\Guid::build();
-          $this->time_created = time();
-      }
+    /**
+     * Write to the database
+     * @return string - $guid
+     */
+    public function save()
+    {
+        if (!$this->guid) {
+            $this->guid = Core\Guid::build();
+            $this->time_created = time();
+        }
 
-      $data = [
+        $data = [
         'guid' => $this->guid,
         'type' => $this->_type,
         'entity' => $this->entity->export(),
@@ -98,145 +98,145 @@ class Peer implements BoostEntityInterface
         'method' => $this->method,
       ];
 
-      /** @var Core\Boost\Repository $repository */
-      $repository = Di::_()->get('Boost\Repository');
-      $repository->upsert('peer', $data);
-      return $this;
-  }
+        /** @var Core\Boost\Repository $repository */
+        $repository = Di::_()->get('Boost\Repository');
+        $repository->upsert('peer', $data);
+        return $this;
+    }
 
-  /**
-   * Sets the GUID of this boost
-   * @return $this
-   */
-  public function setGuid($guid)
-  {
-      if (!$this->guid) {
-          $this->guid = $guid;
-          $this->time_created = time();
-      }
-  }
+    /**
+     * Sets the GUID of this boost
+     * @return $this
+     */
+    public function setGuid($guid)
+    {
+        if (!$this->guid) {
+            $this->guid = $guid;
+            $this->time_created = time();
+        }
+    }
 
-  /**
-   * Get the GUID of this boost
-   * @return string
-   */
-  public function getGuid()
-  {
-      if (!$this->guid) {
-          $this->guid = Core\Guid::build();
-          $this->time_created = time();
-      }
-      return $this->guid;
-  }
+    /**
+     * Get the GUID of this boost
+     * @return string
+     */
+    public function getGuid()
+    {
+        if (!$this->guid) {
+            $this->guid = Core\Guid::build();
+            $this->time_created = time();
+        }
+        return $this->guid;
+    }
 
-  /**
-   * Set the entity to boost
-   * @param Entity $entity
-   * @return $this
-   */
-  public function setEntity($entity)
-  {
-      $this->entity = $entity;
-      return $this;
-  }
+    /**
+     * Set the entity to boost
+     * @param Entity $entity
+     * @return $this
+     */
+    public function setEntity($entity)
+    {
+        $this->entity = $entity;
+        return $this;
+    }
 
-  /**
-   * Get the entity
-   * @return Entity
-   */
-  public function getEntity()
-  {
-      return $this->entity;
-  }
+    /**
+     * Get the entity
+     * @return Entity
+     */
+    public function getEntity()
+    {
+        return $this->entity;
+    }
 
-  /**
-   * Destination
-   * @param Entity $destination
-   * @return $this
-   */
-  public function setDestination(User $destination)
-  {
-      $this->destination = $destination;
-      return $this;
-  }
+    /**
+     * Destination
+     * @param Entity $destination
+     * @return $this
+     */
+    public function setDestination(User $destination)
+    {
+        $this->destination = $destination;
+        return $this;
+    }
 
-  /**
-   * Get the destination
-   * @return User
-   */
-  public function getDestination()
-  {
-      return $this->destination;
-  }
+    /**
+     * Get the destination
+     * @return User
+     */
+    public function getDestination()
+    {
+        return $this->destination;
+    }
 
-  /**
-   * Set the owner
-   * @param Entity $owner
-   * @return $this
-   */
-  public function setOwner(User $owner)
-  {
-      $this->owner = $owner;
-      return $this;
-  }
+    /**
+     * Set the owner
+     * @param Entity $owner
+     * @return $this
+     */
+    public function setOwner(User $owner)
+    {
+        $this->owner = $owner;
+        return $this;
+    }
 
-  /**
-   * Get the owner
-   * @return User
-   */
-  public function getOwner()
-  {
-      return $this->owner;
-  }
+    /**
+     * Get the owner
+     * @return User
+     */
+    public function getOwner()
+    {
+        return $this->owner;
+    }
 
-  /**
-   * Get the time created
-   * @return int
-   */
+    /**
+     * Get the time created
+     * @return int
+     */
     public function getTimeCreated()
-  {
-      return $this->time_created ?: time();
-  }
+    {
+        return $this->time_created ?: time();
+    }
 
-  /**
-   * Return the bid
-   * @return int
-   */
-  public function getBid()
-  {
-      return $this->bid;
-  }
+    /**
+     * Return the bid
+     * @return int
+     */
+    public function getBid()
+    {
+        return $this->bid;
+    }
 
-  /**
-   * Set the bid amount
-   * @param $bid
-   * @return $this
-   */
-  public function setBid($bid)
-  {
-      $this->bid = $bid;
-      return $this;
-  }
+    /**
+     * Set the bid amount
+     * @param $bid
+     * @return $this
+     */
+    public function setBid($bid)
+    {
+        $this->bid = $bid;
+        return $this;
+    }
 
-  /**
-   * Set the state of the boost
-   * @param string $state
-   * @return $this
-   */
-  public function setState($state)
-  {
-      $this->state = $state;
-      return $this;
-  }
+    /**
+     * Set the state of the boost
+     * @param string $state
+     * @return $this
+     */
+    public function setState($state)
+    {
+        $this->state = $state;
+        return $this;
+    }
 
-  /**
-   * Return the state of the boost
-   * @return string
-   */
-  public function getState()
-  {
-      return $this->state;
-  }
+    /**
+     * Return the state of the boost
+     * @return string
+     */
+    public function getState()
+    {
+        return $this->state;
+    }
 
     public function getTransactionId()
     {
@@ -383,7 +383,7 @@ class Peer implements BoostEntityInterface
           'checksum' => $this->checksum,
           'method' => $this->method,
         ];
-        $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'all', array('entity'=>$this), array()));
+        $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'all', ['entity'=>$this], []));
         $export = \Minds\Helpers\Export::sanitize($export);
         return $export;
     }

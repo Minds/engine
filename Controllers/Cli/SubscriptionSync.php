@@ -12,7 +12,6 @@ use Stripe;
 
 class SubscriptionSync extends Cli\Controller implements Interfaces\CliControllerInterface
 {
-
     private $db;
 
     public function __construct()
@@ -41,12 +40,11 @@ class SubscriptionSync extends Cli\Controller implements Interfaces\CliControlle
         $plans = $this->db->request($query);
 
         foreach ($plans as $plan) {
-
             $opts = [];
             if ($plan['entity_guid']) {
                 $entity = Entities\Factory::build($plan['entity_guid']);
                 if ($entity->type != 'user') {
-                  $entity = $entity->getOwnerEntity();
+                    $entity = $entity->getOwnerEntity();
                 }
                 $opts = [
                   'stripe_account' => $entity->getMerchant()['id']
@@ -91,7 +89,6 @@ class SubscriptionSync extends Cli\Controller implements Interfaces\CliControlle
             } catch (\Exception $e) {
                 echo $e->getMessage() ."\n";
             }
-
         }
 
         $this->out("Done");

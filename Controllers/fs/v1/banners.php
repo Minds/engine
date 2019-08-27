@@ -37,7 +37,7 @@ class banners implements Interfaces\FS
         switch ($type) {
           case "user":
             $size = isset($pages[1]) ? $pages[1] : 'fat';
-            $carousels = Core\Entities::get(array('subtype'=>'carousel', 'owner_guid'=>$entity->guid));
+            $carousels = Core\Entities::get(['subtype'=>'carousel', 'owner_guid'=>$entity->guid]);
             if ($carousels) {
                 $f = new Entities\File();
                 $f->owner_guid = $entity->guid;
@@ -46,7 +46,7 @@ class banners implements Interfaces\FS
                 $content = $f->read();
                 if (!$content) {
                     $filepath =  Core\Config::build()->dataroot . 'carousel/' . $carousels[0]->guid . $size;
-                    $f = Core\Di\Di::_()->get('Storage')->open($filepath, 'read'); 
+                    $f = Core\Di\Di::_()->get('Storage')->open($filepath, 'read');
                     $content = $f->read();
                 }
             }
@@ -77,7 +77,7 @@ class banners implements Interfaces\FS
             $f->open('read');
 
             $content = $f->read();
-            if(!$content){
+            if (!$content) {
                 $filepath =  Core\Config::build()->dataroot . 'carousel/' . $entity->guid . $size;
                 $f = Core\Di\Di::_()->get('Storage')->open($filepath, 'read');
                 $content = $f->read();
@@ -96,7 +96,7 @@ class banners implements Interfaces\FS
 
         if (!$content && $f) {
             $content = $f->read();
-            if(!$content){
+            if (!$content) {
                 exit;
             }
         }

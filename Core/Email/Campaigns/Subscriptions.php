@@ -28,7 +28,7 @@ class Subscriptions
     protected $offset = "";
 
     protected $users_map = [
-        '607668752611287060' => [ 
+        '607668752611287060' => [
             'username' => '@Sargon_of_Akaad',
             'posts' => [ '790299633131360256' ]
         ],
@@ -40,7 +40,7 @@ class Subscriptions
             'username' => '@Timcast',
             'posts' => [ '788878120470974464' ]
         ],
-        '691315407809683459' => [ 
+        '691315407809683459' => [
             'username' => '@Styxhexenhammer',
             'posts' => [ '789900745391333376' ]
         ],
@@ -85,9 +85,9 @@ class Subscriptions
                     $subscriber_guid = $row['column1'];
                     $this->subscribers_map[$subscriber_guid][$user_guid] = $data;
                 }
-                if ($rows->isLastPage()) { 
-                    break; 
-                } 
+                if ($rows->isLastPage()) {
+                    break;
+                }
                 $rows = $rows->nextPage();
             }
         }
@@ -95,10 +95,9 @@ class Subscriptions
 
     protected function buildSubject($users_map)
     {
-
         $subject = "Check out the latest from ";
 
-        $usernames = array_map(function($data) {
+        $usernames = array_map(function ($data) {
             return $data['username'];
         }, $users_map);
 

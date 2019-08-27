@@ -15,7 +15,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Util\BigNumber;
 use Minds\Core\Analytics\Iterators;
 
-class TestnetRewards 
+class TestnetRewards
 {
     protected $db;
     protected $template;
@@ -77,7 +77,7 @@ class TestnetRewards
         $this->template->toggleMarkdown(true);
 
         if ($this->user->getPhoneNumberHash()) {
-        //    return;
+            //    return;
         }
 
         $balance = Di::_()->get('Blockchain\Wallets\OffChain\TestnetBalance');
@@ -112,5 +112,4 @@ class TestnetRewards
         //send email
         $this->mailer->send($message);
     }
-
 }

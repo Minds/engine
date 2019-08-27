@@ -15,7 +15,6 @@ use Minds\Interfaces;
 
 class prepare implements Interfaces\Api
 {
-
     /**
      * Equivalent to HTTP GET method
      * @param  array $pages

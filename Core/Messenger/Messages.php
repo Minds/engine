@@ -23,8 +23,7 @@ class Messages
         $db = null,
         $indexes = null,
         $acl = null
-    )
-    {
+    ) {
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Entities');
         $this->indexes = $indexes ?: Di::_()->get('Database\Cassandra\Indexes');
         $this->acl = $acl ?: ACL::_();
@@ -54,7 +53,7 @@ class Messages
           'limit' => $limit,
           'offset'=> $cassandraOffset,
           'finish'=> $finish,
-          'reversed'=> true, 
+          'reversed'=> true,
         ];
 
         $messages = $this->indexes->get("object:gathering:conversation:$guid", $opts) ?: [];

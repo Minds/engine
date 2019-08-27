@@ -54,7 +54,7 @@ class Priorities extends core\plugins
             }
 
             $plugin_list = core\plugins::get('any');
-            $reorder = array();
+            $reorder = [];
 
             foreach ($plugin_list as $plugin) {
                 if ($plugin->getPriority() ==  $old_priority-1 && $op=='-') {

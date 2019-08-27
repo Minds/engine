@@ -29,8 +29,7 @@ class Pool
     public function __construct(
         $elasticsearch = null,
         $index = null
-    )
-    {
+    ) {
         $this->elasticsearch = $elasticsearch ?: Di::_()->get('Database\ElasticSearch');
         $this->index = $index ?: 'minds-metrics-*';
     }

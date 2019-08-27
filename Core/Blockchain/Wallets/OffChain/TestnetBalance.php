@@ -7,7 +7,6 @@ use Minds\Entities\User;
 
 class TestnetBalance
 {
-
     /** @var Sums */
     private $sums;
 

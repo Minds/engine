@@ -60,7 +60,7 @@ class Manager
 
         $response = $this->topFeedsManager->getList($opts);
 
-        $response = $response->map(function($entity) {
+        $response = $response->map(function ($entity) {
             return $entity->getEntity();
         });
 
@@ -94,7 +94,7 @@ class Manager
         //Save the entity
         $this->saveEntity($entity, $moderator, $time);
 
-        if (method_exists($entity, 'getType') 
+        if (method_exists($entity, 'getType')
             && $entity->getType() == 'activity'
             && $entity->get('entity_guid')
         ) {

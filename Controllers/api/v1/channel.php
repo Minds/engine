@@ -34,32 +34,32 @@ class channel implements Interfaces\Api
 
         $user = new Entities\User($pages[0]);
         if (!$user->username || Helpers\Flags::shouldFail($user)) {
-            return Factory::response(array('status'=>'error', 'message'=>'The user could not be found'));
+            return Factory::response(['status'=>'error', 'message'=>'The user could not be found']);
         }
 
         if ($user->enabled != "yes") {
-            return Factory::response(array('status'=>'error', 'message'=>'The user is disabled'));
+            return Factory::response(['status'=>'error', 'message'=>'The user is disabled']);
         }
 
         if ($user->banned == 'yes' && !Core\Session::isAdmin()) {
-            return Factory::response(array('status'=>'error', 'message'=>'The user is banned'));
+            return Factory::response(['status'=>'error', 'message'=>'The user is banned']);
         }
 
         $user->fullExport = true; //get counts
         $user->exportCounts = true;
-        $return = Factory::exportable(array($user));
+        $return = Factory::exportable([$user]);
 
         $response['channel'] = $return[0];
         if (Core\Session::getLoggedinUser()->guid == $user->guid) {
             $response['channel']['admin'] = $user->admin;
         }
-        $response['channel']['avatar_url'] = array(
+        $response['channel']['avatar_url'] = [
             'tiny' => $user->getIconURL('tiny'),
             'small' => $user->getIconURL('small'),
             'medium' => $user->getIconURL('medium'),
             'large' => $user->getIconURL('large'),
             'master' => $user->getIconURL('master')
-        );
+        ];
 
         $response['channel']['briefdescription'] = $response['channel']['briefdescription'] ?: '';
         $response['channel']['city'] = $response['channel']['city'] ?: "";
@@ -72,14 +72,14 @@ class channel implements Interfaces\Api
             $response['channel']['activity_count'] = $feed_count;
         }
 
-        $carousels = Core\Entities::get(array('subtype'=>'carousel', 'owner_guid'=>$user->guid));
+        $carousels = Core\Entities::get(['subtype'=>'carousel', 'owner_guid'=>$user->guid]);
         if ($carousels) {
             foreach ($carousels as $carousel) {
-                $response['channel']['carousels'][] = array(
+                $response['channel']['carousels'][] = [
                   'guid' => (string) $carousel->guid,
                   'top_offset' => $carousel->top_offset,
                   'src'=> Core\Config::_()->cdn_url . "fs/v1/banners/$carousel->guid/fat/$carousel->last_updated"
-                );
+                ];
             }
         }
 
@@ -108,7 +108,7 @@ class channel implements Interfaces\Api
                 $icon_sizes = Core\Config::_()->get('icon_sizes');
                 // get the images and save their file handlers into an array
                 // so we can do clean up if one fails.
-                $files = array();
+                $files = [];
                 foreach ($icon_sizes as $name => $size_info) {
                     $manager->setImage($_FILES['file']['tmp_name'])
                         ->autorotate()
@@ -184,11 +184,11 @@ class channel implements Interfaces\Api
               $item->last_updated = time();
               $item->save();
 
-              $response['carousel'] = array(
+              $response['carousel'] = [
                  'guid' => (string) $item->guid,
                  'top_offset' => $item->top_offset,
                  'src'=> Core\Config::build()->cdn_url . "fs/v1/banners/$item->guid/fat/$item->last_updated"
-              );
+              ];
 
               if ($item->canEdit() && is_uploaded_file($_FILES['file']['tmp_name'])) {
                   $manager->setImage($_FILES['file']['tmp_name'])
@@ -210,10 +210,10 @@ class channel implements Interfaces\Api
             case "info":
             default:
                 if (!$owner->canEdit()) {
-                    return Factory::response(array('status'=>'error'));
+                    return Factory::response(['status'=>'error']);
                 }
 
-                $update = array();
+                $update = [];
                 foreach (['name', 'website', 'briefdescription', 'gender',
                   'dob', 'city', 'coordinates', 'monetized'] as $field) {
                     if (isset($_POST[$field])) {
@@ -280,7 +280,7 @@ class channel implements Interfaces\Api
 
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     /**
@@ -289,7 +289,7 @@ class channel implements Interfaces\Api
     public function delete($pages)
     {
         if (!Core\Session::getLoggedinUser()) {
-            return Factory::response(array('status' => 'error', 'message' => 'not logged in'));
+            return Factory::response(['status' => 'error', 'message' => 'not logged in']);
         }
 
         switch ($pages[0]) {
@@ -315,6 +315,6 @@ class channel implements Interfaces\Api
                 (new Core\Data\Sessions())->destroyAll($channel->guid);
         }
 
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }

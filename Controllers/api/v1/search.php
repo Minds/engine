@@ -85,7 +85,7 @@ class search implements Interfaces\Api, Interfaces\ApiIgnorePam
                 $response[$returnKey ?: 'all'][] = $response['entities'];
             }
 
-          $response['load-next'] = (int) $_GET['offset'] + $_GET['limit'];
+            $response['load-next'] = (int) $_GET['offset'] + $_GET['limit'];
         }
 
         return Factory::response($response);

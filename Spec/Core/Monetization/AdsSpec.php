@@ -10,24 +10,24 @@ use Minds\Core\Monetization;
 
 class AdsSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Monetization\Ads');
     }
 
-    function it_should_set_and_get_an_user_guid_from_literal()
+    public function it_should_set_and_get_an_user_guid_from_literal()
     {
         $this->setUser(10);
         $this->getUser()->shouldReturn(10);
     }
 
-    function it_should_set_and_get_an_user_guid_from_object()
+    public function it_should_set_and_get_an_user_guid_from_object()
     {
         $this->setUser((object) [ 'guid' => 10 ]);
         $this->getUser()->shouldReturn(10);
     }
 
-    function it_should_proxy_total_revenue_from_service(Monetization\Services\Adsense $service)
+    public function it_should_proxy_total_revenue_from_service(Monetization\Services\Adsense $service)
     {
         $this->beConstructedWith($service);
 
@@ -39,13 +39,12 @@ class AdsSpec extends ObjectBehavior
         $this->getTotalRevenue(new \DateTime('2017-01-01'), new \DateTime('2017-02-01'))->shouldReturn(123.45);
     }
 
-    function it_should_get_revenue_list_from_service_and_format_it(
+    public function it_should_get_revenue_list_from_service_and_format_it(
         Monetization\Services\Adsense $service,
         Monetization\Payouts $payouts
-    )
-    {
+    ) {
         $this->beConstructedWith($service);
-        Di::_()->bind('Monetization\Payouts', function($di) use ($payouts) {
+        Di::_()->bind('Monetization\Payouts', function ($di) use ($payouts) {
             return $payouts->getWrappedObject();
         });
 
@@ -77,13 +76,12 @@ class AdsSpec extends ObjectBehavior
         ]);
     }
 
-    function it_should_get_the_last_offset(
+    public function it_should_get_the_last_offset(
         Monetization\Services\Adsense $service,
         Monetization\Payouts $payouts
-    )
-    {
+    ) {
         $this->beConstructedWith($service);
-        Di::_()->bind('Monetization\Payouts', function($di) use ($payouts) {
+        Di::_()->bind('Monetization\Payouts', function ($di) use ($payouts) {
             return $payouts;
         });
 

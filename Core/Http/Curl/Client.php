@@ -66,12 +66,12 @@ class Client
         $validMethods = ['get', 'post', 'put', 'delete', 'options', 'head'];
 
         if (
-            in_array('Content-Type: application/x-www-form-urlencoded', $options['headers']) &&
+            in_array('Content-Type: application/x-www-form-urlencoded', $options['headers'], true) &&
             is_array($options['data'])
         ) {
             $options['data'] = http_build_query($options['data']);
         } elseif (
-            in_array('Content-Type: application/json', $options['headers']) &&
+            in_array('Content-Type: application/json', $options['headers'], true) &&
             is_array($options['data'])
         ) {
             $options['data'] = json_encode($options['data']);
@@ -81,7 +81,7 @@ class Client
             $this->curl->setLimit($options['limit']);
         }
 
-        if (in_array($options['method'], $validMethods)) {
+        if (in_array($options['method'], $validMethods, true)) {
             switch ($options['method']) {
                 case 'get':
                     $this->curl->setOpt(CURLOPT_HTTPGET, true);

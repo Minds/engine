@@ -28,14 +28,13 @@ class GuidServer extends Cli\Controller implements Interfaces\CliControllerInter
         $zks = 'localhost:2181';
         
         $timer = new \Davegardnerisme\CruftFlake\Timer;
-        if ($machine !== NULL) {
-                $config = new \Davegardnerisme\CruftFlake\FixedConfig($machine);
+        if ($machine !== null) {
+            $config = new \Davegardnerisme\CruftFlake\FixedConfig($machine);
         } else {
-                $config = new \Davegardnerisme\CruftFlake\ZkConfig($zks);
+            $config = new \Davegardnerisme\CruftFlake\ZkConfig($zks);
         }
         $generator = new \Davegardnerisme\CruftFlake\Generator($config, $timer);
         $zmqRunner = new \Davegardnerisme\CruftFlake\ZeroMq($generator, $port);
         $zmqRunner->run();
     }
-
 }

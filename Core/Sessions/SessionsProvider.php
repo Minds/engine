@@ -10,12 +10,10 @@ use Minds\Core\Di\Provider;
 
 class SessionsProvider extends Provider
 {
-
     public function register()
     {
         $this->di->bind('Sessions\Manager', function ($di) {
             return new Manager;
         }, ['useFactory'=>true]);
     }
-
 }
