@@ -14,18 +14,18 @@ class ManagerSpec extends ObjectBehavior
 {
     protected $repository;
 
-    function let(Repository $repository)
+    public function let(Repository $repository)
     {
         $this->repository = $repository;
         $this->beConstructedWith(null, $repository);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_return_true_if_subscribed()
+    public function it_should_return_true_if_subscribed()
     {
         $user = new User;
         $user->set('guid', 123);
@@ -34,7 +34,7 @@ class ManagerSpec extends ObjectBehavior
         $this->setBatchId('phpspec');
 
         $this->repository->get(
-            Argument::that(function($subscription) {
+            Argument::that(function ($subscription) {
                 return $subscription->getUserGuid() == 123
                     && $subscription->getBatchId() == 'phpspec';
             }))
@@ -43,13 +43,13 @@ class ManagerSpec extends ObjectBehavior
         $this->isSubscribed()->shouldBe(true);
     }
 
-    function it_should_return_false_if_not_subscribed()
+    public function it_should_return_false_if_not_subscribed()
     {
         $this->setUser(456);
         $this->setBatchId('phpspec');
 
         $this->repository->get(
-            Argument::that(function($subscription) {
+            Argument::that(function ($subscription) {
                 return $subscription->getUserGuid() == 456
                     && $subscription->getBatchId() == 'phpspec';
             }))
@@ -58,13 +58,13 @@ class ManagerSpec extends ObjectBehavior
         $this->isSubscribed()->shouldBe(false);
     }
 
-    function it_should_subscribe()
+    public function it_should_subscribe()
     {
         $this->setUser(789);
         $this->setBatchId('phpspec');
 
         $this->repository->add(
-            Argument::that(function($subscription) {
+            Argument::that(function ($subscription) {
                 return $subscription->getUserGuid() == 789
                     && $subscription->getBatchId() == 'phpspec';
             }))
@@ -73,13 +73,13 @@ class ManagerSpec extends ObjectBehavior
         $this->subscribe()->shouldBe(true);
     }
 
-    function it_should_unsubscribe()
+    public function it_should_unsubscribe()
     {
         $this->setUser(101112);
         $this->setBatchId('phpspec');
 
         $this->repository->delete(
-            Argument::that(function($subscription) {
+            Argument::that(function ($subscription) {
                 return $subscription->getUserGuid() == 101112
                     && $subscription->getBatchId() == 'phpspec';
             }))
@@ -87,5 +87,4 @@ class ManagerSpec extends ObjectBehavior
 
         $this->unSubscribe()->shouldBe(true);
     }
-
 }

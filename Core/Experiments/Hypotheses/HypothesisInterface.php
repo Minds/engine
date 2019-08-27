@@ -1,6 +1,6 @@
 <?php
 /**
- * 
+ *
  */
 namespace Minds\Core\Experiments\Hypotheses;
 
@@ -8,7 +8,6 @@ use Minds\Core\Experiments\Bucket;
 
 interface HypothesisInterface
 {
-
     /**
      * Return the id for the hypothesis
      * @return string
@@ -20,5 +19,4 @@ interface HypothesisInterface
      * @return Bucket[]
      */
     public function getBuckets();
-
 }

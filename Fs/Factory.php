@@ -40,7 +40,7 @@ class Factory
                 if (class_exists($class_name)) {
                     $handler = new $class_name();
                     self::pamCheck();
-                    $pages = array_splice($segments, $loop) ?: array();
+                    $pages = array_splice($segments, $loop) ?: [];
                     return $handler->$method($pages);
                 }
             }
@@ -50,7 +50,7 @@ class Factory
             if (class_exists($class_name)) {
                 $handler = new $class_name();
                 self::pamCheck();
-                $pages = array_splice($segments, $loop) ?: array();
+                $pages = array_splice($segments, $loop) ?: [];
                 return $handler->$method($pages);
             }
             --$loop;

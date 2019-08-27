@@ -46,5 +46,4 @@ class UpdateMarker
             'read_timestamp' => $this->readTimestamp,
         ];
     }
-
 }

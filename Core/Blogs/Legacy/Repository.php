@@ -70,7 +70,6 @@ class Repository
         ], $opts);
 
         if (!$opts['guids']) {
-            
             $response = $this->feedsRepo->getList($opts);
             
             $pagingToken = base64_encode($response->getPagingToken());
@@ -79,7 +78,6 @@ class Repository
             foreach ($response as $item) {
                 $guids[] = (string) $item->getGuid();
             }
-
         } else {
             $guids = $opts['guids'];
             $pagingToken = '';

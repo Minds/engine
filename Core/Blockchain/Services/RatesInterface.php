@@ -7,7 +7,6 @@
 
 namespace Minds\Core\Blockchain\Services;
 
-
 interface RatesInterface
 {
     /**

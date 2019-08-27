@@ -40,36 +40,41 @@ define('ELGG_PLUGIN_USER_SETTING_PREFIX', 'plugin:user_setting:');
 /**
  * @deprecated
  */
-function elgg_get_plugin_ids_in_dir($dir = null) {
-	return Minds\Core\plugins::getFromDir($dir);
+function elgg_get_plugin_ids_in_dir($dir = null)
+{
+    return Minds\Core\plugins::getFromDir($dir);
 }
 
 /**
  * @deprecated
  */
-function elgg_generate_plugin_entities() {
-	//cassandra doesn't require 'generating' of plugins. We can just get from the directory and use the keys
+function elgg_generate_plugin_entities()
+{
+    //cassandra doesn't require 'generating' of plugins. We can just get from the directory and use the keys
 }
 
 /**
  * @deprecated
  */
-function _elgg_cache_plugin_by_id(ElggPlugin $plugin) {
-	return false; //we have a better caching mechanism
+function _elgg_cache_plugin_by_id(ElggPlugin $plugin)
+{
+    return false; //we have a better caching mechanism
 }
 
 /**
  * @deprecated
  */
-function elgg_get_plugin_from_id($plugin_id) {
-	return Minds\Core\plugins::factory($plugin_id);
+function elgg_get_plugin_from_id($plugin_id)
+{
+    return Minds\Core\plugins::factory($plugin_id);
 }
 
 /**
  * @deprecated
  */
-function elgg_plugin_exists($id) {
-	//use isActive instead.
+function elgg_plugin_exists($id)
+{
+    //use isActive instead.
 }
 
 /**
@@ -79,43 +84,49 @@ function elgg_plugin_exists($id) {
  * @since 1.8.0
  * @access private
  */
-function elgg_get_max_plugin_priority() {
-	return Minds\Core\Plugins\Priorities::getMax();
+function elgg_get_max_plugin_priority()
+{
+    return Minds\Core\Plugins\Priorities::getMax();
 }
 
 /**
  * @deprecated
  */
-function elgg_is_active_plugin($plugin_id, $site_guid = null) {
-	return Minds\Core\plugins::isActive($plugin_id);
+function elgg_is_active_plugin($plugin_id, $site_guid = null)
+{
+    return Minds\Core\plugins::isActive($plugin_id);
 }
 
 /**
  * @deprecated
  */
-function elgg_load_plugins() {
-	//private function now in Minds\Core\plugins.
+function elgg_load_plugins()
+{
+    //private function now in Minds\Core\plugins.
 }
 
 /**
  * @deprecated
  */
-function elgg_get_plugins($status = 'active', $site_guid = null) {
-	return Minds\Core\plugins::get($status);
+function elgg_get_plugins($status = 'active', $site_guid = null)
+{
+    return Minds\Core\plugins::get($status);
 }
 
 /**
  * @deprecated
  */
-function elgg_set_plugin_priorities(array $order) {
-	return false;
+function elgg_set_plugin_priorities(array $order)
+{
+    return false;
 }
 
 /**
  * @deprecated
  */
-function elgg_reindex_plugin_priorities() {
-	return false;
+function elgg_reindex_plugin_priorities()
+{
+    return false;
 }
 
 /**
@@ -128,26 +139,27 @@ function elgg_reindex_plugin_priorities() {
  * @since 1.8.0
  * @access private
  */
-function elgg_namespace_plugin_private_setting($type, $name, $id = null) {
-	switch ($type) {
-		// commented out because it breaks $plugin->$name access to variables
-		//case 'setting':
-		//	$name = ELGG_PLUGIN_SETTING_PREFIX . $name;
-		//	break;
+function elgg_namespace_plugin_private_setting($type, $name, $id = null)
+{
+    switch ($type) {
+        // commented out because it breaks $plugin->$name access to variables
+        //case 'setting':
+        //	$name = ELGG_PLUGIN_SETTING_PREFIX . $name;
+        //	break;
 
-		case 'user_setting':
-			if (!$id) {
-				$id = elgg_get_calling_plugin_id();
-			}
-			$name = ELGG_PLUGIN_USER_SETTING_PREFIX . "$id:$name";
-			break;
+        case 'user_setting':
+            if (!$id) {
+                $id = elgg_get_calling_plugin_id();
+            }
+            $name = ELGG_PLUGIN_USER_SETTING_PREFIX . "$id:$name";
+            break;
 
-		case 'internal':
-			$name = ELGG_PLUGIN_INTERNAL_PREFIX . $name;
-			break;
-	}
+        case 'internal':
+            $name = ELGG_PLUGIN_INTERNAL_PREFIX . $name;
+            break;
+    }
 
-	return $name;
+    return $name;
 }
 
 /**
@@ -166,32 +178,33 @@ function elgg_namespace_plugin_private_setting($type, $name, $id = null) {
  *
  * @todo get rid of this
  */
-function elgg_get_calling_plugin_id($mainfilename = false) {
-	if (!$mainfilename) {
-		if ($backtrace = debug_backtrace()) {
-			foreach ($backtrace as $step) {
-				$file = $step['file'];
-				$file = str_replace("\\", "/", $file);
-				$file = str_replace("//", "/", $file);
-				if (preg_match("/mod\/([a-zA-Z0-9\-\_]*)\/start\.php$/", $file, $matches)) {
-					return $matches[1];
-				}
-			}
-		}
-	} else {
-		//@todo this is a hack -- plugins do not have to match their page handler names!
-		if ($handler = get_input('handler', FALSE)) {
-			return $handler;
-		} else {
-			$file = $_SERVER["SCRIPT_NAME"];
-			$file = str_replace("\\", "/", $file);
-			$file = str_replace("//", "/", $file);
-			if (preg_match("/mod\/([a-zA-Z0-9\-\_]*)\//", $file, $matches)) {
-				return $matches[1];
-			}
-		}
-	}
-	return false;
+function elgg_get_calling_plugin_id($mainfilename = false)
+{
+    if (!$mainfilename) {
+        if ($backtrace = debug_backtrace()) {
+            foreach ($backtrace as $step) {
+                $file = $step['file'];
+                $file = str_replace("\\", "/", $file);
+                $file = str_replace("//", "/", $file);
+                if (preg_match("/mod\/([a-zA-Z0-9\-\_]*)\/start\.php$/", $file, $matches)) {
+                    return $matches[1];
+                }
+            }
+        }
+    } else {
+        //@todo this is a hack -- plugins do not have to match their page handler names!
+        if ($handler = get_input('handler', false)) {
+            return $handler;
+        } else {
+            $file = $_SERVER["SCRIPT_NAME"];
+            $file = str_replace("\\", "/", $file);
+            $file = str_replace("//", "/", $file);
+            if (preg_match("/mod\/([a-zA-Z0-9\-\_]*)\//", $file, $matches)) {
+                return $matches[1];
+            }
+        }
+    }
+    return false;
 }
 
 /**
@@ -213,45 +226,46 @@ function elgg_get_calling_plugin_id($mainfilename = false) {
  * @since 1.8.0
  * @access private
  */
-function elgg_get_plugins_provides($type = null, $name = null) {
-	static $provides = null;
-	$active_plugins = elgg_get_plugins('active');
+function elgg_get_plugins_provides($type = null, $name = null)
+{
+    static $provides = null;
+    $active_plugins = elgg_get_plugins('active');
 
-	if (!isset($provides)) {
-		$provides = array();
+    if (!isset($provides)) {
+        $provides = [];
 
-		foreach ($active_plugins as $plugin) {
-			$plugin_provides = array();
-			$manifest = $plugin->getManifest();
-			if ($manifest instanceof ElggPluginManifest) {
-				$plugin_provides = $plugin->getManifest()->getProvides();
-			}
-			if ($plugin_provides) {
-				foreach ($plugin_provides as $provided) {
-					$provides[$provided['type']][$provided['name']] = array(
-						'version' => $provided['version'],
-						'provided_by' => $plugin->getID()
-					);
-				}
-			}
-		}
-	}
+        foreach ($active_plugins as $plugin) {
+            $plugin_provides = [];
+            $manifest = $plugin->getManifest();
+            if ($manifest instanceof ElggPluginManifest) {
+                $plugin_provides = $plugin->getManifest()->getProvides();
+            }
+            if ($plugin_provides) {
+                foreach ($plugin_provides as $provided) {
+                    $provides[$provided['type']][$provided['name']] = [
+                        'version' => $provided['version'],
+                        'provided_by' => $plugin->getID()
+                    ];
+                }
+            }
+        }
+    }
 
-	if ($type && $name) {
-		if (isset($provides[$type][$name])) {
-			return $provides[$type][$name];
-		} else {
-			return false;
-		}
-	} elseif ($type) {
-		if (isset($provides[$type])) {
-			return $provides[$type];
-		} else {
-			return false;
-		}
-	}
+    if ($type && $name) {
+        if (isset($provides[$type][$name])) {
+            return $provides[$type][$name];
+        } else {
+            return false;
+        }
+    } elseif ($type) {
+        if (isset($provides[$type])) {
+            return $provides[$type];
+        } else {
+            return false;
+        }
+    }
 
-	return $provides;
+    return $provides;
 }
 
 /**
@@ -270,25 +284,26 @@ function elgg_get_plugins_provides($type = null, $name = null) {
  * @since 1.8.0
  * @access private
  */
-function elgg_check_plugins_provides($type, $name, $version = null, $comparison = 'ge') {
-	$provided = elgg_get_plugins_provides($type, $name);
-	if (!$provided) {
-		return array(
-			'status' => false,
-			'version' => ''
-		);
-	}
+function elgg_check_plugins_provides($type, $name, $version = null, $comparison = 'ge')
+{
+    $provided = elgg_get_plugins_provides($type, $name);
+    if (!$provided) {
+        return [
+            'status' => false,
+            'version' => ''
+        ];
+    }
 
-	if ($version) {
-		$status = version_compare($provided['version'], $version, $comparison);
-	} else {
-		$status = true;
-	}
+    if ($version) {
+        $status = version_compare($provided['version'], $version, $comparison);
+    } else {
+        $status = true;
+    }
 
-	return array(
-		'status' => $status,
-		'value' => $provided['version']
-	);
+    return [
+        'status' => $status,
+        'value' => $provided['version']
+    ];
 }
 
 /**
@@ -306,108 +321,109 @@ function elgg_check_plugins_provides($type, $name, $version = null, $comparison 
  * @since 1.8.0
  * @access private
  */
-function elgg_get_plugin_dependency_strings($dep) {
-	$dep_system = elgg_extract('type', $dep);
-	$info = elgg_extract('dep', $dep);
-	$type = elgg_extract('type', $info);
+function elgg_get_plugin_dependency_strings($dep)
+{
+    $dep_system = elgg_extract('type', $dep);
+    $info = elgg_extract('dep', $dep);
+    $type = elgg_extract('type', $info);
 
-	if (!$dep_system || !$info || !$type) {
-		return false;
-	}
+    if (!$dep_system || !$info || !$type) {
+        return false;
+    }
 
-	// rewrite some of these to be more readable
-	switch($info['comparison']) {
-		case 'lt':
-			$comparison = '<';
-			break;
-		case 'gt':
-			$comparison = '>';
-			break;
-		case 'ge':
-			$comparison = '>=';
-			break;
-		case 'le':
-			$comparison = '<=';
-			break;
-		default;
-			$comparison = $info['comparison'];
-			break;
-	}
+    // rewrite some of these to be more readable
+    switch ($info['comparison']) {
+        case 'lt':
+            $comparison = '<';
+            break;
+        case 'gt':
+            $comparison = '>';
+            break;
+        case 'ge':
+            $comparison = '>=';
+            break;
+        case 'le':
+            $comparison = '<=';
+            break;
+        default:
+            $comparison = $info['comparison'];
+            break;
+    }
 
-	/*
-	'requires'	'plugin oauth_lib'	<1.3	1.3		'downgrade'
-	'requires'	'php setting bob'	>3		3		'change it'
-	'conflicts'	'php setting'		>3		4		'change it'
-	'conflicted''plugin profile'	any		1.8		'disable profile'
-	'provides'	'plugin oauth_lib'	1.3		--		--
-	'priority'	'before blog'		--		after	'move it'
-	*/
-	$strings = array();
-	$strings['type'] = elgg_echo('ElggPlugin:Dependencies:' . ucwords($dep_system));
+    /*
+    'requires'	'plugin oauth_lib'	<1.3	1.3		'downgrade'
+    'requires'	'php setting bob'	>3		3		'change it'
+    'conflicts'	'php setting'		>3		4		'change it'
+    'conflicted''plugin profile'	any		1.8		'disable profile'
+    'provides'	'plugin oauth_lib'	1.3		--		--
+    'priority'	'before blog'		--		after	'move it'
+    */
+    $strings = [];
+    $strings['type'] = elgg_echo('ElggPlugin:Dependencies:' . ucwords($dep_system));
 
-	switch ($type) {
-		case 'elgg_version':
-		case 'elgg_release':
-			// 'Elgg Version'
-			$strings['name'] = elgg_echo('ElggPlugin:Dependencies:Elgg');
-			$strings['expected_value'] = "$comparison {$info['version']}";
-			$strings['local_value'] = $dep['value'];
-			$strings['comment'] = '';
-			break;
+    switch ($type) {
+        case 'elgg_version':
+        case 'elgg_release':
+            // 'Elgg Version'
+            $strings['name'] = elgg_echo('ElggPlugin:Dependencies:Elgg');
+            $strings['expected_value'] = "$comparison {$info['version']}";
+            $strings['local_value'] = $dep['value'];
+            $strings['comment'] = '';
+            break;
 
-		case 'php_extension':
-			// PHP Extension %s [version]
-			$strings['name'] = elgg_echo('ElggPlugin:Dependencies:PhpExtension', array($info['name']));
-			if ($info['version']) {
-				$strings['expected_value'] = "$comparison {$info['version']}";
-				$strings['local_value'] = $dep['value'];
-			} else {
-				$strings['expected_value'] = '';
-				$strings['local_value'] = '';
-			}
-			$strings['comment'] = '';
-			break;
+        case 'php_extension':
+            // PHP Extension %s [version]
+            $strings['name'] = elgg_echo('ElggPlugin:Dependencies:PhpExtension', [$info['name']]);
+            if ($info['version']) {
+                $strings['expected_value'] = "$comparison {$info['version']}";
+                $strings['local_value'] = $dep['value'];
+            } else {
+                $strings['expected_value'] = '';
+                $strings['local_value'] = '';
+            }
+            $strings['comment'] = '';
+            break;
 
-		case 'php_ini':
-			$strings['name'] = elgg_echo('ElggPlugin:Dependencies:PhpIni', array($info['name']));
-			$strings['expected_value'] = "$comparison {$info['value']}";
-			$strings['local_value'] = $dep['value'];
-			$strings['comment'] = '';
-			break;
+        case 'php_ini':
+            $strings['name'] = elgg_echo('ElggPlugin:Dependencies:PhpIni', [$info['name']]);
+            $strings['expected_value'] = "$comparison {$info['value']}";
+            $strings['local_value'] = $dep['value'];
+            $strings['comment'] = '';
+            break;
 
-		case 'plugin':
-			$strings['name'] = elgg_echo('ElggPlugin:Dependencies:Plugin', array($info['name']));
-			$expected = $info['version'] ? "$comparison {$info['version']}" : elgg_echo('any');
-			$strings['expected_value'] = $expected;
-			$strings['local_value'] = $dep['value'] ? $dep['value'] : '--';
-			$strings['comment'] = '';
-			break;
+        case 'plugin':
+            $strings['name'] = elgg_echo('ElggPlugin:Dependencies:Plugin', [$info['name']]);
+            $expected = $info['version'] ? "$comparison {$info['version']}" : elgg_echo('any');
+            $strings['expected_value'] = $expected;
+            $strings['local_value'] = $dep['value'] ? $dep['value'] : '--';
+            $strings['comment'] = '';
+            break;
 
-		case 'priority':
-			$expected_priority = ucwords($info['priority']);
-			$real_priority = ucwords($dep['value']);
-			$strings['name'] = elgg_echo('ElggPlugin:Dependencies:Priority');
-			$strings['expected_value'] = elgg_echo("ElggPlugin:Dependencies:Priority:$expected_priority", array($info['plugin']));
-			$strings['local_value'] = elgg_echo("ElggPlugin:Dependencies:Priority:$real_priority", array($info['plugin']));
-			$strings['comment'] = '';
-			break;
-	}
+        case 'priority':
+            $expected_priority = ucwords($info['priority']);
+            $real_priority = ucwords($dep['value']);
+            $strings['name'] = elgg_echo('ElggPlugin:Dependencies:Priority');
+            $strings['expected_value'] = elgg_echo("ElggPlugin:Dependencies:Priority:$expected_priority", [$info['plugin']]);
+            $strings['local_value'] = elgg_echo("ElggPlugin:Dependencies:Priority:$real_priority", [$info['plugin']]);
+            $strings['comment'] = '';
+            break;
+    }
 
-	if ($dep['type'] == 'suggests') {
-		if ($dep['status']) {
-			$strings['comment'] = elgg_echo('ok');
-		} else {
-			$strings['comment'] = elgg_echo('ElggPlugin:Dependencies:Suggests:Unsatisfied');
-		}
-	} else {
-		if ($dep['status']) {
-			$strings['comment'] = elgg_echo('ok');
-		} else {
-			$strings['comment'] = elgg_echo('error');
-		}
-	}
+    if ($dep['type'] == 'suggests') {
+        if ($dep['status']) {
+            $strings['comment'] = elgg_echo('ok');
+        } else {
+            $strings['comment'] = elgg_echo('ElggPlugin:Dependencies:Suggests:Unsatisfied');
+        }
+    } else {
+        if ($dep['status']) {
+            $strings['comment'] = elgg_echo('ok');
+        } else {
+            $strings['comment'] = elgg_echo('error');
+        }
+    }
 
-	return $strings;
+    return $strings;
 }
 
 /**
@@ -417,14 +433,15 @@ function elgg_get_plugin_dependency_strings($dep) {
  * @since 1.8.0
  * @access private
  */
-function elgg_get_calling_plugin_entity() {
-	$plugin_id = elgg_get_calling_plugin_id();
+function elgg_get_calling_plugin_entity()
+{
+    $plugin_id = elgg_get_calling_plugin_id();
 
-	if ($plugin_id) {
-		return Minds\Core\plugins::factory($plugin_id);
-	}
+    if ($plugin_id) {
+        return Minds\Core\plugins::factory($plugin_id);
+    }
 
-	return false;
+    return false;
 }
 
 /**
@@ -437,30 +454,31 @@ function elgg_get_calling_plugin_entity() {
  * @return array
  * @since 1.8.0
  */
-function elgg_get_all_plugin_user_settings($user_guid = null, $plugin_id = null, $return_obj = false) {
-	if ($plugin_id) {
-		$plugin = elgg_get_plugin_from_id($plugin_id);
-	} else {
-		$plugin = elgg_get_calling_plugin_entity();
-	}
+function elgg_get_all_plugin_user_settings($user_guid = null, $plugin_id = null, $return_obj = false)
+{
+    if ($plugin_id) {
+        $plugin = elgg_get_plugin_from_id($plugin_id);
+    } else {
+        $plugin = elgg_get_calling_plugin_entity();
+    }
 
-	if (!$plugin instanceof ElggPlugin) {
-		return false;
-	}
+    if (!$plugin instanceof ElggPlugin) {
+        return false;
+    }
 
-	$settings = $plugin->getAllUserSettings($user_guid);
+    $settings = $plugin->getAllUserSettings($user_guid);
 
-	if ($settings && $return_obj) {
-		$return = new stdClass;
+    if ($settings && $return_obj) {
+        $return = new stdClass;
 
-		foreach ($settings as $k => $v) {
-			$return->$k = $v;
-		}
+        foreach ($settings as $k => $v) {
+            $return->$k = $v;
+        }
 
-		return $return;
-	} else {
-		return $settings;
-	}
+        return $return;
+    } else {
+        return $settings;
+    }
 }
 
 /**
@@ -474,18 +492,19 @@ function elgg_get_all_plugin_user_settings($user_guid = null, $plugin_id = null,
  * @return bool
  * @since 1.8.0
  */
-function elgg_set_plugin_setting($name, $value, $plugin_id = null) {
-	if ($plugin_id) {
-		$plugin = Minds\Core\plugins::factory($plugin_id);
-	} else {
-		$plugin = elgg_get_calling_plugin_entity();
-	}
+function elgg_set_plugin_setting($name, $value, $plugin_id = null)
+{
+    if ($plugin_id) {
+        $plugin = Minds\Core\plugins::factory($plugin_id);
+    } else {
+        $plugin = elgg_get_calling_plugin_entity();
+    }
 
-	if (!$plugin) {
-		return false;
-	}
+    if (!$plugin) {
+        return false;
+    }
 
-	return $plugin->setSetting($name, $value);
+    return $plugin->setSetting($name, $value);
 }
 
 /**
@@ -499,24 +518,24 @@ function elgg_set_plugin_setting($name, $value, $plugin_id = null) {
  * @since 1.8.0
  * @todo make $plugin_id required in future version
  */
-function elgg_get_plugin_setting($name, $plugin_id = null) {
+function elgg_get_plugin_setting($name, $plugin_id = null)
+{
+    if ($plugin_id) {
+        if (!Minds\Core\plugins::isActive($plugin_id)) {
+            return false;
+        }
+        $plugin = Minds\Core\plugins::factory($plugin_id);
+    } else {
+        $plugin = elgg_get_calling_plugin_entity();
+    }
 
-	if ($plugin_id) {
-		if(!Minds\Core\plugins::isActive($plugin_id)){
-			return false;
-		}
-		$plugin = Minds\Core\plugins::factory($plugin_id);
-	} else {
-		$plugin = elgg_get_calling_plugin_entity();
-	}
+    if (!$plugin) {
+        return false;
+    }
 
-	if (!$plugin) {
-		return false;
-	}
-
-	if($plugin instanceof ElggPlugin && $plugin->isActive()){
-		return $plugin->getSetting($name);
-	}
+    if ($plugin instanceof ElggPlugin && $plugin->isActive()) {
+        return $plugin->getSetting($name);
+    }
 }
 
 /**
@@ -529,18 +548,19 @@ function elgg_get_plugin_setting($name, $plugin_id = null) {
  * @return bool
  * @since 1.8.0
  */
-function elgg_unset_plugin_setting($name, $plugin_id = null) {
-	if ($plugin_id) {
-		$plugin = elgg_get_plugin_from_id($plugin_id);
-	} else {
-		$plugin = elgg_get_calling_plugin_entity();
-	}
+function elgg_unset_plugin_setting($name, $plugin_id = null)
+{
+    if ($plugin_id) {
+        $plugin = elgg_get_plugin_from_id($plugin_id);
+    } else {
+        $plugin = elgg_get_calling_plugin_entity();
+    }
 
-	if (!$plugin) {
-		return false;
-	}
+    if (!$plugin) {
+        return false;
+    }
 
-	return $plugin->unsetSetting($name);
+    return $plugin->unsetSetting($name);
 }
 
 /**
@@ -552,35 +572,38 @@ function elgg_unset_plugin_setting($name, $plugin_id = null) {
  * @return bool
  * @since 1.8.0
  */
-function elgg_unset_all_plugin_settings($plugin_id = null) {
-	if ($plugin_id) {
-		$plugin = elgg_get_plugin_from_id($plugin_id);
-	} else {
-		$plugin = elgg_get_calling_plugin_entity();
-	}
+function elgg_unset_all_plugin_settings($plugin_id = null)
+{
+    if ($plugin_id) {
+        $plugin = elgg_get_plugin_from_id($plugin_id);
+    } else {
+        $plugin = elgg_get_calling_plugin_entity();
+    }
 
-	if (!$plugin) {
-		return false;
-	}
+    if (!$plugin) {
+        return false;
+    }
 
-	return $plugin->unsetAllSettings();
+    return $plugin->unsetAllSettings();
 }
 
 /**
  * @deprecated
  */
-function elgg_get_entities_from_plugin_user_settings(array $options = array()) {
-	return false;
+function elgg_get_entities_from_plugin_user_settings(array $options = [])
+{
+    return false;
 }
 
 
 
-function elgg_plugins_loaded_event_hook($event, $object_type, $params){
-	// This validates the view type - first opportunity to do it is after plugins load.
-	$view_type = elgg_get_viewtype();
-	if (!elgg_is_valid_view_type($view_type)) {
-		elgg_set_viewtype('default');
-	}
+function elgg_plugins_loaded_event_hook($event, $object_type, $params)
+{
+    // This validates the view type - first opportunity to do it is after plugins load.
+    $view_type = elgg_get_viewtype();
+    if (!elgg_is_valid_view_type($view_type)) {
+        elgg_set_viewtype('default');
+    }
 }
 
 /**
@@ -592,10 +615,9 @@ function elgg_plugins_loaded_event_hook($event, $object_type, $params){
  * @return void
  * @access private
  */
-function plugin_init() {
-
-	elgg_register_event_handler('plugins_loaded', 'plugin', 'elgg_plugins_loaded_event_hook');
-
+function plugin_init()
+{
+    elgg_register_event_handler('plugins_loaded', 'plugin', 'elgg_plugins_loaded_event_hook');
 }
 
 elgg_register_event_handler('init', 'system', 'plugin_init');

@@ -43,7 +43,7 @@ class icon extends core\page implements Interfaces\page
             exit;
         }
         $size = strtolower($pages[1]);
-        if (!in_array($size, array('xlarge', 'large', 'medium', 'small', 'tiny', 'master', 'topbar'))) {
+        if (!in_array($size, ['xlarge', 'large', 'medium', 'small', 'tiny', 'master', 'topbar'], true)) {
             $size = "medium";
         }
 

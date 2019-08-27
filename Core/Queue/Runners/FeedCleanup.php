@@ -30,7 +30,7 @@ class FeedCleanup implements Interfaces\QueueRunner
                    $fof = new Data\Call('friendsof', $keyspace);
                    $offset = "";
                    while (true) {
-                       $guids = $fof->getRow($data['owner_guid'], array('limit'=>2000, 'offset'=>$offset));
+                       $guids = $fof->getRow($data['owner_guid'], ['limit'=>2000, 'offset'=>$offset]);
                        if (!$guids) {
                            break;
                        }
@@ -52,12 +52,12 @@ class FeedCleanup implements Interfaces\QueueRunner
 
                        $followers =$guids;
                        foreach ($followers as $follower) {
-                           $db->removeAttributes("$type:network:$follower", array($data['guid']));
+                           $db->removeAttributes("$type:network:$follower", [$data['guid']]);
                            if ($subtype) {
-                               $db->removeAttributes("$type:$subtype:network:$follower", array($data['guid']));
+                               $db->removeAttributes("$type:$subtype:network:$follower", [$data['guid']]);
                            }
                            if ($super_subtype) {
-                               $db->removeAttributes("$type:$super_subtype:network:$follower", array($data['guid']));
+                               $db->removeAttributes("$type:$super_subtype:network:$follower", [$data['guid']]);
                            }
                        }
                    }

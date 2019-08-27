@@ -4,7 +4,7 @@
  * Private settings provide metadata like storage of settings for plugins
  * and users.
  *
- * Soon the be deprecated and replaced by an attribute style. 
+ * Soon the be deprecated and replaced by an attribute style.
  *
  * @package Elgg.Core
  * @subpackage PrivateSettings
@@ -43,49 +43,50 @@
  * @return mixed int If count, int. If not count, array. false on errors.
  * @since 1.8.0
  */
-function elgg_get_entities_from_private_settings(array $options = array()) {
-	return;
+function elgg_get_entities_from_private_settings(array $options = [])
+{
+    return;
 
-	$defaults = array(
-		'private_setting_names'                     =>	ELGG_ENTITIES_ANY_VALUE,
-		'private_setting_values'                    =>	ELGG_ENTITIES_ANY_VALUE,
-		'private_setting_name_value_pairs'          =>	ELGG_ENTITIES_ANY_VALUE,
-		'private_setting_name_value_pairs_operator' => 'AND',
-		'private_setting_name_prefix'				=> '',
-	);
+    $defaults = [
+        'private_setting_names'                     =>	ELGG_ENTITIES_ANY_VALUE,
+        'private_setting_values'                    =>	ELGG_ENTITIES_ANY_VALUE,
+        'private_setting_name_value_pairs'          =>	ELGG_ENTITIES_ANY_VALUE,
+        'private_setting_name_value_pairs_operator' => 'AND',
+        'private_setting_name_prefix'				=> '',
+    ];
 
-	$options = array_merge($defaults, $options);
+    $options = array_merge($defaults, $options);
 
-	$singulars = array('private_setting_name', 'private_setting_value',
-		'private_setting_name_value_pair');
+    $singulars = ['private_setting_name', 'private_setting_value',
+        'private_setting_name_value_pair'];
 
-	$options = elgg_normalise_plural_options_array($options, $singulars);
+    $options = elgg_normalise_plural_options_array($options, $singulars);
 
-	$clauses = elgg_get_entity_private_settings_where_sql('e', $options['private_setting_names'],
-		$options['private_setting_values'], $options['private_setting_name_value_pairs'],
-		$options['private_setting_name_value_pairs_operator'], $options['private_setting_name_prefix']);
+    $clauses = elgg_get_entity_private_settings_where_sql('e', $options['private_setting_names'],
+        $options['private_setting_values'], $options['private_setting_name_value_pairs'],
+        $options['private_setting_name_value_pairs_operator'], $options['private_setting_name_prefix']);
 
-	if ($clauses) {
-		// merge wheres to pass to get_entities()
-		if (isset($options['wheres']) && !is_array($options['wheres'])) {
-			$options['wheres'] = array($options['wheres']);
-		} elseif (!isset($options['wheres'])) {
-			$options['wheres'] = array();
-		}
+    if ($clauses) {
+        // merge wheres to pass to get_entities()
+        if (isset($options['wheres']) && !is_array($options['wheres'])) {
+            $options['wheres'] = [$options['wheres']];
+        } elseif (!isset($options['wheres'])) {
+            $options['wheres'] = [];
+        }
 
-		$options['wheres'] = array_merge($options['wheres'], $clauses['wheres']);
+        $options['wheres'] = array_merge($options['wheres'], $clauses['wheres']);
 
-		// merge joins to pass to get_entities()
-		if (isset($options['joins']) && !is_array($options['joins'])) {
-			$options['joins'] = array($options['joins']);
-		} elseif (!isset($options['joins'])) {
-			$options['joins'] = array();
-		}
+        // merge joins to pass to get_entities()
+        if (isset($options['joins']) && !is_array($options['joins'])) {
+            $options['joins'] = [$options['joins']];
+        } elseif (!isset($options['joins'])) {
+            $options['joins'] = [];
+        }
 
-		$options['joins'] = array_merge($options['joins'], $clauses['joins']);
-	}
+        $options['joins'] = array_merge($options['joins'], $clauses['joins']);
+    }
 
-	return elgg_get_entities($options);
+    return elgg_get_entities($options);
 }
 
 /**
@@ -101,161 +102,161 @@ function elgg_get_entities_from_private_settings(array $options = array()) {
  * @since 1.8.0
  * @access private
  */
-function elgg_get_entity_private_settings_where_sql($table, $names = NULL, $values = NULL,
-$pairs = NULL, $pair_operator = 'AND', $name_prefix = '') {
+function elgg_get_entity_private_settings_where_sql($table, $names = null, $values = null,
+$pairs = null, $pair_operator = 'AND', $name_prefix = '')
+{
+    global $CONFIG;
 
-	global $CONFIG;
+    // @todo short circuit test
 
-	// @todo short circuit test
+    $return = [
+        'joins' => [],
+        'wheres' => [],
+    ];
 
-	$return = array (
-		'joins' => array (),
-		'wheres' => array(),
-	);
-
-	$return['joins'][] = "JOIN {$CONFIG->dbprefix}private_settings ps on
+    $return['joins'][] = "JOIN {$CONFIG->dbprefix}private_settings ps on
 		{$table}.guid = ps.entity_guid";
 
-	$wheres = array();
+    $wheres = [];
 
-	// get names wheres
-	$names_where = '';
-	if ($names !== NULL) {
-		if (!is_array($names)) {
-			$names = array($names);
-		}
+    // get names wheres
+    $names_where = '';
+    if ($names !== null) {
+        if (!is_array($names)) {
+            $names = [$names];
+        }
 
-		$sanitised_names = array();
-		foreach ($names as $name) {
-			$name = $name_prefix . $name;
-			$sanitised_names[] = '\'' . sanitise_string($name) . '\'';
-		}
+        $sanitised_names = [];
+        foreach ($names as $name) {
+            $name = $name_prefix . $name;
+            $sanitised_names[] = '\'' . sanitise_string($name) . '\'';
+        }
 
-		$names_str = implode(',', $sanitised_names);
-		if ($names_str) {
-			$names_where = "(ps.name IN ($names_str))";
-		}
-	}
+        $names_str = implode(',', $sanitised_names);
+        if ($names_str) {
+            $names_where = "(ps.name IN ($names_str))";
+        }
+    }
 
-	// get values wheres
-	$values_where = '';
-	if ($values !== NULL) {
-		if (!is_array($values)) {
-			$values = array($values);
-		}
+    // get values wheres
+    $values_where = '';
+    if ($values !== null) {
+        if (!is_array($values)) {
+            $values = [$values];
+        }
 
-		$sanitised_values = array();
-		foreach ($values as $value) {
-			// normalize to 0
-			if (!$value) {
-				$value = 0;
-			}
-			$sanitised_values[] = '\'' . sanitise_string($value) . '\'';
-		}
+        $sanitised_values = [];
+        foreach ($values as $value) {
+            // normalize to 0
+            if (!$value) {
+                $value = 0;
+            }
+            $sanitised_values[] = '\'' . sanitise_string($value) . '\'';
+        }
 
-		$values_str = implode(',', $sanitised_values);
-		if ($values_str) {
-			$values_where = "(ps.value IN ($values_str))";
-		}
-	}
+        $values_str = implode(',', $sanitised_values);
+        if ($values_str) {
+            $values_where = "(ps.value IN ($values_str))";
+        }
+    }
 
-	if ($names_where && $values_where) {
-		$wheres[] = "($names_where AND $values_where)";
-	} elseif ($names_where) {
-		$wheres[] = "($names_where)";
-	} elseif ($values_where) {
-		$wheres[] = "($values_where)";
-	}
+    if ($names_where && $values_where) {
+        $wheres[] = "($names_where AND $values_where)";
+    } elseif ($names_where) {
+        $wheres[] = "($names_where)";
+    } elseif ($values_where) {
+        $wheres[] = "($values_where)";
+    }
 
-	// add pairs which must be in arrays.
-	if (is_array($pairs)) {
-		// join counter for incremental joins in pairs
-		$i = 1;
+    // add pairs which must be in arrays.
+    if (is_array($pairs)) {
+        // join counter for incremental joins in pairs
+        $i = 1;
 
-		// check if this is an array of pairs or just a single pair.
-		if (isset($pairs['name']) || isset($pairs['value'])) {
-			$pairs = array($pairs);
-		}
+        // check if this is an array of pairs or just a single pair.
+        if (isset($pairs['name']) || isset($pairs['value'])) {
+            $pairs = [$pairs];
+        }
 
-		$pair_wheres = array();
+        $pair_wheres = [];
 
-		foreach ($pairs as $index => $pair) {
-			// @todo move this elsewhere?
-			// support shortcut 'n' => 'v' method.
-			if (!is_array($pair)) {
-				$pair = array(
-					'name' => $index,
-					'value' => $pair
-				);
-			}
+        foreach ($pairs as $index => $pair) {
+            // @todo move this elsewhere?
+            // support shortcut 'n' => 'v' method.
+            if (!is_array($pair)) {
+                $pair = [
+                    'name' => $index,
+                    'value' => $pair
+                ];
+            }
 
-			// must have at least a name and value
-			if (!isset($pair['name']) || !isset($pair['value'])) {
-				// @todo should probably return false.
-				continue;
-			}
+            // must have at least a name and value
+            if (!isset($pair['name']) || !isset($pair['value'])) {
+                // @todo should probably return false.
+                continue;
+            }
 
-			if (isset($pair['operand'])) {
-				$operand = sanitise_string($pair['operand']);
-			} else {
-				$operand = ' = ';
-			}
+            if (isset($pair['operand'])) {
+                $operand = sanitise_string($pair['operand']);
+            } else {
+                $operand = ' = ';
+            }
 
-			// for comparing
-			$trimmed_operand = trim(strtolower($operand));
+            // for comparing
+            $trimmed_operand = trim(strtolower($operand));
 
-			// if the value is an int, don't quote it because str '15' < str '5'
-			// if the operand is IN don't quote it because quoting should be done already.
-			if (is_numeric($pair['value'])) {
-				$value = sanitise_string($pair['value']);
-			} else if (is_array($pair['value'])) {
-				$values_array = array();
+            // if the value is an int, don't quote it because str '15' < str '5'
+            // if the operand is IN don't quote it because quoting should be done already.
+            if (is_numeric($pair['value'])) {
+                $value = sanitise_string($pair['value']);
+            } elseif (is_array($pair['value'])) {
+                $values_array = [];
 
-				foreach ($pair['value'] as $pair_value) {
-					if (is_numeric($pair_value)) {
-						$values_array[] = sanitise_string($pair_value);
-					} else {
-						$values_array[] = "'" . sanitise_string($pair_value) . "'";
-					}
-				}
+                foreach ($pair['value'] as $pair_value) {
+                    if (is_numeric($pair_value)) {
+                        $values_array[] = sanitise_string($pair_value);
+                    } else {
+                        $values_array[] = "'" . sanitise_string($pair_value) . "'";
+                    }
+                }
 
-				if ($values_array) {
-					$value = '(' . implode(', ', $values_array) . ')';
-				}
+                if ($values_array) {
+                    $value = '(' . implode(', ', $values_array) . ')';
+                }
 
-				// @todo allow support for non IN operands with array of values.
-				// will have to do more silly joins.
-				$operand = 'IN';
-			} else if ($trimmed_operand == 'in') {
-				$value = "({$pair['value']})";
-			} else {
-				$value = "'" . sanitise_string($pair['value']) . "'";
-			}
+                // @todo allow support for non IN operands with array of values.
+                // will have to do more silly joins.
+                $operand = 'IN';
+            } elseif ($trimmed_operand == 'in') {
+                $value = "({$pair['value']})";
+            } else {
+                $value = "'" . sanitise_string($pair['value']) . "'";
+            }
 
-			$name = sanitise_string($name_prefix . $pair['name']);
+            $name = sanitise_string($name_prefix . $pair['name']);
 
-			// @todo The multiple joins are only needed when the operator is AND
-			$return['joins'][] = "JOIN {$CONFIG->dbprefix}private_settings ps{$i}
+            // @todo The multiple joins are only needed when the operator is AND
+            $return['joins'][] = "JOIN {$CONFIG->dbprefix}private_settings ps{$i}
 				on {$table}.guid = ps{$i}.entity_guid";
 
-			$pair_wheres[] = "(ps{$i}.name = '$name' AND ps{$i}.value
+            $pair_wheres[] = "(ps{$i}.name = '$name' AND ps{$i}.value
 				$operand $value)";
 
-			$i++;
-		}
+            $i++;
+        }
 
-		$where = implode(" $pair_operator ", $pair_wheres);
-		if ($where) {
-			$wheres[] = "($where)";
-		}
-	}
+        $where = implode(" $pair_operator ", $pair_wheres);
+        if ($where) {
+            $wheres[] = "($where)";
+        }
+    }
 
-	$where = implode(' AND ', $wheres);
-	if ($where) {
-		$return['wheres'][] = "($where)";
-	}
+    $where = implode(' AND ', $wheres);
+    if ($where) {
+        $return['wheres'][] = "($where)";
+    }
 
-	return $return;
+    return $return;
 }
 
 /**
@@ -277,16 +278,17 @@ $pairs = NULL, $pair_operator = 'AND', $name_prefix = '') {
  * @see remove_all_private_settings()
  * @link http://docs.elgg.org/DataModel/Entities/PrivateSettings
  */
-function get_private_setting($entity_guid, $entity_type, $name) {
-	global $CONFIG;
-	$entity_guid = $entity_guid;
+function get_private_setting($entity_guid, $entity_type, $name)
+{
+    global $CONFIG;
+    $entity_guid = $entity_guid;
 
-	$entity = get_entity($entity_guid, $entity_type);
-	if (!$entity instanceof ElggEntity) {
-		return false;
-	}
+    $entity = get_entity($entity_guid, $entity_type);
+    if (!$entity instanceof ElggEntity) {
+        return false;
+    }
 
-	return $entity->$name;
+    return $entity->$name;
 }
 /**
  * Return an array of all private settings.
@@ -300,21 +302,22 @@ function get_private_setting($entity_guid, $entity_type, $name) {
  * @see remove_all_private_settings()
  * @link http://docs.elgg.org/DataModel/Entities/PrivateSettings
  */
-function get_all_private_settings($entity_guid, $entity_type) {
-	global $CONFIG;
+function get_all_private_settings($entity_guid, $entity_type)
+{
+    global $CONFIG;
 
-	$entity_guid = $entity_guid;
-	$entity = get_entity($entity_guid, $entity_type);
-	if (!$entity instanceof ElggEntity) {
-		return false;
-	}
+    $entity_guid = $entity_guid;
+    $entity = get_entity($entity_guid, $entity_type);
+    if (!$entity instanceof ElggEntity) {
+        return false;
+    }
 
-	$return = array();
-	foreach ($entity as $name => $value) {
-		$return[$name] = $value;
-	}
+    $return = [];
+    foreach ($entity as $name => $value) {
+        $return[$name] = $value;
+    }
 
-	return $return;
+    return $return;
 }
 /**
  * Sets a private setting for an entity.
@@ -330,22 +333,23 @@ function get_all_private_settings($entity_guid, $entity_type) {
  * @see remove_all_private_settings()
  * @link http://docs.elgg.org/DataModel/Entities/PrivateSettings
  */
-function set_private_setting($entity_guid, $entity_type, $name, $value) {
-	global $CONFIG, $ENTITY_CACHE;
+function set_private_setting($entity_guid, $entity_type, $name, $value)
+{
+    global $CONFIG, $ENTITY_CACHE;
 
-	$db = new Minds\Core\Data\Call('entities');
-	$result = $db->insert($entity_guid, array(
-		$name => $value
-	));
+    $db = new Minds\Core\Data\Call('entities');
+    $result = $db->insert($entity_guid, [
+        $name => $value
+    ]);
 
-	if (function_exists('xcache_get')) {
-                $newentity_cache = new ElggXCache('new_entity_cache');
-        	$newentity_cache->delete($entity_guid);
+    if (function_exists('xcache_get')) {
+        $newentity_cache = new ElggXCache('new_entity_cache');
+        $newentity_cache->delete($entity_guid);
     }
 
-    unset($ENTITY_CACHE[$entity_guid]); 
-	
-	return $result !== false;
+    unset($ENTITY_CACHE[$entity_guid]);
+    
+    return $result !== false;
 }
 
 /**
@@ -361,28 +365,29 @@ function set_private_setting($entity_guid, $entity_type, $name, $value) {
  * @see remove_all_private_settings()
  * @link http://docs.elgg.org/DataModel/Entities/PrivateSettings
  */
-function remove_private_setting($entity_guid, $name) {
-	global $CONFIG;
+function remove_private_setting($entity_guid, $name)
+{
+    global $CONFIG;
 
-	if(!$name){
-		return false;
-	}
+    if (!$name) {
+        return false;
+    }
 
-	$db = new Minds\Core\Data\Call('entities');
-	$result = $db->removeAttributes($entity_guid, array($name));
+    $db = new Minds\Core\Data\Call('entities');
+    $result = $db->removeAttributes($entity_guid, [$name]);
 
 
-	/**
-	 * maybe we should cache on a higher level?
-	 */
-	if (function_exists('xcache_get')) {
-		$newentity_cache = new ElggXCache('new_entity_cache');
-	}
-      	if (isset($newentity_cache)) {	
-		$newentity_cache->delete($entity_guid);
-	}
+    /**
+     * maybe we should cache on a higher level?
+     */
+    if (function_exists('xcache_get')) {
+        $newentity_cache = new ElggXCache('new_entity_cache');
+    }
+    if (isset($newentity_cache)) {
+        $newentity_cache->delete($entity_guid);
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -397,16 +402,17 @@ function remove_private_setting($entity_guid, $name) {
  * @see remove_private_settings()
  * @link http://docs.elgg.org/DataModel/Entities/PrivateSettings
  */
-function remove_all_private_settings($entity_guid) {
-	global $CONFIG;
+function remove_all_private_settings($entity_guid)
+{
+    global $CONFIG;
 
-	$entity_guid = (int) $entity_guid;
+    $entity_guid = (int) $entity_guid;
 
-	$entity = get_entity($entity_guid);
-	if (!$entity instanceof ElggEntity) {
-		return false;
-	}
+    $entity = get_entity($entity_guid);
+    if (!$entity instanceof ElggEntity) {
+        return false;
+    }
 
-	return delete_data("DELETE from {$CONFIG->dbprefix}private_settings
+    return delete_data("DELETE from {$CONFIG->dbprefix}private_settings
 		WHERE entity_guid = {$entity_guid}");
 }

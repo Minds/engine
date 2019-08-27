@@ -22,7 +22,7 @@ class BoostGuidResolverDelegate implements ResolverDelegate
 
     /**
      * BoostGuidResolverDelegate constructor.
-     * @param Manager $manager 
+     * @param Manager $manager
      */
     public function __construct($manager = null)
     {

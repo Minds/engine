@@ -19,42 +19,44 @@
  * @return bool
  * @access private
  */
-function page_handler($handler, $page) {
-	global $CONFIG;
+function page_handler($handler, $page)
+{
+    global $CONFIG;
 
-	elgg_set_context($handler);
-	
-	if(!is_array($page))
-		$page = explode('/', $page);
-	// remove empty array element when page url ends in a / (see #1480)
-	if ($page[count($page) - 1] === '') {
-		array_pop($page);
-	}
+    elgg_set_context($handler);
+    
+    if (!is_array($page)) {
+        $page = explode('/', $page);
+    }
+    // remove empty array element when page url ends in a / (see #1480)
+    if ($page[count($page) - 1] === '') {
+        array_pop($page);
+    }
 
-	// return false to stop processing the request (because you handled it)
-	// return a new $request array if you want to route the request differently
-	$request = array(
-		'handler' => $handler,
-		'segments' => $page,
-	);
-	$request = elgg_trigger_plugin_hook('route', $handler, null, $request);
-	if ($request === false) {
-		return true;
-	}
+    // return false to stop processing the request (because you handled it)
+    // return a new $request array if you want to route the request differently
+    $request = [
+        'handler' => $handler,
+        'segments' => $page,
+    ];
+    $request = elgg_trigger_plugin_hook('route', $handler, null, $request);
+    if ($request === false) {
+        return true;
+    }
 
-	$handler = $request['handler'];
-	$page = $request['segments'];
+    $handler = $request['handler'];
+    $page = $request['segments'];
 
-	$result = false;
-	if (isset($CONFIG->pagehandler)
-			&& !empty($handler)
-			&& isset($CONFIG->pagehandler[$handler])
-			&& is_callable($CONFIG->pagehandler[$handler])) {
-		$function = $CONFIG->pagehandler[$handler];
-		$result = call_user_func($function, $page, $handler);
-	}
+    $result = false;
+    if (isset($CONFIG->pagehandler)
+            && !empty($handler)
+            && isset($CONFIG->pagehandler[$handler])
+            && is_callable($CONFIG->pagehandler[$handler])) {
+        $function = $CONFIG->pagehandler[$handler];
+        $result = call_user_func($function, $page, $handler);
+    }
 
-	return $result || headers_sent();
+    return $result || headers_sent();
 }
 
 /**
@@ -82,18 +84,19 @@ function page_handler($handler, $page) {
  *
  * @return bool Depending on success
  */
-function elgg_register_page_handler($handler, $function) {
-	global $CONFIG;
+function elgg_register_page_handler($handler, $function)
+{
+    global $CONFIG;
 
-	if (!isset($CONFIG->pagehandler)) {
-		$CONFIG->pagehandler = array();
-	}
-	if (is_callable($function, true)) {
-		$CONFIG->pagehandler[$handler] = $function;
-		return true;
-	}
+    if (!isset($CONFIG->pagehandler)) {
+        $CONFIG->pagehandler = [];
+    }
+    if (is_callable($function, true)) {
+        $CONFIG->pagehandler[$handler] = $function;
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 /**
@@ -106,14 +109,15 @@ function elgg_register_page_handler($handler, $function) {
  * @since 1.7.2
  * @return void
  */
-function elgg_unregister_page_handler($handler) {
-	global $CONFIG;
+function elgg_unregister_page_handler($handler)
+{
+    global $CONFIG;
 
-	if (!isset($CONFIG->pagehandler)) {
-		return;
-	}
+    if (!isset($CONFIG->pagehandler)) {
+        return;
+    }
 
-	unset($CONFIG->pagehandler[$handler]);
+    unset($CONFIG->pagehandler[$handler]);
 }
 
 /**
@@ -127,15 +131,16 @@ function elgg_unregister_page_handler($handler) {
  * @param array  $params Parameters related to the hook
  * @return void
  */
-function elgg_error_page_handler($hook, $type, $result, $params) {
-	if (elgg_view_exists("errors/$type")) {
-		$content = elgg_view("errors/$type", $params);
-	} else {
-		$content = elgg_view("errors/default", $params);
-	}
-	$body = elgg_view_layout('error', array('content' => $content));
-	echo elgg_view_page('', $body, 'error');
-	exit;
+function elgg_error_page_handler($hook, $type, $result, $params)
+{
+    if (elgg_view_exists("errors/$type")) {
+        $content = elgg_view("errors/$type", $params);
+    } else {
+        $content = elgg_view("errors/default", $params);
+    }
+    $body = elgg_view_layout('error', ['content' => $content]);
+    echo elgg_view_page('', $body, 'error');
+    exit;
 }
 
 /**
@@ -144,8 +149,9 @@ function elgg_error_page_handler($hook, $type, $result, $params) {
  * @return void
  * @access private
  */
-function page_handler_init() {
-	elgg_register_plugin_hook_handler('forward', '404', 'elgg_error_page_handler');
+function page_handler_init()
+{
+    elgg_register_plugin_hook_handler('forward', '404', 'elgg_error_page_handler');
 }
 
 elgg_register_event_handler('init', 'system', 'page_handler_init');

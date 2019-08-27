@@ -34,7 +34,7 @@ class Defaults
             if ($params['entity']->fullExport && $params['entity']->ownerObj && is_array($params['entity']->ownerObj)) {
                 $export['ownerObj'] = Entities\Factory::build($params['entity']->ownerObj)->export();
                 //$export['ownerObj'] = \Minds\Helpers\Export::sanitize($params['entity']->ownerObj);
-              //  $export['ownerObj']['guid'] = (string) $params['entity']->ownerObj['guid'];
+                //  $export['ownerObj']['guid'] = (string) $params['entity']->ownerObj['guid'];
                 $event->setResponse($export);
             }
         });

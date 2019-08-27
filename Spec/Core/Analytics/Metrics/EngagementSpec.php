@@ -9,13 +9,12 @@ use Minds\Core\Data\Call;
 
 class EngagementSpec extends ObjectBehavior
 {
-
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Analytics\Metrics\Engagement');
     }
 
-    function it_should_return_metrics(Call $db)
+    public function it_should_return_metrics(Call $db)
     {
         $this->beConstructedWith($db);
 
@@ -29,5 +28,4 @@ class EngagementSpec extends ObjectBehavior
         $return[0]->shouldHaveCount(3);
         $return[0]['total']->shouldBe(0.5);
     }
-
 }

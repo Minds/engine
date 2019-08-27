@@ -2,7 +2,6 @@
 
 namespace Minds\Core\Boost\Peer;
 
-
 use Minds\Core\Boost\Repository;
 use Minds\Core\Data;
 use Minds\Core\Di\Di;
@@ -15,5 +14,4 @@ class Metrics
     {
         $this->mongo = $mongo ?: Data\Client::build('MongoDB');
     }
-
 }

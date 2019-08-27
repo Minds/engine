@@ -18,126 +18,126 @@ class Relationships
         }
     }
 
-  /**
-   * Create a relationship
-   * @param string $guid_one
-   * @param string $relationship
-   * @param string $guid_two
-   * @return bool
-   */
-  public function create($guid_one, $relationship, $guid_two)
-  {
-      if (!$guid_one) {
-          throw new \Exception("\$guid_one must be provided");
-      }
-      if (!$relationship) {
-          throw new \Exception("\$relationship must be provided");
-      }
-      if (!$guid_two) {
-          throw new \Exception("\$guid_two must be provided");
-      }
+    /**
+     * Create a relationship
+     * @param string $guid_one
+     * @param string $relationship
+     * @param string $guid_two
+     * @return bool
+     */
+    public function create($guid_one, $relationship, $guid_two)
+    {
+        if (!$guid_one) {
+            throw new \Exception("\$guid_one must be provided");
+        }
+        if (!$relationship) {
+            throw new \Exception("\$relationship must be provided");
+        }
+        if (!$guid_two) {
+            throw new \Exception("\$guid_two must be provided");
+        }
 
-      if (!$this->db->insert($guid_one . ':' . $relationship, array($guid_two=>time()))) {
-          return false;
-      }
+        if (!$this->db->insert($guid_one . ':' . $relationship, [$guid_two=>time()])) {
+            return false;
+        }
 
-      if (!$this->db->insert($guid_two . ':' . $relationship . ':inverted', array($guid_one=>time()))) {
-          return false;
-      }
+        if (!$this->db->insert($guid_two . ':' . $relationship . ':inverted', [$guid_one=>time()])) {
+            return false;
+        }
 
-      return true;
-  }
-
-  /**
-   * Remove a relationship
-   * @param string $guid_one
-   * @param string $relationship
-   * @param string $guid_two
-   * @return bool
-   */
-  public function remove($guid_one, $relationship, $guid_two)
-  {
-      if (!$guid_one) {
-          throw new \Exception("\$guid_one must be provided");
-      }
-      if (!$relationship) {
-          throw new \Exception("\$relationship must be provided");
-      }
-      if (!$guid_two) {
-          throw new \Exception("\$guid_two must be provided");
-      }
-
-      if ($this->db->removeAttributes($guid_one . ':' . $relationship, array($guid_two)) === false) {
-          return false;
-      }
-
-      if ($this->db->removeAttributes($guid_two . ':' . $relationship . ':inverted', array($guid_one)) === false) {
-          return false;
-      }
-
-      return true;
-  }
-
-  /**
-   * Check if a relationship exists
-   * @param string $guid_one
-   * @param string $relationship
-   * @param string $guid_two
-   * @return bool
-   */
-  public function check($guid_one, $relationship, $guid_two)
-  {
-      if (!$guid_one) {
-          throw new \Exception("\$guid_one must be provided");
-      }
-      if (!$relationship) {
-          throw new \Exception("\$relationship must be provided");
-      }
-      if (!$guid_two) {
-          throw new \Exception("\$guid_two must be provided");
-      }
-
+        return true;
+    }
 
     /**
-     * Checks for the relationship, if not found checks if it was created in the inverted
+     * Remove a relationship
+     * @param string $guid_one
+     * @param string $relationship
+     * @param string $guid_two
+     * @return bool
      */
-    $result = $this->db->getRow($guid_one . ':' . $relationship, array('offset'=>$guid_two, 'limit'=>1));
+    public function remove($guid_one, $relationship, $guid_two)
+    {
+        if (!$guid_one) {
+            throw new \Exception("\$guid_one must be provided");
+        }
+        if (!$relationship) {
+            throw new \Exception("\$relationship must be provided");
+        }
+        if (!$guid_two) {
+            throw new \Exception("\$guid_two must be provided");
+        }
 
-      if (isset($result[$guid_two])) {
-          return true;
-      }
+        if ($this->db->removeAttributes($guid_one . ':' . $relationship, [$guid_two]) === false) {
+            return false;
+        }
 
-      $result = $this->db->getRow($guid_two . ':' . $relationship . ':inverted', array('offset'=>$guid_one, 'limit'=>1));
-      if (isset($result[$guid_one])) {
-          return true;
-      }
+        if ($this->db->removeAttributes($guid_two . ':' . $relationship . ':inverted', [$guid_one]) === false) {
+            return false;
+        }
 
-      return false;
-  }
+        return true;
+    }
 
-  /**
-   * Count the number of relationships
-   * @param string $guid_one
-   * @param string $relationship
-   * @param string $guid_two
-   * @return bool
-   */
-  public function count($guid, $relationship, $inverse = false)
-  {
-      if (!$guid) {
-          throw new \Exception("\$guid must be provided");
-      }
-      if (!$relationship) {
-          throw new \Exception("\$relationship must be provided");
-      }
+    /**
+     * Check if a relationship exists
+     * @param string $guid_one
+     * @param string $relationship
+     * @param string $guid_two
+     * @return bool
+     */
+    public function check($guid_one, $relationship, $guid_two)
+    {
+        if (!$guid_one) {
+            throw new \Exception("\$guid_one must be provided");
+        }
+        if (!$relationship) {
+            throw new \Exception("\$relationship must be provided");
+        }
+        if (!$guid_two) {
+            throw new \Exception("\$guid_two must be provided");
+        }
 
-      $key = $guid . ':' . $relationship;
-      if ($inverse) {
-          $key = "$key:inverted";
-      }
 
-      return $this->db->countRow($key);
-  }
+        /**
+         * Checks for the relationship, if not found checks if it was created in the inverted
+         */
+        $result = $this->db->getRow($guid_one . ':' . $relationship, ['offset'=>$guid_two, 'limit'=>1]);
+
+        if (isset($result[$guid_two])) {
+            return true;
+        }
+
+        $result = $this->db->getRow($guid_two . ':' . $relationship . ':inverted', ['offset'=>$guid_one, 'limit'=>1]);
+        if (isset($result[$guid_one])) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Count the number of relationships
+     * @param string $guid_one
+     * @param string $relationship
+     * @param string $guid_two
+     * @return bool
+     */
+    public function count($guid, $relationship, $inverse = false)
+    {
+        if (!$guid) {
+            throw new \Exception("\$guid must be provided");
+        }
+        if (!$relationship) {
+            throw new \Exception("\$relationship must be provided");
+        }
+
+        $key = $guid . ':' . $relationship;
+        if ($inverse) {
+            $key = "$key:inverted";
+        }
+
+        return $this->db->countRow($key);
+    }
 
     public static function build()
     {

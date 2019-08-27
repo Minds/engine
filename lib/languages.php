@@ -18,8 +18,9 @@
  * @return string Either the translated string, the English string,
  * or the original language string.
  */
-function elgg_echo($message_key, $args = array(), $language = "") {
-	return $message_key;
+function elgg_echo($message_key, $args = [], $language = "")
+{
+    return $message_key;
 }
 
 /**
@@ -35,8 +36,9 @@ function elgg_echo($message_key, $args = array(), $language = "") {
  *
  * @return bool Depending on success
  */
-function add_translation($country_code, $language_array) {
-	return false;
+function add_translation($country_code, $language_array)
+{
+    return false;
 }
 
 /**
@@ -44,14 +46,15 @@ function add_translation($country_code, $language_array) {
  *
  * @return string The language code for the site/user or "en" if not set
  */
-function get_current_language() {
-	$language = get_language();
+function get_current_language()
+{
+    $language = get_language();
 
-	if (!$language) {
-		$language = 'en';
-	}
+    if (!$language) {
+        $language = 'en';
+    }
 
-	return $language;
+    return $language;
 }
 
 /**
@@ -59,12 +62,13 @@ function get_current_language() {
  *
  * @return string The language code (eg "en") or false if not set
  */
-function get_language() {
-	return false;
+function get_language()
+{
+    return false;
 }
 
-function _elgg_load_translations() {
-
+function _elgg_load_translations()
+{
 }
 
 /**
@@ -76,8 +80,9 @@ function _elgg_load_translations() {
  *
  * @return bool success
  */
-function register_translations($path, $load_all = false) {
-	return false;
+function register_translations($path, $load_all = false)
+{
+    return false;
 }
 
 /**
@@ -89,7 +94,8 @@ function register_translations($path, $load_all = false) {
  *
  * @return void
  */
-function reload_all_translations() {
+function reload_all_translations()
+{
 }
 
 /**
@@ -98,8 +104,9 @@ function reload_all_translations() {
  *
  * @return array
  */
-function get_installed_translations() {
-	return [];
+function get_installed_translations()
+{
+    return [];
 }
 
 /**
@@ -109,8 +116,9 @@ function get_installed_translations() {
  *
  * @return int
  */
-function get_language_completeness($language) {
-	return 0;
+function get_language_completeness($language)
+{
+    return 0;
 }
 
 /**
@@ -121,6 +129,7 @@ function get_language_completeness($language) {
  *
  * @return mixed
  */
-function get_missing_language_keys($language) {
-	return false;
+function get_missing_language_keys($language)
+{
+    return false;
 }

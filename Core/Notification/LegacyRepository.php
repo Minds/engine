@@ -65,7 +65,7 @@ class LegacyRepository
         $query->query($template, $values);
         $query->setOpts([
             'page_size' => $options['limit'],
-            'paging_state_token' => base64_decode($options['offset'])
+            'paging_state_token' => base64_decode($options['offset'], true)
             ]);
 
         $notifications = [];
@@ -83,7 +83,7 @@ class LegacyRepository
                 $entityGuid = $data['entity']['guid'];
 
                 if ($data['entity']['type'] == 'comment') {
-                    $luid = json_decode(base64_decode($data['entity']['luid']), true);
+                    $luid = json_decode(base64_decode($data['entity']['luid'], true), true);
                     $entityGuid = $luid['guid'];
                 }
 

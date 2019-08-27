@@ -17,7 +17,7 @@ class ManagerSpec extends ObjectBehavior
     private $resize;
 
 
-    function let(Autorotate $autorotate, Resize $resize)
+    public function let(Autorotate $autorotate, Resize $resize)
     {
         $this->autorotate = $autorotate;
         $this->resize = $resize;
@@ -25,12 +25,12 @@ class ManagerSpec extends ObjectBehavior
         $this->beConstructedWith($autorotate, $resize);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_autorotate_the_image()
+    public function it_should_autorotate_the_image()
     {
         $this->autorotate->setImage(Argument::any())
             ->shouldBeCalled();
@@ -42,7 +42,7 @@ class ManagerSpec extends ObjectBehavior
         $this->autorotate()->shouldReturn($this);
     }
 
-    function it_should_resize_the_image()
+    public function it_should_resize_the_image()
     {
         $this->resize->setImage(Argument::any())
             ->shouldBeCalled()
@@ -70,7 +70,7 @@ class ManagerSpec extends ObjectBehavior
         $this->resize(10, 10, true, true);
     }
 
-    function it_should_resize_the_image_with_no_upscaling_and_no_squaring_if_unspecified()
+    public function it_should_resize_the_image_with_no_upscaling_and_no_squaring_if_unspecified()
     {
         $this->resize->setImage(Argument::any())
             ->shouldBeCalled()

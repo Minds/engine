@@ -36,8 +36,7 @@ class CommentsDelegate implements ArtifactsDelegateInterface
         $repository = null,
         $elasticsearch = null,
         $commentManager = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository();
         $this->elasticsearch = $elasticsearch ?: Di::_()->get('Database\ElasticSearch');
         $this->commentManager = $commentManager ?: new CommentManager();

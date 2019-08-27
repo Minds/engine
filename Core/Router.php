@@ -15,7 +15,7 @@ use Zend\Diactoros\Response\JsonResponse;
 class Router
 {
     // these are core pages, other pages are registered by plugins
-    public static $routes = array(
+    public static $routes = [
       '/archive/thumbnail' => 'Minds\\Controllers\\fs\\v1\\thumbnail',
       '/api/v1/archive/thumbnails' => 'Minds\\Controllers\\api\\v1\\media\\thumbnails',
 
@@ -34,7 +34,7 @@ class Router
       '/apple-app-site-association' => '\\Minds\\Controllers\\deeplinks',
       '/sitemaps' => '\\Minds\\Controllers\\sitemaps',
       '/checkout' => '\\Minds\\Controllers\\checkout',
-    );
+    ];
 
     /**
      * Route the pages
@@ -123,7 +123,7 @@ class Router
 
             if (isset(self::$routes[$route])) {
                 $handler = new self::$routes[$route]();
-                $pages = array_splice($segments, $loop) ?: array();
+                $pages = array_splice($segments, $loop) ?: [];
                 if (method_exists($handler, $method)) {
                     // Set the request
                     if (method_exists($handler, 'setRequest')) {
@@ -202,7 +202,7 @@ class Router
      *
      * @return array - the array of all your routes
      */
-    public static function registerRoutes($routes = array())
+    public static function registerRoutes($routes = [])
     {
         return self::$routes = array_merge(self::$routes, $routes);
     }

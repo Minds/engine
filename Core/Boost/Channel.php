@@ -27,12 +27,12 @@ class Channel implements Interfaces\BoostHandlerInterface
         }
     }
 
-   /**
-     * Boost an entity
-     * @param object/int $entity - the entity to boost
-     * @param int $points
-     * @return boolean
-     */
+    /**
+      * Boost an entity
+      * @param object/int $entity - the entity to boost
+      * @param int $points
+      * @return boolean
+      */
     public function boost($entity_guid, $points)
     {
         $entity = Entities\Factory::build($entity_guid);
@@ -91,12 +91,12 @@ class Channel implements Interfaces\BoostHandlerInterface
         return $result;*/
     }
 
-     /**
-     * Return boosts for review
-     * @param int $limit
-     * @param string $offset
-     * @return array
-     */
+    /**
+    * Return boosts for review
+    * @param int $limit
+    * @param string $offset
+    * @return array
+    */
     public function getReviewQueue($limit, $offset = "")
     {
         return false;

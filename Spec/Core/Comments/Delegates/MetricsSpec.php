@@ -15,28 +15,26 @@ class MetricsSpec extends ObjectBehavior
     protected $metricsEvent;
     protected $entitiesBuilder;
 
-    function let(
+    public function let(
         Event $metricsEvent,
         EntitiesBuilder $entitiesBuilder
-    )
-    {
+    ) {
         $this->beConstructedWith($metricsEvent, $entitiesBuilder);
 
         $this->metricsEvent = $metricsEvent;
         $this->entitiesBuilder = $entitiesBuilder;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Comments\Delegates\Metrics');
     }
 
-    function it_should_push(
+    public function it_should_push(
         Comment $comment,
         User $owner,
         Entity $entity
-    )
-    {
+    ) {
         $comment->getEntityGuid()
             ->shouldBeCalled()
             ->willReturn(5000);

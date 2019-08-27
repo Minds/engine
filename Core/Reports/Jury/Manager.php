@@ -20,7 +20,6 @@ use Minds\Core\Security\ACL;
 
 class Manager
 {
-
     /** @var Repository $repository */
     private $repository;
 
@@ -48,8 +47,7 @@ class Manager
         $verdictManager = null,
         $summonsManager = null,
         $acl = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository;
         $this->entitiesResolver = $entitiesResolver  ?: new EntitiesResolver;
         $this->verdictManager = $verdictManager ?: Di::_()->get('Moderation\Verdict\Manager');
@@ -146,7 +144,7 @@ class Manager
     {
         $report = $decision->getReport();
 
-        if (!in_array($report->getState(), [ 'reported', 'appealed' ])) {
+        if (!in_array($report->getState(), [ 'reported', 'appealed' ], true)) {
             throw new JuryClosedException();
         }
 
@@ -184,5 +182,4 @@ class Manager
             ->setJuryType('appeal_jury');
         return $this->summonsManager->isSummoned($summons);
     }
-
 }

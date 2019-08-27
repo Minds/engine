@@ -18,17 +18,18 @@
  * @return \ElggStaticVariableCache
  * @access private
  */
-function _elgg_get_access_cache() {
-	/**
-	 * A default filestore cache using the dataroot.
-	 */
-	static $access_cache;
+function _elgg_get_access_cache()
+{
+    /**
+     * A default filestore cache using the dataroot.
+     */
+    static $access_cache;
 
-	if (!$access_cache) {
-		$access_cache = new ElggStaticVariableCache('access');
-	}
+    if (!$access_cache) {
+        $access_cache = new ElggStaticVariableCache('access');
+    }
 
-	return $access_cache;
+    return $access_cache;
 }
 
 /**
@@ -41,22 +42,23 @@ function _elgg_get_access_cache() {
  * @return int default access id (see ACCESS defines in elgglib.php)
  * @link http://docs.elgg.org/Access
  */
-function get_default_access(ElggUser $user = null) {
-	global $CONFIG;
+function get_default_access(ElggUser $user = null)
+{
+    global $CONFIG;
 
-	if (!isset($CONFIG->allow_user_default_access) || !$CONFIG->allow_user_default_access) {
-		return (int) $CONFIG->default_access;
-	}
+    if (!isset($CONFIG->allow_user_default_access) || !$CONFIG->allow_user_default_access) {
+        return (int) $CONFIG->default_access;
+    }
 
-	if (!($user) && (!$user = elgg_get_logged_in_user_entity())) {
-		return (int) $CONFIG->default_access;
-	}
+    if (!($user) && (!$user = elgg_get_logged_in_user_entity())) {
+        return (int) $CONFIG->default_access;
+    }
 
-	if (false !== ($default_access = $user->getPrivateSetting('elgg_default_access'))) {
-		return $default_access;
-	} else {
-		return (int) $CONFIG->default_access;
-	}
+    if (false !== ($default_access = $user->getPrivateSetting('elgg_default_access'))) {
+        return $default_access;
+    } else {
+        return (int) $CONFIG->default_access;
+    }
 }
 
 /**
@@ -75,9 +77,10 @@ $ENTITY_SHOW_HIDDEN_OVERRIDE = false;
  * @return void
  * @access private
  */
-function access_show_hidden_entities($show_hidden) {
-	global $ENTITY_SHOW_HIDDEN_OVERRIDE;
-	$ENTITY_SHOW_HIDDEN_OVERRIDE = $show_hidden;
+function access_show_hidden_entities($show_hidden)
+{
+    global $ENTITY_SHOW_HIDDEN_OVERRIDE;
+    $ENTITY_SHOW_HIDDEN_OVERRIDE = $show_hidden;
 }
 
 /**
@@ -86,9 +89,10 @@ function access_show_hidden_entities($show_hidden) {
  * @return bool
  * @access private
  */
-function access_get_show_hidden_status() {
-	global $ENTITY_SHOW_HIDDEN_OVERRIDE;
-	return $ENTITY_SHOW_HIDDEN_OVERRIDE;
+function access_get_show_hidden_status()
+{
+    global $ENTITY_SHOW_HIDDEN_OVERRIDE;
+    return $ENTITY_SHOW_HIDDEN_OVERRIDE;
 }
 
 /**
@@ -114,11 +118,12 @@ function access_get_show_hidden_status() {
  * @see http://docs.elgg.org/Access/IgnoreAccess
  * @see elgg_get_ignore_access()
  */
-function elgg_set_ignore_access($ignore = true) {
-	$cache = _elgg_get_access_cache();
-	$cache->clear();
-	$elgg_access = elgg_get_access_object();
-	return $elgg_access->setIgnoreAccess($ignore);
+function elgg_set_ignore_access($ignore = true)
+{
+    $cache = _elgg_get_access_cache();
+    $cache->clear();
+    $elgg_access = elgg_get_access_object();
+    return $elgg_access->setIgnoreAccess($ignore);
 }
 
 /**
@@ -129,8 +134,9 @@ function elgg_set_ignore_access($ignore = true) {
  * @see http://docs.elgg.org/Access/IgnoreAccess
  * @see elgg_set_ignore_access()
  */
-function elgg_get_ignore_access() {
-	return elgg_get_access_object()->getIgnoreAccess();
+function elgg_get_ignore_access()
+{
+    return elgg_get_access_object()->getIgnoreAccess();
 }
 
 /**
@@ -147,14 +153,15 @@ function elgg_get_ignore_access() {
  * @return bool
  * @since 1.7.0
  */
-function elgg_check_access_overrides($user_guid = 0) {
-	if (!$user_guid || $user_guid <= 0) {
-		$is_admin = false;
-	} else {
-		$is_admin = elgg_is_admin_user($user_guid);
-	}
+function elgg_check_access_overrides($user_guid = 0)
+{
+    if (!$user_guid || $user_guid <= 0) {
+        $is_admin = false;
+    } else {
+        $is_admin = elgg_is_admin_user($user_guid);
+    }
 
-	return ($is_admin || elgg_get_ignore_access());
+    return ($is_admin || elgg_get_ignore_access());
 }
 
 /**
@@ -167,14 +174,15 @@ function elgg_check_access_overrides($user_guid = 0) {
  * @since 1.7.0
  * @access private
  */
-function elgg_get_access_object() {
-	static $elgg_access;
+function elgg_get_access_object()
+{
+    static $elgg_access;
 
-	if (!$elgg_access) {
-		$elgg_access = new ElggAccess();
-	}
+    if (!$elgg_access) {
+        $elgg_access = new ElggAccess();
+    }
 
-	return $elgg_access;
+    return $elgg_access;
 }
 
 /**
@@ -195,9 +203,10 @@ $init_finished = false;
  *
  * @return void
  */
-function access_init() {
-	global $init_finished;
-	$init_finished = true;
+function access_init()
+{
+    global $init_finished;
+    $init_finished = true;
 }
 
 /**
@@ -218,31 +227,32 @@ function access_init() {
  * @return true|null
  * @access private
  */
-function elgg_override_permissions($hook, $type, $value, $params) {
-	$user = elgg_extract('user', $params);
-	if ($user) {
-		$user_guid = $user->getGUID();
-	} else {
-		$user_guid = elgg_get_logged_in_user_guid();
-	}
+function elgg_override_permissions($hook, $type, $value, $params)
+{
+    $user = elgg_extract('user', $params);
+    if ($user) {
+        $user_guid = $user->getGUID();
+    } else {
+        $user_guid = elgg_get_logged_in_user_guid();
+    }
 
-	// don't do this so ignore access still works with no one logged in
-	//if (!$user instanceof ElggUser) {
-	//	return false;
-	//}
+    // don't do this so ignore access still works with no one logged in
+    //if (!$user instanceof ElggUser) {
+    //	return false;
+    //}
 
-	// check for admin
-	if ($user_guid && elgg_is_admin_user($user_guid)) {
-		return true;
-	}
+    // check for admin
+    if ($user_guid && elgg_is_admin_user($user_guid)) {
+        return true;
+    }
 
-	// check access overrides
-	if ((elgg_check_access_overrides($user_guid))) {
-		return true;
-	}
+    // check access overrides
+    if ((elgg_check_access_overrides($user_guid))) {
+        return true;
+    }
 
-	// consult other hooks
-	return NULL;
+    // consult other hooks
+    return null;
 }
 
 // Tell the access functions the system has booted, plugins are loaded,

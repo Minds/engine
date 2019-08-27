@@ -29,7 +29,7 @@ class PointsSubscription implements HookInterface
 
         if ($subscription->getPlanId() == 'points') {
             $user = $subscription->getCustomer()->getUser();
-            $transaction = new Transaction(); 
+            $transaction = new Transaction();
             $transaction
                 ->setUserGuid($user->guid)
                 ->setWalletAddress('offchain')

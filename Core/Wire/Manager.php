@@ -330,13 +330,13 @@ class Manager
         $amount = $subscription->getAmount();
 
         $id = $subscription->getId();
-        if (strpos($id, 'urn:', 0) !== 0)  {
+        if (strpos($id, 'urn:', 0) !== 0) {
             error_log("[wire][recurring]: $id was expecting a urn");
             return false;
         }
 
         $urn = new Urn($id);
-        list ($address, , ,) = explode('-', $urn->getNss());
+        list($address, , , ) = explode('-', $urn->getNss());
 
         if ($address === 'offchain') {
             $this->setPayload([

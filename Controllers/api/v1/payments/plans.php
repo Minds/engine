@@ -22,11 +22,11 @@ class plans implements Interfaces\Api
    *
    * API:: /v1/playments/plans/:slug
    */
-  public function get($pages)
-  {
-      $response = [];
+    public function get($pages)
+    {
+        $response = [];
 
-      switch ($pages[0]) {
+        switch ($pages[0]) {
           case "payment-methods":
               //return if the customer has any payment methods
               $customer = (new Payments\Customer())
@@ -77,8 +77,8 @@ class plans implements Interfaces\Api
               break;
       }
 
-      return Factory::response($response);
-  }
+        return Factory::response($response);
+    }
 
     public function post($pages)
     {
@@ -204,12 +204,12 @@ class plans implements Interfaces\Api
                 $wires = $manager->get(['type' => 'sent', 'user_guid' => $user_guid, 'order' => 'DESC']);
 
                 $wire = null;
-                foreach($wires as $w) {
-                    if($w->isActive() && $w->isRecurring() && $w->getMethod('usd')){
+                foreach ($wires as $w) {
+                    if ($w->isActive() && $w->isRecurring() && $w->getMethod('usd')) {
                         $wire = $w;
                     }
                 }
-                if(!$wire) {
+                if (!$wire) {
                     return Factory::response([
                         'status' => 'error',
                         'message' => 'Wire not found'

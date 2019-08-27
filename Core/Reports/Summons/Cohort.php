@@ -43,8 +43,7 @@ class Cohort
         $subscriptions = null,
         $poolSize = null,
         $maxPages = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository();
         $this->pool = $pool ?: new Pool();
         $this->subscriptions = $subscriptions ?: new Subscriptions();

@@ -13,13 +13,13 @@ class CypherQuery implements Interfaces\PreparedInterface
     
     public function build()
     {
-        return array(
+        return [
             'string' => $this->template,
             'values'=>$this->values
-            );
+            ];
     }
     
-    public function setQuery($template, $values = array())
+    public function setQuery($template, $values = [])
     {
         $this->template = $template;
         $this->values = $values;

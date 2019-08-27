@@ -5,25 +5,27 @@
  * @package    Elgg.Core
  * @subpackage XMLRPC
  */
-class XMLRPCDoubleParameter extends XMLRPCParameter {
+class XMLRPCDoubleParameter extends XMLRPCParameter
+{
+    /**
+     * New XML Double
+     *
+     * @param int $value Value
+     */
+    public function __construct($value)
+    {
+        parent::__construct();
 
-	/**
-	 * New XML Double
-	 *
-	 * @param int $value Value
-	 */
-	function __construct($value) {
-		parent::__construct();
+        $this->value = (float)$value;
+    }
 
-		$this->value = (float)$value;
-	}
-
-	/**
-	 * Convert to string
-	 *
-	 * @return string
-	 */
-	function __toString() {
-		return "<value><double>{$this->value}</double></value>";
-	}
+    /**
+     * Convert to string
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return "<value><double>{$this->value}</double></value>";
+    }
 }

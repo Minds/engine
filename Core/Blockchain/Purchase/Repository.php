@@ -116,7 +116,7 @@ class Repository
         $query->query($cql, $values);
         $query->setOpts([
             'page_size' => (int) $options['limit'],
-            'paging_state_token' => base64_decode($options['offset'])
+            'paging_state_token' => base64_decode($options['offset'], true)
         ]);
 
         try {
@@ -154,7 +154,6 @@ class Repository
 
     public function get($phone_number_hash, $tx)
     {
-
         $cql = "SELECT * from token_purchases WHERE phone_number_hash = ? and tx= ?";
         $values = [(string) $phone_number_hash, (string) $tx];
 
@@ -206,5 +205,4 @@ class Repository
 
         return true;
     }
-
 }

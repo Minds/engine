@@ -12,18 +12,18 @@ class JoinedValidatorSpec extends ObjectBehavior
     /** @var Client */
     protected $client;
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Rewards\JoinedValidator');
     }
 
-    function let(Client $client)
+    public function let(Client $client)
     {
         $this->client = $client;
         $this->beConstructedWith($client);
     }
 
-    function it_should_return_true_if_hash_wasnt_found(User $user)
+    public function it_should_return_true_if_hash_wasnt_found(User $user)
     {
         $this->client->request(Argument::any())
             ->shouldBeCalled()
@@ -40,7 +40,7 @@ class JoinedValidatorSpec extends ObjectBehavior
         $this->validate()->shouldReturn(true);
     }
 
-    function it_should_return_false_if_a_hash_was_found(User $user)
+    public function it_should_return_false_if_a_hash_was_found(User $user)
     {
         $this->client->request(Argument::any())
             ->shouldBeCalled()

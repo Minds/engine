@@ -22,28 +22,28 @@ class BanSpec extends ObjectBehavior
     /** @var ChannelsBan */
     private $channelsBanManager;
 
-    function let(Sessions $sessions, Recover $recover, ChannelsBan $channelsBanManager) {
+    public function let(Sessions $sessions, Recover $recover, ChannelsBan $channelsBanManager)
+    {
         $this->beConstructedWith($sessions, $recover, false, $channelsBanManager);
         $this->sessions = $sessions;
         $this->recover = $recover;
         $this->channelsBanManager = $channelsBanManager;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Security\AbuseGuard\Ban');
     }
 
-    function it_should_set_accused(AccusedEntity $accused)
+    public function it_should_set_accused(AccusedEntity $accused)
     {
         $this->setAccused($accused)->shouldReturn($this);
     }
 
-    function it_should_ban_a_user(
+    public function it_should_ban_a_user(
         AccusedEntity $accused,
         User $user
-    )
-    {
+    ) {
         $user->get('guid')->willReturn(123);
         $user->get('banned')->willReturn('no');
 

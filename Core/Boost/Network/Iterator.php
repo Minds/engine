@@ -39,8 +39,7 @@ class Iterator implements \Iterator
         $expire = null,
         $metrics = null,
         $manager = null
-    )
-    {
+    ) {
         $this->elasticRepository = $elasticRepository ?: new ElasticRepository;
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->expire = $expire ?: Di::_()->get('Boost\Network\Expire');
@@ -169,7 +168,7 @@ class Iterator implements \Iterator
 
                 if ($count > $impressions) {
                     // Grab the main storage to prevent issues with elastic formatted data
-                    $boost = $this->manager->get("urn:boost:{$boost->getType()}:{$boost->getGuid()}", [ 
+                    $boost = $this->manager->get("urn:boost:{$boost->getType()}:{$boost->getGuid()}", [
                         'hydrate' => true,
                     ]);
                     $this->expire->setBoost($boost);
@@ -287,6 +286,4 @@ class Iterator implements \Iterator
         }
         $this->getList();
     }
-
-
 }

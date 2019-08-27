@@ -70,12 +70,13 @@ $CURRENT_SYSTEM_VIEWTYPE = "";
  * @link http://docs.elgg.org/Views/Viewtype
  * @example views/viewtype.php
  */
-function elgg_set_viewtype($viewtype = "") {
-	global $CURRENT_SYSTEM_VIEWTYPE;
+function elgg_set_viewtype($viewtype = "")
+{
+    global $CURRENT_SYSTEM_VIEWTYPE;
 
-	$CURRENT_SYSTEM_VIEWTYPE = $viewtype;
+    $CURRENT_SYSTEM_VIEWTYPE = $viewtype;
 
-	return true;
+    return true;
 }
 
 /**
@@ -94,26 +95,27 @@ function elgg_set_viewtype($viewtype = "") {
  * @link http://docs.elgg.org/Views
  * @todo This function's sessions stuff needs rewritten, removed, or explained.
  */
-function elgg_get_viewtype() {
-	global $CURRENT_SYSTEM_VIEWTYPE, $CONFIG;
+function elgg_get_viewtype()
+{
+    global $CURRENT_SYSTEM_VIEWTYPE, $CONFIG;
 
-	if ($CURRENT_SYSTEM_VIEWTYPE != "") {
-		return $CURRENT_SYSTEM_VIEWTYPE;
-	}
+    if ($CURRENT_SYSTEM_VIEWTYPE != "") {
+        return $CURRENT_SYSTEM_VIEWTYPE;
+    }
 
-	$viewtype = get_input('view', '', false);
-	if (is_string($viewtype) && $viewtype !== '') {
-		// only word characters allowed.
-		if (!preg_match('/\W/', $viewtype)) {
-			return $viewtype;
-		}
-	}
+    $viewtype = get_input('view', '', false);
+    if (is_string($viewtype) && $viewtype !== '') {
+        // only word characters allowed.
+        if (!preg_match('/\W/', $viewtype)) {
+            return $viewtype;
+        }
+    }
 
-	if (!empty($CONFIG->view)) {
-		return $CONFIG->view;
-	}
+    if (!empty($CONFIG->view)) {
+        return $CONFIG->view;
+    }
 
-	return 'default';
+    return 'default';
 }
 
 /**
@@ -122,18 +124,19 @@ function elgg_get_viewtype() {
  * @param string $view_type The view type to register
  * @return bool
  */
-function elgg_register_viewtype($view_type) {
-	global $CONFIG;
+function elgg_register_viewtype($view_type)
+{
+    global $CONFIG;
 
-	if (!isset($CONFIG->view_types) || !is_array($CONFIG->view_types)) {
-		$CONFIG->view_types = array();
-	}
+    if (!isset($CONFIG->view_types) || !is_array($CONFIG->view_types)) {
+        $CONFIG->view_types = [];
+    }
 
-	if (!in_array($view_type, $CONFIG->view_types)) {
-		$CONFIG->view_types[] = $view_type;
-	}
+    if (!in_array($view_type, $CONFIG->view_types, true)) {
+        $CONFIG->view_types[] = $view_type;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -145,14 +148,15 @@ function elgg_register_viewtype($view_type) {
  * @since 1.7.2
  * @access private
  */
-function elgg_is_valid_view_type($view_type) {
-	global $CONFIG;
+function elgg_is_valid_view_type($view_type)
+{
+    global $CONFIG;
 
-	if (!isset($CONFIG->view_types) || !is_array($CONFIG->view_types)) {
-		return FALSE;
-	}
+    if (!isset($CONFIG->view_types) || !is_array($CONFIG->view_types)) {
+        return false;
+    }
 
-	return in_array($view_type, $CONFIG->view_types);
+    return in_array($view_type, $CONFIG->view_types, true);
 }
 
 /**
@@ -167,18 +171,19 @@ function elgg_is_valid_view_type($view_type) {
  * @since 1.7.2
  * @example views/viewtype_fallback.php Fallback from mobile to default.
  */
-function elgg_register_viewtype_fallback($viewtype) {
-	global $CONFIG;
+function elgg_register_viewtype_fallback($viewtype)
+{
+    global $CONFIG;
 
-	if (!isset($CONFIG->viewtype)) {
-		$CONFIG->viewtype = new stdClass;
-	}
+    if (!isset($CONFIG->viewtype)) {
+        $CONFIG->viewtype = new stdClass;
+    }
 
-	if (!isset($CONFIG->viewtype->fallback)) {
-		$CONFIG->viewtype->fallback = array();
-	}
+    if (!isset($CONFIG->viewtype->fallback)) {
+        $CONFIG->viewtype->fallback = [];
+    }
 
-	$CONFIG->viewtype->fallback[] = $viewtype;
+    $CONFIG->viewtype->fallback[] = $viewtype;
 }
 
 /**
@@ -189,14 +194,15 @@ function elgg_register_viewtype_fallback($viewtype) {
  * @return boolean
  * @since 1.7.2
  */
-function elgg_does_viewtype_fallback($viewtype) {
-	global $CONFIG;
+function elgg_does_viewtype_fallback($viewtype)
+{
+    global $CONFIG;
 
-	if (isset($CONFIG->viewtype) && isset($CONFIG->viewtype->fallback)) {
-		return in_array($viewtype, $CONFIG->viewtype->fallback);
-	}
+    if (isset($CONFIG->viewtype) && isset($CONFIG->viewtype->fallback)) {
+        return in_array($viewtype, $CONFIG->viewtype->fallback, true);
+    }
 
-	return FALSE;
+    return false;
 }
 
 /**
@@ -206,14 +212,15 @@ function elgg_does_viewtype_fallback($viewtype) {
  * @return void
  * @since 1.8.3
  */
-function elgg_register_ajax_view($view) {
-	global $CONFIG;
+function elgg_register_ajax_view($view)
+{
+    global $CONFIG;
 
-	if (!isset($CONFIG->allowed_ajax_views)) {
-		$CONFIG->allowed_ajax_views = array();
-	}
+    if (!isset($CONFIG->allowed_ajax_views)) {
+        $CONFIG->allowed_ajax_views = [];
+    }
 
-	$CONFIG->allowed_ajax_views[$view] = true;
+    $CONFIG->allowed_ajax_views[$view] = true;
 }
 
 /**
@@ -223,12 +230,13 @@ function elgg_register_ajax_view($view) {
  * @return void
  * @since 1.8.3
  */
-function elgg_unregister_ajax_view($view) {
-	global $CONFIG;
+function elgg_unregister_ajax_view($view)
+{
+    global $CONFIG;
 
-	if (isset($CONFIG->allowed_ajax_views[$view])) {
-		unset($CONFIG->allowed_ajax_views[$view]);
-	}
+    if (isset($CONFIG->allowed_ajax_views[$view])) {
+        unset($CONFIG->allowed_ajax_views[$view]);
+    }
 }
 
 /**
@@ -242,22 +250,23 @@ function elgg_unregister_ajax_view($view) {
  *
  * @return string
  */
-function elgg_get_view_location($view, $viewtype = '') {
-	global $CONFIG;
+function elgg_get_view_location($view, $viewtype = '')
+{
+    global $CONFIG;
 
-	if (empty($viewtype)) {
-		$viewtype = elgg_get_viewtype();
-	}
+    if (empty($viewtype)) {
+        $viewtype = elgg_get_viewtype();
+    }
 
-	if (!isset($CONFIG->views->locations[$viewtype][$view])) {
-		if (!isset($CONFIG->viewpath)) {
-			return dirname(dirname(dirname(__FILE__))) . "/views/";
-		} else {
-			return $CONFIG->viewpath;
-		}
-	} else {
-		return $CONFIG->views->locations[$viewtype][$view];
-	}
+    if (!isset($CONFIG->views->locations[$viewtype][$view])) {
+        if (!isset($CONFIG->viewpath)) {
+            return dirname(dirname(dirname(__FILE__))) . "/views/";
+        } else {
+            return $CONFIG->viewpath;
+        }
+    } else {
+        return $CONFIG->views->locations[$viewtype][$view];
+    }
 }
 
 /**
@@ -276,26 +285,25 @@ function elgg_get_view_location($view, $viewtype = '') {
  *
  * @return void
  */
-function elgg_set_view_location($view, $location, $viewtype = '') {
-	global $CONFIG;
+function elgg_set_view_location($view, $location, $viewtype = '')
+{
+    global $CONFIG;
 
-	if (empty($viewtype)) {
-		$viewtype = 'default';
-	}
+    if (empty($viewtype)) {
+        $viewtype = 'default';
+    }
 
-	if (!isset($CONFIG->views)) {
-		$CONFIG->views = new stdClass;
-	}
+    if (!isset($CONFIG->views)) {
+        $CONFIG->views = new stdClass;
+    }
 
-	if (!isset($CONFIG->views->locations)) {
-		$CONFIG->views->locations = array($viewtype => array($view => $location));
-
-	} else if (!isset($CONFIG->views->locations[$viewtype])) {
-		$CONFIG->views->locations[$viewtype] = array($view => $location);
-
-	} else {
-		$CONFIG->views->locations[$viewtype][$view] = $location;
-	}
+    if (!isset($CONFIG->views->locations)) {
+        $CONFIG->views->locations = [$viewtype => [$view => $location]];
+    } elseif (!isset($CONFIG->views->locations[$viewtype])) {
+        $CONFIG->views->locations[$viewtype] = [$view => $location];
+    } else {
+        $CONFIG->views->locations[$viewtype][$view] = $location;
+    }
 }
 
 /**
@@ -309,45 +317,46 @@ function elgg_set_view_location($view, $location, $viewtype = '') {
  *
  * @return bool
  */
-function elgg_view_exists($view, $viewtype = '', $recurse = true) {
-	global $CONFIG;
+function elgg_view_exists($view, $viewtype = '', $recurse = true)
+{
+    global $CONFIG;
 
-	// Detect view type
-	if (empty($viewtype)) {
-		$viewtype = elgg_get_viewtype();
-	}
+    // Detect view type
+    if (empty($viewtype)) {
+        $viewtype = elgg_get_viewtype();
+    }
 
-	if (!isset($CONFIG->views->locations[$viewtype][$view])) {
-		if (!isset($CONFIG->viewpath)) {
-			$location = dirname(dirname(dirname(__FILE__))) . "/views/";
-		} else {
-			$location = $CONFIG->viewpath;
-		}
-	} else {
-		$location = $CONFIG->views->locations[$viewtype][$view];
-	}
+    if (!isset($CONFIG->views->locations[$viewtype][$view])) {
+        if (!isset($CONFIG->viewpath)) {
+            $location = dirname(dirname(dirname(__FILE__))) . "/views/";
+        } else {
+            $location = $CONFIG->viewpath;
+        }
+    } else {
+        $location = $CONFIG->views->locations[$viewtype][$view];
+    }
 
-	if (file_exists("{$location}{$viewtype}/{$view}.php")) {
-		return true;
-	}
+    if (file_exists("{$location}{$viewtype}/{$view}.php")) {
+        return true;
+    }
 
-	// If we got here then check whether this exists as an extension
-	// We optionally recursively check whether the extended view exists also for the viewtype
-	if ($recurse && isset($CONFIG->views->extensions[$view])) {
-		foreach ($CONFIG->views->extensions[$view] as $view_extension) {
-			// do not recursively check to stay away from infinite loops
-			if (elgg_view_exists($view_extension, $viewtype, false)) {
-				return true;
-			}
-		}
-	}
+    // If we got here then check whether this exists as an extension
+    // We optionally recursively check whether the extended view exists also for the viewtype
+    if ($recurse && isset($CONFIG->views->extensions[$view])) {
+        foreach ($CONFIG->views->extensions[$view] as $view_extension) {
+            // do not recursively check to stay away from infinite loops
+            if (elgg_view_exists($view_extension, $viewtype, false)) {
+                return true;
+            }
+        }
+    }
 
-	// Now check if the default view exists if the view is registered as a fallback
-	if ($viewtype != 'default' && elgg_does_viewtype_fallback($viewtype)) {
-		return elgg_view_exists($view, 'default');
-	}
+    // Now check if the default view exists if the view is registered as a fallback
+    if ($viewtype != 'default' && elgg_does_viewtype_fallback($viewtype)) {
+        return elgg_view_exists($view, 'default');
+    }
 
-	return false;
+    return false;
 }
 
 /**
@@ -385,149 +394,148 @@ function elgg_view_exists($view, $viewtype = '', $recurse = true) {
  * @example views/elgg_view.php
  * @link http://docs.elgg.org/View
  */
-function elgg_view($view, $vars = array(), $bypass = false, $ignored = false, $viewtype = '') {
-	global $CONFIG;
+function elgg_view($view, $vars = [], $bypass = false, $ignored = false, $viewtype = '')
+{
+    global $CONFIG;
 
-	if (!is_string($view) || !is_string($viewtype)) {
-		elgg_log("View and Viewtype in views must be a strings: $view", 'NOTICE');
-		return '';
-	}
-	// basic checking for bad paths
-	if (strpos($view, '..') !== false) {
-		return '';
-	}
+    if (!is_string($view) || !is_string($viewtype)) {
+        elgg_log("View and Viewtype in views must be a strings: $view", 'NOTICE');
+        return '';
+    }
+    // basic checking for bad paths
+    if (strpos($view, '..') !== false) {
+        return '';
+    }
 
-	if (!is_array($vars)) {
-		elgg_log("Vars in views must be an array: $view", 'ERROR');
-		$vars = array();
-	}
+    if (!is_array($vars)) {
+        elgg_log("Vars in views must be an array: $view", 'ERROR');
+        $vars = [];
+    }
 
-	// Get the current viewtype
-	if ($viewtype === '') {
-		$viewtype = elgg_get_viewtype();
-	} elseif (preg_match('/\W/', $viewtype)) {
-		// Viewtypes can only be alphanumeric
-		return '';
-	}
+    // Get the current viewtype
+    if ($viewtype === '') {
+        $viewtype = elgg_get_viewtype();
+    } elseif (preg_match('/\W/', $viewtype)) {
+        // Viewtypes can only be alphanumeric
+        return '';
+    }
 
-	$view_orig = $view;
+    $view_orig = $view;
 
-	// Trigger the pagesetup event
-	if (!isset($CONFIG->pagesetupdone) && Minds\Core\minds::$booted) {
-		$CONFIG->pagesetupdone = true;
-		elgg_trigger_event('pagesetup', 'system');
-	}
+    // Trigger the pagesetup event
+    if (!isset($CONFIG->pagesetupdone) && Minds\Core\minds::$booted) {
+        $CONFIG->pagesetupdone = true;
+        elgg_trigger_event('pagesetup', 'system');
+    }
 
-	// @warning - plugin authors: do not expect user, config, and url to be
-	// set by elgg_view() in the future. Instead, use elgg_get_logged_in_user_entity(),
-	// elgg_get_config(), and elgg_get_site_url() in your views.
-	if (!isset($vars['user'])) {
-		$vars['user'] = elgg_get_logged_in_user_entity();
-	}
-	if (!isset($vars['config'])) {
-		$vars['config'] = $CONFIG;
-	}
-	if (!isset($vars['url'])) {
-		$vars['url'] = elgg_get_site_url();
-	}
+    // @warning - plugin authors: do not expect user, config, and url to be
+    // set by elgg_view() in the future. Instead, use elgg_get_logged_in_user_entity(),
+    // elgg_get_config(), and elgg_get_site_url() in your views.
+    if (!isset($vars['user'])) {
+        $vars['user'] = elgg_get_logged_in_user_entity();
+    }
+    if (!isset($vars['config'])) {
+        $vars['config'] = $CONFIG;
+    }
+    if (!isset($vars['url'])) {
+        $vars['url'] = elgg_get_site_url();
+    }
 
-	// full_view is the new preferred key for full view on entities @see elgg_view_entity()
-	// check if full_view is set because that means we've already rewritten it and this is
-	// coming from another view passing $vars directly.
-	if (isset($vars['full']) && !isset($vars['full_view'])) {
-		elgg_deprecated_notice("Use \$vars['full_view'] instead of \$vars['full']", 1.8, 2);
-		$vars['full_view'] = $vars['full'];
-	}
-	if (isset($vars['full_view'])) {
-		$vars['full'] = $vars['full_view'];
-	}
+    // full_view is the new preferred key for full view on entities @see elgg_view_entity()
+    // check if full_view is set because that means we've already rewritten it and this is
+    // coming from another view passing $vars directly.
+    if (isset($vars['full']) && !isset($vars['full_view'])) {
+        elgg_deprecated_notice("Use \$vars['full_view'] instead of \$vars['full']", 1.8, 2);
+        $vars['full_view'] = $vars['full'];
+    }
+    if (isset($vars['full_view'])) {
+        $vars['full'] = $vars['full_view'];
+    }
 
-	// internalname => name (1.8)
-	if (isset($vars['internalname']) && !isset($vars['__ignoreInternalname']) && !isset($vars['name'])) {
-		elgg_deprecated_notice('You should pass $vars[\'name\'] now instead of $vars[\'internalname\']', 1.8, 2);
-		$vars['name'] = $vars['internalname'];
-	} elseif (isset($vars['name'])) {
-		if (!isset($vars['internalname'])) {
-			$vars['__ignoreInternalname'] = '';
-		}
-		$vars['internalname'] = $vars['name'];
-	}
+    // internalname => name (1.8)
+    if (isset($vars['internalname']) && !isset($vars['__ignoreInternalname']) && !isset($vars['name'])) {
+        elgg_deprecated_notice('You should pass $vars[\'name\'] now instead of $vars[\'internalname\']', 1.8, 2);
+        $vars['name'] = $vars['internalname'];
+    } elseif (isset($vars['name'])) {
+        if (!isset($vars['internalname'])) {
+            $vars['__ignoreInternalname'] = '';
+        }
+        $vars['internalname'] = $vars['name'];
+    }
 
-	// internalid => id (1.8)
-	if (isset($vars['internalid']) && !isset($vars['__ignoreInternalid']) && !isset($vars['name'])) {
-		elgg_deprecated_notice('You should pass $vars[\'id\'] now instead of $vars[\'internalid\']', 1.8, 2);
-		$vars['id'] = $vars['internalid'];
-	} elseif (isset($vars['id'])) {
-		if (!isset($vars['internalid'])) {
-			$vars['__ignoreInternalid'] = '';
-		}
-		$vars['internalid'] = $vars['id'];
-	}
+    // internalid => id (1.8)
+    if (isset($vars['internalid']) && !isset($vars['__ignoreInternalid']) && !isset($vars['name'])) {
+        elgg_deprecated_notice('You should pass $vars[\'id\'] now instead of $vars[\'internalid\']', 1.8, 2);
+        $vars['id'] = $vars['internalid'];
+    } elseif (isset($vars['id'])) {
+        if (!isset($vars['internalid'])) {
+            $vars['__ignoreInternalid'] = '';
+        }
+        $vars['internalid'] = $vars['id'];
+    }
 
-	// If it's been requested, pass off to a template handler instead
-	if ($bypass == false && isset($CONFIG->template_handler) && !empty($CONFIG->template_handler)) {
-		$template_handler = $CONFIG->template_handler;
-		if (is_callable($template_handler)) {
-			return call_user_func($template_handler, $view, $vars);
-		}
-	}
+    // If it's been requested, pass off to a template handler instead
+    if ($bypass == false && isset($CONFIG->template_handler) && !empty($CONFIG->template_handler)) {
+        $template_handler = $CONFIG->template_handler;
+        if (is_callable($template_handler)) {
+            return call_user_func($template_handler, $view, $vars);
+        }
+    }
 
-	// Set up any extensions to the requested view
-	if (isset($CONFIG->views->extensions[$view])) {
-		$viewlist = $CONFIG->views->extensions[$view];
-	} else {
-		$viewlist = array(500 => $view);
-	}
+    // Set up any extensions to the requested view
+    if (isset($CONFIG->views->extensions[$view])) {
+        $viewlist = $CONFIG->views->extensions[$view];
+    } else {
+        $viewlist = [500 => $view];
+    }
 
-	// Start the output buffer, find the requested view file, and execute it
-	ob_start();
+    // Start the output buffer, find the requested view file, and execute it
+    ob_start();
 
-	foreach ($viewlist as $priority => $view) {
+    foreach ($viewlist as $priority => $view) {
+        $view_location = elgg_get_view_location($view, $viewtype);
+        $view_file = "$view_location$viewtype/$view.php";
 
-		$view_location = elgg_get_view_location($view, $viewtype);
-		$view_file = "$view_location$viewtype/$view.php";
+        // try to include view
+        if (!file_exists($view_file) || !include($view_file)) {
+            // requested view does not exist
+            $error = "$viewtype/$view view does not exist.";
 
-		// try to include view
-		if (!file_exists($view_file) || !include($view_file)) {
-			// requested view does not exist
-			$error = "$viewtype/$view view does not exist.";
+            // attempt to load default view
+            if ($viewtype !== 'default' && elgg_does_viewtype_fallback($viewtype)) {
+                $default_location = elgg_get_view_location($view, 'default');
+                $default_view_file = "{$default_location}default/$view.php";
 
-			// attempt to load default view
-			if ($viewtype !== 'default' && elgg_does_viewtype_fallback($viewtype)) {
+                if (file_exists($default_view_file) && include($default_view_file)) {
+                    // default view found
+                    $error .= " Using default/$view instead.";
+                } else {
+                    // no view found at all
+                    $error = "Neither $viewtype/$view nor default/$view view exists.";
+                }
+            }
 
-				$default_location = elgg_get_view_location($view, 'default');
-				$default_view_file = "{$default_location}default/$view.php";
+            // log warning
+            elgg_log($error, 'NOTICE');
+        }
+    }
 
-				if (file_exists($default_view_file) && include($default_view_file)) {
-					// default view found
-					$error .= " Using default/$view instead.";
-				} else {
-					// no view found at all
-					$error = "Neither $viewtype/$view nor default/$view view exists.";
-				}
-			}
+    // Save the output buffer into the $content variable
+    $content = ob_get_clean();
 
-			// log warning
-			elgg_log($error, 'NOTICE');
-		}
-	}
+    // Plugin hook
+    $params = ['view' => $view_orig, 'vars' => $vars, 'viewtype' => $viewtype];
+    $content = elgg_trigger_plugin_hook('view', $view_orig, $params, $content);
 
-	// Save the output buffer into the $content variable
-	$content = ob_get_clean();
+    // backward compatibility with less granular hook will be gone in 2.0
+    $content_tmp = elgg_trigger_plugin_hook('display', 'view', $params, $content);
 
-	// Plugin hook
-	$params = array('view' => $view_orig, 'vars' => $vars, 'viewtype' => $viewtype);
-	$content = elgg_trigger_plugin_hook('view', $view_orig, $params, $content);
+    if ($content_tmp !== $content) {
+        $content = $content_tmp;
+        elgg_deprecated_notice('The display:view plugin hook is deprecated by view:view_name', 1.8);
+    }
 
-	// backward compatibility with less granular hook will be gone in 2.0
-	$content_tmp = elgg_trigger_plugin_hook('display', 'view', $params, $content);
-
-	if ($content_tmp !== $content) {
-		$content = $content_tmp;
-		elgg_deprecated_notice('The display:view plugin hook is deprecated by view:view_name', 1.8);
-	}
-
-	return $content;
+    return $content;
 }
 
 /**
@@ -554,27 +562,28 @@ function elgg_view($view, $vars = array(), $bypass = false, $ignored = false, $v
  * @link http://docs.elgg.org/Views/Extend
  * @example views/extend.php
  */
-function elgg_extend_view($view, $view_extension, $priority = 501) {
-	global $CONFIG;
+function elgg_extend_view($view, $view_extension, $priority = 501)
+{
+    global $CONFIG;
 
-	if (!isset($CONFIG->views)) {
-		$CONFIG->views = (object) array(
-			'extensions' => array(),
-		);
-		$CONFIG->views->extensions[$view][500] = (string)$view;
-	} else {
-		if (!isset($CONFIG->views->extensions[$view])) {
-			$CONFIG->views->extensions[$view][500] = (string)$view;
-		}
-	}
+    if (!isset($CONFIG->views)) {
+        $CONFIG->views = (object) [
+            'extensions' => [],
+        ];
+        $CONFIG->views->extensions[$view][500] = (string)$view;
+    } else {
+        if (!isset($CONFIG->views->extensions[$view])) {
+            $CONFIG->views->extensions[$view][500] = (string)$view;
+        }
+    }
 
-	// raise priority until it doesn't match one already registered
-	while (isset($CONFIG->views->extensions[$view][$priority])) {
-		$priority++;
-	}
+    // raise priority until it doesn't match one already registered
+    while (isset($CONFIG->views->extensions[$view][$priority])) {
+        $priority++;
+    }
 
-	$CONFIG->views->extensions[$view][$priority] = (string)$view_extension;
-	ksort($CONFIG->views->extensions[$view]);
+    $CONFIG->views->extensions[$view][$priority] = (string)$view_extension;
+    ksort($CONFIG->views->extensions[$view]);
 }
 
 /**
@@ -586,21 +595,22 @@ function elgg_extend_view($view, $view_extension, $priority = 501) {
  * @return bool
  * @since 1.7.2
  */
-function elgg_unextend_view($view, $view_extension) {
-	global $CONFIG;
+function elgg_unextend_view($view, $view_extension)
+{
+    global $CONFIG;
 
-	if (!isset($CONFIG->views->extensions[$view])) {
-		return FALSE;
-	}
+    if (!isset($CONFIG->views->extensions[$view])) {
+        return false;
+    }
 
-	$priority = array_search($view_extension, $CONFIG->views->extensions[$view]);
-	if ($priority === FALSE) {
-		return FALSE;
-	}
+    $priority = array_search($view_extension, $CONFIG->views->extensions[$view], true);
+    if ($priority === false) {
+        return false;
+    }
 
-	unset($CONFIG->views->extensions[$view][$priority]);
+    unset($CONFIG->views->extensions[$view][$priority]);
 
-	return TRUE;
+    return true;
 }
 
 /**
@@ -619,29 +629,29 @@ function elgg_unextend_view($view, $view_extension) {
  * @return string The contents of the page
  * @since  1.8
  */
-function elgg_view_page($title, $body, $page_shell = 'default', $vars = array()) {
+function elgg_view_page($title, $body, $page_shell = 'default', $vars = [])
+{
+    $messages['error'] = system_messages(null, "error");
+    $messages['success'] = system_messages(null, "success");
 
-	$messages['error'] = system_messages(NULL, "error");
-	$messages['success'] = system_messages(NULL, "success");
+    $vars['title'] = $title;
+    $vars['body'] = $body;
+    $vars['sysmessages'] = (array)$messages;
 
-	$vars['title'] = $title;
-	$vars['body'] = $body;
-	$vars['sysmessages'] = (array)$messages;
+    $vars = elgg_trigger_plugin_hook('output:before', 'page', null, $vars);
 
-	$vars = elgg_trigger_plugin_hook('output:before', 'page', null, $vars);
+    // check for deprecated view
+    if ($page_shell == 'default' && elgg_view_exists('pageshells/pageshell')) {
+        elgg_deprecated_notice("pageshells/pageshell is deprecated by page/$page_shell", 1.8);
+        $output = elgg_view('pageshells/pageshell', $vars);
+    } else {
+        $output = elgg_view("page/$page_shell", $vars);
+    }
 
-	// check for deprecated view
-	if ($page_shell == 'default' && elgg_view_exists('pageshells/pageshell')) {
-		elgg_deprecated_notice("pageshells/pageshell is deprecated by page/$page_shell", 1.8);
-		$output = elgg_view('pageshells/pageshell', $vars);
-	} else {
-		$output = elgg_view("page/$page_shell", $vars);
-	}
+    $vars['page_shell'] = $page_shell;
 
-	$vars['page_shell'] = $page_shell;
-
-	// Allow plugins to mod output
-	return elgg_trigger_plugin_hook('output', 'page', $vars, $output);
+    // Allow plugins to mod output
+    return elgg_trigger_plugin_hook('output', 'page', $vars, $output);
 }
 
 /**
@@ -676,33 +686,33 @@ function elgg_view_page($title, $body, $page_shell = 'default', $vars = array())
  *
  * @return string The layout
  */
-function elgg_view_layout($layout_name, $vars = array()) {
+function elgg_view_layout($layout_name, $vars = [])
+{
+    if (is_string($vars) || $vars === null) {
+        elgg_deprecated_notice("The use of unlimited optional string arguments in elgg_view_layout() was deprecated in favor of an options array", 1.8);
+        $arg = 1;
+        $param_array = [];
+        while ($arg < func_num_args()) {
+            $param_array['area' . $arg] = func_get_arg($arg);
+            $arg++;
+        }
+    } else {
+        $param_array = $vars;
+    }
 
-	if (is_string($vars) || $vars === null) {
-		elgg_deprecated_notice("The use of unlimited optional string arguments in elgg_view_layout() was deprecated in favor of an options array", 1.8);
-		$arg = 1;
-		$param_array = array();
-		while ($arg < func_num_args()) {
-			$param_array['area' . $arg] = func_get_arg($arg);
-			$arg++;
-		}
-	} else {
-		$param_array = $vars;
-	}
+    $params = elgg_trigger_plugin_hook('output:before', 'layout', null, $param_array);
 
-	$params = elgg_trigger_plugin_hook('output:before', 'layout', null, $param_array);
+    // check deprecated location
+    if (elgg_view_exists("canvas/layouts/$layout_name")) {
+        elgg_deprecated_notice("canvas/layouts/$layout_name is deprecated by page/layouts/$layout_name", 1.8);
+        $output = elgg_view("canvas/layouts/$layout_name", $params);
+    } elseif (elgg_view_exists("page/layouts/$layout_name")) {
+        $output = elgg_view("page/layouts/$layout_name", $params);
+    } else {
+        $output = elgg_view("page/layouts/default", $params);
+    }
 
-	// check deprecated location
-	if (elgg_view_exists("canvas/layouts/$layout_name")) {
-		elgg_deprecated_notice("canvas/layouts/$layout_name is deprecated by page/layouts/$layout_name", 1.8);
-		$output = elgg_view("canvas/layouts/$layout_name", $params);
-	} elseif (elgg_view_exists("page/layouts/$layout_name")) {
-		$output = elgg_view("page/layouts/$layout_name", $params);
-	} else {
-		$output = elgg_view("page/layouts/default", $params);
-	}
-
-	return elgg_trigger_plugin_hook('output:after', 'layout', $params, $output);
+    return elgg_trigger_plugin_hook('output:after', 'layout', $params, $output);
 }
 
 /**
@@ -739,35 +749,36 @@ function elgg_view_layout($layout_name, $vars = array()) {
  * @return string
  * @since 1.8.0
  */
-function elgg_view_menu($menu_name, array $vars = array()) {
-	global $CONFIG;
+function elgg_view_menu($menu_name, array $vars = [])
+{
+    global $CONFIG;
 
-	$vars['name'] = $menu_name;
+    $vars['name'] = $menu_name;
 
-	$sort_by = elgg_extract('sort_by', $vars, 'text');
+    $sort_by = elgg_extract('sort_by', $vars, 'text');
 
-	if (isset($CONFIG->menus[$menu_name])) {
-		$menu = $CONFIG->menus[$menu_name];
-	} else {
-		$menu = array();
-	}
+    if (isset($CONFIG->menus[$menu_name])) {
+        $menu = $CONFIG->menus[$menu_name];
+    } else {
+        $menu = [];
+    }
 
-	// Give plugins a chance to add menu items just before creation.
-	// This supports dynamic menus (example: user_hover).
-	$menu = elgg_trigger_plugin_hook('register', "menu:$menu_name", $vars, $menu);
+    // Give plugins a chance to add menu items just before creation.
+    // This supports dynamic menus (example: user_hover).
+    $menu = elgg_trigger_plugin_hook('register', "menu:$menu_name", $vars, $menu);
 
-	$builder = new ElggMenuBuilder($menu);
-	$vars['menu'] = $builder->getMenu($sort_by);
-	$vars['selected_item'] = $builder->getSelected();
+    $builder = new ElggMenuBuilder($menu);
+    $vars['menu'] = $builder->getMenu($sort_by);
+    $vars['selected_item'] = $builder->getSelected();
 
-	// Let plugins modify the menu
-	$vars['menu'] = elgg_trigger_plugin_hook('prepare', "menu:$menu_name", $vars, $vars['menu']);
+    // Let plugins modify the menu
+    $vars['menu'] = elgg_trigger_plugin_hook('prepare', "menu:$menu_name", $vars, $vars['menu']);
 
-	if (elgg_view_exists("navigation/menu/$menu_name")) {
-		return elgg_view("navigation/menu/$menu_name", $vars);
-	} else {
-		return elgg_view("navigation/menu/default", $vars);
-	}
+    if (elgg_view_exists("navigation/menu/$menu_name")) {
+        return elgg_view("navigation/menu/$menu_name", $vars);
+    } else {
+        return elgg_view("navigation/menu/default", $vars);
+    }
 }
 
 /**
@@ -800,52 +811,53 @@ function elgg_view_menu($menu_name, array $vars = array()) {
  * @link http://docs.elgg.org/Entities
  * @todo The annotation hook might be better as a generic plugin hook to append content.
  */
-function elgg_view_entity(ElggEntity $entity, $vars = array(), $bypass = true, $debug = false) {
+function elgg_view_entity(ElggEntity $entity, $vars = [], $bypass = true, $debug = false)
+{
 
-	// No point continuing if entity is null
-	if (!$entity || !($entity instanceof ElggEntity)) {
-		return false;
-	}
+    // No point continuing if entity is null
+    if (!$entity || !($entity instanceof ElggEntity)) {
+        return false;
+    }
 
-	global $autofeed;
-	$autofeed = true;
+    global $autofeed;
+    $autofeed = true;
 
-	$defaults = array(
-		'full_view' => false,
-	);
+    $defaults = [
+        'full_view' => false,
+    ];
 
-	if (is_array($vars)) {
-		$vars = array_merge($defaults, $vars);
-	} else {
-		elgg_deprecated_notice("Update your use of elgg_view_entity()", 1.8);
-		$vars = array(
-			'full_view' => $vars,
-		);
-	}
+    if (is_array($vars)) {
+        $vars = array_merge($defaults, $vars);
+    } else {
+        elgg_deprecated_notice("Update your use of elgg_view_entity()", 1.8);
+        $vars = [
+            'full_view' => $vars,
+        ];
+    }
 
-	$vars['entity'] = $entity;
+    $vars['entity'] = $entity;
 
-	// if this entity has a view defined, use it
-	$view = $entity->view;
-	if (is_string($view)) {
-		return elgg_view($view, $vars, $bypass, $debug);
-	}
+    // if this entity has a view defined, use it
+    $view = $entity->view;
+    if (is_string($view)) {
+        return elgg_view($view, $vars, $bypass, $debug);
+    }
 
-	$entity_type = $entity->getType();
-	$subtype = $entity->getSubtype();
-	if (empty($subtype)) {
-		$subtype = 'default';
-	}
+    $entity_type = $entity->getType();
+    $subtype = $entity->getSubtype();
+    if (empty($subtype)) {
+        $subtype = 'default';
+    }
 
-	$contents = '';
-	if (elgg_view_exists("$entity_type/$subtype") && $subtype !='default') {
-		$contents = elgg_view("$entity_type/$subtype", $vars, $bypass, $debug);
-	}
-	if (empty($contents)) {
-		$contents = elgg_view("$entity_type/default", $vars, $bypass, $debug);
-	}
+    $contents = '';
+    if (elgg_view_exists("$entity_type/$subtype") && $subtype !='default') {
+        $contents = elgg_view("$entity_type/$subtype", $vars, $bypass, $debug);
+    }
+    if (empty($contents)) {
+        $contents = elgg_view("$entity_type/default", $vars, $bypass, $debug);
+    }
 
-	return $contents;
+    return $contents;
 }
 
 /**
@@ -863,35 +875,36 @@ function elgg_view_entity(ElggEntity $entity, $vars = array(), $bypass = true, $
  *
  * @return string HTML to display or false
  */
-function elgg_view_entity_icon(ElggEntity $entity, $size = 'medium', $vars = array()) {
+function elgg_view_entity_icon(ElggEntity $entity, $size = 'medium', $vars = [])
+{
 
-	// No point continuing if entity is null
-	if (!$entity || !($entity instanceof ElggEntity)) {
-		return false;
-	}
+    // No point continuing if entity is null
+    if (!$entity || !($entity instanceof ElggEntity)) {
+        return false;
+    }
 
-	$vars['entity'] = $entity;
-	$vars['size'] = $size;
+    $vars['entity'] = $entity;
+    $vars['size'] = $size;
 
-	$entity_type = $entity->getType();
+    $entity_type = $entity->getType();
 
-	$subtype = $entity->getSubtype();
-	if (empty($subtype)) {
-		$subtype = 'default';
-	}
+    $subtype = $entity->getSubtype();
+    if (empty($subtype)) {
+        $subtype = 'default';
+    }
 
-	$contents = '';
-	if (elgg_view_exists("icon/$entity_type/$subtype")) {
-		$contents = elgg_view("icon/$entity_type/$subtype", $vars);
-	}
-	if (empty($contents)) {
-		$contents = elgg_view("icon/$entity_type/default", $vars);
-	}
-	if (empty($contents)) {
-		$contents = elgg_view("icon/default", $vars);
-	}
+    $contents = '';
+    if (elgg_view_exists("icon/$entity_type/$subtype")) {
+        $contents = elgg_view("icon/$entity_type/$subtype", $vars);
+    }
+    if (empty($contents)) {
+        $contents = elgg_view("icon/$entity_type/default", $vars);
+    }
+    if (empty($contents)) {
+        $contents = elgg_view("icon/default", $vars);
+    }
 
-	return $contents;
+    return $contents;
 }
 
 /**
@@ -914,34 +927,35 @@ function elgg_view_entity_icon(ElggEntity $entity, $size = 'medium', $vars = arr
  *
  * @return string/false Rendered annotation
  */
-function elgg_view_annotation(ElggAnnotation $annotation, array $vars = array(), $bypass = true, $debug = false) {
-	global $autofeed;
-	$autofeed = true;
+function elgg_view_annotation(ElggAnnotation $annotation, array $vars = [], $bypass = true, $debug = false)
+{
+    global $autofeed;
+    $autofeed = true;
 
-	$defaults = array(
-		'full_view' => true,
-	);
+    $defaults = [
+        'full_view' => true,
+    ];
 
-	$vars = array_merge($defaults, $vars);
-	$vars['annotation'] = $annotation;
+    $vars = array_merge($defaults, $vars);
+    $vars['annotation'] = $annotation;
 
-	// @todo setting the view on an annotation is not advertised anywhere
-	// do we want to keep this?
-	$view = $annotation->view;
-	if (is_string($view)) {
-		return elgg_view($view, $vars, $bypass, $debug);
-	}
+    // @todo setting the view on an annotation is not advertised anywhere
+    // do we want to keep this?
+    $view = $annotation->view;
+    if (is_string($view)) {
+        return elgg_view($view, $vars, $bypass, $debug);
+    }
 
-	$name = $annotation->name;
-	if (empty($name)) {
-		return false;
-	}
+    $name = $annotation->name;
+    if (empty($name)) {
+        return false;
+    }
 
-	if (elgg_view_exists("annotation/$name")) {
-		return elgg_view("annotation/$name", $vars, $bypass, $debug);
-	} else {
-		return elgg_view("annotation/default", $vars, $bypass, $debug);
-	}
+    if (elgg_view_exists("annotation/$name")) {
+        return elgg_view("annotation/$name", $vars, $bypass, $debug);
+    } else {
+        return elgg_view("annotation/default", $vars, $bypass, $debug);
+    }
 }
 
 /**
@@ -969,52 +983,52 @@ function elgg_view_annotation(ElggAnnotation $annotation, array $vars = array(),
  * @return string The rendered list of entities
  * @access private
  */
-function elgg_view_entity_list($entities, $vars = array(), $offset = 0, $limit = 10, $full_view = true,
-$list_type_toggle = true, $pagination = true) {
-	// list type can be passed as request parameter
-	$list_type = get_input('list_type', 'list');
-	if (get_input('listtype')) {
-		elgg_deprecated_notice("'listtype' has been deprecated by 'list_type' for lists", 1.8);
-		$list_type = get_input('listtype');
-	}
+function elgg_view_entity_list($entities, $vars = [], $offset = 0, $limit = 10, $full_view = true,
+$list_type_toggle = true, $pagination = true)
+{
+    // list type can be passed as request parameter
+    $list_type = get_input('list_type', 'list');
+    if (get_input('listtype')) {
+        elgg_deprecated_notice("'listtype' has been deprecated by 'list_type' for lists", 1.8);
+        $list_type = get_input('listtype');
+    }
 
-	if (is_array($vars)) {
-		// new function
-		$defaults = array(
-			'items' => $entities,
-			'list_class' => 'elgg-list-entity',
-			'full_view' => true,
-			'pagination' => $pagination,
-			'list_type' => $list_type,
-			'list_type_toggle' => false,
-			'offset' => $offset,
-			'count' => 1000 //default
-		);
+    if (is_array($vars)) {
+        // new function
+        $defaults = [
+            'items' => $entities,
+            'list_class' => 'elgg-list-entity',
+            'full_view' => true,
+            'pagination' => $pagination,
+            'list_type' => $list_type,
+            'list_type_toggle' => false,
+            'offset' => $offset,
+            'count' => 1000 //default
+        ];
 
-		$vars = array_merge($defaults, $vars);
+        $vars = array_merge($defaults, $vars);
+    } else {
+        // old function parameters
+        elgg_deprecated_notice("Please update your use of elgg_view_entity_list()", 1.8);
 
-	} else {
-		// old function parameters
-		elgg_deprecated_notice("Please update your use of elgg_view_entity_list()", 1.8);
+        $vars = [
+            'items' => $entities,
+            'count' => (int) $vars, // the old count parameter
+            'offset' => $offset,
+            'limit' => (int) $limit,
+            'full_view' => $full_view,
+            'pagination' => $pagination,
+            'list_type' => $list_type,
+            'list_type_toggle' => $list_type_toggle,
+            'list_class' => 'elgg-list-entity',
+        ];
+    }
 
-		$vars = array(
-			'items' => $entities,
-			'count' => (int) $vars, // the old count parameter
-			'offset' => $offset,
-			'limit' => (int) $limit,
-			'full_view' => $full_view,
-			'pagination' => $pagination,
-			'list_type' => $list_type,
-			'list_type_toggle' => $list_type_toggle,
-			'list_class' => 'elgg-list-entity',
-		);
-	}
-
-	if ($vars['list_type'] != 'list') {
-		return elgg_view('page/components/gallery', $vars);
-	} else {
-		return elgg_view('page/components/list', $vars);
-	}
+    if ($vars['list_type'] != 'list') {
+        return elgg_view('page/components/gallery', $vars);
+    } else {
+        return elgg_view('page/components/list', $vars);
+    }
 }
 
 /**
@@ -1033,17 +1047,18 @@ $list_type_toggle = true, $pagination = true) {
  * @return string The list of annotations
  * @access private
  */
-function elgg_view_annotation_list($annotations, array $vars = array()) {
-	$defaults = array(
-		'items' => $annotations,
-		'list_class' => 'elgg-list-annotation elgg-annotation-list', // @todo remove elgg-annotation-list in Elgg 1.9
-		'full_view' => true,
-		'offset_key' => 'annoff',
-	);
+function elgg_view_annotation_list($annotations, array $vars = [])
+{
+    $defaults = [
+        'items' => $annotations,
+        'list_class' => 'elgg-list-annotation elgg-annotation-list', // @todo remove elgg-annotation-list in Elgg 1.9
+        'full_view' => true,
+        'offset_key' => 'annoff',
+    ];
 
-	$vars = array_merge($defaults, $vars);
+    $vars = array_merge($defaults, $vars);
 
-	return elgg_view('page/components/list', $vars);
+    return elgg_view('page/components/list', $vars);
 }
 
 /**
@@ -1060,21 +1075,22 @@ function elgg_view_annotation_list($annotations, array $vars = array()) {
  * @return mixed string or false on failure
  * @todo Change the hook name.
  */
-function elgg_view_entity_annotations(ElggEntity $entity, $full_view = true) {
-	if (!($entity instanceof ElggEntity)) {
-		return false;
-	}
+function elgg_view_entity_annotations(ElggEntity $entity, $full_view = true)
+{
+    if (!($entity instanceof ElggEntity)) {
+        return false;
+    }
 
-	$entity_type = $entity->getType();
+    $entity_type = $entity->getType();
 
-	$annotations = elgg_trigger_plugin_hook('entity:annotate', $entity_type,
-		array(
-			'entity' => $entity,
-			'full_view' => $full_view,
-		)
-	);
+    $annotations = elgg_trigger_plugin_hook('entity:annotate', $entity_type,
+        [
+            'entity' => $entity,
+            'full_view' => $full_view,
+        ]
+    );
 
-	return $annotations;
+    return $annotations;
 }
 
 /**
@@ -1087,15 +1103,16 @@ function elgg_view_entity_annotations(ElggEntity $entity, $full_view = true) {
  *
  * @return string The HTML (etc)
  */
-function elgg_view_title($title, $vars = array()) {
-	if (!is_array($vars)) {
-		elgg_deprecated_notice('setting $submenu in elgg_view_title() is deprecated', 1.8);
-		$vars = array('submenu' => $vars);
-	}
+function elgg_view_title($title, $vars = [])
+{
+    if (!is_array($vars)) {
+        elgg_deprecated_notice('setting $submenu in elgg_view_title() is deprecated', 1.8);
+        $vars = ['submenu' => $vars];
+    }
 
-	$vars['title'] = $title;
+    $vars['title'] = $title;
 
-	return elgg_view('page/elements/title', $vars);
+    return elgg_view('page/elements/title', $vars);
 }
 
 /**
@@ -1108,8 +1125,9 @@ function elgg_view_title($title, $vars = array()) {
  * @return string The friendly time HTML
  * @since 1.7.2
  */
-function elgg_view_friendly_time($time) {
-	return elgg_view('output/friendlytime', array('time' => $time));
+function elgg_view_friendly_time($time)
+{
+    return elgg_view('output/friendlytime', ['time' => $time]);
 }
 
 
@@ -1128,21 +1146,22 @@ function elgg_view_friendly_time($time) {
  * @link http://docs.elgg.org/Entities/Comments
  * @link http://docs.elgg.org/Annotations/Comments
  */
-function elgg_view_comments($entity, $add_comment = true, array $vars = array()) {
-	if (!($entity instanceof ElggEntity)) {
-		return false;
-	}
+function elgg_view_comments($entity, $add_comment = true, array $vars = [])
+{
+    if (!($entity instanceof ElggEntity)) {
+        return false;
+    }
 
-	$vars['entity'] = $entity;
-	$vars['show_add_form'] = $add_comment;
-	$vars['class'] = elgg_extract('class', $vars, "{$entity->getSubtype()}-comments");
+    $vars['entity'] = $entity;
+    $vars['show_add_form'] = $add_comment;
+    $vars['class'] = elgg_extract('class', $vars, "{$entity->getSubtype()}-comments");
 
-	$output = elgg_trigger_plugin_hook('comments', $entity->getType(), $vars, false);
-	if ($output) {
-		return $output;
-	} else {
-		return elgg_view('page/elements/comments', $vars);
-	}
+    $output = elgg_trigger_plugin_hook('comments', $entity->getType(), $vars, false);
+    if ($output) {
+        return $output;
+    } else {
+        return elgg_view('page/elements/comments', $vars);
+    }
 }
 
 /**
@@ -1160,10 +1179,11 @@ function elgg_view_comments($entity, $add_comment = true, array $vars = array())
  * @return string
  * @since 1.8.0
  */
-function elgg_view_image_block($image, $body, $vars = array()) {
-	$vars['image'] = $image;
-	$vars['body'] = $body;
-	return elgg_view('page/components/image_block', $vars);
+function elgg_view_image_block($image, $body, $vars = [])
+{
+    $vars['image'] = $image;
+    $vars['body'] = $body;
+    return elgg_view('page/components/image_block', $vars);
 }
 
 /**
@@ -1181,11 +1201,12 @@ function elgg_view_image_block($image, $body, $vars = array()) {
  * @return string
  * @since 1.8.0
  */
-function elgg_view_module($type, $title, $body, array $vars = array()) {
-	$vars['class'] = elgg_extract('class', $vars, '') . " elgg-module-$type";
-	$vars['title'] = $title;
-	$vars['body'] = $body;
-	return elgg_view('page/components/module', $vars);
+function elgg_view_module($type, $title, $body, array $vars = [])
+{
+    $vars['class'] = elgg_extract('class', $vars, '') . " elgg-module-$type";
+    $vars['title'] = $title;
+    $vars['body'] = $body;
+    return elgg_view('page/components/module', $vars);
 }
 
 /**
@@ -1196,35 +1217,36 @@ function elgg_view_module($type, $title, $body, array $vars = array()) {
  *
  * @return string returns empty string if could not be rendered
  */
-function elgg_view_river_item($item, array $vars = array()) {
-	if (!($item instanceof ElggRiverItem)) {
-		return '';
-	}
-	// checking default viewtype since some viewtypes do not have unique views per item (rss)
-	$view = $item->getView();
-	if (!$view || !elgg_view_exists($view, 'default')) {
-		return '';
-	}
+function elgg_view_river_item($item, array $vars = [])
+{
+    if (!($item instanceof ElggRiverItem)) {
+        return '';
+    }
+    // checking default viewtype since some viewtypes do not have unique views per item (rss)
+    $view = $item->getView();
+    if (!$view || !elgg_view_exists($view, 'default')) {
+        return '';
+    }
 
-	$subject = $item->getSubjectEntity();
-	$object = $item->getObjectEntity();
-	if (!$subject || !$object) {
-		// subject is disabled or subject/object deleted
-		return '';
-	}
-	// Don't hide objects in closed groups that a user can see.
-	// see http://trac.elgg.org/ticket/4789
-//	else {
-//		// hide based on object's container
-//		$visibility = ElggGroupItemVisibility::factory($object->container_guid);
-//		if ($visibility->shouldHideItems) {
-//			return '';
-//		}
-//	}
+    $subject = $item->getSubjectEntity();
+    $object = $item->getObjectEntity();
+    if (!$subject || !$object) {
+        // subject is disabled or subject/object deleted
+        return '';
+    }
+    // Don't hide objects in closed groups that a user can see.
+    // see http://trac.elgg.org/ticket/4789
+    //	else {
+    //		// hide based on object's container
+    //		$visibility = ElggGroupItemVisibility::factory($object->container_guid);
+    //		if ($visibility->shouldHideItems) {
+    //			return '';
+    //		}
+    //	}
 
-	$vars['item'] = $item;
+    $vars['item'] = $item;
 
-	return elgg_view('river/item', $vars);
+    return elgg_view('river/item', $vars);
 }
 
 /**
@@ -1261,24 +1283,25 @@ function elgg_view_river_item($item, array $vars = array()) {
  *
  * @return string The complete form
  */
-function elgg_view_form($action, $form_vars = array(), $body_vars = array()) {
-	global $CONFIG;
+function elgg_view_form($action, $form_vars = [], $body_vars = [])
+{
+    global $CONFIG;
 
-	$defaults = array(
-		'action' => $CONFIG->wwwroot . "action/$action",
-		'body' => elgg_view("forms/$action", $body_vars)
-	);
+    $defaults = [
+        'action' => $CONFIG->wwwroot . "action/$action",
+        'body' => elgg_view("forms/$action", $body_vars)
+    ];
 
-	$form_class = 'elgg-form-' . preg_replace('/[^a-z0-9]/i', '-', $action);
+    $form_class = 'elgg-form-' . preg_replace('/[^a-z0-9]/i', '-', $action);
 
-	// append elgg-form class to any class options set
-	if (isset($form_vars['class'])) {
-		$form_vars['class'] = $form_vars['class'] . " $form_class";
-	} else {
-		$form_vars['class'] = $form_class;
-	}
+    // append elgg-form class to any class options set
+    if (isset($form_vars['class'])) {
+        $form_vars['class'] = $form_vars['class'] . " $form_class";
+    } else {
+        $form_vars['class'] = $form_class;
+    }
 
-	return elgg_view('input/form', array_merge($defaults, $form_vars));
+    return elgg_view('input/form', array_merge($defaults, $form_vars));
 }
 
 /**
@@ -1291,17 +1314,18 @@ function elgg_view_form($action, $form_vars = array(), $body_vars = array()) {
  * @since 1.8.0
  * @access private
  */
-function elgg_view_list_item($item, array $vars = array()) {
-	global $CONFIG;
+function elgg_view_list_item($item, array $vars = [])
+{
+    global $CONFIG;
 
-	$type = $item->getType();
+    $type = $item->getType();
 
-	if ($type == 'river') {
-		return elgg_view_river_item($item, $vars);
-	}
+    if ($type == 'river') {
+        return elgg_view_river_item($item, $vars);
+    }
 
 
-	return elgg_view_entity($item, $vars);
+    return elgg_view_entity($item, $vars);
 }
 
 /**
@@ -1314,12 +1338,13 @@ function elgg_view_list_item($item, array $vars = array()) {
  *
  * @return string The html for displaying an icon
  */
-function elgg_view_icon($name, $class = '') {
-	// @todo deprecate boolean in Elgg 1.9
-	if ($class === true) {
-		$class = 'float';
-	}
-	return "<span class=\"elgg-icon elgg-icon-$name $class\"></span>";
+function elgg_view_icon($name, $class = '')
+{
+    // @todo deprecate boolean in Elgg 1.9
+    if ($class === true) {
+        $class = 'float';
+    }
+    return "<span class=\"elgg-icon elgg-icon-$name $class\"></span>";
 }
 
 /**
@@ -1331,15 +1356,16 @@ function elgg_view_icon($name, $class = '') {
  * @todo Move to the friends/collection.php page.
  * @access private
  */
-function elgg_view_access_collections($owner_guid) {
-	if ($collections = get_user_access_collections($owner_guid)) {
-		foreach ($collections as $key => $collection) {
-			$collections[$key]->members = get_members_of_access_collection($collection->id, true);
-			$collections[$key]->entities = get_user_friends($owner_guid, ELGG_ENTITIES_ANY_VALUE, 9999);
-		}
-	}
+function elgg_view_access_collections($owner_guid)
+{
+    if ($collections = get_user_access_collections($owner_guid)) {
+        foreach ($collections as $key => $collection) {
+            $collections[$key]->members = get_members_of_access_collection($collection->id, true);
+            $collections[$key]->entities = get_user_friends($owner_guid, ELGG_ENTITIES_ANY_VALUE, 9999);
+        }
+    }
 
-	return elgg_view('core/friends/collections', array('collections' => $collections));
+    return elgg_view('core/friends/collections', ['collections' => $collections]);
 }
 
 /**
@@ -1363,14 +1389,15 @@ function elgg_view_access_collections($owner_guid) {
  * @see elgg_view()
  * @link http://docs.elgg.org/Views/TemplateHandlers
  */
-function set_template_handler($function_name) {
-	global $CONFIG;
+function set_template_handler($function_name)
+{
+    global $CONFIG;
 
-	if (is_callable($function_name)) {
-		$CONFIG->template_handler = $function_name;
-		return true;
-	}
-	return false;
+    if (is_callable($function_name)) {
+        $CONFIG->template_handler = $function_name;
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -1387,26 +1414,27 @@ function set_template_handler($function_name) {
  * Seems like a useful function for autodiscovery.
  * @access private
  */
-function elgg_get_views($dir, $base) {
-	$return = array();
-	if (file_exists($dir) && is_dir($dir)) {
-		if ($handle = opendir($dir)) {
-			while ($view = readdir($handle)) {
-				if (!in_array($view, array('.', '..', '.svn', 'CVS'))) {
-					if (is_dir($dir . '/' . $view)) {
-						if ($val = elgg_get_views($dir . '/' . $view, $base . '/' . $view)) {
-							$return = array_merge($return, $val);
-						}
-					} else {
-						$view = str_replace('.php', '', $view);
-						$return[] = $base . '/' . $view;
-					}
-				}
-			}
-		}
-	}
+function elgg_get_views($dir, $base)
+{
+    $return = [];
+    if (file_exists($dir) && is_dir($dir)) {
+        if ($handle = opendir($dir)) {
+            while ($view = readdir($handle)) {
+                if (!in_array($view, ['.', '..', '.svn', 'CVS'], true)) {
+                    if (is_dir($dir . '/' . $view)) {
+                        if ($val = elgg_get_views($dir . '/' . $view, $base . '/' . $view)) {
+                            $return = array_merge($return, $val);
+                        }
+                    } else {
+                        $view = str_replace('.php', '', $view);
+                        $return[] = $base . '/' . $view;
+                    }
+                }
+            }
+        }
+    }
 
-	return $return;
+    return $return;
 }
 
 /**
@@ -1423,44 +1451,45 @@ function elgg_get_views($dir, $base) {
  * @todo This is used once in the deprecated get_activity_stream_data() function.
  * @access private
  */
-function elgg_view_tree($view_root, $viewtype = "") {
-	global $CONFIG;
-	static $treecache = array();
+function elgg_view_tree($view_root, $viewtype = "")
+{
+    global $CONFIG;
+    static $treecache = [];
 
-	// Get viewtype
-	if (!$viewtype) {
-		$viewtype = elgg_get_viewtype();
-	}
+    // Get viewtype
+    if (!$viewtype) {
+        $viewtype = elgg_get_viewtype();
+    }
 
-	// A little light internal caching
-	if (!empty($treecache[$view_root])) {
-		return $treecache[$view_root];
-	}
+    // A little light internal caching
+    if (!empty($treecache[$view_root])) {
+        return $treecache[$view_root];
+    }
 
-	// Examine $CONFIG->views->locations
-	if (isset($CONFIG->views->locations[$viewtype])) {
-		foreach ($CONFIG->views->locations[$viewtype] as $view => $path) {
-			$pos = strpos($view, $view_root);
-			if ($pos === 0) {
-				$treecache[$view_root][] = $view;
-			}
-		}
-	}
+    // Examine $CONFIG->views->locations
+    if (isset($CONFIG->views->locations[$viewtype])) {
+        foreach ($CONFIG->views->locations[$viewtype] as $view => $path) {
+            $pos = strpos($view, $view_root);
+            if ($pos === 0) {
+                $treecache[$view_root][] = $view;
+            }
+        }
+    }
 
-	// Now examine core
-	$location = $CONFIG->viewpath;
-	$viewtype = elgg_get_viewtype();
-	$root = $location . $viewtype . '/' . $view_root;
+    // Now examine core
+    $location = $CONFIG->viewpath;
+    $viewtype = elgg_get_viewtype();
+    $root = $location . $viewtype . '/' . $view_root;
 
-	if (file_exists($root) && is_dir($root)) {
-		$val = elgg_get_views($root, $view_root);
-		if (!is_array($treecache[$view_root])) {
-			$treecache[$view_root] = array();
-		}
-		$treecache[$view_root] = array_merge($treecache[$view_root], $val);
-	}
+    if (file_exists($root) && is_dir($root)) {
+        $val = elgg_get_views($root, $view_root);
+        if (!is_array($treecache[$view_root])) {
+            $treecache[$view_root] = [];
+        }
+        $treecache[$view_root] = array_merge($treecache[$view_root], $val);
+    }
 
-	return $treecache[$view_root];
+    return $treecache[$view_root];
 }
 
 /**
@@ -1481,36 +1510,37 @@ function elgg_view_tree($view_root, $viewtype = "") {
  * @todo This seems overly complicated.
  * @access private
  */
-function autoregister_views($view_base, $folder, $base_location_path, $viewtype) {
-	if ($handle = opendir($folder)) {
-		while ($view = readdir($handle)) {
-			if (!in_array($view, array('.', '..', '.svn', 'CVS')) && !is_dir($folder . "/" . $view)) {
-				// this includes png files because some icons are stored within view directories.
-				// See commit [1705]
-				if ((substr_count($view, ".php") > 0) || (substr_count($view, ".png") > 0)) {
-					if (!empty($view_base)) {
-						$view_base_new = $view_base . "/";
-					} else {
-						$view_base_new = "";
-					}
+function autoregister_views($view_base, $folder, $base_location_path, $viewtype)
+{
+    if ($handle = opendir($folder)) {
+        while ($view = readdir($handle)) {
+            if (!in_array($view, ['.', '..', '.svn', 'CVS'], true) && !is_dir($folder . "/" . $view)) {
+                // this includes png files because some icons are stored within view directories.
+                // See commit [1705]
+                if ((substr_count($view, ".php") > 0) || (substr_count($view, ".png") > 0)) {
+                    if (!empty($view_base)) {
+                        $view_base_new = $view_base . "/";
+                    } else {
+                        $view_base_new = "";
+                    }
 
-					elgg_set_view_location($view_base_new . str_replace('.php', '', $view),
-						$base_location_path, $viewtype);
-				}
-			} else if (!in_array($view, array('.', '..', '.svn', 'CVS')) && is_dir($folder . "/" . $view)) {
-				if (!empty($view_base)) {
-					$view_base_new = $view_base . "/";
-				} else {
-					$view_base_new = "";
-				}
-				autoregister_views($view_base_new . $view, $folder . "/" . $view,
-					$base_location_path, $viewtype);
-			}
-		}
-		return TRUE;
-	}
+                    elgg_set_view_location($view_base_new . str_replace('.php', '', $view),
+                        $base_location_path, $viewtype);
+                }
+            } elseif (!in_array($view, ['.', '..', '.svn', 'CVS'], true) && is_dir($folder . "/" . $view)) {
+                if (!empty($view_base)) {
+                    $view_base_new = $view_base . "/";
+                } else {
+                    $view_base_new = "";
+                }
+                autoregister_views($view_base_new . $view, $folder . "/" . $view,
+                    $base_location_path, $viewtype);
+            }
+        }
+        return true;
+    }
 
-	return FALSE;
+    return false;
 }
 
 /**
@@ -1519,8 +1549,8 @@ function autoregister_views($view_base, $folder, $base_location_path, $viewtype)
  * @return void
  * @access private
  */
-function elgg_views_add_rss_link() {
-
+function elgg_views_add_rss_link()
+{
 }
 
 /**
@@ -1529,9 +1559,10 @@ function elgg_views_add_rss_link() {
  *
  * @access private
  */
-function elgg_views_handle_deprecated_views() {
-	$location = elgg_get_view_location('page_elements/contentwrapper');
-	if ($location === "/var/www/views/") {
-		elgg_extend_view('page_elements/contentwrapper', 'page/elements/wrapper');
-	}
+function elgg_views_handle_deprecated_views()
+{
+    $location = elgg_get_view_location('page_elements/contentwrapper');
+    if ($location === "/var/www/views/") {
+        elgg_extend_view('page_elements/contentwrapper', 'page/elements/wrapper');
+    }
 }

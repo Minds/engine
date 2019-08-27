@@ -15,7 +15,6 @@ use Minds\Traits\MagicAttributes;
  */
 class MetricsSync
 {
-
     use MagicAttributes;
 
     private $guid;
@@ -29,6 +28,4 @@ class MetricsSync
     private $period;
 
     private $synced;
-
 }
-

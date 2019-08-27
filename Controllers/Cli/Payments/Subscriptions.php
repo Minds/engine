@@ -63,7 +63,7 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
     public function repair()
     {
         error_reporting(E_ALL);
-        ini_set('display_errors', 1);   
+        ini_set('display_errors', 1);
 
         /** @var Manager $manager */
         $manager = Di::_()->get('Payments\Subscriptions\Manager');
@@ -101,14 +101,14 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
 
                 $this->out("Subscription:`{$subscription->getId()}` needs repairing to $urn");
                 $manager->setSubscription($subscription);
-                                $manager->cancel();
+                $manager->cancel();
                 $subscription->setId($urn);
                 $manager->setSubscription($subscription);
                 $manager->create();
             }
         }
 
-        $this->out("Done"); 
+        $this->out("Done");
     }
 
     /**

@@ -289,5 +289,4 @@ class Report extends DenormalizedEntity
 
         return $export;
     }
-
 }

@@ -41,7 +41,8 @@ class TokenSaleEvent extends AbstractReport
      * Contructor
      * @param Core\Config\Config $config
      */
-    public function __construct($config = null) {
+    public function __construct($config = null)
+    {
         $config = $config ?: Di::_()->get('Config');
 
         $blockchainConfig = $config->get('blockchain');
@@ -75,7 +76,7 @@ class TokenSaleEvent extends AbstractReport
             ->get();
 
         // format output
-        return array_map(function($row) use($ethPrice) {
+        return array_map(function ($row) use ($ethPrice) {
             $eth = BigNumber::fromPlain($row['value'], 18);
             $ethPriceVal = $ethPrice->getNearestPrice($row['timeStamp']);
             $usd = $eth->mul($ethPriceVal)->toString();

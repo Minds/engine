@@ -40,7 +40,6 @@ class Promotion extends EmailCampaign
     {
         $this->subject = $subject;
         return $this;
-
     }
 
     /**
@@ -79,5 +78,4 @@ class Promotion extends EmailCampaign
         //send email
         $this->mailer->send($message);
     }
-
 }

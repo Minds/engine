@@ -7,4 +7,6 @@
  * @package    Elgg.Core
  * @subpackage Exceptions.Stub
  */
-class DatabaseException extends Exception {}
+class DatabaseException extends Exception
+{
+}

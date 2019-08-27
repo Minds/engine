@@ -16,7 +16,7 @@ array_shift($argv);
 if (isset($argv[0]) && $argv[0] == 'help') {
     $help = true;
     array_shift($argv);
-} elseif (array_search('--help', $argv)) {
+} elseif (array_search('--help', $argv, true)) {
     $help = true;
 }
 

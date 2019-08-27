@@ -22,13 +22,13 @@ class merchant implements Interfaces\Api
    *
    * API:: /v1/merchant/:slug
    */
-  public function get($pages)
-  {
-      Factory::isLoggedIn();
+    public function get($pages)
+    {
+        Factory::isLoggedIn();
 
-      $response = [];
+        $response = [];
 
-      switch ($pages[0]) {
+        switch ($pages[0]) {
         case "status":
             $merchants = Core\Di\Di::_()->get('Monetization\Merchants');
             $merchants->setUser(Core\Sandbox::user(Core\Session::getLoggedInUser(), 'merchant'));
@@ -49,7 +49,7 @@ class merchant implements Interfaces\Api
           $guid = Core\Session::getLoggedInUser()->guid;
           $stripe = Core\Di\Di::_()->get('StripePayments');
 
-          try{
+          try {
               $sales = $stripe->getSales($merchant);
 
               foreach ($sales as $sale) {
@@ -90,7 +90,7 @@ class merchant implements Interfaces\Api
                   'available'
                 ]);
 
-                foreach($balance->data as $record){
+                foreach ($balance->data as $record) {
                     // Get the required charge information and assign to variables
                     $id = $record->id;
                     $type = $record->type;
@@ -102,7 +102,7 @@ class merchant implements Interfaces\Api
                     $available = gmdate('Y-m-d H:i', $record->available_on);
 
                     // Create an array of the above charge information
-                    $report = array(
+                    $report = [
                                 $id,
                                 $type,
                                 $status,
@@ -111,7 +111,7 @@ class merchant implements Interfaces\Api
                                 $amount,
                                 $currency,
                                 $available
-                      );
+                      ];
 
 
                     fputcsv($out, $report);
@@ -149,14 +149,14 @@ class merchant implements Interfaces\Api
           break;
         }
 
-      return Factory::response($response);
-  }
+        return Factory::response($response);
+    }
 
     public function post($pages)
     {
         Factory::isLoggedIn();
 
-        $response = array();
+        $response = [];
 
         switch ($pages[0]) {
           case "onboard":
@@ -221,7 +221,6 @@ class merchant implements Interfaces\Api
                 ]);
 
                 $user->save();
-
             } catch (\Exception $e) {
                 $response['status'] = "error";
                 $response['message'] = $e->getMessage();
@@ -252,19 +251,19 @@ class merchant implements Interfaces\Api
               ->setPhoneNumber($_POST['phoneNumber']);
 
               if ($_POST['ssn']) {
-                $merchant->setSSN($_POST['ssn'] ? str_pad((string) $_POST['ssn'], 4, '0', STR_PAD_LEFT) : '');
+                  $merchant->setSSN($_POST['ssn'] ? str_pad((string) $_POST['ssn'], 4, '0', STR_PAD_LEFT) : '');
               }
 
               if ($_POST['personalIdNumber']) {
-                $merchant->setPersonalIdNumber($_POST['personalIdNumber']);
+                  $merchant->setPersonalIdNumber($_POST['personalIdNumber']);
               }
 
               if ($_POST['accountNumber']) {
-                $merchant->setAccountNumber($_POST['accountNumber']);
+                  $merchant->setAccountNumber($_POST['accountNumber']);
               }
 
               if ($_POST['routingNumber']) {
-                $merchant->setRoutingNumber($_POST['routingNumber']);
+                  $merchant->setRoutingNumber($_POST['routingNumber']);
               }
 
             try {
@@ -329,11 +328,11 @@ class merchant implements Interfaces\Api
 
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     public function delete($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }

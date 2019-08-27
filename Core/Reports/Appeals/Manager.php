@@ -17,7 +17,6 @@ use Minds\Core\Security\ACL;
 
 class Manager
 {
-
     /** @var Repository $repository */
     private $repository;
 
@@ -39,8 +38,7 @@ class Manager
         $notificationDelegate = null,
         $summonDelegate = null,
         $acl = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository;
         $this->entitiesResolver = $entitiesResolver ?: new EntitiesResolver;
         $this->notificationDelegate = $notificationDelegate ?: new Delegates\NotificationDelegate;
@@ -96,5 +94,4 @@ class Manager
 
         return $added;
     }
-
 }

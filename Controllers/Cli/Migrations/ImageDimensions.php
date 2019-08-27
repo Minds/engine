@@ -14,7 +14,6 @@ use Minds\Core\Data\Cassandra\Prepared;
 
 use Cassandra;
 
-
 class ImageDimensions extends Cli\Controller implements Interfaces\CliControllerInterface
 {
     public function __construct()
@@ -39,12 +38,12 @@ class ImageDimensions extends Cli\Controller implements Interfaces\CliController
         ini_set('display_errors', 1);
 
         $guid = $this->getOpt('guid');
-        $this->update($guid); 
+        $this->update($guid);
     }
 
     private function update($guid)
     {
-         Core\Security\ACL::$ignore = true;
+        Core\Security\ACL::$ignore = true;
         $thumbs = Di::_()->get('Media\Thumbnails');
 
         $entity = new Activity($guid);
@@ -73,7 +72,7 @@ class ImageDimensions extends Cli\Controller implements Interfaces\CliController
             $entity->custom_data = $custom;
             $entity->save();
             $this->out("$entity->guid: Saved with w:$width h:$height");
-        }    
+        }
     }
 
     public function activities()
@@ -104,6 +103,5 @@ class ImageDimensions extends Cli\Controller implements Interfaces\CliController
                 $this->update($row['column1']);
             }
         }
-
     }
 }

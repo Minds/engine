@@ -47,7 +47,7 @@ class Sessions implements \SessionHandlerInterface
 
     public function destroy($session_id)
     {
-        error_log('DEPRECATED: Sessions->destroy'); 
+        error_log('DEPRECATED: Sessions->destroy');
     }
 
     public function gc($maxlifetime)
@@ -62,7 +62,7 @@ class Sessions implements \SessionHandlerInterface
      */
     public function destroyAll($guid)
     {
-        error_log('DEPRECATED: Sessions->destroyAll called'); 
+        error_log('DEPRECATED: Sessions->destroyAll called');
     }
 
     /**
@@ -72,7 +72,7 @@ class Sessions implements \SessionHandlerInterface
      */
     public function syncAll($guid)
     {
-        error_log('DEPRECATED: Sessions->syncAll called'); 
+        error_log('DEPRECATED: Sessions->syncAll called');
     }
 
     /**
@@ -122,6 +122,6 @@ class Sessions implements \SessionHandlerInterface
      */
     protected function getUserGuid()
     {
-        return Core\Session::getLoggedInUserGuid(); 
+        return Core\Session::getLoggedInUserGuid();
     }
 }

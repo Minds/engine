@@ -35,7 +35,8 @@ class Wire
     /** @var int $timestamp **/
     private $timestamp;
 
-    public function getGuid() {
+    public function getGuid()
+    {
         if (!$this->guid) {
             $this->guid = Guid::build();
         }
@@ -43,7 +44,8 @@ class Wire
         return $this->guid;
     }
 
-    public function export() {
+    public function export()
+    {
         return [
             'timestamp' => $this->timestamp,
             'amount' => $this->amount,
@@ -52,5 +54,4 @@ class Wire
             'recurring' => $this->recurring,
         ];
     }
-
 }

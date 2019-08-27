@@ -180,7 +180,7 @@ class Minds extends base
     public function loadLegacy()
     {
         // TODO: Remove when no longer needed
-        $lib_files = array(
+        $lib_files = [
             'elgglib.php',
             'access.php',
             'configuration.php',
@@ -204,7 +204,7 @@ class Minds extends base
             'users.php',
             //'xml.php',
             //'xml-rpc.php'
-        );
+        ];
 
         foreach ($lib_files as $file) {
             $file = __MINDS_ROOT__.$this->legacy_lib_dir.$file;

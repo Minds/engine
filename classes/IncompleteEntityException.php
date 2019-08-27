@@ -7,4 +7,6 @@
  * @subpackage Exception
  * @access private
  */
-class IncompleteEntityException extends Exception {}
+class IncompleteEntityException extends Exception
+{
+}

@@ -68,7 +68,7 @@ class AdminQueue
         }
 
         if ($options['offset']) {
-            $cqlOpts['paging_state_token'] = base64_decode($options['offset']);
+            $cqlOpts['paging_state_token'] = base64_decode($options['offset'], true);
         }
 
         $query = new Prepared\Custom();

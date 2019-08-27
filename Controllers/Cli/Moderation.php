@@ -71,7 +71,7 @@ class Moderation extends Cli\Controller implements Interfaces\CliControllerInter
         if (!$report) {
             $this->out('Error: Invalid report');
             exit(1);
-        } elseif($report->getState() !== 'initial_jury_decided') {
+        } elseif ($report->getState() !== 'initial_jury_decided') {
             $this->out("Error: Report is not appealable. State is [{$report->getState()}].");
             exit(1);
         }
@@ -151,7 +151,7 @@ class Moderation extends Cli\Controller implements Interfaces\CliControllerInter
                 ->setJurorGuid((string) $user->guid)
                 ->setStatus($respond);
 
-                $summonsManager->respond($summons);
+            $summonsManager->respond($summons);
 
             $this->out("Responded to {$user->guid}'s summons to {$reportUrn} with {$respond}");
         }

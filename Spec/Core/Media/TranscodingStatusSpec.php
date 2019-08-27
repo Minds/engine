@@ -35,7 +35,6 @@ class TranscodingStatusSpec extends ObjectBehavior
     {
         $this->beConstructedWith($this->video, new Result(), $this->config);
         $this->shouldHaveType(TranscodingStatus::class);
-        
     }
 
     public function it_should_parse_empty_data()
@@ -61,6 +60,4 @@ class TranscodingStatusSpec extends ObjectBehavior
         $this->getThumbnails()->shouldContain('/test/123/thumbnail-00000.png');
         $this->isTranscodingComplete()->shouldReturn(true);
     }
-
-    
 }

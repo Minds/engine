@@ -1,6 +1,6 @@
 <?php
 /**
- * 
+ *
  */
 namespace Minds\Core\Experiments\Hypotheses;
 
@@ -8,7 +8,6 @@ use Minds\Core\Experiments\Bucket;
 
 class Homepage121118 implements HypothesisInterface
 {
-
     /**
      * Return the id for the hypothesis
      * @return string
@@ -33,5 +32,4 @@ class Homepage121118 implements HypothesisInterface
                 ->setWeight(25), //25 pct of users will be in this bucket
         ];
     }
-
 }

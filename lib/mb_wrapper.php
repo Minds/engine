@@ -2,8 +2,8 @@
 
 // if mb functions are available, set internal encoding to UTF8
 if (is_callable('mb_internal_encoding')) {
-	mb_internal_encoding("UTF-8");
-//	ini_set("mbstring.internal_encoding", 'UTF-8');
+    mb_internal_encoding("UTF-8");
+    //	ini_set("mbstring.internal_encoding", 'UTF-8');
 }
 
 /**
@@ -16,14 +16,15 @@ if (is_callable('mb_internal_encoding')) {
  * @return array
  * @since 1.7.0
  */
-function elgg_parse_str($str) {
-	if (is_callable('mb_parse_str')) {
-		mb_parse_str($str, $results);
-	} else {
-		parse_str($str, $results);
-	}
+function elgg_parse_str($str)
+{
+    if (is_callable('mb_parse_str')) {
+        mb_parse_str($str, $results);
+    } else {
+        parse_str($str, $results);
+    }
 
-	return $results;
+    return $results;
 }
 
 
@@ -37,12 +38,13 @@ function elgg_parse_str($str) {
  * @return string
  * @since 1.7.0
  */
-function elgg_split() {
-	$args = func_get_args();
-	if (is_callable('mb_split')) {
-		return call_user_func_array('mb_split', $args);
-	}
-	return call_user_func_array('split', $args);
+function elgg_split()
+{
+    $args = func_get_args();
+    if (is_callable('mb_split')) {
+        return call_user_func_array('mb_split', $args);
+    }
+    return call_user_func_array('split', $args);
 }
 
 /**
@@ -54,12 +56,13 @@ function elgg_split() {
  * @return string
  * @since 1.7.0
  */
-function elgg_stristr() {
-	$args = func_get_args();
-	if (is_callable('mb_stristr')) {
-		return call_user_func_array('mb_stristr', $args);
-	}
-	return call_user_func_array('stristr', $args);
+function elgg_stristr()
+{
+    $args = func_get_args();
+    if (is_callable('mb_stristr')) {
+        return call_user_func_array('mb_stristr', $args);
+    }
+    return call_user_func_array('stristr', $args);
 }
 
 /**
@@ -71,12 +74,13 @@ function elgg_stristr() {
  * @return string
  * @since 1.7.0
  */
-function elgg_strlen() {
-	$args = func_get_args();
-	if (is_callable('mb_strlen')) {
-		return call_user_func_array('mb_strlen', $args);
-	}
-	return call_user_func_array('strlen', $args);
+function elgg_strlen()
+{
+    $args = func_get_args();
+    if (is_callable('mb_strlen')) {
+        return call_user_func_array('mb_strlen', $args);
+    }
+    return call_user_func_array('strlen', $args);
 }
 
 /**
@@ -88,12 +92,13 @@ function elgg_strlen() {
  * @return string
  * @since 1.7.0
  */
-function elgg_strpos() {
-	$args = func_get_args();
-	if (is_callable('mb_strpos')) {
-		return call_user_func_array('mb_strpos', $args);
-	}
-	return call_user_func_array('strpos', $args);
+function elgg_strpos()
+{
+    $args = func_get_args();
+    if (is_callable('mb_strpos')) {
+        return call_user_func_array('mb_strpos', $args);
+    }
+    return call_user_func_array('strpos', $args);
 }
 
 /**
@@ -105,12 +110,13 @@ function elgg_strpos() {
  * @return string
  * @since 1.7.0
  */
-function elgg_strrchr() {
-	$args = func_get_args();
-	if (is_callable('mb_strrchr')) {
-		return call_user_func_array('mb_strrchr', $args);
-	}
-	return call_user_func_array('strrchr', $args);
+function elgg_strrchr()
+{
+    $args = func_get_args();
+    if (is_callable('mb_strrchr')) {
+        return call_user_func_array('mb_strrchr', $args);
+    }
+    return call_user_func_array('strrchr', $args);
 }
 
 /**
@@ -122,12 +128,13 @@ function elgg_strrchr() {
  * @return int
  * @since 1.7.0
  */
-function elgg_strripos() {
-	$args = func_get_args();
-	if (is_callable('mb_strripos')) {
-		return call_user_func_array('mb_strripos', $args);
-	}
-	return call_user_func_array('strripos', $args);
+function elgg_strripos()
+{
+    $args = func_get_args();
+    if (is_callable('mb_strripos')) {
+        return call_user_func_array('mb_strripos', $args);
+    }
+    return call_user_func_array('strripos', $args);
 }
 
 /**
@@ -139,12 +146,13 @@ function elgg_strripos() {
  * @return int
  * @since 1.7.0
  */
-function elgg_strrpos() {
-	$args = func_get_args();
-	if (is_callable('mb_strrpos')) {
-		return call_user_func_array('mb_strrpos', $args);
-	}
-	return call_user_func_array('strrpos', $args);
+function elgg_strrpos()
+{
+    $args = func_get_args();
+    if (is_callable('mb_strrpos')) {
+        return call_user_func_array('mb_strrpos', $args);
+    }
+    return call_user_func_array('strrpos', $args);
 }
 
 /**
@@ -156,12 +164,13 @@ function elgg_strrpos() {
  * @return bool
  * @since 1.7.0
  */
-function elgg_strstr() {
-	$args = func_get_args();
-	if (is_callable('mb_strstr')) {
-		return call_user_func_array('mb_strstr', $args);
-	}
-	return call_user_func_array('strstr', $args);
+function elgg_strstr()
+{
+    $args = func_get_args();
+    if (is_callable('mb_strstr')) {
+        return call_user_func_array('mb_strstr', $args);
+    }
+    return call_user_func_array('strstr', $args);
 }
 
 /**
@@ -173,12 +182,13 @@ function elgg_strstr() {
  * @return string
  * @since 1.7.0
  */
-function elgg_strtolower() {
-	$args = func_get_args();
-	if (is_callable('mb_strtolower')) {
-		return call_user_func_array('mb_strtolower', $args);
-	}
-	return call_user_func_array('strtolower', $args);
+function elgg_strtolower()
+{
+    $args = func_get_args();
+    if (is_callable('mb_strtolower')) {
+        return call_user_func_array('mb_strtolower', $args);
+    }
+    return call_user_func_array('strtolower', $args);
 }
 
 /**
@@ -190,12 +200,13 @@ function elgg_strtolower() {
  * @return string
  * @since 1.7.0
  */
-function elgg_strtoupper() {
-	$args = func_get_args();
-	if (is_callable('mb_strtoupper')) {
-		return call_user_func_array('mb_strtoupper', $args);
-	}
-	return call_user_func_array('strtoupper', $args);
+function elgg_strtoupper()
+{
+    $args = func_get_args();
+    if (is_callable('mb_strtoupper')) {
+        return call_user_func_array('mb_strtoupper', $args);
+    }
+    return call_user_func_array('strtoupper', $args);
 }
 
 /**
@@ -207,12 +218,13 @@ function elgg_strtoupper() {
  * @return int
  * @since 1.7.0
  */
-function elgg_substr_count() {
-	$args = func_get_args();
-	if (is_callable('mb_substr_count')) {
-		return call_user_func_array('mb_substr_count', $args);
-	}
-	return call_user_func_array('substr_count', $args);
+function elgg_substr_count()
+{
+    $args = func_get_args();
+    if (is_callable('mb_substr_count')) {
+        return call_user_func_array('mb_substr_count', $args);
+    }
+    return call_user_func_array('substr_count', $args);
 }
 
 /**
@@ -224,10 +236,11 @@ function elgg_substr_count() {
  * @return string
  * @since 1.7.0
  */
-function elgg_substr() {
-	$args = func_get_args();
-	if (is_callable('mb_substr')) {
-		return call_user_func_array('mb_substr', $args);
-	}
-	return call_user_func_array('substr', $args);
+function elgg_substr()
+{
+    $args = func_get_args();
+    if (is_callable('mb_substr')) {
+        return call_user_func_array('mb_substr', $args);
+    }
+    return call_user_func_array('substr', $args);
 }

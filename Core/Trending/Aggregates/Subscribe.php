@@ -8,12 +8,11 @@ use Minds\Core\Data\ElasticSearch;
 
 class Subscribe extends Aggregate
 {
-
     protected $multiplier = 1;
 
     public function get()
     {
-        $filter = [ 
+        $filter = [
             'term' => [
                 'action' => 'subscribe'
             ]
@@ -39,7 +38,7 @@ class Subscribe extends Aggregate
                 ],
                 'aggs' => [
                     'entities' => [
-                        'terms' => [ 
+                        'terms' => [
                             'field' => 'user_guid.keyword',
                             'size' => $this->limit,
                         ],
@@ -58,5 +57,4 @@ class Subscribe extends Aggregate
         }
         return $rows;
     }
-
 }

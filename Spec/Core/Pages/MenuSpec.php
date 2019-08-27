@@ -7,7 +7,7 @@ use Prophecy\Argument;
 
 class MenuSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Pages\Menu');
     }

@@ -45,7 +45,6 @@ class Rewards
         ];*/
 
         foreach ($founders as $founder) {
-
             if (!$founder->uuid|| $founder->sentRewards) {
                 $skipped++;
                 echo "\r [emails]: $queued queued | $skipped skipped | $founder->name | $founder->uuid";
@@ -72,5 +71,4 @@ class Rewards
         }
         echo "\n [emails]: Completed ($queued queued | $skipped skipped)";
     }
-
 }

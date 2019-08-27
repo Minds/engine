@@ -54,7 +54,8 @@
  * @link http://code.google.com/p/jsmin-php/
  */
 
-class JSMin {
+class JSMin
+{
     const ORD_LF            = 10;
     const ORD_SPACE         = 32;
     const ACTION_KEEP_A     = 1;
@@ -128,7 +129,7 @@ class JSMin {
                 if ($this->b === ' ') {
                     $command = self::ACTION_DELETE_A_B;
 
-                    // in case of mbstring.func_overload & 2, must check for null b,
+                // in case of mbstring.func_overload & 2, must check for null b,
                     // otherwise mb_strpos will give WARNING
                 } elseif ($this->b === null
                           || (false === strpos('{[(+-!~', $this->b)
@@ -191,7 +192,7 @@ class JSMin {
                 $this->a = $this->b;
                 if ($this->a === "'" || $this->a === '"') { // string literal
                     $str = $this->a; // in case needed for exception
-                    for(;;) {
+                    for (;;) {
                         $this->output .= $this->a;
                         $this->lastByteOut = $this->a;
 
@@ -221,11 +222,11 @@ class JSMin {
                 if ($this->b === '/' && $this->isRegexpLiteral()) {
                     $this->output .= $this->a . $this->b;
                     $pattern = '/'; // keep entire pattern in case we need to report it in the exception
-                    for(;;) {
+                    for (;;) {
                         $this->a = $this->get();
                         $pattern .= $this->a;
                         if ($this->a === '[') {
-                            for(;;) {
+                            for (;;) {
                                 $this->output .= $this->a;
                                 $this->a = $this->get();
                                 $pattern .= $this->a;
@@ -275,12 +276,12 @@ class JSMin {
             return true;
         }
 
-                // we have to check for a preceding keyword, and we don't need to pattern
-                // match over the whole output.
-                $recentOutput = substr($this->output, -10);
+        // we have to check for a preceding keyword, and we don't need to pattern
+        // match over the whole output.
+        $recentOutput = substr($this->output, -10);
 
-                // check if return/typeof directly precede a pattern without a space
-                foreach (array('return', 'typeof') as $keyword) {
+        // check if return/typeof directly precede a pattern without a space
+        foreach (['return', 'typeof'] as $keyword) {
             if ($this->a !== substr($keyword, -1)) {
                 // certainly wasn't keyword
                 continue;
@@ -292,13 +293,13 @@ class JSMin {
             }
         }
 
-                // check all keywords
-                if ($this->a === ' ' || $this->a === "\n") {
-                        if (preg_match('~(^|[\\s\\S])(?:case|else|in|return|typeof)$~', $recentOutput, $m)) {
-                                if ($m[1] === '' || !$this->isAlphaNum($m[1])) {
-                                        return true;
-                                }
-                        }
+        // check all keywords
+        if ($this->a === ' ' || $this->a === "\n") {
+            if (preg_match('~(^|[\\s\\S])(?:case|else|in|return|typeof)$~', $recentOutput, $m)) {
+                if ($m[1] === '' || !$this->isAlphaNum($m[1])) {
+                    return true;
+                }
+            }
         }
 
         return false;
@@ -394,7 +395,7 @@ class JSMin {
     {
         $this->get();
         $comment = '';
-        for(;;) {
+        for (;;) {
             $get = $this->get();
             if ($get === '*') {
                 if ($this->peek() === '/') { // end of comment reached
@@ -406,7 +407,7 @@ class JSMin {
                             $this->keptComment = "\n";
                         }
                         $this->keptComment .= "/*!" . substr($comment, 1) . "*/\n";
-                    } else if (preg_match('/^@(?:cc_on|if|elif|else|end)\\b/', $comment)) {
+                    } elseif (preg_match('/^@(?:cc_on|if|elif|else|end)\\b/', $comment)) {
                         // IE conditional
                         $this->keptComment .= "/*{$comment}*/";
                     }
@@ -444,6 +445,12 @@ class JSMin {
     }
 }
 
-class JSMin_UnterminatedStringException extends Exception {}
-class JSMin_UnterminatedCommentException extends Exception {}
-class JSMin_UnterminatedRegExpException extends Exception {}
+class JSMin_UnterminatedStringException extends Exception
+{
+}
+class JSMin_UnterminatedCommentException extends Exception
+{
+}
+class JSMin_UnterminatedRegExpException extends Exception
+{
+}

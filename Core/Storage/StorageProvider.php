@@ -8,7 +8,6 @@ namespace Minds\Core\Storage;
 use Minds\Core;
 use Minds\Core\Di\Provider;
 
-
 class StorageProvider extends Provider
 {
     public function register()

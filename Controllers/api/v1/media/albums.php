@@ -16,7 +16,6 @@ use Minds\Api\Factory;
 
 class albums implements Interfaces\Api
 {
-
     /**
      * Return the media items
      * @param array $pages

@@ -15,11 +15,11 @@ class Points_transaction extends Entities\Object
     public function initializeAttributes()
     {
         parent::initializeAttributes();
-        $this->attributes = array_merge($this->attributes, array(
+        $this->attributes = array_merge($this->attributes, [
             'subtype' => 'points_transaction',
             'owner_guid' => elgg_get_logged_in_user_guid(),
             'access_id' => 0 //private
-        ));
+        ]);
     }
 
     /**
@@ -74,9 +74,9 @@ class Points_transaction extends Entities\Object
      */
     public function getExportableValues()
     {
-        return array_merge(parent::getExportableValues(), array(
+        return array_merge(parent::getExportableValues(), [
             'entity_guid',
             'points'
-        ));
+        ]);
     }
 }

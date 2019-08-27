@@ -37,8 +37,7 @@ class SubscribersDelegate implements ArtifactsDelegateInterface
         $repository = null,
         $scroll = null,
         $subscriptionsManager = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository();
         $this->scroll = $scroll ?: Di::_()->get('Database\Cassandra\Cql\Scroll');
         $this->subscriptionsManager = $subscriptionsManager ?: new SubscriptionsManager();

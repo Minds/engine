@@ -7,4 +7,6 @@
  * @package    Elgg.Core
  * @subpackage Exception
  */
-class NotImplementedException extends CallException {}
+class NotImplementedException extends CallException
+{
+}
