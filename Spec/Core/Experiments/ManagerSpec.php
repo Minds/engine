@@ -12,20 +12,22 @@ use Minds\Core\Experiments\Hypotheses\Homepage121118;
 
 class ManagerSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_return_a_list_of_experiments()
+    function it_should_return_a_list_of_experiments()
     {
         $this->getExperiments()->shouldHaveCount(2);
     }
 
-    public function it_should_return_bucket_for_experiment(
+    function it_should_return_bucket_for_experiment(
         Sampler $sampler,
         Homepage121118 $hypothesis
-    ) {
+    )
+    {
         $this->beConstructedWith($sampler);
 
         $sampler->setUser(null)
@@ -46,4 +48,5 @@ class ManagerSpec extends ObjectBehavior
         $this->getBucketForExperiment('Homepage121118')
             ->shouldReturn($bucket);
     }
+
 }

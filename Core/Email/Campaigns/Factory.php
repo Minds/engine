@@ -3,7 +3,8 @@ namespace Minds\Core\Email\Campaigns;
 
 class Factory
 {
-    public static function build($name)
+
+    static public function build($name)
     {
         $name = ucfirst($name);
         $class = "Minds\\Core\\Email\\Campaigns\\$name";
@@ -11,4 +12,5 @@ class Factory
             return new $class;
         }
     }
+
 }

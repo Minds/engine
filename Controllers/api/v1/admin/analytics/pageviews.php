@@ -7,11 +7,12 @@ use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Interfaces;
 
+
 class pageviews implements Interfaces\Api, Interfaces\ApiAdminPam
 {
     public function get($pages)
     {
-        $response = [];
+        $response = array();
 
         $app = Core\Analytics\App::_()
             ->setMetric('pageview');
@@ -37,4 +38,5 @@ class pageviews implements Interfaces\Api, Interfaces\ApiAdminPam
     {
         return Factory::response([]);
     }
+
 }

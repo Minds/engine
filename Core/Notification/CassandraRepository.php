@@ -5,7 +5,6 @@
 
 namespace Minds\Core\Notification;
 
-use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Di\Di;
 use Minds\Common\Repository\Response;
 use Cassandra\Bigint;
@@ -18,7 +17,7 @@ class CassandraRepository
 {
     const NOTIFICATION_TTL = ((60 * 60) * 24) * 30; // 30 days
 
-    /** @var Client $cql */
+    /** @var $cql */
     private $cql;
 
     public function __construct($cql = null, $urn = null)
@@ -66,7 +65,7 @@ class CassandraRepository
         $query->query($statement, $values);
         $query->setOpts([
             'page_size' => $opts['limit'],
-            'paging_state_token' => base64_decode($opts['offset'], true),
+            'paging_state_token' => base64_decode($opts['offset']),
         ]);
 
         try {
@@ -83,8 +82,8 @@ class CassandraRepository
         foreach ($result as $row) {
             $notification = new Notification();
             $notification->setUuid($row['uuid']->uuid() ?: null)
-                ->setToGuid(isset($row['to_guid']) ? (int) $row['to_guid']->value() : null)
-                ->setFromGuid(isset($row['from_guid']) ? (int) $row['from_guid']->value() : null)
+                ->setToGuid($row['to_guid'] ? (int) $row['to_guid']->value(): null)
+                ->setFromGuid($row['from_guid'] ? (int) $row['from_guid']->value(): null)
                 ->setEntityGuid((string) $row['entity_guid']) // REMOVE ONCE FULLY ON CASSANDRA
                 ->setEntityUrn($row['entity_urn'])
                 ->setCreatedTimestamp($row['created_timestamp'] ? $row['created_timestamp']->time() : null)
@@ -105,7 +104,7 @@ class CassandraRepository
      */
     public function get($urn)
     {
-        list($to_guid, $uuid) = explode('-', $this->urn->setUrn($urn)->getNss(), 2);
+        list ($to_guid, $uuid) = explode('-', $this->urn->setUrn($urn)->getNss(), 2);
 
         $response = $this->getList([
             'to_guid' => $to_guid,

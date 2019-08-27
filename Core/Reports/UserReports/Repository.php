@@ -17,6 +17,7 @@ use Minds\Entities;
 use Minds\Entities\DenormalizedEntity;
 use Minds\Entities\NormalizedEntity;
 
+
 class Repository
 {
     /** @var Data\Cassandra\Client $es */
@@ -39,6 +40,7 @@ class Repository
             'state' => '',
             'owner' => null
         ], $opts);
+
     }
 
     /**
@@ -64,7 +66,7 @@ class Repository
             $statement .= ", user_hashes += ?";
             $hashesSet = new Set(Type::text());
             $hashesSet->add($report->getReporterHash());
-            $values[] = $hashesSet;
+            $values[] = $hashesSet; 
         }
 
         $statement .= " WHERE entity_urn = ?
@@ -81,4 +83,5 @@ class Repository
 
         return (bool) $this->cql->request($prepared);
     }
+
 }

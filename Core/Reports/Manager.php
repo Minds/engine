@@ -17,11 +17,12 @@ use Minds\Core\Security\ACL;
 
 class Manager
 {
+
     /** @var Repository $repository */
     private $repository;
 
     /** @var PreFeb2019Repository $preFeb2019Repository */
-    private $preFeb2019Repository;
+    private $preFeb2019Repository;    
 
     /** @var EntitiesResolver $entitiesResolver */
     private $entitiesResolver;
@@ -31,10 +32,11 @@ class Manager
 
     public function __construct(
         $repository = null,
-        $preFeb2019Repository = null,
+        $preFeb2019Repository = null, 
         $entitiesResolver = null,
         $acl = null
-    ) {
+    )
+    {
         $this->repository = $repository ?: new Repository;
         $this->preFeb2019Repository = $preFeb2019Repository ?: new PreFeb2019Repository();
         $this->entitiesResolver = $entitiesResolver ?: new EntitiesResolver;
@@ -95,7 +97,7 @@ class Manager
     }
 
     /**
-     * Indempotent function to return the latest report found
+     * Indempotent function to return the latest report found 
      * or supplied
      * @param Report $report
      * @return Report
@@ -118,4 +120,5 @@ class Manager
 
         return $reports[0];
     }
+
 }

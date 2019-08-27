@@ -18,4 +18,5 @@ class Trending implements Interfaces\QueueRunner
                 $manager->run();
             });
     }
+
 }

@@ -9,12 +9,13 @@ use Prophecy\Argument;
 
 class ReportSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType(Report::class);
     }
 
-    public function it_should_return_a_urn()
+    function it_should_return_a_urn()
     {
         $this->setEntityUrn('urn:activity:123')
             ->setReasonCode(2)
@@ -24,4 +25,5 @@ class ReportSpec extends ObjectBehavior
         $this->getUrn()
             ->shouldBe('urn:report:(urn:activity:123)-2-1-1556898915000');
     }
+
 }

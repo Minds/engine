@@ -9,12 +9,12 @@ use Prophecy\Argument;
 
 class VotesUpSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(VotesUp::class);
     }
 
-    public function it_should_return_upvotes_with_new_score(Client $client)
+    function it_should_return_upvotes_with_new_score(Client $client)
     {
         $this->beConstructedWith($client);
 

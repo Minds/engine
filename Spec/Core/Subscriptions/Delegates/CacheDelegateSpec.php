@@ -10,12 +10,13 @@ use Prophecy\Argument;
 
 class CacheDelegateSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType(CacheDelegate::class);
     }
 
-    public function it_should_set_the_cache_for_an_active_subscription(Cache $cache)
+    function it_should_set_the_cache_for_an_active_subscription(Cache $cache)
     {
         $this->beConstructedWith($cache);
         $cache->set('123:isSubscribed:456', true)
@@ -39,7 +40,7 @@ class CacheDelegateSpec extends ObjectBehavior
         $this->cache($subscription);
     }
 
-    public function it_should_set_the_cache_for_an_inactive_subscription(Cache $cache)
+    function it_should_set_the_cache_for_an_inactive_subscription(Cache $cache)
     {
         $this->beConstructedWith($cache);
         $cache->set('123:isSubscribed:456', false)
@@ -62,4 +63,5 @@ class CacheDelegateSpec extends ObjectBehavior
 
         $this->cache($subscription);
     }
+
 }

@@ -22,21 +22,21 @@ class RepositorySpec extends ObjectBehavior
     private $cql;
     private $reportsRepository;
 
-    public function let(Client $cql, ReportsRepository $reportsRepository)
+    function let(Client $cql, ReportsRepository $reportsRepository)
     {
         $this->beConstructedWith($cql);
         $this->cql = $cql;
         //$this->reportsRepository = $reportsRepository;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    public function it_should_return_a_list_of_appealable_reports()
+    function it_should_return_a_list_of_appealable_reports()
     {
-        $this->cql->request(Argument::that(function ($prepared) {
+        $this->cql->request(Argument::that(function($prepared) {
             return true;
         }))
             ->shouldBeCalled()
@@ -83,9 +83,9 @@ class RepositorySpec extends ObjectBehavior
         $response->shouldHaveCount(2);
     }
 
-    public function it_should_return_a_list_of_appealed_reports()
+    function it_should_return_a_list_of_appealed_reports()
     {
-        $this->cql->request(Argument::that(function ($prepared) {
+        $this->cql->request(Argument::that(function($prepared) {
             return true;
         }))
             ->shouldBeCalled()
@@ -123,17 +123,17 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe('urn:activity:123');
     }
 
-    public function it_should_add_an_appeal(Appeal $appeal)
+    function it_should_add_an_appeal(Appeal $appeal)
     {
         $ts = (int) microtime(true);
-        $this->cql->request(Argument::that(function ($prepared) use ($ts) {
-            $values = $prepared->build()['values'];
-            return $values[0] == 'Should not be reported because this is a test'
+        $this->cql->request(Argument::that(function($prepared) use ($ts) {
+                $values = $prepared->build()['values'];
+                return $values[0] == 'Should not be reported because this is a test'
                     && $values[1] == 'appealed'
                     && $values[3] == 'urn:activity:123'
                     && $values[4]->value() == 2
                     && $values[5]->value() == 5;
-        }))
+            }))
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -157,4 +157,5 @@ class RepositorySpec extends ObjectBehavior
         $this->add($appeal)
             ->shouldBe(true);
     }
+
 }

@@ -17,20 +17,21 @@ class RepositorySpec extends ObjectBehavior
     /** @var CassandraClient */
     protected $db;
 
-    public function let(
+    function let(
         CassandraClient $db
-    ) {
+    )
+    {
         $this->beConstructedWith($db);
 
         $this->db = $db;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    public function it_should_get_a_list()
+    function it_should_get_a_list()
     {
         $this->db->request(Argument::that(function (Custom $prepared) {
             $query = $prepared->build();
@@ -46,7 +47,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturnAnInstanceOf(Response::class);
     }
 
-    public function it_should_get_by_a_list_by_urn()
+    function it_should_get_by_a_list_by_urn()
     {
         $this->db->request(Argument::that(function (Custom $prepared) {
             $query = $prepared->build();
@@ -70,7 +71,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturnAnInstanceOf(Response::class);
     }
 
-    public function it_should_add(RetryQueueEntry $retryQueueEntry)
+    function it_should_add(RetryQueueEntry $retryQueueEntry)
     {
         $retryQueueEntry->getEntityUrn()
             ->shouldBeCalled()
@@ -97,7 +98,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldNotReturn(false);
     }
 
-    public function it_should_throw_during_add_if_no_entity_urn(RetryQueueEntry $retryQueueEntry)
+    function it_should_throw_during_add_if_no_entity_urn(RetryQueueEntry $retryQueueEntry)
     {
         $retryQueueEntry->getEntityUrn()
             ->shouldBeCalled()
@@ -111,7 +112,7 @@ class RepositorySpec extends ObjectBehavior
             ->duringAdd($retryQueueEntry);
     }
 
-    public function it_should_delete(RetryQueueEntry $retryQueueEntry)
+    function it_should_delete(RetryQueueEntry $retryQueueEntry)
     {
         $retryQueueEntry->getEntityUrn()
             ->shouldBeCalled()
@@ -130,7 +131,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldNotReturn(false);
     }
 
-    public function it_should_throw_during_delete_if_no_entity_urn(RetryQueueEntry $retryQueueEntry)
+    function it_should_throw_during_delete_if_no_entity_urn(RetryQueueEntry $retryQueueEntry)
     {
         $retryQueueEntry->getEntityUrn()
             ->shouldBeCalled()

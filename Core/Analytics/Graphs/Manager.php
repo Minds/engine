@@ -65,6 +65,7 @@ class Manager
 
             $this->add($graph);
         }
+
     }
 
     /**
@@ -123,4 +124,5 @@ class Manager
 
         return $averages;
     }
+
 }

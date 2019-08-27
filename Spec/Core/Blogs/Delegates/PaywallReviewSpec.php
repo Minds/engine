@@ -12,7 +12,7 @@ class PaywallReviewSpec extends ObjectBehavior
     /** @var PaywallReviewQueue */
     protected $paywallReview;
 
-    public function let(
+    function let(
         PaywallReviewQueue $paywallReview
     ) {
         $this->beConstructedWith($paywallReview);
@@ -20,14 +20,15 @@ class PaywallReviewSpec extends ObjectBehavior
         $this->paywallReview = $paywallReview;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blogs\Delegates\PaywallReview');
     }
 
-    public function it_should_queue(
+    function it_should_queue(
         Blog $blog
-    ) {
+    )
+    {
         $blog->isMonetized()
             ->shouldBeCalled()
             ->willReturn(true);
@@ -49,9 +50,10 @@ class PaywallReviewSpec extends ObjectBehavior
             ->shouldNotThrow();
     }
 
-    public function it_should_not_queue_if_not_monetized(
+    function it_should_not_queue_if_not_monetized(
         Blog $blog
-    ) {
+    )
+    {
         $blog->isMonetized()
             ->shouldBeCalled()
             ->willReturn(false);

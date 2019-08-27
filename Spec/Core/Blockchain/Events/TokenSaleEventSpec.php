@@ -17,7 +17,7 @@ class TokenSaleEventSpec extends ObjectBehavior
     /** @var Purchase\Manager */
     private $manager;
 
-    public function let(Config $config, Purchase\Manager $manager)
+    function let(Config $config, Purchase\Manager $manager)
     {
         $this->config = $config;
         $this->manager = $manager;
@@ -33,12 +33,12 @@ class TokenSaleEventSpec extends ObjectBehavior
             ]);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(TokenSaleEvent::class);
     }
 
-    public function it_should_get_the_topics()
+    function it_should_get_the_topics()
     {
         $this->getTopics()->shouldReturn([
             '0xf4b351c7293f3c20fc9912c61adbe9823a6de3162bde18c98eb6feeae232f861',
@@ -46,7 +46,7 @@ class TokenSaleEventSpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_fail_if_address_is_wrong(Transaction $transaction)
+    function it_should_fail_if_address_is_wrong(Transaction $transaction)
     {
         $log = [
             'address' => '0xaaa',
@@ -58,9 +58,10 @@ class TokenSaleEventSpec extends ObjectBehavior
         ];
         $this->shouldThrow(new \Exception('Event does not match address'))->during('event',
             ['0xf4b351c7293f3c20fc9912c61adbe9823a6de3162bde18c98eb6feeae232f861', $log, $transaction]);
+
     }
 
-    public function it_should_execute_a_token_purchase_event(Transaction $transaction, Purchase\Purchase $purchase)
+    function it_should_execute_a_token_purchase_event(Transaction $transaction, Purchase\Purchase $purchase)
     {
         $log = [
             'address' => '0xasd',
@@ -101,7 +102,7 @@ class TokenSaleEventSpec extends ObjectBehavior
         $this->event('0xf4b351c7293f3c20fc9912c61adbe9823a6de3162bde18c98eb6feeae232f861', $log, $transaction);
     }
 
-    public function it_shouldnt_execute_a_token_purchase_event_if_ammounts_differ(Transaction $transaction)
+    function it_shouldnt_execute_a_token_purchase_event_if_ammounts_differ(Transaction $transaction)
     {
         $log = [
             'address' => '0xasd',
@@ -123,7 +124,7 @@ class TokenSaleEventSpec extends ObjectBehavior
         $this->event('0xf4b351c7293f3c20fc9912c61adbe9823a6de3162bde18c98eb6feeae232f861', $log, $transaction);
     }
 
-    public function it_shouldnt_execute_a_token_purchase_event_if_purchase_isnt_found(Transaction $transaction)
+    function it_shouldnt_execute_a_token_purchase_event_if_purchase_isnt_found(Transaction $transaction)
     {
         $log = [
             'address' => '0xasd',
@@ -156,7 +157,7 @@ class TokenSaleEventSpec extends ObjectBehavior
         $this->event('0xf4b351c7293f3c20fc9912c61adbe9823a6de3162bde18c98eb6feeae232f861', $log, $transaction);
     }
 
-    public function it_shouldnt_execute_a_token_purchase_event_if_requested_more_that_can_be_issued(
+    function it_shouldnt_execute_a_token_purchase_event_if_requested_more_that_can_be_issued(
         Transaction $transaction,
         Purchase\Purchase $purchase
     ) {
@@ -195,7 +196,7 @@ class TokenSaleEventSpec extends ObjectBehavior
         $this->event('0xf4b351c7293f3c20fc9912c61adbe9823a6de3162bde18c98eb6feeae232f861', $log, $transaction);
     }
 
-    public function it_shouldnt_execute_a_token_purchase_event_if_unissued_amount_if_greater_than(
+    function it_shouldnt_execute_a_token_purchase_event_if_unissued_amount_if_greater_than(
         Transaction $transaction,
         Purchase\Purchase $purchase
     ) {

@@ -9,11 +9,11 @@ class Geo extends AbstractExtension
 {
     public static function getAvailableCommands()
     {
-        return [
-            "geolink" => [
+        return array(
+            "geolink" => array(
                 'class'=>'Minds\Core\Data\Neo4j\Commands\GeomLink'
-            ]
-        ];
+            )
+        );
     }
 
     public function geoLink($nodeId, $conn = null)

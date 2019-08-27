@@ -8,12 +8,12 @@ use Prophecy\Argument;
 
 class EntitySpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Comments\Legacy\Entity');
     }
 
-    public function it_should_build()
+    function it_should_build()
     {
         $this
             ->build([

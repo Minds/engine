@@ -8,6 +8,7 @@ use Minds\Core\Di\Di;
 
 class Customer
 {
+
     private $lu;
     private $user;
 
@@ -74,8 +75,7 @@ class Customer
         return $this;
     }
 
-    public function getPaymentToken()
-    {
+    public function getPaymentToken(){
         return $this->token;
     }
 
@@ -84,4 +84,5 @@ class Customer
         $this->token = $token;
         return $this;
     }
+
 }

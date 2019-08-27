@@ -9,12 +9,12 @@ use Minds\Core\Data\ElasticSearch\Client;
 
 class SubscriptionsSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Trending\Aggregates\Subscriptions');
     }
 
-    public function it_should_return_comments_with_new_score(Client $client)
+    function it_should_return_comments_with_new_score(Client $client)
     {
         $this->beConstructedWith($client);
 
@@ -36,4 +36,5 @@ class SubscriptionsSpec extends ObjectBehavior
             456 => 100,
         ]);
     }
+
 }

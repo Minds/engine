@@ -18,7 +18,7 @@ class WebhooksSpec extends ObjectBehavior
 {
     private $hooks;
 
-    public function it_is_initializable(BT $bt)
+    function it_is_initializable(BT $bt)
     {
         $this->beConstructedWith(false, $bt);
         $this->shouldHaveType('Minds\Core\Payments\Braintree\Webhooks');
@@ -55,4 +55,6 @@ class WebhooksSpec extends ObjectBehavior
           ->run();
 
     }*/
+
+
 }

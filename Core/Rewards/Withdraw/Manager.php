@@ -16,6 +16,7 @@ use Minds\Entities\User;
 
 class Manager
 {
+
     /** @var \Minds\Core\Blockchain\Transactions\Manager */
     protected $txManager;
 
@@ -41,7 +42,8 @@ class Manager
         $eth = null,
         $withdrawRepository = null,
         $offChainBalance = null
-    ) {
+    )
+    {
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
         $this->offChainTransactions = $offChainTransactions ?: Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
         $this->config = $config ?: Di::_()->get('Config');
@@ -57,8 +59,9 @@ class Manager
      */
     public function check($userGuid)
     {
-        if (isset($this->config->get('blockchain')['contracts']['withdraw']['limit_exemptions'])
-            && in_array($userGuid, $this->config->get('blockchain')['contracts']['withdraw']['limit_exemptions'], true)) {
+
+        if (isset($this->config->get('blockchain')['contracts']['withdraw']['limit_exemptions']) 
+            && in_array($userGuid, $this->config->get('blockchain')['contracts']['withdraw']['limit_exemptions'])) {
             return true;
         }
 
@@ -68,8 +71,8 @@ class Manager
             'from' => strtotime('-1 day')
         ]);
 
-        return !isset($previousRequests)
-            || !isset($previousRequests['withdrawals'])
+        return !isset($previousRequests) 
+            || !isset($previousRequests['withdrawals']) 
             || count($previousRequests['withdrawals']) === 0;
     }
 
@@ -90,7 +93,7 @@ class Manager
             ->getAvailable());
 
         if ($available->lt($request->getAmount())) {
-            $readableAvailable = round(BigNumber::fromPlain($available, 18)->toDouble(), 4);
+            $readableAvailable = round(BigNumber::fromPlain($available, 18)->toDouble(),4);
             throw new \Exception("You can only request {$readableAvailable} tokens.");
         }
 
@@ -120,6 +123,7 @@ class Manager
      */
     public function complete($request, $transaction)
     {
+
         if ($request->getUserGuid() != $transaction->getUserGuid()) {
             throw new \Exception('The user who requested this operation does not match the transaction');
         }
@@ -176,4 +180,5 @@ class Manager
             
         $this->repo->add($request);
     }
+
 }

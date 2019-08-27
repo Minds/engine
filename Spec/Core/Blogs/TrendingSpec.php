@@ -16,7 +16,7 @@ class TrendingSpec extends ObjectBehavior
     /** @var TrendingRepository */
     protected $trendingRepository;
 
-    public function let(
+    function let(
         Repository $repository,
         TrendingRepository $trendingRepository
     ) {
@@ -26,12 +26,12 @@ class TrendingSpec extends ObjectBehavior
         $this->trendingRepository = $trendingRepository;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blogs\Trending');
     }
 
-    public function it_should_get_list(Response $response)
+    function it_should_get_list(Response $response)
     {
         $this->trendingRepository->getList([
             'phpspec' => true,

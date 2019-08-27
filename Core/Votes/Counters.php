@@ -74,7 +74,7 @@ class Counters
      */
     public function get($entity, $direction)
     {
-        if (!in_array($direction, static::$validDirections, true)) {
+        if (!in_array($direction, static::$validDirections)) {
             throw new \Exception('Invalid direction');
         }
 
@@ -124,4 +124,5 @@ class Counters
             $this->updateCounter($remind['entity_guid'], $direction, $value);
         }
     }
+
 }

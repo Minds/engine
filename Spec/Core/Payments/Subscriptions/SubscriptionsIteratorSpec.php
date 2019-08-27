@@ -13,23 +13,24 @@ class SubscriptionsIteratorSpec extends ObjectBehavior
 {
     protected $repository;
 
-    public function let(
+    function let(
         Repository $repository
-    ) {
+    )
+    {
         $this->repository = $repository;
 
         $this->beConstructedWith($repository);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Payments\Subscriptions\SubscriptionsIterator');
     }
 
-    public function it_should_get()
+    function it_should_get()
     {
         $timestamp = strtotime('2000-01-01T12:00:00+00:00');
-        $subscriptions = [
+        $subscriptions = [ 
             (new Subscription())
                 ->setId('1'),
             (new Subscription())
@@ -60,4 +61,5 @@ class SubscriptionsIteratorSpec extends ObjectBehavior
         $this->current()
             ->shouldReturn($subscriptions[1]);
     }
+
 }

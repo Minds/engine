@@ -68,7 +68,7 @@ class Repository
         }
 
         if ($opts['offset']) {
-            $preparedOpts['paging_state_token'] = base64_decode($opts['offset'], true);
+            $preparedOpts['paging_state_token'] = base64_decode($opts['offset']);
         }
 
         $prepared = new Custom();

@@ -19,7 +19,7 @@ class EthereumSpec extends ObjectBehavior
     private $_sha3;
     private $_gasPrice;
 
-    public function let(Config $config, JsonRpc $jsonRpc, Sign $sign, Sha3 $sha, GasPrice $gasPrice)
+    function let(Config $config, JsonRpc $jsonRpc, Sign $sign, Sha3 $sha, GasPrice $gasPrice)
     {
         $this->_config = $config;
         $this->_jsonRpc = $jsonRpc;
@@ -30,12 +30,12 @@ class EthereumSpec extends ObjectBehavior
         $this->beConstructedWith($config, $jsonRpc, $sign, $sha, $gasPrice);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blockchain\Services\Ethereum');
     }
 
-    public function it_should_request_to_ethereum()
+    function it_should_request_to_ethereum()
     {
         $this->_config->get()->willReturn([
             'rpc_endpoints' => ['127.0.0.1'],
@@ -50,7 +50,7 @@ class EthereumSpec extends ObjectBehavior
         $this->request('eth_test')->shouldReturn(['foo' => 'bar']);
     }
 
-    public function it_should_throw_exception_on_error_request()
+    function it_should_throw_exception_on_error_request()
     {
         $this->_config->get()->willReturn([
             'rpc_endpoints' => ['127.0.0.1'],
@@ -70,7 +70,7 @@ class EthereumSpec extends ObjectBehavior
         $this->shouldThrow(new \Exception('[Ethereum] 100: Testing'))->duringRequest('eth_err');
     }
 
-    public function it_should_throw_exception_when_there_is_no_request()
+    function it_should_throw_exception_when_there_is_no_request()
     {
         $this->_config->get()->willReturn([
             'rpc_endpoints' => ['127.0.0.1'],
@@ -85,7 +85,7 @@ class EthereumSpec extends ObjectBehavior
         $this->shouldThrow(new \Exception('Server did not respond'))->duringRequest('eth_err');
     }
 
-    public function it_should_return_sha3_from_string()
+    function it_should_return_sha3_from_string()
     {
         $this->_config->get()->willReturn([
             'rpc_endpoints' => ['127.0.0.1'],
@@ -101,7 +101,7 @@ class EthereumSpec extends ObjectBehavior
         $this->sha3("hello")->shouldReturn("hello");
     }
 
-    public function it_should_change_the_current_config()
+    function it_should_change_the_current_config()
     {
         $this->_config->setKey('mainnet')
             ->shouldBeCalled();
@@ -109,7 +109,7 @@ class EthereumSpec extends ObjectBehavior
         $this->useConfig('mainnet')->shouldReturn($this->getWrappedObject());
     }
 
-    public function it_should_encode_a_contract_method()
+    function it_should_encode_a_contract_method()
     {
         $this->_sha3->setString('issue(address,uint256)')
             ->shouldBeCalled()
@@ -123,7 +123,7 @@ class EthereumSpec extends ObjectBehavior
             ->shouldReturn('0xhash00000000000000000000000000000000000000000000000000000000000001230000000000000000000000000000000000000000000000000de0b6b3a7640000');
     }
 
-    public function it_should_fail_to_encode_a_contract_method_because_of_a_non_hex_param()
+    function it_should_fail_to_encode_a_contract_method_because_of_a_non_hex_param()
     {
         $this->_sha3->setString('issue(address,uint256)')
             ->shouldBeCalled()
@@ -138,7 +138,7 @@ class EthereumSpec extends ObjectBehavior
                 ['issue(address,uint256)', ['123', BigNumber::_(10 ** 18)->toHex(true)]]);
     }
 
-    public function it_should_run_a_raw_method_unsigned_call()
+    function it_should_run_a_raw_method_unsigned_call()
     {
         $this->_config->get()->willReturn([
             'rpc_endpoints' => ['127.0.0.1'],
@@ -167,7 +167,7 @@ class EthereumSpec extends ObjectBehavior
         $this->call('0x123', 'method()', [])->shouldReturn(['foo' => 'bar']);
     }
 
-    public function it_should_sign_a_transaction()
+    function it_should_sign_a_transaction()
     {
         $transaction = [];
         $this->_sign->setPrivateKey('privateKey')
@@ -185,7 +185,7 @@ class EthereumSpec extends ObjectBehavior
         $this->sign('privateKey', $transaction)->shouldReturn('signed');
     }
 
-    public function it_should_send_a_raw_transaction()
+    function it_should_send_a_raw_transaction()
     {
         $transaction = [
             'from' => '0x123',
@@ -223,7 +223,7 @@ class EthereumSpec extends ObjectBehavior
         $this->sendRawTransaction('privateKey', $transaction)->shouldReturn(['foo' => 'bar']);
     }
 
-    public function it_should_fail_when_sending_raw_transaction_because_theres_no_from_param()
+    function it_should_fail_when_sending_raw_transaction_because_theres_no_from_param()
     {
         $transaction = [
             'gasLimit' => '1000',
@@ -240,7 +240,7 @@ class EthereumSpec extends ObjectBehavior
             ['privateKey', $transaction]);
     }
 
-    public function it_should_fail_when_sending_raw_transaction_because_theres_no_from_gasLimit()
+    function it_should_fail_when_sending_raw_transaction_because_theres_no_from_gasLimit()
     {
         $transaction = [
             'from' => '0x123',
@@ -257,7 +257,7 @@ class EthereumSpec extends ObjectBehavior
             ['privateKey', $transaction]);
     }
 
-    public function it_should_fail_when_sending_raw_transaction_because_theres_an_error_signing_the_transaction()
+    function it_should_fail_when_sending_raw_transaction_because_theres_an_error_signing_the_transaction()
     {
         $transaction = [
             'from' => '0x123',

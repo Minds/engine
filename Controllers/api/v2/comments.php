@@ -85,7 +85,7 @@ class comments implements Interfaces\Api
     {
         $manager = new Core\Comments\Manager();
 
-        $response = [];
+        $response = array();
         $error = false;
         $emitToSocket = false;
 
@@ -100,7 +100,7 @@ class comments implements Interfaces\Api
             }
 
             if (!$comment || !$canEdit) {
-                $response = ['status' => 'error', 'message' => 'This comment can not be edited'];
+                $response = array('status' => 'error', 'message' => 'This comment can not be edited');
                 break;
             }
 
@@ -316,8 +316,7 @@ class comments implements Interfaces\Api
                     'reply',
                     (string) ($comment->getParentGuidL2() ?: $comment->getParentGuidL1())
                 );
-            } catch (\Exception $e) {
-            }
+            } catch (\Exception $e) { }
         }
 
         return Factory::response($response);

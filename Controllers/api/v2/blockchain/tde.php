@@ -15,6 +15,7 @@ use Minds\Api\Factory;
 
 class tde implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+
     /**
      * Equivalent to HTTP GET method
      * @param  array $pages

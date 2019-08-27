@@ -10,12 +10,13 @@ use Minds\Core\Data\ElasticSearch\Client;
 
 class VotesSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Trending\Aggregates\Votes');
     }
 
-    public function it_should_return_votes_in_groups(Client $client)
+    function it_should_return_votes_in_groups(Client $client)
     {
         $this->beConstructedWith($client);
         $this->setType('group');
@@ -59,7 +60,7 @@ class VotesSpec extends ObjectBehavior
                 ],
                 'aggs' => [
                     'entities' => [
-                        'terms' => [
+                        'terms' => [ 
                             'field' => "entity_container_guid.keyword",
                             'size' => 1,
                             'include' => [
@@ -87,14 +88,14 @@ class VotesSpec extends ObjectBehavior
                 'aggregations' => [
                     'entities' => [
                         'buckets' => [
-                            [
+                            [ 
                                 'key' => 123,
                                 'doc_count' => 50,
                                 'uniques' => [
                                     'value' => 50,
                                 ],
                             ],
-                            [
+                            [ 
                                 'key' => 456,
                                 'doc_count' => 25,
                                 'uniques' => [
@@ -144,7 +145,7 @@ class VotesSpec extends ObjectBehavior
                     ],
                     'aggs' => [
                         'entities' => [
-                            'terms' => [
+                            'terms' => [ 
                                 'field' => "entity_container_guid.keyword",
                                 'size' => 1,
                                 'include' => [
@@ -182,10 +183,11 @@ class VotesSpec extends ObjectBehavior
                 123 => 200,
                 456 => 100,
             ]));
+
     }
 
 
-    public function it_should_return_votes_when_is_not_a_group(Client $client)
+    function it_should_return_votes_when_is_not_a_group(Client $client)
     {
         $this->beConstructedWith($client);
         $this->setType('other');
@@ -225,7 +227,7 @@ class VotesSpec extends ObjectBehavior
                 ],
                 'aggs' => [
                     'entities' => [
-                        'terms' => [
+                        'terms' => [ 
                             'field' => "entity_guid.keyword",
                             'size' => 1,
                             'include' => [
@@ -252,14 +254,14 @@ class VotesSpec extends ObjectBehavior
                 'aggregations' => [
                     'entities' => [
                         'buckets' => [
-                            [
+                            [ 
                                 'key' => 123,
                                 'doc_count' => 50,
                                 'uniques' => [
                                     'value' => 50,
                                 ],
                             ],
-                            [
+                            [ 
                                 'key' => 456,
                                 'doc_count' => 25,
                                 'uniques' => [
@@ -306,7 +308,7 @@ class VotesSpec extends ObjectBehavior
                     ],
                     'aggs' => [
                         'entities' => [
-                            'terms' => [
+                            'terms' => [ 
                                 'field' => "entity_guid.keyword",
                                 'size' => 1,
                                 'include' => [

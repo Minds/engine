@@ -3,6 +3,7 @@ namespace Minds\Core\Trending;
 
 class Maps
 {
+
     public static $maps = [
         'newsfeed' => [
             'type' => 'activity',
@@ -66,4 +67,5 @@ class Maps
             ]
         ]
     ];
+
 }

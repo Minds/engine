@@ -118,4 +118,5 @@ class jury implements Interfaces\Api
     {
         return Factory::response([]);
     }
+
 }

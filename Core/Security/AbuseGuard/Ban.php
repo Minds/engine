@@ -11,6 +11,7 @@ use Minds\Core\Di\Di;
 
 class Ban
 {
+
     private $accused;
     private $recover;
     private $events = true;
@@ -23,7 +24,8 @@ class Ban
         $recover = null,
         $events = true,
         $channelsBanManager = null
-    ) {
+    )
+    {
         $this->sessions = $sessions ?: new Core\Data\Sessions();
         $this->recover = $recover ?: new Recover();
         $this->events = $events;
@@ -69,4 +71,5 @@ class Ban
 
         return true;
     }
+
 }

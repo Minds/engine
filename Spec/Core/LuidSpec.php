@@ -9,12 +9,12 @@ use Prophecy\Argument;
 
 class LuidSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Luid');
     }
 
-    public function it_should_set_get_and_delete_components()
+    function it_should_set_get_and_delete_components()
     {
         $this
             ->set('phpspec1', 'test1')
@@ -49,7 +49,7 @@ class LuidSpec extends ObjectBehavior
             ->shouldReturn(null);
     }
 
-    public function it_should_parse()
+    function it_should_parse()
     {
         $encoded = base64_encode(json_encode([
             '_type' => 'test',
@@ -77,7 +77,7 @@ class LuidSpec extends ObjectBehavior
             ->shouldReturn('3');
     }
 
-    public function it_should_throw_during_parse_if_value_is_not_valid()
+    function it_should_throw_during_parse_if_value_is_not_valid()
     {
         $this
             ->shouldThrow(InvalidLuidException::class)
@@ -104,7 +104,7 @@ class LuidSpec extends ObjectBehavior
             ->duringParse(base64_encode('{ notype: true }'));
     }
 
-    public function it_should_build()
+    function it_should_build()
     {
         $this->set('phpspec2', 2);
         $this->set('phpspec1', 1);
@@ -124,14 +124,14 @@ class LuidSpec extends ObjectBehavior
             ->shouldReturn($encoded);
     }
 
-    public function it_should_throw_during_build_if_no_components()
+    function it_should_throw_during_build_if_no_components()
     {
         $this
             ->shouldThrow(new \Exception('No components'))
             ->duringBuild();
     }
 
-    public function it_should_throw_during_build_if_no_type_component()
+    function it_should_throw_during_build_if_no_type_component()
     {
         $this->set('phpspec', 1);
 
@@ -140,7 +140,7 @@ class LuidSpec extends ObjectBehavior
             ->duringBuild();
     }
 
-    public function it_should_initialize_with_a_string_value()
+    function it_should_initialize_with_a_string_value()
     {
         $encoded = base64_encode(json_encode([
             '_type' => 'test',
@@ -154,7 +154,7 @@ class LuidSpec extends ObjectBehavior
             ->shouldReturn($encoded);
     }
 
-    public function it_should_initialize_with_a_luid_instance()
+    function it_should_initialize_with_a_luid_instance()
     {
         $originalLuid = new Luid();
         $originalLuid->setType('test');
@@ -169,7 +169,7 @@ class LuidSpec extends ObjectBehavior
             ->shouldReturn($encoded);
     }
 
-    public function it_should_build_when_casting_to_string()
+    function it_should_build_when_casting_to_string()
     {
         $this->setType('test');
         $this->set('phpspec', '1');
@@ -184,14 +184,14 @@ class LuidSpec extends ObjectBehavior
             ->shouldReturn($encoded);
     }
 
-    public function it_should_return_an_empty_string_if_exception_when_casting_to_string()
+    function it_should_return_an_empty_string_if_exception_when_casting_to_string()
     {
         $this
             ->__toString()
             ->shouldReturn('');
     }
 
-    public function it_should_build_when_serializing_to_json()
+    function it_should_build_when_serializing_to_json()
     {
         $this->setType('test');
         $this->set('phpspec', '1');

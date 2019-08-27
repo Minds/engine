@@ -6,13 +6,14 @@ use Minds\Core\Di\Di;
 
 class Repository
 {
+
     private $db;
     private $config;
 
     private $entity_guid;
     private $user_guid;
 
-    public function __construct($db = null, $config = null)
+    public function __construct($db = NULL, $config = NULL)
     {
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
         $this->config = $config ?: Di::_()->get('Config');
@@ -123,7 +124,9 @@ class Repository
               ->setExpires($result[0]['expires'])
               ->setAmount($result[0]['amount'])
               ->setSubscriptionId($result[0]['subscription_id']);
+
         } catch (\Exception $e) {
+
         }
 
         return $plan;
@@ -149,7 +152,9 @@ class Repository
               ->setExpires($result[0]['expires'])
               ->setAmount($result[0]['amount'])
               ->setSubscriptionId($result[0]['subscription_id']);
+
         } catch (\Exception $e) {
+
         }
 
         return $plan;
@@ -225,6 +230,7 @@ class Repository
 
     public function cancel($plan)
     {
+
         if (is_string($plan)) {
             $plan = new Plan();
             $plan->setName($plan)
@@ -242,9 +248,9 @@ class Repository
 
         try {
             $result = $this->db->request($query);
-        } catch (\Exception $e) {
-        }
+        } catch (\Exception $e) { }
 
         return $this;
     }
+
 }

@@ -17,6 +17,7 @@ use Minds\Core\Blockchain\Purchase\Purchase as PurchaseModel;
 
 class purchase implements Interfaces\Api
 {
+
     /**
      * Equivalent to HTTP GET method
      * @param  array $pages

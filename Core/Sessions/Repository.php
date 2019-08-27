@@ -12,6 +12,7 @@ use Cassandra\Timestamp;
 
 class Repository
 {
+
     /** @var Client $client */
     private $client;
 
@@ -118,4 +119,5 @@ class Repository
 
         return (int) $response[0]['count'];
     }
+
 }

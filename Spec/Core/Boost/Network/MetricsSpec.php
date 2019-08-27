@@ -10,12 +10,12 @@ use Prophecy\Argument;
 
 class MetricsSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Boost\Network\Metrics');
     }
 
-    public function it_should_get_backlog_count(MongoDB\Client $mongo)
+    function it_should_get_backlog_count(MongoDB\Client $mongo)
     {
         $mongo->count(Argument::containingString('boost'), Argument::any())
             ->shouldBeCalled()
@@ -27,7 +27,7 @@ class MetricsSpec extends ObjectBehavior
         $this->getBacklogCount('newsfeed', '123')->shouldReturn(3);
     }
 
-    public function it_should_get_priority_backlog_count(MongoDB\Client $mongo)
+    function it_should_get_priority_backlog_count(MongoDB\Client $mongo)
     {
         $mongo->count(Argument::containingString('boost'), Argument::any())
             ->shouldBeCalled()
@@ -39,7 +39,7 @@ class MetricsSpec extends ObjectBehavior
         $this->getPriorityBacklogCount('newsfeed', '123')->shouldReturn(3);
     }
 
-    public function it_should_get_backlog_impressions_sum(MongoDB\Client $mongo)
+    function it_should_get_backlog_impressions_sum(MongoDB\Client $mongo)
     {
         $total = new \stdClass();
         $total->total = 10;
@@ -54,4 +54,5 @@ class MetricsSpec extends ObjectBehavior
 
         $this->getBacklogImpressionsSum('newsfeed')->shouldReturn(10);
     }
+
 }

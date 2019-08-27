@@ -40,6 +40,7 @@ class InactiveUsers extends EmailCampaign
     {
         $this->subject = $subject;
         return $this;
+
     }
 
     /**
@@ -48,6 +49,7 @@ class InactiveUsers extends EmailCampaign
      */
     public function send()
     {
+
         if (!method_exists($this->user, 'getEmail')) {
             return;
         }
@@ -78,4 +80,5 @@ class InactiveUsers extends EmailCampaign
         //send email
         $this->mailer->send($message);
     }
+
 }

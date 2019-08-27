@@ -49,7 +49,8 @@ class Manager
         $reportsManager = null,
         $queueClient = null,
         $socketDelegate = null
-    ) {
+    )
+    {
         $this->cohort = $cohort ?: new Cohort();
         $this->repository = $repository ?: new Repository();
         $this->reportsManager = $reportsManager ?: new ReportsManager();
@@ -78,7 +79,7 @@ class Manager
         $reportUrn = $report->getUrn();
         $juryType = 'appeal_jury';
 
-        $completedJurorGuids = array_map(function ($decision) {
+        $completedJurorGuids = array_map(function($decision) {
             return $decision->getJurorGuid();
         }, array_merge($report->getAppealJuryDecisions() ?: [], $report->getInitialJuryDecisions() ?: []));
 
@@ -92,7 +93,7 @@ class Manager
         // Remove the summonses of jurors who have already voted
 
         $summonses = array_filter($summonses, function (Summons $summons) use ($completedJurorGuids) {
-            return !in_array($summons->getJurorGuid(), $completedJurorGuids, true);
+            return !in_array($summons->getJurorGuid(), $completedJurorGuids);
         });
 
         // Check how many are missing

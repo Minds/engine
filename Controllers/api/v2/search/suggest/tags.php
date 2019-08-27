@@ -39,6 +39,7 @@ class tags implements Interfaces\Api, Interfaces\ApiIgnorePam
         return Factory::response([
             'tags' => $manager->suggest($_GET['q'])
         ]);
+
     }
 
     /**

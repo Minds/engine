@@ -11,21 +11,22 @@ use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
+
     private $repository;
 
-    public function let(Repository $repository)
+    function let(Repository $repository)
     {
         $this->beConstructedWith($repository);
 
         $this->repository = $repository;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_cast_a_vote(User $user)
+    function it_should_cast_a_vote(User $user)
     {
         $this->repository->update(Argument::type(Question::class))
             ->shouldBeCalled()
@@ -43,7 +44,7 @@ class ManagerSpec extends ObjectBehavior
         $this->vote()->shouldReturn(true);
     }
 
-    public function it_should_remove_a_vote(User $user)
+    function it_should_remove_a_vote(User $user)
     {
         $this->repository->update(Argument::type(Question::class))
             ->shouldBeCalled()
@@ -60,4 +61,5 @@ class ManagerSpec extends ObjectBehavior
 
         $this->delete()->shouldReturn(true);
     }
+
 }

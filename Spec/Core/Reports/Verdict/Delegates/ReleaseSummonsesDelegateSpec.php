@@ -15,19 +15,20 @@ class ReleaseSummonsesDelegateSpec extends ObjectBehavior
     /** @var Manager */
     protected $summonsManager;
 
-    public function let(
+    function let(
         Manager $summonsManager
-    ) {
+    )
+    {
         $this->beConstructedWith($summonsManager);
         $this->summonsManager = $summonsManager;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(ReleaseSummonsesDelegate::class);
     }
 
-    public function it_should_release_initial_jury_on_cast(Verdict $verdict, Report $report)
+    function it_should_release_initial_jury_on_cast(Verdict $verdict, Report $report)
     {
         $verdict->isAppeal()
             ->shouldBeCalled()
@@ -49,7 +50,7 @@ class ReleaseSummonsesDelegateSpec extends ObjectBehavior
             ->duringOnCast($verdict);
     }
 
-    public function it_should_release_appeal_jury_on_cast(Verdict $verdict, Report $report)
+    function it_should_release_appeal_jury_on_cast(Verdict $verdict, Report $report)
     {
         $verdict->isAppeal()
             ->shouldBeCalled()

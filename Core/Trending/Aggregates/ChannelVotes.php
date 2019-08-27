@@ -8,11 +8,12 @@ use Minds\Core\Data\ElasticSearch;
 
 class ChannelVotes extends Aggregate
 {
+
     protected $multiplier = 2;
 
     public function get()
     {
-        $filter = [
+        $filter = [ 
             'term' => [
                 'action' => 'vote:up'
             ]
@@ -62,7 +63,7 @@ class ChannelVotes extends Aggregate
                 ],
                 'aggs' => [
                     'entities' => [
-                        'terms' => [
+                        'terms' => [ 
                             'field' => 'entity_owner_guid.keyword',
                             'size' => $this->limit,
                             'order' => [
@@ -93,4 +94,5 @@ class ChannelVotes extends Aggregate
         }
         return $entities;
     }
+
 }

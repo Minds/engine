@@ -13,6 +13,7 @@ use Minds\Core\Features\Manager as FeaturesManager;
 
 class Manager
 {
+
     /** @var Config $config */
     private $config;
 
@@ -33,7 +34,8 @@ class Manager
         $repository = null,
         $cassandraRepository = null,
         $features = null
-    ) {
+    )
+    {
         $this->config = $config ?: Di::_()->get('Config');
         $this->cassandraRepository = $cassandraRepository ?: new CassandraRepository;
         $this->features = $features ?: new FeaturesManager;
@@ -61,7 +63,7 @@ class Manager
      */
     public function getSingle($urn)
     {
-        if (strpos($urn, 'urn:') === false) {
+        if (strpos($urn, 'urn:') === FALSE) {
             $urn = "urn:notification:" . implode('-', [
                     $this->user->getGuid(),
                     $urn
@@ -226,4 +228,5 @@ class Manager
         }
         return 'unknown';
     }
+
 }

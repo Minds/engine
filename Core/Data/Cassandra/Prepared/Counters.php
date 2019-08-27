@@ -13,10 +13,10 @@ class Counters implements Interfaces\PreparedInterface
 
     public function build()
     {
-        return [
+        return array(
             'string' => $this->template,
             'values'=>$this->values
-            ];
+            );
     }
 
     public function update($guid, $metric, $value)
@@ -40,7 +40,7 @@ class Counters implements Interfaces\PreparedInterface
         return $this;
     }
 
-    public function setQuery($template, $values = [])
+    public function setQuery($template, $values = array())
     {
         $this->template = $template;
         $this->values = $values;

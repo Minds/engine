@@ -153,6 +153,7 @@ class Repository
 
     public function update(Strike $strike, $fields = [])
     {
+
     }
 
     public function delete(Strike $strike)
@@ -174,4 +175,5 @@ class Repository
         $prepared->query($statement, $values);
         return (bool) $this->cql->request($prepared);
     }
+
 }

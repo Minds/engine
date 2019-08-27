@@ -186,4 +186,5 @@ class Manager
 
         return true;
     }
+
 }

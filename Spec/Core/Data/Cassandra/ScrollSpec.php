@@ -15,19 +15,20 @@ class ScrollSpec extends ObjectBehavior
     /** @var Client */
     protected $db;
 
-    public function let(
+    function let(
         Client $db
-    ) {
+    )
+    {
         $this->beConstructedWith($db);
         $this->db = $db;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Scroll::class);
     }
 
-    public function it_should_request_and_scroll()
+    function it_should_request_and_scroll()
     {
         $prepared = new Custom();
         $prepared->query('SELECT * FROM phpspec');
@@ -69,7 +70,7 @@ class ScrollSpec extends ObjectBehavior
             ->shouldBeAGenerator([1, 2, 3, 4, 5]);
     }
 
-    public function getMatchers()
+    function getMatchers()
     {
         $matchers = [];
 

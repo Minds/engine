@@ -50,7 +50,7 @@ class Summons implements JsonSerializable
      */
     public function setStatus($status)
     {
-        if (!in_array($status, ['awaiting', 'accepted', 'declined'], true)) {
+        if (!in_array($status, ['awaiting', 'accepted', 'declined'])) {
             throw new Exception('Invalid status');
         }
 

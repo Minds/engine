@@ -13,6 +13,7 @@ use Minds\Core\Di\Di;
 
 class AvatarDelegate implements OnboardingDelegate
 {
+
     /** @var Config $config */
     private $config;
 

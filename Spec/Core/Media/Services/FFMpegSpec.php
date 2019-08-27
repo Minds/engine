@@ -13,19 +13,20 @@ use Prophecy\Argument;
 
 class FFMpegSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(FFMpeg::class);
     }
 
-    public function it_should_get_a_presigned_urn(
+    function it_should_get_a_presigned_urn(
         QueueClient $queue,
         FFMpegClient $ffmpeg,
         FFProbeClient $ffprobe,
         S3Client $s3,
         \Aws\CommandInterface $cmd,
         RequestInterface $request
-    ) {
+    )
+    {
         $this->beConstructedWith($queue, $ffmpeg, $ffprobe, $s3);
 
         $s3->getCommand('PutObject', [
@@ -46,4 +47,5 @@ class FFMpegSpec extends ObjectBehavior
         $this->getPresignedUrl()
             ->shouldReturn('aws-signed-url');
     }
+
 }

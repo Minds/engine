@@ -21,29 +21,30 @@ class PayoutsSpec extends ObjectBehavior
     private $_stripe;
     private $_getLastPayout;
 
-    private static $_payoutsMock;
+    static private $_payoutsMock;
 
-    public function let(
+    function let(
         Config $config,
         Stripe\Stripe $stripe,
         Ads $ads,
         Manager $manager,
         Merchants $merchants
-    ) {
+    )
+    {
         $this->beConstructedWith($config, $stripe);
         $this->_stripe = $stripe;
 
-        Di::_()->bind('Monetization\Ads', function ($di) use ($ads) {
+        Di::_()->bind('Monetization\Ads', function($di) use ($ads) {
             return $ads->getWrappedObject();
         });
         $this->_ads = $ads;
 
-        Di::_()->bind('Monetization\Manager', function ($di) use ($manager) {
+        Di::_()->bind('Monetization\Manager', function($di) use ($manager) {
             return $manager->getWrappedObject();
         });
         $this->_manager = $manager;
 
-        Di::_()->bind('Monetization\Merchants', function ($di) use ($merchants) {
+        Di::_()->bind('Monetization\Merchants', function($di) use ($merchants) {
             return $merchants->getWrappedObject();
         });
         $this->_merchants = $merchants;
@@ -85,24 +86,24 @@ class PayoutsSpec extends ObjectBehavior
         ]);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Monetization\Payouts');
     }
 
-    public function it_should_set_and_get_an_user_guid_from_literal()
+    function it_should_set_and_get_an_user_guid_from_literal()
     {
         $this->setUser(10);
         $this->getUser()->shouldReturn(10);
     }
 
-    public function it_should_set_and_get_an_user_guid_from_object()
+    function it_should_set_and_get_an_user_guid_from_object()
     {
         $this->setUser((object) [ 'guid' => 10 ]);
         $this->getUser()->shouldReturn(10);
     }
 
-    public function it_should_get_last_payout_for_an_user()
+    function it_should_get_last_payout_for_an_user()
     {
         $this->_getLastPayout->shouldBeCalled();
 
@@ -110,7 +111,7 @@ class PayoutsSpec extends ObjectBehavior
         $this->getLastPayout()->shouldReturn($this::$_payoutsMock->inprogress);
     }
 
-    public function it_should_get_last_payout_inprogress_status_for_an_user()
+    function it_should_get_last_payout_inprogress_status_for_an_user()
     {
         $this->_getLastPayout->shouldBeCalled();
 
@@ -118,7 +119,7 @@ class PayoutsSpec extends ObjectBehavior
         $this->getPayoutStatus()->shouldReturn('inprogress');
     }
 
-    public function it_should_get_last_payout_available_status_for_an_user()
+    function it_should_get_last_payout_available_status_for_an_user()
     {
         $this->_manager->get([
             'type' => 'credit',
@@ -133,7 +134,7 @@ class PayoutsSpec extends ObjectBehavior
         $this->getPayoutStatus()->shouldReturn('available');
     }
 
-    public function it_should_check_if_can_request_payout()
+    function it_should_check_if_can_request_payout()
     {
         $this->_manager->get([
             'type' => 'credit',
@@ -153,13 +154,13 @@ class PayoutsSpec extends ObjectBehavior
         $this->canRequestPayout()->shouldReturn(true);
     }
 
-    public function it_should_check_if_cant_request_payout()
+    function it_should_check_if_cant_request_payout()
     {
         $this->setUser(10);
         $this->canRequestPayout()->shouldReturn(false);
     }
 
-    public function it_should_check_if_cant_request_payout_due_to_revenue()
+    function it_should_check_if_cant_request_payout_due_to_revenue()
     {
         $this->_manager->get([
             'type' => 'credit',
@@ -179,13 +180,13 @@ class PayoutsSpec extends ObjectBehavior
         $this->canRequestPayout()->shouldReturn(false);
     }
 
-    public function it_should_not_request_payout_if_in_progress()
+    function it_should_not_request_payout_if_in_progress()
     {
         $this->setUser(10);
         $this->shouldThrow('\\Exception')->duringRequestPayout();
     }
 
-    public function it_should_not_request_payout_due_to_revenue()
+    function it_should_not_request_payout_due_to_revenue()
     {
         $this->_manager->get([
             'type' => 'credit',
@@ -205,7 +206,7 @@ class PayoutsSpec extends ObjectBehavior
         $this->shouldThrow('\\Exception')->duringRequestPayout();
     }
 
-    public function it_should_request_payout()
+    function it_should_request_payout()
     {
         $this->_manager->get([
             'type' => 'credit',
@@ -227,7 +228,7 @@ class PayoutsSpec extends ObjectBehavior
         $this->shouldNotThrow('\\Exception')->duringRequestPayout();
     }
 
-    public function it_should_payout()
+    function it_should_payout()
     {
         $this->_manager->resolve('1')
             ->willReturn($this::$_payoutsMock->inprogress)
@@ -255,7 +256,7 @@ class PayoutsSpec extends ObjectBehavior
         $this->shouldNotThrow('\\Exception')->duringPayout('1');
     }
 
-    public function it_should_cancel_payout()
+    function it_should_cancel_payout()
     {
         $this->_manager->resolve('1')
             ->willReturn($this::$_payoutsMock->inprogress)
@@ -268,17 +269,17 @@ class PayoutsSpec extends ObjectBehavior
         $this->shouldNotThrow('\\Exception')->duringCancel('1');
     }
 
-    public function it_should_calc_user_amount()
+    function it_should_calc_user_amount()
     {
         $this->calcUserAmount(130.50)->shouldReturn(65.25);
     }
 
-    public function it_should_calc_user_amount_for_zero()
+    function it_should_calc_user_amount_for_zero()
     {
         $this->calcUserAmount(0)->shouldReturn(0.0);
     }
 
-    public function it_should_build_retention_datestring()
+    function it_should_build_retention_datestring()
     {
         $this->getRetentionDateString()->shouldReturn('2 days ago');
     }

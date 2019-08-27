@@ -15,11 +15,12 @@ class ManagerSpec extends ObjectBehavior
     private $notification;
     private $analytics;
 
-    public function let(
+    function let(
         Sessions $sessions,
         Notification $notification,
         Analytics $analytics
-    ) {
+    )
+    {
         $this->sessions = $sessions;
         $this->notification = $notification;
         $this->analytics = $analytics;
@@ -27,12 +28,12 @@ class ManagerSpec extends ObjectBehavior
         $this->beConstructedWith($sessions, $notification, $analytics);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_impose_a_rate_limit(User $user)
+    function it_should_impose_a_rate_limit(User $user)
     {
         $user->set('ratelimited_interaction:subscribe', time() + 300)
             ->shouldBeCalled();
@@ -51,7 +52,7 @@ class ManagerSpec extends ObjectBehavior
             ->impose();
     }
 
-    public function it_should_impose_a_rate_limit_with_a_custom_limit_period(User $user)
+    function it_should_impose_a_rate_limit_with_a_custom_limit_period(User $user)
     {
         $user->set('ratelimited_interaction:subscribe', time() + 600)
             ->shouldBeCalled();
@@ -71,7 +72,7 @@ class ManagerSpec extends ObjectBehavior
             ->impose();
     }
 
-    public function it_should_return_false_if_no_rate_limit(User $user)
+    function it_should_return_false_if_no_rate_limit(User $user)
     {
         $this->setUser($user)
             ->setInteraction('subscribe');
@@ -80,7 +81,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(false);
     }
 
-    public function it_should_return_false_if_rate_limit_past_period(User $user)
+    function it_should_return_false_if_rate_limit_past_period(User $user)
     {
         $this->setUser($user)
             ->setInteraction('subscribe');
@@ -89,7 +90,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(false);
     }
 
-    public function it_should_return_true_if_rate_limited_impose(User $user)
+    function it_should_return_true_if_rate_limited_impose(User $user)
     {
         $user->get('ratelimited_interaction:subscribe')
             ->shouldBeCalled()
@@ -101,4 +102,5 @@ class ManagerSpec extends ObjectBehavior
         $this->isLimited()
             ->shouldBe(true);
     }
+
 }

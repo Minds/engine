@@ -13,7 +13,7 @@ class ActivitySpec extends ObjectBehavior
     protected $repository;
     protected $entities;
 
-    public function let(Client $client, Repository $repository, EntitiesBuilder $entities)
+    function let(Client $client, Repository $repository, EntitiesBuilder $entities)
     {
         $this->client = $client;
         $this->repository = $repository;
@@ -21,22 +21,22 @@ class ActivitySpec extends ObjectBehavior
         $this->beConstructedWith($client, $repository, $entities);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Email\Batches\Activity');
     }
 
-    public function it_should_set_the_period()
+    function it_should_set_the_period()
     {
         $this->setPeriod('daily')->shouldReturnAnInstanceOf('Minds\Core\Email\Batches\Activity');
     }
 
-    public function it_should_set_the_offset()
+    function it_should_set_the_offset()
     {
         $this->setOffset('123')->shouldReturnAnInstanceOf('Minds\Core\Email\Batches\Activity');
     }
 
-    public function it_should_run()
+    function it_should_run()
     {
         $this->repository->getList(['type' => 'newsfeed', 'limit' => 12])
             ->shouldBeCalled()

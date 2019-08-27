@@ -9,6 +9,7 @@ use Minds\Core\Di\Di;
 
 class Manager
 {
+
     protected $es;
     private $user;
     private $from;
@@ -119,4 +120,5 @@ class Manager
 
         return $result;
     }
+
 }

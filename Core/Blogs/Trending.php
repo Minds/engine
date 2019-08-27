@@ -27,7 +27,8 @@ class Trending
     public function __construct(
         $repository = null,
         $trendingRepository = null
-    ) {
+    )
+    {
         $this->repository = $repository ?: new Repository();
         $this->trendingRepository = $trendingRepository ?: Di::_()->get('Trending\Repository');
     }

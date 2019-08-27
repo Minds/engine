@@ -6,6 +6,7 @@ namespace Minds\Core\VideoChat\Leases;
 
 class Manager
 {
+
     /** @var Repository $repository */
     private $repository;
 
@@ -32,4 +33,5 @@ class Manager
     {
         return $this->repository->get($key);
     }
+
 }

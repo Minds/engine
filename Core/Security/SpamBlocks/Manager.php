@@ -6,6 +6,7 @@ namespace Minds\Core\Security\SpamBlocks;
 
 class Manager
 {
+
     /** @var Repository $repository */
     private $repository;
 
@@ -33,4 +34,5 @@ class Manager
     {
         return $this->repository->add($model);
     }
+
 }

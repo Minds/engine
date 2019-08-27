@@ -39,6 +39,7 @@ class EventsSpec extends ObjectBehavior
     {
         return [
             'returnArrayOfNotifications' => function ($array) {
+
                 if (!is_array($array)) {
                     return false;
                 }

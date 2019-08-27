@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Client based upload
+ * Client based upload 
  *
  * @author Mark Harding
  */
@@ -15,6 +15,7 @@ use Minds\Core\Media\ClientUpload\ClientUploadLease;
 
 class upload implements Interfaces\Api
 {
+
     /**
      * Equivalent to HTTP GET method
      * @param  array $pages
@@ -70,4 +71,6 @@ class upload implements Interfaces\Api
     {
         return Factory::response([]);
     }
+
 }
+

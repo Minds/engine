@@ -13,17 +13,19 @@ use Minds\Entities\User;
 
 class SubscriptionSpec extends ObjectBehavior
 {
-    public function it_is_initializable(Stripe $stripe)
+
+    function it_is_initializable(Stripe $stripe)
     {
         $this->beConstructedWith($stripe);
         $this->shouldHaveType('Minds\Core\Plus\Subscription');
     }
 
-    public function it_should_return_if_a_subscription_is_active(
+    function it_should_return_if_a_subscription_is_active(
         Stripe $stripe,
-        Repository $repo,
+        Repository $repo, 
         Subscription $subscription
-    ) {
+    )
+    {
         $this->beConstructedWith($stripe, null, $repo);
 
         $repo->getList(Argument::any())->willReturn([
@@ -39,11 +41,12 @@ class SubscriptionSpec extends ObjectBehavior
         $this->isActive()->shouldBe(true);
     }
 
-    public function it_should_return_false_if_a_subscription_is_active(
+    function it_should_return_false_if_a_subscription_is_active(
         Stripe $stripe,
-        Repository $repo,
+        Repository $repo, 
         Subscription $subscription
-    ) {
+    )
+    {
         $this->beConstructedWith($stripe, null, $repo);
 
         $repo->getList(Argument::any())->willReturn([
@@ -59,11 +62,12 @@ class SubscriptionSpec extends ObjectBehavior
         $this->isActive()->shouldBe(false);
     }
 
-    public function is_should_create_a_new_subscription(
+    function is_should_create_a_new_subscription(
         Stripe $stripe,
         Manager $manager,
         Subscription $subscription
-    ) {
+    )
+    {
         $this->beConstructedWith($stripe, $manager);
         
         $subscription->setInterval('monthly')
@@ -81,12 +85,13 @@ class SubscriptionSpec extends ObjectBehavior
             ->shouldReturn($this);
     }
 
-    public function is_should_cancel_exisiting_subscription(
+    function is_should_cancel_exisiting_subscription(
         Stripe $stripe,
         Repository $repository,
         Manager $manager,
         Subscription $subscription
-    ) {
+    )
+    {
         $this->beConstructedWith($stripe, $manager, $repository);
         
         $repository->getList([
@@ -109,4 +114,5 @@ class SubscriptionSpec extends ObjectBehavior
         $this->cancel()
             ->shouldReturn($this);
     }
+
 }

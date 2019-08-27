@@ -6,7 +6,7 @@ namespace Minds\Fs;
  */
 class Routes
 {
-    public static $routes = [];
+    public static $routes = array();
 
     /**
      * Adds a custom FS route resolution

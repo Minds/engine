@@ -14,13 +14,13 @@ class Custom implements Interfaces\PreparedInterface
 
     public function build()
     {
-        return [
+        return array(
             'string' => $this->template,
             'values'=>$this->values
-            ];
+            );
     }
 
-    public function query($cql, $values = [])
+    public function query($cql, $values = array())
     {
         $this->template = $cql;
         $this->values = $values;

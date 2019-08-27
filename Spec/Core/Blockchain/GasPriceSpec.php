@@ -11,19 +11,19 @@ class GasPriceSpec extends ObjectBehavior
     /** @var Client */
     private $client;
 
-    public function let(Client $client)
+    function let(Client $client)
     {
         $this->client = $client;
 
         $this->beConstructedWith($client);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(GasPrice::class);
     }
 
-    public function it_should_get_latest_gas_price()
+    function it_should_get_latest_gas_price()
     {
         $this->client->get('https://api.infura.io/v1/jsonrpc/mainnet/eth_gasPrice')
             ->shouldBeCalled()
@@ -32,7 +32,7 @@ class GasPriceSpec extends ObjectBehavior
         $this->getLatestGasPrice()->shouldReturn('0xee6b2800');
     }
 
-    public function it_should_fail_to_get_the_gas_price()
+    function it_should_fail_to_get_the_gas_price()
     {
         $this->client->get('https://api.infura.io/v1/jsonrpc/mainnet/eth_gasPrice')
             ->shouldBeCalled()

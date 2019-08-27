@@ -1,6 +1,5 @@
 <?php
 namespace Minds\Core\Queue;
-
 use Minds\Core\Di\Di;
 
 /**
@@ -15,8 +14,8 @@ class Client
      * @return mixed
      * @throws \Exception
      */
-    public static function build($client = '')
-    {
+     public static function build($client = '')
+     {
         $alias = 'Queue';
 
         if ($client) {
@@ -32,5 +31,5 @@ class Client
         }
 
         return $instance;
-    }
+     }
 }

@@ -21,7 +21,7 @@ class monetize implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function get($pages)
     {
-        $response = [];
+        $response = array();
         return Factory::response($response);
     }
 
@@ -30,7 +30,7 @@ class monetize implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function post($pages)
     {
-        return Factory::response([]);
+        return Factory::response(array());
     }
 
     /**
@@ -42,16 +42,16 @@ class monetize implements Interfaces\Api, Interfaces\ApiAdminPam
         $entity = Entities\Factory::build($pages[0]);
 
         if (!$entity) {
-            return Factory::response([
+            return Factory::response(array(
               'status' => 'error',
               'message' => "Entity not found"
-            ]);
+            ));
         }
 
         $entity->monetized = true;
         $entity->save();
 
-        return Factory::response([]);
+        return Factory::response(array());
     }
 
     /**
@@ -62,15 +62,15 @@ class monetize implements Interfaces\Api, Interfaces\ApiAdminPam
         $entity = Entities\Factory::build($pages[0]);
 
         if (!$entity) {
-            return Factory::response([
+            return Factory::response(array(
               'status' => 'error',
               'message' => "Entity not found"
-            ]);
+            ));
         }
 
         $entity->monetized = false;
         $entity->save();
 
-        return Factory::response([]);
+        return Factory::response(array());
     }
 }

@@ -22,23 +22,24 @@ class ReferralDelegateSpec extends ObjectBehavior
     /** @var User $user */
     private $user;
 
-    public function let(
+    function let(
         Manager $manager,
         User $user,
         Contributions\Manager $contributionsManager
-    ) {
+    )
+    {
         $this->beConstructedWith($manager, $contributionsManager);
         $this->manager = $manager;
         $this->contributionsManager = $contributionsManager;
         $this->user = $user;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(ReferralDelegate::class);
     }
 
-    public function it_should_tell_manager_to_update_referral()
+    function it_should_tell_manager_to_update_referral()
     {
         $user = new User();
         $user->referrer = 123;
@@ -57,7 +58,7 @@ class ReferralDelegateSpec extends ObjectBehavior
         $this->manager->update($referral)
             ->shouldBeCalled();
 
-        $this->contributionsManager->add(Argument::that(function ($contribution) {
+        $this->contributionsManager->add(Argument::that(function($contribution) {
             return $contribution->getMetric() === 'referrals_welcome'
                 && $contribution->getScore() === 50
                 && $contribution->getAmount() === 1

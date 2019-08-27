@@ -15,7 +15,7 @@ class Export
      */
     public static function sanitize($array)
     {
-        $return = [];
+        $return = array();
 
         foreach ($array as $k => $v) {
             if (is_numeric($v) || is_string($v)) {

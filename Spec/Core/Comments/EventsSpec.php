@@ -16,7 +16,7 @@ class EventsSpec extends ObjectBehavior
     /** @var Mailer */
     protected $mailer;
 
-    public function let(EventsDispatcher $dispatcher, Mailer $mailer)
+    function let(EventsDispatcher $dispatcher, Mailer $mailer)
     {
         Di::_()->bind('EventsDispatcher', function ($di) use ($dispatcher) {
             return $dispatcher->getWrappedObject();
@@ -30,12 +30,12 @@ class EventsSpec extends ObjectBehavior
         $this->mailer = $mailer;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Comments\Events');
     }
 
-    public function it_should_register_the_ban_event()
+    function it_should_register_the_ban_event()
     {
         $this->dispatcher->register('entity:resolve', 'comment', Argument::any())
             ->shouldBeCalled();

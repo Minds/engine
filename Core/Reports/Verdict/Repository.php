@@ -21,6 +21,7 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Reports\Jury\Decision;
 use Minds\Core\Reports\Repository as ReportsRepository;
 
+
 class Repository
 {
     /** @var Data\Cassandra\Client $cql */
@@ -61,6 +62,7 @@ class Repository
      */
     public function add(Verdict $verdict)
     {
+
         $statement = "UPDATE moderation_reports
             SET state = ?,
               state_changes += ?,
@@ -90,4 +92,5 @@ class Repository
 
         return (bool) $this->cql->request($prepared);
     }
+
 }

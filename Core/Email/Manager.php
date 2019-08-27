@@ -3,6 +3,7 @@
 
 namespace Minds\Core\Email;
 
+
 use Minds\Core\Di\Di;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Entities;
@@ -78,7 +79,7 @@ class Manager
         }
 
         if (!$topics) {
-            $topics = [
+            $topics = [ 
                 'unread_notifications',
                 'wire_received',
                 'boost_completed',
@@ -122,13 +123,11 @@ class Manager
      * @param CampaignLog $campaignLog the receiver, time and campaign class name
      * @return boolean the add result
      */
-    public function saveCampaignLog(CampaignLog $campaignLog)
-    {
+    public function saveCampaignLog(CampaignLog $campaignLog) {
         $this->campaignLogsRepository->add($campaignLog);
     }
 
-    public function getCampaignLogs(User $receiver)
-    {
+    public function getCampaignLogs(User $receiver) {
         $options = [
             'receiver_guid' => $receiver->guid
         ];

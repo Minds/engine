@@ -18,7 +18,7 @@ class FeedsSpec extends ObjectBehavior
     /** @var QueueClient */
     protected $queue;
 
-    public function let(
+    function let(
         FeedsRepository $feedsRepository,
         QueueClient $queue
     ) {
@@ -28,14 +28,15 @@ class FeedsSpec extends ObjectBehavior
         $this->queue = $queue;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blogs\Delegates\Feeds');
     }
 
-    public function it_should_index(
+    function it_should_index(
         Blog $blog
-    ) {
+    )
+    {
         $blog->getGuid()
             ->shouldBeCalled()
             ->willReturn(5000);
@@ -57,9 +58,10 @@ class FeedsSpec extends ObjectBehavior
             ->shouldNotThrow();
     }
 
-    public function it_should_remove(
+    function it_should_remove(
         Blog $blog
-    ) {
+    )
+    {
         $blog->getGuid()
             ->shouldBeCalled()
             ->willReturn(5000);
@@ -81,9 +83,10 @@ class FeedsSpec extends ObjectBehavior
             ->shouldNotThrow();
     }
 
-    public function it_should_get_feed_items(
+    function it_should_get_feed_items(
         Blog $blog
-    ) {
+    )
+    {
         $blog->getGuid()
             ->shouldBeCalled()
             ->willReturn(5000);
@@ -103,7 +106,7 @@ class FeedsSpec extends ObjectBehavior
 
     //
 
-    public function getMatchers()
+    function getMatchers()
     {
         $matchers = [];
 

@@ -16,19 +16,19 @@ class ManagerSpec extends ObjectBehavior
     private $repository;
     private $campaignLogsRepository;
 
-    public function let(Repository $repository, CampaignLogsRepository $campaignLogsRepository)
-    {
+    function let(Repository $repository, CampaignLogsRepository $campaignLogsRepository) {
         $this->repository = $repository;
         $this->campaignLogsRepository = $campaignLogsRepository;
         $this->beConstructedWith($this->repository, $this->campaignLogsRepository);
+ 
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Email\Manager');
     }
 
-    public function it_should_get_subscribers()
+    function it_should_get_subscribers()
     {
         $opts = [
             'campaign' => 'when',
@@ -55,9 +55,10 @@ class ManagerSpec extends ObjectBehavior
             ]);
 
         $this->getSubscribers($opts)->shouldBeArray();
+
     }
 
-    public function it_should_unsubscribe_a_user_from_a_campaign()
+    function it_should_unsubscribe_a_user_from_a_campaign()
     {
         $user = new User();
         $user->guid = '123';
@@ -69,9 +70,10 @@ class ManagerSpec extends ObjectBehavior
 
         $this->unsubscribe($user, [ 'when' ], [ 'boost_received' ])
             ->shouldReturn(true);
+
     }
 
-    public function it_should_unsubscribe_from_all_emails()
+    function it_should_unsubscribe_from_all_emails()
     {
         $user = new User();
         $user->guid = '123';
@@ -89,7 +91,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->getList([
             'campaigns' => [ 'when', 'with', 'global' ],
-            'topics' => [
+            'topics' => [ 
                 'unread_notifications',
                 'wire_received',
                 'boost_completed',
@@ -116,21 +118,20 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_save_a_campaign_log()
-    {
+    function it_should_save_a_campaign_log() {
         $campaignLog = new CampaignLog();
         $this->campaignLogsRepository->add($campaignLog)->shouldBeCalled();
         $this->saveCampaignLog($campaignLog);
     }
 
-    public function it_should_get_campaign_logs()
-    {
+    function it_should_get_campaign_logs() {
         $user = new User();
         $user->guid = '123';
         $options = [
             'receiver_guid' => $user->guid
-        ];
+        ]; 
         $this->campaignLogsRepository->getList($options)->shouldBeCalled();
         $this->getCampaignLogs($user);
     }
+
 }

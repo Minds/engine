@@ -15,17 +15,18 @@ class CassandraProvisionerSpec extends ObjectBehavior
     private $_db;
     private $_client;
 
-    public function let(
+    function let(
         Config $config,
         Data\Call $db,
         Cassandra\Client $client
-    ) {
+    )
+    {
         $this->beConstructedWith($config, $db, $client);
         $this->_db = $db;
         $this->_client = $client;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Provisioner\Provisioners\CassandraProvisioner');
     }

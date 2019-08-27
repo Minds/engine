@@ -11,6 +11,7 @@ use Minds\Core\Reports\Report;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
+
 class ManagerSpec extends ObjectBehavior
 {
     private $repository;
@@ -20,14 +21,15 @@ class ManagerSpec extends ObjectBehavior
     private $releaseSummonsesDelegate;
     private $metricsDelegate;
 
-    public function let(
+    function let(
         Repository $repository,
         Delegates\ActionDelegate $actionDelegate,
         Delegates\ReverseActionDelegate $reverseDelegate,
         Delegates\NotificationDelegate $notificationDelegate,
         Delegates\ReleaseSummonsesDelegate $releaseSummonsesDelegate,
         Delegates\MetricsDelegate $metricsDelegate
-    ) {
+    )
+    {
         $this->beConstructedWith(
             $repository,
             $actionDelegate,
@@ -42,14 +44,15 @@ class ManagerSpec extends ObjectBehavior
         $this->notificationDelegate = $notificationDelegate;
         $this->releaseSummonsesDelegate = $releaseSummonsesDelegate;
         $this->metricsDelegate = $metricsDelegate;
+
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_add_verdict_to_repository(Verdict $verdict, Report $report)
+    function it_should_add_verdict_to_repository(Verdict $verdict, Report $report)
     {
         $verdict->isAppeal()
             ->willReturn(false);
@@ -79,7 +82,7 @@ class ManagerSpec extends ObjectBehavior
         $this->cast($verdict->getWrappedObject());
     }
 
-    public function it_should_return_a_single_verdict_object_from_repository()
+    function it_should_return_a_single_verdict_object_from_repository()
     {
         $ts = microtime(true);
         $report = new Report();
@@ -112,7 +115,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(null);
     }
 
-    public function it_should_return_the_verdict_action_as_upheld_for_initial_jury(Verdict $verdict, Report $report)
+    function it_should_return_the_verdict_action_as_upheld_for_initial_jury(Verdict $verdict, Report $report)
     {
         $report->isAppeal()
             ->shouldBeCalled()
@@ -132,7 +135,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    public function it_should_return_the_appeal_verdict_action_as_upheld()
+    function it_should_return_the_appeal_verdict_action_as_upheld()
     {
         $report = new Report();
         $report->setAppeal(true);
@@ -171,7 +174,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    public function it_should_return_the_appeal_verdict_action_as_overturned()
+    function it_should_return_the_appeal_verdict_action_as_overturned()
     {
         $report = new Report();
         $report->setAppeal(true);
@@ -210,7 +213,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(false);
     }
 
-    public function it_should_return_the_appeal_verdict_action_as_null()
+    function it_should_return_the_appeal_verdict_action_as_null()
     {
         $report = new Report();
         $report->setAppeal(true);
@@ -229,7 +232,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(null);
     }
 
-    public function it_should_decide_verdict_from_a_report(Report $report)
+    function it_should_decide_verdict_from_a_report(Report $report)
     {
         $report->isAppeal()
             ->shouldBeCalled()
@@ -253,4 +256,5 @@ class ManagerSpec extends ObjectBehavior
         $this->decideFromReport($report)
             ->shouldBe(true);
     }
+
 }

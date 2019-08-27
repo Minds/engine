@@ -8,14 +8,15 @@ use Prophecy\Argument;
 
 class ActivityMappingSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Search\Mappings\ActivityMapping');
     }
 
-    public function it_should_map_an_activity(
+    function it_should_map_an_activity(
         Activity $activity
-    ) {
+    )
+    {
         $now = time();
         $activity->get('moderator_guid')->willReturn(null);
         $activity->get('time_moderated')->willReturn(null);
@@ -76,9 +77,10 @@ class ActivityMappingSpec extends ObjectBehavior
             ]);
     }
 
-    public function it_should_map_an_activity_with_a_moderator(
+    function it_should_map_an_activity_with_a_moderator(
         Activity $activity
-    ) {
+    )
+    {
         $now = time();
         $activity->get('moderator_guid')->willReturn('123');
         $activity->get('time_moderated')->willReturn(123);

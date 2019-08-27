@@ -8,6 +8,7 @@ use Minds\Entities\User;
 
 class Balance
 {
+
     /** @var Token */
     private $token;
 
@@ -20,7 +21,8 @@ class Balance
     public function __construct(
         $token = null,
         $cache = null
-    ) {
+    )
+    {
         $this->token = $token ?: Di::_()->get('Blockchain\Token');
         $this->cache = $cache ?: Di::_()->get('Cache');
     }
@@ -55,13 +57,13 @@ class Balance
         $cacheKey = "blockchain:balance:{$address}";
         $balance = $this->cache->get($cacheKey);
 
-        if ($balance) {
+        if ($balance)
             return unserialize($balance);
-        }
 
         $balance = $this->token->balanceOf($address);
         $this->cache->set($cacheKey, serialize($balance), 60);
 
         return $balance;
     }
+
 }

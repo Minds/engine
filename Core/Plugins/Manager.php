@@ -9,6 +9,7 @@ use Minds\Core\Di\Di;
 
 class Manager
 {
+
     protected $config;
 
     protected $path = "";
@@ -17,11 +18,12 @@ class Manager
     /**
      * Construct plugins
      */
-    public function __construct($config = null)
+    public function __construct($config = NULL)
     {
         $this->config = $config ?: Di::_()->get('Config');
 
         $this->path = dirname(__MINDS_ROOT__) . "/plugins/";
+
     }
 
     public function init()
@@ -37,6 +39,7 @@ class Manager
      */
     private static function getFromDir()
     {
+
         $plugin_ids = [];
         $handle = opendir($this->path);
 
@@ -55,8 +58,8 @@ class Manager
     protected function initPlugins()
     {
         $plugins = $this->config->get('plugins');
-        if (!$plugins) {
-            return;
+        if (!$plugins){
+          return;
         }
 
         foreach ($plugins as $id) {
@@ -64,8 +67,7 @@ class Manager
             try {
                 $plugin->start();
                 $plugin->init();
-            } catch (Exception $e) {
-            }
+            } catch (Exception $e) {}
         }
 
         \elgg_trigger_event('plugins_loaded', 'plugin');
@@ -78,18 +80,18 @@ class Manager
      *
      * @return object
      */
-    public static function buildPlugin($name, $data = null)
-    {
-        if (!$data) {
-            $data = $name;
-        }
+     public static function buildPlugin($name, $data = null)
+     {
+         if (!$data) {
+             $data = $name;
+         }
 
-        $class = "\\Minds\\Plugin\\$name\\start";
-        if (class_exists($class)) {
-            return new $class($data);
-        } else {
-            //support legacy plugins
+         $class = "\\Minds\\Plugin\\$name\\start";
+         if (class_exists($class)) {
+             return new $class($data);
+         } else {
+             //support legacy plugins
             return new \ElggPlugin($data);
-        }
-    }
+         }
+     }
 }

@@ -13,15 +13,17 @@ use Prophecy\Argument;
 
 class ScannerSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType(Scanner::class);
     }
 
-    public function it_should_run_over_maps(
+    function it_should_run_over_maps(
         Manager $manager,
         Subscribe $subscribeAgg
-    ) {
+    )
+    {
         $maps = [
             'interaction:subscribe' => [
                 'interaction' => 'subscribe',
@@ -73,10 +75,11 @@ class ScannerSpec extends ObjectBehavior
         $this->run();
     }
 
-    public function it_should_run_over_maps_but_skip_if_already_limited(
+    function it_should_run_over_maps_but_skip_if_already_limited(
         Manager $manager,
         Subscribe $subscribeAgg
-    ) {
+    )
+    {
         $maps = [
             'interaction:subscribe' => [
                 'interaction' => 'subscribe',
@@ -127,4 +130,5 @@ class ScannerSpec extends ObjectBehavior
 
         $this->run();
     }
+
 }

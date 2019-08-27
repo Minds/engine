@@ -27,4 +27,5 @@ class BatchSubscription
             'batchId' => $this->getBatchId(),
         ];
     }
+
 }

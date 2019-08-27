@@ -8,12 +8,12 @@ use Prophecy\Argument;
 
 class HashtagEntitySpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(HashtagEntity::class);
     }
 
-    public function it_should_have_guid_getters_and_setters()
+    function it_should_have_guid_getters_and_setters()
     {
         $this->setGuid(100)
             ->shouldBeAnInstanceOf($this);
@@ -21,7 +21,7 @@ class HashtagEntitySpec extends ObjectBehavior
         $this->getGuid()->shouldReturn(100);
     }
 
-    public function it_should_have_hashtag_getters_and_setters()
+    function it_should_have_hashtag_getters_and_setters()
     {
         $this->setHashtag('hashtag1')
             ->shouldBeAnInstanceOf($this);

@@ -15,7 +15,7 @@ class RepositorySpec extends ObjectBehavior
     /** @var Client */
     protected $cql;
 
-    public function let(
+    function let(
         Client $cql
     ) {
         $this->beConstructedWith($cql);
@@ -23,16 +23,17 @@ class RepositorySpec extends ObjectBehavior
         $this->cql = $cql;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Comments\Votes\Repository');
     }
 
-    public function it_should_add(
+    function it_should_add(
         Vote $vote,
         Comment $comment,
         User $actor
-    ) {
+    )
+    {
         $vote->getEntity()
             ->shouldBeCalled()
             ->willReturn($comment);
@@ -55,11 +56,12 @@ class RepositorySpec extends ObjectBehavior
             ->add($vote);
     }
 
-    public function it_should_delete(
+    function it_should_delete(
         Vote $vote,
         Comment $comment,
         User $actor
-    ) {
+    )
+    {
         $vote->getEntity()
             ->shouldBeCalled()
             ->willReturn($comment);

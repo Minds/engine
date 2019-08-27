@@ -58,4 +58,5 @@ class VotesDown extends Aggregate
         }
         return $entities;
     }
+
 }

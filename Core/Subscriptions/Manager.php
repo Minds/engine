@@ -51,7 +51,8 @@ class Manager
         $eventsDelegate = null,
         $feedsDelegate = null,
         $checkRateLimitDelegate = null
-    ) {
+    )
+    {
         $this->repository = $repository ?: new Repository;
         $this->copyToElasticSearchDelegate = $copyToElasticSearchDelegate ?: new Delegates\CopyToElasticSearchDelegate;
         $this->sendNotificationDelegate = $sendNotificationDelegate ?: new Delegates\SendNotificationDelegate;
@@ -152,4 +153,5 @@ class Manager
     {
         return $this->subscriber->getSubscriptionsCount(); //TODO: Refactor so we are the source of truth
     }
+
 }

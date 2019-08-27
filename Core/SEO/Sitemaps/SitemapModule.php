@@ -3,6 +3,7 @@
 
 namespace Minds\Core\SEO\Sitemaps;
 
+
 class SitemapModule
 {
     protected $map;
@@ -25,5 +26,6 @@ class SitemapModule
 
     public function collect($pages, $segments)
     {
+
     }
 }

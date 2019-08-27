@@ -3,6 +3,7 @@ namespace Minds\Core\Security;
 
 class ReCaptcha
 {
+
     private $config;
 
     public function __construct($config)
@@ -36,10 +37,11 @@ class ReCaptcha
 
         if ($response) {
             $data = json_decode($response, true);
-            if ($data['success']) {
+            if($data['success']) {
                 return true;
             }
         }
         return false;
     }
+
 }

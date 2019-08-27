@@ -33,6 +33,7 @@ class Network implements BoostHandlerInterface
      */
     public function boost($boost, $impressions = 0)
     {
+
         $documentId = $this->mongo->insert("boost", [
             'guid' => $boost->getGuid(),
             'owner_guid' => $boost->getOwner()->guid,
@@ -357,7 +358,7 @@ class Network implements BoostHandlerInterface
                 $data = $data['_document'];
             }
 
-            if (in_array((string) $data['_id'], $mem_log, true)) {
+            if (in_array((string) $data['_id'], $mem_log)) {
                 continue; // already seen
             }
 

@@ -17,6 +17,7 @@ use Minds\Entities;
 
 class plus implements Interfaces\Api
 {
+
     /**
      * Returns plus info
      * @param array $pages
@@ -89,17 +90,17 @@ class plus implements Interfaces\Api
                     $subscription->setMerchant($referrer)
                       ->setFee(0.75); //payout 25% to referrer
 
-                    try {
+                    try{
                         $stripe->createPlan((object) [
                           'id' => 'plus',
                           'amount' => 5,
                           'merchantId' => $referrer->getMerchant()['id']
                         ]);
-                    } catch (\Exception $e) {
-                    }
+                    } catch(\Exception $e){}
                 }
 
                 try {
+
                     try {
                         $subscription->setId($stripe->createSubscription($subscription));
                     } catch (\Exception $e) {
@@ -163,7 +164,7 @@ class plus implements Interfaces\Api
             case "subscription":
                 $subscription = $plus->getSubscription();
 
-                if ($user->referrer) {
+                if ($user->referrer){
                     $referrer = new User($user->referrer);
                     $subscription->setMerchant($referrer->getMerchant());
                 }
@@ -183,4 +184,5 @@ class plus implements Interfaces\Api
         }
         return Factory::response([]);
     }
+
 }

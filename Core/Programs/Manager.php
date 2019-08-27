@@ -159,7 +159,7 @@ class Manager
 
     public function isParticipant($program)
     {
-        return in_array($program, $this->user->getPrograms(), true);
+        return in_array($program, $this->user->getPrograms());
     }
 
     public function isApplicant($program)

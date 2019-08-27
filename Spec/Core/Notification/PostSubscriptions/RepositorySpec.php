@@ -13,20 +13,21 @@ class RepositorySpec extends ObjectBehavior
 {
     protected $db;
 
-    public function let(
+    function let(
         Client $db
-    ) {
+    )
+    {
         $this->beConstructedWith($db);
 
         $this->db = $db;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Notification\PostSubscriptions\Repository');
     }
 
-    public function it_should_get_rows()
+    function it_should_get_rows()
     {
         $rows = new \stdClass();
 
@@ -61,7 +62,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn($rows);
     }
 
-    public function it_should_get_list()
+    function it_should_get_list()
     {
         $preparedMatch = function (Custom $prepared) {
             $query = $prepared->build();
@@ -105,7 +106,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeACountableIteratorOf(2, PostSubscription::class);
     }
 
-    public function it_should_get()
+    function it_should_get()
     {
         $preparedMatch = function (Custom $prepared) {
             $query = $prepared->build();
@@ -143,7 +144,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturnAnInstanceOf(PostSubscription::class);
     }
 
-    public function it_should_get_null_if_not_exists()
+    function it_should_get_null_if_not_exists()
     {
         $preparedMatch = function (Custom $prepared) {
             $query = $prepared->build();
@@ -170,7 +171,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(null);
     }
 
-    public function it_should_add()
+    function it_should_add()
     {
         $preparedMatch = function (Custom $prepared) {
             $query = $prepared->build();
@@ -201,7 +202,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_add_if_not_exists()
+    function it_should_add_if_not_exists()
     {
         $preparedMatch = function (Custom $prepared) {
             $query = $prepared->build();
@@ -232,7 +233,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_delete()
+    function it_should_delete()
     {
         $preparedMatch = function (Custom $prepared) {
             $query = $prepared->build();
@@ -260,7 +261,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function getMatchers()
+    function getMatchers()
     {
         $matchers = [];
 

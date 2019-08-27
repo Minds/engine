@@ -13,6 +13,7 @@ use Minds\Core\Security\AbuseGuard\Recover;
 
 class AbuseGuard
 {
+
     private $start = 0;
     private $end = 0;
     private $accused = [];
@@ -97,4 +98,5 @@ class AbuseGuard
     {
         return count($this->accused);
     }
+
 }

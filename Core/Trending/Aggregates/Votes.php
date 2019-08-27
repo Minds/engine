@@ -8,6 +8,7 @@ use Minds\Core\Data\ElasticSearch;
 
 class Votes extends Aggregate
 {
+
     protected $multiplier = 1;
 
     private $page = -1;
@@ -15,7 +16,7 @@ class Votes extends Aggregate
 
     public function fetch()
     {
-        $filter = [
+        $filter = [ 
             'term' => [
                 'action' => 'vote:up'
             ]
@@ -80,7 +81,7 @@ class Votes extends Aggregate
                 ],
                 'aggs' => [
                     'entities' => [
-                        'terms' => [
+                        'terms' => [ 
                             'field' => "$field.keyword",
                             'size' => $this->limit,
                             'include' => [
@@ -117,4 +118,5 @@ class Votes extends Aggregate
             }
         }
     }
+
 }

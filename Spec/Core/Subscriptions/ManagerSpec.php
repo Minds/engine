@@ -13,6 +13,7 @@ use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
+
     private $repository;
     private $copyToElasticSearchDelegate;
     private $sendNotificationDelegate;
@@ -22,7 +23,7 @@ class ManagerSpec extends ObjectBehavior
     private $checkRateLimitDelegate;
 
 
-    public function let(
+    function let(
         Repository $repository,
         Delegates\CopyToElasticSearchDelegate $copyToElasticSearchDelegate = null,
         Delegates\SendNotificationDelegate $sendNotificationDelegate = null,
@@ -30,7 +31,8 @@ class ManagerSpec extends ObjectBehavior
         Delegates\EventsDelegate $eventsDelegate = null,
         Delegates\FeedsDelegate $feedsDelegate = null,
         CheckRateLimit $checkRateLimitDelegate = null
-    ) {
+    )
+    {
         $this->beConstructedWith(
             $repository,
             $copyToElasticSearchDelegate,
@@ -49,7 +51,7 @@ class ManagerSpec extends ObjectBehavior
         $this->checkRateLimitDelegate = $checkRateLimitDelegate;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
@@ -71,7 +73,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(true);
     }*/
 
-    public function it_should_subscribe()
+    function it_should_subscribe()
     {
         // Confusing.. but this is the returned subscription
         // post repository
@@ -113,7 +115,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    public function it_should_not_allow_if_over_5000_subscriptions(User $subscriber)
+    function it_should_not_allow_if_over_5000_subscriptions(User $subscriber)
     {
         $publisher = (new User)->set('guid', 456);
 
@@ -127,7 +129,7 @@ class ManagerSpec extends ObjectBehavior
             ->duringSubscribe($publisher);
     }
 
-    public function it_should_unsubscribe()
+    function it_should_unsubscribe()
     {
         // Confusing.. but this is the returned subscription
         // post repository
@@ -164,4 +166,5 @@ class ManagerSpec extends ObjectBehavior
         $newSubscription->isActive()
             ->shouldBe(false);
     }
+
 }

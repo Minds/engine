@@ -48,7 +48,8 @@ class Manager
         $feeds = null,
         $spam = null,
         $search = null
-    ) {
+    )
+    {
         $this->repository = $repository ?: new Repository();
         $this->paywallReview = $paywallReview ?: new Delegates\PaywallReview();
         $this->slug = $slug ?: new Delegates\Slug();

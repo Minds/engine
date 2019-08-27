@@ -19,12 +19,13 @@ class ManagerSpec extends ObjectBehavior
     private $verdictManager;
     private $summonsManager;
 
-    public function let(
+    function let(
         Repository $repository,
         EntitiesResolver $entitiesResolver,
         VerdictManager $verdictManager,
         SummonsManager $summonsManager
-    ) {
+    )
+    {
         $this->beConstructedWith($repository, $entitiesResolver, $verdictManager, $summonsManager);
         $this->repository = $repository;
         $this->entitiesResolver = $entitiesResolver;
@@ -32,12 +33,12 @@ class ManagerSpec extends ObjectBehavior
         $this->summonsManager = $summonsManager;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_return_an_undmoderated_list_to_jury_on()
+    function it_should_return_an_undmoderated_list_to_jury_on()
     {
         $this->repository->getList(Argument::type('array'))
             ->shouldBeCalled()
@@ -61,7 +62,7 @@ class ManagerSpec extends ObjectBehavior
         $response->shouldHaveCount(2);
     }
 
-    public function it_should_cast_a_jury_decision(Decision $decision)
+    function it_should_cast_a_jury_decision(Decision $decision)
     {
         $report = new Report();
 
@@ -83,4 +84,5 @@ class ManagerSpec extends ObjectBehavior
         $this->cast($decision)
             ->shouldBe(true);
     }
+
 }

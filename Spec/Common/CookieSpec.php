@@ -8,12 +8,13 @@ use Minds\Core\Config;
 
 class CookieSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Common\Cookie');
     }
 
-    public function it_should_not_create_a_secure_cookie_if_disabled(Config $config)
+    function it_should_not_create_a_secure_cookie_if_disabled(Config $config)
     {
         $this->beConstructedWith($config);
 
@@ -27,4 +28,5 @@ class CookieSpec extends ObjectBehavior
 
         $this->isSecure()->shouldBe(false);
     }
+
 }

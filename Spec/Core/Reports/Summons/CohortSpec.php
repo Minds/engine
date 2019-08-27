@@ -21,23 +21,24 @@ class CohortSpec extends ObjectBehavior
     /** @var Subscriptions */
     protected $subscriptions;
 
-    public function let(
+    function let(
         Repository $repository,
         Pool $pool,
         Subscriptions $subscriptions
-    ) {
+    )
+    {
         $this->beConstructedWith($repository, $pool, $subscriptions, 20, 3);
         $this->repository = $repository;
         $this->pool = $pool;
         $this->subscriptions = $subscriptions;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Cohort::class);
     }
 
-    public function it_should_pick()
+    function it_should_pick()
     {
         $this->subscriptions->setUser(Argument::that(function (User $user) {
             return $user->get('guid') == 1000;

@@ -13,20 +13,21 @@ use Minds\Interfaces;
 
 class facebook implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
-    /**
-     * Get request
-     * @param array $pages
-     */
-    public function get($pages)
-    {
-        $response = [];
 
-        /** @var Core\ThirdPartyNetworks\Networks\Facebook $facebook */
-        $facebook = Core\ThirdPartyNetworks\Factory::build('facebook');
-        /** @var Core\ThirdPartyNetworks\Facebook\Manager $manager */
-        $manager = Core\Di\Di::_()->get('ThirdPartyNetworks\Facebook\Manager');
+  /**
+   * Get request
+   * @param array $pages
+   */
+  public function get($pages)
+  {
+      $response = [];
 
-        switch ($pages[0]) {
+      /** @var Core\ThirdPartyNetworks\Networks\Facebook $facebook */
+      $facebook = Core\ThirdPartyNetworks\Factory::build('facebook');
+      /** @var Core\ThirdPartyNetworks\Facebook\Manager $manager */
+      $manager = Core\Di\Di::_()->get('ThirdPartyNetworks\Facebook\Manager');
+
+      switch ($pages[0]) {
           case "login-url":
               $helper = $facebook->getFb()->getRedirectLoginHelper();
               $url = $helper->getLoginUrl('', [
@@ -109,8 +110,8 @@ class facebook implements Interfaces\Api, Interfaces\ApiIgnorePam
               break;
       }
 
-        return Factory::response($response);
-    }
+      return Factory::response($response);
+  }
 
     public function post($pages)
     {
@@ -167,7 +168,7 @@ class facebook implements Interfaces\Api, Interfaces\ApiIgnorePam
                 break;
             case "complete-register": //changes username of a facebook account and sends welcome email
 
-                if (!Core\Security\XSRF::validateRequest()) {
+                if(!Core\Security\XSRF::validateRequest()){
                     return Factory::response([
                       'status' => 'error',
                       'message' => 'XSRF token not found or does not match'
@@ -204,7 +205,7 @@ class facebook implements Interfaces\Api, Interfaces\ApiIgnorePam
 
     public function put($pages)
     {
-        return Factory::response([]);
+        return Factory::response(array());
     }
 
     public function delete($pages)

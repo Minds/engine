@@ -8,11 +8,12 @@ use Minds\Core\Data\ElasticSearch;
 
 class SuspiciousVotes extends Aggregate
 {
+
     protected $multiplier = 1;
 
     public function get()
     {
-        $filter = [
+        $filter = [ 
             'term' => [
                 'action' => 'vote:up'
             ]
@@ -73,7 +74,7 @@ class SuspiciousVotes extends Aggregate
                 ],
                 'aggs' => [
                     'suspicious' => [
-                        'significant_terms' => [
+                        'significant_terms' => [ 
                             'field' => "$field.keyword",
                             'size' => $this->limit,
 //                            'order' => [ 'uniques' => 'DESC' ],
@@ -94,4 +95,5 @@ class SuspiciousVotes extends Aggregate
         }
         return $entities;
     }
+
 }

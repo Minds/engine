@@ -12,19 +12,19 @@ class SuggestedHashtagsDelegateSpec extends ObjectBehavior
 {
     protected $userHashtagsManager;
 
-    public function let(Manager $userHashtagsManager)
+    function let(Manager $userHashtagsManager)
     {
         $this->beConstructedWith($userHashtagsManager);
 
         $this->userHashtagsManager = $userHashtagsManager;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(SuggestedHashtagsDelegate::class);
     }
 
-    public function it_should_check_if_completed(User $user)
+    function it_should_check_if_completed(User $user)
     {
         $this->userHashtagsManager->setUser($user)
             ->shouldBeCalled()
@@ -42,7 +42,7 @@ class SuggestedHashtagsDelegateSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_check_if_not_completed(User $user)
+    function it_should_check_if_not_completed(User $user)
     {
         $this->userHashtagsManager->setUser($user)
             ->shouldBeCalled()

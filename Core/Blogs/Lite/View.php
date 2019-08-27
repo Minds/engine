@@ -7,8 +7,10 @@ namespace Minds\Core\Blogs\Lite;
 
 use Minds\Core\Email;
 
+
 class View
 {
+
     private $blog;
 
     public function setBlog($blog)
@@ -45,4 +47,5 @@ class View
 
         return $template->render();
     }
+
 }

@@ -10,12 +10,13 @@ use Minds\Core\Data\ElasticSearch\Prepared\Index;
 
 class EventSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Analytics\Metrics\Event');
     }
 
-    public function it_should_set_a_variable()
+    function it_should_set_a_variable()
     {
         $this->setType('hello')->shouldReturn($this);
         $this->getData()->shouldReturn([
@@ -23,8 +24,8 @@ class EventSpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_set_camel_case()
-    {
+    function it_should_set_camel_case()
+    {   
         $this->setOwnerGuid('hello')->shouldReturn($this);
         $this->setNotcamelcase('boo')->shouldReturn($this);
         $this->setSnake_Case('woo')->shouldReturn($this);
@@ -35,7 +36,7 @@ class EventSpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_push(Client $es, Index $prepared)
+    function it_should_push(Client $es, Index $prepared)
     {
         $this->beConstructedWith($es);
 
@@ -46,7 +47,7 @@ class EventSpec extends ObjectBehavior
             'client' => [
                 'timeout' => 2,
                 'connect_timeout' => 1
-            ]
+            ] 
         ])->shouldBeCalled();
         $prepared->build()->shouldBeCalled();*/
 
@@ -58,4 +59,5 @@ class EventSpec extends ObjectBehavior
         $this->push()->shouldBe(true);
         $this->getData()->shouldHaveKey('@timestamp');
     }
+
 }

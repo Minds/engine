@@ -18,28 +18,29 @@ class EntityDelegateSpec extends ObjectBehavior
     /** @var CassandraClient */
     protected $db;
 
-    public function let(
+    function let(
         Repository $repository,
         CassandraClient $db
-    ) {
+    )
+    {
         $this->beConstructedWith($repository, $db);
         $this->repository = $repository;
         $this->db = $db;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(EntityDelegate::class);
     }
 
-    public function it_should_snapshot()
+    function it_should_snapshot()
     {
         $this
             ->snapshot(1000)
             ->shouldReturn(true);
     }
 
-    public function it_should_restore()
+    function it_should_restore()
     {
         $this
             ->restore(1000)
@@ -47,14 +48,14 @@ class EntityDelegateSpec extends ObjectBehavior
     }
 
 
-    public function it_should_hide()
+    function it_should_hide()
     {
         $this
             ->hide(1000)
             ->shouldReturn(true);
     }
 
-    public function it_should_delete()
+    function it_should_delete()
     {
         $this->db->request(Argument::that(function (Custom $prepared) {
             $query = $prepared->build();

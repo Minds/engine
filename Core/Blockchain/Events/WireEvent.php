@@ -86,5 +86,6 @@ class WireEvent implements BlockchainEventInterface
         } catch (\Exception $e) {
             error_log(print_r($e, true));
         }
+
     }
 }

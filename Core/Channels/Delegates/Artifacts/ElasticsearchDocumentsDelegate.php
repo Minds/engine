@@ -33,7 +33,8 @@ class ElasticsearchDocumentsDelegate implements ArtifactsDelegateInterface
         $repository = null,
         $config = null,
         $elasticsearch = null
-    ) {
+    )
+    {
         $this->repository = $repository ?: new Repository();
         $this->config = $config ?: Di::_()->get('Config');
         $this->elasticsearch = $elasticsearch ?: Di::_()->get('Database\ElasticSearch');

@@ -11,6 +11,7 @@ use Minds\Interfaces;
 
 class tos implements Interfaces\Api
 {
+
     public function get($pages)
     {
         return Factory::response(['status' => 'error', 'message' => 'GET is not supported for this endpoint']);
@@ -36,4 +37,5 @@ class tos implements Interfaces\Api
     {
         return Factory::response([]);
     }
+
 }

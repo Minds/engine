@@ -3,6 +3,7 @@
 
 namespace Minds\Core\Events;
 
+
 class EventsDispatcher
 {
     /**

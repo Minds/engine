@@ -78,6 +78,7 @@ class rewards implements Interfaces\Api
                         ->confirm();
 
                     $response['phone_number_hash'] = $user->getPhoneNumberHash();
+
                 } catch (\Exception $e) {
                     $response = [
                         'status' => 'error',
@@ -99,4 +100,5 @@ class rewards implements Interfaces\Api
     {
         return Factory::response([]);
     }
+
 }

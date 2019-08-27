@@ -45,7 +45,8 @@ class Manager
         $notificationDelegate = null,
         $releaseSummonsesDelegate = null,
         $metricsDelegate = null
-    ) {
+    )
+    {
         $this->repository = $repository ?: new Repository;
         $this->actionDelegate = $actionDelegate ?: new Delegates\ActionDelegate;
         $this->reverseActionDelegate = $reverseActionDelegate ?: new Delegates\ReverseActionDelegate;
@@ -89,7 +90,7 @@ class Manager
             $this->decide($verdict);
         }
        
-        error_log('done');
+       error_log('done');
     }
 
     /**
@@ -187,4 +188,5 @@ class Manager
 
         return true;
     }
+
 }

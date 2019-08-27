@@ -20,7 +20,7 @@ class Timestamps
             $ts = time();
         }
 
-        $time = [];
+        $time = array();
         foreach ($periods as $period) {
             switch ($period) {
                 case "day":
@@ -68,7 +68,7 @@ class Timestamps
         $clone = clone $time;
         $max = $clone->modify("+$span {$unit}s")->getTimestamp();
 
-        $timestamps = [];
+        $timestamps = array();
         while ($time->getTimestamp() < $max) {
             $timestamps[] = $time->modify("+1 {$unit}s")->getTimestamp();
         }

@@ -9,10 +9,12 @@ use Minds\Core\Di\Provider;
 
 class PluginsProvider extends Provider
 {
+
     public function register()
     {
-        $this->di->bind('Plugins\Manager', function ($di) {
+        $this->di->bind('Plugins\Manager', function($di){
             return new Manager();
         }, ['useFactory'=>true]);
     }
+
 }

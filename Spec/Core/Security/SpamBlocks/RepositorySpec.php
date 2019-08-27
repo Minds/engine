@@ -11,20 +11,21 @@ use Prophecy\Argument;
 
 class RepositorySpec extends ObjectBehavior
 {
+
     private $client;
     
-    public function let(Client $client)
+    function let(Client $client)
     {
         $this->beConstructedWith($client);
         $this->client = $client;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    public function it_should_get_a_single_spam_block()
+    function it_should_get_a_single_spam_block()
     {
         $this->client->request(Argument::any())
             ->willReturn([
@@ -39,13 +40,13 @@ class RepositorySpec extends ObjectBehavior
         $model->getValue()->shouldBe('v1');
     }
 
-    public function it_should_add_a_model()
+    function it_should_add_a_model()
     {
-        $this->client->request(Argument::that(function ($query) {
-            $values = $query->build()['values'];
-            return $values[0] == 'k1'
+        $this->client->request(Argument::that(function($query) {
+                $values = $query->build()['values'];
+                return $values[0] == 'k1'
                     && $values[1] == 'v1';
-        }))
+            }))
             ->willReturn(true);
         
         $model = new SpamBlock;
@@ -56,4 +57,5 @@ class RepositorySpec extends ObjectBehavior
 
         $this->add($model)->shouldReturn(true);
     }
+
 }

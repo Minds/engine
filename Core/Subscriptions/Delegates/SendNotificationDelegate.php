@@ -6,8 +6,9 @@ namespace Minds\Core\Subscriptions\Delegates;
 
 use Minds\Core\Di\Di;
 
-class SendNotificationDelegate
+class SendNotificationDelegate 
 {
+
     /** @var EventsDispatcher $eventsDispatcher */
     private $eventsDispatcher;
 
@@ -17,7 +18,7 @@ class SendNotificationDelegate
     }
 
     /**
-     * Send a notifications
+     * Send a notifications 
      * @param Subscription $subscrition
      * @return void
      */
@@ -30,6 +31,7 @@ class SendNotificationDelegate
             'from' => $subscription->getSubscriberGuid(),
             'params' => [],
         ]);
+
     }
 
     public function onMaxSubscriptions($subscription)
@@ -43,5 +45,7 @@ class SendNotificationDelegate
             'message' => $message,
             'params' => [ 'message' => $message],
         ]);
+
     }
+
 }

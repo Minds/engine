@@ -15,6 +15,7 @@ use Minds\Entities\Factory;
 
 class Manager
 {
+
     protected $counters;
     protected $indexes;
 
@@ -147,4 +148,5 @@ class Manager
             return $this->cancel($vote, $options);
         }
     }
+
 }

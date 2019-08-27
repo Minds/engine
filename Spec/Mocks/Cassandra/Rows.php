@@ -24,7 +24,7 @@ class Rows implements \IteratorAggregate, \ArrayAccess
         });
     }
 
-    public function pagingStateToken()
+    function pagingStateToken()
     {
         return $this->_pagingStateToken;
     }
@@ -63,4 +63,5 @@ class Rows implements \IteratorAggregate, \ArrayAccess
     {
         return $this->_items[key($this->_items)];
     }
+
 }

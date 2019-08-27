@@ -37,7 +37,7 @@ class settings implements Interfaces\Api
         }
 
 
-        $response = [];
+        $response = array();
 
         $response['channel'] = $user->export();
         $response['channel']['email'] = $user->getEmail();
@@ -110,18 +110,19 @@ class settings implements Interfaces\Api
         if (isset($_POST['password']) && $_POST['password']) {
             try {
                 if (!Core\Security\Password::check($user, $_POST['password'])) {
-                    return Factory::response([
+                    return Factory::response(array(
                         'status' => 'error',
                         'message' => 'You current password is incorrect'
-                    ]);
+                    ));
                 }
             } catch (Core\Security\Exceptions\PasswordRequiresHashUpgradeException $e) {
+
             }
 
             try {
                 validate_password($_POST['new_password']);
             } catch (\Exception $e) {
-                $response = ['status'=>'error', 'message'=>$e->getMessage()];
+                $response = array('status'=>'error', 'message'=>$e->getMessage());
 
                 return Factory::response($response);
             }
@@ -137,7 +138,7 @@ class settings implements Interfaces\Api
 
         $allowedLanguages = ['en', 'es', 'fr', 'vi'];
 
-        if (isset($_POST['language']) && in_array($_POST['language'], $allowedLanguages, true)) {
+        if (isset($_POST['language']) && in_array($_POST['language'], $allowedLanguages)) {
             $user->setLanguage($_POST['language']);
         }
 
@@ -155,11 +156,11 @@ class settings implements Interfaces\Api
 
     public function put($pages)
     {
-        return Factory::response([]);
+        return Factory::response(array());
     }
 
     public function delete($pages)
     {
-        return Factory::response([]);
+        return Factory::response(array());
     }
 }

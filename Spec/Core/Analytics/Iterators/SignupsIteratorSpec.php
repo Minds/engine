@@ -16,19 +16,19 @@ class SignupsIteratorSpec extends ObjectBehavior
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    public function let(Call $db, EntitiesBuilder $entitiesBuilder)
+    function let(Call $db, EntitiesBuilder $entitiesBuilder)
     {
         $this->beConstructedWith($db, $entitiesBuilder);
         $this->db = $db;
         $this->entitiesBuilder = $entitiesBuilder;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(SignupsIterator::class);
     }
 
-    public function it_should_get_the_users(User $user1, User $user2)
+    function it_should_get_the_users(User $user1, User $user2)
     {
         $this->db->getRow(Argument::containingString('analytics:signup:day'), ['limit' => 200, 'offset' => ''])
             ->shouldBeCalled()

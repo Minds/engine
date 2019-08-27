@@ -8,14 +8,15 @@ use Prophecy\Argument;
 
 class S3Spec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Torrent\TorrentBuilders\S3');
     }
 
-    public function it_should_build(
+    function it_should_build(
         AWS $aws
-    ) {
+    )
+    {
         $this->beConstructedWith($aws);
 
         $aws->setKey('5000')

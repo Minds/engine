@@ -16,7 +16,7 @@ class purchases implements Interfaces\Api, Interfaces\ApiAdminPam
 {
     public function get($pages)
     {
-        $offset = $_GET['offset'] ? base64_decode($_GET['offset'], true) : '';
+        $offset = $_GET['offset'] ? base64_decode($_GET['offset']) : '';
         /** @var Core\Blockchain\Pledges\Repository $repo */
         $repo = Di::_()->get('Blockchain\Purchase\Repository');
 
@@ -123,4 +123,5 @@ class purchases implements Interfaces\Api, Interfaces\ApiAdminPam
             'pledge' => $pledge->export(true)
         ]);
     }
+
 }

@@ -8,6 +8,7 @@ use Minds\Interfaces\ModuleInterface;
 
 class Module implements ModuleInterface
 {
+
     /**
      * OnInit
      */
@@ -16,4 +17,5 @@ class Module implements ModuleInterface
         $provider = new Provider();
         $provider->register();
     }
+
 }

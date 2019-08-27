@@ -37,4 +37,5 @@ class Question implements \JsonSerializable
             'answer' => $this->getAnswer()
         ];
     }
+    
 }

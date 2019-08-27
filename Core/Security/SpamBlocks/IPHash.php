@@ -6,6 +6,7 @@ namespace Minds\Core\Security\SpamBlocks;
 
 class IPHash
 {
+
     /** @var Manager $manager */
     private $manager;
 
@@ -25,4 +26,5 @@ class IPHash
             ->setValue($hash);
         return !$this->manager->isSpam($spamBlock);
     }
+
 }

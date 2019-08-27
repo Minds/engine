@@ -12,7 +12,7 @@ use Prophecy\Argument;
 
 class TransactionSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Transaction::class);
     }

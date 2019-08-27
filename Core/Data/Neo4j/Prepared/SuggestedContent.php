@@ -13,13 +13,13 @@ class Suggested implements Interfaces\PreparedInterface
     
     public function build()
     {
-        return [
+        return array(
             'string' => $this->template,
             'values'=>$this->values
-            ];
+            );
     }
     
-    public function setQuery($template, $values = [])
+    public function setQuery($template, $values = array())
     {
         $this->template = $template;
         $this->values = $values;

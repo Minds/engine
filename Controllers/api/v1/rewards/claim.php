@@ -118,12 +118,13 @@ class claim implements Interfaces\Api
             if (is_null($badges)) {
                 $badges = [];
             }
-            if (!array_search('founder', $badges, true)) {
+            if (!array_search('founder', $badges)) {
                 $badges[] = 'founder';
                 $user->setBadges('badges');
                 $user->save();
             }
         }
+
     }
 
     private function checkAndRewardPage($rewards, $founder, $user)

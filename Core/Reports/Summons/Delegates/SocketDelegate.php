@@ -22,7 +22,8 @@ class SocketDelegate
      */
     public function __construct(
         $socketEvents = null
-    ) {
+    )
+    {
         $this->socketEvents = $socketEvents ?: new SocketEvents();
     }
 

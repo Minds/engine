@@ -13,6 +13,7 @@ use Minds\Entities\NormalizedEntity;
 use Minds\Common\Repository\Response;
 use Minds\Core\Reports\Repository as ReportsRepository;
 
+
 class ElasticRepository
 {
     /** @var Data\ElasticSearch\Client $es */
@@ -200,4 +201,5 @@ class ElasticRepository
 
         return (bool) $this->es->request($prepared);
     }
+
 }

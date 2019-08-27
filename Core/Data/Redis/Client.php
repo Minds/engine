@@ -6,6 +6,7 @@ namespace Minds\Core\Data\Redis;
 
 class Client
 {
+
     /** @var Redis */
     private $redis;
 
@@ -57,4 +58,5 @@ class Client
     {
         return $this->redis->$function(...$arguments);
     }
+
 }

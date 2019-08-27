@@ -6,7 +6,7 @@ namespace Minds\Core\Reports\Stats;
 
 use Minds\Core\Di\Di;
 
-class Manager
+class Manager 
 {
     /** @var Client $es */
     private $es;
@@ -36,7 +36,8 @@ class Manager
         $totalReportsAggregate = null,
         $totalActionedAggregate = null,
         $totalOverturnedAggregate = null
-    ) {
+    )
+    {
         $this->es = $es ?: Di::_()->get('Database\ElasticSearch');
         $this->totalPostsAggregate = $totalPostsAggregate ?: new Aggregates\TotalPostsAggregate;
         $this->totalAppealsAggregate = $totalAppealsAggregate ?: new Aggregates\TotalAppealsAggregate;
@@ -71,10 +72,11 @@ class Manager
             'upheldPct' => $upheldPct,
             'overturned' => $overturnedCount,
         ];
-        return $this->stats;
+        return $this->stats; 
     }
 
     private function getTotalPosts($period)
     {
     }
+
 }

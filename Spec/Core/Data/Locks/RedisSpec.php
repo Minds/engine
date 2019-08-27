@@ -9,9 +9,10 @@ use Prophecy\Argument;
 
 class RedisSpec extends ObjectBehavior
 {
+
     private $redis;
 
-    public function let(RedisServer $redis)
+    function let(RedisServer $redis)
     {
         $this->redis = $redis;
         $this->beConstructedWith($this->redis);
@@ -19,20 +20,20 @@ class RedisSpec extends ObjectBehavior
         $this->redis->connect(Argument::any())->shouldBeCalled();
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->beConstructedWith($this->redis);
         $this->shouldHaveType('Minds\Core\Data\Locks\Redis');
     }
 
-    public function it_should_throw_if_calling_isLocked_but_no_key_is_set()
+    function it_should_throw_if_calling_isLocked_but_no_key_is_set()
     {
         $this->beConstructedWith($this->redis);
 
         $this->shouldThrow(KeyNotSetupException::class)->during('isLocked');
     }
 
-    public function it_should_check_if_its_locked()
+    function it_should_check_if_its_locked()
     {
         $this->beConstructedWith($this->redis);
 
@@ -45,7 +46,7 @@ class RedisSpec extends ObjectBehavior
         $this->isLocked()->shouldReturn(true);
     }
 
-    public function it_should_throw_if_calling_lock_but_no_key_is_set()
+    function it_should_throw_if_calling_lock_but_no_key_is_set()
     {
         $this->beConstructedWith($this->redis);
 
@@ -53,7 +54,7 @@ class RedisSpec extends ObjectBehavior
     }
 
 
-    public function it_should_lock()
+    function it_should_lock()
     {
         $this->beConstructedWith($this->redis);
 
@@ -67,14 +68,14 @@ class RedisSpec extends ObjectBehavior
         $this->lock();
     }
 
-    public function it_should_throw_if_calling_unlock_but_no_key_is_set()
+    function it_should_throw_if_calling_unlock_but_no_key_is_set()
     {
         $this->beConstructedWith($this->redis);
 
         $this->shouldThrow(KeyNotSetupException::class)->during('unlock');
     }
 
-    public function it_should_unlock()
+    function it_should_unlock()
     {
         $this->beConstructedWith($this->redis);
 

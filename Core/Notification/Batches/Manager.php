@@ -12,6 +12,7 @@ use Minds\Entities\User;
 
 class Manager
 {
+
     /** @var Config $config */
     private $config;
 
@@ -66,7 +67,7 @@ class Manager
         try {
             $subscription = $this->buildBatchSubscription();
             return (bool) $this->repository->get($subscription);
-        } catch (\Exception $e) {
+        } catch (\Exception $e) { 
             return false;
         }
     }
@@ -81,7 +82,7 @@ class Manager
         try {
             $subscription = $this->buildBatchSubscription();
             return $this->repository->add($subscription);
-        } catch (\Exception $e) {
+        } catch (\Exception $e) { 
             error_log(print_r($e->getMessage(), true));
             return false;
         }
@@ -96,7 +97,7 @@ class Manager
         try {
             $subscription = $this->buildBatchSubscription();
             return $this->repository->delete($subscription);
-        } catch (\Exception $e) {
+        } catch (\Exception $e) { 
             return false;
         }
     }
@@ -135,6 +136,7 @@ class Manager
             if (!$token) {
                 return;
             }
-        }
+        }       
     }
+
 }

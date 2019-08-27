@@ -9,12 +9,12 @@ use Prophecy\Argument;
 
 class CreatorFrequencyDelegateSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(CreatorFrequencyDelegate::class);
     }
 
-    public function it_should_check_if_completed(User $user)
+    function it_should_check_if_completed(User $user)
     {
         $user->getCreatorFrequency()
             ->shouldBeCalled()
@@ -25,7 +25,7 @@ class CreatorFrequencyDelegateSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_check_if_not_completed(User $user)
+    function it_should_check_if_not_completed(User $user)
     {
         $user->getCreatorFrequency()
             ->shouldBeCalled()

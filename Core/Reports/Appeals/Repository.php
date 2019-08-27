@@ -18,6 +18,7 @@ use Minds\Entities\NormalizedEntity;
 use Minds\Common\Repository\Response;
 use Minds\Core\Reports\Repository as ReportsRepository;
 
+
 class Repository
 {
     /** @var Data\Cassandra\Client $cql */
@@ -67,12 +68,12 @@ class Repository
             // TODO: make this on the query level
             $skip = false;
             switch ($opts['state']) {
-                case 'review':
+                case 'review': 
                     if ($report->getState() != 'initial_jury_decided' || $report->isUpheld() === false) {
                         $skip = true;
                     }
                     break;
-                case 'pending':
+                case 'pending': 
                     if ($report->getState() != 'appealed') {
                         $skip = true;
                     }
@@ -89,7 +90,7 @@ class Repository
                     break;
             }
 
-            if ($skip) {
+            if ($skip) { 
                 continue;
             }
 
@@ -137,4 +138,5 @@ class Repository
 
         return (bool) $this->cql->request($prepared);
     }
+
 }

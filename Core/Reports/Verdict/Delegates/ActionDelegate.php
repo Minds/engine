@@ -43,7 +43,8 @@ class ActionDelegate
         $saveAction = null,
         $emailDelegate = null,
         $channelsBanManager = null
-    ) {
+    )
+    {
         $this->entitiesBuilder = $entitiesBuilder  ?: Di::_()->get('EntitiesBuilder');
         $this->actions = $actions ?: Di::_()->get('Reports\Actions');
         $this->urn = $urn ?: new Urn;
@@ -57,12 +58,12 @@ class ActionDelegate
     {
         if ($verdict->isAppeal() || !$verdict->isUpheld()) {
             error_log('Not upheld so no action');
-            return; // Can not
+            return; // Can not 
         }
 
         $report = $verdict->getReport();
 
-        // Disable ACL
+        // Disable ACL 
         ACL::$ignore = true;
         $entityUrn = $verdict->getReport()->getEntityUrn();
         $entityGuid = $this->urn->setUrn($entityUrn)->getNss();
@@ -234,4 +235,5 @@ class ActionDelegate
 
         $this->emailDelegate->onBan($report);
     }
+
 }

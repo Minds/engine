@@ -10,27 +10,28 @@ use Prophecy\Argument;
 
 class CopyToElasticSearchDelegateSpec extends ObjectBehavior
 {
+
     private $es;
 
-    public function let(Client $es)
+    function let(Client $es)
     {
         $this->beConstructedWith($es);
         $this->es = $es;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(CopyToElasticSearchDelegate::class);
     }
 
-    public function it_should_copy_to_elasticsearch()
+    function it_should_copy_to_elasticsearch()
     {
         $subscription = new Subscription();
         $subscription->setSubscriberGuid(123)
             ->setPublisherGuid(456)
             ->setActive(true);
 
-        $this->es->request(Argument::that(function ($prepared) {
+        $this->es->request(Argument::that(function($prepared) {
             $query = $prepared->build();
             return $query['body']['script']['params']['guid'] == 456
                 && $query['id'] == 123;
@@ -40,14 +41,14 @@ class CopyToElasticSearchDelegateSpec extends ObjectBehavior
         $this->copy($subscription);
     }
 
-    public function it_should_remove_from_elasticsearch()
+    function it_should_remove_from_elasticsearch()
     {
         $subscription = new Subscription();
         $subscription->setSubscriberGuid(123)
             ->setPublisherGuid(456)
             ->setActive(true);
 
-        $this->es->request(Argument::that(function ($prepared) {
+        $this->es->request(Argument::that(function($prepared) {
             $query = $prepared->build();
             return $query['body']['script']['params']['guid'] == 456
                 && $query['id'] == 123;
@@ -56,4 +57,5 @@ class CopyToElasticSearchDelegateSpec extends ObjectBehavior
 
         $this->remove($subscription);
     }
+
 }

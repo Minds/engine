@@ -16,4 +16,5 @@ class Bucket
 
     /** @param int $weight */
     private $weight = 0;
+
 }

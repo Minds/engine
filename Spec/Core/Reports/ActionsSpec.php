@@ -23,7 +23,7 @@ class ActionsSpec extends ObjectBehavior
     /** @var Core\Events\EventsDispatcher */
     protected $dispatcher;
 
-    public function let(
+    function let(
         Core\Entities\Actions\Save $saveAction,
         Core\Reports\PreFeb2019Repository $repository,
         EntitiesFactory $factory,
@@ -36,12 +36,12 @@ class ActionsSpec extends ObjectBehavior
         $this->dispatcher = $dispatcher;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Reports\Actions');
     }
 
-    public function it_should_archive_a_report_and_return_true()
+    function it_should_archive_a_report_and_return_true()
     {
         $this->repository->update(5000, ['state' => 'archived'])
             ->shouldBeCalled()
@@ -50,7 +50,7 @@ class ActionsSpec extends ObjectBehavior
         $this->archive(5000)->shouldReturn(true);
     }
 
-    public function it_should_archive_a_report_and_return_false()
+    function it_should_archive_a_report_and_return_false()
     {
         $this->repository->update(5000, ['state' => 'archived'])
             ->shouldBeCalled()
@@ -59,7 +59,7 @@ class ActionsSpec extends ObjectBehavior
         $this->archive(5000)->shouldReturn(false);
     }
 
-    public function it_should_mark_as_explicit(Report $report, Activity $activity)
+    function it_should_mark_as_explicit(Report $report, Activity $activity)
     {
         $this->repository->getRow('1234')
             ->shouldBeCalled()
@@ -119,7 +119,7 @@ class ActionsSpec extends ObjectBehavior
         $this->markAsExplicit('1234', 'test')->shouldReturn(true);
     }
 
-    public function it_should_mark_as_spam(Report $report, Activity $activity)
+    function it_should_mark_as_spam(Report $report, Activity $activity)
     {
         $this->repository->getRow('1234')
             ->shouldBeCalled()
@@ -175,7 +175,7 @@ class ActionsSpec extends ObjectBehavior
         $this->markAsSpam('1234', 'test')->shouldReturn(true);
     }
 
-    public function it_should_delete_the_entity(Report $report, Activity $activity)
+    function it_should_delete_the_entity(Report $report, Activity $activity)
     {
         $this->repository->getRow('1234')
             ->shouldBeCalled()
@@ -231,8 +231,9 @@ class ActionsSpec extends ObjectBehavior
         $this->delete('1234', 'test')->shouldReturn(true);
     }
 
-    public function it_should_undo_a_previous_action(Report $report, Activity $activity)
+    function it_should_undo_a_previous_action(Report $report, Activity $activity)
     {
+
         $report->getAction()
             ->shouldBeCalled()
             ->willReturn('explicit');
@@ -274,3 +275,4 @@ class ActionsSpec extends ObjectBehavior
     }
     // TODO: move helper functions (flag, etc) to another mockable class
 }
+

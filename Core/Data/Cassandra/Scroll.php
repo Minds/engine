@@ -21,7 +21,8 @@ class Scroll
      */
     public function __construct(
         $db = null
-    ) {
+    )
+    {
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
     }
 

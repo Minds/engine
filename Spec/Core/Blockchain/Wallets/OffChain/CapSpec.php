@@ -14,7 +14,7 @@ class CapSpec extends ObjectBehavior
     /** @var Balance */
     protected $offchainBalance;
 
-    public function let(
+    function let(
         Config $config,
         Balance $offchainBalance
     ) {
@@ -29,12 +29,12 @@ class CapSpec extends ObjectBehavior
         $this->beConstructedWith($config, $offchainBalance);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blockchain\Wallets\OffChain\Cap');
     }
 
-    public function it_should_return_allowance(
+    function it_should_return_allowance(
         User $user
     ) {
         $today = strtotime('today 00:00');
@@ -54,7 +54,7 @@ class CapSpec extends ObjectBehavior
             ->shouldReturn((string) BigNumber::toPlain(2, 18));
     }
 
-    public function it_should_check_if_allowed(
+    function it_should_check_if_allowed(
         User $user
     ) {
         $today = strtotime('today 00:00');
@@ -74,7 +74,7 @@ class CapSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_check_if_not_allowed(
+    function it_should_check_if_not_allowed(
         User $user
     ) {
         $today = strtotime('today 00:00');

@@ -9,8 +9,10 @@ use Minds\Entities\User;
 use Minds\Core\Payments\Subscriptions\Manager;
 use Minds\Core\Payments\Subscriptions\Repository;
 
+
 class Subscription
 {
+
     private $stripe;
     private $repo;
     protected $user;
@@ -23,7 +25,8 @@ class Subscription
         $stripe = null,
         $subscriptionsManager = null,
         $subscriptionsRepository = null
-    ) {
+    )
+    {
         $this->stripe = $stripe ?: Di::_()->get('StripePayments');
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Payments\Subscriptions\Manager');
         $this->subscriptionsRepository = $subscriptionsRepository ?: Di::_()->get('Payments\Subscriptions\Repository');
@@ -74,18 +77,17 @@ class Subscription
     {
         $subscription = $this->getSubscription();
 
-        if ($this->user->referrer) {
+        if ($this->user->referrer){
             $referrer = new User($this->user->referrer);
             $subscription->setMerchant($referrer->getMerchant());
         }
 
-        try {
+        try{
             $this->stripe->cancelSubscription($subscription);
             $this->subscriptionsManager
                 ->setSubscription($subscription)
                 ->cancel();
-        } catch (\Exception $e) {
-        }
+        } catch (\Exception $e) { }
 
         return $this;
     }
@@ -103,4 +105,5 @@ class Subscription
 
         return $subscriptions[0];
     }
+
 }

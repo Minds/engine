@@ -24,8 +24,7 @@ class Boosts extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->out('Syntax usage: cli migrations boosts [network|peer]');
     }
 
-    public function exec()
-    {
+    public function exec() {
         $this->out('Syntax usage: cli migrations boosts [network|peer]');
     }
 
@@ -74,6 +73,7 @@ class Boosts extends Cli\Controller implements Interfaces\CliControllerInterface
                         $this->out($done ? 'OK!' : 'Failed…');
                     }
                 }
+
             }
         }
 

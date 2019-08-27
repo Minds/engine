@@ -11,20 +11,22 @@ use League\OAuth2\Server\Entities\ClientEntityInterface;
 
 class UserRepositorySpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType(UserRepository::class);
     }
 
-    public function it_should_return_a_user_with_credentials(
+    function it_should_return_a_user_with_credentials(
         ClientEntityInterface $clientEntity
-    ) {
+    )
+    {
         $this->mockUser = new User;
         $this->mockUser->guid = 123;
         $this->mockUser->password = password_hash('testpassword', PASSWORD_BCRYPT);
 
         $userEntity = $this->getUserEntityByUserCredentials(
-            'spec-user-test',
+            'spec-user-test', 
             'testpassword',
             'password',
             $clientEntity
@@ -34,15 +36,16 @@ class UserRepositorySpec extends ObjectBehavior
             ->shouldReturn(123);
     }
 
-    public function it_should_not_return_a_user_with_bad_credentials(
+    function it_should_not_return_a_user_with_bad_credentials(
         ClientEntityInterface $clientEntity
-    ) {
+    )
+    {
         $this->mockUser = new User;
         $this->mockUser->guid = 123;
         $this->mockUser->password = password_hash('testpassword', PASSWORD_BCRYPT);
 
         $userEntity = $this->getUserEntityByUserCredentials(
-            'spec-user-test',
+            'spec-user-test', 
             'wrongtestpassword',
             'password',
             $clientEntity
@@ -50,4 +53,5 @@ class UserRepositorySpec extends ObjectBehavior
 
         $userEntity->shouldReturn(false);
     }
+
 }

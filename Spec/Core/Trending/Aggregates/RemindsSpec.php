@@ -10,12 +10,13 @@ use Minds\Core\Data\ElasticSearch\Client;
 
 class RemindsSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Trending\Aggregates\Reminds');
     }
 
-    public function it_should_return_comments_with_new_score(Client $client)
+    function it_should_return_comments_with_new_score(Client $client)
     {
         $this->beConstructedWith($client);
 
@@ -25,14 +26,14 @@ class RemindsSpec extends ObjectBehavior
                 'aggregations' => [
                     'entities' => [
                         'buckets' => [
-                            [
+                            [ 
                                 'key' => 123,
                                 'doc_count' => 50,
                                 'uniques' => [
                                     'value' => 50,
                                 ],
                             ],
-                            [
+                            [ 
                                 'key' => 456,
                                 'doc_count' => 25,
                                 'uniques' => [
@@ -51,7 +52,7 @@ class RemindsSpec extends ObjectBehavior
     }
 
 
-    public function it_should_return_remind_in_groups(Client $client)
+    function it_should_return_remind_in_groups(Client $client)
     {
         $this->beConstructedWith($client);
         $this->setType('group');
@@ -93,7 +94,7 @@ class RemindsSpec extends ObjectBehavior
                 ],
                 'aggs' => [
                     'entities' => [
-                        'terms' => [
+                        'terms' => [ 
                             'field' => "entity_container_guid.keyword",
                             'size' => 1,
                             'order' => [ 'uniques' => 'desc' ],
@@ -116,14 +117,14 @@ class RemindsSpec extends ObjectBehavior
                 'aggregations' => [
                     'entities' => [
                         'buckets' => [
-                            [
+                            [ 
                                 'key' => 123,
                                 'doc_count' => 50,
                                 'uniques' => [
                                     'value' => 50,
                                 ],
                             ],
-                            [
+                            [ 
                                 'key' => 456,
                                 'doc_count' => 25,
                                 'uniques' => [
@@ -142,7 +143,7 @@ class RemindsSpec extends ObjectBehavior
     }
 
 
-    public function it_should_return_remind_when_is_not_a_group(Client $client)
+    function it_should_return_remind_when_is_not_a_group(Client $client)
     {
         $this->beConstructedWith($client);
         $this->setType('other');
@@ -181,7 +182,7 @@ class RemindsSpec extends ObjectBehavior
                 ],
                 'aggs' => [
                     'entities' => [
-                        'terms' => [
+                        'terms' => [ 
                             'field' => "entity_guid.keyword",
                             'size' => 1,
                             'order' => [ 'uniques' => 'desc' ],
@@ -204,14 +205,14 @@ class RemindsSpec extends ObjectBehavior
                 'aggregations' => [
                     'entities' => [
                         'buckets' => [
-                            [
+                            [ 
                                 'key' => 123,
                                 'doc_count' => 50,
                                 'uniques' => [
                                     'value' => 50,
                                 ],
                             ],
-                            [
+                            [ 
                                 'key' => 456,
                                 'doc_count' => 25,
                                 'uniques' => [
@@ -228,4 +229,5 @@ class RemindsSpec extends ObjectBehavior
             456 => 25
         ]);
     }
+
 }

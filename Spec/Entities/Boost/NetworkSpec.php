@@ -10,7 +10,7 @@ class NetworkSpec extends ObjectBehavior
 {
     private $mockData = [];
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Entities\Boost\Network');
     }

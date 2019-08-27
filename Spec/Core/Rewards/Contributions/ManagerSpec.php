@@ -14,12 +14,13 @@ use Minds\Entities\User;
 
 class ManagerSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Rewards\Contributions\Manager');
     }
 
-    public function it_should_sync_users_rewards_from_their_analytics(Repository $repository, Manager $analytics)
+    function it_should_sync_users_rewards_from_their_analytics(Repository $repository, Manager $analytics)
     {
         $this->beConstructedWith($analytics, $repository);
 
@@ -119,7 +120,7 @@ class ManagerSpec extends ObjectBehavior
         $this->sync();
     }
 
-    public function it_should_return_the_value_rewards_to_issue(Sums $sums)
+    function it_should_return_the_value_rewards_to_issue(Sums $sums)
     {
         $this->beConstructedWith(null, null, $sums);
 
@@ -137,4 +138,5 @@ class ManagerSpec extends ObjectBehavior
 
         $this->getRewardsAmount()->shouldReturn("15707963267949000");
     }
+
 }

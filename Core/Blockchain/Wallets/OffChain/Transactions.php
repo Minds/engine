@@ -90,8 +90,7 @@ class Transactions
             $this->locks
                 ->setTTL(120)
                 ->lock();
-        } catch (\Exception $e) {
-        }
+        } catch (\Exception $e) { }
 
         try {
             $balance = BigNumber::_($this->balance->setUser($this->user)->get());
@@ -178,8 +177,7 @@ class Transactions
                 ->setKey($senderLockKey)
                 ->setTTL($balanceLockTtl)
                 ->lock();
-        } catch (\Exception $e) {
-        }
+        } catch (\Exception $e) { }
 
         try {
             // Amounts
@@ -275,4 +273,5 @@ class Transactions
     {
         return (string) BigNumber::toPlain($value, 18);
     }
+
 }

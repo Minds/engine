@@ -20,6 +20,7 @@ use Minds\Core\Rewards\Join;
 
 class transactions implements Interfaces\Api
 {
+
     /**
      * Equivalent to HTTP GET method
      * @param  array $pages

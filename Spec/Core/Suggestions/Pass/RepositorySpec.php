@@ -10,20 +10,21 @@ use Prophecy\Argument;
 
 class RepositorySpec extends ObjectBehavior
 {
+
     private $es;
 
-    public function let(Client $es)
+    function let(Client $es)
     {
         $this->beConstructedWith($es);
         $this->es = $es;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    public function it_should_add_a_pass(Pass $pass)
+    function it_should_add_a_pass(Pass $pass)
     {
         $pass->getSuggestedGuid()
             ->shouldBeCalled()
@@ -33,15 +34,16 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(123);
 
-        $this->es->request(Argument::that(function ($prepared) {
-            $query = $prepared->build();
-            return $query['id'] == 123
+        $this->es->request(Argument::that(function($prepared) {
+                $query = $prepared->build();
+                return $query['id'] == 123
                     && $query['body']['script']['params']['guid'] == 456;
-        }))
+            }))
             ->shouldBeCalled()
             ->willReturn(true);
 
         $this->add($pass)
             ->shouldReturn(true);
     }
+
 }

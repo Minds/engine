@@ -20,12 +20,13 @@ class ManagerSpec extends ObjectBehavior
     private $notificationDelegate;
     private $reportsManager;
 
-    public function let(
+    function let(
         Repository $repository,
         ElasticRepository $elasticRepository,
         Delegates\NotificationDelegate $notificationDelegate,
         ReportsManager $reportsManager
-    ) {
+    )
+    {
         $this->beConstructedWith($repository, $elasticRepository, $notificationDelegate, $reportsManager);
         $this->repository = $repository;
         $this->elasticRepository = $elasticRepository;
@@ -33,12 +34,12 @@ class ManagerSpec extends ObjectBehavior
         $this->reportsManager = $reportsManager;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_add_to_repository()
+    function it_should_add_to_repository()
     {
         $this->repository->add(Argument::type(UserReport::class))
             ->shouldBeCalled()
@@ -57,7 +58,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_not_double_report_marked_nsfw_repository(Report $report)
+    function it_should_not_double_report_marked_nsfw_repository(Report $report)
     {
         $entity = new Activity();
         $entity->setNsfw([ 3 ]);

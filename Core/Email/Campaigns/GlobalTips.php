@@ -5,6 +5,7 @@
 
 namespace Minds\Core\Email\Campaigns;
 
+
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Message;
 use Minds\Core\Email\Template;

@@ -10,20 +10,21 @@ use Prophecy\Argument;
 
 class EventsDelegateSpec extends ObjectBehavior
 {
+
     private $eventsDispatcher;
 
-    public function let(EventsDispatcher $eventsDispatcher)
+    function let(EventsDispatcher $eventsDispatcher)
     {
         $this->beConstructedWith($eventsDispatcher);
         $this->eventsDispatcher = $eventsDispatcher;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(EventsDelegate::class);
     }
 
-    public function it_should_trigger_an_active_subscription_event()
+    function it_should_trigger_an_active_subscription_event()
     {
         $subscription = new Subscription;
         $subscription->setSubscriberGuid(123)
@@ -40,7 +41,7 @@ class EventsDelegateSpec extends ObjectBehavior
         $this->trigger($subscription);
     }
 
-    public function it_should_trigger_an_unsubscribe_event()
+    function it_should_trigger_an_unsubscribe_event()
     {
         $subscription = new Subscription;
         $subscription->setSubscriberGuid(123)
@@ -56,4 +57,5 @@ class EventsDelegateSpec extends ObjectBehavior
 
         $this->trigger($subscription);
     }
+
 }

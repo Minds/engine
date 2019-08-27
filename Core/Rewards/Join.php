@@ -12,6 +12,7 @@ use Minds\Core\Util\BigNumber;
 
 class Join
 {
+
     /** @var TwoFactor $twofactor */
     private $twofactor;
 
@@ -62,7 +63,8 @@ class Join
         $ofacBlacklist = null,
         $testnetBalance = null,
         $referralDelegate = null
-    ) {
+    )
+    {
         $this->twofactor = $twofactor ?: Di::_()->get('Security\TwoFactor');
         $this->sms = $sms ?: Di::_()->get('SMS');
         $this->libphonenumber = $libphonenumber ?: \libphonenumber\PhoneNumberUtil::getInstance();
@@ -165,7 +167,7 @@ class Join
                 $transactions
                     ->setUser($this->user)
                     ->setType('joined')
-                    ->setAmount(pow(10, 18));
+                    ->setAmount(pow(10,18));
 
                 $transaction = $transactions->create();
             }
@@ -194,4 +196,5 @@ class Join
 
         return true;
     }
+
 }

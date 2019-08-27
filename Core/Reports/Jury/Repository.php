@@ -21,6 +21,7 @@ use Minds\Core\Reports\Report;
 use Minds\Common\Repository\Response;
 use Minds\Core\Reports\Repository as ReportsRepository;
 
+
 class Repository
 {
     /** @var Data\Cassandra\Client $cql */
@@ -71,10 +72,10 @@ class Repository
 
         foreach ($result as $row) {
             if ($row['user_hashes']
-                && in_array($opts['user']->getPhoneNumberHash(),
+                && in_array($opts['user']->getPhoneNumberHash(), 
                     array_map(function ($hash) {
                         return $hash;
-                    }, $row['user_hashes']->values()), true
+                    }, $row['user_hashes']->values())
                 )
             ) {
                 continue; // Already interacted with
@@ -144,4 +145,5 @@ class Repository
 
         return (bool) $this->cql->request($prepared);
     }
+
 }

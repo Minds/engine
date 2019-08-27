@@ -7,7 +7,7 @@ use Prophecy\Argument;
 
 class ThreadNotificationsSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Comments\Delegates\ThreadNotifications');
     }

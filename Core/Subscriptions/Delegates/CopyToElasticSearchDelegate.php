@@ -9,6 +9,7 @@ use Minds\Core\Data\ElasticSearch\Prepared\Update as Prepared;
 
 class CopyToElasticSearchDelegate
 {
+
     /** @var ElasticSearch $es */
     private $es;
 
@@ -42,7 +43,7 @@ class CopyToElasticSearchDelegate
                 ],
             ],
             'scripted_upsert' => true,
-            'upsert' => [
+            'upsert' => [ 
                 'guids' => []
             ],
         ];
@@ -80,7 +81,7 @@ class CopyToElasticSearchDelegate
                 ],
             ],
             'scripted_upsert' => true,
-            'upsert' => [
+            'upsert' => [ 
                 'guids' => []
             ],
         ];
@@ -96,7 +97,6 @@ class CopyToElasticSearchDelegate
         $prepared->query($query);
         try {
             $this->es->request($prepared);
-        } catch (\Exception $e) {
-        }
+        } catch (\Exception $e) { }
     }
 }

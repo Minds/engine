@@ -11,6 +11,7 @@ use Cassandra\Timestamp;
 
 class Repository
 {
+
     /** @var Client $client */
     private $client;
 
@@ -21,7 +22,7 @@ class Repository
 
     /**
      * Return a list of blocked key/values
-     * @param array $opts
+     * @param array $opts 
      * @return Response[SpamBlock]
      */
     public function getList($opts = [])
@@ -138,4 +139,5 @@ class Repository
 
         return $this->client->request($query);
     }
+
 }

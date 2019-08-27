@@ -98,4 +98,5 @@ class Custom
         //send email
         $this->mailer->send($message);
     }
+
 }

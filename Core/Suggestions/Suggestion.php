@@ -35,4 +35,5 @@ class Suggestion
             'confidence_score' => $this->confidenceScore,
         ];
     }
+
 }

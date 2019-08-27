@@ -15,18 +15,18 @@ class RepositorySpec extends ObjectBehavior
 {
     protected $db;
 
-    public function let(Client $db)
+    function let(Client $db)
     {
         $this->db = $db;
         $this->beConstructedWith($db);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    public function it_should_return_single_subscription(\PDOStatement $statement)
+    function it_should_return_single_subscription(\PDOStatement $statement)
     {
         $subscription = new BatchSubscription();
         $subscription
@@ -49,7 +49,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe($subscription->getBatchId());
     }
 
-    public function it_should_add_batch_to_db(\PDOStatement $statement)
+    function it_should_add_batch_to_db(\PDOStatement $statement)
     {
         $subscription = new BatchSubscription();
         $subscription
@@ -64,7 +64,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    public function it_should_remove_from_db(\PDOStatement $statement)
+    function it_should_remove_from_db(\PDOStatement $statement)
     {
         $subscription = new BatchSubscription();
         $subscription
@@ -78,4 +78,5 @@ class RepositorySpec extends ObjectBehavior
         $this->delete($subscription)
             ->shouldBe(true);
     }
+
 }

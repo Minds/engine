@@ -34,7 +34,8 @@ class Manager
         $suggestedFeedsManager = null,
         $subscriptionsManager = null,
         $checkRateLimit = null
-    ) {
+    )
+    {
         $this->repository = $repository ?: new Repository();
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder();
         //$this->suggestedFeedsManager = $suggestedFeedsManager ?: Di::_()->get('Feeds\Suggested\Manager');

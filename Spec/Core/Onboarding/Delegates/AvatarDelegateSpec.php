@@ -10,21 +10,21 @@ use Prophecy\Argument;
 
 class AvatarDelegateSpec extends ObjectBehavior
 {
+
     private $config;
 
-    public function let(Config $config)
+    function let(Config $config)
     {
         $this->beConstructedWith($config);
         $this->config = $config;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(AvatarDelegate::class);
     }
 
-    public function it_should_check_if_completed(User $user)
-    {
+    function it_should_check_if_completed(User $user) {
         $this->config->get('onboarding_modal_timestamp')
             ->shouldBeCalled()
             ->willReturn(400000);
@@ -42,8 +42,7 @@ class AvatarDelegateSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_check_if_not_completed(User $user)
-    {
+    function it_should_check_if_not_completed(User $user) {
         $this->config->get('onboarding_modal_timestamp')
             ->shouldBeCalled()
             ->willReturn(400000);
@@ -61,8 +60,7 @@ class AvatarDelegateSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_assume_that_legacy_users_have_avatars(User $user)
-    {
+    function it_should_assume_that_legacy_users_have_avatars(User $user) {
         $this->config->get('onboarding_modal_timestamp')
             ->shouldBeCalled()
             ->willReturn(600000);

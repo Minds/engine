@@ -32,13 +32,14 @@ class BanSpec extends ObjectBehavior
     /** @var  QueueClient */
     protected $queueClient;
 
-    public function let(
+    function let(
         Delegates\Artifacts\Factory $artifactsDelegatesFactory,
         Delegates\Logout $logoutDelegate,
         Delegates\Ban $banDelegate,
         Delegates\Unban $unbanDelegate,
         QueueClient $queueClient
-    ) {
+    )
+    {
         $this->beConstructedWith(
             $artifactsDelegatesFactory,
             $logoutDelegate,
@@ -54,14 +55,15 @@ class BanSpec extends ObjectBehavior
         $this->queueClient = $queueClient;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Ban::class);
     }
 
-    public function it_should_ban_a_channel(
+    function it_should_ban_a_channel(
         User $user
-    ) {
+    )
+    {
         $this->banDelegate->ban($user, 'phpspec')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -91,10 +93,11 @@ class BanSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_clean_up_a_banned_channel(
+    function it_should_clean_up_a_banned_channel(
         User $user,
         ArtifactsDelegateInterface $artifactsDelegateMock
-    ) {
+    )
+    {
         $user->get('guid')
             ->shouldBeCalled()
             ->willReturn(1000);
@@ -131,9 +134,10 @@ class BanSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_unban_a_channel(
+    function it_should_unban_a_channel(
         User $user
-    ) {
+    )
+    {
         $this->unbanDelegate->unban($user)
             ->shouldBeCalled()
             ->willReturn(true);
@@ -159,10 +163,11 @@ class BanSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_restore_an_unbanned_channel(
+    function it_should_restore_an_unbanned_channel(
         User $user,
         ArtifactsDelegateInterface $artifactsDelegateMock
-    ) {
+    )
+    {
         $user->get('guid')
             ->shouldBeCalled()
             ->willReturn(1000);

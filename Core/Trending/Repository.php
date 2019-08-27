@@ -53,18 +53,18 @@ class Repository
         ]);
         $query->setOpts([
             'page_size' => (int) $options['limit'],
-            'paging_state_token' => base64_decode($options['offset'], true)
+            'paging_state_token' => base64_decode($options['offset'])
         ]);
 
         $result = null;
 
-        try {
+        try{
             $rows = $this->db->request($query);
-        } catch (\Exception $e) {
+        } catch(\Exception $e) {
             error_log($e->getMessage());
         }
 
-        foreach ($rows as $row) {
+        foreach($rows as $row) {
             $result[] = (string) $row['guid'];
         }
 
@@ -88,10 +88,12 @@ class Repository
         $query = new Custom();
         $query->query("DELETE from trending WHERE type = ? ", [$options['type']]);
 
-        try {
+        try{
             $rows = $this->db->request($query);
-        } catch (\Exception $e) {
+        } catch(\Exception $e) {
             error_log($e->getMessage());
         }
     }
+
+
 }

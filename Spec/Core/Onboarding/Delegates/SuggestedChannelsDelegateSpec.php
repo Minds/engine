@@ -9,12 +9,12 @@ use Prophecy\Argument;
 
 class SuggestedChannelsDelegateSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(SuggestedChannelsDelegate::class);
     }
 
-    public function it_should_check_if_completed(User $user)
+    function it_should_check_if_completed(User $user)
     {
         $user->getSubscriptonsCount()
             ->shouldBeCalled()
@@ -25,7 +25,7 @@ class SuggestedChannelsDelegateSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_check_if_not_completed(User $user)
+    function it_should_check_if_not_completed(User $user)
     {
         $user->getSubscriptonsCount()
             ->shouldBeCalled()

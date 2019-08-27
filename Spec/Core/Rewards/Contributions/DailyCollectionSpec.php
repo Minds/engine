@@ -10,12 +10,13 @@ use Minds\Core\Rewards\Contributions\Sums;
 
 class DailyCollectionSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Rewards\Contributions\DailyCollection');
     }
 
-    public function it_should_return_daily_collections(Sums $sums)
+    function it_should_return_daily_collections(Sums $sums)
     {
         $this->beConstructedWith($sums);
         $sums->setTimestamp(Argument::any())
@@ -49,4 +50,5 @@ class DailyCollectionSpec extends ObjectBehavior
         $export[0]['metrics']->shouldHaveCount(2);
         $export[1]['metrics']->shouldHaveCount(1);
     }
+
 }

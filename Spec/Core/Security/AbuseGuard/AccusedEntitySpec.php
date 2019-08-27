@@ -9,25 +9,25 @@ use Prophecy\Argument;
 
 class AccusedEntitySpec extends ObjectBehavior
 {
-    public function let(Client $client)
+    function let(Client $client)
     {
         Di::_()->bind('Database\Cassandra\Entities', function ($di) use ($client) {
             return $client->getWrappedObject();
         });
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Security\AbuseGuard\AccusedEntity');
     }
 
-    public function it_should_set_a_user_by_guid()
+    function it_should_set_a_user_by_guid()
     {
         $this->setUserGuid('123')->shouldReturn($this);
         $this->getUser()->shouldReturnAnInstanceOf('Minds\Entities\User');
     }
 
-    public function it_should_return_a_correct_score()
+    function it_should_return_a_correct_score()
     {
         $this->setUserGuid('123')->shouldReturn($this);
         $this->setMetric('boo', 1);

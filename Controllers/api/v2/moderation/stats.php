@@ -36,4 +36,5 @@ class stats implements Interfaces\Api
     {
         return Factory::response([]);
     }
+
 }

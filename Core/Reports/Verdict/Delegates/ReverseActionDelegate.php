@@ -39,7 +39,8 @@ class ReverseActionDelegate
         $strikesManager = null,
         $saveAction = null,
         $channelsBanManager = null
-    ) {
+    )
+    {
         $this->entitiesBuilder = $entitiesBuilder  ?: Di::_()->get('EntitiesBuilder');
         $this->actions = $actions ?: Di::_()->get('Reports\Actions');
         $this->urn = $urn ?: new Urn;
@@ -56,7 +57,7 @@ class ReverseActionDelegate
 
         $report = $verdict->getReport();
 
-        // Disable ACL
+        // Disable ACL 
         ACL::$ignore = true;
         $entityUrn = $verdict->getReport()->getEntityUrn();
         $entityGuid = $this->urn->setUrn($entityUrn)->getNss();
@@ -194,4 +195,5 @@ class ReverseActionDelegate
             ->setUser($user)
             ->unBan();
     }
+
 }

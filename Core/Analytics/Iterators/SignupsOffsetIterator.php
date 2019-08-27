@@ -65,7 +65,7 @@ class SignupsOffsetIterator implements \Iterator
         ]);
         $prepared->setOpts([
             'page_size' => $this->limit,
-            'paging_state_token' => base64_decode($this->token, true)
+            'paging_state_token' => base64_decode($this->token)
         ]);
 
         $rows = $this->db->request($prepared);

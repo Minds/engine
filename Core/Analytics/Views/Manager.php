@@ -19,7 +19,8 @@ class Manager
     public function __construct(
         $repository = null,
         $elasticRepository = null
-    ) {
+    )
+    {
         $this->repository = $repository ?: new Repository();
         $this->elasticRepository = $elasticRepository ?: new ElasticRepository();
     }
@@ -79,4 +80,5 @@ class Manager
         }
         $this->elasticRepository->bulk(); // Save the final batch
     }
+
 }

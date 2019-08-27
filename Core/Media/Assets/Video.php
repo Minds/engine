@@ -46,7 +46,7 @@ class Video implements AssetsInterface
         if (isset($data['file'])) {
             $thumb = str_replace('data:image/jpeg;base64,', '', $data['file']);
             $thumb = str_replace(' ', '+', $thumb);
-            $data = base64_decode($thumb, true);
+            $data = base64_decode($thumb);
 
             $filename = "archive/thumbnails/{$this->entity->guid}.jpg";
 

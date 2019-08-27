@@ -12,19 +12,19 @@ class PageviewSpec extends ObjectBehavior
     /** @var Client */
     protected $client;
 
-    public function let(Client $client)
+    function let(Client $client)
     {
         $this->beConstructedWith($client);
 
         $this->client = $client;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Pageview::class);
     }
 
-    public function it_should_get_analytics()
+    function it_should_get_analytics()
     {
         $this->client->request(Argument::type('Minds\\Core\\Data\\ElasticSearch\\Prepared\\Search'))
             ->shouldBeCalled()

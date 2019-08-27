@@ -15,7 +15,7 @@ class SumsSpec extends ObjectBehavior
     /** @var Config */
     private $config;
 
-    public function let(Client $db, Config $config)
+    function let(Client $db, Config $config)
     {
         $this->db = $db;
         $this->config = $config;
@@ -23,12 +23,12 @@ class SumsSpec extends ObjectBehavior
         $this->beConstructedWith($db, $config);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Sums::class);
     }
 
-    public function it_should_get_the_sum()
+    function it_should_get_the_sum()
     {
         $this->config->get('blockchain')
             ->shouldBeCalled()
@@ -50,8 +50,9 @@ class SumsSpec extends ObjectBehavior
         $this->get()->shouldReturn('1000000000000000000');
     }
 
-    public function it_shouldnt_get_the_sum_if_creditcards_are_disabled()
+    function it_shouldnt_get_the_sum_if_creditcards_are_disabled()
     {
+
         $this->config->get('blockchain')
             ->shouldBeCalled()
             ->willReturn(['disable_creditcards' => 1]);

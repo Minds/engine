@@ -30,7 +30,7 @@ class TwoFactor
      */
     public function createSecret($secretLength = 16)
     {
-        $bytes = openssl_random_pseudo_bytes(64);
+        $bytes = openssl_random_pseudo_bytes(64); 
         return base64_encode($bytes);
     }
 
@@ -47,7 +47,7 @@ class TwoFactor
             $timeSlice = floor(time() / 30);
         }
 
-        $secretkey = base64_decode($secret, true);
+        $secretkey = base64_decode($secret);
 
         // Pack time into binary string
         $time = chr(0).chr(0).chr(0).chr(0).pack('N*', $timeSlice);
@@ -101,4 +101,5 @@ class TwoFactor
         $this->_codeLength = $length;
         return $this;
     }
+
 }

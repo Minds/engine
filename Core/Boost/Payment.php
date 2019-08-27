@@ -308,7 +308,7 @@ class Payment
                         }
 
                         if ($receipt['status'] === '0x1') {
-                            $guid = (string) BigNumber::fromHex($receipt['logs'][3]['data']);
+                            $guid = (string) BigNumber::fromHex($receipt['logs'][3]['data']);                  
                             return $boost->getGuid() === $guid;
                         }
                         return false;
@@ -399,7 +399,7 @@ class Payment
         $currency = method_exists($boost, 'getMethod') ?
             $boost->getMethod() : $boost->getBidType();
 
-        if (in_array($currency, [ 'onchain', 'offchain' ], true)) {
+        if (in_array($currency, [ 'onchain', 'offchain' ])) {
             $currency = 'tokens';
         }
 
@@ -517,4 +517,5 @@ class Payment
 
         throw new \Exception('Payment Method not supported');
     }
+
 }

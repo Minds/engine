@@ -22,22 +22,23 @@ class NotificationDelegateSpec extends ObjectBehavior
     /** @var EntitiesBuilder $entitiesBuilder */
     private $entitiesBuilder;
 
-    public function let(
+    function let(
         EventsDispatcher $dispatcher,
         EntitiesBuilder $entitiesBuilder
-    ) {
+    )
+    {
         $this->beConstructedWith($dispatcher, $entitiesBuilder);
         $this->dispatcher=$dispatcher;
         $this->entitiesBuilder = $entitiesBuilder;
     }
 
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(NotificationDelegate::class);
     }
 
-    public function it_should_send_a_pending_referral_notification_to_referrer(Referral $referral, Entity $entity)
+    function it_should_send_a_pending_referral_notification_to_referrer(Referral $referral, Entity $entity)
     {
         $referral->getReferrerGuid()
             ->shouldBeCalled()
@@ -62,7 +63,7 @@ class NotificationDelegateSpec extends ObjectBehavior
         $this->notifyReferrer($referral);
     }
 
-    public function it_should_send_a_completed_referral_notification_to_referrer(Referral $referral, Entity $entity)
+    function it_should_send_a_completed_referral_notification_to_referrer(Referral $referral, Entity $entity )
     {
         $referral->getReferrerGuid()
             ->shouldBeCalled()
@@ -87,7 +88,7 @@ class NotificationDelegateSpec extends ObjectBehavior
         $this->notifyReferrer($referral);
     }
 
-    public function it_should_send_a_ping_notification_to_pending_prospect(Referral $referral, Entity $entity)
+    function it_should_send_a_ping_notification_to_pending_prospect(Referral $referral, Entity $entity )
     {
         $referral->getProspectGuid()
             ->shouldBeCalled()
@@ -112,7 +113,7 @@ class NotificationDelegateSpec extends ObjectBehavior
         $this->notifyProspect($referral);
     }
 
-    public function it_should_not_send_a_ping_notification_to_completed_prospect(Referral $referral, Entity $entity)
+    function it_should_not_send_a_ping_notification_to_completed_prospect(Referral $referral, Entity $entity )
     {
         $referral->getReferrerGuid()
             ->shouldBeCalled()
@@ -132,4 +133,5 @@ class NotificationDelegateSpec extends ObjectBehavior
 
         $this->notifyProspect($referral);
     }
+
 }

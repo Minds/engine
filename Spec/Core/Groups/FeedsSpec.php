@@ -20,12 +20,13 @@ class FeedsSpec extends ObjectBehavior
     protected $_entitiesFactory;
     protected $_entitiesBuilder;
 
-    public function let(
+    function let(
         AdminQueue $adminQueue,
         Mocks\Minds\Core\Entities $entities,
         Mocks\Minds\Core\Entities\Factory $entitiesFactory,
         Core\EntitiesBuilder $entitiesBuilder
-    ) {
+    )
+    {
         // AdminQueue
 
         Di::_()->bind('Groups\AdminQueue', function () use ($adminQueue) {
@@ -55,14 +56,14 @@ class FeedsSpec extends ObjectBehavior
         $this->beConstructedWith($entitiesBuilder);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Groups\Feeds');
     }
 
     // setGroup()
 
-    public function it_should_set_group(Group $group)
+    function it_should_set_group(Group $group)
     {
         $this
             ->setGroup($group)
@@ -71,11 +72,12 @@ class FeedsSpec extends ObjectBehavior
 
     // getAll()
 
-    public function it_should_get_all(
+    function it_should_get_all(
         Group $group,
         Activity $activity_1,
         Activity $activity_2
-    ) {
+    )
+    {
         $activity_1->get('guid')->willReturn(5000);
         $activity_2->get('guid')->willReturn(5001);
 
@@ -105,9 +107,10 @@ class FeedsSpec extends ObjectBehavior
     }
 
 
-    public function it_should_return_an_empty_array_during_get_all(
+    function it_should_return_an_empty_array_during_get_all(
         Group $group
-    ) {
+    )
+    {
         $rows = new Mocks\Cassandra\Rows([], '');
 
         $this->_adminQueue->getAll($group, [])
@@ -126,7 +129,7 @@ class FeedsSpec extends ObjectBehavior
         $return['next']->shouldReturn('');
     }
 
-    public function it_should_throw_during_get_all_if_no_group()
+    function it_should_throw_during_get_all_if_no_group()
     {
         $this->_adminQueue->getAll(Argument::any())
             ->shouldNotBeCalled();
@@ -138,9 +141,10 @@ class FeedsSpec extends ObjectBehavior
 
     // count()
 
-    public function it_should_count(
+    function it_should_count(
         Group $group
-    ) {
+    )
+    {
         $this->_adminQueue->count($group)
             ->shouldBeCalled()
             ->willReturn([
@@ -153,9 +157,10 @@ class FeedsSpec extends ObjectBehavior
             ->shouldReturn(2);
     }
 
-    public function it_should_count_zero_if_no_rows(
+    function it_should_count_zero_if_no_rows(
         Group $group
-    ) {
+    )
+    {
         $this->_adminQueue->count($group)
             ->shouldBeCalled()
             ->willReturn(false);
@@ -166,7 +171,7 @@ class FeedsSpec extends ObjectBehavior
             ->shouldReturn(0);
     }
 
-    public function it_should_throw_during_count_if_no_group()
+    function it_should_throw_during_count_if_no_group()
     {
         $this->_adminQueue->count(Argument::any())
             ->shouldNotBeCalled();
@@ -178,10 +183,11 @@ class FeedsSpec extends ObjectBehavior
 
     // queue()
 
-    public function it_should_queue(
+    function it_should_queue(
         Group $group,
         Activity $activity
-    ) {
+    )
+    {
         $activity->get('guid')->willReturn(5000);
 
         $this->_adminQueue->add($group, $activity)
@@ -195,9 +201,10 @@ class FeedsSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_throw_during_queue_if_no_group(
+    function it_should_throw_during_queue_if_no_group(
         Activity $activity
-    ) {
+    )
+    {
         $activity->get('guid')->willReturn(5000);
 
         $this->_adminQueue->add(Argument::cetera())
@@ -208,10 +215,11 @@ class FeedsSpec extends ObjectBehavior
             ->duringQueue($activity, [ 'notification' => false ]);
     }
 
-    public function it_should_throw_during_queue_if_no_activity(
+    function it_should_throw_during_queue_if_no_activity(
         Group $group,
         Activity $activity
-    ) {
+    )
+    {
         $activity->get('guid')->willReturn('');
 
         $this->_adminQueue->add(Argument::cetera())
@@ -225,11 +233,12 @@ class FeedsSpec extends ObjectBehavior
 
     // approve()
 
-    public function it_should_approve(
+    function it_should_approve(
         Group $group,
         Activity $activity,
         Entities\Image $attachment
-    ) {
+    )
+    {
         $group->getGuid()->willReturn(1000);
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1000);
@@ -272,9 +281,10 @@ class FeedsSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_throw_during_approve_if_no_group(
+    function it_should_throw_during_approve_if_no_group(
         Activity $activity
-    ) {
+    )
+    {
         $this->_adminQueue->delete(Argument::cetera())
             ->shouldNotBeCalled();
 
@@ -283,10 +293,11 @@ class FeedsSpec extends ObjectBehavior
             ->duringApprove($activity, [ 'notification' => false ]);
     }
 
-    public function it_should_throw_during_approve_if_no_activity(
+    function it_should_throw_during_approve_if_no_activity(
         Group $group,
         Activity $activity
-    ) {
+    )
+    {
         $activity->get('guid')->willReturn('');
 
         $this->_adminQueue->delete(Argument::cetera())
@@ -298,10 +309,11 @@ class FeedsSpec extends ObjectBehavior
             ->duringApprove($activity, [ 'notification' => false ]);
     }
 
-    public function it_should_throw_during_approve_if_activity_doesnt_belong_to_group(
+    function it_should_throw_during_approve_if_activity_doesnt_belong_to_group(
         Group $group,
         Activity $activity
-    ) {
+    )
+    {
         $group->getGuid()->willReturn(1000);
 
         $activity->get('guid')->willReturn(5000);
@@ -318,10 +330,11 @@ class FeedsSpec extends ObjectBehavior
 
     // reject()
 
-    public function it_should_reject(
+    function it_should_reject(
         Group $group,
         Activity $activity
-    ) {
+    )
+    {
         $group->getGuid()->willReturn(1000);
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1000);
@@ -336,9 +349,10 @@ class FeedsSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_throw_during_reject_if_no_group(
+    function it_should_throw_during_reject_if_no_group(
         Activity $activity
-    ) {
+    )
+    {
         $this->_adminQueue->delete(Argument::cetera())
             ->shouldNotBeCalled();
 
@@ -347,10 +361,11 @@ class FeedsSpec extends ObjectBehavior
             ->duringReject($activity, [ 'notification' => false ]);
     }
 
-    public function it_should_throw_during_reject_if_no_activity(
+    function it_should_throw_during_reject_if_no_activity(
         Group $group,
         Activity $activity
-    ) {
+    )
+    {
         $activity->get('guid')->willReturn('');
 
         $this->_adminQueue->delete(Argument::cetera())
@@ -362,10 +377,11 @@ class FeedsSpec extends ObjectBehavior
             ->duringReject($activity, [ 'notification' => false ]);
     }
 
-    public function it_should_throw_during_reject_if_activity_doesnt_belong_to_group(
+    function it_should_throw_during_reject_if_activity_doesnt_belong_to_group(
         Group $group,
         Activity $activity
-    ) {
+    )
+    {
         $group->getGuid()->willReturn(1000);
 
         $activity->get('guid')->willReturn(5000);
@@ -382,12 +398,13 @@ class FeedsSpec extends ObjectBehavior
 
     // approveAll()
 
-    public function it_should_approve_all(
+    function it_should_approve_all(
         Group $group,
         Activity $activity_1,
         Activity $activity_2,
         Entities\Video $attachment_1
-    ) {
+    )
+    {
         $group->getGuid()->willReturn(1000);
 
         $activity_1->get('guid')->willReturn(5001);
@@ -464,7 +481,7 @@ class FeedsSpec extends ObjectBehavior
             ]);
     }
 
-    public function it_should_throw_during_approve_all_if_no_group()
+    function it_should_throw_during_approve_all_if_no_group()
     {
         $this->_adminQueue->getAll(Argument::cetera())
             ->shouldNotBeCalled();
@@ -476,11 +493,11 @@ class FeedsSpec extends ObjectBehavior
 
     //
 
-    public function getMatchers()
+    function getMatchers()
     {
         $matchers = [];
 
-        $matchers['haveKeys'] = function ($subject, array $keys) {
+        $matchers['haveKeys'] = function($subject, array $keys) {
             $valid = true;
 
             foreach ($keys as $key) {

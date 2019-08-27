@@ -3,6 +3,7 @@
 
 namespace Minds\Core\Analytics\Metrics;
 
+
 use DateTime;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Data\ElasticSearch\Prepared\Search;
@@ -10,8 +11,10 @@ use Minds\Core\Di\Di;
 use Minds\Helpers;
 use Minds\Interfaces\AnalyticsMetric;
 
+
 class Pageview implements AnalyticsMetric
 {
+
     private $key;
     /** @var Client */
     protected $elastic;

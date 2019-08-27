@@ -15,19 +15,21 @@ use Minds\Core\Notification\Batches\Manager as NotificationBatches;
 
 class NotificationsSpec extends ObjectBehavior
 {
+
     protected $db;
     protected $indexesDb;
     protected $cql;
     protected $notifications;
     protected $notificationBatches;
 
-    public function let(
+    function let(
         Relationships $db,
         Indexes $indexesDb,
         Cassandra\Client $cql,
         NotificationManager $notifications,
         NotificationBatches $notificationBatches
-    ) {
+    )
+    {
         $this->db = $db;
         $this->indexesDb = $indexesDb;
         $this->cql = $cql;
@@ -44,11 +46,12 @@ class NotificationsSpec extends ObjectBehavior
 
     public function it_should_get_recipients(
         GroupEntity $group
-    ) {
+    )
+    {
         $this->db->setGuid(50)->shouldBeCalled();
         $this->db->get('member', Argument::any())->shouldBeCalled()->willReturn([1, 2, 3, 4, 5, 6, 7, 8]);
 
-        $this->cql->request(Argument::that(function ($prepared) {
+        $this->cql->request(Argument::that(function($prepared) {
             $statement = $prepared->build();
             return stripos($statement['string'], 'SELECT * from relationships') !== false && $statement['values'][0] == '50:group:muted:inverted';
         }))->shouldBeCalled()->willReturn([
@@ -65,8 +68,9 @@ class NotificationsSpec extends ObjectBehavior
 
     public function it_should_get_muted_members(
         GroupEntity $group
-    ) {
-        $this->cql->request(Argument::that(function ($prepared) {
+    )
+    {
+        $this->cql->request(Argument::that(function($prepared) {
             $statement = $prepared->build();
             return stripos($statement['string'], 'SELECT * from relationships') !== false && $statement['values'][0] == '50:group:muted:inverted';
         }))->shouldBeCalled()->willReturn([
@@ -78,7 +82,7 @@ class NotificationsSpec extends ObjectBehavior
 
         $this->setGroup($group);
 
-        $this->getMutedMembers()->shouldReturn([
+        $this->getMutedMembers()->shouldReturn([ 
             [ 'column1' => '6' ],
             [ 'column1' => '7' ],
         ]);
@@ -86,14 +90,15 @@ class NotificationsSpec extends ObjectBehavior
 
     public function it_should_check_muted_members_in_batch(
         GroupEntity $group
-    ) {
+    )
+    {
         $group->getGuid()->willReturn(50);
         $this->setGroup($group);
 
         $this->cql->request(
-                Argument::that(function ($prepared) {
+                Argument::that(function($prepared) {
                     $statement = $prepared->build();
-                    return stripos($statement['string'], 'SELECT * from relationships') !== false
+                    return stripos($statement['string'], 'SELECT * from relationships') !== false 
                         && $statement['values'][0] == '50:group:muted:inverted';
                 }))
             ->shouldBeCalled()
@@ -109,7 +114,8 @@ class NotificationsSpec extends ObjectBehavior
     public function it_should_check_if_its_muted(
         GroupEntity $group,
         User $user
-    ) {
+    )
+    {
         $user->get('guid')->willReturn(1);
         $group->getGuid()->willReturn(50);
         $this->setGroup($group);
@@ -131,7 +137,8 @@ class NotificationsSpec extends ObjectBehavior
     public function it_should_mute(
         GroupEntity $group,
         User $user
-    ) {
+    )
+    {
         $user->get('guid')->willReturn(1);
         $group->getGuid()->willReturn(50);
         $this->setGroup($group);
@@ -153,7 +160,8 @@ class NotificationsSpec extends ObjectBehavior
     public function it_should_unmute(
         GroupEntity $group,
         User $user
-    ) {
+    )
+    {
         $user->get('guid')->willReturn(1);
         $group->getGuid()->willReturn(50);
         $this->setGroup($group);

@@ -31,7 +31,7 @@ class Luid implements \JsonSerializable
             if ($luid instanceof static) {
                 // Re-parse cloning
                 $luid = $luid->build();
-            } elseif (!is_string($luid)) {
+            } else if (!is_string($luid)) {
                 throw new InvalidLuidException('Constructed with an invalid LUID');
             }
 
@@ -128,7 +128,7 @@ class Luid implements \JsonSerializable
             throw new InvalidLuidException("{$luid} is not a valid LUID");
         }
 
-        $json = json_decode(base64_decode($luid, true), true);
+        $json = json_decode(base64_decode($luid), true);
 
         if (!$json || !is_array($json) || !isset($json['_type'])) {
             throw new InvalidLuidException("{$luid} is not a valid LUID");

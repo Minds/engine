@@ -3,6 +3,7 @@
  */
 
  namespace Minds\Core\Reports;
+ 
 
 use Minds\Core;
 use Minds\Entities;

@@ -11,6 +11,7 @@ namespace Minds\Core\Notification\PostSubscriptions;
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
 
+
 class Manager
 {
     /** @var int */

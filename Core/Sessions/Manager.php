@@ -13,6 +13,7 @@ use Lcobucci\JWT\Signer\Rsa\Sha512;
 
 class Manager
 {
+
     /** @var Repository $repository */
     private $repository;
 
@@ -38,7 +39,8 @@ class Manager
         $jwtBuilder = null,
         $jwtParser = null,
         $sentryScopeDelegate = null
-    ) {
+    )
+    {
         $this->repository = $repository ?: new Repository;
         $this->config = $config ?: Di::_()->get('Config');
         $this->cookie = $cookie ?: new Cookie;
@@ -67,7 +69,7 @@ class Manager
         return $this->session;
     }
 
-    /**
+    /** 
      * Set the user for the session
      * @param User $user
      * @return $this
@@ -150,7 +152,7 @@ class Manager
         }
 
         if (
-            !$session->getId()
+            !$session->getId() 
             || $session->getId() != $validated->getId()
         ) {
             return false;
@@ -254,4 +256,5 @@ class Manager
     {
         return $this->repository->getCount($this->user->getGuid());
     }
+
 }

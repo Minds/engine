@@ -16,20 +16,20 @@ class RepositorySpec extends ObjectBehavior
 {
     protected $_client;
 
-    public function let(Cassandra\Client $client)
+    function let(Cassandra\Client $client)
     {
         $this->beConstructedWith($client);
         $this->_client = $client;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Notification\Repository');
     }
 
     // setOwner
 
-    public function it_should_set_owner()
+    function it_should_set_owner()
     {
         $this
             ->setOwner(1000)
@@ -38,7 +38,7 @@ class RepositorySpec extends ObjectBehavior
 
     // getAll
 
-    public function it_should_get_an_empty_list_of_notifications()
+    function it_should_get_an_empty_list_of_notifications()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -50,7 +50,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(['notifications' => [], 'token' => '']);
     }
 
-    public function it_should_get_a_list_of_notifications()
+    function it_should_get_a_list_of_notifications()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -68,7 +68,7 @@ class RepositorySpec extends ObjectBehavior
         $result['notifications']->shouldBeAnArrayOf(5, Entities\Notification::class);
     }
 
-    public function it_should_not_get_a_list_of_notifications_if_theres_no_owner()
+    function it_should_not_get_a_list_of_notifications_if_theres_no_owner()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -80,7 +80,7 @@ class RepositorySpec extends ObjectBehavior
 
     // getEntity
 
-    public function it_should_return_a_single_notification()
+    function it_should_return_a_single_notification()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -94,7 +94,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturnAnInstanceOf(Entities\Notification::class);
     }
 
-    public function it_should_not_return_a_single_notification_if_doesnt_exist()
+    function it_should_not_return_a_single_notification_if_doesnt_exist()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -106,7 +106,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_not_return_a_single_notification_if_falsy()
+    function it_should_not_return_a_single_notification_if_falsy()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -118,7 +118,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_not_return_a_single_notification_if_no_guid()
+    function it_should_not_return_a_single_notification_if_no_guid()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -129,7 +129,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_not_return_a_single_notification_if_no_owner()
+    function it_should_not_return_a_single_notification_if_no_owner()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -141,7 +141,7 @@ class RepositorySpec extends ObjectBehavior
 
     // store
 
-    public function it_should_store()
+    function it_should_store()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -153,7 +153,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_store_if_ttl_is_not_past()
+    function it_should_store_if_ttl_is_not_past()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -167,7 +167,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_not_store_if_ttl_is_past()
+    function it_should_not_store_if_ttl_is_past()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -180,7 +180,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_not_store_if_no_guid()
+    function it_should_not_store_if_no_guid()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -191,7 +191,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_not_store_if_no_owner()
+    function it_should_not_store_if_no_owner()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -203,7 +203,7 @@ class RepositorySpec extends ObjectBehavior
 
     // delete
 
-    public function it_should_delete()
+    function it_should_delete()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -215,7 +215,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_not_delete_if_no_guid()
+    function it_should_not_delete_if_no_guid()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -226,7 +226,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_not_delete_if_no_owner()
+    function it_should_not_delete_if_no_owner()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -238,7 +238,7 @@ class RepositorySpec extends ObjectBehavior
 
     // count
 
-    public function it_should_count()
+    function it_should_count()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -250,7 +250,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(5);
     }
 
-    public function it_should_not_count_if_no_owner()
+    function it_should_not_count_if_no_owner()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldNotBeCalled();
@@ -262,7 +262,7 @@ class RepositorySpec extends ObjectBehavior
 
     //
 
-    public function getMatchers()
+    function getMatchers()
     {
         $matchers['beAnArrayOf'] = function ($subject, $count, $class) {
             if (!is_array($subject) || ($count !== null && count($subject) !== $count)) {

@@ -39,4 +39,5 @@ class Events
             $event->setResponse($this->manager->setUser($user)->delete());
         });
     }
+
 }

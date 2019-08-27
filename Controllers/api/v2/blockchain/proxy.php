@@ -33,8 +33,7 @@ class proxy implements Interfaces\Api, Interfaces\ApiIgnorePam
      * @param Core\Http\Curl\Client $http
      * @param Core\Config\Config $config
      */
-    public function __construct($http = null, $config = null)
-    {
+    function __construct($http = null, $config = null) {
         $this->http = $http ?: Di::_()->get('Http');
         $config = $config ?: Di::_()->get('Config');
 
@@ -111,8 +110,7 @@ class proxy implements Interfaces\Api, Interfaces\ApiIgnorePam
      * @param string $msg
      * @return void
      */
-    private function sendError($msg = '')
-    {
+    private function sendError($msg = '') {
         ob_end_clean();
         header('Fatal error', true, 500);
         echo $msg;

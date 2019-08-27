@@ -9,6 +9,7 @@ use Minds\Exceptions;
 
 class Spam
 {
+
     public function check($entity)
     {
         $foundSpam = false;
@@ -35,7 +36,7 @@ class Spam
                 error_log("[spam-check]: $entity->type:$entity->subtype not supported");
          }
 
-        if ($foundSpam) {
+         if ($foundSpam) {
             throw new \Exception('Sorry, you included a reference to a domain name linked to spam. You can not use short urls (eg. bit.ly). Please remove it and try again');
         }
     }
@@ -43,7 +44,7 @@ class Spam
     protected function strposa($haystack, $needles, $offset = 0)
     {
         if (!is_array($needles)) {
-            $needles = [$needles];
+            $needles = array($needles);
         }
         foreach ($needles as $query) {
             if (stripos($haystack, $query, $offset) !== false) {
@@ -418,4 +419,5 @@ class Spam
             'hotswishes.com',
         ];
     }
+
 }

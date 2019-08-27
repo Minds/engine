@@ -7,6 +7,7 @@
 
 namespace Minds\Core\Email;
 
+
 use Cassandra\Type;
 use Cassandra\Varint;
 use Minds\Core\Data\Cassandra\Client;
@@ -177,6 +178,7 @@ class Repository
      */
     public function delete($subscription)
     {
+
         if (!$subscription->getUserGuid()) {
             throw new \Exception('user_guid is required');
         }

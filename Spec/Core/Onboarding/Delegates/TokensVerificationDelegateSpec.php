@@ -9,12 +9,12 @@ use Prophecy\Argument;
 
 class TokensVerificationDelegateSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(TokensVerificationDelegate::class);
     }
 
-    public function it_should_check_if_completed(User $user)
+    function it_should_check_if_completed(User $user)
     {
         $user->getPhoneNumberHash()
             ->shouldBeCalled()
@@ -25,7 +25,7 @@ class TokensVerificationDelegateSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_check_if_not_completed(User $user)
+    function it_should_check_if_not_completed(User $user)
     {
         $user->getPhoneNumberHash()
             ->shouldBeCalled()

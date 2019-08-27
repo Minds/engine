@@ -9,12 +9,13 @@ use Minds\Core\Data\ElasticSearch\Client;
 
 class ActionsHistogramSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Analytics\Aggregates\ActionsHistogram');
     }
 
-    public function it_should_should_get_aggregates(Client $client)
+    function it_should_should_get_aggregates(Client $client)
     {
         $this->beConstructedWith($client);
         
@@ -24,14 +25,14 @@ class ActionsHistogramSpec extends ObjectBehavior
                 'aggregations' => [
                     'counts' => [
                         'buckets' => [
-                            [
+                            [ 
                                 'key' => 123,
                                 'doc_count' => 50,
                                 'uniques' => [
                                     'value' => 50
                                 ]
                             ],
-                            [
+                            [ 
                                 'key' => 456,
                                 'doc_count' => 25,
                                 'uniques' => [
@@ -48,4 +49,5 @@ class ActionsHistogramSpec extends ObjectBehavior
             456 => 20
         ]);
     }
+
 }

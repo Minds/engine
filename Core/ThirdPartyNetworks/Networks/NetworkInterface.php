@@ -7,6 +7,7 @@ namespace Minds\Core\ThirdPartyNetworks\Networks;
 
 interface NetworkInterface
 {
+
     /**
      * Set and save the api credentials
      * @param array $credentials

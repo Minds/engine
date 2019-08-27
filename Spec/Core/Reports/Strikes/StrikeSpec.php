@@ -8,12 +8,12 @@ use Prophecy\Argument;
 
 class StrikeSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Strike::class);
     }
 
-    public function it_should_return_preferred_urn()
+    function it_should_return_preferred_urn()
     {
         $this->setTimestamp(1557176817000)
             ->setUserGuid(123)
@@ -21,6 +21,7 @@ class StrikeSpec extends ObjectBehavior
             ->setSubReasonCode(5);
 
         $this->getUrn()
-            ->shouldBe("urn:strike:123-1557176817000-2-5");
+            ->shouldBe("urn:strike:123-1557176817000-2-5");   
     }
+
 }

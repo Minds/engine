@@ -45,4 +45,5 @@ class ConversationSpec extends ObjectBehavior
           ->setParticipant($user4);
         $this->getGuid()->shouldReturn('100000000000000003:100000000000000063:100000000000000599:245660000000000063');
     }
+
 }

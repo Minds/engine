@@ -7,6 +7,7 @@
 
 namespace Minds\Core\Blockchain\Reports;
 
+
 abstract class AbstractReport implements ReportInterface
 {
     /** @var array columns names */
@@ -33,10 +34,8 @@ abstract class AbstractReport implements ReportInterface
      */
     public function checkRequired()
     {
-        foreach ($this->required as $req) {
-            if (!$this->$req) {
-                throw new \Exception('$req is required');
-            }
+        foreach($this->required as $req) {
+            if (!$this->$req) throw new \Exception('$req is required');
         }
         return $this;
     }
@@ -80,10 +79,8 @@ abstract class AbstractReport implements ReportInterface
      */
     public function setParams(array $params)
     {
-        foreach ($params as $name => $value) {
-            if (!in_array($name, $this->params, true)) {
-                throw new \Exception("paramenter $name is not valid in this report.");
-            }
+        foreach($params as $name => $value) {
+            if (!in_array($name, $this->params)) throw new \Exception("paramenter $name is not valid in this report.");
             $this->$name = $value;
         }
         return $this;

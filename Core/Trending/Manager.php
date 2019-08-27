@@ -7,6 +7,7 @@ use Minds\Core\EntitiesBuilder;
 
 class Manager
 {
+
     private $repository;
     private $validator;
 
@@ -132,4 +133,5 @@ class Manager
             }
         }
     }
+
 }

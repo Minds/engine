@@ -59,7 +59,7 @@ class group implements Interfaces\Api
             }
 
             $response['group'] = array_filter($response['group'], function ($key) use ($allowed) {
-                return in_array($key, $allowed, true);
+                return in_array($key, $allowed);
             }, ARRAY_FILTER_USE_KEY);
         }
 
@@ -238,7 +238,7 @@ class group implements Interfaces\Api
             }
         }
 
-        $response = [];
+        $response = array();
         $response['guid'] = $group->getGuid();
 
         if ($creation && isset($_POST['invitees']) && $_POST['invitees']) {
@@ -261,7 +261,7 @@ class group implements Interfaces\Api
 
     public function put($pages)
     {
-        return Factory::response([]);
+        return Factory::response(array());
     }
 
     public function delete($pages)

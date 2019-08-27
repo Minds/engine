@@ -6,6 +6,8 @@ use Minds\Entities\User;
 
 class SubscriptionsIterator implements \Iterator
 {
+
+
     /** @var int $from - timestamp */
     private $from;
 
@@ -21,7 +23,7 @@ class SubscriptionsIterator implements \Iterator
     /** @var string $token */
     private $token = "";
 
-    /** @var int $cursor  */
+     /** @var int $cursor  */
     private $cursor = -1;
 
     /** @var array $data */

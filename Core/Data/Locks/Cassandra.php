@@ -3,6 +3,7 @@
 
 namespace Minds\Core\Data\Locks;
 
+
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
@@ -32,8 +33,7 @@ class Cassandra
         return $this;
     }
 
-    public function isLocked()
-    {
+    public function isLocked() {
         if (!isset($this->key)) {
             throw new KeyNotSetupException();
         }

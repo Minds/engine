@@ -8,14 +8,15 @@ use Prophecy\Argument;
 
 class ObjectBlogMappingSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Search\Mappings\ObjectBlogMapping');
     }
 
-    public function it_should_map_a_blog(
+    function it_should_map_a_blog(
         Blog $blog
-    ) {
+    )
+    {
         $now = time();
 
         $blog->getInteractions()->willReturn(42);

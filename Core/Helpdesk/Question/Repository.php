@@ -29,7 +29,8 @@ class Repository
         Cassandra\Client $cassandraClient = null,
         ElasticSearch\Client $esClient = null,
         Category\Repository $categoryRepository = null
-    ) {
+    )
+    {
         $this->cassandraClient = $cassandraClient ?: Di::_()->get('Database\Cassandra\Cql');
         $this->esClient = $esClient ?: Di::_()->get('Database\ElasticSearch');
         $this->repository = $categoryRepository ?: Di::_()->get('Helpdesk\Category\Repository');
@@ -66,7 +67,7 @@ class Repository
 
         $prepared->setOpts([
             'page_size' => (int) $opts['limit'],
-            'paging_state_token' => base64_decode($opts['offset'], true),
+            'paging_state_token' => base64_decode($opts['offset']),
         ]);
 
         $response = new Response([]);
@@ -289,6 +290,7 @@ class Repository
      */
     public function update(Question $question)
     {
+
         $query = "UPDATE helpdesk_faq SET ";
 
         $query .= " question = ?, answer = ?, category_uuid = ?, score = ?, votes_up = ?, votes_down = ? WHERE uuid = ?";
@@ -335,7 +337,7 @@ class Repository
                             $question->getQuestion(),
                             $question->getAnswer()
                         ], $this->permutateString($question->getQuestion()))
-                    ],
+                    ], 
                 ]
             ]);
 

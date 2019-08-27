@@ -279,4 +279,5 @@ class SaveSpec extends ObjectBehavior
 
         $this->save()->shouldReturn(true);
     }
+
 }

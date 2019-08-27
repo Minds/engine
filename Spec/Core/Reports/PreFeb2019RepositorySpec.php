@@ -16,21 +16,21 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
 {
     protected $_client;
 
-    public function let(Cassandra\Client $client)
+    function let(Cassandra\Client $client)
     {
         $this->beConstructedWith($client);
 
         $this->_client = $client;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Reports\PreFeb2019Repository');
     }
 
     // getAll()
 
-    public function it_should_return_a_list_of_reports()
+    function it_should_return_a_list_of_reports()
     {
         $rows = new Mocks\Cassandra\Rows([
             [ 'guid' => 5000 ],
@@ -49,9 +49,10 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
         $return['next']->shouldReturn('');
     }
 
-    public function it_should_return_a_list_of_reports_by_owner(
+    function it_should_return_a_list_of_reports_by_owner(
         Entities\User $owner
-    ) {
+    )
+    {
         $rows = new Mocks\Cassandra\Rows([
             [ 'guid' => 5000 ],
             [ 'guid' => 5001 ],
@@ -81,7 +82,7 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
         $return['next']->shouldReturn('');
     }
 
-    public function it_should_return_a_list_of_reports_by_state()
+    function it_should_return_a_list_of_reports_by_state()
     {
         $rows = new Mocks\Cassandra\Rows([
             [ 'guid' => 5000 ],
@@ -110,7 +111,7 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
         $return['next']->shouldReturn('');
     }
 
-    public function it_should_with_an_offset_and_a_limit_return_a_list_of_reports_and_will_return_a_paging_token()
+    function it_should_with_an_offset_and_a_limit_return_a_list_of_reports_and_will_return_a_paging_token()
     {
         $rows = new Mocks\Cassandra\Rows([
             [ 'guid' => 5000 ],
@@ -147,7 +148,7 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
 
     // getRow()
 
-    public function it_should_get_a_single_report()
+    function it_should_get_a_single_report()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -159,7 +160,7 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
             ->shouldReturnAnInstanceOf(Entities\Report::class);
     }
 
-    public function it_should_not_get_a_report_if_no_guid()
+    function it_should_not_get_a_report_if_no_guid()
     {
         $this->_client->request(Argument::any())
             ->shouldNotBeCalled();
@@ -168,7 +169,7 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_not_get_a_report_if_doesnt_exist()
+    function it_should_not_get_a_report_if_doesnt_exist()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -180,10 +181,11 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
 
     // create()
 
-    public function it_should_create_a_report(
+    function it_should_create_a_report(
         Entities\Activity $activity,
         Entities\User $reporter
-    ) {
+    )
+    {
         $activity->get('guid')->willReturn(5000);
         $activity->get('owner_guid')->willReturn(1001);
 
@@ -197,9 +199,10 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_not_create_a_report_if_no_entity(
+    function it_should_not_create_a_report_if_no_entity(
         Entities\User $reporter
-    ) {
+    )
+    {
         $reporter->get('guid')->willReturn(1000);
 
         $this->_client->request(Argument::any())
@@ -209,9 +212,10 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_not_create_a_report_if_no_reporter(
+    function it_should_not_create_a_report_if_no_reporter(
         Entities\Activity $activity
-    ) {
+    )
+    {
         $activity->get('guid')->willReturn(5000);
         $activity->get('owner_guid')->willReturn(1001);
 
@@ -224,7 +228,7 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
 
     // update()
 
-    public function it_should_update_a_report()
+    function it_should_update_a_report()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -234,7 +238,7 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_not_update_a_report_if_no_guid()
+    function it_should_not_update_a_report_if_no_guid()
     {
         $this->_client->request(Argument::any())
             ->shouldNotBeCalled();
@@ -243,7 +247,7 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_not_update_a_report_if_empty_set()
+    function it_should_not_update_a_report_if_empty_set()
     {
         $this->_client->request(Argument::any())
             ->shouldNotBeCalled();
@@ -254,7 +258,7 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
 
     // delete()
 
-    public function it_should_delete_a_report()
+    function it_should_delete_a_report()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))
             ->shouldBeCalled()
@@ -264,7 +268,7 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_not_delete_a_report_if_no_guid()
+    function it_should_not_delete_a_report_if_no_guid()
     {
         $this->_client->request(Argument::any())
             ->shouldNotBeCalled();
@@ -273,11 +277,11 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function getMatchers()
+    function getMatchers()
     {
         $matchers = [];
 
-        $matchers['haveKeys'] = function ($subject, array $keys) {
+        $matchers['haveKeys'] = function($subject, array $keys) {
             $valid = true;
 
             foreach ($keys as $key) {

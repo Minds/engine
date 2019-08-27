@@ -7,6 +7,7 @@ namespace Minds\Core\Media\Services;
 
 class Factory
 {
+
     /**
      * Build the service factory
      * @param string $service
@@ -23,4 +24,5 @@ class Factory
 
         throw new \Exception("Service `$service` not found");
     }
+
 }

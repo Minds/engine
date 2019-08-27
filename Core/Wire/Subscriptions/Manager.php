@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Wire\Subscriptions;
 
+
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Wire\Exceptions\WalletNotSetupException;
@@ -10,6 +11,7 @@ use Minds\Entities\User;
 
 class Manager
 {
+
     /** @var Core\Payments\Subscriptions\Manager $subscriptionsManager */
     protected $subscriptionsManager;
 

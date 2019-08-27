@@ -53,6 +53,7 @@ class questions implements Api
     public function post($pages)
     {
         return Factory::response([]);
+
     }
 
     // upvotes and downvotes
@@ -71,7 +72,7 @@ class questions implements Api
             return Factory::response(['status' => 'error', 'message' => 'vote direction must be provided']);
         }
 
-        if (!(in_array($pages[1], ['up', 'down'], true))) {
+        if (!(in_array($pages[1], ['up', 'down']))) {
             return Factory::response([
                 'status' => 'error',
                 'message' => "vote direction can only be either 'up' or 'down'"
@@ -119,7 +120,7 @@ class questions implements Api
             return Factory::response(['status' => 'error', 'message' => 'vote direction must be provided']);
         }
 
-        if (!(in_array($pages[1], ['up', 'down'], true))) {
+        if (!(in_array($pages[1], ['up', 'down']))) {
             return Factory::response([
                 'status' => 'error',
                 'message' => "vote direction can only be either 'up' or 'down'"
@@ -151,4 +152,5 @@ class questions implements Api
             'status' => 'success',
         ]);
     }
+
 }

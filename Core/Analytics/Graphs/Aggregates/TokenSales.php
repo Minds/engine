@@ -334,4 +334,5 @@ class TokenSales implements AggregateInterface
 
         return $response;
     }
+
 }

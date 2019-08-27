@@ -8,12 +8,12 @@ use Prophecy\Argument;
 
 class ViewSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(View::class);
     }
 
-    public function it_should_set_client_meta()
+    function it_should_set_client_meta()
     {
         $this
             ->setClientMeta([

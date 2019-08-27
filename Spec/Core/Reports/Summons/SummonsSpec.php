@@ -9,12 +9,12 @@ use Prophecy\Argument;
 
 class SummonsSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Summons::class);
     }
 
-    public function it_should_set_valid_status()
+    function it_should_set_valid_status()
     {
         $this
             ->shouldNotThrow()
@@ -37,7 +37,7 @@ class SummonsSpec extends ObjectBehavior
             ->duringSetStatus('phpspec:invalidstatus');
     }
 
-    public function it_should_return_bool_if_awaiting()
+    function it_should_return_bool_if_awaiting()
     {
         $this
             ->isAwaiting()
@@ -50,7 +50,7 @@ class SummonsSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_return_bool_if_accepted()
+    function it_should_return_bool_if_accepted()
     {
         $this
             ->isAccepted()
@@ -63,7 +63,7 @@ class SummonsSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_return_bool_if_declined()
+    function it_should_return_bool_if_declined()
     {
         $this
             ->isDeclined()

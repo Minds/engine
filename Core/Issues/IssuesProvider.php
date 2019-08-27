@@ -20,5 +20,7 @@ class IssuesProvider extends Provider
         $this->di->bind('Issues\Manager', function () {
             return new Manager();
         });
+
+
     }
 }

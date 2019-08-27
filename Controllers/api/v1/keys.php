@@ -12,4 +12,5 @@ use Minds\Controllers\api\v2\messenger;
 
 class keys extends messenger\keys
 {
+    
 }

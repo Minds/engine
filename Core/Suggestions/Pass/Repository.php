@@ -9,6 +9,7 @@ use Minds\Core\Data\ElasticSearch\Prepared\Update as Prepared;
 
 class Repository
 {
+
     /** @var ElasticSearch $es */
     private $es;
 
@@ -100,4 +101,6 @@ class Repository
     {
         // Not implemented
     }
+
 }
+

@@ -54,4 +54,5 @@ class TotalPostsAggregate implements ModerationStatsAggregateInterface
 
         return $result['hits']['total'];
     }
+
 }

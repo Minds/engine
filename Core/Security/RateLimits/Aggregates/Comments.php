@@ -58,4 +58,5 @@ class Comments extends Aggregate
         }
         return $entities;
     }
+
 }

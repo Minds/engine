@@ -13,19 +13,20 @@ class SocketDelegateSpec extends ObjectBehavior
     /** @var SocketEvents */
     protected $socketEvents;
 
-    public function let(
+    function let(
         SocketEvents $socketEvents
-    ) {
+    )
+    {
         $this->beConstructedWith($socketEvents);
         $this->socketEvents = $socketEvents;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(SocketDelegate::class);
     }
 
-    public function it_should_emit_on_summon(Summons $summons)
+    function it_should_emit_on_summon(Summons $summons)
     {
         $summons->getJurorGuid()
             ->shouldBeCalled()

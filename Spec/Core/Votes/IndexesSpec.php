@@ -16,26 +16,28 @@ class IndexesSpec extends ObjectBehavior
     protected $cql;
     protected $repository;
 
-    public function let(
+    function let(
         Client $cql,
         Repository $repo
-    ) {
+    )
+    {
         $this->cql = $cql;
         $this->repository = $repo;
 
         $this->beConstructedWith($cql, $repo);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Votes\Indexes');
     }
 
-    public function it_should_insert(
+    function it_should_insert(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $entity->get('guid')->willReturn(5000);
         $entity->get('type')->willReturn('activity');
         $entity->get('entity_guid')->willReturn(null);
@@ -66,11 +68,12 @@ class IndexesSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_store_appending_actor(
+    function it_should_store_appending_actor(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $entity->get('guid')->willReturn(5000);
         $entity->get('type')->willReturn('activity');
         $entity->get('entity_guid')->willReturn(null);
@@ -101,11 +104,12 @@ class IndexesSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_store_with_an_entity_guid(
+    function it_should_store_with_an_entity_guid(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $entity->get('guid')->willReturn(5000);
         $entity->get('type')->willReturn('activity');
         $entity->get('entity_guid')->willReturn(6000);
@@ -136,11 +140,12 @@ class IndexesSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_store_with_custom_data(
+    function it_should_store_with_custom_data(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $entity->get('guid')->willReturn(5000);
         $entity->get('type')->willReturn('activity');
         $entity->get('entity_guid')->willReturn(null);
@@ -171,11 +176,12 @@ class IndexesSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_remove(
+    function it_should_remove(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $entity->get('guid')->willReturn(5000);
         $entity->get('type')->willReturn('activity');
         $entity->get('entity_guid')->willReturn(null);
@@ -206,11 +212,12 @@ class IndexesSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_remove_diffing_actor(
+    function it_should_remove_diffing_actor(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $entity->get('guid')->willReturn(5000);
         $entity->get('type')->willReturn('activity');
         $entity->get('entity_guid')->willReturn(null);
@@ -241,11 +248,12 @@ class IndexesSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_remove_with_an_entity_guid(
+    function it_should_remove_with_an_entity_guid(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $entity->get('guid')->willReturn(5000);
         $entity->get('type')->willReturn('activity');
         $entity->get('entity_guid')->willReturn(6000);
@@ -276,11 +284,12 @@ class IndexesSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_remove_with_custom_data(
+    function it_should_remove_with_custom_data(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $entity->get('guid')->willReturn(5000);
         $entity->get('type')->willReturn('activity');
         $entity->get('entity_guid')->willReturn(null);
@@ -311,11 +320,12 @@ class IndexesSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_return_if_exists(
+    function it_should_return_if_exists(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $entity->get('thumbs:up:user_guids')->willReturn([ 50 ]);
         $user->get('guid')->willReturn(50);
 
@@ -326,11 +336,12 @@ class IndexesSpec extends ObjectBehavior
         $this->exists($vote)->shouldReturn(true);
     }
 
-    public function it_should_not_return_if_exists(
+    function it_should_not_return_if_exists(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $entity->get('thumbs:up:user_guids')->willReturn([ 50 ]);
         $user->get('guid')->willReturn(70);
 
@@ -340,4 +351,5 @@ class IndexesSpec extends ObjectBehavior
 
         $this->exists($vote)->shouldReturn(false);
     }
+
 }

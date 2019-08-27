@@ -43,7 +43,8 @@ class Notifications
         $notifications = null,
         $notificationBatches = null
     
-    ) {
+    )
+    {
         $this->relDB = $relDb ?: Di::_()->get('Database\Cassandra\Relationships');
         $this->indexDb = $indexDb ?: Di::_()->get('Database\Cassandra\Indexes');
         $this->cql = $cql ?: Di::_()->get('Database\Cassandra\Cql');
@@ -171,7 +172,7 @@ class Notifications
 
         foreach ($mutedRows as $muted) {
             $muted_guid = $muted['column1'];
-            if (($index = array_search($muted_guid, $guids, true)) === false) {
+            if (($index = array_search($muted_guid, $guids)) === false) {
                 continue;
             }
 

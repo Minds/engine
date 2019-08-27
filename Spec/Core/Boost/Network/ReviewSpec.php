@@ -17,25 +17,25 @@ class ReviewSpec extends ObjectBehavior
     private $manager;
     private $onchainBadge;
 
-    public function let(Manager $manager, OnchainBadgeDelegate $onchainBadge)
+    function let(Manager $manager, OnchainBadgeDelegate $onchainBadge)
     {
         $this->beConstructedWith($manager, null, $onchainBadge);
         $this->manager = $manager;
         $this->onchainBadge = $onchainBadge;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Boost\Network\Review');
     }
 
-    public function it_should_throw_an_exception_when_accepting_if_boost_isnt_set()
+    function it_should_throw_an_exception_when_accepting_if_boost_isnt_set()
     {
         $this->shouldThrow(new \Exception('Boost wasn\'t set'))
             ->during('accept');
     }
 
-    public function it_shouldnt_accept_a_boost_if_payment_failed(Payment $payment, Boost $boost)
+    function it_shouldnt_accept_a_boost_if_payment_failed(Payment $payment, Boost $boost)
     {
         Di::_()->bind('Boost\Payment', function ($di) use ($payment) {
             return $payment->getWrappedObject();
@@ -53,7 +53,7 @@ class ReviewSpec extends ObjectBehavior
             ->during('accept');
     }
 
-    public function it_should_accept_a_boost(Payment $payment, Boost $boost, User $user)
+    function it_should_accept_a_boost(Payment $payment, Boost $boost, User $user)
     {
         $boost->setOwner($user);
         
@@ -74,7 +74,7 @@ class ReviewSpec extends ObjectBehavior
     }
 
 
-    public function it_should_accept_an_onchain_boost_and_call_onchain_badge_delegate(Payment $payment, Boost $boost)
+    function it_should_accept_an_onchain_boost_and_call_onchain_badge_delegate(Payment $payment, Boost $boost)
     {
         $boost->isOnChain()
             ->shouldBeCalled()
@@ -105,7 +105,7 @@ class ReviewSpec extends ObjectBehavior
         $this->accept();
     }
 
-    public function it_should_accept_an_offchain_boost_and_not_call_onchain_badge_delegate(Payment $payment, Boost $boost, User $user)
+    function it_should_accept_an_offchain_boost_and_not_call_onchain_badge_delegate(Payment $payment, Boost $boost, User $user)
     {
         $boost->isOnChain()
             ->shouldBeCalled()
@@ -136,14 +136,14 @@ class ReviewSpec extends ObjectBehavior
         $this->accept();
     }
 
-    public function it_should_throw_an_exception_when_rejecting_if_boost_isnt_set()
+    function it_should_throw_an_exception_when_rejecting_if_boost_isnt_set()
     {
         $this->shouldThrow(new \Exception('Boost wasn\'t set'))
             ->during('reject', [1]);
     }
 
 
-    public function it_should_reject_a_boost(Payment $payment, Boost $boost)
+    function it_should_reject_a_boost(Payment $payment, Boost $boost)
     {
         Di::_()->bind('Boost\Payment', function ($di) use ($payment) {
             return $payment->getWrappedObject();
@@ -179,13 +179,13 @@ class ReviewSpec extends ObjectBehavior
         $this->reject(3);
     }
 
-    public function it_should_throw_an_exception_when_revoking_if_boost_isnt_set()
+    function it_should_throw_an_exception_when_revoking_if_boost_isnt_set()
     {
         $this->shouldThrow(new \Exception('Boost wasn\'t set'))
             ->during('revoke');
     }
 
-    public function it_should_revoke_a_boost(Boost $boost)
+    function it_should_revoke_a_boost(Boost $boost)
     {
         $this->manager->update($boost)
             ->shouldBeCalled()
@@ -209,7 +209,7 @@ class ReviewSpec extends ObjectBehavior
         $this->revoke();
     }
 
-    public function it_should_get_the_boost_outbox(Repository $repository)
+    function it_should_get_the_boost_outbox(Repository $repository)
     {
         $boosts = [
             [

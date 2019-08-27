@@ -13,21 +13,23 @@ class ManagerSpec extends ObjectBehavior
     /** @var Repository */
     protected $repository;
 
-    public function let(
+    function let(
         Repository $repository
-    ) {
+    )
+    {
         $this->beConstructedWith($repository);
         $this->repository = $repository;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_record(
+    function it_should_record(
         View $view
-    ) {
+    )
+    {
         $view->setYear(null)
             ->shouldBeCalled()
             ->willReturn($view);

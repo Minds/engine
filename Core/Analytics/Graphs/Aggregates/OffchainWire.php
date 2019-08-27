@@ -256,4 +256,5 @@ class OffchainWire implements AggregateInterface
 
         return $response;
     }
+
 }

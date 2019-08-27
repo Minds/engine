@@ -8,12 +8,12 @@ use Prophecy\Argument;
 
 class ScoredGuidSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(ScoredGuid::class);
     }
 
-    public function it_should_set_score_as_a_number()
+    function it_should_set_score_as_a_number()
     {
         $this->setScore('500.1');
 

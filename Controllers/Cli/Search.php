@@ -60,6 +60,7 @@ class Search extends Cli\Controller implements Interfaces\CliControllerInterface
             $sync->sync($entity);
             $this->out("$entity->guid [done]");
         }
+  
     }
 
     public function sync_single()

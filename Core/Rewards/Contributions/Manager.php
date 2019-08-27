@@ -9,6 +9,7 @@ use Minds\Core\Util\BigNumber;
 
 class Manager
 {
+
     protected $analytics;
     protected $repository;
     protected $user;
@@ -63,14 +64,14 @@ class Manager
             ->setTo($this->to)
             ->setInterval('day');
 
-        if ($this->user) {
+        if ($this->user) { 
             $this->analytics
                 ->setUser($this->user);
         }
 
         $contributions = [];
-        foreach ($this->analytics->getCounts() as $ts => $data) {
-            foreach ($data as $metric => $count) {
+        foreach($this->analytics->getCounts() as $ts => $data) {
+            foreach($data as $metric => $count) {
                 $multiplier = ContributionValues::$multipliers[$metric];
                 $contribution = new Contribution();
                 $contribution->setMetric($metric)
@@ -90,9 +91,9 @@ class Manager
             return $contributions;
         }
 
-        $this->repository->add($contributions);
+        $this->repository->add($contributions);       
 
-        return $contributions;
+        return $contributions; 
     }
 
     /**
@@ -161,4 +162,5 @@ class Manager
         $tokens = BigNumber::_($this->getUserContributionScore())->mul($tokensPerScore);
         return (string) $tokens;
     }
+
 }

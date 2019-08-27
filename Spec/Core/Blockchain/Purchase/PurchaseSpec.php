@@ -11,17 +11,17 @@ use PhpSpec\ObjectBehavior;
 
 class PurchaseSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Purchase::class);
     }
 
-    public function it_should_get_unissued_amount()
+    function it_should_get_unissued_amount()
     {
         $this->getUnissuedAmount()->shouldReturnAnInstanceOf(BigNumber::class);
     }
 
-    public function it_should_export(Call $call, lookup $lookup)
+    function it_should_export(Call $call, lookup $lookup)
     {
         Di::_()->bind('Database\Cassandra\Indexes', function ($di) use ($call) {
             return $call->getWrappedObject();
@@ -51,7 +51,7 @@ class PurchaseSpec extends ObjectBehavior
         $this->jsonSerialize()['user']->shouldBeArray();
     }
 
-    public function it_should_perform_a_full_export(Call $call, lookup $lookup)
+    function it_should_perform_a_full_export(Call $call, lookup $lookup)
     {
         Di::_()->bind('Database\Cassandra\Indexes', function ($di) use ($call) {
             return $call->getWrappedObject();

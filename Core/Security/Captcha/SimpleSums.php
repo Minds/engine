@@ -7,6 +7,7 @@
 
 class SimpleSums implements QuestionsInterface
 {
+
     private $secret = "";
 
     public function __construct($secret)
@@ -16,9 +17,10 @@ class SimpleSums implements QuestionsInterface
 
     public function getQuestion()
     {
-        $a = rand(1, 6);
+
+        $a = rand(1,6);
         $operator = '+';
-        $b = rand(1, 6);
+        $b = rand(1,6);
 
         $question = "$a $operator $b";
         $answer = eval("return $a $operator $b;");
@@ -56,4 +58,5 @@ class SimpleSums implements QuestionsInterface
 
         return false;
     }
+
 }

@@ -3,12 +3,14 @@
 
 namespace Minds\Core\SEO\Sitemaps\Modules;
 
+
 use Minds\Core\Data\indexes;
 use Minds\Core\Entities;
 use Minds\Core\SEO\Sitemaps\SitemapModule;
 
 class SitemapFeatured extends SitemapModule
 {
+
     public function collect($pages, $segments)
     {
         if (isset($pages[0])) {

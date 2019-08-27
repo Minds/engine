@@ -15,7 +15,7 @@ use Minds\Helpers;
 use Minds\Entities\User;
 use Minds\Core\Analytics\Iterators;
 
-class PointsSnapshot
+class PointsSnapshot 
 {
     protected $db;
     protected $template;
@@ -77,6 +77,7 @@ class PointsSnapshot
         $queued = 0;
         $skipped = 0;
         foreach ($this->getUsers() as $user) {
+
             if (!$user instanceof \Minds\Entities\User || !$user->guid || $user->disabled_emails || $user->enabled != "yes") {
                 $skipped++;
                 echo "\r [emails]: $queued queued | $skipped skipped | " . date('d-m-Y', $user->time_created) . " | $user->guid ";
@@ -135,3 +136,4 @@ class PointsSnapshot
         return $users;
     }
 }
+

@@ -7,6 +7,7 @@
 
 namespace Minds\Core\FounderRewards;
 
+
 class RewardType
 {
     public $name;
@@ -15,7 +16,7 @@ class RewardType
     public $requiresTShirtSize;
     public $requiresCellPhone;
 
-    public function __construct($name = '', $threshold = '', $quantity = 0, $requiresTShirtSize = false, $requiresCellPhone = false)
+    function __construct($name = '', $threshold = '', $quantity = 0, $requiresTShirtSize = false, $requiresCellPhone = false)
     {
         $this->name = $name;
         $this->threshold = $threshold;

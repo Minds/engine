@@ -12,6 +12,7 @@ use Minds\Core\Blockchain\Transactions\Transaction;
 
 class Webhook implements HookInterface
 {
+
     public function onCharged($subscription)
     {
         if ($subscription->getPlanId() == 'plus') {

@@ -14,7 +14,8 @@ class SEO
 
     public function __construct(
         $manager = null
-    ) {
+    )
+    {
         $this->manager = $manager ?: new Manager();
     }
 
@@ -127,7 +128,7 @@ class SEO
 
         $allowIndexing = Counters::get($blog->getGuid(), 'thumbs:up') >= 2;
 
-        return $meta = [
+        return $meta = array(
             'title' => ($custom_meta['title'] ?: $blog->getTitle()) . ' | ' .  Core\Di\Di::_()->get('Config')->site_name,
             'description' => $custom_meta['description'] ?: $body,
             'author' => $custom_meta['author'] ?: '@' . $blog->getOwnerObj()['username'],
@@ -141,6 +142,6 @@ class SEO
             'al:ios:url' => 'minds://blog/view/' . $blog->getGuid(),
             'al:android:url' => 'minds://blog/view/' . $blog->getGuid(),
             'robots' => $allowIndexing ? 'all' : 'noindex',
-        ];
+        );
     }
 }

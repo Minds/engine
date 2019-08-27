@@ -8,7 +8,7 @@ use Prophecy\Argument;
 
 class SnapshotSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Snapshot::class);
     }
@@ -29,7 +29,7 @@ class SnapshotSpec extends ObjectBehavior
             ->shouldReturn("test\tphpspec");
     }
 
-    public function it_should_set_and_get_json_data()
+    function it_should_set_and_get_json_data()
     {
         $jsonData = [ 'foo' => 'bar', 'baz' => 1 ];
         $this
@@ -38,7 +38,7 @@ class SnapshotSpec extends ObjectBehavior
             ->shouldReturn($jsonData);
     }
 
-    public function it_should_set_and_get_raw_json_data()
+    function it_should_set_and_get_raw_json_data()
     {
         $jsonData = '{"foo":"bar","baz":1}';
         $this

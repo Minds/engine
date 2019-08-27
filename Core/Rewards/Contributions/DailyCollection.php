@@ -5,8 +5,10 @@ namespace Minds\Core\Rewards\Contributions;
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Data\cache\factory as CacheFactory;
 
+
 class DailyCollection
 {
+
     /** @var array $contributions */
     protected $contributions = [];
 
@@ -85,4 +87,5 @@ class DailyCollection
 
         return $totalScore;
     }
+
 }

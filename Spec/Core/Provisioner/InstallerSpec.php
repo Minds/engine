@@ -10,13 +10,12 @@ use Minds\Entities\Site;
 
 class InstallerSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Provisioner\Installer');
     }
 
-    public function let(Minds $minds)
-    {
+    function let(Minds $minds) {
         global $CONFIG;
 
         $this->setApp($minds);
@@ -40,7 +39,7 @@ class InstallerSpec extends ObjectBehavior
         $CONFIG->site_name = 'PHPSpec Minds';
     }
 
-    public function it_should_check_options_valid()
+    function it_should_check_options_valid()
     {
         $this
             ->shouldNotThrow('Minds\\Exceptions\\ProvisionException')
@@ -82,7 +81,7 @@ class InstallerSpec extends ObjectBehavior
         $this
             ->shouldThrow('Minds\\Exceptions\\ProvisionException')
             ->duringCheckOptions();
-
+        
         $this->setOptions([
             'domain' => 'phpspec.minds.io',
             'username' => 'foo.bar$',
@@ -143,14 +142,14 @@ class InstallerSpec extends ObjectBehavior
             ->duringCheckOptions();
     }*/
 
-    public function it_should_build_config()
+    function it_should_build_config()
     {
         $this
             ->shouldNotThrow('\\ProvisionException')
             ->duringBuildConfig([ 'returnResult' => true ]);
     }
 
-    public function it_should_setup_site(Site $site)
+    function it_should_setup_site(Site $site)
     {
         $site->set('name', 'PHPSpec Minds')->shouldBeCalled();
         $site->set('url', 'https://phpspec.minds.io/')->shouldBeCalled();
@@ -164,7 +163,7 @@ class InstallerSpec extends ObjectBehavior
             ->duringSetupSite($site);
     }
 
-    public function it_should_get_site_url()
+    function it_should_get_site_url()
     {
         $this->getSiteUrl()->shouldReturn('https://phpspec.minds.io/');
     }

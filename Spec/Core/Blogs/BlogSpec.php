@@ -24,12 +24,13 @@ class BlogSpec extends ObjectBehavior
     /** @var ACL */
     protected $acl;
 
-    public function let(
+    function let(
         EventsDispatcher $eventsDispatcher,
         Config $config,
         Header $header,
         ACL $acl
-    ) {
+    )
+    {
         $this->beConstructedWith($eventsDispatcher, $config, $header, $acl);
 
         $this->eventsDispatcher = $eventsDispatcher;
@@ -38,18 +39,18 @@ class BlogSpec extends ObjectBehavior
         $this->acl = $acl;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blogs\Blog');
     }
 
-    public function it_should_build_a_guid_if_not_set_during_get_guid()
+    function it_should_build_a_guid_if_not_set_during_get_guid()
     {
         $this->getGuid()
             ->shouldNotBeNull();
     }
 
-    public function it_should_set_owner_obj_based_on_array()
+    function it_should_set_owner_obj_based_on_array()
     {
         $this->setOwnerObj([ 'guid' => 1000 ])
             ->shouldBeAnInstanceOf($this);
@@ -61,7 +62,7 @@ class BlogSpec extends ObjectBehavior
             ->shouldBe(1000);
     }
 
-    public function it_should_set_owner_obj_based_on_json_string()
+    function it_should_set_owner_obj_based_on_json_string()
     {
         $this->setOwnerObj('{ "guid": 1000 }')
             ->shouldBeAnInstanceOf($this);
@@ -73,9 +74,10 @@ class BlogSpec extends ObjectBehavior
             ->shouldBe(1000);
     }
 
-    public function it_should_set_owner_obj_based_on_user(
+    function it_should_set_owner_obj_based_on_user(
         User $user
-    ) {
+    )
+    {
         $user->export()
             ->shouldBeCalled()
             ->willReturn([ 'guid' => 1000 ]);
@@ -90,7 +92,7 @@ class BlogSpec extends ObjectBehavior
             ->shouldBe(1000);
     }
 
-    public function it_should_get_non_slugged_url()
+    function it_should_get_non_slugged_url()
     {
         $this->config->get('site_url')
             ->shouldBeCalled()
@@ -111,7 +113,7 @@ class BlogSpec extends ObjectBehavior
             ->shouldReturn('blog/view/5000');
     }
 
-    public function it_should_get_slugged_url()
+    function it_should_get_slugged_url()
     {
         $this->config->get('site_url')
             ->shouldBeCalled()
@@ -132,7 +134,7 @@ class BlogSpec extends ObjectBehavior
             ->shouldReturn('ps/blog/phpspec-test-5000');
     }
 
-    public function it_should_get_icon_url()
+    function it_should_get_icon_url()
     {
         $this->header->resolve($this, 128)
             ->shouldBeCalled()
@@ -142,7 +144,7 @@ class BlogSpec extends ObjectBehavior
             ->shouldReturn('/icon.spec.ext');
     }
 
-    public function it_should_set_and_get_slug()
+    function it_should_set_and_get_slug()
     {
         $this
             ->getSlug()
@@ -159,7 +161,7 @@ class BlogSpec extends ObjectBehavior
             ->shouldReturn('phpspec-test');
     }
 
-    public function it_should_set_and_get_custom_meta()
+    function it_should_set_and_get_custom_meta()
     {
         $this
             ->getCustomMeta()
@@ -183,7 +185,7 @@ class BlogSpec extends ObjectBehavior
             ]);
     }
 
-    public function it_should_get_excerpt()
+    function it_should_get_excerpt()
     {
         $this
             ->setBody('a test &nbsp; :)')
@@ -196,9 +198,10 @@ class BlogSpec extends ObjectBehavior
             ->shouldReturn('custom excerpt');
     }
 
-    public function it_should_check_if_user_can_edit(
+    function it_should_check_if_user_can_edit(
         User $user
-    ) {
+    )
+    {
         $this->acl->write($this, $user)
             ->shouldBeCalled()
             ->willReturn(true);
@@ -208,7 +211,7 @@ class BlogSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_correctly_export_published_state()
+    function it_should_correctly_export_published_state()
     {
         $this->eventsDispatcher->trigger('export:extender', Argument::cetera())
             ->willReturn([]);
@@ -237,8 +240,7 @@ class BlogSpec extends ObjectBehavior
         expect($export['published'])->toBe(false);
     }
 
-    public function it_should_allow_comments()
-    {
+    function it_should_allow_comments() {
         $this->getAllowComments()->shouldBe(true);
         $this->setAllowComments(false);
         $this->getAllowComments()->shouldBe(false);

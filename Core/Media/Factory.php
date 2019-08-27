@@ -15,7 +15,7 @@ class Factory
     {
         $type = ucfirst($clientType);
 
-        if (!in_array($type, static::$allowed, true)) {
+        if (!in_array($type, static::$allowed)) {
             throw new \Exception("Unknown entity type: {$type}");
         }
 

@@ -47,4 +47,5 @@ class strikes implements Interfaces\Api
     {
         return Factory::response([]);
     }
+
 }

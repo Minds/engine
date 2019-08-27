@@ -10,18 +10,20 @@ use Minds\Core\Payments\HookInterface;
 
 class HooksSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Payments\Hooks');
     }
 
-    public function it_should_call_a_function_of_all_hooks()
+    function it_should_call_a_function_of_all_hooks()
     {
         $this->callMe(['foo'=>'bar'])->shouldReturn($this);
     }
 
-    public function it_should_register_a_hook(HookInterface $hook)
+    function it_should_register_a_hook(HookInterface $hook)
     {
         $this->register($hook)->shouldReturn($this);
     }
+
 }

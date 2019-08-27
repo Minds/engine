@@ -23,7 +23,8 @@ class ReleaseSummonsesDelegate
      */
     public function __construct(
         $summonsManager = null
-    ) {
+    )
+    {
         $this->summonsManager = $summonsManager ?: Di::_()->get('Moderation\Summons\Manager');
     }
 

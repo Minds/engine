@@ -8,14 +8,15 @@ use Prophecy\Argument;
 
 class SlugSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blogs\Delegates\Slug');
     }
 
-    public function it_should_generate(
+    function it_should_generate(
         Blog $blog
-    ) {
+    )
+    {
         $blog->getPermaUrl()
             ->shouldBeCalled()
             ->willReturn(false);
@@ -53,9 +54,10 @@ class SlugSpec extends ObjectBehavior
             ->shouldNotThrow();
     }
 
-    public function it_should_not_generate_if_permaurl_and_published(
+    function it_should_not_generate_if_permaurl_and_published(
         Blog $blog
-    ) {
+    )
+    {
         $blog->getPermaUrl()
             ->shouldBeCalled()
             ->willReturn(true);

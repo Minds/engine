@@ -7,6 +7,7 @@
 
 namespace Minds\Traits;
 
+
 trait DirtyChecking
 {
     protected $dirtyAttributes = [];
@@ -17,7 +18,7 @@ trait DirtyChecking
      */
     public function markAsDirty($attribute)
     {
-        if (!in_array($attribute, $this->dirtyAttributes, true)) {
+        if (!in_array($attribute, $this->dirtyAttributes)) {
             $this->dirtyAttributes[] = $attribute;
         }
 
@@ -30,7 +31,7 @@ trait DirtyChecking
      */
     public function markAsPristine($attribute)
     {
-        if (in_array($attribute, $this->dirtyAttributes, true)) {
+        if (in_array($attribute, $this->dirtyAttributes)) {
             $this->dirtyAttributes = array_values(array_diff($this->dirtyAttributes, [ $attribute ]));
         }
 
@@ -52,7 +53,7 @@ trait DirtyChecking
      */
     public function isDirty($attribute)
     {
-        return in_array($attribute, $this->dirtyAttributes, true);
+        return in_array($attribute, $this->dirtyAttributes);
     }
 
     /**

@@ -28,7 +28,7 @@ class Repository
     protected $legacyRepository;
 
     /** @var array */
-    public static $allowedEntityAttributes = [
+    static $allowedEntityAttributes = [
         'entityGuid',
         'parentGuid',
         'parentGuidL1',
@@ -121,6 +121,7 @@ class Repository
         if ($opts['offset']) {
             if ($opts['include_offset']) {
                 $where[] = $opts['descending'] ? " guid <= ?" : "guid >= ?";
+
             } else {
                 $where[] = $opts['descending'] ? " guid < ?" : "guid > ?";
             }
@@ -136,7 +137,7 @@ class Repository
         }
 
         if ($opts['token']) {
-            $cqlOpts['paging_state_token'] = base64_decode($opts['token'], true);
+            $cqlOpts['paging_state_token'] = base64_decode($opts['token']);
         }
 
         if ($opts['limit']) {
@@ -184,9 +185,8 @@ class Repository
                 $comments[] = $comment;
             }
 
-            if ($rows) {
-                $comments->setPagingToken(base64_encode($rows->pagingStateToken()));
-            }
+            if ($rows)
+              $comments->setPagingToken(base64_encode($rows->pagingStateToken()));
         } catch (\Exception $e) {
             error_log($e);
         }
@@ -205,6 +205,7 @@ class Repository
         }
 
         if ($this->legacyRepository->isLegacy($entity_guid)) {
+
             $comments = $this->legacyRepository->getList([
                 'limit' => 1,
                 'offset' => base64_encode($guid),
@@ -304,7 +305,7 @@ class Repository
 
         $result = $this->cql->request($prepared);
 
-        if (!isset($result)
+        if (!isset($result) 
             || !isset($result[0])
             || !isset($result[0]['count'])
         ) {
@@ -332,35 +333,35 @@ class Repository
 
         $fields = [];
 
-        if (in_array('repliesCount', $attributes, true)) {
+        if (in_array('repliesCount', $attributes)) {
             $fields['replies_count'] = new Varint($comment->getRepliesCount());
         }
 
-        if (in_array('parentGuidL1', $attributes, true)) {
+        if (in_array('parentGuidL1', $attributes)) {
             $fields['parent_guid_l1'] = new Varint($comment->getParentGuidL1() ?: 0);
         }
 
-        if (in_array('parentGuidL2', $attributes, true)) {
+        if (in_array('parentGuidL2', $attributes)) {
             $fields['parent_guid_l2'] = new Varint($comment->getParentGuidL2() ?: 0);
         }
 
-        if (in_array('ownerGuid', $attributes, true)) {
+        if (in_array('ownerGuid', $attributes)) {
             $fields['owner_guid'] = new Varint($comment->getOwnerGuid() ?: 0);
         }
 
-        if (in_array('timeCreated', $attributes, true)) {
+        if (in_array('timeCreated', $attributes)) {
             $fields['time_created'] = new Timestamp($comment->getTimeCreated());
         }
 
-        if (in_array('timeUpdated', $attributes, true)) {
+        if (in_array('timeUpdated', $attributes)) {
             $fields['time_updated'] = new Timestamp($comment->getTimeUpdated());
         }
 
-        if (in_array('body', $attributes, true)) {
+        if (in_array('body', $attributes)) {
             $fields['body'] = (string) $comment->getBody();
         }
 
-        if (in_array('attachments', $attributes, true)) {
+        if (in_array('attachments', $attributes)) {
             // TODO: Check a way to make atomic updates
             $fields['attachments'] = new Map(Type::text(), Type::text());
 
@@ -371,10 +372,10 @@ class Repository
         }
 
         if (
-            in_array('mature', $attributes, true) ||
-            in_array('edited', $attributes, true) ||
-            in_array('spam', $attributes, true) ||
-            in_array('deleted', $attributes, true)
+            in_array('mature', $attributes) ||
+            in_array('edited', $attributes) ||
+            in_array('spam', $attributes) ||
+            in_array('deleted', $attributes)
         ) {
             // TODO: Check a way to make atomic updates
             $fields['flags'] = new Map(Type::text(), Type::boolean());
@@ -385,7 +386,7 @@ class Repository
             $fields['flags']->set('deleted', $comment->isDeleted());
         }
 
-        if (in_array('ownerObj', $attributes, true)) {
+        if (in_array('ownerObj', $attributes)) {
             $fields['owner_obj'] = $comment->getOwnerObj() ? json_encode($comment->getOwnerObj()) : null;
         }
 
@@ -478,4 +479,5 @@ class Repository
 
         return true;
     }
+
 }

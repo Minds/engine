@@ -16,6 +16,7 @@ use Minds\Api\Factory;
 
 class thumbnails implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+
     /**
      * Forwards to or passes-thru the the entity's thumbnail
      * @param array $pages

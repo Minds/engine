@@ -12,18 +12,18 @@ class EventsIteratorSpec extends ObjectBehavior
     /** @var Client */
     protected $client;
 
-    public function let(Client $client)
+    function let(Client $client)
     {
         $this->beConstructedWith($client, 'minds-metrics-*');
         $this->client = $client;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(EventsIterator::class);
     }
 
-    public function it_should_get_the_list()
+    function it_should_get_the_list()
     {
         $this->client->request(Argument::type('Minds\\Core\\Data\\ElasticSearch\\Prepared\\Search'))
             ->shouldBeCalled()
@@ -49,5 +49,6 @@ class EventsIteratorSpec extends ObjectBehavior
         $this->current()->shouldReturn(1529581013443);
         $this->next();
         $this->current()->shouldReturn(1529581013689);
+
     }
 }

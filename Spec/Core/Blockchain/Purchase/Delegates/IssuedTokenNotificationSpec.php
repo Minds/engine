@@ -10,12 +10,12 @@ use PhpSpec\ObjectBehavior;
 
 class IssuedTokenNotificationSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(IssuedTokenNotification::class);
     }
 
-    public function it_should_notify(Config $config, EventsDispatcher $dispatcher, Purchase $purchase)
+    function it_should_notify(Config $config, EventsDispatcher $dispatcher, Purchase $purchase)
     {
         $this->beConstructedWith($config, $dispatcher);
 

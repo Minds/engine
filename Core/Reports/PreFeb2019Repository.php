@@ -71,7 +71,7 @@ class PreFeb2019Repository
         }
 
         if ($options['offset']) {
-            $cqlOpts['paging_state_token'] = base64_decode($options['offset'], true);
+            $cqlOpts['paging_state_token'] = base64_decode($options['offset']);
         }
 
         if ($options['limit']) {
@@ -238,9 +238,9 @@ class PreFeb2019Repository
 
         $updates = [];
         foreach ($set as $key => $value) {
-            if (in_array($key, [ 'reporter_guid', 'entity_guid', 'owner_guid' ], true)) {
+            if (in_array($key, [ 'reporter_guid', 'entity_guid', 'owner_guid' ])) {
                 $value = new Cassandra\Varint($value);
-            } elseif (in_array($key, [ 'time_created' ], true)) {
+            } elseif (in_array($key, [ 'time_created' ])) {
                 $values = new Cassandra\Timestamp($value);
             }
 

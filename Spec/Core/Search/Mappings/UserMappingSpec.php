@@ -8,14 +8,15 @@ use Prophecy\Argument;
 
 class UserMappingSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Search\Mappings\UserMapping');
     }
 
-    public function it_should_map_a_user(
+    function it_should_map_a_user(
         User $user
-    ) {
+    )
+    {
         $now = time();
 
         $user->get('interactions')->willReturn(42);
@@ -85,6 +86,7 @@ class UserMappingSpec extends ObjectBehavior
 
     public function it_should_throw_exception_if_banned(User $user)
     {
+
         $now = time();
 
         $user->get('interactions')->willReturn(42);
@@ -125,7 +127,8 @@ class UserMappingSpec extends ObjectBehavior
 
     public function it_should_suggest_map(
         User $user
-    ) {
+    )
+    {
         $user->get('username')->willReturn('phpspec');
         $user->get('name')->willReturn('testing framework');
         $user->get('featured_id')->willReturn(12000);
@@ -148,7 +151,8 @@ class UserMappingSpec extends ObjectBehavior
     }
     public function it_should_suggest_map_permutating_camelcase_name(
         User $user
-    ) {
+    )
+    {
         $user->get('username')->willReturn('phpspec');
         $user->get('name')->willReturn('TestingFramework');
         $user->get('featured_id')->willReturn(12000);

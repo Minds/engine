@@ -24,14 +24,15 @@ class ActionDelegateSpec extends ObjectBehavior
     private $emailDelegate;
     private $channelsBanManager;
 
-    public function let(
+    function let(
         EntitiesBuilder $entitiesBuilder,
         Actions $actions,
         StrikesManager $strikesManager,
         SaveAction $saveAction,
         EmailDelegate $emailDelegate,
         Ban $channelsBanManager
-    ) {
+    )
+    {
         $this->beConstructedWith(
             $entitiesBuilder,
             $actions,
@@ -49,12 +50,12 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->channelsBanManager = $channelsBanManager;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(ActionDelegate::class);
     }
 
-    public function it_should_apply_nsfw_flags(Entity $entity)
+    function it_should_apply_nsfw_flags(Entity $entity)
     {
         $report = new Report;
         $report->setEntityUrn('urn:activity:123')
@@ -99,7 +100,7 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->onAction($verdict);
     }
 
-    public function it_should_removed_if_illegal(Entity $entity, Entity $user)
+    function it_should_removed_if_illegal(Entity $entity, Entity $user)
     {
         $report = new Report;
         $report->setEntityUrn('urn:activity:123')
@@ -137,7 +138,7 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->onAction($verdict);
     }
 
-    public function it_should_removed_if_spam(Entity $entity)
+    function it_should_removed_if_spam(Entity $entity)
     {
         $report = new Report;
         $report->setEntityUrn('urn:activity:123')
@@ -163,4 +164,5 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->onAction($verdict);
     }
+
 }

@@ -25,7 +25,8 @@ class Delete
      */
     public function __construct(
         $eventsDispatcher = null
-    ) {
+    )
+    {
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
     }
 

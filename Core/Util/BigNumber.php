@@ -348,8 +348,7 @@ class BigNumber implements JsonSerializable
      * @return static
      * @throws \Exception
      */
-    protected function immutable($value)
-    {
+    protected function immutable($value) {
         return new static($value, $this->scale);
     }
 
@@ -376,8 +375,7 @@ class BigNumber implements JsonSerializable
                 $parts = explode('e', $stringValue, 2);
                 $value = bcmul($parts[0], bcpow('10', $parts[1], $this->scale), $this->scale);
             }
-        } catch (\Exception $e) {
-        }
+        } catch (\Exception $e) { }
 
         $value = (string) $value;
 

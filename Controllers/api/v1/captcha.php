@@ -40,11 +40,11 @@ class captcha implements Interfaces\Api, Interfaces\ApiIgnorePam
 
     public function put($pages)
     {
-        return Factory::response([]);
+        return Factory::response(array());
     }
 
     public function delete($pages)
     {
-        return Factory::response([]);
+        return Factory::response(array());
     }
 }

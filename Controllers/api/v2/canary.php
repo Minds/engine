@@ -13,6 +13,7 @@ use Minds\Interfaces;
 
 class canary implements Interfaces\Api
 {
+
     public function get($pages)
     {
         $user = Session::getLoggedInUser();
@@ -43,18 +44,18 @@ class canary implements Interfaces\Api
         $user->setCanary(true);
         $user->save();
       
-        $message = 'Welcome to Canary! You will now receive the latest Minds features before everyone else.';
+        $message = 'Welcome to Canary! You will now receive the latest Minds features before everyone else.'; 
         $dispatcher = Di::_()->get('EventsDispatcher');
         $dispatcher->trigger('notification', 'all', [
             'to' => [ $user->getGuid() ],
             'from' => 100000000000000519,
             'notification_view' => 'custom_message',
-            'params' => [
+            'params' => [ 
                 'message' => $message,
                 'router_link' => '/canary'
             ],
             'message' => $message,
-        ]);
+        ]); 
 
         // Set the canary cookie
         Di::_()->get('Features\Manager')
@@ -70,4 +71,7 @@ class canary implements Interfaces\Api
         $user->save();
         return Factory::response([]);
     }
+    
 }
+
+

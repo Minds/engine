@@ -13,23 +13,25 @@ class AdminQueueSpec extends ObjectBehavior
 {
     protected $_client;
 
-    public function let(
+    function let(
         Cassandra\Client $client
-    ) {
+    )
+    {
         $this->beConstructedWith($client);
         $this->_client = $client;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Groups\AdminQueue');
     }
 
     // getAll()
 
-    public function it_should_get_all(
+    function it_should_get_all(
         Group $group
-    ) {
+    )
+    {
         $rows = new Mocks\Cassandra\Rows([], '');
 
         $group->getGuid()->willReturn(1000);
@@ -45,7 +47,7 @@ class AdminQueueSpec extends ObjectBehavior
             ->shouldReturn($rows);
     }
 
-    public function it_should_throw_during_get_all_if_no_group()
+    function it_should_throw_during_get_all_if_no_group()
     {
         $this->_client->request(Argument::cetera())
             ->shouldNotBeCalled();
@@ -57,9 +59,10 @@ class AdminQueueSpec extends ObjectBehavior
 
     // count()
 
-    public function it_should_count(
+    function it_should_count(
         Group $group
-    ) {
+    )
+    {
         $rows = new Mocks\Cassandra\Rows([], '');
 
         $group->getGuid()->willReturn(1000);
@@ -75,7 +78,7 @@ class AdminQueueSpec extends ObjectBehavior
             ->shouldReturn($rows);
     }
 
-    public function it_should_throw_during_count_if_no_group()
+    function it_should_throw_during_count_if_no_group()
     {
         $this->_client->request(Argument::cetera())
             ->shouldNotBeCalled();
@@ -87,10 +90,11 @@ class AdminQueueSpec extends ObjectBehavior
 
     // add()
 
-    public function it_should_add(
+    function it_should_add(
         Group $group,
         Activity $activity
-    ) {
+    )
+    {
         $group->getGuid()->willReturn(1000);
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1000);
@@ -106,9 +110,10 @@ class AdminQueueSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_throw_during_add_if_no_group(
+    function it_should_throw_during_add_if_no_group(
         Activity $activity
-    ) {
+    )
+    {
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1000);
 
@@ -120,10 +125,11 @@ class AdminQueueSpec extends ObjectBehavior
             ->duringAdd(null, $activity);
     }
 
-    public function it_should_throw_during_add_if_no_activity(
+    function it_should_throw_during_add_if_no_activity(
         Group $group,
         Activity $activity
-    ) {
+    )
+    {
         $group->getGuid()->willReturn(1000);
         $activity->get('guid')->willReturn('');
 
@@ -135,10 +141,11 @@ class AdminQueueSpec extends ObjectBehavior
             ->duringAdd($group, $activity);
     }
 
-    public function it_should_throw_during_add_if_activity_doesnt_belong_to_group(
+    function it_should_throw_during_add_if_activity_doesnt_belong_to_group(
         Group $group,
         Activity $activity
-    ) {
+    )
+    {
         $group->getGuid()->willReturn(1000);
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1001);
@@ -153,10 +160,11 @@ class AdminQueueSpec extends ObjectBehavior
 
     // add()
 
-    public function it_should_delete(
+    function it_should_delete(
         Group $group,
         Activity $activity
-    ) {
+    )
+    {
         $group->getGuid()->willReturn(1000);
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1000);
@@ -172,9 +180,10 @@ class AdminQueueSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_throw_during_delete_if_no_group(
+    function it_should_throw_during_delete_if_no_group(
         Activity $activity
-    ) {
+    )
+    {
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1000);
 
@@ -184,12 +193,14 @@ class AdminQueueSpec extends ObjectBehavior
         $this
             ->shouldThrow(\Exception::class)
             ->duringDelete(null, $activity);
+
     }
 
-    public function it_should_throw_during_delete_if_no_activity(
+    function it_should_throw_during_delete_if_no_activity(
         Group $group,
         Activity $activity
-    ) {
+    )
+    {
         $group->getGuid()->willReturn(1000);
         $activity->get('guid')->willReturn('');
 
@@ -201,10 +212,11 @@ class AdminQueueSpec extends ObjectBehavior
             ->duringDelete(null, $activity);
     }
 
-    public function it_should_throw_during_delete_if_activity_doesnt_belong_to_group(
+    function it_should_throw_during_delete_if_activity_doesnt_belong_to_group(
         Group $group,
         Activity $activity
-    ) {
+    )
+    {
         $group->getGuid()->willReturn(1000);
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1001);

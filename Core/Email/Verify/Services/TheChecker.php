@@ -4,7 +4,7 @@ namespace Minds\Core\Email\Verify\Services;
 use Minds\Core\Di\Di;
 use Minds\Core\Config;
 
-class TheChecker
+class TheChecker 
 {
     /** @var Http $http */
     private $http;
@@ -25,9 +25,8 @@ class TheChecker
      */
     public function verify($email)
     {
-        if (!$this->config->get('thechecker_secret')) {
+        if (!$this->config->get('thechecker_secret'))
             return true;
-        }
 
         try {
             $content = $this->http->get('https://api.thechecker.co/v2/verify?email=' . $email . '&api_key=' . $this->config->get('thechecker_secret'), [
@@ -46,4 +45,5 @@ class TheChecker
         $response = json_decode($content, true);
         return !($response['result'] == 'undeliverable');
     }
+
 }

@@ -36,7 +36,7 @@ class Image implements AssetsInterface
 
             if ($exif && isset($exif['Orientation'])) {
                 // check and invert
-                if (in_array($exif['Orientation'], [5, 6, 7, 8], true)) {
+                if (in_array($exif['Orientation'], [5, 6, 7, 8])) {
                     list($height, $width) = [$width, $height];
                 }
             }

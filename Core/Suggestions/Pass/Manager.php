@@ -6,6 +6,7 @@ namespace Minds\Core\Suggestions\Pass;
 
 class Manager
 {
+
     /** @var Repository $repository */
     private $repository;
 
@@ -24,3 +25,4 @@ class Manager
         return $this->repository->add($pass);
     }
 }
+

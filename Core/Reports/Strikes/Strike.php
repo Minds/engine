@@ -80,4 +80,5 @@ class Strike
 
         return $output;
     }
+
 }

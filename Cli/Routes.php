@@ -6,7 +6,7 @@ namespace Minds\Cli;
  */
 class Routes
 {
-    public static $routes = [];
+    public static $routes = array();
 
     /**
      * Adds a custom CLI route resolution

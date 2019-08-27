@@ -35,7 +35,8 @@ class RepositorySpec extends ObjectBehavior
         Call $entities,
         Call $indexes,
         Entity $legacyEntity
-    ) {
+    )
+    {
         $this->beConstructedWith(
             $cql,
             $entities,
@@ -51,12 +52,12 @@ class RepositorySpec extends ObjectBehavior
         $this->legacyEntity = $legacyEntity;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Comments\Legacy\Repository');
     }
 
-    public function it_should_check_if_is_legacy()
+    function it_should_check_if_is_legacy()
     {
         $this
             ->isLegacy($this->ltGuid - 1)
@@ -71,7 +72,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_check_if_legacy_is_disabled()
+    function it_should_check_if_legacy_is_disabled()
     {
         $this->beConstructedWith(
             $this->cql,
@@ -94,10 +95,11 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_get_list(
+    function it_should_get_list(
         Comment $comment1,
         Comment $comment2
-    ) {
+    )
+    {
         $comment2->getGuid()
             ->shouldBeCalled()
             ->willReturn(6001);
@@ -134,7 +136,7 @@ class RepositorySpec extends ObjectBehavior
             ->toBe(base64_encode(6001));
     }
 
-    public function it_should_get_empty_list()
+    function it_should_get_empty_list()
     {
         $this->indexes->getRow('comments:5000', Argument::type('array'))
             ->shouldBeCalled()
@@ -153,9 +155,10 @@ class RepositorySpec extends ObjectBehavior
 
         expect($return->getWrappedObject()->toArray())
             ->toBe([]);
+
     }
 
-    public function it_should_count()
+    function it_should_count()
     {
         $this->indexes->countRow('comments:5000')
             ->shouldBeCalled()
@@ -166,9 +169,10 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(5);
     }
 
-    public function it_should_add(
+    function it_should_add(
         Comment $comment
-    ) {
+    )
+    {
         $fields = [
             'owner_guid' => 1000,
             'time_created' => 123123123,
@@ -260,9 +264,10 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_ignore_if_no_fields_during_add(
+    function it_should_ignore_if_no_fields_during_add(
         Comment $comment
-    ) {
+    )
+    {
         $this->entities->insert(Argument::cetera())
             ->shouldNotBeCalled();
 
@@ -271,9 +276,10 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_delete(
+    function it_should_delete(
         Comment $comment
-    ) {
+    )
+    {
         $comment->getGuid()
             ->shouldBeCalled()
             ->willReturn(6000);
@@ -299,9 +305,10 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_return_false_if_no_guid_during_delete(
+    function it_should_return_false_if_no_guid_during_delete(
         Comment $comment
-    ) {
+    )
+    {
         $comment->getGuid()
             ->shouldBeCalled()
             ->willReturn(null);
@@ -315,9 +322,10 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_return_false_if_no_entity_guid_during_delete(
+    function it_should_return_false_if_no_entity_guid_during_delete(
         Comment $comment
-    ) {
+    )
+    {
         $comment->getGuid()
             ->shouldBeCalled()
             ->willReturn(6000);
@@ -331,14 +339,15 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_get_by_guid(
+    function it_should_get_by_guid(
         Comment $comment
-    ) {
+    )
+    {
         $this->entities->getRow('6000', Argument::any())
             ->shouldBeCalled()
             ->willReturn([ 'type' => 'comment', 'parent_guid' => 1 ]);
 
-        $this->legacyEntity->build([
+        $this->legacyEntity->build([ 
                 'type' => 'comment',
                 'guid' => '6000',
                 'parent_guid' => 1
@@ -351,7 +360,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn($comment);
     }
 
-    public function it_should_catch_exception_and_return_null_during_get_by_guid()
+    function it_should_catch_exception_and_return_null_during_get_by_guid()
     {
         $this->entities->getRow('6001', Argument::any())
             ->shouldBeCalled()
@@ -366,7 +375,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(null);
     }
 
-    public function it_should_return_null_if_not_a_comment_row_during_get_by_guid()
+    function it_should_return_null_if_not_a_comment_row_during_get_by_guid()
     {
         $this->entities->getRow('5000', Argument::any())
             ->shouldBeCalled()

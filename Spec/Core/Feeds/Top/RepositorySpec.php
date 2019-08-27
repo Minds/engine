@@ -18,7 +18,7 @@ class RepositorySpec extends ObjectBehavior
     /** @var Config */
     protected $config;
 
-    public function let(Client $client, Config $config)
+    function let(Client $client, Config $config)
     {
         $this->client = $client;
         $this->config = $config;
@@ -30,12 +30,12 @@ class RepositorySpec extends ObjectBehavior
         $this->beConstructedWith($client, $config);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    public function it_should_query_a_list_of_activity_guids()
+    function it_should_query_a_list_of_activity_guids()
     {
         $opts = [
             'type' => 'activity',
@@ -82,7 +82,7 @@ class RepositorySpec extends ObjectBehavior
         $gen->current()->getScore()->shouldReturn(50.0);
     }
 
-    public function it_should_query_a_list_of_channel_guids()
+    function it_should_query_a_list_of_channel_guids()
     {
         $opts = [
             'type' => 'user',
@@ -93,7 +93,7 @@ class RepositorySpec extends ObjectBehavior
 
         $this->client->request(Argument::that(function ($query) {
             $query = $query->build();
-            return $query['type'] === 'user' && in_array('guid', $query['body']['_source'], true);
+            return $query['type'] === 'user' && in_array('guid', $query['body']['_source']);
         }))
             ->shouldBeCalled()
             ->willReturn([
@@ -132,7 +132,7 @@ class RepositorySpec extends ObjectBehavior
         $gen->current()->getScore()->shouldReturn(50.0);
     }
 
-    public function it_should_query_a_list_of_group_guids()
+    function it_should_query_a_list_of_group_guids()
     {
         $opts = [
             'type' => 'group',
@@ -143,7 +143,7 @@ class RepositorySpec extends ObjectBehavior
 
         $this->client->request(Argument::that(function ($query) {
             $query = $query->build();
-            return $query['type'] === 'group' && in_array('guid', $query['body']['_source'], true);
+            return $query['type'] === 'group' && in_array('guid', $query['body']['_source']);
         }))
             ->shouldBeCalled()
             ->willReturn([
@@ -219,7 +219,7 @@ class RepositorySpec extends ObjectBehavior
     //     ]);
     // }
 
-    public function it_should_add(MetricsSync $metric)
+    function it_should_add(MetricsSync $metric)
     {
         $metric->getMetric()
             ->shouldBeCalled()

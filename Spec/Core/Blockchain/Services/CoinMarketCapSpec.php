@@ -15,7 +15,7 @@ class CoinMarketCapSpec extends ObjectBehavior
     /** @var abstractCacher */
     private $cacher;
 
-    public function let(Client $http, abstractCacher $cacher)
+    function let(Client $http, abstractCacher $cacher)
     {
         $this->http = $http;
         $this->cacher = $cacher;
@@ -23,12 +23,12 @@ class CoinMarketCapSpec extends ObjectBehavior
         $this->beConstructedWith($http, $cacher);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(CoinMarketCap::class);
     }
 
-    public function it_should_get_the_cap()
+    function it_should_get_the_cap()
     {
         $this->get()->shouldReturn(0.25);
     }

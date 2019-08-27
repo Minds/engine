@@ -160,7 +160,7 @@ class notifications implements Interfaces\Api
      */
     public function put($pages)
     {
-        return Factory::response([]);
+        return Factory::response(array());
     }
 
     /**
@@ -168,15 +168,17 @@ class notifications implements Interfaces\Api
      */
     public function delete($pages)
     {
-        return Factory::response([]);
+        return Factory::response(array());
     }
 
     /**
      * Polyfill notifications to be readed by legacy clients
-     * @return array
      */
-    protected function polyfillResponse($notifications) : array
+    protected function polyfillResponse($notifications)
     {
+        //if (!is_array($notifications)) {
+        //    return $notifications;
+       // }
         $return = [];
         // Formatting for legacy notification handling in frontend
         foreach ($notifications as $key => $entity) {
@@ -200,15 +202,15 @@ class notifications implements Interfaces\Api
             }
 
             $notification = [
-                'guid' => $entity->getUuid(),
-                'uuid' => $entity->getUuid(),
+                'guid' => $entity->getUUID(),
+                'uuid' => $entity->getUUID(),
                 'description' => $data['description'],
                 'entityObj' => $entityObj ? $entityObj->export() : null,
                 'filter' => $entity->getType(),
                 'fromObj' => $fromObj ? $fromObj->export() : null,
                 'from_guid' => $entity->getFromGuid(),
                 'to' => $toObj ? $toObj->export() : null,
-                'guid' => $entity->getUuid(),
+                'guid' => $entity->getUUID(),
                 'notification_view' => $entity->getType(),
                 'params' => $data, // possibly some deeper polyfilling needed here,
                 'time_created' => $entity->getCreatedTimestamp(),

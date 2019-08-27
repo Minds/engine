@@ -12,6 +12,7 @@ class Posts extends Aggregate
 
     public function get()
     {
+
         $field = 'owner_guid';
 
         $filter = [
@@ -62,13 +63,13 @@ class Posts extends Aggregate
                                     'field' => "$field",
                                     'precision_threshold' => 40000,
                                 ]
-                            ]
+                            ] 
                         ]
                     ]
                 ]
             ]
         ];
-        var_dump($query);
+var_dump($query);
         $prepared = new ElasticSearch\Prepared\Search();
         $prepared->query($query);
         $result = $this->client->request($prepared);
@@ -77,8 +78,7 @@ class Posts extends Aggregate
             $entities[$entity['key']] = $entity['uniques']['value'] * $this->multiplier;
         }
         echo "\n\n\n\n\n";
-        var_dump($entities);
-        exit;
+        var_dump($entities);exit;
         return $entities;
     }
 }

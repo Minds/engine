@@ -12,22 +12,24 @@ class CountCacheSpec extends ObjectBehavior
     /** @var abstractCacher */
     protected $cache;
 
-    public function let(
+    function let(
         abstractCacher $cache
-    ) {
+    )
+    {
         $this->beConstructedWith($cache);
 
         $this->cache = $cache;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Comments\Delegates\CountCache');
     }
 
-    public function it_should_destroy(
+    function it_should_destroy(
         Comment $comment
-    ) {
+    )
+    {
         $comment->getEntityGuid()
             ->shouldBeCalled()
             ->willReturn(5000);

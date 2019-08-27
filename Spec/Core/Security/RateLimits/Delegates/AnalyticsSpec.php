@@ -10,12 +10,13 @@ use Prophecy\Argument;
 
 class AnalyticsSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType(Analytics::class);
     }
 
-    public function it_should_emit_event(User $user, Event $event)
+    function it_should_emit_event(User $user, Event $event)
     {
         $this->beConstructedWith($event);
 
@@ -53,4 +54,5 @@ class AnalyticsSpec extends ObjectBehavior
         
         $this->emit($user, 'metricname', 300);
     }
+
 }

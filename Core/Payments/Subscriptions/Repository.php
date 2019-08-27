@@ -99,7 +99,7 @@ class Repository
         }
 
         if ($options['offset']) {
-            $cqlOpts['paging_state_token'] = base64_decode($options['offset'], true);
+            $cqlOpts['paging_state_token'] = base64_decode($options['offset']);
         }
 
         if ($options['limit']) {
@@ -227,6 +227,7 @@ class Repository
      */
     public function delete($subscription)
     {
+
         $query = new Custom();
         $query->query("DELETE FROM subscriptions
             WHERE subscription_id = ?
@@ -244,4 +245,5 @@ class Repository
         $result = $this->cql->request($query);
         return (bool) $result;
     }
+
 }

@@ -34,6 +34,7 @@ class AbuseGuard extends Cli\Controller implements Interfaces\CliControllerInter
         $interval = $this->getOpt('interval') ?: 5;
 
         while (true) {
+            
             $guard->setPeriod(
                 time() - (60 * 60 * 10),
                 time()
@@ -49,6 +50,7 @@ class AbuseGuard extends Cli\Controller implements Interfaces\CliControllerInter
 
             sleep($interval);
         }
+  
     }
 
     public function sync_single()

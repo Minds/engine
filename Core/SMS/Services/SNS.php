@@ -4,7 +4,6 @@
  */
 
 namespace Minds\Core\SMS\Services;
-
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 

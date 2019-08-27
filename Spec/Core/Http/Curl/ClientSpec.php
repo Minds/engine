@@ -8,7 +8,7 @@ use Prophecy\Argument;
 
 class ClientSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Client::class);
     }

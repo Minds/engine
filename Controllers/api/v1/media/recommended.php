@@ -16,6 +16,7 @@ use Minds\Api\Factory;
 
 class recommended implements Interfaces\Api
 {
+
     /**
      * Return the media items
      * @param array $pages
@@ -145,15 +146,15 @@ class recommended implements Interfaces\Api
     /**
      * Filter entities
      */
-    private function _entitiesUnique(&$entities, $exclude)
+     private function _entitiesUnique(&$entities, $exclude)
     {
         $guids = [];
         $entities = array_filter($entities, function ($entity) use (&$guids, $exclude) {
-            if (in_array($entity->guid, $guids, true)) {
+            if (in_array($entity->guid, $guids)) {
                 return false;
             }
 
-            if (in_array($entity->guid, $exclude, true)) {
+            if (in_array($entity->guid, $exclude)) {
                 return false;
             }
 

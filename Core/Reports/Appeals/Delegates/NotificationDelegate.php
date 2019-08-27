@@ -8,7 +8,10 @@ use Minds\Core\Reports\Appeals\Appeal;
 
 class NotificationDelegate
 {
+
     public function onAction(Appeal $appeal)
     {
+
     }
+
 }

@@ -4,6 +4,7 @@ namespace Minds\Core\Storage\Services;
 
 interface ServiceInterface
 {
+
     public function open($path, $mode);
 
     public function close();
@@ -13,4 +14,5 @@ interface ServiceInterface
     public function read($length);
 
     public function destroy();
+
 }

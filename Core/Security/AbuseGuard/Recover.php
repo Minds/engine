@@ -11,6 +11,7 @@ use Minds\Helpers;
 
 class Recover
 {
+
     private $accused;
 
     public function __construct($client = null)
@@ -42,13 +43,13 @@ class Recover
             }
         }
 
-        foreach ($this->getDownVotes() as $post) {
+        foreach($this->getDownVotes() as $post) {
             if ($post) {
                 Helpers\Counters::increment($post->guid, "thumbs:down", -1);
             }
         }
 
-        foreach ($this->getPosts() as $post) {
+        foreach($this->getPosts() as $post) {
             if ($post) {
                 $post->setDeleted(true);
                 $post->access_id = 0;
@@ -79,7 +80,7 @@ class Recover
                     'bool' => [
                         'should' => [
                             [
-                                'term' => [
+                                'term' => [ 
                                     'entity_type.keyword' => 'comment'
                                 ],
                                 'term' => [
@@ -121,12 +122,12 @@ class Recover
                     'bool' => [
                         'should' => [
                             [
-                                'term' => [
+                                'term' => [ 
                                     'type.keyword' => 'vote:down'
                                 ]
                             ],
                             [
-                                'term' => [
+                                'term' => [ 
                                     'user_guid.keyword' => $this->accused->getUser()->guid
                                 ]
                             ]

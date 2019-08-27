@@ -77,4 +77,5 @@ class Aggregate
     {
         return [];
     }
+
 }

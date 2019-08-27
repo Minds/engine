@@ -10,6 +10,7 @@ use Minds\Core\Guid;
 use Minds\Core\Payments;
 use Minds\Entities;
 
+
 class Webhooks
 {
     protected $stripe;
@@ -101,7 +102,7 @@ class Webhooks
         $metadata = [];
 
         foreach ($lines as $line) {
-            if ($line->type == "subscription") {
+            if($line->type == "subscription"){
                 $metadata = $line->metadata->__toArray(false);
                 $subscriptionId = $line->id;
                 $planId = $line->plan->id;
@@ -136,6 +137,7 @@ class Webhooks
 
     protected function onCancelled()
     {
+
         $subscriptionObj = $this->event->data->object;
 
         //grab the customer

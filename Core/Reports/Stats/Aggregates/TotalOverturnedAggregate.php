@@ -33,4 +33,5 @@ class TotalOverturnedAggregate implements ModerationStatsAggregateInterface
 
         return (int) $result[0]['total']->value();
     }
+
 }

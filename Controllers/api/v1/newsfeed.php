@@ -21,6 +21,7 @@ use Minds\Interfaces\Flaggable;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
 
+
 class newsfeed implements Interfaces\Api
 {
     /**
@@ -31,7 +32,7 @@ class newsfeed implements Interfaces\Api
      */
     public function get($pages)
     {
-        $response = [];
+        $response = array();
         $loadNext = '';
 
         if (!isset($pages[0])) {
@@ -54,26 +55,26 @@ class newsfeed implements Interfaces\Api
                     return Factory::response(['status' => 'error']);
                 }
 
-                return Factory::response(['activity' => $activity->export()]);
+                return Factory::response(array('activity' => $activity->export()));
                 break;
             default:
             case 'personal':
-                $options = [
+                $options = array(
                     'owner_guid' => isset($pages[1]) ? $pages[1] : elgg_get_logged_in_user_guid()
-                ];
+                );
                 if (isset($_GET['pinned']) && count($_GET['pinned']) > 0) {
                     $pinned_guids = [];
                     $p = explode(',', $_GET['pinned']);
-                    foreach ($p as $guid) {
+                    foreach($p as $guid) {
                         $pinned_guids[] = (string)$guid;
                     }
                 }
 
                 break;
             case 'network':
-                $options = [
+                $options = array(
                     'network' => isset($pages[1]) ? $pages[1] : core\Session::getLoggedInUserGuid()
-                ];
+                );
                 break;
             case 'top':
                 $offset = isset($_GET['offset']) ? $_GET['offset'] : "";
@@ -102,14 +103,14 @@ class newsfeed implements Interfaces\Api
                 }
                 break;
             case 'container':
-                $options = [
+                $options = array(
                     'container_guid' => isset($pages[1]) ? $pages[1] : elgg_get_logged_in_user_guid()
-                ];
+                );
 
                 if (isset($_GET['pinned']) && count($_GET['pinned']) > 0) {
                     $pinned_guids = [];
                     $p = explode(',', $_GET['pinned']);
-                    foreach ($p as $guid) {
+                    foreach($p as $guid) {
                         $pinned_guids[] = (string) $guid;
                     }
                 }
@@ -159,11 +160,11 @@ class newsfeed implements Interfaces\Api
             Helpers\Campaigns\HourlyRewards::reward();
         }
 
-        $activity = Core\Entities::get(array_merge([
+        $activity = Core\Entities::get(array_merge(array(
             'type' => 'activity',
             'limit' => get_input('limit', 5),
             'offset' => get_input('offset', '')
-        ], $options));
+        ), $options));
         if (get_input('offset') && !get_input('prepend') && $activity) { // don't shift if we're prepending to newsfeed
             array_shift($activity);
         }
@@ -250,6 +251,7 @@ class newsfeed implements Interfaces\Api
                         $response['pinned'][] = $exported;
                     }
                 }
+
             }
 
             $response['activity'] = factory::exportable($activity, ['boosted', 'boosted_guid'], true);
@@ -452,7 +454,7 @@ class newsfeed implements Interfaces\Api
                     ->setUserGuid(Core\Session::getLoggedInUserGuid())
                     ->follow();
 
-                return Factory::response(['guid' => $activity->guid]);
+                return Factory::response(array('guid' => $activity->guid));
                 break;
 
             default:
@@ -461,17 +463,17 @@ class newsfeed implements Interfaces\Api
                     $activity = new Activity($pages[0]);
 
                     if (!$activity->canEdit() || $activity->type !== 'activity') {
-                        return Factory::response(['status' => 'error', 'message' => 'Post not editable']);
+                        return Factory::response(array('status' => 'error', 'message' => 'Post not editable'));
                     }
 
-                    $allowed = ['message', 'title'];
+                    $allowed = array('message', 'title');
                     foreach ($allowed as $allowed) {
                         if (isset($_POST[$allowed]) && $_POST[$allowed] !== false) {
                             $activity->$allowed = $_POST[$allowed];
                         }
                     }
 
-                    if (isset($_POST['thumbnail'])) {
+                    if(isset($_POST['thumbnail'])) {
                         $activity->setThumbnail($_POST['thumbnail']);
                     }
 
@@ -481,10 +483,6 @@ class newsfeed implements Interfaces\Api
 
                     if (isset($_POST['tags'])) {
                         $activity->setTags($_POST['tags']);
-                    }
-
-                    if (isset($_POST['nsfw'])) {
-                        $activity->setNsfw($_POST['nsfw']);
                     }
 
                     $user = Core\Session::getLoggedInUser();
@@ -521,7 +519,7 @@ class newsfeed implements Interfaces\Api
                         ->save();
 
                     $activity->setExportContext(true);
-                    return Factory::response(['guid' => $activity->guid, 'activity' => $activity->export(), 'edited' => true]);
+                    return Factory::response(array('guid' => $activity->guid, 'activity' => $activity->export(), 'edited' => true));
                 }
 
                 $activity = new Activity();
@@ -551,7 +549,7 @@ class newsfeed implements Interfaces\Api
                         ->setThumbnail($_POST['thumbnail']);
                 }
 
-                if (isset($_POST['wire_threshold']) && $_POST['wire_threshold']) {
+                if(isset($_POST['wire_threshold']) && $_POST['wire_threshold']) {
                     if (is_array($_POST['wire_threshold']) && ($_POST['wire_threshold']['min'] <= 0 || !$_POST['wire_threshold']['type'])) {
                         return Factory::response([
                             'status' => 'error',
@@ -619,13 +617,14 @@ class newsfeed implements Interfaces\Api
                             break;
                         case "video":
                             $activity->setFromEntity($attachment)
-                                ->setCustom('video', [
+                                ->setCustom('video', array(
                                     'thumbnail_src' => $attachment->getIconUrl(),
                                     'guid' => $attachment->guid,
-                                    'mature' => $attachment instanceof Flaggable ? $attachment->getFlag('mature') : false])
+                                    'mature' => $attachment instanceof Flaggable ? $attachment->getFlag('mature') : false))
                                 ->setTitle($attachment->message);
                             break;
                     }
+
                 }
 
                 $container = null;
@@ -668,25 +667,25 @@ class newsfeed implements Interfaces\Api
                 }
 
                 if ($guid) {
-                    if (in_array($activity->custom_type, ['batch', 'video'], true)) {
+                    if (in_array($activity->custom_type, ['batch', 'video'])) {
                         Helpers\Wallet::createTransaction(Core\Session::getLoggedinUser()->guid, 15, $guid, 'Post');
                     } else {
                         Helpers\Wallet::createTransaction(Core\Session::getLoggedinUser()->guid, 1, $guid, 'Post');
                     }
 
-                    Core\Events\Dispatcher::trigger('social', 'dispatch', [
+                    Core\Events\Dispatcher::trigger('social', 'dispatch', array(
                         'entity' => $activity,
-                        'services' => [
+                        'services' => array(
                             'facebook' => isset($_POST['facebook']) && $_POST['facebook'] ? $_POST['facebook'] : false,
                             'twitter' => isset($_POST['twitter']) && $_POST['twitter'] ? $_POST['twitter'] : false
-                        ],
-                        'data' => [
+                        ),
+                        'data' => array(
                             'message' => rawurldecode($_POST['message']),
                             'perma_url' => isset($_POST['url']) ? rawurldecode($_POST['url']) : $activity->getURL(),
                             'thumbnail_src' => isset($_POST['thumbnail']) ? rawurldecode($_POST['thumbnail']) : null,
                             'description' => isset($_POST['description']) ? rawurldecode($_POST['description']) : null
-                        ]
-                    ]);
+                        )
+                    ));
 
                     // Follow activity
                     (new Core\Notification\PostSubscriptions\Manager())
@@ -710,9 +709,9 @@ class newsfeed implements Interfaces\Api
                     }
 
                     $activity->setExportContext(true);
-                    return Factory::response(['guid' => $guid, 'activity' => $activity->export()]);
+                    return Factory::response(array('guid' => $guid, 'activity' => $activity->export()));
                 } else {
-                    return Factory::response(['status' => 'failed', 'message' => 'could not save']);
+                    return Factory::response(array('status' => 'failed', 'message' => 'could not save'));
                 }
         }
     }
@@ -721,7 +720,7 @@ class newsfeed implements Interfaces\Api
     {
         $activity = new Activity($pages[0]);
         if (!$activity->guid) {
-            return Factory::response(['status' => 'error', 'message' => 'could not find activity post']);
+            return Factory::response(array('status' => 'error', 'message' => 'could not find activity post'));
         }
 
         switch ($pages[1]) {
@@ -753,25 +752,25 @@ class newsfeed implements Interfaces\Api
                 break;
         }
 
-        return Factory::response([]);
+        return Factory::response(array());
     }
 
     public function delete($pages)
     {
         $activity = new Activity($pages[0]);
         if (!$activity->guid) {
-            return Factory::response(['status' => 'error', 'message' => 'could not find activity post']);
+            return Factory::response(array('status' => 'error', 'message' => 'could not find activity post'));
         }
 
         if (!$activity->canEdit()) {
-            return Factory::response(['status' => 'error', 'message' => 'you don\'t have permission']);
+            return Factory::response(array('status' => 'error', 'message' => 'you don\'t have permission'));
         }
         /** @var Entities\User $owner */
         $owner = $activity->getOwnerEntity();
 
         if (
             $activity->entity_guid &&
-            in_array($activity->custom_type, ['batch', 'video'], true)
+            in_array($activity->custom_type, ['batch', 'video'])
         ) {
             // Delete attachment object
             try {
@@ -792,17 +791,18 @@ class newsfeed implements Interfaces\Api
             if ($activity->remind_object && $activity->remind_object['owner_guid'] != Core\Session::getLoggedinUser()->guid) {
                 Helpers\Wallet::createTransaction($activity->remind_object['owner_guid'], -5, $activity->remind_object['guid'], 'Remind Removed');
             } elseif (!$activity->remind_object) {
-                if (in_array($activity->custom_type, ['batch', 'video'], true)) {
+                if (in_array($activity->custom_type, ['batch', 'video'])) {
                     Helpers\Wallet::createTransaction($activity->owner_guid, -15, $activity->guid, 'Post Removed');
                 } else {
                     Helpers\Wallet::createTransaction($activity->owner_guid, -1, $activity->guid, 'Post Removed');
                 }
+
             }
 
-            return Factory::response(['message' => 'removed ' . $pages[0]]);
+            return Factory::response(array('message' => 'removed ' . $pages[0]));
         }
 
-        return Factory::response(['status' => 'error', 'message' => 'could not delete']);
+        return Factory::response(array('status' => 'error', 'message' => 'could not delete'));
     }
 
     /**

@@ -14,18 +14,18 @@ class ExpireSpec extends ObjectBehavior
 {
     private $manager;
 
-    public function let(Manager $manager)
+    function let(Manager $manager)
     {
         $this->beConstructedWith($manager);
         $this->manager = $manager;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Boost\Network\Expire');
     }
 
-    public function it_should_expire_a_boost(Boost $boost)
+    function it_should_expire_a_boost(Boost $boost)
     {
         $this->manager->update($boost)
             ->shouldBeCalled();

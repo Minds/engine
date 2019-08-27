@@ -15,6 +15,7 @@ use Minds\Core\Sockets;
 
 class Events
 {
+
     /**
      * Centralized method to register Event handlers related to notifications
      * @return null
@@ -91,7 +92,8 @@ class Events
             $event->setResponse([
                 $notification
             ]);
-        });
+
+	});
 
         /**
          * Create a notification upon @mentioning on activities or comments
@@ -156,7 +158,7 @@ class Events
                         'entity' => $entity,
                         'notification_view' => 'tag',
                         'description' => $message,
-                        'params' => $params,
+                        'params' => $params, 
                     ]);
                 }
             }
@@ -190,6 +192,7 @@ class Events
             $manager = Core\Di\Di::_()->get('Notification\Manager');
 
             foreach ($params['to'] as $to_user) {
+
                 if (
                     $notification->getFromGuid() &&
                     Core\Security\ACL\Block::_()->isBlocked($notification->getFromGuid(), $to_user)

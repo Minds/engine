@@ -8,6 +8,7 @@ use Minds\Core\Di\Di;
 
 class S3 implements ServiceInterface
 {
+
     public $s3;
     public $filepath;
     public $mode;
@@ -21,7 +22,8 @@ class S3 implements ServiceInterface
 
     public function open($path, $mode)
     {
-        if ($mode && !in_array($mode, $this->modes, true)) {
+
+        if ($mode && !in_array($mode, $this->modes)) {
             throw new \Exception("$mode is not a supported type");
         }
 
@@ -93,12 +95,12 @@ class S3 implements ServiceInterface
                 return $url;
                 break;
             case "read":
-                try {
+                try{
                     $result = $this->s3->getObject([
                         'Bucket' => Config::_()->aws['bucket'],
-                        'Key' => $this->filepath
+                        'Key' => $this->filepath 
                     ]);
-                } catch (\Exception $e) {
+                } catch (\Exception $e){
                 }
                 return $result['Body'];
                 break;
@@ -119,6 +121,7 @@ class S3 implements ServiceInterface
                 header("Location: $url");
                 exit;
         }
+
     }
 
     public function seek($offset = 0)
@@ -128,5 +131,8 @@ class S3 implements ServiceInterface
 
     public function destroy()
     {
+
     }
+
+
 }

@@ -2,13 +2,12 @@
 
 namespace Minds\Interfaces;
 
-interface BoostReviewInterface
-{
-    public function setBoost($boost);
+interface BoostReviewInterface {
+    function setBoost($boost);
 
-    public function accept();
+    function accept();
 
-    public function reject($reason);
+    function reject($reason);
 
-    public function revoke();
+    function revoke();
 }

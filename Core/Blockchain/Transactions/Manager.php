@@ -12,6 +12,7 @@ use Minds\Core\Di\Di;
 
 class Manager
 {
+
     /** @var string $contract */
     private $contract;
 
@@ -102,7 +103,7 @@ class Manager
     public function run()
     {
         $result = $this->repo->getList([
-            'user_guid' => $this->user_guid,
+            'user_guid' => $this->user_guid, 
             'timestamp' => [
                 'eq' => $this->timestamp,
             ],
@@ -180,4 +181,5 @@ class Manager
                 'tx' => $transaction->getTx(),
             ]);
     }
+
 }

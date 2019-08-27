@@ -16,13 +16,14 @@ use Minds\Entities;
 
 class export implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
-    public function get($pages)
-    {
-        Factory::isLoggedIn();
 
-        $response = [];
+  public function get($pages)
+  {
+      Factory::isLoggedIn();
 
-        $merchant = (new Payments\Merchant)
+      $response = [];
+
+      $merchant = (new Payments\Merchant)
         ->setId(Core\Session::getLoggedInUser()->getMerchant()['id']);
 
         $guid = Core\Session::getLoggedInUser()->guid;
@@ -38,18 +39,18 @@ class export implements Interfaces\Api, Interfaces\ApiIgnorePam
         try {
             $balance = $stripe->getBalance($merchant, ['limit' => 100]);
 
-            fputcsv($out, [
+            fputcsv($out, [ 
               'id',
               'type',
-              'status',
-              'description',
-              'created',
-              'amount',
-              'currency',
-              'available'
+              'status', 
+              'description', 
+              'created', 
+              'amount', 
+              'currency', 
+              'available' 
             ]);
 
-            foreach ($balance->data as $record) {
+            foreach($balance->data as $record){
                 // Get the required charge information and assign to variables
                 $id = $record->id;
                 $type = $record->type;
@@ -61,7 +62,7 @@ class export implements Interfaces\Api, Interfaces\ApiIgnorePam
                 $available = gmdate('Y-m-d H:i', $record->available_on);
 
                 // Create an array of the above charge information
-                $report = [
+                $report = array(
                             $id,
                             $type,
                             $status,
@@ -70,7 +71,7 @@ class export implements Interfaces\Api, Interfaces\ApiIgnorePam
                             $amount,
                             $currency,
                             $available
-                  ];
+                  );
 
 
                 fputcsv($out, $report);
@@ -80,8 +81,8 @@ class export implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         fclose($out);
 
-        exit;
-    }
+            exit;
+  }
 
     public function post($pages)
     {
@@ -90,11 +91,11 @@ class export implements Interfaces\Api, Interfaces\ApiIgnorePam
 
     public function put($pages)
     {
-        return Factory::response([]);
+        return Factory::response(array());
     }
 
     public function delete($pages)
     {
-        return Factory::response([]);
+        return Factory::response(array());
     }
 }

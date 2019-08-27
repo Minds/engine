@@ -12,6 +12,7 @@ use Minds\Core\Rewards\Contributions\ContributionValues;
 
 class ReferralDelegate
 {
+
     /** @var Manager $manager */
     private $manager;
 
@@ -57,4 +58,5 @@ class ReferralDelegate
             ->setAmount(1);
         $this->contributionsManager->add($contribution);
     }
+
 }

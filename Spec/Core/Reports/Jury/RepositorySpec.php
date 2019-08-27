@@ -21,25 +21,25 @@ class RepositorySpec extends ObjectBehavior
     private $cql;
     private $reportsRepository;
 
-    public function let(Client $cql)
+    function let(Client $cql)
     {
         $this->beConstructedWith($cql);
         $this->cql = $cql;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
     
-    public function it_should_return_reports_we_can_use_in_jury()
+    function it_should_return_reports_we_can_use_in_jury()
     {
         $user = new User();
         $user->set('guid', 123);
         $user->setPhoneNumberHash('phoneHash');
         
-        $this->cql->request(Argument::that(function ($prepared) {
+        $this->cql->request(Argument::that(function($prepared) {
             $query = $prepared->build();
             $values = $query['values'];
 
@@ -77,14 +77,14 @@ class RepositorySpec extends ObjectBehavior
                 ],
             ]);
         
-        $response = $this->getList([
+        $response = $this->getList([ 
             'user' => $user,
             'juryType' => 'initial',
         ]);
         $response->shouldHaveCount(2);
     }
 
-    public function it_should_add_to_initial_jury(Decision $decision)
+    function it_should_add_to_initial_jury(Decision $decision)
     {
         $decision->getJurorGuid()
             ->shouldBeCalled()
@@ -109,10 +109,10 @@ class RepositorySpec extends ObjectBehavior
                 ->setSubReasonCode(5)
             );
 
-        $this->cql->request(Argument::that(function ($prepared) {
+        $this->cql->request(Argument::that(function($prepared) {
             $values = $prepared->build()['values'];
             $statement = $prepared->build()['string'];
-            return strpos($statement, 'SET initial_jury') !== false
+            return strpos($statement, 'SET initial_jury') !== FALSE
                 && $values[0]->values()[456]->value() == true
                 && $values[1]->values()[0]->value() === '0xqj1'
                 && $values[2] === 'urn:activity:123'
@@ -126,7 +126,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    public function it_should_add_to_appeal_jury(Decision $decision)
+    function it_should_add_to_appeal_jury(Decision $decision)
     {
         $decision->getJurorGuid()
             ->shouldBeCalled()
@@ -151,10 +151,10 @@ class RepositorySpec extends ObjectBehavior
                 ->setSubReasonCode(5)
             );
 
-        $this->cql->request(Argument::that(function ($prepared) {
+        $this->cql->request(Argument::that(function($prepared) {
             $values = $prepared->build()['values'];
             $statement = $prepared->build()['string'];
-            return strpos($statement, 'SET appeal_jury') !== false
+            return strpos($statement, 'SET appeal_jury') !== FALSE
                 && $values[0]->values()[456]->value() == true
                 && $values[1]->values()[0]->value() === '0xqj1'
                 && $values[2] === 'urn:activity:123'
@@ -167,4 +167,5 @@ class RepositorySpec extends ObjectBehavior
         $this->add($decision)
             ->shouldBe(true);
     }
+
 }

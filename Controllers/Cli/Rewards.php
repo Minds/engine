@@ -16,6 +16,7 @@ use Minds\Core\Events\Dispatcher;
 
 class Rewards extends Cli\Controller implements Interfaces\CliControllerInterface
 {
+
     private $start;
     private $elasticsearch;
 
@@ -88,7 +89,7 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
         
         $fp = fopen("contributions-{$timestamp}.csv", 'w');
 
-        foreach ($leaderboard as $guid => $count) {
+        foreach($leaderboard as $guid => $count) {
             fputcsv($fp, [ $guid, $count ]);
         }
 
@@ -129,4 +130,5 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
 
         $this->out('Issued');
     }
+
 }

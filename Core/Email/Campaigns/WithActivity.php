@@ -3,6 +3,7 @@
 
 namespace Minds\Core\Email\Campaigns;
 
+
 use Minds\Core\Config;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Message;
@@ -66,4 +67,5 @@ class WithActivity extends EmailCampaign
         //send email
         $this->mailer->queue($message);
     }
+
 }

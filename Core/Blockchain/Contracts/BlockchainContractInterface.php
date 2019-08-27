@@ -7,6 +7,7 @@
 
 namespace Minds\Core\Blockchain\Contracts;
 
+
 interface BlockchainContractInterface
 {
     /**

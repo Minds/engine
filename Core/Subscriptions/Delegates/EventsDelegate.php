@@ -6,8 +6,9 @@ namespace Minds\Core\Subscriptions\Delegates;
 
 use Minds\Core\Di\Di;
 
-class EventsDelegate
+class EventsDelegate 
 {
+
     /** @var EventsDispatcher $eventsDispatcher */
     private $eventsDispatcher;
 
@@ -17,7 +18,7 @@ class EventsDelegate
     }
 
     /**
-     * Trigger an event
+     * Trigger an event 
      * @param Subscription $subscrition
      * @return void
      */
@@ -29,4 +30,5 @@ class EventsDelegate
             'subscription' => $subscription,
         ]);
     }
+
 }

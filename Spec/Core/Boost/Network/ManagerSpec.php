@@ -21,12 +21,13 @@ class ManagerSpec extends ObjectBehavior
     private $entitiesBuilder;
     private $guidBuilder;
 
-    public function let(
+    function let(
         Repository $repository,
         ElasticRepository $elasticRepository,
         EntitiesBuilder $entitiesBuilder,
         GuidBuilder $guidBuilder
-    ) {
+    )
+    {
         $this->beConstructedWith($repository, $elasticRepository, $entitiesBuilder, $guidBuilder);
         $this->repository = $repository;
         $this->elasticRepository = $elasticRepository;
@@ -34,12 +35,12 @@ class ManagerSpec extends ObjectBehavior
         $this->guidBuilder = $guidBuilder;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_return_a_list_of_boosts_to_review()
+    function it_should_return_a_list_of_boosts_to_review()
     {
         $response = new Response([
             (new Boost)
@@ -110,7 +111,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(100);
     }
 
-    public function it_should_return_a_list_of_boosts_to_deliver()
+    function it_should_return_a_list_of_boosts_to_deliver()
     {
         $this->elasticRepository->getList([
             'state' => 'approved',
@@ -169,7 +170,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(100);
     }
 
-    public function it_should_return_a_list_of_boosts_from_guids()
+    function it_should_return_a_list_of_boosts_from_guids()
     {
         $this->repository->getList([
             'state' => null,
@@ -228,7 +229,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(100);
     }
 
-    public function it_should_add_a_boost(Boost $boost)
+    function it_should_add_a_boost(Boost $boost)
     {
         $this->guidBuilder->build()
             ->shouldBeCalled()
@@ -250,7 +251,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_update_a_boost(Boost $boost)
+    function it_should_update_a_boost(Boost $boost)
     {
         $this->repository->update($boost, ['@timestamp'])
             ->shouldBeCalled();
@@ -260,7 +261,7 @@ class ManagerSpec extends ObjectBehavior
         $this->update($boost, ['@timestamp']);
     }
 
-    public function it_should_resync_a_boost_on_elasticsearch(Boost $boost)
+    function it_should_resync_a_boost_on_elasticsearch(Boost $boost)
     {
         $this->elasticRepository->update($boost, ['@timestamp'])
             ->shouldBeCalled();
@@ -268,7 +269,7 @@ class ManagerSpec extends ObjectBehavior
         $this->resync($boost, ['@timestamp']);
     }
 
-    public function it_should_check_if_the_entity_was_already_boosted(Boost $boost)
+    function it_should_check_if_the_entity_was_already_boosted(Boost $boost)
     {
         $this->elasticRepository->getList([
             'useElastic' => true,

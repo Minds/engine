@@ -14,6 +14,7 @@ use Minds\Interfaces;
 
 class theme implements Interfaces\Api
 {
+  
     public function get($pages)
     {
         $user = Session::getLoggedInUser();
@@ -39,5 +40,7 @@ class theme implements Interfaces\Api
     public function delete($pages)
     {
         return Factory::response([]);
-    }
+    }  
 }
+
+

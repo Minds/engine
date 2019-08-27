@@ -14,24 +14,27 @@ use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Spec\Minds\Mocks\Cassandra\Rows;
 
+
+
 class RepositorySpec extends ObjectBehavior
 {
+
     private $client;
     protected $urn;
 
-    public function let(Client $client, Urn $urn)
+    function let(Client $client, Urn $urn)
     {
         $this->beConstructedWith($client, $urn);
         $this->client = $client;
         $this->urn = $urn;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    public function it_should_add_a_referral(Referral $referral)
+    function it_should_add_a_referral(Referral $referral)
     {
         $referral->getReferrerGuid()
             ->shouldBeCalled()
@@ -45,10 +48,10 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(78);
 
-        $this->client->request(Argument::that(function ($prepared) {
+        $this->client->request(Argument::that(function($prepared) {
             $values = $prepared->build()['values'];
             $template = $prepared->build()['string'];
-            return strpos($template, 'INSERT INTO referrals') !== false
+            return strpos($template, 'INSERT INTO referrals') !== FALSE
                 && $values[0]->value() == 123
                 && $values[1]->value() == 456
                 && $values[2]->value() == 78;
@@ -60,7 +63,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    public function it_should_update_a_referral()
+    function it_should_update_a_referral()
     {
         $referral = new Referral();
         $referral->setReferrerGuid(123)
@@ -72,8 +75,9 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_return_a_single_referral()
+    function it_should_return_a_single_referral()
     {
+
         $this->urn->setUrn('urn:referral:123-456')
             ->shouldBeCalled()
             ->willReturn($this->urn);
@@ -83,7 +87,7 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn('123-456');
 
 
-        $this->client->request(Argument::that(function ($prepared) {
+        $this->client->request(Argument::that(function($prepared) {
             return true;
         }))
             ->shouldBeCalled()
@@ -109,11 +113,12 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(null);
         $response->getPingTimestamp()
             ->shouldBe(null);
+
     }
 
-    public function it_should_return_a_list_of_referrals()
+    function it_should_return_a_list_of_referrals()
     {
-        $this->client->request(Argument::that(function ($prepared) {
+        $this->client->request(Argument::that(function($prepared) {
             return true;
         }))
             ->shouldBeCalled()
@@ -148,7 +153,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(1545451597778);
     }
 
-    public function it_should_throw_if_no_referrer_guid_during_get_list()
+    function it_should_throw_if_no_referrer_guid_during_get_list()
     {
         $opts = [
             'limit' => 1000,
@@ -159,43 +164,43 @@ class RepositorySpec extends ObjectBehavior
             ->duringGetList($opts);
     }
 
-    public function it_should_throw_if_no_prospect_guid_during_add()
+    function it_should_throw_if_no_prospect_guid_during_add()
     {
-        $referral = new Referral();
-        $referral->setReferrerGuid(123);
-        $referral->setRegisterTimestamp(456);
+            $referral = new Referral();
+            $referral->setReferrerGuid(123);
+            $referral->setRegisterTimestamp(456);
 
-        $this->shouldThrow(new \Exception('Prospect GUID is required'))
+            $this->shouldThrow(new \Exception('Prospect GUID is required'))
                 ->duringAdd($referral);
     }
 
-    public function it_should_throw_if_no_referrer_guid_during_add()
+    function it_should_throw_if_no_referrer_guid_during_add()
     {
-        $referral = new Referral();
-        $referral->setProspectGuid(123);
-        $referral->setRegisterTimestamp(456);
+            $referral = new Referral();
+            $referral->setProspectGuid(123);
+            $referral->setRegisterTimestamp(456);
 
-        $this->shouldThrow(new \Exception('Referrer GUID is required'))
+            $this->shouldThrow(new \Exception('Referrer GUID is required'))
                 ->duringAdd($referral);
     }
 
-    public function it_should_throw_if_no_register_timestamp_during_add()
+    function it_should_throw_if_no_register_timestamp_during_add()
     {
-        $referral = new Referral();
-        $referral->setReferrerGuid(123);
-        $referral->setProspectGuid(456);
+            $referral = new Referral();
+            $referral->setReferrerGuid(123);
+            $referral->setProspectGuid(456);
 
-        $this->shouldThrow(new \Exception('Register timestamp is required'))
+            $this->shouldThrow(new \Exception('Register timestamp is required'))
                 ->duringAdd($referral);
     }
 
-    public function it_should_throw_if_no_join_timestamp_during_update()
+    function it_should_throw_if_no_join_timestamp_during_update()
     {
-        $referral = new Referral();
-        $referral->setReferrerGuid(123);
-        $referral->setProspectGuid(456);
+            $referral = new Referral();
+            $referral->setReferrerGuid(123);
+            $referral->setProspectGuid(456);
 
-        $this->shouldThrow(new \Exception('Join timestamp is required'))
+            $this->shouldThrow(new \Exception('Join timestamp is required'))
                 ->duringUpdate($referral);
     }
 }

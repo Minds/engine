@@ -7,12 +7,13 @@ use Minds\Core\Di\Di;
 
 class PaywallReview
 {
+
     private $db;
     private $config;
 
     private $entity_guid;
 
-    public function __construct($db = null, $config = null)
+    public function __construct($db = NULL, $config = NULL)
     {
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
         $this->config = $config ?: Di::_()->get('Config');
@@ -56,8 +57,7 @@ class PaywallReview
             }
             return $guids;
         } catch (\Exception $e) {
-            var_dump($e);
-            exit;
+            var_dump($e); exit;
             return [];
         }
     }
@@ -75,8 +75,7 @@ class PaywallReview
         try {
             $result = $this->db->request($query);
         } catch (\Exception $e) {
-            var_dump($e);
-            exit;
+          var_dump($e); exit;
         }
         return $this;
     }

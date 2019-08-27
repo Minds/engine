@@ -16,7 +16,7 @@ class GitlabSpec extends ObjectBehavior
     /** @var Client $http */
     private $_jsonClient;
 
-    public function let(JsonClient $jsonClient, Config $config)
+    function let(JsonClient $jsonClient, Config $config)
     {
         $this->_config = $config;
         $this->_jsonClient = $jsonClient;
@@ -24,17 +24,17 @@ class GitlabSpec extends ObjectBehavior
         $this->beConstructedWith('privatekey', $jsonClient, $config);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Issues\Services\Gitlab');
     }
 
-    public function it_should_return_headers()
+    function it_should_return_headers()
     {
         $this->getHeaders()->shouldReturn(['PRIVATE-TOKEN: privatekey']);
     }
 
-    public function it_should_return_project_base_url()
+    function it_should_return_project_base_url()
     {
         $project = 'mobile';
         $this->_config->get('gitlab')->willReturn([
@@ -43,7 +43,7 @@ class GitlabSpec extends ObjectBehavior
         $this->getBaseUrl($project)->shouldReturn('https://gitlab.com/api/v4/projects/1000000');
     }
 
-    public function it_should_post_to_gitlab()
+    function it_should_post_to_gitlab()
     {
         $project = 'mobile';
         $this->_config->get('gitlab')->willReturn([

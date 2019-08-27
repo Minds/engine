@@ -13,19 +13,19 @@ class PreregistrationsSpec extends ObjectBehavior
     /** @var Client */
     private $cql;
 
-    public function let(Client $cql)
+    function let(Client $cql)
     {
         $this->beConstructedWith($cql);
 
         $this->cql = $cql;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Preregistrations::class);
     }
 
-    public function it_should_register(User $user)
+    function it_should_register(User $user)
     {
         $user->get('guid')
             ->shouldBeCalled()
@@ -43,12 +43,12 @@ class PreregistrationsSpec extends ObjectBehavior
         $this->register($user)->shouldReturn(true);
     }
 
-    public function it_should_fail_to_register_if_no_user(User $user)
+    function it_should_fail_to_register_if_no_user(User $user)
     {
         $this->shouldThrow(new \Exception('User is required'))->during('register', [$user]);
     }
 
-    public function it_should_check_if_a_user_is_registered(User $user)
+    function it_should_check_if_a_user_is_registered(User $user)
     {
         $user->get('guid')
             ->shouldBeCalled()
@@ -70,12 +70,12 @@ class PreregistrationsSpec extends ObjectBehavior
         $this->isRegistered($user)->shouldReturn(true);
     }
 
-    public function it_should_fail_to_check_if_a_user_is_registered_if_no_user(User $user)
+    function it_should_fail_to_check_if_a_user_is_registered_if_no_user(User $user)
     {
         $this->shouldThrow(new \Exception('User is required'))->during('isRegistered', [$user]);
     }
 
-    public function it_should_fail_to_check_if_a_user_is_registered_if_theres_a_cassandra_error(User $user)
+    function it_should_fail_to_check_if_a_user_is_registered_if_theres_a_cassandra_error(User $user)
     {
         $user->get('guid')
             ->shouldBeCalled()

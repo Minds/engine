@@ -18,6 +18,7 @@ use Minds\Entities\Factory;
 
 class Webhook implements HookInterface
 {
+
     public function onCharged($subscription)
     {
         $planId = $subscription->getPlanId();

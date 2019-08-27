@@ -12,18 +12,18 @@ class SendNotificationDelegateSpec extends ObjectBehavior
 {
     private $eventsDispatcher;
 
-    public function let(EventsDispatcher $eventsDispatcher)
+    function let(EventsDispatcher $eventsDispatcher)
     {
         $this->beConstructedWith($eventsDispatcher);
         $this->eventsDispatcher = $eventsDispatcher;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(SendNotificationDelegate::class);
     }
 
-    public function it_should_send_a_notification()
+    function it_should_send_a_notification()
     {
         $subscription = new Subscription;
         $subscription->setSubscriberGuid(123)
@@ -41,4 +41,5 @@ class SendNotificationDelegateSpec extends ObjectBehavior
 
         $this->send($subscription);
     }
+
 }

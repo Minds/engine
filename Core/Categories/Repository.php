@@ -6,6 +6,7 @@ use Minds\Core\Di\Di;
 
 class Repository
 {
+
     private $db;
     private $config;
 
@@ -13,7 +14,7 @@ class Repository
     private $type;
     private $categories;
 
-    public function __construct($db = null, $config = null)
+    public function __construct($db = NULL, $config = NULL)
     {
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
         $this->config = $config ?: Di::_()->get('Config');
@@ -33,14 +34,14 @@ class Repository
 
     public function setCategories($categories)
     {
-        $availableCategories = $this->config->get('categories');
-        //sanitize these categories
-        foreach ($categories as $category) {
-            if (isset($availableCategories[$category])) {
-                $this->categories[] = $category;
-            }
-        }
-        return $this;
+          $availableCategories = $this->config->get('categories');
+          //sanitize these categories
+          foreach ($categories as $category) {
+              if (isset($availableCategories[$category])) {
+                  $this->categories[] = $category;
+              }
+          }
+          return $this;
     }
 
     public function getCategories()
@@ -103,8 +104,7 @@ class Repository
               [ $this->type, $category, $this->filter, (string) $guid ]);
             try {
                 $result = $this->db->request($query);
-            } catch (\Exception $e) {
-            }
+            } catch (\Exception $e) { }
         }
         return $this;
     }
@@ -121,9 +121,9 @@ class Repository
               [ $this->type, $category, $this->filter, (string) $guid ]);
             try {
                 $result = $this->db->request($query);
-            } catch (\Exception $e) {
-            }
+            } catch (\Exception $e) { }
         }
         return $this;
     }
+
 }

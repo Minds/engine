@@ -21,30 +21,31 @@ class UserEntitiesDelegateSpec extends ObjectBehavior
     /** @var CassandraScroll */
     protected $scroll;
 
-    public function let(
+    function let(
         Repository $repository,
         CassandraClient $db,
         CassandraScroll $scroll
-    ) {
+    )
+    {
         $this->beConstructedWith($repository, $db, $scroll);
         $this->repository = $repository;
         $this->db = $db;
         $this->scroll = $scroll;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(UserEntitiesDelegate::class);
     }
 
-    public function it_should_snapshot()
+    function it_should_snapshot()
     {
         $this
             ->snapshot(1000)
             ->shouldReturn(true);
     }
 
-    public function it_should_restore()
+    function it_should_restore()
     {
         foreach (UserEntitiesDelegate::TABLE_KEYS as $i => $tableKey) {
             $this->scroll->request(Argument::that(function (Custom $prepared) use ($tableKey) {
@@ -70,10 +71,9 @@ class UserEntitiesDelegateSpec extends ObjectBehavior
 
         $this
             ->restore(1000)
-            ->shouldReturn(true);
-    }
+            ->shouldReturn(true);    }
 
-    public function it_should_hide()
+    function it_should_hide()
     {
         foreach (UserEntitiesDelegate::TABLE_KEYS as $i => $tableKey) {
             $this->scroll->request(Argument::that(function (Custom $prepared) use ($tableKey) {
@@ -102,7 +102,7 @@ class UserEntitiesDelegateSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_delete()
+    function it_should_delete()
     {
         foreach (UserEntitiesDelegate::TABLE_KEYS as $i => $tableKey) {
             $this->scroll->request(Argument::that(function (Custom $prepared) use ($tableKey) {

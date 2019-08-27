@@ -5,10 +5,5 @@ $finder = PhpCsFixer\Finder::create()
     ->in(__DIR__);
 
 return PhpCsFixer\Config::create()
-    ->setRules([
-        '@PSR2' => true,
-        'strict_param' => true,
-        'array_syntax' => ['syntax' => 'short'],
-        'no_blank_lines_after_class_opening' => true,
-    ])
-    ->setFinder($finder);
+      ->fixers(['psr2', 'strict_param', 'short_array_syntax', 'no_blank_lines_after_class_opening'])
+      ->finder($finder);

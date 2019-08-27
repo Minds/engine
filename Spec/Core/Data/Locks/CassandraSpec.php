@@ -9,19 +9,20 @@ use Prophecy\Argument;
 
 class CassandraSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Data\Locks\Cassandra');
     }
 
-    public function it_should_throw_if_calling_isLocked_but_no_key_is_set(Client $db)
+    function it_should_throw_if_calling_isLocked_but_no_key_is_set(Client $db)
     {
+
         $this->beConstructedWith($db);
 
         $this->shouldThrow(KeyNotSetupException::class)->during('isLocked');
     }
 
-    public function it_should_check_if_its_locked(Client $db)
+    function it_should_check_if_its_locked(Client $db)
     {
         $this->beConstructedWith($db);
 
@@ -34,7 +35,7 @@ class CassandraSpec extends ObjectBehavior
         $this->isLocked()->shouldReturn(true);
     }
 
-    public function it_should_throw_if_calling_lock_but_no_key_is_set(Client $db)
+    function it_should_throw_if_calling_lock_but_no_key_is_set(Client $db)
     {
         $this->beConstructedWith($db);
 
@@ -42,7 +43,7 @@ class CassandraSpec extends ObjectBehavior
     }
 
 
-    public function it_should_lock(Client $db)
+    function it_should_lock(Client $db)
     {
         $this->beConstructedWith($db);
 
@@ -60,14 +61,14 @@ class CassandraSpec extends ObjectBehavior
         $this->lock();
     }
 
-    public function it_should_throw_if_calling_unlock_but_no_key_is_set(Client $db)
+    function it_should_throw_if_calling_unlock_but_no_key_is_set(Client $db)
     {
         $this->beConstructedWith($db);
 
         $this->shouldThrow(KeyNotSetupException::class)->during('unlock');
     }
 
-    public function it_should_unlock(Client $db)
+    function it_should_unlock(Client $db)
     {
         $this->beConstructedWith($db);
 

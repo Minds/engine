@@ -15,6 +15,7 @@ use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
+
     /** @var Repository */
     private $repository;
     /** @var EntitiesBuilder */
@@ -22,12 +23,13 @@ class ManagerSpec extends ObjectBehavior
     /** @var CheckRateLimit */
     private $checkRateLimit;
 
-    public function let(
+    function let(
         Repository $repository,
         EntitiesBuilder $entitiesBuilder,
         SubscriptionsManager $subscriptionsManager,
         CheckRateLimit $checkRateLimit
-    ) {
+    )
+    {
         $this->repository = $repository;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->checkRateLimit = $checkRateLimit;
@@ -35,12 +37,12 @@ class ManagerSpec extends ObjectBehavior
         $this->beConstructedWith($repository, $entitiesBuilder, null, $subscriptionsManager, $checkRateLimit);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_return_a_list_of_suggested_users()
+    function it_should_return_a_list_of_suggested_users()
     {
         $response = new Response();
         $response[] = (new Suggestion)
@@ -84,7 +86,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(789);
     }
 
-    public function it_shouldnt_return_a_list_of_suggested_users_if_close_too_close_to_the_rate_limit_threshold()
+    function it_shouldnt_return_a_list_of_suggested_users_if_close_too_close_to_the_rate_limit_threshold()
     {
         $this->checkRateLimit->check(123)
             ->shouldBeCalled()
@@ -96,4 +98,6 @@ class ManagerSpec extends ObjectBehavior
 
         $newResponse->count()->shouldBe(0);
     }
+
+
 }

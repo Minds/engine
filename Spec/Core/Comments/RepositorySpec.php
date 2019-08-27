@@ -20,7 +20,7 @@ class RepositorySpec extends ObjectBehavior
     /** @var LegacyRepository */
     protected $legacyRepository;
 
-    public function let(
+    function let(
         Client $cql,
         LegacyRepository $legacyRepository
     ) {
@@ -33,12 +33,12 @@ class RepositorySpec extends ObjectBehavior
         $this->legacyRepository = $legacyRepository;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Comments\Repository');
     }
 
-    public function it_should_get_list()
+    function it_should_get_list()
     {
         $row = [
             'entity_guid' => null,
@@ -77,9 +77,10 @@ class RepositorySpec extends ObjectBehavior
         expect($return->getWrappedObject()->getPagingToken())->shouldBe(base64_encode('phpspec'));
     }
 
-    public function it_should_get(
+    function it_should_get(
         Comment $comment
-    ) {
+    )
+    {
         $row = [
             'entity_guid' => null,
             'parent_guid' => null,
@@ -111,7 +112,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturnAnInstanceOf(Comment::class);
     }
 
-    public function it_should_get_null()
+    function it_should_get_null()
     {
         $this->legacyRepository->getList(Argument::cetera())
             ->shouldNotBeCalled();
@@ -124,7 +125,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(null);
     }
 
-    public function it_should_count()
+    function it_should_count()
     {
         $this->legacyRepository->isLegacy(5000)
             ->shouldBeCalled()
@@ -142,7 +143,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(3);
     }
 
-    public function it_should_return_zero_if_no_entity_during_count()
+    function it_should_return_zero_if_no_entity_during_count()
     {
         $this->cql->request(Argument::cetera())
             ->shouldNotBeCalled();
@@ -152,7 +153,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(0);
     }
 
-    public function it_should_count_legacy()
+    function it_should_count_legacy()
     {
         $this->legacyRepository->isLegacy(5000)
             ->shouldBeCalled()
@@ -180,7 +181,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(0);
     }*/
 
-    public function it_should_return_zero_if_no_result_during_count()
+    function it_should_return_zero_if_no_result_during_count()
     {
         $this->legacyRepository->isLegacy(5000)
             ->shouldBeCalled()
@@ -198,9 +199,10 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(0);
     }
 
-    public function it_should_add(
+    function it_should_add(
         Comment $comment
-    ) {
+    )
+    {
         $comment->getRepliesCount()
             ->shouldBeCalled()
             ->willReturn(0);
@@ -268,9 +270,10 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_add_with_a_single_attribute(
+    function it_should_add_with_a_single_attribute(
         Comment $comment
-    ) {
+    )
+    {
         $comment->getBody()
             ->shouldBeCalled()
             ->willReturn('hello');
@@ -300,9 +303,10 @@ class RepositorySpec extends ObjectBehavior
 
     // Update is not tested because it's just a wrapper for add()
 
-    public function it_should_delete(
+    function it_should_delete(
         Comment $comment
-    ) {
+    )
+    {
         $comment->getEntityGuid()
             ->shouldBeCalled()
             ->willReturn(5000);
@@ -339,9 +343,10 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_return_false_if_throws_during_delete(
+    function it_should_return_false_if_throws_during_delete(
         Comment $comment
-    ) {
+    )
+    {
         $comment->getEntityGuid()
             ->shouldBeCalled()
             ->willReturn(5000);
@@ -374,9 +379,10 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_delete_with_legacy(
+    function it_should_delete_with_legacy(
         Comment $comment
-    ) {
+    )
+    {
         $comment->getEntityGuid()
             ->shouldBeCalled()
             ->willReturn(5000);
@@ -414,7 +420,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function getMatchers()
+    function getMatchers()
     {
         $matchers = [];
 

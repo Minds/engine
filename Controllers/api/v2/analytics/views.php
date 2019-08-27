@@ -3,12 +3,14 @@
 
 namespace Minds\Controllers\api\v2\analytics;
 
+
 use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Helpers\Counters;
 use Minds\Interfaces;
+
 
 class views implements Interfaces\Api
 {
@@ -126,4 +128,5 @@ class views implements Interfaces\Api
     {
         return Factory::response([]);
     }
+
 }

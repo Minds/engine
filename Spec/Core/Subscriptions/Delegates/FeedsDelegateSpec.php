@@ -10,20 +10,21 @@ use Prophecy\Argument;
 
 class FeedsDelegateSpec extends ObjectBehavior
 {
+
     private $feed;
 
-    public function let(Call $feed)
+    function let(Call $feed)
     {
         $this->beConstructedWith($feed);
         $this->feed = $feed;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(FeedsDelegate::class);
     }
 
-    public function it_should_copy()
+    function it_should_copy()
     {
         $this->feed->getRow('activity:user:456', [ 'limit' => 12 ])
             ->shouldBeCalled()
@@ -47,7 +48,7 @@ class FeedsDelegateSpec extends ObjectBehavior
         $this->copy($subscription);
     }
 
-    public function it_should_remove()
+    function it_should_remove()
     {
         $this->feed->getRow('activity:user:456', [ 'limit' => 100 ])
             ->shouldBeCalled()
@@ -70,4 +71,5 @@ class FeedsDelegateSpec extends ObjectBehavior
 
         $this->remove($subscription);
     }
+
 }

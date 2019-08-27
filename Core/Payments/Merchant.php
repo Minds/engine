@@ -290,7 +290,7 @@ class Merchant
 
     public function setDestination($destination)
     {
-        if (!in_array($destination, ['bank', 'email'], true)) {
+        if (!in_array($destination, array('bank', 'email'))) {
             throw new \Exception("$destination is not a valid payout method");
         }
         $this->destination = $destination;

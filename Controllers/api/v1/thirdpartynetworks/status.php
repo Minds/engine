@@ -1,6 +1,5 @@
 <?php
 namespace Minds\Controllers\api\v1\thirdpartynetworks;
-
 /**
  * Minds TPN General endpoint
  */
@@ -11,6 +10,7 @@ use Minds\Api\Factory;
 
 class status implements Interfaces\Api
 {
+
     /**
      * Get request
      * @param array $pages
@@ -37,7 +37,7 @@ class status implements Interfaces\Api
      */
     public function put($pages)
     {
-        return Factory::response([]);
+        return Factory::response(array());
     }
 
     /**

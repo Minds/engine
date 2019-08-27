@@ -11,17 +11,18 @@ use Minds\Core\Security\AbuseGuard\AccusedEntity;
 
 class RecoverSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Security\AbuseGuard\Recover');
     }
 
-    public function it_should_set_accused(AccusedEntity $accused)
+    function it_should_set_accused(AccusedEntity $accused)
     {
         $this->setAccused($accused)->shouldReturn($this);
     }
 
-    public function it_should_recover(Client $client, AccusedEntity $accused, User $user)
+    function it_should_recover(Client $client, AccusedEntity $accused, User $user)
     {
         $this->beConstructedWith($client);
 

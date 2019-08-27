@@ -10,12 +10,13 @@ use Minds\Core\Security\AbuseGuard\AccusedEntity;
 
 class AbuseGuardSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Security\AbuseGuard');
     }
 
-    public function it_should_get_total_scores(Aggregates $aggregates)
+    function it_should_get_total_scores(Aggregates $aggregates)
     {
         $aggregates->setPeriod(Argument::type('int'), Argument::type('int'))->shouldBeCalled();
         $aggregates->fetch()->willReturn([
@@ -34,7 +35,7 @@ class AbuseGuardSpec extends ObjectBehavior
         $this->getTotal()->shouldReturn(3);
     }
 
-    public function it_should_return_correct_total_accused(Aggregates $aggregates)
+    function it_should_return_correct_total_accused(Aggregates $aggregates)
     {
         $aggregates->setPeriod(Argument::type('int'), Argument::type('int'))->shouldBeCalled();
         $aggregates->fetch()->willReturn([
@@ -54,4 +55,5 @@ class AbuseGuardSpec extends ObjectBehavior
         $this->getTotal()->shouldReturn(3);
         $this->getTotalAccused()->shouldReturn(2);
     }
+
 }

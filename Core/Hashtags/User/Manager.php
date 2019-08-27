@@ -11,6 +11,7 @@ use Minds\Entities\User;
 
 class Manager
 {
+
     /** @var User $user */
     private $user;
 

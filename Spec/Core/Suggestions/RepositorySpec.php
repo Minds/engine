@@ -12,16 +12,17 @@ use Prophecy\Argument;
 
 class RepositorySpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    public function it_should_return_a_list_of_suggestions(Client $es)
+    function it_should_return_a_list_of_suggestions(Client $es)
     {
         $this->beConstructedWith($es);
 
-        $es->request(Argument::that(function ($prepared) {
+        $es->request(Argument::that(function($prepared) {
             $query = $prepared->build();
             $must = $query['body']['query']['bool']['must'];
             $must_not = $query['body']['query']['bool']['must_not'];
@@ -68,4 +69,5 @@ class RepositorySpec extends ObjectBehavior
         $response[1]->getConfidenceScore()
             ->shouldBe(5);
     }
+
 }

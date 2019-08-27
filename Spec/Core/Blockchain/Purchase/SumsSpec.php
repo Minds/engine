@@ -11,19 +11,19 @@ class SumsSpec extends ObjectBehavior
     /** @var Client */
     private $db;
 
-    public function let(Client $db)
+    function let(Client $db)
     {
         $this->beConstructedWith($db);
 
         $this->db = $db;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blockchain\Purchase\Sums');
     }
 
-    public function it_should_get_the_total_amount()
+    function it_should_get_the_total_amount()
     {
         $this->db->request(Argument::any())
             ->willReturn([
@@ -34,7 +34,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn('12000');
     }
 
-    public function it_should_get_the_total_amount_but_return_0()
+    function it_should_get_the_total_amount_but_return_0()
     {
         $this->db->request(Argument::any())
             ->willReturn([]);
@@ -43,7 +43,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn(0);
     }
 
-    public function it_should_get_the_total_amount_but_encounter_a_database_error()
+    function it_should_get_the_total_amount_but_encounter_a_database_error()
     {
         $this->db->request(Argument::any())
             ->willThrow(new \Exception());
@@ -53,7 +53,7 @@ class SumsSpec extends ObjectBehavior
     }
 
 
-    public function it_sould_get_the_total_count()
+    function it_sould_get_the_total_count()
     {
         $this->db->request(Argument::any())
             ->willReturn([
@@ -64,7 +64,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn('12');
     }
 
-    public function it_should_get_the_total_count_but_not_find_any_entry()
+    function it_should_get_the_total_count_but_not_find_any_entry()
     {
         $this->db->request(Argument::any())
             ->willReturn([]);
@@ -73,7 +73,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn(0);
     }
 
-    public function it_should_get_the_total_count_but_encounter_a_database_error()
+    function it_should_get_the_total_count_but_encounter_a_database_error()
     {
         $this->db->request(Argument::any())
             ->willThrow(new \Exception());
@@ -82,7 +82,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn(0);
     }
 
-    public function it_should_get_the_requested_amount()
+    function it_should_get_the_requested_amount()
     {
         $this->db->request(Argument::that(function ($query) {
             $built = $query->build();
@@ -99,7 +99,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn('100');
     }
 
-    public function it_should_get_the_requested_amount_but_not_find_any_entry()
+    function it_should_get_the_requested_amount_but_not_find_any_entry()
     {
         $this->db->request(Argument::that(function ($query) {
             $built = $query->build();
@@ -114,7 +114,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn(0);
     }
 
-    public function it_should_get_the_requested_amount_but_encounter_a_database_error()
+    function it_should_get_the_requested_amount_but_encounter_a_database_error()
     {
         $this->db->request(Argument::that(function ($query) {
             $built = $query->build();
@@ -129,7 +129,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn(0);
     }
 
-    public function it_should_get_issued_amount()
+    function it_should_get_issued_amount()
     {
         $this->db->request(Argument::that(function ($query) {
             $built = $query->build();
@@ -144,7 +144,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn('100');
     }
 
-    public function it_should_get_issued_amount_but_not_find_any_entry()
+    function it_should_get_issued_amount_but_not_find_any_entry()
     {
         $this->db->request(Argument::that(function ($query) {
             $built = $query->build();
@@ -159,7 +159,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn(0);
     }
 
-    public function it_should_get_issued_amount_but_encounter_a_database_error()
+    function it_should_get_issued_amount_but_encounter_a_database_error()
     {
         $this->db->request(Argument::that(function ($query) {
             $built = $query->build();
@@ -174,7 +174,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn(0);
     }
 
-    public function it_should_get_unissued_amount()
+    function it_should_get_unissued_amount()
     {
         $this->db->request(Argument::that(function ($query) {
             $built = $query->build();
@@ -191,7 +191,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn('70');
     }
 
-    public function it_should_get_unissued_amount_but_not_find_any_entry()
+    function it_should_get_unissued_amount_but_not_find_any_entry()
     {
         $this->db->request(Argument::that(function ($query) {
             $built = $query->build();
@@ -208,7 +208,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn(0);
     }
 
-    public function it_should_get_unissued_amount_but_encounter_a_database_error()
+    function it_should_get_unissued_amount_but_encounter_a_database_error()
     {
         $this->db->request(Argument::that(function ($query) {
             $built = $query->build();
@@ -224,4 +224,5 @@ class SumsSpec extends ObjectBehavior
         $this->getUnissuedAmount('hash')
             ->shouldReturn(0);
     }
+
 }

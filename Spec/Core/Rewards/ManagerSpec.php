@@ -13,16 +13,18 @@ use Minds\Entities\User;
 
 class ManagerSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Rewards\Manager');
     }
 
-    public function it_should_sync_contributions_to_rewards(
+    function it_should_sync_contributions_to_rewards(
         ContributionsManager $contributions,
         Transactions $transactions,
         Repository $txRepository
-    ) {
+    )
+    {
         $this->beConstructedWith($contributions, $transactions, $txRepository);
 
         $from = strtotime('midnight tomorrow -24 hours', time()) * 1000;
@@ -62,7 +64,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(20);
 
-        $txRepository->add(Argument::that(function ($transaction) {
+        $txRepository->add(Argument::that(function($transaction) {
             return true;
         }))
             ->shouldBeCalled();
@@ -76,11 +78,12 @@ class ManagerSpec extends ObjectBehavior
         $this->sync()->getTimestamp()->shouldBe(strtotime('-1 second', $to / 1000));
     }
 
-    public function it_should_not_allow_duplicate_rewards_to_be_sent(
+    function it_should_not_allow_duplicate_rewards_to_be_sent(
         ContributionsManager $contributions,
         Transactions $transactions,
         Repository $txRepository
-    ) {
+    )
+    {
         $this->beConstructedWith($contributions, $transactions, $txRepository);
 
         $txRepository->getList([
@@ -97,11 +100,12 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn([(new Transaction)]);
 
         $user = new User;
-        $user->guid = 123;
+        $user->guid = 123;   
         $this->setUser($user)
             ->setFrom(time() * 1000)
             ->setTo(time() * 1000);
 
         $this->shouldThrow('\Exception')->duringSync();
     }
+
 }

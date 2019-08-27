@@ -15,6 +15,7 @@ use Minds\Traits\MagicAttributes;
 
 class Group extends NormalizedEntity
 {
+
     use MagicAttributes;
 
     protected $type = 'group';
@@ -560,14 +561,14 @@ class Group extends NormalizedEntity
 
         $user_guid = is_object($user) ? $user->guid : $user;
 
-        return $this->isCreator($user) || in_array($user_guid, $this->getOwnerGuids(), true);
+        return $this->isCreator($user) || in_array($user_guid, $this->getOwnerGuids());
     }
 
-    /**
-    * Checks if a user is moderator
-    * @param  User    $user
-    * @return boolean
-    */
+     /**
+     * Checks if a user is moderator
+     * @param  User    $user
+     * @return boolean
+     */
     public function isModerator($user = null)
     {
         if (!$user) {
@@ -576,7 +577,7 @@ class Group extends NormalizedEntity
 
         $user_guid = is_object($user) ? $user->guid : $user;
 
-        return in_array($user_guid, $this->getModeratorGuids(), true);
+        return in_array($user_guid, $this->getModeratorGuids());
     }
 
     /**
@@ -672,10 +673,10 @@ class Group extends NormalizedEntity
         $pinned = $this->getPinnedPosts();
         if (!$pinned) {
             $pinned = [];
-        } elseif (count($pinned) > 2) {
+        } else if (count($pinned) > 2) {
             array_shift($pinned);
         }
-        if (array_search($guid, $pinned, true) === false) {
+        if (array_search($guid, $pinned) === false) {
             $pinned[] = (string) $guid;
             $this->setPinnedPosts($pinned);
         }
@@ -688,7 +689,7 @@ class Group extends NormalizedEntity
     {
         $pinned = $this->getPinnedPosts();
         if ($pinned && count($pinned) > 0) {
-            $index = array_search((string)$guid, $pinned, true);
+            $index = array_search((string)$guid, $pinned);
             if (is_numeric($index)) {
                 array_splice($pinned, $index, 1);
                 $this->pinned_posts = $pinned;
@@ -701,8 +702,7 @@ class Group extends NormalizedEntity
      * @param array $pinned
      * @return $this
      */
-    public function setPinnedPosts($pinned)
-    {
+    public function setPinnedPosts($pinned) {
         if (count($pinned) > 3) {
             $pinned = array_slice($pinned, 0, 3);
         }
@@ -713,9 +713,8 @@ class Group extends NormalizedEntity
      * Gets the group's pinned posts
      * @return array
      */
-    public function getPinnedPosts()
-    {
-        if (is_string($this->pinned_posts)) {
+    public function getPinnedPosts() {
+        if(is_string($this->pinned_posts)) {
             return json_decode($this->pinned_posts);
         }
         return $this->pinned_posts;
@@ -759,10 +758,10 @@ class Group extends NormalizedEntity
         return $this->rating;
     }
 
-    /**
-    * Get NSFW options
-    * @return array
-    */
+     /**
+     * Get NSFW options
+     * @return array
+     */
     public function getNsfw()
     {
         $array = [];
@@ -791,7 +790,7 @@ class Group extends NormalizedEntity
         $this->nsfw = $array;
         return $this;
     }
-    
+	
     /**
      * Get NSFW Lock options.
      *
@@ -809,7 +808,7 @@ class Group extends NormalizedEntity
 
         return $array;
     }
-    
+	
     /**
      * Set NSFW lock tags for administrators. Users cannot remove these themselves.
      *
@@ -872,4 +871,5 @@ class Group extends NormalizedEntity
     {
         return "urn:group:{$this->guid}";
     }
+
 }

@@ -23,25 +23,27 @@ class CommentsDelegateSpec extends ObjectBehavior
     /** @var CommentManager */
     protected $commentManager;
 
-    public function let(
+    function let(
         Repository $repository,
         ElasticSearchClient $elasticsearch,
         CommentManager $commentManager
-    ) {
+    )
+    {
         $this->beConstructedWith($repository, $elasticsearch, $commentManager);
         $this->repository = $repository;
         $this->elasticsearch = $elasticsearch;
         $this->commentManager = $commentManager;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(CommentsDelegate::class);
     }
 
-    public function it_should_snapshot(
+    function it_should_snapshot(
         Comment $commentMock
-    ) {
+    )
+    {
         $this->elasticsearch->request(Argument::that(function (PreparedSearch $search) {
             $query = $search->build();
 
@@ -81,10 +83,11 @@ class CommentsDelegateSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_restore(
+    function it_should_restore(
         Snapshot $snapshotMock,
         Comment $commentMock
-    ) {
+    )
+    {
         $this->repository->getList([
             'user_guid' => 1000,
             'type' => 'comments',
@@ -108,9 +111,10 @@ class CommentsDelegateSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_hide(
+    function it_should_hide(
         Comment $commentMock
-    ) {
+    )
+    {
         $this->elasticsearch->request(Argument::that(function (PreparedSearch $search) {
             $query = $search->build();
 
@@ -148,9 +152,10 @@ class CommentsDelegateSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_delete(
+    function it_should_delete(
         Comment $commentMock
-    ) {
+    )
+    {
         $this->elasticsearch->request(Argument::that(function (PreparedSearch $search) {
             $query = $search->build();
 

@@ -8,6 +8,7 @@ use Minds\Interfaces\ModuleInterface;
 
 class Manager
 {
+
     /** @param Sampler $sampler */
     private $sampler;
 
@@ -64,4 +65,5 @@ class Manager
 
         return $this->sampler->getBucket();
     }
+
 }

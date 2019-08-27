@@ -20,7 +20,7 @@ use Minds\Core\config;
 
 class Call
 {
-    public static $keys = [];
+    public static $keys = array();
     public static $reads = 0;
     public static $writes = 0;
     public static $deletes = 0;
@@ -37,7 +37,8 @@ class Call
         $receiveTimeout = 2000,
         $pool = null,
         $cql = null
-    ) {
+    )
+    {
         global $CONFIG;
 
         $this->servers = $servers ?: $CONFIG->cassandra->servers;
@@ -78,7 +79,7 @@ class Call
         return new ColumnFamily($this->pool, $cf);
     }
 
-    public function insert($guid = null, array $data = [], $ttl = null, $silent = false)
+    public function insert($guid = null, array $data = array(), $ttl = null, $silent = false)
     {
         if (!$guid) {
             $guid = Core\Guid::build();
@@ -114,7 +115,7 @@ class Call
         return $guid;
     }
 
-    public function insertBatch($rows = [])
+    public function insertBatch($rows = array())
     {
         return $this->cf->batch_insert($rows);
     }
@@ -140,7 +141,7 @@ class Call
      * @param $expressions - an array of expressions
      * @return array
      */
-    public function getByIndex(array $expressions = [], $offset = "", $limit = 10)
+    public function getByIndex(array $expressions = array(), $offset = "", $limit = 10)
     {
         foreach ($expressions as $column => $value) {
             $index_exps[] = new IndexExpression($column, $value);
@@ -155,12 +156,12 @@ class Call
      * @param int/string $key - the key (row)
      * @param array $options - by default contains offset and limit for the row
      */
-    public function getRow($key, array $options = [])
-    {
-        self::$reads++;
-        array_push(self::$keys, $key);
+     public function getRow($key, array $options = array())
+     {
+         self::$reads++;
+         array_push(self::$keys, $key);
 
-        $options = array_merge(
+         $options = array_merge(
              [
              'multi' => false,
              'offset' => "",
@@ -169,53 +170,53 @@ class Call
              'reversed' => true
             ], $options);
 
-        $query = new Cassandra\Prepared\Custom();
+         $query = new Cassandra\Prepared\Custom();
 
-        $statement = "SELECT * FROM";
-        $values = [];
+         $statement = "SELECT * FROM";
+         $values = [];
 
-        $statement .= " $this->cf_name WHERE key=?";
-        $values = [ (string) $key ];
+         $statement .= " $this->cf_name WHERE key=?";
+         $values = [ (string) $key ];
 
-        if ($options['offset']) {
-            if ($options['reversed']) {
-                $statement .= " AND column1 <= ? AND column1 >= ?";
-                $values[] = (string) $options['offset'];
-                $values[] = (string) $options['finish'];
-            } else {
-                $statement .= ' AND column1 >= ?';
-                $values[] = (string) $options['offset'];
-                if ($options['finish']) {
-                    $statement .= ' AND column1 <= ?';
-                    $values[] = (string) $options['finish'];
-                }
-            }
-        }
+         if ($options['offset']) {
+             if ($options['reversed']) {
+                 $statement .= " AND column1 <= ? AND column1 >= ?";
+                 $values[] = (string) $options['offset'];
+                 $values[] = (string) $options['finish'];
+             } else {
+                 $statement .= ' AND column1 >= ?';
+                 $values[] = (string) $options['offset'];
+                 if ($options['finish']) {
+                     $statement .= ' AND column1 <= ?';
+                     $values[] = (string) $options['finish'];
+                 }
+             }
+         }
 
-        $statement .= $options['reversed'] ? " ORDER BY column1 DESC" : " ORDER BY column1 ASC";
+         $statement .= $options['reversed'] ? " ORDER BY column1 DESC" : " ORDER BY column1 ASC";
 
-        $query->setOpts([
+         $query->setOpts([
              'page_size' => (int) $options['limit'],
          ]);
-        $query->query($statement, $values);
+         $query->query($statement, $values);
 
-        try {
-            $result = $this->client->request($query);
-        } catch (\Exception $e) {
-            return null;
-        }
+         try {
+             $result = $this->client->request($query);
+         } catch (\Exception $e) {
+	        return null;
+         }
 
         if (!$result) {
             return [];
         }
 
-        $object = [];
-        foreach ($result as $row) {
+         $object = [];
+         foreach ($result as $row){
             $row = array_values($row);
             $object[$row[1]] = $row[2];
-        }
-        return $object;
-    }
+         }
+         return $object;
+     }
 
     /**
      * Performs a get requests for multiple keys
@@ -223,7 +224,7 @@ class Call
      * @param int/string $key - the key (row)
      * @param array $options - by default contains offset and limit for the row
      */
-    public function getRows($keys, array $options = [])
+    public function getRows($keys, array $options = array())
     {
         $objects = [];
         $requests = [];
@@ -251,7 +252,7 @@ class Call
         foreach ($requests as $key => $future) {
             if ($result = $future->get()) {
                 $object = [];
-                foreach ($result as $row) {
+                foreach ($result as $row){
                     $row = array_values($row);
                     $object[$row[1]] = $row[2];
                 }
@@ -336,7 +337,7 @@ class Call
      * @param bool $verify - return a count of true or false? (disable if doing batches as this can slow down)
      * @return mixed
      */
-    public function removeAttributes($key, array $attributes = [], $verify = false)
+    public function removeAttributes($key, array $attributes = array(), $verify = false)
     {
         self::$deletes++;
 
@@ -372,17 +373,17 @@ class Call
      * @param array $indexes - an array of indexes
      * @param array $attrs - any specific attributes for the column family to have
      */
-    public function createCF($name, array $indexes = [], array $attrs = [])
+    public function createCF($name, array $indexes = array(), array $attrs = array())
     {
         global $CONFIG;
 
         try {
             $sys = new SystemManager($this->servers[0]);
 
-            $defaults = [    "comparator_type" => "UTF8Type",
+            $defaults = array(    "comparator_type" => "UTF8Type",
                 "key_validation_class" => 'UTF8Type',
                 "default_validation_class" => 'UTF8Type'
-                ];
+                );
             $attrs = array_merge($defaults, $attrs);
 
             $sys->create_column_family($this->keyspace, $name, $attrs);
@@ -434,7 +435,7 @@ class Call
      *
      * @return bool
      */
-    public function createKeyspace(array $attrs = [])
+    public function createKeyspace(array $attrs = array())
     {
         $sys = new SystemManager($this->servers[0]);
         $keyspace = $sys->create_keyspace($this->keyspace, $attrs);
@@ -482,7 +483,7 @@ class Call
      * @return object $object - the object
      * @todo Make a DB specific object rather than stdClass.
      */
-    public function createObject(array $array = [])
+    public function createObject(array $array = array())
     {
         $obj = new \stdClass;
 

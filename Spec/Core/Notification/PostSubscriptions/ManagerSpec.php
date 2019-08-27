@@ -11,7 +11,7 @@ class ManagerSpec extends ObjectBehavior
 {
     protected $repository;
 
-    public function let(
+    function let(
         Repository $repository
     ) {
         $this->beConstructedWith($repository);
@@ -19,26 +19,26 @@ class ManagerSpec extends ObjectBehavior
         $this->repository = $repository;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Notification\PostSubscriptions\Manager');
     }
 
-    public function it_should_set_entity_guid()
+    function it_should_set_entity_guid()
     {
         $this
             ->setEntityGuid(5000)
             ->shouldReturn($this);
     }
 
-    public function it_should_set_user_guid()
+    function it_should_set_user_guid()
     {
         $this
             ->setUserGuid(1000)
             ->shouldReturn($this);
     }
 
-    public function it_should_get()
+    function it_should_get()
     {
         $postSubscription = new PostSubscription();
 
@@ -53,7 +53,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn($postSubscription);
     }
 
-    public function it_should_get_a_non_existing()
+    function it_should_get_a_non_existing()
     {
         $this->repository->get(5000, 1000)
             ->shouldBeCalled()
@@ -66,7 +66,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeAnInstanceOf(PostSubscription::class);
     }
 
-    public function it_should_follow()
+    function it_should_follow()
     {
         $this->repository->add(Argument::type(PostSubscription::class))
             ->shouldBeCalled()
@@ -79,7 +79,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_follow_without_forcing()
+    function it_should_follow_without_forcing()
     {
         $this->repository->update(Argument::type(PostSubscription::class))
             ->shouldBeCalled()
@@ -92,7 +92,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_unfollow()
+    function it_should_unfollow()
     {
         $this->repository->add(Argument::type(PostSubscription::class))
             ->shouldBeCalled()
@@ -105,7 +105,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_unsubscribe()
+    function it_should_unsubscribe()
     {
         $this->repository->delete(Argument::type(PostSubscription::class))
             ->shouldBeCalled()

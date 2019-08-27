@@ -16,7 +16,7 @@ class emails implements Interfaces\Api
 
         $campaigns = [ 'when', 'with', 'global' ];
 
-        $topics = [
+        $topics = [ 
             'unread_notifications',
             'wire_received',
             'boost_completed',
@@ -31,7 +31,7 @@ class emails implements Interfaces\Api
 
         /** @var Core\Email\Repository $rpository */
         $repository = Di::_()->get('Email\Repository');
-        $result = $repository->getList([
+        $result = $repository->getList([ 
             'campaigns' => $campaigns,
             'topics' => $topics,
             'user_guid' => $user->guid,
@@ -47,6 +47,7 @@ class emails implements Interfaces\Api
 
     public function post($pages)
     {
+
         if (Core\Session::getLoggedInUser()->isAdmin() && isset($pages[0])) {
             $user = new User($pages[0]);
         } else {
@@ -83,7 +84,7 @@ class emails implements Interfaces\Api
                         $repository->add($model);
                     } catch (\Exception $e) {
                         return Factory::response([
-                            'status' => 'error',
+                            'status' => 'error', 
                             'message' => $e->getMessage()
                         ]);
                     }
@@ -103,4 +104,5 @@ class emails implements Interfaces\Api
     {
         return Factory::response([]);
     }
+
 }

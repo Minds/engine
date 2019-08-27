@@ -17,20 +17,21 @@ class RepositorySpec extends ObjectBehavior
     /** @var Legacy\Repository */
     protected $legacyRepository;
 
-    public function let(
+    function let(
         Legacy\Repository $legacyRepository
-    ) {
+    )
+    {
         $this->beConstructedWith($legacyRepository);
 
         $this->legacyRepository = $legacyRepository;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blogs\Repository');
     }
 
-    public function it_should_get_list(Response $response)
+    function it_should_get_list(Response $response)
     {
         $opts = [ 'limit' => 123 ];
 
@@ -43,7 +44,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn($response);
     }
 
-    public function it_should_get(Blog $blog)
+    function it_should_get(Blog $blog)
     {
         $this->legacyRepository->get(5000)
             ->shouldBeCalled()
@@ -54,7 +55,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn($blog);
     }
 
-    public function it_should_add(Blog $blog)
+    function it_should_add(Blog $blog)
     {
         $attributes = [ 'attribute1', 'attribute2' ];
 
@@ -75,7 +76,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_update(Blog $blog)
+    function it_should_update(Blog $blog)
     {
         $this->legacyRepository->update($blog)
             ->shouldBeCalled()
@@ -94,7 +95,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_delete(Blog $blog)
+    function it_should_delete(Blog $blog)
     {
         $this->legacyRepository->delete($blog)
             ->shouldBeCalled()

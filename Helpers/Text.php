@@ -86,8 +86,7 @@ class Text
      * @param mixed $value
      * @return string
      */
-    protected static function _buildArrayElement($value)
-    {
+    protected static function _buildArrayElement($value) {
         return (string) $value;
     }
 }

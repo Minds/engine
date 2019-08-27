@@ -13,6 +13,7 @@ use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Di\Di;
 
+
 class referrals implements Interfaces\Api
 {
     /**
@@ -37,10 +38,10 @@ class referrals implements Interfaces\Api
         $referrals = $manager->getList($opts);
 
         if (!$referrals) {
-            return Factory::response([
+            return Factory::response(array(
                 'status' => 'error',
                 'message' => 'You have no referrals'
-            ]);
+            ));
         }
 
         $response['referrals'] = Factory::exportable(array_values($referrals->toArray()));
@@ -53,6 +54,7 @@ class referrals implements Interfaces\Api
     // Note: New referrals are added when prospect registers for Minds (in `Core/Events/Hooks/Register.php`)
     public function post($pages)
     {
+
     }
 
     // Notify a prospect to urge them to join the rewards program
@@ -81,7 +83,7 @@ class referrals implements Interfaces\Api
             ->setProspectGuid($prospect_guid);
 
         $manager = Di::_()->get('Referrals\Manager');
-        if (!$manager->ping($referral)) {
+        if(!$manager->ping($referral)){
             return Factory::response([
                 'status' => 'error',
                 'done' => false,

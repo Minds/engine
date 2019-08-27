@@ -55,7 +55,8 @@ class Ban
         $banDelegate = null,
         $unbanDelegate = null,
         $queueClient = null
-    ) {
+    )
+    {
         $this->artifactsDelegatesFactory = $artifactsDelegatesFactory ?: new Delegates\Artifacts\Factory();
         $this->logoutDelegate = $logoutDelegate ?: new Delegates\Logout();
         $this->banDelegate = $banDelegate ?: new Delegates\Ban();

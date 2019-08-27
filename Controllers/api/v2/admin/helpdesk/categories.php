@@ -32,6 +32,7 @@ class categories implements Api, ApiAdminPam
                 ->setParentUuid($parent_uuid);
 
             $manager->add($entity);
+
         } catch (\Exception $e) {
             return Factory::response(['status' => 'error', 'message' => $e->getMessage()]);
         }
@@ -70,4 +71,5 @@ class categories implements Api, ApiAdminPam
         }
         return $_POST[$param] ?: null;
     }
+
 }

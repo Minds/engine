@@ -37,8 +37,9 @@ $CONFIG->payments = [
     ],
   ]];
 
-class Mock
+class Mock 
 {
+
     private $a;
 
     const BATCH_COUNTER = null;
@@ -79,10 +80,12 @@ class Mock
 
     public function request()
     {
+
     }
 
     public function create()
     {
+      
     }
 
     public function withContactPoints()
@@ -97,18 +100,22 @@ class Mock
 
     public static function text()
     {
+      
     }
 
     public static function varint()
     {
+
     }
 
     public static function bigint()
     {
+
     }
 
     public static function timestamp()
     {
+
     }
 
     public function uuid()
@@ -178,10 +185,12 @@ class Mock
 
     public static function get()
     {
+
     }
 
     public static function boolean()
     {
+
     }
 
     public static function set(...$args)
@@ -191,6 +200,7 @@ class Mock
 
     public function add()
     {
+
     }
 }
 
@@ -247,11 +257,14 @@ class MockCollectionValues implements ArrayAccess
 
     public function offsetSet($offset, $value)
     {
+
     }
     
     public function offsetUnset($offset)
     {
+
     }
+
 }
 
 class MockSet
@@ -298,6 +311,6 @@ if (!class_exists('Cassandra')) {
     class_alias('Mock', 'Cassandra\RetryPolicy\DowngradingConsistency');
 }
 
-Minds\Core\Di\Di::_()->bind('Database\Cassandra\Cql', function ($di) {
+Minds\Core\Di\Di::_()->bind('Database\Cassandra\Cql', function($di) {
     return new Mock;
 });

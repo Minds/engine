@@ -74,7 +74,7 @@ class Vote
      */
     public function setDirection($direction)
     {
-        if (!in_array($direction, [ 'up', 'down'], true)) {
+        if (!in_array($direction, [ 'up', 'down'])) {
             throw new \Exception('Invalid direction');
         }
         $this->direction = $direction;
@@ -89,4 +89,5 @@ class Vote
     {
         return $this->direction;
     }
+
 }

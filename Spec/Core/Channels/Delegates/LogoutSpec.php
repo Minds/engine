@@ -11,12 +11,13 @@ use Prophecy\Argument;
 
 class LogoutSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType(Logout::class);
     }
 
-    public function it_should_logout(Sessions $sessions)
+    function it_should_logout(Sessions $sessions)
     {
         $this->beConstructedWith($sessions);
         $user = new User();
@@ -27,4 +28,5 @@ class LogoutSpec extends ObjectBehavior
 
         $this->logout($user);
     }
+
 }

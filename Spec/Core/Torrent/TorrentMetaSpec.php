@@ -12,7 +12,7 @@ class TorrentMetaSpec extends ObjectBehavior
 {
     protected $torrentBuilder;
 
-    public function let(
+    function let(
         TorrentBuilderInterface $torrentBuilder
     ) {
         $this->beConstructedWith($torrentBuilder);
@@ -20,12 +20,12 @@ class TorrentMetaSpec extends ObjectBehavior
         $this->torrentBuilder = $torrentBuilder;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Torrent\TorrentMeta');
     }
 
-    public function it_should_get_name()
+    function it_should_get_name()
     {
         $this
             ->setSource('https://minds.test/phpspec/360.mp4')
@@ -33,9 +33,10 @@ class TorrentMetaSpec extends ObjectBehavior
             ->shouldReturn('a181d1d8d208e9b1717b2d9a56b7ca1afbe6510a.mp4');
     }
 
-    public function it_should_get_torrent(
+    function it_should_get_torrent(
         Video $video
-    ) {
+    )
+    {
         $video->get('guid')
             ->willReturn('5000');
 

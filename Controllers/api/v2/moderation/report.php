@@ -107,4 +107,5 @@ class report implements Interfaces\Api
     {
         return Factory::response([]);
     }
+
 }

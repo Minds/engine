@@ -24,12 +24,13 @@ class ManagerSpec extends ObjectBehavior
     /** @var EventsDispatcher */
     protected $dispatcher;
 
-    public function let(
+    function let(
         ACL $acl,
         Counters $counters,
         Indexes $indexes,
     EventsDispatcher $dispatcher
-    ) {
+    )
+    {
         $this->acl = $acl;
         $this->counters = $counters;
         $this->indexes = $indexes;
@@ -38,16 +39,17 @@ class ManagerSpec extends ObjectBehavior
         $this->beConstructedWith($counters, $indexes, $acl, $dispatcher);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Votes\Manager');
     }
 
-    public function it_should_cast(
+    function it_should_cast(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $vote->getEntity()->willReturn($entity);
         $vote->getActor()->willReturn($user);
         $vote->getDirection()->willReturn('up');
@@ -68,7 +70,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_cast_and_send_a_vote_event(
+    function it_should_cast_and_send_a_vote_event(
         Vote $vote,
         Activity $entity,
         User $user
@@ -93,11 +95,12 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_throw_during_insert_if_cannot_interact(
+    function it_should_throw_during_insert_if_cannot_interact(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $vote->getEntity()->willReturn($entity);
         $vote->getActor()->willReturn($user);
         $vote->getDirection()->willReturn('up');
@@ -116,11 +119,12 @@ class ManagerSpec extends ObjectBehavior
             ->duringCast($vote, [ 'events' => false ]);
     }
 
-    public function it_should_cancel(
+    function it_should_cancel(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $vote->getEntity()->willReturn($entity);
         $vote->getActor()->willReturn($user);
 
@@ -136,11 +140,12 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_cancel_and_send_a_vote_cancel_event(
+    function it_should_cancel_and_send_a_vote_cancel_event(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $vote->getEntity()->willReturn($entity);
         $vote->getActor()->willReturn($user);
         $vote->getDirection()->willReturn('up');
@@ -158,11 +163,12 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_be_true_if_has(
+    function it_should_be_true_if_has(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $vote->getEntity()->willReturn($entity);
         $vote->getActor()->willReturn($user);
 
@@ -174,11 +180,12 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_be_false_if_not_has(
+    function it_should_be_false_if_not_has(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $vote->getEntity()->willReturn($entity);
         $vote->getActor()->willReturn($user);
 
@@ -190,11 +197,12 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_toggle_on(
+    function it_should_toggle_on(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $vote->getEntity()->willReturn($entity);
         $vote->getActor()->willReturn($user);
         $vote->getDirection()->willReturn('up');
@@ -219,11 +227,12 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_toggle_off(
+    function it_should_toggle_off(
         Vote $vote,
         Activity $entity,
         User $user
-    ) {
+    )
+    {
         $vote->getEntity()->willReturn($entity);
         $vote->getActor()->willReturn($user);
 

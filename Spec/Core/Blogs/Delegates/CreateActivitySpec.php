@@ -18,7 +18,7 @@ class CreateActivitySpec extends ObjectBehavior
     /** @var Call */
     protected $db;
 
-    public function let(
+    function let(
         Save $saveAction,
         Call $db
     ) {
@@ -27,15 +27,16 @@ class CreateActivitySpec extends ObjectBehavior
         $this->db = $db;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blogs\Delegates\CreateActivity');
     }
 
-    public function it_should_save_when_no_activity(
+    function it_should_save_when_no_activity(
         Blog $blog,
         User $user
-    ) {
+    )
+    {
         $blog->getOwnerEntity()
             ->shouldBeCalled()
             ->willReturn($user);
@@ -97,9 +98,10 @@ class CreateActivitySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_not_save_when_previous_activity(
+    function it_should_not_save_when_previous_activity(
         Blog $blog
-    ) {
+    )
+    {
         $blog->getGuid()
             ->shouldBeCalled()
             ->willReturn(9999);

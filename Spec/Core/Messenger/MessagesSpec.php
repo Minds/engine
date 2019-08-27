@@ -11,17 +11,19 @@ use Minds\Core\Security\ACL;
 
 class MessagesSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+
+    function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Messenger\Messages');
     }
 
-    public function it_should_return_messages(
+    function it_should_return_messages(
         Entities $entities,
         Indexes $indexes,
         Conversation $conversation,
         ACL $acl
-    ) {
+    )
+    {
         $this->beConstructedWith($entities, $indexes, $acl);
 
         $this->setConversation($conversation);
@@ -46,15 +48,15 @@ class MessagesSpec extends ObjectBehavior
                 ])
             ]);
         
-        $acl->read(Argument::that(function ($entity) {
-            return $entity->getGuid() === 1;
-        }))
+        $acl->read(Argument::that(function($entity) {
+                return $entity->getGuid() === 1;
+            }))
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $acl->read(Argument::that(function ($entity) {
-            return $entity->getGuid() === 2;
-        }))
+        $acl->read(Argument::that(function($entity) {
+                return $entity->getGuid() === 2;
+            }))
             ->shouldBeCalled()
             ->willReturn(false);
         

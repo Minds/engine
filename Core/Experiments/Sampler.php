@@ -11,6 +11,7 @@ use Minds\Core\Data\Cassandra\Prepared;
 
 class Sampler
 {
+
     /** @param Client $cql */
     private $cql;
 
@@ -59,7 +60,7 @@ class Sampler
             $this->buckets['base'] = (new Bucket())
                 ->setId('base')
                 ->setWeight(100 - $pct);
-        }
+         }
 
         if ($pct > 100) {
             throw new \Exception("Your sample weightings for " . get_class($this->hypothesis) . " are over 100");
@@ -128,7 +129,7 @@ class Sampler
     {
         $query = new Prepared\Custom();
         $query->query(
-            "SELECT count(*) as total FROM experiments WHERE id=? and bucket=?",
+            "SELECT count(*) as total FROM experiments WHERE id=? and bucket=?", 
             [ $this->hypothesis->getId(), 'base' ]
         );
 
@@ -164,10 +165,11 @@ class Sampler
     {
         $query = new Prepared\Custom();
         $query->query(
-            "INSERT INTO experiments (id, bucket, key) VALUES (?,?,?)",
+            "INSERT INTO experiments (id, bucket, key) VALUES (?,?,?)", 
             [ $this->hypothesis->getId(), $bucket->getId(), $key ]
         );
 
         $this->cql->request($query, true);
     }
+
 }

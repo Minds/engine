@@ -8,7 +8,7 @@ namespace Minds\Core;
  */
 class views extends base
 {
-    public static $cachables = [];
+    public static $cachables = array();
 
     /**
      * TBD. Not used.
@@ -23,11 +23,11 @@ class views extends base
      * @param string $view
      * @param array  $params Optional.
      */
-    public static function view($view, $params = [])
+    public static function view($view, $params = array())
     {
         global $CONFIG;
 
-        if (in_array($view, self::$cachables, true)) {
+        if (in_array($view, self::$cachables)) {
             $path = $CONFIG->system_cache_path;
             if (!is_dir($path)) {
                 mkdir($path, 0700, true);
@@ -56,8 +56,8 @@ class views extends base
      * @param  string $view
      * @return null
      */
-    public static function cache($view)
-    {
+     public static function cache($view)
+     {
         array_push(self::$cachables, $view);
-    }
+     }
 }

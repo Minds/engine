@@ -3,6 +3,7 @@ namespace Minds\Core\Rewards\Contributions;
 
 class Contribution
 {
+
     protected $metric;
     protected $timestamp;
     protected $amount = 0;
@@ -10,7 +11,7 @@ class Contribution
     protected $user;
 
     /**
-     *
+     * 
      */
     public function setMetric($metric)
     {
@@ -67,8 +68,7 @@ class Contribution
         return $this->user;
     }
 
-    public function export()
-    {
+    public function export() {
         return [
             'metric' => $this->metric,
             'timestamp' => $this->timestamp,

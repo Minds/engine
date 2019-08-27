@@ -20,12 +20,13 @@ class ManagerSpec extends ObjectBehavior
     private $notificationDelegate;
     private $summonDelegate;
 
-    public function let(
+    function let(
         Repository $repository,
         EntitiesResolver $entitiesResolver,
         Delegates\NotificationDelegate $notificationDelegate,
         Delegates\SummonDelegate $summonDelegate
-    ) {
+    )
+    {
         $this->beConstructedWith($repository, $entitiesResolver, $notificationDelegate, $summonDelegate);
         $this->repository = $repository;
         $this->entitiesResolver = $entitiesResolver;
@@ -33,12 +34,12 @@ class ManagerSpec extends ObjectBehavior
         $this->summonDelegate = $summonDelegate;
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_return_a_list_of_hydrated_reports()
+    function it_should_return_a_list_of_hydrated_reports()
     {
         $this->repository->getList([
             'hydrate' => true,
@@ -77,7 +78,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(456);
     }
 
-    public function it_should_add_appeal_to_repository(Appeal $appeal, Report $report)
+    function it_should_add_appeal_to_repository(Appeal $appeal, Report $report)
     {
         $this->repository->add($appeal)
             ->shouldBeCalled()
@@ -100,7 +101,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    public function it_should_NOT_add_appeal_to_repository_if_not_been_to_initial_jury(Appeal $appeal, Report $report)
+    function it_should_NOT_add_appeal_to_repository_if_not_been_to_initial_jury(Appeal $appeal, Report $report)
     {
         $this->repository->add($appeal)
             ->shouldNotBeCalled()
@@ -118,4 +119,5 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow('Minds\Core\Reports\Appeals\NotAppealableException')
             ->duringAppeal($appeal);
     }
+
 }

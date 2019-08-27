@@ -14,6 +14,7 @@ use Minds\Core\Messenger;
 
 class keys implements Interfaces\Api
 {
+
     /**
      * Returns the private key belonging to a user
      * @param array $pages
@@ -67,7 +68,7 @@ class keys implements Interfaces\Api
 
         switch ($pages[0]) {
             case "setup":
-                $response = [];
+                $response = array();
                 $keypair = $openssl->generateKeypair($_POST['password']);
 
                 $keystore->setPublicKey($keypair['public'])
@@ -123,11 +124,11 @@ class keys implements Interfaces\Api
 
     public function put($pages)
     {
-        return Factory::response([]);
+        return Factory::response(array());
     }
 
     public function delete($pages)
     {
-        return Factory::response([]);
+        return Factory::response(array());
     }
 }

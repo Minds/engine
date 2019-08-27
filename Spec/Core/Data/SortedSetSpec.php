@@ -17,19 +17,19 @@ class SortedSetSpec extends ObjectBehavior
     /** @var RedisServer */
     protected $redisServer;
 
-    public function let(Redis $redis, RedisServer $redisServer)
+    function let(Redis $redis, RedisServer $redisServer)
     {
         $this->redis = $redis;
         $this->redisServer = $redisServer;
         $this->beConstructedWith($redis);
     }
 
-    public function it_is_initializable()
+    function it_is_initializable()
     {
         $this->shouldHaveType(SortedSet::class);
     }
 
-    public function it_should_not_throttled_when_not_specified()
+    function it_should_not_throttled_when_not_specified()
     {
         $this->redis->forReading()
             ->shouldNotBeCalled();
@@ -41,7 +41,7 @@ class SortedSetSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_throttle_if_within_timeframe()
+    function it_should_throttle_if_within_timeframe()
     {
         $this->redis->forReading()
             ->shouldBeCalled()
@@ -58,7 +58,7 @@ class SortedSetSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_not_throttle_if_outside_timeframe()
+    function it_should_not_throttle_if_outside_timeframe()
     {
         $this->redis->forReading()
             ->shouldBeCalled()
@@ -75,7 +75,7 @@ class SortedSetSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_clean()
+    function it_should_clean()
     {
         $this->redis->forWriting()
             ->shouldBeCalled()
@@ -95,7 +95,7 @@ class SortedSetSpec extends ObjectBehavior
             ->shouldReturn($this);
     }
 
-    public function it_should_set_a_ttl()
+    function it_should_set_a_ttl()
     {
         $this->redis->forWriting()
             ->shouldBeCalled()
@@ -114,7 +114,7 @@ class SortedSetSpec extends ObjectBehavior
             ->expiresIn(360);
     }
 
-    public function it_should_add_an_element()
+    function it_should_add_an_element()
     {
         $this->redis->forWriting()
             ->shouldBeCalled()
@@ -129,7 +129,7 @@ class SortedSetSpec extends ObjectBehavior
             ->add(5, 'foobar');
     }
 
-    public function it_should_add_an_element_lazily()
+    function it_should_add_an_element_lazily()
     {
         $this->redis->forWriting()
             ->shouldBeCalled()
@@ -145,7 +145,7 @@ class SortedSetSpec extends ObjectBehavior
             ->flush(0);
     }
 
-    public function it_should_fetch_elements()
+    function it_should_fetch_elements()
     {
         $this->redis->forReading()
             ->shouldBeCalled()

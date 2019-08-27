@@ -10,6 +10,7 @@ use Minds\Core\Events\EventsDispatcher;
 
 class Notification
 {
+
     /** @var EventsDispatcher */
     protected $dispatcher;
 
@@ -58,5 +59,7 @@ class Notification
             'params' => ['message' => $message],
             'message' => $message,
         ]);
+
     }
+
 }

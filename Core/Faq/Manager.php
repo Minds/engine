@@ -6,6 +6,7 @@ namespace Minds\Core\Faq;
 
 class Manager
 {
+
     protected $categories = [];
 
     public function __construct($csv = null)
@@ -17,7 +18,7 @@ class Manager
     {
         $fo = fopen($this->csv, "r");
         $row = 0;
-        while (($data = fgetcsv($fo, 10000, ",")) !== false) {
+        while (($data = fgetcsv($fo, 10000, ",")) !== FALSE) {
             if ($row++ <= 1) {
                 continue;
             }
@@ -41,9 +42,9 @@ class Manager
         return true;
     }
 
-    public function get()
-    {
+    public function get() {
         $this->build();
         return $this->categories;
     }
+
 }

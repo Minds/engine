@@ -20,8 +20,7 @@ class PlusTokens extends BoostTokens
      * Contructor
      * @param Core\Config\Config $config
      */
-    public function __construct($config = null)
-    {
+    public function __construct($config = null) {
         $config = $config ?: Di::_()->get('Config');
 
         $blockchainConfig = $config->get('blockchain');

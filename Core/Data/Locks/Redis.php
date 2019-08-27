@@ -33,8 +33,7 @@ class Redis
         return $this;
     }
 
-    public function isLocked()
-    {
+    public function isLocked() {
         if (!isset($this->key)) {
             throw new KeyNotSetupException();
         }
