@@ -301,7 +301,7 @@ class boost implements Interfaces\Api
                         $maxDaily = Di::_()->get('Config')->get('max_daily_boost_views') / 1000;
                         return Factory::response([
                             'status' => 'error',
-                            'message' => "Exceeded maximum of ".$maxDaily." offchain tokens per day."
+                            'message' => "Exceeded maximum of ".$maxDaily." offchain tokens per 24 hours."
                         ]);
                     }
                     
