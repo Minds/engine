@@ -195,6 +195,13 @@ class Manager
                 ->setPlainBackgroundColor($values['plain_background_color']);
         }
 
+        if (isset($values['tile_ratio'])) {
+            // TODO: Validate!
+
+            $settings
+                ->setTileRatio($values['tile_ratio']);
+        }
+
         if (isset($values['logo_guid'])) {
             // TODO: Validate!
 

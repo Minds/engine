@@ -93,6 +93,7 @@ class Repository
                         ->setPrimaryColor($data['primary_color'] ?? '')
                         ->setPlainBackgroundColor($data['plain_background_color'] ?? '')
                         ->setLogoGuid($data['logo_guid'] ?? '')
+                        ->setTileRatio($data['tile_ratio'] ?? '')
                         ->setFooterText($data['footer_text'] ?? '')
                         ->setFooterLinks($data['footer_links'] ?? [])
                         ->setTagList($data['tag_list'] ?? [])
@@ -137,6 +138,7 @@ class Repository
                 'text_color' => $settings->getTextColor(),
                 'primary_color' => $settings->getPrimaryColor(),
                 'plain_background_color' => $settings->getPlainBackgroundColor(),
+                'tile_ratio' => $settings->getTileRatio(),
                 'logo_guid' => $settings->getLogoGuid(),
                 'footer_text' => $settings->getFooterText(),
                 'footer_links' => $settings->getFooterLinks(),

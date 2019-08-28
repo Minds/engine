@@ -26,6 +26,8 @@ use Minds\Traits\MagicAttributes;
  * @method Settings setPrimaryColor(string $primaryColor)
  * @method string getPlainBackgroundColor()
  * @method Settings setPlainBackgroundColor(string $plainBackgroundColor)
+ * @method string getTileRatio()
+ * @method Settings setTileRatio(string $tileRatio)
  * @method int|string getLogoGuid()
  * @method Settings setLogoGuid(int|string $logoGuid)
  * @method string getFooterText()
@@ -81,6 +83,9 @@ class Settings implements JsonSerializable
     protected $backgroundImage;
 
     /** @var string */
+    protected $tileRatio;
+
+    /** @var string */
     protected $logoImage;
 
     /** @var string */
@@ -115,6 +120,7 @@ class Settings implements JsonSerializable
             'text_color' => $textColor,
             'primary_color' => $primaryColor,
             'plain_background_color' => $plainBackgroundColor,
+            'tile_ratio' => $this->tileRatio,
             'footer_text' => $this->footerText,
             'footer_links' => $this->footerLinks,
             'tag_list' => $this->tagList,
@@ -127,18 +133,34 @@ class Settings implements JsonSerializable
         ];
     }
 
+    /**
+     * @return array
+     */
     public function buildStyles()
     {
         $textColor = $this->textColor ?: static::DEFAULT_TEXT_COLOR;
         $primaryColor = $this->primaryColor ?: static::DEFAULT_PRIMARY_COLOR;
         $plainBackgroundColor = $this->plainBackgroundColor ?: static::DEFAULT_PLAIN_BACKGROUND_COLOR;
+        $tileRatioPercentage = $this->calcTileRatioPercentage();
 
         return [
             'text_color' => $textColor,
             'primary_color' => $primaryColor,
             'plain_background_color' => $plainBackgroundColor,
             'transparent_background_color' => sprintf("%sa0", $plainBackgroundColor),
+            'tile_ratio' => sprintf("%s%%", $tileRatioPercentage),
         ];
+    }
+
+    /**
+     * @return float
+     */
+    public function calcTileRatioPercentage()
+    {
+        $ratioFragments = explode(':', $this->tileRatio ?: '16:9');
+        $percentage = $ratioFragments[1] / $ratioFragments[0] * 100;
+
+        return round($percentage, 3);
     }
 
     /**
