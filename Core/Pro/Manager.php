@@ -157,21 +157,21 @@ class Manager
             // TODO: Validate!
 
             $settings
-                ->setDomain($values['domain']);
+                ->setDomain(trim($values['domain']));
         }
 
         if (isset($values['title'])) {
             // TODO: Validate!
 
             $settings
-                ->setTitle($values['title']);
+                ->setTitle(trim($values['title']));
         }
 
         if (isset($values['headline'])) {
             // TODO: Validate!
 
             $settings
-                ->setHeadline($values['headline']);
+                ->setHeadline(trim($values['headline']));
         }
 
         if (isset($values['text_color'])) {
@@ -206,14 +206,14 @@ class Manager
             // TODO: Validate!
 
             $settings
-                ->setLogoGuid($values['logo_guid']);
+                ->setLogoGuid(trim($values['logo_guid']));
         }
 
         if (isset($values['footer_text'])) {
             // TODO: Validate!
 
             $settings
-                ->setFooterText($values['footer_text']);
+                ->setFooterText(trim($values['footer_text']));
         }
 
         if (isset($values['footer_links']) && is_array($values['footer_links'])) {
