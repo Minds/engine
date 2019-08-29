@@ -35,6 +35,11 @@ To enable admin functionality, set 'development_mode' to **true** in your settin
 * To run all tests: ```bin/phpsec run```
 * To run a specific spec, include a specific spec file ```bin/phpspec run Spec/Core/Feeds/Suggested/RepositorySpec.php```
 * To run a specific test in a spec, include a specific spec file:line number of the test function: ```bin/phpspec run Spec/Core/Feeds/Suggested/RepositorySpec.php:82```
+
+### Running static analysis
+
+`bin/phpstan analyse --memory-limit=1G`
+
 ## Contributing
 If you'd like to contribute to the Minds project, check out the [Contribution](https://www.minds.org/docs/contributing.html) section of Minds.org or head right over to the [Minds Open Source Community](https://www.minds.com/groups/profile/365903183068794880).  If you've found or fixed a bug, let us know in the [Minds Help and Support Group](https://www.minds.com/groups/profile/100000000000000681/activity)!
 

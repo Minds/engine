@@ -1,0 +1,21 @@
+parameters:
+    level: 1
+    paths:
+        - %currentWorkingDirectory%
+    excludes_analyse:
+        - %currentWorkingDirectory%/vendor
+        - %currentWorkingDirectory%/Spec
+    ignoreErrors:
+        ## Ignoring Cassandra is temporary
+        - 
+            message: '#Instantiated class Cassandra\\[a-zA-Z\\_]+ not found#'
+            path: %currentWorkingDirectory%
+        -
+            message: '#Call to static method text\(\) on an unknown class Cassandra\\Type\\Map#'
+            path: %currentWorkingDirectory%
+        -
+            message: '#Call to static method boolean\(\) on an unknown class Cassandra\\Type\\Map#'
+            path: %currentWorkingDirectory%
+        -
+            message: '#Call to static method varint\(\) on an unknown class Cassandra\\Type\\Set#'
+            path: %currentWorkingDirectory%

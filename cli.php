@@ -11,6 +11,10 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 date_default_timezone_set('UTC');
 
+if (!isset($argv)) {
+    $argv = [];
+}
+
 array_shift($argv);
 
 if (isset($argv[0]) && $argv[0] == 'help') {
@@ -23,7 +27,8 @@ if (isset($argv[0]) && $argv[0] == 'help') {
 if (!$argv) {
     // TODO: list handlers?
     echo "{$_SCRIPTNAME}: specify a controller" . PHP_EOL;
-    exit(1);
+    //exit(1);
+    return;
 }
 
 try {

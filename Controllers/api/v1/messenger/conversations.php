@@ -13,7 +13,6 @@ use Minds\Core\Security;
 use Minds\Entities;
 use Minds\Helpers;
 use Minds\Core\Messenger;
-use Minds\Core\Messenger\Conversations;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Sockets;

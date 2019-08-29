@@ -10,6 +10,11 @@ class CypherQuery implements Interfaces\PreparedInterface
 {
     private $template;
     private $values;
+
+    public function getOpts()
+    {
+        return null;
+    }
     
     public function build()
     {
