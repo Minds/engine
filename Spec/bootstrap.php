@@ -20,22 +20,26 @@ $CONFIG->cassandra->username = 'cassandra';
 $CONFIG->cassandra->password = 'cassandra';
 
 $CONFIG->payments = [
-  'braintree' => [
-    'default' => [
-      'environment' => 'sandbox',
-      'merchant_id' => 'foobar',
-      'master_merchant_id' => 'foobar',
-      'public_key' => 'random',
-      'private_key' => 'random_private'
+    'braintree' => [
+        'default' => [
+            'environment' => 'sandbox',
+            'merchant_id' => 'foobar',
+            'master_merchant_id' => 'foobar',
+            'public_key' => 'random',
+            'private_key' => 'random_private'
+        ],
+        'merchants' => [
+            'environment' => 'sandbox',
+            'merchant_id' => 'foobar',
+            'master_merchant_id' => 'foobar',
+            'public_key' => 'random',
+            'private_key' => 'random_private'
+        ],
     ],
-    'merchants' => [
-      'environment' => 'sandbox',
-      'merchant_id' => 'foobar',
-      'master_merchant_id' => 'foobar',
-      'public_key' => 'random',
-      'private_key' => 'random_private'
+    'stripe' => [
+        'api_key' => 'phpspec',
     ],
-  ]];
+];
 
 class Mock
 {
