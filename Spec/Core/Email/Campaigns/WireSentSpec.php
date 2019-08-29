@@ -80,7 +80,7 @@ class WireReceivedSpec extends ObjectBehavior
         $data['email']->shouldEqual($this->senderEmail);
         $data['username']->shouldEqual($this->senderUsername);
         $data['amount']->shouldEqual(BigNumber::fromPlain(10, 18)->toDouble());
-        $this->mailer->queue(Argument::any())->shouldBeCalled();
+        $this->mailer->send(Argument::any())->shouldBeCalled();
 
         $testEmailSubscription = (new EmailSubscription())
             ->setUserGuid($this->senderGUID)
@@ -111,7 +111,7 @@ class WireReceivedSpec extends ObjectBehavior
         $data['username']->shouldEqual($this->testUsername);
         $data['contract']->shouldEqual('wire');
         $data['amount']->shouldEqual(10);
-        $this->mailer->queue(Argument::any())->shouldBeCalled();
+        $this->mailer->send(Argument::any())->shouldBeCalled();
 
         $testEmailSubscription = (new EmailSubscription())
             ->setUserGuid($this->testGUID)
@@ -137,7 +137,7 @@ class WireReceivedSpec extends ObjectBehavior
         $data['email']->shouldEqual($this->senderEmail);
         $data['username']->shouldEqual($this->senderUsername);
 
-        $this->mailer->queue(Argument::any())->shouldNotBeCalled();
+        $this->mailer->send(Argument::any())->shouldNotBeCalled();
 
         $testEmailSubscription = (new EmailSubscription())
             ->setUserGuid($this->senderGUID)
@@ -162,7 +162,7 @@ class WireReceivedSpec extends ObjectBehavior
         $data['email']->shouldEqual($this->senderEmail);
         $data['username']->shouldEqual($this->senderUsername);
 
-        $this->mailer->queue(Argument::any())->shouldNotBeCalled();
+        $this->mailer->send(Argument::any())->shouldNotBeCalled();
 
         $testEmailSubscription = (new EmailSubscription())
             ->setUserGuid($this->senderGUID)
@@ -176,7 +176,7 @@ class WireReceivedSpec extends ObjectBehavior
 
     public function it_should_not_blowup_without_a_user()
     {
-        $this->mailer->queue(Argument::any())->shouldNotBeCalled();
+        $this->mailer->send(Argument::any())->shouldNotBeCalled();
         $this->send();
     }
 
@@ -190,7 +190,7 @@ class WireReceivedSpec extends ObjectBehavior
         $data['email']->shouldEqual($this->senderEmail);
         $data['username']->shouldEqual($this->senderUsername);
 
-        $this->mailer->queue(Argument::any())->shouldNotBeCalled();
+        $this->mailer->send(Argument::any())->shouldNotBeCalled();
         $this->send();
     }
 
@@ -208,7 +208,7 @@ class WireReceivedSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->mailer->queue(Argument::any())->shouldNotBeCalled();
+        $this->mailer->send(Argument::any())->shouldNotBeCalled();
         $this->send();
     }
 }

@@ -64,7 +64,7 @@ class Manager
                 break;
         }
 
-        return in_array($this->vote->getActor()->guid, $votes, true);
+        return in_array($this->vote->getActor()->guid, $votes, false);
     }
 
     /**

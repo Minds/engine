@@ -38,6 +38,9 @@ class WithBlogs extends EmailCampaign
 
     public function send()
     {
+        if (!method_exists($this->user, 'getEmail')) {
+            return;
+        }
         $this->template->setTemplate('default.tpl');
 
         $this->template->setBody("./Templates/missed-blogs.tpl");
@@ -65,7 +68,7 @@ class WithBlogs extends EmailCampaign
 
         $this->template->set('validator', $validatorHash);
 
-        $subject = "Here's 10 fascinating top articles";
+        $subject = "Top blogs from August";
 
         $message = new Message();
         $message->setTo($this->user)
