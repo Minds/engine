@@ -53,18 +53,21 @@ class UserSpec extends ObjectBehavior
         $this->isOnchainBooster()->shouldReturn(false);
     }
 
-    function it_should_have_a_default_mode_of_open() {
+    public function it_should_have_a_default_mode_of_open()
+    {
         $this->getMode()->shouldEqual(ChannelMode::OPEN);
     }
 
-    function it_should_assign_channel_modes() {
-        $this->setMode(ChannelMode::CLOSED); 
+    public function it_should_assign_channel_modes()
+    {
+        $this->setMode(ChannelMode::CLOSED);
         $this->getMode()->shouldEqual(ChannelMode::CLOSED);
-        $this->setMode(ChannelMode::MODERATED); 
+        $this->setMode(ChannelMode::MODERATED);
         $this->getMode()->shouldEqual(ChannelMode::MODERATED);
     }
 
-    function it_should_export_values() {
+    public function it_should_export_values()
+    {
         $export = $this->export()->getWrappedObject();
         expect($export['mode'])->shouldEqual(ChannelMode::OPEN);
     }

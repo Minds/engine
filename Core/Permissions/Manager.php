@@ -25,7 +25,7 @@ class Manager
      * Permissions contains the user's role per entity, channel and group
      * @param array $opts
      *    - user_guid: long, the user's guid for calculating permissions
-     *    - guids: array long, the list of entities to permit 
+     *    - guids: array long, the list of entities to permit
      * @return Permissions A map of channels, groups and entities with the user's role for each
      */
     public function getList(array $opts = [])

@@ -5,6 +5,7 @@ namespace Minds\Core\Permissions;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Permissions\Entities;
 use Minds\Core\Permissions\Manager;
+
 class Provider extends DiProvider
 {
     public function register()
