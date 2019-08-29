@@ -17,26 +17,25 @@ class ManagerSpec extends ObjectBehavior
     private $reportsManager;
     private $emailDelegate;
 
-    function let(
+    public function let(
         Repository $repository,
         ReportsManager $reportsManager,
         Delegates\EmailDelegate $emailDelegate
-    )
-    {
+    ) {
         $this->beConstructedWith($repository, $reportsManager, $emailDelegate);
         $this->repository = $repository;
         $this->reportsManager = $reportsManager;
         $this->emailDelegate = $emailDelegate;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_get_a_list_of_strikes_from_repository()
+    public function it_should_get_a_list_of_strikes_from_repository()
     {
-        $this->repository->getList(Argument::that(function($opts) {
+        $this->repository->getList(Argument::that(function ($opts) {
             return $opts['user'] == (new User())->set('guid', 123);
         }))
             ->shouldbeCalled()
@@ -53,7 +52,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(123);
     }
 
-    function it_should_add_to_repository(Strike $strike)
+    public function it_should_add_to_repository(Strike $strike)
     {
         $this->repository->add($strike)
             ->shouldBeCalled()
@@ -62,5 +61,4 @@ class ManagerSpec extends ObjectBehavior
         $this->add($strike)
             ->shouldReturn(true);
     }
-
 }

@@ -9,7 +9,7 @@ use Minds\Helpers;
 
 class Manager
 {
-    private static $containers = array();
+    private static $containers = [];
 
     private static function defaults()
     {
@@ -114,7 +114,7 @@ class Manager
             )
             ->addSubItem((new Item())
                 ->setPriority(8)
-	              ->setIcon('star')
+                  ->setIcon('star')
                 ->setName('Featured')
                 ->setTitle('Featured')
                 ->setPath('admin/featured')
@@ -209,7 +209,7 @@ class Manager
         /* Initialize modules  */
         (new Core\Groups\Navigation())->setup();
 
-        $containers = array();
+        $containers = [];
 
         /* Initialize modules */
         (new \Minds\Core\Blogs\Navigation())->setup();

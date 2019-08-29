@@ -50,7 +50,7 @@ class Factory
                     if (!$handler instanceof Interfaces\ApiIgnorePam) {
                         self::pamCheck($request, $response);
                     }
-                    $pages = array_splice($segments, $loop) ?: array();
+                    $pages = array_splice($segments, $loop) ?: [];
                     return $handler->$method($pages);
                 }
             }
@@ -65,7 +65,7 @@ class Factory
                 if (!$handler instanceof Interfaces\ApiIgnorePam) {
                     self::pamCheck($request, $response);
                 }
-                $pages = array_splice($segments, $loop) ?: array();
+                $pages = array_splice($segments, $loop) ?: [];
                 return $handler->$method($pages);
             }
             --$loop;
@@ -78,7 +78,7 @@ class Factory
      */
     public static function pamCheck($request, $response)
     {
-        if ( $request->getAttribute('oauth_user_id') 
+        if ($request->getAttribute('oauth_user_id')
             || Security\XSRF::validateRequest()
         ) {
             return true;
@@ -89,7 +89,7 @@ class Factory
             header("Access-Control-Allow-Origin: *");
             header('HTTP/1.1 401 Unauthorized', true, 401);
             echo json_encode([
-                'error' => 'Sorry, you are not authenticated', 
+                'error' => 'Sorry, you are not authenticated',
                 'code' => 401,
                 'loggedin' => false
                 ]);
@@ -111,7 +111,7 @@ class Factory
             header('Content-type: application/json');
             header("Access-Control-Allow-Origin: *");
             header('HTTP/1.1 401 Unauthorized', true, 401);
-            echo json_encode(array('error'=>'You are not an admin', 'code'=>401));
+            echo json_encode(['error'=>'You are not an admin', 'code'=>401]);
             exit;
         }
     }
@@ -122,7 +122,7 @@ class Factory
      */
     public static function isLoggedIn()
     {
-        if(Session::isLoggedIn()){
+        if (Session::isLoggedIn()) {
             return true;
         } else {
             ob_end_clean();
@@ -143,11 +143,11 @@ class Factory
      * Builds an API response
      * @param array $data
      */
-    public static function response($data = array())
+    public static function response($data = [])
     {
-        $data = array_merge(array(
+        $data = array_merge([
             'status' => 'success', //should success be assumed?
-        ), $data);
+        ], $data);
 
         ob_end_clean();
 
@@ -162,9 +162,9 @@ class Factory
      * @return array - an array of the entities
      * @deprecated
      */
-    public static function exportable($entities, $exceptions = array(), $exportContext = false)
+    public static function exportable($entities, $exceptions = [], $exportContext = false)
     {
-        if(!$entities){
+        if (!$entities) {
             return [];
         }
         foreach ($entities as $k => $entity) {

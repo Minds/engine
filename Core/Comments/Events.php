@@ -77,9 +77,9 @@ class Events
                 ->emit(
                     'vote',
                     (string) $comment->getGuid(),
-                    (string) Session::getLoggedInUser()->guid, 
+                    (string) Session::getLoggedInUser()->guid,
                     $vote->getDirection()
-                ); 
+                );
 
             $event->setResponse(
                 $this->votesManager
@@ -117,7 +117,7 @@ class Events
             $container = EntitiesFactory::build($entity->container_guid);
 
             // If the container container_guid is the same as the the container owner
-            if ($container 
+            if ($container
                 && $container->container_guid == $container->owner_guid
                 && ACL::_()->read($container)
             ) {

@@ -271,7 +271,6 @@ class Interactions implements AggregateInterface
                 $response[1]['x'][] = date($this->dateFormat, $count['key'] / 1000);
                 $response[1]['y'][] = $count['doc_count'];
             }
-
         }
         return $response;
     }

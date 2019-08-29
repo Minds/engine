@@ -113,10 +113,10 @@ class Image extends File
         return $result;
     }
 
-    public function createThumbnails($sizes = array('small', 'medium','large', 'xlarge'), $filepath = null)
+    public function createThumbnails($sizes = ['small', 'medium','large', 'xlarge'], $filepath = null)
     {
         if (!$sizes) {
-            $sizes = array('small', 'medium','large', 'xlarge');
+            $sizes = ['small', 'medium','large', 'xlarge'];
         }
         $master = $filepath ?: $this->getFilenameOnFilestore();
         foreach ($sizes as $size) {
@@ -181,7 +181,7 @@ class Image extends File
 
     public function getExportableValues()
     {
-        return array_merge(parent::getExportableValues(), array(
+        return array_merge(parent::getExportableValues(), [
             'thumbnail',
             'cinemr_guid',
             'license',
@@ -191,7 +191,7 @@ class Image extends File
             'width',
             'height',
             'gif',
-        ));
+        ]);
     }
 
     public function getAlbumChildrenGuids()

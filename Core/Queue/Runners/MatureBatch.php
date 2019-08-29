@@ -32,7 +32,6 @@ class MatureBatch implements Interfaces\QueueRunner
                 $offset = '';
 
                 foreach (['image', 'video', 'activity'] as $type) {
-
                     $options = [
                       'owner_guid' => $user_guid
                     ];
@@ -111,5 +110,4 @@ class MatureBatch implements Interfaces\QueueRunner
             'entity' => $entity
         ]);
     }
-
 }

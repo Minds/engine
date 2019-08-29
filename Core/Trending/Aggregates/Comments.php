@@ -8,7 +8,6 @@ use Minds\Core\Data\ElasticSearch;
 
 class Comments extends Aggregate
 {
-
     protected $multiplier = 1;
 
     public function get()
@@ -69,8 +68,8 @@ class Comments extends Aggregate
                 ],
                 'aggs' => [
                     'entities' => [
-                        'terms' => [ 
-                            'field' => "$field.keyword", 
+                        'terms' => [
+                            'field' => "$field.keyword",
                             'size' => $this->limit,
                             'order' => [
                                 'uniques' => 'desc'
@@ -83,8 +82,8 @@ class Comments extends Aggregate
                                     'precision_threshold' => 40000,
                                 ]
                             ]
-                        ]          
-                    ]          
+                        ]
+                    ]
                 ]
             ]
         ];
@@ -100,5 +99,4 @@ class Comments extends Aggregate
         }
         return $entities;
     }
-
 }

@@ -12,19 +12,19 @@ use Minds\Core\Data\PubSub\Redis\Client as RedisPubSubClient;
 
 class EventsSpec extends ObjectBehavior
 {
-    function it_is_initializable(RedisPubSubClient $redis)
+    public function it_is_initializable(RedisPubSubClient $redis)
     {
         $this->beConstructedWith($redis);
         $this->shouldHaveType('Minds\Core\Sockets\Events');
     }
 
-    function it_should_not_emit_if_no_params(RedisPubSubClient $redis, MsgPack $msgpack)
+    public function it_should_not_emit_if_no_params(RedisPubSubClient $redis, MsgPack $msgpack)
     {
         $this->beConstructedWith($redis, $msgpack);
         $this->shouldThrow('\\Exception')->duringEmit();
     }
 
-    function it_should_get_flag(RedisPubSubClient $redis, MsgPack $msgpack)
+    public function it_should_get_flag(RedisPubSubClient $redis, MsgPack $msgpack)
     {
         $this->beConstructedWith($redis, $msgpack);
 
@@ -32,7 +32,7 @@ class EventsSpec extends ObjectBehavior
         $this->getFlag('phpspec')->shouldReturn(true);
     }
 
-    function it_should_emit(RedisPubSubClient $redis, MsgPack $msgpack)
+    public function it_should_emit(RedisPubSubClient $redis, MsgPack $msgpack)
     {
         $this->beConstructedWith($redis, $msgpack);
 
@@ -51,7 +51,7 @@ class EventsSpec extends ObjectBehavior
         $this->emit('phpspec', '123456')->shouldReturn($this);
     }
 
-    function it_should_emit_binary(RedisPubSubClient $redis, MsgPack $msgpack)
+    public function it_should_emit_binary(RedisPubSubClient $redis, MsgPack $msgpack)
     {
         $this->beConstructedWith($redis, $msgpack);
 
@@ -70,7 +70,7 @@ class EventsSpec extends ObjectBehavior
         $this->emit('phpspec', new Binary('123456'))->shouldReturn($this);
     }
 
-    function it_should_emit_with_flags(RedisPubSubClient $redis, MsgPack $msgpack)
+    public function it_should_emit_with_flags(RedisPubSubClient $redis, MsgPack $msgpack)
     {
         $this->beConstructedWith($redis, $msgpack);
 
@@ -91,7 +91,7 @@ class EventsSpec extends ObjectBehavior
         $this->emit('phpspec', '123456')->shouldReturn($this);
     }
 
-    function it_should_emit_to_room(RedisPubSubClient $redis, MsgPack $msgpack)
+    public function it_should_emit_to_room(RedisPubSubClient $redis, MsgPack $msgpack)
     {
         $this->beConstructedWith($redis, $msgpack);
 
@@ -111,7 +111,7 @@ class EventsSpec extends ObjectBehavior
         $this->emit('phpspec', '123456')->shouldReturn($this);
     }
 
-    function it_should_emit_to_room_overwrite(RedisPubSubClient $redis, MsgPack $msgpack)
+    public function it_should_emit_to_room_overwrite(RedisPubSubClient $redis, MsgPack $msgpack)
     {
         $this->beConstructedWith($redis, $msgpack);
 
@@ -133,7 +133,7 @@ class EventsSpec extends ObjectBehavior
         $this->emit('phpspec', '123456')->shouldReturn($this);
     }
 
-    function it_should_emit_to_rooms(RedisPubSubClient $redis, MsgPack $msgpack)
+    public function it_should_emit_to_rooms(RedisPubSubClient $redis, MsgPack $msgpack)
     {
         $this->beConstructedWith($redis, $msgpack);
 
@@ -153,7 +153,7 @@ class EventsSpec extends ObjectBehavior
         $this->emit('phpspec', '123456')->shouldReturn($this);
     }
 
-    function it_should_emit_to_user_room(RedisPubSubClient $redis, MsgPack $msgpack)
+    public function it_should_emit_to_user_room(RedisPubSubClient $redis, MsgPack $msgpack)
     {
         $this->beConstructedWith($redis, $msgpack);
 
@@ -173,7 +173,7 @@ class EventsSpec extends ObjectBehavior
         $this->emit('phpspec', '123456')->shouldReturn($this);
     }
 
-    function it_should_emit_to_user_rooms(RedisPubSubClient $redis, MsgPack $msgpack)
+    public function it_should_emit_to_user_rooms(RedisPubSubClient $redis, MsgPack $msgpack)
     {
         $this->beConstructedWith($redis, $msgpack);
 
@@ -193,7 +193,7 @@ class EventsSpec extends ObjectBehavior
         $this->emit('phpspec', '123456')->shouldReturn($this);
     }
 
-    function it_should_emit_on_nsp(RedisPubSubClient $redis, MsgPack $msgpack)
+    public function it_should_emit_on_nsp(RedisPubSubClient $redis, MsgPack $msgpack)
     {
         $this->beConstructedWith($redis, $msgpack);
 

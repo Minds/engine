@@ -1,7 +1,8 @@
 <?php
 namespace Spec\Minds\Mocks\Cassandra;
 
-class FutureRow {
+class FutureRow
+{
     protected $val;
 
     public function __construct($val)

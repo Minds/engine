@@ -15,7 +15,6 @@ use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
-
     /** @var Repository */
     protected $repository;
 
@@ -25,19 +24,18 @@ class ManagerSpec extends ObjectBehavior
     /** @var Search */
     protected $search;
 
-    function let(
+    public function let(
         Repository $repository,
         EntitiesBuilder $entitiesBuilder,
         Search $search
-    )
-    {
+    ) {
         $this->repository = $repository;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->search = $search;
         $this->beConstructedWith($repository, $entitiesBuilder, $search);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
@@ -47,8 +45,7 @@ class ManagerSpec extends ObjectBehavior
         ScoredGuid $scoredGuid2,
         Entity $entity1,
         Entity $entity2
-    )
-    {
+    ) {
         $scoredGuid1->getGuid()
             ->shouldBeCalled()
             ->willReturn(5000);
@@ -136,8 +133,7 @@ class ManagerSpec extends ObjectBehavior
         ScoredGuid $scoredGuid2,
         Entity $entity1,
         Entity $entity2
-    )
-    {
+    ) {
         $scoredGuid1->getGuid()
             ->shouldBeCalled()
             ->willReturn(5000);
@@ -221,7 +217,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe('urn:activity:5001');
     }
 
-    function getMatchers()
+    public function getMatchers()
     {
         $matchers = [];
 

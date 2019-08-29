@@ -9,7 +9,7 @@ class Event
 {
     private $namespace;
     private $event;
-    private $parameters = array();
+    private $parameters = [];
     private $data;
     private $return = false;
 

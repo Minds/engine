@@ -15,7 +15,6 @@ use Minds\Traits;
 
 class Message extends DenormalizedEntity
 {
-
     use Traits\MagicAttributes;
 
     protected $conversation;
@@ -62,14 +61,15 @@ class Message extends DenormalizedEntity
         return $this;
     }
 
-    public function getMessages() {
+    public function getMessages()
+    {
         return $this->messages;
     }
 
     public function encrypt()
     {
         //Di::_()->get('Messenger\Encryption')
-                (new Messenger\Encryption\OpenSSL())
+        (new Messenger\Encryption\OpenSSL())
                     ->setConversation($this->conversation)
                     ->setMessage($this)
                     ->encrypt();
@@ -88,29 +88,29 @@ class Message extends DenormalizedEntity
         return $this;
     }
 
-        /**
-         * Set the owner
-         * @param Entity $owner
-         * @return $this
-         */
-        public function setOwner($owner = null)
-        {
-            if (!($owner instanceof User)) {
-                $owner = new User($owner);
-            }
-
-            $this->owner = $owner;
-            return $this;
+    /**
+     * Set the owner
+     * @param Entity $owner
+     * @return $this
+     */
+    public function setOwner($owner = null)
+    {
+        if (!($owner instanceof User)) {
+            $owner = new User($owner);
         }
 
-        /**
-         * Get the owner
-         * @return User
-         */
-        public function getOwner()
-        {
-            return $this->owner ?: Session::getLoggedInUser();
-        }
+        $this->owner = $owner;
+        return $this;
+    }
+
+    /**
+     * Get the owner
+     * @return User
+     */
+    public function getOwner()
+    {
+        return $this->owner ?: Session::getLoggedInUser();
+    }
 
     public function save()
     {
@@ -126,7 +126,7 @@ class Message extends DenormalizedEntity
                     'owner' => $this->getOwner()->export()
                     //'friendly_ts' => $this->friendly_ts
                 ]);
-                //var_dump($this->rowKey); exit;
+        //var_dump($this->rowKey); exit;
     }
 
     public function deleteAll()
@@ -134,8 +134,8 @@ class Message extends DenormalizedEntity
         $this->getGuid();
         $rowKey = "object:gathering:conversation:{$this->conversation->getGuid()}";
 
-            // TODO: Is there a way to empty the row without completely removing it?
-            $this->db->removeRow($rowKey);
+        // TODO: Is there a way to empty the row without completely removing it?
+        $this->db->removeRow($rowKey);
     }
 
     public function export(array $keys = [])

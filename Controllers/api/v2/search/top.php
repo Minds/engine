@@ -101,14 +101,13 @@ class top implements Interfaces\Api, Interfaces\ApiIgnorePam
                 }
 
                 if (!$offset && $topLimit) {
-	                if ($topTaxonomy == 'user') {
+                    if ($topTaxonomy == 'user') {
                         //for channels we will use suggested search
                         $suggested = $search->suggest('user', $_GET['q'], $topLimit);
                         foreach ($suggested as $row) {
                             $guids[] = $row['guid'];
                         }
-		            } else {
-                    
+                    } else {
                         $guids = $search->query([
                             'text' => $_GET['q'],
                             'taxonomies' => $topTaxonomy,
@@ -118,7 +117,7 @@ class top implements Interfaces\Api, Interfaces\ApiIgnorePam
                             'sort' => $sort,
                             'rating' => $rating,
                         ], $topLimit);
-	                }
+                    }
 
                     if ($guids) {
                         $entities = Di::_()->get('Entities')->get([ 'guids' => $guids ]);

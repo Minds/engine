@@ -27,7 +27,7 @@ class FounderRewards
         $googleClient = new \Google_Client();
         $googleClient->setApplicationName('Minds');
         $googleClient->setAuthConfig($config['sheets']['service_account']['key_path']);
-        $googleClient->setScopes(implode(' ', array(Google_Service_Sheets::SPREADSHEETS)));
+        $googleClient->setScopes(implode(' ', [Google_Service_Sheets::SPREADSHEETS]));
         $this->client = new \Google_Service_Sheets($googleClient);
 
         return $this;

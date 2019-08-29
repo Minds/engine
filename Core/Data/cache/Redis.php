@@ -79,7 +79,7 @@ class Redis extends abstractCacher
         try {
             $redis = $this->getMaster();
             if ($ttl) {
-                $redis->set($key, json_encode($value), array('ex' => $ttl));
+                $redis->set($key, json_encode($value), ['ex' => $ttl]);
             } else {
                 $redis->set($key, json_encode($value));
             }
@@ -92,10 +92,11 @@ class Redis extends abstractCacher
     /** Iterate over redis keys that return a cursor
      *  iterator is passed by reference so you can paginate and get returned values
      */
-    public function scan(&$iterator, $pattern = null) {
+    public function scan(&$iterator, $pattern = null)
+    {
         try {
-            $redis = $this->getSlave(); 
-            return  $redis->scan($iterator, $pattern);       
+            $redis = $this->getSlave();
+            return  $redis->scan($iterator, $pattern);
         } catch (\Exception $e) {
             error_log($e->getMessage());
         }

@@ -29,5 +29,4 @@ class NotificationDelegate
             'message' => $message,
         ]);
     }
-
 }

@@ -2,7 +2,6 @@
 
 namespace Minds\Core\Hashtags;
 
-
 use Minds\Core\Di\Provider;
 
 class HashtagsProvider extends Provider

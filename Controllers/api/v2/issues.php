@@ -70,8 +70,8 @@ class issues implements Interfaces\Api
     private function formatError($res)
     {
         $message = '';
-        foreach($res['message'] as $k => $v) {
-            $message .= $k. ': ' . implode(', ',$v).PHP_EOL;
+        foreach ($res['message'] as $k => $v) {
+            $message .= $k. ': ' . implode(', ', $v).PHP_EOL;
         }
         return $message;
     }

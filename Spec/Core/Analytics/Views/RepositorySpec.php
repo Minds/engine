@@ -16,15 +16,14 @@ class RepositorySpec extends ObjectBehavior
     /** @var CassandraClient */
     protected $db;
 
-    function let(
+    public function let(
         CassandraClient $db
-    )
-    {
+    ) {
         $this->beConstructedWith($db);
         $this->db = $db;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
@@ -33,10 +32,9 @@ class RepositorySpec extends ObjectBehavior
     // {
     // }
 
-    function it_should_add(
+    public function it_should_add(
         View $view
-    )
-    {
+    ) {
         $now = strtotime('2019-05-29 12:00:00+0000');
 
         $view->getTimestamp()
@@ -116,10 +114,9 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_add_with_a_timestamp(
+    public function it_should_add_with_a_timestamp(
         View $view
-    )
-    {
+    ) {
         $now = strtotime('2019-05-29 12:00:00+0000');
 
         $view->getTimestamp()

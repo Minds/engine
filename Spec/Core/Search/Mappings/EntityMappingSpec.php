@@ -5,26 +5,23 @@ namespace Spec\Minds\Core\Search\Mappings;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-
 class EntityMappingSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Search\Mappings\EntityMapping');
     }
 
-    function it_should_set_entity(
+    public function it_should_set_entity(
         \ElggEntity $entity
-    )
-    {
+    ) {
         $this->setEntity($entity)
             ->shouldReturn($this);
     }
 
-    function it_should_get_type(
+    public function it_should_get_type(
         \ElggEntity $entity
-    )
-    {
+    ) {
         $entity->get('type')->willReturn('entity');
         $entity->get('subtype')->willReturn('');
 
@@ -34,10 +31,9 @@ class EntityMappingSpec extends ObjectBehavior
             ->shouldReturn('entity');
     }
 
-    function it_should_get_type_with_subtype(
+    public function it_should_get_type_with_subtype(
         \ElggEntity $entity
-    )
-    {
+    ) {
         $entity->get('type')->willReturn('entity');
         $entity->get('subtype')->willReturn('sub');
 
@@ -47,14 +43,14 @@ class EntityMappingSpec extends ObjectBehavior
             ->shouldReturn('entity:sub');
     }
 
-    function it_should_throw_during_get_type_if_no_entity()
+    public function it_should_throw_during_get_type_if_no_entity()
     {
         $this
             ->shouldThrow(\Exception::class)
             ->duringGetType();
     }
 
-    function it_should_get_id(
+    public function it_should_get_id(
         \ElggEntity $entity
     ) {
         $entity->get('guid')->willReturn(5000);
@@ -65,14 +61,14 @@ class EntityMappingSpec extends ObjectBehavior
             ->shouldReturn('5000');
     }
 
-    function it_should_throw_during_get_id_if_no_entity()
+    public function it_should_throw_during_get_id_if_no_entity()
     {
         $this
             ->shouldThrow(\Exception::class)
             ->duringGetId();
     }
 
-    function it_should_get_mappings()
+    public function it_should_get_mappings()
     {
         $mappings = $this->getMappings();
 
@@ -84,10 +80,9 @@ class EntityMappingSpec extends ObjectBehavior
         $mappings->shouldHaveKey('taxonomy');
     }
 
-    function it_should_map_an_entity(
+    public function it_should_map_an_entity(
         \ElggEntity $entity
-    )
-    {
+    ) {
         $now = time();
 
         $entity->get('interactions')->willReturn(42);
@@ -145,17 +140,16 @@ class EntityMappingSpec extends ObjectBehavior
             ]);
     }
 
-    function it_should_throw_during_map_if_no_entity()
+    public function it_should_throw_during_map_if_no_entity()
     {
         $this
             ->shouldThrow(\Exception::class)
             ->duringMap();
     }
 
-    function it_should_suggest_map(
+    public function it_should_suggest_map(
         \ElggEntity $entity
-    )
-    {
+    ) {
         $this
             ->setEntity($entity)
             ->suggestMap([
@@ -165,5 +159,4 @@ class EntityMappingSpec extends ObjectBehavior
                 'passedValue' => 'PHPSpec'
             ]);
     }
-
 }

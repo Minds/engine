@@ -125,7 +125,7 @@ class Repository
         $query->query($cql, $values);
         $query->setOpts([
             'page_size' => (int) $options['limit'],
-            'paging_state_token' => base64_decode($options['offset']),
+            'paging_state_token' => base64_decode($options['offset'], true),
         ]);
 
         $wires = [];

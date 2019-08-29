@@ -39,8 +39,8 @@ class Album extends Object
     public function getChildrenGuids($limit = 1000000, $offset = '')
     {
         $index = new Data\indexes('object:container');
-        if ($guids = $index->get($this->guid, array('limit'=>$limit, 'offset'=>$offset))) {
-            $return = array();
+        if ($guids = $index->get($this->guid, ['limit'=>$limit, 'offset'=>$offset])) {
+            $return = [];
             foreach ($guids as $guid => $ts) {
                 $return[] = (string) $guid;
             }
@@ -53,20 +53,20 @@ class Album extends Object
     {
         $guids = $this->getChildrenGuids($limit);
         if (!$guids) {
-            return array();
+            return [];
         }
-        $entities = Core\Entities::get(array('guids'=>$guids));
+        $entities = Core\Entities::get(['guids'=>$guids]);
         return $entities;
     }
 
     public function addChildren($guids)
     {
-        $rows = array();
+        $rows = [];
         foreach ($guids as $guid => $ts) {
             if (!$guid) {
                 continue;
             }
-            $rows[$guid] = array('container_guid' => $this->guid, 'access_id' => $this->access_id);
+            $rows[$guid] = ['container_guid' => $this->guid, 'access_id' => $this->access_id];
         }
 
         if ($rows) {
@@ -105,11 +105,11 @@ class Album extends Object
 
     public function getExportableValues()
     {
-        return array_merge(parent::getExportableValues(), array(
+        return array_merge(parent::getExportableValues(), [
             'thumbnail',
             'images',
             'license'
-        ));
+        ]);
     }
 
     public function export()

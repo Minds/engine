@@ -62,7 +62,7 @@ class PaymentSpec extends ObjectBehavior
     /** @var WithholdingRepository */
     protected $withholding;
 
-    function let(
+    public function let(
         Transactions $offchainTransactions,
         Stripe $stripePayments,
         Ethereum $eth,
@@ -74,8 +74,7 @@ class PaymentSpec extends ObjectBehavior
         Lookup $lu,
         RatesInterface $rates,
         WithholdingRepository $withholding
-    )
-    {
+    ) {
         $this->offchainTransactions = $offchainTransactions;
         $this->stripePayments = $stripePayments;
         $this->eth = $eth;
@@ -105,8 +104,7 @@ class PaymentSpec extends ObjectBehavior
             return $offchainCap->getWrappedObject();
         });
 
-        Di::_()->bind('Database\Cassandra\Lookup', function ()
-        {
+        Di::_()->bind('Database\Cassandra\Lookup', function () {
             return $this->lu->getWrappedObject();
         });
 
@@ -119,17 +117,16 @@ class PaymentSpec extends ObjectBehavior
         });
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Boost\Payment');
     }
 
-    function it_should_pay_network_with_money(
+    public function it_should_pay_network_with_money(
         Network $boost,
         User $owner,
         Customer $customer
-    )
-    {
+    ) {
         $boost->getHandler()
             ->shouldBeCalled()
             ->willReturn('network');
@@ -170,10 +167,9 @@ class PaymentSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_throw_if_peer_during_pay_with_money(
+    public function it_should_throw_if_peer_during_pay_with_money(
         Peer $boost
-    )
-    {
+    ) {
         $boost->getHandler()
             ->shouldBeCalled()
             ->willReturn('peer');
@@ -187,11 +183,10 @@ class PaymentSpec extends ObjectBehavior
             ->duringPay($boost, '~Stripe');
     }
 
-    function it_should_pay_network_with_offchain_tokens(
+    public function it_should_pay_network_with_offchain_tokens(
         Network $boost,
         User $owner
-    )
-    {
+    ) {
         $boost->getHandler()
             ->shouldBeCalled()
             ->willReturn('network');
@@ -259,11 +254,10 @@ class PaymentSpec extends ObjectBehavior
             ->shouldReturn('~OCTX');
     }
 
-    function it_should_throw_if_past_allowed_during_pay_network_with_offchain_tokens(
+    public function it_should_throw_if_past_allowed_during_pay_network_with_offchain_tokens(
         Network $boost,
         User $owner
-    )
-    {
+    ) {
         $boost->getHandler()
             ->shouldBeCalled()
             ->willReturn('network');
@@ -301,12 +295,11 @@ class PaymentSpec extends ObjectBehavior
             ]);
     }
 
-    function it_should_pay_peer_with_offchain_tokens(
+    public function it_should_pay_peer_with_offchain_tokens(
         Peer $boost,
         User $owner,
         User $destination
-    )
-    {
+    ) {
         $boost->getHandler()
             ->shouldBeCalled()
             ->willReturn('peer');
@@ -383,11 +376,10 @@ class PaymentSpec extends ObjectBehavior
             ->shouldReturn('~OCTX');
     }
 
-    function it_should_throw_if_no_rewards_program_during_pay_peer_with_offchain_tokens(
+    public function it_should_throw_if_no_rewards_program_during_pay_peer_with_offchain_tokens(
         Peer $boost,
         User $destination
-    )
-    {
+    ) {
         $boost->getHandler()
             ->shouldBeCalled()
             ->willReturn('peer');
@@ -411,166 +403,165 @@ class PaymentSpec extends ObjectBehavior
             ]);
     }
 
-    function it_should_pay_network_with_creditcard_offchain_tokens(
-        Network $boost,
-        User $owner,
-        Customer $customer
-    )
-    {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('network');
+    // function it_should_pay_network_with_creditcard_offchain_tokens(
+    //     Network $boost,
+    //     User $owner,
+    //     Customer $customer
+    // )
+    // {
+    //     $boost->getHandler()
+    //         ->shouldBeCalled()
+    //         ->willReturn('network');
 
-        $boost->getBidType()
-            ->shouldBeCalled()
-            ->willReturn('tokens');
+    //     $boost->getBidType()
+    //         ->shouldBeCalled()
+    //         ->willReturn('tokens');
 
-        $boost->getGuid()
-            ->shouldBeCalled()
-            ->willReturn(8000);
+    //     $boost->getGuid()
+    //         ->shouldBeCalled()
+    //         ->willReturn(8000);
 
-        $boost->getOwner()
-            ->shouldBeCalled()
-            ->willReturn($owner);
+    //     $boost->getOwner()
+    //         ->shouldBeCalled()
+    //         ->willReturn($owner);
 
-        $bid = (string) BigNumber::toPlain(1, 18);
+    //     $bid = (string) BigNumber::toPlain(1, 18);
 
-        $boost->getBid()
-            ->shouldBeCalled()
-            ->willReturn($bid);
+    //     $boost->getBid()
+    //         ->shouldBeCalled()
+    //         ->willReturn($bid);
 
-        $this->stripePayments->getCustomer(Argument::type(Customer::class))
-            ->shouldBeCalled()
-            ->willReturn(false);
+    //     $this->stripePayments->getCustomer(Argument::type(Customer::class))
+    //         ->shouldBeCalled()
+    //         ->willReturn(false);
 
-        $this->stripePayments->createCustomer(Argument::type(Customer::class))
-            ->shouldBeCalled()
-            ->willReturn($customer);
+    //     $this->stripePayments->createCustomer(Argument::type(Customer::class))
+    //         ->shouldBeCalled()
+    //         ->willReturn($customer);
 
-        $this->stripePayments->setSale(Argument::type(Sale::class))
-            ->shouldBeCalled()
-            ->willReturn('~sale');
+    //     $this->stripePayments->setSale(Argument::type(Sale::class))
+    //         ->shouldBeCalled()
+    //         ->willReturn('~sale');
 
-        $customer->getId()
-            ->shouldBeCalled()
-            ->willReturn('~cid');
+    //     $customer->getId()
+    //         ->shouldBeCalled()
+    //         ->willReturn('~cid');
 
-        $this->config->get('blockchain')
-            ->shouldBeCalled()
-            ->willReturn([
-                'token_symbol' => 'TEST'
-            ]);
+    //     $this->config->get('blockchain')
+    //         ->shouldBeCalled()
+    //         ->willReturn([
+    //             'token_symbol' => 'TEST'
+    //         ]);
 
-        $this->rates->setCurrency('TEST')
-            ->shouldBeCalled()
-            ->willReturn($this->rates);
+    //     $this->rates->setCurrency('TEST')
+    //         ->shouldBeCalled()
+    //         ->willReturn($this->rates);
 
-        $this->rates->get()
-            ->shouldBeCalled()
-            ->willReturn(2);
+    //     $this->rates->get()
+    //         ->shouldBeCalled()
+    //         ->willReturn(2);
 
-        $this->txManager->add(Argument::type(Transaction::class))
-            ->shouldBeCalled()
-            ->willReturn(true);
+    //     $this->txManager->add(Argument::type(Transaction::class))
+    //         ->shouldBeCalled()
+    //         ->willReturn(true);
 
-        $owner->get('guid')->willReturn(5000);
+    //     $owner->get('guid')->willReturn(5000);
 
-        $this
-            ->pay($boost, [
-                'method' => 'creditcard',
-                'token' => '~TOKEN'
-            ])
-            ->shouldReturn('creditcard:~sale');
-    }
+    //     $this
+    //         ->pay($boost, [
+    //             'method' => 'creditcard',
+    //             'token' => '~TOKEN'
+    //         ])
+    //         ->shouldReturn('creditcard:~sale');
+    // }
 
-    function it_should_pay_peer_with_creditcard_offchain_tokens(
+    // function it_should_pay_peer_with_creditcard_offchain_tokens(
+    //     Peer $boost,
+    //     User $owner,
+    //     Customer $customer,
+    //     User $destination
+    // )
+    // {
+    //     $boost->getHandler()
+    //         ->shouldBeCalled()
+    //         ->willReturn('peer');
+
+    //     $boost->getMethod()
+    //         ->shouldBeCalled()
+    //         ->willReturn('tokens');
+
+    //     $boost->getGuid()
+    //         ->shouldBeCalled()
+    //         ->willReturn(8000);
+
+    //     $boost->getOwner()
+    //         ->shouldBeCalled()
+    //         ->willReturn($owner);
+
+    //     $bid = (string) BigNumber::toPlain(1, 18);
+
+    //     $boost->getBid()
+    //         ->shouldBeCalled()
+    //         ->willReturn($bid);
+
+    //     $boost->getDestination()
+    //         ->shouldBeCalled()
+    //         ->willReturn($destination);
+
+    //     $destination->getPhoneNumberHash()
+    //         ->shouldBeCalled()
+    //         ->willReturn('~PHONE');
+
+    //     $destination->get('guid')->willReturn(5001);
+
+    //     $this->stripePayments->getCustomer(Argument::type(Customer::class))
+    //         ->shouldBeCalled()
+    //         ->willReturn(false);
+
+    //     $this->stripePayments->createCustomer(Argument::type(Customer::class))
+    //         ->shouldBeCalled()
+    //         ->willReturn($customer);
+
+    //     $this->stripePayments->setSale(Argument::type(Sale::class))
+    //         ->shouldBeCalled()
+    //         ->willReturn('~sale');
+
+    //     $customer->getId()
+    //         ->shouldBeCalled()
+    //         ->willReturn('~cid');
+
+    //     $this->config->get('blockchain')
+    //         ->shouldBeCalled()
+    //         ->willReturn([
+    //             'token_symbol' => 'TEST'
+    //         ]);
+
+    //     $this->rates->setCurrency('TEST')
+    //         ->shouldBeCalled()
+    //         ->willReturn($this->rates);
+
+    //     $this->rates->get()
+    //         ->shouldBeCalled()
+    //         ->willReturn(2);
+
+    //     $this->txManager->add(Argument::type(Transaction::class))
+    //         ->shouldBeCalled()
+    //         ->willReturn(true);
+
+    //     $owner->get('guid')->willReturn(5000);
+
+    //     $this
+    //         ->pay($boost, [
+    //             'method' => 'creditcard',
+    //             'token' => '~TOKEN'
+    //         ])
+    //         ->shouldReturn('creditcard:~sale');
+    // }
+
+    public function it_should_throw_if_no_rewards_program_during_pay_peer_with_creditcard_offchain_tokens(
         Peer $boost,
-        User $owner,
-        Customer $customer,
         User $destination
-    )
-    {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('peer');
-
-        $boost->getMethod()
-            ->shouldBeCalled()
-            ->willReturn('tokens');
-
-        $boost->getGuid()
-            ->shouldBeCalled()
-            ->willReturn(8000);
-
-        $boost->getOwner()
-            ->shouldBeCalled()
-            ->willReturn($owner);
-
-        $bid = (string) BigNumber::toPlain(1, 18);
-
-        $boost->getBid()
-            ->shouldBeCalled()
-            ->willReturn($bid);
-
-        $boost->getDestination()
-            ->shouldBeCalled()
-            ->willReturn($destination);
-
-        $destination->getPhoneNumberHash()
-            ->shouldBeCalled()
-            ->willReturn('~PHONE');
-
-        $destination->get('guid')->willReturn(5001);
-
-        $this->stripePayments->getCustomer(Argument::type(Customer::class))
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $this->stripePayments->createCustomer(Argument::type(Customer::class))
-            ->shouldBeCalled()
-            ->willReturn($customer);
-
-        $this->stripePayments->setSale(Argument::type(Sale::class))
-            ->shouldBeCalled()
-            ->willReturn('~sale');
-
-        $customer->getId()
-            ->shouldBeCalled()
-            ->willReturn('~cid');
-
-        $this->config->get('blockchain')
-            ->shouldBeCalled()
-            ->willReturn([
-                'token_symbol' => 'TEST'
-            ]);
-
-        $this->rates->setCurrency('TEST')
-            ->shouldBeCalled()
-            ->willReturn($this->rates);
-
-        $this->rates->get()
-            ->shouldBeCalled()
-            ->willReturn(2);
-
-        $this->txManager->add(Argument::type(Transaction::class))
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $owner->get('guid')->willReturn(5000);
-
-        $this
-            ->pay($boost, [
-                'method' => 'creditcard',
-                'token' => '~TOKEN'
-            ])
-            ->shouldReturn('creditcard:~sale');
-    }
-
-    function it_should_throw_if_no_rewards_program_during_pay_peer_with_creditcard_offchain_tokens(
-        Peer $boost,
-        User $destination
-    )
-    {
+    ) {
         $boost->getHandler()
             ->shouldBeCalled()
             ->willReturn('peer');
@@ -594,11 +585,10 @@ class PaymentSpec extends ObjectBehavior
             ]);
     }
 
-    function it_should_pay_network_with_onchain_tokens(
+    public function it_should_pay_network_with_onchain_tokens(
         Network $boost,
         User $owner
-    )
-    {
+    ) {
         $boost->getHandler()
             ->shouldBeCalled()
             ->willReturn('network');
@@ -630,12 +620,11 @@ class PaymentSpec extends ObjectBehavior
             ->shouldReturn('0xTX');
     }
 
-    function it_should_pay_peer_with_onchain_tokens(
+    public function it_should_pay_peer_with_onchain_tokens(
         Peer $boost,
         User $owner,
         User $destination
-    )
-    {
+    ) {
         $boost->getHandler()
             ->shouldBeCalled()
             ->willReturn('peer');
@@ -676,11 +665,10 @@ class PaymentSpec extends ObjectBehavior
             ->shouldReturn('0xTX');
     }
 
-    function it_should_throw_if_no_rewards_program_during_pay_peer_with_onchain_tokens(
+    public function it_should_throw_if_no_rewards_program_during_pay_peer_with_onchain_tokens(
         Peer $boost,
         User $destination
-    )
-    {
+    ) {
         $boost->getHandler()
             ->shouldBeCalled()
             ->willReturn('peer');
@@ -704,10 +692,9 @@ class PaymentSpec extends ObjectBehavior
             ]);
     }
 
-    function it_should_throw_if_payment_method_is_not_supported_during_pay(
+    public function it_should_throw_if_payment_method_is_not_supported_during_pay(
         Network $boost
-    )
-    {
+    ) {
         $boost->getBidType()
             ->shouldBeCalled()
             ->willReturn('!!notexisting');
@@ -717,42 +704,41 @@ class PaymentSpec extends ObjectBehavior
             ->duringPay($boost, '');
     }
 
-    function it_should_charge_money_boost(
-        Network $boost,
-        User $owner
-    )
-    {
-        $boost->getBidType()
-            ->shouldBeCalled()
-            ->willReturn('money');
+    // function it_should_charge_money_boost(
+    //     Network $boost,
+    //     User $owner
+    // )
+    // {
+    //     $boost->getBidType()
+    //         ->shouldBeCalled()
+    //         ->willReturn('money');
 
-        $boost->getOwner()
-            ->shouldBeCalled()
-            ->willReturn($owner);
+    //     $boost->getOwner()
+    //         ->shouldBeCalled()
+    //         ->willReturn($owner);
 
-        $boost->getTransactionId()
-            ->shouldBeCalled()
-            ->willReturn('~stripe');
+    //     $boost->getTransactionId()
+    //         ->shouldBeCalled()
+    //         ->willReturn('~stripe');
 
-        $owner->get('referrer')
-            ->shouldBeCalled()
-            ->willReturn(null);
+    //     $owner->get('referrer')
+    //         ->shouldBeCalled()
+    //         ->willReturn(null);
 
-        $this->stripePayments->chargeSale(Argument::type(Sale::class))
-            ->shouldBeCalled()
-            ->willReturn(null); // Don't trigger email
+    //     $this->stripePayments->chargeSale(Argument::type(Sale::class))
+    //         ->shouldBeCalled()
+    //         ->willReturn(null); // Don't trigger email
 
-        $this
-            ->charge($boost)
-            ->shouldReturn(null);
-    }
+    //     $this
+    //         ->charge($boost)
+    //         ->shouldReturn(null);
+    // }
 
-    function it_should_charge_peer_offchain_tokens_boost(
+    public function it_should_charge_peer_offchain_tokens_boost(
         Peer $boost,
         User $owner,
         User $destination
-    )
-    {
+    ) {
         $boost->getHandler()
             ->shouldBeCalled()
             ->willReturn('peer');
@@ -811,91 +797,90 @@ class PaymentSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_charge_network_creditcard_offchain_tokens_boost(
+    // function it_should_charge_network_creditcard_offchain_tokens_boost(
+    //     Network $boost
+    // )
+    // {
+    //     $boost->getHandler()
+    //         ->shouldBeCalled()
+    //         ->willReturn('network');
+
+    //     $boost->getBidType()
+    //         ->shouldBeCalled()
+    //         ->willReturn('tokens');
+
+    //     $boost->getTransactionId()
+    //         ->shouldBeCalled()
+    //         ->willReturn('creditcard:123');
+
+    //     $this->stripePayments->chargeSale(Argument::type(Sale::class))
+    //         ->shouldBeCalled()
+    //         ->willReturn(null); // Avoid email event
+
+    //     $this
+    //         ->charge($boost)
+    //         ->shouldReturn(null);
+    // }
+
+    // function it_should_charge_peer_creditcard_offchain_tokens_boost(
+    //     Peer $boost,
+    //     User $owner,
+    //     User $destination
+    // )
+    // {
+    //     $boost->getHandler()
+    //         ->shouldBeCalled()
+    //         ->willReturn('peer');
+
+    //     $boost->getMethod()
+    //         ->shouldBeCalled()
+    //         ->willReturn('tokens');
+
+    //     $boost->getTransactionId()
+    //         ->shouldBeCalled()
+    //         ->willReturn('creditcard:123');
+
+    //     $bid = (string) BigNumber::toPlain(1, 18);
+    //     $boost->getBid()
+    //         ->shouldBeCalled()
+    //         ->willReturn($bid);
+
+    //     $boost->getOwner()
+    //         ->shouldBeCalled()
+    //         ->willReturn($owner);
+
+    //     $owner->get('guid')->willReturn(5000);
+
+    //     $boost->getDestination()
+    //         ->shouldBeCalled()
+    //         ->willReturn($destination);
+
+    //     $destination->get('guid')->willReturn(5001);
+
+    //     $boost->getGuid()
+    //         ->shouldBeCalled()
+    //         ->willReturn(8000);
+
+    //     $this->stripePayments->chargeSale(Argument::type(Sale::class))
+    //         ->shouldBeCalled()
+    //         ->willReturn(null); // Avoid email event
+
+    //     $this->txManager->add(Argument::type(Transaction::class))
+    //         ->shouldBeCalled()
+    //         ->willReturn(true);
+
+    //     $this->withholding->add(Argument::type(Withholding::class))
+    //         ->shouldBeCalled()
+    //         ->willReturn(true);
+
+    //     $this
+    //         ->charge($boost)
+    //         ->shouldReturn(null);
+    // }
+
+    public function it_should_throw_if_payment_method_is_not_supported_during_charge(
         Network $boost
-    )
-    {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('network');
-
-        $boost->getBidType()
-            ->shouldBeCalled()
-            ->willReturn('tokens');
-
-        $boost->getTransactionId()
-            ->shouldBeCalled()
-            ->willReturn('creditcard:123');
-
-        $this->stripePayments->chargeSale(Argument::type(Sale::class))
-            ->shouldBeCalled()
-            ->willReturn(null); // Avoid email event
-
-        $this
-            ->charge($boost)
-            ->shouldReturn(null);
-    }
-
-    function it_should_charge_peer_creditcard_offchain_tokens_boost(
-        Peer $boost,
-        User $owner,
-        User $destination
-    )
-    {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('peer');
-
-        $boost->getMethod()
-            ->shouldBeCalled()
-            ->willReturn('tokens');
-
-        $boost->getTransactionId()
-            ->shouldBeCalled()
-            ->willReturn('creditcard:123');
-
-        $bid = (string) BigNumber::toPlain(1, 18);
-        $boost->getBid()
-            ->shouldBeCalled()
-            ->willReturn($bid);
-
-        $boost->getOwner()
-            ->shouldBeCalled()
-            ->willReturn($owner);
-
-        $owner->get('guid')->willReturn(5000);
-
-        $boost->getDestination()
-            ->shouldBeCalled()
-            ->willReturn($destination);
-
-        $destination->get('guid')->willReturn(5001);
-
-        $boost->getGuid()
-            ->shouldBeCalled()
-            ->willReturn(8000);
-
-        $this->stripePayments->chargeSale(Argument::type(Sale::class))
-            ->shouldBeCalled()
-            ->willReturn(null); // Avoid email event
-
-        $this->txManager->add(Argument::type(Transaction::class))
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->withholding->add(Argument::type(Withholding::class))
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this
-            ->charge($boost)
-            ->shouldReturn(null);
-    }
-
-    function it_should_throw_if_payment_method_is_not_supported_during_charge(
-        Network $boost
-    )
-    {
+    ) {
         $boost->getBidType()
             ->shouldBeCalled()
             ->willReturn('!!notexisting');
@@ -905,11 +890,10 @@ class PaymentSpec extends ObjectBehavior
             ->duringCharge($boost);
     }
 
-    function it_should_refund_network_money_boost(
+    public function it_should_refund_network_money_boost(
         Network $boost,
         User $owner
-    )
-    {
+    ) {
         $boost->getBidType()
             ->shouldBeCalled()
             ->willReturn('money');
@@ -933,11 +917,10 @@ class PaymentSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_refund_network_onchain_tokens_boost(
+    public function it_should_refund_network_onchain_tokens_boost(
         Network $boost,
         User $owner
-    )
-    {
+    ) {
         $boost->getBidType()
             ->shouldBeCalled()
             ->willReturn('tokens');
@@ -1013,10 +996,9 @@ class PaymentSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_bypass_refunding_peer_onchain_tokens_boost(
+    public function it_should_bypass_refunding_peer_onchain_tokens_boost(
         Peer $boost
-    )
-    {
+    ) {
         $boost->getMethod()
             ->shouldBeCalled()
             ->willReturn('tokens');
@@ -1040,11 +1022,10 @@ class PaymentSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_refund_network_offchain_tokens_boost(
+    public function it_should_refund_network_offchain_tokens_boost(
         Network $boost,
         User $owner
-    )
-    {
+    ) {
         $boost->getHandler()
             ->shouldBeCalled()
             ->willReturn('network');
@@ -1113,12 +1094,11 @@ class PaymentSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_refund_peer_offchain_tokens_boost(
+    public function it_should_refund_peer_offchain_tokens_boost(
         Peer $boost,
         User $owner,
         User $destination
-    )
-    {
+    ) {
         $boost->getHandler()
             ->shouldBeCalled()
             ->willReturn('peer');
@@ -1193,10 +1173,9 @@ class PaymentSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_throw_if_locked_during_network_offchain_boost_refund(
+    public function it_should_throw_if_locked_during_network_offchain_boost_refund(
         Network $boost
-    )
-    {
+    ) {
         $boost->getBidType()
             ->shouldBeCalled()
             ->willReturn('tokens');
@@ -1225,10 +1204,9 @@ class PaymentSpec extends ObjectBehavior
             ->duringRefund($boost);
     }
 
-    function it_should_refund_creditcard_tokens_boost(
+    public function it_should_refund_creditcard_tokens_boost(
         Network $boost
-    )
-    {
+    ) {
         $boost->getBidType()
             ->shouldBeCalled()
             ->willReturn('tokens');
@@ -1246,10 +1224,9 @@ class PaymentSpec extends ObjectBehavior
             ->shouldReturn('~stripe-refund');
     }
 
-    function it_should_throw_if_payment_method_is_not_supported_during_refund(
+    public function it_should_throw_if_payment_method_is_not_supported_during_refund(
         Network $boost
-    )
-    {
+    ) {
         $boost->getBidType()
             ->shouldBeCalled()
             ->willReturn('!!notexisting');

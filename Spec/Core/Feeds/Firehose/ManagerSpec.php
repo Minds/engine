@@ -95,7 +95,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->getList([
             'moderation_user' => $this->user,
-        ])->shouldBeLike($response->map(function($entity) {
+        ])->shouldBeLike($response->map(function ($entity) {
             return $entity->getEntity();
         }));
     }
@@ -115,7 +115,7 @@ class ManagerSpec extends ObjectBehavior
         ->shouldBeCalled()
         ->willReturn($response);
 
-        $this->getList()->shouldBeLike($response->map(function($entity) {
+        $this->getList()->shouldBeLike($response->map(function ($entity) {
             return $entity->getEntity();
         }));
     }

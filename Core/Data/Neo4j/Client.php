@@ -12,11 +12,11 @@ class Client implements Interfaces\ClientInterface
     private $neo4j;
     private $prepared;
     
-    public function __construct(array $options = array())
+    public function __construct(array $options = [])
     {
         global $CONFIG;
         
-        $servers = isset($CONFIG->neo4j_servers) ?  $CONFIG->neo4j_servers : array('default'=>array('address'=>'localhost', 'port'=>7474, 'password' => ''));
+        $servers = isset($CONFIG->neo4j_servers) ?  $CONFIG->neo4j_servers : ['default'=>['address'=>'localhost', 'port'=>7474, 'password' => '']];
 
         $builder = NeoClient\ClientBuilder::create();
 

@@ -46,8 +46,7 @@ class Manager
         $artifactsDelegatesFactory = null,
         $logoutDelegate = null,
         $queueClient = null
-    )
-    {
+    ) {
         $this->artifactsDelegatesFactory = $artifactsDelegatesFactory ?: new Delegates\Artifacts\Factory();
         $this->logoutDelegate = $logoutDelegate ?: new Delegates\Logout();
         $this->queueClient = $queueClient ?: Di::_()->get('Queue');

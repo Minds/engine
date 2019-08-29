@@ -11,7 +11,7 @@ class Markdown extends \Parsedown
 
     protected function parseAttributeData($attributeString)
     {
-        $Data = array();
+        $Data = [];
         $attributes = preg_split('/[ ]+/', $attributeString, -1, PREG_SPLIT_NO_EMPTY);
         foreach ($attributes as $attribute) {
             if ($attribute[0] === '#') {
@@ -22,8 +22,7 @@ class Markdown extends \Parsedown
                 if ($h) {
                     $Data['height'] = $h;
                 }
-            } else # "."
-            {
+            } else { # "."
                 $classes [] = substr($attribute, 1);
             }
         }

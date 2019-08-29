@@ -61,11 +61,11 @@ class Factory
     public static function toCamelNsp($namespace)
     {
         $namespace = explode('\\', $namespace);
-        $replacer = function($matches) {
+        $replacer = function ($matches) {
             return strtoupper($matches[1]);
         };
 
-        array_walk($namespace, function(&$segment) use ($replacer) {
+        array_walk($namespace, function (&$segment) use ($replacer) {
             $segment = ucfirst(preg_replace_callback('/_([a-z])/', $replacer, $segment));
         });
 

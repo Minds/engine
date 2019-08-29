@@ -101,7 +101,7 @@ class WireNotification implements Interfaces\QueueRunner
         $amount = $wire->getAmount();
         if ($wire->getMethod() === 'tokens') {
             $amount = BigNumber::fromPlain($wire->getAmount(), 18)->toDouble();
-            $currency = $amount > 1 ? 'tokens' : 'token';
+            $currency = $amount === 1 ? 'token' : 'tokens';
         } else {
             $currency = strtoupper($wire->getMethod());
         }

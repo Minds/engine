@@ -38,8 +38,7 @@ class Manager
         $entitiesBuilder = null,
         $entities = null,
         $search = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository;
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder;
         $this->entities = $entities ?: new Entities;
@@ -102,12 +101,12 @@ class Manager
             $opts['query'] = str_replace('#', '', strtolower($opts['query']));
         }
 
-        if (isset($opts['query']) && $opts['query'] && in_array($opts['type'], ['user', 'group'])) {
+        if (isset($opts['query']) && $opts['query'] && in_array($opts['type'], ['user', 'group'], true)) {
             $result = $this->search($opts);
 
             $response = new Response($result);
             return $response;
-        } 
+        }
 
         $feedSyncEntities = [];
         $scores = [];
@@ -124,7 +123,7 @@ class Manager
             if ($i < $opts['single_owner_threshold']
                 && isset($owners[$ownerGuid])
                 && !$opts['filter_hashtags']
-                && !in_array($opts['type'], [ 'user', 'group' ])
+                && !in_array($opts['type'], [ 'user', 'group' ], true)
             ) {
                 continue;
             }
@@ -137,13 +136,13 @@ class Manager
                 $entityType = str_replace('object:', '', $entityType);
             }
 
-            if ($opts['as_activities'] && !in_array($opts['type'], [ 'user', 'group' ])) {
+            if ($opts['as_activities'] && !in_array($opts['type'], [ 'user', 'group' ], true)) {
                 $entityType = 'activity';
             }
 
             $urn = implode(':', [
                 'urn',
-                $entityType, 
+                $entityType,
                 $scoredGuid->getGuid(),
             ]);
 
@@ -160,36 +159,36 @@ class Manager
         $next = '';
 
         if (count($feedSyncEntities) > 0) {
-           $next = (string) (array_reduce($feedSyncEntities, function($carry, FeedSyncEntity $feedSyncEntity) {
-               return min($feedSyncEntity->getTimestamp() ?: INF, $carry);
-           }, INF) - 1);
+            $next = (string) (array_reduce($feedSyncEntities, function ($carry, FeedSyncEntity $feedSyncEntity) {
+                return min($feedSyncEntity->getTimestamp() ?: INF, $carry);
+            }, INF) - 1);
 
-           $hydrateGuids = array_map(function (FeedSyncEntity $feedSyncEntity) {
-               return $feedSyncEntity->getGuid();
-           }, array_slice($feedSyncEntities, 0, 12)); // hydrate the first 12
+            $hydrateGuids = array_map(function (FeedSyncEntity $feedSyncEntity) {
+                return $feedSyncEntity->getGuid();
+            }, array_slice($feedSyncEntities, 0, 12)); // hydrate the first 12
 
-           $hydratedEntities = $this->entitiesBuilder->get(['guids' => $hydrateGuids]);
+            $hydratedEntities = $this->entitiesBuilder->get(['guids' => $hydrateGuids]);
 
-           foreach ($hydratedEntities as $entity) {
-               if ($opts['pinned_guids'] && in_array($entity->getGuid(), $opts['pinned_guids'])) {
-                   $entity->pinned = true;
-               }
-               if ($opts['as_activities']) {
-                   $entity = $this->entities->cast($entity);
-               }
-               $entities[] = (new FeedSyncEntity)
+            foreach ($hydratedEntities as $entity) {
+                if ($opts['pinned_guids'] && in_array($entity->getGuid(), $opts['pinned_guids'], false)) {
+                    $entity->pinned = true;
+                }
+                if ($opts['as_activities']) {
+                    $entity = $this->entities->cast($entity);
+                }
+                $entities[] = (new FeedSyncEntity)
                                 ->setGuid($entity->getGuid())
                                 ->setOwnerGuid($entity->getOwnerGuid())
                                 ->setUrn($entity->getUrn())
                                 ->setEntity($entity);
-           }
+            }
 
-           // TODO: Optimize this
-           foreach (array_slice($feedSyncEntities, 12) as $entity) {
-               $entities[] = $entity;
-           }
+            // TODO: Optimize this
+            foreach (array_slice($feedSyncEntities, 12) as $entity) {
+                $entities[] = $entity;
+            }
 
-           // TODO: confirm if the following is actually necessary
+            // TODO: confirm if the following is actually necessary
            // especially after the first 12
 
            /*usort($entities, function ($a, $b) use ($scores) {
@@ -222,7 +221,7 @@ class Manager
     {
         $feedSyncEntities = [];
 
-        if (!in_array($opts['type'], [ 'user', 'group' ])) {
+        if (!in_array($opts['type'], [ 'user', 'group' ], true)) {
             return [];
         }
 
@@ -389,5 +388,4 @@ class Manager
 
         return $aggregates->get();
     }
-
 }

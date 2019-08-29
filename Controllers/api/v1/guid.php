@@ -14,7 +14,6 @@ use Minds\Api\Factory;
 
 class guid implements Interfaces\Api
 {
-
     /**
      * Equivalent to HTTP GET method
      * @param  array $pages

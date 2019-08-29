@@ -15,7 +15,6 @@ use Minds\Core\Rewards\Transactions;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
 
-
 class Repository
 {
     /** @var Client */
@@ -101,7 +100,7 @@ class Repository
         $query->query($cql, $values);
         $query->setOpts([
             'page_size' => (int) $options['limit'],
-            'paging_state_token' => base64_decode($options['offset'])
+            'paging_state_token' => base64_decode($options['offset'], true)
         ]);
 
         try {
@@ -117,7 +116,7 @@ class Repository
 
         $requests = [];
 
-        foreach($rows as $row) {
+        foreach ($rows as $row) {
             $request = new Request();
             $request->setUserGuid((string) $row['user_guid']->value());
             $request->setTimestamp($row['timestamp']->time());
@@ -143,5 +142,4 @@ class Repository
     {
         // TODO: Implement delete() method.
     }
-
 }

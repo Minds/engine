@@ -6,7 +6,7 @@ namespace Minds\Api;
  */
 class Routes
 {
-    public static $routes = array();
+    public static $routes = [];
 
     /**
      * Adds a custom API route resolution

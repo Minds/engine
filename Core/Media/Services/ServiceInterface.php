@@ -7,5 +7,4 @@ namespace Minds\Core\Media\Services;
 
 interface ServiceInterface
 {
-
 }

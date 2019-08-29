@@ -39,8 +39,7 @@ class BoostEvent implements BlockchainEventInterface
         $txRepository = null,
         $boostRepository = null,
         $config = null
-    )
-    {
+    ) {
         $this->mongo = $mongo ?: Data\Client::build('MongoDB');
         $this->txRepository = $txRepository ?: Di::_()->get('Blockchain\Transactions\Repository');
         $this->boostRepository = $boostRepository ?: Di::_()->get('Boost\Repository');
@@ -75,7 +74,8 @@ class BoostEvent implements BlockchainEventInterface
         }
     }
 
-    public function boostFail($log, $transaction) {
+    public function boostFail($log, $transaction)
+    {
         if ($transaction->getContract() !== 'boost') {
             throw new \Exception("Failed but not a boost");
             return;
@@ -112,17 +112,17 @@ class BoostEvent implements BlockchainEventInterface
     /**
      * @param Transaction $transaction
      */
-    private function resolve($transaction) {
-
+    private function resolve($transaction)
+    {
         $boost = $this->boostRepository->getEntity($transaction->getData()['handler'], $transaction->getData()['guid']);
 
         $tx = (string) $transaction->getTx();
 
-        if(!$boost) {
+        if (!$boost) {
             throw new \Exception("No boost with hash {$tx}");
         }
 
-        if($boost->getState() != 'pending') {
+        if ($boost->getState() != 'pending') {
             throw new \Exception("Boost with hash {$tx} already processed. State: " . $boost->getState());
         }
 

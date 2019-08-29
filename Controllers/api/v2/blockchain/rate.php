@@ -14,7 +14,6 @@ use Minds\Core\Di\Di;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 
-
 class rate implements Interfaces\Api
 {
     /**

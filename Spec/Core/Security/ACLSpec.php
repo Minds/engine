@@ -14,7 +14,8 @@ class ACLSpec extends ObjectBehavior
     /** @var Core\Security\RateLimits\Manager */
     private $rateLimits;
 
-    function let(Core\Security\RateLimits\Manager $rateLimits) {
+    public function let(Core\Security\RateLimits\Manager $rateLimits)
+    {
         $this->rateLimits = $rateLimits;
 
         $this->beConstructedWith($rateLimits);
@@ -60,8 +61,8 @@ class ACLSpec extends ObjectBehavior
         $this->mock_session(true);
 
         Core\Events\Dispatcher::register('acl:read', 'all', function ($event) {
-        $event->setResponse(true);
-            });
+            $event->setResponse(true);
+        });
 
         $this->read($entity)->shouldReturn(true);
         $this->mock_session(false);
@@ -99,8 +100,8 @@ class ACLSpec extends ObjectBehavior
         $this->mock_session(true);
 
         Core\Events\Dispatcher::register('acl:write', 'all', function ($event) {
-        $event->setResponse(true);
-      });
+            $event->setResponse(true);
+        });
 
         $this->read($entity)->shouldReturn(true);
         $this->mock_session(false);
@@ -156,8 +157,8 @@ class ACLSpec extends ObjectBehavior
             ->willReturn(false);
 
         Core\Events\Dispatcher::register('acl:interact', 'all', function ($event) {
-        $event->setResponse(false);
-      });
+            $event->setResponse(false);
+        });
 
         $this->interact($entity)->shouldReturn(false);
         $this->mock_session(false);

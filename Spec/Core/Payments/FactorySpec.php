@@ -10,7 +10,6 @@ class FactorySpec extends ObjectBehavior
 {
     public function let()
     {
-
     }
 
     public function it_is_initializable()

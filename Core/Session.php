@@ -72,9 +72,9 @@ class Session extends base
             $server = Di::_()->get('OAuth\Server\Resource');
             $request = $server->validateAuthenticatedRequest($request);
             $user_guid = $request->getAttribute('oauth_user_id');
-            static::setUserByGuid($user_guid); 
+            static::setUserByGuid($user_guid);
         } catch (\Exception $e) {
-           // var_dump($e);
+            // var_dump($e);
         }
     }
 
@@ -108,7 +108,7 @@ class Session extends base
             });
         }
 
-        if (!$user 
+        if (!$user
             || !static::$user->username
             || static::$user->isBanned()
             || !static::$user->isEnabled()

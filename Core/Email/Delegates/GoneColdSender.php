@@ -19,7 +19,6 @@ class GoneColdSender implements SenderInterface
     {
         $this->manager = $manager ?: Di::_()->get('Suggestions\Manager');
         $this->campaign = $campaign ?: new GoneCold();
-
     }
 
     public function send(User $user)

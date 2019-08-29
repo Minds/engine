@@ -17,19 +17,19 @@ class PointsSnapshotIteratorSpec extends ObjectBehavior
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    function let(Client $db, EntitiesBuilder $entitiesBuilder)
+    public function let(Client $db, EntitiesBuilder $entitiesBuilder)
     {
         $this->beConstructedWith($db, $entitiesBuilder);
         $this->db = $db;
         $this->entitiesBuilder = $entitiesBuilder;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(PointsSnapshotIterator::class);
     }
 
-    function it_should_get_the_user_list(User $user1, User $user2)
+    public function it_should_get_the_user_list(User $user1, User $user2)
     {
         $this->db->request(Argument::that(function ($query) {
             $built = $query->build();
@@ -70,6 +70,5 @@ class PointsSnapshotIteratorSpec extends ObjectBehavior
         $this->current()->shouldReturn($user1);
         $this->next();
         $this->current()->shouldReturn($user2);
-
     }
 }

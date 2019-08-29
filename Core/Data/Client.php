@@ -15,7 +15,7 @@ class Client
      * @param string $handler - The handler to load
      * @return object
      */
-    public static function build($handler = null, $options = array())
+    public static function build($handler = null, $options = [])
     {
         if (!$handler) {
             $handler = self::$default;
