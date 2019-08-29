@@ -196,6 +196,17 @@ class Router
     }
 
     /**
+     * Return vars for request
+     * @return array
+     */
+    public static function getPutVars()
+    {
+        $postdata = file_get_contents('php://input');
+        $request = json_decode($postdata, true);
+        return $request;
+    }
+
+    /**
      * Register routes.
      *
      * @param array $routes - an array of routes to handlers
