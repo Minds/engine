@@ -192,7 +192,7 @@ class Push implements Interfaces\NotificationExtensionInterface
      * @param  mixed  $entity
      * @return string
      */
-    protected static function buildNotificationMessage(array $notification = [], $from_user, $entity)
+    public static function buildNotificationMessage(array $notification = [], $from_user, $entity)
     {
         $message = '';
 
@@ -207,8 +207,22 @@ class Push implements Interfaces\NotificationExtensionInterface
         $name = $from_user->name;
 
         $isOwner = $notification['to'] == $entity->owner_guid;
-        $prefix = $isOwner ? 'your ': $entity->ownerObj['name']."'s ";
-        $desc = ($entity->type == 'activity') ? 'activity': $entity->subtype;
+
+        $prefix = '';
+        if ($isOwner) {
+            $prefix = 'your ';
+        } elseif (isset($entity->ownerObj['name'])) {
+            $prefix = $entity->ownerObj['name'].'\'s ';
+        }
+
+        $desc = 'a post';
+        if ($entity->type == 'activity') {
+            $desc = 'activity';
+        } elseif (isset($entity->subtype)) {
+            $desc = $entity->subtype;
+        } elseif ($isOwner || isset($entity->ownerObj['name'])) {
+            $desc = 'post';
+        }
 
         $boostDescription = $entity->title ?: $entity->name ?: ($entity->type !== 'user' ? 'post' : 'channel');
 
