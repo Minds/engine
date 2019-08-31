@@ -33,7 +33,8 @@ class Permissions implements \JsonSerializable
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
-    public function setUser(User $user) {
+    public function setUser(User $user)
+    {
         throw new ImmutableException('User can only be set in the constructor');
     }
 

@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Entities;
 
 use Minds\Core;
@@ -6,7 +7,8 @@ use Minds\Helpers;
 use Minds\Common\ChannelMode;
 
 /**
- * User Entity
+ * User Entity.
+ *
  * @todo Do not inherit from ElggUser
  */
 class User extends \ElggUser
@@ -14,7 +16,8 @@ class User extends \ElggUser
     public $fullExport = true;
     public $exportCounts = false;
 
-    protected function initializeAttributes() {
+    protected function initializeAttributes()
+    {
         $this->attributes['boost_rating'] = 1;
         $this->attributes['mature'] = 0;
         $this->attributes['mature_content'] = 0;
@@ -37,15 +40,16 @@ class User extends \ElggUser
         $this->attributes['pinned_posts'] = [];
         $this->attributes['eth_wallet'] = '';
         $this->attributes['eth_incentive'] = '';
+        $this->attributes['btc_address'] = '';
         $this->attributes['phone_number'] = null;
         $this->attributes['phone_number_hash'] = null;
         $this->attributes['icontime'] = time();
-		$this->attributes['briefdescription'] = '';
-		$this->attributes['rating'] = 1;
-		$this->attributes['p2p_media_enabled'] = 0;
+        $this->attributes['briefdescription'] = '';
+        $this->attributes['rating'] = 1;
+        $this->attributes['p2p_media_enabled'] = 0;
         $this->attributes['is_mature'] = 0;
-		$this->attributes['mature_lock'] = 0;
-		$this->attributes['opted_in_hashtags'] = 0;
+        $this->attributes['mature_lock'] = 0;
+        $this->attributes['opted_in_hashtags'] = 0;
         $this->attributes['last_accepted_tos'] = Core\Config::_()->get('last_tos_update');
         $this->attributes['onboarding_shown'] = 0;
         $this->attributes['creator_frequency'] = null;
@@ -59,7 +63,8 @@ class User extends \ElggUser
     }
 
     /**
-     * Gets `tags`
+     * Gets `tags`.
+     *
      * @return mixed
      */
     public function getHashtags()
@@ -67,21 +72,25 @@ class User extends \ElggUser
         if (is_string($this->tags)) {
             return json_decode($this->tags);
         }
+
         return $this->tags ?: [];
     }
 
     /**
-     * Sets `tags`
+     * Sets `tags`.
+     *
      * @return array
      */
     public function setHashtags(array $tags)
     {
         $this->tags = $tags;
+
         return $this;
     }
 
     /**
-     * Gets `onboarding_shown`
+     * Gets `onboarding_shown`.
+     *
      * @return bool
      */
     public function wasOnboardingShown()
@@ -90,12 +99,14 @@ class User extends \ElggUser
     }
 
     /**
-     * Sets `onboarding_shown`
+     * Sets `onboarding_shown`.
+     *
      * @return $this
      */
     public function setOnboardingShown($onboardingShown)
     {
         $this->onboarding_shown = $onboardingShown ? 1 : 0;
+
         return $this;
     }
 
@@ -109,16 +120,19 @@ class User extends \ElggUser
 
     /**
      * @param int $lastAvatarUpload
+     *
      * @return $this
      */
     public function setLastAvatarUpload($lastAvatarUpload)
     {
         $this->last_avatar_upload = $lastAvatarUpload;
+
         return $this;
     }
 
     /**
-     * Gets `creator_frequency`
+     * Gets `creator_frequency`.
+     *
      * @return bool
      */
     public function getCreatorFrequency()
@@ -127,89 +141,108 @@ class User extends \ElggUser
     }
 
     /**
-     * Sets `creator_frequency`
+     * Sets `creator_frequency`.
+     *
      * @param $creatorFrequency
+     *
      * @return $this
      */
     public function setCreatorFrequency($creatorFrequency)
     {
         $this->creator_frequency = $creatorFrequency;
+
         return $this;
     }
 
     /**
-     * Sets the `boost rating` flag
-     * @param  int $value
+     * Sets the `boost rating` flag.
+     *
+     * @param int $value
+     *
      * @return $this
      */
     public function setBoostRating($value)
     {
         $this->boost_rating = $value;
+
         return $this;
     }
 
     /**
-     * Gets the `boost rating` flag
+     * Gets the `boost rating` flag.
+     *
      * @return int
      */
     public function getBoostRating()
     {
-      return $this->boost_rating;
+        return $this->boost_rating;
     }
 
     /**
-     * Gets the `mature` flag
+     * Gets the `mature` flag.
+     *
      * @return bool|int
      */
     public function getViewMature()
     {
-      return $this->attributes['mature'];
+        return $this->attributes['mature'];
     }
 
     /**
-     * Sets the `mature` flag
-     * @param  bool|int $value
+     * Sets the `mature` flag.
+     *
+     * @param bool|int $value
+     *
      * @return $this
      */
     public function setViewMature($value)
     {
         $this->mature = $value ? 1 : 0;
+
         return $this;
     }
 
     /**
-     * Sets the `mature_content` flag
-     * @param  bool|int $value
+     * Sets the `mature_content` flag.
+     *
+     * @param bool|int $value
+     *
      * @return $this
      */
     public function setMatureContent($value)
     {
         $this->mature_content = $value ? 1 : 0;
+
         return $this;
     }
 
     /**
-     * Gets the `mature_content` flag
+     * Gets the `mature_content` flag.
+     *
      * @return bool|int
      */
     public function getMatureContent()
     {
-      return $this->mature_content;
+        return $this->mature_content;
     }
 
     /**
-     * Sets the `spam` flag
-     * @param  bool|int $value
+     * Sets the `spam` flag.
+     *
+     * @param bool|int $value
+     *
      * @return $this
      */
     public function setSpam($value)
     {
         $this->spam = $value ? 1 : 0;
+
         return $this;
     }
 
     /**
-     * Gets the `spam` flag
+     * Gets the `spam` flag.
+     *
      * @return bool|int
      */
     public function getSpam()
@@ -222,18 +255,22 @@ class User extends \ElggUser
     }
 
     /**
-     * Sets the `deleted` flag
-     * @param  bool|int $value
+     * Sets the `deleted` flag.
+     *
+     * @param bool|int $value
+     *
      * @return $this
      */
     public function setDeleted($value)
     {
         $this->deleted = $value ? 1 : 0;
+
         return $this;
     }
 
     /**
-     * Gets the `deleted` flag
+     * Gets the `deleted` flag.
+     *
      * @return bool|int
      */
     public function getDeleted()
@@ -246,28 +283,34 @@ class User extends \ElggUser
     }
 
     /**
-     * Sets the `language` flag
-     * @param  string $value
+     * Sets the `language` flag.
+     *
+     * @param string $value
+     *
      * @return $this
      */
     public function setLanguage($value)
     {
         $this->language = $value;
+
         return $this;
     }
 
     /**
-     * Gets the `language` flag
+     * Gets the `language` flag.
+     *
      * @return string
      */
     public function getLanguage()
     {
-      return $this->language;
+        return $this->language;
     }
 
     /**
-     * Sets and encrypts a users email address
-     * @param  string $email
+     * Sets and encrypts a users email address.
+     *
+     * @param string $email
+     *
      * @return $this
      */
     public function setEmail($email)
@@ -277,11 +320,13 @@ class User extends \ElggUser
             return $this;
         }
         $this->email = base64_encode(Helpers\OpenSSL::encrypt($email, file_get_contents($CONFIG->encryptionKeys['email']['public'])));
+
         return $this;
     }
 
     /**
-     * Returns and decrypts an email address
+     * Returns and decrypts an email address.
+     *
      * @return $this
      */
     public function getEmail()
@@ -290,23 +335,28 @@ class User extends \ElggUser
         if ($this->email && !base64_decode($this->email, true)) {
             return $this->email;
         }
-        return Helpers\OpenSSL::decrypt(base64_decode($this->email), file_get_contents($CONFIG->encryptionKeys['email']['private']));
+
+        return Helpers\OpenSSL::decrypt(base64_decode($this->email, true), file_get_contents($CONFIG->encryptionKeys['email']['private']));
     }
 
     /**
-     * Sets and encrypts a users phone number
-     * @param  string $phone
+     * Sets and encrypts a users phone number.
+     *
+     * @param string $phone
+     *
      * @return $this
      */
     public function setPhoneNumber($phone)
     {
         global $CONFIG; //@todo use object config instead
         $this->phone_number = base64_encode(Helpers\OpenSSL::encrypt($phone, file_get_contents($CONFIG->encryptionKeys['phone-number']['public'])));
+
         return $this;
     }
 
     /**
-     * Returns and decrypts an phone number
+     * Returns and decrypts an phone number.
+     *
      * @return $this
      */
     public function getPhoneNumber()
@@ -315,12 +365,14 @@ class User extends \ElggUser
         if ($this->phone_number && !base64_decode($this->phone_number, true)) {
             return $this->phone_number;
         }
-        return Helpers\OpenSSL::decrypt(base64_decode($this->phone_number), file_get_contents($CONFIG->encryptionKeys['phone-number']['private']));
+
+        return Helpers\OpenSSL::decrypt(base64_decode($this->phone_number, true), file_get_contents($CONFIG->encryptionKeys['phone-number']['private']));
     }
 
     public function setPhoneNumberHash($hash)
     {
         $this->phone_number_hash = $hash;
+
         return $this;
     }
 
@@ -330,17 +382,20 @@ class User extends \ElggUser
     }
 
     /**
-     * Sets (overrides) social profiles information
+     * Sets (overrides) social profiles information.
+     *
      * @return $this
      */
     public function setSocialProfiles(array $social_profiles)
     {
         $this->social_profiles = $social_profiles;
+
         return $this;
     }
 
     /**
-     * Sets (or clears) a single social profile
+     * Sets (or clears) a single social profile.
+     *
      * @return $this
      */
     public function setSocialProfile($key, $value = null)
@@ -357,7 +412,8 @@ class User extends \ElggUser
     }
 
     /**
-     * Returns all set social profiles
+     * Returns all set social profiles.
+     *
      * @return array
      */
     public function getSocialProfiles()
@@ -366,17 +422,20 @@ class User extends \ElggUser
     }
 
     /**
-     * Sets (overrides) wire rewards information
+     * Sets (overrides) wire rewards information.
+     *
      * @return $this
      */
     public function setWireRewards(array $wire_rewards)
     {
         $this->wire_rewards = $wire_rewards ?: '';
+
         return $this;
     }
 
     /**
-     * Returns all set wire rewards
+     * Returns all set wire rewards.
+     *
      * @return array
      */
     public function getWireRewards()
@@ -392,69 +451,81 @@ class User extends \ElggUser
         $pinned = $this->getPinnedPosts();
         if (!$pinned) {
             $pinned = [];
-        } else if (count($pinned) > 2) {
+        } elseif (count($pinned) > 2) {
             array_shift($pinned);
         }
 
-        if (array_search($guid, $pinned) === false) {
-            $pinned[] = (string)$guid;
+        if (array_search($guid, $pinned, true) === false) {
+            $pinned[] = (string) $guid;
             $this->setPinnedPosts($pinned);
         }
     }
 
     /**
      * @param string $guid
+     *
      * @return bool
      */
     public function removePinned($guid)
     {
         $pinned = $this->getPinnedPosts();
         if ($pinned && count($pinned) > 0) {
-            $index = array_search((string)$guid, $pinned);
+            $index = array_search((string) $guid, $pinned, true);
             if (is_numeric($index)) {
                 array_splice($pinned, $index, 1);
                 $this->pinned_posts = $pinned;
             }
         }
+
         return false;
     }
 
     /**
-     * Sets the channel's pinned posts
+     * Sets the channel's pinned posts.
+     *
      * @param array $pinned
+     *
      * @return $this
      */
-    public function setPinnedPosts($pinned) {
+    public function setPinnedPosts($pinned)
+    {
         if (count($pinned) > 3) {
             $pinned = array_slice($pinned, 0, 3);
         }
         $this->pinned_posts = $pinned;
+
         return $this;
     }
 
     /**
-     * Gets the channel's pinned posts
+     * Gets the channel's pinned posts.
+     *
      * @return array
      */
-    public function getPinnedPosts() {
-        if(is_string($this->pinned_posts)) {
+    public function getPinnedPosts()
+    {
+        if (is_string($this->pinned_posts)) {
             return json_decode($this->pinned_posts);
         }
+
         return $this->pinned_posts;
     }
 
     /**
-     * Sets (overrides) experimental feature flags
+     * Sets (overrides) experimental feature flags.
+     *
      * @return $this
      */
     public function setFeatureFlags(array $feature_flags)
     {
         $this->feature_flags = $feature_flags;
+
         return $this;
     }
 
     /**
-     * Returns all set feature flags
+     * Returns all set feature flags.
+     *
      * @return array
      */
     public function getFeatureFlags()
@@ -463,17 +534,20 @@ class User extends \ElggUser
     }
 
     /**
-     * Sets (overrides) programs participations
+     * Sets (overrides) programs participations.
+     *
      * @return array
      */
     public function setPrograms(array $programs)
     {
         $this->programs = $programs;
+
         return $this;
     }
 
     /**
-     * Returns all set programs participations
+     * Returns all set programs participations.
+     *
      * @return array
      */
     public function getPrograms()
@@ -486,17 +560,20 @@ class User extends \ElggUser
     }
 
     /**
-     * Sets (overrides) monetization settings
+     * Sets (overrides) monetization settings.
+     *
      * @return array
      */
     public function setMonetizationSettings(array $monetization_settings)
     {
         $this->monetization_settings = $monetization_settings;
+
         return $this;
     }
 
     /**
-     * Returns all set monetization settings
+     * Returns all set monetization settings.
+     *
      * @return array
      */
     public function getMonetizationSettings()
@@ -509,17 +586,20 @@ class User extends \ElggUser
     }
 
     /**
-     * Sets (overrides) group membership
+     * Sets (overrides) group membership.
+     *
      * @return array
      */
     public function setGroupMembership(array $group_membership)
     {
         $this->group_membership = $group_membership;
+
         return $this;
     }
 
     /**
-     * Returns all set group membership
+     * Returns all set group membership.
+     *
      * @return array
      */
     public function getGroupMembership()
@@ -532,18 +612,22 @@ class User extends \ElggUser
     }
 
     /**
-     * Sets the `boost autorotate` flag
-     * @param  bool $value
+     * Sets the `boost autorotate` flag.
+     *
+     * @param bool $value
+     *
      * @return $this
      */
     public function setBoostAutorotate($value)
     {
         $this->boost_autorotate = (bool) $value;
+
         return $this;
     }
 
     /**
-     * Gets the `boost autorotate` flag
+     * Gets the `boost autorotate` flag.
+     *
      * @return bool
      */
     public function getBoostAutorotate()
@@ -552,19 +636,23 @@ class User extends \ElggUser
     }
 
     /**
-     * Subscribes user to another user
-     * @param  mixed  $guid
-     * @param  array  $data - metadata
+     * Subscribes user to another user.
+     *
+     * @param mixed $guid
+     * @param array $data - metadata
+     *
      * @return mixed
      */
-    public function subscribe($guid, $data = array())
+    public function subscribe($guid, $data = [])
     {
         return \Minds\Helpers\Subscriptions::subscribe($this->guid, $guid, $data);
     }
 
     /**
-     * Unsubscribes from another user
-     * @param  mixed $guid
+     * Unsubscribes from another user.
+     *
+     * @param mixed $guid
+     *
      * @return mixed
      */
     public function unSubscribe($guid)
@@ -574,8 +662,10 @@ class User extends \ElggUser
 
     /**
      * Checks if subscribed to another user.
-     * @param  mixed $guid   - the user to check subscription to
-     * @return boolean
+     *
+     * @param mixed $guid - the user to check subscription to
+     *
+     * @return bool
      */
     public function isSubscriber($guid)
     {
@@ -590,7 +680,7 @@ class User extends \ElggUser
 
         $return = 0;
         $db = new Core\Data\Call('friendsof');
-        $row = $db->getRow($this->guid, array('limit'=> 1, 'offset'=>$guid));
+        $row = $db->getRow($this->guid, ['limit' => 1, 'offset' => $guid]);
         if ($row && key($row) == $guid) {
             $return = true;
         }
@@ -602,9 +692,11 @@ class User extends \ElggUser
 
     /**
      * Checks if subscribed to another user in a
-     * reversed way than isSubscribed()
-     * @param  mixed $guid   - the user to check subscription to
-     * @return boolean
+     * reversed way than isSubscribed().
+     *
+     * @param mixed $guid - the user to check subscription to
+     *
+     * @return bool
      */
     public function isSubscribed($guid)
     {
@@ -643,11 +735,13 @@ class User extends \ElggUser
         $db = new Core\Data\Call('friendsof');
         $return = (int) $db->countRow($this->guid);
         $cacher->set("$this->guid:friendsofcount", $return, 360);
+
         return (int) $return;
     }
 
     /**
-     * Gets the number of subscriptions
+     * Gets the number of subscriptions.
+     *
      * @return int
      */
     public function getSubscriptonsCount()
@@ -664,21 +758,25 @@ class User extends \ElggUser
         $db = new Core\Data\Call('friends');
         $return = (int) $db->countRow($this->guid);
         $cacher->set("$this->guid:friendscount", $return, 360);
+
         return (int) $return;
     }
 
-    public function getMerchant(){
+    public function getMerchant()
+    {
         if ($this->merchant && !is_array($this->merchant)) {
             return json_decode($this->merchant, true);
         }
+
         return $this->merchant;
     }
 
-    public function setMerchant($merchant){
+    public function setMerchant($merchant)
+    {
         $this->merchant = $merchant;
+
         return $this;
     }
-
 
     public function isP2PMediaEnabled()
     {
@@ -688,11 +786,13 @@ class User extends \ElggUser
     public function setP2PMediaEnabled($value)
     {
         $this->attributes['p2p_media_enabled'] = (bool) $value;
+
         return $this;
     }
 
     /**
-     * Exports to an array
+     * Exports to an array.
+     *
      * @return array
      */
     public function export()
@@ -708,7 +808,7 @@ class User extends \ElggUser
             }
         }
         if ($this->exportCounts) {
-            if ($this->username != "minds") {
+            if ($this->username != 'minds') {
                 $export['subscribers_count'] = $this->getSubscribersCount();
             }
             $export['subscriptions_count'] = $this->getSubscriptionsCount();
@@ -772,7 +872,8 @@ class User extends \ElggUser
     }
 
     /**
-     * Get the number of impressions for the user
+     * Get the number of impressions for the user.
+     *
      * @return int
      */
     public function getImpressions()
@@ -780,11 +881,13 @@ class User extends \ElggUser
         $app = Core\Analytics\App::_()
                 ->setMetric('impression')
                 ->setKey($this->guid);
+
         return $app->total();
     }
 
     /**
-     * Get the plus variable
+     * Get the plus variable.
+     *
      * @return int
      */
     public function getPlus()
@@ -793,7 +896,8 @@ class User extends \ElggUser
     }
 
     /**
-     * Is the user a plus user
+     * Is the user a plus user.
+     *
      * @return int
      */
     public function isPlus()
@@ -802,17 +906,20 @@ class User extends \ElggUser
     }
 
     /**
-     * Set plus expires
-     * @var int $expires
+     * Set plus expires.
+     *
+     * @var int
      */
     public function setPlusExpires($expires)
     {
         $this->plus_expires = $expires;
+
         return $this;
     }
 
     /**
-     * Gets the categories to which the user is subscribed
+     * Gets the categories to which the user is subscribed.
+     *
      * @return array
      */
     public function getCategories()
@@ -825,7 +932,8 @@ class User extends \ElggUser
     }
 
     /**
-     * Sets the categories to which the user is subscribed
+     * Sets the categories to which the user is subscribed.
+     *
      * @param $value
      */
     public function setCategories($value)
@@ -843,6 +951,7 @@ class User extends \ElggUser
 
     /**
      * @param string $eth_wallet
+     *
      * @return $this
      */
     public function setEthWallet($eth_wallet)
@@ -854,11 +963,13 @@ class User extends \ElggUser
 
     /**
      * @param string $eth_incentive
+     *
      * @return User
      */
     public function setEthIncentive($eth_incentive = '')
     {
         $this->eth_incentive = $eth_incentive;
+
         return $this;
     }
 
@@ -871,14 +982,17 @@ class User extends \ElggUser
     }
 
     /**
-     * Gets the user's icon URL
-     * @param  string $size
+     * Gets the user's icon URL.
+     *
+     * @param string $size
+     *
      * @return string
      */
     public function getIconURL($size = 'medium')
     {
         $join_date = $this->getTimeCreated();
-        return elgg_get_site_url() . "icon/$this->guid/$size/$join_date/$this->icontime/" . Core\Config::_()->lastcache;
+
+        return elgg_get_site_url()."icon/$this->guid/$size/$join_date/$this->icontime/".Core\Config::_()->lastcache;
     }
 
     /**
@@ -891,11 +1005,13 @@ class User extends \ElggUser
 
     /**
      * @param bool $value
+     *
      * @return $this
      */
     public function setMature($value)
     {
         $this->is_mature = (bool) $value;
+
         return $this;
     }
 
@@ -909,11 +1025,13 @@ class User extends \ElggUser
 
     /**
      * @param bool $value
+     *
      * @return $this
      */
     public function setMatureLock($value)
     {
         $this->mature_lock = $value;
+
         return $this;
     }
 
@@ -927,11 +1045,13 @@ class User extends \ElggUser
 
     /**
      * @param int $value
+     *
      * @return $this
      */
     public function setLastAcceptedTOS($value)
     {
         $this->last_accepted_tos = $value;
+
         return $this;
     }
 
@@ -945,21 +1065,24 @@ class User extends \ElggUser
 
     /**
      * @param int $value
+     *
      * @return $this+
      */
     public function setOptedInHashtags(int $value)
     {
         $this->opted_in_hashtags += $value;
+
         return $this;
     }
 
     /**
-     * Returns an array of which Entity attributes are exportable
+     * Returns an array of which Entity attributes are exportable.
+     *
      * @return array
      */
     public function getExportableValues()
     {
-        return array_merge(parent::getExportableValues(), array(
+        return array_merge(parent::getExportableValues(), [
             'website',
             'briefdescription',
             'dob',
@@ -993,8 +1116,9 @@ class User extends \ElggUser
             'theme',
             'onchain_booster',
             'toaster_notifications',
-            'mode'
-        ));
+            'mode',
+            'btc_address',
+        ]);
     }
 
     public function getTags()
@@ -1002,11 +1126,13 @@ class User extends \ElggUser
         if (is_array($this->tags)) {
             return $this->tags;
         }
+
         return json_decode($this->tags, true);
     }
 
     /**
-     * Check if user is in canary mode
+     * Check if user is in canary mode.
+     *
      * @return bool
      */
     public function isCanary()
@@ -1015,17 +1141,20 @@ class User extends \ElggUser
     }
 
     /**
-     * Set the users canary status
-     * @var boolean $enabled
+     * Set the users canary status.
+     *
+     * @var bool
+     *
      * @return $this
      */
     public function setCanary($enabled = true)
     {
         $this->canary = $enabled ? 1 : 0;
     }
-    
+
     /**
-     * Get `theme`
+     * Get `theme`.
+     *
      * @return string
      */
     public function getTheme()
@@ -1034,18 +1163,22 @@ class User extends \ElggUser
     }
 
     /**
-     * Set `theme``
+     * Set `theme``.
+     *
      * @param string $value
+     *
      * @return $this
      */
     public function setTheme($value)
     {
         $this->theme = $value;
+
         return $this;
     }
 
     /**
-     * Preferred urn
+     * Preferred urn.
+     *
      * @return string
      */
     public function getUrn()
@@ -1055,7 +1188,8 @@ class User extends \ElggUser
 
     /**
      * Returns whether the user has onchain_booster status.
-     * @return boolean true if the date set in onchain_booster is larger than the current time.
+     *
+     * @return bool true if the date set in onchain_booster is larger than the current time
      */
     public function isOnchainBooster()
     {
@@ -1064,6 +1198,7 @@ class User extends \ElggUser
 
     /**
      * Gets the unix timestamp for the last time the user boosted onchain.
+     *
      * @return int the date that a booster last boosted on chain
      */
     public function getOnchainBooster()
@@ -1072,19 +1207,23 @@ class User extends \ElggUser
     }
 
     /**
-     * Sets the unix timestamp for the last time the user boosted onchain 
-     * @param int $time - the time to set the users onchain_booster variable to.
+     * Sets the unix timestamp for the last time the user boosted onchain.
+     *
+     * @param int $time - the time to set the users onchain_booster variable to
+     *
      * @return $this
      */
     public function setOnchainBooster($time)
     {
         $this->onchain_booster = (int) $time;
+
         return $this;
     }
 
     /**
      * Returns toaster notifications state.
-     * @return boolean true if toaster notifications is enabled.
+     *
+     * @return bool true if toaster notifications is enabled
      */
     public function getToasterNotifications()
     {
@@ -1092,31 +1231,58 @@ class User extends \ElggUser
     }
 
     /**
-     * Set on/off toaster notifications
+     * Set on/off toaster notifications.
+     *
      * @return User
      */
     public function setToasterNotifications($enabled = true)
     {
         $this->toaster_notifications = $enabled ? 1 : 0;
+
         return $this;
     }
-    
+
     /**
-    * Returns channel mode value
-    * @return integer channel mode
-    */
+     * Returns channel mode value.
+     *
+     * @return int channel mode
+     */
     public function getMode()
     {
         return (int) $this->mode;
     }
 
-    /** 
-    * Sets the channel mode
-    * @return User
-    */
-    public function setMode(int $mode) {
+    /**
+     * Sets the channel mode.
+     *
+     * @return User
+     */
+    public function setMode(int $mode)
+    {
         $this->mode = $mode;
+
         return $this;
     }
 
+    /**
+     * Returns btc_address.
+     *
+     * @return string
+     */
+    public function getBtcAddress(): string
+    {
+        return (string) $this->btc_address;
+    }
+
+    /**
+     * Set btc_address.
+     *
+     * @param string $btc_address
+     */
+    public function setBtcAddress(string $btc_address): User
+    {
+        $this->btc_address = (string) $btc_address;
+
+        return $this;
+    }
 }

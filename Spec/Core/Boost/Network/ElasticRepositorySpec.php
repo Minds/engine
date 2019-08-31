@@ -12,18 +12,18 @@ class ElasticRepositorySpec extends ObjectBehavior
 {
     private $es;
 
-    function let(Elastic $es)
+    public function let(Elastic $es)
     {
         $this->beConstructedWith($es);
         $this->es = $es;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(ElasticRepository::class);
     }
 
-    function it_should_add()
+    public function it_should_add()
     {
         $boost = (new Boost())
             ->setCreatedTimestamp(time() * 1000)
@@ -41,7 +41,7 @@ class ElasticRepositorySpec extends ObjectBehavior
             ->setType('newsfeed')
             ->setPriority(false);
 
-        $this->es->request(Argument::that(function($prepared) {
+        $this->es->request(Argument::that(function ($prepared) {
             $body = $prepared->build()['body'];
             
             return round($body['doc']['@timestamp'], -5) === round(time() * 1000, -5)
@@ -65,5 +65,4 @@ class ElasticRepositorySpec extends ObjectBehavior
         $this->add($boost)
             ->shouldReturn(true);
     }
-
 }

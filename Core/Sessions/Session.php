@@ -8,7 +8,6 @@ use Minds\Traits\MagicAttributes;
 
 class Session
 {
-
     use MagicAttributes;
 
     /** @var string $id */
@@ -22,5 +21,4 @@ class Session
 
     /** @var int $expires */
     private $expires;
-
 }

@@ -72,8 +72,8 @@ class PointsSnapshotIterator implements \Iterator
 
         $rows = $this->db->request($prepared);
         if (!$rows) {
-           $this->valid = false;
-           return;
+            $this->valid = false;
+            return;
         }
 
         $this->token = $rows->pagingStateToken();
@@ -95,10 +95,10 @@ class PointsSnapshotIterator implements \Iterator
             }
         }
 
-        if ($rows->isLastPage()) { 
+        if ($rows->isLastPage()) {
             //$this->valid = false;
             //return;
-        } 
+        }
 
         if (!$pushed) {
             error_log("no users past period " . date('d-m-Y', end($users)->time_created));

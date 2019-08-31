@@ -13,13 +13,12 @@ use Minds\Core\Email\Message;
 
 class MailerSpec extends ObjectBehavior
 {
-
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Email\Mailer');
     }
 
-    function it_should_not_send_a_blacklist_domain(PHPMailer $mailer, Queue $queue, SpamFilter $filter, Message $message)
+    public function it_should_not_send_a_blacklist_domain(PHPMailer $mailer, Queue $queue, SpamFilter $filter, Message $message)
     {
         $this->beConstructedWith($mailer, $queue, $filter);
 

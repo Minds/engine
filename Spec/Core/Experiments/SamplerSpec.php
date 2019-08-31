@@ -12,16 +12,14 @@ use Minds\Core\Experiments\Hypotheses\HypothesisInterface;
 
 class SamplerSpec extends ObjectBehavior
 {
-
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Sampler::class);
     }
 
-    function it_should_set_a_hypothesis(
+    public function it_should_set_a_hypothesis(
         HypothesisInterface $hypothesis
-    )
-    {
+    ) {
         $hypothesis->getBuckets()
             ->willReturn([
                 (new Bucket)
@@ -34,10 +32,9 @@ class SamplerSpec extends ObjectBehavior
         $this->setHypothesis($hypothesis);
     }
 
-    function it_should_not_allow_more_than_100_pct_bucket_weighting_in_hypothesis(
+    public function it_should_not_allow_more_than_100_pct_bucket_weighting_in_hypothesis(
         HypothesisInterface $hypothesis
-    )
-    {
+    ) {
         $hypothesis->getBuckets()
             ->willReturn([
                 (new Bucket)
@@ -51,11 +48,10 @@ class SamplerSpec extends ObjectBehavior
             ->duringSetHypothesis($hypothesis);
     }
 
-    function it_should_return_already_assigned_loggedout_bucket(
+    public function it_should_return_already_assigned_loggedout_bucket(
         Client $cql,
         HypothesisInterface $hypothesis
-    )
-    {
+    ) {
         $this->beConstructedWith($cql);
         $hypothesis->getId()
             ->willReturn('spectestExp');
@@ -68,7 +64,7 @@ class SamplerSpec extends ObjectBehavior
 
         $_COOKIE['mexp'] = 'spectest';
 
-        $cql->request(Argument::that(function($query) {
+        $cql->request(Argument::that(function ($query) {
             $statement = $query->build();
             return $statement['values'][0] == 'spectestExp'
                 && $statement['values'][1] == "loggedout:spectest";
@@ -86,11 +82,10 @@ class SamplerSpec extends ObjectBehavior
             ->shouldHaveType(Bucket::class);
     }
 
-    function it_should_return_and_and_assign_unassigned_loggedout_bucket(
+    public function it_should_return_and_and_assign_unassigned_loggedout_bucket(
         Client $cql,
         HypothesisInterface $hypothesis
-    )
-    {
+    ) {
         $this->beConstructedWith($cql);
         $hypothesis->getId()
             ->willReturn('spectestExp');
@@ -103,7 +98,7 @@ class SamplerSpec extends ObjectBehavior
 
         $_COOKIE['mwa'] = 'spectest';
 
-        $cql->request(Argument::that(function($query) {
+        $cql->request(Argument::that(function ($query) {
             $statement = $query->build();
             if ($statement['string'] != "SELECT * FROM experiments WHERE id=? AND key=?") {
                 return false;
@@ -114,7 +109,7 @@ class SamplerSpec extends ObjectBehavior
             ->shouldBeCalledTimes(1)
             ->willReturn([ ]);
 
-        $cql->request(Argument::that(function($query) {
+        $cql->request(Argument::that(function ($query) {
             $statement = $query->build();
             if ($statement['string'] != "SELECT count(*) as total FROM experiments WHERE id=?") {
                 return false;
@@ -122,13 +117,13 @@ class SamplerSpec extends ObjectBehavior
             return $statement['values'][0] == 'spectestExp';
         }))
             ->shouldBeCalledTimes(1)
-            ->willReturn([ 
+            ->willReturn([
                 [
                     'total' => 100
                 ]
             ]);
 
-        $cql->request(Argument::that(function($query) {
+        $cql->request(Argument::that(function ($query) {
             $statement = $query->build();
             if ($statement['string'] != "SELECT count(*) as total FROM experiments WHERE id=? and bucket=?") {
                 return false;
@@ -136,18 +131,18 @@ class SamplerSpec extends ObjectBehavior
             return $statement['values'][0] == 'spectestExp' && $statement['values'][1] == 'base';
         }))
             ->shouldBeCalledTimes(1)
-            ->willReturn([ 
+            ->willReturn([
                 [
                     'total' => 85
                 ]
             ]);
 
-        $cql->request(Argument::that(function($query) {
+        $cql->request(Argument::that(function ($query) {
             $statement = $query->build();
             if ($statement['string'] != "INSERT INTO experiments (id, bucket, key) VALUES (?,?,?)") {
                 return false;
             }
-            return $statement['values'][0] == 'spectestExp' 
+            return $statement['values'][0] == 'spectestExp'
                 && $statement['values'][1] == 'variant1'
                 && $statement['values'][2] == 'loggedout:spectest';
         }), true)
@@ -164,6 +159,4 @@ class SamplerSpec extends ObjectBehavior
         $bucket->getId()
             ->shouldReturn('variant1');
     }
-    
-
 }

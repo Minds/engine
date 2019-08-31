@@ -1,7 +1,8 @@
 <?php
 
 namespace Minds\Common;
-use ReflectionClass; 
+
+use ReflectionClass;
 
 abstract class ChannelMode
 {
@@ -16,6 +17,6 @@ abstract class ChannelMode
 
     final public static function isValid($value) : bool
     {
-        return in_array($value, static::toArray());
+        return in_array($value, static::toArray(), true);
     }
 }

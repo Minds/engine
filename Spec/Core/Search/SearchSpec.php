@@ -13,7 +13,7 @@ class SearchSpec extends ObjectBehavior
     protected $_client;
     protected $_index = 'phpspec';
 
-    function let(
+    public function let(
         Client $client
     ) {
         $this->_client = $client;
@@ -21,12 +21,12 @@ class SearchSpec extends ObjectBehavior
         $this->beConstructedWith($client, $this->_index);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Search\Search');
     }
 
-    function it_should_query()
+    public function it_should_query()
     {
         $this->_client->request(Argument::that(function ($prepared) {
             if (!($prepared instanceof Match)) {

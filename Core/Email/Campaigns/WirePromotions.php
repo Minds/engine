@@ -3,7 +3,6 @@
 
 namespace Minds\Core\Email\Campaigns;
 
-
 use Minds\Core\Config;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Message;
@@ -49,7 +48,6 @@ class WirePromotions extends EmailCampaign
 
     public function send()
     {
-
         if (!method_exists($this->user, 'getEmail')) {
             return;
         }
@@ -85,5 +83,4 @@ class WirePromotions extends EmailCampaign
         //send email
         $this->mailer->send($message);
     }
-
 }

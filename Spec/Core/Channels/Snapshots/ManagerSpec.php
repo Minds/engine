@@ -17,25 +17,23 @@ class ManagerSpec extends ObjectBehavior
     /** @var Factory */
     protected $artifactsDelegatesFactory;
 
-    function let(
+    public function let(
         Repository $repository,
         Factory $artifactsDelegatesFactory
-    )
-    {
+    ) {
         $this->beConstructedWith($repository, $artifactsDelegatesFactory);
         $this->repository = $repository;
         $this->artifactsDelegatesFactory = $artifactsDelegatesFactory;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_snapshot(
+    public function it_should_snapshot(
         ArtifactsDelegateInterface $artifactsDelegateMock
-    )
-    {
+    ) {
         $delegates = [
             'PHPSpec1',
             'PHPSpec2',
@@ -58,10 +56,9 @@ class ManagerSpec extends ObjectBehavior
     }
 
 
-    function it_should_restore(
+    public function it_should_restore(
         ArtifactsDelegateInterface $artifactsDelegateMock
-    )
-    {
+    ) {
         $delegates = [
             'PHPSpec1',
             'PHPSpec2',
@@ -83,7 +80,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_get_all()
+    public function it_should_get_all()
     {
         $this->repository->getList([
             'user_guid' => 1000,
@@ -97,7 +94,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_truncate()
+    public function it_should_truncate()
     {
         $this->repository->deleteAll(1000, null)
             ->shouldBeCalled()

@@ -21,7 +21,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function get($pages)
     {
-        return Factory::response(array('status'=>'error', 'message'=>'GET is not supported for this endpoint'));
+        return Factory::response(['status'=>'error', 'message'=>'GET is not supported for this endpoint']);
     }
 
     /**
@@ -100,7 +100,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
               'user' => $user->export()
             ];
         } catch (\Exception $e) {
-            $response = array('status'=>'error', 'message'=>$e->getMessage());
+            $response = ['status'=>'error', 'message'=>$e->getMessage()];
         }
         return Factory::response($response);
     }

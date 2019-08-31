@@ -19,18 +19,16 @@ use Lcobucci\JWT\Signer\Rsa\Sha512;
 
 class ManagerSpec extends ObjectBehavior
 {
-
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_build_a_session_with_request(
+    public function it_should_build_a_session_with_request(
         Repository $repository,
         Config $config,
         Parser $jwtParser
-    )
-    {
+    ) {
         $this->beConstructedWith(
             $repository,
             $config,
@@ -112,12 +110,11 @@ aTpdB3sjEe8ov+al2kJYBSJcqbUmUMVCY7v0Zig2VlYMPjzn/icP
             ->shouldBe($session->getId());
     }
 
-    function it_should_not_build_a_session_with_request_if_not_on_server(
+    public function it_should_not_build_a_session_with_request_if_not_on_server(
         Repository $repository,
         Config $config,
         Parser $jwtParser
-    )
-    {
+    ) {
         $this->beConstructedWith(
             $repository,
             $config,
@@ -198,12 +195,11 @@ aTpdB3sjEe8ov+al2kJYBSJcqbUmUMVCY7v0Zig2VlYMPjzn/icP
         $this->getSession()->shouldBeNull();
     }
 
-    function it_should_not_build_a_session_with_request_if_forged_token(
+    public function it_should_not_build_a_session_with_request_if_forged_token(
         Repository $repository,
         Config $config,
         Parser $jwtParser
-    )
-    {
+    ) {
         $this->beConstructedWith(
             $repository,
             $config,
@@ -275,11 +271,10 @@ YSoKTsWFlvr9YG4o6R2ktgzKJ5ofiGTz5e2wLzP3a0ma8vGNke4Q
         $this->getSession()->shouldBeNull();
     }
 
-    function it_should_save_session_to_client_and_server(
+    public function it_should_save_session_to_client_and_server(
         Repository $repository,
         Cookie $cookie
-    )
-    {
+    ) {
         $this->beConstructedWith(
             $repository,
             null,
@@ -327,11 +322,10 @@ YSoKTsWFlvr9YG4o6R2ktgzKJ5ofiGTz5e2wLzP3a0ma8vGNke4Q
         $this->save();
     }
 
-    function it_should_destroy_session_on_client_and_server(
+    public function it_should_destroy_session_on_client_and_server(
         Repository $repository,
         Cookie $cookie
-    )
-    {
+    ) {
         $this->beConstructedWith(
             $repository,
             null,
@@ -378,5 +372,4 @@ YSoKTsWFlvr9YG4o6R2ktgzKJ5ofiGTz5e2wLzP3a0ma8vGNke4Q
 
         $this->destroy();
     }
-
 }

@@ -37,7 +37,8 @@ class EmailSubscription
         }
     }
 
-    public function export() {
+    public function export()
+    {
         $export = [];
 
         $export['campaign'] = $this->getCampaign();
@@ -46,5 +47,4 @@ class EmailSubscription
         $export['value'] = $this->getValue();
         return $export;
     }
-
 }

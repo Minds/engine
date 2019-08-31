@@ -12,17 +12,15 @@ use Minds\Core\Security\ACL;
 
 class MembershipSpec extends ObjectBehavior
 {
-
     private $_db;
     private $_acl;
     private $_notifications;
 
-    function let(
+    public function let(
         Relationships $db,
         ACL $acl,
         \Minds\Core\Groups\Notifications $notifications
-    )
-    {
+    ) {
         $this->beConstructedWith($db, $notifications, $acl);
         $this->_db = $db;
         $this->_acl = $acl;
@@ -216,7 +214,7 @@ class MembershipSpec extends ObjectBehavior
         $this->kick($user)->shouldReturn(true);
     }
 
-    public function it_should_not_kick_if_not_an_owner(GroupEntity $group, Relationships $db, User $user, User $actor,  \Minds\Core\Groups\Notifications $notifications, ACL $acl)
+    public function it_should_not_kick_if_not_an_owner(GroupEntity $group, Relationships $db, User $user, User $actor, \Minds\Core\Groups\Notifications $notifications, ACL $acl)
     {
         $user->get('guid')->willReturn(1);
         $actor->get('guid')->willReturn(2);

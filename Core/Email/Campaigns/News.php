@@ -40,7 +40,6 @@ class News extends EmailCampaign
     {
         $this->subject = $subject;
         return $this;
-
     }
 
     /**
@@ -82,5 +81,4 @@ class News extends EmailCampaign
         //send email
         $this->mailer->send($message);
     }
-
 }

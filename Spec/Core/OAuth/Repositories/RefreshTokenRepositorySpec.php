@@ -17,20 +17,19 @@ use Cassandra\Timestamp;
 
 class RefreshTokenRepositorySpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(RefreshTokenRepository::class);
     }
 
-    function it_should_save_refresh_token(
+    public function it_should_save_refresh_token(
         Client $client,
         RefreshTokenEntity $refreshTokenEntity,
         AccessTokenEntity $accessTokenEntity
-    )
-    {
+    ) {
         $this->beConstructedWith($client);
 
-        $client->request(Argument::that(function($prepared) {
+        $client->request(Argument::that(function ($prepared) {
             $query = $prepared->build();
 
             $template = $query['string'];
@@ -38,9 +37,9 @@ class RefreshTokenRepositorySpec extends ObjectBehavior
 
             return $values[0] === 'id_1'
                 ;
-                //&& $values[1] === 'access_token_1'
+            //&& $values[1] === 'access_token_1'
                 //&& $values[2] === new Timestamp(strtotime('25th December 2018'));
-            }))
+        }))
             ->shouldBeCalled();
 
         $refreshTokenEntity->getIdentifier()
@@ -58,35 +57,35 @@ class RefreshTokenRepositorySpec extends ObjectBehavior
         $this->persistNewRefreshToken($refreshTokenEntity);
     }
 
-    function it_should_revoke_refresh_token(Client $client)
+    public function it_should_revoke_refresh_token(Client $client)
     {
         $this->beConstructedWith($client);
 
-        $client->request(Argument::that(function($prepared) {
+        $client->request(Argument::that(function ($prepared) {
             $query = $prepared->build();
 
             $template = $query['string'];
             $values = $query['values'];
 
             return $values[0] === 'id_1';
-            }))
+        }))
             ->shouldBeCalled();
 
         $this->revokeRefreshToken('id_1');
     }
 
-    function it_should_return_refresh_token_is_revoked(Client $client)
+    public function it_should_return_refresh_token_is_revoked(Client $client)
     {
         $this->beConstructedWith($client);
 
-        $client->request(Argument::that(function($prepared) {
+        $client->request(Argument::that(function ($prepared) {
             $query = $prepared->build();
 
             $template = $query['string'];
             $values = $query['values'];
 
             return $values[0] === 'id_1';
-            }))
+        }))
             ->shouldBeCalled()
             ->willReturn(null);
 
@@ -94,18 +93,18 @@ class RefreshTokenRepositorySpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    function it_should_return_refresh_token_is_not_revoked(Client $client)
+    public function it_should_return_refresh_token_is_not_revoked(Client $client)
     {
         $this->beConstructedWith($client);
 
-        $client->request(Argument::that(function($prepared) {
+        $client->request(Argument::that(function ($prepared) {
             $query = $prepared->build();
 
             $template = $query['string'];
             $values = $query['values'];
 
             return $values[0] === 'id_1';
-            }))
+        }))
             ->shouldBeCalled()
             ->willReturn([ 'token_id' => 'id_1' ]);
 
@@ -113,12 +112,10 @@ class RefreshTokenRepositorySpec extends ObjectBehavior
             ->shouldBe(false);
     }
 
-    function it_should_return_an_refresh_token(
+    public function it_should_return_an_refresh_token(
         ClientEntityInterface $clientEntity
-    )
-    {
+    ) {
         $refreshToken = $this->getNewRefreshToken();
         $refreshToken->shouldNotBeNull();
     }
-
 }

@@ -23,5 +23,4 @@ class Subscription
 
     /** @var bool $active */
     private $active = false;
-
 }

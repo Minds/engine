@@ -12,7 +12,6 @@ use Minds\Interfaces;
 
 class cookies implements Interfaces\Api
 {
-
     public function get($pages)
     {
         return Factory::response([]);
@@ -54,11 +53,9 @@ class cookies implements Interfaces\Api
                 ->setvValue('')
                 ->setExpire(time() - 3600)
                 ->setPath('/')
-                ->create(); 
+                ->create();
         }
         
         return Factory::response(['status' => 'success']);
     }
-    
 }
-

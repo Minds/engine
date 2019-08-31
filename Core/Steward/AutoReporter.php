@@ -191,7 +191,7 @@ class AutoReporter
      */
     public function validate($entity, $time = null)
     {
-        $reasons = array();
+        $reasons = [];
         $time = $time ?: round(microtime(true) * 1000);
         //Build up a list of reasons to flag unique words in the post
         if (isset($entity['message'])) {
@@ -270,7 +270,7 @@ class AutoReporter
     {
         $reasons = array_filter($reasons, function ($reason) use ($NSFWtags) {
             if ($reason->getReasonCode() == REASON::REASON_NSFW
-            && in_array($reason->getSubreasonCode(), $NSFWtags)) {
+            && in_array($reason->getSubreasonCode(), $NSFWtags, false)) {
                 return false;
             }
 

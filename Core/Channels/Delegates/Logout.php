@@ -9,7 +9,6 @@ use Minds\Entities\User;
 
 class Logout
 {
-
     /** @var Sessions $sessions */
     protected $session;
 
@@ -26,5 +25,4 @@ class Logout
     {
         $this->sessions->destroyAll($user->guid);
     }
-    
 }

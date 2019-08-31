@@ -66,7 +66,7 @@ class rewards implements Interfaces\Api
             ->setReceiver($user)
             ->setSender(Core\Session::getLoggedInUser());
 
-        $response['sums'] = [ 
+        $response['sums'] = [
             'tokens' => $sums->getSent()
         ];
 

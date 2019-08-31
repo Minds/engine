@@ -23,7 +23,7 @@ class Thresholds
             throw new \Exception('Entity cannot be paywalled');
         }
 
-	    if ($user && ($user->guid == $entity->getOwnerEntity()->guid || $user->isAdmin())) {
+        if ($user && ($user->guid == $entity->getOwnerEntity()->guid || $user->isAdmin())) {
             return true;
         }
 
@@ -46,7 +46,6 @@ class Thresholds
 
         //make sure legacy posts can work
         if ($isPaywall) {
-
             $amount = 0;
 
             if (MagicAttributes::getterExists($entity, 'getOwnerGuid')) {

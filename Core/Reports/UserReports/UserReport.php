@@ -56,5 +56,4 @@ class UserReport
 
         return $export;
     }
-
 }

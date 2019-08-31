@@ -7,7 +7,7 @@ namespace Minds\Core\Subscriptions\Delegates;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\Call;
 
-class FeedsDelegate 
+class FeedsDelegate
 {
     /** @var Call $feed */
     private $feed;
@@ -18,7 +18,7 @@ class FeedsDelegate
     }
 
     /**
-     * Copy posts 
+     * Copy posts
      * @param Subscription $subscrition
      * @return void
      */
@@ -36,7 +36,7 @@ class FeedsDelegate
     }
 
     /**
-     * Copy posts 
+     * Copy posts
      * @param Subscription $subscrition
      * @return void
      */
@@ -51,6 +51,5 @@ class FeedsDelegate
         if ($feed) {
             $this->feed->removeAttributes("activity:network:{$subscription->getSubscriberGuid()}", array_keys($feed));
         }
-    } 
-
+    }
 }

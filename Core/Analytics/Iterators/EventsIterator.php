@@ -66,7 +66,6 @@ class EventsIterator implements \Iterator
      */
     protected function getList()
     {
-
         $body = [
             'query' => [
                 'range' => [
@@ -99,7 +98,7 @@ class EventsIterator implements \Iterator
             'client' => [
                 'timeout' => 2,
                 'connect_timeout' => 1
-            ] 
+            ]
         ]);
 
         $result = $this->elastic->request($prepared);

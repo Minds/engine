@@ -9,7 +9,6 @@ use Minds\Core\Analytics\Metrics\Event;
 
 class Analytics
 {
-
     private $event;
 
     public function __construct($event = null)
@@ -28,5 +27,4 @@ class Analytics
             ->setRatelimitPeriod($period)
             ->push();
     }
-
 }

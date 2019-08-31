@@ -10,7 +10,6 @@ use Minds\Entities;
 
 class RateLimits extends Cli\Controller implements Interfaces\CliControllerInterface
 {
-
     public function __construct()
     {
         $minds = new Core\Minds;
@@ -50,7 +49,5 @@ class RateLimits extends Cli\Controller implements Interfaces\CliControllerInter
             ->impose();
 
         var_dump($manager->isLimited());
-
     }
-
 }

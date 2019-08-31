@@ -22,11 +22,11 @@ class stripe implements Interfaces\Api
    *
    * API:: /v1/merchant/:slug
    */
-  public function get($pages)
-  {
-      $response = [];
+    public function get($pages)
+    {
+        $response = [];
 
-      switch ($pages[0]) {
+        switch ($pages[0]) {
         case "token":
           $response['token'] = Core\Config::_()->get('payments')['stripe']['public_key'];
           break;
@@ -46,8 +46,8 @@ class stripe implements Interfaces\Api
           break;
       }
 
-      return Factory::response($response);
-  }
+        return Factory::response($response);
+    }
 
     public function post($pages)
     {

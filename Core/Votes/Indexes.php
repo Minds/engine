@@ -88,16 +88,16 @@ class Indexes
      * @return bool
      * @throws \Exception
      */
-     public function exists($vote)
-     {
-         $entity = $vote->getEntity();
-         $actor = $vote->getActor();
-         $direction = $vote->getDirection();
+    public function exists($vote)
+    {
+        $entity = $vote->getEntity();
+        $actor = $vote->getActor();
+        $direction = $vote->getDirection();
 
-         $guids = $entity->{"thumbs:{$direction}:user_guids"} ?: [];
+        $guids = $entity->{"thumbs:{$direction}:user_guids"} ?: [];
  
-         return in_array($actor->guid, $guids);
-     }
+        return in_array($actor->guid, $guids, false);
+    }
 
     /**
      * @param int|string $guid

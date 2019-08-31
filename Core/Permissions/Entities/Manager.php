@@ -30,10 +30,10 @@ class Manager
         $this->save = $save ?: new Save(); //Mockable, else instantiate a new one on save.
     }
 
-    /** 
+    /**
     * Save permissions for an entity and propegate it to linked objects
     * @param mixed $entity a minds entity that implements the save function
-    * @param Permissions $permissions the flag to apply to the entity 
+    * @param Permissions $permissions the flag to apply to the entity
     */
     public function save($entity, EntityPermissions $permissions)
     {

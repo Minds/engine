@@ -25,17 +25,21 @@ class Manager
     /** @var GuidBuilder $guidBuilder */
     private $guidBuilder;
 
+    /** @var Config $config */
+    private $config;
+
     public function __construct(
         $repository = null,
         $elasticRepository = null,
         $entitiesBuilder = null,
-        $guidBuilder = null
-    )
-    {
+        $guidBuilder = null,
+        $config = null
+    ) {
         $this->repository = $repository ?: new Repository;
         $this->elasticRepository = $elasticRepository ?: new ElasticRepository;
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->guidBuilder = $guidBuilder ?: new GuidBuilder;
+        $this->config = $config ?: Di::_()->get('Config');
     }
 
     /**
@@ -51,14 +55,14 @@ class Manager
             'state' => null,
         ], $opts);
 
-        if ($opts['state'] == 'review') {
+        if ($opts['state'] == 'review' || $opts['state'] == 'active') {
             $opts['useElastic'] = true;
         }
 
         if ($opts['useElastic']) {
             $response = $this->elasticRepository->getList($opts);
 
-            if ($opts['state'] === 'review') {
+            if ($opts['state'] === 'review' || $opts['state'] === 'active') {
                 $opts['guids'] = array_map(function ($boost) {
                     return $boost->getGuid();
                 }, $response->toArray());
@@ -85,7 +89,7 @@ class Manager
 
             if (!$boost->getEntity() || !$boost->getOwner()) {
                 $boost->setEntity(new \Minds\Entities\Entity());
-            //    unset($response[$i]);
+                //    unset($response[$i]);
             }
         }
 
@@ -156,5 +160,53 @@ class Manager
         ]);
 
         return $existingBoost->count() > 0;
+    }
+
+    /**
+     * True if the boost is invalid due to the offchain boost limit being reached
+     *
+     * @param Boost $type the Boost object.
+     * @return boolean true if the boost limit has been reached.
+     */
+    public function isBoostLimitExceededBy($boost)
+    {
+        //get offchain boosts
+        $offchain = $this->getOffchainBoosts($boost);
+        
+        //filter to get todays offchain transactions
+        $offlineToday = array_filter($offchain->toArray(), function ($result) {
+            return $result->getCreatedTimestamp() > time() - (60 * 60 * 24);
+        });
+        
+        //reduce the impressions to count the days boosts.
+        $acc = array_reduce($offlineToday, function ($carry, $_boost) {
+            $carry += $_boost->getImpressions();
+            return $carry;
+        }, 0);
+
+        $maxDaily = $this->config->get('max_daily_boost_views');
+        return $acc + $boost->getImpressions() > $maxDaily; //still allow 10k
+    }
+    
+
+    /**
+     * Gets the users last offchain boosts, from the most recent boost backwards in time.
+     *
+     * @param string $type the type of the boost
+     * @param integer $limit default to 10.
+     * @return $existingBoosts
+     */
+    public function getOffchainBoosts($boost, $limit = 10)
+    {
+        $existingBoosts = $this->getList([
+            'useElastic' => true,
+            'state' => 'active',
+            'type' => $boost->getType(),
+            'limit' => $limit,
+            'order' => 'desc',
+            'offchain' => true,
+            'owner_guid' => $boost->getOwnerGuid(),
+        ]);
+        return $existingBoosts;
     }
 }

@@ -58,7 +58,8 @@ class PermissionsSpec extends ObjectBehavior
         $this->shouldHaveType(Permissions::class);
     }
 
-    public function it_should_except_when_setting_a_user() {
+    public function it_should_except_when_setting_a_user()
+    {
         $this->shouldThrow(new ImmutableException('User can only be set in the constructor'))
             ->duringSetUser($this->user);
     }

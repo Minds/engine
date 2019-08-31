@@ -25,7 +25,7 @@ class warehouse implements Interfaces\Api
         \Minds\Core\Data\Warehouse\Factory::build(array_shift($pages))->run($pages);
         $end = microtime();
         
-        return Factory::response(array('took'=>$end-$start));
+        return Factory::response(['took'=>$end-$start]);
     }
     
     public function post($pages)
@@ -34,16 +34,16 @@ class warehouse implements Interfaces\Api
     
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
     
     public function delete($pages)
     {
         $activity = new Entities\Activity($pages[0]);
         if (!$activity->guid) {
-            return Factory::response(array('status'=>'error', 'message'=>'could not find activity post'));
+            return Factory::response(['status'=>'error', 'message'=>'could not find activity post']);
         }
  
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }

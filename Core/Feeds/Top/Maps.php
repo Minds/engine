@@ -5,7 +5,6 @@ use Minds\Core\Trending\Aggregates;
 
 class Maps
 {
-
     public static $maps = [
         'newsfeed' => [
             'type' => 'activity',
@@ -64,5 +63,4 @@ class Maps
             ]
         ]
     ];
-
 }

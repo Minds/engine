@@ -269,6 +269,9 @@ $CONFIG->set('boost', [
     ],
 ]);
 
+/* Maximum view per day */
+$CONFIG->set('max_daily_boost_views', 10000);
+
 $CONFIG->set('encryptionKeys', [
     'email' => [
         'private' => '{{email-private-key}}',
@@ -383,7 +386,7 @@ $CONFIG->set('plus', [
     ]
 ]);
 
-$CONFIG->set('iframely' , [
+$CONFIG->set('iframely', [
     'key' => 'f4da1791510e9dd6ad63bc',
     'origin' => 'minds'
 ]);
@@ -476,7 +479,7 @@ $CONFIG->set('features', [
     'permissions' => false
 ]);
 
-$CONFIG->set('email', [ 
+$CONFIG->set('email', [
     'smtp' => [
         'host' => '',
         'username' => '',
@@ -569,5 +572,3 @@ $CONFIG->set('gitlab', [
     ],
     'private_key' => ''
 ]);
-
-

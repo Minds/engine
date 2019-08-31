@@ -9,7 +9,6 @@ use Minds\Api\Factory;
 
 class withdrawals implements Interfaces\Api, Interfaces\ApiAdminPam
 {
-
     /**
      * Equivalent to HTTP GET method
      * @param  array $pages

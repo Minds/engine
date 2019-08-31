@@ -47,5 +47,4 @@ class TotalActionedAggregate implements ModerationStatsAggregateInterface
 
         return $initialJuryActioned + $appealJuryTotal;
     }
-
 }

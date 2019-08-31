@@ -18,43 +18,42 @@ class LookupDelegateSpec extends ObjectBehavior
     /** @var CassandraClient */
     protected $db;
 
-    function let(
+    public function let(
         Repository $repository,
         CassandraClient $db
-    )
-    {
+    ) {
         $this->beConstructedWith($repository, $db);
         $this->repository = $repository;
         $this->db = $db;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(LookupDelegate::class);
     }
 
-    function it_should_snapshot()
+    public function it_should_snapshot()
     {
         $this
             ->snapshot(1000)
             ->shouldReturn(true);
     }
 
-    function it_should_restore()
+    public function it_should_restore()
     {
         $this
             ->restore(1000)
             ->shouldReturn(true);
     }
 
-    function it_should_hide()
+    public function it_should_hide()
     {
         $this
             ->hide(1000)
             ->shouldReturn(true);
     }
 
-    function it_should_delete()
+    public function it_should_delete()
     {
         $this->db->request(Argument::that(function (Custom $prepared) {
             $query = $prepared->build();

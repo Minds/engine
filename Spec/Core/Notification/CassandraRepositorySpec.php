@@ -17,20 +17,20 @@ class CassandraRepositorySpec extends ObjectBehavior
     /** @var Client */
     private $cql;
 
-    function let(Client $cql)
+    public function let(Client $cql)
     {
         $this->beConstructedWith($cql);
         $this->cql = $cql;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(CassandraRepository::class);
     }
 
-    function it_should_return_a_notification_from_uuid()
+    public function it_should_return_a_notification_from_uuid()
     {
-        $this->cql->request(Argument::that(function($prepared) {
+        $this->cql->request(Argument::that(function ($prepared) {
             $values = $prepared->build()['values'];
             return $values[0]->value() == 123
                 && $values[1]->uuid() == 'uuid';
@@ -64,9 +64,9 @@ class CassandraRepositorySpec extends ObjectBehavior
             ->shouldBe('like');
     }
 
-    function it_should_add_to_database(Notification $notification)
+    public function it_should_add_to_database(Notification $notification)
     {
-        $this->cql->request(Argument::that(function($prepared) {
+        $this->cql->request(Argument::that(function ($prepared) {
             $values = $prepared->build()['values'];
             return $values[0]->value() == 123;
         }))
@@ -98,12 +98,12 @@ class CassandraRepositorySpec extends ObjectBehavior
             ->shouldNotReturn(false);
     }
 
-    function it_should_load_notification_for_user()
+    public function it_should_load_notification_for_user()
     {
-        $this->cql->request(Argument::that(function($prepared) {
+        $this->cql->request(Argument::that(function ($prepared) {
             $statement = preg_replace('/\s+/', ' ', $prepared->build()['string']);
             $values = $prepared->build()['values'];
-            return strpos($statement, 'SELECT * FROM notifications WHERE to_guid', 0) !== FALSE
+            return strpos($statement, 'SELECT * FROM notifications WHERE to_guid', 0) !== false
                 && $values[0]->value() == 123;
         }))
             ->willReturn(new Rows([
@@ -120,19 +120,19 @@ class CassandraRepositorySpec extends ObjectBehavior
                 ]
             ], ''));
 
-        $notifications = $this->getList([ 
+        $notifications = $this->getList([
             'limit' => 24,
             'to_guid' => 123,
         ]);
         $notifications->shouldHaveCount(1);
     }
 
-    function it_should_load_notification_from_type_group()
+    public function it_should_load_notification_from_type_group()
     {
-        $this->cql->request(Argument::that(function($prepared) {
+        $this->cql->request(Argument::that(function ($prepared) {
             $statement = $prepared->build()['string'];
             $values = $prepared->build()['values'];
-            return strpos($statement, 'SELECT * FROM notifications_by_type_group', 0) !== FALSE
+            return strpos($statement, 'SELECT * FROM notifications_by_type_group', 0) !== false
                 && $values[0]->value() == 123
                 && $values[1] == 'votes';
         }))
@@ -150,7 +150,7 @@ class CassandraRepositorySpec extends ObjectBehavior
                 ]
             ], ''));
 
-        $notifications = $this->getList([ 
+        $notifications = $this->getList([
             'limit' => 24,
             'to_guid' => 123,
             'type_group' => 'votes',

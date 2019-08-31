@@ -9,14 +9,13 @@ use Minds\Core\ThirdPartyNetworks\Networks\Facebook;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-
 class ManagerSpec extends ObjectBehavior
 {
     protected $_fbNetwork;
     protected $_lu;
     protected $_config;
 
-    function let(Facebook $fbNetwork, Core\Data\Call $lu, Core\Config\Config $config)
+    public function let(Facebook $fbNetwork, Core\Data\Call $lu, Core\Config\Config $config)
     {
         $this->_fbNetwork = $fbNetwork;
         $this->_lu = $lu;
@@ -30,12 +29,12 @@ class ManagerSpec extends ObjectBehavior
         $this->beConstructedWith($fbNetwork, $lu);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\ThirdPartyNetworks\Facebook\Manager');
     }
 
-    function it_should_get_redirect_url(FacebookSDK $sdk, FacebookRedirectLoginHelper $helper)
+    public function it_should_get_redirect_url(FacebookSDK $sdk, FacebookRedirectLoginHelper $helper)
     {
         $this->_fbNetwork->getFb()
             ->shouldBeCalled()
@@ -52,7 +51,7 @@ class ManagerSpec extends ObjectBehavior
         $this->getRedirectUrl()->shouldReturn('url');
     }
 
-    function it_should_check_fb_account_wasnt_associated(FacebookSDK $sdk, FacebookRedirectLoginHelper $helper)
+    public function it_should_check_fb_account_wasnt_associated(FacebookSDK $sdk, FacebookRedirectLoginHelper $helper)
     {
         $fb_user = [
             'id' => '123',
@@ -64,7 +63,7 @@ class ManagerSpec extends ObjectBehavior
         $this->checkFbAccount($fb_user)->shouldReturn(true);
     }
 
-    function it_should_check_fb_account_wasnt_associated_and_throw_exception()
+    public function it_should_check_fb_account_wasnt_associated_and_throw_exception()
     {
         $fb_user = [
             'id' => '123',
@@ -76,7 +75,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow(new \Exception('This account is already associated'))->duringCheckFbAccount($fb_user);
     }
 
-    function it_should_generate_a_username()
+    public function it_should_generate_a_username()
     {
         $fb_user = [
             'id' => '123',

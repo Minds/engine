@@ -2,7 +2,6 @@
 
 namespace Minds\Core\Helpdesk\Question;
 
-
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
 
@@ -68,5 +67,4 @@ class Manager
     {
         return $this->repository->delete($uuid);
     }
-
 }

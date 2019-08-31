@@ -17,10 +17,8 @@ use Zend\Diactoros\Response\SapiEmitter;
 
 class token implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
-
     public function get($pages = [])
     {
-        
     }
 
     public function post($pages = [])
@@ -48,12 +46,11 @@ class token implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
         
         $emitter = new SapiEmitter();
-        $emitter->emit($response);  
+        $emitter->emit($response);
     }
 
     public function put($pages = [])
     {
-        
     }
 
     public function delete($pages = [])
@@ -77,11 +74,10 @@ class token implements Interfaces\Api, Interfaces\ApiIgnorePam
                 'status' => 'error',
                 'message' => $exception->getMessage(),
             ];
-            $response = new JsonResponse($body, 500); 
+            $response = new JsonResponse($body, 500);
         }
 
         $emitter = new SapiEmitter();
         $emitter->emit($response);
     }
-
 }

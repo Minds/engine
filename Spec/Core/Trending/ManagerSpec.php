@@ -14,20 +14,18 @@ use Minds\Entities\Entity;
 
 class ManagerSpec extends ObjectBehavior
 {
-
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Trending\Manager');
     }
 
-    function it_should_collect_and_store_trending_entities(
+    public function it_should_collect_and_store_trending_entities(
         Repository $repo,
         Aggregate $agg,
         Aggregate $aggImages,
         EntityValidator $validator,
         EntitiesBuilder $entitiesBuilder
-    )
-    {
+    ) {
         $maps = [
             'newsfeed' => [
                 'type' => 'activity',

@@ -7,12 +7,12 @@ use PhpSpec\ObjectBehavior;
 
 class WithholdingSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Withholding::class);
     }
 
-    function it_should_export()
+    public function it_should_export()
     {
         $this->setUserGuid('123');
         $this->setTimestamp(12345678);

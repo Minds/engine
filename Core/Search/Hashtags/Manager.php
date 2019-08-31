@@ -2,7 +2,6 @@
 
 namespace Minds\Core\Search\Hashtags;
 
-
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Di\Di;
@@ -41,7 +40,7 @@ class Manager
     public function suggest($value)
     {
         $result = $this->search->suggest('tags', $value, $this->limit);
-        return array_map(function($item) {
+        return array_map(function ($item) {
             return $item['name'];
         }, $result);
     }

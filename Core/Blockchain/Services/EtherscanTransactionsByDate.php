@@ -3,12 +3,14 @@ namespace Minds\Core\Blockchain\Services;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Config;
+
 /**
  * Etherscan transactions by date
  *
  * @author Martin Santangelo <martin@minds.com>
  */
-class EtherscanTransactionsByDate {
+class EtherscanTransactionsByDate
+{
     /** @var intenger $estimationBoundary size of the chunk/2 */
     private $estimationBoundary = 8000;
     /** @var Etherscan $service */
@@ -25,13 +27,12 @@ class EtherscanTransactionsByDate {
      *
      * @param Etherscan $service
      */
-    function __construct(Etherscan $service, Config $config = null)
+    public function __construct(Etherscan $service, Config $config = null)
     {
         $config = $config ?: Di::_()->get('Config');
 
         $this->avgBlockTime = $config->get('blockchain')['etherscan']['average_block_time'] ?: 14.7;
         $this->service = $service;
-
     }
 
     /**
@@ -71,9 +72,11 @@ class EtherscanTransactionsByDate {
      */
     private function blockBinarySearch(int $timestamp, array $array, int $start, int $end)
     {
-        if($end < $start) return $start - 1;
+        if ($end < $start) {
+            return $start - 1;
+        }
 
-        $middle = floor( ($end + $start) / 2 );
+        $middle = floor(($end + $start) / 2);
 
         if ($array[$middle]['timeStamp'] < $timestamp) {
             return $this->blockBinarySearch($timestamp, $array, $start, $middle - 1);
@@ -109,7 +112,8 @@ class EtherscanTransactionsByDate {
      * @param array $data
      * @return void
      */
-    public function search($timestamp, array $data) {
+    public function search($timestamp, array $data)
+    {
         return $this->blockBinarySearch($timestamp, $data, 0, sizeof($data) - 1);
     }
 
@@ -172,8 +176,12 @@ class EtherscanTransactionsByDate {
      */
     public function isInRange(array $data, $timestamp)
     {
-        if ($timestamp > $data[0]['timeStamp']) return 1;
-        if ($timestamp < $data[sizeof($data)-1]['timeStamp']) return -1;
+        if ($timestamp > $data[0]['timeStamp']) {
+            return 1;
+        }
+        if ($timestamp < $data[sizeof($data)-1]['timeStamp']) {
+            return -1;
+        }
         return 0;
     }
 
@@ -204,12 +212,14 @@ class EtherscanTransactionsByDate {
                     $direction = 1;
                     break;
                 case -1: // we should fetch older blocks
-                    if ($direction == 1 ) return $data;
+                    if ($direction == 1) {
+                        return $data;
+                    }
                     $estimatedNumb -= (2 * $this->estimationBoundary);
                     $direction = -1;
                     break;
             }
-        } while($attemps < 5);
+        } while ($attemps < 5);
 
         throw new \Exception("Estimation failed! Can't find the block for: $timestamp");
     }

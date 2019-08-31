@@ -13,6 +13,7 @@ use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Minds\Core\Di\Di;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -21,13 +22,12 @@ class ManagerSpec extends ObjectBehavior
     private $entitiesBuilder;
     private $guidBuilder;
 
-    function let(
+    public function let(
         Repository $repository,
         ElasticRepository $elasticRepository,
         EntitiesBuilder $entitiesBuilder,
         GuidBuilder $guidBuilder
-    )
-    {
+    ) {
         $this->beConstructedWith($repository, $elasticRepository, $entitiesBuilder, $guidBuilder);
         $this->repository = $repository;
         $this->elasticRepository = $elasticRepository;
@@ -35,12 +35,12 @@ class ManagerSpec extends ObjectBehavior
         $this->guidBuilder = $guidBuilder;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_return_a_list_of_boosts_to_review()
+    public function it_should_return_a_list_of_boosts_to_review()
     {
         $response = new Response([
             (new Boost)
@@ -111,7 +111,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(100);
     }
 
-    function it_should_return_a_list_of_boosts_to_deliver()
+    public function it_should_return_a_list_of_boosts_to_deliver()
     {
         $this->elasticRepository->getList([
             'state' => 'approved',
@@ -170,7 +170,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(100);
     }
 
-    function it_should_return_a_list_of_boosts_from_guids()
+    public function it_should_return_a_list_of_boosts_from_guids()
     {
         $this->repository->getList([
             'state' => null,
@@ -229,7 +229,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(100);
     }
 
-    function it_should_add_a_boost(Boost $boost)
+    public function it_should_add_a_boost(Boost $boost)
     {
         $this->guidBuilder->build()
             ->shouldBeCalled()
@@ -251,7 +251,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_update_a_boost(Boost $boost)
+    public function it_should_update_a_boost(Boost $boost)
     {
         $this->repository->update($boost, ['@timestamp'])
             ->shouldBeCalled();
@@ -261,7 +261,7 @@ class ManagerSpec extends ObjectBehavior
         $this->update($boost, ['@timestamp']);
     }
 
-    function it_should_resync_a_boost_on_elasticsearch(Boost $boost)
+    public function it_should_resync_a_boost_on_elasticsearch(Boost $boost)
     {
         $this->elasticRepository->update($boost, ['@timestamp'])
             ->shouldBeCalled();
@@ -269,15 +269,15 @@ class ManagerSpec extends ObjectBehavior
         $this->resync($boost, ['@timestamp']);
     }
 
-    function it_should_check_if_the_entity_was_already_boosted(Boost $boost)
+    public function it_should_check_if_the_entity_was_already_boosted(Boost $boost)
     {
         $this->elasticRepository->getList([
+            'hydrate' => true,
             'useElastic' => true,
             'state' => 'review',
             'type' => 'newsfeed',
             'entity_guid' => '123',
-            'limit' => 1,
-            'hydrate' => true,
+            'limit' => 1
         ])
             ->shouldBeCalled()
             ->willReturn(new Response([$boost], ''));
@@ -295,5 +295,110 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('123');
 
         $this->checkExisting($boost)->shouldReturn(true);
+    }
+
+    public function it_should_request_offchain_boosts(Boost $boost)
+    {
+        $this->elasticRepository->getList([
+            "hydrate" => true,
+            "useElastic" => true,
+            "state" => "active",
+            "type" => "newsfeed",
+            "limit" => 10,
+            "order" => "desc",
+            "offchain" => true,
+            "owner_guid" => "123"
+        ])
+            ->shouldBeCalled()
+            ->willReturn(new Response([$boost], ''));
+
+        $this->repository->getList(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(new Response([$boost]));
+
+        $boost->getType()
+            ->shouldBeCalled()
+            ->willReturn('newsfeed');
+
+        $boost->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $this->getOffchainBoosts($boost)->shouldHaveType('Minds\Common\Repository\Response');
+    }
+
+    public function it_should_recognise_a_user_has_reached_the_offchain_boost_limit(Boost $boost)
+    {
+        $boostArray = [];
+        for ($i = 0; $i < 10; $i++) {
+            $newBoost = new Boost();
+            $newBoost->setCreatedTimestamp('9999999999999999');
+            $newBoost->setImpressions(1000);
+            array_push($boostArray, $newBoost);
+        }
+        Di::_()->get('Config')->set('max_daily_boost_views', 10000);
+        $this->runThroughGetList($boost, $boostArray);
+        $this->isBoostLimitExceededBy($boost)->shouldReturn(true);
+    }
+
+    public function it_should_recognise_a_user_has_NOT_reached_the_offchain_boost_limit(Boost $boost)
+    {
+        $boostArray = [];
+        for ($i = 0; $i < 9; $i++) {
+            $newBoost = new Boost();
+            $newBoost->setCreatedTimestamp('9999999999999999');
+            $newBoost->setImpressions(1000);
+            array_push($boostArray, $newBoost);
+        }
+        Di::_()->get('Config')->set('max_daily_boost_views', 10000);
+        $this->runThroughGetList($boost, $boostArray);
+        $this->isBoostLimitExceededBy($boost)->shouldReturn(false);
+    }
+
+
+    public function it_should_recognise_a_boost_would_take_user_above_offchain_limit(Boost $boost)
+    {
+        $boostArray = [];
+        for ($i = 0; $i < 2; $i++) {
+            $newBoost = new Boost();
+            $newBoost->setCreatedTimestamp('9999999999999999');
+            $newBoost->setImpressions(4501);
+            array_push($boostArray, $newBoost);
+        }
+        Di::_()->get('Config')->set('max_daily_boost_views', 10000);
+        $this->runThroughGetList($boost, $boostArray);
+        $this->isBoostLimitExceededBy($boost)->shouldReturn(true);
+    }
+
+    public function runThroughGetList($boost, $existingBoosts)
+    {
+        $this->elasticRepository->getList([
+            "hydrate" => true,
+            "useElastic" => true,
+            "state" => "active",
+            "type" => "newsfeed",
+            "limit" => 10,
+            "order" => "desc",
+            "offchain" => true,
+            "owner_guid" => "123"
+        ])
+            ->shouldBeCalled()
+            ->willReturn(new Response($existingBoosts, ''));
+        
+        $this->repository->getList(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(new Response($existingBoosts));
+
+        $boost->getType()
+            ->shouldBeCalled()
+            ->willReturn('newsfeed');
+
+        $boost->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+        
+        $boost->getImpressions()
+            ->shouldBeCalled()
+            ->willReturn(1000);
     }
 }

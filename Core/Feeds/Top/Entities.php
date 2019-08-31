@@ -35,8 +35,7 @@ class Entities
      */
     public function __construct(
         $entitiesBuilder = null, $acl = null
-    )
-    {
+    ) {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->acl = $acl ?: ACL::_();
     }
@@ -108,7 +107,9 @@ class Entities
             // New entities
             $fromExport = $entity->export();
 
-            $activity->set('message', implode(' ', array_map(function($tag) { return "#$tag"; }, $entity->getTags())));
+            $activity->set('message', implode(' ', array_map(function ($tag) {
+                return "#$tag";
+            }, $entity->getTags())));
 
             foreach ($fields as $field) {
                 if (isset($fromExport[$field])) {

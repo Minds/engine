@@ -13,7 +13,7 @@ class ManagerSpec extends ObjectBehavior
     /** @var Config */
     private $config;
 
-    function let(Config $config)
+    public function let(Config $config)
     {
         $this->config = $config;
 
@@ -45,22 +45,22 @@ class ManagerSpec extends ObjectBehavior
         $this->beConstructedWith($config);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_get_a_contract()
+    public function it_should_get_a_contract()
     {
         $this->getContract('token')->shouldReturnAnInstanceOf(ExportableContract::class);
     }
 
-    function it_should_return_null_if_contract_wasnt_found()
+    public function it_should_return_null_if_contract_wasnt_found()
     {
         $this->getContract('not_found')->shouldReturn(null);
     }
 
-    function it_should_get_public_settings()
+    public function it_should_get_public_settings()
     {
         $this->config->get('site_url')
             ->shouldBeCalled()
@@ -74,7 +74,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeArray();
     }
 
-    function it_should_get_overrides()
+    public function it_should_get_overrides()
     {
         $this->config->get(Argument::is('blockchain_override'))
             ->shouldBeCalled()
@@ -98,7 +98,7 @@ class ManagerSpec extends ObjectBehavior
             ]);
     }
 
-    function it_should_get_the_rate()
+    public function it_should_get_the_rate()
     {
         $this->getRate()->shouldReturn(1000);
     }

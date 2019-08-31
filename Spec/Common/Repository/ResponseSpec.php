@@ -8,12 +8,12 @@ use Prophecy\Argument;
 
 class ResponseSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Common\Repository\Response');
     }
 
-    function it_should_set_and_get_paging_token()
+    public function it_should_set_and_get_paging_token()
     {
         $this
             ->setPagingToken('phpspec')
@@ -24,7 +24,7 @@ class ResponseSpec extends ObjectBehavior
             ->shouldReturn('phpspec');
     }
 
-    function it_should_be_constructed_with_data_and_convert_to_array()
+    public function it_should_be_constructed_with_data_and_convert_to_array()
     {
         $this->beConstructedWith([1, 2]);
 
@@ -33,7 +33,7 @@ class ResponseSpec extends ObjectBehavior
             ->shouldReturn([1, 2]);
     }
 
-    function it_should_iterate_through_interface()
+    public function it_should_iterate_through_interface()
     {
         $this->beConstructedWith([1, 2, 3, 4, 5]);
 
@@ -44,7 +44,7 @@ class ResponseSpec extends ObjectBehavior
         }
     }
 
-    function it_should_access_elements_through_interface()
+    public function it_should_access_elements_through_interface()
     {
         $this->beConstructedWith(['a', 'b', 'c', 'd']);
 
@@ -54,7 +54,7 @@ class ResponseSpec extends ObjectBehavior
         expect($this->getWrappedObject()[3])->toBe('d');
     }
 
-    function it_should_set_elements_through_interface()
+    public function it_should_set_elements_through_interface()
     {
         $this->beConstructedWith([]);
 
@@ -67,7 +67,7 @@ class ResponseSpec extends ObjectBehavior
         expect($this->getWrappedObject()[3])->toBe('d');
     }
 
-    function it_should_check_set_elements_through_interface()
+    public function it_should_check_set_elements_through_interface()
     {
         $this->beConstructedWith(['a', 'b']);
 
@@ -79,7 +79,7 @@ class ResponseSpec extends ObjectBehavior
         expect(isset($this->getWrappedObject()[-1]))->toBe(false);
     }
 
-    function it_should_unset_elements_through_interface()
+    public function it_should_unset_elements_through_interface()
     {
         $this->beConstructedWith(['a', 'b', 'c' , 'd']);
 
@@ -91,7 +91,7 @@ class ResponseSpec extends ObjectBehavior
         expect(isset($this->getWrappedObject()[3]))->toBe(true);
     }
 
-    function it_should_count_through_interface()
+    public function it_should_count_through_interface()
     {
         $this->beConstructedWith([1, 2, 3, 4, 5]);
 
@@ -102,7 +102,7 @@ class ResponseSpec extends ObjectBehavior
         expect(count($this->getWrappedObject()))->toBe(5);
     }
 
-    function it_should_reverse_and_return_a_clone()
+    public function it_should_reverse_and_return_a_clone()
     {
         $this->beConstructedWith([1, 2, 3, 4, 5], 'test');
 
@@ -119,7 +119,7 @@ class ResponseSpec extends ObjectBehavior
         expect($result->getPagingToken())->toBe('test');
     }
 
-    function it_should_filter_and_return_a_clone()
+    public function it_should_filter_and_return_a_clone()
     {
         $this->beConstructedWith([1, 2, 3, 4, 5], 'test');
 
@@ -138,7 +138,7 @@ class ResponseSpec extends ObjectBehavior
         expect($result->getPagingToken())->toBe('test');
     }
 
-    function it_should_filter_preserving_keys_and_return_a_clone()
+    public function it_should_filter_preserving_keys_and_return_a_clone()
     {
         $this->beConstructedWith([1, 2, 3, 4, 5], 'test');
 
@@ -161,7 +161,7 @@ class ResponseSpec extends ObjectBehavior
         expect($result->getPagingToken())->toBe('test');
     }
 
-    function it_should_map_and_return_a_clone()
+    public function it_should_map_and_return_a_clone()
     {
         $this->beConstructedWith([1, 2, 3, 4, 5], 'test');
 
@@ -180,7 +180,7 @@ class ResponseSpec extends ObjectBehavior
         expect($result->getPagingToken())->toBe('test');
     }
 
-    function it_should_reduce_and_return_the_final_value()
+    public function it_should_reduce_and_return_the_final_value()
     {
         $this->beConstructedWith([1, 2, 3, 4, 5]);
 

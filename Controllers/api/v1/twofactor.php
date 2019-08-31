@@ -17,7 +17,6 @@ use Minds\Interfaces;
 
 class twofactor implements Interfaces\Api
 {
-
     /**
      * NOT AVAILABLE
      */
@@ -59,7 +58,7 @@ class twofactor implements Interfaces\Api
         switch ($pages[0]) {
             case "setup":
 
-                $secret = $twofactor->createSecret(); 
+                $secret = $twofactor->createSecret();
 
                 /** @var Core\SMS\SMSServiceInterface $sms */
                 $sms = Core\Di\Di::_()->get('SMS');

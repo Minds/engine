@@ -26,12 +26,12 @@ class ManagerSpec extends ObjectBehavior
         $this->_timeline = $timeline;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Monetization\Manager');
     }
 
-    function it_should_get_admin_rows_with_order_reversed()
+    public function it_should_get_admin_rows_with_order_reversed()
     {
         $this->_timeline->getRow('monetization_ledger:admin', [
             'limit' => 3,
@@ -66,7 +66,7 @@ class ManagerSpec extends ObjectBehavior
         ]);
     }
 
-    function it_should_get_admin_rows_with_order_reversed_and_offset()
+    public function it_should_get_admin_rows_with_order_reversed_and_offset()
     {
         $this->_timeline->getRow('monetization_ledger:admin', [
             'limit' => 3,
@@ -95,7 +95,7 @@ class ManagerSpec extends ObjectBehavior
         ]);
     }
 
-    function it_should_get_user_rows()
+    public function it_should_get_user_rows()
     {
         $this->_timeline->getRow('monetization_ledger:user:10', [
             'limit' => 2,
@@ -127,7 +127,7 @@ class ManagerSpec extends ObjectBehavior
         ]);
     }
 
-    function it_should_get_user_rows_with_type()
+    public function it_should_get_user_rows_with_type()
     {
         $this->_timeline->getRow('monetization_ledger:user:10:credit', [
             'limit' => 2,
@@ -160,7 +160,7 @@ class ManagerSpec extends ObjectBehavior
         ]);
     }
 
-    function it_should_get_user_rows_with_type_and_status()
+    public function it_should_get_user_rows_with_type_and_status()
     {
         $this->_timeline->getRow('monetization_ledger:user:10:credit:paid', [
             'limit' => 2,
@@ -194,7 +194,7 @@ class ManagerSpec extends ObjectBehavior
         ]);
     }
 
-    function it_should_fetch_rows()
+    public function it_should_fetch_rows()
     {
         $this->_db->request(Argument::that(function ($prepared) {
             $build = $prepared->build();
@@ -217,7 +217,7 @@ class ManagerSpec extends ObjectBehavior
             ]);
     }
 
-    function it_should_not_fetch_non_existant_rows()
+    public function it_should_not_fetch_non_existant_rows()
     {
         $this->_db->request(Argument::that(function ($prepared) {
             $build = $prepared->build();
@@ -232,7 +232,7 @@ class ManagerSpec extends ObjectBehavior
         $this->fetch(['4'])->shouldReturn([]);
     }
 
-    function it_should_not_fetch_empty_guid_array()
+    public function it_should_not_fetch_empty_guid_array()
     {
         $this->_db->request(Argument::any())
             ->shouldNotBeCalled();
@@ -240,13 +240,13 @@ class ManagerSpec extends ObjectBehavior
         $this->fetch([])->shouldReturn([]);
     }
 
-    function it_should_resolve_a_guid()
+    public function it_should_resolve_a_guid()
     {
         $this->_db->request(Argument::that(function ($prepared) {
             $build = $prepared->build();
 
             return
-                $build['values'][0] == '1' 
+                $build['values'][0] == '1'
             ;
         }))
             ->shouldBeCalled()
@@ -257,13 +257,13 @@ class ManagerSpec extends ObjectBehavior
         $this->resolve('1')->shouldReturn($this::$_ROW_1);
     }
 
-    function it_should_not_resolve_a_non_existing_guid()
+    public function it_should_not_resolve_a_non_existing_guid()
     {
         $this->_db->request(Argument::that(function ($prepared) {
             $build = $prepared->build();
 
             return
-                $build['values'][0] == '4' 
+                $build['values'][0] == '4'
             ;
         }))
             ->shouldBeCalled()
@@ -273,7 +273,7 @@ class ManagerSpec extends ObjectBehavior
         $this->resolve('4')->shouldReturn(false);
     }
 
-    function it_should_not_resolve_an_empty_guid()
+    public function it_should_not_resolve_an_empty_guid()
     {
         $this->_db->request(Argument::any())
             ->shouldNotBeCalled();
@@ -281,7 +281,7 @@ class ManagerSpec extends ObjectBehavior
         $this->resolve('')->shouldReturn(false);
     }
 
-    function it_should_insert_a_row()
+    public function it_should_insert_a_row()
     {
         $this->_db->request(Argument::type(Cassandra\Prepared\MonetizationLedger::class), true)
             ->shouldBeCalled()
@@ -295,7 +295,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_not_insert_a_row_if_required_field_is_missing()
+    public function it_should_not_insert_a_row_if_required_field_is_missing()
     {
         $this->_db->request(Argument::type(Cassandra\Prepared\MonetizationLedger::class), true)
             ->shouldNotBeCalled();
@@ -316,7 +316,7 @@ class ManagerSpec extends ObjectBehavior
             ->duringInsert([ 'guid' => 1, 'ts' => 1010, 'type' => 'credit', 'user_guid' => 10 ]);
     }
 
-    function it_should_update_a_row_without_index_modifications()
+    public function it_should_update_a_row_without_index_modifications()
     {
         $this->_db->request(Argument::type(Cassandra\Prepared\MonetizationLedger::class), true)
             ->shouldBeCalled()
@@ -326,7 +326,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_update_a_row_with_index_modifications()
+    public function it_should_update_a_row_with_index_modifications()
     {
         $this->_db->request(Argument::type(Cassandra\Prepared\MonetizationLedger::class), true)
             ->shouldBeCalled()
@@ -348,7 +348,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_not_update_a_row_with_key_modifications()
+    public function it_should_not_update_a_row_with_key_modifications()
     {
         $this->_db->request(Argument::type(Cassandra\Prepared\MonetizationLedger::class), true)
             ->shouldNotBeCalled();
@@ -369,7 +369,7 @@ class ManagerSpec extends ObjectBehavior
             ->duringUpdate('1', [ 'user_guid' => '11' ]);
     }
 
-    function it_should_not_update_a_row_with_index_modifications_without_old_data()
+    public function it_should_not_update_a_row_with_index_modifications_without_old_data()
     {
         $this->_db->request(Argument::type(Cassandra\Prepared\MonetizationLedger::class), true)
             ->shouldNotBeCalled();

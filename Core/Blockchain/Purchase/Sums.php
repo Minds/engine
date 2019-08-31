@@ -35,7 +35,7 @@ class Sums
     
         try {
             $rows = $this->db->request($query);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             error_log($e->getMessage());
             return 0;
         }
@@ -59,7 +59,7 @@ class Sums
     
         try {
             $rows = $this->db->request($query);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             error_log($e->getMessage());
             return 0;
         }
@@ -87,7 +87,7 @@ class Sums
     
         try {
             $rows = $this->db->request($query);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             error_log($e->getMessage());
             return 0;
         }
@@ -115,7 +115,7 @@ class Sums
     
         try {
             $rows = $this->db->request($query);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             error_log($e->getMessage());
             return 0;
         }
@@ -145,7 +145,7 @@ class Sums
     
         try {
             $rows = $this->db->request($query);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             error_log($e->getMessage());
             return 0;
         }
@@ -156,5 +156,4 @@ class Sums
 
         return (string) BigNumber::_($rows[0]['requested'])->sub(BigNumber::_($rows[0]['issued']));
     }
-
 }
