@@ -163,6 +163,19 @@ class Manager
     }
 
     /**
+     * True if the boost is invalid due to the pending boost limit being reached
+     *
+     * @param Boost $type the Boost object.
+     * @return boolean true if the boost limit has been reached.
+     */
+    public function isPendingLimitExceededBy($boost)
+    {
+        $offchain = $this->getOffchainBoosts($boost, 4, 'review');
+        $maxDaily = $this->config->get('max_pending_boosts');
+        return count($offchain) >= $maxDaily;
+    }
+
+    /**
      * True if the boost is invalid due to the offchain boost limit being reached
      *
      * @param Boost $type the Boost object.
@@ -196,11 +209,11 @@ class Manager
      * @param integer $limit default to 10.
      * @return $existingBoosts
      */
-    public function getOffchainBoosts($boost, $limit = 10)
+    public function getOffchainBoosts($boost, $limit = 10, $state = 'active')
     {
         $existingBoosts = $this->getList([
             'useElastic' => true,
-            'state' => 'active',
+            'state' => $state,
             'type' => $boost->getType(),
             'limit' => $limit,
             'order' => 'desc',

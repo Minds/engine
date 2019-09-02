@@ -469,6 +469,8 @@ $CONFIG->set('max_video_length', 900);
 
 $CONFIG->set('max_video_length_plus', 1860);
 
+$CONFIG->set('max_pending_boosts', 3);
+
 $CONFIG->set('features', [
     'es-feeds' => false,
     'helpdesk' => true,

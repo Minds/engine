@@ -296,7 +296,15 @@ class boost implements Interfaces\Api
                             'message' => "There's already an ongoing boost for this entity"
                         ]);
                     }
-                  
+                    
+                    if ($manager->isPendingLimitExceededBy($boost)) {
+                        $maxDaily = Di::_()->get('Config')->get('max_pending_boosts');
+                        return Factory::response([
+                            'status' => 'error',
+                            'message' => "Exceeded maximum of ".$maxDaily." pending boosts at a time."
+                        ]);
+                    }
+
                     if ($manager->isBoostLimitExceededBy($boost)) {
                         $maxDaily = Di::_()->get('Config')->get('max_daily_boost_views') / 1000;
                         return Factory::response([

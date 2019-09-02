@@ -370,14 +370,42 @@ class ManagerSpec extends ObjectBehavior
         $this->isBoostLimitExceededBy($boost)->shouldReturn(true);
     }
 
-    public function runThroughGetList($boost, $existingBoosts)
+    public function it_should_recognise_a_boost_would_take_user_above_pending_limit(Boost $boost)
+    {
+        $boostArray = [];
+        for ($i = 0; $i < 3; $i++) {
+            $newBoost = new Boost();
+            $newBoost->setCreatedTimestamp('9999999999999999');
+            $newBoost->setImpressions(100);
+            array_push($boostArray, $newBoost);
+        }
+        Di::_()->get('Config')->set('max_pending_boosts', 3);
+        $this->runThroughGetList($boost, $boostArray, 'review', 4);
+        $this->isPendingLimitExceededBy($boost)->shouldReturn(true);
+    }
+
+    public function it_should_recognise_a_boost_would_NOT_take_user_above_pending_limit(Boost $boost)
+    {
+        $boostArray = [];
+        for ($i = 0; $i < 2; $i++) {
+            $newBoost = new Boost();
+            $newBoost->setCreatedTimestamp('9999999999999999');
+            $newBoost->setImpressions(100);
+            array_push($boostArray, $newBoost);
+        }
+        Di::_()->get('Config')->set('max_pending_boosts', 3);
+        $this->runThroughGetList($boost, $boostArray, 'review', 4);
+        $this->isPendingLimitExceededBy($boost)->shouldReturn(false);
+    }
+
+    public function runThroughGetList($boost, $existingBoosts, $state = 'active', $limit = 10)
     {
         $this->elasticRepository->getList([
             "hydrate" => true,
             "useElastic" => true,
-            "state" => "active",
+            "state" => $state,
             "type" => "newsfeed",
-            "limit" => 10,
+            "limit" => $limit,
             "order" => "desc",
             "offchain" => true,
             "owner_guid" => "123"
@@ -398,7 +426,6 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('123');
         
         $boost->getImpressions()
-            ->shouldBeCalled()
             ->willReturn(1000);
     }
 }
