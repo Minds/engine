@@ -118,11 +118,12 @@ class feed implements Interfaces\Api
                 $next = $iterator->getOffset();
 
                 if (isset($boosts[1]) && !$isBoostFeed) { // Always offset to 2rd in list if in rotator
-                    if (!$offset) {
-                        $next = $boosts[1]->getTimestamp();
-                    } else {
-                        $next = 0;
-                    }
+                    // if (!$offset) {
+                    //     $next = $boosts[1]->getTimestamp();
+                    // } else {
+                    //     $next = 0;
+                    // }
+                    $next = $boosts[1]->getTimestamp();
                 } elseif ($isBoostFeed) {
                     $len = count($boosts);
                     $next = $boosts[$len -1]->getTimestamp();
@@ -130,7 +131,7 @@ class feed implements Interfaces\Api
 
                 // $ttl = 1800; // 30 minutes
                 // if (($next / 1000) < strtotime('48 hours ago')) {
-                    $ttl = 150; // 2.5 minutes;
+                    $ttl = 300; // 5 minutes;
                 // }
 
                 $cacher->set(Core\Session::getLoggedinUser()->guid . ':boost-offset-rotator', $next, $ttl);
