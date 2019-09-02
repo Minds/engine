@@ -123,7 +123,8 @@ class feed implements Interfaces\Api
                     // } else {
                     //     $next = 0;
                     // }
-                    $next = $boosts[1]->getTimestamp();
+                    $len = count($boosts);
+                    $next = $boosts[$len -1]->getTimestamp();
                 } elseif ($isBoostFeed) {
                     $len = count($boosts);
                     $next = $boosts[$len -1]->getTimestamp();
