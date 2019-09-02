@@ -88,7 +88,7 @@ class feed implements Interfaces\Api
                 /** @var Core\Boost\Network\Iterator $iterator */
                 $iterator = Core\Di\Di::_()->get('Boost\Network\Iterator');
                 $iterator
-                    ->setLimit(12)
+                    ->setLimit(10)
                     ->setOffset($offset)
                     ->setRating($rating)
                     ->setQuality($quality)
