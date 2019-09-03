@@ -23,7 +23,7 @@ class Manager
         $middleware = null
     ) {
         $this->middleware = $middleware ?: [
-            new Middleware\ProMiddleware(),
+            new Middleware\ProMiddleware(), // this needs to always be the last element in this array
         ];
     }
 
