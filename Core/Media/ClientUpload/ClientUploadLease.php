@@ -37,6 +37,4 @@ class ClientUploadLease
             'media_type' => $this->getMediaType(),
         ];
     }
-
 }
-

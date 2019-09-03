@@ -3,7 +3,6 @@ namespace Minds\Core\Rewards\Contributions;
 
 class ContributionValues
 {
-
     public static $multipliers = [
         'comments' => 2,
         'reminds' => 4,
@@ -14,5 +13,4 @@ class ContributionValues
         'checkin' => 2,
         'jury_duty' => 25,
     ];
-
 }

@@ -75,6 +75,4 @@ class rating implements Interfaces\Api
     {
         return Factory::response([]);
     }
-
-
 }

@@ -45,7 +45,7 @@ class Flags
     {
         if (method_exists($entity, 'getSpam')) {
             return !!$entity->getSpam();
-        } else if (method_exists($entity, 'getFlag')) {
+        } elseif (method_exists($entity, 'getFlag')) {
             return !!$entity->getFlag('spam');
         }
 
@@ -56,7 +56,7 @@ class Flags
     {
         if (method_exists($entity, 'getDeleted')) {
             return !!$entity->getDeleted();
-        } else if (method_exists($entity, 'getFlag')) {
+        } elseif (method_exists($entity, 'getFlag')) {
             return !!$entity->getFlag('deleted');
         }
 

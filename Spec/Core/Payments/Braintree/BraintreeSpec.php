@@ -11,9 +11,7 @@ use Braintree_Configuration;
 
 class BraintreeSpec extends ObjectBehavior
 {
-
-
-    function it_is_initializable(Braintree_Configuration $btConfig, Config $config)
+    public function it_is_initializable(Braintree_Configuration $btConfig, Config $config)
     {
         $this->beConstructedWith($btConfig, $config);
         $this->shouldHaveType('Minds\Core\Payments\Braintree\Braintree');

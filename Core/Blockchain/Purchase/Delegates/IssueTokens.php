@@ -58,7 +58,7 @@ class IssueTokens
             throw new \Exception('Cannot retrieve Blockchain Tx address');
         }
 
-        /*$transaction = new Transaction(); 
+        /*$transaction = new Transaction();
         $transaction
             ->setUserGuid($purchase->getUserGuid())
             ->setWalletAddress($purchase->getWalletAddress())
@@ -67,7 +67,7 @@ class IssueTokens
             ->setAmount((string) $purchase->getUnIssuedAmount())
             ->setContract('issued_purchase')
             ->setCompleted(true);
-    
+
         $this->txRepository->add($transaction);
         return $transaction;*/
     }

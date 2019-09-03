@@ -15,19 +15,19 @@ class RepositorySpec extends ObjectBehavior
     /** @var Client */
     private $client;
 
-    function let(Client $client)
+    public function let(Client $client)
     {
         $this->client = $client;
 
         $this->beConstructedWith($client);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    function it_should_get_by_uuid()
+    public function it_should_get_by_uuid()
     {
         $this->client->request(Argument::any())
             ->shouldBeCalled()
@@ -44,7 +44,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeAnInstanceOf(Category::class);
     }
 
-    function it_should_add(Category $category)
+    public function it_should_add(Category $category)
     {
         $category->getUuid()
             ->shouldBeCalled()

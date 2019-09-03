@@ -74,5 +74,4 @@ class pageview implements Interfaces\Api, Interfaces\ApiIgnorePam
     {
         return Factory::response([]);
     }
-
 }

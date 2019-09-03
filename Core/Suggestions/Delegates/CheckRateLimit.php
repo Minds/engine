@@ -54,8 +54,9 @@ class CheckRateLimit
         }
         $count = $this->cacher->get("subscriptions:user:$userGuid");
 
-        if (!$count)
+        if (!$count) {
             $count = 0;
+        }
 
         $this->cacher->set("subscriptions:user:$userGuid", ++$count, $this->maps[static::SUBSCRIBE_KEY]['period']);
     }

@@ -11,19 +11,19 @@ class ConfigSpec extends ObjectBehavior
     /** @var Config */
     private $config;
 
-    function let(Config $config)
+    public function let(Config $config)
     {
         $this->config = $config;
 
         $this->beConstructedWith($config);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Config::class);
     }
 
-    function it_should_get_the_config()
+    public function it_should_get_the_config()
     {
         $this->config->get(Argument::is('blockchain'))
             ->shouldBeCalled()

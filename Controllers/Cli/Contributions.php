@@ -62,7 +62,7 @@ class Contributions extends Cli\Controller implements Interfaces\CliControllerIn
 
         $this->out("Getting rewards for all users");
 
-        $total = 0; 
+        $total = 0;
         $i = 0;
         foreach ($users as $guid) {
             $i++;
@@ -133,7 +133,7 @@ class Contributions extends Cli\Controller implements Interfaces\CliControllerIn
                 $hash = $user->getPhoneNumberHash();
 
                 if (isset($hashes[$hash])) { //don't allow multiple phones to claim checkin
-                    $duplicates++; 
+                    $duplicates++;
                     continue;
                 }
                 $hashes[$hash] = true;
@@ -156,7 +156,7 @@ class Contributions extends Cli\Controller implements Interfaces\CliControllerIn
                     ->setUser($checkin['user'])
                     ->issueCheckins($checkin['amount']);
         }
-    } 
+    }
 
     public function test()
     {
@@ -175,7 +175,7 @@ class Contributions extends Cli\Controller implements Interfaces\CliControllerIn
             ->setDryRun(true);
 
         if ($user->guid) {
-             $manager->setUser($user);
+            $manager->setUser($user);
         }
         $results = $manager->sync();
 
@@ -184,9 +184,8 @@ class Contributions extends Cli\Controller implements Interfaces\CliControllerIn
         foreach ($results as $result) {
             $totals += $result->getAmount();
             $totals_by_type[$result->getMetric()] += $result->getAmount();
-        } 
+        }
         var_dump($totals);
         var_dump($totals_by_type);
     }
-
 }

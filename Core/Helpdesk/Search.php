@@ -66,11 +66,13 @@ class Search
 
         $result = $this->elastic->request($prepared);
 
-        if (!isset($result['hits'])) return [];
+        if (!isset($result['hits'])) {
+            return [];
+        }
 
         $entitiesBuilder = $this->entitiesBuilder;
 
-        $entities = array_map(function($r) use ($entitiesBuilder) {
+        $entities = array_map(function ($r) use ($entitiesBuilder) {
             return $entitiesBuilder->single($r['_source']['guid']);
         }, $result['hits']['hits']);
 

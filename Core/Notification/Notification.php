@@ -93,5 +93,4 @@ class Notification
             'data' => $this->getData(),
         ];
     }
-
 }

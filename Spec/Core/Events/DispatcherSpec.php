@@ -15,7 +15,8 @@ class DispatcherSpec extends ObjectBehavior
 
     public function it_should_reject_an_event_listener()
     {
-        $this::register("foo-event", "all", function () {})->shouldReturn(true);
+        $this::register("foo-event", "all", function () {
+        })->shouldReturn(true);
     }
 
     //function it_should_unregister_an_event_listener(){
@@ -24,15 +25,19 @@ class DispatcherSpec extends ObjectBehavior
 
     public function it_should_trigger_an_event()
     {
-        $this::register("foo-event", "all", function ($e) { $e->setResponse("called!"); })->shouldReturn(true);
-        $this::trigger("foo-event", "all", array())->shouldReturn("called!");
+        $this::register("foo-event", "all", function ($e) {
+            $e->setResponse("called!");
+        })->shouldReturn(true);
+        $this::trigger("foo-event", "all", [])->shouldReturn("called!");
     }
 
     public function it_should_trigger_an_event_with_parameters()
     {
-        $this::register("foo-event", "all", function ($e) { $e->setResponse($e->getParameters()); })->shouldReturn(true);
+        $this::register("foo-event", "all", function ($e) {
+            $e->setResponse($e->getParameters());
+        })->shouldReturn(true);
 
-        $params = array("foo" => "bar", "one" => 1, 2 => "two", "true" => true);
+        $params = ["foo" => "bar", "one" => 1, 2 => "two", "true" => true];
         $this::trigger("foo-event", "all", $params)->shouldReturn($params);
     }
 }

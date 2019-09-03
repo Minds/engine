@@ -17,7 +17,6 @@ use Minds\Core;
 
 class founders implements Interfaces\Api
 {
-
     /**
      * Equivalent to HTTP GET method
      * @param  array $pages
@@ -25,7 +24,6 @@ class founders implements Interfaces\Api
      */
     public function get($pages)
     {
-        
         $offset = isset($_GET['offset']) ? $_GET['offset'] : "";
 
         $db = new \Minds\Core\Data\Call('entities_by_time');

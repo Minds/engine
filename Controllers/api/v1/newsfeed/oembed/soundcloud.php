@@ -51,16 +51,16 @@ class soundcloud implements Interfaces\Api
 
     public function post($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     public function delete($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }

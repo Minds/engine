@@ -18,7 +18,7 @@ use Minds\Helpers\Text;
 trait Exportable
 {
     /** @var bool */
-    static $exportToSnakeCase = true;
+    public static $exportToSnakeCase = true;
 
     /**
      * Specifies the exportable properties

@@ -160,7 +160,7 @@ class notifications implements Interfaces\Api
      */
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     /**
@@ -168,7 +168,7 @@ class notifications implements Interfaces\Api
      */
     public function delete($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     /**
@@ -178,7 +178,7 @@ class notifications implements Interfaces\Api
     {
         //if (!is_array($notifications)) {
         //    return $notifications;
-       // }
+        // }
         $return = [];
         // Formatting for legacy notification handling in frontend
         foreach ($notifications as $key => $entity) {

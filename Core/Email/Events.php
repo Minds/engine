@@ -47,10 +47,10 @@ class Events
         Dispatcher::register('welcome_email', 'all', function (Event $event) {
             $this->sendCampaign(new Delegates\WelcomeSender(), $event->getParameters());
         });
-
     }
 
-    private function sendCampaign (SenderInterface $sender, $params) {
+    private function sendCampaign(SenderInterface $sender, $params)
+    {
         $user = new User($params['user_guid']);
         $sender->send($user);
     }

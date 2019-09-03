@@ -153,5 +153,4 @@ class Plan
         $this->amount = $amount;
         return $this;
     }
-
 }

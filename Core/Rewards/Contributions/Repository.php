@@ -37,9 +37,9 @@ class Repository
             VALUES (?,?,?,?,?)";
         foreach ($contributions as $contribution) {
             $requests[] = [
-                'string' => $template, 
+                'string' => $template,
                 'values' => [
-                    new Timestamp($contribution->getTimestamp() / 1000),                    
+                    new Timestamp($contribution->getTimestamp() / 1000),
                     new Varint($contribution->getUser()->guid),
                     $contribution->getMetric(),
                     new Varint($contribution->getAmount()),
@@ -97,18 +97,18 @@ class Repository
         $query->query($cql, $values);
         $query->setOpts([
             'page_size' => (int) $options['limit'],
-            'paging_state_token' => base64_decode($options['offset'])
+            'paging_state_token' => base64_decode($options['offset'], true)
         ]);
 
         $contributions = [];
 
-        try{
+        try {
             $rows = $this->db->request($query);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             error_log($e->getMessage());
         }
 
-        foreach($rows as $row) {
+        foreach ($rows as $row) {
             $contribution = new Contribution();
             $contribution
                 ->setUser((string) $row['user_guid'])
@@ -138,8 +138,5 @@ class Repository
 
     public function sum($options)
     {
-
     }
-
-
 }

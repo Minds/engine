@@ -123,7 +123,7 @@ class Events
             
             if ($entity->type == 'activity' && $entity->custom_type) {
                 $subtype = '';
-                switch($entity->custom_type) {
+                switch ($entity->custom_type) {
                     case 'video':
                         $subtype = 'video';
                         $guid = $entity->custom_data['guid'];
@@ -174,6 +174,5 @@ class Events
                 ->setAction("vote:{$direction}:cancel")
                 ->push();
         });
-
     }
 }

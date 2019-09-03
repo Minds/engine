@@ -31,7 +31,7 @@ class overview implements Interfaces\Api
                 ->calculate();
 
             $rewardFactor = RewardFactor::getForUserState($user->getUserState());
-            $contributionValues = array_map(function($value) use ($rewardFactor) {
+            $contributionValues = array_map(function ($value) use ($rewardFactor) {
                 return $value * $rewardFactor;
             }, Contributions\ContributionValues::$multipliers);
 

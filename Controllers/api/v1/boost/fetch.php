@@ -18,7 +18,6 @@ use Minds\Interfaces;
 
 class fetch implements Interfaces\Api
 {
-
     /**
      * Return a list of boosts that a user needs to review
      * @param array $pages
@@ -182,4 +181,3 @@ class fetch implements Interfaces\Api
         return [];
     }
 }
-

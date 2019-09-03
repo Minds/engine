@@ -13,7 +13,6 @@ use Minds\Core\Trending\Aggregates; //TODO: This should probably be more unified
 
 class Maps
 {
-
     public static $maps = [
         'interaction:subscribe' => [
             'interaction' => 'subscribe',
@@ -96,5 +95,4 @@ class Maps
             ],
         ]
     ];
-
 }

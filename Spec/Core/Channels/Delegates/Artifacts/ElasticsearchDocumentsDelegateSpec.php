@@ -26,13 +26,12 @@ class ElasticsearchDocumentsDelegateSpec extends ObjectBehavior
     /** @var ElasticsearchNativeClient */
     protected $esNativeClient;
 
-    function let(
+    public function let(
         Repository $repository,
         Config $config,
         ElasticsearchClient $elasticsearch,
         ElasticsearchNativeClient $esNativeClient
-    )
-    {
+    ) {
         $this->beConstructedWith($repository, $config, $elasticsearch);
 
         $this->repository = $repository;
@@ -46,19 +45,19 @@ class ElasticsearchDocumentsDelegateSpec extends ObjectBehavior
     }
 
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(ElasticsearchDocumentsDelegate::class);
     }
 
-    function it_should_snapshot()
+    public function it_should_snapshot()
     {
         $this
             ->snapshot(1000)
             ->shouldReturn(true);
     }
 
-    function it_should_restore()
+    public function it_should_restore()
     {
         $this->config->get('elasticsearch')
             ->shouldBeCalled()
@@ -77,10 +76,9 @@ class ElasticsearchDocumentsDelegateSpec extends ObjectBehavior
         $this
             ->restore(1000)
             ->shouldReturn(true);
-
     }
 
-    function it_should_hide()
+    public function it_should_hide()
     {
         $this->config->get('elasticsearch')
             ->shouldBeCalled()
@@ -99,10 +97,9 @@ class ElasticsearchDocumentsDelegateSpec extends ObjectBehavior
         $this
             ->hide(1000)
             ->shouldReturn(true);
-
     }
 
-    function it_should_delete()
+    public function it_should_delete()
     {
         $this->config->get('elasticsearch')
             ->shouldBeCalled()

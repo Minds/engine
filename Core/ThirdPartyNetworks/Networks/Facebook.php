@@ -122,7 +122,6 @@ class Facebook implements NetworkInterface
 
         //Custom video posts
         if ($entity->custom_type == 'video') {
-
             if (isset($this->data['message'])) {
                 $this->data['description'] = $this->data['message'];
                 unset($this->data['message']);

@@ -119,7 +119,7 @@ class Manager
             throw new \Exception('User not set');
         }
 
-        if (!in_array($creatorFrequency, static::CREATOR_FREQUENCIES)) {
+        if (!in_array($creatorFrequency, static::CREATOR_FREQUENCIES, true)) {
             throw new \Exception('Invalid creator frequency');
         }
 

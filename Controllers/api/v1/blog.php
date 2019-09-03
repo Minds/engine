@@ -128,7 +128,8 @@ class blog implements Interfaces\Api
 
                 try {
                     echo $header->read();
-                } catch (\Exception $e) { }
+                } catch (\Exception $e) {
+                }
 
                 exit;
 
@@ -140,7 +141,9 @@ class blog implements Interfaces\Api
                         !$blog ||
                         Helpers\Flags::shouldFail($blog) ||
                         !Core\Security\ACL::_()->read($blog)
-                    ) break;
+                    ) {
+                        break;
+                    }
 
                     $response['blog'] = $blog;
                 }

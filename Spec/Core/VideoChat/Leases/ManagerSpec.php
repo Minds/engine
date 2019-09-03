@@ -10,21 +10,20 @@ use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
-
     private $repository;
 
-    function let(Repository $repository)
+    public function let(Repository $repository)
     {
         $this->beConstructedWith($repository);
         $this->repository = $repository;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_add_a_lease()
+    public function it_should_add_a_lease()
     {
         $lease = new VideoChatLease();
 
@@ -35,7 +34,7 @@ class ManagerSpec extends ObjectBehavior
         $this->add($lease)->shouldReturn(true);
     }
 
-    function it_should_return_a_lease()
+    public function it_should_return_a_lease()
     {
         $lease = new VideoChatLease();
         $lease->setKey('test')
@@ -48,5 +47,4 @@ class ManagerSpec extends ObjectBehavior
         $this->get('test')
             ->shouldReturn($lease);
     }
-
 }

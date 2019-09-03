@@ -759,7 +759,9 @@ class TorrentFile
      */
     protected static function announce_list($announce, $merge = [])
     {
-        return array_map(function($a) {return (array) $a;}, array_merge((array) $announce, (array) $merge));
+        return array_map(function ($a) {
+            return (array) $a;
+        }, array_merge((array) $announce, (array) $merge));
     }
 
     /** Get the first announce url in a list
@@ -892,8 +894,8 @@ class TorrentFile
     private function files($files, $piece_length)
     {
         sort($files);
-        usort($files, function($a, $b) {
-            return strrpos($a,DIRECTORY_SEPARATOR)-strrpos($b,DIRECTORY_SEPARATOR);
+        usort($files, function ($a, $b) {
+            return strrpos($a, DIRECTORY_SEPARATOR)-strrpos($b, DIRECTORY_SEPARATOR);
         });
         $first = current($files);
         if (!self::is_url($first)) {

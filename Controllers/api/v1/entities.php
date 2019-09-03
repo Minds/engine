@@ -76,8 +76,9 @@ class entities implements Interfaces\Api
         switch ($pages[0]) {
             case "all":
                 $type="user";
-                if (!Core\Session::isAdmin()) 
+                if (!Core\Session::isAdmin()) {
                     exit;
+                }
                 break;
             case "container":
                 $owner = $pages[2];
@@ -141,7 +142,7 @@ class entities implements Interfaces\Api
         }
 
         // Remove all unlisted content if it appears
-        $entities = array_values(array_filter($entities, function($entity) {
+        $entities = array_values(array_filter($entities, function ($entity) {
             return $entity->getAccessId() != 0;
         }));
 

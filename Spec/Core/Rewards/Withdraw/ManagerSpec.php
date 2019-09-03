@@ -20,18 +20,16 @@ use Minds\Entities\User;
 
 class ManagerSpec extends ObjectBehavior
 {
-
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Rewards\Withdraw\Manager');
     }
 
-    function it_should_allow_a_withdrawal_request_to_be_made(
+    public function it_should_allow_a_withdrawal_request_to_be_made(
         BlockchainTx $offChainTransactions,
         Repository $repository,
         Balance $offChainBalance
-    )
-    {
+    ) {
         $this->beConstructedWith($offChainTransactions, null, null, null, $repository, $offChainBalance);
 
         $transaction = new Transaction();
@@ -69,11 +67,10 @@ class ManagerSpec extends ObjectBehavior
         $this->request($request);
     }
 
-    function it_should_not_allow_a_withdrawl_request_to_be_made_if_already_exists_in_last_24_hours(
+    public function it_should_not_allow_a_withdrawl_request_to_be_made_if_already_exists_in_last_24_hours(
         BlockchainTx $offChainTransactions,
         Repository $repository
-    )
-    {
+    ) {
         $this->beConstructedWith($offChainTransactions, null, null, null, $repository);
 
         $request = new Request();
@@ -96,14 +93,13 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow('\Exception')->duringRequest($request);
     }
 
-    function it_should_complete_the_withdrawal_after_a_request(
-        BlockchainTx $txManager, 
+    public function it_should_complete_the_withdrawal_after_a_request(
+        BlockchainTx $txManager,
         Transactions $offChainTransactions,
         Config $config,
         Ethereum $eth,
         Repository $repository
-    )
-    {
+    ) {
         $this->beConstructedWith($txManager, $offChainTransactions, $config, $eth, $repository);
 
         $user = new User();
@@ -166,7 +162,7 @@ class ManagerSpec extends ObjectBehavior
         $this->complete($request, $transaction);
     }
 
-    function it_should_not_complete_the_withdrawal_if_user_mismatch(BlockchainTx $txManager)
+    public function it_should_not_complete_the_withdrawal_if_user_mismatch(BlockchainTx $txManager)
     {
         $this->beConstructedWith($txManager);
 
@@ -191,7 +187,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow('\Exception')->duringComplete($request, $transaction);
     }
 
-    function it_should_not_complete_the_withdrawal_if_address_mismatch(BlockchainTx $txManager)
+    public function it_should_not_complete_the_withdrawal_if_address_mismatch(BlockchainTx $txManager)
     {
         $this->beConstructedWith($txManager);
 
@@ -216,7 +212,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow('\Exception')->duringComplete($request, $transaction);
     }
 
-    function it_should_not_complete_the_withdrawal_if_amount_mismatch(BlockchainTx $txManager)
+    public function it_should_not_complete_the_withdrawal_if_amount_mismatch(BlockchainTx $txManager)
     {
         $this->beConstructedWith($txManager);
 
@@ -241,7 +237,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow('\Exception')->duringComplete($request, $transaction);
     }
 
-    function it_should_not_complete_the_withdrawal_if_gas_mismatch(BlockchainTx $txManager)
+    public function it_should_not_complete_the_withdrawal_if_gas_mismatch(BlockchainTx $txManager)
     {
         $this->beConstructedWith($txManager);
 
@@ -265,5 +261,4 @@ class ManagerSpec extends ObjectBehavior
 
         $this->shouldThrow('\Exception')->duringComplete($request, $transaction);
     }
-
 }

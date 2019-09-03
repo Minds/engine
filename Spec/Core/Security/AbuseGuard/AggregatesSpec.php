@@ -10,23 +10,22 @@ use Minds\Core\Data\ElasticSearch\Prepared;
 
 class AggregatesSpec extends ObjectBehavior
 {
-
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Security\AbuseGuard\Aggregates');
     }
 
-    function it_should_set_period()
+    public function it_should_set_period()
     {
         $this->setPeriod('now-5m', 'now-2m')->shouldReturn($this);
     }
 
-    function it_should_set_limit()
+    public function it_should_set_limit()
     {
         $this->setLimit(100)->shouldReturn($this);
     }
 
-    function it_should_get_down_votes(Client $client)
+    public function it_should_get_down_votes(Client $client)
     {
         $this->beConstructedWith($client);
 
@@ -50,7 +49,7 @@ class AggregatesSpec extends ObjectBehavior
         $this->getDownVotes()->shouldContain([ 'guid' => 'too', 'count' => 1 ]);
     }
 
-    function it_should_get_comments(Client $client)
+    public function it_should_get_comments(Client $client)
     {
         $this->beConstructedWith($client);
 
@@ -73,5 +72,4 @@ class AggregatesSpec extends ObjectBehavior
         $this->getComments()->shouldContain([ 'guid' => 'cob', 'count' => 5 ]);
         $this->getComments()->shouldContain([ 'guid' => 'coa', 'count' => 1 ]);
     }
-
 }

@@ -14,7 +14,7 @@ class Referrals
      */
     public static function register($username)
     {
-        if(!isset($_COOKIE['referrer'])) {
+        if (!isset($_COOKIE['referrer'])) {
             $cookie = new Cookie();
             $cookie
                 ->setName('referrer')

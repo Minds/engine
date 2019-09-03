@@ -64,7 +64,7 @@ class Keystore
             return self::$tmpPrivateKey;
         }
         if (self::$tmpPrivateKey) {
-            $this->cache->set($session->getId() . ':tmpPrivateKey', self::$tmpPrivateKey); 
+            $this->cache->set($session->getId() . ':tmpPrivateKey', self::$tmpPrivateKey);
             return self::$tmpPrivateKey;
         }
         //tmp key is stored in the session

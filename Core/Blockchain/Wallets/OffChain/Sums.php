@@ -50,7 +50,7 @@ class Sums
                 SUM(amount) as balance 
                 FROM blockchain_transactions_mainnet_by_address
                 WHERE user_guid = ?
-                AND wallet_address = 'offchain'", 
+                AND wallet_address = 'offchain'",
                 [
                     new Varint((int) $this->user->guid)
                 ]);
@@ -61,9 +61,9 @@ class Sums
             //$query->query("SELECT SUM(amount) as balance from rewards");
         }
 
-        try{
+        try {
             $rows = $this->db->request($query);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             error_log($e->getMessage());
             return 0;
         }
@@ -114,5 +114,4 @@ class Sums
 
         return (string) BigNumber::_($rows[0]['balance']);
     }
-
 }

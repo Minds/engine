@@ -13,7 +13,7 @@ class EventsSpec extends ObjectBehavior
     /** @var EventsDispatcher */
     protected $dispatcher;
 
-    function let(EventsDispatcher $dispatcher)
+    public function let(EventsDispatcher $dispatcher)
     {
         Di::_()->bind('EventsDispatcher', function ($di) use ($dispatcher) {
             return $dispatcher->getWrappedObject();

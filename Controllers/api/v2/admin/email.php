@@ -39,5 +39,4 @@ class email implements Interfaces\Api, Interfaces\ApiAdminPam
     {
         Factory::response([]);
     }
-
 }

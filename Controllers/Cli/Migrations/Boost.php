@@ -14,7 +14,6 @@ use Minds\Core\Analytics\Iterators\SignupsOffsetIterator;
 
 class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
 {
-
     private $db;
     private $es;
 
@@ -106,7 +105,7 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
             $body['@revoked'] = $export['last_updated'] * 1000;
         } elseif ($boost->getState() === 'rejected') {
             $body['@reviewed'] = $export['last_updated'] * 1000;
-            $body['@rejected'] = $export['last_updated'] * 1000; 
+            $body['@rejected'] = $export['last_updated'] * 1000;
         } elseif ($boost->getState() === 'completed') {
             $body['@reviewed'] = $boost->getTimeCreated() * 1000;
             $body['@completed'] = $export['last_updated'] * 1000;

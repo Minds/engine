@@ -31,7 +31,6 @@ class Repository
             'uuid' => '',
             'recursive' => false,
         ], $opts);
-
     }
 
     /**
@@ -69,8 +68,8 @@ class Repository
             'values' => [
                 (string) $subscription->getPublisherGuid(),
                 (string) $subscription->getSubscriberGuid(),
-                (string) time(),    
-            ],  
+                (string) time(),
+            ],
         ];
         
         // Send request
@@ -86,7 +85,7 @@ class Repository
     /**
      * Delete a subscripiption
      *
-     * @param Subscription $subscription 
+     * @param Subscription $subscription
      * @return bool
      */
     public function delete(Subscription $subscription)
@@ -121,6 +120,4 @@ class Repository
 
         return $subscription;
     }
-
 }
-

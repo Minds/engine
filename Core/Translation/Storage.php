@@ -29,7 +29,7 @@ class Storage
         $result = $this->db->request($prepared);
 
         if (!$result[0]) {
-           return false;
+            return false;
         }
         return $result[0];
     }

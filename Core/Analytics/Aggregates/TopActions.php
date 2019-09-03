@@ -3,7 +3,6 @@
 
 namespace Minds\Core\Analytics\Aggregates;
 
-
 use Minds\Core\Data\ElasticSearch\Prepared\Search;
 
 class TopActions extends Aggregate
@@ -15,7 +14,7 @@ class TopActions extends Aggregate
     public function useUniques($bool)
     {
         $this->uniques = $bool;
-        return $this; 
+        return $this;
     }
 
     public function setTerm($term)

@@ -27,8 +27,7 @@ class AttachmentPaywallDelegate implements ActivityDelegateInterface
     public function __construct(
         $entitiesBuilder = null,
         $save = null
-    )
-    {
+    ) {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->save = $save ?: new Save();
     }

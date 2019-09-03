@@ -10,7 +10,6 @@ use Minds\Interfaces;
 
 class suggestions implements Interfaces\Api
 {
-
     public function get($pages)
     {
         $type = $pages[0] ?? 'user';
@@ -86,5 +85,4 @@ class suggestions implements Interfaces\Api
     {
         return Factory::response([]);
     }
-
 }

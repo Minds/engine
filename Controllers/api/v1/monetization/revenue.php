@@ -31,7 +31,7 @@ class revenue extends Controller implements Interfaces\Api
         $merchant = (new Merchant())->setId($user->getMerchant()['id']);
 
         if (!$merchant->getId()) {
-          return Factory::response([
+            return Factory::response([
             'status' => 'error',
             'message' => 'User is not a merchant'
           ]);
@@ -42,12 +42,12 @@ class revenue extends Controller implements Interfaces\Api
         $payouts = $stripe->getTotalPayouts($merchant);
         $balance = 0;
         $balances = $stripe->getTotalBalance($merchant);
-        foreach($balances as $c => $a){
+        foreach ($balances as $c => $a) {
             $currency = $c;
             $balance = $a;
         }
 
-        switch($pages[0]){
+        switch ($pages[0]) {
             case 'overview':
                 return Factory::response([
                     'currency' => $currency,
@@ -64,7 +64,6 @@ class revenue extends Controller implements Interfaces\Api
 
     public function post($pages)
     {
-
     }
 
     /**

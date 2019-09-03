@@ -10,23 +10,22 @@ use Prophecy\Argument;
 
 class RepositorySpec extends ObjectBehavior
 {
-
     private $client;
 
-    function let(Client $client)
+    public function let(Client $client)
     {
         $this->beConstructedWith($client);
         $this->client = $client;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    function it_should_add_a_subscription()
+    public function it_should_add_a_subscription()
     {
-        $this->client->batchRequest(Argument::that(function($requests) {
+        $this->client->batchRequest(Argument::that(function ($requests) {
             return $requests[0]['values'][0] == 123
                 && $requests[0]['values'][1] == 456
                 && $requests[1]['values'][0] == 456
@@ -44,9 +43,9 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    function it_should_delete_a_subscription()
+    public function it_should_delete_a_subscription()
     {
-        $this->client->batchRequest(Argument::that(function($requests) {
+        $this->client->batchRequest(Argument::that(function ($requests) {
             return $requests[0]['values'][0] == 123
                 && $requests[0]['values'][1] == 456
                 && $requests[1]['values'][0] == 456
@@ -63,5 +62,4 @@ class RepositorySpec extends ObjectBehavior
         $newSubscription->isActive()
             ->shouldBe(false);
     }
-
 }

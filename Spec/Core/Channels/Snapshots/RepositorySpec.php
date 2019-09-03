@@ -15,20 +15,19 @@ class RepositorySpec extends ObjectBehavior
     /** @var Client */
     protected $db;
 
-    function let(
+    public function let(
         Client $db
-    )
-    {
+    ) {
         $this->beConstructedWith($db);
         $this->db = $db;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    function it_should_get_all()
+    public function it_should_get_all()
     {
         $this->db->request(Argument::that(function (Custom $prepared) {
             $statement = $prepared->build();
@@ -52,7 +51,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeATraversableOf(2, Snapshot::class);
     }
 
-    function it_should_get_list()
+    public function it_should_get_list()
     {
         $this->db->request(Argument::that(function (Custom $prepared) {
             $statement = $prepared->build();
@@ -73,7 +72,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeATraversableOf(2, Snapshot::class);
     }
 
-    function it_should_add(Snapshot $snapshot)
+    public function it_should_add(Snapshot $snapshot)
     {
         $snapshot->getUserGuid()
             ->shouldBeCalled()
@@ -108,7 +107,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_delete_all()
+    public function it_should_delete_all()
     {
         $this->db->request(Argument::that(function (Custom $prepared) {
             $statement = $prepared->build();
@@ -127,7 +126,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_delete_all_of_type()
+    public function it_should_delete_all_of_type()
     {
         $this->db->request(Argument::that(function (Custom $prepared) {
             $statement = $prepared->build();

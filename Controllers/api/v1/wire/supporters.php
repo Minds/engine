@@ -43,7 +43,7 @@ class supporters implements Interfaces\Api
                     'sender_guid' => $actor_guid,
                     'timestamp' => $timeframe,
                     'limit' => 1000,
-                    'offset' => base64_decode($_GET['offset']),
+                    'offset' => base64_decode($_GET['offset'], true),
                 ]);
                 break;
 
@@ -52,7 +52,7 @@ class supporters implements Interfaces\Api
                     'receiver_guid' => $actor_guid,
                     'timestamp' => $timeframe,
                     'limit' => 1000,
-                    'offset' => base64_decode($_GET['offset']),
+                    'offset' => base64_decode($_GET['offset'], true),
                 ]);
                 break;
 

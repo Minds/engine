@@ -4,7 +4,7 @@ namespace Minds\Core\Analytics\UserStates;
 
 class RewardFactor
 {
-    static $values = [
+    public static $values = [
         UserState::STATE_CASUAL => 1.1,
         UserState::STATE_COLD => 0.5,
         UserState::STATE_CORE => 1.25,

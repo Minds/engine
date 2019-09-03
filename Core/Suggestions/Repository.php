@@ -9,7 +9,6 @@ use Minds\Core\Data\ElasticSearch\Prepared\Search as Prepared;
 
 class Repository
 {
-
     /** @var $es */
     private $es;
 
@@ -105,7 +104,7 @@ class Repository
                             'size' => $opts['limit'],
                             'order' => [
                                 '_count' =>  'desc',
-                            ], 
+                            ],
                         ],
                     ],
                 ],
@@ -157,5 +156,4 @@ class Repository
     {
         // Not implemented
     }
-
 }

@@ -31,8 +31,7 @@ class Feeds
     public function __construct(
         $feedsRepository = null,
         $queue = null
-    )
-    {
+    ) {
         $this->feedsRepository = $feedsRepository ?: new FeedsRepository();
         $this->queue = $queue ?: Client::build();
     }
@@ -68,7 +67,6 @@ class Feeds
      */
     public function dispatch(Blog $blog)
     {
-
     }
 
     /**

@@ -7,7 +7,6 @@ namespace Minds\Core\Analytics\UserStates;
 
 use Minds\Traits\MagicAttributes;
 
-
 /**
  * Class UserState
  * @package Minds\Core\Analytics\UserStates
@@ -93,7 +92,8 @@ class UserState
         return $newStateIndex - $oldStateIndex;
     }
 
-    public static function fromArray(array $data): UserState {
+    public static function fromArray(array $data): UserState
+    {
         return (new UserState())
             ->setUserGuid($data['user_guid'])
             ->setReferenceDateMs($data['reference_date'])

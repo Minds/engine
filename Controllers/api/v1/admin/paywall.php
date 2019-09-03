@@ -38,12 +38,12 @@ class paywall implements Interfaces\Api, Interfaces\ApiAdminPam
 
                 if ($guids) {
                     $entities = Core\Entities::get(['guids'=>$guids]);
-                    foreach($entities as $k => $entity){
+                    foreach ($entities as $k => $entity) {
                         $entities[$k]->paywall = false;
                     }
                     $response['entities'] = Factory::exportable($entities);
                     $response['load-next'] = (string) end($entities)->guid;
-                } 
+                }
             break;
         }
 
@@ -58,13 +58,13 @@ class paywall implements Interfaces\Api, Interfaces\ApiAdminPam
         switch ($pages[1]) {
             case "demonetize":
               try {
-                return Factory::response([
+                  return Factory::response([
                     'done' => (new Core\Payments\Plans\PaywallReview())
                         ->setEntityGuid($pages[0])
                         ->demonetize()
                 ]);
               } catch (\Exception $e) {
-                return Factory::response([
+                  return Factory::response([
                     'status' => 'error',
                     'message' => $e->getMessage()
                 ]);

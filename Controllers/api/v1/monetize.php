@@ -21,7 +21,7 @@ class monetize implements Interfaces\Api
      */
     public function get($pages)
     {
-        $response = array();
+        $response = [];
         return Factory::response($response);
     }
 
@@ -30,7 +30,7 @@ class monetize implements Interfaces\Api
      */
     public function post($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     /**
@@ -39,21 +39,20 @@ class monetize implements Interfaces\Api
      */
     public function put($pages)
     {
-
-        if(!Core\Session::getLoggedinUser()->monetized && !Core\Session::isAdmin()){
-            return Factory::response(array(
+        if (!Core\Session::getLoggedinUser()->monetized && !Core\Session::isAdmin()) {
+            return Factory::response([
               'status' => 'error',
               'message' => "You don't have permission"
-            ));
+            ]);
         }
 
         $entity = Entities\Factory::build($pages[0]);
 
         if (!$entity) {
-            return Factory::response(array(
+            return Factory::response([
               'status' => 'error',
               'message' => "Entity not found"
-            ));
+            ]);
         }
 
         $entity->monetized = true;
@@ -69,7 +68,7 @@ class monetize implements Interfaces\Api
             ->setEntityGuid($entity->guid)
             ->add();
 
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     /**
@@ -80,10 +79,10 @@ class monetize implements Interfaces\Api
         $entity = Entities\Factory::build($pages[0]);
 
         if (!$entity) {
-            return Factory::response(array(
+            return Factory::response([
               'status' => 'error',
               'message' => "Entity not found"
-            ));
+            ]);
         }
 
         $entity->monetized = false;
@@ -99,6 +98,6 @@ class monetize implements Interfaces\Api
             ->setEntityGuid($entity->guid)
             ->remove();
 
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }

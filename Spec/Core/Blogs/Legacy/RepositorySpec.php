@@ -29,7 +29,7 @@ class RepositorySpec extends ObjectBehavior
     /** @var ACL */
     protected $acl;
 
-    function let(
+    public function let(
         Client $cql,
         Legacy\Entity $legacyEntity,
         FeedsRepository $feedsRepo,
@@ -43,12 +43,12 @@ class RepositorySpec extends ObjectBehavior
         $this->acl = $acl;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blogs\Legacy\Repository');
     }
 
-    function it_should_get_list()
+    public function it_should_get_list()
     {
         $ebtResponse = new Rows([
             [ 'column1' => '5000' ],
@@ -60,7 +60,7 @@ class RepositorySpec extends ObjectBehavior
 
             return (
                 stripos($query['string'], 'select * from entities') === 0 &&
-                in_array($query['values'][0], [ '5000', '5001' ])
+                in_array($query['values'][0], [ '5000', '5001' ], true)
             );
         }), Argument::cetera())
             ->shouldBeCalled()
@@ -96,7 +96,7 @@ class RepositorySpec extends ObjectBehavior
             ->duringGetList([]);
     }*/
 
-    function it_should_get(Blog $blog)
+    public function it_should_get(Blog $blog)
     {
         $this->cql->request(Argument::that(function (Custom $prepared) {
             $query = $prepared->build();
@@ -125,7 +125,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn($blog);
     }
 
-    function it_should_add(Blog $blog)
+    public function it_should_add(Blog $blog)
     {
         $blog->getGuid()
             ->shouldBeCalled()
@@ -150,7 +150,7 @@ class RepositorySpec extends ObjectBehavior
 
     // update() is a wrapper for add()
 
-    function it_should_delete(Blog $blog)
+    public function it_should_delete(Blog $blog)
     {
         $blog->getGuid()
             ->shouldBeCalled()
@@ -169,7 +169,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_return_false_on_exception_during_delete(Blog $blog)
+    public function it_should_return_false_on_exception_during_delete(Blog $blog)
     {
         $blog->getGuid()
             ->shouldBeCalled()

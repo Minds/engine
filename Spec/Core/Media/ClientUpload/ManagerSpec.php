@@ -17,7 +17,7 @@ class ManagerSpec extends ObjectBehavior
     private $guid;
     private $save;
 
-    function let(FFMpeg $FFMpeg, GuidBuilder $guid, Save $save)
+    public function let(FFMpeg $FFMpeg, GuidBuilder $guid, Save $save)
     {
         $this->beConstructedWith($FFMpeg, $guid, $save);
         $this->ffmpeg = $FFMpeg;
@@ -25,12 +25,12 @@ class ManagerSpec extends ObjectBehavior
         $this->save = $save;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_return_an_upload_lease()
+    public function it_should_return_an_upload_lease()
     {
         $this->guid->build()
             ->willReturn(123);
@@ -51,7 +51,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe('s3-url-here');
     }
 
-    function it_should_complete_an_upload(ClientUploadLease $lease)
+    public function it_should_complete_an_upload(ClientUploadLease $lease)
     {
         $lease->getMediaType()
             ->willReturn('video');

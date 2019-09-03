@@ -105,7 +105,7 @@ class boost implements Interfaces\Api
                     $boost_entities[$i]->points = $boost->getBid();
                 }
 
-                $response['boosts'] = factory::exportable($boost_entities, array('points'));
+                $response['boosts'] = factory::exportable($boost_entities, ['points']);
                 $response['load-next'] = $boosts['next'];
                 break;
             case "newsfeed":
@@ -139,21 +139,21 @@ class boost implements Interfaces\Api
         Factory::isLoggedIn();
 
         if (!isset($pages[0])) {
-            return Factory::response(array('status' => 'error', 'message' => ':type must be passed in uri'));
+            return Factory::response(['status' => 'error', 'message' => ':type must be passed in uri']);
         }
 
         if (!isset($pages[1])) {
-            return Factory::response(array('status' => 'error', 'message' => ':guid must be passed in uri'));
+            return Factory::response(['status' => 'error', 'message' => ':guid must be passed in uri']);
         }
 
         $impressions = (int) $_POST['impressions'];
 
         if (!isset($impressions)) {
-            return Factory::response(array('status' => 'error', 'message' => 'impressions must be sent in post body'));
+            return Factory::response(['status' => 'error', 'message' => 'impressions must be sent in post body']);
         }
 
         if ($impressions <= 0) {
-            return Factory::response(array('status' => 'error', 'message' => 'impressions must be a positive whole number'));
+            return Factory::response(['status' => 'error', 'message' => 'impressions must be a positive whole number']);
         }
 
         $paymentMethod = isset($_POST['paymentMethod']) ? $_POST['paymentMethod'] : [];
@@ -212,7 +212,7 @@ class boost implements Interfaces\Api
                         $amount *= $priorityRate + 1;
                     }
 
-                    if (!in_array($bidType, [ 'usd', 'tokens' ])) {
+                    if (!in_array($bidType, [ 'usd', 'tokens' ], true)) {
                         return Factory::response([
                             'status' => 'error',
                             'stage' => 'initial',
@@ -247,7 +247,7 @@ class boost implements Interfaces\Api
                     }
 
                     foreach ($categories as $category) {
-                        if (!in_array($category, $validCategories)) {
+                        if (!in_array($category, $validCategories, true)) {
                             return Factory::response([
                                 'status' => 'error',
                                 'message' => 'Invalid category ID: ' . $category

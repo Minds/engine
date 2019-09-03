@@ -30,7 +30,7 @@ class ManagerSpec extends ObjectBehavior
     /** @var Delegates\Search */
     protected $search;
 
-    function let(
+    public function let(
         Repository $repository,
         Delegates\PaywallReview $paywallReview,
         Delegates\Slug $slug,
@@ -55,12 +55,12 @@ class ManagerSpec extends ObjectBehavior
         $this->search = $search;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blogs\Manager');
     }
 
-    function it_should_get(Blog $blog)
+    public function it_should_get(Blog $blog)
     {
         $this->repository->get('10000000000000000000')
             ->shouldBeCalled()
@@ -71,7 +71,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn($blog);
     }
 
-    function it_should_get_with_legacy_guid(Blog $blog)
+    public function it_should_get_with_legacy_guid(Blog $blog)
     {
         $migratedGuid = (new \GUID())->migrate(1);
 
@@ -84,7 +84,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn($blog);
     }
 
-    function it_should_get_next_blog_by_owner(Blog $blog, Blog $nextBlog)
+    public function it_should_get_next_blog_by_owner(Blog $blog, Blog $nextBlog)
     {
         $blog->getGuid()
             ->shouldBeCalled()
@@ -108,7 +108,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn($nextBlog);
     }
 
-    function it_should_get_next_null_blog_by_owner(Blog $blog)
+    public function it_should_get_next_null_blog_by_owner(Blog $blog)
     {
         $blog->getGuid()
             ->shouldBeCalled()
@@ -132,7 +132,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(null);
     }
 
-    function it_should_throw_if_no_strategy_during_get_next(Blog $blog)
+    public function it_should_throw_if_no_strategy_during_get_next(Blog $blog)
     {
         $this->repository->getList(Argument::cetera())
             ->shouldNotBeCalled();
@@ -142,8 +142,8 @@ class ManagerSpec extends ObjectBehavior
             ->duringGetNext($blog, 'notimplemented');
     }
 
-    function it_should_add(Blog $blog) {
-
+    public function it_should_add(Blog $blog)
+    {
         $this->spam->check($blog)
             ->shouldBeCalled();
 
@@ -202,7 +202,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_update(Blog $blog)
+    public function it_should_update(Blog $blog)
     {
         $blog->isDirty('deleted')
             ->shouldBeCalled()
@@ -245,7 +245,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_delete(Blog $blog)
+    public function it_should_delete(Blog $blog)
     {
         $this->repository->delete($blog)
             ->shouldBeCalled()
@@ -264,7 +264,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_abort_if_spam(Blog $blog)
+    public function it_should_abort_if_spam(Blog $blog)
     {
         $this->beConstructedWith(
             $this->repository,

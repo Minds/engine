@@ -9,13 +9,12 @@ use Minds\Core\Data\ElasticSearch\Client;
 
 class ManagerSpec extends ObjectBehavior
 {
-
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Analytics\Manager');
     }
 
-    function it_should_return_a_batch_of_analytics(
+    public function it_should_return_a_batch_of_analytics(
         Client $es
     ) {
         $this->beConstructedWith($es);
@@ -69,7 +68,7 @@ class ManagerSpec extends ObjectBehavior
         ]);
     }
 
-    function it_should_return_a_batch_of_top_analytics(
+    public function it_should_return_a_batch_of_top_analytics(
         Client $es
     ) {
         $this->beConstructedWith($es);
@@ -114,5 +113,4 @@ class ManagerSpec extends ObjectBehavior
             ],
         ]);
     }
-
 }
