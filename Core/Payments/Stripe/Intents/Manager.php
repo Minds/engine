@@ -21,8 +21,7 @@ class Manager
         CustomersManager $customersManager = null,
         PaymentIntentInstance $paymentIntentInstance = null,
         SetupIntentInstance $setupIntentInstance = null
-    )
-    {
+    ) {
         $this->customersManager = $customersManager ?? new CustomersManager;
         $this->paymentIntentInstance = $paymentIntentInstance ?: new PaymentIntentInstance();
         $this->setupIntentInstance = $setupIntentInstance ?: new SetupIntentInstance();

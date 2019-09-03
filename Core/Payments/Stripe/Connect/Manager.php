@@ -24,8 +24,7 @@ class Manager
         Save $save = null,
         NotificationDelegate $notificationDelegate = null,
         AccountInstance $accountInstance = null
-    )
-    {
+    ) {
         $this->save = $save ?: new Save();
         $this->notificationDelegate = $notificationDelegate ?: new NotificationDelegate();
         $this->accountInstance = $accountInstance ?: new AccountInstance();
