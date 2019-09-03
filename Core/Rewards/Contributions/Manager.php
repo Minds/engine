@@ -6,26 +6,16 @@ namespace Minds\Core\Rewards\Contributions;
 
 use Minds\Core\Analytics;
 use Minds\Core\Util\BigNumber;
-use Minds\Entities\User;
 
 class Manager
 {
-    /** @var Analytics\Manager */
     protected $analytics;
-    /** @var Repository */
     protected $repository;
-    /** @var User */
     protected $user;
-    /** @var int */
     protected $from;
-    /** @var int */
     protected $to;
-    /** @var bool */
     protected $dryRun = false;
-    /** @var array */
-    protected $site_contribution_score_cache = [];
-    /** @var Sums */
-    protected $sums;
+    protected $site_contribtion_score_cache = [];
 
     public function __construct($analytics = null, $repository = null, $sums = null)
     {
@@ -36,7 +26,7 @@ class Manager
         $this->to = time() * 1000;
     }
 
-    public function setUser($user): self
+    public function setUser($user)
     {
         $this->user = $user;
         return $this;
@@ -48,25 +38,25 @@ class Manager
      * @param bool $dryRun
      * @return $this
      */
-    public function setDryRun($dryRun): self
+    public function setDryRun($dryRun)
     {
         $this->dryRun = $dryRun;
         return $this;
     }
 
-    public function setFrom($from): self
+    public function setFrom($from)
     {
         $this->from = $from;
         return $this;
     }
 
-    public function setTo($to): self
+    public function setTo($to)
     {
         $this->to = $to;
         return $this;
     }
 
-    public function sync(): array
+    public function sync()
     {
         $this->analytics
             ->setFrom($this->from)
@@ -82,11 +72,10 @@ class Manager
         foreach ($this->analytics->getCounts() as $ts => $data) {
             foreach ($data as $metric => $count) {
                 $multiplier = ContributionValues::$multipliers[$metric];
-                $userStateMultiplier = Analytics\UserStates\RewardFactor::getForUserState($this->user->getUserState());
                 $contribution = new Contribution();
                 $contribution->setMetric($metric)
                     ->setTimestamp($ts)
-                    ->setScore($count * $multiplier * $userStateMultiplier)
+                    ->setScore($count * $multiplier)
                     ->setAmount($count);
 
                 if ($this->user) {
@@ -95,6 +84,7 @@ class Manager
                 $contributions[] = $contribution;
             }
         }
+
 
         if ($this->dryRun) {
             return $contributions;
@@ -115,7 +105,7 @@ class Manager
         return (bool) $this->repository->add($contribution);
     }
 
-    public function issueCheckins($count): void
+    public function issueCheckins($count)
     {
         $multiplier = ContributionValues::$multipliers['checkin'];
         $contribution = new Contribution();
@@ -131,12 +121,12 @@ class Manager
     /**
      * Gather the entire site contribution score
      */
-    public function getSiteContributionScore(): float
+    public function getSiteContribtionScore()
     {
-        if (isset($this->site_contribution_score_cache[$this->from])) {
-            return $this->site_contribution_score_cache[$this->from];
+        if (isset($this->site_contribtion_score_cache[$this->from])) {
+            return $this->site_contribtion_score_cache[$this->from];
         }
-        return $this->site_contribution_score_cache[$this->from] = $this->sums
+        return $this->site_contribtion_score_cache[$this->from] = $this->sums
             ->setTimestamp($this->from)
             ->setUser(null)
             ->getScore();
@@ -144,9 +134,9 @@ class Manager
 
     /**
      * Gather the contribution score for the user
-     * @return float
+     * @return int
      */
-    public function getUserContributionScore(): float
+    public function getUserContributionScore()
     {
         return $this->sums
             ->setTimestamp($this->from)
@@ -158,8 +148,15 @@ class Manager
      * Return the number of tokens to be rewarded
      * @return string
      */
-    public function getRewardsAmount(): string
+    public function getRewardsAmount()
     {
+        //$share = BigNumber::_($this->getUserContributionScore(), 18)->div($this->getSiteContribtionScore());
+        //$pool = BigNumber::toPlain('100000000', 18)->div(15)->div(365);
+
+        //$velocity = 10;
+
+        //$pool = $pool->div($velocity);
+        
         $tokensPerScore = BigNumber::_(pi())->mul(10 ** 18)->div(200);
         $tokens = BigNumber::_($this->getUserContributionScore())->mul($tokensPerScore);
         return (string) $tokens;

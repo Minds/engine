@@ -37,6 +37,7 @@ class User extends \ElggUser
         $this->attributes['pinned_posts'] = [];
         $this->attributes['eth_wallet'] = '';
         $this->attributes['eth_incentive'] = '';
+        $this->attributes['btc_address'] = '';
         $this->attributes['phone_number'] = null;
         $this->attributes['phone_number_hash'] = null;
         $this->attributes['icontime'] = time();
@@ -998,7 +999,8 @@ class User extends \ElggUser
             'canary',
             'theme',
             'onchain_booster',
-            'toaster_notifications'
+            'toaster_notifications',
+            'btc_address',
         ]);
     }
 
@@ -1137,6 +1139,26 @@ class User extends \ElggUser
     public function setUserStateUpdatedMs(int $msTimestamp): self
     {
         $this->user_state_updated_ms = $msTimestamp;
+        return $this;
+    }
+
+    /**
+     * Returns btc_address
+     * @return string
+     */
+    public function getBtcAddress(): string
+    {
+        return (string)$this->btc_address;
+    }
+
+    /**
+     * Set btc_address
+     * @param string $btc_address
+     * @return User
+     */
+    public function setBtcAddress(string $btc_address): User
+    {
+        $this->btc_address = (string)$btc_address;
         return $this;
     }
 }

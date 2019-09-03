@@ -560,7 +560,7 @@ class Group extends NormalizedEntity
 
         $user_guid = is_object($user) ? $user->guid : $user;
 
-        return $this->isCreator($user) || in_array($user_guid, $this->getOwnerGuids(), true);
+        return $this->isCreator($user) || in_array($user_guid, $this->getOwnerGuids(), false);
     }
 
     /**
@@ -791,7 +791,7 @@ class Group extends NormalizedEntity
         $this->nsfw = $array;
         return $this;
     }
-    
+
     /**
      * Get NSFW Lock options.
      *
@@ -809,7 +809,7 @@ class Group extends NormalizedEntity
 
         return $array;
     }
-    
+
     /**
      * Set NSFW lock tags for administrators. Users cannot remove these themselves.
      *

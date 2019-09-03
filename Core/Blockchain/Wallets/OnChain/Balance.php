@@ -42,6 +42,10 @@ class Balance
      */
     public function get()
     {
+        if (!$this->user) {
+            return 0;
+        }
+
         $address = $this->user->getEthWallet();
 
         if (!$address) {

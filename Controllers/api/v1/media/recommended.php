@@ -42,7 +42,10 @@ class recommended implements Interfaces\Api
 
         // Get the next entity
         if ($next) {
-            $entities[] = Entities\Factory::build($next);
+            $entity = Entities\Factory::build($next);
+            if ($entity) {
+                $entities[] = $entity;
+            }
         }
 
         // Calculate free slots
@@ -146,11 +149,11 @@ class recommended implements Interfaces\Api
     {
         $guids = [];
         $entities = array_filter($entities, function ($entity) use (&$guids, $exclude) {
-            if (in_array($entity->guid, $guids, true)) {
+            if (in_array($entity->guid, $guids, false)) {
                 return false;
             }
 
-            if (in_array($entity->guid, $exclude, true)) {
+            if (in_array($entity->guid, $exclude, false)) {
                 return false;
             }
 

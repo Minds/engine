@@ -66,7 +66,7 @@ class Repository
 
         $prepared->setOpts([
             'page_size' => (int) $opts['limit'],
-            'paging_state_token' => base64_decode($opts['offset'], true),
+            'paging_state_token' => base64_decode($opts['offset'], false),
         ]);
 
         $response = new Response([]);
