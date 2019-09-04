@@ -103,6 +103,10 @@ class Settings implements JsonSerializable
     /** @var array */
     protected $featuredContent = [];
 
+    public function getOneLineHeadline() {
+        return preg_replace("/\\r?\\n+/", ' ', $this->headline);
+    }
+
     /**
      * @return array
      */
@@ -112,14 +116,12 @@ class Settings implements JsonSerializable
         $primaryColor = $this->primaryColor ?: static::DEFAULT_PRIMARY_COLOR;
         $plainBackgroundColor = $this->plainBackgroundColor ?: static::DEFAULT_PLAIN_BACKGROUND_COLOR;
 
-        $oneLineHeadline = preg_replace("/\\r?\\n+/", ' ', $this->headline);
-
         return [
             'user_guid' => (string) $this->userGuid,
             'domain' => $this->domain,
             'title' => $this->title,
             'headline' => $this->headline,
-            'one_line_headline' => $oneLineHeadline,
+            'one_line_headline' => $this->getOneLineHeadline(),
             'text_color' => $textColor,
             'primary_color' => $primaryColor,
             'plain_background_color' => $plainBackgroundColor,

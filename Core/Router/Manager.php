@@ -21,8 +21,10 @@ class Manager
      */
     public function __construct(
         $middleware = null
-    ) {
+    )
+    {
         $this->middleware = $middleware ?: [
+            new Middleware\SEOMiddleware(),
             new Middleware\ProMiddleware(), // this needs to always be the last element in this array
         ];
     }

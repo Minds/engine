@@ -2,12 +2,11 @@
 
 namespace Minds\Core;
 
+use Minds\Core\Di\Di;
 use Minds\Core\I18n\I18n;
 use Minds\Helpers;
-use Minds\Core\Di\Di;
-use Zend\Diactoros\ServerRequestFactory;
-use Zend\Diactoros\Response;
 use Zend\Diactoros\Response\JsonResponse;
+use Zend\Diactoros\ServerRequestFactory;
 
 /**
  * Minds Core Router.
@@ -103,8 +102,6 @@ class Router
 
         // XSRF Cookie - may be able to remove now with OAuth flow
         Security\XSRF::setCookie();
-
-        new SEO\Defaults(Di::_()->get('Config'));
 
         if (Session::isLoggedin()) {
             Helpers\Analytics::increment('active');
