@@ -326,14 +326,20 @@ class blog implements Interfaces\Api
         }
 
         if ($saved && is_uploaded_file($_FILES['file']['tmp_name'])) {
-
             /** @var Core\Media\Imagick\Manager $manager */
             $manager = Core\Di\Di::_()->get('Media\Imagick\Manager');
 
-            $manager->setImage($_FILES['file']['tmp_name'])
-                ->resize(2000, 1000);
+            try {
+                $manager->setImage($_FILES['file']['tmp_name'])
+                    ->resize(2000, 1000);
 
-            $header->write($blog, $manager->getJpeg(), isset($_POST['header_top']) ? (int) $_POST['header_top'] : 0);
+                $header->write($blog, $manager->getJpeg(), isset($_POST['header_top']) ? (int)$_POST['header_top'] : 0);
+            } catch (\ImagickException $e) {
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => 'Invalid image file',
+                ]);
+            }
         }
 
         if ($saved) {
