@@ -121,7 +121,7 @@ class Manager
     /**
      * Gather the entire site contribution score
      */
-    public function getSiteContribtionScore()
+    public function getSiteContributionScore()
     {
         if (isset($this->site_contribtion_score_cache[$this->from])) {
             return $this->site_contribtion_score_cache[$this->from];
