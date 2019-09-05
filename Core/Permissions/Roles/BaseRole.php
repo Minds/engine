@@ -6,7 +6,7 @@ use Zend\Permissions\Rbac;
 
 abstract class BaseRole extends Rbac\Role implements \JsonSerializable
 {
-    public function export()
+    public function export(): array
     {
         $export = [];
         $export['name'] = $this->getName();
@@ -15,7 +15,7 @@ abstract class BaseRole extends Rbac\Role implements \JsonSerializable
         return $export;
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->export();
     }

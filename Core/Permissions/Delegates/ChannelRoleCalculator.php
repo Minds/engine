@@ -4,6 +4,7 @@ namespace Minds\Core\Permissions\Delegates;
 
 use Minds\Traits\MagicAttributes;
 use Minds\Core\Permissions\Roles\Roles;
+use Minds\Core\Permissions\Roles\Role;
 
 class ChannelRoleCalculator extends BaseRoleCalculator
 {
@@ -20,7 +21,7 @@ class ChannelRoleCalculator extends BaseRoleCalculator
      *
      * @return Role
      */
-    public function calculate($entity)
+    public function calculate($entity): Role
     {
         if (isset($this->channels[$entity->getOwnerGUID()])) {
             return $this->channels[$entity->getOwnerGUID()];

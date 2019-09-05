@@ -33,11 +33,6 @@ class Permissions implements \JsonSerializable
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
-    public function setUser(User $user)
-    {
-        throw new ImmutableException('User can only be set in the constructor');
-    }
-
     public function __construct(User $user, Roles $roles = null, EntitiesBuilder $entitiesBuilder = null)
     {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
@@ -55,6 +50,16 @@ class Permissions implements \JsonSerializable
     }
 
     /**
+     * Permissions are user aware. This bomb function is to keep the user from being changed after instantiation.
+     *
+     * @throws ImmutableException
+     */
+    public function setUser(User $user): void
+    {
+        throw new ImmutableException('User can only be set in the constructor');
+    }
+
+    /**
      * Takes an array of entities and checks their permissions
      * Builds up collections of permissions based on the user's relationships to the entity
      * Any found channels and their roles are accessible in the channelRoleCalculator
@@ -63,14 +68,14 @@ class Permissions implements \JsonSerializable
      *
      * @param array entities an array of entities for calculating permissions
      */
-    public function calculate(array $entities = [])
+    public function calculate(array $entities = []): void
     {
         foreach ($entities as $entity) {
             $this->entities[$entity->getGUID()] = $this->getRoleForEntity($entity);
         }
     }
 
-    private function getRoleForEntity($entity)
+    private function getRoleForEntity($entity): Role
     {
         $role = null;
         //Access id is the best way to determine what the parent entity is
@@ -102,7 +107,7 @@ class Permissions implements \JsonSerializable
      *
      * @return array serialized objects
      */
-    public function export()
+    public function export(): array
     {
         $export = [];
         $export['user'] = $this->user->export();
@@ -116,7 +121,7 @@ class Permissions implements \JsonSerializable
     /**
      * @return array channel guids with the user's role
      */
-    public function getChannels()
+    public function getChannels(): array
     {
         return $this->channelRoleCalculator->getChannels();
     }
@@ -124,7 +129,7 @@ class Permissions implements \JsonSerializable
     /**
      * @return array group guids with the user's role
      */
-    public function getGroups()
+    public function getGroups(): array
     {
         return $this->groupRoleCalculator->getGroups();
     }
@@ -132,7 +137,7 @@ class Permissions implements \JsonSerializable
     /**
      * @return array serialized objects
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->export();
     }
