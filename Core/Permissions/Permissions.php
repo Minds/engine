@@ -6,6 +6,7 @@ use Minds\Traits\MagicAttributes;
 use Minds\Entities\User;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Permissions\Roles\Roles;
+use Minds\Core\Permissions\Roles\Role;
 use Minds\Core\Permissions\Delegates\ChannelRoleCalculator;
 use Minds\Core\Permissions\Delegates\GroupRoleCalculator;
 use Minds\Common\Access;

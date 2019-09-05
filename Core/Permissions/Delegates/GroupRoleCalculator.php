@@ -4,10 +4,10 @@ namespace Minds\Core\Permissions\Delegates;
 
 use Minds\Traits\MagicAttributes;
 use Minds\Core\Di\Di;
-use Minds\Core\Permissions\Roles\Roles;
+use Minds\Core\Permissions\Roles\Role;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
-use Minds\Core\Permissions\Roles;
+use Minds\Core\Permissions\Roles\Roles;
 
 class GroupRoleCalculator extends BaseRoleCalculator
 {
