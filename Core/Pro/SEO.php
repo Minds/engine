@@ -5,6 +5,7 @@
 
 namespace Minds\Core\Pro;
 
+use Exception;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
@@ -21,31 +22,48 @@ class SEO
     /** @var Config */
     protected $config;
 
+    /** @var User */
+    protected $user;
+
     public function __construct(EntitiesBuilder $entitiesBuilder = null, Config $config = null)
     {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->config = $config ?: Di::_()->get('Config');
     }
 
+    /**
+     * @param User $user
+     * @return SEO
+     */
+    public function setUser(User $user)
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    /**
+     * @param Settings $proSettings
+     * @throws Exception
+     */
     public function setup(Settings $proSettings)
     {
         Manager::reset();
 
-        $channel = new User($proSettings->getUserGuid());
+        $title = $proSettings->getTitle() ?: $this->user->name;
 
-        $title = $proSettings->getOneLineHeadline() ?? $channel->name;
+        $tagList = array_map(function ($tag) {
+            return $tag['tag'];
+        }, $proSettings->getTagList());
 
         Manager::setDefaults([
             'title' => $title,
             'description' => $proSettings->getOneLineHeadline(),
-            'keywords' => $channel->getTags(),
+            'keywords' => implode(',', $tagList),
             'og:title' => $title,
             'og:url' => $proSettings->getDomain(),
             'og:description' => $proSettings->getOneLineHeadline(),
             'og:type' => 'website',
-            'og:image' => $proSettings->getLogoImage() ?? $this->config->cdn_assets_url . 'assets/logos/placeholder.jpg',
-            'og:image:width' => 471,
-            'og:image:height' => 199,
+            'og:image' => $this->user->getIconURL('large'),
         ]);
 
         Manager::add('/feed', [$this, 'activityHandler']);

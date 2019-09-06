@@ -133,6 +133,11 @@ class Manager
             return null;
         }
 
+        return $this->hydrate($settings);
+    }
+
+    public function hydrate($settings)
+    {
         return $this->hydrateSettingsDelegate
             ->onGet($this->user, $settings);
     }
