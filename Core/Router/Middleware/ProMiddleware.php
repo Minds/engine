@@ -37,20 +37,12 @@ class ProMiddleware implements RouterMiddleware
     {
         $origin = $request->getServerParams()['HTTP_ORIGIN'];
         $host = parse_url($origin, PHP_URL_HOST);
-//        var_dump('server');
-//        var_dump($_SERVER);
-//        var_dump('origin');
-//        var_dump($origin);
-//        var_dump('host');
-//        var_dump($host);
 
         if (!$host) {
             return;
         }
 
         $settings = $this->proDomain->lookup($host);
-//        var_dump('settings');
-//        var_dump($settings);
 
         if (!$settings) {
             return;
@@ -62,7 +54,7 @@ class ProMiddleware implements RouterMiddleware
         header('Access-Control-Allow-Credentials: true');
         header('Access-Control-Max-Age: 86400');
         header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-        header('Access-Control-Allow-Headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With,X-No-Cache,x-xsrf-token,x-minds-origin');
+        header('Access-Control-Allow-Headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With,X-No-Cache,x-xsrf-token,x-minds-origin,x-version');
 
         if ($request->getMethod() === 'OPTIONS') {
             return false;
