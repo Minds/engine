@@ -57,6 +57,7 @@ class ProMiddleware implements RouterMiddleware
     {
         $serverParams = $request->getServerParams() ?? [];
 
+        $scheme = $request->getUri()->getScheme();
         $host = parse_url($serverParams['HTTP_ORIGIN'] ?? '', PHP_URL_HOST) ?: $serverParams['HTTP_HOST'];
 
         if (!$host) {
@@ -69,7 +70,7 @@ class ProMiddleware implements RouterMiddleware
             return;
         }
 
-        header(sprintf("Access-Control-Allow-Origin: %s", $host));
+        header(sprintf("Access-Control-Allow-Origin: %s://%s", $scheme, $host));
         header('Access-Control-Allow-Credentials: true');
         header('Access-Control-Max-Age: 86400');
         header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
