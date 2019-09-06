@@ -95,6 +95,7 @@ class Manager
             'filter_hashtags' => false,
             'pinned_guids' => null,
             'as_activities' => false,
+            'exclude' => null,
         ], $opts);
 
         if (isset($opts['query']) && $opts['query']) {
