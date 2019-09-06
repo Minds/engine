@@ -1,9 +1,9 @@
 <?php
 
-namespace Spec\Minds\Core\Permissions;
+namespace Spec\Minds\Core\Permissions\Entities;
 
-use Minds\Core\Permissions\Manager;
-use Minds\Core\Permissions\Permissions;
+use Minds\Core\Permissions\Entities\Manager;
+use Minds\Core\Permissions\Entities\EntityPermissions;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\EntitiesBuilder;
@@ -41,7 +41,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_save_entity_permissions(Entity $entity, Image $image)
     {
-        $permissions = new Permissions();
+        $permissions = new EntityPermissions();
         $entity->setAllowComments(true)->shouldBeCalled();
         $entity->get('entity_guid')->shouldBeCalled()->willReturn(false);
         $entity->getGUID()->shouldBeCalled()->willReturn(1);
@@ -54,7 +54,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_save_attachment_permissions(Entity $entity, Image $image)
     {
-        $permissions = new Permissions();
+        $permissions = new EntityPermissions();
         $image->setAllowComments(true)->shouldBeCalled();
         $this->entitiesBuilder->single(1)->shouldBeCalled()->willReturn($image);
         $entity->setAllowComments(true)->shouldBeCalled();
@@ -70,7 +70,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_save_linked_entity_permissions(Entity $entity, Entity $parent)
     {
-        $permissions = new Permissions();
+        $permissions = new EntityPermissions();
         $parent->setAllowComments(true)->shouldBeCalled();
         $this->db->getRow('activity:entitylink:1')->shouldBeCalled()
             ->willReturn([2 => $parent]);
