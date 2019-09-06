@@ -171,8 +171,8 @@ class Manager
     public function isPendingLimitExceededBy($boost)
     {
         $offchain = $this->getOffchainBoosts($boost, 4, 'review');
-        $maxDaily = $this->config->get('max_pending_boosts');
-        return count($offchain) >= $maxDaily;
+        $maxPending = $this->config->get('max_pending_boosts');
+        return count($offchain) >= $maxPending;
     }
 
     /**

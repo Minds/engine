@@ -298,10 +298,10 @@ class boost implements Interfaces\Api
                     }
                     
                     if ($manager->isPendingLimitExceededBy($boost)) {
-                        $maxDaily = Di::_()->get('Config')->get('max_pending_boosts');
+                        $maxPending = Di::_()->get('Config')->get('max_pending_boosts');
                         return Factory::response([
                             'status' => 'error',
-                            'message' => "Exceeded maximum of ".$maxDaily." pending boosts at a time."
+                            'message' => "Exceeded maximum of ".$maxPending." pending boosts at a time."
                         ]);
                     }
 
