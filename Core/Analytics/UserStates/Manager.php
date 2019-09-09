@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Analytics\UserStates;
 
+use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Queue;
 
@@ -27,6 +28,9 @@ class Manager
 
     /** @var array $pendingBulkInserts * */
     private $pendingBulkInserts = [];
+
+    /** @var Client */
+    private $es;
 
     public function __construct($client = null, $index = null, $queue = null, $activeUsersIterator = null, $userStateIterator = null)
     {
@@ -67,7 +71,7 @@ class Manager
         $this->bulk();
     }
 
-    public function emitStateChanges()
+    public function emitStateChanges(bool $estimate = false)
     {
         $this->userStateIterator->setReferenceDate($this->referenceDate);
 
@@ -75,9 +79,16 @@ class Manager
         foreach ($this->userStateIterator as $userState) {
             //Reindex with previous state
             $this->index($userState);
-            $this->queue->send([
-                'user_state_change' => $userState->export(),
-            ]);
+
+            $payload = [
+                'user_state_change' => $userState->export()
+            ];
+
+            if ($estimate) {
+                $payload['estimate'] = true;
+            }
+
+            $this->queue->send($payload);
         }
         $this->bulk();
     }

@@ -56,6 +56,8 @@ class User extends \ElggUser
         $this->attributes['toaster_notifications'] = 1;
         $this->attributes['user_state'] = Core\Analytics\UserStates\UserState::STATE_UNKNOWN;
         $this->attributes['user_state_updated_ms'] = 0;
+        $this->attributes['user_state_today'] = Core\Analytics\UserStates\UserState::STATE_UNKNOWN;
+        $this->attributes['user_state_today_updated_ms'] = 0;
 
         parent::initializeAttributes();
     }
@@ -774,6 +776,8 @@ class User extends \ElggUser
         $export['rating'] = $this->getRating();
         $export['user_state'] = $this->getUserState();
         $export['user_state_updated_ms'] = (int) $this->getUserStateUpdatedMs();
+        $export['user_state_today'] = $this->getUserStateToday();
+        $export['user_state_today_updated_ms'] = (int)$this->getUserStateTodayUpdatedMs();
 
         return $export;
     }
@@ -1139,6 +1143,42 @@ class User extends \ElggUser
     public function setUserStateUpdatedMs(int $msTimestamp): self
     {
         $this->user_state_updated_ms = $msTimestamp;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserStateToday(): string
+    {
+        return $this->user_state_today;
+    }
+
+    /**
+     * @param string $state
+     * @return $this
+     */
+    public function setUserStateToday(string $state): self
+    {
+        $this->user_state_today = $state;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getUserStateTodayUpdatedMs(): int
+    {
+        return $this->user_state_today_updated_ms;
+    }
+
+    /**
+     * @param int $msTimestamp
+     * @return $this
+     */
+    public function setUserStateTodayUpdatedMs(int $msTimestamp): self
+    {
+        $this->user_state_today_updated_ms = $msTimestamp;
         return $this;
     }
 

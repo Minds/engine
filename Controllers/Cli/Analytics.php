@@ -10,14 +10,12 @@ use Minds\Interfaces;
 
 class Analytics extends Cli\Controller implements Interfaces\CliControllerInterface
 {
-    private $start;
-    private $elasticsearch;
-
     public function help($command = null)
     {
         switch ($command) {
             case 'sync_activeUsers':
                 $this->out('Indexes user activity by guid and counts per day');
+                $this->out('--incremental sync current day for estimates of state change (overrides from and to params)');
                 $this->out('--from={timestamp} the day to start counting. Default is yesterday at midnight');
                 $this->out('--to={timestamp} the day to stop counting. Default is yesterday at midnight');
                 $this->out('--rangeOffset={number of days} the number of days to look back into the past. Default is 7');
@@ -46,9 +44,17 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
     {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
+        $estimate = false;
 
-        $from = (strtotime('midnight', $this->getOpt('from')) ?: strtotime('midnight yesterday'));
-        $to = (strtotime('midnight', $this->getOpt('to')) ?: strtotime('midnight yesterday'));
+        if ($this->getOpt('incremental')) {
+            $estimate = true;
+            $from = strtotime('midnight +1 day'); //run throughout the day, provides estimates
+            $to = $from;
+        } else {
+            $from = (strtotime('midnight', $this->getOpt('from')) ?: strtotime('midnight yesterday'));
+            $to = (strtotime('midnight', $this->getOpt('to')) ?: strtotime('midnight yesterday'));
+        }
+
         $rangeOffset = getopt('rangeOffset') ?: 7;
         $mode = strtolower($this->getOpt('mode')) ?: 'notify';
         $this->out('Collecting user activity');
@@ -61,7 +67,7 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
                 ->sync();
             if ($mode === 'notify') {
                 $this->out('Sending notifications');
-                $manager->emitStateChanges();
+                $manager->emitStateChanges($estimate);
             }
             $from = strtotime('+1 day', $from);
         }

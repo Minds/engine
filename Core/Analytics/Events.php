@@ -21,5 +21,10 @@ class Events
             $userState = Core\Analytics\UserStates\UserState::fromArray($event->getParameters());
             (new Core\Analytics\Delegates\UpdateUserState($userState))->update();
         });
+
+        $this->eventsDispatcher->register('user_state_change_estimate', 'all', function (Core\Events\Event $event) {
+            $userState = Core\Analytics\UserStates\UserState::fromArray($event->getParameters());
+            (new Core\Analytics\Delegates\UpdateUserStateEstimate($userState))->update();
+        });
     }
 }
