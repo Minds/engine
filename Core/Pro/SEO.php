@@ -66,6 +66,8 @@ class SEO
             'og:image' => $this->user->getIconURL('large'),
         ]);
 
+        Manager::add('/', function() {});
+
         Manager::add('/newsfeed', [$this, 'activityHandler']);
         Manager::add('/media', [$this, 'entityHandler']);
         // blog route added in Blogs\SEO
