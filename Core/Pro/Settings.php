@@ -103,7 +103,8 @@ class Settings implements JsonSerializable
     /** @var array */
     protected $featuredContent = [];
 
-    public function getOneLineHeadline() {
+    public function getOneLineHeadline()
+    {
         return preg_replace("/\\r?\\n+/", ' ', $this->headline);
     }
 

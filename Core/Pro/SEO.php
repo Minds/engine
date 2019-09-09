@@ -66,14 +66,15 @@ class SEO
             'og:image' => $this->user->getIconURL('large'),
         ]);
 
-        Manager::add('/', function() {});
+        Manager::add('/', function () {
+        });
 
         Manager::add('/newsfeed', [$this, 'activityHandler']);
         Manager::add('/media', [$this, 'entityHandler']);
         // blog route added in Blogs\SEO
     }
 
-    function activityHandler($slugs = [])
+    public function activityHandler($slugs = [])
     {
         if (isset($slugs[0]) && is_numeric($slugs[0])) {
             $activity = new Activity($slugs[0]);
@@ -116,20 +117,20 @@ class SEO
         }
     }
 
-    function getEntityProperty($entity, $prop)
+    public function getEntityProperty($entity, $prop)
     {
         $getter = "get${$prop}";
 
         if (isset($entity->{$prop})) {
             return $entity->{$prop};
-        } else if (Helpers\MagicAttributes::getterExists($entity, $getter)) {
+        } elseif (Helpers\MagicAttributes::getterExists($entity, $getter)) {
             return $entity->{$getter}();
         }
 
         return null;
     }
 
-    function entityHandler($slugs = [])
+    public function entityHandler($slugs = [])
     {
         if (isset($slugs[0]) && is_numeric($slugs[0])) {
             $entity = $this->entitiesBuilder->single($slugs[0]);

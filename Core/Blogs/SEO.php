@@ -84,7 +84,7 @@ class SEO
             $serverParams = $request->getServerParams() ?? [];
             $host = parse_url($serverParams['HTTP_ORIGIN'] ?? '', PHP_URL_HOST) ?: $serverParams['HTTP_HOST'];
 
-           $proSettings = $proDomain->lookup($host);
+            $proSettings = $proDomain->lookup($host);
 
             if ($proSettings && (count($slugs) < 2 || $slugs[0] === 'blog')) {
                 $slugParts = explode('-', $slugs[1]);

@@ -13,5 +13,4 @@ class SEOMiddleware implements RouterMiddleware
     {
         new SEO\Defaults(Di::_()->get('Config'));
     }
-
 }

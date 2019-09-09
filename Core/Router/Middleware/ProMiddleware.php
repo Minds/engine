@@ -40,8 +40,7 @@ class ProMiddleware implements RouterMiddleware
         $manager = null,
         $seo = null,
         $entitiesBuilder = null
-    )
-    {
+    ) {
         $this->domain = $domain ?: Di::_()->get('Pro\Domain');
         $this->manager = $manager ?: Di::_()->get('Pro\Manager');
         $this->seo = $seo ?: Di::_()->get('Pro\SEO');
