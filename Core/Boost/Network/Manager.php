@@ -175,7 +175,7 @@ class Manager
         
         //filter to get todays offchain transactions
         $offlineToday = array_filter($offchain->toArray(), function ($result) {
-            return $result->getCreatedTimestamp() > time() - (60 * 60 * 24);
+            return $result->getCreatedTimestamp() > (time() - (60 * 60 * 24)) * 1000;
         });
         
         //reduce the impressions to count the days boosts.
