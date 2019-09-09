@@ -6,8 +6,10 @@
 
 namespace Minds\Core\Pro;
 
+use Exception;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Entities\User;
 use Zend\Diactoros\ServerRequest;
 
 class Domain
@@ -53,5 +55,18 @@ class Domain
     public function validateRequest(ServerRequest $request)
     {
         return true;
+    }
+
+    /**
+     * @param Settings $settings
+     * @return string
+     * @throws Exception
+     */
+    public function getIcon(Settings $settings)
+    {
+        $owner = new User();
+        $owner->guid = $settings->getUserGuid();
+
+        return $owner->getIconURL('large');
     }
 }
