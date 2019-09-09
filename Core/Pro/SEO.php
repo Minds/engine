@@ -66,16 +66,9 @@ class SEO
             'og:image' => $this->user->getIconURL('large'),
         ]);
 
-        Manager::add('/feed', [$this, 'activityHandler']);
-        Manager::add('/videos', [$this, 'entityHandler']);
-        Manager::add('/images', [$this, 'entityHandler']);
-        Manager::add('/articles', [$this, 'entityHandler']);
-        Manager::add('/groups', [$this, 'entityHandler']);
-//        Manager::add('/login', [$this, 'entityHandler']);
-
-        // blog slugs
-
-        // media slugs
+        Manager::add('/newsfeed', [$this, 'activityHandler']);
+        Manager::add('/media', [$this, 'entityHandler']);
+        // blog route added in Blogs\SEO
     }
 
     function activityHandler($slugs = [])
@@ -124,7 +117,14 @@ class SEO
     function getEntityProperty($entity, $prop)
     {
         $getter = "get${$prop}";
-        return Helpers\MagicAttributes::getterExists($entity, $getter) ? $entity->{$getter}() : $entity->{$prop};
+
+        if (isset($entity->{$prop})) {
+            return $entity->{$prop};
+        } else if (Helpers\MagicAttributes::getterExists($entity, $getter)) {
+            return $entity->{$getter}();
+        }
+
+        return null;
     }
 
     function entityHandler($slugs = [])
@@ -144,11 +144,11 @@ class SEO
 
             $owner = $this->getEntityProperty($entity, 'ownerObj');
 
-            $title = $this->getEntityProperty($entity, 'title') ?: $this->getEntityProperty($entity, 'message');
+            $title = $this->getEntityProperty($entity, 'title') ?: $this->getEntityProperty($entity, 'description');
 
             $siteName = $this->config->site_name;
 
-            $description = $this->getEntityProperty($entity, 'blurb') ?: "@{$owner['username']} on {$siteName}";
+            $description = $title ?? $this->getEntityProperty($entity, 'blurb') ?? "@{$owner['username']} on {$siteName}";
 
             $meta = [
                 'title' => $title,
