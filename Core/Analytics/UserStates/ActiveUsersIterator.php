@@ -14,134 +14,58 @@ use Minds\Core\Data;
 
 class ActiveUsersIterator implements \Iterator
 {
-    private $cursor = -1;
-    private $period = 0;
-    private $item;
-    private $limit = 400;
-    private $partitions = 200;
-    private $page = -1;
-    /** @var UserState[] $data */
-    private $data = [];
-    private $active;
-    private $valid = true;
+    /** @var UserActivityBuckets[] $data */
+    protected $data = [];
+    protected $valid = true;
+    protected $referenceDate;
+    protected $rangeOffset = 7;
+    /** @var Data\ElasticSearch\Client */
+    protected $client;
+    /** @var ActiveUsersQueryBuilder */
+    protected $queryBuilder;
+    protected $cursor = -1;
+    protected $partitions = 200;
+    protected $page = -1;
 
-    public function __construct($client = null)
+    public function __construct(Data\ElasticSearch\Client $client = null, ActiveUsersQueryBuilder $queryBuilder = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
-        $this->position = 0;
+        $this->queryBuilder = $queryBuilder ?? new ActiveUsersQueryBuilder();
+        $this->queryBuilder->setPartitions($this->partitions);
         $this->referenceDate = strtotime('midnight');
-        $this->rangeOffset = 7;
     }
 
-    //Sets the last day for the iterator (ie, today)
-    public function setReferenceDate($referenceDate)
+    /**
+     * Sets the last day for the iterator (ie, today)
+     * @param int $referenceDate
+     * @return ActiveUsersIterator
+     */
+    public function setReferenceDate(int $referenceDate): self
     {
         $this->referenceDate = $referenceDate;
-
         return $this;
     }
 
-    //Sets the number of days to look backwards
-    public function setRangeOffset($rangeOffset)
+    /**
+     * Sets the number of days to look backwards
+     * @param int $rangeOffset
+     * @return ActiveUsersIterator
+     */
+    public function setRangeOffset(int $rangeOffset): self
     {
         $this->rangeOffset = $rangeOffset;
-
         return $this;
     }
 
-    //Builds up a sub aggregate that counts the days for a bucket with the same name
-    private function buildBucketCountAggregation($name)
-    {
-        return [
-            'sum_bucket' => [
-                'buckets_path' => "$name-bucket>_count",
-            ],
-        ];
-    }
-
-    //Builds up a sub aggregate that splits a user's activity into days
-    private function buildBucketAggregation($name, $dayOffset)
-    {
-        $toOffset = $dayOffset - 1;
-        //Set times to midnight of the current day until midnight of the next day(end of day);
-
-        $from = strtotime("-$dayOffset day", $this->referenceDate);
-        $to = strtotime("-$toOffset day", $this->referenceDate);
-
-        return [
-            'date_range' => [
-                'field' => '@timestamp',
-                'ranges' => [
-                    [
-                        'from' => $from * 1000, //eg 2019-01-24 00:00:00
-                        'to' => $to * 1000, //eg 2019-01-25 00:00:00
-                    ],
-                ],
-            ],
-        ];
-    }
-
-    public function get()
+    public function get(): bool
     {
         if ($this->page++ >= $this->partitions - 1) {
             $this->valid = false;
-
-            return;
+            return false;
         }
 
-        //Set the range for the entire query day - offset to day + 1
         $from = strtotime("-$this->rangeOffset day", $this->referenceDate);
-        $to = strtotime('+1 day', $this->referenceDate);
-
-        $bucketAggregations = [];
-        //for the range of (reference day ) - offset (midnight) to (reference day) + 1 offset (midnight the next day)
-        foreach (range(0, $this->rangeOffset) as $dayOffset) {
-            $bucketAggregations["day-$dayOffset-bucket"] = $this->buildBucketAggregation("day-$dayOffset", $dayOffset);
-            $bucketAggregations["day-$dayOffset"] = $this->buildBucketCountAggregation("day-$dayOffset");
-        }
-
-        $must = [
-            ['match_phrase' => [
-                'action.keyword' => [
-                    'query' => 'active',
-                ],
-            ]],
-            ['range' => [
-                  '@timestamp' => [
-                    'from' => $from * 1000, //midnight of the first day
-                    'to' => $to * 1000, //midnight of the last day
-                    'format' => 'epoch_millis',
-                  ],
-            ]],
-        ];
-
-        //split up users by user guid
-        $aggs = [
-            'users' => [
-                'terms' => [
-                    'field' => 'user_guid.keyword',
-                    'size' => 5000,
-                    'include' => [
-                        'partition' => $this->page,
-                        'num_partitions' => $this->partitions,
-                    ],
-                ],
-                'aggs' => $bucketAggregations,
-            ],
-        ];
-
-        $query = [
-            'index' => 'minds-metrics-*',
-            'size' => '0',
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must,
-                    ],
-                ],
-                'aggs' => $aggs,
-            ],
-        ];
+        $query = $this->queryBuilder->setFrom($from)->setTo($this->referenceDate)->setPage($this->page)->query();
 
         $prepared = new Core\Data\ElasticSearch\Prepared\Search();
         $prepared->query($query);
@@ -150,7 +74,6 @@ class ActiveUsersIterator implements \Iterator
             $result = $this->client->request($prepared);
         } catch (\Exception $e) {
             error_log($e);
-
             return false;
         }
 
@@ -158,17 +81,17 @@ class ActiveUsersIterator implements \Iterator
             return false;
         }
 
-        //Cook down the verbose elastic search into just the data we need
+        /* Derive activity data from the ES results */
         foreach ($result['aggregations']['users']['buckets'] as $userActivityByDay) {
             $userActivityBuckets = (new UserActivityBuckets())
                 ->setUserGuid($userActivityByDay['key'])
                 ->setReferenceDateMs($this->referenceDate * 1000);
 
             $days = [];
-            foreach (range(0, $this->rangeOffset) as $dayOffset) {
-                $days[$dayOffset] = [
-                    'reference_date' => $userActivityByDay["day-$dayOffset-bucket"]['buckets'][0]['from'],
-                    'count' => $userActivityByDay["day-$dayOffset"]['value'],
+            foreach ($this->queryBuilder->buckets() as $bucketTime) {
+                $days[] = [
+                    'reference_date' => $userActivityByDay[$bucketTime]['buckets'][0]['from'],
+                    'count' => $userActivityByDay["count-$bucketTime"]['value'],
                 ];
             }
 
@@ -178,6 +101,8 @@ class ActiveUsersIterator implements \Iterator
         if ($this->cursor >= count($this->data)) {
             $this->get();
         }
+
+        return true;
     }
 
     /**
@@ -194,7 +119,7 @@ class ActiveUsersIterator implements \Iterator
     /**
      * Get the current cursor's data.
      *
-     * @return mixed
+     * @return UserActivityBuckets
      */
     public function current()
     {

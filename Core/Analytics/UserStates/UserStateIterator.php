@@ -4,7 +4,6 @@ namespace Minds\Core\Analytics\UserStates;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
-use Minds\Core\Data;
 
 /*
 * Iterator that loops through users and counts their action.active entries for the past N days
@@ -15,14 +14,14 @@ use Minds\Core\Data;
 class UserStateIterator implements \Iterator
 {
     private $cursor = -1;
-    private $period = 0;
-    private $item;
-    private $limit = 400;
     private $partitions = 200;
     private $page = -1;
     private $data = [];
-    private $active;
     private $valid = true;
+
+    private $client;
+    private $position;
+    private $referenceDate;
 
     public function __construct($client = null)
     {
@@ -31,20 +30,22 @@ class UserStateIterator implements \Iterator
         $this->referenceDate = strtotime('midnight');
     }
 
-    //Sets the last day for the iterator (ie, today)
-    public function setReferenceDate($referenceDate)
+    /**
+     * Sets the last day for the iterator (ie, today)
+     * @param $referenceDate
+     * @return $this
+     */
+    public function setReferenceDate($referenceDate): self
     {
         $this->referenceDate = $referenceDate;
-
         return $this;
     }
 
-    public function get()
+    public function get(): bool
     {
         if ($this->page++ >= $this->partitions - 1) {
             $this->valid = false;
-
-            return;
+            return false;
         }
 
         //Set the range for the entire query day - offset to day + 1
@@ -52,13 +53,15 @@ class UserStateIterator implements \Iterator
         $to = $this->referenceDate;
 
         $must = [
-            ['range' => [
-                  'reference_date' => [
-                    'gte' => $from * 1000, //midnight of the first day
-                    'lte' => $to * 1000, //midnight of the last day
-                    'format' => 'epoch_millis',
-                  ],
-            ]],
+            [
+                'range' => [
+                    'reference_date' => [
+                        'gte' => $from * 1000, //midnight of the first day
+                        'lte' => $to * 1000, //midnight of the last day
+                        'format' => 'epoch_millis',
+                    ],
+                ]
+            ],
         ];
 
         //split up users by user guid
@@ -113,7 +116,6 @@ class UserStateIterator implements \Iterator
             $result = $this->client->request($prepared);
         } catch (\Exception $e) {
             error_log($e);
-
             return false;
         }
 
@@ -143,6 +145,8 @@ class UserStateIterator implements \Iterator
         if ($this->cursor >= count($this->data)) {
             $this->get();
         }
+
+        return true;
     }
 
     /**
@@ -158,8 +162,7 @@ class UserStateIterator implements \Iterator
 
     /**
      * Get the current cursor's data.
-     *
-     * @return mixed
+     * @return UserState
      */
     public function current()
     {
@@ -168,7 +171,6 @@ class UserStateIterator implements \Iterator
 
     /**
      * Get cursor's key.
-     *
      * @return mixed
      */
     public function key()
@@ -189,10 +191,9 @@ class UserStateIterator implements \Iterator
 
     /**
      * Checks if the cursor is valid.
-     *
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         return $this->valid && isset($this->data[$this->cursor]);
     }
