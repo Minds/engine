@@ -31,7 +31,7 @@ class reports implements Interfaces\Api, Interfaces\ApiAdminPam
         /** @var Core\Reports\Repository $repository */
         $repository = Di::_()->get('Reports\Repository');
 
-        $reports = $repository->getAll([
+        $reports = $repository->getList([
             'state' => $state,
             'limit' => $limit,
             'offset' => $offset
