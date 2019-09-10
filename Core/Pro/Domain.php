@@ -62,10 +62,12 @@ class Domain
      * @return string
      * @throws Exception
      */
-    public function getIcon(Settings $settings)
+    public function getIcon(Settings $settings, User $owner = null)
     {
-        $owner = new User();
-        $owner->guid = $settings->getUserGuid();
+        if (!$owner) {
+            $owner = new User();
+            $owner->guid = $settings->getUserGuid();
+        }
 
         return $owner->getIconURL('large');
     }
