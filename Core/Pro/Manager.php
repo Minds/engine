@@ -27,6 +27,9 @@ class Manager
     /** @var User */
     protected $user;
 
+    /** @var User */
+    protected $actor;
+
     /**
      * Manager constructor.
      * @param Repository $repository
@@ -53,6 +56,16 @@ class Manager
     public function setUser(User $user)
     {
         $this->user = $user;
+        return $this;
+    }
+
+    /**
+     * @param User $actor
+     * @return Manager
+     */
+    public function setActor(User $actor)
+    {
+        $this->actor = $actor;
         return $this;
     }
 
@@ -136,6 +149,10 @@ class Manager
         return $this->hydrate($settings);
     }
 
+    /**
+     * @param $settings
+     * @return Settings
+     */
     public function hydrate($settings)
     {
         return $this->hydrateSettingsDelegate
@@ -255,6 +272,13 @@ class Manager
 
             $settings
                 ->setScheme($values['scheme']);
+        }
+
+        if (isset($values['custom_head']) && $this->actor->isAdmin()) {
+            // TODO: Validate!
+
+            $settings
+                ->setCustomHead($values['custom_head']);
         }
 
         return $this->repository->update($settings);

@@ -10,6 +10,7 @@ use Exception;
 use Minds\Core\Di\Di;
 use Minds\Core\Pro\Manager;
 use Minds\Core\Session;
+use Minds\Entities\User;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 
@@ -22,10 +23,24 @@ class settings implements Interfaces\Api
      */
     public function get($pages)
     {
+        $user = Session::getLoggedinUser();
+
+        if (isset($pages[0]) && $pages[0]) {
+            if (!Session::isAdmin()) {
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => 'You are not authorized',
+                ]);
+            }
+
+            $user = new User($pages[0]);
+        }
+
         /** @var Manager $manager */
         $manager = Di::_()->get('Pro\Manager');
         $manager
-            ->setUser(Session::getLoggedinUser());
+            ->setUser($user)
+            ->setActor(Session::getLoggedinUser());
 
         return Factory::response([
             'isActive' => $manager->isActive(),
@@ -40,10 +55,24 @@ class settings implements Interfaces\Api
      */
     public function post($pages)
     {
+        $user = Session::getLoggedinUser();
+
+        if (isset($pages[0]) && $pages[0]) {
+            if (!Session::isAdmin()) {
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => 'You are not authorized',
+                ]);
+            }
+
+            $user = new User($pages[0]);
+        }
+
         /** @var Manager $manager */
         $manager = Di::_()->get('Pro\Manager');
         $manager
-            ->setUser(Session::getLoggedinUser());
+            ->setUser($user)
+            ->setActor(Session::getLoggedinUser());
 
         if (!$manager->isActive()) {
             return Factory::response([

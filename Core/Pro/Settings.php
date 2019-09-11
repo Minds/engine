@@ -44,6 +44,8 @@ use Minds\Traits\MagicAttributes;
  * @method Settings setLogoImage(string $logoImage)
  * @method array getFeaturedContent()
  * @method Settings setFeaturedContent(array $featuredContent)
+ * @method string getCustomHead()
+ * @method Settings setCustomHead(string $customHead)
  */
 class Settings implements JsonSerializable
 {
@@ -105,6 +107,12 @@ class Settings implements JsonSerializable
     /** @var array */
     protected $featuredContent = [];
 
+    /** @var string */
+    protected $customHead = '';
+
+    /**
+     * @return string
+     */
     public function getOneLineHeadline()
     {
         return preg_replace("/\\r?\\n+/", ' ', $this->headline);
@@ -125,7 +133,6 @@ class Settings implements JsonSerializable
             'domain' => $this->domain,
             'title' => $this->title,
             'headline' => $this->headline,
-            'one_line_headline' => $this->getOneLineHeadline(),
             'text_color' => $textColor,
             'primary_color' => $primaryColor,
             'plain_background_color' => $plainBackgroundColor,
@@ -138,6 +145,8 @@ class Settings implements JsonSerializable
             'logo_image' => $this->logoImage,
             'featured_content' => $this->featuredContent,
             'scheme' => $this->scheme,
+            'custom_head' => $this->customHead,
+            'one_line_headline' => $this->getOneLineHeadline(),
             'styles' => $this->buildStyles(),
         ];
     }

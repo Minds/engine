@@ -98,6 +98,7 @@ class Repository
                         ->setFooterLinks($data['footer_links'] ?? [])
                         ->setTagList($data['tag_list'] ?? [])
                         ->setScheme($data['scheme'] ?? '')
+                        ->setCustomHead($data['custom_head'] ?? '')
                     ;
 
                     $response[] = $settings;
@@ -144,6 +145,7 @@ class Repository
                 'footer_links' => $settings->getFooterLinks(),
                 'tag_list' => $settings->getTagList(),
                 'scheme' => $settings->getScheme(),
+                'custom_head' => $settings->getCustomHead(),
             ]),
         ];
 
