@@ -55,6 +55,8 @@ class Settings implements JsonSerializable
 
     const DEFAULT_PLAIN_BACKGROUND_COLOR = '#ffffff';
 
+    const DEFAULT_TILE_RATIO = '16:9';
+
     /** @var int */
     protected $userGuid;
 
@@ -83,7 +85,7 @@ class Settings implements JsonSerializable
     protected $backgroundImage;
 
     /** @var string */
-    protected $tileRatio;
+    protected $tileRatio = '16:9';
 
     /** @var string */
     protected $logoImage;
@@ -116,6 +118,7 @@ class Settings implements JsonSerializable
         $textColor = $this->textColor ?: static::DEFAULT_TEXT_COLOR;
         $primaryColor = $this->primaryColor ?: static::DEFAULT_PRIMARY_COLOR;
         $plainBackgroundColor = $this->plainBackgroundColor ?: static::DEFAULT_PLAIN_BACKGROUND_COLOR;
+        $tileRatio = $this->tileRatio ?: static::DEFAULT_TILE_RATIO;
 
         return [
             'user_guid' => (string) $this->userGuid,
@@ -126,7 +129,7 @@ class Settings implements JsonSerializable
             'text_color' => $textColor,
             'primary_color' => $primaryColor,
             'plain_background_color' => $plainBackgroundColor,
-            'tile_ratio' => $this->tileRatio,
+            'tile_ratio' => $tileRatio,
             'footer_text' => $this->footerText,
             'footer_links' => $this->footerLinks,
             'tag_list' => $this->tagList,
