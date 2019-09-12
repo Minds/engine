@@ -16,7 +16,7 @@
                             </a>
                         </td>
                         <td style="width: 70%">
-                            <h4 <?php echo $emailStyles->getStyles('m-clear', 'm-fonts', 'm-header'); ?>>You wired @<?php echo $vars['receiver']->get('name'); ?></h4>
+                            <h4 <?php echo $emailStyles->getStyles('m-clear', 'm-fonts', 'm-header'); ?>>You wired @<?php echo $vars['receiver']->get('username'); ?></h4>
                             <p <?php echo $emailStyles->getStyles('m-fonts', 'm-subtitle', 'm-clear'); ?>>Transfer Date and Amount:</p>
                             <p <?php echo $emailStyles->getStyles('m-fonts', 'm-subtitle', 'm-clear'); ?>>
                                 <?php echo $wireDate; ?>; +<?php echo $amount ?>
