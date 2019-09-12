@@ -266,7 +266,7 @@ class Manager
                 throw new \Exception("Not implemented ETH yet");
                 break;
             case 'usd':
-                if (!$this->receiver->getMerchant() || $this->receiver->getMerchant()['id']) {
+                if (!$this->receiver->getMerchant() || !$this->receiver->getMerchant()['id']) {
                     throw new \Exception("This channel is not able to receive USD at the moment");
                 }
                 $intent = new PaymentIntent();
