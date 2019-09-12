@@ -38,8 +38,9 @@ class Time
 
         /* Exclusive not inclusive range should ignore first interval value */
 
-        if ($startTs < $endTs)
+        if ($startTs < $endTs) {
             $startTs += $interval;
+        }
 
         $intervals = [];
 
