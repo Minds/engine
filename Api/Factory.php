@@ -3,7 +3,7 @@
 namespace Minds\Api;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Pro\Domain;
+use Minds\Core\Pro\Domain\Security as ProDomainSecurity;
 use Minds\Interfaces;
 use Minds\Helpers;
 use Minds\Core\Security;
@@ -34,6 +34,7 @@ class Factory
         $loop = count($segments);
         while ($loop >= 0) {
             $offset = $loop -1;
+
             if ($loop < count($segments)) {
                 $slug_length = strlen($segments[$offset+1].'\\');
                 $route_length = strlen($route);
@@ -44,32 +45,51 @@ class Factory
             $actual = str_replace('\\', '/', $route);
             if (isset(Routes::$routes[$actual])) {
                 $class_name = Routes::$routes[$actual];
+
                 if (class_exists($class_name)) {
                     $handler = new $class_name();
+
+                    if (property_exists($handler, 'request')) {
+                        $handler->request = $request;
+                    }
+
                     if ($handler instanceof Interfaces\ApiAdminPam) {
                         self::adminCheck();
                     }
+
                     if (!$handler instanceof Interfaces\ApiIgnorePam) {
                         self::pamCheck($request, $response);
                     }
+
                     $pages = array_splice($segments, $loop) ?: [];
+
                     return $handler->$method($pages);
                 }
             }
 
             //autloaded routes
             $class_name = "\\Minds\\Controllers\api\\$route";
+
             if (class_exists($class_name)) {
                 $handler = new $class_name();
+
+                if (property_exists($handler, 'request')) {
+                    $handler->request = $request;
+                }
+
                 if ($handler instanceof Interfaces\ApiAdminPam) {
                     self::adminCheck();
                 }
+
                 if (!$handler instanceof Interfaces\ApiIgnorePam) {
                     self::pamCheck($request, $response);
                 }
+
                 $pages = array_splice($segments, $loop) ?: [];
+
                 return $handler->$method($pages);
             }
+
             --$loop;
         }
     }
@@ -80,13 +100,9 @@ class Factory
      */
     public static function pamCheck($request, $response)
     {
-        /** @var Domain $proDomain */
-        $proDomain = Di::_()->get('Pro\Domain');
-
         if (
             $request->getAttribute('oauth_user_id') ||
-            Security\XSRF::validateRequest() ||
-            $proDomain->validateRequest($request)
+            Security\XSRF::validateRequest()
         ) {
             return true;
         } else {

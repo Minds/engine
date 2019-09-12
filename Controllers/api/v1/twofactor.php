@@ -17,6 +17,8 @@ use Minds\Interfaces;
 
 class twofactor implements Interfaces\Api
 {
+    public $request;
+
     /**
      * NOT AVAILABLE
      */

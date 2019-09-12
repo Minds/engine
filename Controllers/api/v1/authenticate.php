@@ -8,7 +8,6 @@
 namespace Minds\Controllers\api\v1;
 
 use Minds\Core;
-use Minds\Core\Pro\Domain;
 use Minds\Core\Security;
 use Minds\Core\Session;
 use Minds\Core\Features;
@@ -20,6 +19,8 @@ use Minds\Exceptions\TwoFactorRequired;
 
 class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+    public $request;
+
     /**
      * NOT AVAILABLE
      */
@@ -40,16 +41,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function post($pages)
     {
-        /** @var Domain $proDomain */
-        $proDomain = Di::_()->get('Pro\Domain');
-
-        // TODO: Implement server request
-        $serverRequest = new \Zend\Diactoros\ServerRequest();
-
-        if (
-            !Core\Security\XSRF::validateRequest() &&
-            !$proDomain->validateRequest($serverRequest)
-        ) {
+        if (!Core\Security\XSRF::validateRequest()) {
             return false;
         }
 

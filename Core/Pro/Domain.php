@@ -10,7 +10,6 @@ use Exception;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
-use Zend\Diactoros\ServerRequest;
 
 class Domain
 {
@@ -50,11 +49,6 @@ class Domain
         ])->first();
 
         return $settings;
-    }
-
-    public function validateRequest(ServerRequest $request)
-    {
-        return true;
     }
 
     /**
