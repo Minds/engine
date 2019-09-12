@@ -55,9 +55,15 @@ class Repository
         
         $set = new Set(Type::bigint());
         $set->add(new Bigint($report->getReporterGuid()));
+        
+        $entity = $report->getReport()->getEntity();
+        $guid = $report->getReport()->getEntityOwnerGuid();
+        if ($entity->getType() === "group") {
+            $guid = $entity->getOwnerObj()->getGuid();
+        }
         $values = [
             $set,
-            new Bigint($report->getReport()->getEntityOwnerGuid()),
+            new Bigint($guid),
         ];
 
         if ($report->getReporterHash()) {

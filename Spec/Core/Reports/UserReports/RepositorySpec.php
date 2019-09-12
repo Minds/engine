@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Reports\UserReports;
 use Minds\Core\Reports\UserReports\Repository;
 use Minds\Core\Reports\UserReports\UserReport;
 use Minds\Core\Reports\Report;
+use Minds\Entities\Entity;
 use Minds\Core\Data\Cassandra\Client;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -41,6 +42,9 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $entity = new Entity();
+        $entity->type = "activity";
+
         $userReport->getReport()
             ->shouldBeCalled()
             ->willReturn((new Report)
@@ -48,6 +52,7 @@ class RepositorySpec extends ObjectBehavior
                 ->setTimestamp($ts)
                 ->setReasonCode(2)
                 ->setSubReasonCode(4)
+                ->setEntity($entity)
             );
         
         $userReport->getReporterGuid()
