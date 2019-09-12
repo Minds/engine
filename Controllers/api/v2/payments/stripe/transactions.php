@@ -20,17 +20,17 @@ class transactions implements Interfaces\Api
 
         $connectManager = new Stripe\Connect\Manager();
 
-		try {
+        try {
             $account = $connectManager->getByUser($user);
         } catch (\Exception $e) {
             return Factory::response([
                 'status' => 'error',
                 'message' => 'There was an error returning the usd account',
             ]);
-        }	
+        }
  
         $transactionsManger = new Stripe\Transactions\Manager();
-		$transactions = $transactionsManger->getByAccount($account);
+        $transactions = $transactionsManger->getByAccount($account);
 
         return Factory::response([
             'transactions' => Factory::exportable($transactions),
@@ -49,7 +49,6 @@ class transactions implements Interfaces\Api
 
     public function delete($pages)
     {
-       return Factory::response([]);
+        return Factory::response([]);
     }
 }
-
