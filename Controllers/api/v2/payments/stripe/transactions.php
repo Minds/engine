@@ -12,7 +12,7 @@ use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Core\Payments\Stripe;
 
-class connect implements Interfaces\Api
+class transactions implements Interfaces\Api
 {
     public function get($pages)
     {
@@ -28,9 +28,12 @@ class connect implements Interfaces\Api
                 'message' => 'There was an error returning the usd account',
             ]);
         }
+ 
+        $transactionsManger = new Stripe\Transactions\Manager();
+        $transactions = $transactionsManger->getByAccount($account);
 
         return Factory::response([
-            'account' => $account->export(),
+            'transactions' => Factory::exportable($transactions),
         ]);
     }
 
@@ -46,15 +49,6 @@ class connect implements Interfaces\Api
 
     public function delete($pages)
     {
-        $user = Session::getLoggedInUser();
-
-        $account = new Stripe\Connect\Account();
-        $account->setUserGuid($user->getGuid())
-            ->setUser($user)
-            ->setId($user->getMerchant()['id']);
-
-        $connectManager = new Stripe\Connect\Manager();
-        $connectManager->delete($account);
         return Factory::response([]);
     }
 }

@@ -7,6 +7,8 @@ use Minds\Core\Payments\Stripe\Connect\Account;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Payments\Stripe\Connect\Delegates\NotificationDelegate;
 use Minds\Core\Payments\Stripe\Instances\AccountInstance;
+use Minds\Core\Payments\Stripe\Instances\BalanceInstance;
+use Minds\Core\Payments\Stripe\Instances\FileInstance;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -16,13 +18,17 @@ class ManagerSpec extends ObjectBehavior
     private $save;
     private $notificationDelegate;
     private $accountInstance;
+    private $balanceInstance;
+    private $fileInstance;
 
-    public function let(Save $save, NotificationDelegate $notificationDelegate, AccountInstance $accountInstance)
+    public function let(Save $save, NotificationDelegate $notificationDelegate, AccountInstance $accountInstance, BalanceInstance $balanceInstance, FileInstance $fileInstance)
     {
-        $this->beConstructedWith($save, $notificationDelegate, $accountInstance);
+        $this->beConstructedWith($save, $notificationDelegate, $accountInstance, $balanceInstance, $fileInstance);
         $this->save = $save;
         $this->notificationDelegate = $notificationDelegate;
         $this->accountInstance = $accountInstance;
+        $this->balanceInstance = $balanceInstance;
+        $this->fileInstance = $fileInstance;
     }
 
     public function it_is_initializable()
@@ -126,6 +132,31 @@ class ManagerSpec extends ObjectBehavior
                 'verification' => (object) [
                     'disabled_reason' => null,
                 ],
+                'settings' => (object) [
+                    'payouts' => (object) [
+                        'schedule' => (object) [
+                            'interval' => 1,
+                            'delay_days' => 2,
+                            'monthly_anchor' => 31,
+                        ],
+                    ],
+                ],
+            ]);
+
+        $this->balanceInstance->retrieve([ 'stripe_account' => 'acc_123'])
+            ->willReturn((object) [
+                'pending' => [
+                    (object) [
+                        'amount' => 100,
+                        'currency' => 'GBP',
+                    ],
+                ],
+                'available' => [
+                    (object) [
+                        'amount' => 100,
+                        'currency' => 'GBP',
+                    ],
+                ],
             ]);
 
         $account = $this->getByAccountId('acc_123');
@@ -180,6 +211,31 @@ class ManagerSpec extends ObjectBehavior
                 ],
                 'verification' => (object) [
                     'disabled_reason' => null,
+                ],
+                'settings' => (object) [
+                    'payouts' => (object) [
+                        'schedule' => (object) [
+                            'interval' => 1,
+                            'delay_days' => 2,
+                            'monthly_anchor' => 31,
+                        ]
+                    ]
+                ]
+            ]);
+
+        $this->balanceInstance->retrieve([ 'stripe_account' => 'acc_123'])
+            ->willReturn((object) [
+                'pending' => [
+                    (object) [
+                        'amount' => 100,
+                        'currency' => 'GBP',
+                    ],
+                ],
+                'available' => [
+                    (object) [
+                        'amount' => 100,
+                        'currency' => 'GBP',
+                    ],
                 ],
             ]);
 
