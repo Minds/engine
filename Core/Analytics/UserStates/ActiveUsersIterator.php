@@ -98,6 +98,7 @@ class ActiveUsersIterator implements \Iterator
             $userActivityBuckets->setActiveDaysBuckets($days);
             $this->data[] = $userActivityBuckets;
         }
+
         if ($this->cursor >= count($this->data)) {
             $this->get();
         }
