@@ -6,7 +6,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 
 /**
- * @method TransferInstance all() 
+ * @method TransferInstance all()
  */
 class TransferInstance extends StaticToInstance
 {
@@ -17,4 +17,3 @@ class TransferInstance extends StaticToInstance
         $this->setClass(new \Stripe\Transfer);
     }
 }
-

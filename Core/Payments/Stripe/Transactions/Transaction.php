@@ -32,7 +32,7 @@ class Transaction
     /** @var User $customerUser */
     private $customerUser;
 
-	/**
+    /**
      * Expose to the public apis
      * @param array $extend
      * @return array
@@ -50,6 +50,4 @@ class Transaction
             'customer_user' => $this->customerUser ? $this->customerUser->export() : null,
         ];
     }
-
 }
-

@@ -6,7 +6,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 
 /**
- * @method ChargeInstance retrieve() 
+ * @method ChargeInstance retrieve()
  */
 class ChargeInstance extends StaticToInstance
 {
@@ -17,4 +17,3 @@ class ChargeInstance extends StaticToInstance
         $this->setClass(new \Stripe\Charge);
     }
 }
-
