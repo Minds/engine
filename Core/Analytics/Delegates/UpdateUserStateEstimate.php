@@ -44,17 +44,7 @@ class UpdateUserStateEstimate
 
     private function sendStateChangeNotification(): void
     {
-        $data = [
-            $this->user->getGUID(),
-            $this->user->getUserState(),
-            $this->user->getUserStateToday(),
-            $this->userState->getStateChange(),
-            $this->estimateStateChange
-        ];
-
-        error_log(implode('|', $data));
-
-        if ($this->estimateStateChange < 0 && $this->userState->getStateChange() < 0) {
+        if ($this->estimateStateChange < 0) {
             $notificationView = 'rewards_state_decrease_today';
             Dispatcher::trigger('notification', 'reward', [
                 'to' => [
