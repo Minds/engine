@@ -166,6 +166,7 @@ class Settings implements JsonSerializable
             'primary_color' => $primaryColor,
             'plain_background_color' => $plainBackgroundColor,
             'transparent_background_color' => sprintf("%sa0", $plainBackgroundColor),
+            'more_transparent_background_color' => sprintf("%s50", $plainBackgroundColor),
             'tile_ratio' => sprintf("%s%%", $tileRatioPercentage),
         ];
     }
