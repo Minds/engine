@@ -40,25 +40,30 @@ class pro implements Interfaces\Api
      */
     public function post($pages)
     {
-        /** @var Manager $manager */
-        $manager = Di::_()->get('Pro\Manager');
-        $manager
-            ->setUser(Session::getLoggedinUser());
-
-        // TODO: Send and process payment data
-        $success = $manager->enable(time() + (365 * 86400));
-
-        if (!$success) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => 'Error activating Pro',
-            ]);
-        }
-
         return Factory::response([
-            'isActive' => $manager->isActive(),
-            'settings' => $manager->get(),
+            'status' => 'error',
+            'message' => 'Minds Pro is not yet publicly available.',
         ]);
+
+        // /** @var Manager $manager */
+        // $manager = Di::_()->get('Pro\Manager');
+        // $manager
+        //     ->setUser(Session::getLoggedinUser());
+        //
+        // // TODO: Send and process payment data
+        // $success = $manager->enable(time() + (365 * 86400));
+        //
+        // if (!$success) {
+        //     return Factory::response([
+        //         'status' => 'error',
+        //         'message' => 'Error activating Pro',
+        //     ]);
+        // }
+        //
+        // return Factory::response([
+        //     'isActive' => $manager->isActive(),
+        //     'settings' => $manager->get(),
+        // ]);
     }
 
     /**
