@@ -63,6 +63,9 @@ class Manager
             'transfer_data' => [
                 'destination' => $intent->getStripeAccountId(),
             ],
+            'metadata' => [
+                'user_guid' => $intent->getUserGuid(),
+            ],
         ];
 
         if ($intent->getServiceFee()) {
