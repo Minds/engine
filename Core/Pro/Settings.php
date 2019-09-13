@@ -59,6 +59,10 @@ class Settings implements JsonSerializable
 
     const DEFAULT_TILE_RATIO = '16:9';
 
+    const TILE_RATIOS = ['16:9', '16:10', '4:3', '1:1'];
+
+    const COLOR_SCHEMES = ['light', 'dark'];
+
     /** @var int */
     protected $userGuid;
 

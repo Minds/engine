@@ -7,7 +7,10 @@
 namespace Minds\Core\Pro;
 
 use Exception;
+use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Util\StringValidator;
 use Minds\Entities\User;
 
 class Manager
@@ -30,23 +33,30 @@ class Manager
     /** @var User */
     protected $actor;
 
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
     /**
      * Manager constructor.
      * @param Repository $repository
      * @param Save $saveAction
      * @param Delegates\InitializeSettingsDelegate $initializeSettingsDelegate
      * @param Delegates\HydrateSettingsDelegate $hydrateSettingsDelegate
+     * @param EntitiesBuilder $entitiesBuilder
      */
     public function __construct(
         $repository = null,
         $saveAction = null,
         $initializeSettingsDelegate = null,
-        $hydrateSettingsDelegate = null
-    ) {
+        $hydrateSettingsDelegate = null,
+        $entitiesBuilder = null
+    )
+    {
         $this->repository = $repository ?: new Repository();
         $this->saveAction = $saveAction ?: new Save();
         $this->initializeSettingsDelegate = $initializeSettingsDelegate ?: new Delegates\InitializeSettingsDelegate();
         $this->hydrateSettingsDelegate = $hydrateSettingsDelegate ?: new Delegates\HydrateSettingsDelegate();
+        $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -139,7 +149,7 @@ class Manager
         }
 
         $settings = $this->repository->getList([
-            'user_guid' => $this->user->guid
+            'user_guid' => $this->user->guid,
         ])->first();
 
         if (!$settings) {
@@ -176,66 +186,94 @@ class Manager
             ->setUserGuid($this->user->guid);
 
         if (isset($values['domain'])) {
-            // TODO: Validate!
+            $domain = trim($values['domain']);
+
+            if (!StringValidator::isDomain($domain)) {
+                throw new \Exception('Invalid domain');
+            }
 
             $settings
-                ->setDomain(trim($values['domain']));
+                ->setDomain($domain);
         }
 
         if (isset($values['title'])) {
-            // TODO: Validate!
+            $title = trim($values['title']);
+
+            if (strlen($title) > 60) {
+                throw new \Exception('Title must be 60 characters or less');
+            }
 
             $settings
-                ->setTitle(trim($values['title']));
+                ->setTitle($title);
         }
 
         if (isset($values['headline'])) {
-            // TODO: Validate!
+            $headline = trim($values['headline']);
+
+            if (strlen($headline) > 80) {
+                throw new \Exception('Headline must be 80 characters or less');
+            }
 
             $settings
-                ->setHeadline(trim($values['headline']));
+                ->setHeadline($headline);
         }
 
         if (isset($values['text_color'])) {
-            // TODO: Validate!
+            if (!StringValidator::isHexColor($values['text_color'])) {
+                throw new \Exception('Text color must be a valid hex color');
+            }
 
             $settings
                 ->setTextColor($values['text_color']);
         }
 
         if (isset($values['primary_color'])) {
-            // TODO: Validate!
+            if (!StringValidator::isHexColor($values['primary_color'])) {
+                throw new \Exception('Primary color must be a valid hex color');
+            }
 
             $settings
-                ->setPrimaryColor($values['primary_color']);
+                ->setPrimaryColor(StringValidator::isHexColor($values['primary_color']));
         }
 
         if (isset($values['plain_background_color'])) {
-            // TODO: Validate!
-
+            if (!StringValidator::isHexColor($values['plain_background_color'])) {
+                throw new \Exception('Plain background color must be a valid hex color');
+            }
             $settings
-                ->setPlainBackgroundColor($values['plain_background_color']);
+                ->setPlainBackgroundColor(StringValidator::isHexColor($values['plain_background_color']));
         }
 
         if (isset($values['tile_ratio'])) {
-            // TODO: Validate!
+            if (!in_array($values['tile_ratio'], Settings::TILE_RATIOS)) {
+                throw new \Exception('Invalid tile ratio');
+            }
 
             $settings
                 ->setTileRatio($values['tile_ratio']);
         }
 
         if (isset($values['logo_guid'])) {
-            // TODO: Validate!
+            $image = $this->entitiesBuilder->single($values['logo_guid']);
+
+            // if the image doesn't exist or the guid doesn't correspond to an image
+            if(!$image || ($image->type !== 'object' || $image->subtype !== 'image')) {
+                throw new \Exception('logo_guid must be a valid image guid');
+            }
 
             $settings
                 ->setLogoGuid(trim($values['logo_guid']));
         }
 
         if (isset($values['footer_text'])) {
-            // TODO: Validate!
+            $footer_text = trim($values['footer_text']);
+
+            if (strlen($footer_text) > 80) {
+                throw new \Exception('Footer text must be 80 characters or less');
+            }
 
             $settings
-                ->setFooterText(trim($values['footer_text']));
+                ->setFooterText($footer_text);
         }
 
         if (isset($values['footer_links']) && is_array($values['footer_links'])) {
@@ -252,7 +290,6 @@ class Manager
                 ->setFooterLinks(array_values($footerLinks));
         }
 
-
         if (isset($values['tag_list']) && is_array($values['tag_list'])) {
             $tagList = array_map(function ($item) {
                 $tag = trim($item['tag'], "#\t\n\r");
@@ -268,15 +305,14 @@ class Manager
         }
 
         if (isset($values['scheme'])) {
-            // TODO: Validate!
-
+            if (!in_array($values['scheme'], Settings::COLOR_SCHEMES)) {
+                throw new \Exception('Invalid tile ratio');
+            }
             $settings
                 ->setScheme($values['scheme']);
         }
 
         if (isset($values['custom_head']) && $this->actor->isAdmin()) {
-            // TODO: Validate!
-
             $settings
                 ->setCustomHead($values['custom_head']);
         }
