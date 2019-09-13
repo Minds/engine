@@ -19,27 +19,25 @@ class DomainSpec extends ObjectBehavior
     /** @var Repository */
     protected $repository;
 
-    function let(
+    public function let(
         Config $config,
         Repository $repository
-    )
-    {
+    ) {
         $this->config = $config;
         $this->repository = $repository;
 
         $this->beConstructedWith($config, $repository);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Domain::class);
     }
 
-    function it_should_lookup_for_a_domain(
+    public function it_should_lookup_for_a_domain(
         Response $repositoryResponse,
         Settings $settings
-    )
-    {
+    ) {
         $this->config->get('root_domains')
             ->shouldBeCalled()
             ->willReturn(['minds.com']);
@@ -59,11 +57,10 @@ class DomainSpec extends ObjectBehavior
             ->shouldReturn($settings);
     }
 
-    function it_should_get_an_icon(
+    public function it_should_get_an_icon(
         Settings $settings,
         User $user
-    )
-    {
+    ) {
         $user->getIconURL('large')
             ->shouldBeCalled()
             ->willReturn('/1000/large');

@@ -8,12 +8,12 @@ use Prophecy\Argument;
 
 class SettingsSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Settings::class);
     }
 
-    function it_should_get_one_line_headline_from_single_line_value()
+    public function it_should_get_one_line_headline_from_single_line_value()
     {
         $this->setHeadline('This is a headline');
 
@@ -22,7 +22,7 @@ class SettingsSpec extends ObjectBehavior
             ->shouldReturn('This is a headline');
     }
 
-    function it_should_get_one_line_headline_from_multi_line_value()
+    public function it_should_get_one_line_headline_from_multi_line_value()
     {
         $this->setHeadline("This is a headline.\nOther line");
 
@@ -31,21 +31,21 @@ class SettingsSpec extends ObjectBehavior
             ->shouldReturn('This is a headline. Other line');
     }
 
-    function it_should_export()
+    public function it_should_export()
     {
         $this
             ->export()
             ->shouldBeArray();
     }
 
-    function it_should_build_styles()
+    public function it_should_build_styles()
     {
         $this
             ->buildStyles()
             ->shouldBeArray();
     }
 
-    function it_should_calc_tile_ratio_percentage()
+    public function it_should_calc_tile_ratio_percentage()
     {
         $this
             ->setTileRatio('1:1');

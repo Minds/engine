@@ -40,8 +40,7 @@ class Security
         $cookie = null,
         $jwt = null,
         $config = null
-    )
-    {
+    ) {
         $this->cookie = $cookie ?: new Cookie();
         $this->jwt = $jwt ?: new Jwt();
         $this->config = $config ?: Di::_()->get('Config');
@@ -114,7 +113,8 @@ class Security
                 ->setPath('/')
                 ->setHttpOnly(false)
                 ->create();
-        } catch (Exception $e) { }
+        } catch (Exception $e) {
+        }
     }
 
     /**
