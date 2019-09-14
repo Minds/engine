@@ -50,8 +50,7 @@ class Manager
         $initializeSettingsDelegate = null,
         $hydrateSettingsDelegate = null,
         $entitiesBuilder = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository();
         $this->saveAction = $saveAction ?: new Save();
         $this->initializeSettingsDelegate = $initializeSettingsDelegate ?: new Delegates\InitializeSettingsDelegate();
@@ -245,7 +244,7 @@ class Manager
         }
 
         if (isset($values['tile_ratio'])) {
-            if (!in_array($values['tile_ratio'], Settings::TILE_RATIOS)) {
+            if (!in_array($values['tile_ratio'], Settings::TILE_RATIOS, true)) {
                 throw new \Exception('Invalid tile ratio');
             }
 
@@ -257,7 +256,7 @@ class Manager
             $image = $this->entitiesBuilder->single($values['logo_guid']);
 
             // if the image doesn't exist or the guid doesn't correspond to an image
-            if(!$image || ($image->type !== 'object' || $image->subtype !== 'image')) {
+            if (!$image || ($image->type !== 'object' || $image->subtype !== 'image')) {
                 throw new \Exception('logo_guid must be a valid image guid');
             }
 
@@ -305,7 +304,7 @@ class Manager
         }
 
         if (isset($values['scheme'])) {
-            if (!in_array($values['scheme'], Settings::COLOR_SCHEMES)) {
+            if (!in_array($values['scheme'], Settings::COLOR_SCHEMES, true)) {
                 throw new \Exception('Invalid tile ratio');
             }
             $settings
