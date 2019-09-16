@@ -42,7 +42,8 @@ class overview implements Interfaces\Api
                 'totalNetworkContribution' => $overview->getTotalNetworkContribution(),
                 'yourShare' => $overview->getYourShare(),
                 'yourRewardFactor' => $overview->getYourRewardFactor(),
-                'contributionValues' => $contributionValues
+                'contributionValues' => $contributionValues,
+                'rewardFactors' => RewardFactor::$values
             ];
             return Factory::response($response);
         }
