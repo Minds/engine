@@ -3,6 +3,7 @@ namespace Minds\Entities;
 
 use Minds\Helpers;
 use Minds\Core;
+use Minds\Core\Di\Di;
 use Minds\Core\Queue;
 use Minds\Core\Analytics;
 
@@ -279,6 +280,8 @@ class Activity extends Entity
             $export['hide_impressions'] = $this->hide_impressions;
         }
 
+        $export['thumbnails'] = $this->getThumbnails();
+
         switch ($this->custom_type) {
             case 'video':
                 if ($this->custom_data['guid']) {
@@ -289,7 +292,11 @@ class Activity extends Entity
                 // fix old images src
                 if (is_array($export['custom_data']) && strpos($export['custom_data'][0]['src'], '/wall/attachment') !== false) {
                     $export['custom_data'][0]['src'] = Core\Config::_()->cdn_url . 'fs/v1/thumbnail/' . $this->entity_guid;
+                    $this->custom_data[0]['src'] = $export['custom_data'][0]['src'];
                 }
+                // go directly to cdn
+                $mediaManager = Di::_()->get('Media\Image\Manager');
+                $export['custom_data'][0]['src'] = $export['thumbnails']['xlarge'];
                 break;
         }
 
@@ -718,6 +725,27 @@ class Activity extends Entity
         }
 
         return $this->ownerObj;
+    }
+
+    /**
+     * Return thumbnails array to be used with export
+     * @return array
+     */
+    public function getThumbnails(): array
+    {
+        $thumbnails = [];
+        switch ($this->custom_type) {
+            case 'video':
+                break;
+            case 'batch':
+                $mediaManager = Di::_()->get('Media\Image\Manager');
+                $sizes = [ 'xlarge', 'large' ];
+                foreach ($sizes as $size) {
+                    $thumbnails[$size] = $mediaManager->getPublicAssetUri($this, $size);
+                }
+                break;
+        }
+        return $thumbnails;
     }
 
     /**

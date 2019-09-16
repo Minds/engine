@@ -5,6 +5,7 @@
 namespace Minds\Entities;
 
 use Minds\Core;
+use Minds\Core\Di\Di;
 use Minds\Helpers;
 
 class Image extends File
@@ -33,17 +34,18 @@ class Image extends File
             $size = '';
         }
 
-        if (isset($CONFIG->cdn_url) && !$this->getFlag('paywall') && !$this->getWireThreshold()) {
-            $base_url = $CONFIG->cdn_url;
-        } else {
-            $base_url = \elgg_get_site_url();
-        }
+        // if (isset($CONFIG->cdn_url) && !$this->getFlag('paywall') && !$this->getWireThreshold()) {
+        //     $base_url = $CONFIG->cdn_url;
+        // } else {
+        //     $base_url = \elgg_get_site_url();
+        // }
 
-        if ($this->access_id != 2) {
-            $base_url = \elgg_get_site_url();
-        }
+        // if ($this->access_id != 2) {
+        //     $base_url = \elgg_get_site_url();
+        // }
+        $mediaManager = Di::_()->get('Media\Image\Manager');
 
-        return $base_url. 'api/v1/media/thumbnails/' . $this->guid . '/'.$size;
+        return $mediaManager->getPublicAssetUri($this, $size);
     }
 
     protected function getIndexKeys($ia = false)
@@ -211,7 +213,8 @@ class Image extends File
     public function export()
     {
         $export = parent::export();
-        $export['thumbnail_src'] = $this->getIconUrl();
+        $export['thumbnail_src'] = $this->getIconUrl('xlarge');
+        $export['thumbnail'] = $export['thumbnail_src'];
         $export['thumbs:up:count'] = Helpers\Counters::get($this->guid, 'thumbs:up');
         $export['thumbs:down:count'] = Helpers\Counters::get($this->guid, 'thumbs:down');
         $export['description'] = $this->description; //videos need to be able to export html.. sanitize soon!

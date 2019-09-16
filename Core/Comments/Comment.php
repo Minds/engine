@@ -9,6 +9,7 @@ use Minds\Entities\RepositoryEntity;
 use Minds\Entities\User;
 use Minds\Helpers\Flags;
 use Minds\Helpers\Unknown;
+use Minds\Core\Di\Di;
 
 /**
  * Comment Entity
@@ -285,6 +286,21 @@ class Comment extends RepositoryEntity
     }
 
     /**
+     * Return an array of thumbnails
+     * @return array
+     */
+    public function getThumbnails(): array
+    {
+        $thumbnails = [];
+        $mediaManager = Di::_()->get('Media\Image\Manager');
+        $sizes = [ 'xlarge', 'large' ];
+        foreach ($sizes as $size) {
+            $thumbnails[$size] = $mediaManager->getPublicAssetUri($this, $size);
+        }
+        return $thumbnails;
+    }
+
+    /**
      * Return the urn for the comment
      * @return string
      */
@@ -383,6 +399,8 @@ class Comment extends RepositoryEntity
             $output['thumbs:down:user_guids'] = $this->getVotesDown();
             $output['thumbs:down:count'] = count($this->getVotesDown());
         }
+
+        $output['thumbnails'] = $this->getThumbnails();
 
         $output['can_reply'] = (bool) !$this->getParentGuidL2();
 
