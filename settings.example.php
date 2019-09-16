@@ -476,7 +476,8 @@ $CONFIG->set('features', [
     'cassandra-notifications' => true,
     'dark-mode' => true,
     'allow-comments-toggle' => false,
-    'permissions' => false
+    'permissions' => false,
+    'pro' => false,
 ]);
 
 $CONFIG->set('email', [
