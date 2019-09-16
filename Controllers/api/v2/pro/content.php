@@ -3,7 +3,7 @@
  * @author: eiennohi.
  */
 
-namespace Minds\Controllers\api\v2\feeds;
+namespace Minds\Controllers\api\v2\pro;
 
 use Minds\Api\Exportable;
 use Minds\Api\Factory;
@@ -14,7 +14,7 @@ use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Entities\User;
 use Minds\Interfaces;
 
-class channel implements Interfaces\Api
+class content implements Interfaces\Api
 {
     const MIN_COUNT = 6;
 
@@ -22,8 +22,6 @@ class channel implements Interfaces\Api
     {
         /** @var User $currentUser */
         $currentUser = Core\Session::getLoggedinUser();
-
-        //
 
         $container_guid = $pages[0] ?? null;
         $owner_guid = null;
@@ -68,8 +66,6 @@ class channel implements Interfaces\Api
                 break;
         }
 
-        //
-
         $hardLimit = 5000;
         $offset = 0;
 
@@ -96,25 +92,21 @@ class channel implements Interfaces\Api
             ]);
         }
 
-        //
-
         $sync = (bool) ($_GET['sync'] ?? false);
 
         $fromTimestamp = $_GET['from_timestamp'] ?? 0;
 
-        $asActivities = (bool) ($_GET['as_activities'] ?? true);
+        $exclude = explode(',', $_GET['exclude'] ?? '');
 
         $forcePublic = (bool) ($_GET['force_public'] ?? false);
 
-        $exclude = explode(',', $_GET['exclude'] ?? '');
+        $asActivities = (bool) ($_GET['as_activities'] ?? true);
 
         $query = null;
 
         if (isset($_GET['query'])) {
             $query = $_GET['query'];
         }
-
-        $custom_type = isset($_GET['custom_type']) && $_GET['custom_type'] ? [$_GET['custom_type']] : null;
 
         /** @var Core\Feeds\Top\Entities $entities */
         $entities = new Core\Feeds\Top\Entities();
@@ -132,7 +124,7 @@ class channel implements Interfaces\Api
             'container_guid' => $container_guid,
             'owner_guid' => $owner_guid,
             'access_id' => $isOwner && !$forcePublic ? [0, 1, 2, $container_guid] : [2, $container_guid],
-            'custom_type' => $custom_type,
+            'custom_type' => null,
             'limit' => $limit,
             'type' => $type,
             'algorithm' => 'top',
@@ -228,4 +220,5 @@ class channel implements Interfaces\Api
     {
         return Factory::response([]);
     }
+
 }
