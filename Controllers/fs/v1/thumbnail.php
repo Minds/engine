@@ -8,6 +8,7 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Interfaces;
+use Minds\Core\Features\Manager as FeaturesManager;
 
 class thumbnail extends Core\page implements Interfaces\page
 {
@@ -15,6 +16,16 @@ class thumbnail extends Core\page implements Interfaces\page
     {
         if (!$pages[0]) {
             exit;
+        }
+
+        $featuresManager = new FeaturesManager;
+
+        if ($featuresManager->has('cdn-jwt')) {
+            $signedUri = new Core\Security\SignedUri();
+            $uri = (string) \Zend\Diactoros\ServerRequestFactory::fromGlobals()->getUri();
+            if (!$signedUri->confirm($uri)) {
+                exit;
+            }
         }
 
         /** @var Core\Media\Thumbnails $mediaThumbnails */
