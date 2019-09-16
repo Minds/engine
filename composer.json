@@ -3,6 +3,7 @@
     "description": "The core minds social engine",
     "require": {
         "php": "~7.1",
+        "ext-redis": "~4.3",
         "aws/aws-sdk-php": "^3.38",
         "braintree/braintree_php": "3.5.0",
         "datastax/php-driver": "1.2.2",
