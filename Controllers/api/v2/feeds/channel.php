@@ -116,7 +116,7 @@ class channel implements Interfaces\Api
 
         $custom_type = isset($_GET['custom_type']) && $_GET['custom_type'] ? [$_GET['custom_type']] : null;
 
-        $cache = (bool) $_GET['cache'] ?? false;
+        $cache = (bool) $_GET['cache'] ?? true;
 
         /** @var Core\Data\cache\abstractCacher $cacher */
         $cacher = Di::_()->get('Cache');
@@ -205,7 +205,7 @@ class channel implements Interfaces\Api
 
     private function getCacheKey(array $opts): string
     {
-        return "feeds-channel:" . implode(':', opts);
+        return "feeds-channel:" . implode(':', $opts);
     }
 
     /**
