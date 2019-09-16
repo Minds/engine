@@ -7,6 +7,8 @@
 namespace Minds\Core\Pro\Channel;
 
 use Exception;
+use Minds\Core\Data\cache\abstractCacher;
+use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Top\Manager as TopManager;
 use Minds\Core\Pro\Repository;
 use Minds\Core\Pro\Settings;
@@ -14,11 +16,16 @@ use Minds\Entities\User;
 
 class Manager
 {
+    const CACHE_TTL = 300; // Cache homepage content for 5 minutes
+
     /** @var Repository */
     protected $repository;
 
     /** @var TopManager */
     protected $top;
+
+    /** @var abstractCacher */
+    protected $cache;
 
     /** @var User */
     protected $user;
@@ -27,13 +34,16 @@ class Manager
      * Manager constructor.
      * @param Repository $repository
      * @param TopManager $top
+     * @param abstractCacher $cache
      */
     public function __construct(
         $repository = null,
-        $top = null
+        $top = null,
+        $cache = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->top = $top ?: new TopManager();
+        $this->cache = $cache ?: Di::_()->get('Cache');
     }
 
     /**
@@ -63,6 +73,14 @@ class Manager
 
         if (!$settings) {
             throw new Exception('Invalid Pro user');
+        }
+
+        $cacheKey = sprintf("pro::v1::getAllCategoriesContent::%s", $this->user->guid);
+
+        $cachedContent = $this->cache->get($cacheKey);
+
+        if ($cachedContent) {
+            return $cachedContent;
         }
 
         $tags = $settings->getTagList() ?: [];
@@ -97,6 +115,8 @@ class Manager
                 'content' => $content,
             ];
         }
+
+        $this->cache->set($cacheKey, $output, static::CACHE_TTL);
 
         return $output;
     }

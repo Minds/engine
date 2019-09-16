@@ -116,11 +116,6 @@ class channel implements Interfaces\Api
 
         $custom_type = isset($_GET['custom_type']) && $_GET['custom_type'] ? [$_GET['custom_type']] : null;
 
-        $cache = (bool) $_GET['cache'] ?? true;
-
-        /** @var Core\Data\cache\abstractCacher $cacher */
-        $cacher = Di::_()->get('Cache');
-
         /** @var Core\Feeds\Top\Entities $entities */
         $entities = new Core\Feeds\Top\Entities();
         $entities->setActor($currentUser);
@@ -169,15 +164,6 @@ class channel implements Interfaces\Api
             $opts['filter_hashtags'] = true;
         }
 
-        $cacheKey = $this->getCacheKey($opts);
-
-        if ($cache) {
-            $cached = $cacher->get($cacheKey);
-            if ($cached && count($cached) > 0) {
-                return Factory::response($cached);
-            }
-        }
-
         try {
             $result = $this->getData($entities, $opts, $asActivities, $sync);
 
@@ -192,20 +178,11 @@ class channel implements Interfaces\Api
                 'load-next' => $result->getPagingToken(),
             ];
 
-            if ($cache) {
-                $cacher->set($cacheKey, $response, 300); // cache for 5 mins
-            }
-
             return Factory::response($response);
         } catch (\Exception $e) {
             error_log($e);
             return Factory::response(['status' => 'error', 'message' => $e->getMessage()]);
         }
-    }
-
-    private function getCacheKey(array $opts): string
-    {
-        return "feeds-channel:" . implode(':', $opts);
     }
 
     /**
