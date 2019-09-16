@@ -67,7 +67,7 @@ class S3 implements ServiceInterface
         $mimeType = $finfo->buffer($data);
 
         $write =  $this->s3->putObject([
-          'ACL' => 'public-read',
+          // 'ACL' => 'public-read',
           'Bucket' => Config::_()->aws['bucket'],
           'Key' => $this->filepath,
           'ContentType' => $mimeType,
@@ -119,6 +119,20 @@ class S3 implements ServiceInterface
                 header("Location: $url");
                 exit;
         }
+    }
+
+    /**
+     * Return a signed url
+     * @return string
+     */
+    public function getSignedUrl(): string
+    {
+        $cmd = $this->s3->getCommand('GetObject', [
+           'Bucket' => Config::_()->aws['bucket'],
+           'Key' => $this->filepath,
+        ]);
+        $request = $this->s3->createPresignedRequest($cmd, '+20 minutes');
+        return (string) $request->getUri();
     }
 
     public function seek($offset = 0)

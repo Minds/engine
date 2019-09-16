@@ -8,6 +8,7 @@ namespace Minds\Entities;
 
 use Minds\Core;
 use Minds\Core\Media\Services\Factory as ServiceFactory;
+use Minds\Core\Di\Di;
 use cinemr;
 use Minds\Helpers;
 
@@ -38,8 +39,8 @@ class Video extends Object
      */
     public function getSourceUrl($transcode = '720.mp4')
     {
-        $url = Core\Config::_()->cinemr_url . $this->cinemr_guid . '/' . $transcode;
-        return $url;
+        $mediaManager = Di::_()->get('Media\Video\Manager');
+        return $mediaManager->getPublicAssetUri($this, $transcode);
     }
 
     /**
@@ -61,13 +62,16 @@ class Video extends Object
 
     public function getIconUrl($size = "medium")
     {
-        $domain = elgg_get_site_url();
-        global $CONFIG;
-        if (isset($CONFIG->cdn_url) && !$this->getFlag('paywall') && !$this->getWireThreshold()) {
-            $domain = $CONFIG->cdn_url;
-        }
+        // $domain = elgg_get_site_url();
+        // global $CONFIG;
+        // if (isset($CONFIG->cdn_url) && !$this->getFlag('paywall') && !$this->getWireThreshold()) {
+        //     $domain = $CONFIG->cdn_url;
+        // }
 
-        return $domain . 'api/v1/media/thumbnails/' . $this->guid . '/' . $this->time_updated;
+        // return $domain . 'api/v1/media/thumbnails/' . $this->guid . '/' . $this->time_updated;
+
+        $mediaManager = Di::_()->get('Media\Image\Manager');
+        return $mediaManager->getPublicAssetUri($this, 'medium');
     }
 
     public function getURL()
