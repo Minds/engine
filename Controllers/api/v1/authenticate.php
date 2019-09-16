@@ -120,17 +120,17 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
             if (!$manager->isSubscribed($targetChannel)) {
                 $manager->subscribe($targetChannel);
-            }
 
-            //TODO: move Core/Subscriptions/Delegates
-            $event = new Core\Analytics\Metrics\Event();
-            $event->setType('action')
-                ->setAction('subscribe')
-                ->setProduct('platform')
-                ->setUserGuid((string) Core\Session::getLoggedInUser()->guid)
-                ->setUserPhoneNumberHash(Core\Session::getLoggedInUser()->getPhoneNumberHash())
-                ->setEntityGuid((string) $from)
-                ->push();
+                //TODO: move Core/Subscriptions/Delegates
+                $event = new Core\Analytics\Metrics\Event();
+                $event->setType('action')
+                    ->setAction('subscribe')
+                    ->setProduct('platform')
+                    ->setUserGuid((string) Core\Session::getLoggedInUser()->guid)
+                    ->setUserPhoneNumberHash(Core\Session::getLoggedInUser()->getPhoneNumberHash())
+                    ->setEntityGuid((string) $from)
+                    ->push();
+            }
         }
 
         $response['status'] = 'success';
