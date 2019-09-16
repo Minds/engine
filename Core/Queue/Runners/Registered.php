@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Minds\Core\Queue\Runners;
 
 use Minds\Core\Di\Di;
@@ -24,11 +23,15 @@ class Registered implements QueueRunner
             ->receive(function ($data) use ($subscriptions, $repository) {
                 $data = $data->getData();
                 $user_guid = $data['user_guid'];
+                $from = $data['from'];
 
                 //subscribe to minds channel
                 $subscriber = new User($user_guid);
                 $subscriber->subscribe('100000000000000519');
-    
+
+                if ($from) {
+                    $subscriber->subscribe($from);
+                }
 
                 echo "[registered]: User registered $user_guid\n";
 

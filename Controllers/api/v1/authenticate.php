@@ -16,6 +16,8 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Exceptions\TwoFactorRequired;
+use Minds\Core\Queue;
+use Minds\Core\Subscriptions;
 
 class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
@@ -46,6 +48,9 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         $user = new Entities\User(strtolower($_POST['username']));
+
+        $from = $_POST['from'] ?? null;
+
         /** @var Core\Security\LoginAttempts $attempts */
         $attempts = Core\Di\Di::_()->get('Security\LoginAttempts');
 
@@ -106,6 +111,28 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         Di::_()->get('Features\Manager')
             ->setCanaryCookie($user->isCanary());
 
+        // auto-subscribe to channel
+        if ($from) {
+            $targetChannel = new Entities\User($from);
+
+            $manager = (new Subscriptions\Manager())
+                ->setSubscriber($user);
+
+            if (!$manager->isSubscribed($targetChannel)) {
+                $manager->subscribe($targetChannel);
+            }
+
+            //TODO: move Core/Subscriptions/Delegates
+            $event = new Core\Analytics\Metrics\Event();
+            $event->setType('action')
+                ->setAction('subscribe')
+                ->setProduct('platform')
+                ->setUserGuid((string) Core\Session::getLoggedInUser()->guid)
+                ->setUserPhoneNumberHash(Core\Session::getLoggedInUser()->getPhoneNumberHash())
+                ->setEntityGuid((string) $from)
+                ->push();
+        }
+
         $response['status'] = 'success';
         $response['user'] = $user->export();
 
@@ -119,7 +146,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
     public function delete($pages)
     {
         $sessions = Di::_()->get('Sessions\Manager');
-        
+
         if (isset($pages[0]) && $pages[0] === 'all') {
             $sessions->destroy(true);
         } else {
