@@ -13,6 +13,7 @@ use Minds\Helpers;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Features\Manager as FeaturesManager;
 
 class thumbnails implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
@@ -26,6 +27,17 @@ class thumbnails implements Interfaces\Api, Interfaces\ApiIgnorePam
     {
         if (!$pages[0]) {
             exit;
+        }
+
+        $featuresManager = new FeaturesManager();
+
+        if ($featuresManager->has('cdn-jwt')) {
+            error_log("{$_SERVER['REQUEST_URI']} was hit, and should not have been");
+
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'This endpoint has been deprecated. Please use fs/v1/thumbnail',
+            ]);
         }
 
         $guid = $pages[0];

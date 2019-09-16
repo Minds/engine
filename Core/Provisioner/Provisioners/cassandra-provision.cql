@@ -1446,6 +1446,8 @@ CREATE TABLE minds.email_campaign_logs (
   PRIMARY KEY (receiver_guid, time_sent)
 ) WITH CLUSTERING ORDER BY (time_sent desc);
 
+ALTER TABLE minds.views ADD owner_guid text;
+
 CREATE TABLE minds.pro (
     user_guid bigint,
     domain text,
