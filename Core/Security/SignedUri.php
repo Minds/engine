@@ -43,7 +43,7 @@ class SignedUri
             //->setId((string) $uri)
             ->setExpiration($expires)
             ->set('uri', (string) $uri)
-            ->set('user_guid', (string) Session::getLoggedInUser()->getGuid())
+            ->set('user_guid', Session::isLoggedIn() ? (string) Session::getLoggedInUser()->getGuid() : null)
             ->sign(new Sha256, $this->config->get('sessions')['private_key'])
             ->getToken();
         $signedUri = $uri->withQuery("jwtsig=$token");
