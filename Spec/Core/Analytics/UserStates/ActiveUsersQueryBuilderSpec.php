@@ -14,8 +14,9 @@ class ActiveUsersQueryBuilderSpec extends ObjectBehavior
 
     public function it_should_produce_a_valid_query()
     {
-        $from = strtotime('midnight -2 days');
-        $to = strtotime('midnight');
+        $referenceTime = 1568246400;
+        $from = strtotime('midnight -2 days', $referenceTime);
+        $to = strtotime('midnight', $referenceTime);
         $this->setPartitions(10)->setPage(2)->setFrom($from)->setTo($to)->query()->shouldBe($this->exampleQuery());
     }
 
