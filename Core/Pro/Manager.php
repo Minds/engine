@@ -232,7 +232,7 @@ class Manager
             }
 
             $settings
-                ->setPrimaryColor(StringValidator::isHexColor($values['primary_color']));
+                ->setPrimaryColor($values['primary_color']);
         }
 
         if (isset($values['plain_background_color'])) {
@@ -240,7 +240,7 @@ class Manager
                 throw new \Exception('Plain background color must be a valid hex color');
             }
             $settings
-                ->setPlainBackgroundColor(StringValidator::isHexColor($values['plain_background_color']));
+                ->setPlainBackgroundColor($values['plain_background_color']);
         }
 
         if (isset($values['tile_ratio'])) {
@@ -252,7 +252,7 @@ class Manager
                 ->setTileRatio($values['tile_ratio']);
         }
 
-        if (isset($values['logo_guid'])) {
+        if (isset($values['logo_guid']) && $values['logo_guid'] !== '') {
             $image = $this->entitiesBuilder->single($values['logo_guid']);
 
             // if the image doesn't exist or the guid doesn't correspond to an image
