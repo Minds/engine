@@ -20,6 +20,7 @@ class Image extends File
         $this->attributes['rating'] = 2;
         $this->attributes['width'] = 0;
         $this->attributes['height'] = 0;
+        $this->attributes['time_sent'] = null;
     }
 
     public function getUrl()
@@ -193,6 +194,7 @@ class Image extends File
             'width',
             'height',
             'gif',
+            'time_sent',
         ]);
     }
 
@@ -224,6 +226,7 @@ class Image extends File
         $export['height'] = $this->height ?: 0;
         $export['gif'] = (bool) $this->gif;
         $export['urn'] = $this->getUrn();
+        $export['time_sent'] = $this->getTimeSent();
 
         if (!Helpers\Flags::shouldDiscloseStatus($this) && isset($export['flags']['spam'])) {
             unset($export['flags']['spam']);
@@ -267,6 +270,7 @@ class Image extends File
             'access_id' => null,
             'container_guid' => null,
             'rating' => 2, //open by default
+            'time_sent' => time(),
         ], $data);
 
         $allowed = [
@@ -280,6 +284,7 @@ class Image extends File
             'mature',
             'boost_rejection_reason',
             'rating',
+            'time_sent',
         ];
 
         foreach ($allowed as $field) {
@@ -360,5 +365,24 @@ class Image extends File
     public function getUrn()
     {
         return "urn:image:{$this->guid}";
+    }
+
+    /**
+     * Return time_sent
+     * @return int
+     */
+    public function getTimeSent()
+    {
+        return $this->time_sent;
+    }
+
+    /**
+     * Set time_sent
+     * @return Image
+     */
+    public function setTimeSent($time_sent)
+    {
+        $this->time_sent = $time_sent;
+        return $this;
     }
 }
