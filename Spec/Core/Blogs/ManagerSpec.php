@@ -153,6 +153,10 @@ class ManagerSpec extends ObjectBehavior
         $blog->getSubtype()
             ->willReturn('blog');
 
+        $blog->getTimeCreated()
+            ->shouldBeCalled()
+            ->willReturn(9999);
+
         $blog->setTimeCreated(Argument::type('int'))
             ->shouldBeCalled()
             ->willReturn($blog);
