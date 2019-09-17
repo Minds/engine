@@ -21,6 +21,8 @@ use Minds\Traits\MagicAttributes;
  * @method string getUuid()
  * @method View setEntityUrn(string $entityUrn)
  * @method string getEntityUrn()
+ * @method View setOwnerGuid(string $ownerGuid)
+ * @method string getOwnerGuid()
  * @method View setPageToken(string $pageToken)
  * @method string getPageToken()
  * @method View setPosition(int $position)
@@ -56,6 +58,9 @@ class View
 
     /** @var string */
     protected $entityUrn;
+
+    /** @var string */
+    protected $ownerGuid;
 
     /** @var string */
     protected $pageToken;

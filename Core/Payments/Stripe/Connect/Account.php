@@ -96,6 +96,24 @@ class Account
     /** @var string $status */
     private $status = "processing";
 
+    /** @var Balance $totalBalance */
+    private $totalBalance;
+
+    /** @var Balance $pendingBalance */
+    private $pendingBalance;
+
+    /** @var string $payoutInterval */
+    private $payoutInterval;
+
+    /** @var int $payoutDelay */
+    private $payoutDelay;
+
+    /** @var int $payoutAnchor */
+    private $payoutAnchor;
+
+    /** @var string $requirement */
+    private $requirement;
+
     /** @var array $exportable */
     private $exportable = [
         'guid',
@@ -119,6 +137,10 @@ class Account
         'status',
         'verified',
         'bankAccount',
+        'payoutInterval',
+        'payoutDelay',
+        'payoutAnchor',
+        'requirement',
     ];
 
     /**
@@ -145,6 +167,14 @@ class Account
 
         foreach ($this->exportable as $field) {
             $export[$field] = $this->$field;
+        }
+
+        if ($this->totalBalance) {
+            $export['totalBalance'] = $this->totalBalance->export();
+        }
+
+        if ($this->pendingBalance) {
+            $export['pendingBalance'] = $this->pendingBalance->export();
         }
 
         return $export;

@@ -141,6 +141,7 @@ class blog implements Interfaces\Api
                         !$blog ||
                         Helpers\Flags::shouldFail($blog) ||
                         !Core\Security\ACL::_()->read($blog)
+                        || ($blog->getTimeCreated() > time() && !$blog->canEdit())
                     ) {
                         break;
                     }
@@ -245,13 +246,6 @@ class blog implements Interfaces\Api
             }
         }
 
-        if (!$blog->isPublished()) {
-            $blog->setAccessId(Access::UNLISTED);
-            $blog->setDraftAccessId($_POST['access_id']);
-        } elseif ($blog->getTimePublished() == '') {
-            $blog->setTimePublished(time());
-        }
-
         $blog->setLastSave(time());
 
         if (isset($_POST['wire_threshold'])) {
@@ -298,6 +292,31 @@ class blog implements Interfaces\Api
             }
         }
 
+        
+        if (isset($_POST['time_created'])) {
+            try {
+                $timeCreatedDelegate = new Core\Blogs\Delegates\TimeCreatedDelegate();
+
+                if ($editing) {
+                    $timeCreatedDelegate->onUpdate($blog, $_POST['time_created'], time());
+                } else {
+                    $timeCreatedDelegate->onAdd($blog, $_POST['time_created'], time());
+                }
+            } catch (\Exception $e) {
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        if (!$blog->isPublished()) {
+            $blog->setAccessId(Access::UNLISTED);
+            $blog->setDraftAccessId($_POST['access_id']);
+        } elseif ($blog->getTimePublished() == '') {
+            $blog->setTimePublished($blog->getTimeCreated() ?: time());
+        }
+
         if (!$blog->canEdit()) {
             return Factory::response([
                 'status' => 'error',
@@ -326,14 +345,20 @@ class blog implements Interfaces\Api
         }
 
         if ($saved && is_uploaded_file($_FILES['file']['tmp_name'])) {
-
             /** @var Core\Media\Imagick\Manager $manager */
             $manager = Core\Di\Di::_()->get('Media\Imagick\Manager');
 
-            $manager->setImage($_FILES['file']['tmp_name'])
-                ->resize(2000, 1000);
+            try {
+                $manager->setImage($_FILES['file']['tmp_name'])
+                    ->resize(2000, 1000);
 
-            $header->write($blog, $manager->getJpeg(), isset($_POST['header_top']) ? (int) $_POST['header_top'] : 0);
+                $header->write($blog, $manager->getJpeg(), isset($_POST['header_top']) ? (int)$_POST['header_top'] : 0);
+            } catch (\ImagickException $e) {
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => 'Invalid image file',
+                ]);
+            }
         }
 
         if ($saved) {

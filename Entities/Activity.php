@@ -3,6 +3,7 @@ namespace Minds\Entities;
 
 use Minds\Helpers;
 use Minds\Core;
+use Minds\Core\Di\Di;
 use Minds\Core\Queue;
 use Minds\Core\Analytics;
 
@@ -39,6 +40,7 @@ class Activity extends Entity
             'pending' => false,
             'rating' => 2, //open by default
             'ephemeral' => false,
+            'time_sent' => null,
             //	'node' => elgg_get_site_url()
         ]);
     }
@@ -218,6 +220,7 @@ class Activity extends Entity
                 'ephemeral',
                 'hide_impressions',
                 'pinned',
+                'time_sent',
             ]);
     }
 
@@ -274,10 +277,13 @@ class Activity extends Entity
         $export['rating'] = $this->getRating();
         $export['ephemeral'] = $this->getEphemeral();
         $export['ownerObj'] = $this->getOwnerObj();
+        $export['time_sent'] = $this->getTimeSent();
 
         if ($this->hide_impressions) {
             $export['hide_impressions'] = $this->hide_impressions;
         }
+
+        $export['thumbnails'] = $this->getThumbnails();
 
         switch ($this->custom_type) {
             case 'video':
@@ -289,7 +295,11 @@ class Activity extends Entity
                 // fix old images src
                 if (is_array($export['custom_data']) && strpos($export['custom_data'][0]['src'], '/wall/attachment') !== false) {
                     $export['custom_data'][0]['src'] = Core\Config::_()->cdn_url . 'fs/v1/thumbnail/' . $this->entity_guid;
+                    $this->custom_data[0]['src'] = $export['custom_data'][0]['src'];
                 }
+                // go directly to cdn
+                $mediaManager = Di::_()->get('Media\Image\Manager');
+                $export['custom_data'][0]['src'] = $export['thumbnails']['xlarge'];
                 break;
         }
 
@@ -721,11 +731,51 @@ class Activity extends Entity
     }
 
     /**
+     * Return thumbnails array to be used with export
+     * @return array
+     */
+    public function getThumbnails(): array
+    {
+        $thumbnails = [];
+        switch ($this->custom_type) {
+            case 'video':
+                break;
+            case 'batch':
+                $mediaManager = Di::_()->get('Media\Image\Manager');
+                $sizes = [ 'xlarge', 'large' ];
+                foreach ($sizes as $size) {
+                    $thumbnails[$size] = $mediaManager->getPublicAssetUri($this, $size);
+                }
+                break;
+        }
+        return $thumbnails;
+    }
+
+    /**
      * Return a preferred urn
      * @return string
      */
     public function getUrn()
     {
         return "urn:activity:{$this->getGuid()}";
+    }
+
+    /**
+    * Return time_sent
+    * @return int
+    */
+    public function getTimeSent()
+    {
+        return $this->time_sent;
+    }
+
+    /**
+     * Set time_sent
+     * @return Activity
+     */
+    public function setTimeSent($time_sent)
+    {
+        $this->time_sent = $time_sent;
+        return $this;
     }
 }

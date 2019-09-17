@@ -8,6 +8,7 @@ namespace Minds\Entities;
 
 use Minds\Core;
 use Minds\Core\Media\Services\Factory as ServiceFactory;
+use Minds\Core\Di\Di;
 use cinemr;
 use Minds\Helpers;
 
@@ -23,6 +24,7 @@ class Video extends Object
         $this->attributes['subtype'] = "video";
         $this->attributes['boost_rejection_reason'] = -1;
         $this->attributes['rating'] = 2;
+        $this->attributes['time_sent'] = null;
     }
 
 
@@ -38,8 +40,8 @@ class Video extends Object
      */
     public function getSourceUrl($transcode = '720.mp4')
     {
-        $url = Core\Config::_()->cinemr_url . $this->cinemr_guid . '/' . $transcode;
-        return $url;
+        $mediaManager = Di::_()->get('Media\Video\Manager');
+        return $mediaManager->getPublicAssetUri($this, $transcode);
     }
 
     /**
@@ -61,13 +63,16 @@ class Video extends Object
 
     public function getIconUrl($size = "medium")
     {
-        $domain = elgg_get_site_url();
-        global $CONFIG;
-        if (isset($CONFIG->cdn_url) && !$this->getFlag('paywall') && !$this->getWireThreshold()) {
-            $domain = $CONFIG->cdn_url;
-        }
+        // $domain = elgg_get_site_url();
+        // global $CONFIG;
+        // if (isset($CONFIG->cdn_url) && !$this->getFlag('paywall') && !$this->getWireThreshold()) {
+        //     $domain = $CONFIG->cdn_url;
+        // }
 
-        return $domain . 'api/v1/media/thumbnails/' . $this->guid . '/' . $this->time_updated;
+        // return $domain . 'api/v1/media/thumbnails/' . $this->guid . '/' . $this->time_updated;
+
+        $mediaManager = Di::_()->get('Media\Image\Manager');
+        return $mediaManager->getPublicAssetUri($this, 'medium');
     }
 
     public function getURL()
@@ -112,7 +117,8 @@ class Video extends Object
             'license',
             'monetized',
             'mature',
-            'boost_rejection_reason'
+            'boost_rejection_reason',
+            'time_sent',
         ]);
     }
 
@@ -143,6 +149,7 @@ class Video extends Object
         $export['thumbs:down:count'] = Helpers\Counters::get($this->guid, 'thumbs:down');
         $export['description'] = (new Core\Security\XSS())->clean($this->description); //videos need to be able to export html.. sanitize soon!
         $export['rating'] = $this->getRating();
+        $export['time_sent'] = $this->getTimeSent();
 
         if (!Helpers\Flags::shouldDiscloseStatus($this) && isset($export['flags']['spam'])) {
             unset($export['flags']['spam']);
@@ -185,6 +192,7 @@ class Video extends Object
             'access_id' => null,
             'container_guid' => null,
             'rating' => 2, //open by default
+            'time_sent' => time(),
         ], $data);
 
         $allowed = [
@@ -197,6 +205,7 @@ class Video extends Object
             'mature',
             'boost_rejection_reason',
             'rating',
+            'time_sent'
         ];
 
         foreach ($allowed as $field) {
@@ -263,5 +272,24 @@ class Video extends Object
     public function getUrn()
     {
         return "urn:video:{$this->getGuid()}";
+    }
+
+    /**
+     * Return time_sent
+     * @return int
+     */
+    public function getTimeSent()
+    {
+        return $this->time_sent;
+    }
+
+    /**
+     * Set time_sent
+     * @return Image
+     */
+    public function setTimeSent($time_sent)
+    {
+        $this->time_sent = $time_sent;
+        return $this;
     }
 }

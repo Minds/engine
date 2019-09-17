@@ -21,7 +21,14 @@ class connect implements Interfaces\Api
 
         $connectManager = new Stripe\Connect\Manager();
 
-        $account = $connectManager->getByUser($user);
+        try {
+            $account = $connectManager->getByUser($user);
+        } catch (\Exception $e) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'There was an error returning the usd account',
+            ]);
+        }
 
         return Factory::response([
             'account' => $account->export(),

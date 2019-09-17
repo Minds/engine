@@ -55,6 +55,7 @@ class ElasticRepository
             'uuid' => $view->getUuid(),
             '@timestamp' => $view->getTimestamp() * 1000,
             'entity_urn' => $view->getEntityUrn(),
+            'owner_guid' => $view->getOwnerGuid(),
             'page_token' => $view->getPageToken(),
             'campaign' => $view->getCampaign(),
             'delta' => (int) $view->getDelta(),

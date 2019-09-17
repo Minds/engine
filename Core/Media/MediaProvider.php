@@ -12,6 +12,12 @@ class MediaProvider extends Provider
 {
     public function register()
     {
+        $this->di->bind('Media\Image\Manager', function ($di) {
+            return new Image\Manager();
+        }, ['useFactory' => true]);
+        $this->di->bind('Media\Video\Manager', function ($di) {
+            return new Video\Manager();
+        }, ['useFactory' => true]);
         $this->di->bind('Media\Albums', function ($di) {
             return new Albums(new Core\Data\Call('entities_by_time'));
         }, ['useFactory' => true]);
