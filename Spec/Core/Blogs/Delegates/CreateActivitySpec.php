@@ -80,6 +80,10 @@ class CreateActivitySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(1000);
 
+        $blog->getTimeCreated()
+            ->shouldBeCalled()
+            ->willReturn(9999);
+
         $this->db->getRow("activity:entitylink:9999")
             ->shouldBeCalled()
             ->willReturn([]);
@@ -97,10 +101,14 @@ class CreateActivitySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_not_save_when_previous_activity(
+    public function it_should_save_when_previous_activity(
         Blog $blog
     ) {
         $blog->getGuid()
+            ->shouldBeCalled()
+            ->willReturn(9999);
+
+        $blog->getTimeCreated()
             ->shouldBeCalled()
             ->willReturn(9999);
 
@@ -108,8 +116,16 @@ class CreateActivitySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(['activity1']);
 
+        $this->saveAction->setEntity(Argument::type(Activity::class))
+        ->shouldBeCalled()
+        ->willReturn($this->saveAction);
+
+        $this->saveAction->save()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this
             ->save($blog)
-            ->shouldReturn(false);
+            ->shouldReturn(true);
     }
 }

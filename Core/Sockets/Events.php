@@ -4,15 +4,22 @@
  */
 namespace Minds\Core\Sockets;
 
+use Minds\Core\Data\PubSub;
 use Minds\Core\Di\Di;
 use Minds\Core\Config;
 use Minds\Entities\User;
 
 class Events
 {
+    /**
+     * @var PubSub\Redis\Client
+     */
     private $redis;
+    /**
+     * @var MsgPack
+     */
     private $msgpack;
-    private $prefix = 'socket.io';
+    private $prefix = 'socket.io#';
     private $rooms = [];
     private $flags = [];
 
@@ -25,7 +32,6 @@ class Events
     {
         $this->redis = $redis ?: Di::_()->get('PubSub\Redis');
         $this->msgpack = $msgpack ?: new MsgPack();
-        $this->prefix = (isset($config['socket-prefix']) ? $config['socket-prefix'] : 'socket.io') . '#';
     }
 
     public function emit(/*$event, ...$data*/)
@@ -82,7 +88,7 @@ class Events
             $packed = str_replace(pack('c', 0xdb), pack('c', 0xd9), $packed);
         }
 
-        // Publish
+        // Publish - TODO: Log + track possible Redis failures if false is returned
         $this->redis->publish($this->prefix . $packet['nsp'] . '#', $packed);
 
         // Reset

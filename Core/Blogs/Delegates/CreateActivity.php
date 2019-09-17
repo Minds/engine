@@ -41,7 +41,14 @@ class CreateActivity
     {
         $activities = $this->db->getRow("activity:entitylink:{$blog->getGuid()}");
         if (!empty($activities)) {
-            return false;
+            foreach ($activities as $guid) {
+                $activity = new Activity($guid);
+                $activity->setTimeCreated($blog->getTimeCreated());
+                $this->saveAction
+                ->setEntity($activity)
+                ->save();
+            }
+            return true;
         }
 
         $owner = $blog->getOwnerEntity();
@@ -60,6 +67,7 @@ class CreateActivity
         $activity->container_guid = $owner->guid;
         $activity->owner_guid = $owner->guid;
         $activity->ownerObj = $owner->export();
+        $activity->setTimeCreated($blog->getTimeCreated());
 
         $this->saveAction
             ->setEntity($activity)

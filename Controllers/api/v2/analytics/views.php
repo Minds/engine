@@ -53,6 +53,7 @@ class views implements Interfaces\Api
                     $viewsManager->record(
                         (new Core\Analytics\Views\View())
                             ->setEntityUrn($boost->getEntity()->getUrn())
+                            ->setOwnerGuid((string) $boost->getEntity()->getOwnerGuid())
                             ->setClientMeta($_POST['client_meta'] ?? [])
                     );
                 } catch (\Exception $e) {
@@ -105,6 +106,7 @@ class views implements Interfaces\Api
                     $viewsManager->record(
                         (new Core\Analytics\Views\View())
                             ->setEntityUrn($activity->getUrn())
+                            ->setOwnerGuid((string) $activity->getOwnerGuid())
                             ->setClientMeta($_POST['client_meta'] ?? [])
                     );
                 } catch (\Exception $e) {
