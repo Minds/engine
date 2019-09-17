@@ -141,6 +141,7 @@ class blog implements Interfaces\Api
                         !$blog ||
                         Helpers\Flags::shouldFail($blog) ||
                         !Core\Security\ACL::_()->read($blog)
+                        || ($blog->getTimeCreated() > time() && !$blog->canEdit())
                     ) {
                         break;
                     }
@@ -245,13 +246,6 @@ class blog implements Interfaces\Api
             }
         }
 
-        if (!$blog->isPublished()) {
-            $blog->setAccessId(Access::UNLISTED);
-            $blog->setDraftAccessId($_POST['access_id']);
-        } elseif ($blog->getTimePublished() == '') {
-            $blog->setTimePublished(time());
-        }
-
         $blog->setLastSave(time());
 
         if (isset($_POST['wire_threshold'])) {
@@ -296,6 +290,31 @@ class blog implements Interfaces\Api
                 $user->setMatureContent(true);
                 $user->save();
             }
+        }
+
+        
+        if (isset($_POST['time_created'])) {
+            try {
+                $timeCreatedDelegate = new Core\Blogs\Delegates\TimeCreatedDelegate();
+
+                if ($editing) {
+                    $timeCreatedDelegate->onUpdate($blog, $_POST['time_created'], time());
+                } else {
+                    $timeCreatedDelegate->onAdd($blog, $_POST['time_created'], time());
+                }
+            } catch (\Exception $e) {
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        if (!$blog->isPublished()) {
+            $blog->setAccessId(Access::UNLISTED);
+            $blog->setDraftAccessId($_POST['access_id']);
+        } elseif ($blog->getTimePublished() == '') {
+            $blog->setTimePublished($blog->getTimeCreated() ?: time());
         }
 
         if (!$blog->canEdit()) {
