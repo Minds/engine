@@ -73,11 +73,15 @@ class TraefikDynamoDb implements EdgeRouterInterface
             'frontend' => [
                 'backend' => 'minds-pro',
                 'routes' => [
-                    'pro' => [
+                    'pro-domain' => [
                         'rule' => "Host: {$domain}"
                     ]
-                ]
-            ]
+                ],
+                'headers' => [
+                    'SSLRedirect' => true,
+                ],
+                'passHostHeader' => true,
+            ],
         ]));
 
         try {
