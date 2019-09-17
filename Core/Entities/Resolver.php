@@ -12,6 +12,7 @@ use Minds\Core\Entities\Delegates\BoostGuidResolverDelegate;
 use Minds\Core\Entities\Delegates\CommentGuidResolverDelegate;
 use Minds\Core\Entities\Delegates\EntityGuidResolverDelegate;
 use Minds\Core\Entities\Delegates\ResolverDelegate;
+use Minds\Core\Entities\Delegates\FilterEntitiesDelegate;
 use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 
@@ -128,11 +129,8 @@ class Resolver
         });
 
         // Filter out forbidden entities
-
-        $sorted = array_filter($sorted, function ($entity) {
-            return $this->acl->read($entity, $this->user);
-            //&& !Flags::shouldFail($entity);
-        });
+        $filterDelegate = new FilterEntitiesDelegate($this->user, time(), $this->acl);
+        $sorted = $filterDelegate->filter($sorted);
 
         //
 
