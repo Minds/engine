@@ -24,6 +24,7 @@ class Video extends Object
         $this->attributes['subtype'] = "video";
         $this->attributes['boost_rejection_reason'] = -1;
         $this->attributes['rating'] = 2;
+        $this->attributes['time_sent'] = null;
     }
 
 
@@ -116,7 +117,8 @@ class Video extends Object
             'license',
             'monetized',
             'mature',
-            'boost_rejection_reason'
+            'boost_rejection_reason',
+            'time_sent',
         ]);
     }
 
@@ -147,6 +149,7 @@ class Video extends Object
         $export['thumbs:down:count'] = Helpers\Counters::get($this->guid, 'thumbs:down');
         $export['description'] = (new Core\Security\XSS())->clean($this->description); //videos need to be able to export html.. sanitize soon!
         $export['rating'] = $this->getRating();
+        $export['time_sent'] = $this->getTimeSent();
 
         if (!Helpers\Flags::shouldDiscloseStatus($this) && isset($export['flags']['spam'])) {
             unset($export['flags']['spam']);
@@ -189,6 +192,7 @@ class Video extends Object
             'access_id' => null,
             'container_guid' => null,
             'rating' => 2, //open by default
+            'time_sent' => time(),
         ], $data);
 
         $allowed = [
@@ -201,6 +205,7 @@ class Video extends Object
             'mature',
             'boost_rejection_reason',
             'rating',
+            'time_sent'
         ];
 
         foreach ($allowed as $field) {
@@ -267,5 +272,24 @@ class Video extends Object
     public function getUrn()
     {
         return "urn:video:{$this->getGuid()}";
+    }
+
+    /**
+     * Return time_sent
+     * @return int
+     */
+    public function getTimeSent()
+    {
+        return $this->time_sent;
+    }
+
+    /**
+     * Set time_sent
+     * @return Image
+     */
+    public function setTimeSent($time_sent)
+    {
+        $this->time_sent = $time_sent;
+        return $this;
     }
 }

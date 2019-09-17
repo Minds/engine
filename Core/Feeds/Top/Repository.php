@@ -53,6 +53,7 @@ class Repository
             'exclude_moderated' => false,
             'moderation_reservations' => null,
             'pinned_guids' => null,
+            'time_created_upper' => time(),
             'exclude' => null,
         ], $opts);
 
@@ -256,6 +257,20 @@ class Repository
                 ],
             ];
         }
+
+        // Filter by time created to cut out scheduled feeds
+        $time_created_upper = $opts['time_created_upper'] ? 'lte' : 'gt';
+        if (!isset($body['query']['function_score']['query']['bool']['must'])) {
+            $body['query']['function_score']['query']['bool']['must'] = [];
+        }
+
+        $body['query']['function_score']['query']['bool']['must'][] = [
+            'range' => [
+                '@timestamp' => [
+                    $time_created_upper => ((int) ($opts['time_created_upper'] ?: time())) * 1000,
+                ],
+            ],
+        ];
 
         //
         if ($opts['query']) {

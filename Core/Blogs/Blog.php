@@ -95,6 +95,8 @@ use Minds\Traits\MagicAttributes;
  * @method int getTimeModerated()
  * @method Blog setAllowComments(bool $allowComments)
  * @method bool getAllowComments()
+ * @method int getTimeSent()
+ * @method Blog setTimeSent(int $time_sent)
  */
 class Blog extends RepositoryEntity
 {
@@ -239,6 +241,9 @@ class Blog extends RepositoryEntity
 
     /** @var bool */
     protected $allowComments = true;
+
+    /** @var int */
+    protected $timeSent;
 
     /**
      * Blog constructor.
@@ -582,6 +587,7 @@ class Blog extends RepositoryEntity
             'nsfw',
             'nsfw_lock',
             'allow_comments',
+            'time_sent',
             function ($export) {
                 return $this->_extendExport($export);
             }
@@ -609,6 +615,7 @@ class Blog extends RepositoryEntity
         $output['nsfw'] = $this->getNsfw();
         $output['nsfw_lock'] = $this->getNsfwLock();
         $output['allow_comments'] = $this->getAllowComments();
+        $output['time_sent'] = $this->getTimeSent();
         $output['header_bg'] = $export['has_header_bg'];
 
         if (!$this->isEphemeral()) {

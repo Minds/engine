@@ -40,6 +40,7 @@ class Activity extends Entity
             'pending' => false,
             'rating' => 2, //open by default
             'ephemeral' => false,
+            'time_sent' => null,
             //	'node' => elgg_get_site_url()
         ]);
     }
@@ -219,6 +220,7 @@ class Activity extends Entity
                 'ephemeral',
                 'hide_impressions',
                 'pinned',
+                'time_sent',
             ]);
     }
 
@@ -275,6 +277,7 @@ class Activity extends Entity
         $export['rating'] = $this->getRating();
         $export['ephemeral'] = $this->getEphemeral();
         $export['ownerObj'] = $this->getOwnerObj();
+        $export['time_sent'] = $this->getTimeSent();
 
         if ($this->hide_impressions) {
             $export['hide_impressions'] = $this->hide_impressions;
@@ -755,5 +758,24 @@ class Activity extends Entity
     public function getUrn()
     {
         return "urn:activity:{$this->getGuid()}";
+    }
+
+    /**
+    * Return time_sent
+    * @return int
+    */
+    public function getTimeSent()
+    {
+        return $this->time_sent;
+    }
+
+    /**
+     * Set time_sent
+     * @return Activity
+     */
+    public function setTimeSent($time_sent)
+    {
+        $this->time_sent = $time_sent;
+        return $this;
     }
 }
