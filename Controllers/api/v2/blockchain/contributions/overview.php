@@ -35,6 +35,14 @@ class overview implements Interfaces\Api
                 return $value * $rewardFactor;
             }, Contributions\ContributionValues::$multipliers);
 
+            $rewardFactors = [];
+            foreach (RewardFactor::$values as $userState => $value) {
+                $rewardFactors[] = [
+                    'userState' => $userState,
+                    'rewardFactor' => $value
+                ];
+            }
+
             $response = [
                 'nextPayout' => $overview->getNextPayout(),
                 'currentReward' => $overview->getCurrentReward(),
@@ -43,7 +51,7 @@ class overview implements Interfaces\Api
                 'yourShare' => $overview->getYourShare(),
                 'yourRewardFactor' => $overview->getYourRewardFactor(),
                 'contributionValues' => $contributionValues,
-                'rewardFactors' => RewardFactor::$values
+                'rewardFactors' => $rewardFactors
             ];
             return Factory::response($response);
         }
