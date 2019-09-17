@@ -170,6 +170,7 @@ class Events
             'xn--90aizihgi.xn--p1ai',
             'tinyurl.com',
             'bit.ly',
+            'bit.do',
             '123football.space',
             'bitly.com',
             'j.mp',
