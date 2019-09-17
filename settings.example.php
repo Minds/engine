@@ -574,4 +574,7 @@ $CONFIG->set('gitlab', [
     'private_key' => ''
 ]);
 
-$CONFIG->set('root_domains', [ 'minds.com', 'www.minds.com', 'localhost' ]);
+$CONFIG->set('pro', [
+    'root_domains' => ['minds.com', 'www.minds.com', 'localhost'],
+    'subdomain_prefix' => 'minds.com',
+]);

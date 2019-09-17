@@ -16,14 +16,20 @@ class InitializeSettingsDelegate
     /** @var Repository */
     protected $repository;
 
+    /** @var SetupRoutingDelegate */
+    protected $setupRoutingDelegate;
+
     /**
      * InitializeSettingsDelegate constructor.
      * @param Repository $repository
+     * @param SetupRoutingDelegate $setupRoutingDelegate
      */
     public function __construct(
-        $repository = null
+        $repository = null,
+        $setupRoutingDelegate = null
     ) {
         $this->repository = $repository ?: new Repository();
+        $this->setupRoutingDelegate = $setupRoutingDelegate ?: new SetupRoutingDelegate();
     }
 
     /**
@@ -43,13 +49,12 @@ class InitializeSettingsDelegate
                 ->setUserGuid($user->guid);
         }
 
-        if (!$settings->getDomain()) {
-            $settings->setDomain("pro-{$user->guid}.minds.com");
-        }
-
         if (!$settings->getTitle()) {
             $settings->setTitle($user->name ?: $user->username);
         }
+
+        $this->setupRoutingDelegate
+            ->onUpdate($settings);
 
         $this->repository
             ->add($settings);

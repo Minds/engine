@@ -38,7 +38,7 @@ class Domain
      */
     public function lookup(string $domain)
     {
-        $rootDomains = $this->config->get('root_domains') ?: [];
+        $rootDomains = $this->config->get('pro')['root_domains'] ?? [];
 
         if (in_array(strtolower($domain), $rootDomains, true)) {
             return null;

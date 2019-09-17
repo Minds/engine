@@ -21,11 +21,17 @@ class Manager
     /** @var Save */
     protected $saveAction;
 
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
     /** @var Delegates\InitializeSettingsDelegate */
     protected $initializeSettingsDelegate;
 
     /** @var Delegates\HydrateSettingsDelegate */
     protected $hydrateSettingsDelegate;
+
+    /** @var Delegates\SetupRoutingDelegate */
+    protected $setupRoutingDelegate;
 
     /** @var User */
     protected $user;
@@ -33,29 +39,29 @@ class Manager
     /** @var User */
     protected $actor;
 
-    /** @var EntitiesBuilder */
-    protected $entitiesBuilder;
-
     /**
      * Manager constructor.
      * @param Repository $repository
      * @param Save $saveAction
+     * @param EntitiesBuilder $entitiesBuilder
      * @param Delegates\InitializeSettingsDelegate $initializeSettingsDelegate
      * @param Delegates\HydrateSettingsDelegate $hydrateSettingsDelegate
-     * @param EntitiesBuilder $entitiesBuilder
+     * @param Delegates\SetupRoutingDelegate $setupRoutingDelegate
      */
     public function __construct(
         $repository = null,
         $saveAction = null,
+        $entitiesBuilder = null,
         $initializeSettingsDelegate = null,
         $hydrateSettingsDelegate = null,
-        $entitiesBuilder = null
+        $setupRoutingDelegate = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->saveAction = $saveAction ?: new Save();
+        $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->initializeSettingsDelegate = $initializeSettingsDelegate ?: new Delegates\InitializeSettingsDelegate();
         $this->hydrateSettingsDelegate = $hydrateSettingsDelegate ?: new Delegates\HydrateSettingsDelegate();
-        $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
+        $this->setupRoutingDelegate = $setupRoutingDelegate ?: new Delegates\SetupRoutingDelegate();
     }
 
     /**
@@ -315,6 +321,9 @@ class Manager
             $settings
                 ->setCustomHead($values['custom_head']);
         }
+
+        $this->setupRoutingDelegate
+            ->onUpdate($settings);
 
         return $this->repository->update($settings);
     }
