@@ -123,11 +123,12 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
                 //TODO: move Core/Subscriptions/Delegates
                 $event = new Core\Analytics\Metrics\Event();
-                $event->setType('action')
+                $event
+                    ->setType('action')
                     ->setAction('subscribe')
                     ->setProduct('platform')
-                    ->setUserGuid((string) Core\Session::getLoggedInUser()->guid)
-                    ->setUserPhoneNumberHash(Core\Session::getLoggedInUser()->getPhoneNumberHash())
+                    ->setUserGuid((string) $user->guid)
+                    ->setUserPhoneNumberHash($user->getPhoneNumberHash())
                     ->setEntityGuid((string) $from)
                     ->push();
             }
