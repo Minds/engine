@@ -24,16 +24,20 @@ class TraefikDynamoDb implements EdgeRouterInterface
     /**
      * TraefikDynamoDb constructor.
      * @param Config $config
+     * @param DynamoDbClient $dynamoDb
      */
     public function __construct(
-        $config = null
+        $config = null,
+        $dynamoDb = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
+        $this->dynamoDb = $dynamoDb;
     }
 
     public function initialize(): EdgeRouterInterface
     {
         $awsConfig = $this->config->get('aws');
+
         $opts = [
             'region' => $awsConfig['region']
         ];
@@ -64,7 +68,7 @@ class TraefikDynamoDb implements EdgeRouterInterface
             return false;
         }
 
-        $userGuid = $settings->getUserGuid();
+        $userGuid = (string) $settings->getUserGuid();
 
         $marshaler = new Marshaler();
         $entry = $marshaler->marshalJson(json_encode([
