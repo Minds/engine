@@ -170,6 +170,11 @@ class Manager
      */
     public function isBoostLimitExceededBy($boost)
     {
+        //onchain boosts allowed
+        if ($boost->isOnChain()) {
+            return false;
+        }
+
         //get offchain boosts
         $offchain = $this->getOffchainBoosts($boost);
         
