@@ -49,8 +49,6 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         $user = new Entities\User(strtolower($_POST['username']));
 
-        $from = $_POST['from'] ?? null;
-
         /** @var Core\Security\LoginAttempts $attempts */
         $attempts = Core\Di\Di::_()->get('Security\LoginAttempts');
 
@@ -111,27 +109,14 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         Di::_()->get('Features\Manager')
             ->setCanaryCookie($user->isCanary());
 
-        // auto-subscribe to channel
+        // Auto-subscribe to channel
+        $from = $_POST['from'] ?? null;
+
         if ($from) {
-            $targetChannel = new Entities\User($from);
-
-            $manager = (new Subscriptions\Manager())
-                ->setSubscriber($user);
-
-            if (!$manager->isSubscribed($targetChannel)) {
-                $manager->subscribe($targetChannel);
-
-                //TODO: move Core/Subscriptions/Delegates
-                $event = new Core\Analytics\Metrics\Event();
-                $event
-                    ->setType('action')
-                    ->setAction('subscribe')
-                    ->setProduct('platform')
-                    ->setUserGuid((string) $user->guid)
-                    ->setUserPhoneNumberHash($user->getPhoneNumberHash())
-                    ->setEntityGuid((string) $from)
-                    ->push();
-            }
+            Di::_()->get('Pro\Domain\Subscription')
+                ->setUser(new Entities\User($from))
+                ->setSubscriber($user)
+                ->subscribe();
         }
 
         $response['status'] = 'success';

@@ -11,6 +11,7 @@ namespace Minds\Controllers\api\v1;
 use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Entities\User;
 use Minds\Interfaces;
 
 class register implements Interfaces\Api, Interfaces\ApiIgnorePam
@@ -84,10 +85,6 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 'referrer' => isset($_COOKIE['referrer']) ? $_COOKIE['referrer'] : '',
             ];
 
-            if (isset($_POST['from'])) {
-                $params['from'] = (string) $_POST['from'];
-            }
-
             // TODO: Move full reguster flow to the core
             elgg_trigger_plugin_hook('register', 'user', $params, true);
             Core\Events\Dispatcher::trigger('register', 'user', $params);
@@ -97,6 +94,16 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             $sessions->setUser($user);
             $sessions->createSession();
             $sessions->save(); // Save to db and cookie
+
+            // Auto-subscribe to channel
+            $from = $_POST['from'] ?? null;
+
+            if ($from) {
+                Di::_()->get('Pro\Domain\Subscription')
+                    ->setUser(new User($from))
+                    ->setSubscriber($user)
+                    ->subscribe();
+            }
 
             $response = [
                 'guid' => $guid,
