@@ -34,38 +34,57 @@ class DomainSpec extends ObjectBehavior
         $this->shouldHaveType(Domain::class);
     }
 
-    public function it_should_lookup_for_a_domain(
-        Response $repositoryResponse,
+    public function it_should_lookup(
+        Response $getListResponse,
         Settings $settings
     ) {
-        $this->config->get('root_domains')
+        $this->config->get('pro')
             ->shouldBeCalled()
-            ->willReturn(['minds.com']);
+            ->willReturn([
+                'root_domains' => ['phpspec.test']
+            ]);
 
         $this->repository->getList([
-            'domain' => 'minds.test',
+            'domain' => 'phpspec-test.com'
         ])
             ->shouldBeCalled()
-            ->willReturn($repositoryResponse);
-        
-        $repositoryResponse->first()
+            ->willReturn($getListResponse);
+
+        $getListResponse->first()
             ->shouldBeCalled()
             ->willReturn($settings);
 
         $this
-            ->lookup('minds.test')
+            ->lookup('phpspec-test.com')
             ->shouldReturn($settings);
     }
 
-    public function it_should_get_an_icon(
-        Settings $settings,
-        User $user
-    ) {
-        $user->getIconURL('large')
+    public function it_should_not_lookup_if_root_domain()
+    {
+        $this->config->get('pro')
             ->shouldBeCalled()
-            ->willReturn('/1000/large');
+            ->willReturn([
+                'root_domains' => ['phpspec.test']
+            ]);
 
-        $this->getIcon($settings, $user)
-            ->shouldReturn('/1000/large');
+        $this->repository->getList(Argument::cetera())
+            ->shouldNotBeCalled();
+
+        $this
+            ->lookup('phpspec.test')
+            ->shouldReturn(null);
+    }
+
+    public function it_should_get_icon(
+        Settings $settings,
+        User $owner
+    ) {
+        $owner->getIconURL(Argument::type('string'))
+            ->shouldBeCalled()
+            ->willReturn('http://phpspec/icon');
+
+        $this
+            ->getIcon($settings, $owner)
+            ->shouldReturn('http://phpspec/icon');
     }
 }

@@ -38,7 +38,7 @@ class SetupRoutingDelegate
         $userGuid = $settings->getUserGuid();
 
         if (!$settings->getDomain()) {
-            $settings->setDomain(sprintf("pro-%s.%s", $userGuid, $this->config->get('pro')['subdomain_prefix'] ?? 'minds.com'));
+            $settings->setDomain(sprintf("pro-%s.%s", $userGuid, $this->config->get('pro')['subdomain_suffix'] ?? 'minds.com'));
         }
 
         $success = $this->edgeRouter
@@ -46,7 +46,8 @@ class SetupRoutingDelegate
             ->putEndpoint($settings);
 
         if (!$success) {
-            // TODO: Issue a warning based on $success
+            error_log("[MindsPro] Cannot setup endpoint.");
+            // TODO: Implement user-facing warning
         }
     }
 }

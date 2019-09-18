@@ -44,15 +44,14 @@ class Domain
             return null;
         }
 
-        $settings = $this->repository->getList([
+        return $this->repository->getList([
             'domain' => $domain,
         ])->first();
-
-        return $settings;
     }
 
     /**
      * @param Settings $settings
+     * @param User|null $owner
      * @return string
      * @throws Exception
      */
