@@ -83,6 +83,9 @@ class TraefikDynamoDb implements EdgeRouterInterface
                 ],
                 'headers' => [
                     'SSLRedirect' => true,
+                    'customrequestheaders' => [
+                        'X-Minds-Pro' => '1',
+                    ],
                 ],
                 'passHostHeader' => true,
             ],
