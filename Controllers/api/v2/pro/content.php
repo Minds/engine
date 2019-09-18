@@ -220,5 +220,4 @@ class content implements Interfaces\Api
     {
         return Factory::response([]);
     }
-
 }
