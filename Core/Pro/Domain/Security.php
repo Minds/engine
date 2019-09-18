@@ -54,18 +54,14 @@ class Security
     public function setUp($domain)
     {
         $nonce = $this->jwt->randomString();
-        $now = time();
-        $exp = $now + 60;
+        $nbf = time();
+        $exp = $nbf + 60;
 
         $jwt = $this->jwt
             ->setKey($this->getEncryptionKey())
             ->encode([
-                'iss' => 'minds.com',
-                'aud' => strtolower($domain),
-                'nbf' => $now,
-                'exp' => $exp,
                 'nonce' => $nonce,
-            ]);
+            ], $exp, $nbf);
 
         $this->cookie
             ->setName(static::JWT_COOKIE_NAME)
@@ -102,18 +98,19 @@ class Security
                 ->setKey($this->getEncryptionKey())
                 ->decode($jwt);
 
-            if (($_COOKIE[static::XSRF_COOKIE_NAME] ?? null) === $data->nonce) {
+            if (($_COOKIE[static::XSRF_COOKIE_NAME] ?? null) === $data['nonce']) {
                 return;
             }
 
             $this->cookie
                 ->setName(static::XSRF_COOKIE_NAME)
-                ->setValue($data->nonce)
+                ->setValue($data['nonce'])
                 ->setExpire(0)
                 ->setPath('/')
                 ->setHttpOnly(false)
                 ->create();
         } catch (Exception $e) {
+            // Invalid or expired JWT
         }
     }
 

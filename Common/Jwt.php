@@ -7,7 +7,10 @@
 namespace Minds\Common;
 
 use Exception;
-use Firebase\JWT\JWT as FirebaseJWT;
+use Lcobucci\JWT\Builder;
+use Lcobucci\JWT\Claim;
+use Lcobucci\JWT\Parser;
+use Lcobucci\JWT\Signer\Hmac\Sha256;
 
 class Jwt
 {
@@ -26,21 +29,39 @@ class Jwt
 
     /**
      * @param object|array $payload
+     * @param int|null $exp
+     * @param int|null $nbf
      * @return string
      * @throws Exception
      */
-    public function encode($payload)
+    public function encode($payload, $exp = null, $nbf = null)
     {
         if (!$this->key) {
             throw new Exception('Invalid JWT key');
         }
 
-        return FirebaseJWT::encode($payload, $this->key, 'HS256');
+        $builder = new Builder();
+
+        foreach ($payload as $key => $value) {
+            $builder->set($key, $value);
+        }
+
+        if ($exp !== null) {
+            $builder->setExpiration($exp);
+        }
+
+        if ($nbf !== null) {
+            $builder->setNotBefore($nbf);
+        }
+
+        $builder->sign(new Sha256(), $this->key);
+
+        return (string) $builder->getToken();
     }
 
     /**
      * @param string $jwt
-     * @return object
+     * @return array
      * @throws Exception
      */
     public function decode($jwt)
@@ -49,7 +70,15 @@ class Jwt
             throw new Exception('Invalid JWT key');
         }
 
-        return FirebaseJWT::decode($jwt, $this->key, ['HS256']);
+        $token = (new Parser())->parse($jwt);
+
+        if (!$token->verify(new Sha256(), $this->key)) {
+            throw new Exception('Invalid JWT');
+        }
+
+        return array_map(function (Claim $claim) {
+            return $claim->getValue();
+        }, $token->getClaims());
     }
 
     /**

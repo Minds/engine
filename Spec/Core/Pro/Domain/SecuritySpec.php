@@ -53,7 +53,7 @@ class SecuritySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->jwt);
 
-        $this->jwt->encode(Argument::type('array'))
+        $this->jwt->encode(Argument::type('array'), Argument::type('int'), Argument::type('int'))
             ->shouldBeCalled()
             ->willReturn('~encoded~');
 

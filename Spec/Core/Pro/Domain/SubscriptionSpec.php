@@ -22,7 +22,7 @@ class SubscriptionSpec extends ObjectBehavior
         $this->beConstructedWith($subscriptionsManager);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Subscription::class);
     }
@@ -30,8 +30,7 @@ class SubscriptionSpec extends ObjectBehavior
     public function it_should_subscribe(
         User $user,
         User $subscriber
-    )
-    {
+    ) {
         $this->subscriptionsManager->setSubscriber($subscriber)
             ->shouldBeCalled()
             ->willReturn($this->subscriptionsManager);

@@ -28,8 +28,7 @@ class Subscription
      */
     public function __construct(
         $subscriptionsManager = null
-    )
-    {
+    ) {
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Subscriptions\Manager');
     }
 
