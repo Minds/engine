@@ -67,6 +67,10 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 ]);
             }
 
+            if (!isset($_POST['parentId']) || !isset($_POST['previousUrl']) || !isset($_SERVER['HTTP_APP_VERSION'])) {
+                return Factory::response(['status'=>'error', 'message' => "Please refresh your browser or update you app. We don't recognise your platform."]);
+            }
+
             $user = register_user($_POST['username'], $_POST['password'], $_POST['username'], $_POST['email'], false);
             $guid = $user->guid;
 
