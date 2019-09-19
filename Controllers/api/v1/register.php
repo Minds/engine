@@ -70,10 +70,27 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             $user = register_user($_POST['username'], $_POST['password'], $_POST['username'], $_POST['email'], false);
             $guid = $user->guid;
 
+            // Hacky, move to service soon!
+            $hasSignupTags = false;
             if (isset($_COOKIE['mexp'])) {
                 $manager = Core\Di\Di::_()->get('Experiments\Manager');
                 $bucket = $manager->getBucketForExperiment('Homepage200619');
                 $user->expHomepage200619 = $bucket->getId();
+            }
+
+            if (isset($_POST['parentId'])) {
+                $user->signupParentId = (string) $_POST['parentId'];
+                $hasSignupTags = true;
+            }
+            if (isset($_POST['previousUrl'])) {
+                $user->signupPreviousUrl = (string) $_POST['previousUrl'];
+                $hasSignupTags = true;
+            }
+            if (isset($_SERVER['HTTP_APP_VERSION'])) {
+                $user->signupParentId = 'mobile-native';
+                $hasSignupTags = true;
+            }
+            if ($hasSignupTags) {
                 $user->save();
             }
 
