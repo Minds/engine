@@ -29,6 +29,13 @@ class connect implements Interfaces\Api
             ]);
         }
 
+        if (!$account) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Account not found',
+            ]);
+        }
+
         return Factory::response([
             'account' => $account->export(),
         ]);
