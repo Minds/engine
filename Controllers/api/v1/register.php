@@ -92,6 +92,8 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             }
             if ($hasSignupTags) {
                 $user->save();
+            } else {
+                return Factory::response(['status'=>'error', 'message' => "Please refresh your browser or update you app. We don't recognise your platform."]);
             }
 
             $params = [
