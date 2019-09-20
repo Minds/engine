@@ -83,10 +83,6 @@ class ActiveUsersIterator implements \Iterator
 
         /* Derive activity data from the ES results */
         foreach ($result['aggregations']['users']['buckets'] as $userActivityByDay) {
-            $userActivityBuckets = (new UserActivityBuckets())
-                ->setUserGuid($userActivityByDay['key'])
-                ->setReferenceDateMs($this->referenceDate * 1000);
-
             $days = [];
             foreach ($this->queryBuilder->buckets() as $bucketTime) {
                 $days[] = [
@@ -95,7 +91,15 @@ class ActiveUsersIterator implements \Iterator
                 ];
             }
 
-            $userActivityBuckets->setActiveDaysBuckets($days);
+            $userActivityBuckets = (new UserActivityBuckets())
+                ->setUserGuid($userActivityByDay['key'])
+                ->setReferenceDateMs($this->referenceDate * 1000)
+                ->setActiveDaysBuckets($days);
+
+            usort($days, function ($a, $b) {
+                return $a['reference_date'] <=> $b['reference_date'];
+            });
+
             $this->data[] = $userActivityBuckets;
         }
 
