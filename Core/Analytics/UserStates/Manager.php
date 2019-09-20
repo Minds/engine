@@ -77,8 +77,9 @@ class Manager
 
         $this->queue->setQueue('UserStateChanges');
         foreach ($this->userStateIterator as $userState) {
-            //Reindex with previous state
-            $this->index($userState);
+            if (!empty($userState->getPreviousState())) {
+                $this->index($userState);
+            }
 
             $payload = [
                 'user_state_change' => $userState->export()
