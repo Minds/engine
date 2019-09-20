@@ -48,9 +48,9 @@ class Manager
 
     /**
      * @param User $user
-     * @return $this
+     * @return Manager
      */
-    public function setUser(User $user)
+    public function setUser(User $user): Manager
     {
         $this->user = $user;
         return $this;
@@ -60,7 +60,7 @@ class Manager
      * @return array
      * @throws Exception
      */
-    public function getAllCategoriesContent()
+    public function getAllCategoriesContent(): array
     {
         if (!$this->user) {
             throw new Exception('No user set');

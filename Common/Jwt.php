@@ -21,7 +21,7 @@ class Jwt
      * @param string $key
      * @return Jwt
      */
-    public function setKey(string $key)
+    public function setKey(string $key): Jwt
     {
         $this->key = $key;
         return $this;
@@ -34,7 +34,7 @@ class Jwt
      * @return string
      * @throws Exception
      */
-    public function encode($payload, $exp = null, $nbf = null)
+    public function encode($payload, $exp = null, $nbf = null): string
     {
         if (!$this->key) {
             throw new Exception('Invalid JWT key');
@@ -64,7 +64,7 @@ class Jwt
      * @return array
      * @throws Exception
      */
-    public function decode($jwt)
+    public function decode($jwt): array
     {
         if (!$this->key) {
             throw new Exception('Invalid JWT key');
@@ -84,7 +84,7 @@ class Jwt
     /**
      * @return string
      */
-    public function randomString()
+    public function randomString(): string
     {
         $bytes = openssl_random_pseudo_bytes(128);
         return hash('sha512', $bytes);

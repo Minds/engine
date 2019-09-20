@@ -4,6 +4,7 @@ namespace Minds\Core;
 
 use Minds\Core\Di\Di;
 use Minds\Core\I18n\I18n;
+use Minds\Core\Router\Manager;
 use Minds\Helpers;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequestFactory;
@@ -34,6 +35,20 @@ class Router
       '/sitemaps' => '\\Minds\\Controllers\\sitemaps',
       '/checkout' => '\\Minds\\Controllers\\checkout',
     ];
+
+    /** @var Manager */
+    protected $manager;
+
+    /**
+     * Router constructor.
+     * @param Manager $manager
+     */
+    public function __construct(
+        $manager = null
+    ) {
+        /** @var Router\Manager $manager */
+        $this->manager = $manager ?: Di::_()->get('Router\Manager');
+    }
 
     /**
      * Route the pages
@@ -69,10 +84,8 @@ class Router
         $request = ServerRequestFactory::fromGlobals();
         $response = new JsonResponse([]);
 
-        /** @var Router\Manager $manager */
-        $manager = Di::_()->get('Router\Manager');
-
-        $result = $manager->handle($request, $response);
+        $result = $this->manager
+            ->handle($request, $response);
 
         if ($result === false) {
             return null;

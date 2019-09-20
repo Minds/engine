@@ -118,16 +118,6 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             $sessions->createSession();
             $sessions->save(); // Save to db and cookie
 
-            // Auto-subscribe to channel
-            $from = $_POST['from'] ?? null;
-
-            if ($from) {
-                Di::_()->get('Pro\Domain\Subscription')
-                    ->setUser(new User($from))
-                    ->setSubscriber($user)
-                    ->subscribe();
-            }
-
             $response = [
                 'guid' => $guid,
                 'user' => $user->export(),

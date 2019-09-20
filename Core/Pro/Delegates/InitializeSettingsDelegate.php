@@ -36,7 +36,7 @@ class InitializeSettingsDelegate
      * @param User $user
      * @throws Exception
      */
-    public function onEnable(User $user)
+    public function onEnable(User $user): void
     {
         /** @var Settings|null $settings */
         $settings = $this->repository

@@ -33,7 +33,10 @@ class SetupRoutingDelegate
         $this->edgeRouter = $edgeRouter ?: new TraefikDynamoDb();
     }
 
-    public function onUpdate(Settings $settings)
+    /**
+     * @param Settings $settings
+     */
+    public function onUpdate(Settings $settings): void
     {
         $userGuid = $settings->getUserGuid();
 

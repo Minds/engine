@@ -36,7 +36,7 @@ class Domain
      * @param string $domain
      * @return Settings|null
      */
-    public function lookup(string $domain)
+    public function lookup(string $domain): ?Settings
     {
         $rootDomains = $this->config->get('pro')['root_domains'] ?? [];
 
@@ -55,7 +55,7 @@ class Domain
      * @return string
      * @throws Exception
      */
-    public function getIcon(Settings $settings, User $owner = null)
+    public function getIcon(Settings $settings, User $owner = null): string
     {
         if (!$owner) {
             $owner = new User();

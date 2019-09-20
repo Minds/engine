@@ -40,7 +40,7 @@ class HydrateSettingsDelegate
      * @param Settings $settings
      * @return Settings
      */
-    public function onGet(User $user, Settings $settings)
+    public function onGet(User $user, Settings $settings): Settings
     {
         try {
             $logoImage = $settings->getLogoGuid() ? sprintf(

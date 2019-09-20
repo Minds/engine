@@ -57,10 +57,10 @@ class ProMiddleware implements RouterMiddleware
     /**
      * @param ServerRequest $request
      * @param JsonResponse $response
-     * @return false|null|void
+     * @return bool|null
      * @throws Exception
      */
-    public function onRequest(ServerRequest $request, JsonResponse &$response)
+    public function onRequest(ServerRequest $request, JsonResponse &$response): ?bool
     {
         $serverParams = $request->getServerParams() ?? [];
         $originalHost = $serverParams['HTTP_HOST'];
@@ -69,13 +69,13 @@ class ProMiddleware implements RouterMiddleware
         $host = parse_url($serverParams['HTTP_ORIGIN'] ?? '', PHP_URL_HOST) ?: $originalHost;
 
         if (!$host) {
-            return;
+            return null;
         }
 
         $settings = $this->domain->lookup($host);
 
         if (!$settings) {
-            return;
+            return null;
         }
 
         header(sprintf("Access-Control-Allow-Origin: %s://%s", $scheme, $host));
@@ -114,5 +114,7 @@ class ProMiddleware implements RouterMiddleware
             $this->domainSecurity
                 ->syncCookies($request);
         }
+
+        return null;
     }
 }

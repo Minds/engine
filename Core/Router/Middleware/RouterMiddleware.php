@@ -14,7 +14,7 @@ interface RouterMiddleware
     /**
      * @param ServerRequest $request
      * @param JsonResponse $response
-     * @return false|null
+     * @return bool|null
      */
-    public function onRequest(ServerRequest $request, JsonResponse &$response);
+    public function onRequest(ServerRequest $request, JsonResponse &$response): ?bool;
 }

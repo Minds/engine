@@ -51,16 +51,22 @@ class Settings implements JsonSerializable
 {
     use MagicAttributes;
 
+    /** @var string */
     const DEFAULT_TEXT_COLOR = '#000000';
 
+    /** @var string */
     const DEFAULT_PRIMARY_COLOR = '#4690df';
 
+    /** @var string */
     const DEFAULT_PLAIN_BACKGROUND_COLOR = '#ffffff';
 
+    /** @var string */
     const DEFAULT_TILE_RATIO = '16:9';
 
+    /** @var array */
     const TILE_RATIOS = ['16:9', '16:10', '4:3', '1:1'];
 
+    /** @var array */
     const COLOR_SCHEMES = ['light', 'dark'];
 
     /** @var int */
@@ -117,7 +123,7 @@ class Settings implements JsonSerializable
     /**
      * @return string
      */
-    public function getOneLineHeadline()
+    public function getOneLineHeadline(): string
     {
         return preg_replace("/\\r?\\n+/", ' ', $this->headline);
     }
@@ -125,7 +131,7 @@ class Settings implements JsonSerializable
     /**
      * @return array
      */
-    public function export()
+    public function export(): array
     {
         $textColor = $this->textColor ?: static::DEFAULT_TEXT_COLOR;
         $primaryColor = $this->primaryColor ?: static::DEFAULT_PRIMARY_COLOR;
@@ -158,7 +164,7 @@ class Settings implements JsonSerializable
     /**
      * @return array
      */
-    public function buildStyles()
+    public function buildStyles(): array
     {
         $textColor = $this->textColor ?: static::DEFAULT_TEXT_COLOR;
         $primaryColor = $this->primaryColor ?: static::DEFAULT_PRIMARY_COLOR;
@@ -178,7 +184,7 @@ class Settings implements JsonSerializable
     /**
      * @return float
      */
-    public function calcTileRatioPercentage()
+    public function calcTileRatioPercentage(): float
     {
         $ratioFragments = explode(':', $this->tileRatio ?: '16:9');
         $percentage = $ratioFragments[1] / $ratioFragments[0] * 100;
@@ -193,7 +199,7 @@ class Settings implements JsonSerializable
      * which is a value of any type other than a resource.
      * @since 5.4.0
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->export();
     }

@@ -34,6 +34,9 @@ class TraefikDynamoDb implements EdgeRouterInterface
         $this->dynamoDb = $dynamoDb;
     }
 
+    /**
+     * @return EdgeRouterInterface
+     */
     public function initialize(): EdgeRouterInterface
     {
         $awsConfig = $this->config->get('aws');
@@ -60,6 +63,10 @@ class TraefikDynamoDb implements EdgeRouterInterface
         return $this;
     }
 
+    /**
+     * @param Settings $settings
+     * @return bool
+     */
     public function putEndpoint(Settings $settings): bool
     {
         $domain = $settings->getDomain();

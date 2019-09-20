@@ -21,8 +21,6 @@ use Minds\Core\Subscriptions;
 
 class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
-    public $request;
-
     /**
      * NOT AVAILABLE
      */
@@ -108,16 +106,6 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         // Set the canary cookie
         Di::_()->get('Features\Manager')
             ->setCanaryCookie($user->isCanary());
-
-        // Auto-subscribe to channel
-        $from = $_POST['from'] ?? null;
-
-        if ($from) {
-            Di::_()->get('Pro\Domain\Subscription')
-                ->setUser(new Entities\User($from))
-                ->setSubscriber($user)
-                ->subscribe();
-        }
 
         $response['status'] = 'success';
         $response['user'] = $user->export();

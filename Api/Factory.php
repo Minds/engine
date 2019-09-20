@@ -189,7 +189,7 @@ class Factory
     /**
      * Sets the CORS header, if not already set
      */
-    public static function setCORSHeader()
+    public static function setCORSHeader(): void
     {
         $wasSet = count(array_filter(headers_list(), function ($header) {
             return stripos($header, 'Access-Control-Allow-Origin:') === 0;

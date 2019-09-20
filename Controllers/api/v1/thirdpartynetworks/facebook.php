@@ -13,8 +13,6 @@ use Minds\Interfaces;
 
 class facebook implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
-    public $request;
-
     /**
      * Get request
      * @param array $pages

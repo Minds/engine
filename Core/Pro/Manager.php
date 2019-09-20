@@ -68,7 +68,7 @@ class Manager
      * @param User $user
      * @return Manager
      */
-    public function setUser(User $user)
+    public function setUser(User $user): Manager
     {
         $this->user = $user;
         return $this;
@@ -78,7 +78,7 @@ class Manager
      * @param User $actor
      * @return Manager
      */
-    public function setActor(User $actor)
+    public function setActor(User $actor): Manager
     {
         $this->actor = $actor;
         return $this;
@@ -88,7 +88,7 @@ class Manager
      * @return bool
      * @throws Exception
      */
-    public function isActive()
+    public function isActive(): bool
     {
         if (!$this->user) {
             throw new Exception('Invalid user');
@@ -102,7 +102,7 @@ class Manager
      * @return bool
      * @throws Exception
      */
-    public function enable($until)
+    public function enable($until): bool
     {
         if (!$this->user) {
             throw new Exception('Invalid user');
@@ -125,7 +125,7 @@ class Manager
      * @return bool
      * @throws Exception
      */
-    public function disable()
+    public function disable(): bool
     {
         if (!$this->user) {
             throw new Exception('Invalid user');
@@ -147,7 +147,7 @@ class Manager
      * @return Settings|null
      * @throws Exception
      */
-    public function get()
+    public function get(): ?Settings
     {
         if (!$this->user) {
             throw new Exception('Invalid user');
@@ -165,10 +165,10 @@ class Manager
     }
 
     /**
-     * @param $settings
+     * @param Settings $settings
      * @return Settings
      */
-    public function hydrate($settings)
+    public function hydrate(Settings $settings): Settings
     {
         return $this->hydrateSettingsDelegate
             ->onGet($this->user, $settings);
@@ -179,7 +179,7 @@ class Manager
      * @return bool
      * @throws Exception
      */
-    public function set(array $values = [])
+    public function set(array $values = []): bool
     {
         if (!$this->user) {
             throw new Exception('Invalid user');

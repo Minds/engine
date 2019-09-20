@@ -33,7 +33,7 @@ class Repository
      * @param array $opts
      * @return Response
      */
-    public function getList(array $opts = [])
+    public function getList(array $opts = []): Response
     {
         $opts = array_merge([
             'user_guid' => null,
@@ -121,7 +121,7 @@ class Repository
      * @return bool
      * @throws Exception
      */
-    public function add(Settings $settings)
+    public function add(Settings $settings): bool
     {
         if (!$settings->getUserGuid()) {
             throw new Exception('Invalid user GUID');
@@ -160,7 +160,7 @@ class Repository
      * @return bool
      * @throws Exception
      */
-    public function update(Settings $settings)
+    public function update(Settings $settings): bool
     {
         return $this->add($settings);
     }
@@ -170,7 +170,7 @@ class Repository
      * @return bool
      * @throws Exception
      */
-    public function delete(Settings $settingsRef)
+    public function delete(Settings $settingsRef): bool
     {
         if (!$settingsRef->getUserGuid()) {
             throw new Exception('Invalid user GUID');

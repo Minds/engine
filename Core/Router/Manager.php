@@ -31,9 +31,9 @@ class Manager
     /**
      * @param ServerRequest $request
      * @param JsonResponse $response
-     * @return false|null|void
+     * @return bool|null
      */
-    public function handle(ServerRequest &$request, JsonResponse &$response)
+    public function handle(ServerRequest &$request, JsonResponse &$response): ?bool
     {
         $result = null;
 

@@ -51,7 +51,7 @@ class Security
      * @return string
      * @throws Exception
      */
-    public function setUp($domain)
+    public function setUp($domain): string
     {
         $nonce = $this->jwt->randomString();
         $nbf = time();
@@ -85,7 +85,7 @@ class Security
     /**
      * @param ServerRequest $request
      */
-    public function syncCookies(ServerRequest $request)
+    public function syncCookies(ServerRequest $request): void
     {
         $jwt = $request->getServerParams()['HTTP_X_PRO_XSRF_JWT'] ?? '';
 
@@ -117,7 +117,7 @@ class Security
     /**
      * @return string
      */
-    protected function getEncryptionKey()
+    protected function getEncryptionKey(): string
     {
         return $this->config->get('oauth')['encryption_key'] ?? '';
     }

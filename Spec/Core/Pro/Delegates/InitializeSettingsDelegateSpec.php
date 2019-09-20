@@ -67,8 +67,7 @@ class InitializeSettingsDelegateSpec extends ObjectBehavior
             ->willReturn($settings);
 
         $this->setupRoutingDelegate->onUpdate($settings)
-            ->shouldBeCalled()
-            ->willReturn(null);
+            ->shouldBeCalled();
 
         $this->repository->add($settings)
             ->shouldBeCalled()
