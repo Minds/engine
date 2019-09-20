@@ -49,6 +49,10 @@ class Manager
     {
         $features = $this->config->get('features') ?: [];
 
+        if (isset($_COOKIE['staging'])) {
+            return true;
+        }
+    
         if (!isset($features[$feature])) {
             error_log("[Features\Manager] Feature '{$feature}' is not declared. Assuming false.");
 
