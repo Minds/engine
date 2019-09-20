@@ -43,17 +43,14 @@ class UserActivityBuckets
     /** @var array $daysActiveBuckets */
     private $daysActiveBuckets = [];
 
-    //Values derived from buckets
     private $numberOfDays = 0;
     private $mostRecentDayCount = 0;
-    private $oldestDayCount = 0;
-    private $activityPercentage = 0;
 
     public function isNewUser(): bool
     {
         $guid = new Guid();
-        $newUserThresholdTimestamp = strtotime('-'.static::NEW_USER_AGE_HOURS.' hours', $this->referenceDateMs / 1000);
-        $maxNewUserThresholdTimestamp = strtotime('+'.static::NEW_USER_AGE_HOURS.' hours', $newUserThresholdTimestamp);
+        $maxNewUserThresholdTimestamp = $this->referenceDateMs / 1000;
+        $newUserThresholdTimestamp = strtotime('-' . static::NEW_USER_AGE_HOURS . ' hours', $maxNewUserThresholdTimestamp);
 
         $referenceGuid = $guid->generate($newUserThresholdTimestamp * 1000);
         $maxReferenceGuid = $guid->generate($maxNewUserThresholdTimestamp * 1000);
@@ -68,8 +65,7 @@ class UserActivityBuckets
     {
         $this->daysActiveBuckets = $buckets;
         $this->numberOfDays = count($this->daysActiveBuckets);
-        $this->mostRecentDayCount = $this->daysActiveBuckets[0]['count'];
-        $this->oldestDayCount = $this->daysActiveBuckets[$this->numberOfDays - 1]['count'];
+        $this->mostRecentDayCount = end($this->daysActiveBuckets)['count'];
 
         return $this;
     }
@@ -77,8 +73,7 @@ class UserActivityBuckets
     public function getActiveDayCount(): int
     {
         $activeDayCount = 0;
-        //increment activity for each day save for the oldest day used to to determine if a user went cold
-        for ($dayIndex = 0; $dayIndex <= $this->numberOfDays - 2; ++$dayIndex) {
+        for ($dayIndex = 0; $dayIndex <= $this->numberOfDays - 1; ++$dayIndex) {
             if ($this->daysActiveBuckets[$dayIndex]['count'] > 0) {
                 ++$activeDayCount;
             }
@@ -89,11 +84,12 @@ class UserActivityBuckets
 
     public function getActivityPercentage(): string
     {
-        return number_format($this->getActiveDayCount() / ($this->numberOfDays - 1), 2);
+        return number_format($this->getActiveDayCount() / ($this->numberOfDays), 2);
     }
 
     public function getState() : string
     {
+        // How do we reach new user state if we have no activity???
         if ($this->isNewUser()) {
             return UserState::STATE_NEW;
         } elseif ($this->getActivityPercentage() >= static::THRESHOLD_CORE_USER) {
@@ -102,7 +98,7 @@ class UserActivityBuckets
             return UserState::STATE_CASUAL;
         } elseif ($this->mostRecentDayCount > 0 && $this->getActiveDayCount() == 1) {
             return UserState::STATE_RESURRECTED;
-        } elseif ($this->oldestDayCount > 0 && $this->getActiveDayCount() == 0) {
+        } elseif ($this->getActiveDayCount() == 0) {
             return UserState::STATE_COLD;
         } elseif ($this->getActiveDayCount() >= 1) {
             return UserState::STATE_CURIOUS;

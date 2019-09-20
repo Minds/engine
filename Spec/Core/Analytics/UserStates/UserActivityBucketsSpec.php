@@ -55,8 +55,7 @@ class UserActivityBucketsSpec extends ObjectBehavior
             ['count' => 0],
             ['count' => 0],
             ['count' => 0],
-            ['count' => 0],
-            ['count' => 1],
+            ['count' => 0]
         ];
         $userGuid = $guid->generate(strtotime('-7 days') * 1000);
         $this->setReferenceDateMs(strtotime('midnight') * 1000)
@@ -73,14 +72,13 @@ class UserActivityBucketsSpec extends ObjectBehavior
         $guid = new Guid();
         $userGuid = $guid->generate(strtotime('-1 month') * 1000);
         $activeDayBuckets = [
-            ['count' => 1],
-            ['count' => 0],
-            ['count' => 0],
-            ['count' => 0],
-            ['count' => 0],
-            ['count' => 0],
-            ['count' => 0],
             ['count' => 26],
+            ['count' => 0],
+            ['count' => 0],
+            ['count' => 0],
+            ['count' => 0],
+            ['count' => 0],
+            ['count' => 0],
         ];
 
         $this->setReferenceDateMs(strtotime('midnight') * 1000)
@@ -98,7 +96,6 @@ class UserActivityBucketsSpec extends ObjectBehavior
         $guid = new Guid();
         $userGuid = $guid->generate(strtotime('-1 month') * 1000);
         $activeDayBuckets = [
-            ['count' => 1],
             ['count' => 13],
             ['count' => 0],
             ['count' => 0],
@@ -122,7 +119,6 @@ class UserActivityBucketsSpec extends ObjectBehavior
         $guid = new Guid();
         $userGuid = $guid->generate(strtotime('-1 month') * 1000);
         $activeDayBuckets = [
-            ['count' => 0],
             ['count' => 1],
             ['count' => 1],
             ['count' => 0],
@@ -148,10 +144,9 @@ class UserActivityBucketsSpec extends ObjectBehavior
         $userGuid = $guid->generate(strtotime('-1 month') * 1000);
         $activeDayBuckets = [
             ['count' => 0],
+            ['count' => 0],
+            ['count' => 0],
             ['count' => 1],
-            ['count' => 0],
-            ['count' => 0],
-            ['count' => 0],
             ['count' => 0],
             ['count' => 0],
             ['count' => 0],
@@ -172,7 +167,6 @@ class UserActivityBucketsSpec extends ObjectBehavior
         $guid = new Guid();
         $userGuid = $guid->generate(strtotime('-1 month') * 1000);
         $activeDayBuckets = [
-            ['count' => 1],
             ['count' => 13],
             ['count' => 5],
             ['count' => 9],
@@ -198,7 +192,6 @@ class UserActivityBucketsSpec extends ObjectBehavior
         $referenceDate = strtotime('midnight');
         $userGuid = $guid->generate(strtotime('-12 hours', $referenceDate) * 1000);
         $activeDayBuckets = [
-            ['count' => 1],
             ['count' => 13],
             ['count' => 5],
             ['count' => 9],
@@ -224,7 +217,6 @@ class UserActivityBucketsSpec extends ObjectBehavior
         $referenceDate = strtotime('midnight');
         $userGuid = $guid->generate(strtotime('-24 hours -1 minute', $referenceDate) * 1000);
         $activeDayBuckets = [
-            ['count' => 0],
             ['count' => 0],
             ['count' => 1],
             ['count' => 0],
