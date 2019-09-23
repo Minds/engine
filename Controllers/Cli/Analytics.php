@@ -64,8 +64,9 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
         while ($from <= $to) {
             $this->out('Syncing for ' . gmdate('c', $from));
             $manager = new Core\Analytics\UserStates\Manager();
-            $manager->setReferenceDate($from)
-                ->setRangeOffset($rangeOffset)
+            $manager->setDebug($debug)
+                ->setReferenceTimestamp($from)
+                ->setNumberOfIntervals($rangeOffset)
                 ->sync();
             if ($mode === 'notify') {
                 $this->out('Sending notifications');

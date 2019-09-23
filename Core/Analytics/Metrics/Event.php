@@ -27,7 +27,7 @@ use Minds\Core;
  */
 class Event
 {
-    private $elatic;
+    private $elastic;
     private $index = 'minds-metrics-';
     protected $data;
 
@@ -44,9 +44,17 @@ class Event
         return $this;
     }
 
+    public function setTimestamp(int $timestamp)
+    {
+        $this->data['@timestamp'] = $timestamp;
+        return $this;
+    }
+
     public function push()
     {
-        $this->data['@timestamp'] = (int) microtime(true) * 1000;
+        if (!isset($this->data['@timestamp'])) {
+            $this->data['@timestamp'] = (int)microtime(true) * 1000;
+        }
 
         $this->data['user_agent'] = $this->getUserAgent();
         $this->data['ip_hash'] = $this->getIpHash();
