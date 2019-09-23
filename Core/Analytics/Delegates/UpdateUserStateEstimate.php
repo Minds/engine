@@ -38,7 +38,7 @@ class UpdateUserStateEstimate
     private function updateUserEntity(): void
     {
         $this->user->setUserStateToday($this->userState->getState())
-            ->setUserStateTodayUpdatedMs($this->userState->getReferenceDateMs())
+            ->setUserStateTodayUpdatedMs(time() * 1000)
             ->save();
     }
 

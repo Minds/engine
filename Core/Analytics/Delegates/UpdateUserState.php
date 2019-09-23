@@ -33,7 +33,7 @@ class UpdateUserState
     private function updateUserEntity(): void
     {
         $this->user->setUserState($this->userState->getState())
-            ->setUserStateUpdatedMs($this->userState->getReferenceDateMs())
+            ->setUserStateUpdatedMs(time() * 1000)
             ->save();
     }
 
