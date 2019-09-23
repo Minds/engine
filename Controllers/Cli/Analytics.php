@@ -178,7 +178,7 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
             ->setProduct('platform')
             ->setUserGuid((string)$user_guid)
             ->setTimestamp($timestamp)
-            ->setAction('fake');
+            ->setAction('active');
 
         $this->out(print_r($event->push(), true));
     }
