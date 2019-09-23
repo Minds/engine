@@ -20,6 +20,7 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
                 $this->out('--to={timestamp} the day to stop counting. Default is yesterday at midnight');
                 $this->out('--rangeOffset={number of days} the number of days to look back into the past. Default is 7');
                 $this->out('--mode={silent | notify} silent mode does not send emails when running batches to re-index. Notify sends the notifications. Default is notify');
+                $this->out('--debug Enable debug output');
                 break;
             case 'sync_graphs':
                 $this->out('sync graphs between es and cassandra');
@@ -45,10 +46,11 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
         $estimate = false;
+        $debug = !is_null($this->getOpt('debug'));
 
         if ($this->getOpt('incremental')) {
             $estimate = true;
-            $from = strtotime('midnight +1 day'); //run throughout the day, provides estimates
+            $from = strtotime('midnight'); //run throughout the day, provides estimates
             $to = $from;
         } else {
             $from = (strtotime('midnight', $this->getOpt('from')) ?: strtotime('midnight yesterday'));
@@ -163,5 +165,20 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
             $this->out($i . "-{$view->getUuid()} {$date} ($rps/sec)");
         }
         $this->out('Done');
+    }
+
+    public function fakeActivity()
+    {
+        $user_guid = $this->getOpt('user_guid');
+        $timestamp = $this->getOpt('timestamp_ms') ?? time() * 1000;
+
+        $event = new Core\Analytics\Metrics\Event();
+        $event->setType('action')
+            ->setProduct('platform')
+            ->setUserGuid((string)$user_guid)
+            ->setTimestamp($timestamp)
+            ->setAction('fake');
+
+        $this->out(print_r($event->push(), true));
     }
 }
