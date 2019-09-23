@@ -49,8 +49,9 @@ class Manager
     {
         $features = $this->config->get('features') ?: [];
 
-        if (isset($_COOKIE['staging'])) {
-            return true;
+        $featureOverrides ?? json_decode(base64_decode($_COOKIE['staging-features']), true);
+        if ($featureOverrides[$feature]) {
+            return $featureOverrides[$feature];
         }
     
         if (!isset($features[$feature])) {
