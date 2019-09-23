@@ -17,7 +17,6 @@ use Minds\Traits\MagicAttributes;
  * @method int getReferenceDateMs()
  * @method UserState setState(string $state)
  * @method string getState()
- * @method UserState setPreviousState(string $state)
  * @method string getPreviousState()
  * @method UserState setActivityPercentage(float $activityPercentage)
  * @method float getActivityPercentage()
@@ -64,10 +63,9 @@ class UserState
     /** @var int $stateChange */
     private $stateChange;
 
-    public function export(): array
+    public function export(bool $includeNullValues = true): array
     {
-        $this->deriveStateChange();
-        return [
+        $data = [
             'user_guid' => $this->userGuid,
             'reference_date' => $this->referenceDateMs,
             'state' => $this->state,
@@ -77,6 +75,23 @@ class UserState
             'previous_reward_factor' => RewardFactor::getForUserState($this->previousState),
             'state_change' => $this->stateChange
         ];
+
+        if (!$includeNullValues) {
+            foreach ($data as $key => $value) {
+                if (is_null($value)) {
+                    unset($data[$key]);
+                }
+            }
+        }
+
+        return $data;
+    }
+
+    public function setPreviousState($previousState): self
+    {
+        $this->previousState = $previousState;
+        $this->deriveStateChange();
+        return $this;
     }
 
     private function deriveStateChange(): void
@@ -99,7 +114,6 @@ class UserState
             ->setReferenceDateMs($data['reference_date'])
             ->setState($data['state'])
             ->setPreviousState($data['previous_state'])
-            ->setActivityPercentage($data['activity_percentage'])
-            ->setStateChange(self::stateChange($data['previous_state'], $data['state']));
+            ->setActivityPercentage($data['activity_percentage']);
     }
 }
