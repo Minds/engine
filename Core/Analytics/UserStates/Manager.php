@@ -11,11 +11,11 @@ class Manager
     /** @var Queue\RabbitMQ\Client */
     private $queue;
 
-    /** @var int $referenceDate */
-    private $referenceDate;
+    /** @var int $referenceTimestamp */
+    private $referenceTimestamp;
 
-    /** @var int $rangeOffet */
-    private $rangeOffset = 7;
+    /** @var int $numberOfIntervals */
+    private $numberOfIntervals = 7;
 
     /** @var string $userStateIndex */
     private $userStateIndex;
@@ -32,6 +32,8 @@ class Manager
     /** @var Client */
     private $es;
 
+    private $debug = false;
+
     public function __construct($client = null, $index = null, $queue = null, $activeUsersIterator = null, $userStateIterator = null)
     {
         $this->es = $client ?: Di::_()->get('Database\ElasticSearch');
@@ -41,24 +43,28 @@ class Manager
         $this->userStateIterator = $userStateIterator ?: new UserStateIterator();
     }
 
-    public function setReferenceDate($referenceDate)
+    public function setReferenceTimestamp($referenceDate): self
     {
-        $this->referenceDate = $referenceDate;
-
+        $this->referenceTimestamp = $referenceDate;
         return $this;
     }
 
-    public function setRangeOffset($rangeOffset)
+    public function setNumberOfIntervals($numberOfIntervals): self
     {
-        $this->$rangeOffset = $rangeOffset;
+        $this->$numberOfIntervals = $numberOfIntervals;
+        return $this;
+    }
 
+    public function setDebug(bool $debug): self
+    {
+        $this->debug = $debug;
         return $this;
     }
 
     public function sync()
     {
-        $this->activeUsersIterator->setReferenceDate($this->referenceDate);
-        $this->activeUsersIterator->setRangeOffset($this->rangeOffset);
+        $this->activeUsersIterator->setReferenceTimestamp($this->referenceTimestamp);
+        $this->activeUsersIterator->setNumberOfIntervals($this->numberOfIntervals);
 
         foreach ($this->activeUsersIterator as $activeUser) {
             $userState = (new UserState())
@@ -73,10 +79,11 @@ class Manager
 
     public function emitStateChanges(bool $estimate = false)
     {
-        $this->userStateIterator->setReferenceDate($this->referenceDate);
+        $this->userStateIterator->setReferenceTimestamp($this->referenceTimestamp);
 
         $this->queue->setQueue('UserStateChanges');
         foreach ($this->userStateIterator as $userState) {
+            $this->debugLog($userState);
             if (!empty($userState->getPreviousState())) {
                 $this->index($userState);
             }
@@ -101,7 +108,7 @@ class Manager
      *
      * @return bool
      */
-    public function index($userState)
+    public function index(UserState $userState)
     {
         $this->pendingBulkInserts[] = [
             'update' => [
@@ -112,7 +119,7 @@ class Manager
         ];
 
         $this->pendingBulkInserts[] = [
-            'doc' => $userState->export(),
+            'doc' => $userState->export(false),
             'doc_as_upsert' => true,
         ];
 
@@ -129,8 +136,16 @@ class Manager
     public function bulk()
     {
         if (count($this->pendingBulkInserts) > 0) {
-            $this->es->bulk(['body' => $this->pendingBulkInserts]);
+            $result = $this->es->bulk(['body' => $this->pendingBulkInserts]);
             $this->pendingBulkInserts = [];
+        }
+    }
+
+    private function debugLog($var): void
+    {
+        if ($this->debug) {
+            $caller = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]['function'];
+            error_log($caller . ':' . print_r($var, true));
         }
     }
 }

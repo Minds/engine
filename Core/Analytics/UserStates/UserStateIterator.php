@@ -21,23 +21,35 @@ class UserStateIterator implements \Iterator
 
     private $client;
     private $position;
-    private $referenceDate;
+    private $referenceTimestamp;
+    private $intervalSize = Core\Time::ONE_DAY;
 
     public function __construct($client = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
         $this->position = 0;
-        $this->referenceDate = strtotime('midnight');
+        $this->referenceTimestamp = strtotime('midnight');
     }
 
     /**
-     * Sets the last day for the iterator (ie, today)
-     * @param $referenceDate
-     * @return $this
+     * Sets the last interval timestamp for the iterator
+     * @param int $referenceTimestamp
+     * @return self $this
      */
-    public function setReferenceDate($referenceDate): self
+    public function setReferenceTimestamp(int $referenceTimestamp): self
     {
-        $this->referenceDate = $referenceDate;
+        $this->referenceTimestamp = $referenceTimestamp;
+        return $this;
+    }
+
+    /**
+     * Sets the interval/bucket size
+     * @param int $intervalSize
+     * @return self $this
+     */
+    public function setIntervalSize(int $intervalSize): self
+    {
+        $this->intervalSize = $intervalSize;
         return $this;
     }
 
@@ -48,9 +60,9 @@ class UserStateIterator implements \Iterator
             return false;
         }
 
-        //Set the range for the entire query day - offset to day + 1
-        $from = strtotime('-1 day', $this->referenceDate);
-        $to = $this->referenceDate;
+        /* Round reference to interval and include previous interval for previous state */
+        $to = Core\Time::toInterval($this->referenceTimestamp, $this->intervalSize);
+        $from = $to - $this->intervalSize;
 
         $must = [
             [
@@ -76,11 +88,6 @@ class UserStateIterator implements \Iterator
                     ],
                 ],
                 'aggs' => [
-                    'unique_state' => [
-                        'cardinality' => [
-                            'field' => 'state',
-                        ],
-                    ],
                     'latest_state' => [
                         'top_hits' => [
                             'docvalue_fields' => ['state'],
@@ -120,25 +127,25 @@ class UserStateIterator implements \Iterator
         }
 
         if ($result && $result['aggregations']['user_state']['buckets']) {
-            $document = $result['aggregations']['user_state']['buckets'][0]['latest_state']['hits']['hits'][0];
-            if ($result['aggregations']['user_state']['buckets'][0]['unique_state']['value'] == 2) {
-                //Fire off state changes
-                $previousDocument = $result['aggregations']['user_state']['buckets'][0]['latest_state']['hits']['hits'][1];
-                $userState = (new UserState())
-                    ->setUserGuid($document['_source']['user_guid'])
-                    ->setReferenceDateMs($document['_source']['reference_date'])
-                    ->setState($document['_source']['state'])
-                    ->setPreviousState($previousDocument['_source']['state'])
-                    ->setActivityPercentage($document['_source']['activity_percentage']);
-                $this->data[] = $userState;
-            } elseif ($result['aggregations']['user_state']['buckets'][0]['doc_count'] == 1) {
-                //Fire off single states (new user, resurrected or a gap)
-                $userState = (new UserState())
-                    ->setUserGuid($document['_source']['user_guid'])
-                    ->setReferenceDateMs($document['_source']['reference_date'])
-                    ->setState($document['_source']['state'])
-                    ->setActivityPercentage($document['_source']['activity_percentage']);
-                $this->data[] = $userState;
+            if (isset($result['aggregations']['user_state']['buckets'][0]['latest_state']['hits']['hits'][0])) {
+                $document = $result['aggregations']['user_state']['buckets'][0]['latest_state']['hits']['hits'][0];
+                if (isset($result['aggregations']['user_state']['buckets'][0]['latest_state']['hits']['hits'][1])) {
+                    $previousDocument = $result['aggregations']['user_state']['buckets'][0]['latest_state']['hits']['hits'][1];
+                    $userState = (new UserState())
+                        ->setUserGuid($document['_source']['user_guid'])
+                        ->setReferenceDateMs($document['_source']['reference_date'])
+                        ->setState($document['_source']['state'])
+                        ->setPreviousState($previousDocument['_source']['state'])
+                        ->setActivityPercentage($document['_source']['activity_percentage']);
+                    $this->data[] = $userState;
+                } else {
+                    $userState = (new UserState())
+                        ->setUserGuid($document['_source']['user_guid'])
+                        ->setReferenceDateMs($document['_source']['reference_date'])
+                        ->setState($document['_source']['state'])
+                        ->setActivityPercentage($document['_source']['activity_percentage']);
+                    $this->data[] = $userState;
+                }
             }
         }
 

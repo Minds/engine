@@ -17,43 +17,55 @@ class ActiveUsersIterator implements \Iterator
     /** @var UserActivityBuckets[] $data */
     protected $data = [];
     protected $valid = true;
-    protected $referenceDate;
-    protected $rangeOffset = 7;
+    protected $referenceTimestamp;
+    protected $numberOfIntervals = 7;
     /** @var Data\ElasticSearch\Client */
     protected $client;
     /** @var ActiveUsersQueryBuilder */
     protected $queryBuilder;
     protected $cursor = -1;
-    protected $partitions = 200;
+    protected $partitions = 1;
     protected $page = -1;
+    protected $intervalSize = Core\Time::ONE_DAY;
 
     public function __construct(Data\ElasticSearch\Client $client = null, ActiveUsersQueryBuilder $queryBuilder = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
         $this->queryBuilder = $queryBuilder ?? new ActiveUsersQueryBuilder();
         $this->queryBuilder->setPartitions($this->partitions);
-        $this->referenceDate = strtotime('midnight');
+        $this->referenceTimestamp = strtotime('midnight');
     }
 
     /**
-     * Sets the last day for the iterator (ie, today)
-     * @param int $referenceDate
-     * @return ActiveUsersIterator
+     * Sets the interval/bucket size
+     * @param int $intervalSize
+     * @return self $this
      */
-    public function setReferenceDate(int $referenceDate): self
+    public function setIntervalSize(int $intervalSize): self
     {
-        $this->referenceDate = $referenceDate;
+        $this->intervalSize = $intervalSize;
         return $this;
     }
 
     /**
-     * Sets the number of days to look backwards
-     * @param int $rangeOffset
+     * Sets the reference for the last interval
+     * @param int $referenceTimestamp
      * @return ActiveUsersIterator
      */
-    public function setRangeOffset(int $rangeOffset): self
+    public function setReferenceTimestamp(int $referenceTimestamp): self
     {
-        $this->rangeOffset = $rangeOffset;
+        $this->referenceTimestamp = Core\Time::toInterval($referenceTimestamp, $this->intervalSize);
+        return $this;
+    }
+
+    /**
+     * Sets the number of intervals to look backwards
+     * @param int $numberOfIntervals
+     * @return ActiveUsersIterator
+     */
+    public function setNumberOfIntervals(int $numberOfIntervals): self
+    {
+        $this->numberOfIntervals = $numberOfIntervals;
         return $this;
     }
 
@@ -64,8 +76,13 @@ class ActiveUsersIterator implements \Iterator
             return false;
         }
 
-        $from = strtotime("-$this->rangeOffset day", $this->referenceDate);
-        $query = $this->queryBuilder->setFrom($from)->setTo($this->referenceDate)->setPage($this->page)->query();
+        $from = $this->referenceTimestamp - ($this->intervalSize * $this->numberOfIntervals);
+        $to = $this->referenceTimestamp + ($this->intervalSize - 1); // Last timestamp of reference interval
+        $query = $this->queryBuilder
+            ->setFrom($from)
+            ->setTo($to)
+            ->setPage($this->page)
+            ->query();
 
         $prepared = new Core\Data\ElasticSearch\Prepared\Search();
         $prepared->query($query);
@@ -93,7 +110,7 @@ class ActiveUsersIterator implements \Iterator
 
             $userActivityBuckets = (new UserActivityBuckets())
                 ->setUserGuid($userActivityByDay['key'])
-                ->setReferenceDateMs($this->referenceDate * 1000)
+                ->setReferenceDateMs($this->referenceTimestamp * 1000)
                 ->setActiveDaysBuckets($days);
 
             usort($days, function ($a, $b) {
