@@ -79,7 +79,7 @@ class Event
         ];
 
         /* Generate index for active days so we can use delete API in testing */
-        if ($this->data['action'] === 'active') {
+        if (isset($this->data['action']) && $this->data['action'] === 'active') {
             $query['id'] = $this->getId();
         }
 
