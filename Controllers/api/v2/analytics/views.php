@@ -113,6 +113,10 @@ class views implements Interfaces\Api
                     error_log($e);
                 }
 
+                Di::_()->get('Referrals\Cookie')
+                    ->setEntity($activity)
+                    ->create();
+
                 break;
         }
 
