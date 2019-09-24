@@ -37,10 +37,10 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_sync()
     {
-        $referenceDate = 1549497600;
+        $referenceTimestamp = 1549497600;
 
-        $this->setReferenceDate($referenceDate);
-        $this->setRangeOffset(7);
+        $this->setReferenceTimestamp($referenceTimestamp);
+        $this->setNumberOfIntervals(7);
 
         $this->client->request(Argument::any())
             ->shouldBeCalled()
@@ -54,8 +54,8 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_emit_state_changes()
     {
-        $referenceDate = 1549497600;
-        $this->setReferenceDate($referenceDate);
+        $referenceTimestamp = 1549497600;
+        $this->setReferenceTimestamp($referenceTimestamp);
         $this->client->request(Argument::any())
             ->shouldBeCalled()
             ->willReturn($this->getMockData('user_state_changes_results.json'));

@@ -16,7 +16,7 @@
                         "range": {
                             "@timestamp": {
                                 "from": 1548892800000,
-                                "to": 1549497600000,
+                                "to": 1549583999000,
                                 "format": "epoch_millis"
                             }
                         }

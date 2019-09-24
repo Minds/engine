@@ -28,11 +28,6 @@
                     }
                 },
                 "aggs": {
-                    "unique_state": {
-                        "cardinality": {
-                            "field": "state"
-                        }
-                    },
                     "latest_state": {
                         "top_hits": {
                             "docvalue_fields": [

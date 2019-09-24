@@ -72,13 +72,13 @@ class UserActivityBucketsSpec extends ObjectBehavior
         $guid = new Guid();
         $userGuid = $guid->generate(strtotime('-1 month') * 1000);
         $activeDayBuckets = [
-            ['count' => 26],
             ['count' => 0],
             ['count' => 0],
             ['count' => 0],
             ['count' => 0],
             ['count' => 0],
             ['count' => 0],
+            ['count' => 5],
         ];
 
         $this->setReferenceDateMs(strtotime('midnight') * 1000)

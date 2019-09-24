@@ -28,7 +28,7 @@ class ActiveUsersIteratorSpec extends ObjectBehavior
     {
         $prepared = new Search();
         $prepared->query($this->getMockData('active_users_query.json'));
-        $this->setReferenceDate(1549497600);
+        $this->setReferenceTimestamp(1549497600);
         $this->client->request($prepared)
         ->shouldBeCalled()
         ->willReturn($this->getMockData('active_users_results.json'));

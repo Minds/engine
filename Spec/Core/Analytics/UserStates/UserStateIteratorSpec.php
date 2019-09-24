@@ -28,7 +28,7 @@ class UserStateIteratorSpec extends ObjectBehavior
     {
         $prepared = new Search();
         $prepared->query($this->getMockData('user_state_changes_query.json'));
-        $this->setReferenceDate(1549497600);
+        $this->setReferenceTimestamp(1549497600);
         $this->client->request($prepared)
         ->shouldBeCalled()
         ->willReturn($this->getMockData('user_state_changes_results.json'));
