@@ -44,7 +44,14 @@ class UpdateUserStateEstimate
 
     private function sendStateChangeNotification(): void
     {
-        if ($this->estimateStateChange < 0) {
+        $ignoreStates = [
+            UserState::STATE_UNKNOWN,
+            UserState::STATE_RESURRECTED,
+            UserState::STATE_NEW
+        ];
+
+        if ($this->estimateStateChange < 0 &&
+            !in_array($this->userState->getState(), $ignoreStates, false)) {
             $notificationView = 'rewards_state_decrease_today';
             Dispatcher::trigger('notification', 'reward', [
                 'to' => [

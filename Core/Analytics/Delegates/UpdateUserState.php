@@ -39,7 +39,13 @@ class UpdateUserState
 
     private function sendStateChangeNotification(): void
     {
-        if ($this->userState->getStateChange() !== 0) {
+        $ignoreStates = [
+            UserState::STATE_UNKNOWN,
+            UserState::STATE_NEW
+        ];
+
+        if ($this->userState->getStateChange() !== 0 &&
+            !in_array($this->userState->getState(), $ignoreStates, false)) {
             $notificationView = ($this->userState->getStateChange() > 0) ?
                 'rewards_state_increase' : 'rewards_state_decrease';
             Dispatcher::trigger('notification', 'reward', [
