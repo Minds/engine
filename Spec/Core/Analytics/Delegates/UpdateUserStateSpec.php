@@ -21,11 +21,11 @@ class UpdateUserStateSpec extends ObjectBehavior
 
     public function it_should_update_user_if_activity_state_change(UserState $userState, User $user)
     {
-        $userState->getState()->shouldBeCalled()->willReturn(UserState::STATE_NEW);
+        $userState->getState()->shouldBeCalled()->willReturn(UserState::STATE_CORE);
         $userState->getUserGuid()->shouldBeCalled()->willReturn(1001);
         $userState->getStateChange()->shouldBeCalled()->willReturn(1);
         $userState->export()->shouldBeCalled()->willReturn([]);
-        $user->setUserState(UserState::STATE_NEW)->shouldBeCalled()->willReturn($user);
+        $user->setUserState(UserState::STATE_CORE)->shouldBeCalled()->willReturn($user);
         $user->setUserStateUpdatedMs(time() * 1000)->shouldBeCalled()->willReturn($user);
         $user->save()->shouldBeCalled();
 
