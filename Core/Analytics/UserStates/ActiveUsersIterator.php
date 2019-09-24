@@ -24,7 +24,7 @@ class ActiveUsersIterator implements \Iterator
     /** @var ActiveUsersQueryBuilder */
     protected $queryBuilder;
     protected $cursor = -1;
-    protected $partitions = 1;
+    protected $partitions = 200;
     protected $page = -1;
     protected $intervalSize = Core\Time::ONE_DAY;
 
