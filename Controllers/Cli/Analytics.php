@@ -29,6 +29,14 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
                 $this->out('Prints the counts of a user');
                 $this->out('--from={timestamp in milliseconds} the day to start count. Default is yesterday');
                 $this->out('--guid={user guid} REQUIRED the user to aggregate');
+            case 'addActivityDay':
+                $this->out('Add an activity day for user');
+                $this->out('--user_guid={user guid} The user to add for');
+                $this->out('--timestamp={timestamp in seconds} Timestamp of the interval start');
+            case 'deleteActivityDay':
+                $this->out('Delete an activity day for user');
+                $this->out('--user_guid={user guid} The user to add for');
+                $this->out('--timestamp={timestamp in seconds} Timestamp of the interval start');
             // no break
             default:
                 $this->out('Syntax usage: cli analytics <type>');
@@ -168,18 +176,39 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
         $this->out('Done');
     }
 
-    public function fakeActivity()
+    public function addActivityDay()
     {
         $user_guid = $this->getOpt('user_guid');
-        $timestamp = $this->getOpt('timestamp_ms') ?? time() * 1000;
+        $timestamp = $this->getOpt('timestamp') ?? time();
 
         $event = new Core\Analytics\Metrics\Event();
         $event->setType('action')
             ->setProduct('platform')
             ->setUserGuid((string)$user_guid)
-            ->setTimestamp($timestamp)
+            ->setTimestamp($timestamp * 1000)
             ->setAction('active');
 
-        $this->out(print_r($event->push(), true));
+        $msg = $event->push() ? 'Added' : 'Error';
+        $this->out($msg);
+    }
+
+    public function deleteActivityDay()
+    {
+        $user_guid = $this->getOpt('user_guid');
+        $timestamp = $this->getOpt('timestamp');
+
+        if (empty($user_guid) || empty($timestamp)) {
+            $this->out('user_guid and timestamp are required');
+        }
+
+        $event = new Core\Analytics\Metrics\Event();
+        $event->setType('action')
+            ->setProduct('platform')
+            ->setUserGuid((string)$user_guid)
+            ->setTimestamp($timestamp * 1000)
+            ->setAction('active');
+
+        $msg = $event->delete() ? 'Deleted' : 'Error';
+        $this->out($msg);
     }
 }

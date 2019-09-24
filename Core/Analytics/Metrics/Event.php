@@ -27,6 +27,7 @@ use Minds\Core;
  */
 class Event
 {
+    /** @var Core\Data\ElasticSearch\Client */
     private $elastic;
     private $index = 'minds-metrics-';
     protected $data;
@@ -40,7 +41,6 @@ class Event
     public function setUserGuid($guid)
     {
         $this->data['user_guid'] = (string) $guid;
-
         return $this;
     }
 
@@ -72,21 +72,24 @@ class Event
             $this->data['platform'] = $platform;
         }
 
-        $prepared = new Core\Data\ElasticSearch\Prepared\Index();
-        $prepared->query([
+        $query = [
             'body' => $this->data,
             'index' => $this->index,
-            'type' => $this->data['type'],
-            //'id' => $data['guid'],
-            'client' => [
-                'timeout' => 2,
-                'connect_timeout' => 1,
-            ],
-        ]);
+            'type' => $this->data['type']
+        ];
+
+        /* Generate index for active days so we can use delete API in testing */
+        if ($this->data['action'] === 'active') {
+            $query['id'] = $this->getId();
+        }
+
+        $prepared = new Core\Data\ElasticSearch\Prepared\Index();
+        $prepared->query($query);
 
         try {
             return $this->elastic->request($prepared);
         } catch (\Exception $e) {
+            //TODO: Should we be silently suppressing this exception???
         }
     }
 
@@ -143,5 +146,35 @@ class Event
         }
 
         return '';
+    }
+
+    public function delete(): bool
+    {
+        $query = [
+            'index' => $this->index,
+            'type' => $this->data['type'],
+            'id' => $this->getId()
+        ];
+        $prepared = new Core\Data\ElasticSearch\Prepared\Delete();
+        $prepared->query($query);
+
+        try {
+            $this->elastic->request($prepared);
+        } catch (\Exception $e) {
+            error_log('Error deleting: ' . $e->getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getId(): string
+    {
+        $uniques = [
+            $this->data['type'],
+            $this->data['@timestamp'],
+            $this->data['user_guid']
+        ];
+        return implode('-', $uniques);
     }
 }
