@@ -1,6 +1,6 @@
 <?php
 /**
- * EntityCentric Manager 
+ * EntityCentric Manager
  * @author Mark
  */
 
@@ -67,5 +67,12 @@ class Manager
         return (bool) $this->repository->add($record);
     }
 
+    /**
+     * Query aggregate
+     * @param array $query
+     * @return array
+     */
+    public function getAggregateByQuery(array $query): array
+    {
+    }
 }
-

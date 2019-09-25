@@ -1,7 +1,7 @@
 <?php
 /**
  * EntityCentricRecord
- * @author Mark 
+ * @author Mark
  */
 
 namespace Minds\Core\Analytics\EntityCentric;
@@ -45,7 +45,7 @@ class EntityCentricRecord
      * Increment views
      * @return DownsampledView
      */
-    public function incrementSum($metric): EntityCentricRecord 
+    public function incrementSum($metric): EntityCentricRecord
     {
         if (!isset($this->sums[$metric])) {
             $this->sums[$metric] = 0;
@@ -53,5 +53,4 @@ class EntityCentricRecord
         ++$this->sums[$metric];
         return $this;
     }
-
 }

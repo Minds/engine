@@ -8,7 +8,7 @@ use Exception;
 class ViewsSynchroniser
 {
     /** @var array */
-	private $records = [];
+    private $records = [];
 
     /** @var ViewsRepository */
     private $viewsRepository;
@@ -26,7 +26,7 @@ class ViewsSynchroniser
 
     public function toRecords()
     {
-		$date = (new DateTime())->setTimestamp($this->from);
+        $date = (new DateTime())->setTimestamp($this->from);
 
         $opts['day'] = intval($date->format('d'));
         $opts['month'] = intval($date->format('m'));
@@ -87,6 +87,4 @@ class ViewsSynchroniser
 
         $this->records[$view->getEntityUrn()]->incrementSum('views::total');
     }
-
 }
-
