@@ -476,7 +476,8 @@ $CONFIG->set('features', [
     'cassandra-notifications' => true,
     'dark-mode' => true,
     'allow-comments-toggle' => false,
-    'permissions' => false
+    'permissions' => false,
+    'pro' => false,
 ]);
 
 $CONFIG->set('email', [
@@ -571,4 +572,10 @@ $CONFIG->set('gitlab', [
         'front' => '10152778', // project id front
     ],
     'private_key' => ''
+]);
+
+$CONFIG->set('pro', [
+    'root_domains' => ['minds.com', 'www.minds.com', 'localhost'],
+    'subdomain_suffix' => 'minds.com',
+    'dynamodb_table_name' => 'traefik',
 ]);
