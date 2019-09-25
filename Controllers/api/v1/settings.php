@@ -69,10 +69,6 @@ class settings implements Interfaces\Api
     {
         Factory::isLoggedIn();
 
-        if (!Core\Security\XSRF::validateRequest()) {
-            //return false;
-        }
-
         if (Core\Session::getLoggedInUser()->isAdmin() && isset($pages[0])) {
             $user = new entities\User($pages[0]);
         } else {
