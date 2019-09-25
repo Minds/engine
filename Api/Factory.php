@@ -2,11 +2,12 @@
 
 namespace Minds\Api;
 
+use Minds\Core\Di\Di;
+use Minds\Core\Pro\Domain\Security as ProDomainSecurity;
 use Minds\Interfaces;
 use Minds\Helpers;
 use Minds\Core\Security;
 use Minds\Core\Session;
-use Minds\Core\Di\Di;
 
 /**
  * API Factory
@@ -33,6 +34,7 @@ class Factory
         $loop = count($segments);
         while ($loop >= 0) {
             $offset = $loop -1;
+
             if ($loop < count($segments)) {
                 $slug_length = strlen($segments[$offset+1].'\\');
                 $route_length = strlen($route);
@@ -43,32 +45,51 @@ class Factory
             $actual = str_replace('\\', '/', $route);
             if (isset(Routes::$routes[$actual])) {
                 $class_name = Routes::$routes[$actual];
+
                 if (class_exists($class_name)) {
                     $handler = new $class_name();
+
+                    if (property_exists($handler, 'request')) {
+                        $handler->request = $request;
+                    }
+
                     if ($handler instanceof Interfaces\ApiAdminPam) {
                         self::adminCheck();
                     }
+
                     if (!$handler instanceof Interfaces\ApiIgnorePam) {
                         self::pamCheck($request, $response);
                     }
+
                     $pages = array_splice($segments, $loop) ?: [];
+
                     return $handler->$method($pages);
                 }
             }
 
             //autloaded routes
             $class_name = "\\Minds\\Controllers\api\\$route";
+
             if (class_exists($class_name)) {
                 $handler = new $class_name();
+
+                if (property_exists($handler, 'request')) {
+                    $handler->request = $request;
+                }
+
                 if ($handler instanceof Interfaces\ApiAdminPam) {
                     self::adminCheck();
                 }
+
                 if (!$handler instanceof Interfaces\ApiIgnorePam) {
                     self::pamCheck($request, $response);
                 }
+
                 $pages = array_splice($segments, $loop) ?: [];
+
                 return $handler->$method($pages);
             }
+
             --$loop;
         }
     }
@@ -79,15 +100,18 @@ class Factory
      */
     public static function pamCheck($request, $response)
     {
-        if ($request->getAttribute('oauth_user_id')
-            || Security\XSRF::validateRequest()
+        if (
+            $request->getAttribute('oauth_user_id') ||
+            Security\XSRF::validateRequest()
         ) {
             return true;
         } else {
             //error_log('failed authentication:: OAUTH via API');
             ob_end_clean();
+
+            static::setCORSHeader();
+
             header('Content-type: application/json');
-            header("Access-Control-Allow-Origin: *");
             header('HTTP/1.1 401 Unauthorized', true, 401);
             echo json_encode([
                 'error' => 'Sorry, you are not authenticated',
@@ -109,8 +133,10 @@ class Factory
         } else {
             error_log('security: unauthorized access to admin api');
             ob_end_clean();
+
+            static::setCORSHeader();
+
             header('Content-type: application/json');
-            header("Access-Control-Allow-Origin: *");
             header('HTTP/1.1 401 Unauthorized', true, 401);
             echo json_encode(['error'=>'You are not an admin', 'code'=>401]);
             exit;
@@ -127,8 +153,10 @@ class Factory
             return true;
         } else {
             ob_end_clean();
+
+            static::setCORSHeader();
+
             header('Content-type: application/json');
-            header("Access-Control-Allow-Origin: *");
             header('HTTP/1.1 401 Unauthorized', true, 401);
             echo json_encode([
               'status' => 'error',
@@ -152,9 +180,24 @@ class Factory
 
         ob_end_clean();
 
+        static::setCORSHeader();
+
         header('Content-type: application/json');
-        header("Access-Control-Allow-Origin: *");
         echo json_encode($data);
+    }
+
+    /**
+     * Sets the CORS header, if not already set
+     */
+    public static function setCORSHeader(): void
+    {
+        $wasSet = count(array_filter(headers_list(), function ($header) {
+            return stripos($header, 'Access-Control-Allow-Origin:') === 0;
+        })) > 0;
+
+        if (!$wasSet) {
+            header("Access-Control-Allow-Origin: *");
+        }
     }
 
     /**

@@ -6,6 +6,7 @@ use Minds\Core;
 use Minds\Entities;
 use Minds\Helpers;
 use Minds\Helpers\Counters;
+use Zend\Diactoros\ServerRequestFactory;
 
 class SEO
 {
@@ -76,18 +77,30 @@ class SEO
             $params = $event->getParameters();
             $slugs = $params['slugs'];
 
-            if ((count($slugs) < 3) || ($slugs[1] != 'blog')) {
+            /** @var Core\Pro\Domain $proDomain */
+            $proDomain = Core\Di\Di::_()->get('Pro\Domain');
+
+            $request = ServerRequestFactory::fromGlobals();
+            $serverParams = $request->getServerParams() ?? [];
+            $host = parse_url($serverParams['HTTP_ORIGIN'] ?? '', PHP_URL_HOST) ?: $serverParams['HTTP_HOST'];
+
+            $proSettings = $proDomain->lookup($host);
+
+            if ($proSettings && (count($slugs) < 2 || $slugs[0] === 'blog')) {
+                $slugParts = explode('-', $slugs[1]);
+            } elseif (!$proSettings && count($slugs) >= 3 && $slugs[1] === 'blog') {
+                $slugParts = explode('-', $slugs[2]);
+            } else {
                 return;
             }
 
-            $slugParts = explode('-', $slugs[2]);
             $guid = $slugParts[count($slugParts) - 1];
 
             if (!is_numeric($guid)) {
                 return;
             }
 
-            $event->setResponse($this->viewHandler([ $guid ]));
+            $event->setResponse($this->viewHandler([$guid]));
         });
     }
 
