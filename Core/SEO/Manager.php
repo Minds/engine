@@ -2,6 +2,7 @@
 /**
  * SEO Manager
  */
+
 namespace Minds\Core\SEO;
 
 use Minds\Core\Events\Dispatcher;
@@ -10,8 +11,14 @@ class Manager
 {
     public static $routes = [];
     public static $defaults = [
-      'title' => ''
+        'title' => '',
     ];
+
+    public static function reset()
+    {
+        self::$routes = [];
+        self::$defaults = ['title' => ''];
+    }
 
     /**
      * Add a callback to provide metadata
@@ -49,9 +56,9 @@ class Manager
 
         while ($route) {
             $event = Dispatcher::trigger('seo:route', $route, [
-              'route' => $route,
-              'slugs' => array_reverse($slugs)
-          ], false);
+                'route' => $route,
+                'slugs' => array_reverse($slugs),
+            ], false);
 
             if ($event !== false) {
                 $meta = $event;
@@ -62,7 +69,7 @@ class Manager
                 $meta = call_user_func_array(self::$routes[$route], [array_reverse($slugs)]) ?: [];
                 break;
             } else {
-                $slugs[] = substr($route, strrpos($route, '/')+1);
+                $slugs[] = substr($route, strrpos($route, '/') + 1);
                 if (strrpos($route, '/') === 0) {
                     $route = '/';
                 } else {
