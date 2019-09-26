@@ -80,7 +80,7 @@ class TranscodingStatus
     public function isTranscodingComplete()
     {
         $transcodes = $this->getTranscodes();
-        return (count($transcodes) === $this->getExpectedTranscodeCount());
+        return (count($transcodes) >= $this->getExpectedTranscodeCount());
     }
 
     /**
@@ -90,7 +90,7 @@ class TranscodingStatus
     {
         return array_reduce($this->presets, function ($count, $preset) {
             return $count + count($preset['formats']);
-        }, 0);
+        }, 0) / 2; // 50% is ok
     }
 
     /**
