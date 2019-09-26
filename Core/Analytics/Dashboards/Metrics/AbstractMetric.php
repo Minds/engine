@@ -10,6 +10,7 @@ use Minds\Traits\MagicAttributes;
  * @method AbstractMetric setFiltersCollection(FiltersCollection $filtersCollection)
  * @method string getId()
  * @method string getLabel()
+ * @method MetricSummary getSummary()
  */
 abstract class AbstractMetric
 {

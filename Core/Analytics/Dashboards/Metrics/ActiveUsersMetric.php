@@ -6,6 +6,9 @@ use Minds\Core\Data\Elasticsearch;
 
 class ActiveUsersMetric extends AbstractMetric
 {
+    /** @var Elasticsearch\Client */
+    private $es;
+
     /** @var string */
     protected $id = 'active_users';
 
@@ -107,8 +110,8 @@ class ActiveUsersMetric extends AbstractMetric
 
         $response = $this->es->request($prepared);
 
-        $this->values = new MetricSummary();
-        $this->values->setValue($response['aggregations']['1']['buckets'][1]['2']['value'])
+        $this->summary = new MetricSummary();
+        $this->summary->setValue($response['aggregations']['1']['buckets'][1]['2']['value'])
             ->setComparisonValue($response['aggregations']['1']['buckets'][0]['2']['value'])
             ->setComparisonInterval($timespan->getComparisonInterval());
         return $this;

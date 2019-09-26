@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Analytics\Dashboards\Metrics;
 
+use Minds\Core\Analytics\Dashboards\Metrics\ViewsMetric;
 use Minds\Core\Analytics\Dashboards\Metrics\ActiveUsersMetric;
 use Minds\Core\Analytics\Dashboards\Timespans\TimespansCollection;
 use Minds\Core\Analytics\Dashboards\Timespans\AbstractTimespan;
@@ -11,7 +12,7 @@ use Minds\Core\Data\Elasticsearch\Client;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-class ActiveUsersMetricSpec extends ObjectBehavior
+class ViewsMetricSpec extends ObjectBehavior
 {
     private $es;
     private $timespansCollection;
@@ -29,7 +30,7 @@ class ActiveUsersMetricSpec extends ObjectBehavior
 
     public function it_is_initializable()
     {
-        $this->shouldHaveType(ActiveUsersMetric::class);
+        $this->shouldHaveType(ViewsMetric::class);
     }
 
     public function it_should_build_summary(AbstractTimespan $mockTimespan, AbstractFilter $mockFilter)
