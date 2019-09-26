@@ -51,10 +51,10 @@ class Manager
     {
         $dob = explode('-', $account->getDateOfBirth());
         $data = [
-          'managed' => true,
+          'type' => 'custom',
           'country' => $account->getCountry(),
-          'legal_entity' => [
-            'type' => 'individual',
+          'business_type' => 'individual',
+          'individual' => [
             'first_name' => $account->getFirstName(),
             'last_name' => $account->getLastName(),
             'address' => [
