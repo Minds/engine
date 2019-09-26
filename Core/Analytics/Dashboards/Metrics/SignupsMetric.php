@@ -3,7 +3,7 @@ namespace Minds\Core\Analytics\Dashboards\Metrics;
 
 use Minds\Core\Di\Di;
 
-class SignupsMetric extends MetricAbstract
+class SignupsMetric extends AbstractMetric
 {
     /** @var string */
     protected $id = 'signups';
@@ -29,15 +29,15 @@ class SignupsMetric extends MetricAbstract
     public function build(): self
     {
         $timespan = $this->timespansCollection->getSelected();
-        $previousTs = strtotime('-1 ' . $timespan->getAggInterval(), $timespan->getFromTsMs() / 1000) * 1000;
-        $currentTs = $timespan->getFromTsMs();
+        $comparisonTsMs = strtotime("-{$timespan->getComparisonInterval()} days", $timespan->getFromTsMs() / 1000) * 1000;
+        $currentTsMs = $timespan->getFromTsMs();
 
         $must = [];
 
         // Range must be from previous period
         $must[]['range'] = [
             '@timestamp' => [
-                'gte' => $previousTs,
+                'gte' => $comparisonTsMs,
             ],
         ];
 
@@ -83,8 +83,10 @@ class SignupsMetric extends MetricAbstract
         ]);
 
         $this->values = new MetricsValues();
-        $this->values->setCurrent($response[0]['1']['2']['value'])
-            ->setPrevious($response[1]['1']['2']['value']);
+        $this->values
+            ->setValue($response[0]['1']['2']['value'])
+            ->setComparisonValue($response[1]['1']['2']['value'])
+            ->setComparisonInterval($this->getComparisonInterval());
         return $this;
     }
 }

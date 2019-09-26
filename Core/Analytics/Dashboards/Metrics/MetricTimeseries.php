@@ -3,13 +3,10 @@ namespace Minds\Core\Analytics\Dashboards\Metrics;
 
 use Minds\Traits\MagicAttributes;
 
-class MetricValues
+class MetricTimeseries
 {
-    /** @var int */
-    private $current = 0;
-
-    /** @var int */
-    private $previous = 0;
+    /** @var array */
+    private $dateHistogram = [];
 
     /**
      * Export
@@ -19,8 +16,7 @@ class MetricValues
     public function export(array $extras = []): array
     {
         return [
-            'current' => (int) $current,
-            'previous' => (int) $previous,
+            'date_histogram' => (array) $this->dateHistogram,
         ];
     }
 }

@@ -1,10 +1,10 @@
 <?php
 namespace Minds\Core\Analytics\Dashboards\Filters;
 
-class ViewsFilter extends FilterAbstract
+class ViewTypeFilter extends AbstractFilter
 {
     /** @var string */
-    protected $id = "views";
+    protected $id = "view_type";
 
     /** @var string */
     protected $label = "View types";

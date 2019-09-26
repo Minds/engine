@@ -5,7 +5,7 @@ use Minds\Core\Analytics\Dashboards\DashboardCollectionInterface;
 
 class FiltersCollection implements DashboardCollectionInterface
 {
-    /** @var FilterAbstract[] */
+    /** @var AbstractFilter[] */
     private $filters = [];
 
     /** @var string[] */
@@ -41,10 +41,10 @@ class FiltersCollection implements DashboardCollectionInterface
 
     /**
      * Set the filters
-     * @param FilterAbstract[] $filters
+     * @param AbstractFilter[] $filters
      * @return self
      */
-    public function addFilters(FilterAbstract ...$filters): self
+    public function addFilters(AbstractFilter ...$filters): self
     {
         foreach ($filters as $filter) {
             $this->filters[$filter->getId()] = $filter;
@@ -54,7 +54,7 @@ class FiltersCollection implements DashboardCollectionInterface
 
     /**
      * Return the set metrics
-     * @return FilterAbstract[]
+     * @return AbstractFilter[]
      */
     public function getFilters(): array
     {

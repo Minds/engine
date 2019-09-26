@@ -3,7 +3,7 @@
 namespace Spec\Minds\Core\Analytics\Dashboards\Filters;
 
 use Minds\Core\Analytics\Dashboards\Filters\FiltersCollection;
-use Minds\Core\Analytics\Dashboards\Filters\ViewsFilter;
+use Minds\Core\Analytics\Dashboards\Filters\ViewTypeFilter;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -16,18 +16,18 @@ class FiltersCollectionSpec extends ObjectBehavior
 
     public function it_should_add_filters_to_collection()
     {
-        $this->addFilters(new ViewsFilter);
+        $this->addFilters(new ViewTypeFilter);
         $filters = $this->getFilters();
-        $filters['views']->getId()
-            ->shouldBe('views');
+        $filters['view_type']->getId()
+            ->shouldBe('view_type');
     }
 
     public function it_should_export_filters()
     {
-        $this->addFilters(new ViewsFilter);
+        $this->addFilters(new ViewTypeFilter);
         $export = $this->export();
         $export[0]['id']
-            ->shouldBe('views');
+            ->shouldBe('view_type');
         $export[0]['options']
             ->shouldHaveCount(4);
     }

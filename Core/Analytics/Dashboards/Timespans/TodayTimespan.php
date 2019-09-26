@@ -6,7 +6,7 @@ namespace Minds\Core\Analytics\Dashboards\Timespans;
  * @method string getLabel()
  * @method string getInterval()
  */
-class TodayTimespan extends TimespanAbstract
+class TodayTimespan extends AbstractTimespan
 {
     /** @var string */
     protected $id = 'today';
@@ -21,7 +21,7 @@ class TodayTimespan extends TimespanAbstract
     protected $fromTsMs;
 
     /** @var string */
-    protected $aggInterval = 'day';
+    protected $comparisonInterval = 'day';
 
     public function __construct()
     {

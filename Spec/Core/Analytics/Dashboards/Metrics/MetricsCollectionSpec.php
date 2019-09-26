@@ -7,6 +7,7 @@ use Minds\Core\Analytics\Dashboards\Metrics\ActiveUsersMetric;
 use Minds\Core\Analytics\Dashboards\Metrics\SignupsMetric;
 use Minds\Core\Analytics\Dashboards\Metrics\ViewsMetric;
 use Minds\Core\Analytics\Dashboards\Timespans\TimespansCollection;
+use Minds\Core\Analytics\Dashboards\Filters\FiltersCollection;
 use Minds\Core\Analytics\Dashboards\Timespans\TodayTimespan;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -21,6 +22,7 @@ class MetricsCollectionSpec extends ObjectBehavior
         $this->timespansCollection = $timespansCollection;
         $this->todayTimespan = $todayTimespan;
         $this->setTimespansCollection($timespansCollection);
+        $this->setFiltersCollection(new FiltersCollection());
         $this->timespansCollection->setSelectedId('today');
     }
 
@@ -61,9 +63,12 @@ class MetricsCollectionSpec extends ObjectBehavior
         $activeUsersMetric->setTimespansCollection($this->timespansCollection)
             ->shouldBeCalled()
             ->willReturn($activeUsersMetric);
-        $activeUsersMetric->build()
+        $activeUsersMetric->setFiltersCollection(Argument::type(FiltersCollection::class))
+            ->shouldBeCalled()
+            ->willReturn($activeUsersMetric);
+        $activeUsersMetric->buildSummary()
             ->shouldBeCalled();
         $this->addMetrics($activeUsersMetric);
-        $this->build();
+        $this->buildSummaries();
     }
 }

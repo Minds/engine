@@ -7,8 +7,10 @@ use Minds\Traits\MagicAttributes;
  * @method string getId()
  * @method string getLabel()
  * @method string getInterval()
+ * @method int getComparisonInterval()
+ * @method int getFromTsMs()
  */
-abstract class TimespanAbstract
+abstract class AbstractTimespan
 {
     use MagicAttributes;
 
@@ -24,11 +26,8 @@ abstract class TimespanAbstract
     /** @var int */
     protected $fromTsMs;
 
-    /** @var int */
-    protected $previousFromTsMs;
-
     /** @var string */
-    protected $aggInterval = 'day';
+    protected $comparisonInterval = 'day';
 
     /**
      * Export
@@ -41,7 +40,7 @@ abstract class TimespanAbstract
             'id' => (string) $this->id,
             'label' => (string) $this->label,
             'interval' => (string) $this->interval,
-            'agg_interval' => (string) $this->aggInterval,
+            'comparison_interval' => (string) $this->comparisonInterval,
             'from_ts_ms' => (int) $this->fromTsMs,
         ];
     }

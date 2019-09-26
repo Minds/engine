@@ -15,13 +15,13 @@ class TrafficDashboard implements DashboardInterface
     use MagicAttributes;
 
     /** @var string */
-    private $timespanId;
+    private $timespanId = 'mtd';
 
     /** @var string[] */
-    private $filterIds;
+    private $filterIds = [ 'platform::browser' ];
 
     /** @var string */
-    private $metricId;
+    private $metricId = 'active_users';
 
     /** @var Timespans\TimespansCollection */
     private $timespansCollection;
@@ -32,19 +32,17 @@ class TrafficDashboard implements DashboardInterface
     /** @var Filters\FiltersCollection */
     private $filtersCollection;
 
-    /** @var Visualisations\Charts\ChartsCollection */
-    private $chartsCollection;
+    /** @var Visualisations\Chart\ChartSegmentsCollection */
+    private $chartCollection;
 
     public function __construct(
         $timespansCollection = null,
         $metricsCollection = null,
-        $filtersCollection = null,
-        $chartsCollection = null
+        $filtersCollection = null
     ) {
         $this->timespansCollection = $timespansCollection ?? new Timespans\TimespansCollection();
         $this->metricsCollection = $metricsCollection ?? new Metrics\MetricsCollection();
         $this->filtersCollection = $filtersCollection ?? new Filters\FiltersCollection();
-        $this->chartsCollection = $chartsCollection ?? new Visualisations\Charts\ChartsCollection();
     }
 
     /**
@@ -55,7 +53,7 @@ class TrafficDashboard implements DashboardInterface
     {
         $this->timespansCollection
             ->setSelectedId($this->timespanId)
-            ->addTimespan(
+            ->addTimespans(
                 new Timespans\TodayTimespan(),
                 new Timespans\MtdTimespan(),
                 new Timespans\YtdTimespan()
@@ -76,9 +74,6 @@ class TrafficDashboard implements DashboardInterface
                 new Metrics\ViewsMetric()
             )
             ->build();
-        $this->chartsCollection
-            ->setTimespansCollection($this->timespansCollection)
-            ->setMetricsCollection($this->metricsCollection);
 
         return $this;
     }
@@ -92,11 +87,10 @@ class TrafficDashboard implements DashboardInterface
     {
         return [
             'category' => 'traffic',
-            'timespan' => $this->timespansCollection->getSelected->getId(),
+            'timespan' => $this->timespansCollection->getSelected()->getId(),
             'timespans' => $this->timespansCollection->export(),
             'metrics' => $this->metricsCollection->export(),
-            'charts' => $this->chartCollection->export(),
-            'filter' => $this->filtersCollection->getSelected->getId(),
+            'filter' => $this->filtersCollection->getSelected()->getId(),
             'filters' => $this->filtersCollection->export(),
         ];
     }

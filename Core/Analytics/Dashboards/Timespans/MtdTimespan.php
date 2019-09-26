@@ -1,7 +1,7 @@
 <?php
 namespace Minds\Core\Analytics\Dashboards\Timespans;
 
-class MtdTimespan extends TimespanAbstract
+class MtdTimespan extends AbstractTimespan
 {
     /** @var string */
     protected $id = 'mtd';
@@ -16,7 +16,7 @@ class MtdTimespan extends TimespanAbstract
     protected $fromTsMs;
 
     /** @var string */
-    protected $aggInterval = 'month';
+    protected $comparisonInterval = 'month';
 
     public function __construct()
     {

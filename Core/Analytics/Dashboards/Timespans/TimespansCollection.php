@@ -5,7 +5,7 @@ use Minds\Core\Analytics\Dashboards\DashboardCollectionInterface;
 
 class TimespansCollection implements DashboardCollectionInterface
 {
-    /** @var TimespanAbstract[] */
+    /** @var AbstractTimespan[] */
     private $timespans = [];
 
     /** @var string */
@@ -24,19 +24,19 @@ class TimespansCollection implements DashboardCollectionInterface
 
     /**
      * Return the selected timespan
-     * @return TimespanAbstract
+     * @return AbstractTimespan
      */
-    public function getSelected(): TimespanAbstract
+    public function getSelected(): AbstractTimespan
     {
         return $this->timespans[$this->selectedId];
     }
 
     /**
      * Set the timespans
-     * @param TimespanAbstract[] $timespans
+     * @param AbstractTimespan[] $timespans
      * @return self
      */
-    public function addTimespans(TimespanAbstract ...$timespans): self
+    public function addTimespans(AbstractTimespan ...$timespans): self
     {
         foreach ($timespans as $timespan) {
             $this->timespans[$timespan->getId()] = $timespan;

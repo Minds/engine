@@ -3,11 +3,12 @@ namespace Minds\Core\Analytics\Dashboards\Metrics;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Analytics\Dashboards\Timespans\TimespansCollection;
+use Minds\Core\Analytics\Dashboards\Filters\FiltersCollection;
 use Minds\Core\Analytics\Dashboards\DashboardCollectionInterface;
 
 class MetricsCollection implements DashboardCollectionInterface
 {
-    /** @var MetricsAbstract[] */
+    /** @var AbstractMetric[] */
     private $metrics = [];
 
     /** @var string */
@@ -52,10 +53,10 @@ class MetricsCollection implements DashboardCollectionInterface
 
     /**
      * Set the metrics
-     * @param MetricAbstract[] $metric
+     * @param AbstractMetric[] $metric
      * @return self
      */
-    public function addMetrics(MetricAbstract ...$metrics): self
+    public function addMetrics(AbstractMetric ...$metrics): self
     {
         foreach ($metrics as $metric) {
             $this->metrics[$metric->getId()] = $metric;
@@ -64,20 +65,43 @@ class MetricsCollection implements DashboardCollectionInterface
     }
 
     /**
+     * Return the selected metric
+     * @return AbstractMetric
+     */
+    public function getSelected(): AbstractMetric
+    {
+        return $this->metrics[$this->selectedId];
+    }
+
+    /**
      * Return the set metrics
-     * @return MetricAbstract[]
+     * @return AbstractMetric[]
      */
     public function getMetrics(): array
     {
         return $this->metrics;
     }
 
+    /**
+     * Build the metrics
+     * @return self
+     */
     public function build(): self
+    {
+        // Build all summaries
+        $this->buildSummaries();
+
+        // Build current visualisation
+        $this->getSelected()->buildVisualisation();
+    }
+
+    public function buildSummaries(): self
     {
         foreach ($this->metrics as $metric) {
             $metric
                 ->setTimespansCollection($this->timespansCollection)
-                ->build();
+                ->setFiltersCollection($this->filtersCollection)
+                ->buildSummary();
         }
         return $this;
     }

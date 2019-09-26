@@ -6,11 +6,12 @@ use Minds\Core\Di\Di;
 use Minds\Traits\MagicAttributes;
 
 /**
- * @method MetricAbstract setTimespansCollection(TimespansCollection $timespansCollection)
+ * @method AbstractMetric setTimespansCollection(TimespansCollection $timespansCollection)
+ * @method AbstractMetric setFiltersCollection(FiltersCollection $filtersCollection)
  * @method string getId()
  * @method string getLabel()
  */
-abstract class MetricAbstract
+abstract class AbstractMetric
 {
     use MagicAttributes;
 
@@ -23,8 +24,11 @@ abstract class MetricAbstract
     /** @var string[] */
     protected $permissions;
 
-    /** @var MetricValues */
-    protected $values;
+    /** @var MetricSummary */
+    protected $summary;
+
+    /** @var VisualisationInterface */
+    protected $visualisation;
 
     /** @var TimespansCollection */
     protected $timespansCollection;
@@ -43,7 +47,8 @@ abstract class MetricAbstract
             'id' => (string) $this->id,
             'label' => (string) $this->label,
             'permissions' => (array) $this->permissions,
-            'values' => $this->values ? (array) $this->values->export() : null,
+            'summary' => $this->summary ? (array) $this->summary->export() : null,
+            'visualisation' => $this->visualisation ? (array) $this->visualisation->export : null,
         ];
     }
 }

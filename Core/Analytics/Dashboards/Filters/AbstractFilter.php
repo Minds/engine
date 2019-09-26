@@ -3,7 +3,7 @@ namespace Minds\Core\Analytics\Dashboards\Filters;
 
 use Minds\Traits\MagicAttributes;
 
-abstract class FilterAbstract
+abstract class AbstractFilter
 {
     use MagicAttributes;
 
