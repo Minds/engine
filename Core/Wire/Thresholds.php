@@ -35,6 +35,10 @@ class Thresholds
             $isPaywall = true;
         }
 
+        if (!$user && $isPaywall) {
+            return false;
+        }
+
         $threshold = $entity->getWireThreshold();
 
         if (!$threshold && $isPaywall) {
