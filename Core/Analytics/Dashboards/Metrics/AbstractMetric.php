@@ -49,7 +49,7 @@ abstract class AbstractMetric
             'label' => (string) $this->label,
             'permissions' => (array) $this->permissions,
             'summary' => $this->summary ? (array) $this->summary->export() : null,
-            'visualisation' => $this->visualisation ? (array) $this->visualisation->export : null,
+            'visualisation' => $this->visualisation ? (array) $this->visualisation->export() : null,
         ];
     }
 }

@@ -43,14 +43,16 @@ class EntityCentricRecord
 
     /**
      * Increment views
+     * @param string $metric
+     * @param int $value
      * @return DownsampledView
      */
-    public function incrementSum($metric): EntityCentricRecord
+    public function incrementSum($metric, $value = 1): EntityCentricRecord
     {
         if (!isset($this->sums[$metric])) {
             $this->sums[$metric] = 0;
         }
-        ++$this->sums[$metric];
+        $this->sums[$metric] = $this->sums[$metric] + $value;
         return $this;
     }
 }

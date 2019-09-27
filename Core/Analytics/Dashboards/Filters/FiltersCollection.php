@@ -22,6 +22,15 @@ class FiltersCollection implements DashboardCollectionInterface
         return $this;
     }
 
+    /**
+     * Selected ids
+     * @return string[]
+     */
+    public function getSelectedIds(): array
+    {
+        return $this->selectedIds;
+    }
+
     public function getSelected(): array
     {
         // Filters have scoped key pairs like
@@ -34,7 +43,7 @@ class FiltersCollection implements DashboardCollectionInterface
                 continue;
             }
             $selected[$key] = $this->filters[$key];
-            $selected[$key]->selectOption($value);
+            $selected[$key]->setSelectedOption($value);
         }
         return $selected;
     }

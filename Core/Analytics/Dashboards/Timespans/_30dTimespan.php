@@ -1,13 +1,13 @@
 <?php
 namespace Minds\Core\Analytics\Dashboards\Timespans;
 
-class MtdTimespan extends AbstractTimespan
+class _30dTimespan extends AbstractTimespan
 {
     /** @var string */
-    protected $id = 'mtd';
+    protected $id = '30d';
 
     /** @var string */
-    protected $label = 'month to date';
+    protected $label = 'Last 30 days';
 
     /** @var string */
     protected $interval = 'day';
@@ -20,6 +20,6 @@ class MtdTimespan extends AbstractTimespan
 
     public function __construct()
     {
-        $this->fromTsMs = strtotime('midnight first day of this month') * 1000;
+        $this->fromTsMs = strtotime('midnight 30 days ago') * 1000;
     }
 }

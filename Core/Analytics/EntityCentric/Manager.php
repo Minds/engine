@@ -13,7 +13,9 @@ class Manager
 {
     /** @var array */
     const SYNCHRONISERS = [
-        ViewsSynchroniser::class,
+        SignupsSynchroniser::class,
+        ActiveUsersSynchroniser::class,
+//        ViewsSynchroniser::class,
     ];
 
     /** @var Repository */
@@ -51,9 +53,9 @@ class Manager
                 $this->add($record);
                 yield $record;
             }
+            // Call again incase any leftover
+            $this->repository->bulk();
         }
-        // Call again incase any leftover
-        $this->repository->bulk();
         echo "done";
     }
 

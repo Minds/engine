@@ -21,6 +21,9 @@ class MetricSummary
     /** @var int */
     private $comparisonInterval = 1;
 
+    /** @var bool */
+    private $comparisonPositivity = true;
+
     /**
      * Export
      * @param array $extras
@@ -32,6 +35,7 @@ class MetricSummary
             'current_value' => (int) $this->value,
             'comparison_value' => (int) $this->comparisonValue,
             'comparison_interval' => (int) $this->comparisonInterval,
+            'comparison_positive_inclination' => (bool) $this->comparisonPositivity,
         ];
     }
 }

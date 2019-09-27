@@ -13,6 +13,7 @@ class Manager
      */
     public function getDashboardById(string $id): DashboardInterface
     {
-        return self::DASHBOARDS[$id];
+        $class = self::DASHBOARDS[$id];
+        return new $class;
     }
 }

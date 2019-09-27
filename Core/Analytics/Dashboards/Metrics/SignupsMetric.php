@@ -33,68 +33,55 @@ class SignupsMetric extends AbstractMetric
         $comparisonTsMs = strtotime("-{$timespan->getComparisonInterval()} days", $timespan->getFromTsMs() / 1000) * 1000;
         $currentTsMs = $timespan->getFromTsMs();
 
-        $must = [];
-
-        // Range must be from previous period
-        $must[]['range'] = [
-            '@timestamp' => [
-                'gte' => $comparisonTsMs,
-            ],
-        ];
-
-        // Return our global metrics
-        $must[]['term'] = [
-            'entity_urn' => 'urn:metric:global',
-        ];
-
-        // Daily resolution
-        // TODO: implement this to avoid duplicated
-        // $must[] = [
-        //     'term' => [
-        //         'resolution' => 'day',
-        //     ],
-        // ];
-
         $aggField = "signups::total";
 
-        // Do the query
-        $query = [
-            'index' => 'minds-entitycentric-*',
-            'size' => 0,
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must,
-                    ],
+        $values = [];
+        foreach ([ 'value' => $currentTsMs, 'comparison' => $comparisonTsMs ] as $key => $tsMs) {
+            $must = [];
+     
+            // Return our global metrics
+            $must[]['term'] = [
+                 'entity_urn' => 'urn:metric:global',
+             ];
+
+            $must[]['range'] = [
+                '@timestamp' => [
+                    'gte' => $tsMs,
+                    'lte' => strtotime("midnight +{$timespan->getComparisonInterval()} days", $tsMs / 1000) * 1000,
                 ],
-                'aggs' => [
-                    '1' => [
-                        'date_histogram' => [
-                            'field' => '@timestamp',
-                            'fixed_interval' =>  $timespan->getComparisonInterval(),
-                            'min_doc_count' =>  1,
+            ];
+
+            // Do the query
+            $query = [
+                'index' => 'minds-entitycentric-*',
+                'size' => 0,
+                'body' => [
+                    'query' => [
+                        'bool' => [
+                            'must' => $must,
                         ],
-                        'aggs' => [
-                            '2' => [
-                                'sum' => [
-                                    'field' => $aggField,
-                                ],
+                    ],
+                    'aggs' => [
+                        '1' => [
+                            'sum' => [
+                                'field' => $aggField,
                             ],
                         ],
                     ],
                 ],
-            ],
-        ];
+            ];
 
-        // Query elasticsearch
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
-        $response = $this->es->request($prepared);
+            // Query elasticsearch
+            $prepared = new ElasticSearch\Prepared\Search();
+            $prepared->query($query);
+            $response = $this->es->request($prepared);
+            $values[$key] = $response['aggregations']['1']['value'];
+        }
 
         $this->summary = new MetricSummary();
         $this->summary
-            ->setValue($response['aggregations']['1']['buckets'][1]['2']['value'])
-            ->setComparisonValue($response['aggregations']['1']['buckets'][0]['2']['value'])
+            ->setValue($values['value'])
+            ->setComparisonValue($values['comparison'])
             ->setComparisonInterval($timespan->getComparisonInterval());
         return $this;
     }
@@ -127,11 +114,11 @@ class SignupsMetric extends AbstractMetric
         ];
 
         // Specify the resolution to avoid duplicates
-        $must[] = [
+        /*$must[] = [
             'term' => [
                 'resolution' => $timespan->getInterval(),
             ],
-        ];
+        ];*/
 
         // Do the query
         $query = [
@@ -167,17 +154,25 @@ class SignupsMetric extends AbstractMetric
         $prepared->query($query);
         $response = $this->es->request($prepared);
 
+        $buckets = [];
         foreach ($response['aggregations']['1']['buckets'] as $bucket) {
             $date = date(Visualisations\ChartVisualisation::DATE_FORMAT, $bucket['key'] / 1000);
             $xValues[] = $date;
             $yValues[] = $bucket['2']['value'];
+
+            $buckets[] = [
+                'key' => $bucket['key'],
+                'date' => date('c', $bucket['key'] / 1000),
+                'value' => $bucket['2']['value']
+            ];
         }
 
         $this->visualisation = (new Visualisations\ChartVisualisation())
             ->setXValues($xValues)
             ->setYValues($yValues)
             ->setXLabel('Date')
-            ->setYLabel('Count');
+            ->setYLabel('Count')
+            ->setBuckets($buckets);
 
         return $this;
     }

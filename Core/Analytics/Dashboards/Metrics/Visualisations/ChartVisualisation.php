@@ -24,6 +24,9 @@ class ChartVisualisation extends AbstractVisualisation
     /** @var array */
     private $yValues;
 
+    /** @var array */
+    private $buckets = [];
+
     /**
      * Export
      * @param array $extras
@@ -33,14 +36,7 @@ class ChartVisualisation extends AbstractVisualisation
     {
         return [
             'type' => $this->type,
-            'x' => [
-                'values' => (array) $this->xValues,
-                'label' => $this->xLabel,
-            ],
-            'y' => [
-                'values' => (array) $this->yValues,
-                'label' => $this->yLabel,
-            ],
+            'buckets' => (array) $this->buckets,
         ];
     }
 }

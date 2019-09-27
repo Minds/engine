@@ -11,7 +11,7 @@ use Minds\Entities;
 use Minds\Helpers\Counters;
 use Minds\Interfaces;
 
-class pageview implements Interfaces\Api, Interfaces\ApiIgnorePam
+class dashboards implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
     public function get($pages)
     {

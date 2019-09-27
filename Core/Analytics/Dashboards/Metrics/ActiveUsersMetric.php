@@ -2,11 +2,11 @@
 namespace Minds\Core\Analytics\Dashboards\Metrics;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Data\Elasticsearch;
+use Minds\Core\Data\ElasticSearch;
 
 class ActiveUsersMetric extends AbstractMetric
 {
-    /** @var Elasticsearch\Client */
+    /** @var ElasticSearch\Client */
     private $es;
 
     /** @var string */
@@ -35,20 +35,6 @@ class ActiveUsersMetric extends AbstractMetric
         $comparisonTsMs = strtotime("-{$timespan->getComparisonInterval()} days", $timespan->getFromTsMs() / 1000) * 1000;
         $currentTsMs = $timespan->getFromTsMs();
 
-        $must = [];
-
-        // Range must be from previous period
-        $must[]['range'] = [
-            '@timestamp' => [
-                'gte' => $comparisonTsMs,
-            ],
-        ];
-
-        // Use our global metrics
-        $must[]['term'] = [
-            'entity_urn' => 'urn:metric:global'
-        ];
-
         // Field name to use for the aggregation
         $aggField = "active::total";
         // The aggregation type, this differs by resolution
@@ -60,59 +46,65 @@ class ActiveUsersMetric extends AbstractMetric
                 $resolution = 'day';
                 $aggType = "sum";
                 break;
+            case '30d':
             case 'mtd':
                 $resolution = 'month';
                 $aggType = "max";
                 break;
+            case '1y':
             case 'ytd':
                 $resolution = 'month';
                 $aggType = "avg";
                 break;
         }
 
-        // Specify the resolution to avoid duplicates
-        $must[] = [
-            'term' => [
-                'resolution' => $resolution,
-            ],
-        ];
+        $values = [];
+        foreach ([ 'value' => $currentTsMs, 'comparison' => $comparisonTsMs ] as $key => $tsMs) {
+            $must = [];
 
-        $query = [
-            'index' => 'minds-entitycentric-*',
-            'size' => 0,
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must,
-                    ],
+            // Specify the resolution to avoid duplicates
+            $must[] = [
+                'term' => [
+                    'resolution' => $resolution,
                 ],
-                'aggs' => [
-                    '1' => [
-                        'date_histogram' => [
-                            'field' => '@timestamp',
-                            'fixed_interval' =>  $timespan->getComparisonInterval(),
-                            'min_doc_count' =>  1,
+            ];
+
+            $must[]['range'] = [
+                '@timestamp' => [
+                    'gte' => $tsMs,
+                    'lte' => strtotime("midnight +{$timespan->getComparisonInterval()} days", $tsMs / 1000) * 1000,
+                ],
+            ];
+
+            $query = [
+                'index' => 'minds-entitycentric-*',
+                'size' => 0,
+                'body' => [
+                    'query' => [
+                        'bool' => [
+                            'must' => $must,
                         ],
-                        'aggs' => [
-                            '2' => [
-                                $aggType => [
-                                    'field' => $aggField,
-                                ],
+                    ],
+                    'aggs' => [
+                        '1' => [
+                            $aggType => [
+                                'field' => $aggField,
                             ],
                         ],
                     ],
                 ],
-            ],
-        ];
+            ];
 
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
+            $prepared = new ElasticSearch\Prepared\Search();
+            $prepared->query($query);
 
-        $response = $this->es->request($prepared);
+            $response = $this->es->request($prepared);
+            $values[$key] = $response['aggregations']['1']['value'];
+        }
 
         $this->summary = new MetricSummary();
-        $this->summary->setValue($response['aggregations']['1']['buckets'][1]['2']['value'])
-            ->setComparisonValue($response['aggregations']['1']['buckets'][0]['2']['value'])
+        $this->summary->setValue($values['value'])
+            ->setComparisonValue($values['comparison'])
             ->setComparisonInterval($timespan->getComparisonInterval());
         return $this;
     }
@@ -147,7 +139,7 @@ class ActiveUsersMetric extends AbstractMetric
                 'resolution' => $timespan->getInterval(),
             ],
         ];
-
+        
         // Do the query
         $query = [
             'index' => 'minds-entitycentric-*',
@@ -182,18 +174,25 @@ class ActiveUsersMetric extends AbstractMetric
 
         $response = $this->es->request($prepared);
 
+        $buckets = [];
         foreach ($response['aggregations']['1']['buckets'] as $bucket) {
             $date = date(Visualisations\ChartVisualisation::DATE_FORMAT, $bucket['key'] / 1000);
 
             $xValues[] = $date;
             $yValues[] = $bucket['2']['value'];
+            $buckets[] = [
+                'key' => $bucket['key'],
+                'date' => date('c', $bucket['key'] / 1000),
+                'value' => $bucket['2']['value']
+            ];
         }
 
         $this->visualisation = (new Visualisations\ChartVisualisation())
             ->setXValues($xValues)
             ->setYValues($yValues)
             ->setXLabel('Date')
-            ->setYLabel('Count');
+            ->setYLabel('Count')
+            ->setBuckets($buckets);
 
         return $this;
     }

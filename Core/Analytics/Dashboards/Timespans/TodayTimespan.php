@@ -20,8 +20,8 @@ class TodayTimespan extends AbstractTimespan
     /** @var int */
     protected $fromTsMs;
 
-    /** @var string */
-    protected $comparisonInterval = 'day';
+    /** @var int */
+    protected $comparisonInterval = 1;
 
     public function __construct()
     {

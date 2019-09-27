@@ -30,64 +30,67 @@ class ViewsMetric extends AbstractMetric
     public function buildSummary(): self
     {
         $timespan = $this->timespansCollection->getSelected();
-        $comparisonTsMs = strtotime("-{$timespan->getComparisonInterval()} days", $timespan->getFromTsMs() / 1000) * 1000;
+        $filters = $this->filtersCollection->getSelected();
+        $comparisonTsMs = strtotime("midnight -{$timespan->getComparisonInterval()} days", $timespan->getFromTsMs() / 1000) * 1000;
         $currentTsMs = $timespan->getFromTsMs();
-
-        $must = [];
-        $must[]['range'] = [
-            '@timestamp' => [
-                'gte' => $comparisonTsMs,
-            ],
-        ];
 
         // TODO: Allow this to be changed based on supplied filters
         $aggField = "views::total";
 
-        // Specify the resolution to avoid duplicates
-        $must[] = [
-            'term' => [
-                'resolution' => $timespan->getInterval(),
-            ],
-        ];
+        if ($filters['view_type']) {
+            $aggField = "views::" . $filters['view_type']->getSelectedOption();
+        }
 
-        $query = [
-            'index' => 'minds-entitycentric-*',
-            'size' => 0,
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must,
-                    ],
+        $values = [];
+        foreach ([ 'value' => $currentTsMs, 'comparison' => $comparisonTsMs ] as $key => $tsMs) {
+            $must = [];
+
+            // Specify the resolution to avoid duplicates
+            $must[] = [
+                'term' => [
+                    'resolution' => $timespan->getInterval(),
                 ],
-                'aggs' => [
-                    '1' => [
-                        'date_histogram' => [
-                            'field' => '@timestamp',
-                            'fixed_interval' =>  $timespan->getComparisonInterval(),
-                            'min_doc_count' =>  1,
+            ];
+
+            $must[]['range'] = [
+                '@timestamp' => [
+                    'gte' => $tsMs,
+                    'lte' => strtotime("midnight +{$timespan->getComparisonInterval()} days", $tsMs / 1000) * 1000,
+                ],
+            ];
+
+            $query = [
+                'index' => 'minds-entitycentric-*',
+                'size' => 0,
+                'body' => [
+                    'query' => [
+                        'bool' => [
+                            'must' => $must,
                         ],
-                        'aggs' => [
-                            '2' => [
-                                'sum' => [
-                                    'field' => $aggField,
-                                ],
+                    ],
+                    'aggs' => [
+                        '1' => [
+                            'sum' => [
+                                'field' => $aggField,
                             ],
                         ],
                     ],
                 ],
-            ],
-        ];
+            ];
 
-        // Query elasticsearch
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
-        $response = $this->es->request($prepared);
-
+            // Query elasticsearch
+            $prepared = new ElasticSearch\Prepared\Search();
+            $prepared->query($query);
+            $response = $this->es->request($prepared);
+            $values[$key] = $response['aggregations']['1']['value'];
+        }
+        
         $this->summary = new MetricSummary();
         $this->summary
-            ->setValue($response['aggregations']['1']['buckets'][1]['2']['value'])
-            ->setComparisonValue($response['aggregations']['1']['buckets'][0]['2']['value'])
-            ->setComparisonInterval($timespan->getComparisonInterval());
+            ->setValue($values['value'])
+            ->setComparisonValue($values['comparison'])
+            ->setComparisonInterval($timespan->getComparisonInterval())
+            ->setComparisonPositivity(true);
         return $this;
     }
 
@@ -98,11 +101,16 @@ class ViewsMetric extends AbstractMetric
     public function buildVisualisation(): self
     {
         $timespan = $this->timespansCollection->getSelected();
+        $filters = $this->filtersCollection->getSelected();
         $xValues = [];
         $yValues = [];
 
         // TODO: make this respect the filters
         $field = "views::total";
+
+        if ($filters['view_type']) {
+            $field = "views::" . $filters['view_type']->getSelectedOption();
+        }
 
         $must = [];
 
@@ -111,11 +119,6 @@ class ViewsMetric extends AbstractMetric
             '@timestamp' => [
                 'gte' => $timespan->getFromTsMs(),
             ],
-        ];
-
-        // Use our global metrics
-        $must[]['term'] = [
-            'entity_urn' => 'urn:metric:global'
         ];
 
         // Specify the resolution to avoid duplicates
@@ -159,17 +162,24 @@ class ViewsMetric extends AbstractMetric
         $prepared->query($query);
         $response = $this->es->request($prepared);
 
+        $buckets = [];
         foreach ($response['aggregations']['1']['buckets'] as $bucket) {
             $date = date(Visualisations\ChartVisualisation::DATE_FORMAT, $bucket['key'] / 1000);
             $xValues[] = $date;
             $yValues[] = $bucket['2']['value'];
+            $buckets[] = [
+                'key' => $bucket['key'],
+                'date' => date('c', $bucket['key'] / 1000),
+                'value' => $bucket['2']['value']
+            ];
         }
 
         $this->visualisation = (new Visualisations\ChartVisualisation())
             ->setXValues($xValues)
             ->setYValues($yValues)
             ->setXLabel('Date')
-            ->setYLabel('Count');
+            ->setYLabel('Count')
+            ->setBuckets($buckets);
 
         return $this;
     }

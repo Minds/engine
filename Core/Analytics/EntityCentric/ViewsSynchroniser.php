@@ -68,10 +68,12 @@ class ViewsSynchroniser
         $entityUrn = $view->getEntityUrn();
 
         if (!isset($this->records[$view->getEntityUrn()])) {
+            $timestamp = (new \DateTime())->setTimestamp($view->getTimestamp())->setTime(0, 0, 0);
             $record = new EntityCentricRecord();
             $record->setEntityUrn($view->getEntityUrn())
                 ->setOwnerGuid($view->getOwnerGuid())
-                ->setTimestamp($view->getTimestamp());
+                ->setTimestamp($timestamp->getTimestamp())
+                ->setResolution('day');
 
             $this->records[$view->getEntityUrn()] = $record;
         }

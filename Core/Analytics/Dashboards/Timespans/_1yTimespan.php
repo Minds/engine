@@ -1,13 +1,13 @@
 <?php
 namespace Minds\Core\Analytics\Dashboards\Timespans;
 
-class YtdTimespan extends AbstractTimespan
+class _1yTimespan extends AbstractTimespan
 {
     /** @var string */
-    protected $id = 'ytd';
+    protected $id = '1y';
 
     /** @var string */
-    protected $label = 'year to date';
+    protected $label = '1 year ago';
 
     /** @var string */
     protected $interval = 'month';
@@ -15,11 +15,11 @@ class YtdTimespan extends AbstractTimespan
     /** @var int */
     protected $fromTsMs;
 
-    /** @var string */
+    /** @var int */
     protected $comparisonInterval = 365;
 
     public function __construct()
     {
-        $this->fromTsMs = strtotime('midnight first day of January') * 1000;
+        $this->fromTsMs = strtotime('midnight 365 days ago') * 1000;
     }
 }

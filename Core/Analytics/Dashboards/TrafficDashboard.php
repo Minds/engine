@@ -15,7 +15,7 @@ class TrafficDashboard implements DashboardInterface
     use MagicAttributes;
 
     /** @var string */
-    private $timespanId = 'mtd';
+    private $timespanId = '30d';
 
     /** @var string[] */
     private $filterIds = [ 'platform::browser' ];
@@ -55,6 +55,8 @@ class TrafficDashboard implements DashboardInterface
             ->setSelectedId($this->timespanId)
             ->addTimespans(
                 new Timespans\TodayTimespan(),
+                new Timespans\_30dTimespan(),
+                new Timespans\_1yTimespan(),
                 new Timespans\MtdTimespan(),
                 new Timespans\YtdTimespan()
             );
@@ -85,12 +87,14 @@ class TrafficDashboard implements DashboardInterface
      */
     public function export(array $extras = []): array
     {
+        $this->build();
         return [
             'category' => 'traffic',
             'timespan' => $this->timespansCollection->getSelected()->getId(),
             'timespans' => $this->timespansCollection->export(),
+            'metric' => $this->metricsCollection->getSelected()->getId(),
             'metrics' => $this->metricsCollection->export(),
-            'filter' => $this->filtersCollection->getSelected()->getId(),
+            'filter' => $this->filtersCollection->getSelectedIds(),
             'filters' => $this->filtersCollection->export(),
         ];
     }

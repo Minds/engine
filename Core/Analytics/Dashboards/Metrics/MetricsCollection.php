@@ -93,6 +93,8 @@ class MetricsCollection implements DashboardCollectionInterface
 
         // Build current visualisation
         $this->getSelected()->buildVisualisation();
+
+        return $this;
     }
 
     public function buildSummaries(): self
