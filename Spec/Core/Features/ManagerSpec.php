@@ -7,7 +7,6 @@ use Minds\Core\Di\Di;
 use Minds\Core\Features\Manager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
-use Minds\Common\Cookie;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -17,11 +16,10 @@ class ManagerSpec extends ObjectBehavior
     /** @var Cookie */
     protected $cookie;
 
-    public function let(Config $config, Cookie $cookie)
+    public function let(Config $config)
     {
         $this->beConstructedWith($config);
         $this->config = $config;
-        $this->cookie = $cookie;
     }
 
     public function it_is_initializable()
