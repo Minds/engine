@@ -79,7 +79,7 @@ class Manager
      */
     public function export()
     {
-        $features = $this->config->get('features');
+        $features = $this->config->get('features') ?: [];
         try {
             $featureOverrides = $_COOKIE['staging-features']
                 ? json_decode(base64_decode($_COOKIE['staging-features'], true), true)
