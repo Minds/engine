@@ -65,6 +65,6 @@ class Manager
             return null;
         }
 
-        return (string) $this->s3->createPresignedRequest($cmd, '+90 days')->getUri();
+        return (string) $this->s3->createPresignedRequest($cmd, '+48 hours')->getUri();
     }
 }
