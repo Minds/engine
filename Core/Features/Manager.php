@@ -9,7 +9,6 @@
 namespace Minds\Core\Features;
 
 use Minds\Core\Di\Di;
-use Minds\Common\Cookie;
 use Minds\Core\Session;
 
 class Manager
@@ -19,11 +18,8 @@ class Manager
 
     /** @var Config $config */
     private $config;
-
-    /** @var Cookie $cookie */
-    private $cookie;
     
-    public function __construct($config = null, $cookie = null)
+    public function __construct($config = null)
     {
         $this->config = $config ?: Di::_()->get('Config');
         $this->cookie = $cookie ?: new Cookie;
