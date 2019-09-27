@@ -89,6 +89,7 @@ class Manager
 
         if ($account->getSSN()) {
             $data['individual']['ssn_last_4'] = $account->getSSN();
+            $data['requested_capabilities'] = ['card_payments', 'transfers'];
         }
 
         if ($account->getPersonalIdNumber()) {
