@@ -7,16 +7,21 @@ use Minds\Core\Di\Di;
 use Minds\Core\Features\Manager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use Minds\Common\Cookie;
 
 class ManagerSpec extends ObjectBehavior
 {
     /** @var Config */
     protected $config;
 
-    public function let(Config $config)
+    /** @var Cookie */
+    protected $cookie;
+
+    public function let(Config $config, Cookie $cookie)
     {
         $this->beConstructedWith($config);
         $this->config = $config;
+        $this->cookie = $cookie;
     }
 
     public function it_is_initializable()
@@ -91,5 +96,27 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($features);
 
         $this->export()->shouldReturn($features);
+    }
+
+    public function it_should_return_has_staging_features_cookie_when_set()
+    {
+        $_COOKIE['staging-features'] = 'eyJ0ZXN0Ijp0cnVlfQ==';
+        $this->has('test')->shouldReturn(true);
+    }
+
+
+    public function it_should_when_exporting_include_overriden_staging_features()
+    {
+        $this->config->get('features')
+            ->shouldBeCalled()
+            ->willReturn(['plus' => true, 'wire' => 'admin']);
+
+        $_COOKIE['staging-features'] = 'eyJ0ZXN0Ijp0cnVlfQ==';
+        
+        $this->export()->shouldReturn([
+            'test' => true,
+            'plus' => true,
+            'wire' => 'admin'
+        ]);
     }
 }

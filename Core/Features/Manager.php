@@ -48,11 +48,16 @@ class Manager
     public function has($feature)
     {
         $features = $this->config->get('features') ?: [];
-
-        $featureOverrides = empty($_COOKIE['staging-features'])
-            ?: json_decode(base64_decode($_COOKIE['staging-features'], true), true);
-        if ($featureOverrides[$feature]) {
-            return $featureOverrides[$feature];
+        
+        try {
+            $featureOverrides = $_COOKIE['staging-features']
+                ? json_decode(base64_decode($_COOKIE['staging-features'], true), true)
+                : null;
+            if ($featureOverrides[$feature]) {
+                return $featureOverrides[$feature];
+            }
+        } catch (\Exception $e) {
+            // Invalid cookie
         }
     
         if (!isset($features[$feature])) {
@@ -74,7 +79,19 @@ class Manager
      */
     public function export()
     {
-        return $this->config->get('features') ?: [];
+        $features = $this->config->get('features');
+        try {
+            $featureOverrides = $_COOKIE['staging-features']
+                ? json_decode(base64_decode($_COOKIE['staging-features'], true), true)
+                : null;
+
+            if ($featureOverrides) {
+                return array_merge($featureOverrides, $features);
+            }
+        } catch (\Exception $e) {
+            // Invalid cookie
+        }
+        return $features;
     }
 
     /**
