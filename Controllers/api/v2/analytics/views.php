@@ -67,46 +67,49 @@ class views implements Interfaces\Api
                 ]);
                 break;
             case 'activity':
-                $activity = new Entities\Activity($pages[1]);
+            case 'entity':
+                $entity = Entities\Factory::build($pages[1]);
 
-                if (!$activity->guid) {
+                if (!$entity) {
                     return Factory::response([
                         'status' => 'error',
-                        'message' => 'Could not find activity post'
+                        'message' => 'Could not the entity'
                     ]);
                 }
 
-                try {
-                    Core\Analytics\App::_()
+                if ($entity->type === 'activity') {
+                    try {
+                        Core\Analytics\App::_()
                         ->setMetric('impression')
                         ->setKey($activity->guid)
                         ->increment();
 
-                    if ($activity->remind_object) {
-                        Core\Analytics\App::_()
+                        if ($activity->remind_object) {
+                            Core\Analytics\App::_()
                             ->setMetric('impression')
                             ->setKey($activity->remind_object['guid'])
                             ->increment();
 
-                        Core\Analytics\App::_()
+                            Core\Analytics\App::_()
                             ->setMetric('impression')
                             ->setKey($activity->remind_object['owner_guid'])
                             ->increment();
-                    }
+                        }
 
-                    Core\Analytics\User::_()
+                        Core\Analytics\User::_()
                         ->setMetric('impression')
                         ->setKey($activity->owner_guid)
                         ->increment();
-                } catch (\Exception $e) {
-                    error_log($e->getMessage());
+                    } catch (\Exception $e) {
+                        error_log($e->getMessage());
+                    }
                 }
 
                 try {
                     $viewsManager->record(
                         (new Core\Analytics\Views\View())
-                            ->setEntityUrn($activity->getUrn())
-                            ->setOwnerGuid((string) $activity->getOwnerGuid())
+                            ->setEntityUrn($entity->getUrn())
+                            ->setOwnerGuid((string) $entity->getOwnerGuid())
                             ->setClientMeta($_POST['client_meta'] ?? [])
                     );
                 } catch (\Exception $e) {
