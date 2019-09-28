@@ -2,6 +2,7 @@
 /**
  * Minds Session Manager
  */
+
 namespace Minds\Core\Sessions;
 
 use Minds\Common\Cookie;
@@ -184,13 +185,13 @@ class Manager
         $expires = time() + (60 * 60 * 24 * 30); // 30 days
 
         $token = $this->jwtBuilder
-                    //->issuedBy($this->config->get('site_url'))
-                    //->canOnlyBeUsedBy($this->config->get('site_url'))
-                    ->setId($id, true)
-                    ->setExpiration($expires)
-                    ->set('user_guid', (string) $this->user->getGuid())
-                    ->sign(new Sha512, $this->config->get('sessions')['private_key'])
-                    ->getToken();
+            //->issuedBy($this->config->get('site_url'))
+            //->canOnlyBeUsedBy($this->config->get('site_url'))
+            ->setId($id, true)
+            ->setExpiration($expires)
+            ->set('user_guid', (string) $this->user->getGuid())
+            ->sign(new Sha512, $this->config->get('sessions')['private_key'])
+            ->getToken();
 
         $this->session = new Session();
         $this->session
@@ -198,7 +199,7 @@ class Manager
             ->setToken($token)
             ->setUserGuid($this->user->getGuid())
             ->setExpires($expires);
-            
+
         return $this;
     }
 
@@ -234,8 +235,10 @@ class Manager
      */
     public function destroy($all = false)
     {
-        $this->repository->delete($this->session, $all);
-               
+        if ($this->session) {
+            $this->repository->delete($this->session, $all);
+        }
+
         $this->cookie
             ->setName('minds_sess')
             ->setValue('')
