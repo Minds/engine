@@ -81,24 +81,24 @@ class views implements Interfaces\Api
                     try {
                         Core\Analytics\App::_()
                         ->setMetric('impression')
-                        ->setKey($activity->guid)
+                        ->setKey($entity->guid)
                         ->increment();
 
-                        if ($activity->remind_object) {
+                        if ($entity->remind_object) {
                             Core\Analytics\App::_()
                             ->setMetric('impression')
-                            ->setKey($activity->remind_object['guid'])
+                            ->setKey($entity->remind_object['guid'])
                             ->increment();
 
                             Core\Analytics\App::_()
                             ->setMetric('impression')
-                            ->setKey($activity->remind_object['owner_guid'])
+                            ->setKey($entity->remind_object['owner_guid'])
                             ->increment();
                         }
 
                         Core\Analytics\User::_()
                         ->setMetric('impression')
-                        ->setKey($activity->owner_guid)
+                        ->setKey($entity->owner_guid)
                         ->increment();
                     } catch (\Exception $e) {
                         error_log($e->getMessage());
@@ -117,7 +117,7 @@ class views implements Interfaces\Api
                 }
 
                 Di::_()->get('Referrals\Cookie')
-                    ->setEntity($activity)
+                    ->setEntity($entity)
                     ->create();
 
                 break;
