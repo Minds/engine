@@ -9,6 +9,7 @@ stages:
   - prepare
   - review
   - deploy:staging
+  - qa
   - deploy:canary
   - deploy:production
 
@@ -123,6 +124,16 @@ review:stop:
     GIT_STRATEGY: none
   when: manual
   except: 
+    refs:
+      - master
+      - test/gitlab-ci
+
+qa:manual:
+  stage: qa
+  script:
+    - echo "Manually approved"
+  when: manual
+  only:
     refs:
       - master
       - test/gitlab-ci
