@@ -14,5 +14,8 @@ class Provider extends DiProvider
         $this->di->bind('Subscriptions\Manager', function ($di) {
             return new Manager();
         }, [ 'useFactory'=>false ]);
+        $this->di->bind('Subscriptions\Requests\Manager', function ($di) {
+            return new Requests\Manager();
+        }, [ 'useFactory'=>false ]);
     }
 }
