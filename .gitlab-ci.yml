@@ -137,6 +137,7 @@ qa:manual:
     refs:
       - master
       - test/gitlab-ci
+  allow_failure: false
 
 staging:fpm:
   stage: deploy:staging
