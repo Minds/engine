@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Blogs;
 use Minds\Core\Blogs\Blog;
 use Minds\Core\Blogs\Delegates;
 use Minds\Core\Blogs\Repository;
+use Minds\Core\Entities\PropagateProperties;
 use Minds\Core\Security\Spam;
 
 use PhpSpec\ObjectBehavior;
@@ -30,13 +31,16 @@ class ManagerSpec extends ObjectBehavior
     /** @var Delegates\Search */
     protected $search;
 
+    protected $propagateProperties;
+
     public function let(
         Repository $repository,
         Delegates\PaywallReview $paywallReview,
         Delegates\Slug $slug,
         Delegates\Feeds $feeds,
         Spam $spam,
-        Delegates\Search $search
+        Delegates\Search $search,
+        PropagateProperties $propagateProperties
     ) {
         $this->beConstructedWith(
             $repository,
@@ -44,7 +48,8 @@ class ManagerSpec extends ObjectBehavior
             $slug,
             $feeds,
             $spam,
-            $search
+            $search,
+            $propagateProperties
         );
 
         $this->repository = $repository;
@@ -53,6 +58,7 @@ class ManagerSpec extends ObjectBehavior
         $this->feeds = $feeds;
         $this->spam = $spam;
         $this->search = $search;
+        $this->propagateProperties = $propagateProperties;
     }
 
     public function it_is_initializable()
@@ -244,6 +250,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->propagateProperties->from($blog)->shouldBeCalled();
         $this
             ->update($blog)
             ->shouldReturn(true);
