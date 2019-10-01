@@ -92,7 +92,7 @@ class TrafficDashboard implements DashboardInterface
             'category' => 'traffic',
             'timespan' => $this->timespansCollection->getSelected()->getId(),
             'timespans' => $this->timespansCollection->export(),
-            'metric' => $this->metricsCollection->getSelected()->getId(),
+            'metric' => $this->metricsCollection->getSelected()->export(),
             'metrics' => $this->metricsCollection->export(),
             'filter' => $this->filtersCollection->getSelectedIds(),
             'filters' => $this->filtersCollection->export(),
