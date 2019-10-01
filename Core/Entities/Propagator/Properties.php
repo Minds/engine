@@ -55,7 +55,15 @@ abstract class Properties
         }
 
         if ($this->actsOnType === [] || in_array($entity->getType(), $this->actsOnType, true)) {
-            return $this->actsOnSubtype === [] || in_array($entity->getSubtype(), $this->actsOnSubtype, true);
+            if ($this->actsOnSubtype === []) {
+                return true;
+            }
+
+            if (!is_callable([$entity, 'getSubtype'], true)) {
+                return false;
+            }
+
+            return in_array($entity->getSubtype(), $this->actsOnSubtype, true);
         }
 
         return false;
