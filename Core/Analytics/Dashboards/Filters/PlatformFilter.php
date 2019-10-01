@@ -7,7 +7,7 @@ class PlatformFilter extends AbstractFilter
     protected $id = "platform";
 
     /** @var string */
-    protected $label = "Platform types";
+    protected $label = "Platform";
 
     public function __construct()
     {

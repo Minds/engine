@@ -20,6 +20,22 @@ abstract class AbstractFilter
     protected $selectedOption;
 
     /**
+     * Set the selected option and toggle if selected
+     * @param string $selectedOptionId
+     * @return self
+     */
+    public function setSelectedOption(string $selectedOptionId): self
+    {
+        $this->selectedOption = $selectedOptionId;
+        foreach ($this->options->getOptions() as $k => $option) {
+            if ($option->getId() === $selectedOptionId) {
+                $option->setSelected(true);
+            }
+        }
+        return $this;
+    }
+
+    /**
      * Export
      * @param array $extras
      * @return array
