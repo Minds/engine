@@ -8,7 +8,6 @@ use Minds\Common\ChannelMode;
 
 /**
  * User Entity.
- *
  * @todo Do not inherit from ElggUser
  */
 class User extends \ElggUser

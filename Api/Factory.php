@@ -211,15 +211,23 @@ class Factory
      */
     public static function exportable($entities, $exceptions = [], $exportContext = false)
     {
+        $permissionsManager = Di::_()->get('Permissions\Manager');
         if (!$entities) {
             return [];
         }
+       
         foreach ($entities as $k => $entity) {
             if ($exportContext && method_exists($entity, 'setExportContext')) {
                 $entity->setExportContext($exportContext);
             }
 
             $entities[$k] = $entity->export();
+            //Calculate new permissions object with the entities
+            if ($entity && Di::_()->get('Features\Manager')->has('permissions')) {
+                $permissions = $permissionsManager->getList(['user_guid' => Session::getLoggedinUser(),
+                                                            'entities' => [$entity]]);
+                $entities[$k]['permissions'] = $permissions->export();
+            }
             $entities[$k]['guid'] = (string) $entities[$k]['guid']; //javascript doesn't like long numbers..
             if (isset($entities[$k]['ownerObj']['guid'])) {
                 $entities[$k]['ownerObj']['guid'] = (string) $entity->ownerObj['guid'];

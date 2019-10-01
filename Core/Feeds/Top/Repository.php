@@ -408,6 +408,7 @@ class Repository
                 ->setGuid($doc['_source'][$this->getSourceField($opts['type'])])
                 ->setType($doc['_type'])
                 ->setScore($algorithm->fetchScore($doc))
+                ->setAccessId($doc['_source']['access_id'])
                 ->setOwnerGuid($doc['_source']['owner_guid'])
                 ->setTimestamp($doc['_source']['@timestamp']);
         }

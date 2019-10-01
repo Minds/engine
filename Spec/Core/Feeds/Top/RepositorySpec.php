@@ -9,6 +9,7 @@ use Minds\Core\Feeds\Top\MetricsSync;
 use Minds\Core\Feeds\Top\Repository;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Minds\Common\Access;
 
 class RepositorySpec extends ObjectBehavior
 {
@@ -52,6 +53,7 @@ class RepositorySpec extends ObjectBehavior
                         [
                             '_source' => [
                                 'guid' => '1',
+                                'access_id' => Access::PUBLIC,
                                 'owner_guid' => '1000',
                                 'time_created' => 1,
                                 '@timestamp' => 1000,
@@ -62,6 +64,7 @@ class RepositorySpec extends ObjectBehavior
                         [
                             '_source' => [
                                 'guid' => '2',
+                                'access_id' => Access::PUBLIC,
                                 'owner_guid' => '1000',
                                 'time_created' => 1,
                                 '@timestamp' => 1000,
@@ -102,6 +105,7 @@ class RepositorySpec extends ObjectBehavior
                         [
                             '_source' => [
                                 'guid' => '1',
+                                'access_id' => Access::PUBLIC,
                                 'owner_guid' => '1',
                                 'time_created' => 1,
                                 '@timestamp' => 1000,
@@ -112,6 +116,7 @@ class RepositorySpec extends ObjectBehavior
                         [
                             '_source' => [
                                 'guid' => '2',
+                                'access_id' => Access::PUBLIC,
                                 'owner_guid' => '2',
                                 'time_created' => 2,
                                 '@timestamp' => 2000,
@@ -152,6 +157,7 @@ class RepositorySpec extends ObjectBehavior
                         [
                             '_source' => [
                                 'guid' => '1',
+                                'access_id' => Access::PUBLIC,
                                 'owner_guid' => '1000',
                                 'time_created' => 1,
                                 '@timestamp' => 1000,
@@ -163,6 +169,7 @@ class RepositorySpec extends ObjectBehavior
                         [
                             '_source' => [
                                 'guid' => '2',
+                                'access_id' => Access::PUBLIC,
                                 'owner_guid' => '1001',
                                 'time_created' => 2,
                                 '@timestamp' => 2000,

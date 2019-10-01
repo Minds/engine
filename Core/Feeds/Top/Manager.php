@@ -150,6 +150,8 @@ class Manager
             $feedSyncEntities[] = (new FeedSyncEntity())
                 ->setGuid((string) $scoredGuid->getGuid())
                 ->setOwnerGuid((string) $ownerGuid)
+                ->setAccessId($scoredGuid->getAccessId())
+                ->setType($scoredGuid->getType())
                 ->setUrn(new Urn($urn))
                 ->setTimestamp($scoredGuid->getTimestamp());
 
@@ -180,6 +182,8 @@ class Manager
                 $entities[] = (new FeedSyncEntity)
                                 ->setGuid($entity->getGuid())
                                 ->setOwnerGuid($entity->getOwnerGuid())
+                                ->setAccessId($entity->getAccessId())
+                                ->setType($scoredGuid->getType())
                                 ->setUrn($entity->getUrn())
                                 ->setEntity($entity);
             }
