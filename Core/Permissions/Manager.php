@@ -3,16 +3,20 @@
 namespace Minds\Core\Permissions;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Permissions\Permissions;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Permissions\Roles\Roles;
 
 /*
 * Manager for managing role based permissions
 */
+
 class Manager
 {
-    /** @var EntityBuilder */
-    private $entityBuilder;
+    /** @var EntitiesBuilder */
+    private $entitiesBuilder;
 
-    public function __construct($entityBuilder = null)
+    public function __construct($entitiesBuilder = null)
     {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
     }
@@ -33,23 +37,34 @@ class Manager
         $opts = array_merge([
             'user_guid' => null,
             'guids' => [],
+            'entities' => [],
         ], $opts);
 
         if ($opts['user_guid'] === null) {
             throw new \InvalidArgumentException('user_guid is required');
         }
 
-        $user = $this->entitiesBuilder->single($opts['user_guid']);
-        $entities = $this->entitiesBuilder->get($opts);
+        $guids = $opts['guids'] ?: array_map(function ($item) {
+            return $item['guid'];
+        }, $opts['entities']);
 
-        if ($user->getType() !== 'user') {
+        $user = $this->entitiesBuilder->single($opts['user_guid']);
+        $entities = $this->entitiesBuilder->get(['guids' => $guids]);
+
+        if (!$user) {
+            throw new \InvalidArgumentException('User does not exist');
+        }
+
+        if ($user && $user->getType() !== 'user') {
             throw new \InvalidArgumentException('Entity is not a user');
         }
+
+        $entities = array_merge($entities, $opts['entities']);
 
         $roles = new Roles();
 
         /** @var Permissions */
-        $permissions = new Permissions($user, null, $entitiesBuilder);
+        $permissions = new Permissions($user, $roles, $this->entitiesBuilder);
         if (is_array($entities)) {
             $permissions->calculate($entities);
         }

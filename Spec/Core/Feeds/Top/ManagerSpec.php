@@ -12,6 +12,7 @@ use Minds\Entities\Entity;
 use PhpSpec\Exception\Example\FailureException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Minds\Common\Access;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -50,6 +51,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(5000);
 
+        $scoredGuid1->getAccessId()
+            ->shouldBeCalled()
+            ->willReturn(Access::PUBLIC);
+
         $scoredGuid1->getScore()
             ->shouldBeCalled()
             ->willReturn(500);
@@ -70,6 +75,14 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(5000);
 
+        $entity1->getType()
+            ->shouldBeCalled()
+            ->willReturn('object:image');
+
+        $entity1->getAccessId()
+            ->shouldBeCalled()
+            ->willReturn(Access::PUBLIC);
+
         $entity1->getOwnerGUID()
             ->shouldBeCalled()
             ->willReturn(1000);
@@ -81,6 +94,10 @@ class ManagerSpec extends ObjectBehavior
         $scoredGuid2->getGuid()
             ->shouldBeCalled()
             ->willReturn(5001);
+
+        $scoredGuid2->getAccessId()
+            ->shouldBeCalled()
+            ->willReturn(Access::PUBLIC);
 
         $scoredGuid2->getScore()
             ->shouldBeCalled()
@@ -101,6 +118,14 @@ class ManagerSpec extends ObjectBehavior
         $entity2->getGUID()
             ->shouldBeCalled()
             ->willReturn(5001);
+
+        $entity2->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
+        $entity2->getAccessId()
+            ->shouldBeCalled()
+            ->willReturn(Access::PUBLIC);
 
         $entity2->getOwnerGUID()
             ->shouldBeCalled()
@@ -138,6 +163,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(5000);
 
+        $scoredGuid1->getAccessId()
+            ->shouldBeCalled()
+            ->willReturn(Access::PUBLIC);
+
         $scoredGuid1->getScore()
             ->shouldBeCalled()
             ->willReturn(500);
@@ -158,6 +187,14 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(5000);
 
+        $entity1->getAccessId()
+            ->shouldBeCalled()
+            ->willReturn(Access::PUBLIC);
+
+        $entity1->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
         $entity1->getOwnerGUID()
             ->shouldBeCalled()
             ->willReturn(1000);
@@ -169,6 +206,11 @@ class ManagerSpec extends ObjectBehavior
         $scoredGuid2->getGuid()
             ->shouldBeCalled()
             ->willReturn(5001);
+
+        
+        $scoredGuid2->getAccessId()
+            ->shouldBeCalled()
+            ->willReturn(Access::PUBLIC);
 
         $scoredGuid2->getScore()
             ->shouldBeCalled()
@@ -189,6 +231,14 @@ class ManagerSpec extends ObjectBehavior
         $entity2->getGUID()
             ->shouldBeCalled()
             ->willReturn(5001);
+
+        $entity2->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+        
+        $entity2->getAccessId()
+            ->shouldBeCalled()
+            ->willReturn(Access::PUBLIC);
 
         $entity2->getOwnerGUID()
             ->shouldBeCalled()

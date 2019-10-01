@@ -6,6 +6,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Data\Call;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Permissions\Entities\EntityPermissions;
 
 /*
 * Manager for managing entity specific permissions

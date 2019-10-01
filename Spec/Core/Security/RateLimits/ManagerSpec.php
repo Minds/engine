@@ -53,7 +53,8 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_impose_a_rate_limit_with_a_custom_limit_period(User $user)
     {
-        $user->set('ratelimited_interaction:subscribe', time() + 600)
+        $time = time();
+        $user->set('ratelimited_interaction:subscribe', $time + 600)
             ->shouldBeCalled();
 
         $user->save()
@@ -68,7 +69,7 @@ class ManagerSpec extends ObjectBehavior
         $this->setUser($user)
             ->setInteraction('subscribe')
             ->setLimitLength(600)//10 minutes
-            ->impose();
+            ->impose($time);
     }
 
     public function it_should_return_false_if_no_rate_limit(User $user)

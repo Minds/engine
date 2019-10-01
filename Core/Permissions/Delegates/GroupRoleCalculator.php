@@ -8,6 +8,7 @@ use Minds\Core\Permissions\Roles\Role;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
 use Minds\Core\Permissions\Roles\Roles;
+use Minds\Entities\Group;
 
 class GroupRoleCalculator extends BaseRoleCalculator
 {
@@ -18,7 +19,8 @@ class GroupRoleCalculator extends BaseRoleCalculator
     /** @var array */
     private $groups = [];
 
-    public function __construct(User $user, Roles $roles, EntitiesBuilder $entitiesBuilder = null)
+
+    public function __construct(User $user = null, Roles $roles, EntitiesBuilder $entitiesBuilder = null)
     {
         parent::__construct($user, $roles);
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
@@ -38,9 +40,16 @@ class GroupRoleCalculator extends BaseRoleCalculator
         if (isset($this->groups[$entity->getAccessId()])) {
             return $this->groups[$entity->getAccessId()];
         }
-        $group = $this->entitiesBuilder->single($entity->getAccessId());
+        if ($entity->getType() === 'group') {
+            $group = $entity;
+        } else {
+            $group = $this->entitiesBuilder->single($entity->getAccessId());
+        }
+
         $role = null;
-        if ($group->isCreator($this->user)) {
+        if ($this->user === null) {
+            $role = $this->getGroupNonSubscriberRole($group);
+        } elseif ($group->isCreator($this->user)) {
             $role = $this->roles->getRole(Roles::ROLE_GROUP_OWNER);
         } elseif ($group->isOwner($this->user)) {
             $role = $this->roles->getRole(Roles::ROLE_GROUP_ADMIN);
@@ -49,12 +58,48 @@ class GroupRoleCalculator extends BaseRoleCalculator
         } elseif ($group->isModerator($this->user)) {
             $role = $this->roles->getRole(Roles::ROLE_GROUP_MODERATOR);
         } elseif ($group->isMember($this->user)) {
-            $role = $this->roles->getRole(Roles::ROLE_GROUP_SUBSCRIBER);
+            $role = $this->getGroupSubscriberRole($group);
         } else {
-            $role = $this->roles->getRole(Roles::ROLE_GROUP_NON_SUBSCRIBER);
+            $role = $this->getGroupNonSubscriberRole($group);
         }
-        $this->groups[$entity->getAccessId()] = $role;
+        
+        $this->groups[$group->getGuid()] = $role;
 
         return $role;
+    }
+
+
+    /**
+    * Gets a subscriber's role based on group mode
+    * @param Group
+    * @return Role
+    */
+    protected function getGroupSubscriberRole(Group $group) : Role
+    {
+        if ($group->isPublic()) {
+            return $this->roles->getRole(Roles::ROLE_OPEN_GROUP_SUBSCRIBER);
+        } else {
+            return $this->roles->getRole(Roles::ROLE_CLOSED_GROUP_SUBSCRIBER);
+        }
+    }
+
+    /**
+     * Gets a non-subscriber's role based on channel mode
+     * @param Group
+     * @return Role
+     */
+    protected function getGroupNonSubscriberRole(Group $group) : Role
+    {
+        if ($group->isPublic()) {
+            if ($this->user === null) {
+                $this->roles->getRole(Roles::ROLE_LOGGED_OUT);
+            }
+            return $this->roles->getRole(Roles::ROLE_OPEN_GROUP_NON_SUBSCRIBER);
+        } else {
+            if ($this->user === null) {
+                $this->roles->getRole(Roles::ROLE_LOGGED_OUT_CLOSED);
+            }
+            return $this->roles->getRole(Roles::ROLE_CLOSED_GROUP_NON_SUBSCRIBER);
+        }
     }
 }

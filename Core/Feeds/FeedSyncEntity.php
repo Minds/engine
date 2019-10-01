@@ -22,6 +22,10 @@ use Minds\Traits\MagicAttributes;
  * @method FeedSyncEntity setTimestamp(int $timestamp)
  * @method string getUrn()
  * @method FeedSyncEntity setUrn(string $urn)
+ * @method int getAccessId()
+ * @method FeedSyncEntity setAccessId(int $accessId)
+ * @method string getType()
+ * @method FeedSyncEntity setType(string $type)
  */
 class FeedSyncEntity implements JsonSerializable
 {
@@ -36,11 +40,25 @@ class FeedSyncEntity implements JsonSerializable
     /** @var int */
     protected $timestamp;
 
+    /** @var int */
+    protected $accessId;
+
     /** @var string */
     protected $urn;
 
     /** @var Entity */
     protected $entity;
+
+    public function setEntity($entity)
+    {
+        $this->entity = $entity;
+        $this->accessId = $entity->getAccessId();
+        $this->type = $entity->getType();
+        return $this;
+    }
+
+    /** @var type */
+    public $type;
 
     /**
      * Export to public API
@@ -51,8 +69,10 @@ class FeedSyncEntity implements JsonSerializable
         return [
             'guid' => (string) $this->guid,
             'owner_guid' =>  (string) $this->ownerGuid,
+            'access_id' => $this->accessId,
             'timestamp' => $this->timestamp,
             'urn' => $this->urn,
+            'type' => $this->type,
             'entity' => $this->entity ? $this->entity->export() : null,
         ];
     }

@@ -12,7 +12,7 @@ abstract class BaseRoleCalculator
     /** @var User */
     protected $user;
 
-    public function __construct(User $user, Roles $roles = null)
+    public function __construct(User $user = null, Roles $roles = null)
     {
         $this->roles = $roles ?: new Roles();
         $this->user = $user;

@@ -101,9 +101,10 @@ class Manager
      * Impose the rate limit
      * @return void
      */
-    public function impose()
+    public function impose($time = null)
     {
-        $this->user->set($this->key, time() + $this->limitLength);
+        $time = $time ?: time();
+        $this->user->set($this->key, $time + $this->limitLength);
         $this->user->save(); //TODO: update to new repo system soon
 
         //Send a notification
