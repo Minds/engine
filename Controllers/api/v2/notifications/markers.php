@@ -41,7 +41,7 @@ class markers implements Interfaces\Api
 
 
         return Factory::response([
-            'markers' => Factory::exportable($list),
+            'markers' => Factory::exportable($list, [], false, true),
         ]);
     }
 

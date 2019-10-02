@@ -9,6 +9,8 @@
 namespace Minds\Api;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Feeds\FeedSyncEntity;
+use Minds\Core\Permissions\Manager;
 use Minds\Core\Session;
 
 class Exportable implements \JsonSerializable
@@ -104,10 +106,24 @@ class Exportable implements \JsonSerializable
             $exported = $item->export(...$this->exportArgs);
 
             if ($item && Di::_()->get('Features\Manager')->has('permissions')) {
+                if ($item instanceof FeedSyncEntity && $item->getEntity()) {
+                    $entity = $item->getEntity();
+                } else {
+                    $entity = $item;
+                }
+
+                /** @var Manager $permissionsManager */
                 $permissionsManager = Di::_()->get('Permissions\Manager');
-                $permissions = $permissionsManager->getList(['user_guid' => Session::getLoggedinUser(),
-                                                            'entities' => [$item]]);
-                $exported['permissions'] = $permissions->export();
+                $permissions = $permissionsManager->getList([
+                    'user_guid' => Session::getLoggedinUser(),
+                    'entities' => [$entity],
+                ]);
+
+                if ($item instanceof FeedSyncEntity) {
+                    $exported['entity']['permissions'] = $permissions->export();
+                } else {
+                    $exported['permissions'] = $permissions->export();
+                }
             }
 
             // Shims

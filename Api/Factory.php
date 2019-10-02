@@ -209,13 +209,13 @@ class Factory
      * @return array - an array of the entities
      * @deprecated
      */
-    public static function exportable($entities, $exceptions = [], $exportContext = false)
+    public static function exportable($entities, $exceptions = [], $exportContext = false, $includePermissions = true)
     {
         $permissionsManager = Di::_()->get('Permissions\Manager');
         if (!$entities) {
             return [];
         }
-       
+
         foreach ($entities as $k => $entity) {
             if ($exportContext && method_exists($entity, 'setExportContext')) {
                 $entity->setExportContext($exportContext);
@@ -223,9 +223,11 @@ class Factory
 
             $entities[$k] = $entity->export();
             //Calculate new permissions object with the entities
-            if ($entity && Di::_()->get('Features\Manager')->has('permissions')) {
-                $permissions = $permissionsManager->getList(['user_guid' => Session::getLoggedinUser(),
-                                                            'entities' => [$entity]]);
+            if ($includePermissions && $entity && Di::_()->get('Features\Manager')->has('permissions')) {
+                $permissions = $permissionsManager->getList([
+                    'user_guid' => Session::getLoggedinUser(),
+                    'entities' => [$entity],
+                ]);
                 $entities[$k]['permissions'] = $permissions->export();
             }
             $entities[$k]['guid'] = (string) $entities[$k]['guid']; //javascript doesn't like long numbers..
