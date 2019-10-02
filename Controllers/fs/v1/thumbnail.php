@@ -46,7 +46,15 @@ class thumbnail extends Core\page implements Interfaces\page
                 $contents = $thumbnail->read();
             }
 
-            header('Content-type: image/jpeg');
+            try {
+                $finfo = new \finfo(FILEINFO_MIME);
+                $contentType = $finfo->buffer($contents) ?: 'image/jpeg';
+            } catch (\Exception $e) {
+                error_log($e);
+                $contentType = 'image/jpeg';
+            }
+
+            header('Content-type: ' . $contentType);
             header('Expires: ' . date('r', strtotime('today + 6 months')), true);
             header('Pragma: public');
             header('Cache-Control: public');

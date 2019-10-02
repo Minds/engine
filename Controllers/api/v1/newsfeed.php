@@ -514,9 +514,6 @@ class newsfeed implements Interfaces\Api
                     $activity->indexes = ["activity:$activity->owner_guid:edits"]; //don't re-index on edit
                     (new Core\Translation\Storage())->purge($activity->guid);
 
-                    $attachmentPaywallDelegate = new Core\Feeds\Activity\Delegates\AttachmentPaywallDelegate();
-                    $attachmentPaywallDelegate->onUpdate($activity);
-
                     if (isset($_POST['time_created']) && ($_POST['time_created'] != $activity->getTimeCreated())) {
                         try {
                             $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
@@ -531,6 +528,8 @@ class newsfeed implements Interfaces\Api
                     
                     $save->setEntity($activity)
                         ->save();
+
+                    (new Core\Entities\PropagateProperties())->from($activity);
 
                     $activity->setExportContext(true);
                     return Factory::response(['guid' => $activity->guid, 'activity' => $activity->export(), 'edited' => true]);

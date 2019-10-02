@@ -26,6 +26,10 @@ class TranscodingStatusSpec extends ObjectBehavior
                 [
                     'height' => 1080,
                     'formats' => ['mp4', 'webm']
+                ],
+                [
+                    'height' => 360,
+                    'formats' => ['mp4', 'webm']
                 ]
             ]
         ]);
@@ -52,12 +56,27 @@ class TranscodingStatusSpec extends ObjectBehavior
         $result = new Result(['Contents' => [
             ['Key' => '/test/123/1080.mp4'],
             ['Key' => '/test/123/1080.webm'],
+            ['Key' => '/test/123/360.mp4'],
+            ['Key' => '/test/123/360.webm'],
             ['Key' => '/test/123/thumbnail-00000.png']
         ]]);
         $this->beConstructedWith($this->video, $result, $this->config);
         $this->hasSource()->shouldReturn(false);
-        $this->getTranscodes()->shouldReturn(['/test/123/1080.mp4', '/test/123/1080.webm']);
+        $this->getTranscodes()->shouldReturn(['/test/123/1080.mp4', '/test/123/1080.webm', '/test/123/360.mp4', '/test/123/360.webm']);
         $this->getThumbnails()->shouldContain('/test/123/thumbnail-00000.png');
         $this->isTranscodingComplete()->shouldReturn(true);
+    }
+
+    public function it_should_say_still_transcoding()
+    {
+        $result = new Result(['Contents' => [
+            ['Key' => '/test/123/360.mp4'],
+            ['Key' => '/test/123/thumbnail-00000.png']
+        ]]);
+        $this->beConstructedWith($this->video, $result, $this->config);
+        $this->hasSource()->shouldReturn(false);
+        $this->getTranscodes()->shouldReturn(['/test/123/360.mp4']);
+        $this->getThumbnails()->shouldContain('/test/123/thumbnail-00000.png');
+        $this->isTranscodingComplete()->shouldReturn(false);
     }
 }

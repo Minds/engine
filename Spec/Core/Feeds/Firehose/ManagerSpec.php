@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Feeds\Firehose;
 
+use Minds\Core\Entities\PropagateProperties;
 use PhpSpec\ObjectBehavior;
 use Minds\Entities\User;
 use Minds\Core\Feeds\Firehose\Manager;
@@ -25,12 +26,10 @@ class ManagerSpec extends ObjectBehavior
     protected $topFeedsManager;
     /** @var ModerationCache */
     protected $moderationCache;
-    /** @var EntitiesBuilder */
-    protected $entitiesBuilder;
-    /** @var Call */
-    protected $db;
     /** @var Save */
     protected $save;
+    /** @var PropagateProperties */
+    protected $propagateProperties;
 
     protected $guids = [
         '968599624820461570', '966142563226488850', '966145446911152135',
@@ -43,25 +42,22 @@ class ManagerSpec extends ObjectBehavior
         User $user,
         TopFeedsManager $topFeedsManager,
         ModerationCache $moderationCache,
-        EntitiesBuilder $entitiesBuilder,
-        Call $db,
-        Save $save
+        Save $save,
+        PropagateProperties $propagateProperties
     ) {
         $this->user = $user;
         $this->topFeedsManager = $topFeedsManager;
         $this->moderationCache = $moderationCache;
-        $this->entitiesBuilder = $entitiesBuilder;
-        $this->db = $db;
         $this->save = $save;
+        $this->propagateProperties = $propagateProperties;
 
         $this->user->getGUID()->willReturn(123);
 
         $this->beConstructedWith(
             $this->topFeedsManager,
             $this->moderationCache,
-            $this->entitiesBuilder,
-            $this->db,
-            $this->save
+            $this->save,
+            $this->propagateProperties
         );
     }
 
@@ -77,10 +73,10 @@ class ManagerSpec extends ObjectBehavior
         $response = new Response($activities);
 
         $this->topFeedsManager->getList([
-                'moderation_user' => $this->user,
-                'exclude_moderated' => true,
-                'moderation_reservations' => null,
-            ])
+            'moderation_user' => $this->user,
+            'exclude_moderated' => true,
+            'moderation_reservations' => null,
+        ])
             ->shouldBeCalled()
             ->willReturn($response);
 
@@ -112,89 +108,22 @@ class ManagerSpec extends ObjectBehavior
             'exclude_moderated' => true,
             'moderation_reservations' => null,
         ])
-        ->shouldBeCalled()
-        ->willReturn($response);
+            ->shouldBeCalled()
+            ->willReturn($response);
 
         $this->getList()->shouldBeLike($response->map(function ($entity) {
             return $entity->getEntity();
         }));
     }
 
-    public function it_should_save_moderated_activites(Entity $activity)
+    public function it_should_save_and_propogate(Entity $activity)
     {
         $time = time();
-        $this->db->getRow('activity:entitylink:1')->shouldBeCalled()->willReturn([]);
-        $activity->getType()->shouldBeCalled()->willReturn('activity');
-        $activity->get('entity_guid')->shouldBeCalled()->willReturn(false);
-        $activity->getGUID()->shouldBeCalled()->willReturn(1);
-        $activity->setModeratorGuid('123')->shouldBeCalled();
-        $activity->setTimeModerated($time)->shouldBeCalled();
-        $this->save->setEntity($activity)->shouldBeCalled()->willReturn($this->save);
-        $this->save->save()->shouldBeCalled();
-        $this->save($activity, $this->user, $time);
-    }
-
-    public function it_should_save_reported_activites(Entity $activity)
-    {
-        $time = time();
-        $this->db->getRow('activity:entitylink:1')->shouldBeCalled()->willReturn([]);
-        $activity->getType()->shouldBeCalled()->willReturn('activity');
-        $activity->get('entity_guid')->shouldBeCalled()->willReturn(false);
-        $activity->getGUID()->shouldBeCalled()->willReturn(1);
-        $activity->setTimeModerated($time)->shouldBeCalled();
-        $activity->setModeratorGuid('123')->shouldBeCalled();
-        $this->save->setEntity($activity)->shouldBeCalled()->willReturn($this->save);
-        $this->save->save()->shouldBeCalled();
-        $this->save($activity, $this->user, $time);
-    }
-
-    public function it_should_save_an_attachment(Entity $activity, Image $image)
-    {
-        $time = time();
-        $image->setModeratorGuid(123)->shouldBeCalled();
-        $image->setTimeModerated($time)->shouldBeCalled();
-        $this->db->getRow('activity:entitylink:1')->shouldBeCalled()->willReturn([]);
-        $this->entitiesBuilder->single(1)->shouldBeCalled()->willReturn($image);
-        $activity->getType()->shouldBeCalled()->willReturn('activity');
-        $activity->get('entity_guid')->shouldBeCalled()->willReturn(1);
-        $activity->getGUID()->shouldBeCalled()->willReturn(1);
         $activity->setTimeModerated($time)->shouldBeCalled();
         $activity->setModeratorGuid(123)->shouldBeCalled();
         $this->save->setEntity($activity)->shouldBeCalled()->willReturn($this->save);
-        $this->save->setEntity($image)->shouldBeCalled()->willReturn($this->save);
         $this->save->save()->shouldBeCalled();
-        $this->save($activity, $this->user, $time);
-    }
-
-    public function it_should_save_a_blog(Blog $blog)
-    {
-        $time = time();
-        $this->db->getRow('activity:entitylink:1')->shouldBeCalled()->willReturn([]);
-        $blog->getType()->shouldBeCalled()->willReturn('object');
-        $blog->getGuid()->shouldBeCalled()->willReturn(1);
-        $blog->setTimeModerated($time)->shouldBeCalled();
-        $blog->setModeratorGuid('123')->shouldBeCalled();
-        $this->save->save()->shouldBeCalled();
-        $this->save->setEntity($blog)->shouldBeCalled()->willReturn($this->save);
-        $this->save($blog, $this->user, $time);
-    }
-
-    public function it_should_save_a_linked_entity(Entity $activity, Entity $parent)
-    {
-        $time = time();
-        $parent->setTimeModerated($time)->shouldBeCalled();
-        $parent->setModeratorGuid('123')->shouldBeCalled();
-        $this->db->getRow('activity:entitylink:1')->shouldBeCalled()
-            ->willReturn([2 => $parent]);
-        $this->entitiesBuilder->single(2)->shouldBeCalled()->willReturn($parent);
-        $activity->getType()->shouldBeCalled()->willReturn('activity');
-        $activity->get('entity_guid')->shouldBeCalled()->willReturn(false);
-        $activity->getGUID()->shouldBeCalled()->willReturn(1);
-        $activity->setTimeModerated($time)->shouldBeCalled();
-        $activity->setModeratorGuid('123')->shouldBeCalled();
-        $this->save->setEntity($activity)->shouldBeCalled()->willReturn($this->save);
-        $this->save->setEntity($parent)->shouldBeCalled()->willReturn($this->save);
-        $this->save->save()->shouldBeCalled();
+        $this->propagateProperties->from($activity)->shouldBeCalled();
         $this->save($activity, $this->user, $time);
     }
 

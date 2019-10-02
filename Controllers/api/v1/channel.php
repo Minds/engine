@@ -92,6 +92,19 @@ class channel implements Interfaces\Api
         $block = Core\Security\ACL\Block::_();
         $response['channel']['blocked'] = $block->isBlocked($user);
 
+        if ($user->isPro()) {
+            /** @var Core\Pro\Manager $manager */
+            $manager = Core\Di\Di::_()->get('Pro\Manager');
+            $manager
+                ->setUser($user);
+
+            $proSettings = $manager->get();
+
+            if ($proSettings) {
+                $response['channel']['pro_settings'] = $proSettings;
+            }
+        }
+
         return Factory::response($response);
     }
 

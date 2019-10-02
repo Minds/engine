@@ -1447,3 +1447,17 @@ CREATE TABLE minds.email_campaign_logs (
 ) WITH CLUSTERING ORDER BY (time_sent desc);
 
 ALTER TABLE minds.views ADD owner_guid text;
+
+CREATE TABLE minds.pro (
+    user_guid bigint,
+    domain text,
+    json_data text,
+    PRIMARY KEY (user_guid)
+);
+
+CREATE MATERIALIZED VIEW minds.pro_by_domain AS
+    SELECT domain, user_guid, json_data
+    FROM minds.pro
+    WHERE user_guid IS NOT NULL AND domain IS NOT NULL
+    PRIMARY KEY (domain, user_guid)
+    WITH CLUSTERING ORDER BY (user_guid ASC);

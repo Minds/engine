@@ -362,7 +362,7 @@ class blog implements Interfaces\Api
         }
 
         if ($saved) {
-            if ($blog->isPublished() && $blog->getAccessId() == Access::PUBLIC) {
+            if ($blog->isPublished() && in_array($blog->getAccessId(), [Access::PUBLIC, Access::LOGGED_IN], false)) {
                 if (!$editing || ($editing && !$alreadyPublished) || ($editing && $oldAccessId == Access::UNLISTED)) {
                     (new CreateActivity())->save($blog);
                 }
