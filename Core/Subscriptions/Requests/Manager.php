@@ -45,7 +45,7 @@ class Manager
             'hydrate' => true,
         ], $opts);
 
-        $opts['publisher_guid'] = $user_guid;
+        $opts['publisher_guid'] = $userGuid;
         $response = $this->repository->getList($opts);
 
         if ($opts['hydrate']) {
@@ -109,7 +109,7 @@ class Manager
         if ($existing->isDeclined()) {
             throw new SubscriptionRequestAlreadyCompletedException();
         }
-    
+
         $this->repository->delete($subscriptionRequest);
 
         $this->notificationsDelegate->onAccept($subscriptionRequest);
