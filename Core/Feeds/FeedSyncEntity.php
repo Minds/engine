@@ -8,7 +8,7 @@
 namespace Minds\Core\Feeds;
 
 use JsonSerializable;
-use Minds\Traits\Exportable;
+use Minds\Entities\Entity;
 use Minds\Traits\MagicAttributes;
 
 /**
@@ -26,6 +26,7 @@ use Minds\Traits\MagicAttributes;
  * @method FeedSyncEntity setAccessId(int $accessId)
  * @method string getType()
  * @method FeedSyncEntity setType(string $type)
+ * @method Entity getEntity()
  */
 class FeedSyncEntity implements JsonSerializable
 {
@@ -68,7 +69,7 @@ class FeedSyncEntity implements JsonSerializable
     {
         return [
             'guid' => (string) $this->guid,
-            'owner_guid' =>  (string) $this->ownerGuid,
+            'owner_guid' => (string) $this->ownerGuid,
             'access_id' => $this->accessId,
             'timestamp' => $this->timestamp,
             'urn' => $this->urn,

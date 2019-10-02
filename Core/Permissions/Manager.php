@@ -45,7 +45,7 @@ class Manager
         }
 
         $guids = $opts['guids'] ?: array_map(function ($item) {
-            return $item['guid'];
+            return $item->getGuid();
         }, $opts['entities']);
 
         $user = $this->entitiesBuilder->single($opts['user_guid']);
