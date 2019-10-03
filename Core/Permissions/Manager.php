@@ -44,16 +44,13 @@ class Manager
             throw new \InvalidArgumentException('user_guid is required');
         }
 
-        $guids = $opts['guids'] ?: array_map(function ($item) {
-            return $item->getGuid();
-        }, $opts['entities']);
-
         $user = $this->entitiesBuilder->single($opts['user_guid']);
-        $entities = $this->entitiesBuilder->get(['guids' => $guids]);
 
         if (!$user) {
             throw new \InvalidArgumentException('User does not exist');
         }
+
+        $entities = empty($opts['entities']) ? $this->entitiesBuilder->get(['guids' => $opts['guids']]) : $opts['entities'];
 
         if ($user && $user->getType() !== 'user') {
             throw new \InvalidArgumentException('Entity is not a user');
