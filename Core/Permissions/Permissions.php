@@ -151,6 +151,19 @@ class Permissions implements \JsonSerializable
     }
 
     /**
+     * Export the exact permissions for a calculated entity only
+     *
+     * @return array serialized individual permission for an entity
+     */
+    public function exportPermission($guid): array
+    {
+        if (isset($this->entities[$guid])) {
+            return $this->entities[$guid]->export();
+        }
+        return [];
+    }
+
+    /**
      * @return array channel guids with the user's role
      */
     public function getChannels(): array

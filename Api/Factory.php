@@ -209,35 +209,41 @@ class Factory
      * @return array - an array of the entities
      * @deprecated
      */
-    public static function exportable($entities, $exceptions = [], $exportContext = false, $includePermissions = true)
+    public static function exportable($entities = [], $exceptions = [], $exportContext = false, $includePermissions = true)
     {
-        $permissionsManager = Di::_()->get('Permissions\Manager');
-        if (!$entities) {
-            return [];
-        }
-
         foreach ($entities as $k => $entity) {
-            if ($exportContext && method_exists($entity, 'setExportContext')) {
-                $entity->setExportContext($exportContext);
-            }
-
-            $entities[$k] = $entity->export();
-            //Calculate new permissions object with the entities
-            if ($includePermissions && $entity && Di::_()->get('Features\Manager')->has('permissions')) {
-                $permissions = $permissionsManager->getList([
-                    'user_guid' => Session::getLoggedinUser(),
-                    'entities' => [$entity],
-                ]);
-                $entities[$k]['permissions'] = $permissions->export();
-            }
-            $entities[$k]['guid'] = (string) $entities[$k]['guid']; //javascript doesn't like long numbers..
-            if (isset($entities[$k]['ownerObj']['guid'])) {
-                $entities[$k]['ownerObj']['guid'] = (string) $entity->ownerObj['guid'];
-            }
-            foreach ($exceptions as $exception) {
-                $entities[$k][$exception] = $entity->$exception;
-            }
+            $entities[$k] = Factory::export($entity, $exceptions, $exportContext, $includePermissions);
         }
         return $entities;
+    }
+
+    /**
+     * Exports a single entity, called by exportable for arrays
+     */
+    public static function export($entity, $exceptions = false, $exportContext=false, $includePermissions = true)
+    {
+        if ($exportContext && method_exists($entity, 'setExportContext')) {
+            $entity->setExportContext($exportContext);
+        }
+
+        $export = $entity->export();
+        //Calculate new permissions object with the entities
+        if ($includePermissions && $entity && Di::_()->get('Features\Manager')->has('permissions')) {
+            /** @var Manager $permissionsManager */
+            $permissionsManager = Di::_()->get('Permissions\Manager');
+            $permissions = $permissionsManager->getList([
+                'user_guid' => Session::getLoggedinUser(),
+                'entities' => [$entity],
+            ]);
+            $export['permissions'] = $permissions->exportPermission($entity->getGuid());
+        }
+        $export['guid'] = (string) $export['guid']; //javascript doesn't like long numbers..
+        if (isset($export['ownerObj']['guid'])) {
+            $export['ownerObj']['guid'] = (string) $entity->ownerObj['guid'];
+        }
+        foreach ($exceptions as $exception) {
+            $export[$exception] = $export->$exception;
+        }
+        return $export;
     }
 }

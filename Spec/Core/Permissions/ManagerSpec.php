@@ -64,12 +64,10 @@ class ManagerSpec extends ObjectBehavior
         $this->entitiesBuilder->build($this->subscribedChannel)->willReturn($this->subscribedChannel);
         $this->entitiesBuilder->build($this->unsubscribedChannel)->willReturn($this->unsubscribedChannel);
         $this->entitiesBuilder->get([
-            "user_guid" => 1,
-            "guids" => [10, 11, 12, 13],
-            "entities" => [],
+            "guids" => [10, 11, 12, 13]
         ])->willReturn($this->mockEntities());
         $this->entitiesBuilder->get([
-            "guids" => [10, 11, 12, 13]
+            "guids" => [10, 11, 12, 13],
         ])->willReturn($this->mockEntities());
         $this->beConstructedWith($this->entitiesBuilder);
     }
@@ -83,9 +81,9 @@ class ManagerSpec extends ObjectBehavior
     {
         $permissions = $this->getList([
             'user_guid' => 1,
-            'guids'=> [10, 11, 12, 13],
-            'entities' => []
-            ]);
+            'guids' => [10, 11, 12, 13],
+            'entities' => [],
+        ]);
         $entities = $permissions->getEntities();
         $entities->shouldHaveKey(10);
         $entities->shouldHaveKey(11);

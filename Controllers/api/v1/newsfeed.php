@@ -54,7 +54,7 @@ class newsfeed implements Interfaces\Api
                     return Factory::response(['status' => 'error']);
                 }
 
-                return Factory::response(['activity' => $activity->export()]);
+                return Factory::response(['activity' => Factory::export($activity)]);
                 break;
             default:
             case 'personal':

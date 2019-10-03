@@ -9,6 +9,7 @@ class ChannelOwnerRole extends BaseRole
         parent::__construct(Roles::ROLE_CHANNEL_OWNER);
         $this->addPermission(Flags::FLAG_APPOINT_ADMIN);
         $this->addPermission(Flags::FLAG_CREATE_POST);
+        $this->addPermission(Flags::FLAG_CREATE_GROUP);
         $this->addPermission(Flags::FLAG_EDIT_CHANNEL);
         $this->addPermission(Flags::FLAG_EDIT_POST);
         $this->addPermission(Flags::FLAG_DELETE_CHANNEL);
