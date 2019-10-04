@@ -43,7 +43,7 @@ class ChannelRoleCalculator extends BaseRoleCalculator
         $channel = $this->getChannelForEntity($entity);
         if ($this->user === null) {
             $role = $this->getChannelNonSubscriberRole($channel);
-        } elseif ($entity->getOwnerGuid() === $this->user->getGuid()) {
+        } elseif ($entity->getOwnerGuid() == $this->user->getGuid()) {
             $role = $this->roles->getRole(Roles::ROLE_CHANNEL_OWNER);
         } elseif ($this->user->isSubscribed($channel->getGuid())) {
             $role = $this->getChannelSubscriberRole($channel);
