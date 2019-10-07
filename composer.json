@@ -56,9 +56,11 @@
         }
     ],
     "autoload": {
-        "files": [
-            "autoload.php"
-        ]
+        "psr-4": {
+            "Minds\\": ".",
+            "": "classes/",
+            "Spec\\Minds\\": "Spec/"
+        }
     },
     "config": {
         "bin-dir": "bin"
