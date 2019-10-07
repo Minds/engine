@@ -1,5 +1,10 @@
 #!/bin/sh
 
+INSTALLOPTS=""
+if [ "$1" == "production" ]; then
+  INSTALLOPTS="-a"
+fi
+
 # Clear vendor cache
 rm -rf ../vendor
 
@@ -9,5 +14,7 @@ php -r "if (hash_file('SHA384', 'composer-setup.php') === 'a5c698ffe4b8e849a443b
 php composer-setup.php
 php -r "unlink('composer-setup.php');"
 
+# Optimise for package install speed
+composer.phar -n global require -n "hirak/prestissimo"
 # Grab dependencies
-php composer.phar install --ignore-platform-reqs
+php composer.phar install $INSTALLOPTS --ignore-platform-reqs

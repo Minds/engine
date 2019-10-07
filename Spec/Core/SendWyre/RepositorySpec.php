@@ -84,7 +84,6 @@ class RepositorySpec extends ObjectBehavior
 
         $this->db->request(Argument::that(function ($query) {
             $built = $query->build();
-            var_dump($built['string']);
 
             return $built['string'] === 'DELETE FROM sendwyre_accounts WHERE user_guid = ?';
         }))
