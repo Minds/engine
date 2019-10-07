@@ -13,20 +13,15 @@ use Minds\Core\Events\Event;
 
 class Events
 {
-    /** @var Manager */
-    protected $manager;
-
     /** @var Dispatcher */
     protected $eventsDispatcher;
 
     /**
      * Events constructor.
-     * @param Manager $manager
      * @param Dispatcher $eventsDispatcher
      */
-    public function __construct($manager = null, $eventsDispatcher = null)
+    public function __construct($eventsDispatcher = null)
     {
-        $this->manager = $manager ?: Di::_()->get('Channels\Manager');
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
     }
 
@@ -35,8 +30,8 @@ class Events
         // User entity deletion
         $this->eventsDispatcher->register('entity:delete', 'user', function (Event $event) {
             $user = $event->getParameters()['entity'];
-
-            $event->setResponse($this->manager->setUser($user)->delete());
+            $manager = Di::_()->get('Channels\Manager');
+            $event->setResponse($manager->setUser($user)->delete());
         });
     }
 }
