@@ -41,16 +41,16 @@ class ManagerSpec extends ObjectBehavior
         $this->user->getType()->willReturn('user');
         $this->user->isAdmin()->willReturn(false);
         $this->user->isBanned()->willReturn(false);
-        $this->user->getGuid()->willReturn(1);
+        $this->user->getGUID()->willReturn(1);
         $this->user->getGUID()->willReturn(1);
         $this->user->getMode()->willReturn(ChannelMode::OPEN);
         $this->user->isSubscribed(1)->willReturn(false);
         $this->user->isSubscribed(2)->willReturn(true);
         $this->user->isSubscribed(3)->willReturn(false);
-        $this->subscribedChannel->getGuid()->willReturn(2);
+        $this->subscribedChannel->getGUID()->willReturn(2);
         $this->subscribedChannel->getGUID()->willReturn(2);
         $this->subscribedChannel->getMode()->willReturn(ChannelMode::MODERATED);
-        $this->unsubscribedChannel->getGuid()->willReturn(3);
+        $this->unsubscribedChannel->getGUID()->willReturn(3);
         $this->unsubscribedChannel->getGUID()->willReturn(3);
         $this->unsubscribedChannel->getMode()->willReturn(ChannelMode::CLOSED);
         $this->group->getGuid()->willReturn(100);
@@ -63,12 +63,6 @@ class ManagerSpec extends ObjectBehavior
         $this->entitiesBuilder->build($this->user)->willReturn($this->user);
         $this->entitiesBuilder->build($this->subscribedChannel)->willReturn($this->subscribedChannel);
         $this->entitiesBuilder->build($this->unsubscribedChannel)->willReturn($this->unsubscribedChannel);
-        $this->entitiesBuilder->get([
-            "guids" => [10, 11, 12, 13]
-        ])->willReturn($this->mockEntities());
-        $this->entitiesBuilder->get([
-            "guids" => [10, 11, 12, 13],
-        ])->willReturn($this->mockEntities());
         $this->beConstructedWith($this->entitiesBuilder);
     }
 
@@ -77,8 +71,19 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_get_permissions()
+    public function it_should_get_permissions_by_guid()
     {
+        $this->entitiesBuilder->get([
+            "guids" => [10, 11, 12, 13],
+        ])
+            ->shouldBeCalled()
+            ->willReturn($this->mockEntities());
+        $this->entitiesBuilder->get([
+            "guids" => [10, 11, 12, 13],
+        ])
+            ->shouldBeCalled()
+            ->willReturn($this->mockEntities());
+
         $permissions = $this->getList([
             'user_guid' => 1,
             'guids' => [10, 11, 12, 13],
@@ -89,6 +94,46 @@ class ManagerSpec extends ObjectBehavior
         $entities->shouldHaveKey(11);
         $entities->shouldHaveKey(12);
         $entities->shouldHaveKey(13);
+    }
+
+    public function it_should_get_permissions_by_sending_the_entities()
+    {
+        $this->entitiesBuilder->get(Argument::any())
+            ->shouldNotBeCalled();
+
+        $permissions = $this->getList([
+            'user_guid' => 1,
+            'guids' => [],
+            'entities' => $this->mockEntities(),
+        ]);
+        $entities = $permissions->getEntities();
+        $entities->shouldHaveKey(10);
+        $entities->shouldHaveKey(11);
+        $entities->shouldHaveKey(12);
+        $entities->shouldHaveKey(13);
+    }
+
+    public function it_should_throw_an_exception_if_no_user_guid_is_provided()
+    {
+        $this->shouldThrow(new \InvalidArgumentException('user_guid is required'))->during('getList', [[]]);
+    }
+
+    public function it_should_throw_an_exception_if_the_user_does_not_exist()
+    {
+        $this->entitiesBuilder->single(4)
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->shouldThrow(new \InvalidArgumentException('User does not exist'))->during('getList', [['user_guid' => 4]]);
+    }
+
+    public function it_should_throw_an_exception_if_the_provided_user_guid_doesnt_correspond_to_a_user_entity(Activity $activity)
+    {
+        $this->entitiesBuilder->single(5)
+            ->shouldBeCalled()
+            ->willReturn($activity);
+
+        $this->shouldThrow(new \InvalidArgumentException('Entity is not a user'))->during('getList', [['user_guid' => 5]]);
     }
 
     private function mockEntities()
