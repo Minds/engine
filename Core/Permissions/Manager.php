@@ -50,13 +50,11 @@ class Manager
             throw new \InvalidArgumentException('User does not exist');
         }
 
-        $entities = empty($opts['entities']) ? $this->entitiesBuilder->get(['guids' => $opts['guids']]) : $opts['entities'];
-
         if ($user && $user->getType() !== 'user') {
             throw new \InvalidArgumentException('Entity is not a user');
         }
 
-        $entities = array_merge($entities, $opts['entities']);
+        $entities = empty($opts['entities']) ? $this->entitiesBuilder->get(['guids' => $opts['guids']]) : $opts['entities'];
 
         $roles = new Roles();
 
