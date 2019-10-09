@@ -32,7 +32,7 @@ class ActiveUsersSynchroniser
         $months = round($days / 28);
 
         // Daily resolution
-        foreach ($this->activeMetric->get($days) as $bucket) {
+        foreach ($this->activeMetric->get($days ?: 1) as $bucket) {
             $record = new EntityCentricRecord();
             $record->setEntityUrn("urn:metric:global")
                 ->setOwnerGuid((string) 0) // Site is owner
@@ -43,7 +43,7 @@ class ActiveUsersSynchroniser
         }
 
         // Monthly resolution
-        foreach ($this->activeMetric->get($months, 'month') as $bucket) {
+        foreach ($this->activeMetric->get($months ?: 1, 'month') as $bucket) {
             $record = new EntityCentricRecord();
             $record->setEntityUrn("urn:metric:global")
                 ->setOwnerGuid((string) 0) // Site is owner

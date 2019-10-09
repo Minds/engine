@@ -15,7 +15,7 @@ class Manager
     const SYNCHRONISERS = [
         SignupsSynchroniser::class,
         ActiveUsersSynchroniser::class,
-//        ViewsSynchroniser::class,
+        ViewsSynchroniser::class,
     ];
 
     /** @var Repository */
