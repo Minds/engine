@@ -290,13 +290,21 @@ class boost implements Interfaces\Api
                         ->setType(lcfirst($pages[0]))
                         ->setPriority(false);
 
-                if ($manager->checkExisting($boost)) {
-                    return Factory::response([
-                        'status' => 'error',
-                        'message' => "There's already an ongoing boost for this entity"
-                    ]);
-                }
-
+                    if ($manager->checkExisting($boost)) {
+                        return Factory::response([
+                            'status' => 'error',
+                            'message' => "There's already an ongoing boost for this entity"
+                        ]);
+                    }
+                  
+                    if ($manager->isBoostLimitExceededBy($boost)) {
+                        $maxDaily = Di::_()->get('Config')->get('max_daily_boost_views') / 1000;
+                        return Factory::response([
+                            'status' => 'error',
+                            'message' => "Exceeded maximum of ".$maxDaily." offchain tokens per 24 hours."
+                        ]);
+                    }
+                    
                     // Pre-set GUID
 
                     if ($bidType == 'tokens' && isset($_POST['guid'])) {

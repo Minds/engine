@@ -422,6 +422,18 @@ class Group extends NormalizedEntity
         $this->conversationDisabled = $value ? 1 : 0;
         return $this;
     }
+    
+    /**
+     * Return the original `owner_guid` for the group.
+     * @return string guid
+     */
+    public function getOwnerGuid()
+    {
+        $guids = $this->getOwnerGuids();
+        return $guids
+            ? guids[0]
+            : $this->getOwnerObj()->guid;
+    }
 
     /**
      * Gets `owner_guids`
@@ -540,7 +552,7 @@ class Group extends NormalizedEntity
      */
     public function isBanned($user = null)
     {
-        return (new Membership($this))->isInvited($user);
+        return Membership::_($this)->isBanned($user);
     }
 
     /**
@@ -560,7 +572,7 @@ class Group extends NormalizedEntity
 
         $user_guid = is_object($user) ? $user->guid : $user;
 
-        return $this->isCreator($user) || in_array($user_guid, $this->getOwnerGuids(), true);
+        return $this->isCreator($user) || in_array($user_guid, $this->getOwnerGuids(), false);
     }
 
     /**

@@ -14,8 +14,6 @@ use Minds\Helpers\MagicAttributes;
 
 /**
  * Save Action
- * @method Save setEntity($entity)
- * @method bool save(...$args)
  */
 class Save
 {

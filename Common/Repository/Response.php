@@ -328,4 +328,13 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
     {
         return array_reduce($this->data, $callback, $initialValue);
     }
+
+    /**
+     * Returns the first element of the Response, or null if empty
+     * @return mixed|null
+     */
+    public function first()
+    {
+        return $this->data[0] ?? null;
+    }
 }

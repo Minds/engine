@@ -95,6 +95,7 @@ class Manager
             'filter_hashtags' => false,
             'pinned_guids' => null,
             'as_activities' => false,
+            'exclude' => null,
         ], $opts);
 
         if (isset($opts['query']) && $opts['query']) {
@@ -170,7 +171,7 @@ class Manager
             $hydratedEntities = $this->entitiesBuilder->get(['guids' => $hydrateGuids]);
 
             foreach ($hydratedEntities as $entity) {
-                if ($opts['pinned_guids'] && in_array($entity->getGuid(), $opts['pinned_guids'], true)) {
+                if ($opts['pinned_guids'] && in_array($entity->getGuid(), $opts['pinned_guids'], false)) {
                     $entity->pinned = true;
                 }
                 if ($opts['as_activities']) {

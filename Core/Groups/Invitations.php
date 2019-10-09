@@ -96,7 +96,7 @@ class Invitations
         $result = [];
 
         foreach ($users as $user) {
-            $result[$user] = in_array($user, $invited_guids, true);
+            $result[$user] = in_array($user, $invited_guids, false);
         }
 
         return $result;

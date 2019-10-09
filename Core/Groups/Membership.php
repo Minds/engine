@@ -579,7 +579,7 @@ class Membership
         $result = [];
 
         foreach ($users as $user) {
-            $result[$user] = in_array($user, $banned_guids, true);
+            $result[$user] = in_array($user, $banned_guids, false);
         }
 
         return $result;

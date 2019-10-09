@@ -269,6 +269,9 @@ $CONFIG->set('boost', [
     ],
 ]);
 
+/* Maximum view per day */
+$CONFIG->set('max_daily_boost_views', 10000);
+
 $CONFIG->set('encryptionKeys', [
     'email' => [
         'private' => '{{email-private-key}}',
@@ -472,7 +475,9 @@ $CONFIG->set('features', [
     'top-feeds' => true,
     'cassandra-notifications' => true,
     'dark-mode' => true,
-    'allow-comments-toggle' => false
+    'allow-comments-toggle' => false,
+    'permissions' => false,
+    'pro' => false,
 ]);
 
 $CONFIG->set('email', [
@@ -567,4 +572,10 @@ $CONFIG->set('gitlab', [
         'front' => '10152778', // project id front
     ],
     'private_key' => ''
+]);
+
+$CONFIG->set('pro', [
+    'root_domains' => ['minds.com', 'www.minds.com', 'localhost'],
+    'subdomain_suffix' => 'minds.com',
+    'dynamodb_table_name' => 'traefik',
 ]);

@@ -67,7 +67,7 @@ class Manager
 
         $array = $this->question->$getter();
 
-        if (!in_array($this->user->getGuid(), $array, true)) {
+        if (!in_array($this->user->getGuid(), $array, false)) {
             $array[] = (string) $this->user->getGuid();
             $this->question->$setter($array);
         }

@@ -82,7 +82,7 @@ class Manager
         
         if ($report->getReasonCode() == 2
             && $report->getEntity()->getNsfw()
-            && in_array($report->getSubReasonCode(), $report->getEntity()->getNsfw(), true)
+            && in_array($report->getSubReasonCode(), $report->getEntity()->getNsfw(), false)
         ) {
             return true; // If the post is NSFW and tagged, do not allow report
         }

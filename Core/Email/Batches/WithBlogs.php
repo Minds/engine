@@ -26,7 +26,7 @@ class WithBlogs implements EmailBatchInterface
     protected $templatePath;
 
     /** @var string $subject */
-    protected $subject;
+    protected $subject = "Top blogs from August";
 
     public function __construct($manager = null, $trendingRepository = null, $builder = null)
     {
@@ -98,7 +98,7 @@ class WithBlogs implements EmailBatchInterface
 
         $i = 0;
         foreach ($iterator as $user) {
-            $user = new \Minds\Entities\User('mark');
+            // $user = new \Minds\Entities\User('mark');
             ++$i;
             echo "\n[$i]: $user->guid ($iterator->offset)";
 
@@ -117,7 +117,7 @@ class WithBlogs implements EmailBatchInterface
                 ->send();
 
             echo ' sent';
-            exit;
+            // exit;
         }
     }
 
@@ -137,16 +137,14 @@ class WithBlogs implements EmailBatchInterface
         $options['guids'] = $result['guids'];*/
 
         $options['guids'] = [
-            '998738105104236544',
-            '999467832663445504',
-            '966409629405708288',
-            '993006058717818880',
-            '973946575102472192',
+            '1006629205218992128',
+            '1005557700564246528',
+            '1010584762553004032',
+            '1006684770592301056',
+            '977770227199016960',
+            '1002988949318565888',
             '996468067362422784',
-            '993621806187380736',
-            '971156445331410944',
-            '983472046539116544',
-            '952732651199864832',
+            '1001223653028548608',
         ];
 
         $blogs = $this->builder->get(array_merge([

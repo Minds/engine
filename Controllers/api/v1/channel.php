@@ -12,6 +12,8 @@ use Minds\Helpers;
 use Minds\Interfaces;
 use Minds\Entities;
 use Minds\Api\Factory;
+use Minds\Common\ChannelMode;
+use Minds\Core\Di\Di;
 use ElggFile;
 
 class channel implements Interfaces\Api
@@ -44,6 +46,10 @@ class channel implements Interfaces\Api
         if ($user->banned == 'yes' && !Core\Session::isAdmin()) {
             return Factory::response(['status'=>'error', 'message'=>'The user is banned']);
         }
+
+        Di::_()->get('Referrals\Cookie')
+            ->setEntity($user)
+            ->create();
 
         $user->fullExport = true; //get counts
         $user->exportCounts = true;
@@ -85,6 +91,19 @@ class channel implements Interfaces\Api
 
         $block = Core\Security\ACL\Block::_();
         $response['channel']['blocked'] = $block->isBlocked($user);
+
+        if ($user->isPro()) {
+            /** @var Core\Pro\Manager $manager */
+            $manager = Core\Di\Di::_()->get('Pro\Manager');
+            $manager
+                ->setUser($user);
+
+            $proSettings = $manager->get();
+
+            if ($proSettings) {
+                $response['channel']['pro_settings'] = $proSettings;
+            }
+        }
 
         return Factory::response($response);
     }
@@ -242,6 +261,10 @@ class channel implements Interfaces\Api
                     }
                 }
 
+                if (isset($_POST['mode']) && ChannelMode::isValid($_POST['mode'])) {
+                    $update['mode'] = $_POST['mode'];
+                }
+
                 if (isset($_POST['social_profiles']) && is_array($_POST['social_profiles'])) {
                     $profiles = [];
 
@@ -304,14 +327,6 @@ class channel implements Interfaces\Api
                 $channel->enabled = 'no';
                 $channel->save();
 
-                $customer = (new Core\Payments\Customer())
-                    ->setUser($channel);
-
-                $stripe = Core\Di\Di::_()->get('StripePayments');
-                $customer = $stripe->getCustomer($customer);
-                if ($customer) {
-                    $stripe->deleteCustomer($customer);
-                }
                 (new Core\Data\Sessions())->destroyAll($channel->guid);
         }
 

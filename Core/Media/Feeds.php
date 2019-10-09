@@ -5,17 +5,15 @@ namespace Minds\Core\Media;
 use Minds\Core;
 use Minds\Entities;
 use Minds\Helpers;
-use Minds\Core\Media;
 
 class Feeds
 {
-    private $updateActivitiesDelegate;
-
     protected $entity;
+    protected $propagateProperties;
 
-    public function __construct($updateActivitiesDelegate = null)
+    public function __construct(Core\Entities\PropagateProperties $propagateProperties = null)
     {
-        $this->updateActivitiesDelegate = $updateActivitiesDelegate ?: new Delegates\UpdateActivities();
+        $this->propagateProperties = $propagateProperties ?? Core\Di\Di::_()->get('PropagateProperties');
     }
 
     public function setEntity($entity)
@@ -25,7 +23,7 @@ class Feeds
         return $this;
     }
 
-    public function createActivity()
+    public function createActivity(): Entities\Activity
     {
         if (!$this->entity) {
             throw new \Exception('Entity not set');
@@ -54,7 +52,7 @@ class Feeds
             throw new \Exception('Entity not set');
         }
 
-        $this->updateActivitiesDelegate->updateActivities($this->entity);
+        $this->propagateProperties->from($this->entity);
     }
 
     public function dispatch(array $targets = [])

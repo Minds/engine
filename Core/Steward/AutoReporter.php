@@ -270,7 +270,7 @@ class AutoReporter
     {
         $reasons = array_filter($reasons, function ($reason) use ($NSFWtags) {
             if ($reason->getReasonCode() == REASON::REASON_NSFW
-            && in_array($reason->getSubreasonCode(), $NSFWtags, true)) {
+            && in_array($reason->getSubreasonCode(), $NSFWtags, false)) {
                 return false;
             }
 

@@ -6,6 +6,8 @@ global $CONFIG;
 
 date_default_timezone_set('UTC');
 
+define('__MINDS_ROOT__', dirname(__FILE__) . '/../');
+
 $minds = new Minds\Core\Minds();
 $minds->loadLegacy();
 
@@ -20,22 +22,26 @@ $CONFIG->cassandra->username = 'cassandra';
 $CONFIG->cassandra->password = 'cassandra';
 
 $CONFIG->payments = [
-  'braintree' => [
-    'default' => [
-      'environment' => 'sandbox',
-      'merchant_id' => 'foobar',
-      'master_merchant_id' => 'foobar',
-      'public_key' => 'random',
-      'private_key' => 'random_private'
+    'braintree' => [
+        'default' => [
+            'environment' => 'sandbox',
+            'merchant_id' => 'foobar',
+            'master_merchant_id' => 'foobar',
+            'public_key' => 'random',
+            'private_key' => 'random_private'
+        ],
+        'merchants' => [
+            'environment' => 'sandbox',
+            'merchant_id' => 'foobar',
+            'master_merchant_id' => 'foobar',
+            'public_key' => 'random',
+            'private_key' => 'random_private'
+        ],
     ],
-    'merchants' => [
-      'environment' => 'sandbox',
-      'merchant_id' => 'foobar',
-      'master_merchant_id' => 'foobar',
-      'public_key' => 'random',
-      'private_key' => 'random_private'
+    'stripe' => [
+        'api_key' => 'phpspec',
     ],
-  ]];
+];
 
 class Mock
 {
@@ -293,7 +299,9 @@ if (!class_exists('Cassandra')) {
     class_alias('Mock', 'Cassandra\Uuid');
     class_alias('Mock', 'Cassandra\Timeuuid');
     class_alias('Mock', 'Cassandra\Boolean');
-    class_alias('Mock', 'MongoDB\BSON\UTCDateTime');
+    if (!class_exists('MongoDB\BSON\UTCDateTime')) {
+        class_alias('Mock', 'MongoDB\BSON\UTCDateTime');
+    }
     class_alias('Mock', 'Cassandra\RetryPolicy\Logging');
     class_alias('Mock', 'Cassandra\RetryPolicy\DowngradingConsistency');
 }
