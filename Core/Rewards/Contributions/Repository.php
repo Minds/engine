@@ -115,7 +115,7 @@ class Repository
                 ->setMetric((string) $row['metric'])
                 ->setTimestamp($row['timestamp']->time() * 1000)
                 ->setAmount((string) BigNumber::_($row['amount']))
-                ->setScore((float) $row['score_decimal'] ?? $row['score']);
+                ->setScore((float) ($row['score_decimal'] ?? $row['score']));
 
             $contributions[] = $contribution;
         }
