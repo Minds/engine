@@ -344,6 +344,15 @@ class Activity extends Entity
     }
 
     /**
+     * Set the message
+     * @return string
+     */
+    public function getMessage(): string
+    {
+        return $this->message;
+    }
+
+    /**
      * Sets the title
      * @param string $title
      * @return $this
@@ -438,6 +447,18 @@ class Activity extends Entity
         $this->custom_type = $type;
         $this->custom_data = $data;
         return $this;
+    }
+
+    /**
+     * Get the custom data
+     * @return array
+     */
+    public function getCustom(): array
+    {
+        return [
+            $this->custom_type,
+            $this->custom_data
+        ];
     }
 
     /**

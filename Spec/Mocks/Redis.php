@@ -1,6 +1,6 @@
 <?php
 
-namespace Spec\Mocks;
+namespace Spec\Minds\Mocks;
 
 /**
  * Redis.

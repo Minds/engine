@@ -23,5 +23,8 @@ class EntitiesProvider extends Provider
         $this->di->bind('Entities\Factory', function ($di) {
             return new EntitiesFactory();
         }, ['useFactory' => true]);
+        $this->di->bind('PropagateProperties', function ($di) {
+            return new Entities\PropagateProperties();
+        }, ['useFactory' => true]);
     }
 }

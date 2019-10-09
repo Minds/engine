@@ -3,6 +3,7 @@
 namespace Minds\Core;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Events\Dispatcher;
 
 /**
  * Core Minds Engine.
@@ -73,6 +74,7 @@ class Minds extends base
 
         (new \Minds\Entities\EntitiesProvider())->register();
         (new Config\ConfigProvider())->register();
+        (new Router\RouterProvider())->register();
         (new OAuth\OAuthProvider())->register();
         (new Sessions\SessionsProvider())->register();
         (new Boost\BoostProvider())->register();
@@ -105,10 +107,12 @@ class Minds extends base
         (new Faq\FaqProvider())->register();
         (new Rewards\RewardsProvider())->register();
         (new Plus\PlusProvider())->register();
+        (new Pro\ProProvider())->register();
         (new Hashtags\HashtagsProvider())->register();
         (new Feeds\FeedsProvider())->register();
         (new Analytics\AnalyticsProvider())->register();
         (new Channels\ChannelsProvider())->register();
+        (new Blogs\BlogsProvider())->register();
     }
 
     /**
@@ -139,12 +143,12 @@ class Minds extends base
         /*
          * Boot the system, @todo this should be oop?
          */
-        \elgg_trigger_event('boot', 'system');
+        Dispatcher::trigger('boot', 'elgg/event/system', null, true);
 
         /*
          * Complete the boot process for both engine and plugins
          */
-        elgg_trigger_event('init', 'system');
+        Dispatcher::trigger('init', 'elgg/event/system', null, true);
 
         /*
          * tell the system that we have fully booted
@@ -154,7 +158,7 @@ class Minds extends base
         /*
          * System loaded and ready
          */
-        \elgg_trigger_event('ready', 'system');
+        Dispatcher::trigger('ready', 'elgg/event/system', null, true);
     }
 
     /**

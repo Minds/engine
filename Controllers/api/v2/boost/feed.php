@@ -124,15 +124,19 @@ class feed implements Interfaces\Api
                     //     $next = 0;
                     // }
                     $len = count($boosts);
-                    $next = $boosts[$len - 1]->getTimestamp();
+                    if ($boosts[$len -1]) {
+                        $next = $boosts[$len -1]->getTimestamp();
+                    }
                 } elseif ($isBoostFeed) {
                     $len = count($boosts);
-                    $next = $boosts[$len -1]->getTimestamp();
+                    if ($boosts[$len -1]) {
+                        $next = $boosts[$len -1]->getTimestamp();
+                    }
                 }
 
                 // $ttl = 1800; // 30 minutes
                 // if (($next / 1000) < strtotime('48 hours ago')) {
-                $ttl = 300; // 5 minutes;
+                    $ttl = 300; // 5 minutes;
                 // }
 
                 $cacher->set(Core\Session::getLoggedinUser()->guid . ':boost-offset-rotator', $next, $ttl);

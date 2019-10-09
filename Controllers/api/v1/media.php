@@ -38,10 +38,10 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
 
             switch ($entity->subtype) {
                 case "video":
-                    Helpers\Counters::increment($pages[0], 'plays');
+                    // Helpers\Counters::increment($pages[0], 'plays');
 
                     if (isset($pages[1]) && $pages[1] == 'play') {
-                        http_response_code(301);
+                        http_response_code(302);
 
                         if ($entity->subtype == 'audio') {
                             \forward($entity->getSourceUrl('128.mp3'));
