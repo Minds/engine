@@ -13,7 +13,10 @@ class SignupsMetric extends AbstractMetric
     protected $id = 'signups';
 
     /** @var string */
-    protected $label = 'signups';
+    protected $label = 'Signups';
+
+    /** @var string */
+    protected $description = 'New accounts registered';
 
     /** @var array */
     protected $permissions = [ 'admin' ];

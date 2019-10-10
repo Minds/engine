@@ -64,7 +64,8 @@ class TrafficDashboard implements DashboardInterface
             ->setSelectedIds($this->filterIds)
             ->addFilters(
                 new Filters\PlatformFilter(),
-                new Filters\ViewTypeFilter()
+                new Filters\ViewTypeFilter(),
+                new Filters\ChannelFilter()
             );
         $this->metricsCollection
             ->setTimespansCollection($this->timespansCollection)
@@ -92,7 +93,7 @@ class TrafficDashboard implements DashboardInterface
             'category' => 'traffic',
             'timespan' => $this->timespansCollection->getSelected()->getId(),
             'timespans' => $this->timespansCollection->export(),
-            'metric' => $this->metricsCollection->getSelected()->export(),
+            'metric' => $this->metricsCollection->getSelected()->getId(),
             'metrics' => $this->metricsCollection->export(),
             'filter' => $this->filtersCollection->getSelectedIds(),
             'filters' => $this->filtersCollection->export(),

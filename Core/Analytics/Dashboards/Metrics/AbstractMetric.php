@@ -22,6 +22,12 @@ abstract class AbstractMetric
     /** @var string */
     protected $label;
 
+    /** @var string */
+    protected $description;
+
+    /** @var string */
+    protected $unit = 'number';
+
     /** @var string[] */
     protected $permissions;
 
@@ -47,6 +53,8 @@ abstract class AbstractMetric
         return [
             'id' => (string) $this->id,
             'label' => (string) $this->label,
+            'description' => (string) $this->description,
+            'unit' => (string) $this->unit,
             'permissions' => (array) $this->permissions,
             'summary' => $this->summary ? (array) $this->summary->export() : null,
             'visualisation' => $this->visualisation ? (array) $this->visualisation->export() : null,

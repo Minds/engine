@@ -16,6 +16,9 @@ class FilterOptionsOption
     /** @var string */
     private $label;
 
+    /** @var string */
+    private $description;
+
     /** @var bool */
     private $available = true;
 
@@ -32,6 +35,7 @@ class FilterOptionsOption
         return [
             'id' => $this->id,
             'label' => $this->label,
+            'description' => $this->description,
             'available' => (bool) $this->available,
             'selected' => (bool) $this->selected,
         ];

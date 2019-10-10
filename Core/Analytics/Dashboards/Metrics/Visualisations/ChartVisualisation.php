@@ -36,7 +36,11 @@ class ChartVisualisation extends AbstractVisualisation
     {
         return [
             'type' => $this->type,
-            'buckets' => (array) $this->buckets,
+            'segments' => [
+                [
+                    'buckets' => (array) $this->buckets,
+                ],
+            ]
         ];
     }
 }

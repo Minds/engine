@@ -13,6 +13,9 @@ abstract class AbstractFilter
     /** @var string */
     protected $label;
 
+    /** @var string */
+    protected $description;
+
     /** @var FilterOptions */
     protected $options;
 
@@ -45,6 +48,7 @@ abstract class AbstractFilter
         return [
             'id' => (string) $this->id,
             'label' => (string) $this->label,
+            'description' => (string) $this->description,
             'options' => (array) $this->options->export(),
         ];
     }

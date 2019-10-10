@@ -25,7 +25,7 @@ class dashboards implements Interfaces\Api, Interfaces\ApiIgnorePam
             $dashboard->setTimespanId($_GET['timespan']);
         }
 
-        if (isset($_GET['filters'])) {
+        if (isset($_GET['filter'])) {
             $filterIds = explode(',', $_GET['filters']);
             $dashboard->setFilterIds($filterIds);
         }

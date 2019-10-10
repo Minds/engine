@@ -13,7 +13,10 @@ class ActiveUsersMetric extends AbstractMetric
     protected $id = 'active_users';
 
     /** @var string */
-    protected $label = 'active users';
+    protected $label = 'Active Users';
+
+    /** @var string */
+    protected $description = 'Users who make at least one single request to Minds';
 
     /** @var array */
     protected $permissions = [ 'admin' ];

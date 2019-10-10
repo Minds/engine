@@ -2,6 +2,7 @@
 namespace Minds\Core\Analytics\Dashboards\Metrics;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Session;
 use Minds\Core\Data\Elasticsearch;
 
 class ViewsMetric extends AbstractMetric
@@ -13,7 +14,10 @@ class ViewsMetric extends AbstractMetric
     protected $id = 'views';
 
     /** @var string */
-    protected $label = 'views';
+    protected $label = 'Views';
+
+    /** @var string */
+    protected $description = 'Views on channel assets';
 
     /** @var array */
     protected $permissions = [ 'admin' ];
@@ -58,6 +62,14 @@ class ViewsMetric extends AbstractMetric
                     'lte' => strtotime("midnight +{$timespan->getComparisonInterval()} days", $tsMs / 1000) * 1000,
                 ],
             ];
+
+            if ($userGuid = $this->getUserGuid()) {
+                $must[] = [
+                    'term' => [
+                        'owner_guid' => $userGuid,
+                    ],
+                ];
+            }
 
             $query = [
                 'index' => 'minds-entitycentric-*',
@@ -128,6 +140,14 @@ class ViewsMetric extends AbstractMetric
             ],
         ];
 
+        if ($userGuid = $this->getUserGuid()) {
+            $must[] = [
+                'term' => [
+                    'owner_guid' => $userGuid,
+                ],
+            ];
+        }
+
         // Do the query
         $query = [
             'index' => 'minds-entitycentric-*',
@@ -182,5 +202,25 @@ class ViewsMetric extends AbstractMetric
             ->setBuckets($buckets);
 
         return $this;
+    }
+
+    private function getUserGuid(): ?string
+    {
+        $filters = $this->filtersCollection->getSelected();
+        $channelFilter = $filters['channel'];
+
+        if (!$channelFilter) {
+            return "";
+        }
+
+        if ($channelFilter->getSelectedOption() === 'self') {
+            return Session::getLoggedInUserGuid();
+        }
+        if ($channelFilter->getSelectedOption() === 'all') {
+            return "";
+        }
+
+        // TODO: check permissions first
+        return $channelFilter->getSelectedOption();
     }
 }
