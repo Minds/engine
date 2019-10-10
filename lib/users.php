@@ -950,14 +950,14 @@ function validate_password($password) {
 		$CONFIG->min_password_length = 6;
 	}
 
-	if (strlen($password) < $CONFIG->min_password_length) {
-		$msg = "Passwords should be at least " . $CONFIG->min_password_length . " characters long";
-		throw new RegistrationException($msg);
-	}
-
 	//Check for a uppercase character, numeric character,special character 
-	if (!preg_match('/[A-Z]/', $password) || !preg_match('/\d/', $password) || !preg_match('/[^a-zA-Z\d]/', $password) || preg_match("/\\s/", $password)) {
-		$msg = "Password must have more than 8 characters. Including uppercase, numbers, special characters (ie. !,#,@), and cannot have spaces.";
+	if (strlen($password) < $CONFIG->min_password_length 
+		|| !preg_match('/[A-Z]/', $password) 
+		|| !preg_match('/\d/', $password) 
+		|| !preg_match('/[^a-zA-Z\d]/', $password) 
+		|| preg_match("/\\s/", $password)
+	) {
+		$msg = "Password must have 8 characters or more. Including uppercase, numbers, special characters (ie. !,#,@), and cannot have spaces.";
 		throw new RegistrationException($msg);
 	}
 
