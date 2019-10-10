@@ -23,7 +23,7 @@ build:
   stage: build
   script:
     - apk update && apk add --no-cache git
-    - sh tools/setup.sh
+    - sh tools/setup.sh production
   cache:
     paths:
       - vendor
