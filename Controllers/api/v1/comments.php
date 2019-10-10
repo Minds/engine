@@ -347,15 +347,22 @@ class comments implements Interfaces\Api
 
         $comment = $manager->getByLuid($pages[0]);
 
-        if ($comment && $comment->canEdit()) {
+        if (!$comment) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Comment not found',
+            ]);
+        }
+
+        if ($comment->canEdit()) {
             $manager->delete($comment);
             return Factory::response([]);
         }
         //check if owner of activity trying to remove
         $entity = Entities\Factory::build($comment->getEntityGuid());
-        
+
         if ($entity->owner_guid == Core\Session::getLoggedInUserGuid()) {
-            $manager->delete($comment, [ 'force' => true ]);
+            $manager->delete($comment, ['force' => true]);
             return Factory::response([]);
         }
 
