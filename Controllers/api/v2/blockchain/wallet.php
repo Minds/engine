@@ -25,6 +25,8 @@ class wallet implements Interfaces\Api
      */
     public function get($pages)
     {
+        Factory::isLoggedIn();
+
         /** @var abstractCacher $cache */
         $cache = Di::_()->get('Cache');
 
