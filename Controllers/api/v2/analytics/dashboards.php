@@ -26,7 +26,7 @@ class dashboards implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         if (isset($_GET['filter'])) {
-            $filterIds = explode(',', $_GET['filters']);
+            $filterIds = explode(',', $_GET['filter']);
             $dashboard->setFilterIds($filterIds);
         }
 

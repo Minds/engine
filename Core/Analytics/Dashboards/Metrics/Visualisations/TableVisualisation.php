@@ -13,7 +13,10 @@ class TableVisualisation extends AbstractVisualisation
     private $type = 'table';
 
     /** @var array */
-    private $rows;
+    private $buckets;
+
+    /** @var array */
+    private $columns;
 
     /**
      * Export
@@ -24,7 +27,8 @@ class TableVisualisation extends AbstractVisualisation
     {
         return [
             'type' => $this->type,
-            'rows' => (array) $this->rows,
+            'buckets' => (array) $this->buckets,
+            'columns' => (array) $this->columns,
         ];
     }
 }
