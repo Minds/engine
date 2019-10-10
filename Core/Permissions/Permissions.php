@@ -39,8 +39,6 @@ class Permissions implements \JsonSerializable
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->roles = $roles ?: new Roles();
         $this->user = $user;
-        $this->groups = [];
-        $this->channels = [];
         $this->entities = [];
         $this->roles = $roles ?: new Roles();
         $this->user = $user;

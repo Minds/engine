@@ -50,7 +50,13 @@ class FeedSyncEntity implements JsonSerializable
     /** @var Entity */
     protected $entity;
 
-    public function setEntity($entity)
+    /**
+     * Setter for populating the child entity on feed sync items
+     * Some FeedSyncEntity managers populate the entity with the hydrated object
+     * Do not assume this is always called because you can easily
+     * Just have the header information stored in ES (without the entity)
+     */
+    public function setEntity($entity) : FeedSyncEntity
     {
         $this->entity = $entity;
         $this->accessId = $entity->getAccessId();
@@ -70,7 +76,7 @@ class FeedSyncEntity implements JsonSerializable
         return [
             'guid' => (string) $this->guid,
             'owner_guid' => (string) $this->ownerGuid,
-            'access_id' => $this->accessId,
+            'access_id' => (int) $this->accessId,
             'timestamp' => $this->timestamp,
             'urn' => $this->urn,
             'type' => $this->type,

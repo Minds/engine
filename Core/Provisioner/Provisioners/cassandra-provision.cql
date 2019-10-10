@@ -1497,14 +1497,6 @@ CREATE TABLE minds.moderation_summons (
 
 ALTER TABLE minds.views ADD owner_guid text;
 
-CREATE TABLE minds.subscription_requests (
-    publisher_guid bigint,
-    subscriber_guid bigint,
-    timestamp timestamp,
-    declined boolean,
-    PRIMARY KEY (publisher_guid, subscriber_guid)
-);
-
 CREATE TABLE minds.pro (
     user_guid bigint,
     domain text,
