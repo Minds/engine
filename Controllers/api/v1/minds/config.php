@@ -39,6 +39,11 @@ class config implements Interfaces\Api, Interfaces\ApiIgnorePam
             "plus" => Minds\Core\Config::_()->get('plus'),
             "report_reasons" => Minds\Core\Config::_()->get('report_reasons'),
             "last_tos_update" => (Minds\Core\Config::_()->get('last_tos_update') ?: time()),
+            'handlers' => [
+                'plus' => Minds\Core\Di\Di::_()->get('Config')->get('plus')['handler'] ?? null,
+                'pro' => Minds\Core\Di\Di::_()->get('Config')->get('pro')['handler'] ?? null,
+            ],
+            'upgrades' => Minds\Core\Di\Di::_()->get('Config')->get('upgrades'),
         ];
 
         return Factory::response($minds);
