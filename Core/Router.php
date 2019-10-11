@@ -128,9 +128,9 @@ class Router
         Di::_()->get('Email\RouterHooks')
             ->withRouterRequest($request);
 
-        if (isset($_GET['referrer'])) {
-            Helpers\Campaigns\Referrals::register($_GET['referrer']);
-        }
+        Di::_()->get('Referrals\Cookie')
+            ->withRouterRequest($request)
+            ->create();
 
         $loop = count($segments);
         while ($loop >= 0) {

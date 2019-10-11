@@ -34,6 +34,13 @@ class channel implements Interfaces\Api
         $channel->fullExport = true; //get counts
         $channel->exportCounts = true;
 
+        if (!$channel->isPro()) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'E_NOT_PRO'
+            ]);
+        }
+
         /** @var Manager $manager */
         $manager = Di::_()->get('Pro\Manager');
         $manager->setUser($channel);

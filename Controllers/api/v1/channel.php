@@ -13,6 +13,7 @@ use Minds\Interfaces;
 use Minds\Entities;
 use Minds\Api\Factory;
 use Minds\Common\ChannelMode;
+use Minds\Core\Di\Di;
 use ElggFile;
 
 class channel implements Interfaces\Api
@@ -45,6 +46,10 @@ class channel implements Interfaces\Api
         if ($user->banned == 'yes' && !Core\Session::isAdmin()) {
             return Factory::response(['status'=>'error', 'message'=>'The user is banned']);
         }
+
+        Di::_()->get('Referrals\Cookie')
+            ->setEntity($user)
+            ->create();
 
         $user->fullExport = true; //get counts
         $user->exportCounts = true;

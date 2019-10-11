@@ -13,6 +13,12 @@ class emails implements Interfaces\Api
     public function get($pages)
     {
         $user = Core\Session::getLoggedInUser();
+        if (!$user) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'User must be logged in.'
+            ]);
+        }
 
         $campaigns = [ 'when', 'with', 'global' ];
 
