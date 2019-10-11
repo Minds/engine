@@ -46,6 +46,8 @@ use Minds\Traits\MagicAttributes;
  * @method Settings setFeaturedContent(array $featuredContent)
  * @method string getCustomHead()
  * @method Settings setCustomHead(string $customHead)
+ * @method bool isPublished()
+ * @method Settings setPublished(bool $published)
  */
 class Settings implements JsonSerializable
 {
@@ -120,6 +122,9 @@ class Settings implements JsonSerializable
     /** @var string */
     protected $customHead = '';
 
+    /** @var bool */
+    protected $published;
+
     /**
      * @return string
      */
@@ -158,6 +163,7 @@ class Settings implements JsonSerializable
             'custom_head' => $this->customHead,
             'one_line_headline' => $this->getOneLineHeadline(),
             'styles' => $this->buildStyles(),
+            'published' => $this->published,
         ];
     }
 
