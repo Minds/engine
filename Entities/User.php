@@ -32,6 +32,7 @@ class User extends \ElggUser
         $this->attributes['plus'] = 0; //TODO: REMOVE
         $this->attributes['plus_expires'] = 0;
         $this->attributes['pro_expires'] = 0;
+        $this->attributes['pro_published'] = 0;
         $this->attributes['verified'] = 0;
         $this->attributes['founder'] = 0;
         $this->attributes['disabled_boost'] = 0;
@@ -824,6 +825,7 @@ class User extends \ElggUser
         $export['programs'] = $this->getPrograms();
         $export['plus'] = (bool) $this->isPlus();
         $export['pro'] = (bool) $this->isPro();
+        $export['pro_published'] = (bool) $this->isProPublished();
         $export['verified'] = (bool) $this->verified;
         $export['founder'] = (bool) $this->founder;
         $export['disabled_boost'] = (bool) $this->disabled_boost;
@@ -943,6 +945,35 @@ class User extends \ElggUser
     public function isPro()
     {
         return $this->getProExpires() >= time();
+    }
+
+    /**
+     * Set if pro is published
+     * @param bool $published
+     * @return self
+     */
+    public function setProPublished(bool $published): self
+    {
+        $this->pro_published = $published ? 1 : 0;
+        return $this;
+    }
+
+    /**
+     * Return if is published
+     * @return bool
+     */
+    public function getProPublished(): bool
+    {
+        return (bool) $this->pro_published;
+    }
+
+    /**
+     * Return if is published
+     * @return bool
+     */
+    public function isProPublished(): bool
+    {
+        return (bool) $this->pro_published;
     }
 
     /**

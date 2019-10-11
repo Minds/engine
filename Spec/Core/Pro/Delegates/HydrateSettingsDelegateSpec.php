@@ -110,6 +110,12 @@ class HydrateSettingsDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($settings);
 
+        $user->isProPublished()
+                ->willReturn(false);
+
+        $settings->setPublished(false)
+            ->shouldBeCalled();
+
         $this
             ->shouldNotThrow(Exception::class)
             ->duringOnGet($user, $settings);
