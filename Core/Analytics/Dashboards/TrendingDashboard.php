@@ -60,7 +60,7 @@ class TrendingDashboard implements DashboardInterface
         $this->filtersCollection
             ->setSelectedIds($this->filterIds)
             ->addFilters(
-                new Filters\PlatformFilter(),
+                // new Filters\PlatformFilter(),
                 new Filters\ViewTypeFilter(),
                 new Filters\ChannelFilter()
             );

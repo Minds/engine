@@ -2,13 +2,17 @@
 namespace Minds\Core\Analytics\Dashboards\Metrics;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Session;
 use Minds\Core\Data\ElasticSearch;
+use Minds\Core\Entities\Resolver;
+use Minds\Common\Urn;
 
 class ViewsTableMetric extends AbstractMetric
 {
     /** @var Elasticsearch\Client */
     private $es;
+
+    /** @var Resolver */
+    private $entitiesResolver;
 
     /** @var string */
     protected $id = 'views_table';
@@ -25,6 +29,7 @@ class ViewsTableMetric extends AbstractMetric
     public function __construct($es = null)
     {
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
+        $this->entitiesResolver = $entitiesResolver ?? new Resolver();
     }
 
     /**
@@ -67,11 +72,11 @@ class ViewsTableMetric extends AbstractMetric
         ];
 
         // Specify the resolution to avoid duplicates
-        $must[] = [
-            'term' => [
-                'resolution' => $timespan->getInterval(),
-            ],
-        ];
+        // $must[] = [
+        //     'term' => [
+        //         'resolution' => $timespan->getInterval(),
+        //     ],
+        // ];
 
         if ($userGuid = $this->getUserGuid()) {
             $must[] = [
@@ -107,10 +112,10 @@ class ViewsTableMetric extends AbstractMetric
                                 ],
                             ],
                             'views::organic' => [
-								'sum' => [
+                                'sum' => [
                                     'field' => 'views::organic',
                                 ],
-							],
+                            ],
                             'views::single' => [
                                 'sum' => [
                                     'field' => 'views::single',
@@ -126,45 +131,47 @@ class ViewsTableMetric extends AbstractMetric
         $prepared = new ElasticSearch\Prepared\Search();
         $prepared->query($query);
         $response = $this->es->request($prepared);
-
+        
         $buckets = [];
         foreach ($response['aggregations']['1']['buckets'] as $bucket) {
             $date = date(Visualisations\ChartVisualisation::DATE_FORMAT, $bucket['key'] / 1000);
-            $subBuckets = [];
+            $entity = $this->entitiesResolver->single(new Urn($bucket['key']));
             $buckets[] = [
                 'key' => $bucket['key'],
                 'values' => [
-					'views::total' => $bucket['views::total']['value'],
-					'views::organic' => $bucket['views::organic']['value'],
-					'views::single' => $bucket['views::single']['value'],
-				],
+                    'entity' => $entity ? $entity->export() : null,
+                    'views::total' => $bucket['views::total']['value'],
+                    'views::organic' => $bucket['views::organic']['value'],
+                    'views::single' => $bucket['views::single']['value'],
+                ],
             ];
         }
 
         $this->visualisation = (new Visualisations\TableVisualisation())
             ->setBuckets($buckets)
-            ->setColumns([ 'views::total', 'views::organic', 'views::single']);
+            ->setColumns([
+                [
+                    'id' => 'entity',
+                    'label' => '',
+                    'order' => 0,
+                ],
+                [
+                    'id' => 'views::total',
+                    'label' => 'Total Views',
+                    'order' => 1,
+                ],
+                [
+                    'id' => 'views::organic',
+                    'label' => 'Organic',
+                    'order' => 2,
+                ],
+                [
+                    'id' => 'views::single',
+                    'label' => 'Single',
+                    'order' => 3,
+                ]
+            ]);
 
         return $this;
-    }
-
-    private function getUserGuid(): ?string
-    {
-        $filters = $this->filtersCollection->getSelected();
-        $channelFilter = $filters['channel'];
-        
-        if (!$channelFilter) {
-            return "";
-        }
-
-        if ($channelFilter->getSelectedOption() === 'self') {
-            return Session::getLoggedInUserGuid();
-        }
-        if ($channelFilter->getSelectedOption() === 'all') {
-            return "";
-        }
-
-        // TODO: check permissions first
-        return $channelFilter->getSelectedOption();
     }
 }

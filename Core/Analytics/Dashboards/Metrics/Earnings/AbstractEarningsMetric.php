@@ -1,26 +1,35 @@
 <?php
-namespace Minds\Core\Analytics\Dashboards\Metrics;
+namespace Minds\Core\Analytics\Dashboards\Metrics\Earnings;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Core\Data\ElasticSearch;
+use Minds\Core\Analytics\Dashboards\Metrics\AbstractMetric;
+use Minds\Core\Analytics\Dashboards\Metrics\MetricSummary;
+use Minds\Core\Analytics\Dashboards\Metrics\Visualisations;
 
-class ViewsMetric extends AbstractMetric
+abstract class AbstractEarningsMetric extends AbstractMetric
 {
     /** @var Elasticsearch\Client */
     private $es;
 
     /** @var string */
-    protected $id = 'views';
+    protected $id = '';
 
     /** @var string */
-    protected $label = 'Views';
+    protected $label = '';
 
     /** @var string */
-    protected $description = 'Views on channel assets';
+    protected $description = '';
 
     /** @var array */
-    protected $permissions = [ 'admin' ];
+    protected $permissions = [ 'user', 'admin' ];
+
+    /** @var string */
+    protected $unit = 'usd';
+
+    /** @var string */
+    protected $aggField = '';
 
     public function __construct($es = null)
     {
@@ -38,17 +47,10 @@ class ViewsMetric extends AbstractMetric
         $comparisonTsMs = strtotime("midnight -{$timespan->getComparisonInterval()} days", $timespan->getFromTsMs() / 1000) * 1000;
         $currentTsMs = $timespan->getFromTsMs();
 
-        // TODO: Allow this to be changed based on supplied filters
-        $aggField = "views::total";
-
-        if ($filters['view_type']) {
-            $aggField = "views::" . $filters['view_type']->getSelectedOption();
-        }
-
         $values = [];
         foreach ([ 'value' => $currentTsMs, 'comparison' => $comparisonTsMs ] as $key => $tsMs) {
             $must = [];
-            
+
             $must[]['range'] = [
                 '@timestamp' => [
                     'gte' => $tsMs,
@@ -76,7 +78,7 @@ class ViewsMetric extends AbstractMetric
                     'aggs' => [
                         '1' => [
                             'sum' => [
-                                'field' => $aggField,
+                                'field' => $this->aggField,
                             ],
                         ],
                     ],
@@ -107,15 +109,6 @@ class ViewsMetric extends AbstractMetric
     {
         $timespan = $this->timespansCollection->getSelected();
         $filters = $this->filtersCollection->getSelected();
-        $xValues = [];
-        $yValues = [];
-
-        // TODO: make this respect the filters
-        $field = "views::total";
-
-        if ($filters['view_type']) {
-            $field = "views::" . $filters['view_type']->getSelectedOption();
-        }
 
         $must = [];
 
@@ -154,7 +147,7 @@ class ViewsMetric extends AbstractMetric
                         'aggs' => [
                             '2' => [
                                 'sum' => [
-                                    'field' => $field,
+                                    'field' => $this->aggField,
                                 ],
                             ],
                         ],
@@ -171,8 +164,6 @@ class ViewsMetric extends AbstractMetric
         $buckets = [];
         foreach ($response['aggregations']['1']['buckets'] as $bucket) {
             $date = date(Visualisations\ChartVisualisation::DATE_FORMAT, $bucket['key'] / 1000);
-            $xValues[] = $date;
-            $yValues[] = $bucket['2']['value'];
             $buckets[] = [
                 'key' => $bucket['key'],
                 'date' => date('c', $bucket['key'] / 1000),
@@ -181,8 +172,6 @@ class ViewsMetric extends AbstractMetric
         }
 
         $this->visualisation = (new Visualisations\ChartVisualisation())
-            ->setXValues($xValues)
-            ->setYValues($yValues)
             ->setXLabel('Date')
             ->setYLabel('Count')
             ->setBuckets($buckets);

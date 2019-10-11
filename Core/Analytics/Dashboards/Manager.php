@@ -6,6 +6,7 @@ class Manager
     const DASHBOARDS = [
         'traffic' => TrafficDashboard::class,
         'trending' => TrendingDashboard::class,
+        'earnings' => EarningsDashboard::class,
     ];
 
     /**

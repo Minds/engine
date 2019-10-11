@@ -3,6 +3,7 @@ namespace Minds\Core\Analytics\Dashboards\Metrics;
 
 use Minds\Core\Analytics\Dashboards\Timespans\TimespansCollection;
 use Minds\Core\Di\Di;
+use Minds\Core\Session;
 use Minds\Traits\MagicAttributes;
 
 /**
@@ -42,6 +43,37 @@ abstract class AbstractMetric
 
     /** @var FiltersCollection */
     protected $filtersCollection;
+
+    /**
+     * Return the usd guid for metrics
+     * @return string
+     */
+    protected function getUserGuid(): ?string
+    {
+        $filters = $this->filtersCollection->getSelected();
+        $channelFilter = $filters['channel'];
+
+        if (!$channelFilter) {
+            if (!Session::getLoggedInUserGuid()) {
+                throw new \Exception("You must be loggedin");
+            }
+            return Session::getLoggedInUserGuid();
+        }
+
+        if ($channelFilter->getSelectedOption() === 'all') {
+            if (Session::isAdmin()) {
+                return "";
+            }
+            $channelFilter->setSelectedOption('self');
+        }
+
+        if ($channelFilter->getSelectedOption() === 'self') {
+            return Session::getLoggedInUserGuid();
+        }
+
+        // TODO: check permissions first
+        return $channelFilter->getSelectedOption();
+    }
 
     /**
      * Export

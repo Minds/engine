@@ -32,6 +32,10 @@ class SignupsMetric extends AbstractMetric
      */
     public function buildSummary(): self
     {
+        if ($this->getUserGuid()) {
+            return $this;
+        }
+
         $timespan = $this->timespansCollection->getSelected();
         $comparisonTsMs = strtotime("-{$timespan->getComparisonInterval()} days", $timespan->getFromTsMs() / 1000) * 1000;
         $currentTsMs = $timespan->getFromTsMs();
@@ -95,6 +99,11 @@ class SignupsMetric extends AbstractMetric
      */
     public function buildVisualisation(): self
     {
+        if ($this->getUserGuid()) {
+            $this->visualisation = (new Visualisations\ChartVisualisation());
+            return $this;
+        }
+
         $timespan = $this->timespansCollection->getSelected();
         $xValues = [];
         $yValues = [];

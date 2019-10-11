@@ -70,6 +70,9 @@ class MetricsCollection implements DashboardCollectionInterface
      */
     public function getSelected(): AbstractMetric
     {
+        if (!isset($this->metrics[$this->selectedId])) {
+            $this->selectedId = key($this->metrics);
+        }
         return $this->metrics[$this->selectedId];
     }
 

@@ -1,6 +1,6 @@
 <?php
 /**
- * Traffic Dashboard
+ * Earnings Dashboard
  */
 namespace Minds\Core\Analytics\Dashboards;
 
@@ -10,7 +10,7 @@ use Minds\Traits\MagicAttributes;
  * @method TrafficDashboard setTimespanId(string $timespanId)
  * @method TrafficDashboard setFilterIds(array $filtersIds)
  */
-class TrafficDashboard implements DashboardInterface
+class EarningsDashboard implements DashboardInterface
 {
     use MagicAttributes;
 
@@ -63,8 +63,6 @@ class TrafficDashboard implements DashboardInterface
         $this->filtersCollection
             ->setSelectedIds($this->filterIds)
             ->addFilters(
-                // new Filters\PlatformFilter(),
-                new Filters\ViewTypeFilter(),
                 new Filters\ChannelFilter()
             );
         $this->metricsCollection
@@ -72,9 +70,10 @@ class TrafficDashboard implements DashboardInterface
             ->setFiltersCollection($this->filtersCollection)
             ->setSelectedId($this->metricId)
             ->addMetrics(
-                new Metrics\ActiveUsersMetric(),
-                new Metrics\SignupsMetric(),
-                new Metrics\ViewsMetric()
+                new Metrics\Earnings\TotalEarningsMetric(),
+                new Metrics\Earnings\ViewsEarningsMetric(),
+                new Metrics\Earnings\ReferralsEarningsMetric(),
+                new Metrics\Earnings\SalesEarningsMetric()
             )
             ->build();
 
@@ -90,7 +89,7 @@ class TrafficDashboard implements DashboardInterface
     {
         $this->build();
         return [
-            'category' => 'traffic',
+            'category' => 'earnings',
             'timespan' => $this->timespansCollection->getSelected()->getId(),
             'timespans' => $this->timespansCollection->export(),
             'metric' => $this->metricsCollection->getSelected()->getId(),
