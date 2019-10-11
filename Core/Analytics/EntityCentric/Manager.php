@@ -13,6 +13,7 @@ class Manager
 {
     /** @var array */
     const SYNCHRONISERS = [
+        PartnerEarningsSynchroniser::class,
         SignupsSynchroniser::class,
         ActiveUsersSynchroniser::class,
         ViewsSynchroniser::class,
@@ -21,6 +22,9 @@ class Manager
     /** @var Repository */
     protected $repository;
 
+    /** @var Sums */
+    protected $sums;
+
     /** @var int */
     private $from;
 
@@ -28,9 +32,11 @@ class Manager
     private $to;
 
     public function __construct(
-        $repository = null
+        $repository = null,
+        $sums = null
     ) {
-        $this->repository = $repository ?: new Repository();
+        $this->repository = $repository ?? new Repository();
+        $this->sums = $sums ?? new Sums();
     }
 
     /**
@@ -80,5 +86,14 @@ class Manager
      */
     public function getAggregateByQuery(array $query): array
     {
+    }
+
+    /**
+     * @param array $opts
+     * @retun iterable
+     */
+    public function getListAggregatedByOwner(array $opts = []): iterable
+    {
+        return $this->sums->getByOwner($opts);
     }
 }
