@@ -958,7 +958,7 @@ class User extends \ElggUser
         return $this;
     }
 
-	/**
+    /**
      * Return if is published
      * @return bool
      */
