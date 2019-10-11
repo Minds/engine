@@ -6,7 +6,6 @@
 
 namespace Minds\Core\Analytics\EntityCentric;
 
-use Minds\Core\Analytics\Views\DownsampledView;
 use DateTime;
 use DateTimeZone;
 use Exception;

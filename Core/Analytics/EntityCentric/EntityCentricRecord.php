@@ -10,17 +10,19 @@ use Minds\Traits\MagicAttributes;
 
 /**
  * Class EntityCentricRecord
- * @package Minds\Core\Analytics\Views
- * @method DownsampledView setResolution(int $year)
+ * @package Minds\Core\Analytics\EntityCentric
+ * @method EntityCentricRecord setResolution(int $year)
  * @method string getResolution()
- * @method DownsampledView setEntityUrn(string $entityUrn)
+ * @method EntityCentricRecord setEntityUrn(string $entityUrn)
  * @method string getEntityUrn()
- * @method DownsampledView setOwnerGuid(string $ownerGuid)
+ * @method EntityCentricRecord setOwnerGuid(string $ownerGuid)
  * @method string getOwnerGuid()
- * @method DownsampledView setTimestampMs(int $timestampMs)
+ * @method EntityCentricRecord setTimestampMs(int $timestampMs)
  * @method int getTimestampMs()
- * @method DownsampledView setViews(int $views)
- * @method int getViews()
+ * @method EntityCentricRecord setTimestamp(int $timestamp)
+ * @method int getTimestamp()
+ * @method EntityCentricRecord setSums(array $sums)
+ * @method int getSums()
  */
 class EntityCentricRecord
 {
@@ -28,6 +30,9 @@ class EntityCentricRecord
 
     /** @var string */
     private $resolution;
+
+    /** @var int */
+    protected $timestamp;
 
     /** @var int */
     protected $timestampMs;
@@ -45,7 +50,7 @@ class EntityCentricRecord
      * Increment views
      * @param string $metric
      * @param int $value
-     * @return DownsampledView
+     * @return EntityCentricRecord
      */
     public function incrementSum($metric, $value = 1): EntityCentricRecord
     {

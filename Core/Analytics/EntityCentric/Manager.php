@@ -33,6 +33,10 @@ class Manager
         $this->repository = $repository ?: new Repository();
     }
 
+    /**
+     * @param int $from
+     * @return self
+     */
     public function setFrom($from): self
     {
         $this->from = $from;
@@ -41,9 +45,9 @@ class Manager
 
     /**
      * Synchronise views from cassandra to elastic
-     * @return void
+     * @return iterable
      */
-    public function sync()
+    public function sync(): iterable
     {
         foreach (Manager::SYNCHRONISERS as $synchroniserClass) {
             $synchroniser = new $synchroniserClass;

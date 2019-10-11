@@ -18,13 +18,21 @@ class ActiveUsersSynchroniser
         $this->activeMetric = $activeMetric ?? new Active();
     }
 
+    /**
+     * @param int $from
+     * @return self
+     */
     public function setFrom($from): self
     {
         $this->from = $from;
         return $this;
     }
 
-    public function toRecords()
+    /**
+     * Convert to records
+     * @return iterable
+     */
+    public function toRecords(): iterable
     {
         $date = (new DateTime())->setTimestamp($this->from);
         $now = new DateTime();
