@@ -176,10 +176,22 @@ class Events
                 $parentGuid = method_exists($entity, 'getEntityGuid') ? $entity->getEntityGuid() : $entity->parent_guid;
                 $parent = Entities\Factory::build($parentGuid, [ 'cache' => false ]);
 
-                if ($parent && method_exists($parent, 'getGuid')) {
+                $parent_info = [];
+
+                if ($parent) {
+                    if (method_exists($parent, 'getGuid')) {
+                        $parent_info[ 'parent_guid' ] = $parent->getGuid();
+                    }
+
+                    if (method_exists($parent, 'getType')) {
+                        $parent_info[ 'parent_type' ] = $parent->getType();
+                    }
+                }
+
+                if (!empty($parent_info)) {
                     $notification->setData(array_merge(
                         $notification->getData() ?: [],
-                        [ 'parent_guid' => $parent->getGuid() ]
+                        $parent_info
                     ));
                 }
             }
