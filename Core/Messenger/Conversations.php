@@ -115,25 +115,10 @@ class Conversations
         usort($return, function ($a, $b) {
             return $b->ts - $a->ts;
         });
-
-        //      for ($i = 0; $i < count($return); $i++) {
+        
         foreach ($return as $i => $item) {
             if ($item->isUnread()) {
-//                $return = array_unshift($return, $return[$i]);
-                // $result = array_splice($return, $i, 1);
-                //   $return = array_splice(
-                // $return,
-                // array_search(
-                //     $i,array_keys($return)),
-                //     1
-                // ) + $return;
-
                 $return = [$i => $return[$i]] + $return;
-                //    $return = array_splice(
-
-                // array_unshift($return, $item);
-                // $return = array_splice($return, $i, 1);
-                // array_diff($return, $item);
             }
         }
 
