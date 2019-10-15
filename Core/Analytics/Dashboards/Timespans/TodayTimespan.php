@@ -12,7 +12,7 @@ class TodayTimespan extends AbstractTimespan
     protected $id = 'today';
 
     /** @var string */
-    protected $label = 'today';
+    protected $label = 'Today';
 
     /** @var string */
     protected $interval = 'day';
