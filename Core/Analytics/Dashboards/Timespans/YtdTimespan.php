@@ -7,7 +7,7 @@ class YtdTimespan extends AbstractTimespan
     protected $id = 'ytd';
 
     /** @var string */
-    protected $label = 'year to date';
+    protected $label = 'Year to date';
 
     /** @var string */
     protected $interval = 'month';

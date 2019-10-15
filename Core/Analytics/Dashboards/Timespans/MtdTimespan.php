@@ -7,7 +7,7 @@ class MtdTimespan extends AbstractTimespan
     protected $id = 'mtd';
 
     /** @var string */
-    protected $label = 'month to date';
+    protected $label = 'Month to date';
 
     /** @var string */
     protected $interval = 'day';

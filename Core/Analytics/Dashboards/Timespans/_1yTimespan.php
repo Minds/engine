@@ -7,7 +7,7 @@ class _1yTimespan extends AbstractTimespan
     protected $id = '1y';
 
     /** @var string */
-    protected $label = '1 year ago';
+    protected $label = 'Last 12 months';
 
     /** @var string */
     protected $interval = 'month';
