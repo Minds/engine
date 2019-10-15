@@ -61,8 +61,8 @@ class Manager
     /** @var Core\Blockchain\Wallets\OffChain\Cap $cap */
     protected $cap;
     
-    /** @var Delegates\Plus $plusDelegate */
-    protected $plusDelegate;
+    /** @var Delegates\UpgradesDelegate */
+    protected $upgradesDelegate;
 
     /** @var Delegates\RecurringDelegate $recurringDelegate */
     protected $recurringDelegate;
@@ -87,7 +87,7 @@ class Manager
         $client = null,
         $token = null,
         $cap = null,
-        $plusDelegate = null,
+        $upgradesDelegate = null,
         $recurringDelegate = null,
         $notificationDelegate = null,
         $cacheDelegate = null,
@@ -101,7 +101,8 @@ class Manager
         $this->client = $client ?: Di::_()->get('Blockchain\Services\Ethereum');
         $this->token = $token ?: Di::_()->get('Blockchain\Token');
         $this->cap = $cap ?: Di::_()->get('Blockchain\Wallets\OffChain\Cap');
-        $this->plusDelegate = $plusDelegate ?: new Delegates\Plus();
+        $this->upgradesDelegate = $upgradesDelegate ?? new Delegates\UpgradesDelegate();
+        ;
         $this->recurringDelegate = $recurringDelegate ?: new Delegates\RecurringDelegate();
         $this->notificationDelegate = $notificationDelegate ?: new Delegates\NotificationDelegate();
         $this->cacheDelegate = $cacheDelegate ?: new Delegates\CacheDelegate();
@@ -248,8 +249,8 @@ class Manager
 
                 $wire->setAddress('offchain');
 
-                // Notify plus
-                $this->plusDelegate
+                // Notify plus/pro
+                $this->upgradesDelegate
                     ->onWire($wire, 'offchain');
 
                 // Send notification
@@ -286,6 +287,10 @@ class Manager
 
                 // Save the wire to the Repository
                 $this->repository->add($wire);
+
+                // Notify plus/pro
+                $this->upgradesDelegate
+                    ->onWire($wire, 'usd');
 
                 // Send notification
                 $this->notificationDelegate->onAdd($wire);
@@ -330,7 +335,7 @@ class Manager
             ->setCompleted(true);
         $this->txRepo->add($transaction);
 
-        $this->plusDelegate
+        $this->upgradesDelegate
             ->onWire($wire, $data['receiver_address']);
 
         $this->notificationDelegate->onAdd($wire);
