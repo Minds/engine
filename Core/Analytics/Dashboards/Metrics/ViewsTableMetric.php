@@ -24,7 +24,7 @@ class ViewsTableMetric extends AbstractMetric
     protected $description = 'Views by post';
 
     /** @var array */
-    protected $permissions = [ 'admin' ];
+    protected $permissions = [ 'user', 'admin' ];
 
     public function __construct($es = null)
     {
@@ -134,7 +134,6 @@ class ViewsTableMetric extends AbstractMetric
         
         $buckets = [];
         foreach ($response['aggregations']['1']['buckets'] as $bucket) {
-            $date = date(Visualisations\ChartVisualisation::DATE_FORMAT, $bucket['key'] / 1000);
             $entity = $this->entitiesResolver->single(new Urn($bucket['key']));
             $buckets[] = [
                 'key' => $bucket['key'],
@@ -167,7 +166,7 @@ class ViewsTableMetric extends AbstractMetric
                 ],
                 [
                     'id' => 'views::single',
-                    'label' => 'Single',
+                    'label' => 'Pageviews',
                     'order' => 3,
                 ]
             ]);

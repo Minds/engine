@@ -23,6 +23,9 @@ abstract class AbstractTimespan
     /** @var string */
     protected $interval;
 
+    /** @var bool */
+    protected $selected = false;
+
     /** @var int */
     protected $fromTsMs;
 
@@ -40,6 +43,7 @@ abstract class AbstractTimespan
             'id' => (string) $this->id,
             'label' => (string) $this->label,
             'interval' => (string) $this->interval,
+            'selected' => (bool) $this->selected,
             'comparison_interval' => (int) $this->comparisonInterval,
             'from_ts_ms' => (int) $this->fromTsMs,
             'from_ts_iso' => date('c', $this->fromTsMs / 1000),

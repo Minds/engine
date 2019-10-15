@@ -4,11 +4,13 @@
  */
 namespace Minds\Core\Analytics\Dashboards;
 
+use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
 /**
  * @method TrafficDashboard setTimespanId(string $timespanId)
  * @method TrafficDashboard setFilterIds(array $filtersIds)
+ * @method TrafficDashboard setUser(User $user)
  */
 class TrafficDashboard implements DashboardInterface
 {
@@ -32,8 +34,8 @@ class TrafficDashboard implements DashboardInterface
     /** @var Filters\FiltersCollection */
     private $filtersCollection;
 
-    /** @var Visualisations\Chart\ChartSegmentsCollection */
-    private $chartCollection;
+    /** @var User */
+    private $user;
 
     public function __construct(
         $timespansCollection = null,
@@ -62,6 +64,7 @@ class TrafficDashboard implements DashboardInterface
             );
         $this->filtersCollection
             ->setSelectedIds($this->filterIds)
+            ->setUser($this->user)
             ->addFilters(
                 // new Filters\PlatformFilter(),
                 new Filters\ViewTypeFilter(),
@@ -71,9 +74,11 @@ class TrafficDashboard implements DashboardInterface
             ->setTimespansCollection($this->timespansCollection)
             ->setFiltersCollection($this->filtersCollection)
             ->setSelectedId($this->metricId)
+            ->setUser($this->user)
             ->addMetrics(
                 new Metrics\ActiveUsersMetric(),
                 new Metrics\SignupsMetric(),
+                new Metrics\PageviewsMetric(),
                 new Metrics\ViewsMetric()
             )
             ->build();
@@ -91,6 +96,8 @@ class TrafficDashboard implements DashboardInterface
         $this->build();
         return [
             'category' => 'traffic',
+            'label' => 'Traffic',
+            'description' => null,
             'timespan' => $this->timespansCollection->getSelected()->getId(),
             'timespans' => $this->timespansCollection->export(),
             'metric' => $this->metricsCollection->getSelected()->getId(),

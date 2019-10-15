@@ -29,9 +29,9 @@ class ViewTypeFilter extends AbstractFilter
                     ->setLabel("Boosted")
                     ->setDescription("Views recorded on assets that were boosted"),
                 (new FilterOptionsOption())
-                    ->setId("single")
-                    ->setLabel("Single")
-                    ->setDecription("Views recorded on single pages, not in feeds")
+                     ->setId("single")
+                     ->setLabel("Pageview")
+                     ->setDecription("Views recorded on single pages, not in feeds")
             );
     }
 }

@@ -5,13 +5,14 @@ namespace Minds\Controllers\api\v2\analytics;
 
 use Minds\Api\Factory;
 use Minds\Core;
+use Minds\Core\Session;
 use Minds\Core\Di\Di;
 use Minds\Common\Cookie;
 use Minds\Entities;
 use Minds\Helpers\Counters;
 use Minds\Interfaces;
 
-class dashboards implements Interfaces\Api, Interfaces\ApiIgnorePam
+class dashboards implements Interfaces\Api
 {
     public function get($pages)
     {
@@ -20,6 +21,8 @@ class dashboards implements Interfaces\Api, Interfaces\ApiIgnorePam
         $id = $pages[0] ?? 'unknown';
 
         $dashboard = $dashboardsManager->getDashboardById($id);
+
+        $dashboard->setUser(Session::getLoggedInUser());
 
         if (isset($_GET['timespan'])) {
             $dashboard->setTimespanId($_GET['timespan']);

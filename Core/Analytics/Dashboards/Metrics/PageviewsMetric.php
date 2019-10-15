@@ -5,19 +5,19 @@ use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Core\Data\ElasticSearch;
 
-class ViewsMetric extends AbstractMetric
+class PageviewsMetric extends AbstractMetric
 {
     /** @var Elasticsearch\Client */
     private $es;
 
     /** @var string */
-    protected $id = 'views';
+    protected $id = 'pageviews';
 
     /** @var string */
-    protected $label = 'Impressions';
+    protected $label = 'Pageviews';
 
     /** @var string */
-    protected $description = 'Impressions on channel assets. Impressions include pageviews and feed views.';
+    protected $description = 'Pageviews on channel assets. A pageview is visit to a single assets on either desktop or mobile.';
 
     /** @var array */
     protected $permissions = [ 'admin', 'user' ];
@@ -39,11 +39,7 @@ class ViewsMetric extends AbstractMetric
         $currentTsMs = $timespan->getFromTsMs();
 
         // TODO: Allow this to be changed based on supplied filters
-        $aggField = "views::total";
-
-        if ($filters['view_type']) {
-            $aggField = "views::" . $filters['view_type']->getSelectedOption();
-        }
+        $aggField = "views::single";
 
         $values = [];
         foreach ([ 'value' => $currentTsMs, 'comparison' => $comparisonTsMs ] as $key => $tsMs) {
@@ -106,16 +102,10 @@ class ViewsMetric extends AbstractMetric
     public function buildVisualisation(): self
     {
         $timespan = $this->timespansCollection->getSelected();
-        $filters = $this->filtersCollection->getSelected();
-        $xValues = [];
-        $yValues = [];
+        $this->filtersCollection->clear();
 
         // TODO: make this respect the filters
-        $field = "views::total";
-
-        if ($filters['view_type']) {
-            $field = "views::" . $filters['view_type']->getSelectedOption();
-        }
+        $field = "views::single";
 
         $must = [];
 

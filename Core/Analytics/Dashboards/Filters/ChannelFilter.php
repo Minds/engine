@@ -9,6 +9,9 @@ class ChannelFilter extends AbstractFilter
     /** @var string */
     protected $label = "Channel";
 
+    /** @var array */
+    protected $permissions = [ 'admin' ];
+
     /** @var string */
     protected $description = "Filter by channels or by the full site";
 

@@ -16,6 +16,9 @@ abstract class AbstractFilter
     /** @var string */
     protected $description;
 
+    /** @var array */
+    protected $permissions = [ 'user', 'admin' ];
+
     /** @var FilterOptions */
     protected $options;
 

@@ -57,6 +57,9 @@ abstract class AbstractMetric
             if (!Session::getLoggedInUserGuid()) {
                 throw new \Exception("You must be loggedin");
             }
+            if (Session::isAdmin()) {
+                return "";
+            }
             return Session::getLoggedInUserGuid();
         }
 

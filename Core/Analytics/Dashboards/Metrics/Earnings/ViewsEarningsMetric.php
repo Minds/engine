@@ -14,10 +14,10 @@ class ViewsEarningsMetric extends AbstractEarningsMetric
     protected $id = 'earnings_views';
 
     /** @var string */
-    protected $label = 'Views USD';
+    protected $label = 'Pageviews USD';
 
     /** @var string */
-    protected $description = 'Views earnings for PRO users';
+    protected $description = 'Pageview earnings for PRO users';
 
     /** @var array */
     protected $permissions = [ 'user', 'admin' ];

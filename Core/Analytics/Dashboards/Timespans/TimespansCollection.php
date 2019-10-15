@@ -62,6 +62,9 @@ class TimespansCollection implements DashboardCollectionInterface
     {
         $export = [];
         foreach ($this->timespans as $timespan) {
+            if ($timespan->getId() === $this->selectedId) {
+                $timespan->setSelected(true);
+            }
             $export[] = $timespan->export();
         }
         return $export;

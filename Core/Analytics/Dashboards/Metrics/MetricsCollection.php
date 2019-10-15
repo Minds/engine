@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Analytics\Dashboards\Metrics;
 
+use Minds\Entities\User;
 use Minds\Core\Di\Di;
 use Minds\Core\Analytics\Dashboards\Timespans\TimespansCollection;
 use Minds\Core\Analytics\Dashboards\Filters\FiltersCollection;
@@ -19,6 +20,9 @@ class MetricsCollection implements DashboardCollectionInterface
 
     /** @var FiltersCollection */
     private $filtersCollection;
+
+    /** @var User */
+    private $user;
 
     /**
      * @param TimespansCollection $timespansCollection
@@ -41,6 +45,16 @@ class MetricsCollection implements DashboardCollectionInterface
     }
 
     /**
+     * @param User $user
+     * @return self
+     */
+    public function setUser(User $user): self
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    /**
      * Set the selected metric id
      * @param string
      * @return self
@@ -59,6 +73,13 @@ class MetricsCollection implements DashboardCollectionInterface
     public function addMetrics(AbstractMetric ...$metrics): self
     {
         foreach ($metrics as $metric) {
+            if (
+                in_array('admin', $metric->getPermissions(), true)
+                && !$this->user->isAdmin()
+                && !in_array('user', $metric->getPermissions(), true)
+            ) {
+                continue;
+            }
             $this->metrics[$metric->getId()] = $metric;
         }
         return $this;

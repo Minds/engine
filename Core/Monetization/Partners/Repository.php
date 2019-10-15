@@ -66,7 +66,7 @@ class Repository
         $result = $this->db->request($prepared);
 
         if (!$result || !$result[0]) {
-            return new Response();
+            return (new Response())->setLastPage(true);
         }
 
         $response = new Response();

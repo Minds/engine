@@ -4,11 +4,13 @@
  */
 namespace Minds\Core\Analytics\Dashboards;
 
+use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
 /**
- * @method TrafficDashboard setTimespanId(string $timespanId)
- * @method TrafficDashboard setFilterIds(array $filtersIds)
+ * @method TrendingDashboard setTimespanId(string $timespanId)
+ * @method TrendingDashboard setFilterIds(array $filtersIds)
+ * @method TrendingDashboard setUser(User $user)
  */
 class TrendingDashboard implements DashboardInterface
 {
@@ -31,6 +33,9 @@ class TrendingDashboard implements DashboardInterface
 
     /** @var Filters\FiltersCollection */
     private $filtersCollection;
+
+    /** @var User */
+    private $user;
 
     public function __construct(
         $timespansCollection = null,
@@ -59,6 +64,7 @@ class TrendingDashboard implements DashboardInterface
             );
         $this->filtersCollection
             ->setSelectedIds($this->filterIds)
+            ->setUser($this->user)
             ->addFilters(
                 // new Filters\PlatformFilter(),
                 new Filters\ViewTypeFilter(),
@@ -68,6 +74,7 @@ class TrendingDashboard implements DashboardInterface
             ->setTimespansCollection($this->timespansCollection)
             ->setFiltersCollection($this->filtersCollection)
             ->setSelectedId($this->metricId)
+            ->setUser($this->user)
             ->addMetrics(
                 new Metrics\ViewsTableMetric()
             )
@@ -86,6 +93,8 @@ class TrendingDashboard implements DashboardInterface
         $this->build();
         return [
             'category' => 'trending',
+            'label' => 'Trending',
+            'description' => null,
             'timespan' => $this->timespansCollection->getSelected()->getId(),
             'timespans' => $this->timespansCollection->export(),
             'metric' => $this->metricsCollection->getSelected()->getId(),

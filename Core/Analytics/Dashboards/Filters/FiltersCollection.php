@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Analytics\Dashboards\Filters;
 
+use Minds\Entities\User;
 use Minds\Core\Analytics\Dashboards\DashboardCollectionInterface;
 
 class FiltersCollection implements DashboardCollectionInterface
@@ -10,6 +11,9 @@ class FiltersCollection implements DashboardCollectionInterface
 
     /** @var string[] */
     private $selectedIds;
+
+    /** @var User */
+    private $user;
 
     /**
      * Set the selected metric id
@@ -29,6 +33,16 @@ class FiltersCollection implements DashboardCollectionInterface
     public function getSelectedIds(): array
     {
         return $this->selectedIds;
+    }
+
+    /**
+     * @param User $user
+     * @return self
+     */
+    public function setUser(User $user): self
+    {
+        $this->user = $user;
+        return $this;
     }
 
     public function getSelected(): array
@@ -56,6 +70,14 @@ class FiltersCollection implements DashboardCollectionInterface
     public function addFilters(AbstractFilter ...$filters): self
     {
         foreach ($filters as $filter) {
+            if (
+                in_array('admin', $filter->getPermissions(), true)
+                && !$this->user->isAdmin()
+                && !in_array('user', $filter->getPermissions(), true)
+            ) {
+                continue;
+            }
+
             $this->filters[$filter->getId()] = $filter;
         }
         return $this;
@@ -68,6 +90,13 @@ class FiltersCollection implements DashboardCollectionInterface
     public function getFilters(): array
     {
         return $this->filters;
+    }
+
+    public function clear(): self
+    {
+        $this->filters = [];
+        $this->selectedIds = [];
+        return $this;
     }
 
     // public function build(): self
