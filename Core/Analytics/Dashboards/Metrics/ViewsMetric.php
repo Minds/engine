@@ -41,7 +41,7 @@ class ViewsMetric extends AbstractMetric
         // TODO: Allow this to be changed based on supplied filters
         $aggField = "views::total";
 
-        if ($filters['view_type']) {
+        if ($filters['view_type'] ?? false) {
             $aggField = "views::" . $filters['view_type']->getSelectedOption();
         }
 
@@ -113,7 +113,7 @@ class ViewsMetric extends AbstractMetric
         // TODO: make this respect the filters
         $field = "views::total";
 
-        if ($filters['view_type']) {
+        if ($filters['view_type'] ?? false) {
             $field = "views::" . $filters['view_type']->getSelectedOption();
         }
 

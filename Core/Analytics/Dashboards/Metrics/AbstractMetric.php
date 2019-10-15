@@ -13,6 +13,8 @@ use Minds\Traits\MagicAttributes;
  * @method string getId()
  * @method string getLabel()
  * @method MetricSummary getSummary()
+ * @method array getPermissions()
+ * @method AbstractMetric setUser(User $user)
  */
 abstract class AbstractMetric
 {
@@ -55,7 +57,7 @@ abstract class AbstractMetric
     protected function getUserGuid(): ?string
     {
         $filters = $this->filtersCollection->getSelected();
-        $channelFilter = $filters['channel'];
+        $channelFilter = $filters['channel'] ?? null;
 
         if (!$channelFilter) {
             if (!$this->user) {

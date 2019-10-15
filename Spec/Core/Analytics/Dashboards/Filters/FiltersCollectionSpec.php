@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Analytics\Dashboards\Filters;
 
+use Minds\Entities\User;
 use Minds\Core\Analytics\Dashboards\Filters\FiltersCollection;
 use Minds\Core\Analytics\Dashboards\Filters\ViewTypeFilter;
 use PhpSpec\ObjectBehavior;
@@ -16,6 +17,7 @@ class FiltersCollectionSpec extends ObjectBehavior
 
     public function it_should_add_filters_to_collection()
     {
+        $this->setUser(new User());
         $this->addFilters(new ViewTypeFilter);
         $filters = $this->getFilters();
         $filters['view_type']->getId()
@@ -24,6 +26,7 @@ class FiltersCollectionSpec extends ObjectBehavior
 
     public function it_should_export_filters()
     {
+        $this->setUser(new User());
         $this->addFilters(new ViewTypeFilter);
         $export = $this->export();
         $export[0]['id']

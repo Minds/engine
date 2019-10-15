@@ -7,6 +7,7 @@ use Minds\Core\Analytics\Dashboards\Timespans\TimespansCollection;
 use Minds\Core\Analytics\Dashboards\Metrics\MetricsCollection;
 use Minds\Core\Analytics\Dashboards\Metrics\AbstractMetric;
 use Minds\Core\Analytics\Dashboards\Filters\FiltersCollection;
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -31,6 +32,8 @@ class TrafficDashboardSpec extends ObjectBehavior
 
     public function it_should_build_dashboard(AbstractMetric $mockMetric)
     {
+        $user = new User();
+        $this->setUser($user);
         $this->setTimespanId('today');
         $this->setFilterIds([
             'platform::browser'
@@ -46,7 +49,10 @@ class TrafficDashboardSpec extends ObjectBehavior
         $this->metricsCollection->setSelectedId('active_users')
             ->willReturn($this->metricsCollection);
 
-        $this->metricsCollection->addMetrics(Argument::any(), Argument::any(), Argument::any())
+        $this->metricsCollection->setUser($user)
+            ->willReturn($this->metricsCollection);
+
+        $this->metricsCollection->addMetrics(Argument::any(), Argument::any(), Argument::any(), Argument::any())
             ->shouldBeCalled()
             ->willReturn($this->metricsCollection);
 

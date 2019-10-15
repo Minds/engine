@@ -45,7 +45,7 @@ class TimespansCollectionSpec extends ObjectBehavior
         $exported[1]['id']->shouldBe('mtd');
         $exported[1]['from_ts_ms']->shouldBe(strtotime('midnight first day of this month') * 1000);
         $exported[2]['id']->shouldBe('ytd');
-        $exported[2]['from_ts_ms']->shouldBe(strtotime('midnight first day of this year') * 1000);
+        $exported[2]['from_ts_ms']->shouldBe(strtotime('midnight first day of January') * 1000);
         $exported[2]['interval']->shouldBe('month');
     }
 }
