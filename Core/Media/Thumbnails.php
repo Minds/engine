@@ -14,28 +14,28 @@ class Thumbnails
         $this->config = $config ?: Di::_()->get('Config');
     }
 
-    public function get($guid, $size)
+    public function get($guid, $size, $user = null)
     {
         $entity = Entities\Factory::build($guid);
         if (!$entity || !Core\Security\ACL::_()->read($entity)) {
             return false;
         }
 
-        $loggedInUser = Core\Session::getLoggedinUser();
+        $loggedInUser = $user ?: Core\Session::getLoggedinUser();
 
         if (!Di::_()->get('Wire\Thresholds')->isAllowed($loggedInUser, $entity)) {
             return false;
         }
 
-        $user = $entity->getOwnerEntity(false);
-        $userGuid = $user->guid;
+        $owner = $entity->getOwnerEntity(false);
+        $ownerGuid = $owner->guid;
 
-        if ($user->legacy_guid) {
-            $userGuid = $user->legacy_guid;
+        if ($owner->legacy_guid) {
+            $ownerGuid = $owner->legacy_guid;
         }
 
         $thumbnail = new \ElggFile();
-        $thumbnail->owner_guid = $userGuid;
+        $thumbnail->owner_guid = $ownerGuid;
         $thumbnail->setFilename("/archive/thumbnails/$entity->guid.jpg");
 
         switch ($entity->subtype) {

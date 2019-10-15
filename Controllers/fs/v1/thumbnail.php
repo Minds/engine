@@ -18,22 +18,21 @@ class thumbnail extends Core\page implements Interfaces\page
             exit;
         }
 
-        $featuresManager = new FeaturesManager;
-
-        if ($featuresManager->has('cdn-jwt')) {
-            $signedUri = new Core\Security\SignedUri();
-            $uri = (string) \Zend\Diactoros\ServerRequestFactory::fromGlobals()->getUri();
-            if (!$signedUri->confirm($uri)) {
-                exit;
-            }
+        $signedUri = new Core\Security\SignedUri();
+        $uri = (string) \Zend\Diactoros\ServerRequestFactory::fromGlobals()->getUri();
+        if (!$signedUri->confirm($uri)) {
+            exit;
         }
+
+        $userGuid = $signedUri->deriveUserGuid($uri);
+        $user = new Entities\User($userGuid);
 
         /** @var Core\Media\Thumbnails $mediaThumbnails */
         $mediaThumbnails = Di::_()->get('Media\Thumbnails');
 
         Core\Security\ACL::$ignore = true;
         $size = isset($pages[1]) ? $pages[1] : null;
-        $thumbnail = $mediaThumbnails->get($pages[0], $size);
+        $thumbnail = $mediaThumbnails->get($pages[0], $size, $user);
 
         if ($thumbnail instanceof \ElggFile) {
             $thumbnail->open('read');
