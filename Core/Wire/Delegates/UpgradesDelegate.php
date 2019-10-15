@@ -48,7 +48,7 @@ class UpgradesDelegate
 
     private function onPlusUpgrade($wire, $receiver_address): Wire
     {
-        if (
+        /*if (
             !(
                 $receiver_address == 'offchain'
                 || $receiver_address == $this->config->get('blockchain')['contracts']['wire']['plus_address']
@@ -60,7 +60,7 @@ class UpgradesDelegate
         // 20 tokens
         if ($wire->getAmount() != "20000000000000000000") {
             return $wire; //incorrect wire amount sent
-        }
+        }*/
 
         //set the plus period for this user
         $user = $wire->getSender();
@@ -80,9 +80,9 @@ class UpgradesDelegate
         
         switch ($wire->getMethod()) {
             case 'tokens':
-                if ($monthly['tokens'] == $wire->getAmount()) {
+                if ($monthly['tokens'] == $wire->getAmount() / (10 ** 18)) {
                     $days = 30;
-                } elseif ($yearly['tokens'] == $wire->getAmount()) {
+                } elseif ($yearly['tokens'] == $wire->getAmount() / (10 ** 18)) {
                     $days = 365;
                 } else {
                     return $wire;
