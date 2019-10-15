@@ -60,4 +60,12 @@ class EntityCentricRecord
         $this->sums[$metric] = $this->sums[$metric] + $value;
         return $this;
     }
+
+    /**
+     * @return string
+     */
+    public function getUrn(): string
+    {
+        return (string) implode('-', [ $this->getEntityUrn(), $this->getResolution(), $this->getTimestamp() ]);
+    }
 }
