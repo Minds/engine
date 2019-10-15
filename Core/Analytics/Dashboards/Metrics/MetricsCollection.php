@@ -80,6 +80,7 @@ class MetricsCollection implements DashboardCollectionInterface
             ) {
                 continue;
             }
+            $metric->setUser($this->user);
             $this->metrics[$metric->getId()] = $metric;
         }
         return $this;

@@ -4,6 +4,7 @@ namespace Minds\Core\Analytics\Dashboards\Metrics;
 use Minds\Core\Analytics\Dashboards\Timespans\TimespansCollection;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
+use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
 /**
@@ -44,6 +45,9 @@ abstract class AbstractMetric
     /** @var FiltersCollection */
     protected $filtersCollection;
 
+    /** @var User */
+    protected $user;
+
     /**
      * Return the usd guid for metrics
      * @return string
@@ -54,24 +58,24 @@ abstract class AbstractMetric
         $channelFilter = $filters['channel'];
 
         if (!$channelFilter) {
-            if (!Session::getLoggedInUserGuid()) {
+            if (!$this->user) {
                 throw new \Exception("You must be loggedin");
             }
-            if (Session::isAdmin()) {
+            if ($this->user->isAdmin()) {
                 return "";
             }
-            return Session::getLoggedInUserGuid();
+            return $this->user->getGuid();
         }
 
         if ($channelFilter->getSelectedOption() === 'all') {
-            if (Session::isAdmin()) {
+            if ($this->user->isAdmin()) {
                 return "";
             }
             $channelFilter->setSelectedOption('self');
         }
 
         if ($channelFilter->getSelectedOption() === 'self') {
-            return Session::getLoggedInUserGuid();
+            return $this->user->getGuid();
         }
 
         // TODO: check permissions first
