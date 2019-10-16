@@ -49,7 +49,7 @@ class ActiveUsersMetricSpec extends ObjectBehavior
                             'value' => 128,
                         ],
                     ]
-                ], 
+                ],
                 [
                     'aggregations' => [
                         '1' => [

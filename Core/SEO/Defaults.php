@@ -355,11 +355,6 @@ class Defaults
         });
 
         $marketing = [
-            'plus' => [
-                'title' => 'Minds Plus',
-                'description' => 'Upgrade your channel for premium features',
-                'image' => 'assets/photos/fractal.jpg'
-            ],
             'wallet' => [
                 'title' => 'Wallet',
                 'description' => 'Manage all of your transactions and earnings on Minds',
@@ -424,6 +419,21 @@ class Defaults
                 'title' => 'Minds Mobile App',
                 'description' => 'Download the Minds mobile app for Android & iOS.',
                 'image' => 'assets/photos/mobile-app.jpg',
+            ],
+            'upgrades' => [
+                'title' => 'Upgrade your Minds experience',
+                'description' => 'Minds offers a unique range of powerful upgrades that will supercharge your experience.',
+                'image' => 'assets/marketing/upgrades-1.jpg',
+            ],
+            'plus' => [
+                'title' => 'Minds Plus',
+                'description' => 'Upgrade your channel and unlock premium features.',
+                'image' => 'assets/photos/browsing-mobileapp-discovery.jpg',
+            ],
+            'pro' => [
+                'title' => 'Minds Pro',
+                'description' => 'The ultimate platform for creators and brands.',
+                'image' => 'assets/photos/podcast-people.jpg',
             ]
         ];
 
