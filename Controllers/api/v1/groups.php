@@ -26,6 +26,13 @@ class groups implements Interfaces\Api
         $groups = [];
         $user = Session::getLoggedInUser();
 
+        if (!$user || !$user->guid) {
+            return Factory::response([
+              'status' => 'error',
+              'message' => "User not found"
+            ]);
+        }
+
         $indexDb = Di::_()->get('Database\Cassandra\Indexes');
         $relDb = Di::_()->get('Database\Cassandra\Relationships');
 

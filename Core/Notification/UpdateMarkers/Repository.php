@@ -31,7 +31,7 @@ class Repository
         ], $opts);
 
         if (!$opts['user_guid']) {
-            throw new \Exception('user_guid be be sent');
+            throw new \Exception('user_guid must be sent');
         }
 
         $statement = "SELECT * FROM update_markers";
