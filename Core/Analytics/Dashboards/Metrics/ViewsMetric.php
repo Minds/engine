@@ -149,12 +149,17 @@ class ViewsMetric extends AbstractMetric
                         'date_histogram' => [
                             'field' => '@timestamp',
                             'interval' =>  $timespan->getInterval(),
-                            'min_doc_count' =>  1,
+                            'min_doc_count' =>  0,
+                            'extended_bounds' => [
+                                'min' => $timespan->getFromTsMs(),
+                                'max' => time() * 1000,
+                            ],
                         ],
                         'aggs' => [
                             '2' => [
                                 'sum' => [
                                     'field' => $field,
+                                    //'min_doc_count' => 0,
                                 ],
                             ],
                         ],
