@@ -380,6 +380,7 @@ $CONFIG->set('blockchain_override', [
 ]);
 
 $CONFIG->set('plus', [
+    'handler' => '',
     'tokens' => [
         'month' => 5,
         'year' => 50
@@ -575,7 +576,32 @@ $CONFIG->set('gitlab', [
 ]);
 
 $CONFIG->set('pro', [
+    'handler' => '',
     'root_domains' => ['minds.com', 'www.minds.com', 'localhost'],
     'subdomain_suffix' => 'minds.com',
     'dynamodb_table_name' => 'traefik',
+]);
+
+
+$CONFIG->set('upgrades', [
+    'pro' => [
+        'monthly' => [
+            'tokens' => 240,
+            'usd' => 60,
+        ],
+        'yearly' => [
+            'tokens' => 2400,
+            'usd' => 600,
+        ]
+    ],
+    'plus' => [
+        'monthly' => [
+            'tokens' => 28,
+            'usd' => 7,
+        ],
+        'yearly' => [
+            'tokens' => 240,
+            'usd' => 60,
+        ]
+    ],
 ]);

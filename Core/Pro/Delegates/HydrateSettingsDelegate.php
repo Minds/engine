@@ -96,6 +96,7 @@ class HydrateSettingsDelegate
             error_log($e);
         }
 
+        $settings->setPublished($user->isProPublished());
         return $settings;
     }
 }
