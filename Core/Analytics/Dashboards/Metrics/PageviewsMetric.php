@@ -17,7 +17,7 @@ class PageviewsMetric extends AbstractMetric
     protected $label = 'Pageviews';
 
     /** @var string */
-    protected $description = 'Pageviews on channel assets. A pageview is visit to a single assets on either desktop or mobile.';
+    protected $description = "Total pageviews on all of your channel's assets. A pageview is registered when a unique page is viewed and does not include feeds.";
 
     /** @var array */
     protected $permissions = [ 'admin', 'user' ];

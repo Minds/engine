@@ -17,7 +17,7 @@ class ViewsMetric extends AbstractMetric
     protected $label = 'Impressions';
 
     /** @var string */
-    protected $description = 'Impressions on channel assets. Impressions include pageviews and feed views.';
+    protected $description = "Impressions on all of your channel's assets. An impression is registered when your content is displayed and includes feeds.";
 
     /** @var array */
     protected $permissions = [ 'admin', 'user' ];

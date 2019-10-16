@@ -17,7 +17,7 @@ class TotalEarningsMetric extends AbstractEarningsMetric
     protected $label = 'Total Earnings';
 
     /** @var string */
-    protected $description = 'Total earnings for PRO users';
+    protected $description = 'Total earnings for the selected timespan.';
 
     /** @var array */
     protected $permissions = [ 'user', 'admin' ];

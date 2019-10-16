@@ -17,7 +17,7 @@ class ViewsEarningsMetric extends AbstractEarningsMetric
     protected $label = 'Pageviews USD';
 
     /** @var string */
-    protected $description = 'Pageview earnings for PRO users';
+    protected $description = "Total earnings for the pageviews on your channel's assets. You earn $1 for every 1,000 pageviews.";
 
     /** @var array */
     protected $permissions = [ 'user', 'admin' ];
