@@ -17,7 +17,7 @@ class SalesEarningsMetric extends AbstractEarningsMetric
     protected $label = 'Sales USD';
 
     /** @var string */
-    protected $description = 'Sales earnings for PRO users';
+    protected $description = "Total earnings for the sales you have referred. You earn a 25% commission when your referrals purchase Plus, Pro or Minds Tokens.";
 
     /** @var array */
     protected $permissions = [ 'user', 'admin' ];
