@@ -74,27 +74,31 @@ class Sums
     public function getScore()
     {
         $query = new Custom();
+        $score = (float)0;
 
-        if ($this->user) {
-            $query->query("SELECT SUM(score_decimal) as score from contributions WHERE user_guid = ? 
+        foreach (['score', 'score_decimal'] as $scoreField) {
+            if ($this->user) {
+                $query->query("SELECT SUM(${scoreField}) as score from contributions WHERE user_guid = ? 
                 AND timestamp = ?",
-                [
-                    new Varint((int) $this->user->guid),
-                    new Timestamp($this->timestamp / 1000)
-                ]);
-        } else {
-            $query->query("SELECT SUM(score_decimal) as score from contributions_by_timestamp WHERE timestamp = ?",
-                [
-                    new Timestamp($this->timestamp / 1000)
-                ]);
+                    [
+                        new Varint((int)$this->user->guid),
+                        new Timestamp($this->timestamp / 1000)
+                    ]);
+            } else {
+                $query->query("SELECT SUM(${scoreField}) as score from contributions_by_timestamp WHERE timestamp = ?",
+                    [
+                        new Timestamp($this->timestamp / 1000)
+                    ]);
+            }
+
+            try {
+                $rows = $this->db->request($query);
+                $score += (float)$rows[0]['score'];
+            } catch (\Exception $e) {
+                error_log($e->getMessage());
+            }
         }
 
-        try {
-            $rows = $this->db->request($query);
-        } catch (\Exception $e) {
-            error_log($e->getMessage());
-        }
-        
-        return (float) $rows[0]['score'];
+        return $score;
     }
 }
