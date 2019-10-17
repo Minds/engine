@@ -1445,3 +1445,68 @@ CREATE TABLE minds.email_campaign_logs (
   email_campaign_id text,
   PRIMARY KEY (receiver_guid, time_sent)
 ) WITH CLUSTERING ORDER BY (time_sent desc);
+
+CREATE TABLE minds.moderation_reports (
+    entity_urn text,
+    reason_code tinyint,
+    sub_reason_code decimal,
+    timestamp timestamp,
+    appeal_jury map<bigint, boolean>,
+    appeal_note text,
+    entity_owner_guid bigint,
+    initial_jury map<bigint, boolean>,
+    reports set<bigint>,
+    state text,
+    state_changes map<text, timestamp>,
+    uphold boolean,
+    user_hashes set<text>,
+    PRIMARY KEY (entity_urn, reason_code, sub_reason_code, timestamp)
+) WITH CLUSTERING ORDER BY (reason_code ASC, sub_reason_code ASC, timestamp DESC);
+
+CREATE MATERIALIZED VIEW minds.moderation_reports_by_entity_owner_guid AS
+    SELECT *
+    FROM minds.moderation_reports
+    WHERE entity_owner_guid IS NOT NULL AND reason_code IS NOT NULL AND sub_reason_code IS NOT NULL AND timestamp IS NOT NULL
+    PRIMARY KEY (entity_owner_guid, timestamp, entity_urn, reason_code, sub_reason_code)
+    WITH CLUSTERING ORDER BY (timestamp DESC, entity_urn ASC, reason_code ASC, sub_reason_code ASC);
+
+CREATE MATERIALIZED VIEW minds.moderation_reports_by_state AS
+    SELECT *
+    FROM minds.moderation_reports
+    WHERE state IS NOT NULL AND reason_code IS NOT NULL AND sub_reason_code IS NOT NULL AND timestamp IS NOT NULL
+    PRIMARY KEY (state, timestamp, entity_urn, reason_code, sub_reason_code)
+    WITH CLUSTERING ORDER BY (timestamp DESC, entity_urn ASC, reason_code ASC, sub_reason_code ASC);
+
+CREATE TABLE minds.moderation_strikes (
+    user_guid bigint,
+    reason_code tinyint,
+    sub_reason_code decimal,
+    timestamp timestamp,
+    report_urn text,
+    PRIMARY KEY (user_guid, reason_code, sub_reason_code, timestamp)
+) WITH CLUSTERING ORDER BY (reason_code ASC, sub_reason_code ASC, timestamp ASC);
+
+CREATE TABLE minds.moderation_summons (
+    report_urn text,
+    jury_type text,
+    juror_guid bigint,
+    expires int,
+    status text,
+    PRIMARY KEY (report_urn, jury_type, juror_guid)
+) WITH CLUSTERING ORDER BY (jury_type ASC, juror_guid ASC);
+
+ALTER TABLE minds.views ADD owner_guid text;
+
+CREATE TABLE minds.pro (
+    user_guid bigint,
+    domain text,
+    json_data text,
+    PRIMARY KEY (user_guid)
+);
+
+CREATE MATERIALIZED VIEW minds.pro_by_domain AS
+    SELECT domain, user_guid, json_data
+    FROM minds.pro
+    WHERE user_guid IS NOT NULL AND domain IS NOT NULL
+    PRIMARY KEY (domain, user_guid)
+    WITH CLUSTERING ORDER BY (user_guid ASC);

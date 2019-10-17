@@ -170,12 +170,17 @@ class Manager
      */
     public function isBoostLimitExceededBy($boost)
     {
+        //onchain boosts allowed
+        if ($boost->isOnChain()) {
+            return false;
+        }
+
         //get offchain boosts
         $offchain = $this->getOffchainBoosts($boost);
         
         //filter to get todays offchain transactions
         $offlineToday = array_filter($offchain->toArray(), function ($result) {
-            return $result->getCreatedTimestamp() > time() - (60 * 60 * 24);
+            return $result->getCreatedTimestamp() > (time() - (60 * 60 * 24)) * 1000;
         });
         
         //reduce the impressions to count the days boosts.

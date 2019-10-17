@@ -14,5 +14,8 @@ class Provider extends DiProvider
         $this->di->bind('Referrals\Manager', function ($di) {
             return new Manager();
         }, [ 'useFactory'=>false ]);
+        $this->di->bind('Referrals\Cookie', function ($di) {
+            return new ReferralCookie();
+        }, [ 'useFactory'=>true ]);
     }
 }

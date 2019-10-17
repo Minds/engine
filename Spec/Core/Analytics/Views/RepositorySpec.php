@@ -61,6 +61,10 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('urn:test:123123');
 
+        $view->getOwnerGuid()
+            ->shouldBeCalled()
+            ->wilLReturn('789');
+
         $view->getPageToken()
             ->shouldBeCalled()
             ->willReturn('1234-qwe-qwe-1234');
@@ -98,13 +102,14 @@ class RepositorySpec extends ObjectBehavior
                 $statement['values'][2]->toInt() === 29 &&
                 $statement['values'][3]->uuid() === 'abc-123-456-def' &&
                 $statement['values'][4] === 'urn:test:123123' &&
-                $statement['values'][5] === '1234-qwe-qwe-1234' &&
-                $statement['values'][6] === 5 &&
-                $statement['values'][7] === 'php' &&
-                $statement['values'][8] === 'phpspec' &&
-                $statement['values'][9] === 'test' &&
-                $statement['values'][10] === 'urn:phpspec:234234' &&
-                $statement['values'][11] === 100;
+                $statement['values'][5] === '789' &&
+                $statement['values'][6] === '1234-qwe-qwe-1234' &&
+                $statement['values'][7] === 5 &&
+                $statement['values'][8] === 'php' &&
+                $statement['values'][9] === 'phpspec' &&
+                $statement['values'][10] === 'test' &&
+                $statement['values'][11] === 'urn:phpspec:234234' &&
+                $statement['values'][12] === 100;
         }), true)
             ->shouldBeCalled()
             ->willReturn(true);
@@ -143,6 +148,10 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('urn:test:123123');
 
+        $view->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn(789);
+
         $view->getPageToken()
             ->shouldBeCalled()
             ->willReturn('1234-qwe-qwe-1234');
@@ -180,13 +189,14 @@ class RepositorySpec extends ObjectBehavior
                 $statement['values'][2]->toInt() === 29 &&
                 $statement['values'][3]->time() === $now * 1000 &&
                 $statement['values'][4] === 'urn:test:123123' &&
-                $statement['values'][5] === '1234-qwe-qwe-1234' &&
-                $statement['values'][6] === 5 &&
-                $statement['values'][7] === 'php' &&
-                $statement['values'][8] === 'phpspec' &&
-                $statement['values'][9] === 'test' &&
-                $statement['values'][10] === 'urn:phpspec:234234' &&
-                $statement['values'][11] === 100;
+                $statement['values'][5] === '789' &&
+                $statement['values'][6] === '1234-qwe-qwe-1234' &&
+                $statement['values'][7] === 5 &&
+                $statement['values'][8] === 'php' &&
+                $statement['values'][9] === 'phpspec' &&
+                $statement['values'][10] === 'test' &&
+                $statement['values'][11] === 'urn:phpspec:234234' &&
+                $statement['values'][12] === 100;
         }), true)
             ->shouldBeCalled()
             ->willReturn(true);

@@ -5,14 +5,14 @@
  * @version 1
  * @author Mark Harding
  */
+
 namespace Minds\Controllers\api\v1;
 
+use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
-use Minds\Entities;
+use Minds\Entities\User;
 use Minds\Interfaces;
-use Minds\Api\Factory;
-use Minds\Helpers;
 
 class register implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
@@ -21,7 +21,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function get($pages)
     {
-        return Factory::response(['status'=>'error', 'message'=>'GET is not supported for this endpoint']);
+        return Factory::response(['status' => 'error', 'message' => 'GET is not supported for this endpoint']);
     }
 
     /**
@@ -37,11 +37,11 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
     public function post($pages)
     {
         if (!isset($_POST['username']) || !isset($_POST['password']) || !isset($_POST['username']) || !isset($_POST['email'])) {
-            return Factory::response(['status'=>'error']);
+            return Factory::response(['status' => 'error']);
         }
 
         if (!$_POST['username'] || !$_POST['password'] || !$_POST['username'] || !$_POST['email']) {
-            return Factory::response(['status'=>'error', 'message' => "Please fill out all the fields"]);
+            return Factory::response(['status' => 'error', 'message' => "Please fill out all the fields"]);
         }
 
         try {
@@ -67,14 +67,37 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 ]);
             }
 
+            if (!(isset($_POST['parentId']) || isset($_POST['previousUrl']) || isset($_SERVER['HTTP_APP_VERSION']))) {
+                return Factory::response(['status'=>'error', 'message' => "Please refresh your browser or update you app. We don't recognise your platform."]);
+            }
+
             $user = register_user($_POST['username'], $_POST['password'], $_POST['username'], $_POST['email'], false);
             $guid = $user->guid;
 
+            // Hacky, move to service soon!
+            $hasSignupTags = false;
             if (isset($_COOKIE['mexp'])) {
                 $manager = Core\Di\Di::_()->get('Experiments\Manager');
                 $bucket = $manager->getBucketForExperiment('Homepage200619');
                 $user->expHomepage200619 = $bucket->getId();
+            }
+
+            if (isset($_POST['parentId'])) {
+                $user->signupParentId = (string) $_POST['parentId'];
+                $hasSignupTags = true;
+            }
+            if (isset($_POST['previousUrl'])) {
+                $user->signupPreviousUrl = (string) $_POST['previousUrl'];
+                $hasSignupTags = true;
+            }
+            if (isset($_SERVER['HTTP_APP_VERSION'])) {
+                $user->signupParentId = 'mobile-native';
+                $hasSignupTags = true;
+            }
+            if ($hasSignupTags) {
                 $user->save();
+            } else {
+                return Factory::response(['status'=>'error', 'message' => "Please refresh your browser or update you app. We don't recognise your platform."]);
             }
 
             $params = [
@@ -96,11 +119,11 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             $sessions->save(); // Save to db and cookie
 
             $response = [
-              'guid' => $guid,
-              'user' => $user->export()
+                'guid' => $guid,
+                'user' => $user->export(),
             ];
         } catch (\Exception $e) {
-            $response = ['status'=>'error', 'message'=>$e->getMessage()];
+            $response = ['status' => 'error', 'message' => $e->getMessage()];
         }
         return Factory::response($response);
     }

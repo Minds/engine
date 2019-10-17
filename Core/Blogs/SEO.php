@@ -3,19 +3,16 @@
 namespace Minds\Core\Blogs;
 
 use Minds\Core;
+use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Helpers;
 use Minds\Helpers\Counters;
+use Zend\Diactoros\ServerRequestFactory;
 
 class SEO
 {
-    /** @var Manager */
-    protected $manager;
-
     public function __construct(
-        $manager = null
     ) {
-        $this->manager = $manager ?: new Manager();
     }
 
     public function setup()
@@ -76,22 +73,34 @@ class SEO
             $params = $event->getParameters();
             $slugs = $params['slugs'];
 
-            if ((count($slugs) < 3) || ($slugs[1] != 'blog')) {
+            /** @var Core\Pro\Domain $proDomain */
+            $proDomain = Core\Di\Di::_()->get('Pro\Domain');
+
+            $request = ServerRequestFactory::fromGlobals();
+            $serverParams = $request->getServerParams() ?? [];
+            $host = parse_url($serverParams['HTTP_ORIGIN'] ?? '', PHP_URL_HOST) ?: $serverParams['HTTP_HOST'];
+
+            $proSettings = $proDomain->lookup($host);
+
+            if ($proSettings && (count($slugs) < 2 || $slugs[0] === 'blog')) {
+                $slugParts = explode('-', $slugs[1]);
+            } elseif (!$proSettings && count($slugs) >= 3 && $slugs[1] === 'blog') {
+                $slugParts = explode('-', $slugs[2]);
+            } else {
                 return;
             }
 
-            $slugParts = explode('-', $slugs[2]);
             $guid = $slugParts[count($slugParts) - 1];
 
             if (!is_numeric($guid)) {
                 return;
             }
 
-            $event->setResponse($this->viewHandler([ $guid ]));
+            $event->setResponse($this->viewHandler([$guid]));
         });
     }
 
-    public function viewHandler($slugs = [])
+    public function viewHandler($slugs = [], $manager = null)
     {
         if (!is_numeric($slugs[0]) && isset($slugs[1]) && is_numeric($slugs[1])) {
             $guid = $slugs[1];
@@ -99,7 +108,10 @@ class SEO
             $guid = $slugs[0];
         }
 
-        $blog = $this->manager->get($guid);
+        if (is_null($manager)) {
+            $manager = Di::_()->get('Blogs\Manager');
+        }
+        $blog = $manager->get($guid);
         if (!$blog || !$blog->getTitle() || Helpers\Flags::shouldFail($blog) || !Core\Security\ACL::_()->read($blog)) {
             header("HTTP/1.0 404 Not Found");
             return [

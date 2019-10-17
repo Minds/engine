@@ -1,29 +1,17 @@
 <?php
 namespace Minds\Helpers\Campaigns;
 
-use Minds\Core;
-use Minds\Core\Guid;
-use Minds\Common\Cookie;
+use Minds\Core\Di\Di;
 
 class Referrals
 {
     /**
      * Registers a cookie for the referral step
      * @param  string  $username
-     * @return null
+     * @return void
      */
-    public static function register($username)
+    public static function register($username): void
     {
-        if (!isset($_COOKIE['referrer'])) {
-            $cookie = new Cookie();
-            $cookie
-                ->setName('referrer')
-                ->setValue($username)
-                ->setExpire(time() + (60 * 60 * 24)) //valid for 24 hours
-                ->setPath('/')
-                ->create();
-
-            $_COOKIE['referrer'] = $username;
-        }
+        Di::_()->get('Referrals\Cookie')->create();
     }
 }

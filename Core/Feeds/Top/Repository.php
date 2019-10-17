@@ -53,6 +53,8 @@ class Repository
             'exclude_moderated' => false,
             'moderation_reservations' => null,
             'pinned_guids' => null,
+            'time_created_upper' => time(),
+            'exclude' => null,
         ], $opts);
 
         if (!$opts['type']) {
@@ -67,6 +69,8 @@ class Repository
             throw new \Exception('Unsupported period');
         }
 
+        $type = $opts['type'];
+
         $body = [
             '_source' => array_unique([
                 'guid',
@@ -75,7 +79,7 @@ class Repository
                 'time_created',
                 'access_id',
                 'moderator_guid',
-                $this->getSourceField($opts['type']),
+                $this->getSourceField($type),
             ]),
             'query' => [
                 'function_score' => [
@@ -98,7 +102,7 @@ class Repository
             'sort' => [],
         ];
 
-        /*if ($opts['type'] === 'group' && false) {
+        /*if ($type === 'group' && false) {
             if (!isset($body['query']['function_score']['query']['bool']['must_not'])) {
                 $body['query']['function_score']['query']['bool']['must_not'] = [];
             }
@@ -107,7 +111,7 @@ class Repository
                     'access_id' => ['0', '1', '2'],
                 ],
             ];
-        } elseif ($opts['type'] === 'user') {
+        } elseif ($type === 'user') {
             $body['query']['function_score']['query']['bool']['must'][] = [
                 'term' => [
                     'access_id' => '2',
@@ -236,7 +240,7 @@ class Repository
             }
         }
 
-        if ($opts['type'] !== 'group' && $opts['access_id'] !== null) {
+        if ($type !== 'group' && $opts['access_id'] !== null) {
             $body['query']['function_score']['query']['bool']['must'][] = [
                 'terms' => [
                     'access_id' => Text::buildArray($opts['access_id']),
@@ -253,6 +257,20 @@ class Repository
                 ],
             ];
         }
+
+        // Filter by time created to cut out scheduled feeds
+        $time_created_upper = $opts['time_created_upper'] ? 'lte' : 'gt';
+        if (!isset($body['query']['function_score']['query']['bool']['must'])) {
+            $body['query']['function_score']['query']['bool']['must'] = [];
+        }
+
+        $body['query']['function_score']['query']['bool']['must'][] = [
+            'range' => [
+                '@timestamp' => [
+                    $time_created_upper => ((int) ($opts['time_created_upper'] ?: time())) * 1000,
+                ],
+            ],
+        ];
 
         //
         if ($opts['query']) {
@@ -292,6 +310,14 @@ class Repository
                     ],
                 ];
             }
+        }
+
+        if ($opts['exclude']) {
+            $body['query']['function_score']['query']['bool']['must_not'][] = [
+                'terms' => [
+                    'guid' => Text::buildArray($opts['exclude']),
+                ],
+            ];
         }
 
 
@@ -338,9 +364,15 @@ class Repository
 
         //
 
+        $esType = $opts['type'];
+
+        if ($esType === 'all') {
+            $esType = 'object:image,object:video,object:blog';
+        }
+
         $query = [
             'index' => $this->index,
-            'type' => $opts['type'],
+            'type' => $esType,
             'body' => $body,
             'size' => $opts['limit'],
             'from' => $opts['offset'],

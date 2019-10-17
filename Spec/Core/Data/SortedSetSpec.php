@@ -7,7 +7,7 @@ use Minds\Core\Data\cache\Redis;
 use Minds\Core\Data\SortedSet;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use Spec\Mocks\Redis as RedisServer;
+use Spec\Minds\Mocks\Redis as RedisServer;
 
 class SortedSetSpec extends ObjectBehavior
 {

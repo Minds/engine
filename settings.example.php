@@ -380,6 +380,7 @@ $CONFIG->set('blockchain_override', [
 ]);
 
 $CONFIG->set('plus', [
+    'handler' => '',
     'tokens' => [
         'month' => 5,
         'year' => 50
@@ -475,7 +476,9 @@ $CONFIG->set('features', [
     'top-feeds' => true,
     'cassandra-notifications' => true,
     'dark-mode' => true,
-    'allow-comments-toggle' => false
+    'allow-comments-toggle' => false,
+    'permissions' => false,
+    'pro' => false,
 ]);
 
 $CONFIG->set('email', [
@@ -570,4 +573,35 @@ $CONFIG->set('gitlab', [
         'front' => '10152778', // project id front
     ],
     'private_key' => ''
+]);
+
+$CONFIG->set('pro', [
+    'handler' => '',
+    'root_domains' => ['minds.com', 'www.minds.com', 'localhost'],
+    'subdomain_suffix' => 'minds.com',
+    'dynamodb_table_name' => 'traefik',
+]);
+
+
+$CONFIG->set('upgrades', [
+    'pro' => [
+        'monthly' => [
+            'tokens' => 240,
+            'usd' => 60,
+        ],
+        'yearly' => [
+            'tokens' => 2400,
+            'usd' => 600,
+        ]
+    ],
+    'plus' => [
+        'monthly' => [
+            'tokens' => 28,
+            'usd' => 7,
+        ],
+        'yearly' => [
+            'tokens' => 240,
+            'usd' => 60,
+        ]
+    ],
 ]);
