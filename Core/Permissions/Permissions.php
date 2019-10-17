@@ -148,17 +148,44 @@ class Permissions implements \JsonSerializable
         return $export;
     }
 
+
     /**
-     * Export the exact permissions for a calculated entity only
-     *
+     * Quick lookup for checking a specific flag on a specific entity
+     * @param string|int The guid of the entity for permissions lookup
+     */
+    public function has($guid, string $flag)
+    {
+        $entityPermission = $this->getPermission($guid);
+        if ($entityPermission) {
+            return $this->roles->isGranted($entityPermission->getName(), $flag);
+        }
+        return false;
+    }
+
+    /**
+     * Quick lookup for getting permissions
+     * @param string|int guid The guid of the entity for permissions lookup
+     * @param bool $export as an array
      * @return array serialized individual permission for an entity
      */
-    public function exportPermission($guid): array
+    public function getPermission($guid, bool $export = false)
     {
+        $entityPermission = null;
         if (isset($this->entities[$guid])) {
-            return $this->entities[$guid]->export();
+            $entityPermission = $this->entities[$guid];
+        } elseif (isset($this->getChannels()[$guid])) {
+            $entityPermission = $this->getChannels()[$guid];
+        } elseif (isset($this->getGroups()[$guid])) {
+            $entityPermission = $this->getGroups()[$guid];
+        } else {
+            return null;
         }
-        return [];
+        if ($export) {
+            return $entityPermission->export();
+        } else {
+            return $entityPermission;
+        }
+        return null;
     }
 
     /**

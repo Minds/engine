@@ -48,6 +48,7 @@ class mode implements Interfaces\Api
 
     public function post($pages) : bool
     {
+        return Factory::response([]);
     }
 
 

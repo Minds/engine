@@ -8,6 +8,9 @@ use Minds\Core;
 use Minds\Entities;
 use Minds\Core\Security\RateLimits\Manager as RateLimitsManager;
 use Minds\Helpers\Flags;
+use Minds\Core\Features\Manager as FeaturesManager;
+use Minds\Core\Di\Di;
+use Minds\Core\Permissions\Roles\Flags as PermissionFlags;
 
 class ACL
 {
@@ -16,10 +19,12 @@ class ACL
 
     /** @var RateLimitsManager $rateLimits */
     private $rateLimits;
-
-    public function __construct($rateLimits = null)
+    /** @var FeaturesManager $featuresManager */
+    private $featuresManager;
+    public function __construct($rateLimits = null, FeaturesManager $featuresManager = null)
     {
-        $this->rateLimits = $rateLimits ?: new RateLimitsManager;
+        $this->rateLimits = $rateLimits ?: new RateLimitsManager();
+        $this->featuresManager = $featuresManager ?: new FeaturesManager();
     }
 
     /**
@@ -53,6 +58,11 @@ class ACL
     {
         if (!$user) {
             $user = Core\Session::getLoggedinUser();
+        }
+
+
+        if ($this->featuresManager->has('permissions')) {
+            return $this->getPermissionsFlag($entity, 'read');
         }
 
         if (self::$ignore == true) {
@@ -151,6 +161,11 @@ class ACL
             $user = Core\Session::getLoggedinUser();
         }
 
+
+        if ($this->featuresManager->has('permissions')) {
+        }
+
+
         if (self::$ignore == true) {
             return true;
         }
@@ -239,6 +254,21 @@ class ACL
             $user = Core\Session::getLoggedinUser();
         }
 
+
+        if ($this->featuresManager->has('permissions')) {
+            $permissionsManager = Di::_()->get('Permissions\Manager');
+            $permissions = $permissionsManager->getList([
+                'user_guid' => $user,
+                'entities' => [$entity],
+            ]);
+            //Todo remove diagnostic logging after extensive testing
+            error_log("Returning interact ACL for entity " . $entity->getGuid());
+            error_log("Type " . $entity->getType());
+            error_log((int) $permissions->has($entity->getGuid(), PermissionFlags::FLAG_VIEW));
+            error_log("---------------");
+            return $permissions->has($entity->getGuid(), PermissionFlags::FLAG_VIEW);
+        }
+
         /**
          * Logged out users can not interact
          */
@@ -304,5 +334,21 @@ class ACL
             self::$_->init();
         }
         return self::$_;
+    }
+
+    private function getPermissionsFlag($entity, string $aclCheck) : bool
+    {
+        $user = Core\Session::getLoggedinUser();
+        $permissionsManager = Di::_()->get('Permissions\Manager');
+        $permissions = $permissionsManager->getList([
+                'user_guid' => $user,
+                'entities' => [$entity],
+            ]);
+        //Todo remove diagnostic logging after extensive testing
+        error_log("Returning {$flag} for entity " . $entity->getGuid());
+        error_log("Type " . $entity->getType());
+        error_log((int) $permissions->has($entity->getGuid(), PermissionFlags::FLAG_VIEW));
+        error_log("---------------");
+        return $permissions->has($entity->getGuid(), PermissionFlags::FLAG_VIEW);
     }
 }
