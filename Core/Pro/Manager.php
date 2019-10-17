@@ -322,6 +322,13 @@ class Manager
                 ->setCustomHead($values['custom_head']);
         }
 
+        if (isset($values['published'])) {
+            $this->user->setProPublished($values['published']);
+            $this->saveAction
+                ->setEntity($this->user)
+                ->save();
+        }
+
         $this->setupRoutingDelegate
             ->onUpdate($settings);
 
