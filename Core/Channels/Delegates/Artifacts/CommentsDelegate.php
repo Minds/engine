@@ -14,6 +14,7 @@ use Minds\Core\Comments\Manager as CommentManager;
 use Minds\Core\Data\ElasticSearch\Client as ElasticSearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared\Search;
 use Minds\Core\Di\Di;
+use Minds\Entities\User;
 
 class CommentsDelegate implements ArtifactsDelegateInterface
 {
@@ -47,7 +48,7 @@ class CommentsDelegate implements ArtifactsDelegateInterface
      * @return bool
      * @throws \Exception
      */
-    public function snapshot($userGuid)
+    public function snapshot($userGuid) : bool
     {
         foreach ($this->fetchComments($userGuid) as $commentLuid) {
             $comment = $this->commentManager->getByLuid($commentLuid);
@@ -77,7 +78,7 @@ class CommentsDelegate implements ArtifactsDelegateInterface
      * @return bool
      * @throws \Exception
      */
-    public function restore($userGuid)
+    public function restore($userGuid) : bool
     {
         /** @var Snapshot $snapshot */
         foreach ($this->repository->getList([
@@ -107,7 +108,7 @@ class CommentsDelegate implements ArtifactsDelegateInterface
      * @return bool
      * @throws \Exception
      */
-    public function hide($userGuid)
+    public function hide($userGuid) : bool
     {
         return $this->delete($userGuid);
     }
@@ -117,7 +118,7 @@ class CommentsDelegate implements ArtifactsDelegateInterface
      * @return bool
      * @throws \Exception
      */
-    public function delete($userGuid)
+    public function delete($userGuid) : bool
     {
         foreach ($this->fetchComments($userGuid) as $commentLuid) {
             $comment = $this->commentManager->getByLuid($commentLuid);
@@ -181,5 +182,25 @@ class CommentsDelegate implements ArtifactsDelegateInterface
         foreach ($result['aggregations']['comment_luids']['buckets'] as $row) {
             yield $row['key'];
         }
+    }
+
+    /**
+     * @param string|int $userGuid
+     * Loops through a user's comments and updates their updates a field with a value
+     * @return bool
+     */
+    public function updateOwnerObject($userGuid, array $ownerObject) : bool
+    {
+        foreach ($this->fetchComments($userGuid) as $commentLuid) {
+            $comment = $this->commentManager->getByLuid($commentLuid);
+    
+            if (!$comment) {
+                continue;
+            }
+            $comment->setOwnerObj($ownerObject);
+            $this->commentManager->update($comment);
+        }
+    
+        return true;
     }
 }

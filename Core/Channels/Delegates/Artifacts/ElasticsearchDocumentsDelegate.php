@@ -43,7 +43,7 @@ class ElasticsearchDocumentsDelegate implements ArtifactsDelegateInterface
      * @param string|int $userGuid
      * @return bool
      */
-    public function snapshot($userGuid)
+    public function snapshot($userGuid) : bool
     {
         return true;
     }
@@ -53,7 +53,7 @@ class ElasticsearchDocumentsDelegate implements ArtifactsDelegateInterface
      * @return bool
      * @throws \Exception
      */
-    public function restore($userGuid)
+    public function restore($userGuid) : bool
     {
         $body = [
             'query' => [
@@ -87,7 +87,7 @@ class ElasticsearchDocumentsDelegate implements ArtifactsDelegateInterface
      * @param string|int $userGuid
      * @return bool
      */
-    public function hide($userGuid)
+    public function hide($userGuid) : bool
     {
         $body = [
             'query' => [
@@ -121,7 +121,7 @@ class ElasticsearchDocumentsDelegate implements ArtifactsDelegateInterface
      * @param string|int $userGuid
      * @return bool
      */
-    public function delete($userGuid)
+    public function delete($userGuid) : bool
     {
         $params = [
             'index' => $this->config->get('elasticsearch')['index'],
@@ -152,6 +152,16 @@ class ElasticsearchDocumentsDelegate implements ArtifactsDelegateInterface
 
         $this->elasticsearch->getClient()->deleteByQuery($query);
 
+        return true;
+    }
+
+    /**
+     * @param string|int $userGuid
+     * We just store owner guids in es, nothing to update here
+     * @return bool
+     */
+    public function updateOwnerObject($userGuid, array $ownerObject) : bool
+    {
         return true;
     }
 }

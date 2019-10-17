@@ -177,4 +177,9 @@ class SubscribersDelegateSpec extends ObjectBehavior
             ->delete(1000)
             ->shouldReturn(true);
     }
+
+    public function it_should_update_ownerObject()
+    {
+        $this->updateOwnerObject(1000, [])->shouldEqual(true);
+    }
 }

@@ -66,6 +66,23 @@ class UserSpec extends ObjectBehavior
         $this->getMode()->shouldEqual(ChannelMode::MODERATED);
     }
 
+    public function it_should_set_indexed_at()
+    {
+        $time = time();
+        $this->setIndexedAt($time);
+        $this->getIndexedAt()->shouldEqual($time);
+    }
+
+    public function it_should_allow_indexing()
+    {
+        $time = time();
+        $this->setIndexedAt($time - User::INDEXING_RATE_LIMIT_SECONDS);
+        $this->canBeIndexed($time)->shouldEqual(true);
+
+        $this->setIndexedAt($time - User::INDEXING_RATE_LIMIT_SECONDS + 1);
+        $this->canBeIndexed($time)->shouldEqual(false);
+    }
+
     public function it_should_export_values()
     {
         $export = $this->export()->getWrappedObject();

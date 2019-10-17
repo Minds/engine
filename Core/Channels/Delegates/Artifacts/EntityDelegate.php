@@ -37,7 +37,7 @@ class EntityDelegate implements ArtifactsDelegateInterface
      * @param string|int $userGuid
      * @return bool
      */
-    public function snapshot($userGuid)
+    public function snapshot($userGuid) : bool
     {
         return true;
     }
@@ -46,7 +46,7 @@ class EntityDelegate implements ArtifactsDelegateInterface
      * @param string|int $userGuid
      * @return bool
      */
-    public function restore($userGuid)
+    public function restore($userGuid) : bool
     {
         return true;
     }
@@ -55,7 +55,7 @@ class EntityDelegate implements ArtifactsDelegateInterface
      * @param string|int $userGuid
      * @return bool
      */
-    public function hide($userGuid)
+    public function hide($userGuid) : bool
     {
         return true;
     }
@@ -64,7 +64,7 @@ class EntityDelegate implements ArtifactsDelegateInterface
      * @param string|int $userGuid
      * @return bool
      */
-    public function delete($userGuid)
+    public function delete($userGuid) : bool
     {
         $cql = "DELETE FROM entities WHERE key = ?";
         $values = [
@@ -80,5 +80,41 @@ class EntityDelegate implements ArtifactsDelegateInterface
         } catch (\Exception $e) {
             return false;
         }
+    }
+
+    /**
+     * @param string|int $userGuid
+     * We just store owner guids in es, nothing to update here
+     * @return bool
+     */
+    public function updateOwnerObject($userGuid, array $ownerObject) : bool
+    {
+        return true;
+    }
+
+    /**
+    * @param string|int $guid
+    * @return bool
+    */
+    protected function updateEntity($guid, string $column, string $value) : bool
+    {
+        $cql = "INSERT INTO entities (key, column1, value) VALUES (?, ?, ?)";
+        $values = [
+            (string) $guid,
+            $col,
+            $value,
+        ];
+
+        $prepared = new Custom();
+        $prepared->query($cql, $values);
+
+        try {
+            $this->db->request($prepared, true);
+        } catch (\Exception $e) {
+            error_log((string) $e);
+            return false;
+        }
+
+        return true;
     }
 }

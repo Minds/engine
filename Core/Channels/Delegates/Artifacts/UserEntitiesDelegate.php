@@ -57,7 +57,7 @@ class UserEntitiesDelegate implements ArtifactsDelegateInterface
      * @param string|int $userGuid
      * @return bool
      */
-    public function snapshot($userGuid)
+    public function snapshot($userGuid) : bool
     {
         return true;
     }
@@ -67,7 +67,7 @@ class UserEntitiesDelegate implements ArtifactsDelegateInterface
      * @return bool
      * @throws \Exception
      */
-    public function restore($userGuid)
+    public function restore($userGuid) : bool
     {
         foreach (static::TABLE_KEYS as $tableKey) {
             $key = sprintf($tableKey, $userGuid);
@@ -95,10 +95,41 @@ class UserEntitiesDelegate implements ArtifactsDelegateInterface
     }
 
     /**
+     * @param string|int user guid to be update
+     * Loops through a user's history and updates a field with a value
+     */
+    public function updateOwnerObject($userGuid, array $ownerObject) : bool
+    {
+        foreach (static::TABLE_KEYS as $tableKey) {
+            $key = sprintf($tableKey, $userGuid);
+
+            try {
+                $cql = "SELECT * FROM entities_by_time WHERE key = ?";
+                $values = [
+                    $key,
+                ];
+
+                $prepared = new Custom();
+                $prepared->query($cql, $values);
+
+                $rows = $this->scroll->request($prepared);
+
+                foreach ($rows as $row) {
+                    $this->updateEntity($row['column1'], 'owner_obj', json_encode($ownerObject));
+                }
+            } catch (\Exception $e) {
+                error_log((string) $e);
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * @param string|int $userGuid
      * @return bool
      */
-    public function hide($userGuid)
+    public function hide($userGuid) : bool
     {
         foreach (static::TABLE_KEYS as $tableKey) {
             $key = sprintf($tableKey, $userGuid);
@@ -129,7 +160,7 @@ class UserEntitiesDelegate implements ArtifactsDelegateInterface
      * @param string|int $userGuid
      * @return bool
      */
-    public function delete($userGuid)
+    public function delete($userGuid) : bool
     {
         foreach (static::TABLE_KEYS as $tableKey) {
             $key = sprintf($tableKey, $userGuid);
@@ -170,7 +201,7 @@ class UserEntitiesDelegate implements ArtifactsDelegateInterface
      * @param string|int $guid
      * @return bool
      */
-    protected function restoreEntity($guid)
+    protected function restoreEntity($guid) : bool
     {
         $cql = "DELETE FROM entities WHERE key = ? AND column1 = ?";
         $values = [
@@ -195,7 +226,7 @@ class UserEntitiesDelegate implements ArtifactsDelegateInterface
      * @param string|int $guid
      * @return bool
      */
-    protected function hideEntity($guid)
+    protected function hideEntity($guid) : bool
     {
         $cql = "INSERT INTO entities (key, column1, value) VALUES (?, ?, ?)";
         $values = [
@@ -221,11 +252,37 @@ class UserEntitiesDelegate implements ArtifactsDelegateInterface
      * @param string|int $guid
      * @return bool
      */
-    protected function deleteEntity($guid)
+    protected function deleteEntity($guid) : bool
     {
         $cql = "DELETE FROM entities WHERE key = ?";
         $values = [
             (string) $guid,
+        ];
+
+        $prepared = new Custom();
+        $prepared->query($cql, $values);
+
+        try {
+            $this->db->request($prepared, true);
+        } catch (\Exception $e) {
+            error_log((string) $e);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+    * @param string|int $guid
+    * @return bool
+    */
+    protected function updateEntity($guid, string $column, string $value) : bool
+    {
+        $cql = "INSERT INTO entities (key, column1, value) VALUES (?, ?, ?)";
+        $values = [
+            (string) $guid,
+            $column,
+            $value,
         ];
 
         $prepared = new Custom();

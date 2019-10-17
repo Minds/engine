@@ -14,6 +14,7 @@ class User extends \ElggUser
 {
     public $fullExport = true;
     public $exportCounts = false;
+    public const INDEXING_RATE_LIMIT_SECONDS = 10;
 
     protected function initializeAttributes()
     {
@@ -58,6 +59,7 @@ class User extends \ElggUser
         $this->attributes['onchain_booster'] = null;
         $this->attributes['toaster_notifications'] = 1;
         $this->attributes['mode'] = ChannelMode::OPEN;
+        $this->attributes['indexed_at'] = null;
 
         parent::initializeAttributes();
     }
@@ -1145,6 +1147,7 @@ class User extends \ElggUser
             'toaster_notifications',
             'mode',
             'btc_address',
+            'indexed_at',
         ]);
     }
 
@@ -1274,7 +1277,7 @@ class User extends \ElggUser
      *
      * @return int channel mode
      */
-    public function getMode()
+    public function getMode() : int
     {
         return (int) $this->mode;
     }
@@ -1284,7 +1287,7 @@ class User extends \ElggUser
      *
      * @return User
      */
-    public function setMode(int $mode)
+    public function setMode(int $mode) : User
     {
         $this->mode = $mode;
 
@@ -1311,5 +1314,44 @@ class User extends \ElggUser
         $this->btc_address = (string) $btc_address;
 
         return $this;
+    }
+
+
+    /**
+    * Returns channel mode value.
+    *
+    * @return int channel mode
+    */
+    public function getIndexedAt() : int
+    {
+        return (int) $this->indexed_at;
+    }
+
+
+    /**
+     * Sets the channel mode.
+     *
+     * @return User
+     */
+    public function setIndexedAt(int $indexed_at) : User
+    {
+        $this->indexed_at = $indexed_at;
+
+        return $this;
+    }
+
+    /**
+     * Checks if a user has been reindexed within the rate limit threshold
+     * @return bool
+     */
+    public function canBeIndexed($time = null) : bool
+    {
+        $time = $time ?: time();
+        $threshold = $time - User::INDEXING_RATE_LIMIT_SECONDS;
+
+        if ($this->indexed_at && $this->indexed_at > $threshold) {
+            return false;
+        }
+        return true;
     }
 }

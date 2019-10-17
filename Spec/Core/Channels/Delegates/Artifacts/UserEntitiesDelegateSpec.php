@@ -139,4 +139,33 @@ class UserEntitiesDelegateSpec extends ObjectBehavior
             ->delete(1000)
             ->shouldReturn(true);
     }
+
+    public function it_should_update_owner_objects()
+    {
+        foreach (UserEntitiesDelegate::TABLE_KEYS as $i => $tableKey) {
+            $this->scroll->request(Argument::that(function (Custom $prepared) use ($tableKey) {
+                $query = $prepared->build();
+
+                return stripos($query['string'], 'select * from entities_by_time') === 0 &&
+                    $query['values'] === [sprintf($tableKey, 1000)];
+            }))
+                ->shouldBeCalled()
+                ->willReturn([
+                    ['key' => sprintf($tableKey, 1000), 'column1' => (string) (5000 + $i), 'value' => '1000000'],
+                ]);
+
+            $this->db->request(Argument::that(function (Custom $prepared) use ($i, $tableKey) {
+                $query = $prepared->build();
+
+                return stripos($query['string'], 'insert into entities') === 0 &&
+                    $query['values'] === [(string) (5000 + $i), 'owner_obj', '[]'];
+            }), true)
+                ->shouldBeCalled()
+                ->willReturn(true);
+        }
+
+        $this
+            ->updateOwnerObject(1000, [])
+            ->shouldReturn(true);
+    }
 }
