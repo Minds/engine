@@ -28,5 +28,7 @@ class GroupOwnerRole extends BaseRole
         $this->addPermission(Flags::FLAG_DELETE_GROUP);
         $this->addPermission(Flags::FLAG_JOIN);
         $this->addPermission(Flags::FLAG_JOIN_GATHERING);
+        $this->addPermission(Flags::FLAG_INTERACT);
+        $this->addPermission(Flags::FLAG_WRITE);
     }
 }

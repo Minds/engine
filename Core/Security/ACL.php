@@ -62,7 +62,7 @@ class ACL
 
 
         if ($this->featuresManager->has('permissions')) {
-            return $this->getPermissionsFlag($entity, 'read');
+            return $this->getPermissionsFlag($entity, PermissionFlags::FLAG_VIEW);
         }
 
         if (self::$ignore == true) {
@@ -163,8 +163,8 @@ class ACL
 
 
         if ($this->featuresManager->has('permissions')) {
+            return $this->getPermissionsFlag($entity, PermissionFlags::FLAG_WRITE);
         }
-
 
         if (self::$ignore == true) {
             return true;
@@ -254,19 +254,8 @@ class ACL
             $user = Core\Session::getLoggedinUser();
         }
 
-
         if ($this->featuresManager->has('permissions')) {
-            $permissionsManager = Di::_()->get('Permissions\Manager');
-            $permissions = $permissionsManager->getList([
-                'user_guid' => $user,
-                'entities' => [$entity],
-            ]);
-            //Todo remove diagnostic logging after extensive testing
-            error_log("Returning interact ACL for entity " . $entity->getGuid());
-            error_log("Type " . $entity->getType());
-            error_log((int) $permissions->has($entity->getGuid(), PermissionFlags::FLAG_VIEW));
-            error_log("---------------");
-            return $permissions->has($entity->getGuid(), PermissionFlags::FLAG_VIEW);
+            return $this->getPermissionsFlag($entity, PermissionFlags::FLAG_INTERACT);
         }
 
         /**
@@ -336,19 +325,19 @@ class ACL
         return self::$_;
     }
 
-    private function getPermissionsFlag($entity, string $aclCheck) : bool
+    private function getPermissionsFlag($entity, string $flag) : bool
     {
         $user = Core\Session::getLoggedinUser();
         $permissionsManager = Di::_()->get('Permissions\Manager');
         $permissions = $permissionsManager->getList([
-                'user_guid' => $user,
-                'entities' => [$entity],
-            ]);
+            'user_guid' => $user,
+            'entities' => [$entity],
+        ]);
         //Todo remove diagnostic logging after extensive testing
         error_log("Returning {$flag} for entity " . $entity->getGuid());
         error_log("Type " . $entity->getType());
-        error_log((int) $permissions->has($entity->getGuid(), PermissionFlags::FLAG_VIEW));
+        error_log((int) $permissions->has($entity->getGuid(), $flag));
         error_log("---------------");
-        return $permissions->has($entity->getGuid(), PermissionFlags::FLAG_VIEW);
+        return $permissions->has($entity->getGuid(), $flag);
     }
 }

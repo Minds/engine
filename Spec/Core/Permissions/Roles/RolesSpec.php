@@ -21,7 +21,7 @@ class RolesSpec extends ObjectBehavior
         expect(Flags::toArray())->shouldBeArray();
     }
 
-    public function it_should_haveß_admin_permissions()
+    public function it_should_have_admin_permissions()
     {
         $role = $this->getRole(Roles::ROLE_ADMIN);
         $role->hasPermission(Flags::FLAG_APPOINT_ADMIN)->shouldEqual(true);
@@ -47,6 +47,8 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(true);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(true);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(true);
     }
 
     public function it_should_have_banned_permissions()
@@ -75,6 +77,8 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(false);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(false);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(false);
     }
 
     public function it_should_have_channel_admin_permissions()
@@ -103,6 +107,8 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(false);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(true);
     }
 
     public function it_should_have_open_channel_non_subscriber_permissions()
@@ -131,6 +137,8 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(false);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(false);
     }
 
     public function it_should_have_logged_out_permissions()
@@ -159,6 +167,8 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(false);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(false);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(false);
     }
 
     public function it_should_have_closed_channel_non_subscriber()
@@ -187,6 +197,8 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(false);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(false);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(false);
     }
 
     public function it_should_have_closed_channel_subscriber_permissions()
@@ -215,6 +227,8 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(false);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(false);
     }
 
     public function it_should_have_moderated_channel_non_subscriber_permissions()
@@ -243,6 +257,8 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(false);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(false);
     }
 
     public function it_should_have_moderated_channel_subscriber_permissions()
@@ -271,6 +287,8 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(false);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(false);
     }
 
     public function it_should_have_group_owner_permissions()
@@ -299,6 +317,8 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(true);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(true);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(true);
     }
 
     public function it_should_have_group_admin_permissions()
@@ -327,6 +347,8 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(true);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(true);
     }
 
     public function it_should_have_group_moderator_permissions()
@@ -355,6 +377,8 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(true);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(true);
     }
 
     public function it_should_have_closed_group_subscriber_permissions()
@@ -383,6 +407,8 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(true);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(false);
     }
 
     public function it_should_have_closed_group_non_subscriber_permissions()
@@ -411,6 +437,8 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(false);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(false);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(false);
     }
 
     public function it_should_have_open_group_subscriber_permissions()
@@ -439,6 +467,8 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(true);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(false);
     }
 
     public function it_should_have_open_group_non_subscriber_permissions()
@@ -467,6 +497,8 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(true);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(false);
     }
 
     public function it_should_have_entity_owner_permissions()
@@ -495,5 +527,7 @@ class RolesSpec extends ObjectBehavior
         $role->hasPermission(Flags::FLAG_DELETE_GROUP)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN)->shouldEqual(false);
         $role->hasPermission(Flags::FLAG_JOIN_GATHERING)->shouldEqual(false);
+        $role->hasPermission(Flags::FLAG_INTERACT)->shouldEqual(true);
+        $role->hasPermission(Flags::FLAG_WRITE)->shouldEqual(true);
     }
 }

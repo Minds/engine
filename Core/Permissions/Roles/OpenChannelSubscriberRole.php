@@ -16,5 +16,6 @@ class OpenChannelSubscriberRole extends BaseRole
         $this->addPermission(Flags::FLAG_WIRE);
         $this->addPermission(Flags::FLAG_MESSAGE);
         $this->addPermission(Flags::FLAG_INVITE);
+        $this->addPermission(Flags::FLAG_INTERACT);
     }
 }

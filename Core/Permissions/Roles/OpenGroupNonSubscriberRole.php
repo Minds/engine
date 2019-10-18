@@ -17,5 +17,6 @@ class OpenGroupNonSubscriberRole extends BaseRole
         $this->addPermission(Flags::FLAG_INVITE);
         $this->addPermission(Flags::FLAG_JOIN);
         $this->addPermission(Flags::FLAG_JOIN_GATHERING);
+        $this->addPermission(Flags::FLAG_INTERACT);
     }
 }

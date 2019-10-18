@@ -16,5 +16,7 @@ class EntityOwnerRole extends BaseRole
         $this->addPermission(Flags::FLAG_VOTE);
         $this->addPermission(Flags::FLAG_REMIND);
         $this->addPermission(Flags::FLAG_WIRE);
+        $this->addPermission(Flags::FLAG_INTERACT);
+        $this->addPermission(Flags::FLAG_WRITE);
     }
 }
