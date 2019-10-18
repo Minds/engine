@@ -26,78 +26,37 @@ class subscribe implements Interfaces\Api
      */
     public function get($pages)
     {
+        $manager = new Subscriptions\Manager();
         $response = [];
 
-        switch ($pages[0]) {
-            case 'subscriptions':
-                $db = new \Minds\Core\Data\Call('friends');
-                $subscribers= $db->getRow($pages[1], ['limit'=>get_input('limit', 12), 'offset'=>get_input('offset', '')]);
-                if (!$subscribers) {
-                    return Factory::response([]);
-                }
-                $users = [];
-                foreach ($subscribers as $guid => $subscriber) {
-                    if ($guid == get_input('offset')) {
-                        continue;
-                    }
-                    if (is_numeric($subscriber)) {
-                        //this is a local, old style subscription
-                        $users[] = new \Minds\Entities\User($guid);
-                        continue;
-                    }
+        $guid = $pages[1] ?? Core\Session::getLoggedInUser()->guid;
+        $type = $pages[0] ?? "subscribers";
+        $limit = $_GET['limit'] ?? 12;
+        $offset = $_GET['offset'] ?? "";
 
-                    $users[] = new \Minds\Entities\User(json_decode($subscriber, true));
-                }
+        $opts = [
+            'guid'=>$guid,
+            'type'=>$type,
+            'limit'=>$limit,
+            'offset'=>$offset,
+        ];
+      
+        $users = $manager->getList($opts);
 
-                $users = array_values(array_filter($users, function ($user) {
-                    return ($user->enabled != 'no' && $user->banned != 'yes');
-                }));
-                
-                $response['users'] = factory::exportable($users);
-                $response['load-next'] = (string) end($users)->guid;
-                $response['load-previous'] = (string) key($users)->guid;
-                break;
-            case 'subscribers':
-
-                if ($pages[1] == "100000000000000519") {
-                    break;
-                }
-
-                $db = new \Minds\Core\Data\Call('friendsof');
-                $subscribers= $db->getRow($pages[1], ['limit'=>get_input('limit', 12), 'offset'=>get_input('offset', '')]);
-                if (!$subscribers) {
-                    return Factory::response([]);
-                }
-                $users = [];
-                if (get_input('offset') && key($subscribers) != get_input('offset')) {
-                    $response['load-previous'] = (string) get_input('offset');
-                } else {
-                    foreach ($subscribers as $guid => $subscriber) {
-                        if ($guid == get_input('offset')) {
-                            unset($subscribers[$guid]);
-                            continue;
-                        }
-                        if (is_numeric($subscriber)) {
-                            //this is a local, old style subscription
-                            $users[] = new \Minds\Entities\User($guid);
-                            continue;
-                        }
-
-                        //var_dump(print_r($users,true));die();
-                        $users[] = new \Minds\Entities\User(json_decode($subscriber, true));
-                    }
-
-                    $users = array_values(array_filter($users, function ($user) {
-                        return ($user->enabled != 'no' && $user->banned != 'yes')
-                                && $user->guid && $user->username;
-                    }));
-
-                    $response['users'] = factory::exportable($users);
-                    $response['load-next'] = (string) end($users)->guid;
-                    $response['load-previous'] = (string) key($users)->guid;
-                }
-                break;
+        if (!$users) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Unable to find '.$type,
+            ]);
         }
+        $pagingToken = (string) $users->getPagingToken();
+        
+        $users = array_filter(Factory::exportable($users->toArray()), function ($user) {
+            return ($user->enabled != 'no' && $user->banned != 'yes');
+        });
+
+        $response['users'] = $users;
+        $response['load-next'] = $pagingToken;
 
         return Factory::response($response);
     }
