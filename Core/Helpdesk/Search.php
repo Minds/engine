@@ -5,14 +5,25 @@
 namespace Minds\Core\Helpdesk;
 
 use Minds\Core;
+use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 
 class Search
 {
+    /** @var ElasticSearch\Client */
+    private $elastic;
+
+    /** @var string */
+    private $index;
+
+    /** @var EntitiesBuilder */
+    private $entitiesBuilder;
+
     /**
      * Constructor
      *
-     * @param Database\ElasticSearch $elastic
+     * @param ElasticSearch\Client $elastic
      * @param string $index
      */
     public function __construct($elastic = null, $index = null, $entitiesBuilder = null)
@@ -57,7 +68,7 @@ class Search
             'index' => $this->index,
             'type' => 'activity',
             'size' => $limit,
-            'from' => (int) $this->offset,
+            // 'from' => (int) $this->offset,
             'client' => [
                 'timeout' => 2,
                 'connect_timeout' => 1

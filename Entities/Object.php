@@ -3,10 +3,14 @@ namespace Minds\Entities;
 
 use Minds\Interfaces\Flaggable;
 use Minds\Core;
+use Minds\Common\Access;
 
 /**
  * Object Entity
  * @todo Do not inherit from ElggObject
+ * @property int $hidden
+ * @property string $super_subtype
+ * @property int $wire_threshold
  */
 class Object extends \ElggObject implements Flaggable
 {
@@ -94,7 +98,7 @@ class Object extends \ElggObject implements Flaggable
         parent::save($index);
 
         // Allow attachment unpublishing
-        if ($this->guid && $this->hidden && $this->access_id != ACCESS_PUBLIC) {
+        if ($this->guid && $this->hidden && $this->access_id != Access::PUBLIC) {
             // @todo: migrate to Prepared\Timeline()
             $db = new Core\Data\Call('entities_by_time');
             $remove = [

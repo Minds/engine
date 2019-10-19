@@ -21,9 +21,9 @@ class JoinedValidator
 
     /**
      * @param string $hash
-     * @return JoinedValidators
+     * @return self
      */
-    public function setHash($hash)
+    public function setHash($hash): self
     {
         $this->hash = $hash;
         return $this;
@@ -33,7 +33,7 @@ class JoinedValidator
      * Returns true if no user has referred using the provided hash
      * @return bool
      */
-    public function validate()
+    public function validate(): bool
     {
         $must = [
             [

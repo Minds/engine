@@ -107,7 +107,7 @@ class FFMpeg implements ServiceInterface
 
                 return $this;
             } elseif (is_resource($file)) {
-                $result = $this->client->putObject([
+                $result = $this->s3->putObject([
                   'ACL' => 'public-read',
                   'Bucket' => 'cinemr',
                   'Key' => "$this->dir/$this->key/source",
@@ -167,8 +167,11 @@ class FFMpeg implements ServiceInterface
 
             // get video metadata
             $tags = $videostream->get('tags');
+
+            $ratio = $videostream->get('width') / $videostream->get('height');
         } catch (\Exception $e) {
             error_log('Error getting videostream information');
+            $ratio = 1280 / 720;
         }
 
         try {
@@ -208,15 +211,16 @@ class FFMpeg implements ServiceInterface
             ], $opts);
 
             if ($rotated) {
-                $ratio = $videostream->get('width') / $videostream->get('height');
                 $width = round($opts['height'] * $ratio);
                 $opts['width'] = $opts['height'];
                 $opts['height'] = $width;
             }
 
             $video->filters()
-                ->resize(new \FFMpeg\Coordinate\Dimension($opts['width'], $opts['height']),
-                    $rotated ? ResizeFilter::RESIZEMODE_FIT : ResizeFilter::RESIZEMODE_SCALE_WIDTH)
+                ->resize(
+                    new \FFMpeg\Coordinate\Dimension($opts['width'], $opts['height']),
+                    $rotated ? ResizeFilter::RESIZEMODE_FIT : ResizeFilter::RESIZEMODE_SCALE_WIDTH
+                )
                 ->synchronize();
 
             $formatMap = [

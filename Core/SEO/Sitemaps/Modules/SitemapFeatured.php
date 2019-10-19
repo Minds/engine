@@ -33,6 +33,8 @@ class SitemapFeatured extends SitemapModule
             case 'groups':
                 $key = 'group:featured';
                 break;
+            default:
+                return;
         }
 
         $entities = $this->getEntities($key);

@@ -42,8 +42,9 @@ $CONFIG->set('oauth', [
     'encryption_key' => '{{ jwt-secret }}',
  ]);
 
-$CONFIG->set('report_reasons',
-[
+$CONFIG->set(
+    'report_reasons',
+    [
     [
       'value' => 1,
       'label' => 'Illegal',
@@ -370,7 +371,7 @@ $CONFIG->set('blockchain', [
         'cap' => 1000
     ],
 
-    'mw3' => '/usr/bin/env node ' . __MINDS_ROOT__ . '/../mw3/index.js'
+    'mw3' => '/usr/bin/env node /../mw3/index.js'
 ]);
 
 $CONFIG->set('blockchain_override', [

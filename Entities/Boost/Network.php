@@ -41,11 +41,6 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
         'rating', 'quality', 'impressions', 'categories', 'rejection_reason', 'checksum'
     ];
 
-    public function __construct($db = null)
-    {
-        $this->db = null;
-    }
-
     /**
      * Loads from the database using a GUID
      * @param  $guid
@@ -241,7 +236,7 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
 
     /**
      * Return the bidded impressions
-     * @return list
+     * @return int
      */
     public function getImpressions()
     {

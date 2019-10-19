@@ -6,26 +6,30 @@ namespace Minds\Core\Faq;
 
 class Question implements \JsonSerializable
 {
+    /** @var string */
     protected $question = '';
 
-    public function setQuestion(string $question)
+    /** @var Answer */
+    protected $answer;
+
+    public function setQuestion(string $question): self
     {
         $this->question = $question;
         return $this;
     }
 
-    public function getQuestion()
+    public function getQuestion(): string
     {
         return $this->question;
     }
 
-    public function setAnswer(Answer $answer)
+    public function setAnswer(Answer $answer): self
     {
         $this->answer = $answer;
         return $this;
     }
 
-    public function getAnswer()
+    public function getAnswer(): Answer
     {
         return $this->answer;
     }

@@ -47,6 +47,8 @@ class Rewards implements AggregateInterface
                 case 'month':
                     $span = 13;
                     break;
+                default:
+                    return [];
             }
             $k = Manager::buildKey([
                 'aggregate' => $opts['aggregate'] ?? 'rewards',

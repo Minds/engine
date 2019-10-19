@@ -330,7 +330,7 @@ class Events
         ) {
             throw new \Exception('Sorry, your post contains a reference to a domain name linked to spam. You can not use short urls (eg. bit.ly). Please remove it and try again');
             if (PHP_SAPI != 'cli') {
-                forward(REFERRER);
+                forward();
             }
             return false;
         }

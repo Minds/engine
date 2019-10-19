@@ -9,8 +9,15 @@ use Minds\Core\Util\BigNumber;
 
 class Manager
 {
+    /** @var Analytics\Manager */
     protected $analytics;
+
+    /** @var Repository */
     protected $repository;
+
+    /** @var Sums */
+    private $sums;
+
     protected $user;
     protected $from;
     protected $to;

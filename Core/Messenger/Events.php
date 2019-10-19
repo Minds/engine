@@ -45,9 +45,8 @@ class Events
 
                 if ($keystore->getPrivateKey()) {
                     $export = [ 'chat' => true ];
+                    $event->setResponse($export);
                 }
-
-                $event->setResponse($export);
             }
         });
 
@@ -59,10 +58,6 @@ class Events
 
             if ($params['row']->subtype == 'message') {
                 $event->setResponse(new Entities\Message($params['row']));
-            } elseif ($params['row']->subtype == 'call_missed') {
-                $event->setResponse(new Entities\CallMissed($params['row']));
-            } elseif ($params['row']->subtype == 'call_ended') {
-                $event->setResponse(new Entities\CallEnded($params['row']));
             }
         });
 

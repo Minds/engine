@@ -71,12 +71,9 @@ class Verdict
     {
         $export = [
             'report' => $this->report->export(),
-            'decisions' => array_map(function ($decision) {
-                return $decision->export();
-            }, $this->decisions),
             '@timestamp' => $this->timestamp,
             'is_appeal' => $this->isAppeal(),
-            'is_accepted' => $this->accepted,
+            'is_upheld' => $this->uphold,
             'action' => $this->action,
         ];
 

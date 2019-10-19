@@ -14,13 +14,6 @@ class token
     public static function generate($ts=null)
     {
         return;
-        $site_secret = \get_site_secret();
-        // Session token
-        $st = $_SESSION['__elgg_session'];
-
-        if (($site_secret)) {
-            return md5($site_secret . $st . $ts);
-        }
     }
 
     /**

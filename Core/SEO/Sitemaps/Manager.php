@@ -12,7 +12,7 @@ class Manager
 
     protected $routes = [];
 
-    public function __construct($dynamicMaps = null)
+    public function __construct()
     {
         $this->config = Di::_()->get('Config');
     }

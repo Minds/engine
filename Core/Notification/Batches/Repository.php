@@ -10,6 +10,7 @@ namespace Minds\Core\Notification\Batches;
 use Minds\Common\Repository\Response;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
 use Cassandra\Varint;
+use Cassandra\Rows;
 use Minds\Core\Di\Di;
 
 class Repository
@@ -157,7 +158,7 @@ class Repository
     /**
      * VOID
      */
-    public function update(PostSubscription $postSubscription)
+    public function update(BatchSubscription $subscription)
     {
     }
 

@@ -128,8 +128,12 @@ class Resize
         $params = $this->getResizeParameters();
 
         // First crop the image
-        $this->image->cropImage($params['selectionwidth'], $params['selectionheight'], $params['xoffset'],
-            $params['yoffset']);
+        $this->image->cropImage(
+            $params['selectionwidth'],
+            $params['selectionheight'],
+            $params['xoffset'],
+            $params['yoffset']
+        );
 
         // If selected with / height differ from selection width/height, then we need to resize
         if ($params['selectionwidth'] !== $params['newwidth'] || $params['selectionheight'] !== $params['newheight']) {
@@ -181,48 +185,21 @@ class Resize
         $width = $d['width'];
         $height = $d['height'];
 
-        // crop image first?
-        $crop = true;
-        if ($x1 == 0 && $y1 == 0 && $x2 == 0 && $y2 == 0) {
-            $crop = false;
-        }
-
-        // how large a section of the image has been selected
-        if ($crop) {
-            $selection_width = $x2 - $x1;
-            $selection_height = $y2 - $y1;
-        } else {
-            // everything selected if no crop parameters
-            $selection_width = $width;
-            $selection_height = $height;
-        }
+        // everything selected if no crop parameters
+        $selection_width = $width;
+        $selection_height = $height;
 
         // determine cropping offsets
         if ($this->square) {
-            // asking for a square image back
-
-            // detect case where someone is passing crop parameters that are not for a square
-            if ($crop == true && $selection_width != $selection_height) {
-                return false;
-            }
-
             // size of the new square image
             $new_width = $new_height = min($this->width, $this->height);
 
             // find largest square that fits within the selected region
             $selection_width = $selection_height = min($selection_width, $selection_height);
 
-            // set offsets for crop
-            if ($crop) {
-                $widthoffset = $x1;
-                $heightoffset = $y1;
-                $width = $x2 - $x1;
-                $height = $width;
-            } else {
-                // place square region in the center
-                $widthoffset = floor(($width - $selection_width) / 2);
-                $heightoffset = floor(($height - $selection_height) / 2);
-            }
+            // place square region in the center
+            $widthoffset = floor(($width - $selection_width) / 2);
+            $heightoffset = floor(($height - $selection_height) / 2);
         } else {
             // non-square new image
             $new_width = $this->width;
@@ -238,11 +215,6 @@ class Resize
             // by default, use entire image
             $widthoffset = 0;
             $heightoffset = 0;
-
-            if ($crop) {
-                $widthoffset = $x1;
-                $heightoffset = $y1;
-            }
         }
 
         if (!$this->upscale && ($selection_height < $new_height || $selection_width < $new_width)) {

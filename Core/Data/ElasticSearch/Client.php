@@ -15,8 +15,11 @@ use Minds\Core\Di\Di;
 
 class Client implements Interfaces\ClientInterface
 {
-    /** @var Elasticsearch\Client $elasticsearch */
+    /** @var Elasticsearch\Client */
     protected $elasticsearch;
+
+    /** @var array */
+    private $options = [];
 
     /**
      * Client constructor.
@@ -24,6 +27,7 @@ class Client implements Interfaces\ClientInterface
      */
     public function __construct(array $options = [])
     {
+        $this->options = $options;
         $hosts = Di::_()->get('Config')->elasticsearch['hosts'];
 
         $this->elasticsearch = Elasticsearch\ClientBuilder::create()

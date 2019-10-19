@@ -40,59 +40,71 @@ class Sums
 
     /**
      * Get the amount
+     * @return int
      */
-    public function getAmount()
+    public function getAmount(): int
     {
         $query = new Custom();
 
         if ($this->user) {
-            $query->query("SELECT SUM(amount) as amount from contributions WHERE user_guid = ? 
+            $query->query(
+                "SELECT SUM(amount) as amount from contributions WHERE user_guid = ? 
                 AND timestamp = ?",
                 [
                     new Varint((int) $this->user->guid),
                     new Timestamp($this->timestamp / 1000)
-                ]);
+                ]
+            );
         } else {
-            $query->query("SELECT SUM(amount) as amount from contributions_by_timestamp WHERE timestamp = ?",
+            $query->query(
+                "SELECT SUM(amount) as amount from contributions_by_timestamp WHERE timestamp = ?",
                 [
                     new Timestamp($this->timestamp / 1000)
-                ]);
+                ]
+            );
         }
 
         try {
             $rows = $this->db->request($query);
         } catch (\Exception $e) {
             error_log($e->getMessage());
+            return 0;
         }
-        
+
         return (string) BigNumber::_($rows[0]['amount']);
     }
 
     /**
      * Get the score
+     * @return int
      */
-    public function getScore()
+    public function getScore(): int
     {
         $query = new Custom();
 
         if ($this->user) {
-            $query->query("SELECT SUM(score) as score from contributions WHERE user_guid = ? 
+            $query->query(
+                "SELECT SUM(score) as score from contributions WHERE user_guid = ? 
                 AND timestamp = ?",
                 [
                     new Varint((int) $this->user->guid),
                     new Timestamp($this->timestamp / 1000)
-                ]);
+                ]
+            );
         } else {
-            $query->query("SELECT SUM(score) as score from contributions_by_timestamp WHERE timestamp = ?",
+            $query->query(
+                "SELECT SUM(score) as score from contributions_by_timestamp WHERE timestamp = ?",
                 [
                     new Timestamp($this->timestamp / 1000)
-                ]);
+                ]
+            );
         }
 
         try {
             $rows = $this->db->request($query);
         } catch (\Exception $e) {
             error_log($e->getMessage());
+            return 0;
         }
         
         return (int) $rows[0]['score'];

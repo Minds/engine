@@ -121,6 +121,7 @@ class Events
 
             $event->push();
             
+            $guid = null;
             if ($entity->type == 'activity' && $entity->custom_type) {
                 $subtype = '';
                 switch ($entity->custom_type) {

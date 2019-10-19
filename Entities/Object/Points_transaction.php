@@ -2,9 +2,12 @@
 namespace Minds\Entities\Object;
 
 use Minds\Entities;
+use Minds\Core;
 
 /**
  * Points Transaction Entity
+ * @property int $points
+ * @property int $entity_guid
  */
 class Points_transaction extends Entities\Object
 {
@@ -17,7 +20,7 @@ class Points_transaction extends Entities\Object
         parent::initializeAttributes();
         $this->attributes = array_merge($this->attributes, [
             'subtype' => 'points_transaction',
-            'owner_guid' => elgg_get_logged_in_user_guid(),
+            'owner_guid' => Core\Session::getLoggedInUserGuid(),
             'access_id' => 0 //private
         ]);
     }

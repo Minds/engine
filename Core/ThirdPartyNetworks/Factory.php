@@ -10,7 +10,7 @@ class Factory
      * Build the handler
      * @param string $handler
      * @param array $options (optional)
-     * @return BoostHandlerInterface
+     * @return Networks\NetworkInterface
      */
     public static function build($handler, $options = [])
     {

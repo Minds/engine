@@ -8,6 +8,7 @@
 
 namespace Minds\Core\Blockchain\Services;
 
+use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Http\Curl\Json\Client;
 
@@ -16,22 +17,28 @@ class Etherscan
     /** @var Client $http */
     protected $http;
 
+    /** @var Config */
+    protected $config;
+
     /** @var string $address */
     protected $address;
+
+    /** @var string */
+    protected $contractAddress;
 
     /** @var string $apiKey */
     protected $apiKey;
 
     /**
      * Etherscan constructor.
-     * @param Http\Json $http
+     * @param Client $http
      */
-    public function __construct($http = null)
+    public function __construct($http = null, $config = null)
     {
         $this->http = $http ?: Di::_()->get('Http\Json');
-        $config = $config ?: Di::_()->get('Config');
+        $this->config = $config ?: Di::_()->get('Config');
 
-        $this->apiKey = $config->get('blockchain')['etherscan']['api_key'];
+        $this->apiKey = $this->config->get('blockchain')['etherscan']['api_key'];
     }
 
     /**
@@ -213,7 +220,7 @@ class Etherscan
      * Get a block by number
      *
      * @param integer $number
-     * @return void
+     * @return array
      */
     public function getBlock($number)
     {

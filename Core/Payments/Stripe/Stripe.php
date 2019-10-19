@@ -324,7 +324,7 @@ class Stripe implements SubscriptionPaymentServiceInterface
 
         $params = [
             'type' => 'payment',
-            'limit' => $hasFilter ? 100 : (int) $options[$limit]
+            'limit' => $hasFilter ? 100 : (int) $options['limit']
         ];
 
         if ($options['offset']) {
@@ -386,7 +386,7 @@ class Stripe implements SubscriptionPaymentServiceInterface
         );
 
         $params = [
-            'limit' => $hasFilter ? 100 : (int) $options[$limit]
+            'limit' => $hasFilter ? 100 : (int) $options['limit']
         ];
 
         if ($options['offset']) {
@@ -501,7 +501,7 @@ class Stripe implements SubscriptionPaymentServiceInterface
         $totals = [];
         foreach ($results->available as $available) {
             if ($available->amount) {
-                $total[$available->currency] += $available->amount / 100;
+                $totals[$available->currency] += $available->amount / 100;
             }
         }
         foreach ($results->pending as $pending) {

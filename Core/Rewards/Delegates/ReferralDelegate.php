@@ -9,11 +9,15 @@ use Minds\Entities\User;
 use Minds\Core\Referrals\Referral;
 use Minds\Core\Rewards\Contributions\Contribution;
 use Minds\Core\Rewards\Contributions\ContributionValues;
+use Minds\Core\Rewards\Contributions\Manager as ContributionsManager;
 
 class ReferralDelegate
 {
     /** @var Manager $manager */
     private $manager;
+
+    /** @var ContributionsManager */
+    private $contributionsManager;
 
     public function __construct($manager = null, $contributionsManager = null)
     {

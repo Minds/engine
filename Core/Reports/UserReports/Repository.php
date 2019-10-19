@@ -16,6 +16,7 @@ use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
 use Minds\Entities;
 use Minds\Entities\DenormalizedEntity;
 use Minds\Entities\NormalizedEntity;
+use Minds\Common\Repository\Response;
 
 class Repository
 {

@@ -8,6 +8,7 @@ use Minds\Entities\Site;
 use Minds\Entities\Activity;
 use Minds\Exceptions\ProvisionException;
 use Minds\Helpers;
+use Minds\Common\Access;
 
 class Installer
 {
@@ -228,15 +229,17 @@ class Installer
         }
     }
 
-    public function setupStorage(Provisioners\ProvisionerInterface $cassandraStorage = null,
-                                 $cleanData = false)
-    {
+    public function setupStorage(
+        Provisioners\ProvisionerInterface $cassandraStorage = null,
+        $cleanData = false
+    ) {
         $this->provisionCassandra($cassandraStorage, $cleanData);
     }
 
-    public function provisionCassandra(Provisioners\ProvisionerInterface $cassandraStorage = null,
-                                       $cleanData = false)
-    {
+    public function provisionCassandra(
+        Provisioners\ProvisionerInterface $cassandraStorage = null,
+        $cleanData = false
+    ) {
         $cassandraStorage = $cassandraStorage ?: new Provisioners\CassandraProvisioner();
         $cassandraStorage->provision($cleanData);
     }
@@ -253,7 +256,7 @@ class Installer
         $site = $site ?: new Site();
         $site->name = $config->get('site_name');
         $site->url = $this->getSiteUrl();
-        $site->access_id = ACCESS_PUBLIC;
+        $site->access_id = Access::PUBLIC;
         $site->email = isset($this->options['site-email']) && $this->options['site-email'] ? $this->options['site-email'] : $this->options['email'];
 
         $site->save();

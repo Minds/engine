@@ -10,7 +10,7 @@ use Minds\Entities\User;
 class Logout
 {
     /** @var Sessions $sessions */
-    protected $session;
+    protected $sessions;
 
     public function __construct($sessions = null)
     {

@@ -31,13 +31,11 @@ class Manager
     public function __construct(
         $repository = null,
         $entitiesBuilder = null,
-        $suggestedFeedsManager = null,
         $subscriptionsManager = null,
         $checkRateLimit = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder();
-        //$this->suggestedFeedsManager = $suggestedFeedsManager ?: Di::_()->get('Feeds\Suggested\Manager');
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Subscriptions\Manager');
         $this->checkRateLimit = $checkRateLimit ?: new CheckRateLimit();
     }

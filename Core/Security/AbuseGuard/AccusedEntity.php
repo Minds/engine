@@ -5,13 +5,22 @@
 namespace Minds\Core\Security\AbuseGuard;
 
 use Minds\Core;
+use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Di\Di;
 use Minds\Entities;
 
 class AccusedEntity
 {
+    /** @var Client $client */
+    private $client;
+
+    /** @var Entities\User $user */
     private $user;
+
+    /** @var int $score */
     private $score = 0;
+
+    /** @var array $metrics */
     private $metrics = [];
 
     public function __construct($client = null)

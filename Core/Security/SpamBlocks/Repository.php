@@ -8,6 +8,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
 use Cassandra\Varint;
 use Cassandra\Timestamp;
+use Minds\Common\Repository\Response;
 
 class Repository
 {
@@ -45,7 +46,7 @@ class Repository
             'paging_state_token' => $opts['token'],
         ]);
 
-        $result = $this->client->request($prepared);
+        $result = $this->client->request($query);
 
         if (!$result || !$result[0]) {
             return null;
@@ -53,7 +54,7 @@ class Repository
 
         $response = new Response();
 
-        foreach ($result as $rows) {
+        foreach ($result as $row) {
             $model = new SpamBlock();
             $model->setKey($row['key'])
                 ->setValue($row['value']);

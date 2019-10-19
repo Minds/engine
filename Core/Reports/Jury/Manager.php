@@ -9,6 +9,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Data;
 use Minds\Core\Data\Cassandra\Prepared;
 use Minds\Entities;
+use Minds\Entities\User;
 use Minds\Entities\DenormalizedEntity;
 use Minds\Entities\NormalizedEntity;
 use Minds\Common\Repository\Response;
@@ -16,6 +17,7 @@ use Minds\Common\Urn;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\Reports\Summons\SummonsNotFoundException;
 use Minds\Core\Reports\Summons\Summons as SummonsEntity;
+use Minds\Core\Reports\Report;
 use Minds\Core\Security\ACL;
 
 class Manager
@@ -71,7 +73,7 @@ class Manager
      * @param User $user
      * @return $this
      */
-    public function setUser($user)
+    public function setUser(User $user)
     {
         $this->user = $user;
         return $this;

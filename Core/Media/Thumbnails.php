@@ -46,7 +46,7 @@ class Thumbnails
 
                 if ($size && !$entity->gif) {
                     if (!isset($entity->batch_guid)) {
-                        $entity->batch_guid = $this->container_guid;
+                        $entity->batch_guid = $entity->container_guid;
                     }
 
                     $thumbnail->setFilename("image/$entity->batch_guid/$entity->guid/$size.jpg");

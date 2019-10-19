@@ -15,6 +15,7 @@ class ConversationsCache
     private $redis;
     private $user;
     private $user_guid;
+    private $config;
 
     public function __construct($redis = null, $config = null)
     {

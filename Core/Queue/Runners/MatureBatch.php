@@ -6,6 +6,7 @@ namespace Minds\Core\Queue\Runners;
 use Minds\Core;
 use Minds\Core\Queue;
 use Minds\Core\Queue\Interfaces;
+use Minds\Interfaces\Flaggable;
 use Minds\Entities;
 use Minds\Helpers\MagicAttributes;
 use Minds\Core\Entities\Actions\Save;
@@ -89,7 +90,7 @@ class MatureBatch implements Interfaces\QueueRunner
         if ($entity->entity_guid) {
             $attachment = Entities\Factory::build($entity->entity_guid);
 
-            if ($attachment && $attachment->guid && $attachment instanceof Interfaces\Flaggable) {
+            if ($attachment && $attachment->guid && $attachment instanceof Flaggable) {
                 if (method_exists($attachment, 'setMature')) {
                     $attachment->setMature($value);
                 } elseif (method_exists($attachment, 'setFlag')) {

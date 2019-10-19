@@ -65,6 +65,7 @@ class Manager
         } catch (\Exception $e) {
             error_log("Payment failed: " . $e->getMessage());
             $this->subscription->setStatus('failed');
+            return false;
         }
 
         $this->repository->add($this->subscription);

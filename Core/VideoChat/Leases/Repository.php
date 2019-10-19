@@ -57,7 +57,7 @@ class Repository
     /**
      * Return a list of leases
      * @param array $options
-     * @return VideoChatLeaes[]
+     * @return VideoChatLease[]
      */
     public function getList($options)
     {
@@ -94,6 +94,7 @@ class Repository
             $rows = $this->db->request($query);
         } catch (\Exception $e) {
             error_log($e->getMessage());
+            return $leases;
         }
 
         foreach ($rows as $row) {

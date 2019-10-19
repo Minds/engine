@@ -8,6 +8,18 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Helpers;
 
+/**
+ * @property string $super_subtype
+ * @property string $filename
+ * @property int $batch_guid
+ * @property int $width
+ * @property int $height
+ * @property int $gif
+ * @property int $mature
+ * @property string $license
+ * @property int $boost_rejection_reason
+ * @property int $time_sent
+ */
 class Image extends File
 {
     protected function initializeAttributes()
@@ -122,6 +134,7 @@ class Image extends File
             $sizes = ['small', 'medium','large', 'xlarge'];
         }
         $master = $filepath ?: $this->getFilenameOnFilestore();
+        $u = $w = $h = $s = $u = 0;
         foreach ($sizes as $size) {
             switch ($size) {
                 case 'tiny':
@@ -153,6 +166,7 @@ class Image extends File
                     $w = 1024;
                     $s = false;
                     $u = true;
+                    // no break
                 default:
                     continue;
             }

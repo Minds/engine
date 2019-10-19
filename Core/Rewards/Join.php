@@ -39,6 +39,9 @@ class Join
     /** @var ReferralValidator */
     private $validator;
 
+    /** @var JoinedValidator */
+    private $joinedValidator;
+
     /** @var OfacBlacklist */
     private $ofacBlacklist;
 

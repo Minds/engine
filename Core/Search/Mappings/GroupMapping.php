@@ -8,6 +8,8 @@
 
 namespace Minds\Core\Search\Mappings;
 
+use Minds\Common\Access;
+
 class GroupMapping extends EntityMapping implements MappingInterface
 {
     /**
@@ -31,7 +33,7 @@ class GroupMapping extends EntityMapping implements MappingInterface
         $map = parent::map($map);
 
         $map['membership'] = (int) $this->entity->getMembership();
-        $map['public'] = $map['membership'] == ACCESS_PUBLIC;
+        $map['public'] = $map['membership'] == Access::PUBLIC;
 
         $map['tags'] = array_values(array_unique(array_merge($map['tags'], $this->entity->getTags())));
         $map['rating'] = $this->entity->getRating();

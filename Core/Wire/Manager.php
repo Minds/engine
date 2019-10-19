@@ -16,6 +16,7 @@ use Minds\Core\Wire\Exceptions\WalletNotSetupException;
 use Minds\Core\Wire\Subscriptions\Manager as SubscriptionsManager;
 use Minds\Common\Urn;
 use Minds\Entities;
+use Minds\Entities\Entity;
 use Minds\Entities\User;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
 use Minds\Core\Payments\Stripe\Intents\Manager as StripeIntentsManager;
@@ -311,7 +312,7 @@ class Manager
      * Confirmationof wire from the blockchain.
      *
      * @param Wire        $wire
-     * @param Transaction $transaction - the transaction from the blockchain
+     * @param Core\Blockchain\Transactions\Transaction $transaction - the transaction from the blockchain
      */
     public function confirm($wire, $transaction)
     {

@@ -9,6 +9,7 @@ namespace Minds\Core\Entities\Delegates;
 
 use Minds\Common\Urn;
 use Minds\Core\Boost\Repository;
+use Minds\Core\Boost\Manager;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Boost\BoostEntityInterface;

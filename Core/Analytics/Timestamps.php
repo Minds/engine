@@ -32,6 +32,8 @@ class Timestamps
                 case "year":
                 $ref = "year";
                 break;
+                default:
+                    return time();
             }
 
             $time[$period] = strtotime($ref, $ts);

@@ -70,7 +70,7 @@ class Repository
 
         $query = new Core\Data\Cassandra\Prepared\Custom();
 
-        if ($planIds) {
+        if ($plansIds) {
             $query->query("SELECT * FROM plans_by_user_guid WHERE plan IN ? AND user_guid = ? ", [
                 \Cassandra\Type::collection(\Cassandra\Type::text())->create(... $plansIds),
                 (string) $this->user_guid
@@ -205,17 +205,19 @@ class Repository
     public function add($plan)
     {
         $query = new Core\Data\Cassandra\Prepared\Custom();
-        $query->query("INSERT INTO plans
+        $query->query(
+            "INSERT INTO plans
           (entity_guid, plan, user_guid, status, subscription_id, expires)
           VALUES (?, ?, ?, ?, ?, ?)",
-          [
+            [
             (string) $plan->getEntityGuid(),
             (string) $plan->getName(),
             (string) $plan->getUserGuid(),
             (string) $plan->getStatus(),
             (string) $plan->getSubscriptionId(),
             (int) $plan->getExpires(),
-          ]);
+          ]
+        );
         try {
             $result = $this->db->request($query);
         } catch (\Exception $e) {

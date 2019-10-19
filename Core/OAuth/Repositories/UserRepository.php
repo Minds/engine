@@ -7,6 +7,7 @@ namespace Minds\Core\OAuth\Repositories;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\UserRepositoryInterface;
 use Minds\Core\OAuth\Entities\UserEntity;
+use Minds\Core\Security\Password;
 use Minds\Entities\User;
 use Minds\Core\Di\Di;
 
@@ -21,7 +22,7 @@ class UserRepository implements UserRepositoryInterface
     /** @var User $mock */
     public $mockUser = false;
 
-    public function __construct(Password $password = null, SentryScopeDelegate $sentryScopeDelegate = null)
+    public function __construct(Password $password = null, Delegates\SentryScopeDelegate $sentryScopeDelegate = null)
     {
         $this->password = $password ?: Di::_()->get('Security\Password');
         $this->sentryScopeDelegate = $sentryScopeDelegate ?? new Delegates\SentryScopeDelegate;

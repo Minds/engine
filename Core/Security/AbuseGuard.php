@@ -13,6 +13,9 @@ use Minds\Core\Security\AbuseGuard\Recover;
 
 class AbuseGuard
 {
+    /** @var Aggregates $aggregates */
+    private $aggregates;
+
     private $start = 0;
     private $end = 0;
     private $accused = [];

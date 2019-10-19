@@ -19,6 +19,7 @@ use Minds\Entities\User;
 use Minds\Helpers\Flags;
 use Minds\Helpers\Text;
 use Minds\Traits\MagicAttributes;
+use Exception;
 
 /**
  * Blog Entity
@@ -498,7 +499,7 @@ class Blog extends RepositoryEntity
         $array = array_unique($array);
         foreach ($array as $reason) {
             if ($reason < 1 || $reason > 6) {
-                throw \Exception('Incorrect NSFW value provided');
+                throw new Exception('Incorrect NSFW value provided');
             }
         }
         $this->nsfw = $array;
@@ -535,7 +536,7 @@ class Blog extends RepositoryEntity
         $array = array_unique($array);
         foreach ($array as $reason) {
             if ($reason < 1 || $reason > 6) {
-                throw \Exception('Incorrect NSFW value provided');
+                throw new Exception('Incorrect NSFW value provided');
             }
         }
         $this->nsfwLock = $array;

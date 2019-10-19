@@ -9,6 +9,7 @@
 namespace Minds\Core\Search\Mappings;
 
 use Minds\Core\Blogs\Blog;
+use Minds\Common\Access;
 
 class ObjectBlogMapping extends EntityMapping implements MappingInterface
 {
@@ -119,7 +120,7 @@ class ObjectBlogMapping extends EntityMapping implements MappingInterface
 
         // Public
 
-        $map['public'] = $this->entity->getAccessId() == ACCESS_PUBLIC;
+        $map['public'] = $this->entity->getAccessId() == Access::PUBLIC;
 
         // Mature
 

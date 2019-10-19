@@ -9,6 +9,9 @@ use Minds\Core;
 
 class Priorities extends core\plugins
 {
+    /** @var int */
+    private $priority;
+
     public static function getMax()
     {
         $plugins = parent::get();
@@ -57,12 +60,12 @@ class Priorities extends core\plugins
             $reorder = [];
 
             foreach ($plugin_list as $plugin) {
-                if ($plugin->getPriority() ==  $old_priority-1 && $op=='-') {
+                if ($plugin->getPriority() ==  $old_priority-1) {
                     $plugin->priority =  $old_priority;
                     $plugin->save();
                     continue;
                 }
-                if ($plugin->getPriority() ==  $old_priority+1 && $op == '+') {
+                if ($plugin->getPriority() ==  $old_priority+1) {
                     $plugin->priority =  $old_priority;
                     $plugin->save();
                     continue;

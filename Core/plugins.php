@@ -1,10 +1,12 @@
 <?php
 namespace Minds\Core;
 
+use Exception;
+
 /**
  * Minds Plugins Controller
  */
-class plugins extends base
+class plugins
 {
     public static $path;
     public static $cache = [];
@@ -132,7 +134,6 @@ class plugins extends base
                         $e->getMessage()
                     ]);
                     error_log($msg);
-                    \elgg_add_admin_notice('cannot_start' . $plugin->getID(), $msg);
                     $return = false;
 
                     continue;

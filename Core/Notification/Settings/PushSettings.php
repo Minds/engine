@@ -11,6 +11,10 @@ use Minds\Entities\Factory as EntitiesFactory;
 
 class PushSettings
 {
+    /** @var Data\Call */
+    private $db;
+
+    /** @var array */
     protected $types = [
       'daily' => true,
       'comment' => true,
@@ -31,7 +35,11 @@ class PushSettings
       'referral_pending' => true,
       'referral_complete' => true,
     ];
+
+    /** @var string */
     protected $userGuid;
+
+    /** @var array */
     protected $toBeSaved = [];
 
     public function __construct($db = null)
@@ -64,9 +72,9 @@ class PushSettings
 
     /**
      * Sets an individual toggle
-     * @return $this
+     * @return self
      */
-    public function setToggle($toggle, $value)
+    public function setToggle($toggle, $value): self
     {
         $this->types[$toggle] = $value;
         $this->toBeSaved[$toggle] = $value;
@@ -75,9 +83,9 @@ class PushSettings
 
     /**
      * Batch sets toggles
-     * @return this
+     * @return self
      */
-    public function setToggles($toggles = [])
+    public function setToggles($toggles = []): self
     {
         $this->types = array_merge($this->types, $toggles);
         $this->toBeSaved = $toggles;

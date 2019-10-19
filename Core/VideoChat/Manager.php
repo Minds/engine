@@ -4,6 +4,7 @@ namespace Minds\Core\VideoChat;
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Di\Di;
 use Minds\Entities\Entity;
+use Minds\Entities\User;
 use Minds\Entities\NormalizedEntity;
 
 class Manager

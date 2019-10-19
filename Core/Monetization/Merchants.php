@@ -7,6 +7,9 @@ use Minds\Core\Di\Di;
 
 class Merchants
 {
+    /** @var Entities\User */
+    protected $user;
+        
     public function __construct()
     {
     }

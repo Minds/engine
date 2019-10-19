@@ -32,6 +32,9 @@ class Transaction
     /** @var User $customerUser */
     private $customerUser;
 
+    /** @var string */
+    private $userGuid;
+
     /**
      * Expose to the public apis
      * @param array $extend

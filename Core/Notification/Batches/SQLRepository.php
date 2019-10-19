@@ -9,6 +9,7 @@ namespace Minds\Core\Notification\Batches;
 
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
+use Cassandra\Rows;
 
 class SQLRepository
 {
@@ -145,7 +146,7 @@ class SQLRepository
     /**
      * VOID
      */
-    public function update(PostSubscription $postSubscription)
+    public function update(BatchSubscription $batchSubscription)
     {
     }
 

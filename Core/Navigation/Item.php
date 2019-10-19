@@ -78,7 +78,7 @@ class Item
 
     /**
      * Add a subitem
-     * @param Navigation\Item $item
+     * @param Item $item
      * @return $this
      */
     public function addSubItem($item)

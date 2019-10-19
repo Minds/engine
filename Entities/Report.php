@@ -34,11 +34,6 @@ class Report extends DenormalizedEntity
         'appeal_note',
     ];
 
-    public function __construct($db = null)
-    {
-        $this->db = null;
-    }
-
     public function loadFromGuid($guid)
     {
         throw new \Exception('Use Reports\Repository::getRow()');

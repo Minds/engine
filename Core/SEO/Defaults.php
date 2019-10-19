@@ -6,6 +6,7 @@
 namespace Minds\Core\SEO;
 
 use Minds\Core;
+use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Helpers;
 use Minds\Helpers\Counters;
@@ -15,9 +16,9 @@ class Defaults
     private static $_;
     private $config;
 
-    public function __construct($config)
+    public function __construct($config = null)
     {
-        $this->config = $config;
+        $this->config = $config ?: Di::_()->get('Config');
         $this->init();
 
         /* Trigger SEO providers */

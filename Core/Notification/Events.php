@@ -101,6 +101,8 @@ class Events
                 return;
             }
 
+            $message = "";
+
             if ($entity->message) {
                 $message = $entity->message;
             }

@@ -25,7 +25,7 @@ class Webhooks
     ];
     protected $hooks;
 
-    public function __construct($hooks = null, $stripe)
+    public function __construct($hooks = null)
     {
         $this->hooks = $hooks ?: new Payments\Hooks();
     }
@@ -148,28 +148,28 @@ class Webhooks
 
         $subscription = (new Payments\Subscriptions\Subscription())
             ->setCustomer($customer)
-            ->setId($subscripionObj->id)
-            ->setPlanId($subscripionObj->plan->id)
-            ->setPrice($charge->amount / 100);
+            ->setId($subscriptionObj->id)
+            ->setPlanId($subscriptionObj->plan->id)
+            ->setPrice(0);
         $this->hooks->onCanceled($subscription);
     }
 
     protected function onPayoutPaid()
     {
-        $payoutObj = $this->event->data->object;
+        // $payoutObj = $this->event->data->object;
 
-        //grab the customer
-        $bankAccount = \Stripe\BankAccount::retrieve($payoutObj->destination, [
-            'stripe_account' => $this->event->account
-        ]);
-        $customerObj = \Stripe\Customer::retrieve($bankAccount->customer, [
-            'stripe_account' => $this->event->account
-        ]);
-        $customer = new Payments\Customer();
-        $customer->setUser(new Entities\User($customerObj->metadata->__toArray()['user_guid']))
-            ->setId($customerObj->id);
+        // //grab the customer
+        // $bankAccount = \Stripe\BankAccount::retrieve($payoutObj->destination, [
+        //     'stripe_account' => $this->event->account
+        // ]);
+        // $customerObj = \Stripe\Customer::retrieve($bankAccount->customer, [
+        //     'stripe_account' => $this->event->account
+        // ]);
+        // $customer = new Payments\Customer();
+        // $customer->setUser(new Entities\User($customerObj->metadata->__toArray()['user_guid']))
+        //     ->setId($customerObj->id);
 
-        $this->hooks->onPayoutPaid($payoutObj, $customer, $bankAccount);
+        // $this->hooks->onPayoutPaid($payoutObj, $customer, $bankAccount);
     }
 
     protected function onCustomerDeleted()

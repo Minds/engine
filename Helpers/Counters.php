@@ -2,6 +2,8 @@
 namespace Minds\Helpers;
 
 use Minds\Core;
+use Minds\Core\Data;
+use Minds\Entities\Entity;
 
 /**
  * Helper for metric counters

@@ -8,6 +8,7 @@ use Minds\Core;
 use Minds\Entities;
 use Minds\Core\Security\RateLimits\Manager as RateLimitsManager;
 use Minds\Helpers\Flags;
+use Minds\Common\Access;
 
 class ACL
 {
@@ -66,7 +67,7 @@ class ACL
         // If logged out and public and not container
         if (!Core\Session::isLoggedIn()) {
             if (
-                (int) $entity->access_id == ACCESS_PUBLIC
+                (int) $entity->access_id == Access::PUBLIC
                 && (
                     $entity->owner_guid == $entity->container_guid
                     || $entity->container_guid == 0
@@ -101,7 +102,7 @@ class ACL
          * And check the owner is the container_guid too
          */
         if (
-            in_array($entity->getAccessId(), [ACCESS_LOGGED_IN, ACCESS_PUBLIC], false)
+            in_array($entity->getAccessId(), [Access::LOGGED_IN, Access::PUBLIC], false)
             && (
                 $entity->owner_guid == $entity->container_guid
                 || $entity->container_guid == 0
@@ -141,7 +142,7 @@ class ACL
 
     /**
      * Checks access read rights to entity
-     * @param Entity|Entities\RepositoryEntity $entity
+     * @param Entities\Entity|Entities\RepositoryEntity $entity
      * @param $user (optional)
      * @return boolean
      */
@@ -230,7 +231,7 @@ class ACL
     /**
      * Check if a user can interact with the entity
      * @param Entities\Entity $entity
-     * @param (optional) $user
+     * @param Entities\User $user optional
      * @return boolean
      */
     public function interact($entity, $user = null, $interaction = null)

@@ -11,6 +11,7 @@ use Minds\Core\Data\Cassandra\Prepared;
 use Minds\Entities;
 use Minds\Entities\DenormalizedEntity;
 use Minds\Entities\NormalizedEntity;
+use Minds\Common\Repository\Response;
 
 class Manager
 {
@@ -58,7 +59,7 @@ class Manager
      * @param array $opts
      * @return Response
      */
-    public function getList($opts = [])
+    public function getList($opts = []): Response
     {
         $opts = array_merge([
             'hydrate' => false,
@@ -68,10 +69,10 @@ class Manager
     }
 
     /**
-     * @param long $entity_guid
+     * @param int $entity_guid
      * @return Verdict
      */
-    public function get($entity_guid)
+    public function get(int $entity_guid)
     {
         return $this->repository->get($entity_guid);
     }

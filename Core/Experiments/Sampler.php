@@ -8,6 +8,7 @@ namespace Minds\Core\Experiments;
 use Minds\Interfaces\ModuleInterface;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\Cassandra\Prepared;
+use Minds\Entities\User;
 
 class Sampler
 {
@@ -41,10 +42,10 @@ class Sampler
 
     /**
      * Set the hypothesis to sample
-     * @param HypothesisInterface $hypothesis
-     * @return Sampler
+     * @param Hypotheses\HypothesisInterface $hypothesis
+     * @return self
      */
-    public function setHypothesis($hypothesis)
+    public function setHypothesis(Hypotheses\HypothesisInterface $hypothesis): self
     {
         $this->hypothesis = $hypothesis;
         $this->buckets = $this->hypothesis->getBuckets();

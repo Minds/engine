@@ -12,6 +12,7 @@ use Minds\Entities;
 use Minds\Entities\DenormalizedEntity;
 use Minds\Entities\NormalizedEntity;
 use Minds\Core\Reports\Manager as ReportsManager;
+use Minds\Common\Repository\Response;
 
 class Manager
 {
@@ -43,7 +44,7 @@ class Manager
      * @param array $opts
      * @return Response
      */
-    public function getList($opts = [])
+    public function getList($opts = []): Response
     {
         $opts = array_merge([
             'hydrate' => false,

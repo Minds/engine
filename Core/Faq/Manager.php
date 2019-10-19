@@ -6,6 +6,10 @@ namespace Minds\Core\Faq;
 
 class Manager
 {
+    /** @var string */
+    private $csv;
+
+    /** @var array */
     protected $categories = [];
 
     public function __construct($csv = null)

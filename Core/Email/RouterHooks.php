@@ -6,6 +6,9 @@ use Minds\Core\Analytics\Metrics\Event;
 
 class RouterHooks
 {
+    /** @var Event */
+    private $event;
+
     public function __construct($event = null)
     {
         $this->event = $event ?: new Event();

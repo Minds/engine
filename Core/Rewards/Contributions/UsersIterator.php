@@ -12,8 +12,14 @@ use Minds\Core\Analytics\Timestamps;
  */
 class UsersIterator implements \Iterator
 {
+    /** @var Client */
+    private $client;
+    
     private $cursor = -1;
     private $period = 0;
+
+    /** @var int */
+    private $position = 0;
 
     private $item;
 

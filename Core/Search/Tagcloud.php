@@ -7,6 +7,7 @@ namespace Minds\Core\Search;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Hashtags\Trending\Repository;
+use Minds\Core\Data\cache as Cache;
 
 class Tagcloud
 {
@@ -22,7 +23,7 @@ class Tagcloud
     /**
      * Class constructor
      *
-     * @param Hashtags\Trending\Repository $repository
+     * @param Repository $repository
      * @param Cache\Apcu $cache
      */
     public function __construct($repository = null, $cache = null)

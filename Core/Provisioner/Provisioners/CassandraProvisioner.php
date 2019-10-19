@@ -9,6 +9,9 @@ class CassandraProvisioner implements ProvisionerInterface
     protected $config;
     protected $db;
 
+    /** @var Data\Cassandra\Client */
+    protected $client;
+
     public function __construct($config = null, $db = null, $client = null)
     {
         $this->config = $config ?: Di::_()->get('Config');

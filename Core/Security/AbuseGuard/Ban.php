@@ -11,8 +11,16 @@ use Minds\Core\Di\Di;
 
 class Ban
 {
+    /** @var Core\Data\Sessions $sessions */
+    private $sessions;
+
+    /** @var Entities\User $accused */
     private $accused;
+
+    /** @var Recover $recover */
     private $recover;
+
+    /** @var bool $events */
     private $events = true;
 
     /** @var Core\Channels\Ban */

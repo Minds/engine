@@ -157,6 +157,7 @@ class Push implements Interfaces\NotificationExtensionInterface
                 if (!empty($entity->custom_data)) {
                     return $entity->custom_data[0]['src'];
                 }
+                // no break
             default:
                 return null;
 
@@ -232,6 +233,7 @@ class Push implements Interfaces\NotificationExtensionInterface
                 return sprintf('%s commented on %s', $name, $prefix.$desc);
 
             case 'like':
+                $like = ' your post';
                 switch ($entity->type) {
                     case 'comment':
                         $like = 'your comment';

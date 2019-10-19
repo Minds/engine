@@ -7,6 +7,8 @@ class Adsense
 {
     protected $analytics;
     protected $client;
+    private $config;
+    private $cache;
 
     public function __construct($config = null, $cache = null)
     {

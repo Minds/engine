@@ -28,6 +28,7 @@ use Minds\Core\Payments\Subscriptions\Subscription;
 
 class Webhooks
 {
+    protected $braintree;
     protected $payload;
     protected $signature;
     protected $notification;
@@ -100,14 +101,14 @@ class Webhooks
      */
     protected function subMerchantApproved()
     {
-        $message = "Congrats, you are now a Minds Merchant";
-        Core\Events\Dispatcher::trigger('notification', 'elgg/hook/activity', [
-          'to'=>[$notification->merchantAccount->id],
-          'from' => 100000000000000519,
-          'notification_view' => 'custom_message',
-          'params' => ['message'=>$message],
-          'message'=>$message
-        ]);
+        // $message = "Congrats, you are now a Minds Merchant";
+        // Core\Events\Dispatcher::trigger('notification', 'elgg/hook/activity', [
+        //   'to'=>[$notification->merchantAccount->id],
+        //   'from' => 100000000000000519,
+        //   'notification_view' => 'custom_message',
+        //   'params' => ['message'=>$message],
+        //   'message'=>$message
+        // ]);
     }
 
     /**
@@ -115,15 +116,15 @@ class Webhooks
      */
     protected function subMerchantDeclined()
     {
-        $reason = $notification->message;
-        $message = "Sorry, we could not approve your Merchant Account: $reason";
-        Core\Events\Dispatcher::trigger('notification', 'elgg/hook/activity', [
-          'to'=>[$notification->merchantAccount->id],
-          'from' => 100000000000000519,
-          'notification_view' => 'custom_message',
-          'params' => ['message'=>$message],
-          'message'=>$message
-        ]);
+        // $reason = $notification->message;
+        // $message = "Sorry, we could not approve your Merchant Account: $reason";
+        // Core\Events\Dispatcher::trigger('notification', 'elgg/hook/activity', [
+        //   'to'=>[$notification->merchantAccount->id],
+        //   'from' => 100000000000000519,
+        //   'notification_view' => 'custom_message',
+        //   'params' => ['message'=>$message],
+        //   'message'=>$message
+        // ]);
     }
 
     /**

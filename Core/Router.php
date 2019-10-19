@@ -182,7 +182,7 @@ class Router
         $handler = array_shift($path);
         $page = implode('/', $path);
 
-        new page(false); //just to load init etc
+        new page(); //just to load init etc
 
         return false;
     }

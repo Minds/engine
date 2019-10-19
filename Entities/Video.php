@@ -12,6 +12,14 @@ use Minds\Core\Di\Di;
 use cinemr;
 use Minds\Helpers;
 
+/**
+ * @property string $cinemr_guid
+ * @property string $super_subtype
+ * @property string $thumbnail
+ * @property string $boost_rejection_reason
+ * @property string $license
+ * @property int $time_sent
+ */
 class Video extends Object
 {
     private $cinemr;
@@ -25,6 +33,9 @@ class Video extends Object
         $this->attributes['boost_rejection_reason'] = -1;
         $this->attributes['rating'] = 2;
         $this->attributes['time_sent'] = null;
+        $this->attributes['thumbnail'] = null;
+        $this->attributes['license'] = null;
+        $this->attributes['cinemr_guid'] = 0;
     }
 
 

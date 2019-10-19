@@ -6,6 +6,7 @@ namespace Minds\Core\Suggestions\Pass;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Data\ElasticSearch\Prepared\Update as Prepared;
+use Minds\Common\Repository\Response;
 
 class Repository
 {

@@ -31,7 +31,7 @@ class Repository
     }
 
     /**
-     * @param varint $userGuid
+     * @param string $userGuid
      *
      * @return SendWyreAccount
      */
@@ -47,6 +47,7 @@ class Repository
             $result = $this->db->request($query);
         } catch (\Exception $e) {
             error_log($e);
+            return null;
         }
 
         if ($result && $result->count() > 0) {

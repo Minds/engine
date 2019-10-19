@@ -1,9 +1,15 @@
 <?php
 namespace Minds\Core\Security;
 
+use Minds\Core\Config;
+
 class ReCaptcha
 {
+    /** @var Config $config */
     private $config;
+
+    /** @var string $answer */
+    private $answer;
 
     public function __construct($config)
     {

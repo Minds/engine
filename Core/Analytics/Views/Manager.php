@@ -47,15 +47,14 @@ class Manager
 
     /**
      * Synchronise views from cassandra to elastic
-     * @param int $from
-     * @param int $to
+     * @param array
      * @return void
      */
     public function syncToElastic($opts = [])
     {
         $opts = array_merge([
             'from' => null,
-            'to' => $to,
+            'to' => time(),
             'day' => 5,
             'month' => 6,
             'year' => 2019,

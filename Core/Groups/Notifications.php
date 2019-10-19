@@ -21,7 +21,7 @@ class Notifications
     use Actorable;
 
     protected $relDB;
-    protected $indexDB;
+    protected $indexDb;
     protected $cql;
     protected $group;
 
@@ -42,7 +42,6 @@ class Notifications
         $cql = null,
         $notifications = null,
         $notificationBatches = null
-    
     ) {
         $this->relDB = $relDb ?: Di::_()->get('Database\Cassandra\Relationships');
         $this->indexDb = $indexDb ?: Di::_()->get('Database\Cassandra\Indexes');
@@ -105,7 +104,7 @@ class Notifications
     /**
      * Return send batch for group
      * @yield $guid
-     * @return void
+     * @return array
      */
     public function getSubscribedBatch()
     {

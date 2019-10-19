@@ -4,6 +4,7 @@
 namespace Minds\Core;
 
 use Minds\Entities\Factory;
+use Minds\Entities\Entity;
 
 class EntitiesBuilder
 {

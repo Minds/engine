@@ -8,6 +8,7 @@ use Minds\Core\Config;
 use Minds\Core\Entities;
 use Minds\Entities\User;
 use Minds\Core\Data;
+use Minds\Core\Data\Call;
 use Minds\Core\Analytics\Timestamps;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Message;

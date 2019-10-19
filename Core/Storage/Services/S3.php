@@ -99,6 +99,7 @@ class S3 implements ServiceInterface
                         'Key' => $this->filepath
                     ]);
                 } catch (\Exception $e) {
+                    return null;
                 }
                 return $result['Body'];
                 break;

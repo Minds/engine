@@ -2,7 +2,6 @@
 /**
  * Minds Data Client Factory
  */
-
 namespace Minds\Core\Data;
 
 class Client

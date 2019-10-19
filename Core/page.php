@@ -51,7 +51,7 @@ class page extends base
         }
 
         //\register_error('Sorry, you failed the CSRF check');
-        $this->forward(REFERRER);
+        $this->forward();
     }
 
     /**
@@ -80,7 +80,7 @@ class page extends base
     public function forward($location = "", $reason = 'system')
     {
         if (!headers_sent()) {
-            if ($location === REFERER) {
+            if ($location === $_SERVER['HTTP_REFERER']) {
                 $location = $_SERVER['HTTP_REFERER'];
             }
 

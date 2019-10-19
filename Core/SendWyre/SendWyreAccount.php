@@ -4,6 +4,10 @@ namespace Minds\Core\SendWyre;
 
 use Minds\Traits\MagicAttributes;
 
+/**
+ * @method SendWyreAccount getUserGuid(): string
+ * @method SendyWyreAccount getSendWyreAccountId(): string
+ */
 class SendWyreAccount
 {
     use MagicAttributes;

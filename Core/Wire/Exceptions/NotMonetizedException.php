@@ -8,8 +8,5 @@ namespace Minds\Core\Wire\Exceptions;
 
 class NotMonetizedException extends \Exception
 {
-    public function __construct()
-    {
-        $this->message = 'Sorry, this user cannot receive USD.';
-    }
+    protected $message = 'Sorry, this user cannot receive USD.';
 }

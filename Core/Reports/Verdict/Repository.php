@@ -40,7 +40,7 @@ class Repository
      * @param array $options 'limit', 'offset', 'state'
      * @return array
      */
-    public function getList(array $opts = [])
+    public function getList(array $opts = []): Response
     {
         return new Response;
     }

@@ -11,6 +11,9 @@ class Users
 {
     protected $db;
 
+    /** @var Entities\User */
+    private $user;
+
     public function __construct()
     {
     }

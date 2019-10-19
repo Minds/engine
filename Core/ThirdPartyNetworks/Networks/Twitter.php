@@ -11,6 +11,9 @@ class Twitter implements NetworkInterface
 {
     protected $config;
     protected $callbackUrl;
+    
+    /** @var array $credentials */
+    private $credentials;
 
     public function __construct()
     {

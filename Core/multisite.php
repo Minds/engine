@@ -4,9 +4,10 @@ namespace Minds\Core;
 /**
  * Minds Multisite Controller
  */
-class multisite extends base
+class multisite
 {
     protected $domain;
+    protected $host;
 
     public function __construct($domain = null)
     {
@@ -19,6 +20,8 @@ class multisite extends base
             $this->domain = $_SERVER['HTTP_HOST'];
         } elseif ($DOMAIN) {
             $this->domain = $DOMAIN;
+        } else {
+            $this->domain = $domain;
         }
 
         if (strpos($this->domain, ':', 0) !== false) {

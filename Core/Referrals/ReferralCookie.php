@@ -5,6 +5,7 @@
 namespace Minds\Core\Referrals;
 
 use Minds\Entities\User;
+use Minds\Entities\Entity;
 use Minds\Common\Cookie;
 use Zend\Diactoros\ServerRequest;
 

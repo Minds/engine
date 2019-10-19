@@ -16,7 +16,8 @@ use phpcassa\Index\IndexExpression;
 use phpcassa\Schema\DataType\LongType;
 use phpcassa\UUID;
 use Minds\Core;
-use Minds\Core\config;
+use Minds\Core\Config;
+use Exception;
 
 class Call
 {
@@ -27,7 +28,18 @@ class Call
     public static $counts = 0;
     private $pool;
     private $cf;
+    /** @var string */
+    private $cf_name;
+    /** @var string */
+    private $keyspace;
+    /** @var array */
+    private $servers;
+    /** @var Cassandra\Client */
     private $client;
+    /** @var int */
+    private $sendTimeout;
+    /** @var int */
+    private $requestTimeout;
 
     public function __construct(
         $cf = null,
@@ -44,7 +56,9 @@ class Call
         $this->keyspace = $keyspace ?: $CONFIG->cassandra->keyspace;
         $this->cf_name = $cf;
         $this->client = $cql ?: Core\Di\Di::_()->get('Database\Cassandra\Cql');
-
+        $this->pool = $pool;
+        $this->sendTimeout = $sendTimeout;
+        $this->requestTimeout = $requestTimeout;
         /*if ($this->keyspace != 'phpspec') {
             $this->ini();
         }*/
@@ -142,6 +156,7 @@ class Call
      */
     public function getByIndex(array $expressions = [], $offset = "", $limit = 10)
     {
+        $index_exps = [];
         foreach ($expressions as $column => $value) {
             $index_exps[] = new IndexExpression($column, $value);
         }
@@ -161,13 +176,15 @@ class Call
         array_push(self::$keys, $key);
 
         $options = array_merge(
-             [
+            [
              'multi' => false,
              'offset' => "",
              'finish' => "",
              'limit' => 500,
              'reversed' => true
-            ], $options);
+            ],
+            $options
+        );
 
         $query = new Cassandra\Prepared\Custom();
 
@@ -323,6 +340,7 @@ class Call
      */
     public function removeRows(array $keys)
     {
+        $return = [];
         foreach ($keys as $key) {
             $return[$key] = $this->removeRow($key);
         }

@@ -7,6 +7,7 @@
 
 namespace Minds\Core\Blockchain\Reports;
 
+use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Util\BigNumber;
 use Minds\Core\Blockchain\EthPrice;
@@ -37,9 +38,15 @@ class TokenSaleEvent extends AbstractReport
     /** @var array required parameters for the report */
     protected $required = ['from', 'to'];
 
+    /** @var int */
+    private $from;
+
+    /** @var int */
+    private $to;
+
     /**
      * Contructor
-     * @param Core\Config\Config $config
+     * @param Config $config
      */
     public function __construct($config = null)
     {

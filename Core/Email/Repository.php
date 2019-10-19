@@ -116,6 +116,7 @@ class Repository
             $result = $this->db->request($query);
         } catch (\Exception $e) {
             error_log($e);
+            return null;
         }
 
         if ($result) {

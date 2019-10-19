@@ -8,6 +8,8 @@
 
 namespace Minds\Core\Search\Mappings;
 
+use Minds\Common\Access;
+
 class EntityMapping implements MappingInterface
 {
     /** @var array $mappings */
@@ -127,7 +129,7 @@ class EntityMapping implements MappingInterface
 
         // Public
 
-        $map['public'] = !isset($this->entity->access_id) || $this->entity->access_id == ACCESS_PUBLIC;
+        $map['public'] = !isset($this->entity->access_id) || $this->entity->access_id == Access::PUBLIC;
 
         // Mature
 

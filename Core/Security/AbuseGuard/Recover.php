@@ -5,13 +5,18 @@
 namespace Minds\Core\Security\AbuseGuard;
 
 use Minds\Core;
+use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Helpers;
 
 class Recover
 {
+    /** @var Entities\User $accused */
     private $accused;
+
+    /** @var Client $client */
+    private $client;
 
     public function __construct($client = null)
     {
@@ -80,9 +85,7 @@ class Recover
                         'should' => [
                             [
                                 'term' => [
-                                    'entity_type.keyword' => 'comment'
-                                ],
-                                'term' => [
+                                    'entity_type.keyword' => 'comment',
                                     'user_guid.keyword' => $this->accused->getUser()->guid
                                 ]
                             ]

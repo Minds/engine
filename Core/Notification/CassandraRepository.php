@@ -18,8 +18,11 @@ class CassandraRepository
 {
     const NOTIFICATION_TTL = ((60 * 60) * 24) * 30; // 30 days
 
-    /** @var Client $cql */
+    /** @var Client */
     private $cql;
+
+    /** @var Urn */
+    private $urn;
 
     public function __construct($cql = null, $urn = null)
     {

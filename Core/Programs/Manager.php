@@ -7,7 +7,11 @@ use Minds\Core\Di\Di;
 
 class Manager
 {
+    /** @var Core\Data\Call $timeline */
     protected $timeline;
+
+    /** @var Entities\User $user */
+    protected $user;
 
     protected static $defaultSettings = [
         'ads' => [

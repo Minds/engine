@@ -14,6 +14,7 @@ use Minds\Entities\NormalizedEntity;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Common\Urn;
 use Minds\Core\Security\ACL;
+use Minds\Common\Repository\Response;
 
 class Manager
 {
@@ -45,7 +46,7 @@ class Manager
      * @param array $opts
      * @return Response
      */
-    public function getList($opts = [])
+    public function getList($opts = []): Response
     {
         $opts = array_merge([
             'hydrate' => false,

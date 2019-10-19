@@ -12,20 +12,11 @@ class Dispatcher
     private static $events = [];
 
     /**
-     * Initialise Core event listeners
-     */
-    public static function init()
-    {
-        Listeners\Channel::init();
-        Listeners\Comments::init();
-    }
-
-    /**
      * Register a handler for an event.
-     * @param type $event The event
-     * @param type $namespace Namespace for this event (e.g. object type)
-     * @param \callable $handler a callable handler
-     * @param type $priority Priority - lower numbers executed first.
+     * @param string $event The event
+     * @param string $namespace Namespace for this event (e.g. object type)
+     * @param callable $handler a callable handler
+     * @param string $priority Priority - lower numbers executed first.
      */
     public static function register($event, $namespace, $handler, $priority = 500)
     {
@@ -57,9 +48,9 @@ class Dispatcher
     /**
      * Unregister a handler.
      * TODO: Handle unregister of closures.
-     * @param type $namespace
-     * @param type $event
-     * @param \callable $handler
+     * @param string $namespace
+     * @param string $event
+     * @param callable $handler
      */
     public static function unregister($namespace, $event, $handler)
     {
@@ -146,7 +137,7 @@ class Dispatcher
                     }
                 }
             }
-        } catch (\Minds\Core\exceptions\StopEventException $ex) {
+        } catch (\Minds\Exceptions\StopEventException $ex) {
             // Stop execution when we get this exception, all other exceptions bubble up.
             return false;
         }

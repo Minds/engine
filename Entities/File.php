@@ -3,11 +3,24 @@ namespace Minds\Entities;
 
 use Minds\Core;
 use Minds\Interfaces\Flaggable;
+use Minds\Common\Access;
 
 /**
  * File Entity
  * @todo Do not inherit from ElggFile
  * @package Minds\Entities\File
+ * @method array getExportableValues()
+ * @method mixed|null getFlag(string $flag)
+ * @method File setFlag(string $flag, mixed $value)
+ * @method void save(bool $index)
+ * @method array getWireTotals()
+ * @method mixed getWireThreshold()
+ * @method File setWireThreshold(int $wire_threshold)
+ * @method int getModeratorGUID()
+ * @property string $super_subtype
+ * @property int $hidden
+ * @property int $time_moderated
+ * @property array $wire_threshold
  */
 class File extends \ElggFile implements Flaggable
 {
@@ -97,7 +110,7 @@ class File extends \ElggFile implements Flaggable
         parent::save($index);
 
         // Allow attachment unpublishing
-        if ($this->guid && $this->hidden && $this->access_id != ACCESS_PUBLIC) {
+        if ($this->guid && $this->hidden && $this->access_id != Access::PUBLIC) {
             // @todo: migrate to Prepared\Timeline()
             $db = new Core\Data\Call('entities_by_time');
             $remove = [

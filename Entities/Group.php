@@ -13,6 +13,12 @@ use Minds\Core\Groups\Membership;
 use Minds\Core\Groups\Invitations;
 use Minds\Traits\MagicAttributes;
 
+/**
+ * @method Group getOwnerObj() : array
+ * @method Group getMembership() : int
+ * @property int $time_created
+ * @property array $nsfwLock
+ */
 class Group extends NormalizedEntity
 {
     use MagicAttributes;
@@ -115,7 +121,7 @@ class Group extends NormalizedEntity
         }
 
         $this->saveToIndex();
-        \elgg_trigger_event($creation ? 'create' : 'update', $this->type, $this);
+        Dispatcher::trigger($creation ? 'create' : 'update', $this->type, $this);
 
         return $saved;
     }
@@ -431,7 +437,7 @@ class Group extends NormalizedEntity
     {
         $guids = $this->getOwnerGuids();
         return $guids
-            ? guids[0]
+            ? $guids[0]
             : $this->getOwnerObj()->guid;
     }
 
@@ -797,7 +803,7 @@ class Group extends NormalizedEntity
         $array = array_unique($array);
         foreach ($array as $reason) {
             if ($reason < 1 || $reason > 6) {
-                throw \Exception('Incorrect NSFW value provided');
+                throw new \Exception('Incorrect NSFW value provided');
             }
         }
         $this->nsfw = $array;
@@ -834,7 +840,7 @@ class Group extends NormalizedEntity
         $array = array_unique($array);
         foreach ($array as $reason) {
             if ($reason < 1 || $reason > 6) {
-                throw \Exception('Incorrect NSFW value provided');
+                throw new \Exception('Incorrect NSFW value provided');
             }
         }
         $this->nsfwLock = $array;

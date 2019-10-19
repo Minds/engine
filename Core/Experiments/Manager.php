@@ -4,6 +4,7 @@
  */
 namespace Minds\Core\Experiments;
 
+use Minds\Entities\User;
 use Minds\Interfaces\ModuleInterface;
 
 class Manager

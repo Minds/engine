@@ -2,11 +2,15 @@
 
 namespace Minds\Core\Analytics\UserStates;
 
+use Minds\Core\Data\Elasticsearch\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Queue;
 
 class Manager
 {
+    /** @var Client */
+    private $es;
+
     /** @var Queue\RabbitMQ\Client */
     private $queue;
 

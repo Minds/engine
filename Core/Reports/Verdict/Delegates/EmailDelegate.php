@@ -19,6 +19,7 @@ class EmailDelegate
     protected $entitiesBuilder;
 
     /** @var Urn $urn */
+    protected $urn;
 
     public function __construct($campaign = null, $entitiesBuilder = null, $urn = null)
     {

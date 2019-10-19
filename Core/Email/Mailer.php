@@ -12,8 +12,16 @@ use PHPMailer;
 
 class Mailer
 {
+    /** @var PHPMailer */
     private $mailer;
+    
+    /** @var Queue */
     private $queue;
+
+    /** @var SpamFilter */
+    private $filter;
+
+    /** @var array */
     private $stats;
 
     public function __construct($mailer = null, $queue = null, $filter = null)

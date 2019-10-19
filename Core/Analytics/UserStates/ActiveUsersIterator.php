@@ -5,6 +5,7 @@ namespace Minds\Core\Analytics\UserStates;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Data;
+use Minds\Core\Data\ElasticSearch\Client;
 
 /*
 * Iterator that loops through users and counts their action.active entries for the past N days
@@ -14,6 +15,9 @@ use Minds\Core\Data;
 
 class ActiveUsersIterator implements \Iterator
 {
+    /** @var Client */
+    private $client;
+    
     private $cursor = -1;
     private $period = 0;
     private $item;
@@ -23,6 +27,15 @@ class ActiveUsersIterator implements \Iterator
     private $data = [];
     private $active;
     private $valid = true;
+
+    /** @var int */
+    private $position;
+
+    /** @var string */
+    private $referenceDate;
+
+    /** @var int */
+    private $rangeOffset;
 
     public function __construct($client = null)
     {

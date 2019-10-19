@@ -27,6 +27,9 @@ class TestnetRewards
     protected $topic = "minds_news";
     protected $campaign = "global";
 
+    /** @var array */
+    protected $vars = [];
+
     public function __construct(Call $db = null, Template $template = null, Mailer $mailer = null)
     {
         $this->db = $db ?: new Call('entities_by_time');

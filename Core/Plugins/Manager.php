@@ -6,6 +6,7 @@
 namespace Minds\Core\Plugins;
 
 use Minds\Core\Di\Di;
+use Exception;
 
 class Manager
 {
@@ -38,16 +39,16 @@ class Manager
     private static function getFromDir()
     {
         $plugin_ids = [];
-        $handle = opendir($this->path);
+        // $handle = opendir($this->path);
 
-        if ($handle) {
-            while ($plugin_id = readdir($handle)) {
-                // must be directory and not begin with a .
-                if (substr($plugin_id, 0, 1) !== '.' && is_dir($dir . $plugin_id)) {
-                    $plugin_ids[] = $plugin_id;
-                }
-            }
-        }
+        // if ($handle) {
+        //     while ($plugin_id = readdir($handle)) {
+        //         // must be directory and not begin with a .
+        //         if (substr($plugin_id, 0, 1) !== '.' && is_dir($dir . $plugin_id)) {
+        //             $plugin_ids[] = $plugin_id;
+        //         }
+        //     }
+        // }
 
         return $plugin_ids;
     }

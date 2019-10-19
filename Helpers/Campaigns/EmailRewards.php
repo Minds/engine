@@ -30,6 +30,7 @@ class EmailRewards
         $user = new Entities\User($user_guid);
 
         $wire = false;
+	$tokens = 0;
 
         $cacher = Core\Data\cache\factory::build('apcu');
         $label = $campaign;

@@ -34,6 +34,12 @@ class Subscription
     private $addOns;
     private $coupon;
 
+    /** @var User */
+    private $user;
+
+    /** @var Entity */
+    private $entity;
+
     public function __construct()
     {
     }

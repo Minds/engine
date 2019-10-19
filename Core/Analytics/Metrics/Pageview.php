@@ -143,6 +143,6 @@ class Pageview implements AnalyticsMetric
      */
     public function total()
     {
-        return Helpers\Counters::get($this->key, "{$this->namespace}impression");
+        return 0;
     }
 }

@@ -164,9 +164,8 @@ class Manager
 
             if (!$this->features->has('cassandra-notifications')) {
                 $uuid = $this->repository->add($notification);
+                return $uuid;
             }
-
-            return $uuid;
         } catch (\Exception $e) {
             error_log($e);
             if (php_sapi_name() === 'cli') {

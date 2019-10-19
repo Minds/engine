@@ -46,6 +46,8 @@ class SitemapTrending extends SitemapModule
             case 'groups':
                 $key = 'group';
                 break;
+            default:
+                return;
         }
 
         $entities = $this->getEntities($key, $period);

@@ -5,17 +5,18 @@ parameters:
     excludes_analyse:
         - %currentWorkingDirectory%/vendor
         - %currentWorkingDirectory%/Spec
+        - %currentWorkingDirectory%/lib
+        - %currentWorkingDirectory%/classes
+        - $currentWorkingDirectory%/Core/Fediverse
     ignoreErrors:
-        ## Ignoring Cassandra is temporary
-        - 
-            message: '#Instantiated class Cassandra\\[a-zA-Z\\_]+ not found#'
+        ## If you are running into Cassandra errors, ensure you are using the minds/php-tests docker container
+        -
+            message: '#Function elgg_get_site_url not found.#'
             path: %currentWorkingDirectory%
         -
-            message: '#Call to static method text\(\) on an unknown class Cassandra\\Type\\Map#'
+            message: '#Function (elgg_view|elgg_register_event_handler|elgg_is_logged_in|elgg_trigger_event|elgg_trigger_plugin_hook|elgg_view_page|elgg_in_context|elgg_is_admin_logged_in|elgg_echo|get_input|get_resized_image_from_existing_file|system_message|current_page_url|datalist_set|register_user|forward) not found#'
             path: %currentWorkingDirectory%
         -
-            message: '#Call to static method boolean\(\) on an unknown class Cassandra\\Type\\Map#'
+            message: '#Result of static method Surge\\Messages\\Factory::build\(\) \(void\) is used.#'
             path: %currentWorkingDirectory%
-        -
-            message: '#Call to static method varint\(\) on an unknown class Cassandra\\Type\\Set#'
-            path: %currentWorkingDirectory%
+

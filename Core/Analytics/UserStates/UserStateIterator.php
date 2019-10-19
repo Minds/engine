@@ -24,10 +24,18 @@ class UserStateIterator implements \Iterator
     private $active;
     private $valid = true;
 
+    /** @var Client */
+    private $client;
+
+    /** @var int */
+    private $position = 0;
+
+    /** @var int */
+    private $referenceDate;
+
     public function __construct($client = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
-        $this->position = 0;
         $this->referenceDate = strtotime('midnight');
     }
 

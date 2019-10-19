@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Wire\Exceptions\WalletNotSetupException;
 use Minds\Entities;
 use Minds\Entities\User;
+use Minds\Common\Urn;
 
 class Manager
 {
@@ -132,35 +133,35 @@ class Manager
 
         switch ($address) {
             case "offchain":
-                $this->setPayload([
+                $this->wireManager->setPayload([
                     'method' => 'offchain',
                 ]);
                 break;
             case "money":
-                $this->setPayload([
+                $this->wireManager->setPayload([
                     'method' => 'money',
                 ]);
                 break;
             default:
-                $txHash = $this->client->sendRawTransaction(
-                    $this->config->get('blockchain')['contracts']['wire']['wallet_pkey'],
-                    [
-                        'from' => $this->config->get('blockchain')['contracts']['wire']['wallet_address'],
-                        'to' => $this->config->get('blockchain')['contracts']['wire']['contract_address'],
-                        'gasLimit' => BigNumber::_(200000)->toHex(true),
-                        'data' => $this->client->encodeContractMethod('wireFromDelegate(address,address,uint256)', [
-                            $address,
-                            $receiver->getEthWallet(),
-                            BigNumber::_($this->token->toTokenUnit($amount))->toHex(true),
-                        ]),
-                    ]
-                );
-                $this->setPayload([
-                    'method' => 'onchain',
-                    'address' => $address, //sender address
-                    'receiver' => $receiver->getEthWallet(),
-                    'txHash' => $txHash,
-                ]);
+                // $txHash = $this->client->sendRawTransaction(
+                //     $this->config->get('blockchain')['contracts']['wire']['wallet_pkey'],
+                //     [
+                //         'from' => $this->config->get('blockchain')['contracts']['wire']['wallet_address'],
+                //         'to' => $this->config->get('blockchain')['contracts']['wire']['contract_address'],
+                //         'gasLimit' => BigNumber::_(200000)->toHex(true),
+                //         'data' => $this->client->encodeContractMethod('wireFromDelegate(address,address,uint256)', [
+                //             $address,
+                //             $receiver->getEthWallet(),
+                //             BigNumber::_($this->token->toTokenUnit($amount))->toHex(true),
+                //         ]),
+                //     ]
+                // );
+                // $this->setPayload([
+                //     'method' => 'onchain',
+                //     'address' => $address, //sender address
+                //     'receiver' => $receiver->getEthWallet(),
+                //     'txHash' => $txHash,
+                // ]);
         }
 
         // Manager acts as factory

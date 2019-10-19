@@ -6,6 +6,7 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Core\Events\Dispatcher;
+use Minds\Core\Events\Event;
 use Minds\Entities\User;
 
 class Events
@@ -120,6 +121,7 @@ class Events
             try {
                 $isAllowed = Di::_()->get('Wire\Thresholds')->isAllowed($user, $entity);
             } catch (\Exception $e) {
+                return $event->setResponse(false);
             }
 
             if ($isAllowed) {

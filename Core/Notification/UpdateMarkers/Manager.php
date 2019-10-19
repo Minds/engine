@@ -9,6 +9,12 @@ use Minds\Core\Sockets;
 
 class Manager
 {
+    /** @var Repository */
+    private $repository;
+
+    /** @var Sockets\Events */
+    private $sockets;
+
     public function __construct($repository = null, $sockets = null)
     {
         $this->repository = $repository ?: new Repository;

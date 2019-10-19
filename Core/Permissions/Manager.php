@@ -10,9 +10,9 @@ use Minds\Core\Di\Di;
 class Manager
 {
     /** @var EntityBuilder */
-    private $entityBuilder;
+    private $entitiesBuilder;
 
-    public function __construct($entityBuilder = null)
+    public function __construct($entitiesBuilder = null)
     {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
     }

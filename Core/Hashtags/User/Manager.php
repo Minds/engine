@@ -103,9 +103,7 @@ class Manager
 
         // Default hashtags
 
-        if ($opts['defaults']) {
-            $defaults = $opts['defaults'] ? $this->config->get('tags') : [];
-        }
+        $defaults = $opts['defaults'] ? $this->config->get('tags') : [];
 
         // Merge and output
 

@@ -3,6 +3,7 @@
 namespace Minds\Core\Analytics\Metrics;
 
 use Minds\Core;
+use Minds\Core\Data\ElasticSearch\Client;
 
 /**
  * Class Event.
@@ -27,8 +28,13 @@ use Minds\Core;
  */
 class Event
 {
-    private $elatic;
+    /** @var Client */
+    private $elastic;
+
+    /** @var string */
     private $index = 'minds-metrics-';
+
+    /** @var array */
     protected $data;
 
     public function __construct($elastic = null)

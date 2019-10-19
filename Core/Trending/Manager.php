@@ -7,12 +7,21 @@ use Minds\Core\EntitiesBuilder;
 
 class Manager
 {
+    /** @var Repository $repository */
     private $repository;
+
+    /** @var EntityValidator $validator */
     private $validator;
+
+    /** @var EntitiesBuilder $entitiesBuilder */
+    private $entitiesBuilder;
 
     private $entities = [];
     private $from;
     private $to;
+
+    /** @var array $maps */
+    private $maps;
 
     public function __construct(
         $repository = null,
@@ -71,6 +80,8 @@ class Manager
                 throw new \Exception("Invalid type. Valid values are: 'newsfeed', 'images', 'videos', 'groups' and 'blogs'");
                 break;
         }
+
+        $guids = [];
 
         foreach ($ratings as $rating) {
             foreach ($maps as $key => $map) {

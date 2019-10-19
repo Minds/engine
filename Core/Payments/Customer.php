@@ -15,10 +15,11 @@ class Customer
     private $email;
 
     private $payment_methods;
+    private $token;
 
     public function __construct($lu = null)
     {
-        $this->lu = Di::_()->get('Database\Cassandra\Lookup');
+        $this->lu = $lu ?: Di::_()->get('Database\Cassandra\Lookup');
     }
 
     public function setUser($user)

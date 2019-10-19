@@ -6,6 +6,8 @@ class Upload
     public static function parsePhpInput()
     {
         $input = fopen("php://input", "r");
+	$raw_headers = null;
+	$body = null;
 
         $raw = '';
         while ($data = fread($input, 1024)) {

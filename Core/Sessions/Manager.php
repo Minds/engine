@@ -8,6 +8,7 @@ namespace Minds\Core\Sessions;
 use Minds\Common\Cookie;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Entities\User;
 use Lcobucci\JWT;
 use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Rsa\Sha512;
@@ -22,6 +23,12 @@ class Manager
 
     /** @var Cookie $cookie */
     private $cookie;
+
+    /** @var JWT\Builder $jwtBuilder */
+    private $jwtBuilder;
+
+    /** @var JWT\Parser $jwtParser */
+    private $jwtParser;
 
     /** @var SentryScopeDelegate $sentryScopeDelegate */
     private $sentryScopeDelegate;

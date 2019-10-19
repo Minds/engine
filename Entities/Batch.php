@@ -12,6 +12,7 @@ class Batch extends Object
 {
     public function __construct($guid = null)
     {
+        parent::__construct($guid);
         if ($guid) {
             $this->loadFromGUID($guid);
         }

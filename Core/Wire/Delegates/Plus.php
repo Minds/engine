@@ -6,6 +6,7 @@ namespace Minds\Core\Wire\Delegates;
 
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Wire\Wire;
 
 class Plus
 {

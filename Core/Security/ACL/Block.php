@@ -13,6 +13,10 @@ class Block
 {
     private static $_;
     private $db;
+
+    /** @var Cassandra\Client $cql */
+    private $cql;
+
     private $cacher;
 
     public function __construct($db = null, $cql = null, $cacher = null)

@@ -10,6 +10,7 @@ use Minds\Entities;
 
 class Aggregates
 {
+    private $client;
     private $start = 0;
     private $end = 0;
     private $limit = 100;

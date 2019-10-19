@@ -6,9 +6,38 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Queue;
 use Minds\Core\Analytics;
+use Minds\Entities\User;
 
 /**
  * Activity Entity
+ * @property array $ownerObj
+ * @property User $owner
+ * @property int $boost_rejection_reason
+ * @property array $wire_threshold
+ * @property array $remind_object
+ * @property int $comments_enabled
+ * @property int $paywall
+ * @property int $edited
+ * @property int $deleted
+ * @property int $spam
+ * @property int $pending
+ * @property int $ephemeral
+ * @property string $entity_guid
+ * @property int $mature
+ * @property string $to_guid
+ * @property int $boosted
+ * @property int $boosted_onchain
+ * @property int $p2p_boosted
+ * @property string $title
+ * @property string $message
+ * @property string $perma_url
+ * @property string $blurb
+ * @property array $custom_data
+ * @property string $custom_type
+ * @property string $thumbnail_src
+ * @property string $boosted_guid
+ * @property string $urn
+ * @property int $time_sent
  */
 class Activity extends Entity
 {
@@ -27,7 +56,7 @@ class Activity extends Entity
         parent::initializeAttributes();
         $this->attributes = array_merge($this->attributes, [
             'type' => 'activity',
-            'owner_guid' => elgg_get_logged_in_user_guid(),
+            'owner_guid' => Core\Session::getLoggedInUserGuid(),
             'access_id' => 2, //private,
             'mature' => false,
             'spam' => false,
@@ -187,7 +216,8 @@ class Activity extends Entity
      */
     public function getExportableValues()
     {
-        return array_merge(parent::getExportableValues(),
+        return array_merge(
+            parent::getExportableValues(),
             [
                 'title',
                 'blurb',
@@ -221,7 +251,8 @@ class Activity extends Entity
                 'hide_impressions',
                 'pinned',
                 'time_sent',
-            ]);
+            ]
+        );
     }
 
     /**

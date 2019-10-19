@@ -18,11 +18,13 @@ class Conversations
     private $redis;
     private $user;
     private $toUpgrade = [];
+    private $config;
+    private $cache;
 
     public function __construct($db = null, $indexDb = null, $redis = null, $cache = null, $config = null)
     {
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
-        $this->indexDb = $db ?: Di::_()->get('Database\Cassandra\Indexes');
+        $this->indexDb = $indexDb ?: Di::_()->get('Database\Cassandra\Indexes');
         $this->redis = $redis ?: new \Redis();
         $this->config = $config ?: Di::_()->get('Config');
         $this->cache = $cache ?: new Messenger\ConversationsCache($this->redis, $this->config);
@@ -66,9 +68,8 @@ class Conversations
             $conversations[$key] = $item['value'];
         }
 
+        $return = [];
         if ($conversations) {
-            $return = [];
-
             $i = 0;
             $ready = false;
             foreach ($conversations as $guid => $data) {
@@ -108,7 +109,7 @@ class Conversations
             }
         }
 
-        if (!$return) {
+        if (empty($return)) {
             return $return;
         }
 
