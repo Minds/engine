@@ -37,22 +37,20 @@ class review implements Interfaces\Api
         $feeds = Core\Di\Di::_()->get('Groups\Feeds');
         $feeds->setGroup($group);
 
-        $count = $feeds->count();
-
-        if (isset($pages[1]) && $pages[1] == 'count') {
-            return Factory::response([
-                'adminqueue:count' => $count
-            ]);
-        }
-
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 12;
         $offset = isset($_GET['offset']) ? $_GET['offset'] : '';
 
         $result = $feeds->getAll([ 'limit' => $limit, 'offset' => $offset ]);
+        $activities = Factory::exportable($result['data']);
+        if (isset($pages[1]) && $pages[1] == 'count') {
+            return Factory::response([
+                'adminqueue:count' => count($activities)
+            ]);
+        }
 
         return Factory::response([
-            'activity' => Factory::exportable($result['data']),
-            'adminqueue:count' => $count,
+            'activity' => $activities,
+            'adminqueue:count' => count($activities),
             'load-next' => $result['next']
         ]);
     }
