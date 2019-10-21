@@ -124,10 +124,11 @@ class Repository
     public function get($urn)
     {
         list($type, $guid) = explode(':', $this->urn->setUrn($urn)->getNss(), 2);
+
         return $this->getList([
             'type' => $type,
             'guids' => [ $guid ],
-        ])[0];
+        ])->first();
     }
 
     /**
