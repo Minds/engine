@@ -46,6 +46,7 @@ class Push implements Interfaces\NotificationExtensionInterface
         $entity_type = 'object';
         $child_guid = '';
         $parent_guid = '';
+        $focusedUrn = '';
 
         if (method_exists($entity, 'getGuid')) {
             $entity_guid = $entity->getGuid();
@@ -57,6 +58,14 @@ class Push implements Interfaces\NotificationExtensionInterface
             $parent_guid = $entity->getEntityGuid();
         } elseif (isset($entity->parent_guid)) {
             $parent_guid = $entity->parent_guid;
+        }
+
+        if ($entity->type === 'comment') {
+            if (method_exists($entity, 'getUrn')) {
+                $focusedUrn = $entity->getUrn();
+            } elseif (isset($entity->urn)) {
+                $focusedUrn = $entity->urn;
+            }
         }
 
         if (isset($entity->entity_guid)) {
@@ -90,7 +99,8 @@ class Push implements Interfaces\NotificationExtensionInterface
             'parent_guid' => $parent_guid,
             'type' => $notification['params']['notification_view'],
             'uri' => $notification['uri'],
-            'badge' => $notification['count']
+            'badge' => $notification['count'],
+            'focusedUrn' => $focusedUrn
         ];
 
         $from_user = EntitiesFactory::build($notification['from'], [ 'cache' => true]) ?:
