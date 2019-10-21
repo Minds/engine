@@ -75,6 +75,14 @@ class Permissions implements \JsonSerializable
     public function calculate(array $entities = []): void
     {
         foreach ($entities as $entity) {
+            if (
+                !method_exists($entity, 'getOwnerObj')
+                && !method_exists($entity, 'getOwner')) {
+                continue;
+            }
+            if (!method_exists($entity, 'getOwnerGuid')) {
+                continue;
+            }
             if ($entity) {
                 $this->entities[$entity->getGuid()] = $this->getRoleForEntity($entity);
             }
