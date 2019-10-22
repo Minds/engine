@@ -174,4 +174,32 @@ class Manager
 
         return $success;
     }
+
+    /**
+    * Goes through a user's entities and updates them with the user's owner object
+    * @return bool
+    */
+    public function updateOwnerObject() : bool
+    {
+        $success = true;
+        if (!$this->user) {
+            throw new \InvalidArgumentException('Missing User');
+        }
+        $userGuid = $this->user->getGuid();
+        foreach (static::DELETION_DELEGATES as $delegateClassName) {
+            try {
+                $delegate = $this->artifactsDelegatesFactory->build($delegateClassName);
+                $done = $delegate->updateOwnerObject($userGuid, $this->user->toArray());
+
+                if (!$done) {
+                    throw new \Exception("{$delegateClassName} update failed for {$userGuid}");
+                }
+            } catch (\Exception $e) {
+                // TODO: Fail?
+                error_log((string) $e);
+                $success = false;
+            }
+        }
+        return $success;
+    }
 }

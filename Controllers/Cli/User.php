@@ -7,6 +7,8 @@ use Minds\Cli;
 use Minds\Interfaces;
 use Minds\Exceptions;
 use Minds\Entities;
+use Minds\Core\Channels\Manager;
+use Minds\Core\Di\Di;
 
 class User extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -80,5 +82,20 @@ class User extends Cli\Controller implements Interfaces\CliControllerInterface
             $this->out("An error has occured");
             $this->out($e);
         }
+    }
+
+    //Updates an user's activities based on their current state
+    public function reindex() : void
+    {
+        $username = $this->getOpt('username');
+        $user = new Entities\User($username);
+        if ($user === null || $user->getType() !== 'user') {
+            $this->out("Cannot find user to reindex");
+        }
+        $this->out("Reindexing {$username}");
+        /** @var Manager $channelsManager */
+        $channelsManager = Di::_()->get('Channels\Manager');
+        $channelsManager->setUser($user);
+        $channelsManager->updateOwnerObject();
     }
 }

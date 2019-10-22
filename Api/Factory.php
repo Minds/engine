@@ -235,7 +235,7 @@ class Factory
                 'user_guid' => Session::getLoggedinUser(),
                 'entities' => [$entity],
             ]);
-            $export['permissions'] = $permissions->exportPermission($entity->getGuid());
+            $export['permissions'] = $permissions->getPermission($entity->getGuid(), true);
         }
         $export['guid'] = (string) $export['guid']; //javascript doesn't like long numbers..
         if (isset($export['ownerObj']['guid'])) {

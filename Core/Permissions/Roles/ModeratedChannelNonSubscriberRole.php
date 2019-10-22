@@ -8,5 +8,6 @@ class ModeratedChannelNonSubscriberRole extends BaseRole
     {
         parent::__construct(Roles::ROLE_MODERATED_CHANNEL_NON_SUBSCRIBER);
         $this->addPermission(Flags::FLAG_VIEW);
+        $this->addPermission(Flags::FLAG_INTERACT);
     }
 }

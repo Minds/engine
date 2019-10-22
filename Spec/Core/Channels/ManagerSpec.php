@@ -177,4 +177,47 @@ class ManagerSpec extends ObjectBehavior
             ->restore(1000)
             ->shouldReturn(true);
     }
+
+    public function it_should_update_entities_throw_exception()
+    {
+        $this->shouldThrow(new \InvalidArgumentException('Missing User'))
+            ->during('updateOwnerObject');
+    }
+
+    public function it_should_update_entities(
+        User $user,
+        ArtifactsDelegateInterface $artifactsDelegateMock
+    ) {
+        $deletionDelegates = [
+            Artifacts\EntityDelegate::class,
+            Artifacts\LookupDelegate::class,
+            Artifacts\UserIndexesDelegate::class,
+            Artifacts\UserEntitiesDelegate::class,
+            Artifacts\SubscribersDelegate::class,
+            Artifacts\SubscriptionsDelegate::class,
+            Artifacts\ElasticsearchDocumentsDelegate::class,
+            Artifacts\CommentsDelegate::class,
+        ];
+
+        $user->getGUID()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $user->toArray()->shouldBeCalled()
+            ->willReturn([]);
+
+        $this->setUser($user);
+        foreach ($deletionDelegates as $deletionDelegate) {
+            $this->artifactsDelegatesFactory->build($deletionDelegate)
+                ->shouldBeCalled()
+                ->willReturn($artifactsDelegateMock);
+        }
+
+        $artifactsDelegateMock->updateOwnerObject(1000, [])
+            ->shouldBeCalledTimes(count($deletionDelegates))
+            ->willReturn(true);
+
+        $this->updateOwnerObject()
+        ->shouldReturn(true);
+    }
 }

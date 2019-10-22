@@ -119,10 +119,11 @@ class Exportable implements \JsonSerializable
                     'entities' => [$entity],
                 ]);
 
+                $entityPermission = $permissions->getPermission($entity->getGuid());
                 if ($item instanceof FeedSyncEntity) {
-                    $exported['entity']['permissions'] = $permissions->exportPermission($entity->getGuid());
+                    $exported['entity']['permissions'] = $permissions->getPermission($entity->getGuid(), true);
                 } else {
-                    $exported['permissions'] = $permissions->exportPermission($entity->getGuid());
+                    $exported['permissions'] = $permissions->getPermission($entity->getGuid(), true);
                 }
             }
 

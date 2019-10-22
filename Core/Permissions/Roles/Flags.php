@@ -20,6 +20,7 @@ class Flags
     public const FLAG_EDIT_COMMENT = 'edit_comment';
     public const FLAG_EDIT_GROUP = 'edit_group';
     public const FLAG_EDIT_POST = 'edit_post';
+    public const FLAG_INTERACT = 'interact';
     public const FLAG_INVITE = 'invite';
     public const FLAG_JOIN = 'join';
     public const FLAG_JOIN_GATHERING = 'gathering';
@@ -30,6 +31,7 @@ class Flags
     public const FLAG_WIRE = 'wire';
     public const FLAG_VIEW = 'view';
     public const FLAG_VOTE = 'vote';
+    public const FLAG_WRITE = 'write';
 
     final public static function toArray() : array
     {

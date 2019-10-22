@@ -187,4 +187,42 @@ class CommentsDelegateSpec extends ObjectBehavior
             ->delete(1000)
             ->shouldReturn(true);
     }
+
+    public function it_should_update_owner_object(
+        Comment $commentMock
+    ) {
+        $this->elasticsearch->request(Argument::that(function (PreparedSearch $search) {
+            $query = $search->build();
+
+
+            return $query['index'] === 'minds-metrics-*';
+        }))
+            ->shouldBeCalled()
+            ->willReturn(
+                [
+                    'aggregations' => [
+                        'comment_luids' => [
+                            'buckets' => [
+                                ['key' => 'a0000001'],
+                                ['key' => 'a0000002'],
+                            ],
+                        ],
+                    ],
+                ]
+            );
+
+        $this->commentManager->getByLuid('a0000001')
+            ->shouldBeCalled()
+            ->willReturn($commentMock);
+
+        $this->commentManager->getByLuid('a0000002')
+            ->shouldBeCalled()
+            ->willReturn($commentMock);
+        
+        $commentMock->setOwnerObj([])->shouldBeCalled();
+
+        $this->commentManager->update($commentMock)->shouldBeCalled();
+
+        $this->updateOwnerObject(1000, []);
+    }
 }

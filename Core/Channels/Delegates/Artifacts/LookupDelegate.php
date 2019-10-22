@@ -37,7 +37,7 @@ class LookupDelegate implements ArtifactsDelegateInterface
      * @param string|int $userGuid
      * @return bool
      */
-    public function snapshot($userGuid)
+    public function snapshot($userGuid) : bool
     {
         return true;
     }
@@ -46,7 +46,7 @@ class LookupDelegate implements ArtifactsDelegateInterface
      * @param string|int $userGuid
      * @return bool
      */
-    public function restore($userGuid)
+    public function restore($userGuid) : bool
     {
         return true;
     }
@@ -55,7 +55,7 @@ class LookupDelegate implements ArtifactsDelegateInterface
      * @param string|int $userGuid
      * @return bool
      */
-    public function hide($userGuid)
+    public function hide($userGuid) : bool
     {
         return true;
     }
@@ -64,7 +64,7 @@ class LookupDelegate implements ArtifactsDelegateInterface
      * @param string|int $userGuid
      * @return bool
      */
-    public function delete($userGuid)
+    public function delete($userGuid) : bool
     {
         $cql = "DELETE FROM user_index_to_guid WHERE key = ?";
         $values = [
@@ -80,5 +80,15 @@ class LookupDelegate implements ArtifactsDelegateInterface
         } catch (\Exception $e) {
             return false;
         }
+    }
+
+    /**
+    * @param string|int $userGuid
+    * Nothing to do here
+    * @return bool
+    */
+    public function updateOwnerObject($userGuid, array $ownerObject) : bool
+    {
+        return true;
     }
 }

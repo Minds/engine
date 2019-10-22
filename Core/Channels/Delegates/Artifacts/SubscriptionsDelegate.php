@@ -47,7 +47,7 @@ class SubscriptionsDelegate implements ArtifactsDelegateInterface
      * @param string|int $userGuid
      * @return bool
      */
-    public function snapshot($userGuid)
+    public function snapshot($userGuid) : bool
     {
         $cql = "SELECT * FROM friends WHERE key = ?";
         $values = [
@@ -82,7 +82,7 @@ class SubscriptionsDelegate implements ArtifactsDelegateInterface
      * @return bool
      * @throws Exception
      */
-    public function restore($userGuid)
+    public function restore($userGuid) : bool
     {
         $subscriber = new User();
         $subscriber->set('guid', $userGuid);
@@ -111,7 +111,7 @@ class SubscriptionsDelegate implements ArtifactsDelegateInterface
      * @return bool
      * @throws Exception
      */
-    public function hide($userGuid)
+    public function hide($userGuid) : bool
     {
         return $this->delete($userGuid);
     }
@@ -121,7 +121,7 @@ class SubscriptionsDelegate implements ArtifactsDelegateInterface
      * @return bool
      * @throws Exception
      */
-    public function delete($userGuid)
+    public function delete($userGuid) : bool
     {
         $subscriber = new User();
         $subscriber->set('guid', $userGuid);
@@ -152,5 +152,15 @@ class SubscriptionsDelegate implements ArtifactsDelegateInterface
             error_log((string) $e);
             return false;
         }
+    }
+
+    /**
+    * @param string|int $userGuid
+    * Nothing to do here
+    * @return bool
+    */
+    public function updateOwnerObject($userGuid, array $ownerObject) : bool
+    {
+        return true;
     }
 }

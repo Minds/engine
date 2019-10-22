@@ -27,7 +27,6 @@ class ChannelDeferredOps implements Interfaces\QueueRunner
 
                 $data = $data->getData();
                 $type = $data['type'] ?? null;
-
                 switch ($type) {
                     case 'delete':
                         echo "Got channel deletion cleanup request\n";
@@ -112,7 +111,17 @@ class ChannelDeferredOps implements Interfaces\QueueRunner
                         }
 
                         break;
-
+                    case "updateOwnerObject":
+                        echo "Processing updateOwnerObject request";
+                        $userGuid = $data['user_guid'] ?? null;
+                        if (!$userGuid) {
+                            echo "ERROR! Invalid User GUID";
+                            return;
+                        }
+                        echo "Updating {$userGuid}\n";
+                        $channelsManager->setUser(new User($userGuid, false));
+                        $channelsManager->updateOwnerObject();
+                        break;
                     default:
                         echo "ERROR! Invalid type {$type} passed\n\n";
                 }

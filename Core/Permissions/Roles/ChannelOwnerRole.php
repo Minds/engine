@@ -27,5 +27,7 @@ class ChannelOwnerRole extends BaseRole
         $this->addPermission(Flags::FLAG_TAG);
         $this->addPermission(Flags::FLAG_MESSAGE);
         $this->addPermission(Flags::FLAG_INVITE);
+        $this->addPermission(Flags::FLAG_INTERACT);
+        $this->addPermission(Flags::FLAG_WRITE);
     }
 }
