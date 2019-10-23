@@ -1510,3 +1510,18 @@ CREATE MATERIALIZED VIEW minds.pro_by_domain AS
     WHERE user_guid IS NOT NULL AND domain IS NOT NULL
     PRIMARY KEY (domain, user_guid)
     WITH CLUSTERING ORDER BY (user_guid ASC);
+
+CREATE TABLE minds.subscription_requests (
+    publisher_guid bigint,
+    subscriber_guid bigint,
+    timestamp timestamp,
+    declined boolean,
+    PRIMARY KEY (publisher_guid, subscriber_guid)
+);
+
+CREATE TABLE minds.notification_batches (
+    user_guid varint,
+    batch_id  text,
+    primary key (user_guid, batch_id)
+);
+
