@@ -903,11 +903,11 @@ class User extends \ElggUser
     /**
      * Is the user a plus user.
      *
-     * @return int
+     * @return bool
      */
     public function isPlus()
     {
-        return (bool) ((int) $this->plus_expires > time());
+        return $this->isPro() || ((int) $this->plus_expires > time());
     }
 
     /**
