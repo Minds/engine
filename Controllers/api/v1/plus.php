@@ -25,13 +25,22 @@ class plus implements Interfaces\Api
      */
     public function get($pages)
     {
-        $response = [];
+        $user = Core\Session::getLoggedInUser();
+
+        if (!$user) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Invalid user'
+            ]);
+        }
 
         $plus = new Core\Plus\Subscription();
-        $plus->setUser(Core\Session::getLoggedInUser());
-        $response['active'] = $plus->isActive();
+        $plus->setUser($user);
 
-        return Factory::response($response);
+        return Factory::response([
+            'active' => $plus->isActive(),
+            'can_be_cancelled' => $plus->canBeCancelled()
+        ]);
     }
 
     public function post($pages)

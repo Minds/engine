@@ -22,41 +22,35 @@ class SubscriptionSpec extends ObjectBehavior
     public function it_should_return_if_a_subscription_is_active(
         Stripe $stripe,
         Repository $repo,
-        Subscription $subscription
+        User $user
     ) {
         $this->beConstructedWith($stripe, null, $repo);
 
-        $repo->getList(Argument::any())->willReturn([
-            $subscription
-        ]);
+        $user->isPlus()
+            ->shouldBeCalled()
+            ->willReturn(true);
 
-        $subscription->getStatus()->willReturn('active');
-
-        $user = new User();
-        $user->guid = 123;
-
-        $this->setUser($user);
-        $this->isActive()->shouldBe(true);
+        $this
+            ->setUser($user)
+            ->isActive()
+            ->shouldBe(true);
     }
 
     public function it_should_return_false_if_a_subscription_is_active(
         Stripe $stripe,
         Repository $repo,
-        Subscription $subscription
+        User $user
     ) {
         $this->beConstructedWith($stripe, null, $repo);
 
-        $repo->getList(Argument::any())->willReturn([
-            $subscription
-        ]);
+        $user->isPlus()
+            ->shouldBeCalled()
+            ->willReturn(false);
 
-        $subscription->getStatus()->willReturn('cancelled');
-
-        $user = new User();
-        $user->guid = 123;
-
-        $this->setUser($user);
-        $this->isActive()->shouldBe(false);
+        $this
+            ->setUser($user)
+            ->isActive()
+            ->shouldBe(false);
     }
 
     public function is_should_create_a_new_subscription(
