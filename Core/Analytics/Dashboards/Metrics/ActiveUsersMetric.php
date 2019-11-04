@@ -39,7 +39,7 @@ class ActiveUsersMetric extends AbstractMetric
         $timespan = $this->timespansCollection->getSelected();
         $filters = $this->filtersCollection->getSelected();
 
-        $comparisonTsMs = strtotime("-{$timespan->getComparisonInterval()} days", $timespan->getFromTsMs() / 1000) * 1000;
+        $comparisonTsMs = strtotime("midnight -{$timespan->getComparisonInterval()} days", $timespan->getFromTsMs() / 1000) * 1000;
         $currentTsMs = $timespan->getFromTsMs();
 
         // Field name to use for the aggregation
@@ -76,10 +76,14 @@ class ActiveUsersMetric extends AbstractMetric
                 ],
             ];
 
+            $must[]['exists'] = [
+                'field' => 'active::total',
+            ];
+
             $must[]['range'] = [
                 '@timestamp' => [
                     'gte' => $tsMs,
-                    'lte' => strtotime("midnight +{$timespan->getComparisonInterval()} days", $tsMs / 1000) * 1000,
+                    'lt' => strtotime("midnight tomorrow +{$timespan->getComparisonInterval()} days", $tsMs / 1000) * 1000,
                 ],
             ];
 
@@ -143,6 +147,10 @@ class ActiveUsersMetric extends AbstractMetric
         // Use our global metrics
         $must[]['term'] = [
             'entity_urn' => 'urn:metric:global'
+        ];
+
+        $must[]['exists'] = [
+            'field' => 'active::total',
         ];
 
         // Specify the resolution to avoid duplicates
