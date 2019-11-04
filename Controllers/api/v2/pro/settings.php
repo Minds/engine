@@ -8,6 +8,7 @@ namespace Minds\Controllers\api\v2\pro;
 
 use Exception;
 use Minds\Core\Di\Di;
+use Minds\Core\Pro\Domain as ProDomain;
 use Minds\Core\Pro\Manager;
 use Minds\Core\Session;
 use Minds\Entities\User;
@@ -79,6 +80,18 @@ class settings implements Interfaces\Api
                 'status' => 'error',
                 'message' => 'You are not Pro',
             ]);
+        }
+
+        if (isset($_POST['domain'])) {
+            /** @var ProDomain $proDomain */
+            $proDomain = Di::_()->get('Pro\Domain');
+
+            if (!$proDomain->isAvailable($_POST['domain'], (string) $user->guid)) {
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => 'This domain is taken',
+                ]);
+            }
         }
 
         try {
