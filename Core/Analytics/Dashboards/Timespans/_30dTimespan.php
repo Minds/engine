@@ -16,7 +16,7 @@ class _30dTimespan extends AbstractTimespan
     protected $fromTsMs;
 
     /** @var int */
-    protected $comparisonInterval = 28;
+    protected $comparisonInterval = 30;
 
     public function __construct()
     {
