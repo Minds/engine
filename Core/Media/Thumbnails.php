@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\Media;
 
 use Minds\Core;
@@ -23,8 +24,13 @@ class Thumbnails
 
         $loggedInUser = Core\Session::getLoggedinUser();
 
-        if (!Di::_()->get('Wire\Thresholds')->isAllowed($loggedInUser, $entity)) {
-            return false;
+        try {
+            if (!Di::_()->get('Wire\Thresholds')->isAllowed($loggedInUser, $entity)) {
+                return false;
+            }
+        } catch (\Exception $e) {
+            error_log('[Core/Media/Thumbnails::get] ' . $e->getMessage());
+            // don't do anything if the entity cannot be paywalled
         }
 
         $user = $entity->getOwnerEntity(false);
