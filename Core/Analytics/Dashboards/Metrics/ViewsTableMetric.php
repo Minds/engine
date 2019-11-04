@@ -151,7 +151,7 @@ class ViewsTableMetric extends AbstractMetric
             ->setColumns([
                 [
                     'id' => 'entity',
-                    'label' => '',
+                    'label' => 'Content',
                     'order' => 0,
                 ],
                 [
