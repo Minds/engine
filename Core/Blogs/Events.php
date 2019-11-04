@@ -5,6 +5,7 @@ namespace Minds\Core\Blogs;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Event;
 use Minds\Core\Events\EventsDispatcher;
+use Minds\Core\Session;
 
 class Events
 {
@@ -36,6 +37,30 @@ class Events
             $blog = $event->getParameters()['entity'];
             $manager = Di::_()->get('Blogs\Manager');
             $event->setResponse($manager->update($blog));
+        });
+
+        $this->eventsDispatcher->register('export:extender', 'blog', function (Event $event) {
+            $params = $event->getParameters();
+            /** @var Core\Blogs\Blog $blog */
+            $blog = $params['entity'];
+            $export = $event->response() ?: [];
+            $currentUser = Session::getLoggedInUserGuid();
+
+            $dirty = false;
+
+            if ($blog->isPaywall() && $blog->owner_guid != $currentUser) {
+                $export['description'] = '';
+                $export['body'] = '';
+                $dirty = true;
+            }
+
+            if ($dirty) {
+                return $event->setResponse($export);
+            }
+
+            if (!$currentUser) {
+                return;
+            }
         });
     }
 }
