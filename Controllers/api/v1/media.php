@@ -50,10 +50,12 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                     if (isset($pages[1]) && $pages[1] == 'play') {
                         http_response_code(302);
 
+                        $res = !empty($_GET['res']) && in_array($_GET['res'], ['360', '720', '1080'], true) ?$_GET['res'] : '360';
+
                         if ($entity->subtype == 'audio') {
                             \forward($entity->getSourceUrl('128.mp3'));
                         } else {
-                            \forward($entity->getSourceUrl('360.mp4'));
+                            \forward($entity->getSourceUrl("{$res}.mp4"));
                         }
 
                         exit;
@@ -65,8 +67,11 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                         $response = $entities[0];
                         $response['transcodes'] = [
                             '360.mp4' => $entity->getSourceUrl('360.mp4'),
-                            '720.mp4' =>  $entity->getSourceUrl('720.mp4')
+                            '720.mp4' => $entity->getSourceUrl('720.mp4'),
                         ];
+                        if ($entity->getFlag('full_hd')) {
+                            $response['transcodes']['1080.mp4'] = $entity->getSourceUrl('1080.mp4');
+                        }
                     }
 
                     if (method_exists($entity, 'getWireThreshold')) {
@@ -165,6 +170,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                 $body = $req['body'];
                 fwrite($fp, $body);
                 $video->access_id = 0;
+                $video->patch(['full_hd', Core\Session::getLoggedinUser()->isPro()]);
                 $video->upload($tmpFilename);
                 $guid = $video->save();
                 fclose($fp);
@@ -265,7 +271,8 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
             'access_id' => 0,
             'owner_guid' => $user->guid,
             'hidden' => $container_guid !== null,
-            'container_guid' => $container_guid
+            'container_guid' => $container_guid,
+            'full_hd' => $user->isPro(),
         ]);
 
         $assets = Core\Media\AssetsFactory::build($entity);
