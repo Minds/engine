@@ -36,6 +36,13 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                 return Factory::response(['status' => 'error']);
             }
 
+            if (!in_array($this->getType($entity), ['object:video', 'object:image'], true)) {
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => 'Entity is not a media entity',
+                ]);
+            }
+
             switch ($entity->subtype) {
                 case "video":
                     // Helpers\Counters::increment($pages[0], 'plays');
@@ -267,7 +274,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
         $entity->setAssets($assets->upload($media, $data));
 
         // Save initial entity
-       
+
         $success =  $save
             ->setEntity($entity)
             ->save(true);
@@ -355,5 +362,10 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         return $response;
+    }
+
+    private function getType($entity): string
+    {
+        return $entity->subtype ? "{$entity->type}:{$entity->subtype}" : $entity->type;
     }
 }
