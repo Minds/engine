@@ -540,7 +540,7 @@ $CONFIG->set('transcoder', [
             'bitrate' => 500,
             'audio_bitrate' => 80,
             'formats' => [ 'mp4', 'webm' ],
-            'charge' => false,
+            'pro' => false,
         ],
         [
             'width' => 1280,
@@ -548,7 +548,7 @@ $CONFIG->set('transcoder', [
             'bitrate' => 2000,
             'audio_bitrate' => 128,
             'formats' => [ 'mp4', 'webm' ],
-            'charge' => false,
+            'pro' => false,
         ],
         [
             'width' => 1920,
@@ -556,7 +556,7 @@ $CONFIG->set('transcoder', [
             'bitrate' => 2000,
             'audio_bitrate' => 128,
             'formats' => [ 'mp4', 'webm' ],
-            'charge' => true,
+            'pro' => true,
         ],
     ]
 ]);
