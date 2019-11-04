@@ -54,7 +54,7 @@ class SignupsMetric extends AbstractMetric
             $must[]['range'] = [
                 '@timestamp' => [
                     'gte' => $tsMs,
-                    'lte' => strtotime("midnight +{$timespan->getComparisonInterval()} days", $tsMs / 1000) * 1000,
+                    'lt' => strtotime("midnight tomorrow +{$timespan->getComparisonInterval()} days", $tsMs / 1000) * 1000,
                 ],
             ];
 

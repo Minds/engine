@@ -7,6 +7,7 @@ class Manager
         'traffic' => TrafficDashboard::class,
         'trending' => TrendingDashboard::class,
         'earnings' => EarningsDashboard::class,
+        'engagement' => EngagementDashboard::class,
     ];
 
     /**

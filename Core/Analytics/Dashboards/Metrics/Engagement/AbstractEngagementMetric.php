@@ -1,5 +1,5 @@
 <?php
-namespace Minds\Core\Analytics\Dashboards\Metrics\Earnings;
+namespace Minds\Core\Analytics\Dashboards\Metrics\Engagement;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
@@ -8,7 +8,7 @@ use Minds\Core\Analytics\Dashboards\Metrics\AbstractMetric;
 use Minds\Core\Analytics\Dashboards\Metrics\MetricSummary;
 use Minds\Core\Analytics\Dashboards\Metrics\Visualisations;
 
-abstract class AbstractEarningsMetric extends AbstractMetric
+abstract class AbstractEngagementMetric extends AbstractMetric
 {
     /** @var Elasticsearch\Client */
     private $es;
@@ -26,7 +26,7 @@ abstract class AbstractEarningsMetric extends AbstractMetric
     protected $permissions = [ 'user', 'admin' ];
 
     /** @var string */
-    protected $unit = 'usd';
+    protected $unit = 'number';
 
     /** @var string */
     protected $aggField = '';
@@ -51,13 +51,14 @@ abstract class AbstractEarningsMetric extends AbstractMetric
         foreach ([ 'value' => $currentTsMs, 'comparison' => $comparisonTsMs ] as $key => $tsMs) {
             $must = [];
 
+            $maxTs = strtotime("midnight tomorrow +{$timespan->getComparisonInterval()} days", $tsMs / 1000);
             $must[]['range'] = [
                 '@timestamp' => [
                     'gte' => $tsMs,
-                    'lt' => strtotime("midnight tomorrow +{$timespan->getComparisonInterval()} days", $tsMs / 1000) * 1000,
+                    'lt' => $maxTs * 1000,
                 ],
             ];
-
+            
             if ($userGuid = $this->getUserGuid()) {
                 $must[] = [
                     'term' => [
@@ -72,8 +73,12 @@ abstract class AbstractEarningsMetric extends AbstractMetric
                 ],
             ];
 
+            $indexes = implode(',', [
+                'minds-entitycentric-' . date('m-Y', $tsMs / 1000),
+                'minds-entitycentric-' . date('m-Y', $maxTs),
+            ]);
             $query = [
-                'index' => 'minds-entitycentric-*',
+                'index' =>  'minds-entitycentric-*',
                 'size' => 0,
                 'body' => [
                     'query' => [
@@ -97,7 +102,7 @@ abstract class AbstractEarningsMetric extends AbstractMetric
             $response = $this->es->request($prepared);
             $values[$key] = $response['aggregations']['1']['value'];
         }
-        
+
         $this->summary = new MetricSummary();
         $this->summary
             ->setValue($values['value'])
@@ -135,7 +140,7 @@ abstract class AbstractEarningsMetric extends AbstractMetric
 
         $must[] = [
             'exists' => [
-                'field' => $this->aggField,
+               'field' => $this->aggField,
             ],
         ];
 
