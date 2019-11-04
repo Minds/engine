@@ -86,7 +86,7 @@ class Repository
         $opts['parent_guid_l1'] = $parent_guids[0] ?? 0;
         $opts['parent_guid_l2'] = $parent_guids[1] ?? 0;
         $opts['parent_guid_l3'] = 0; //do not support l3 yet
-        
+
         $cql = "SELECT * from comments";
         $values = [];
         $cqlOpts = [];
@@ -94,16 +94,25 @@ class Repository
         $where = [];
 
         if ($opts['entity_guid']) {
+            if (!is_numeric($opts['entity_guid'])) {
+                return new Response();
+            }
             $where[] = 'entity_guid = ?';
             $values[] = new Varint($opts['entity_guid']);
         }
 
         if ($opts['parent_guid_l1'] !== null) {
+            if (!is_numeric($opts['parent_guid_l1'])) {
+                return new Response();
+            }
             $where[] = 'parent_guid_l1 = ?';
             $values[] = new Varint((int) $opts['parent_guid_l1']);
         }
 
         if ($opts['parent_guid_l2'] !== null) {
+            if (!is_numeric($opts['parent_guid_l2'])) {
+                return new Response();
+            }
             $where[] = 'parent_guid_l2 = ?';
             $values[] = new Varint((int) $opts['parent_guid_l2']);
         }
