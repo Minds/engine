@@ -127,13 +127,38 @@ class Resize
 
         $params = $this->getResizeParameters();
 
-        // First crop the image
-        $this->image->cropImage($params['selectionwidth'], $params['selectionheight'], $params['xoffset'],
-            $params['yoffset']);
+        // If is animated,
+        if ($this->image->getNumberImages() > 1) {
+            foreach ($this->image as $frame) {
+                // Crop into square.
+                $frame->cropImage(
+                    $params['selectionwidth'],
+                    $params['selectionheight'],
+                    $params['xoffset'],
+                    $params['yoffset']
+                );
 
-        // If selected with / height differ from selection width/height, then we need to resize
-        if ($params['selectionwidth'] !== $params['newwidth'] || $params['selectionheight'] !== $params['newheight']) {
-            $this->image->thumbnailImage($params['newwidth'], $params['newheight']);
+                // Resize canvas to new image
+                $frame->setImagePage(0, 0, 0, 0);
+                
+                // If selected with / height differ from selection width/height, then we need to resize
+                if ($params['selectionwidth'] !== $params['newwidth'] || $params['selectionheight'] !== $params['newheight']) {
+                    $frame->thumbnailImage($params['newwidth'], $params['newheight']);
+                }
+            }
+        } else {
+            // Crop the image to selection dimensions
+            $this->image->cropImage(
+                $params['selectionwidth'],
+                $params['selectionheight'],
+                $params['xoffset'],
+                $params['yoffset']
+            );
+
+            // If selected with / height differ from selection width/height, then we need to resize
+            if ($params['selectionwidth'] !== $params['newwidth'] || $params['selectionheight'] !== $params['newheight']) {
+                $this->image->thumbnailImage($params['newwidth'], $params['newheight']);
+            }
         }
 
         $this->output = $this->image;
