@@ -43,10 +43,11 @@ class HydrateSettingsDelegate
     public function onGet(User $user, Settings $settings): Settings
     {
         try {
-            $logoImage = $settings->getLogoGuid() ? sprintf(
-                '%sfs/v1/thumbnail/%s/master',
+            $logoImage = $settings->hasCustomLogo() ? sprintf(
+                '%sfs/v1/pro/%s/logo/%s',
                 $this->config->get('cdn_url'),
-                $settings->getLogoGuid()
+                $settings->getUserGuid(),
+                $settings->getTimeUpdated()
             ) : $user->getIconURL('large');
 
             if ($logoImage) {
@@ -58,17 +59,32 @@ class HydrateSettingsDelegate
         }
 
         try {
-            $carousels = $this->entitiesBuilder->get(['subtype' => 'carousel', 'owner_guid' => (string) $user->guid]);
-            $carousel = $carousels[0] ?? null;
+            $backgroundImage = null;
 
-            if ($carousel) {
-                $settings
-                    ->setBackgroundImage(sprintf(
+            if ($settings->hasCustomBackground()) {
+                $backgroundImage = sprintf(
+                    '%sfs/v1/pro/%s/background/%s',
+                    $this->config->get('cdn_url'),
+                    $settings->getUserGuid(),
+                    $settings->getTimeUpdated()
+                );
+            } else {
+                $carousels = $this->entitiesBuilder->get(['subtype' => 'carousel', 'owner_guid' => (string) $user->guid]);
+                $carousel = $carousels[0] ?? null;
+
+                if ($carousel) {
+                    $backgroundImage = sprintf(
                         '%sfs/v1/banners/%s/fat/%s',
                         $this->config->get('cdn_url'),
                         $carousel->guid,
                         $carousel->last_updated
-                    ));
+                    );
+                }
+            }
+
+            if ($backgroundImage) {
+                $settings
+                    ->setBackgroundImage($backgroundImage);
             }
         } catch (\Exception $e) {
             error_log($e);
@@ -96,6 +112,7 @@ class HydrateSettingsDelegate
             error_log($e);
         }
 
+        $settings->setPublished($user->isProPublished());
         return $settings;
     }
 }

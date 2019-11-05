@@ -258,18 +258,6 @@ class Manager
                 ->setTileRatio($values['tile_ratio']);
         }
 
-        if (isset($values['logo_guid']) && $values['logo_guid'] !== '') {
-            $image = $this->entitiesBuilder->single($values['logo_guid']);
-
-            // if the image doesn't exist or the guid doesn't correspond to an image
-            if (!$image || ($image->type !== 'object' || $image->subtype !== 'image')) {
-                throw new \Exception('logo_guid must be a valid image guid');
-            }
-
-            $settings
-                ->setLogoGuid(trim($values['logo_guid']));
-        }
-
         if (isset($values['footer_text'])) {
             $footer_text = trim($values['footer_text']);
 
@@ -321,6 +309,25 @@ class Manager
             $settings
                 ->setCustomHead($values['custom_head']);
         }
+
+        if (isset($values['has_custom_logo'])) {
+            $settings
+                ->setHasCustomLogo((bool) $values['has_custom_logo']);
+        }
+
+        if (isset($values['has_custom_background'])) {
+            $settings
+                ->setHasCustomBackground((bool) $values['has_custom_background']);
+        }
+
+        if (isset($values['published'])) {
+            $this->user->setProPublished($values['published']);
+            $this->saveAction
+                ->setEntity($this->user)
+                ->save();
+        }
+
+        $settings->setTimeUpdated(time());
 
         $this->setupRoutingDelegate
             ->onUpdate($settings);

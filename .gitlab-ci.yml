@@ -13,22 +13,16 @@ stages:
   - deploy:canary
   - deploy:production
 
-cache:
-  paths:
-    - vendor
-    - bin
-  policy: pull
-
 build:
   stage: build
   script:
     - apk update && apk add --no-cache git
     - sh tools/setup.sh production
-  cache:
+  artifacts:
+    name: '$CI_COMMIT_REF_SLUG'
     paths:
       - vendor
       - bin
-    policy: push
 
 test:
   stage: test

@@ -9,6 +9,7 @@ namespace Minds\Controllers\api\v1\minds;
 
 use Minds;
 use Minds\Core;
+use Minds\Core\Rewards\Contributions\ContributionValues;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 
@@ -39,6 +40,12 @@ class config implements Interfaces\Api, Interfaces\ApiIgnorePam
             "plus" => Minds\Core\Config::_()->get('plus'),
             "report_reasons" => Minds\Core\Config::_()->get('report_reasons'),
             "last_tos_update" => (Minds\Core\Config::_()->get('last_tos_update') ?: time()),
+            'handlers' => [
+                'plus' => Minds\Core\Di\Di::_()->get('Config')->get('plus')['handler'] ?? null,
+                'pro' => Minds\Core\Di\Di::_()->get('Config')->get('pro')['handler'] ?? null,
+            ],
+            'upgrades' => Minds\Core\Di\Di::_()->get('Config')->get('upgrades'),
+            'contribution_values' => ContributionValues::export(),
         ];
 
         return Factory::response($minds);

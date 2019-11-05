@@ -75,6 +75,104 @@ class DomainSpec extends ObjectBehavior
             ->shouldReturn(null);
     }
 
+    public function it_should_check_if_domain_is_unavailable(
+        Response $getListResponse,
+        Settings $settings
+    ) {
+        $this->config->get('pro')
+            ->shouldBeCalled()
+            ->willReturn([
+                'root_domains' => ['phpspec.test']
+            ]);
+
+        $this->repository->getList([
+            'domain' => 'phpspec-test.com'
+        ])
+            ->shouldBeCalled()
+            ->willReturn($getListResponse);
+
+        $getListResponse->first()
+            ->shouldBeCalled()
+            ->willReturn($settings);
+
+        $settings->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1001);
+
+        $this
+            ->isAvailable('phpspec-test.com', 1000)
+            ->shouldReturn(false);
+    }
+
+    public function it_should_check_if_domain_is_available_if_same_owner(
+        Response $getListResponse,
+        Settings $settings
+    ) {
+        $this->config->get('pro')
+            ->shouldBeCalled()
+            ->willReturn([
+                'root_domains' => ['phpspec.test']
+            ]);
+
+        $this->repository->getList([
+            'domain' => 'phpspec-test.com'
+        ])
+            ->shouldBeCalled()
+            ->willReturn($getListResponse);
+
+        $getListResponse->first()
+            ->shouldBeCalled()
+            ->willReturn($settings);
+
+        $settings->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $this
+            ->isAvailable('phpspec-test.com', 1000)
+            ->shouldReturn(true);
+    }
+
+    public function it_should_check_if_domain_is_available(
+        Response $getListResponse
+    ) {
+        $this->config->get('pro')
+            ->shouldBeCalled()
+            ->willReturn([
+                'root_domains' => ['phpspec.test']
+            ]);
+
+        $this->repository->getList([
+            'domain' => 'phpspec-test.com'
+        ])
+            ->shouldBeCalled()
+            ->willReturn($getListResponse);
+
+        $getListResponse->first()
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this
+            ->isAvailable('phpspec-test.com', 1000)
+            ->shouldReturn(true);
+    }
+
+    public function it_should_return_as_unavailable_if_root_domain()
+    {
+        $this->config->get('pro')
+            ->shouldBeCalled()
+            ->willReturn([
+                'root_domains' => ['phpspec.test']
+            ]);
+
+        $this->repository->getList(Argument::cetera())
+            ->shouldNotBeCalled();
+
+        $this
+            ->isAvailable('phpspec.test', 1000)
+            ->shouldReturn(false);
+    }
+
     public function it_should_get_icon(
         Settings $settings,
         User $owner

@@ -431,7 +431,7 @@ class Group extends NormalizedEntity
     {
         $guids = $this->getOwnerGuids();
         return $guids
-            ? guids[0]
+            ? $guids[0]
             : $this->getOwnerObj()->guid;
     }
 

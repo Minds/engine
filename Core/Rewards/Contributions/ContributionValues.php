@@ -12,5 +12,15 @@ class ContributionValues
         'referrals_welcome' => 50,
         'checkin' => 2,
         'jury_duty' => 25,
+        'onchain_tx' => 10,
     ];
+
+    /**
+     * Public export of values
+     * @return array
+     */
+    public static function export()
+    {
+        return static::$multipliers;
+    }
 }

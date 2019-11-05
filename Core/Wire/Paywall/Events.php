@@ -65,33 +65,6 @@ class Events
         });
 
         /**
-         * Blogs need more exportable fields for paywall
-         */
-        Dispatcher::register('export:extender', 'blog', function (Event $event) {
-            $params = $event->getParameters();
-            /** @var Core\Blogs\Blog $blog */
-            $blog = $params['entity'];
-            $export = $event->response() ?: [];
-            $currentUser = Session::getLoggedInUserGuid();
-
-            $dirty = false;
-
-            if ($blog->isPaywall() && $blog->owner_guid != $currentUser) {
-                $export['description'] = '';
-                $export['body'] = '';
-                $dirty = true;
-            }
-
-            if ($dirty) {
-                return $event->setResponse($export);
-            }
-
-            if (!$currentUser) {
-                return;
-            }
-        });
-
-        /**
          * Wire paywall hooks. Allows access if sent wire or is plus
          */
         Dispatcher::register('acl:read', 'object', function ($event) {
