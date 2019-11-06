@@ -59,7 +59,7 @@ class ReferralDelegateSpec extends ObjectBehavior
 
         $this->contributionsManager->add(Argument::that(function ($contribution) {
             return $contribution->getMetric() === 'referrals_welcome'
-                && $contribution->getScore() === 50
+                && $contribution->getScore() === 1
                 && $contribution->getAmount() === 1
                 && $contribution->getUser()->guid === 456
                 && $contribution->getTimestamp() === strtotime('midnight') * 1000;
