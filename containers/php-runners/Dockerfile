@@ -15,8 +15,8 @@ RUN apk add --no-cache \
     mkdir /etc/supervisor && \
     mkdir /etc/supervisor/conf.d
     
-# Copy secrets script
-
+# pull-secrets.sh requires awscli
+RUN apk add --no-cache py-pip && pip install --upgrade pip && pip install awscli
 COPY containers/php-runners/pull-secrets.sh pull-secrets.sh
 
 COPY ./containers/php-runners/supervisord.conf /etc
