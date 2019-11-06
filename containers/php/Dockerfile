@@ -82,6 +82,10 @@ RUN apk add --no-cache --virtual build-deps \
     && apk del build-deps \
     && rm -rf $INSTALL_DIR
 
+# Install awscli (downstream containers require for the moment)
+
+RUN apk update && apk add --no-cache py-pip && pip install --upgrade pip && pip install awscli
+
 # PHP INI
 COPY php.ini /usr/local/etc/php/
 COPY opcache.ini /usr/local/etc/php/conf.d/opcache-recommended.ini
