@@ -71,10 +71,12 @@ class Repository
 
         foreach ($result as $row) {
             if ($row['user_hashes']
-                && in_array($opts['user']->getPhoneNumberHash(),
+                && in_array(
+                    $opts['user']->getPhoneNumberHash(),
                     array_map(function ($hash) {
                         return $hash;
-                    }, $row['user_hashes']->values()), true
+                    }, $row['user_hashes']->values()),
+                    true
                 )
             ) {
                 continue; // Already interacted with

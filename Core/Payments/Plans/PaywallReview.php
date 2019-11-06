@@ -65,13 +65,15 @@ class PaywallReview
     public function add()
     {
         $query = new Core\Data\Cassandra\Prepared\Custom();
-        $query->query("INSERT INTO entities_by_time
+        $query->query(
+            "INSERT INTO entities_by_time
           (key, column1, value)
           VALUES ('paywall:review', ?, ?)",
-          [
+            [
             (string) $this->entity_guid,
             (string) $this->entity_guid
-          ]);
+          ]
+        );
         try {
             $result = $this->db->request($query);
         } catch (\Exception $e) {
@@ -84,7 +86,8 @@ class PaywallReview
     public function remove()
     {
         $query = new Core\Data\Cassandra\Prepared\Custom();
-        $query->query("DELETE FROM entities_by_time
+        $query->query(
+            "DELETE FROM entities_by_time
             WHERE key = 'paywall:review' AND column1 = ?",
             [
                 (string) $this->entity_guid

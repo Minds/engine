@@ -1056,45 +1056,36 @@ abstract class ElggEntity extends ElggData implements
 	 * @throws IOException
 	 */
 	public function save($timebased = true) {
-
-            $new = true;
-            if($this->guid){
-                if (!$this->canEdit()) {
-                    return false;
-                }
-                $new = false;
-                $this->time_updated = time();
-                elgg_trigger_event('update', $this->type, $this);
-                //@todo review... memecache actually make us slower anyway.. do we need it?
-                if (is_memcache_available()) {
-                    $memcache = new ElggMemcache('new_entity_cache');
-                    $memcache->delete($this->guid);
-                }
-            } else {
-                $this->guid = Minds\Core\Guid::build();
-				elgg_trigger_event('create', $this->type, $this);
-				if (!$this->canEdit()) {
-					return false;
-				}
+        if ($this->guid) {
+            if (!$this->canEdit()) {
+                return false;
             }
-
-            $db = new Minds\Core\Data\Call('entities');
-            $result = $db->insert($this->guid, $this->toArray());
-            if ($result && $timebased) {
-                $db = new Minds\Core\Data\Call('entities_by_time');
-                $data =  array($result => $result);
-
-                foreach ($this->getIndexKeys() as $index) {
-                    $db->insert($index, $data);
-                }
-
-                 if(!$new && $this->access_id != ACCESS_PUBLIC){
-                     $remove = array("$this->type", "$this->type:$this->subtype", "$this->type:$this->super_subtype");
-			//	foreach($remove as $index)
-			//		$db->removeAttributes($index, array($this->guid), false);
-                 }
+            $this->time_updated = time();
+            elgg_trigger_event('update', $this->type, $this);
+            //@todo review... memecache actually make us slower anyway.. do we need it?
+            if (is_memcache_available()) {
+                $memcache = new ElggMemcache('new_entity_cache');
+                $memcache->delete($this->guid);
             }
-            return $this->guid;
+        } else {
+            $this->guid = Minds\Core\Guid::build();
+            elgg_trigger_event('create', $this->type, $this);
+            if (!$this->canEdit()) {
+                return false;
+            }
+        }
+
+        $db = new Minds\Core\Data\Call('entities');
+        $result = $db->insert($this->guid, $this->toArray());
+        if ($result && $timebased) {
+            $db = new Minds\Core\Data\Call('entities_by_time');
+            $data = array($result => $result);
+
+            foreach ($this->getIndexKeys() as $index) {
+                $db->insert($index, $data);
+            }
+        }
+        return $this->guid;
 	}
 
 	/**
@@ -1202,11 +1193,10 @@ abstract class ElggEntity extends ElggData implements
 	/**
 	 * Delete this entity.
 	 *
-	 * @param bool $recursive Whether to delete all the entities contained by this entity
-	 *
 	 * @return bool
 	 */
-	public function delete($recursive = true) {
+    public function delete()
+    {
 		global $CONFIG, $ENTITY_CACHE;
 
 		//some plugins may want to halt the delete...

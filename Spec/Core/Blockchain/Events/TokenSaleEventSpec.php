@@ -56,8 +56,10 @@ class TokenSaleEventSpec extends ObjectBehavior
                 '0x123123'
             ]
         ];
-        $this->shouldThrow(new \Exception('Event does not match address'))->during('event',
-            ['0xf4b351c7293f3c20fc9912c61adbe9823a6de3162bde18c98eb6feeae232f861', $log, $transaction]);
+        $this->shouldThrow(new \Exception('Event does not match address'))->during(
+            'event',
+            ['0xf4b351c7293f3c20fc9912c61adbe9823a6de3162bde18c98eb6feeae232f861', $log, $transaction]
+        );
     }
 
     public function it_should_execute_a_token_purchase_event(Transaction $transaction, Purchase\Purchase $purchase)

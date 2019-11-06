@@ -35,7 +35,7 @@ class EventsSpec extends ObjectBehavior
         ]))->shouldReturnArrayOfNotifications();
     }
 
-    public function getMatchers()
+    public function getMatchers(): array
     {
         return [
             'returnArrayOfNotifications' => function ($array) {

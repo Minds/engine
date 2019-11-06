@@ -379,7 +379,7 @@ class newsfeed implements Interfaces\Api
                                             ->setTitle($embeded->title)
                                             ->setBlurb($embeded->description)
                                             ->export()
-                                        )
+                                    )
                                         ->setMessage($message);
                                 }
                                 $save->setEntity($activity)
@@ -417,7 +417,7 @@ class newsfeed implements Interfaces\Api
                                             ->setTitle($embeded->title)
                                             ->setBlurb($embeded->description)
                                             ->export()
-                                        )
+                                    )
                                         ->setMessage($message);
                                 }
                                 $save->setEntity($activity)

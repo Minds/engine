@@ -91,11 +91,12 @@ class NotificationsSpec extends ObjectBehavior
         $this->setGroup($group);
 
         $this->cql->request(
-                Argument::that(function ($prepared) {
-                    $statement = $prepared->build();
-                    return stripos($statement['string'], 'SELECT * from relationships') !== false
+            Argument::that(function ($prepared) {
+                $statement = $prepared->build();
+                return stripos($statement['string'], 'SELECT * from relationships') !== false
                         && $statement['values'][0] == '50:group:muted:inverted';
-                }))
+            })
+        )
             ->shouldBeCalled()
             ->willReturn([
                 [ 'column1' => '11' ],

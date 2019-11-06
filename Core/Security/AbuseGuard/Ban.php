@@ -44,7 +44,7 @@ class Ban
             return true;
         }
 
-        echo "\n$user->guid now banned ({$this->accused->getScore()}) \n";
+        error_log("$user->guid now banned ({$this->accused->getScore()})");
 
         $this->channelsBanManager
             ->setUser($user)
@@ -52,7 +52,7 @@ class Ban
 
         $this->recover->setAccused($this->accused)
             ->recover();
-        echo "\n$user->guid recovered";
+        error_log("$user->guid recovered");
 
         if ($this->events) {
             $event = new Core\Analytics\Metrics\Event();

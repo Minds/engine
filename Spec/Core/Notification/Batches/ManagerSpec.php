@@ -37,7 +37,8 @@ class ManagerSpec extends ObjectBehavior
             Argument::that(function ($subscription) {
                 return $subscription->getUserGuid() == 123
                     && $subscription->getBatchId() == 'phpspec';
-            }))
+            })
+        )
             ->willReturn(true);
 
         $this->isSubscribed()->shouldBe(true);
@@ -52,7 +53,8 @@ class ManagerSpec extends ObjectBehavior
             Argument::that(function ($subscription) {
                 return $subscription->getUserGuid() == 456
                     && $subscription->getBatchId() == 'phpspec';
-            }))
+            })
+        )
             ->willReturn(false);
 
         $this->isSubscribed()->shouldBe(false);
@@ -67,7 +69,8 @@ class ManagerSpec extends ObjectBehavior
             Argument::that(function ($subscription) {
                 return $subscription->getUserGuid() == 789
                     && $subscription->getBatchId() == 'phpspec';
-            }))
+            })
+        )
             ->willReturn(true);
 
         $this->subscribe()->shouldBe(true);
@@ -82,7 +85,8 @@ class ManagerSpec extends ObjectBehavior
             Argument::that(function ($subscription) {
                 return $subscription->getUserGuid() == 101112
                     && $subscription->getBatchId() == 'phpspec';
-            }))
+            })
+        )
             ->willReturn(true);
 
         $this->unSubscribe()->shouldBe(true);

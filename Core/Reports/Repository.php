@@ -232,7 +232,8 @@ class Repository
             ->setTimestamp($row['timestamp']->time())
             //->setState((string) $row['state'])
             ->setUphold(isset($row['uphold']) ? (bool) $row['uphold'] : null)
-            ->setStateChanges(isset($row['state_changes']) ?
+            ->setStateChanges(
+                isset($row['state_changes']) ?
                 array_map(function ($timestamp) {
                     return $timestamp->time();
                 }, $this->mapToAssoc($row['state_changes']))
@@ -253,7 +254,8 @@ class Repository
                     $this->buildDecisions($this->mapToAssoc($row['appeal_jury']))
                     : null
             )
-            ->setUserHashes(isset($row['user_hashes']) ?
+            ->setUserHashes(
+                isset($row['user_hashes']) ?
                 $row['user_hashes']->values() : null
             );
         return $report;

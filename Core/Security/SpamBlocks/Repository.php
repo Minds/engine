@@ -34,11 +34,13 @@ class Repository
         ], $opts);
 
         $query = new Prepared;
-        $query->query("SELECT * FROM spam_blocks 
+        $query->query(
+            "SELECT * FROM spam_blocks 
             WHERE key = ?",
             [
                 (string) $opts['key'],
-            ]);
+            ]
+        );
         
         $query->setOpts([
             'page_size' => $opts['limit'],
@@ -73,12 +75,14 @@ class Repository
     public function get($key, $value)
     {
         $query = new Prepared;
-        $query->query("SELECT * FROM spam_blocks 
+        $query->query(
+            "SELECT * FROM spam_blocks 
             WHERE key = ? AND value = ?",
             [
                 (string) $key,
                 (string) $value,
-            ]);
+            ]
+        );
 
         $result = $this->client->request($query);
 
@@ -100,12 +104,14 @@ class Repository
     public function add(SpamBlock $model)
     {
         $query = new Prepared;
-        $query->query("INSERT INTO spam_blocks (key, value)
+        $query->query(
+            "INSERT INTO spam_blocks (key, value)
             VALUES (?, ?)",
             [
                 (string) $model->getKey(),
                 (string) $model->getValue(),
-            ]);
+            ]
+        );
 
         return $this->client->request($query);
     }
@@ -129,12 +135,14 @@ class Repository
     public function delete(SpamBlock $model)
     {
         $query = new Prepared;
-        $query->query("DELETE FROM spam_blocks 
+        $query->query(
+            "DELETE FROM spam_blocks 
             WHERE key = ? AND value = ?",
             [
                 (string) $model->getKey(),
                 (string) $model->getValue(),
-            ]);
+            ]
+        );
 
         return $this->client->request($query);
     }

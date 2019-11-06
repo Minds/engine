@@ -53,10 +53,12 @@ class Twilio implements SMSServiceInterface
 
         try {
             $result = $this->client->messages->create(
-                $number, [
+                $number,
+                [
                 'from' => $this->config['from'],
                 'body' => $message,
-            ]);
+            ]
+            );
         } catch (\Exception $e) {
             error_log("[guard] Twilio error: {$e->getMessage()}");
         }

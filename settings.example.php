@@ -42,8 +42,9 @@ $CONFIG->set('oauth', [
     'encryption_key' => '{{ jwt-secret }}',
  ]);
 
-$CONFIG->set('report_reasons',
-[
+$CONFIG->set(
+    'report_reasons',
+    [
     [
       'value' => 1,
       'label' => 'Illegal',
