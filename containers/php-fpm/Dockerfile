@@ -1,4 +1,4 @@
-FROM minds/php:7.3
+FROM minds/php-aws:7.3
 
 ADD --chown=www-data . /var/www/Minds/engine
 
