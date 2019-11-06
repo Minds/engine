@@ -5,37 +5,34 @@
         "php": "~7.1",
         "ext-redis": "~4.3",
         "aws/aws-sdk-php": "^3.38",
-        "braintree/braintree_php": "3.5.0",
-        "datastax/php-driver": "1.2.2",
+        "datastax/php-driver": "^1.2.2",
         "elasticsearch/elasticsearch": "^6.1",
-        "facebook/php-sdk-v4": "~5.0",
-        "firebase/php-jwt": "3.0.*",
+        "firebase/php-jwt": "^3.0",
         "kramnorth/cinemr-php-sdk": "dev-master@dev",
         "kickbox/kickbox": "*",
         "Minds/Surge": "dev-master@dev",
         "minds/mw3": "dev-master@dev",
-        "neoxygen/neoclient": "^3.3",
-        "paypal/rest-api-sdk-php": "1.3.2",
         "phpmailer/phpmailer": "~5.2",
         "stripe/stripe-php": "^6.43",
         "thobbs/phpcassa": "dev-minds-legacy",
         "tijsverkoyen/twitteroauth": "dev-master@dev",
-        "twilio/sdk": "5.26.*",
-        "videlalvaro/php-amqplib": "dev-master@dev",
+        "twilio/sdk": "^5.26",
         "vscn/cruftflake": "dev-master#cab1b9ee9869072e7a58a1eb593b602ec5bedcd3",
         "zircote/swagger-php": "2.*@dev",
-        "mongodb/mongodb": "1.0.5",
+        "mongodb/mongodb": "^1.0.5",
         "abraham/twitteroauth": "^0.6.4",
         "google/apiclient": "^2.0",
         "aws/aws-php-sns-message-validator": "^1.4",
         "giggsey/libphonenumber-for-php": "^8.8",
         "php-ffmpeg/php-ffmpeg": "^0.11.1",
         "erusev/parsedown": "^1.7",
-        "zendframework/zend-diactoros": "1.8.6",
+        "zendframework/zend-diactoros": "^1.8.6",
         "league/oauth2-server": "7.2.0",
-        "lcobucci/jwt": "3.2.4",
-        "sentry/sdk": "2.0.3",
-        "zendframework/zend-permissions-rbac": "^3.0"
+        "lcobucci/jwt": "^3.2.4",
+        "sentry/sdk": "^2.0.3",
+        "zendframework/zend-permissions-rbac": "^3.0",
+        "php-amqplib/php-amqplib": "^2.10",
+        "facebook/graph-sdk": "^5.7"
     },
     "repositories": [
         {
@@ -66,9 +63,9 @@
         "bin-dir": "bin"
     },
     "require-dev": {
-        "phpspec/phpspec": "~3.4",
-        "leanphp/phpspec-code-coverage": "~3.1",
-        "friendsofphp/php-cs-fixer": "*",
-        "bossa/phpspec2-expect": "*"
+        "friendsofphp/php-cs-fixer": "^2.15",
+        "friends-of-phpspec/phpspec-code-coverage": "^4.3",
+        "phpspec/phpspec": "^5.0",
+        "bossa/phpspec2-expect": "^3.1"
     }
 }

@@ -47,7 +47,8 @@ class Navigation
             ->setVisibility(0); //only show for loggedin
 
         $link = new Item();
-        NavigationManager::add($link
+        NavigationManager::add(
+            $link
             ->setPriority(4)
             ->setIcon('subject')
             ->setName('Blogs')

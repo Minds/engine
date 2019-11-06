@@ -28,6 +28,6 @@ class NotificationDelegate
                     'wire' => serialize($wire),
                     'entity' => serialize($wire->getEntity()),
                 ]
-        );
+            );
     }
 }

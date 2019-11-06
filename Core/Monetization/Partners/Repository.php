@@ -101,14 +101,16 @@ class Repository
     public function add(EarningsDeposit $deposit): bool
     {
         $prepared = new Prepared();
-        $prepared->query("INSERT INTO partner_earnings_ledger (user_guid, timestamp, item, amount_cents, amount_tokens) VALUES (?,?,?,?,?)",
+        $prepared->query(
+            "INSERT INTO partner_earnings_ledger (user_guid, timestamp, item, amount_cents, amount_tokens) VALUES (?,?,?,?,?)",
             [
                 new Bigint($deposit->getUserGuid()),
                 new Timestamp($deposit->getTimestamp()),
                 $deposit->getItem(),
                 $deposit->getAmountCents() ? (int) $deposit->getAmountCents() : null,
                 $deposit->getAmountTokens() ? new Bigint($deposit->getAmountTokens()) : null,
-            ]);
+            ]
+        );
         return (bool) $this->db->request($prepared);
     }
 

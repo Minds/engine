@@ -205,17 +205,19 @@ class Repository
     public function add($plan)
     {
         $query = new Core\Data\Cassandra\Prepared\Custom();
-        $query->query("INSERT INTO plans
+        $query->query(
+            "INSERT INTO plans
           (entity_guid, plan, user_guid, status, subscription_id, expires)
           VALUES (?, ?, ?, ?, ?, ?)",
-          [
+            [
             (string) $plan->getEntityGuid(),
             (string) $plan->getName(),
             (string) $plan->getUserGuid(),
             (string) $plan->getStatus(),
             (string) $plan->getSubscriptionId(),
             (int) $plan->getExpires(),
-          ]);
+          ]
+        );
         try {
             $result = $this->db->request($query);
         } catch (\Exception $e) {

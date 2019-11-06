@@ -97,10 +97,12 @@ class Repository
             return $this;
         }
         foreach ($this->categories as $category) {
-            $query->query("INSERT INTO categories
+            $query->query(
+                "INSERT INTO categories
               (type, category, filter, guid)
               VALUES (?, ?, ?, ?)",
-              [ $this->type, $category, $this->filter, (string) $guid ]);
+                [ $this->type, $category, $this->filter, (string) $guid ]
+            );
             try {
                 $result = $this->db->request($query);
             } catch (\Exception $e) {
@@ -116,9 +118,11 @@ class Repository
             return $this;
         }
         foreach ($this->categories as $category) {
-            $query->query("DELETE FROM categories
+            $query->query(
+                "DELETE FROM categories
               WHERE type = ? AND category = ? AND filter = ? AND guid = ?",
-              [ $this->type, $category, $this->filter, (string) $guid ]);
+                [ $this->type, $category, $this->filter, (string) $guid ]
+            );
             try {
                 $result = $this->db->request($query);
             } catch (\Exception $e) {

@@ -72,8 +72,10 @@ class WithBlogs extends EmailCampaign
 
         $message = new Message();
         $message->setTo($this->user)
-            ->setMessageId(implode('-',
-                [$this->user->guid, sha1($this->user->getEmail()), sha1($this->campaign . $this->topic . time())]))
+            ->setMessageId(implode(
+                '-',
+                [$this->user->guid, sha1($this->user->getEmail()), sha1($this->campaign . $this->topic . time())]
+            ))
             ->setSubject($subject)
             ->setHtml($this->template);
 

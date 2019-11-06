@@ -21,10 +21,12 @@ class Manager
     public function getRedirectUrl()
     {
         $helper = $this->facebook->getFb()->getRedirectLoginHelper();
-        $url = $helper->getReRequestUrl(Core\Config::_()->site_url . 'api/v1/thirdpartynetworks/facebook/login-callback',
+        $url = $helper->getReRequestUrl(
+            Core\Config::_()->site_url . 'api/v1/thirdpartynetworks/facebook/login-callback',
             [
                 'email'
-            ]);
+            ]
+        );
 
         return $url;
     }
@@ -99,8 +101,17 @@ class Manager
 
         $files = [];
         foreach ($icon_sizes as $name => $size_info) {
-            $resized = get_resized_image_from_existing_file("/tmp/fb-" . md5($url), $size_info['w'], $size_info['h'],
-                $size_info['square'], 0, 0, 0, 0, $size_info['upscale']);
+            $resized = get_resized_image_from_existing_file(
+                "/tmp/fb-" . md5($url),
+                $size_info['w'],
+                $size_info['h'],
+                $size_info['square'],
+                0,
+                0,
+                0,
+                0,
+                $size_info['upscale']
+            );
 
             if ($resized) {
                 //@todo Make these actual entities.  See exts #348.

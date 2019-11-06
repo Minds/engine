@@ -55,7 +55,8 @@ class GenericRule implements Interfaces\XSSRule
      */
     public function clean()
     {
-        $this->cleanString = preg_replace_callback('%
+        $this->cleanString = preg_replace_callback(
+            '%
             (
             <(?=[^a-zA-Z!/])  # a lone <
             |                 # or
@@ -66,7 +67,8 @@ class GenericRule implements Interfaces\XSSRule
             >                 # just a >
             )%x',
             [$this, 'cleanSplit'],
-            $this->dirtyString);
+            $this->dirtyString
+        );
 
         $this->cleanString  = $this->cleanAttributes($this->cleanString);
 

@@ -83,8 +83,11 @@ class BoostEventSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('456');
 
-        $this->event('0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040', ['address' => '0xasd'],
-            $transaction);
+        $this->event(
+            '0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040',
+            ['address' => '0xasd'],
+            $transaction
+        );
     }
 
     public function it_should_execute_a_boost_sent_event_but_not_find_the_boost(Transaction $transaction)
@@ -104,12 +107,14 @@ class BoostEventSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $this->shouldThrow(new \Exception("No boost with hash 0x123123asdasd"))->during('event',
+        $this->shouldThrow(new \Exception("No boost with hash 0x123123asdasd"))->during(
+            'event',
             [
                 '0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040',
                 ['address' => '0xasd'],
                 $transaction
-            ]);
+            ]
+        );
     }
 
     public function it_should_execute_a_boost_sent_event_but_boost_has_been_processed_already(
@@ -135,12 +140,14 @@ class BoostEventSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('created');
 
-        $this->shouldThrow(new \Exception("Boost with hash 0x123123asdasd already processed. State: created"))->during('event',
+        $this->shouldThrow(new \Exception("Boost with hash 0x123123asdasd already processed. State: created"))->during(
+            'event',
             [
                 '0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040',
                 ['address' => '0xasd'],
                 $transaction
-            ]);
+            ]
+        );
     }
 
     public function it_shoud_execute_a_boost_fail_event(Transaction $transaction, Network $boost)
@@ -196,8 +203,10 @@ class BoostEventSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('wire');
 
-        $this->shouldThrow(new \Exception("Failed but not a boost"))->during('event',
-            ['blockchain:fail', ['address' => '0xasd'], $transaction]);
+        $this->shouldThrow(new \Exception("Failed but not a boost"))->during(
+            'event',
+            ['blockchain:fail', ['address' => '0xasd'], $transaction]
+        );
     }
 
     public function it_should_execute_a_boost_fail_event_but_boost_isnt_found(Transaction $transaction)
@@ -221,8 +230,10 @@ class BoostEventSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('0x123123asdasd');
 
-        $this->shouldThrow(new \Exception("No boost with hash 0x123123asdasd"))->during('event',
-            ['blockchain:fail', ['address' => '0xasd'], $transaction]);
+        $this->shouldThrow(new \Exception("No boost with hash 0x123123asdasd"))->during(
+            'event',
+            ['blockchain:fail', ['address' => '0xasd'], $transaction]
+        );
     }
 
     public function it_should_execute_a_boost_fail_event_but_boost_already_processed(Transaction $transaction, Network $boost)
@@ -250,8 +261,10 @@ class BoostEventSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('created');
 
-        $this->shouldThrow(new \Exception("Boost with hash 0x123123asdasd already processed. State: created"))->during('event',
-            ['blockchain:fail', ['address' => '0xasd'], $transaction]);
+        $this->shouldThrow(new \Exception("Boost with hash 0x123123asdasd already processed. State: created"))->during(
+            'event',
+            ['blockchain:fail', ['address' => '0xasd'], $transaction]
+        );
     }
 
     public function it_should_record_as_failed(
@@ -300,7 +313,9 @@ class BoostEventSpec extends ObjectBehavior
                 '0x123123'
             ]
         ];
-        $this->shouldThrow(new \Exception('Event does not match address'))->during('event',
-            ['0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040', $log, $transaction]);
+        $this->shouldThrow(new \Exception('Event does not match address'))->during(
+            'event',
+            ['0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040', $log, $transaction]
+        );
     }
 }

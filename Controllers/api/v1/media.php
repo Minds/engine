@@ -85,7 +85,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                         Security\ACL::$ignore = $ignore;
                     }
 
-                    /* No break */
+                    /* no break */
                 default:
                     $entity->fullExport = true;
                     $response['entity'] = $entity->export();
