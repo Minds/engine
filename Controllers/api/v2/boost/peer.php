@@ -48,8 +48,10 @@ class peer implements Interfaces\Api
             case 'inbox':
             default:
                 $review->setType(Core\Session::getLoggedinUser()->guid);
-                $boosts = $review->getReviewQueue(isset($_GET['limit']) ? $_GET['limit'] : 12,
-                    isset($_GET['offset']) ? $_GET['offset'] : "");
+                $boosts = $review->getReviewQueue(
+                    isset($_GET['limit']) ? $_GET['limit'] : 12,
+                    isset($_GET['offset']) ? $_GET['offset'] : ""
+                );
 
                 $response['boosts'] = Factory::exportable($boosts['data']);
 

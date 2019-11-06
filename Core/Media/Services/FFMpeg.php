@@ -237,8 +237,10 @@ class FFMpeg implements ServiceInterface
             }
 
             $video->filters()
-                ->resize(new \FFMpeg\Coordinate\Dimension($opts['width'], $opts['height']),
-                    $rotated ? ResizeFilter::RESIZEMODE_FIT : ResizeFilter::RESIZEMODE_SCALE_WIDTH)
+                ->resize(
+                    new \FFMpeg\Coordinate\Dimension($opts['width'], $opts['height']),
+                    $rotated ? ResizeFilter::RESIZEMODE_FIT : ResizeFilter::RESIZEMODE_SCALE_WIDTH
+                )
                 ->synchronize();
 
             $formatMap = [

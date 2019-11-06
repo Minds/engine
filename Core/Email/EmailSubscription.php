@@ -3,6 +3,12 @@ namespace Minds\Core\Email;
 
 use Minds\Traits\MagicAttributes;
 
+/**
+ * Class EmailSubscription
+ * @package Minds\Core\Email
+ *
+ * @method string getUserGuid()
+ */
 class EmailSubscription
 {
     use MagicAttributes;

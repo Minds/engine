@@ -1,7 +1,4 @@
-image: minds/php:latest
-
-services:
-  - docker:dind
+image: minds/php:7.3
 
 stages:
   - build
@@ -16,7 +13,7 @@ stages:
 build:
   stage: build
   script:
-    - apk update && apk add --no-cache git
+    - apk add --no-cache git
     - sh tools/setup.sh production
   artifacts:
     name: '$CI_COMMIT_REF_SLUG'
@@ -26,19 +23,21 @@ build:
 
 test:
   stage: test
-  image: minds/php-tests:latest
+  image: minds/php:7.3
   script:
-    - bin/phpspec run
+    - php -n -c Spec/php-test.ini bin/phpspec run
 
 lint:
   stage: test
-  image: minds/php-tests:latest
+  image: minds/php:7.3
   script:
     - bin/php-cs-fixer fix --allow-risky=yes --verbose --dry-run
 
 prepare:fpm:
   stage: prepare
   image: minds/ci:latest
+  services:
+    - docker:dind
   script:
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY} 
     - |
@@ -53,6 +52,8 @@ prepare:fpm:
 prepare:runners:
   stage: prepare
   image: minds/ci:latest
+  services:
+    - docker:dind
   script:
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - |
@@ -136,6 +137,8 @@ qa:manual:
 staging:fpm:
   stage: deploy:staging
   image: minds/ci:latest
+  services:
+    - docker:dind
   script:
     - IMAGE_LABEL="staging"
     - $(aws ecr get-login --no-include-email --region us-east-1)
@@ -162,6 +165,8 @@ staging:fpm:
 canary:fpm:
   stage: deploy:canary
   image: minds/ci:latest
+  services:
+    - docker:dind
   script:
     - IMAGE_LABEL="canary"
     - $(aws ecr get-login --no-include-email --region us-east-1)
@@ -190,6 +195,8 @@ canary:fpm:
 production:fpm:
   stage: deploy:production
   image: minds/ci:latest
+  services:
+    - docker:dind
   script:
     - IMAGE_LABEL="production"
     - $(aws ecr get-login --no-include-email --region us-east-1)
@@ -218,6 +225,8 @@ production:fpm:
 production:runners:
   stage: deploy:production
   image: minds/ci:latest
+  services:
+    - docker:dind
   script:
     - IMAGE_LABEL="production"
     - $(aws ecr get-login --no-include-email --region us-east-1)

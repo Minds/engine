@@ -94,8 +94,10 @@ class Block
         $prepared = new Cassandra\Prepared\Custom();
         $collection = \Cassandra\Type::collection(\Cassandra\Type::text())
             ->create(... $user_guids);
-        $prepared->query("SELECT * from entities_by_time WHERE key= ? AND column1 IN ? LIMIT ?",
-          [ "acl:blocked:$from", $collection, 1000 ]);
+        $prepared->query(
+            "SELECT * from entities_by_time WHERE key= ? AND column1 IN ? LIMIT ?",
+            [ "acl:blocked:$from", $collection, 1000 ]
+        );
 
         $list = [];
         $result = $this->cql->request($prepared);

@@ -56,6 +56,7 @@ class banners implements Interfaces\FS
             $f->owner_guid = $entity->owner_guid ?: $entity->getOwnerObj()->guid;
             $f->setFilename("group/{$entity->getGuid()}.jpg");
             $f->open('read');
+            // no break
           case "object":
             break;
         }

@@ -69,7 +69,7 @@ class ScrollSpec extends ObjectBehavior
             ->shouldBeAGenerator([1, 2, 3, 4, 5]);
     }
 
-    public function getMatchers()
+    public function getMatchers(): array
     {
         $matchers = [];
 

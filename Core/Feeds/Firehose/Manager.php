@@ -79,8 +79,8 @@ class Manager
     public function save(
         $entity,
         User $moderator,
-        int $time = null)
-    {
+        int $time = null
+    ) {
         if (!$time) {
             $time = time();
         }
@@ -92,8 +92,8 @@ class Manager
     private function saveEntity(
         $entity,
         User $moderator,
-        int $time = null)
-    {
+        int $time = null
+    ) {
         $entity->setModeratorGuid($moderator->getGUID());
         $entity->setTimeModerated($time);
 

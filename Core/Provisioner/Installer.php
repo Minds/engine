@@ -228,15 +228,17 @@ class Installer
         }
     }
 
-    public function setupStorage(Provisioners\ProvisionerInterface $cassandraStorage = null,
-                                 $cleanData = false)
-    {
+    public function setupStorage(
+        Provisioners\ProvisionerInterface $cassandraStorage = null,
+        $cleanData = false
+    ) {
         $this->provisionCassandra($cassandraStorage, $cleanData);
     }
 
-    public function provisionCassandra(Provisioners\ProvisionerInterface $cassandraStorage = null,
-                                       $cleanData = false)
-    {
+    public function provisionCassandra(
+        Provisioners\ProvisionerInterface $cassandraStorage = null,
+        $cleanData = false
+    ) {
         $cassandraStorage = $cassandraStorage ?: new Provisioners\CassandraProvisioner();
         $cassandraStorage->provision($cleanData);
     }

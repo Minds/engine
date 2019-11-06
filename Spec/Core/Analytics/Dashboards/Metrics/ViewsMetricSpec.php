@@ -57,7 +57,8 @@ class ViewsMetricSpec extends ObjectBehavior
                             'value' => 256,
                         ]
                     ]
-                ]);
+                ]
+            );
 
         $this->buildSummary();
 

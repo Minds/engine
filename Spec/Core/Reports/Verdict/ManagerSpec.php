@@ -34,7 +34,8 @@ class ManagerSpec extends ObjectBehavior
             $reverseDelegate,
             $notificationDelegate,
             $releaseSummonsesDelegate,
-            $metricsDelegate);
+            $metricsDelegate
+        );
 
         $this->repository = $repository;
         $this->actionDelegate = $actionDelegate;

@@ -398,7 +398,7 @@ class RepositorySpec extends ObjectBehavior
 
     //
 
-    public function getMatchers()
+    public function getMatchers(): array
     {
         $matchers = [];
 

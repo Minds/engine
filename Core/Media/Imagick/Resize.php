@@ -140,7 +140,7 @@ class Resize
 
                 // Resize canvas to new image
                 $frame->setImagePage(0, 0, 0, 0);
-                
+
                 // If selected with / height differ from selection width/height, then we need to resize
                 if ($params['selectionwidth'] !== $params['newwidth'] || $params['selectionheight'] !== $params['newheight']) {
                     $frame->thumbnailImage($params['newwidth'], $params['newheight']);

@@ -2,6 +2,9 @@
 
 ini_set('memory_limit', '256M');
 
+# Redirect error_log output to blackhole
+ini_set('error_log', '/dev/null');
+
 global $CONFIG;
 
 date_default_timezone_set('UTC');
@@ -22,22 +25,6 @@ $CONFIG->cassandra->username = 'cassandra';
 $CONFIG->cassandra->password = 'cassandra';
 
 $CONFIG->payments = [
-    'braintree' => [
-        'default' => [
-            'environment' => 'sandbox',
-            'merchant_id' => 'foobar',
-            'master_merchant_id' => 'foobar',
-            'public_key' => 'random',
-            'private_key' => 'random_private'
-        ],
-        'merchants' => [
-            'environment' => 'sandbox',
-            'merchant_id' => 'foobar',
-            'master_merchant_id' => 'foobar',
-            'public_key' => 'random',
-            'private_key' => 'random_private'
-        ],
-    ],
     'stripe' => [
         'api_key' => 'phpspec',
     ],
@@ -299,11 +286,12 @@ if (!class_exists('Cassandra')) {
     class_alias('Mock', 'Cassandra\Uuid');
     class_alias('Mock', 'Cassandra\Timeuuid');
     class_alias('Mock', 'Cassandra\Boolean');
-    if (!class_exists('MongoDB\BSON\UTCDateTime')) {
-        class_alias('Mock', 'MongoDB\BSON\UTCDateTime');
-    }
     class_alias('Mock', 'Cassandra\RetryPolicy\Logging');
     class_alias('Mock', 'Cassandra\RetryPolicy\DowngradingConsistency');
+}
+
+if (!class_exists('MongoDB\BSON\UTCDateTime')) {
+    class_alias('Mock', 'MongoDB\BSON\UTCDateTime');
 }
 
 Minds\Core\Di\Di::_()->bind('Database\Cassandra\Cql', function ($di) {

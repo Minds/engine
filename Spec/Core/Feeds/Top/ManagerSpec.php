@@ -217,7 +217,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe('urn:activity:5001');
     }
 
-    public function getMatchers()
+    public function getMatchers(): array
     {
         $matchers = [];
 
