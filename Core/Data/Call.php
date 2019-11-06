@@ -161,13 +161,15 @@ class Call
         array_push(self::$keys, $key);
 
         $options = array_merge(
-             [
+            [
              'multi' => false,
              'offset' => "",
              'finish' => "",
              'limit' => 500,
              'reversed' => true
-            ], $options);
+            ],
+            $options
+        );
 
         $query = new Cassandra\Prepared\Custom();
 

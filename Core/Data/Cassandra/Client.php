@@ -41,13 +41,13 @@ class Client implements Interfaces\ClientInterface
         try {
             $statement = $this->session->prepare($cql['string']);
             $future = $this->session->executeAsync(
-              $statement,
-              @new Driver\ExecutionOptions(array_merge(
-                  [
+                $statement,
+                @new Driver\ExecutionOptions(array_merge(
+                    [
                     'arguments' => $cql['values']
                   ],
-                  $request->getOpts()
-                  ))
+                    $request->getOpts()
+                ))
             );
             if ($silent) {
                 return $future;

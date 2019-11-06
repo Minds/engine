@@ -38,10 +38,14 @@ class Manager
 
         $result = $this->repository->getList($options);
 
-        if (!$result || count($result['data'] === 0)) {
+        if (!$result || count($result['data']) === 0) {
             return [];
         }
 
+        /*$guids = [];
+        foreach($result['data'] as $subscription) {
+            $guids[] = $subscription->getUserGuid();
+        }*/
         $guids = array_map(function ($item) {
             return $item->getUserGuid();
         }, $result['data']);

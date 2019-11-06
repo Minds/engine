@@ -12,7 +12,7 @@ use Minds\Core\Di\Di;
 use cinemr;
 use Minds\Helpers;
 
-class Video extends Object
+class Video extends MindsObject
 {
     private $cinemr;
 

@@ -185,7 +185,8 @@ class Repository
     public function add($subscription)
     {
         $query = new Custom();
-        $query->query("INSERT INTO subscriptions (
+        $query->query(
+            "INSERT INTO subscriptions (
             subscription_id,
             plan_id,
             payment_method,
@@ -197,7 +198,7 @@ class Repository
             last_billing,
             next_billing
         ) VALUES (?,?,?,?,?,?,?,?,?,?)",
-        [
+            [
             $subscription->getId(),
             $subscription->getPlanId(),
             $subscription->getPaymentMethod(),
@@ -208,7 +209,8 @@ class Repository
             $subscription->getStatus(),
             new Timestamp($subscription->getLastBilling()),
             new Timestamp($subscription->getNextBilling())
-        ]);
+        ]
+        );
 
         $result = $this->cql->request($query);
 

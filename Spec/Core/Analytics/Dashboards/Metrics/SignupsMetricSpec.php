@@ -57,7 +57,8 @@ class SignupsMetricSpec extends ObjectBehavior
                             'value' => 256,
                         ],
                     ],
-                ]);
+                ]
+            );
 
         $this->buildSummary();
 

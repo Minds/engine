@@ -34,7 +34,8 @@ class Entities
      * @param ACL $acl
      */
     public function __construct(
-        $entitiesBuilder = null, $acl = null
+        $entitiesBuilder = null,
+        $acl = null
     ) {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->acl = $acl ?: ACL::_();
