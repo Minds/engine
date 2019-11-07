@@ -6,6 +6,7 @@
  */
 
 namespace Minds\Core\Channels\Delegates\Artifacts;
+
 use Minds\Entities\User;
 
 interface ArtifactsDelegateInterface
@@ -34,9 +35,9 @@ interface ArtifactsDelegateInterface
      */
     public function delete($userGuid) : bool;
 
-     /**
-     * @param User $user
-     * @return bool
-     */
+    /**
+    * @param User $user
+    * @return bool
+    */
     public function updateOwnerObject($userGuid, array $value) : bool;
 }

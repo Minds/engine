@@ -85,11 +85,11 @@ class UserIndexesDelegate implements ArtifactsDelegateInterface
         }
     }
 
-     /**
-     * @param string|int $userGuid
-     * Nothing to do here
-     * @return bool
-     */
+    /**
+    * @param string|int $userGuid
+    * Nothing to do here
+    * @return bool
+    */
     public function updateOwnerObject($userGuid, array $ownerObject) : bool
     {
         return true;
