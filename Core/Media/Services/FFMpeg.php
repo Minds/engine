@@ -54,6 +54,7 @@ class FFMpeg implements ServiceInterface
             'ffmpeg.binaries' => '/usr/bin/ffmpeg',
             'ffprobe.binaries' => '/usr/bin/ffprobe',
             'ffmpeg.threads' => $this->config->get('transcoder')['threads'],
+            'timeout' => 0,
         ]);
         $this->ffprobe = $ffprobe ?: FFProbeClient::create([
             'ffprobe.binaries' => '/usr/bin/ffprobe',
@@ -253,19 +254,25 @@ class FFMpeg implements ServiceInterface
                 $pfx = ($rotated ? $opts['width'] : $opts['height']).'.'.$format;
                 $path = $sourcePath.'-'.$pfx;
                 try {
-                    echo "\nTranscoding: $path ($this->key)";
+                    echo "\nTranscoding: $path ($this->key)\n";
+
+                    $formatMap[$format]->on('progress', function ($a, $b, $pct) {
+                        echo "\r$pct% transcoded";
+                        // also emit out to cassandra so frontend can keep track
+                    });
+
                     $formatMap[$format]
                         ->setKiloBitRate($opts['bitrate'])
-                        ->setAudioChannels(2)
+                        // ->setAudioChannels(2)
                         ->setAudioKiloBitrate($opts['audio_bitrate']);
                     $video->save($formatMap[$format], $path);
 
                     //now upload to s3
                     $this->uploadTranscodedFile($path, $pfx);
-                    //cleanup tmp file
-                    @unlink($path);
                 } catch (\Exception $e) {
                     echo " failed {$e->getMessage()}";
+                    //cleanup tmp file
+                    @unlink($path);
                 }
             }
         }
