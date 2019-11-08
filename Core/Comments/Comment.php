@@ -9,6 +9,7 @@ use Minds\Entities\RepositoryEntity;
 use Minds\Entities\User;
 use Minds\Helpers\Flags;
 use Minds\Helpers\Unknown;
+use Minds\Helpers\Export;
 use Minds\Core\Di\Di;
 
 /**
@@ -405,6 +406,8 @@ class Comment extends RepositoryEntity
         $output['can_reply'] = (bool) !$this->getParentGuidL2();
 
         //$output['parent_guid'] = (string) $this->entityGuid;
+
+        $output = Export::sanitize($output);
 
         return $output;
     }
