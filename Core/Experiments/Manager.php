@@ -50,6 +50,7 @@ class Manager
      * Return the bucket for an experiment
      * @param string $experimentId
      * @return Bucket
+     * @throws \Exception
      */
     public function getBucketForExperiment($experimentId)
     {
