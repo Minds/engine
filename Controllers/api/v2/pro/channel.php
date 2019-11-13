@@ -30,7 +30,7 @@ class channel implements Interfaces\Api
     {
         $currentUser = Session::getLoggedinUser();
 
-        $channel = new User($pages[0]);
+        $channel = new User(strtolower($pages[0]));
         $channel->fullExport = true; //get counts
         $channel->exportCounts = true;
 
