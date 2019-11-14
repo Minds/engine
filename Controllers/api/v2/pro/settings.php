@@ -34,7 +34,7 @@ class settings implements Interfaces\Api
                 ]);
             }
 
-            $user = new User($pages[0]);
+            $user = new User(strtolower($pages[0]));
         }
 
         /** @var Manager $manager */
@@ -66,7 +66,7 @@ class settings implements Interfaces\Api
                 ]);
             }
 
-            $user = new User($pages[0]);
+            $user = new User(strtolower($pages[0]));
         }
 
         /** @var Manager $manager */
