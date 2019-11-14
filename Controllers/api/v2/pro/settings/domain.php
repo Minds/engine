@@ -34,7 +34,7 @@ class domain implements Interfaces\Api
                 ]);
             }
 
-            $user = new User($pages[0]);
+            $user = new User(strtolower($pages[0]));
         }
 
         /** @var ProDomain $proDomain */

@@ -53,7 +53,7 @@ class assets implements Interfaces\Api
                 ]);
             }
 
-            $user = new User($pages[1]);
+            $user = new User(strtolower($pages[1]));
         }
 
         // Check uploaded file
