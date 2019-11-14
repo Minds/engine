@@ -53,6 +53,7 @@ class WireSentSpec extends ObjectBehavior
         $sender->get('guid')->willReturn($this->senderGUID);
         $sender->getEmail()->willReturn($this->senderEmail);
         $sender->get('username')->willReturn($this->senderUsername);
+        $sender->get('banned')->willReturn(false);
 
         $this->receiver = $receiver;
         $this->sender = $sender;

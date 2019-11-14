@@ -50,6 +50,7 @@ abstract class EmailCampaign
             !$this->user
             || !$this->user instanceof \Minds\Entities\User
             || $this->user->enabled != 'yes'
+            || $this->user->banned === 'yes'
         ) {
             return false;
         }

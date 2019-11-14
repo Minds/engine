@@ -51,6 +51,7 @@ class GoneColdSenderSpec extends ObjectBehavior
         $user->get('guid')->shouldBeCalled()->willReturn($this->testGUID);
         $user->getEmail()->shouldBeCalled()->willReturn($this->testEmail);
         $user->get('username')->shouldBeCalled()->willReturn($this->testUsername);
+        $user->get('banned')->shouldBeCalled()->willReturn(false);
 
         $this->suggestionsManager->setUser($user)->shouldBeCalled();
         $this->suggestionsManager->getList()->shouldBeCalled();
