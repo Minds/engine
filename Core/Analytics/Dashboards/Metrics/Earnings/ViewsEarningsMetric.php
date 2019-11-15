@@ -14,7 +14,7 @@ class ViewsEarningsMetric extends AbstractEarningsMetric
     protected $id = 'earnings_views';
 
     /** @var string */
-    protected $label = 'Pageviews USD';
+    protected $label = 'Pageviews';
 
     /** @var string */
     protected $description = "Total earnings for the pageviews on your channel's assets. You earn $1 for every 1,000 pageviews.";
