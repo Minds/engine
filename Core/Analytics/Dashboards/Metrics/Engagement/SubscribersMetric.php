@@ -14,7 +14,7 @@ class SubscribersMetric extends AbstractEngagementMetric
     protected $id = 'subscribers';
 
     /** @var string */
-    protected $label = 'Subscribes';
+    protected $label = 'Subscribers';
 
     /** @var string */
     protected $description = "Number of subscribers your channel has gained";
