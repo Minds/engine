@@ -10,7 +10,7 @@ namespace Minds\Controllers\fs\v1;
 use Minds\Core;
 use Minds\Entities;
 use Minds\Interfaces;
-use Minds\Api\Factory;
+use Minds\Helpers\File;
 
 class banners implements Interfaces\FS
 {
@@ -102,9 +102,7 @@ class banners implements Interfaces\FS
             }
         }
 
-        $finfo    = finfo_open(FILEINFO_MIME);
-        $mimetype = finfo_buffer($finfo, $content);
-        finfo_close($finfo);
+        $mimetype = File::getMime($content);
 
         header('Content-Type: '.$mimetype);
         header('Expires: ' . date('r', time() + 864000));
