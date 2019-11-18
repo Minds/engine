@@ -20,7 +20,7 @@ class Image implements AssetsInterface
 
     public function upload(array $media, array $data)
     {
-        $filename = "/image/{$this->entity->batch_guid}/{$this->entity->guid}/master.jpg";
+        $filename = "image/{$this->entity->batch_guid}/{$this->entity->guid}/master.jpg";
 
         // @note: legacy file handling
         $file = new \ElggFile();
