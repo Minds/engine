@@ -39,9 +39,14 @@ class keys implements Interfaces\Api
         //  $priv = helpers\openssl::temporaryPrivateKey($priv, $unlock_password, $unlock_password);
         //  \elgg_set_plugin_user_setting('privatekey', $priv, elgg_get_logged_in_user_guid(), 'gatherings');
         //}
-
-        $keystore->unlockPrivateKey($unlock_password, null);
-        $tmp = $keystore->getUnlockedPrivateKey();
+        try {
+            $keystore->unlockPrivateKey($unlock_password, null);
+            $tmp = $keystore->getUnlockedPrivateKey();
+        } catch (\Exception $e) {
+            $response['status'] = 'error';
+            $response['message'] = $e->getMessage();
+            return Factory::response($response);
+        }
 
         if (!$tmp || !$unlock_password) {
             $response['status'] = 'error';
