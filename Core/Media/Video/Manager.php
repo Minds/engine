@@ -4,15 +4,13 @@
  */
 namespace Minds\Core\Media\Video;
 
+use Aws\S3\S3Client;
+use Minds\Common;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
-use Minds\Core\Session;
-use Minds\Entities\Entity;
 use Minds\Entities\Activity;
-use Minds\Entities\Image;
+use Minds\Entities\Entity;
 use Minds\Entities\Video;
-use Minds\Core\Comments\Comment;
-use Aws\S3\S3Client;
 
 class Manager
 {
@@ -64,7 +62,12 @@ class Manager
         if (!$cmd) {
             return null;
         }
+        if ($entity->access_id !== Common\Access::PUBLIC) {
+            $url = (string)$this->s3->createPresignedRequest($cmd, '+48 hours')->getUri();
+        } else {
+            $url = $this->config->get('cinemr_url') . $entity->cinemr_guid . '/' . $size;
+        }
 
-        return (string) $this->s3->createPresignedRequest($cmd, '+48 hours')->getUri();
+        return $url;
     }
 }
