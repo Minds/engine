@@ -27,6 +27,7 @@ class Minds extends base
         Referrals\Module::class,
         Reports\Module::class,
         VideoChat\Module::class,
+        Front\Module::class,
     ];
 
     /**
