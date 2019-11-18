@@ -64,7 +64,10 @@ class Manager
         }
 
         $uri = $this->config->get('cdn_url') . 'fs/v1/thumbnail/' . $asset_guid . '/' . $size;
-        $uri = $this->signUri($uri);
+
+        if ($entity->access_id !== ACCESS_PUBLIC) {
+            $uri = $this->signUri($uri);
+        }
 
         return $uri;
     }
