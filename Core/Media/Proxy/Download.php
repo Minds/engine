@@ -9,6 +9,7 @@
 namespace Minds\Core\Media\Proxy;
 
 use Minds\Core\Di\Di;
+use Minds\Helpers\File;
 use Minds\Core\Http\Curl\Client;
 use Minds\Traits\MagicAttributes;
 
@@ -99,8 +100,7 @@ class Download
             throw new \Exception('Invalid image');
         }
 
-        $finfo = new \finfo(FILEINFO_MIME);
-        $mime = $finfo->buffer($content);
+        $mime = File::getMime($content);
 
         if (!$mime) {
             throw new \Exception('Cannot read image MIME');
