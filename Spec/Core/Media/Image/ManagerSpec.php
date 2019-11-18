@@ -33,6 +33,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $activity = new Activity();
         $activity->set('entity_guid', 123);
+        $activity->set('access_id', ACCESS_PRIVATE);
         $this->config->get('cdn_url')
             ->willReturn('https://minds.dev/');
         $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge';
@@ -42,10 +43,22 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe('signed url will be here');
     }
 
+    public function it_should_return_unsigned_public_asset_uri()
+    {
+        $activity = new Activity();
+        $activity->set('entity_guid', 123);
+        $activity->set('access_id', ACCESS_PUBLIC);
+        $this->config->get('cdn_url')
+            ->willReturn('https://minds.dev/');
+        $this->getPublicAssetUri($activity)
+            ->shouldBe('https://minds.dev/fs/v1/thumbnail/123/xlarge');
+    }
+
     public function it_should_return_public_asset_uri_for_image()
     {
         $entity = new Image();
         $entity->set('guid', 123);
+        $entity->set('access_id', ACCESS_PRIVATE);
         $this->config->get('cdn_url')
             ->willReturn('https://minds.dev/');
         $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge';
@@ -55,10 +68,22 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe('signed url will be here');
     }
 
+    public function it_should_return_an_unsigned_url_for_an_image()
+    {
+        $entity = new Image();
+        $entity->set('guid', 123);
+        $entity->set('access_id', ACCESS_PUBLIC);
+        $this->config->get('cdn_url')
+            ->willReturn('https://minds.dev/');
+        $this->getPublicAssetUri($entity)
+            ->shouldBe('https://minds.dev/fs/v1/thumbnail/123/xlarge');
+    }
+
     public function it_should_return_public_asset_uri_for_video()
     {
         $entity = new Video();
         $entity->set('guid', 123);
+        $entity->set('access_id', ACCESS_PRIVATE);
         $this->config->get('cdn_url')
             ->willReturn('https://minds.dev/');
         $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge';
@@ -67,6 +92,19 @@ class ManagerSpec extends ObjectBehavior
         $this->getPublicAssetUri($entity)
             ->shouldBe('signed url will be here');
     }
+
+    public function it_should_return_unsigned_public_asset_uri_for_video()
+    {
+        $entity = new Video();
+        $entity->set('guid', 123);
+        $entity->set('access_id', ACCESS_PUBLIC);
+        $this->config->get('cdn_url')
+            ->willReturn('https://minds.dev/');
+        $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge';
+        $this->getPublicAssetUri($entity)
+            ->shouldBe('https://minds.dev/fs/v1/thumbnail/123/xlarge');
+    }
+
 
     public function it_should_return_public_asset_uri_for_comment()
     {
@@ -79,5 +117,16 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('signed url will be here');
         $this->getPublicAssetUri($entity)
             ->shouldBe('signed url will be here');
+    }
+
+    public function it_should_return_unsigned_public_asset_uri_for_comment()
+    {
+        $entity = new Comment();
+        $entity->setAttachment('attachment_guid', '123');
+        $entity->access_id = ACCESS_PUBLIC;
+        $this->config->get('cdn_url')
+            ->willReturn('https://minds.dev/');
+        $this->getPublicAssetUri($entity)
+            ->shouldBe('https://minds.dev/fs/v1/thumbnail/123/xlarge');
     }
 }
