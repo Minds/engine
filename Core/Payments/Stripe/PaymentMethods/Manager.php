@@ -22,8 +22,8 @@ class Manager
     public function __construct(
         $lookup = null,
         $customersManager = null,
-        $paymentMethodInstance = null)
-    {
+        $paymentMethodInstance = null
+    ) {
         $this->lookup = $lookup ?: Di::_()->get('Database\Cassandra\Lookup');
         $this->customersManager = $customersManager ?? new CustomersManager;
         $this->paymentMethodInstance = $paymentMethodInstance ?? new PaymentMethodInstance();

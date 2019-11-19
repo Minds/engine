@@ -128,8 +128,12 @@ class Resize
         $params = $this->getResizeParameters();
 
         // First crop the image
-        $this->image->cropImage($params['selectionwidth'], $params['selectionheight'], $params['xoffset'],
-            $params['yoffset']);
+        $this->image->cropImage(
+            $params['selectionwidth'],
+            $params['selectionheight'],
+            $params['xoffset'],
+            $params['yoffset']
+        );
 
         // If selected with / height differ from selection width/height, then we need to resize
         if ($params['selectionwidth'] !== $params['newwidth'] || $params['selectionheight'] !== $params['newheight']) {

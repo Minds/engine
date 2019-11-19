@@ -65,7 +65,11 @@ class scheduled implements Interfaces\Api
 
                 return Factory::response([
                     'status' => 'success',
-                    'count' => $manager->getScheduledCount(['container_guid' => $container_guid, 'type' => $type])
+                    'count' => $manager->getScheduledCount([
+                        'container_guid' => $container_guid,
+                        'type' => $type,
+                        'owner_guid' => $currentUser->guid,
+                    ])
                 ]);
             default:
                 return Factory::response([
@@ -148,6 +152,7 @@ class scheduled implements Interfaces\Api
             'single_owner_threshold' => 0,
             'pinned_guids' => $type === 'activity' ? array_reverse($container->getPinnedPosts()) : null,
             'time_created_upper' => false,
+            'owner_guid' => $currentUser->guid,
         ];
 
         if (isset($_GET['nsfw'])) {

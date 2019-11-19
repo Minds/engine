@@ -63,16 +63,7 @@ class Defaults
 
         Manager::add('/crypto', function ($slugs = []) {
             return [
-                'title' => 'The Minds Token',
-                'description' => 'Coming soon',
-                'og:title' => 'The Minds Token',
-                'og:description' => 'Coming soon',
-                'og:url' => '/token',
-                'og:image' => $this->config->cdn_assets_url . 'assets/videos/space-1/space.jpg',
-                'og:image:width' => 2000,
-                'og:image:height' => 1000,
-                'twitter:site' => '@minds',
-                'twitter:card' => 'summary',
+                'og:url' => '/token', // Open graph and twitter redirection
             ];
         });
 
@@ -337,6 +328,23 @@ class Defaults
             return $meta;
         });
 
+        Manager::add('/analytics', function ($slugs = []) {
+            $meta = [
+                'title' => 'Analytics',
+                'description' => 'Track your traffic, earnings, engagement and trending analytics',
+                'og:title' => 'Analytics',
+                'og:description' => 'Track your traffic, earnings, engagement and trending analytics',
+                'og:url' => sprintf("%sanalytics/%s", $this->config->site_url, implode('/', $slugs)),
+                'og:image' => $this->config->cdn_assets_url . 'assets/photos/network.jpg',
+                'og:image:width' => 2000,
+                'og:image:height' => 1000,
+                'twitter:site' => '@minds',
+                'twitter:card' => 'summary',
+            ];
+
+            return $meta;
+        });
+
         Manager::add('/wallet/tokens/referrals', function ($slugs = []) {
             $meta = [
                 'title' => 'Referrals',
@@ -361,29 +369,17 @@ class Defaults
                 'image' => 'assets/photos/graph.jpg'
             ],
             'wire' => [
-                'title' => 'Wire',
-                'description' => 'Exchange tokens with other channels on Minds',
-                'image' => 'assets/photos/blown-bulb.jpg'
+                'url' => 'pay'
             ],
             'branding' => [
                 'title' => 'Branding',
                 'description' => 'Logos, assets and styling guides',
                 'image' => 'assets/logos/placeholder.jpg',
             ],
-            'boost' => [
-                'title' => 'Boost',
-                'description' => 'Boost your channel or content to gain more views and reach new audiences',
-                'image' => 'assets/photos/rocket.jpg'
-            ],
             'localization' => [
                 'title' => 'Localization',
                 'description' => 'Help translate Minds into every global language',
                 'image' => 'assets/photos/satellite.jpg'
-            ],
-            'token' => [
-                'title' => 'The Minds Token',
-                'description' => 'Earn crypto for your contributions to the network',
-                'image' => 'assets/photos/globe.jpg'
             ],
             'faq' => [
                 'title' => 'FAQ',
@@ -422,19 +418,44 @@ class Defaults
             ],
             'upgrades' => [
                 'title' => 'Upgrade your Minds experience',
-                'description' => 'Minds offers a unique range of powerful upgrades that will supercharge your experience.',
+                'description' => 'Minds offers a unique range of powerful upgrades that will supercharge your Minds experience',
                 'image' => 'assets/marketing/upgrades-1.jpg',
             ],
             'plus' => [
                 'title' => 'Minds Plus',
-                'description' => 'Upgrade your channel and unlock premium features.',
-                'image' => 'assets/photos/browsing-mobileapp-discovery.jpg',
+                'description' => 'Upgrade your channel and unlock premium features',
+                'image' => 'assets/product-pages/plus/plus-1.jpg',
             ],
             'pro' => [
                 'title' => 'Minds Pro',
-                'description' => 'The ultimate platform for creators and brands.',
-                'image' => 'assets/photos/podcast-people.jpg',
-            ]
+                'description' => 'The ultimate platform for creators and brands',
+                'image' => 'assets/product-pages/pro/pro-1.jpg',
+            ],
+            'nodes' => [
+                'title' => 'Minds Nodes',
+                'description' => 'Launch your own social networking app',
+                'image' => 'assets/product-pages/nodes/nodes-1.jpg',
+            ],
+            'boost' => [
+                'title' => 'Boost',
+                'description' => 'Expand your reach and gain thousands of views',
+                'image' => 'assets/product-pages/boost/boost-1.jpg',
+            ],
+            'pay' => [
+                'title' => 'Minds Pay',
+                'description' => 'Send and receive payments in USD, BTC, ETH and Tokens',
+                'image' => 'assets/product-pages/pay/pay-1.jpg',
+            ],
+            'rewards' => [
+                'title' => 'Minds Rewards',
+                'description' => 'Earn tokens for your contributions to the network',
+                'image' => 'assets/product-pages/rewards/rewards-1.jpg',
+            ],
+            'token' => [
+                'title' => 'Tokens',
+                'description' => 'The fuel of the Minds network',
+                'image' => 'assets/product-pages/token/token-1.jpg',
+            ],
         ];
 
         foreach ($marketing as $uri => $page) {
@@ -444,7 +465,7 @@ class Defaults
                     'description' => $page['description'],
                     'og:title' => $page['title'],
                     'og:description' => $page['description'],
-                    'og:url' => $this->config->site_url . $uri,
+                    'og:url' => $this->config->site_url . (($page['url'] ?? null) ?: $uri),
                     'og:image' => $this->config->cdn_assets_url . $page['image'],
                     'og:image:width' => 2000,
                     'og:image:height' => 1000,

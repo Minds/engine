@@ -8,7 +8,7 @@ use Minds\Core;
  * Object Entity
  * @todo Do not inherit from ElggObject
  */
-class Object extends \ElggObject implements Flaggable
+class MindsObject extends \ElggObject implements Flaggable
 {
     protected $dirtyIndexes;
 

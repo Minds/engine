@@ -28,6 +28,7 @@ class Repository
         $opts = array_merge([
             'container_guid' => null,
             'type' => null,
+            'owner_guid' => null,
         ], $opts);
 
         if (!$opts['type']) {
@@ -63,6 +64,16 @@ class Repository
                 ]
             ]
         ];
+
+        if ($opts['owner_guid']) {
+            $ownerGuids = Text::buildArray($opts['owner_guid']);
+
+            $query['body']['query']['bool']['must'][] = [
+                'terms' => [
+                    'owner_guid' => $ownerGuids,
+                ],
+            ];
+        }
 
         $prepared = new Prepared\Count();
         $prepared->query($query);

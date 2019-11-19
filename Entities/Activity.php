@@ -187,7 +187,8 @@ class Activity extends Entity
      */
     public function getExportableValues()
     {
-        return array_merge(parent::getExportableValues(),
+        return array_merge(
+            parent::getExportableValues(),
             [
                 'title',
                 'blurb',
@@ -221,7 +222,8 @@ class Activity extends Entity
                 'hide_impressions',
                 'pinned',
                 'time_sent',
-            ]);
+            ]
+        );
     }
 
     /**

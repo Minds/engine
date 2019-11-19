@@ -27,7 +27,10 @@ class CurlWrapper
         curl_setopt($this->handle, CURLOPT_BUFFERSIZE, 128);
         curl_setopt($this->handle, CURLOPT_NOPROGRESS, false);
         curl_setopt($this->handle, CURLOPT_PROGRESSFUNCTION, function (
-            $downloadSize, $downloaded, $uploadSize, $uploaded
+            $downloadSize,
+            $downloaded,
+            $uploadSize,
+            $uploaded
         ) use ($limitKb) {
             error_log($downloaded);
             if ($downloaded) {

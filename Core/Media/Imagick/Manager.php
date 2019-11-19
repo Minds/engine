@@ -49,6 +49,17 @@ class Manager
         return $this->image->getImageBlob();
     }
 
+    public function getPng()
+    {
+        if (!$this->image) {
+            throw new \Exception('Output was not generated');
+        }
+
+        $this->image->setImageFormat('png');
+
+        return $this->image->getImageBlob();
+    }
+
     /**
      * @param $value
      * @return $this
@@ -57,6 +68,14 @@ class Manager
     public function setImage($value)
     {
         $this->image = new \Imagick($value);
+
+        return $this;
+    }
+
+    public function setImageFromBlob($blob, $fileName = null)
+    {
+        $this->image = new \Imagick();
+        $this->image->readImageBlob($blob, $fileName);
 
         return $this;
     }

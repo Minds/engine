@@ -103,7 +103,8 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn(false);
 
         $decision->getReport()
-            ->willReturn((new Report)
+            ->willReturn(
+                (new Report)
                 ->setEntityUrn('urn:activity:123')
                 ->setReasonCode(2)
                 ->setSubReasonCode(5)
@@ -145,7 +146,8 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn(true);
 
         $decision->getReport()
-            ->willReturn((new Report)
+            ->willReturn(
+                (new Report)
                 ->setEntityUrn('urn:activity:123')
                 ->setReasonCode(2)
                 ->setSubReasonCode(5)

@@ -273,7 +273,7 @@ class PreFeb2019RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function getMatchers()
+    public function getMatchers(): array
     {
         $matchers = [];
 

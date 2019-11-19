@@ -116,7 +116,10 @@ class Ads
 
         $dateRange = $payouts->getPayoutDateRange();
         $list = $dateRange ? $this->getList(
-            $dateRange['start'], $dateRange['end'], $offset, $count
+            $dateRange['start'],
+            $dateRange['end'],
+            $offset,
+            $count
         ) : [];
 
         return [

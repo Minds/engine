@@ -14,7 +14,7 @@ class ReferralsEarningsMetric extends AbstractEarningsMetric
     protected $id = 'earnings_referrals';
 
     /** @var string */
-    protected $label = 'Referrals USD';
+    protected $label = 'Referrals';
 
     /** @var string */
     protected $description = "Total earnings for your active referrals. You earn $0.10 for every active referral. A referral must log in at least 3 of 7 days after registration to be credited.";

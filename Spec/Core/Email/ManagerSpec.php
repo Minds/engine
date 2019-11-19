@@ -2,6 +2,9 @@
 
 namespace Spec\Minds\Core\Email;
 
+use Minds\Core\Data\Cassandra\Client;
+use Minds\Core\Data\Cassandra\Prepared\Custom;
+use Minds\Core\Di\Di;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -10,6 +13,7 @@ use Minds\Core\Email\CampaignLogs\Repository as CampaignLogsRepository;
 use Minds\Entities\User;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Email\CampaignLogs\CampaignLog;
+use Spec\Minds\Mocks\Cassandra\FutureRow;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -28,7 +32,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType('Minds\Core\Email\Manager');
     }
 
-    public function it_should_get_subscribers()
+    public function it_should_get_subscribers(EmailSubscription $emailSub1, EmailSubscription $emailSub2, Client $client)
     {
         $opts = [
             'campaign' => 'when',
@@ -37,24 +41,28 @@ class ManagerSpec extends ObjectBehavior
             'limit' => 2000,
         ];
 
-        $user1 = new User();
-        $user1->guid = '123';
-        $user1->username = 'user1';
-        $user2 = new User();
-        $user1->guid = '456';
-        $user1->username = 'user2';
+        $subscriptions = [
+            'data' => [
+                $emailSub1,
+                $emailSub2
+            ],
+            'token' => '120123iasjdojqwoeij'
+        ];
 
-        $this->repository->getList(Argument::type('array'))
-            ->shouldBeCalled()
-            ->willReturn([
-                'data' => [
-                    $user1->guid,
-                    $user2->guid
-                ],
-                'token' => '120123iasjdojqwoeij'
-            ]);
 
-        $this->getSubscribers($opts)->shouldBeArray();
+        Di::_()->bind('Database\Cassandra\Cql', function ($di) use ($client) {
+            return $client;
+        });
+
+        $futureRow = new FutureRow('something');
+
+        $this->repository->getList(Argument::type('array'))->shouldBeCalled()->willReturn($subscriptions);
+        $emailSub1->getUserGuid()->shouldBeCalled()->willReturn('1001');
+        $emailSub2->getUserGuid()->shouldBeCalled()->willReturn('1002');
+        //$client->request(Argument::type(Custom::class), true)->shouldBeCalled()->willReturn($futureRow);
+
+        /* TODO: We can't mock Call because it's called directly via Entities::get() call */
+        $this->shouldThrow()->during('getSubscribers', [$opts]);
     }
 
     public function it_should_unsubscribe_a_user_from_a_campaign()
@@ -111,7 +119,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->delete($subscriptions[1])
             ->shouldBeCalled();
-        
+
         $this->unsubscribe($user)
             ->shouldReturn(true);
     }

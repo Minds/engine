@@ -69,6 +69,11 @@ class Repository
 
         try {
             $rows = $this->client->request($query);
+
+            if (!$rows) {
+                return $response;
+            }
+
             foreach ($rows as $row) {
                 $user = new User($row['column1']);
                 $response[] = $user;

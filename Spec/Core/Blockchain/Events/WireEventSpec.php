@@ -55,8 +55,10 @@ class WireEventSpec extends ObjectBehavior
                 '0x123123'
             ]
         ];
-        $this->shouldThrow(new \Exception('Event does not match address'))->during('event',
-            ['0xce785fa87dd60f986617d1c5e02218c5b233399cc29e9a326a41a76fabc95d66', $log, $transaction]);
+        $this->shouldThrow(new \Exception('Event does not match address'))->during(
+            'event',
+            ['0xce785fa87dd60f986617d1c5e02218c5b233399cc29e9a326a41a76fabc95d66', $log, $transaction]
+        );
     }
 
     public function it_should_execute_a_wire_sent_event(Transaction $transaction)

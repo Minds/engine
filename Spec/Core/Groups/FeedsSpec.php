@@ -476,7 +476,7 @@ class FeedsSpec extends ObjectBehavior
 
     //
 
-    public function getMatchers()
+    public function getMatchers(): array
     {
         $matchers = [];
 

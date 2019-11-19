@@ -54,7 +54,7 @@ abstract class AbstractEarningsMetric extends AbstractMetric
             $must[]['range'] = [
                 '@timestamp' => [
                     'gte' => $tsMs,
-                    'lte' => strtotime("midnight +{$timespan->getComparisonInterval()} days", $tsMs / 1000) * 1000,
+                    'lt' => strtotime("midnight tomorrow +{$timespan->getComparisonInterval()} days", $tsMs / 1000) * 1000,
                 ],
             ];
 
@@ -65,6 +65,12 @@ abstract class AbstractEarningsMetric extends AbstractMetric
                     ],
                 ];
             }
+
+            $must[] = [
+                'exists' => [
+                    'field' => $this->aggField,
+                ],
+            ];
 
             $query = [
                 'index' => 'minds-entitycentric-*',
@@ -126,6 +132,12 @@ abstract class AbstractEarningsMetric extends AbstractMetric
                 ],
             ];
         }
+
+        $must[] = [
+            'exists' => [
+                'field' => $this->aggField,
+            ],
+        ];
 
         // Do the query
         $query = [

@@ -358,7 +358,8 @@ class newsfeed implements Interfaces\Api
                                         ->setCustom('video', [
                                             'thumbnail_src' => $embeded->getIconUrl(),
                                             'guid' => $embeded->guid,
-                                            'mature' => $embeded instanceof Flaggable ? $embeded->getFlag('mature') : false
+                                            'mature' => $embeded instanceof Flaggable ? $embeded->getFlag('mature') : false,
+                                            'full_hd' => $embeded->getFlag('full_hd') ?? false,
                                         ])
                                         ->setTitle($embeded->title)
                                         ->setBlurb($embeded->description)
@@ -378,7 +379,7 @@ class newsfeed implements Interfaces\Api
                                             ->setTitle($embeded->title)
                                             ->setBlurb($embeded->description)
                                             ->export()
-                                        )
+                                    )
                                         ->setMessage($message);
                                 }
                                 $save->setEntity($activity)
@@ -416,7 +417,7 @@ class newsfeed implements Interfaces\Api
                                             ->setTitle($embeded->title)
                                             ->setBlurb($embeded->description)
                                             ->export()
-                                        )
+                                    )
                                         ->setMessage($message);
                                 }
                                 $save->setEntity($activity)
@@ -525,7 +526,7 @@ class newsfeed implements Interfaces\Api
                             ]);
                         }
                     }
-                    
+
                     $save->setEntity($activity)
                         ->save();
 

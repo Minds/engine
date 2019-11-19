@@ -70,4 +70,26 @@ class BalanceSpec extends ObjectBehavior
         $this->setUser($user);
         $this->get()->shouldReturn(0);
     }
+
+    public function it_should_not_store_null_values_in_cache(User $user)
+    {
+        $user->getEthWallet()
+            ->shouldBeCalled()
+            ->willReturn('0x123');
+
+        $this->cache->get('blockchain:balance:0x123')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->token->balanceOf('0x123')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->cache->set('blockchain:balance:0x123', null, 60)
+            ->shouldBeCalledTimes(0);
+
+        $this->setUser($user);
+
+        $this->get()->shouldReturn(null);
+    }
 }

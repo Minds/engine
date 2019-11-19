@@ -260,7 +260,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function getMatchers()
+    public function getMatchers(): array
     {
         $matchers = [];
 

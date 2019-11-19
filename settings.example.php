@@ -42,8 +42,9 @@ $CONFIG->set('oauth', [
     'encryption_key' => '{{ jwt-secret }}',
  ]);
 
-$CONFIG->set('report_reasons',
-[
+$CONFIG->set(
+    'report_reasons',
+    [
     [
       'value' => 1,
       'label' => 'Illegal',
@@ -540,7 +541,7 @@ $CONFIG->set('transcoder', [
             'bitrate' => 500,
             'audio_bitrate' => 80,
             'formats' => [ 'mp4', 'webm' ],
-            'charge' => false,
+            'pro' => false,
         ],
         [
             'width' => 1280,
@@ -548,7 +549,7 @@ $CONFIG->set('transcoder', [
             'bitrate' => 2000,
             'audio_bitrate' => 128,
             'formats' => [ 'mp4', 'webm' ],
-            'charge' => false,
+            'pro' => false,
         ],
         [
             'width' => 1920,
@@ -556,7 +557,7 @@ $CONFIG->set('transcoder', [
             'bitrate' => 2000,
             'audio_bitrate' => 128,
             'formats' => [ 'mp4', 'webm' ],
-            'charge' => true,
+            'pro' => true,
         ],
     ]
 ]);

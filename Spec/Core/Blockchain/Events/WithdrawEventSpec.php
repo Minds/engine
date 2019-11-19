@@ -89,8 +89,10 @@ class WithdrawEventSpec extends ObjectBehavior
 
     public function it_should_fail_if_the_transaction_address_isnt_the_same_as_the_contract_address(Transaction $transaction)
     {
-        $this->shouldThrow(new \Exception("Event does not match address"))->during('event',
-            ['blockchain:fail', ['address' => '0x123'], $transaction]);
+        $this->shouldThrow(new \Exception("Event does not match address"))->during(
+            'event',
+            ['blockchain:fail', ['address' => '0x123'], $transaction]
+        );
     }
 
     public function it_should_send_a_blockchain_fail_event_but_it_isnt_the_same_contract(Transaction $transaction)
@@ -99,8 +101,10 @@ class WithdrawEventSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('wire');
 
-        $this->shouldThrow(new \Exception("Failed but not a withdrawal"))->during('event',
-            ['blockchain:fail', ['address' => '0xasd'], $transaction]);
+        $this->shouldThrow(new \Exception("Failed but not a withdrawal"))->during(
+            'event',
+            ['blockchain:fail', ['address' => '0xasd'], $transaction]
+        );
     }
 
     public function it_should_abort_if_not_from_address(Manager $manager, Repository $txRepo, Config $config)

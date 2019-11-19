@@ -22,12 +22,13 @@ class AutoReporterSpec extends ObjectBehavior
     private $moderationManager;
     private $stewardUser;
 
-    public function let(Config $config,
+    public function let(
+        Config $config,
         EntitiesBuilder $entitiesBuilder,
         Reports\UserReports\Manager $reportManager,
         Reports\Jury\Manager $juryManager,
-        Reports\Manager $moderationManager)
-    {
+        Reports\Manager $moderationManager
+    ) {
         $this->config = $config;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->reportManager = $reportManager;
@@ -41,11 +42,13 @@ class AutoReporterSpec extends ObjectBehavior
         $this->config->get('steward_guid')->willReturn(123);
         $this->config->get('steward_autoconfirm')->willReturn(null);
         $this->entitiesBuilder->single(123)->willReturn($stewardUser);
-        $this->beConstructedWith($this->config,
+        $this->beConstructedWith(
+            $this->config,
             $this->entitiesBuilder,
             $this->reportManager,
             $this->juryManager,
-            $this->moderationManager);
+            $this->moderationManager
+        );
     }
 
     public function it_is_initializable()

@@ -1,4 +1,4 @@
-FROM minds/php:latest
+FROM minds/php:7.3
 
 # Copy our built the code
 

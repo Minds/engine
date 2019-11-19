@@ -56,18 +56,21 @@ class SubscriptionSync extends Cli\Controller implements Interfaces\CliControlle
                 $amount = ($result->quantity * $result->plan->amount) / 100;
 
                 $insert = new Core\Data\Cassandra\Prepared\Custom();
-                $insert->query("INSERT INTO plans (user_guid, plan, entity_guid, amount) VALUES (?, ?, ?, ?)",
-                [
+                $insert->query(
+                    "INSERT INTO plans (user_guid, plan, entity_guid, amount) VALUES (?, ?, ?, ?)",
+                    [
                   $plan['user_guid'],
                   $plan['plan'],
                   $plan['entity_guid'],
                   (int) $amount
-                ]);
+                ]
+                );
                 $this->db->request($insert);
 
                 if ($plan['plan'] == 'exclusive') {
                     $query = new Core\Data\Cassandra\Prepared\Custom();
-                    $query->query("INSERT INTO wire
+                    $query->query(
+                        "INSERT INTO wire
                       (receiver_guid, sender_guid, method, timestamp, entity_guid, wire_guid, amount, recurring, status)
                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                         [
@@ -80,7 +83,8 @@ class SubscriptionSync extends Cli\Controller implements Interfaces\CliControlle
                             new \Cassandra\Decimal($amount),
                             true,
                             'success'
-                        ]);
+                        ]
+                    );
 
                     $this->db->request($query);
                 }
