@@ -101,6 +101,7 @@ class Repository
                         ->setHasCustomLogo($data['has_custom_logo'] ?? false)
                         ->setHasCustomBackground($data['has_custom_background'] ?? false)
                         ->setTimeUpdated($data['time_updated'] ?? 0)
+                        ->setPayoutMethod($data['payout_method'] ?? 'usd')
                     ;
 
                     $response[] = $settings;
@@ -150,6 +151,7 @@ class Repository
                 'has_custom_logo' => $settings->hasCustomLogo(),
                 'has_custom_background' => $settings->hasCustomBackground(),
                 'time_updated' => $settings->getTimeUpdated(),
+                'payout_method' => $settings->getPayoutMethod(),
             ]),
         ];
 
