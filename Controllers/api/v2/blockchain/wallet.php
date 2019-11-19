@@ -50,7 +50,10 @@ class wallet implements Interfaces\Api
                 $offChainBalanceVal = BigNumber::_($offChainBalance->get());
                 $offchainAvailableVal = BigNumber::_($offChainBalance->getAvailable());
 
-                $balance = $onChainBalanceVal->add($offChainBalanceVal);
+                
+                $balance = $onChainBalanceVal
+                    ? $onChainBalanceVal->add($offChainBalanceVal)
+                    : $offChainBalanceVal;
 
                 $wireCap = Di::_()->get('Blockchain\Wallets\OffChain\Cap')
                     ->setUser(Session::getLoggedinUser())
