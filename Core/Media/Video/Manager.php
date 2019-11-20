@@ -11,6 +11,7 @@ use Minds\Core\Di\Di;
 use Minds\Entities\Activity;
 use Minds\Entities\Entity;
 use Minds\Entities\Video;
+use Minds\Core\Media\Services\FFMpeg;
 
 class Manager
 {
@@ -20,7 +21,10 @@ class Manager
     /** @var S3Client $s3 */
     private $s3;
 
-    public function __construct($config = null, $s3 = null)
+    /** @var FFMpeg */
+    private $transcoder;
+
+    public function __construct($config = null, $s3 = null, $transcoder = null)
     {
         $this->config = $config ?? Di::_()->get('Config');
 
@@ -36,6 +40,7 @@ class Manager
             ];
         }
         $this->s3 = $s3 ?: new S3Client(array_merge(['version' => '2006-03-01'], $opts));
+        $this->transcoder = $transcoder ?: new FFMpeg();
     }
 
     /**
@@ -69,5 +74,25 @@ class Manager
         }
 
         return $url;
+    }
+
+
+    /**
+     * Add a video to the transcoding queue
+     *
+     * @param Integer $guid - the guid of the video.
+     * @param boolean $fullhd - whether to transcode full_hd.
+     * @return boolean true if video added to transcode queue.
+     */
+    public function queueTranscoding($guid, $fullhd = false)
+    {
+        try {
+            $this->transcoder->setKey($guid);
+            $this->transcoder->setFullHD($fullhd ?? false);
+            $this->transcoder->transcode();
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }

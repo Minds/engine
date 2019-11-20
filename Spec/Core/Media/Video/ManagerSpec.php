@@ -9,17 +9,20 @@ use Minds\Entities\Video;
 use Psr\Http\Message\RequestInterface;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Minds\Core\Media\Services\FFMpeg;
 
 class ManagerSpec extends ObjectBehavior
 {
     private $config;
     private $s3;
+    private $transcoder;
 
-    public function let(Config $config, S3Client $s3)
+    public function let(Config $config, S3Client $s3, FFMpeg $transcoder)
     {
-        $this->beConstructedWith($config, $s3);
+        $this->beConstructedWith($config, $s3, $transcoder);
         $this->config = $config;
         $this->s3 = $s3;
+        $this->transcoder = $transcoder;
     }
 
     public function it_is_initializable()
@@ -94,5 +97,31 @@ class ManagerSpec extends ObjectBehavior
         $video->set('cinemr_guid', 123);
         $this->getPublicAssetUri($video, '720.mp4')
             ->shouldBe('https://url.com/cinemr123/720.mp4');
+    }
+
+    public function it_should_manually_transcode_a_non_hd_video(FFMpeg $transcoder)
+    {
+        $guid = '123';
+        $hd = false;
+
+        $transcoder->setKey($guid)->shouldBeCalled();
+        $transcoder->setFullHD($hd)->shouldBeCalled();
+        $transcoder->transcode()->shouldBeCalled();
+
+        $this->queueTranscoding($guid, $hd)
+            ->shouldReturn(true);
+    }
+
+    public function it_should_manually_transcode_a_hd_video(FFMpeg $transcoder)
+    {
+        $guid = '123';
+        $hd = true;
+
+        $transcoder->setKey($guid)->shouldBeCalled();
+        $transcoder->setFullHD($hd)->shouldBeCalled();
+        $transcoder->transcode()->shouldBeCalled();
+
+        $this->queueTranscoding($guid, $hd)
+            ->shouldReturn(true);
     }
 }
