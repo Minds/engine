@@ -60,6 +60,11 @@ class Balance
         }
 
         $balance = $this->token->balanceOf($address);
+
+        if ($balance === null) {
+            return null;
+        }
+        
         $this->cache->set($cacheKey, serialize($balance), 60);
 
         return $balance;

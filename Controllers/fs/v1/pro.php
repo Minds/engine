@@ -31,6 +31,10 @@ class pro implements Interfaces\FS
 
         $contents = $file->read();
 
+        if (!$contents) {
+            $this->fallback($pages);
+        }
+
         header(sprintf("Content-Type: %s", $asset->getMimeType()));
         header(sprintf("Expires: %s", date('r', time() + 864000)));
         header('Pragma: public');
@@ -38,5 +42,26 @@ class pro implements Interfaces\FS
 
         echo $contents;
         exit;
+    }
+
+    /**
+     * Fallback
+     * @param array $pages
+     * @return void
+     */
+    private function fallback($pages): void
+    {
+        switch ($pages[1]) {
+            case "background":
+                $bannersFs = new banners();
+                $bannersFs->get([ $pages[0] ]);
+                exit;
+                break;
+            case "logo":
+                $avatarsFs = new avatars();
+                $avatarsFs->get([ $pages[0], 'large' ]);
+                exit;
+                break;
+        }
     }
 }

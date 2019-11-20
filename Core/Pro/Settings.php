@@ -52,6 +52,8 @@ use Minds\Traits\MagicAttributes;
  * @method Settings setHasCustomBackground(bool $customBackground)
  * @method int getTimeUpdated()
  * @method Settings setTimeUpdated(int $timeUpdated)
+ * @method string getPayoutMethod()
+ * @method Settings setPayoutMethod(string $method)
  */
 class Settings implements JsonSerializable
 {
@@ -135,6 +137,9 @@ class Settings implements JsonSerializable
     /** @var int */
     protected $timeUpdated;
 
+    /** @var string */
+    protected $payoutMethod = 'usd';
+
     /**
      * @return string
      */
@@ -176,6 +181,7 @@ class Settings implements JsonSerializable
             'styles' => $this->buildStyles(),
             'published' => $this->published,
             'time_updated' => $this->timeUpdated,
+            'payout_method' => $this->payoutMethod,
         ];
     }
 

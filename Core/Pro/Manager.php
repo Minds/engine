@@ -327,6 +327,10 @@ class Manager
                 ->save();
         }
 
+        if (isset($values['payout_method'])) {
+            $settings->setPayoutMethod($values['payout_method']);
+        }
+
         $settings->setTimeUpdated(time());
 
         $this->setupRoutingDelegate
