@@ -2,263 +2,926 @@
 
 namespace Spec\Minds\Core\Rewards\Withdraw;
 
-use Minds\Core\Blockchain\Wallets\OffChain\Balance;
+use Exception;
+use Minds\Common\Repository\Response;
+use Minds\Core\Blockchain\Services\Ethereum;
+use Minds\Core\Blockchain\Transactions\Manager as TransactionsManager;
+use Minds\Core\Blockchain\Transactions\Transaction;
+use Minds\Core\Blockchain\Wallets\OffChain\Balance as OffchainBalance;
+use Minds\Core\Blockchain\Wallets\OffChain\Transactions as OffchainTransactions;
+use Minds\Core\Config;
+use Minds\Core\Data\Locks\LockFailedException;
+use Minds\Core\Rewards\Withdraw\Delegates;
+use Minds\Core\Rewards\Withdraw\Manager;
+use Minds\Core\Rewards\Withdraw\Repository;
+use Minds\Core\Rewards\Withdraw\Request;
 use Minds\Core\Util\BigNumber;
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-use Minds\Core\Blockchain\Pending;
-use Minds\Core\Rewards\Withdraw\Request;
-use Minds\Core\Rewards\Withdraw\Repository;
-use Minds\Core\Blockchain\Wallets\OffChain\Transactions;
-use Minds\Core\Blockchain\Util;
-use Minds\Core\Blockchain\Services\Ethereum;
-use Minds\Core\Blockchain\Transactions\Manager as BlockchainTx;
-use Minds\Core\Blockchain\Transactions\Transaction;
-use Minds\Core\Config\Config;
-use Minds\Entities\User;
-
 class ManagerSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
-    {
-        $this->shouldHaveType('Minds\Core\Rewards\Withdraw\Manager');
-    }
+    /** @var TransactionsManager */
+    protected $txManager;
 
-    public function it_should_allow_a_withdrawal_request_to_be_made(
-        BlockchainTx $offChainTransactions,
-        Repository $repository,
-        Balance $offChainBalance
-    ) {
-        $this->beConstructedWith($offChainTransactions, null, null, null, $repository, $offChainBalance);
+    /** @var OffchainTransactions */
+    protected $offChainTransactions;
 
-        $transaction = new Transaction();
-        $transaction
-            ->setContract('withdraw')
-            ->setTx('0xabc220393')
-            ->setUserGuid(123)
-            ->setWalletAddress('0xRequesterAddr')
-            ->setAmount(1000)
-            ->setTimestamp(time())
-            ->setData([
-                'amount' => 1000,
-                'gas' => 50,
-                'address' => '0xRequesterAddr'
-            ]);
+    /** @var Config */
+    protected $config;
 
-        $offChainTransactions->add($transaction)->shouldBeCalled();
+    /** @var Ethereum */
+    protected $eth;
 
-        $offChainBalance->setUser(Argument::type(User::class))
-            ->shouldBeCalled()
-            ->willReturn($offChainBalance);
+    /** @var Repository */
+    protected $repository;
 
-        $offChainBalance->getAvailable()
-            ->shouldBeCalled()
-            ->willReturn((string) BigNumber::toPlain(10, 18));
+    /** @var OffchainBalance */
+    protected $offChainBalance;
 
-        $request = new Request();
-        $request->setTx('0xabc220393')
-            ->setUserGuid(123)
-            ->setAmount(1000)
-            ->setAddress('0xRequesterAddr')
-            ->setTimestamp(time())
-            ->setGas(50);
+    /** @var Delegates\NotificationsDelegate */
+    protected $notificationsDelegate;
 
-        $this->request($request);
-    }
+    /** @var Delegates\RequestHydrationDelegate */
+    protected $requestHydrationDelegate;
 
-    public function it_should_not_allow_a_withdrawl_request_to_be_made_if_already_exists_in_last_24_hours(
-        BlockchainTx $offChainTransactions,
-        Repository $repository
-    ) {
-        $this->beConstructedWith($offChainTransactions, null, null, null, $repository);
-
-        $request = new Request();
-        $request->setTx('0xabc220393')
-            ->setUserGuid(123)
-            ->setAmount(1000)
-            ->setAddress('0xRequesterAddr')
-            ->setTimestamp(time())
-            ->setGas(50);
-
-        $repository->getList([
-                'user_guid' => 123,
-                'contract' => 'withdraw',
-                'from' => strtotime('-1 day')
-            ])
-            ->willReturn([
-                'withdraws' => [ $request ]
-            ]);
-
-        $this->shouldThrow('\Exception')->duringRequest($request);
-    }
-
-    public function it_should_complete_the_withdrawal_after_a_request(
-        BlockchainTx $txManager,
-        Transactions $offChainTransactions,
+    public function let(
+        TransactionsManager $txManager,
+        OffchainTransactions $offChainTransactions,
         Config $config,
         Ethereum $eth,
-        Repository $repository
+        Repository $repository,
+        OffchainBalance $offChainBalance,
+        Delegates\NotificationsDelegate $notificationsDelegate,
+        Delegates\RequestHydrationDelegate $requestHydrationDelegate
     ) {
-        $this->beConstructedWith($txManager, $offChainTransactions, $config, $eth, $repository);
+        $this->beConstructedWith(
+            $txManager,
+            $offChainTransactions,
+            $config,
+            $eth,
+            $repository,
+            $offChainBalance,
+            $notificationsDelegate,
+            $requestHydrationDelegate
+        );
 
-        $user = new User();
-        $user->guid = 123;
-        $offChainTransactions->setUser($user)->shouldBeCalled()->willReturn($offChainTransactions);
-        $offChainTransactions->setType('withdraw')->shouldBeCalled()->willReturn($offChainTransactions);
-        //$offChainTransactions->setTx('0xabc220393')->shouldBeCalled()->willReturn($offChainTransactions);
-        $offChainTransactions->setAmount(-1000)->shouldBeCalled()->willReturn($offChainTransactions);
-        $offChainTransactions->create()->shouldBeCalled();
-        $config->get('blockchain')->willReturn([
-            'contracts' => [
-                'withdraw' => [
-                    'contract_address' => '0xwidthdraw-address',
-                    'wallet_pkey' => 'private-key-here',
-                    'wallet_address' => '0xfunds-address',
-                ]
-            ]
-        ]);
+        $this->txManager = $txManager;
+        $this->offChainTransactions = $offChainTransactions;
+        $this->config = $config;
+        $this->eth = $eth;
+        $this->repository = $repository;
+        $this->offChainBalance = $offChainBalance;
+        $this->notificationsDelegate = $notificationsDelegate;
+        $this->requestHydrationDelegate = $requestHydrationDelegate;
+    }
 
-        $eth->sendRawTransaction('private-key-here', [
-            'from' => '0xfunds-address',
-            'to' => '0xwidthdraw-address',
-            'gasLimit' => BigNumber::_(4612388)->toHex(true),
-            'gasPrice' => BigNumber::_(10000000000)->toHex(true),
-            'data' => '0xRESULT'
-        ])->shouldBeCalled()
-        ->willReturn('0xRESULTRawTransaction');
+    public function it_is_initializable()
+    {
+        $this->shouldHaveType(Manager::class);
+    }
 
-        $eth->encodeContractMethod('complete(address,uint256,uint256,uint256)', [
-            '0xRequesterAddr',
-            BigNumber::_(123)->toHex(true),
-            BigNumber::_(50)->toHex(true),
-            BigNumber::_(1000)->toHex(true)
+    public function it_should_check()
+    {
+        $this->config->get('blockchain')
+            ->shouldBeCalled()
+            ->willReturn([
+                'contracts' => [
+                    'withdraw' => [
+                        'limit_exemptions' => [1001],
+                    ],
+                ],
+            ]);
+
+        $this->repository->getList([
+            'user_guid' => 1000,
+            'from' => strtotime('-1 day'),
         ])
-        ->shouldBeCalled()
-        ->willReturn('0xRESULT');
-
-        $request = new Request();
-        $request->setTx('0xabc220393')
-            ->setAddress('0xRequesterAddr')
-            ->setUserGuid(123)
-            ->setAmount(1000)
-            ->setGas(50);
-
-        $transaction = new Transaction();
-        $transaction
-            ->setContract('withdraw')
-            ->setTx('0xabc220393')
-            ->setUserGuid(123)
-            ->setData([
-                'amount' => 1000,
-                'gas' => 50,
-                'address' => '0xRequesterAddr'
+            ->shouldBeCalled()
+            ->willReturn([
+                'withdrawals' => [],
             ]);
-        $addRequest = $request;
-        $addRequest->setCompletedTx('0xRESULTRawTransaction');
 
-        $repository->add($addRequest)->shouldBeCalled();
-
-        $this->complete($request, $transaction);
+        $this
+            ->check(1000)
+            ->shouldReturn(true);
     }
 
-    public function it_should_not_complete_the_withdrawal_if_user_mismatch(BlockchainTx $txManager)
-    {
-        $this->beConstructedWith($txManager);
-
-        $request = new Request();
-        $request->setTx('0xabc220393')
-            ->setAddress('0xRequesterAddr')
-            ->setUserGuid(1234)
-            ->setAmount(1000)
-            ->setGas(50);
-
-        $transaction = new Transaction();
-        $transaction
-            ->setContract('withdraw')
-            ->setTx('0xabc220393')
-            ->setUserGuid(123)
-            ->setData([
-                'amount' => 1000,
-                'gas' => 50,
-                'address' => '0xRequesterAddr'
+    public function it_should_check_and_fail(
+        Request $request
+    ) {
+        $this->config->get('blockchain')
+            ->shouldBeCalled()
+            ->willReturn([
+                'contracts' => [
+                    'withdraw' => [
+                        'limit_exemptions' => [1001],
+                    ],
+                ],
             ]);
 
-        $this->shouldThrow('\Exception')->duringComplete($request, $transaction);
+        $this->repository->getList([
+            'user_guid' => 1000,
+            'from' => strtotime('-1 day'),
+        ])
+            ->shouldBeCalled()
+            ->willReturn([
+                'withdrawals' => [
+                    $request,
+                ],
+            ]);
+
+        $this
+            ->check(1000)
+            ->shouldReturn(false);
     }
 
-    public function it_should_not_complete_the_withdrawal_if_address_mismatch(BlockchainTx $txManager)
+    public function it_should_check_bypassing_limits()
     {
-        $this->beConstructedWith($txManager);
-
-        $request = new Request();
-        $request->setTx('0xabc220393')
-            ->setAddress('0xRequesterAddrNOT')
-            ->setUserGuid(123)
-            ->setAmount(1000)
-            ->setGas(50);
-
-        $transaction = new Transaction();
-        $transaction
-            ->setContract('withdraw')
-            ->setTx('0xabc220393')
-            ->setUserGuid(123)
-            ->setData([
-                'amount' => 1000,
-                'gas' => 50,
-                'address' => '0xRequesterAddr'
+        $this->config->get('blockchain')
+            ->shouldBeCalled()
+            ->willReturn([
+                'contracts' => [
+                    'withdraw' => [
+                        'limit_exemptions' => [1001],
+                    ],
+                ],
             ]);
 
-        $this->shouldThrow('\Exception')->duringComplete($request, $transaction);
+        $this
+            ->check(1001)
+            ->shouldReturn(true);
     }
 
-    public function it_should_not_complete_the_withdrawal_if_amount_mismatch(BlockchainTx $txManager)
-    {
-        $this->beConstructedWith($txManager);
+    public function it_should_get_list(
+        Request $request
+    ) {
+        $opts = [
+            'user_guid' => 1000,
+            'hydrate' => true,
+            'admin' => true,
+        ];
 
-        $request = new Request();
-        $request->setTx('0xabc220393')
-            ->setAddress('0xRequesterAddr')
-            ->setUserGuid(123)
-            ->setAmount(10001)
-            ->setGas(50);
-
-        $transaction = new Transaction();
-        $transaction
-            ->setContract('withdraw')
-            ->setTx('0xabc220393')
-            ->setUserGuid(123)
-            ->setData([
-                'amount' => 1000,
-                'gas' => 50,
-                'address' => '0xRequesterAddr'
+        $this->repository->getList($opts)
+            ->shouldBeCalled()
+            ->willReturn([
+                'withdrawals' => [
+                    $request,
+                ],
+                'load-next' => 'phpspec',
             ]);
 
-        $this->shouldThrow('\Exception')->duringComplete($request, $transaction);
+        $this->requestHydrationDelegate->hydrate($request)
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $this->requestHydrationDelegate->hydrateForAdmin($request)
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $this
+            ->getList($opts)
+            ->shouldReturnAnInstanceOf(Response::class);
     }
 
-    public function it_should_not_complete_the_withdrawal_if_gas_mismatch(BlockchainTx $txManager)
-    {
-        $this->beConstructedWith($txManager);
+    public function it_should_get(
+        Request $requestRef,
+        Request $request
+    ) {
+        $requestRef->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
 
-        $request = new Request();
-        $request->setTx('0xabc220393')
-            ->setAddress('0xRequesterAddr')
-            ->setUserGuid(123)
-            ->setAmount(1000)
-            ->setGas(501);
+        $requestRef->getTimestamp()
+            ->shouldBeCalled()
+            ->willReturn(123456789);
 
-        $transaction = new Transaction();
-        $transaction
-            ->setContract('withdraw')
-            ->setTx('0xabc220393')
-            ->setUserGuid(123)
-            ->setData([
-                'amount' => 1000,
-                'gas' => 50,
-                'address' => '0xRequesterAddr'
+        $requestRef->getTx()
+            ->shouldBeCalled()
+            ->willReturn('0xf00847');
+
+        $this->repository->getList([
+            'user_guid' => 1000,
+            'timestamp' => 123456789,
+            'tx' => '0xf00847',
+            'limit' => 1,
+        ])
+            ->shouldBeCalled()
+            ->willReturn([
+                'withdrawals' => [
+                    $request,
+                ],
+                'load-next' => 'phpspec',
             ]);
 
-        $this->shouldThrow('\Exception')->duringComplete($request, $transaction);
+        $this->requestHydrationDelegate->hydrate($request)
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $this
+            ->get($requestRef, true)
+            ->shouldReturn($request);
+    }
+
+    public function it_should_request(
+        Request $request
+    ) {
+        $request->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $request->getAmount()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(10, 18));
+
+        $request->getTx()
+            ->shouldBeCalled()
+            ->willReturn('0xf00847');
+
+        $request->getAddress()
+            ->shouldBeCalled()
+            ->willReturn('0x303456');
+
+        $request->getTimestamp()
+            ->shouldBeCalled()
+            ->willReturn(123456789);
+
+        $request->getGas()
+            ->shouldBeCalled()
+            ->willReturn('100000000000');
+
+        $this->config->get('blockchain')
+            ->shouldBeCalled()
+            ->willReturn([
+                'contracts' => [
+                    'withdraw' => [
+                        'limit_exemptions' => [1001],
+                    ],
+                ],
+            ]);
+
+        $this->repository->getList([
+            'user_guid' => 1000,
+            'from' => strtotime('-1 day'),
+        ])
+            ->shouldBeCalled()
+            ->willReturn([
+                'withdrawals' => [],
+            ]);
+
+        $this->offChainBalance->setUser(Argument::type(User::class))
+            ->shouldBeCalled()
+            ->willReturn($this->offChainBalance);
+
+        $this->offChainBalance->getAvailable()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(1000, 18));
+
+        $request->setStatus('pending')
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $this->repository->add($request)
+            ->shouldBeCalled();
+
+        $this->txManager->add(Argument::type(Transaction::class))
+            ->shouldBeCalled();
+
+        $this->notificationsDelegate->onRequest($request)
+            ->shouldBeCalled();
+
+        $this
+            ->request($request)
+            ->shouldReturn(true);
+    }
+
+    public function it_should_throw_during_request_if_got_past_allowance(
+        Request $request
+    ) {
+        $request->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $request->getAmount()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(10, 18));
+
+        $this->config->get('blockchain')
+            ->shouldBeCalled()
+            ->willReturn([
+                'contracts' => [
+                    'withdraw' => [
+                        'limit_exemptions' => [1001],
+                    ],
+                ],
+            ]);
+
+        $this->repository->getList([
+            'user_guid' => 1000,
+            'from' => strtotime('-1 day'),
+        ])
+            ->shouldBeCalled()
+            ->willReturn([
+                'withdrawals' => [],
+            ]);
+
+        $this->offChainBalance->setUser(Argument::type(User::class))
+            ->shouldBeCalled()
+            ->willReturn($this->offChainBalance);
+
+        $this->offChainBalance->getAvailable()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(5, 18));
+
+        $this
+            ->shouldThrow(new Exception('You can only request 5 tokens.'))
+            ->duringRequest($request);
+    }
+
+    public function it_should_throw_during_request_if_already_withdrawn(
+        Request $request
+    ) {
+        $request->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $this->config->get('blockchain')
+            ->shouldBeCalled()
+            ->willReturn([
+                'contracts' => [
+                    'withdraw' => [
+                        'limit_exemptions' => [1001],
+                    ],
+                ],
+            ]);
+
+        $this->repository->getList([
+            'user_guid' => 1000,
+            'from' => strtotime('-1 day'),
+        ])
+            ->shouldBeCalled()
+            ->willReturn([
+                'withdrawals' => [
+                    $request,
+                ],
+            ]);
+
+        $this
+            ->shouldThrow(new Exception('A withdrawal has already been requested in the last 24 hours'))
+            ->duringRequest($request);
+    }
+
+    public function it_should_confirm(
+        Request $request,
+        Transaction $transaction
+    ) {
+        $request->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('pending');
+
+        $request->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $request->getAddress()
+            ->shouldBeCalled()
+            ->willReturn('0x303456');
+
+        $request->getAmount()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(10, 18));
+
+        $request->getGas()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(1, 18));
+
+        $transaction->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $transaction->getData()
+            ->shouldBeCalled()
+            ->willReturn([
+                'address' => '0x303456',
+                'amount' => BigNumber::toPlain(10, 18),
+                'gas' => BigNumber::toPlain(1, 18),
+            ]);
+
+        $this->offChainTransactions
+            ->setUser(Argument::type(User::class))
+            ->shouldBeCalled()
+            ->willReturn($this->offChainTransactions);
+
+        $this->offChainTransactions
+            ->setType('withdraw')
+            ->shouldBeCalled()
+            ->willReturn($this->offChainTransactions);
+
+        $this->offChainTransactions
+            ->setAmount((string) BigNumber::toPlain(10, 18)->neg())
+            ->shouldBeCalled()
+            ->willReturn($this->offChainTransactions);
+
+        $this->offChainTransactions
+            ->create()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $request->setStatus('pending_approval')
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $this->repository->add($request)
+            ->shouldBeCalled();
+
+        $this->notificationsDelegate->onConfirm($request)
+            ->shouldBeCalled();
+
+        $this
+            ->confirm($request, $transaction)
+            ->shouldReturn(true);
+    }
+
+    public function it_should_add_tx_back_if_locked_during_confirm(
+        Request $request,
+        Transaction $transaction
+    ) {
+        $request->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('pending');
+
+        $request->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $request->getAddress()
+            ->shouldBeCalled()
+            ->willReturn('0x303456');
+
+        $request->getAmount()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(10, 18));
+
+        $request->getGas()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(1, 18));
+
+        $transaction->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $transaction->getData()
+            ->shouldBeCalled()
+            ->willReturn([
+                'address' => '0x303456',
+                'amount' => BigNumber::toPlain(10, 18),
+                'gas' => BigNumber::toPlain(1, 18),
+            ]);
+
+        $this->offChainTransactions
+            ->setUser(Argument::type(User::class))
+            ->shouldBeCalled()
+            ->willReturn($this->offChainTransactions);
+
+        $this->offChainTransactions
+            ->setType('withdraw')
+            ->shouldBeCalled()
+            ->willReturn($this->offChainTransactions);
+
+        $this->offChainTransactions
+            ->setAmount((string) BigNumber::toPlain(10, 18)->neg())
+            ->shouldBeCalled()
+            ->willReturn($this->offChainTransactions);
+
+        $this->offChainTransactions
+            ->create()
+            ->shouldBeCalled()
+            ->willThrow(new LockFailedException());
+
+        $this->repository->add($request)
+            ->shouldNotBeCalled();
+
+        $this
+            ->confirm($request, $transaction)
+            ->shouldReturn(false);
+    }
+
+    public function it_should_throw_during_confirm_if_not_pending(
+        Request $request,
+        Transaction $transaction
+    ) {
+        $request->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('rejected');
+
+        $this->repository->add($request)
+            ->shouldNotBeCalled();
+
+        $this
+            ->shouldThrow(new Exception('Request is not pending'))
+            ->duringConfirm($request, $transaction);
+    }
+
+    public function it_should_throw_during_confirm_if_amount_is_negative(
+        Request $request,
+        Transaction $transaction
+    ) {
+        $request->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('pending');
+
+        $request->getAmount()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(10, 18)->neg());
+
+        $this->repository->add($request)
+            ->shouldNotBeCalled();
+
+        $this
+            ->shouldThrow(new Exception('The withdraw amount must be positive'))
+            ->duringConfirm($request, $transaction);
+    }
+
+    public function it_should_throw_during_confirm_if_user_does_not_match(
+        Request $request,
+        Transaction $transaction
+    ) {
+        $request->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('pending');
+
+        $request->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $request->getAmount()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(10, 18));
+
+        $transaction->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1001);
+
+        $this->repository->add($request)
+            ->shouldNotBeCalled();
+
+        $this
+            ->shouldThrow(new Exception('The user who requested this operation does not match the transaction'))
+            ->duringConfirm($request, $transaction);
+    }
+
+    public function it_should_throw_during_confirm_if_address_does_not_match(
+        Request $request,
+        Transaction $transaction
+    ) {
+        $request->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('pending');
+
+        $request->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $request->getAddress()
+            ->shouldBeCalled()
+            ->willReturn('0x303456');
+
+        $request->getAmount()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(10, 18));
+
+        $transaction->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $transaction->getData()
+            ->shouldBeCalled()
+            ->willReturn([
+                'address' => '0x998877',
+                'amount' => BigNumber::toPlain(10, 18),
+                'gas' => BigNumber::toPlain(1, 18),
+            ]);
+
+        $this->repository->add($request)
+            ->shouldNotBeCalled();
+
+        $this
+            ->shouldThrow(new Exception('The address does not match the transaction'))
+            ->duringConfirm($request, $transaction);
+    }
+
+    public function it_should_throw_during_confirm_if_amount_does_not_match(
+        Request $request,
+        Transaction $transaction
+    ) {
+        $request->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('pending');
+
+        $request->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $request->getAddress()
+            ->shouldBeCalled()
+            ->willReturn('0x303456');
+
+        $request->getAmount()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(10, 18));
+
+        $transaction->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $transaction->getData()
+            ->shouldBeCalled()
+            ->willReturn([
+                'address' => '0x303456',
+                'amount' => BigNumber::toPlain(50, 18),
+                'gas' => BigNumber::toPlain(1, 18),
+            ]);
+
+        $this->repository->add($request)
+            ->shouldNotBeCalled();
+
+        $this
+            ->shouldThrow(new Exception('The amount request does not match the transaction'))
+            ->duringConfirm($request, $transaction);
+    }
+
+    public function it_should_throw_during_confirm_if_gas_does_not_match(
+        Request $request,
+        Transaction $transaction
+    ) {
+        $request->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('pending');
+
+        $request->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $request->getAddress()
+            ->shouldBeCalled()
+            ->willReturn('0x303456');
+
+        $request->getAmount()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(10, 18));
+
+        $request->getGas()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(1, 18));
+
+        $transaction->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $transaction->getData()
+            ->shouldBeCalled()
+            ->willReturn([
+                'address' => '0x303456',
+                'amount' => BigNumber::toPlain(10, 18),
+                'gas' => BigNumber::toPlain(2, 18),
+            ]);
+
+        $this->repository->add($request)
+            ->shouldNotBeCalled();
+
+        $this
+            ->shouldThrow(new Exception('The gas requested does not match the transaction'))
+            ->duringConfirm($request, $transaction);
+    }
+
+    public function it_should_fail(
+        Request $request
+    ) {
+        $request->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('pending');
+
+        $request->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $request->setStatus('failed')
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $this->repository->add($request)
+            ->shouldBeCalled();
+
+        $this->notificationsDelegate->onFail($request)
+            ->shouldBeCalled();
+
+        $this
+            ->fail($request)
+            ->shouldReturn(true);
+    }
+
+    public function it_should_throw_during_fail_if_not_pending(
+        Request $request
+    ) {
+        $request->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('rejected');
+
+        $this->repository->add($request)
+            ->shouldNotBeCalled();
+
+        $this
+            ->shouldThrow(new Exception('Request is not pending'))
+            ->duringFail($request);
+    }
+
+    public function it_should_approve(
+        Request $request
+    ) {
+        $this->config->get('blockchain')
+            ->shouldBeCalled()
+            ->willReturn([
+                'contracts' => [
+                    'withdraw' => [
+                        'wallet_pkey' => '',
+                        'wallet_address' => '',
+                        'contract_address' => '',
+                    ],
+                ],
+            ]);
+
+        $request->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('pending_approval');
+
+        $request->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $request->getAddress()
+            ->shouldBeCalled()
+            ->willReturn('0x303456');
+
+        $request->getAmount()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(10, 18));
+
+        $request->getGas()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(1, 18));
+
+        $this->eth->encodeContractMethod(Argument::cetera())
+            ->shouldBeCalled()
+            ->willReturn('~encoded_contract_method~');
+
+        $this->eth->sendRawTransaction(Argument::cetera())
+            ->shouldBeCalled()
+            ->willReturn('0xf00847');
+
+        $request->setStatus('approved')
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $request->setCompletedTx('0xf00847')
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $request->setCompleted(true)
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $this->repository->add($request)
+            ->shouldBeCalled();
+
+        $this->notificationsDelegate->onApprove($request)
+            ->shouldBeCalled();
+
+        $this
+            ->approve($request)
+            ->shouldReturn(true);
+    }
+
+    public function it_should_throw_during_approve_if_not_pending_approval(
+        Request $request
+    ) {
+        $request->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('pending');
+
+        $this->repository->add($request)
+            ->shouldNotBeCalled();
+
+        $this
+            ->shouldThrow(new Exception('Request is not pending approval'))
+            ->duringApprove($request);
+    }
+
+    public function it_should_reject(
+        Request $request
+    ) {
+        $request->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('pending_approval');
+
+        $request->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $request->getAmount()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(10, 18));
+
+        $this->offChainTransactions
+            ->setUser(Argument::type(User::class))
+            ->shouldBeCalled()
+            ->willReturn($this->offChainTransactions);
+
+        $this->offChainTransactions
+            ->setType('withdraw_refund')
+            ->shouldBeCalled()
+            ->willReturn($this->offChainTransactions);
+
+        $this->offChainTransactions
+            ->setAmount((string) BigNumber::toPlain(10, 18))
+            ->shouldBeCalled()
+            ->willReturn($this->offChainTransactions);
+
+        $this->offChainTransactions
+            ->create()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $request->setStatus('rejected')
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $this->repository->add($request)
+            ->shouldBeCalled();
+
+        $this->notificationsDelegate->onReject($request)
+            ->shouldBeCalled();
+
+        $this
+            ->reject($request)
+            ->shouldReturn(true);
+    }
+
+    public function it_should_throw_during_reject_if_locked(
+        Request $request
+    ) {
+        $request->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('pending_approval');
+
+        $request->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $request->getAmount()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(10, 18));
+
+        $this->offChainTransactions
+            ->setUser(Argument::type(User::class))
+            ->shouldBeCalled()
+            ->willReturn($this->offChainTransactions);
+
+        $this->offChainTransactions
+            ->setType('withdraw_refund')
+            ->shouldBeCalled()
+            ->willReturn($this->offChainTransactions);
+
+        $this->offChainTransactions
+            ->setAmount((string) BigNumber::toPlain(10, 18))
+            ->shouldBeCalled()
+            ->willReturn($this->offChainTransactions);
+
+        $this->offChainTransactions
+            ->create()
+            ->shouldBeCalled()
+            ->willThrow(new LockFailedException());
+
+        $this->repository->add($request)
+            ->shouldNotBeCalled();
+
+        $this
+            ->shouldThrow(new Exception('Cannot refund rejected withdrawal tokens'))
+            ->duringReject($request);
+    }
+
+    public function it_should_throw_during_reject_if_not_pending_approval(
+        Request $request
+    ) {
+        $request->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('pending');
+
+        $this->repository->add($request)
+            ->shouldNotBeCalled();
+
+        $this
+            ->shouldThrow(new Exception('Request is not pending approval'))
+            ->duringReject($request);
     }
 }

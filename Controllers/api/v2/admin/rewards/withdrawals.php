@@ -1,8 +1,11 @@
 <?php
 namespace Minds\Controllers\api\v2\admin\rewards;
 
-use Minds\Api\Exportable;
-use Minds\Core\Rewards\Withdraw\Repository;
+use Exception;
+use Minds\Common\Repository\Response;
+use Minds\Core\Di\Di;
+use Minds\Core\Rewards\Withdraw\Manager;
+use Minds\Core\Rewards\Withdraw\Request;
 use Minds\Entities\User;
 use Minds\Interfaces;
 use Minds\Api\Factory;
@@ -11,32 +14,38 @@ class withdrawals implements Interfaces\Api, Interfaces\ApiAdminPam
 {
     /**
      * Equivalent to HTTP GET method
-     * @param  array $pages
+     * @param array $pages
      * @return mixed|null
+     * @throws Exception
      */
     public function get($pages)
     {
-        $repository = new Repository();
-        $username = $_GET['user'];
+        /** @var Manager $manager */
+        $manager = Di::_()->get('Rewards\Withdraw\Manager');
 
-        if (!$username) {
-            return Factory::response([
-                'withdrawals' => [],
-                'load-next' => '',
-            ]);
+        $userGuid = null;
+
+        if ($_GET['user']) {
+            $userGuid = (new User(strtolower($_GET['user'])))->guid;
         }
 
-        $user = new User(strtolower($username));
+        $status = $_GET['status'] ?? null;
 
-        $withdrawals = $repository->getList([
+        $opts = [
+            'status' => $status,
+            'user_guid' => $userGuid,
             'limit' => isset($_GET['limit']) ? (int) $_GET['limit'] : 12,
             'offset' => isset($_GET['offset']) ? $_GET['offset'] : '',
-            'user_guid' => $user->guid
-        ]);
+            'hydrate' => true,
+            'admin' => true,
+        ];
+
+        /** @var Response $withdrawals */
+        $withdrawals = $manager->getList($opts);
 
         return Factory::response([
-            'withdrawals' => Exportable::_($withdrawals['withdrawals']),
-            'load-next' => (string) base64_encode($withdrawals['token']),
+            'withdrawals' => $withdrawals,
+            'load-next' => $withdrawals->getPagingToken(),
         ]);
     }
 
@@ -57,6 +66,37 @@ class withdrawals implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function put($pages)
     {
+        /** @var Manager $manager */
+        $manager = Di::_()->get('Rewards\Withdraw\Manager');
+
+        $request = $manager->get(
+            (new Request())
+                ->setUserGuid((string) $pages[0] ?? null)
+                ->setTimestamp((int) $pages[1] ?? null)
+                ->setTx((string) $pages[2] ?? null)
+        );
+
+        if (!$request) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => $errorMessage ?? 'Missing request',
+            ]);
+        }
+
+        try {
+            $success = $manager->approve($request);
+        } catch (Exception $exception) {
+            $success = false;
+            $errorMessage = $exception->getMessage();
+        }
+
+        if (!$success) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => $errorMessage ?? 'Cannot approve request',
+            ]);
+        }
+
         return Factory::response([]);
     }
 
@@ -67,6 +107,37 @@ class withdrawals implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function delete($pages)
     {
+        /** @var Manager $manager */
+        $manager = Di::_()->get('Rewards\Withdraw\Manager');
+
+        $request = $manager->get(
+            (new Request())
+                ->setUserGuid((string) $pages[0] ?? null)
+                ->setTimestamp((int) $pages[1] ?? null)
+                ->setTx((string) $pages[2] ?? null)
+        );
+
+        if (!$request) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => $errorMessage ?? 'Missing request',
+            ]);
+        }
+
+        try {
+            $success = $manager->reject($request);
+        } catch (Exception $exception) {
+            $success = false;
+            $errorMessage = $exception->getMessage();
+        }
+
+        if (!$success) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => $errorMessage ?? 'Cannot reject request',
+            ]);
+        }
+
         return Factory::response([]);
     }
 }
