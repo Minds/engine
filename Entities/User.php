@@ -14,7 +14,7 @@ class User extends \ElggUser
 {
     public $fullExport = true;
     public $exportCounts = false;
-    public const INDEXING_RATE_LIMIT_SECONDS = 10;
+    public const INDEXING_RATE_LIMIT_SECONDS = 7200;
 
     protected function initializeAttributes()
     {
