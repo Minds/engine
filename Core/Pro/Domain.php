@@ -72,6 +72,16 @@ class Domain
     }
 
     /**
+     * @param string $domain
+     * @return bool
+     */
+    public function isRoot(string $domain): bool
+    {
+        $rootDomains = $this->config->get('pro')['root_domains'] ?? [];
+        return in_array(strtolower($domain), $rootDomains, true);
+    }
+
+    /**
      * @param Settings $settings
      * @param User|null $owner
      * @return string

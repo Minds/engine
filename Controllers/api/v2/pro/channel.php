@@ -28,8 +28,6 @@ class channel implements Interfaces\Api
      */
     public function get($pages)
     {
-        $currentUser = Session::getLoggedinUser();
-
         $channel = new User(strtolower($pages[0]));
         $channel->fullExport = true; //get counts
         $channel->exportCounts = true;
@@ -40,6 +38,8 @@ class channel implements Interfaces\Api
                 'message' => 'E_NOT_PRO'
             ]);
         }
+
+        $currentUser = Session::getLoggedinUser();
 
         /** @var Manager $manager */
         $manager = Di::_()->get('Pro\Manager');
