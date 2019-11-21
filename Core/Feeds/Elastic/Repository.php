@@ -1,6 +1,6 @@
 <?php
 
-namespace Minds\Core\Feeds\Top;
+namespace Minds\Core\Feeds\Elastic;
 
 use Minds\Core\Data\ElasticSearch\Client as ElasticsearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared;

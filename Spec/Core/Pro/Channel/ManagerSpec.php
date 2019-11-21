@@ -4,7 +4,7 @@ namespace Spec\Minds\Core\Pro\Channel;
 
 use Minds\Common\Repository\Response;
 use Minds\Core\Data\cache\abstractCacher;
-use Minds\Core\Feeds\Top\Manager as TopManager;
+use Minds\Core\Feeds\Elastic\Manager as TopManager;
 use Minds\Core\Pro\Channel\Manager;
 use Minds\Core\Pro\Repository;
 use Minds\Core\Pro\Settings;

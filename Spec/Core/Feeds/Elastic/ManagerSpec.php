@@ -1,12 +1,12 @@
 <?php
 
-namespace Spec\Minds\Core\Feeds\Top;
+namespace Spec\Minds\Core\Feeds\Elastic;
 
 use Minds\Common\Repository\Response;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Feeds\Top\Manager;
-use Minds\Core\Feeds\Top\Repository;
-use Minds\Core\Feeds\Top\ScoredGuid;
+use Minds\Core\Feeds\Elastic\Manager;
+use Minds\Core\Feeds\Elastic\Repository;
+use Minds\Core\Feeds\Elastic\ScoredGuid;
 use Minds\Core\Search\Search;
 use Minds\Entities\Entity;
 use PhpSpec\Exception\Example\FailureException;

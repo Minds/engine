@@ -5,7 +5,7 @@ namespace Minds\Core\SEO\Sitemaps\Modules;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities;
 use Minds\Core\SEO\Sitemaps\SitemapModule;
-use Minds\Core\Feeds\Top\Manager;
+use Minds\Core\Feeds\Elastic\Manager;
 
 class SitemapTrending extends SitemapModule
 {
@@ -14,7 +14,7 @@ class SitemapTrending extends SitemapModule
 
     public function __construct()
     {
-        $this->topManager = Di::_()->get('Feeds\Top\Manager');
+        $this->topManager = Di::_()->get('Feeds\Elastic\Manager');
     }
 
     public function collect($pages, $segments)

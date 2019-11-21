@@ -11,7 +11,7 @@ use Minds\Entities\Activity;
 use Minds\Entities\Entity;
 use Minds\Core\Blogs\Blog;
 use Minds\Entities\Image;
-use Minds\Core\Feeds\Top\Manager as TopFeedsManager;
+use Minds\Core\Feeds\Elastic\Manager as TopFeedsManager;
 use Minds\Core\Feeds\Firehose\ModerationCache;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Data\Call;

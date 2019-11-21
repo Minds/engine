@@ -137,11 +137,11 @@ class feeds implements Interfaces\Api
             }
         }
 
-        /** @var Core\Feeds\Top\Manager $manager */
-        $manager = Di::_()->get('Feeds\Top\Manager');
+        /** @var Core\Feeds\Elastic\Manager $manager */
+        $manager = Di::_()->get('Feeds\Elastic\Manager');
 
-        /** @var Core\Feeds\Top\Entities $entities */
-        $entities = new Core\Feeds\Top\Entities();
+        /** @var Core\Feeds\Elastic\Entities $entities */
+        $entities = new Core\Feeds\Elastic\Entities();
         $entities->setActor($currentUser);
 
         $opts = [

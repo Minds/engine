@@ -9,7 +9,7 @@ namespace Minds\Core\Pro\Channel;
 use Exception;
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Di\Di;
-use Minds\Core\Feeds\Top\Manager as TopManager;
+use Minds\Core\Feeds\Elastic\Manager as TopManager;
 use Minds\Core\Pro\Repository;
 use Minds\Core\Pro\Settings;
 use Minds\Entities\User;

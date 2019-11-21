@@ -1,11 +1,11 @@
 <?php
-namespace Minds\Core\Feeds\Top;
+namespace Minds\Core\Feeds\Elastic;
 
 use Minds\Traits\MagicAttributes;
 
 /**
  * Class MetricsSync
- * @package Minds\Core\Feeds\Top
+ * @package Minds\Core\Feeds\Elastic
  * @method string getMetric()
  * @method string getPeriod()
  * @method string getType()

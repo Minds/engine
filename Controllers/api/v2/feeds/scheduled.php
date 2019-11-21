@@ -123,11 +123,11 @@ class scheduled implements Interfaces\Api
 
         $custom_type = isset($_GET['custom_type']) && $_GET['custom_type'] ? [$_GET['custom_type']] : null;
 
-        /** @var Core\Feeds\Top\Manager $manager */
-        $manager = Di::_()->get('Feeds\Top\Manager');
+        /** @var Core\Feeds\Elastic\Manager $manager */
+        $manager = Di::_()->get('Feeds\Elastic\Manager');
 
-        /** @var Core\Feeds\Top\Entities $entities */
-        $entities = new Core\Feeds\Top\Entities();
+        /** @var Core\Feeds\Elastic\Entities $entities */
+        $entities = new Core\Feeds\Elastic\Entities();
         $entities->setActor($currentUser);
 
         $isOwner = false;
