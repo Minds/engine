@@ -173,6 +173,23 @@ class DomainSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
+    public function it_should_check_if_root_domain()
+    {
+        $this->config->get('pro')
+            ->shouldBeCalled()
+            ->willReturn([
+                'root_domains' => ['phpspec.test']
+            ]);
+
+        $this
+            ->isRoot('phpspec.test')
+            ->shouldReturn(true);
+
+        $this
+            ->isRoot('not-a-root-phpspec.test')
+            ->shouldReturn(false);
+    }
+
     public function it_should_get_icon(
         Settings $settings,
         User $owner
