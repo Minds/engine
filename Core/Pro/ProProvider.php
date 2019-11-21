@@ -24,10 +24,6 @@ class ProProvider extends Provider
             return new Domain();
         }, ['useFactory' => true]);
 
-        $this->di->bind('Pro\Domain\Security', function ($di) {
-            return new Domain\Security();
-        }, ['useFactory' => true]);
-
         $this->di->bind('Pro\Domain\Subscription', function ($di) {
             return new Domain\Subscription();
         }, ['useFactory' => true]);
