@@ -10,28 +10,33 @@ interface SortingAlgorithm
 {
     /**
      * @param string $period
-     * @return $this
+     * @return static
      */
     public function setPeriod($period);
 
     /**
+     * @return bool
+     */
+    public function shouldConstraintByTimestamp(): bool;
+
+    /**
      * @return array
      */
-    public function getQuery();
+    public function getQuery(): array;
 
     /**
      * @return string
      */
-    public function getScript();
+    public function getScript(): string;
 
     /**
      * @return array
      */
-    public function getSort();
+    public function getSort(): array;
 
     /**
      * @param array $doc
-     * @return int|float
+     * @return float
      */
-    public function fetchScore($doc);
+    public function fetchScore($doc): float;
 }

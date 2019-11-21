@@ -11,18 +11,25 @@ class Chronological implements SortingAlgorithm
 {
     /**
      * @param string $period
-     * @return $this
+     * @return Chronological
      */
-    public function setPeriod($period)
+    public function setPeriod($period): Chronological
     {
-        // No effects
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function shouldConstraintByTimestamp(): bool
+    {
+        return false;
     }
 
     /**
      * @return array
      */
-    public function getQuery()
+    public function getQuery(): array
     {
         return [];
     }
@@ -30,15 +37,15 @@ class Chronological implements SortingAlgorithm
     /**
      * @return string
      */
-    public function getScript()
+    public function getScript(): string
     {
-        return null;
+        return '';
     }
 
     /**
      * @return array
      */
-    public function getSort()
+    public function getSort(): array
     {
         return [
             'time_created' => [
@@ -49,10 +56,10 @@ class Chronological implements SortingAlgorithm
 
     /**
      * @param array $doc
-     * @return int|float
+     * @return float
      */
-    public function fetchScore($doc)
+    public function fetchScore($doc): float
     {
-        return $doc['_source']['time_created'];
+        return (float) $doc['_source']['time_created'];
     }
 }

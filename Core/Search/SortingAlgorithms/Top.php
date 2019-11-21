@@ -8,62 +8,53 @@ namespace Minds\Core\Search\SortingAlgorithms;
 
 class Top implements SortingAlgorithm
 {
-    protected $period;
-
     /**
      * @param string $period
      * @return $this
      */
-    public function setPeriod($period)
+    public function setPeriod($period): Top
     {
-        $this->period = $period;
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function shouldConstraintByTimestamp(): bool
+    {
+        return true;
     }
 
     /**
      * @return array
      */
-    public function getQuery()
+    public function getQuery(): array
     {
-        return [
-            'bool' => [
-                'must' => [
-                    [
-                        'range' => [
-                            "votes:up:{$this->period}:synced" => [
-                                'gte' => strtotime("3 days ago", time()),
-                            ],
-                        ],
-                    ],
-                ],
-            ]
-        ];
+        return [];
     }
 
     /**
      * @return string
      */
-    public function getScript()
+    public function getScript(): string
     {
         return "
-            def up = (doc['votes:up:{$this->period}'].value ?: 0) * 1.0;
-            def down = (doc['votes:down:{$this->period}'].value ?: 0) * 1.0;
+            def up = (doc['votes:up'].value ?: 0) * 1.0;
+            def down = (doc['votes:down'].value ?: 0) * 1.0;
             def magnitude = up + down;
             
             if (magnitude <= 0) {
                 return -10;
             }
             
-            def score = ((up + 1.9208) / (up + down) - 1.96 * Math.sqrt((up * down) / (up + down) + 0.9604) / (up + down)) / (1 + 3.8416 / (up + down));
-            
-            return score;
+            return ((up + 1.9208) / (up + down) - 1.96 * Math.sqrt((up * down) / (up + down) + 0.9604) / (up + down)) / (1 + 3.8416 / (up + down));
         ";
     }
 
     /**
      * @return array
      */
-    public function getSort()
+    public function getSort(): array
     {
         return [
             '_score' => [
@@ -74,10 +65,10 @@ class Top implements SortingAlgorithm
 
     /**
      * @param array $doc
-     * @return int|float
+     * @return float
      */
-    public function fetchScore($doc)
+    public function fetchScore($doc): float
     {
-        return $doc['_score'];
+        return (float) $doc['_score'];
     }
 }

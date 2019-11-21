@@ -10,6 +10,14 @@ use Minds\Helpers\Text;
 
 class Repository
 {
+    const PERIODS = [
+        '12h' => 43200,
+        '24h' => 86400,
+        '7d' => 604800,
+        '30d' => 2592000,
+        '1y' => 31536000,
+    ];
+
     /** @var ElasticsearchClient */
     protected $client;
 
@@ -53,7 +61,7 @@ class Repository
             'exclude_moderated' => false,
             'moderation_reservations' => null,
             'pinned_guids' => null,
-            'time_created_upper' => time(),
+            'future' => false,
             'exclude' => null,
         ], $opts);
 
@@ -65,7 +73,7 @@ class Repository
             throw new \Exception('Algorithm must be provided');
         }
 
-        if (!in_array($opts['period'], ['12h', '24h', '7d', '30d', '1y'], true)) {
+        if (!in_array($opts['period'], array_keys(static::PERIODS), true)) {
             throw new \Exception('Unsupported period');
         }
 
@@ -102,34 +110,12 @@ class Repository
             'sort' => [],
         ];
 
-        /*if ($type === 'group' && false) {
-            if (!isset($body['query']['function_score']['query']['bool']['must_not'])) {
-                $body['query']['function_score']['query']['bool']['must_not'] = [];
-            }
-            $body['query']['function_score']['query']['bool']['must_not'][] = [
-                'terms' => [
-                    'access_id' => ['0', '1', '2'],
-                ],
-            ];
-        } elseif ($type === 'user') {
-            $body['query']['function_score']['query']['bool']['must'][] = [
-                'term' => [
-                    'access_id' => '2',
-                ],
-            ];
-        }*/
-
         //
 
         switch ($opts['algorithm']) {
             case "top":
-                $algorithm = new SortingAlgorithms\Top();
-                break;
-            case "controversial":
-                $algorithm = new SortingAlgorithms\Controversial();
-                break;
             case "hot":
-                $algorithm = new SortingAlgorithms\Hot();
+                $algorithm = new SortingAlgorithms\Top();
                 break;
             case "latest":
             default:
@@ -248,31 +234,49 @@ class Repository
             ];
         }
 
+        // Time bounds
+
+        $timestampUpperBounds = []; // LTE
+        $timestampLowerBounds = []; // GT
+
+        if ($algorithm->shouldConstraintByTimestamp()) {
+            $timestampLowerBounds[] = (time() - static::PERIODS[$opts['period']]) * 1000;
+        }
+
         if ($opts['from_timestamp']) {
+            $timestampUpperBounds[] = (int) $opts['from_timestamp'];
+        }
+
+        if ($opts['future']) {
+            $timestampLowerBounds[] = time() * 1000;
+        } else {
+            $timestampUpperBounds[] = time() * 1000;
+        }
+
+        if ($timestampUpperBounds || $timestampLowerBounds) {
+            if (!isset($body['query']['function_score']['query']['bool']['must'])) {
+                $body['query']['function_score']['query']['bool']['must'] = [];
+            }
+
+            $range = [];
+
+            if ($timestampUpperBounds) {
+                $range['lte'] = min($timestampUpperBounds);
+            }
+
+            if ($timestampLowerBounds) {
+                $range['gt'] = max($timestampLowerBounds);
+            }
+
             $body['query']['function_score']['query']['bool']['must'][] = [
                 'range' => [
-                    '@timestamp' => [
-                        'lte' => (int) $opts['from_timestamp'],
-                    ],
+                    '@timestamp' => $range,
                 ],
             ];
         }
 
-        // Filter by time created to cut out scheduled feeds
-        $time_created_upper = $opts['time_created_upper'] ? 'lte' : 'gt';
-        if (!isset($body['query']['function_score']['query']['bool']['must'])) {
-            $body['query']['function_score']['query']['bool']['must'] = [];
-        }
-
-        $body['query']['function_score']['query']['bool']['must'][] = [
-            'range' => [
-                '@timestamp' => [
-                    $time_created_upper => ((int) ($opts['time_created_upper'] ?: time())) * 1000,
-                ],
-            ],
-        ];
-
         //
+
         if ($opts['query']) {
             $words = explode(' ', $opts['query']);
 
