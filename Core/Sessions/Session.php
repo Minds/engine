@@ -2,10 +2,24 @@
 /**
  * Minds Session
  */
+
 namespace Minds\Core\Sessions;
 
+use Lcobucci\JWT\Token as JwtToken;
 use Minds\Traits\MagicAttributes;
 
+/**
+ * Class Session
+ * @package Minds\Core\Sessions
+ * @method string getId()
+ * @method Session setId(string $id)
+ * @method string|JwtToken getToken()
+ * @method Session setToken(string|JwtToken $token)
+ * @method int|string getUserGuid()
+ * @method Session setUserGuid(int|string $userGuid)
+ * @method int getExpires()
+ * @method Session setExpires(int $expires)
+ */
 class Session
 {
     use MagicAttributes;
@@ -13,7 +27,7 @@ class Session
     /** @var string $id */
     private $id;
 
-    /** @var string $token */
+    /** @var string|JwtToken $token */
     private $token;
 
     /** @var int $userGuid */

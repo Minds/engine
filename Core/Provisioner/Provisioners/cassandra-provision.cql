@@ -1525,3 +1525,11 @@ CREATE TABLE minds.notification_batches (
     primary key (user_guid, batch_id)
 );
 
+ALTER TABLE minds.withdrawals ADD (status text, address text, gas varint);
+
+CREATE MATERIALIZED VIEW minds.withdrawals_by_status AS
+    SELECT *
+    FROM minds.withdrawals
+    WHERE status IS NOT NULL AND user_guid IS NOT NULL AND timestamp IS NOT NULL AND tx IS NOT NULL
+    PRIMARY KEY (status, timestamp, user_guid, tx)
+    WITH CLUSTERING ORDER BY (timestamp ASC, user_guid ASC, tx ASC);

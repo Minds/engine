@@ -7,7 +7,7 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Interfaces;
 
-class analytics implements Interfaces\Api, Interfaces\ApiIgnorePam
+class analytics implements Interfaces\Api, Interfaces\ApiAdminPam
 {
     public function get($pages)
     {

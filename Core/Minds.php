@@ -16,6 +16,7 @@ class Minds extends base
 
     private $modules = [
         Events\Module::class,
+        SSO\Module::class,
         Email\Module::class,
         Experiments\Module::class,
         Helpdesk\Module::class,
