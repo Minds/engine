@@ -432,14 +432,9 @@ class Repository
         }
     }
 
-    public function add(MetricsSync $metric)
+    public function inc(MetricsSync $metric): bool
     {
-        $body = [];
-
-        $key = $metric->getMetric() . ':' . $metric->getPeriod();
-        $body[$key] = $metric->getCount();
-
-        $body[$key . ':synced'] = $metric->getSynced();
+        $key = $metric->getMetric();
 
         $this->pendingBulkInserts[] = [
             'update' => [
@@ -450,11 +445,22 @@ class Repository
         ];
 
         $this->pendingBulkInserts[] = [
-            'doc' => $body,
-            'doc_as_upsert' => true,
+            'scripted_upsert' => true,
+            'script' => [
+                'source' => "
+                    ctx._source[params.field] += params.delta;
+                    ctx._source['@' + params.field + ':synced'] = params.synced;
+                ",
+                'lang' => 'painless',
+                'params' => [
+                    'field' => $key,
+                    'delta' => $metric->getCount(),
+                    'synced' => $metric->getSynced()
+                ]
+            ],
         ];
 
-        if (count($this->pendingBulkInserts) > 2000) { //1000 inserts
+        if (count($this->pendingBulkInserts) > 2000) { // ~1000 inserts
             $this->bulk();
         }
 
@@ -464,10 +470,10 @@ class Repository
     /**
      * Run a bulk insert job (quicker).
      */
-    public function bulk()
+    public function bulk(): void
     {
         if (count($this->pendingBulkInserts) > 0) {
-            $res = $this->client->bulk(['body' => $this->pendingBulkInserts]);
+            $r = $this->client->bulk(['body' => $this->pendingBulkInserts]);
             $this->pendingBulkInserts = [];
         }
     }

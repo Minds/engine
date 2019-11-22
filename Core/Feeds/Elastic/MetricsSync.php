@@ -6,26 +6,33 @@ use Minds\Traits\MagicAttributes;
 /**
  * Class MetricsSync
  * @package Minds\Core\Feeds\Elastic
- * @method string getMetric()
- * @method string getPeriod()
- * @method string getType()
- * @method int getCount()
- * @method int getSynced()
  * @method int|string getGuid()
+ * @method MetricsSync setGuid(int|string $guid)
+ * @method string getType()
+ * @method MetricsSync setType(string $type)
+ * @method string getMetric()
+ * @method MetricsSync setMetric(string $metric)
+ * @method int getCount()
+ * @method MetricsSync setCount(int $count)
+ * @method int getSynced()
+ * @method MetricsSync setSynced(int $synced)
  */
 class MetricsSync
 {
     use MagicAttributes;
 
-    private $guid;
+    /** @var int|string */
+    protected $guid;
 
-    private $type;
+    /** @var string */
+    protected $type;
 
-    private $metric;
+    /** @var string */
+    protected $metric;
 
-    private $count;
+    /** @var int */
+    protected $count;
 
-    private $period;
-
-    private $synced;
+    /** @var int */
+    protected $synced;
 }

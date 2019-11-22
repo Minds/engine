@@ -10,6 +10,18 @@ class DownVotes extends Aggregate
 {
     protected $multiplier = -1;
 
+    protected $uniques = true;
+
+    /**
+     * @param bool $uniques
+     * @return DownVotes
+     */
+    public function setUniques(bool $uniques): DownVotes
+    {
+        $this->uniques = $uniques;
+        return $this;
+    }
+
     public function get()
     {
         $filter = [
@@ -98,10 +110,12 @@ class DownVotes extends Aggregate
 
         $result = $this->client->request($prepared);
 
-        $entities = [];
         foreach ($result['aggregations']['entities']['buckets'] as $entity) {
-            $entities[$entity['key']] = $entity['uniques']['value'] * $this->multiplier;
+            $value = $this->uniques ?
+                ($entity['uniques']['value'] ?: 1) :
+                $entity['doc_count'] ?: 1;
+
+            yield $entity['key'] => $value * $this->multiplier;
         }
-        return $entities;
     }
 }

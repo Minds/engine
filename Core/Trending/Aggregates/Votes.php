@@ -8,10 +8,24 @@ use Minds\Core\Data\ElasticSearch;
 
 class Votes extends Aggregate
 {
+    /** @var bool */
+    protected $uniques = true;
+
     protected $multiplier = 1;
 
     private $page = -1;
     private $partitions = 20;
+
+
+    /**
+     * @param bool $uniques
+     * @return Votes
+     */
+    public function setUniques(bool $uniques): Votes
+    {
+        $this->uniques = $uniques;
+        return $this;
+    }
 
     public function fetch()
     {
@@ -113,7 +127,11 @@ class Votes extends Aggregate
         while ($this->page++ < $this->partitions - 1) {
             $result = $this->fetch();
             foreach ($result['aggregations']['entities']['buckets'] as $entity) {
-                yield $entity['key'] => ($entity['uniques']['value'] ?: 1) * $this->multiplier;
+                $value = $this->uniques ?
+                    ($entity['uniques']['value'] ?: 1) :
+                    $entity['doc_count'] ?: 1;
+
+                yield $entity['key'] => $value * $this->multiplier;
             }
         }
     }
