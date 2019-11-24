@@ -14,6 +14,7 @@ use Zend\Diactoros\ServerRequestFactory;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\Response\SapiEmitter;
+use Sentry;
 
 class token implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
@@ -70,9 +71,10 @@ class token implements Interfaces\Api, Interfaces\ApiIgnorePam
             $refreshTokenRepository->revokeRefreshToken($tokenId);
             $response = new JsonResponse([]);
         } catch (\Exception $e) {
+            Sentry\captureException($e); // Log to sentry
             $body = [
                 'status' => 'error',
-                'message' => $exception->getMessage(),
+                'message' => $e->getMessage(),
             ];
             $response = new JsonResponse($body, 500);
         }
