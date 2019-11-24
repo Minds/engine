@@ -28,12 +28,6 @@ class Homepage121119 implements HypothesisInterface
             (new Bucket)
                 ->setId('form')
                 ->setWeight(25),
-            (new Bucket)
-                ->setId('base-take-back-control')
-                ->setWeight(25),
-            (new Bucket)
-                ->setId('form-take-back-control')
-                ->setWeight(25),
         ];
     }
 }
