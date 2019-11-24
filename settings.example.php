@@ -480,6 +480,7 @@ $CONFIG->set('features', [
     'allow-comments-toggle' => false,
     'permissions' => false,
     'pro' => false,
+    'webtorrent' => false,
 ]);
 
 $CONFIG->set('email', [

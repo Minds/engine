@@ -323,8 +323,8 @@ class ElggFile extends ElggObject {
     /**
      * Executed prior to object serialization
      */
-    public function __sleep()
-    {
-        unset($this->handle);
-    }
+    // public function __sleep()
+    // {
+    //     unset($this->handle);
+    // }
 }

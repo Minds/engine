@@ -1546,3 +1546,12 @@ CREATE TABLE minds.experiments (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99PERCENTILE';
 CREATE INDEX experiments_key_idx ON minds.experiments (key);
+
+ALTER TABLE minds.withdrawals ADD (status text, address text, gas varint);
+
+CREATE MATERIALIZED VIEW minds.withdrawals_by_status AS
+    SELECT *
+    FROM minds.withdrawals
+    WHERE status IS NOT NULL AND user_guid IS NOT NULL AND timestamp IS NOT NULL AND tx IS NOT NULL
+    PRIMARY KEY (status, timestamp, user_guid, tx)
+    WITH CLUSTERING ORDER BY (timestamp ASC, user_guid ASC, tx ASC);

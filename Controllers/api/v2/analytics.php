@@ -11,6 +11,14 @@ class analytics implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
     public function get($pages)
     {
+        // Temporary require admin
+        if (!Core\Session::isAdmin()) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Only admins can view these analytics. Use the dashboards instead.',
+            ]);
+        }
+
         if (!isset($pages[0])) {
             return Factory::response([
                 'status' => 'error',

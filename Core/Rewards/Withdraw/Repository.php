@@ -3,93 +3,83 @@
 
 namespace Minds\Core\Rewards\Withdraw;
 
-use Cassandra;
 use Cassandra\Varint;
-use Cassandra\Decimal;
 use Cassandra\Timestamp;
-use Minds\Core\Blockchain\Transactions\Transaction;
+use Exception;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
-use Minds\Core\Rewards\Transactions;
 use Minds\Core\Util\BigNumber;
-use Minds\Entities\User;
 
 class Repository
 {
     /** @var Client */
-    private $db;
+    protected $db;
 
+    /**
+     * Repository constructor.
+     * @param Client $db
+     */
     public function __construct($db = null)
     {
         $this->db = $db ? $db : Di::_()->get('Database\Cassandra\Cql');
     }
 
     /**
-     * @param Transaction[]|Transaction $transactions
-     * @return $this
+     * @param array $opts
+     * @return array
      */
-    public function add($requests)
+    public function getList(array $opts): array
     {
-        if (!is_array($requests)) {
-            $requests = [ $requests ];
-        }
-
-        $queries = [];
-        $template = "INSERT INTO withdrawals (user_guid, timestamp, amount, tx, completed, completed_tx) VALUES (?,?,?,?,?,?)";
-        foreach ($requests as $request) {
-            $queries[] = [
-                'string' => $template,
-                'values' => [
-                    new Varint($request->getUserGuid()),
-                    new Timestamp($request->getTimestamp()),
-                    new Varint($request->getAmount()),
-                    $request->getTx(),
-                    (bool) $request->isCompleted(),
-                    $request->getCompletedTx()
-                ]
-            ];
-        }
-
-        $this->db->batchRequest($queries, Cassandra::BATCH_UNLOGGED);
-
-        return $this;
-    }
-
-    public function getList($options)
-    {
-        $options = array_merge([
+        $opts = array_merge([
+            'status' => null,
             'user_guid' => null,
             'from' => null,
             'to' => null,
             'completed' => null,
             'completed_tx' => null,
             'limit' => 12,
-            'offset' => null
-        ], $options);
+            'offset' => null,
+        ], $opts);
 
         $cql = "SELECT * from withdrawals";
         $where = [];
         $values = [];
 
-        if ($options['user_guid']) {
+        if ($opts['status']) {
+            $cql = "SELECT * from withdrawals_by_status";
+            $where[] = 'status = ?';
+            $values[] = (string) $opts['status'];
+        }
+
+        if ($opts['user_guid']) {
             $where[] = 'user_guid = ?';
-            $values[] = new Varint($options['user_guid']);
+            $values[] = new Varint($opts['user_guid']);
         }
 
-        if ($options['from']) {
+        if ($opts['timestamp']) {
+            $where[] = 'timestamp = ?';
+            $values[] = new Timestamp($opts['timestamp']);
+        }
+
+        if ($opts['tx']) {
+            $where[] = 'tx = ?';
+            $values[] = (string) $opts['tx'];
+        }
+
+        if ($opts['from']) {
             $where[] = 'timestamp >= ?';
-            $values[] = new Timestamp($options['from']);
+            $values[] = new Timestamp($opts['from']);
         }
 
-        if ($options['to']) {
+        if ($opts['to']) {
             $where[] = 'timestamp <= ?';
-            $values[] = new Timestamp($options['to']);
+            $values[] = new Timestamp($opts['to']);
         }
 
-        if ($options['completed']) {
+        if ($opts['completed']) {
             $where[] = 'completed = ?';
-            $values[] = (string) $options['completed'];
+            $values[] = (string) $opts['completed'];
         }
 
         if ($where) {
@@ -99,47 +89,81 @@ class Repository
         $query = new Custom();
         $query->query($cql, $values);
         $query->setOpts([
-            'page_size' => (int) $options['limit'],
-            'paging_state_token' => base64_decode($options['offset'], true)
+            'page_size' => (int) $opts['limit'],
+            'paging_state_token' => base64_decode($opts['offset'], true),
         ]);
 
         try {
             $rows = $this->db->request($query);
-        } catch (\Exception $e) {
+
+            $requests = [];
+            foreach ($rows ?: [] as $row) {
+                $request = new Request();
+                $request
+                    ->setUserGuid((string) $row['user_guid']->value())
+                    ->setTimestamp($row['timestamp']->time())
+                    ->setTx($row['tx'])
+                    ->setAddress($row['address'] ?: '')
+                    ->setAmount((string) BigNumber::_($row['amount']))
+                    ->setCompleted((bool) $row['completed'])
+                    ->setCompletedTx($row['completed_tx'] ?: null)
+                    ->setGas((string) BigNumber::_($row['gas']))
+                    ->setStatus($row['status'] ?: '')
+                ;
+
+                $requests[] = $request;
+            }
+
+            return [
+                'withdrawals' => $requests,
+                'token' => $rows->pagingStateToken(),
+            ];
+        } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
         }
+    }
 
-        if (!$rows) {
-            return [];
-        }
-
-        $requests = [];
-
-        foreach ($rows as $row) {
-            $request = new Request();
-            $request->setUserGuid((string) $row['user_guid']->value());
-            $request->setTimestamp($row['timestamp']->time());
-            $request->setAmount((string) BigNumber::_($row['amount']));
-            $request->setTx($row['tx']);
-            $request->setCompleted((bool) $row['completed']);
-            $request->setCompletedTx($row['completed_tx']);
-            $requests[] = $request;
-        }
-
-        return [
-            'withdrawals' => $requests,
-            'token' => $rows->pagingStateToken()
+    /**
+     * @param Request $request
+     * @return bool
+     */
+    public function add(Request $request)
+    {
+        $cql = "INSERT INTO withdrawals (user_guid, timestamp, tx, address, amount, completed, completed_tx, gas, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $values = [
+            new Varint($request->getUserGuid()),
+            new Timestamp($request->getTimestamp()),
+            $request->getTx(),
+            (string) $request->getAddress(),
+            new Varint($request->getAmount()),
+            (bool) $request->isCompleted(),
+            ((string) $request->getCompletedTx()) ?: null,
+            new Varint($request->getGas()),
+            (string) $request->getStatus(),
         ];
+
+        $prepared = new Custom();
+        $prepared->query($cql, $values);
+
+        return $this->db->request($prepared, true);
     }
 
-    public function update($key, $guids)
+    /**
+     * @param Request $request
+     * @return bool
+     */
+    public function update(Request $request)
     {
-        // TODO: Implement update() method.
+        return $this->add($request);
     }
 
-    public function delete($entity)
+    /**
+     * @param Request $request
+     * @throws Exception
+     */
+    public function delete(Request $request)
     {
-        // TODO: Implement delete() method.
+        throw new Exception('Not allowed');
     }
 }
