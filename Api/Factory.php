@@ -110,6 +110,10 @@ class Factory
 
             $code = !Security\XSRF::validateRequest() ? 403 : 401;
 
+            if (isset($_SERVER['HTTP_APP_VERSION'])) {
+                $code = 401; // Mobile requires 401 errors
+            }
+
             header('Content-type: application/json');
             http_response_code($code);
             echo json_encode([
