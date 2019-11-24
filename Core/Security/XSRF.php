@@ -17,6 +17,10 @@ class XSRF
 
     public static function validateRequest()
     {
+        if (isset($_SERVER['HTTP_APP_VERSION'])) {
+            return true; // This is mobile
+        }
+
         if (!isset($_SERVER['HTTP_X_XSRF_TOKEN'])) {
             return false;
         }
