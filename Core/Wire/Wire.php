@@ -29,6 +29,9 @@ class Wire
     /** @var bool **/
     private $recurring = false;
 
+    /** @var string **/
+    private $recurringInterval;
+
     /** @var string $method */
     private $method = 'tokens';
 
