@@ -106,11 +106,15 @@ class Top extends Cli\Controller implements Interfaces\CliControllerInterface
         }
 
         if (!$from || !is_numeric($from)) {
-            throw new CliException('Missing --from flag');
+            throw new CliException('Missing or invalid --from flag');
         }
 
-        if (!$to || !is_numeric($to)) {
-            throw new CliException('Missing --to flag');
+        if (!$to) {
+            $to = time();
+        }
+
+        if (!is_numeric($to)) {
+            throw new CliException('Invalid --to flag');
         }
 
         if ($from > $to) {

@@ -35,8 +35,7 @@ class Sync
      */
     public function __construct(
         $repository = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository();
     }
 
@@ -118,10 +117,18 @@ class Sync
                 throw new Exception('Invalid metric');
         }
 
+        // Get votes in time window
+
+        $guids = array_keys(iterator_to_array($this->{$metricMethod}(false, $this->from, $this->to)));
+
         // Sync
 
+        $from = strtotime('-1 year') * 1000;
+        $to = time() * 1000;
+
         $i = 0;
-        foreach ($this->{$metricMethod}() as $guid => $count) {
+        $iterator = $this->{$metricMethod}(true, $from, $to, $guids);
+        foreach ($iterator as $guid => $count) {
             $countValue = $sign * $count;
 
             $metric = new MetricsSync();
@@ -132,7 +139,7 @@ class Sync
                 ->setCount($countValue)
                 ->setSynced(time());
             try {
-                $this->repository->inc($metric);
+                $this->repository->add($metric);
             } catch (Exception $e) {
                 error_log((string) $e);
             }
@@ -144,33 +151,52 @@ class Sync
         $this->repository->bulk();
     }
 
-
     /**
+     * @param bool $uniques
+     * @param int $from
+     * @param int $to
+     * @param array|null $guids
      * @return iterable
      */
-    protected function getVotesUp(): iterable
+    protected function getVotesUp(bool $uniques, int $from, int $to, ?array $guids = null): iterable
     {
         $aggregates = new Aggregates\Votes;
-        $aggregates->setLimit(10000);
-        $aggregates->setType($this->type);
-        $aggregates->setSubtype($this->subtype);
-        $aggregates->setFrom($this->from);
-        $aggregates->setTo($this->to);
+        $aggregates
+            ->setLimit(10000)
+            ->setType($this->type)
+            ->setSubtype($this->subtype)
+            ->setFrom($from)
+            ->setTo($to)
+            ->setUniques($uniques);
+
+        if ($guids) {
+            $aggregates->setGuids($guids);
+        }
 
         return $aggregates->get();
     }
 
     /**
+     * @param bool $uniques
+     * @param int $from
+     * @param int $to
+     * @param array|null $guids
      * @return iterable
      */
-    protected function getVotesDown(): iterable
+    protected function getVotesDown(bool $uniques, int $from, int $to, ?array $guids = null): iterable
     {
         $aggregates = new Aggregates\DownVotes;
-        $aggregates->setLimit(10000);
-        $aggregates->setType($this->type);
-        $aggregates->setSubtype($this->subtype);
-        $aggregates->setFrom($this->from);
-        $aggregates->setTo($this->to);
+        $aggregates
+            ->setLimit(10000)
+            ->setType($this->type)
+            ->setSubtype($this->subtype)
+            ->setFrom($from)
+            ->setTo($to)
+            ->setUniques($uniques);
+
+        if ($guids) {
+            $aggregates->setGuids($guids);
+        }
 
         return $aggregates->get();
     }

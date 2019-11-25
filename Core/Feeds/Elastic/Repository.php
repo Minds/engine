@@ -432,7 +432,7 @@ class Repository
         }
     }
 
-    public function inc(MetricsSync $metric): bool
+    public function add(MetricsSync $metric): bool
     {
         $key = $metric->getMetric();
 
@@ -445,18 +445,10 @@ class Repository
         ];
 
         $this->pendingBulkInserts[] = [
-            'scripted_upsert' => true,
-            'script' => [
-                'source' => "
-                    ctx._source[params.field] += params.delta;
-                    ctx._source['@' + params.field + ':synced'] = params.synced;
-                ",
-                'lang' => 'painless',
-                'params' => [
-                    'field' => $key,
-                    'delta' => $metric->getCount(),
-                    'synced' => $metric->getSynced()
-                ]
+            'doc_as_upsert' => true,
+            'doc' => [
+                $key => $metric->getCount(),
+                "@{$key}:synced" => $metric->getSynced()
             ],
         ];
 

@@ -5,12 +5,16 @@
 namespace Minds\Core\Trending\Aggregates;
 
 use Minds\Core\Data\ElasticSearch;
+use Minds\Helpers\Text;
 
 class DownVotes extends Aggregate
 {
     protected $multiplier = -1;
 
     protected $uniques = true;
+
+    /** @var string[] */
+    protected $guids;
 
     /**
      * @param bool $uniques
@@ -19,6 +23,16 @@ class DownVotes extends Aggregate
     public function setUniques(bool $uniques): DownVotes
     {
         $this->uniques = $uniques;
+        return $this;
+    }
+
+    /**
+     * @param string[] $guids
+     * @return DownVotes
+     */
+    public function setGuids(array $guids): DownVotes
+    {
+        $this->guids = $guids;
         return $this;
     }
 
@@ -75,6 +89,12 @@ class DownVotes extends Aggregate
         //    'rating' => $this->rating
         //];
 
+        if ($this->guids) {
+            $must[]['terms'] = [
+                'entity_guid' => Text::buildArray($this->guids),
+            ];
+        }
+
         $query = [
             'index' => 'minds-metrics-*',
             'type' => 'action',
@@ -92,18 +112,22 @@ class DownVotes extends Aggregate
                             'field' => "$field.keyword",
                             'size' => $this->limit,
              //               'order' => [ 'uniques' => 'DESC' ],
-                        ],
-                        'aggs' => [
-                            'uniques' => [
-                                'cardinality' => [
-                                    'field' => "$cardinality_field.keyword"
-                                ]
-                            ]
                         ]
                     ]
                 ]
             ]
         ];
+
+        if ($this->uniques) {
+            $query['body']['aggs']['entities']['aggs'] = [
+                'uniques' => [
+                    'cardinality' => [
+                        'field' => "$cardinality_field.keyword",
+                        //'precision_threshold' => 40000
+                    ]
+                ]
+            ];
+        }
 
         $prepared = new ElasticSearch\Prepared\Search();
         $prepared->query($query);
