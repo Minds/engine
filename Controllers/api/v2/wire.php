@@ -59,6 +59,7 @@ class wire implements Interfaces\Api
         $amount = BigNumber::_($_POST['amount']);
 
         $recurring = isset($_POST['recurring']) ? $_POST['recurring'] : false;
+        $recurringInterval = $_POST['recurring_interval'] ?? 'once';
 
         if (!$amount) {
             return Factory::response(['status' => 'error', 'message' => 'you must send an amount']);
@@ -80,6 +81,7 @@ class wire implements Interfaces\Api
             $manager
                 ->setAmount((string) BigNumber::toPlain($amount, $digits))
                 ->setRecurring($recurring)
+                ->setRecurringInterval($recurringInterval)
                 ->setSender(Core\Session::getLoggedInUser())
                 ->setEntity($entity)
                 ->setPayload((array) $_POST['payload']);
