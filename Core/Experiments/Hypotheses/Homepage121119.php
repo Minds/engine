@@ -24,10 +24,10 @@ class Homepage121119 implements HypothesisInterface
         return [
             (new Bucket)
                 ->setId('base')
-                ->setWeight(25),
+                ->setWeight(50),
             (new Bucket)
                 ->setId('form')
-                ->setWeight(25),
+                ->setWeight(50),
         ];
     }
 }
