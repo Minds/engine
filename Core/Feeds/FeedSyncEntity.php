@@ -42,6 +42,9 @@ class FeedSyncEntity implements JsonSerializable
     /** @var Entity */
     protected $entity;
 
+    /** @var bool */
+    protected $deleted = false;
+
     /**
      * Export to public API
      * @return array
