@@ -3,15 +3,11 @@
 namespace Minds\Core\Boost\Network;
 
 use Minds\Core;
-use Minds\Core\Data;
-use Minds\Entities\Boost\BoostEntityInterface;
 use Minds\Entities\Boost\Network;
 use Minds\Helpers\MagicAttributes;
 use Minds\Interfaces\BoostReviewInterface;
 use Minds\Core\Boost\Delegates;
 use Minds\Core\Boost\Delegates\OnchainBadgeDelegate;
-
-use MongoDB\BSON;
 
 class Review implements BoostReviewInterface
 {
@@ -209,7 +205,7 @@ class Review implements BoostReviewInterface
     {
         return $this->manager->getList([
             'type' => $this->type,
-            'state' => 'review',
+            'state' => Manager::OPT_STATEQUERY_REVIEW,
             'limit' => $limit,
             'offset' => $offset,
         ]);

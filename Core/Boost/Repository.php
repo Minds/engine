@@ -210,43 +210,6 @@ class Repository
     }
 
     /**
-     * @param string $type
-     * @param string $mongo_id
-     * @return Entities\Boost\BoostEntityInterface|false
-     */
-    public function getEntityById($type, $mongo_id)
-    {
-        if (!$type || !$mongo_id) {
-            return false;
-        }
-
-        $template = "SELECT * FROM boosts_by_mongo_id WHERE type = ? AND mongo_id = ? LIMIT ?";
-        $values = [
-            (string) $type,
-            (string) $mongo_id,
-            1
-        ];
-
-        $query = new Prepared\Custom();
-        $query->query($template, $values);
-
-        $boost = false;
-
-        try {
-            $result = $this->db->request($query);
-
-            if (isset($result[0]) && $result[0]) {
-                $boost = (new Entities\Boost\Factory())->build($result[0]['type']);
-                $boost->loadFromArray($result[0]['data']);
-            }
-        } catch (\Exception $e) {
-            // TODO: Log or warning
-        }
-
-        return $boost;
-    }
-
-    /**
      * Insert or update a boost
      * @param string $type
      * @param array $data
@@ -271,7 +234,7 @@ class Repository
             throw new \Exception('State is required');
         }
 
-        $template = "INSERT INTO boosts (type, guid, owner_guid, destination_guid, mongo_id, state, data) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $template = "INSERT INTO boosts (type, guid, owner_guid, destination_guid, state, data) VALUES (?, ?, ?, ?, ?, ?)";
 
         $destination = null;
 
@@ -284,7 +247,6 @@ class Repository
             new Cassandra\Varint($data['guid']),
             new Cassandra\Varint($data['owner']['guid']),
             $destination,
-            (string) $data['_id'],
             (string) $data['state'],
             json_encode($data)
         ];

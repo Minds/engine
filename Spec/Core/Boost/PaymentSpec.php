@@ -10,7 +10,6 @@ use Minds\Core\Blockchain\Wallets\OffChain\Cap;
 use Minds\Core\Blockchain\Wallets\OffChain\Transactions;
 use Minds\Core\Blockchain\Services\Ethereum;
 use Minds\Core\Blockchain\Wallets\OffChain\Withholding\Repository as WithholdingRepository;
-use Minds\Core\Blockchain\Wallets\OffChain\Withholding\Withholding;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\Cassandra\Thrift\Lookup;
 use Minds\Core\Data\Locks\LockFailedException;
@@ -127,10 +126,6 @@ class PaymentSpec extends ObjectBehavior
         User $owner,
         Customer $customer
     ) {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('network');
-
         $boost->getBidType()
             ->shouldBeCalled()
             ->willReturn('money');
@@ -170,10 +165,6 @@ class PaymentSpec extends ObjectBehavior
     public function it_should_throw_if_peer_during_pay_with_money(
         Peer $boost
     ) {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('peer');
-
         $boost->getMethod()
             ->shouldBeCalled()
             ->willReturn('money');
@@ -187,10 +178,6 @@ class PaymentSpec extends ObjectBehavior
         Network $boost,
         User $owner
     ) {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('network');
-
         $boost->getBidType()
             ->shouldBeCalled()
             ->willReturn('tokens');
@@ -258,10 +245,6 @@ class PaymentSpec extends ObjectBehavior
         Network $boost,
         User $owner
     ) {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('network');
-
         $boost->getBidType()
             ->shouldBeCalled()
             ->willReturn('tokens');
@@ -300,10 +283,6 @@ class PaymentSpec extends ObjectBehavior
         User $owner,
         User $destination
     ) {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('peer');
-
         $boost->getMethod()
             ->shouldBeCalled()
             ->willReturn('tokens');
@@ -380,10 +359,6 @@ class PaymentSpec extends ObjectBehavior
         Peer $boost,
         User $destination
     ) {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('peer');
-
         $boost->getMethod()
             ->shouldBeCalled()
             ->willReturn('tokens');
@@ -562,10 +537,6 @@ class PaymentSpec extends ObjectBehavior
         Peer $boost,
         User $destination
     ) {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('peer');
-
         $boost->getMethod()
             ->shouldBeCalled()
             ->willReturn('tokens');
@@ -589,10 +560,6 @@ class PaymentSpec extends ObjectBehavior
         Network $boost,
         User $owner
     ) {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('network');
-
         $boost->getBidType()
             ->shouldBeCalled()
             ->willReturn('tokens');
@@ -625,10 +592,6 @@ class PaymentSpec extends ObjectBehavior
         User $owner,
         User $destination
     ) {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('peer');
-
         $boost->getMethod()
             ->shouldBeCalled()
             ->willReturn('tokens');
@@ -669,10 +632,6 @@ class PaymentSpec extends ObjectBehavior
         Peer $boost,
         User $destination
     ) {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('peer');
-
         $boost->getMethod()
             ->shouldBeCalled()
             ->willReturn('tokens');
@@ -739,10 +698,6 @@ class PaymentSpec extends ObjectBehavior
         User $owner,
         User $destination
     ) {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('peer');
-
         $boost->getMethod()
             ->shouldBeCalled()
             ->willReturn('tokens');
@@ -925,10 +880,6 @@ class PaymentSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('tokens');
 
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('network');
-
         $boost->getTransactionId()
             ->shouldBeCalled()
             ->willReturn('0xTX');
@@ -1003,10 +954,6 @@ class PaymentSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('tokens');
 
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('peer');
-
         $boost->getTransactionId()
             ->shouldBeCalled()
             ->willReturn('0xTX');
@@ -1026,10 +973,6 @@ class PaymentSpec extends ObjectBehavior
         Network $boost,
         User $owner
     ) {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('network');
-
         $boost->getBidType()
             ->shouldBeCalled()
             ->willReturn('tokens');
@@ -1099,10 +1042,6 @@ class PaymentSpec extends ObjectBehavior
         User $owner,
         User $destination
     ) {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('peer');
-
         $boost->getMethod()
             ->shouldBeCalled()
             ->willReturn('tokens');

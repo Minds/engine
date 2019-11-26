@@ -181,24 +181,18 @@ class newsfeed implements Interfaces\Api
 
                 /** @var Core\Boost\Network\Iterator $iterator */
                 $iterator = Core\Di\Di::_()->get('Boost\Network\Iterator');
-                $iterator->setPriority(!get_input('offset', ''))
-                    ->setType('newsfeed')
+                $iterator->setType('newsfeed')
                     ->setLimit($limit)
                     ->setOffset($offset)
-                    //->setRating(0)
                     ->setQuality(0)
-                    ->setIncrement(false);
+                    ->setUserGuid(Core\Session::getLoggedinUserGuid())
+                    ->setRating((int) Core\Session::getLoggedinUser()->getBoostRating());
 
 
                 foreach ($iterator as $guid => $boost) {
                     $boost->boosted = true;
                     $boost->boosted_guid = (string) $guid;
                     array_unshift($activity, $boost);
-                    //if (get_input('offset')) {
-                    //bug: sometimes views weren't being calculated on scroll down
-                    //Counters::increment($boost->guid, "impression");
-                    //Counters::increment($boost->owner_guid, "impression");
-                    //}
                 }
                 $cacher->set(Core\Session::getLoggedinUser()->guid . ':boost-offset:newsfeed', $iterator->getOffset(), (3600 / 2));
             } catch (\Exception $e) {

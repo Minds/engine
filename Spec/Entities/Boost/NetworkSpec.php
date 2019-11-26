@@ -19,7 +19,6 @@ class NetworkSpec extends ObjectBehavior
     {
         $this->mockData = [
             'guid' => "mockguid",
-            '_id' => 'abcj1k203',
             'type' => 'points',
             'entity' => json_encode(['guid' => 'mock_entity_guid', 'type' => 'activity']),
             'bid' => 10,
@@ -46,14 +45,7 @@ class NetworkSpec extends ObjectBehavior
         $this->loadFromArray($this->mockData)->shouldReturn($this);
         $this->getBid()->shouldReturn(10);
         $this->getState()->shouldReturn('testing');
-        $this->getId()->shouldReturn('abcj1k203');
     }
-
-    //function it_should_should_save(Call $db){
-    //$db->insert(Argument::type('string'), Argument::type('array'))->willReturn(true);
-    //$this->beConstructedWith($db);
-    //$this->save()->willReturn('foo');
-    //}
 
     public function it_should_set_the_entity(Entity $entity)
     {

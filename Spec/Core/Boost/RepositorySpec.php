@@ -245,54 +245,6 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    // getEntityById()
-
-    public function it_should_get_a_single_boost_based_on_mongo()
-    {
-        $this->_client->request(Argument::type(Prepared\Custom::class))
-            ->shouldBeCalled()
-            ->willReturn([
-                [ 'type' => 'network', 'data' => [ ] ],
-            ]);
-
-        $this
-            ->getEntityById('network', 'm2000')
-            ->shouldReturnAnInstanceOf(Entities\Boost\Network::class);
-    }
-
-    public function it_should_not_get_a_single_boost_based_on_mongo_if_no_type()
-    {
-        $this->_client->request(Argument::type(Prepared\Custom::class))
-            ->shouldNotBeCalled();
-
-        $this
-            ->getEntityById(null, 'm2000')
-            ->shouldReturn(false);
-    }
-
-    public function it_should_not_get_a_single_boost_based_on_mongo_if_no_id()
-    {
-        $this->_client->request(Argument::type(Prepared\Custom::class))
-            ->shouldNotBeCalled();
-
-        $this
-            ->getEntityById('network', null)
-            ->shouldReturn(false);
-    }
-
-    public function it_should_not_get_a_single_boost_based_on_mongo_if_not_exists()
-    {
-        $this->_client->request(Argument::type(Prepared\Custom::class))
-            ->shouldBeCalled()
-            ->willReturn([]);
-
-        $this
-            ->getEntityById('network', 'm2404')
-            ->shouldReturn(false);
-    }
- 
-    // upsert()
-
     public function it_should_store_a_boost()
     {
         $this->_client->request(Argument::type(Prepared\Custom::class))

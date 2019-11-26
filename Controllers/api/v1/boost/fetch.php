@@ -1,20 +1,14 @@
 <?php
-/**
- * Minds Boost Api endpoint
- *
- * @version 1
- * @author Mark Harding
- *
- */
 
 namespace Minds\Controllers\api\v1\boost;
 
 use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
-use Minds\Entities;
+use Minds\Entities\Entity;
 use Minds\Helpers\Counters;
 use Minds\Interfaces;
+use Minds\Core\Boost;
 
 class fetch implements Interfaces\Api
 {
@@ -28,52 +22,56 @@ class fetch implements Interfaces\Api
         $user = Core\Session::getLoggedinUser();
 
         if (!$user) {
-            return Factory::response([
+            Factory::response([
                 'status' => 'error',
                 'message' => 'You must be loggedin to view boosts',
             ]);
+            return;
         }
 
         if ($user->disabled_boost && $user->isPlus()) {
-            return Factory::response([]);
+            Factory::response([]);
+            return;
         }
 
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 2;
         $rating = isset($_GET['rating']) ? (int) $_GET['rating'] : $user->getBoostRating();
         $platform = isset($_GET['platform']) ? $_GET['platform'] : 'other';
+        $offset = !empty($_GET['offset']) ? (int) $_GET['offset'] : null;
         $quality = 0;
 
         // options specific to newly created users (<=1 hour) and iOS users
         if (time() - $user->getTimeCreated() <= 3600) {
-            $rating = 1; // they can only see safe content
+            $rating = Boost\Network\Boost::RATING_SAFE;
             $quality = 75;
         }
 
         if ($platform === 'ios') {
-            $rating = 1; // they can only see safe content
+            $rating = Boost\Network\Boost::RATING_SAFE;
             $quality = 90;
         }
 
-        /** @var Core\Boost\Network\Iterator $iterator */
-        $iterator = Core\Di\Di::_()->get('Boost\Network\Iterator');
+        /** @var  $iterator */
+        $iterator = new Core\Boost\Network\Iterator();
         $iterator->setLimit($limit)
             ->setRating($rating)
             ->setQuality($quality)
-            ->setOffset($_GET['offset'])
             ->setType($pages[0])
-            ->setPriority(true);
+            ->setUserGuid($user->getGUID());
 
-        if (isset($_GET['rating']) && $pages[0] == 'newsfeed') {
+        if (!is_null($offset)) {
+            $iterator->setOffset($offset);
+        }
+
+        if (isset($_GET['rating']) && $pages[0] == Boost\Network\Boost::TYPE_NEWSFEED) {
             $cacher = Core\Data\cache\factory::build('Redis');
             $offset =  $cacher->get(Core\Session::getLoggedinUser()->guid . ':boost-offset:newsfeed');
             $iterator->setOffset($offset);
         }
 
         switch ($pages[0]) {
-            case 'content':
-                //$iterator->setOffset('');
-                $iterator->setIncrement(true);
-
+            case Boost\Network\Boost::TYPE_CONTENT:
+                /** @var $entity Entity */
                 foreach ($iterator as $guid => $entity) {
                     $response['boosts'][] = array_merge($entity->export(), [
                         'boosted_guid' => (string) $guid,
@@ -87,7 +85,7 @@ class fetch implements Interfaces\Api
                 if (!$response['boosts']) {
                     $result = Di::_()->get('Trending\Repository')->getList([
                         'type' => 'images',
-                        'rating' => isset($rating) ? (int) $rating : 1,
+                        'rating' => isset($rating) ? (int) $rating : Boost\Network\Boost::RATING_SAFE,
                         'limit' => $limit,
                     ]);
 
@@ -97,7 +95,7 @@ class fetch implements Interfaces\Api
                     }
                 }
                 break;
-            case 'newsfeed':
+            case Boost\Network\Boost::TYPE_NEWSFEED:
                 foreach ($iterator as $guid => $entity) {
                     $response['boosts'][] = array_merge($entity->export(), [
                         'boosted' => true,
@@ -109,70 +107,25 @@ class fetch implements Interfaces\Api
                 if (isset($_GET['rating']) && $pages[0] == 'newsfeed') {
                     $cacher->set(Core\Session::getLoggedinUser()->guid . ':boost-offset:newsfeed', $iterator->getOffset(), (3600 / 2));
                 }
-                if (!$iterator->list && false) {
-                    $cacher = Core\Data\cache\factory::build('apcu');
-                    $offset = (int) $cacher->get(Core\Session::getLoggedinUser()->guid . ":newsfeed-fallover-boost-offset") ?: 0;
-                    
-                    $posts = $this->getSuggestedPosts([
-                        'offset' => $offset,
-                        'limit' => $limit,
-                        'rating' => $rating,
-                    ]);
-
-                    foreach ($posts as $entity) {
-                        $entity->boosted = true;
-                        $response['boosts'][] = array_merge($entity->export(), [ 'boosted' => true ]);
-                    }
-                    if (!$response['boosts'] || count($response['boosts']) < 5) {
-                        $cacher->destroy(Core\Session::getLoggedinUser()->guid . ":newsfeed-fallover-boost-offset");
-                    } else {
-                        $cacher->set(Core\Session::getLoggedinUser()->guid . ":newsfeed-fallover-boost-offset", ((int) $offset) + count($posts));
-                    }
-                }
+                break;
         }
 
-        return Factory::response($response);
+        Factory::response($response);
     }
 
-    /**
-     */
     public function post($pages)
     {
+        /* Not Implemented */
     }
 
-    /**
-     * @param array $pages
-     */
     public function put($pages)
     {
-        $expire = Core\Di\Di::_()->get('Boost\Network\Expire');
-        $metrics = Core\Di\Di::_()->get('Boost\Network\Metrics');
-
-        $boost = Core\Boost\Factory::build($pages[0])->getBoostEntity($pages[1]);
-        if (!$boost) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => 'Boost not found'
-            ]);
-        }
-
-        $count = $metrics->incrementViews($boost);
-
-        if ($count > $boost->getImpressions()) {
-            $expire->setBoost($boost);
-            $expire->expire();
-        }
-
-        Counters::increment($boost->getEntity()->guid, "impression");
-        Counters::increment($boost->getEntity()->owner_guid, "impression");
-
-        return Factory::response([]);
+        /* Not Implemented */
     }
 
-    /**
-     */
     public function delete($pages)
     {
+        /* Not Implemented */
     }
 
     private function getSuggestedPosts($opts = [])

@@ -4,9 +4,7 @@
  */
 namespace Minds\Core\Boost\Network;
 
-use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
-use Minds\Helpers;
 use Minds\Core\Data\ElasticSearch\Prepared;
 
 class Analytics
@@ -54,11 +52,6 @@ class Analytics
                         [
                             'exists' => [
                                 'field' => '@reviewed',
-                            ],
-                        ],
-                        [
-                            'term' => [
-                                'is_campaign' => true
                             ],
                         ],
                     ],

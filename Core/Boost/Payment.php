@@ -8,6 +8,7 @@ use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments;
 use Minds\Core\Util\BigNumber;
+use Minds\Entities\Boost\Network;
 use Minds\Entities\Boost\Peer;
 use Minds\Entities\User;
 use Minds\Core\Data\Locks\LockFailedException;
@@ -49,7 +50,7 @@ class Payment
     }
 
     /**
-     * @param Network|Peer $boost
+     * @param Core\Boost\Network\Boost $boost
      * @param $payload
      * @return null
      * @throws \Exception
@@ -62,7 +63,7 @@ class Payment
         switch ($currency) {
             case 'usd':
             case 'money':
-                if ($boost->getHandler() === 'peer') {
+                if ($this->isPeerBoost($boost)) {
                     throw new \Exception('Money P2P boosts are not supported');
                 }
 
@@ -99,7 +100,7 @@ class Payment
             case 'tokens':
                 switch ($payload['method']) {
                     case 'offchain':
-                        if ($boost->getHandler() === 'peer' && !$boost->getDestination()->getPhoneNumberHash()) {
+                        if ($this->isPeerBoost($boost) && !$boost->getDestination()->getPhoneNumberHash()) {
                             throw new \Exception('Boost target should participate in the Rewards program.');
                         }
 
@@ -115,10 +116,10 @@ class Payment
                         $txData = [
                             'amount' => (string) $boost->getBid(),
                             'guid' => (string) $boost->getGuid(),
-                            'handler' => (string) $boost->getHandler(),
+                            'handler' => $this->boostType($boost),
                         ];
 
-                        if ($boost->getHandler() === 'peer') {
+                        if ($this->isPeerBoost($boost)) {
                             $txData['sender_guid'] = (string) $boost->getOwner()->guid;
                             $txData['receiver_guid'] = (string) $boost->getDestination()->guid;
                         }
@@ -135,7 +136,7 @@ class Payment
                         return $tx->getTx();
 
                     case 'creditcard':
-                        if ($boost->getHandler() === 'peer' && !$boost->getDestination()->getPhoneNumberHash()) {
+                        if ($this->isPeerBoost($boost) && !$boost->getDestination()->getPhoneNumberHash()) {
                             throw new \Exception('Boost target should participate in the Rewards program.');
                         }
 
@@ -178,10 +179,10 @@ class Payment
                         $txData = [
                             'amount' => (string) $boost->getBid(),
                             'guid' => (string) $boost->getGuid(),
-                            'handler' => (string) $boost->getHandler()
+                            'handler' => $this->boostType($boost)
                         ];
 
-                        if ($boost->getHandler() === 'peer') {
+                        if ($this->isPeerBoost($boost)) {
                             $txData['sender_guid'] = (string) $boost->getOwner()->guid;
                             $txData['receiver_guid'] = (string) $boost->getDestination()->guid;
                         }
@@ -201,17 +202,17 @@ class Payment
                         return $tx;
 
                     case 'onchain':
-                        if ($boost->getHandler() === 'peer' && !$boost->getDestination()->getEthWallet()) {
+                        if ($this->isPeerBoost($boost) && !$boost->getDestination()->getEthWallet()) {
                             throw new \Exception('Boost target should participate in the Rewards program.');
                         }
 
                         $txData = [
                             'amount' => (string) $boost->getBid(),
                             'guid' => (string) $boost->getGuid(),
-                            'handler' => (string) $boost->getHandler()
+                            'handler' => $this->boostType($boost)
                         ];
 
-                        if ($boost->getHandler() === 'peer') {
+                        if ($this->isPeerBoost($boost)) {
                             $txData['sender_guid'] = (string) $boost->getOwner()->guid;
                             $txData['receiver_guid'] = (string) $boost->getDestination()->guid;
                         }
@@ -228,7 +229,7 @@ class Payment
                             ->setData($txData);
                         $this->txManager->add($sendersTx);
 
-                        if ($boost->getHandler() === 'peer') {
+                        if ($this->isPeerBoost($boost)) {
                             $receiversTx = new Core\Blockchain\Transactions\Transaction();
                             $receiversTx
                                 ->setUserGuid($boost->getDestination()->guid)
@@ -241,7 +242,7 @@ class Payment
                                 ->setData([
                                     'amount' => (string) $boost->getBid(),
                                     'guid' => (string) $boost->getGuid(),
-                                    'handler' => (string) $boost->getHandler(),
+                                    'handler' => $this->boostType($boost),
                                     'sender_guid' => (string) $boost->getOwner()->guid,
                                     'receiver_guid' => (string) $boost->getDestination()->guid,
                                 ]);
@@ -292,7 +293,7 @@ class Payment
                         return false;
                         break;
                     case 'offchain':
-                        if ($boost->getHandler() === 'peer') {
+                        if ($this->isPeerBoost($boost)) {
                             /** @var Core\Blockchain\Wallets\OffChain\Transactions $receiversTx */
                             $receiversTx = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
                             $receiversTx
@@ -357,7 +358,7 @@ class Payment
 
                 switch ($method) {
                     case 'onchain':
-                        if ($boost->getHandler() === 'peer') {
+                        if ($this->isPeerBoost($boost)) {
                             // Already refunded
                             return true;
                         }
@@ -387,7 +388,7 @@ class Payment
                             ->setData([
                                 'amount' => (string) $boost->getBid(),
                                 'guid' => (string) $boost->getGuid(),
-                                'handler' => (string) $boost->getHandler(),
+                                'handler' => $this->boostType($boost),
                                 'refund' => true,
                             ]);
 
@@ -410,7 +411,7 @@ class Payment
                             'guid' => (string) $boost->getGuid(),
                         ];
 
-                        if ($boost->getHandler() === 'peer') {
+                        if ($this->isPeerBoost($boost)) {
                             $txData['sender_guid'] = (string) $boost->getOwner()->guid;
                             $txData['receiver_guid'] = (string) $boost->getDestination()->guid;
                         }
@@ -439,5 +440,26 @@ class Payment
         }
 
         throw new \Exception('Payment Method not supported');
+    }
+
+    protected function isPeerBoost($boost): bool
+    {
+        return (is_object($boost) && $boost instanceof Peer);
+    }
+
+    protected function isNetworkBoost($boost): bool
+    {
+        return (is_object($boost) && $boost instanceof Network);
+    }
+
+    protected function boostType($boost): string
+    {
+        if ($this->isPeerBoost($boost)) {
+            return 'peer';
+        } elseif ($this->isNetworkBoost($boost)) {
+            return 'network';
+        } else {
+            return $boost->getType();
+        }
     }
 }

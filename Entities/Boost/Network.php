@@ -17,7 +17,6 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
     public $type = 'boost';
     public $subtype = 'network';
 
-    protected $_id; //specific to mongo related
     protected $entity;
     protected $bid;
     protected $impressions;
@@ -34,9 +33,10 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
     protected $categories = [];
     protected $rejection_reason = -1;
     protected $checksum = null;
+    protected $schemaVersion = 2;
 
     protected $exportableDefaults = [
-        'guid', '_id', 'entity', 'bid', 'bidType', 'destination', 'owner', 'state',
+        'guid', 'entity', 'bid', 'bidType', 'destination', 'owner', 'state',
         'transactionId', 'time_created', 'last_updated', 'type', 'subtype', 'handler',
         'rating', 'quality', 'impressions', 'categories', 'rejection_reason', 'checksum'
     ];
@@ -66,7 +66,6 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
         $array = is_array($array) ? $array : json_decode($array, true);
 
         $this->guid = $array['guid'];
-        $this->_id = $array['_id'];
         $this->entity = Entities\Factory::build($array['entity']);
         $this->bid = $array['bid'];
         $this->bidType = $array['bidType'];
@@ -83,6 +82,11 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
         $this->categories = $array['categories'];
         $this->rejection_reason = $array['rejection_reason'];
         $this->checksum = $array['checksum'];
+
+        if (isset($array['_id'])) {
+            $this->schemaVersion = 1;
+        }
+
         return $this;
     }
 
@@ -99,7 +103,6 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
 
         $data = [
             'guid' => $this->guid,
-            '_id' => $this->_id,
             'entity' => $this->entity->export(),
             'bid' => $this->bid,
             'impressions' => $this->impressions,
@@ -148,26 +151,6 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
             $this->time_created = time();
         }
         return $this->guid;
-    }
-
-    /**
-     * Set the internal data id
-     * @param string $_id
-     * @return $this
-     */
-    public function setId($_id)
-    {
-        $this->_id = $_id;
-        return $this;
-    }
-
-    /**
-     * Get the internal $id
-     * @return string
-     */
-    public function getId()
-    {
-        return $this->_id;
     }
 
     /**
@@ -447,8 +430,7 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
         $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'all', ['entity' => $this], []));
         $export = \Minds\Helpers\Export::sanitize($export);
 
-        $export['met_impressions'] = Counters::get((string) $this->getId(), "boost_impressions")
-            + Counters::get($this->getGuid(), "boost_impressions");
+        $export['met_impressions'] = ($this->schemaVersion < 2) ? 0 : Counters::get($this->getGuid(), "boost_impressions");
         return $export;
     }
 }

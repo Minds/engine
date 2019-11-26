@@ -23,9 +23,8 @@ class views implements Interfaces\Api
 
         switch ($pages[0]) {
             case 'boost':
-                $expire = Di::_()->get('Boost\Network\Expire');
-                $metrics = Di::_()->get('Boost\Network\Metrics');
-                $manager = Di::_()->get('Boost\Network\Manager');
+                $metrics = new Core\Boost\Network\Metrics();
+                $manager = new Core\Boost\Network\Manager();
 
                 $urn = "urn:boost:newsfeed:{$pages[1]}";
 
@@ -40,8 +39,7 @@ class views implements Interfaces\Api
                 $count = $metrics->incrementViews($boost);
 
                 if ($count > $boost->getImpressions()) {
-                    $expire->setBoost($boost);
-                    $expire->expire();
+                    $manager->expire($boost);
                 }
 
                 Counters::increment($boost->getEntity()->guid, "impression");
@@ -71,10 +69,11 @@ class views implements Interfaces\Api
                 $entity = Entities\Factory::build($pages[1]);
 
                 if (!$entity) {
-                    return Factory::response([
+                    Factory::response([
                         'status' => 'error',
                         'message' => 'Could not the entity'
                     ]);
+                    return;
                 }
 
                 if ($entity->type === 'activity') {
@@ -123,16 +122,16 @@ class views implements Interfaces\Api
                 break;
         }
 
-        return Factory::response([]);
+        Factory::response([]);
     }
 
     public function put($pages)
     {
-        return Factory::response([]);
+        Factory::response([]);
     }
 
     public function delete($pages)
     {
-        return Factory::response([]);
+        Factory::response([]);
     }
 }

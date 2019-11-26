@@ -54,13 +54,13 @@ class suggested implements Interfaces\Api
             $offset = intval($_GET['offset']);
         }
 
-        $rating = Core\Session::getLoggedinUser()->boost_rating ?: 1;
+        $rating = Core\Session::getLoggedinUser()->boost_rating ?: Core\Boost\Network\Boost::RATING_SAFE;
         if (isset($_GET['rating'])) {
             $rating = intval($_GET['rating']);
         }
 
         if ($type == 'user') {
-            $rating = 1;
+            $rating = Core\Boost\Network\Boost::RATING_SAFE;
         }
 
         $hashtag = null;

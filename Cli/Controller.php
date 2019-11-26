@@ -171,16 +171,17 @@ class Controller
 
     /**
      * Gets the list of publically available commands and filters out the system ones.
+     * @param array $additionalExcludes Additional methods to exclude from command list (optional)
      */
-    public function getCommands()
+    public function getCommands(array $additionalExcludes = [])
     {
-        $excludedMethods = ['__construct', 'help', 'out', 'setArgs', 'setApp', 'getApp', 'getExecCommand', 'getOpt', 'getOpts', 'getAllOpts', 'getCommands', 'displayCommandHelp'];
+        $excludedMethods = ['__construct', 'help', 'out', 'setArgs', 'setApp', 'getApp', 'getExecCommand', 'getOpt', 'getOpts', 'getAllOpts', 'getCommands', 'displayCommandHelp', 'exec', 'gatekeeper'];
         $commands = [];
         foreach ((new ReflectionClass($this))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             $commands[] = $method->getName();
         }
 
-        return array_diff($commands, $excludedMethods);
+        return array_diff($commands, $excludedMethods, $additionalExcludes);
     }
 
     public function displayCommandHelp()

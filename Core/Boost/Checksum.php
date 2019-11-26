@@ -1,11 +1,5 @@
 <?php
 
-/**
- * Description
- *
- * @author emi
- */
-
 namespace Minds\Core\Boost;
 
 use Minds\Entities\Entity;

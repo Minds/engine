@@ -5,6 +5,7 @@
 namespace Minds\Core\Boost\Network;
 
 use Minds\Common\Repository\Response;
+use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Util\BigNumber;
@@ -27,7 +28,7 @@ class ElasticRepository
     public function getList($opts = [])
     {
         $opts = array_merge([
-            'rating' => 3,
+            'rating' => Boost::RATING_OPEN,
             'token' => 0,
             'offset' => null,
             'order' => null,
@@ -48,12 +49,6 @@ class ElasticRepository
             'term' => [
                 'type' => $opts['type'],
             ],
-        ];
-
-        $must_not[] = [
-            'term' => [
-                'is_campaign' => true,
-            ]
         ];
 
         if ($opts['offset']) {
@@ -82,7 +77,7 @@ class ElasticRepository
             ];
         }
 
-        if ($opts['state'] === 'approved') {
+        if ($opts['state'] === Manager::OPT_STATEQUERY_APPROVED) {
             $must[] = [
                 'exists' => [
                     'field' => '@reviewed',
@@ -95,26 +90,6 @@ class ElasticRepository
                     ],
                 ],
             ];
-        }
-
-        if ($opts['offchain']) {
-            $must[] = [
-                'term' => [
-                    'token_method' => 'offchain',
-                ],
-            ];
-        }
-
-        if ($opts['state'] === 'review') {
-            $must_not[] = [
-                'exists' => [
-                    'field' => '@reviewed',
-                ],
-            ];
-            $sort = ['@timestamp' => 'asc'];
-        }
-
-        if ($opts['state'] === 'approved' || $opts['state'] === 'review' || $opts['state'] === 'active') {
             $must_not[] = [
                 'exists' => [
                     'field' => '@completed',
@@ -128,6 +103,56 @@ class ElasticRepository
             $must_not[] = [
                 'exists' => [
                     'field' => '@revoked',
+                ],
+            ];
+        }
+
+        if ($opts['state'] === Manager::OPT_STATEQUERY_REVIEW) {
+            $must_not[] = [
+                'exists' => [
+                    'field' => '@reviewed',
+                ],
+            ];
+            $must_not[] = [
+                'exists' => [
+                    'field' => '@completed',
+                ],
+            ];
+            $must_not[] = [
+                'exists' => [
+                    'field' => '@rejected',
+                ],
+            ];
+            $must_not[] = [
+                'exists' => [
+                    'field' => '@revoked',
+                ],
+            ];
+            $sort = ['@timestamp' => 'asc'];
+        }
+
+        if ($opts['state'] === Manager::OPT_STATEQUERY_ACTIVE) {
+            $must_not[] = [
+                'exists' => [
+                    'field' => '@completed',
+                ],
+            ];
+            $must_not[] = [
+                'exists' => [
+                    'field' => '@rejected',
+                ],
+            ];
+            $must_not[] = [
+                'exists' => [
+                    'field' => '@revoked',
+                ],
+            ];
+        }
+
+        if ($opts['offchain']) {
+            $must[] = [
+                'term' => [
+                    'token_method' => 'offchain',
                 ],
             ];
         }

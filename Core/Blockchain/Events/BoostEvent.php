@@ -1,16 +1,10 @@
 <?php
 
-/**
- * Blockchain Peer Boost Events
- *
- * @author emi
- */
-
 namespace Minds\Core\Blockchain\Events;
 
 use Minds\Core\Blockchain\Transactions\Repository;
 use Minds\Core\Blockchain\Transactions\Transaction;
-use Minds\Core\Data;
+use Minds\Core\Config;
 use Minds\Core\Di\Di;
 
 class BoostEvent implements BlockchainEventInterface
@@ -23,8 +17,6 @@ class BoostEvent implements BlockchainEventInterface
         'blockchain:fail' => 'boostFail',
     ];
 
-    protected $mongo;
-
     /** @var Repository $txRepository */
     protected $txRepository;
 
@@ -35,12 +27,10 @@ class BoostEvent implements BlockchainEventInterface
     protected $config;
 
     public function __construct(
-        $mongo = null,
         $txRepository = null,
         $boostRepository = null,
         $config = null
     ) {
-        $this->mongo = $mongo ?: Data\Client::build('MongoDB');
         $this->txRepository = $txRepository ?: Di::_()->get('Blockchain\Transactions\Repository');
         $this->boostRepository = $boostRepository ?: Di::_()->get('Boost\Repository');
         $this->config = $config ?: Di::_()->get('Config');
@@ -95,13 +85,8 @@ class BoostEvent implements BlockchainEventInterface
         }
 
         $transaction->setFailed(true);
-
         $this->txRepository->update($transaction, [ 'failed' ]);
-
-        $boost->setState('failed')
-            ->save();
-
-        $this->mongo->remove("boost", [ '_id' => $boost->getId() ]);
+        $boost->setState('failed')->save();
     }
 
     public function boostSent($log, $transaction)
@@ -126,8 +111,7 @@ class BoostEvent implements BlockchainEventInterface
             throw new \Exception("Boost with hash {$tx} already processed. State: " . $boost->getState());
         }
 
-        $boost->setState('created')
-            ->save();
+        $boost->setState('created')->save();
         echo "{$boost->getGuid()} now marked completed";
     }
 

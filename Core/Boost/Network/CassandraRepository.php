@@ -9,8 +9,9 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\Cassandra\Prepared;
 use Cassandra;
+use Minds\Helpers\Time;
 
-class Repository
+class CassandraRepository
 {
     /** @var Client $client */
     private $client;
@@ -65,27 +66,13 @@ class Repository
                 $boost = new Boost();
                 $data = json_decode($row['data'], true);
 
+                $data = $this->updateTimestampsToMsValues($data);
+
                 if (!isset($data['schema']) && $data['schema'] != '04-2019') {
-                    $data['entity_guid'] = $data['entity']['guid'];
-                    $data['owner_guid'] = $data['owner']['guid'];
-                    $data['@created'] = $data['time_created'] * 1000;
-                    $data['@reviewed'] = $data['state'] === 'accepted' ? ($data['last_updated'] * 1000) : null;
-                    $data['@revoked'] = $data['state'] === 'revoked' ? ($data['last_updated'] * 1000) : null;
-                    $data['@rejected'] = $data['state'] === 'rejected' ? ($data['last_updated'] * 1000) : null;
-                    $data['@completed'] = $data['state'] === 'completed' ? ($data['last_updated'] * 1000) : null;
-                }
-
-                if ($data['@created'] < 1055503139000) {
-                    $data['@created'] = $data['@created'] * 1000;
-                }
-
-                if ($data['is_campaign'] ?? false) {
-                    // Skip campaigns
-                    continue;
+                    $data = $this->updateOldSchema($data);
                 }
 
                 $boost->setGuid((string) $row['guid'])
-                    ->setMongoId($data['_id'])
                     ->setEntityGuid($data['entity_guid'])
                     ->setOwnerGuid($data['owner_guid'])
                     ->setType($row['type'])
@@ -102,7 +89,7 @@ class Repository
                     ->setRating($data['rating'])
                     ->setTags($data['tags'])
                     ->setNsfw($data['nsfw'])
-                    ->setRejectReason($data['rejection_reason'])
+                    ->setRejectedReason($data['rejection_reason'])
                     ->setChecksum($data['checksum']);
                 
                 $response[] = $boost;
@@ -114,6 +101,49 @@ class Repository
         }
 
         return $response;
+    }
+
+    /**
+     * Update any s timestamps to ms values
+     * @param array $data
+     * @return array
+     */
+    protected function updateTimestampsToMsValues(array $data): array
+    {
+        $this->convertTimestampToMsInDataArray('last_updated', $data);
+        $this->convertTimestampToMsInDataArray('time_created', $data);
+        $this->convertTimestampToMsInDataArray('@created', $data);
+
+        return $data;
+    }
+
+    protected function convertTimestampToMsInDataArray(string $key, array &$array)
+    {
+        if (!empty($array[$key])) {
+            $timestampInt = intval($array[$key]);
+            if ($timestampInt < Time::HISTORIC_MS_VALUE) {
+                $array[$key] = Time::sToMs($timestampInt);
+            }
+        }
+    }
+
+    /**
+     * Update the old schema
+     * @param array $data
+     * @return array
+     */
+    protected function updateOldSchema(array $data): array
+    {
+        $data['entity_guid'] = $data['entity']['guid'];
+        $data['owner_guid'] = $data['owner']['guid'];
+        $data['@created'] = $data['time_created'];
+        $data['@reviewed'] = $data['state'] === Boost::STATE_APPROVED ? $data['last_updated'] : null;
+        $data['@revoked'] = $data['state'] === Boost::STATE_REVOKED ? $data['last_updated'] : null;
+        $data['@rejected'] = $data['state'] === Boost::STATE_REJECTED ? $data['last_updated'] : null;
+        $data['@completed'] = $data['state'] === Boost::STATE_COMPLETED ? $data['last_updated'] : null;
+        $data['schema'] = '04-2019';
+
+        return $data;
     }
 
     /**
@@ -150,26 +180,22 @@ class Repository
         }
 
         $template = "INSERT INTO boosts
-            (type, guid, owner_guid, destination_guid, mongo_id, state, data)
+            (type, guid, owner_guid, state, data)
             VALUES
-            (?, ?, ?, ?, ?, ?, ?)
+            (?, ?, ?, ?, ?)
         ";
 
         $data = [
             'guid' => $boost->getGuid(),
             'schema' => '04-2019',
-            '_id' => $boost->getMongoId(), //TODO: remove once on production
             'entity_guid' => $boost->getEntityGuid(),
             'entity' => $boost->getEntity() ? $boost->getEntity()->export() : null, //TODO: remove once on production
             'bid' => $boost->getBid(),
             'impressions' => $boost->getImpressions(),
-            //'bidType' => $boost->getBidType(),
             'bidType' => in_array($boost->getBidType(), [ 'onchain', 'offchain' ], true) ? 'tokens' : $boost->getBidType(), //TODO: remove once on production
             'owner_guid' => $boost->getOwnerGuid(),
             'owner' => $boost->getOwner() ? $boost->getOwner()->export() : null, //TODO: remove once on production
             '@created' => $boost->getCreatedTimestamp(),
-            'time_created' => $boost->getCreatedTimestamp(), //TODO: remove once on production
-            'last_updated' => time(), //TODO: remove once on production
             '@reviewed' => $boost->getReviewedTimestamp(),
             '@rejected' => $boost->getRejectedTimestamp(),
             '@revoked' => $boost->getRevokedTimestamp(),
@@ -178,11 +204,11 @@ class Repository
             'type' => $boost->getType(),
             'handler' => $boost->getType(), //TODO: remove once on production
             'state' => $boost->getState(), //TODO: remove once on production
-            'priority' => $boost->isPriority(),
+            'priority' => $boost->getPriority(),
             'rating' => $boost->getRating(),
             'tags' => $boost->getTags(),
             'nsfw' => $boost->getNsfw(),
-            'rejection_reason'=> $boost->getRejectReason(),
+            'rejection_reason'=> $boost->getRejectedReason(),
             'checksum' => $boost->getChecksum(),
         ];
 
@@ -190,8 +216,6 @@ class Repository
             (string) $boost->getType(),
             new Cassandra\Varint($boost->getGuid()),
             new Cassandra\Varint($boost->getOwnerGuid()),
-            null,
-            (string) $boost->getMongoId(),
             (string) $boost->getState(),
             json_encode($data)
         ];
