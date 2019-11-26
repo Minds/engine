@@ -5,6 +5,7 @@
 namespace Minds\Core\Boost\Network;
 
 use Minds\Common\Repository\Response;
+use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Util\BigNumber;
@@ -27,11 +28,11 @@ class ElasticRepository
     public function getList($opts = [])
     {
         $opts = array_merge([
-            'rating' => 3,
+            'rating' => Boost::RATING_OPEN,
             'token' => 0,
             'offset' => null,
         ], $opts);
-        
+
         $must = [];
         $must_not = [];
         $sort = [ '@timestamp' => 'asc' ];
@@ -66,7 +67,7 @@ class ElasticRepository
             ];
         }
 
-        if ($opts['state'] === 'approved') {
+        if ($opts['state'] === Manager::OPT_STATEQUERY_APPROVED) {
             $must[] = [
                 'exists' => [
                     'field' => '@reviewed',
@@ -79,18 +80,6 @@ class ElasticRepository
                     ],
                 ],
             ];
-        }
-
-        if ($opts['state'] === 'review') {
-            $must_not[] = [
-                'exists' => [
-                    'field' => '@reviewed',
-                ],
-            ];
-            $sort = ['@timestamp' => 'asc'];
-        }
-
-        if ($opts['state'] === 'approved' || $opts['state'] === 'review') {
             $must_not[] = [
                 'exists' => [
                     'field' => '@completed',
@@ -108,11 +97,61 @@ class ElasticRepository
             ];
         }
 
+        if ($opts['state'] === Manager::OPT_STATEQUERY_REVIEW) {
+            $must_not[] = [
+                'exists' => [
+                    'field' => '@reviewed',
+                ],
+            ];
+            $must_not[] = [
+                'exists' => [
+                    'field' => '@completed',
+                ],
+            ];
+            $must_not[] = [
+                'exists' => [
+                    'field' => '@rejected',
+                ],
+            ];
+            $must_not[] = [
+                'exists' => [
+                    'field' => '@revoked',
+                ],
+            ];
+            $sort = ['@timestamp' => 'asc'];
+        }
+
+        if ($opts['state'] === Manager::OPT_STATEQUERY_ACTIVE) {
+            $must_not[] = [
+                'exists' => [
+                    'field' => '@completed',
+                ],
+            ];
+            $must_not[] = [
+                'exists' => [
+                    'field' => '@rejected',
+                ],
+            ];
+            $must_not[] = [
+                'exists' => [
+                    'field' => '@revoked',
+                ],
+            ];
+        }
+
+        if ($opts['offchain']) {
+            $must[] = [
+                'term' => [
+                    'token_method' => 'offchain',
+                ],
+            ];
+        }
+
         $body = [
             'query' => [
                 'bool' => [
                     'must' => $must,
-                    'must_not' => $must_not, 
+                    'must_not' => $must_not,
                 ],
             ],
             'sort' => $sort,
@@ -193,7 +232,7 @@ class ElasticRepository
         ];
 
         if ($boost->getBidType() === 'tokens') {
-            $body['doc']['token_method'] = (strpos($boost->getTransactionId(), '0x', 0) === 0) 
+            $body['doc']['token_method'] = (strpos($boost->getTransactionId(), '0x', 0) === 0)
                 ? 'onchain' : 'offchain';
         }
 

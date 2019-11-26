@@ -3,22 +3,14 @@
 namespace Minds\Core\Boost\Peer;
 
 use Minds\Core;
-use Minds\Core\Data;
 use Minds\Entities;
-use Minds\Helpers\MagicAttributes;
 use Minds\Interfaces\BoostReviewInterface;
 
 class Review implements BoostReviewInterface
 {
     /** @var  Entities\Boost\Peer $boost */
     protected $boost;
-    protected $mongo;
     protected $type;
-
-    public function __construct(Data\Interfaces\ClientInterface $mongo = null)
-    {
-        $this->mongo = $mongo ?: Data\Client::build('MongoDB');
-    }
 
     /**
      * @param string $type
@@ -95,26 +87,6 @@ class Review implements BoostReviewInterface
 
         $this->boost->setState('revoked')
             ->save();
-    }
-
-    protected function enableBoostRejectionReasonFlag($entity = null, $reason = -1)
-    {
-        if (!$entity || !is_object($entity)) {
-            return false;
-        }
-
-        $dirty = false;
-
-        // Main boost rejection reason flag
-        if (MagicAttributes::setterExists($entity, 'setBoostRejectionReason')) {
-            $entity->setBoostRejectionReason($reason);
-            $dirty = true;
-        } elseif (property_exists($entity, 'boost_rejection_reason')) {
-            $entity->boost_rejection_reason = true;
-            $dirty = true;
-        }
-
-        return $dirty;
     }
 
     /**

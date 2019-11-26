@@ -4,7 +4,6 @@ namespace Minds\Core\Boost;
 
 use Minds\Core\Email\Campaigns;
 use Minds\Core\Events\Dispatcher;
-use Minds\Core\Payments;
 
 /**
  * Minds Payments Events.

@@ -7,10 +7,11 @@ namespace Minds\Core\Boost\Network;
 use Minds\Common\Urn;
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
-use Minds\Core\Data\Cassandra\Prepared; 
+use Minds\Core\Data\Cassandra\Prepared;
 use Cassandra;
+use Minds\Core\Time;
 
-class Repository
+class CassandraRepository
 {
     /** @var Client $client */
     private $client;
@@ -21,7 +22,7 @@ class Repository
     public function __construct($client = null, $urn = null)
     {
         $this->client = $client ?: Di::_()->get('Database\Cassandra\Cql');
-        $this->urn = $urn ?: new Urn(); 
+        $this->urn = $urn ?: new Urn();
     }
 
     /**
@@ -53,7 +54,7 @@ class Repository
         
         $query->setOpts([
             'page_size' => (int) $opts['limit'],
-            'paging_state_token' => base64_decode($opt['token'])
+            'paging_state_token' => base64_decode($opts['token'], true)
         ]);
 
         $response = new Response();
@@ -62,25 +63,16 @@ class Repository
             $result = $this->client->request($query);
 
             foreach ($result as $row) {
-                $boost = new Boost(); 
+                $boost = new Boost();
                 $data = json_decode($row['data'], true);
 
-                if (!isset($data['schema']) && $data['schema'] != '04-2019') {
-                    $data['entity_guid'] = $data['entity']['guid'];
-                    $data['owner_guid'] = $data['owner']['guid'];
-                    $data['@created'] = $data['time_created'] * 1000;
-                    $data['@reviewed'] = $data['state'] === 'accepted' ? ($data['last_updated'] * 1000) : null;
-                    $data['@revoked'] = $data['state'] === 'revoked' ? ($data['last_updated'] * 1000) : null;
-                    $data['@rejected'] = $data['state'] === 'rejected' ? ($data['last_updated'] * 1000) : null;
-                    $data['@completed'] = $data['state'] === 'completed' ? ($data['last_updated'] * 1000) : null;
-                }
+                $data = $this->updateTimestampsToMsValues($data);
 
-                if ($data['@created'] < 1055503139000) {
-                    $data['@created'] = $data['@created'] * 1000;
+                if (!isset($data['schema']) && $data['schema'] != '04-2019') {
+                    $data = $this->updateOldSchema($data);
                 }
 
                 $boost->setGuid((string) $row['guid'])
-                    ->setMongoId($data['_id'])
                     ->setEntityGuid($data['entity_guid'])
                     ->setOwnerGuid($data['owner_guid'])
                     ->setType($row['type'])
@@ -98,7 +90,7 @@ class Repository
                     ->setTags($data['tags'])
                     ->setNsfw($data['nsfw'])
                     ->setRejectReason($data['rejection_reason'])
-                    ->setChecksum($data['checksum']); 
+                    ->setChecksum($data['checksum']);
                 
                 $response[] = $boost;
             }
@@ -109,6 +101,41 @@ class Repository
         }
 
         return $response;
+    }
+
+    protected function updateTimestampsToMsValues(array $data): array
+    {
+        if (isset($data['last_updated'])) {
+            if ($data['last_updated'] < Time::HISTORIC_MS_VALUE) {
+                $data['last_updated'] = Time::sToMs($data['last_updated']);
+            }
+        }
+
+        if (isset($data['time_created'])) {
+            if ($data['time_created'] < Time::HISTORIC_MS_VALUE) {
+                $data['time_created'] = Time::sToMs($data['time_created']);
+            }
+        }
+
+        if ($data['@created'] < Time::HISTORIC_MS_VALUE) {
+            $data['@created'] = Time::sToMs($data['@created']);
+        }
+
+        return $data;
+    }
+
+    protected function updateOldSchema(array $data): array
+    {
+        $data['entity_guid'] = $data['entity']['guid'];
+        $data['owner_guid'] = $data['owner']['guid'];
+        $data['@created'] = $data['time_created'];
+        $data['@reviewed'] = $data['state'] === Boost::STATE_APPROVED ? $data['last_updated'] : null;
+        $data['@revoked'] = $data['state'] === Boost::STATE_REVOKED ? $data['last_updated'] : null;
+        $data['@rejected'] = $data['state'] === Boost::STATE_REJECTED ? $data['last_updated'] : null;
+        $data['@completed'] = $data['state'] === Boost::STATE_COMPLETED ? $data['last_updated'] : null;
+        $data['schema'] = '04-2019';
+
+        return $data;
     }
 
     /**
@@ -145,26 +172,22 @@ class Repository
         }
 
         $template = "INSERT INTO boosts
-            (type, guid, owner_guid, destination_guid, mongo_id, state, data)
+            (type, guid, owner_guid, state, data)
             VALUES
-            (?, ?, ?, ?, ?, ?, ?)
+            (?, ?, ?, ?, ?)
         ";
 
         $data = [
             'guid' => $boost->getGuid(),
             'schema' => '04-2019',
-            '_id' => $boost->getMongoId(), //TODO: remove once on production
             'entity_guid' => $boost->getEntityGuid(),
             'entity' => $boost->getEntity() ? $boost->getEntity()->export() : null, //TODO: remove once on production
             'bid' => $boost->getBid(),
             'impressions' => $boost->getImpressions(),
-            //'bidType' => $boost->getBidType(),
-            'bidType' => in_array($boost->getBidType(), [ 'onchain', 'offchain' ]) ? 'tokens' : $boost->getBidType(), //TODO: remove once on production
+            'bidType' => in_array($boost->getBidType(), [ 'onchain', 'offchain' ], true) ? 'tokens' : $boost->getBidType(), //TODO: remove once on production
             'owner_guid' => $boost->getOwnerGuid(),
             'owner' => $boost->getOwner() ? $boost->getOwner()->export() : null, //TODO: remove once on production
             '@created' => $boost->getCreatedTimestamp(),
-            'time_created' => $boost->getCreatedTimestamp(), //TODO: remove once on production
-            'last_updated' => time(), //TODO: remove once on production
             '@reviewed' => $boost->getReviewedTimestamp(),
             '@rejected' => $boost->getRejectedTimestamp(),
             '@revoked' => $boost->getRevokedTimestamp(),
@@ -185,8 +208,6 @@ class Repository
             (string) $boost->getType(),
             new Cassandra\Varint($boost->getGuid()),
             new Cassandra\Varint($boost->getOwnerGuid()),
-            null,
-            (string) $boost->getMongoId(),
             (string) $boost->getState(),
             json_encode($data)
         ];
@@ -219,6 +240,4 @@ class Repository
     public function delete($boost)
     {
     }
-
 }
-

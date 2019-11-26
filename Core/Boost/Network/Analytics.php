@@ -1,15 +1,13 @@
 <?php
 /**
- * Boost stats 
+ * Boost stats
  */
 namespace Minds\Core\Boost\Network;
 
-use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
-use Minds\Helpers;
 use Minds\Core\Data\ElasticSearch\Prepared;
 
-class Analytics 
+class Analytics
 {
     /** @var Client $es */
     protected $es;
@@ -169,7 +167,7 @@ class Analytics
 
     public function getApprovedBacklog()
     {
-        return (time() - ($this->getApproved()['oldest'] / 1000)) / (60 * 60);   
+        return (time() - ($this->getApproved()['oldest'] / 1000)) / (60 * 60);
     }
 
     public function getImpressions()
@@ -189,5 +187,5 @@ class Analytics
         //}
         return $met;
     }
-    
+
 }

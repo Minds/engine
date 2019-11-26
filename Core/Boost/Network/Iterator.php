@@ -3,260 +3,180 @@
 namespace Minds\Core\Boost\Network;
 
 use Minds\Core;
-use Minds\Core\Data;
 use Minds\Core\Di\Di;
-use MongoDB\BSON\ObjectID;
-use Minds\Entities\Boost;
 
 class Iterator implements \Iterator
 {
-    protected $mongo;
+    const MAX_LIMIT = 50;
+    const OFFSET_START = 0;
+
+    /** @var ElasticRepository */
     protected $elasticRepository;
+    /** @var Core\EntitiesBuilder */
     protected $entitiesBuilder;
-    protected $expire;
-    protected $metrics;
+    /** @var Manager */
     protected $manager;
 
-    protected $rating = 1;
+    protected $rating = Boost::RATING_SAFE;
     protected $quality = 0;
-    protected $offset = null;
-    protected $limit = 1;
-    protected $type = 'newsfeed'; // newsfeed, content
-    protected $priority = false;
-    protected $categories = null;
-    protected $increment = false;
+    protected $offset = self::OFFSET_START;
+    protected $limit = 10;
+    protected $type = Boost::TYPE_NEWSFEED;
+    // TODO: Mobile is using the hydrated entity response from `/api/v1/boost/fetch/newsfeed`?
     protected $hydrate = true;
+    protected $blockedCount = 0;
+    protected $userGuid = null;
+    protected $fetchMore = true;
 
-    protected $tries = 0;
-
-    public $list = null;
-
-    const MONGO_LIMIT = 50;
+    protected $list = [];
+    /** @var Boost[] $boosts */
+    protected $boosts = [];
 
     public function __construct(
         $elasticRepository = null,
         $entitiesBuilder = null,
-        $expire = null,
-        $metrics = null,
         $manager = null
-    )
-    {
+    ) {
         $this->elasticRepository = $elasticRepository ?: new ElasticRepository;
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
-        $this->expire = $expire ?: Di::_()->get('Boost\Network\Expire');
-        $this->metrics = $metrics ?: Di::_()->get('Boost\Network\Metrics');
         $this->manager = $manager ?: new Manager;
     }
 
-    public function setRating($rating)
+    public function setRating(int $rating): self
     {
-        $this->rating = (int) $rating;
+        $this->rating = $rating;
         return $this;
     }
 
-    public function setQuality($quality)
+    public function setQuality(int $quality): self
     {
-        $this->quality = (int) $quality;
+        $this->quality = $quality;
         return $this;
     }
 
-    public function setOffset($offset)
+    public function setOffset(int $offset): self
     {
         $this->offset = $offset;
         return $this;
     }
 
-    public function getOffset()
+    public function getOffset(): int
     {
         return $this->offset;
     }
 
-    public function setLimit($limit)
+    public function setLimit(int $limit): self
     {
-        $this->limit = (int) $limit;
+        $this->limit = min($limit, self::MAX_LIMIT);
         return $this;
     }
 
-    public function setType($type)
+    public function getLimit(): int
     {
-        if ($type === 'newsfeed' || $type === 'content') {
+        return $this->limit;
+    }
+
+    public function setType(string $type): self
+    {
+        if (Boost::validType($type)) {
             $this->type = $type;
         }
         return $this;
     }
 
-    public function setPriority($priority)
+    public function getType(): string
     {
-        $this->priority = (bool) $priority;
-        return $this;
-    }
-
-    public function setCategories($categories)
-    {
-        $this->categories = $categories;
-        return $this;
-    }
-
-    public function setIncrement($increment)
-    {
-        $this->increment = (bool) $increment;
-        return $this;
+        return $this->type;
     }
 
     /**
      * @param bool $hydrate
      * @return Iterator
      */
-    public function setHydrate($hydrate)
+    public function setHydrate(bool $hydrate): self
     {
         $this->hydrate = $hydrate;
         return $this;
     }
 
-    public function getList()
+    public function setUserGuid(int $userGuid): self
     {
-        $match = [
-            'type' => $this->type,
-            'state' => 'approved',
-            'rating' => [
-                //'$exists' => true,
-                '$lte' => $this->rating ? $this->rating : (int) Core\Session::getLoggedinUser()->getBoostRating()
-            ],
-            'quality' => [
-                '$gte' => $this->quality
-            ]
-        ];
-
-        $sort = ['_id' => 1];
-
-        if ($this->priority) {
-            $sort = ['priority' => -1, '_id' => 1];
-        }
-
-        $boosts = $this->elasticRepository->getList([
-            'type' => $this->type,
-            'limit' => self::MONGO_LIMIT,
-            'offset' => $this->offset,
-            'state' => 'approved',
-            'rating' => $this->rating ? $this->rating : (int) Core\Session::getLoggedinUser()->getBoostRating(),
-        ]);
-
-        if (!$boosts) {
-            return null;
-        }
-
-        $return = [];
-        $i = 0;
-        $declareOffsetFrom = $this->limit >= 2 ? 2 : 1;
-        foreach ($boosts as $boost) {
-            if (count($return) >= $this->limit) {
-                break;
-            }
-
-            if (++$i === $declareOffsetFrom) {
-                $boosts->setPagingToken($boost->getCreatedTimestamp());
-            }
-
-            if ($this->hydrate) {
-                $impressions = $boost->getImpressions();
-                $count = 0;
-
-                $boost->setEntity($this->entitiesBuilder->single($boost->getEntityGuid()));
-
-                if ($this->increment) {
-                    $count = $this->metrics->incrementViews($boost);
-                }
-
-                if ($count > $impressions) {
-                    // Grab the main storage to prevent issues with elastic formatted data
-                    $boost = $this->manager->get("urn:boost:{$boost->getType()}:{$boost->getGuid()}", [ 
-                        'hydrate' => true,
-                    ]);
-                    $this->expire->setBoost($boost);
-                    $this->expire->expire();
-                    continue; //max count met
-                }
-
-                if ($boost->getEntity()) {
-                    $return[$boost->getGuid()] = $boost->getEntity();
-                }
-            } else {
-                $return[] = $boost;
-            }
-        }
-
-        $this->offset = $boosts->getPagingToken();
-
-        if ($this->hydrate) {
-            if (empty($return) && $this->tries++ <= 1) {
-                $this->offset = 0;
-                return $this->getList();
-            }
-
-            $return = $this->filterBlocked($return);
-        }
-
-        $this->list = $return;
-        return $return;
+        $this->userGuid = $userGuid;
+        return $this;
     }
 
     /**
-     * Gets a single boost entity
-     * @param  mixed $guid
-     * @return object
+     * Called by rewind() at the start of a foreach loop and attempts
+     * to fetch $this->limit number of Boosts for iteration
      */
-    private function getBoostEntity($guid)
+    protected function getList(): void
     {
-        /** @var Core\Boost\Repository $repository */
-        $repository = Core\Di\Di::_()->get('Boost\Repository');
-        return $repository->getEntity($this->type, $guid);
-    }
+        while ($this->fetchMore) {
+            $boosts = $this->elasticRepository->getList([
+                'type' => $this->type,
+                'limit' => $this->limit,
+                'offset' => $this->offset,
+                'state' => Manager::OPT_STATEQUERY_APPROVED,
+                'rating' => $this->rating,
+            ]);
 
-    /**
-     * Polyfills boost thumbs
-     * @param  string[] $boosts
-     * @return string[]
-     */
-    private function patchThumbs($boosts)
-    {
-        $keys = [];
-        /** @var Boost\Network $boost */
-        foreach ($boosts as $boost) {
-            $keys[] = "thumbs:up:entity:$boost->guid";
-        }
-        $db = new Data\Call('entities_by_time');
-        $thumbs = $db->getRows($keys, [
-            'offset' => Core\Session::getLoggedInUserGuid(),
-            'limit' => 1,
-        ]);
-        foreach ($boosts as $k => $boost) {
-            $key = "thumbs:up:entity:$boost->guid";
-            if (isset($thumbs[$key])) {
-                $boosts[$k]->{'thumbs:up:user_guids'} = array_keys($thumbs[$key]);
+            $this->offset = intval($boosts->getPagingToken());
+            $hasMore = $this->offset > 0;
+            $boostsTaken = 0;
+
+            foreach ($boosts as $boost) {
+                $boostsTaken++;
+                if ($this->isBlocked($boost)) {
+                    $this->blockedCount++;
+                    continue;
+                }
+
+                $this->offset = $boost->getCreatedTimestamp();
+
+                /* If hydrate is set we return a list of entities *not boosts* */
+                if ($this->hydrate) {
+                    $boost = $this->manager->hydrate($boost);
+
+                    if ($boost->hasEntity()) {
+                        $this->list[$boost->getGuid()] = $boost->getEntity();
+                    }
+                } else {
+                    $this->list[] = $boost;
+                }
+
+                if ($this->limitReached()) {
+                    $this->fetchMore = false;
+                    if (($boostsTaken === count($boosts)) && !$hasMore) {
+                        $this->offset = self::OFFSET_START;
+                    }
+                    break;
+                }
             }
         }
-        return $boosts;
     }
 
-    private function filterBlocked($boosts)
+    protected function isBlocked(Boost $boost): bool
     {
-        //owner_guids
-        $owner_guids = [];
-        foreach ($boosts as $boost) {
-            $owner_guids[] = $boost->owner_guid;
+        if (is_null($this->userGuid)) {
+            return false;
+        } else {
+            return Core\Security\ACL\Block::_()->isBlocked($boost->getOwnerGuid(), $this->userGuid);
         }
-        $blocked = array_flip(Core\Security\ACL\Block::_()->isBlocked($owner_guids,
-            Core\Session::getLoggedInUserGuid()));
-
-        foreach ($boosts as $i => $boost) {
-            if (isset($blocked[$boost->owner_guid])) {
-                unset($boosts[$i]);
-            }
-        }
-
-        return $boosts;
     }
 
+    protected function limitReached(): bool
+    {
+        return count($this->list) === $this->limit;
+    }
+
+    public function blockedCount(): int
+    {
+        return $this->blockedCount;
+    }
+
+    /*
+     * Iterator Methods
+     */
     public function current()
     {
         return current($this->list);
@@ -282,11 +202,15 @@ class Iterator implements \Iterator
 
     public function rewind()
     {
-        if ($this->list) {
+        if (!empty($this->list)) {
             reset($this->list);
+        } else {
+            $this->getList();
         }
-        $this->getList();
     }
 
-
+    public function count(): int
+    {
+        return count($this->list);
+    }
 }

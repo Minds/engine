@@ -4,45 +4,76 @@
  */
 namespace Minds\Core\Boost\Network;
 
+use Minds\Entities\Entity;
+use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
 /**
- * Boost Entity
- * @package Minds\Core\Boost\Network
- * @method Boost setGuid(long $guid)
- * @method long getGuid()
- * @method string getEntityGuid()
- * @method Boost setEntiyGuid()
- * @method Boost setEntity()
+ * @method Boost setGuid(int $guid)
+ * @method int getGuid()
+ * @method Boost setEntiyGuid(int $entityGuid)
+ * @method int getEntityGuid()
+ * @method Boost setEntity($entity)
  * @method Entity getEntity()
- * @method Boost setBid()
- * @method Boost setBidType()
- * @method Booot setImpressions()
+ * @method Boost setBid(double $bid)
+ * @method double getBid()
+ * @method Boost setBidType(string $bidType)
+ * @method string getBidType()
+ * @method Boost setImpressions(int $impressions)
  * @method int getImpressions()
- * @method Boost setOwnerGuid()
- * @method long getOwnerGuid()
- * @method Boost setOwner()
+ * @method Boost setImpressionsMet(int $impressions)
+ * @method int getImpressionsMet()
+ * @method Boost setOwnerGuid(int $ownerGuid)
+ * @method int getOwnerGuid()
+ * @method Boost setOwner(User $owner)
  * @method User getOwner()
- * 
- * @method Boost setRejectedReason(int $reason)
- * @method int getRejectedReason()
- * @method Boost setCompletedTimestamp(int $ts)
- * @method Boost setReviewedTimestamp(int $ts)
- * @method Boost setRejectedTimestamp(int $ts)
+ * @method int getCreatedTimestamp()
  * @method Boost setCreatedTimestamp(int $ts)
+ * @method int getReviewedTimestamp()
+ * @method Boost setReviewedTimestamp(int $ts)
+ * @method int getRejectedTimestamp()
+ * @method Boost setRejectedTimestamp(int $ts)
+ * @method int getRevokedTimestamp()
  * @method Boost setRevokedTimestamp(int $ts)
+ * @method int getCompletedTimestamp()
+ * @method Boost setCompletedTimestamp(int $ts)
+ * @method string getTransactionId()
+ * @method Boost setTransactionId(string $transactionId)
+ * @method string getType()
+ * @method Boost setType(string $value)
+ * @method bool getPriority()
+ * @method Boost setPriority(bool $priority)
+ * @method int getRating()
+ * @method Boost setRating(int $rating)
  * @method array getTags()
  * @method Boost setTags(array $value)
- * @method string getType()
+ * @method array getNsfw()
+ * @method Boost setNsfw(array $nsfw)
+ * @method int getRejectedReason()
+ * @method Boost setRejectedReason(int $reason)
+ * @method string getChecksum()
+ * @method Boost setChecksum(string $checksum)
  */
 class Boost
 {
     use MagicAttributes;
 
-    /** @var long $guid */
+    const STATE_COMPLETED = 'completed';
+    const STATE_REJECTED = 'rejected';
+    const STATE_APPROVED = 'approved';
+    const STATE_REVOKED = 'revoked';
+    const STATE_CREATED = 'created';
+
+    const TYPE_NEWSFEED = 'newsfeed';
+    const TYPE_CONTENT = 'content';
+
+    const RATING_SAFE = 1;
+    const RATING_OPEN = 2;
+
+    /** @var int $guid */
     private $guid;
 
-    /** @var long $entityGuid */
+    /** @var int $entityGuid */
     private $entityGuid;
 
     /** @var Entity $entity */
@@ -60,7 +91,7 @@ class Boost
     /** @var int $impressionsMet */
     private $impressionsMet;
 
-    /** @var long $ownerGuid */
+    /** @var int $ownerGuid */
     private $ownerGuid;
 
     /** @var User $owner */
@@ -105,27 +136,24 @@ class Boost
     /** @var string $checksum */
     private $checksum;
 
-    /** @var string $mongoId */
-    private $mongoId;
-
     /**
      * Return the state
      */
     public function getState()
     {
         if ($this->completedTimestamp) {
-            return 'completed';
+            return self::STATE_COMPLETED;
         }
         if ($this->rejectedTimestamp) {
-            return 'rejected';
+            return self::STATE_REJECTED;
         }
         if ($this->reviewedTimestamp) {
-            return 'approved';
+            return self::STATE_APPROVED;
         }
         if ($this->revokedTimestamp) {
-            return 'revoked';
+            return self::STATE_REVOKED;
         }
-        return 'created';
+        return self::STATE_CREATED;
     }
 
     /**
@@ -166,5 +194,30 @@ class Boost
             'state' => $this->getState(),
             'transaction_id' => $this->transactionId,
         ];
+    }
+
+    /* TODO - Spec Test this */
+    /**
+     * Validate the boost type string
+     * @param string $type
+     * @return bool
+     */
+    public static function validType(string $type): bool
+    {
+        $validTypes = [
+            self::TYPE_CONTENT,
+            self::TYPE_NEWSFEED
+        ];
+
+        return in_array($type, $validTypes, true);
+    }
+
+    /**
+     * Returns true if Boost has an entity object set
+     * @return bool
+     */
+    public function hasEntity(): bool
+    {
+        return !is_null($this->entity);
     }
 }

@@ -71,10 +71,11 @@ class views implements Interfaces\Api
                 $activity = new Entities\Activity($pages[1]);
 
                 if (!$activity->guid) {
-                    return Factory::response([
+                    Factory::response([
                         'status' => 'error',
                         'message' => 'Could not find activity post'
                     ]);
+                    return;
                 }
 
                 try {
@@ -116,17 +117,17 @@ class views implements Interfaces\Api
                 break;
         }
 
-        return Factory::response([]);
+        Factory::response([]);
     }
 
     public function put($pages)
     {
-        return Factory::response([]);
+        Factory::response([]);
     }
 
     public function delete($pages)
     {
-        return Factory::response([]);
+        Factory::response([]);
     }
 
 }

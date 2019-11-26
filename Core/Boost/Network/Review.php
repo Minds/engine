@@ -3,12 +3,9 @@
 namespace Minds\Core\Boost\Network;
 
 use Minds\Core;
-use Minds\Core\Data;
-use Minds\Entities\Boost\BoostEntityInterface;
 use Minds\Entities\Boost\Network;
 use Minds\Helpers\MagicAttributes;
 use Minds\Interfaces\BoostReviewInterface;
-use MongoDB\BSON;
 
 class Review implements BoostReviewInterface
 {
@@ -142,11 +139,11 @@ class Review implements BoostReviewInterface
     /**
      * Gets a single boost entity
      * @param  mixed $guid
-     * @return Boost 
+     * @return Boost
      */
     public function getBoostEntity($guid)
     {
-        return $this->manager->get("urn:boost:{$this->type}:{$guid}", [ 'hydrate' => true ]); 
+        return $this->manager->get("urn:boost:{$this->type}:{$guid}", [ 'hydrate' => true ]);
     }
 
     protected function enableBoostRejectionReasonFlag($entity = null, $reason = -1)
@@ -200,7 +197,7 @@ class Review implements BoostReviewInterface
     {
         return $this->manager->getList([
             'type' => $this->type,
-            'state' => 'review',
+            'state' => Manager::OPT_STATEQUERY_REVIEW,
             'limit' => $limit,
             'offset' => $offset,
         ]);
