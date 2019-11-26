@@ -2,10 +2,7 @@
 
 namespace Minds\Core\Boost;
 
-use Minds\Core\Boost\Network;
-use Minds\Core\Data;
-use Minds\Core\Data\Client;
-use Minds\Core\Di\Provider;
+use Minds\Core\Di;
 
 /**
  * Boost Providers
@@ -42,6 +39,25 @@ class BoostProvider extends Di\Provider
         $this->di->bind('Boost\Payment', function ($di) {
             return new Payment();
         }, ['useFactory' => true]);
-    }
 
+        $this->di->bind(Campaigns\Dispatcher::getDiAlias(), function ($di) {
+            return new Campaigns\Dispatcher();
+        }, ['useFactory' => true]);
+
+        $this->di->bind(Campaigns\Metrics::getDiAlias(), function ($di) {
+            return new Campaigns\Metrics();
+        }, ['useFactory' => true]);
+
+        $this->di->bind(Campaigns\Manager::getDiAlias(), function ($di) {
+            return new Campaigns\Manager();
+        }, ['useFactory' => true]);
+
+        $this->di->bind(Campaigns\Repository::getDiAlias(), function ($di) {
+            return new Campaigns\Repository();
+        }, ['useFactory' => true]);
+
+        $this->di->bind(Campaigns\Stats::getDiAlias(), function ($di) {
+            return new Campaigns\Stats();
+        }, ['useFactory' => true]);
+    }
 }

@@ -8,6 +8,7 @@
 namespace Minds\Controllers\api\v2\blockchain;
 
 use Minds\Core\Blockchain\Purchase\Manager;
+use Minds\Core\Blockchain\Purchase\Sums;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Core\Util\BigNumber;
@@ -27,7 +28,9 @@ class purchase implements Interfaces\Api
     {
         $response = [];
 
+        /** @var Sums $sums */
         $sums = Di::_()->get('Blockchain\Purchase\Sums');
+        /** @var Manager $manager */
         $manager = Di::_()->get('Blockchain\Purchase\Manager');
 
         $response['cap'] = $manager->getAutoIssueCap();

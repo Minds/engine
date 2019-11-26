@@ -10,6 +10,7 @@ namespace Minds\Core\Blockchain;
 
 use Minds\Core\Blockchain\Events\BlockchainEventInterface;
 use Minds\Core\Blockchain\Events\BoostEvent;
+use Minds\Core\Blockchain\Events\TokenEvent;
 use Minds\Core\Blockchain\Events\TokenSaleEvent;
 use Minds\Core\Blockchain\Events\WireEvent;
 use Minds\Core\Blockchain\Events\WithdrawEvent;
@@ -20,9 +21,10 @@ class Events
 {
     protected static $handlers = [
         TokenSaleEvent::class,
+        TokenEvent::class,
         WireEvent::class,
         BoostEvent::class,
-        WithdrawEvent::class
+        WithdrawEvent::class,
     ];
 
     public function register()

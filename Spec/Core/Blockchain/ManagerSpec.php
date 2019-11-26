@@ -29,7 +29,8 @@ class ManagerSpec extends ObjectBehavior
                     ],
                     'withdraw' => ['contract_address' => '0x789'],
                     'token_sale_event' => ['contract_address' => '0x987'],
-                    'boost' => ['contract_address' => '0x002', 'wallet_address' => '0x003']
+                    'boost' => ['contract_address' => '0x002', 'wallet_address' => '0x003'],
+                    'boost_campaigns' => ['wallet_address' => '0x101']
                 ],
                 'boost_address' => '0x654',
                 'token_distribution_event_address' => '0x321',

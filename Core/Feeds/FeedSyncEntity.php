@@ -1,9 +1,4 @@
 <?php
-/**
- * FeedSyncEntity.
- *
- * @author emi
- */
 
 namespace Minds\Core\Feeds;
 
@@ -21,6 +16,8 @@ use Minds\Traits\MagicAttributes;
  * @method FeedSyncEntity setTimestamp(int $timestamp)
  * @method string getUrn()
  * @method FeedSyncEntity setUrn(string $urn)
+ * @method Entity getEntity()
+ * @method FeedSyncEntity setEntity(Entity $entity)
  */
 class FeedSyncEntity
 {
@@ -43,7 +40,7 @@ class FeedSyncEntity
      * Specifies the exportable properties
      * @return array<string|\Closure>
      */
-    public function getExportable()
+    public function export(): array
     {
         return [
             'urn',

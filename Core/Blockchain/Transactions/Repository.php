@@ -8,6 +8,7 @@ use Cassandra;
 use Cassandra\Varint;
 use Cassandra\Decimal;
 use Cassandra\Timestamp;
+use Exception;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
@@ -44,7 +45,7 @@ class Repository
             VALUES (?,?,?,?,?,?,?,?,?)";
         foreach ($transactions as $transaction) {
             $requests[] = [
-                'string' => $template, 
+                'string' => $template,
                 'values' => [
                     new Varint($transaction->getUserGuid()),
                     $transaction->getWalletAddress(),
@@ -155,7 +156,7 @@ class Repository
 
         try{
             $rows = $this->db->request($query);
-        } catch(\Exception $e) {
+        } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
         }
@@ -171,7 +172,7 @@ class Repository
                 ->setUserGuid((int) $row['user_guid'])
                 ->setWalletAddress($row['wallet_address'])
                 ->setTimestamp((int) $row['timestamp']->time())
-                ->setContract($row['contract'])            
+                ->setContract($row['contract'])
                 ->setAmount((string) BigNumber::_($row['amount']))
                 ->setCompleted((bool) $row['completed'])
                 ->setFailed((bool) $row['failed'])
@@ -197,7 +198,7 @@ class Repository
 
         try{
             $rows = $this->db->request($query);
-        } catch(\Exception $e) {
+        } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
         }
@@ -214,14 +215,30 @@ class Repository
             ->setUserGuid((int) $row['user_guid'])
             ->setWalletAddress($row['wallet_address'])
             ->setTimestamp((int) $row['timestamp']->time())
-            ->setContract($row['contract'])            
+            ->setContract($row['contract'])
             ->setAmount((string) BigNumber::_($row['amount']))
             ->setCompleted((bool) $row['completed'])
             ->setFailed((bool) $row['failed'])
             ->setData(json_decode($row['data'], true));
             
         return $transaction;
+    }
 
+    public function exists($tx)
+    {
+        $cql = "SELECT count(*) AS total FROM blockchain_transactions_mainnet_by_tx WHERE tx = ?";
+        $values = [ (string) $tx ];
+
+        $query = new Custom();
+        $query->query($cql, $values);
+
+        $result = $this->db->request($query);
+
+        if (!isset($result[0]['total'])) {
+            throw new Exception('Error checking transaction existence');
+        }
+
+        return (int) $result[0]['total'];
     }
 
     public function update($transaction, array $dirty = [])
@@ -260,7 +277,7 @@ class Repository
 
         try {
             $success = $this->db->request($query);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
 
@@ -276,7 +293,7 @@ class Repository
 
         try{
             $rows = $this->db->request($query);
-        } catch(\Exception $e) {
+        } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
         }

@@ -1377,7 +1377,7 @@ CREATE TABLE analytics_graphs (
   last_synced timestamp,
   data text,
   PRIMARY KEY(key)
-); 
+);
 
 CREATE TABLE minds.views (
   year int,
@@ -1394,3 +1394,22 @@ CREATE TABLE minds.views (
   delta int,
   PRIMARY KEY (year, month, day, uuid, entity_urn, page_token)
 );
+
+CREATE TABLE minds.boost_campaigns (
+    guid bigint,
+    owner_guid bigint,
+    type text,
+    json_data text,
+    delivery_status text,
+    PRIMARY KEY (guid)
+);
+
+CREATE TABLE minds.boost_campaigns_payments (
+    owner_guid bigint,
+    campaign_guid bigint,
+    tx text,
+    source text,
+    amount decimal,
+    time_created timestamp,
+    PRIMARY KEY (owner_guid, campaign_guid, tx)
+) WITH CLUSTERING ORDER BY (campaign_guid ASC, tx ASC);

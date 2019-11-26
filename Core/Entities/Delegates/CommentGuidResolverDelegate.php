@@ -1,41 +1,41 @@
 <?php
 /**
- * BoostGuidResolverDelegate.
- *
- * @author emi
+ * @author: Marcelo
  */
 
 namespace Minds\Core\Entities\Delegates;
 
 use Minds\Common\Urn;
 use Minds\Core\Boost\Repository;
+use Minds\Core\Comments\Comment;
+use Minds\Core\Comments\Manager;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Boost\BoostEntityInterface;
 
-class BoostGuidResolverDelegate implements ResolverDelegate
+class CommentGuidResolverDelegate implements ResolverDelegate
 {
+    /** @var Resolver */
+    protected $resolver;
+
     /**
      * @var Manager
      */
     protected $manager;
 
-    /** @var Resolver */
-    protected $resolver;
-
     /**
-     * BoostGuidResolverDelegate constructor.
+     * CommentGuidResolverDelegate constructor.
      * @param Manager $manager
      */
     public function __construct($manager = null)
     {
-        $this->manager = $manager ?: Di::_()->get('Boost\Network\Manager');
+        $this->manager = $manager ?: new Manager();
     }
 
     /**
      * @param Resolver $resolver
-     * @return BoostGuidResolverDelegate
+     * @return CommentGuidResolverDelegate
      */
     public function setResolver(Resolver $resolver)
     {
@@ -49,7 +49,7 @@ class BoostGuidResolverDelegate implements ResolverDelegate
      */
     public function shouldResolve(Urn $urn)
     {
-        return $urn->getNid() === 'boost';
+        return $urn->getNid() === 'comment';
     }
 
     /**
@@ -62,35 +62,27 @@ class BoostGuidResolverDelegate implements ResolverDelegate
         $entities = [];
 
         foreach ($urns as $urn) {
-            /** @var BoostEntityInterface $boost */
-            $boost = $this->manager->get($urn, [ 'hydrate' => true ]);
+            /** @var Comment $comment */
+            $comment = $this->manager->getByUrn($urn);
 
-            $entities[] = $boost;
+            $entities[] = $comment;
         }
 
         return $entities;
     }
 
     /**
-     * @param BoostEntityInterface $entity
+     * @param $urn
+     * @param Comment $entity
      * @return mixed
      */
     public function map($urn, $entity)
     {
-        $boostedEntity = $entity ? $entity->getEntity() : null;
-
-        if ($boostedEntity) {
-            $boostedEntity->boosted = true;
-            $boostedEntity->boosted_guid = $entity->getGuid();
-            $boostedEntity->boosted_onchain = $entity->isOnChain();
-            $boostedEntity->urn = $urn;
-        }
-
-        return $boostedEntity;
+        return $entity;
     }
 
     /**
-     * @param BoostEntityInterface $entity
+     * @param Comment $entity
      * @return string|null
      */
     public function asUrn($entity)
@@ -99,6 +91,6 @@ class BoostGuidResolverDelegate implements ResolverDelegate
             return null;
         }
 
-        return "urn:boost:{$entity->getType()}:{$entity->getGuid()}";
+        return $entity->getUrn();
     }
 }

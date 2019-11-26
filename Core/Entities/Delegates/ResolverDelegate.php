@@ -8,9 +8,16 @@
 namespace Minds\Core\Entities\Delegates;
 
 use Minds\Common\Urn;
+use Minds\Core\Entities\Resolver;
 
 interface ResolverDelegate
 {
+    /**
+     * @param Resolver $resolver
+     * @return ResolverDelegate
+     */
+    public function setResolver(Resolver $resolver);
+
     /**
      * @param Urn $urn
      * @return boolean

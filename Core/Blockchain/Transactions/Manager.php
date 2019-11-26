@@ -103,7 +103,7 @@ class Manager
     public function run()
     {
         $result = $this->repo->getList([
-            'user_guid' => $this->user_guid, 
+            'user_guid' => $this->user_guid,
             'timestamp' => [
                 'eq' => $this->timestamp,
             ],
@@ -154,7 +154,7 @@ class Manager
                         (new $topicHandlerClass())->event($topic, $log, $transaction);
                         error_log("Tx[{$this->tx}][{$topicHandlerClass}] {$topic}... OK!");
                     } catch (\Exception $e) {
-                        error_log("Tx[{$this->tx}][{$topicHandlerClass}] {$topic} threw " . get_class($e) . ": {$e->getMessage()}");
+                        error_log("Tx[{$this->tx}][{$topicHandlerClass}] {$topic} threw {$e}");
                     }
                 }
             }
@@ -169,17 +169,30 @@ class Manager
     /**
      * Adds a transaction to the queue
      * @param $transaction
+     * @param bool $handleEvents
      */
-    public function add($transaction)
+    public function add($transaction, $handleEvents = true)
     {
         $this->repo->add($transaction);
-        $this->queue->setQueue("BlockchainTransactions")
-            ->send([
-                'user_guid' => $transaction->getUserGuid(),
-                'timestamp' => $transaction->getTimestamp(),
-                'wallet_address' => $transaction->getWalletAddress(),
-                'tx' => $transaction->getTx(),
-            ]);
+
+        if ($handleEvents) {
+            $this->queue->setQueue("BlockchainTransactions")
+                ->send([
+                    'user_guid' => $transaction->getUserGuid(),
+                    'timestamp' => $transaction->getTimestamp(),
+                    'wallet_address' => $transaction->getWalletAddress(),
+                    'tx' => $transaction->getTx(),
+                ]);
+        }
     }
 
+    /**
+     * @param $tx
+     * @return int
+     * @throws \Exception
+     */
+    public function exists($tx)
+    {
+        return $this->repo->exists($tx);
+    }
 }

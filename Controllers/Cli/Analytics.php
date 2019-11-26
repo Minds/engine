@@ -30,7 +30,12 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
                 $this->out('Prints the counts of a user');
                 $this->out('--from={timestamp in milliseconds} the day to start count. Default is yesterday');
                 $this->out('--guid={user guid} REQUIRED the user to aggregate');
-            // no break
+                break;
+            case 'boostViews':
+                $this->out('Return total boost views for period with daily breakdown');
+                $this->out('--from={timestamp} the start day for view range. Default is 10 days ago');
+                $this->out('--to={timestamp} the end day for view range. Default is yesterday');
+                // no break
             default:
                 $this->out('Syntax usage: cli analytics <type>');
                 $this->displayCommandHelp();
@@ -85,6 +90,7 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
     }
 
     public function sync_graphs()
+    {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
 
@@ -120,7 +126,7 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
 
         foreach ($aggregates as $aggregate) {
             $this->out("Syncing {$aggregate}");
-            
+
             $manager->sync([
                 'aggregate' => $aggregate,
                 'all' => true,
@@ -155,4 +161,13 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
         $this->out('Done');
     }
 
+    public function boostViews()
+    {
+        $from = $this->getOpt('from') ?: strtotime('-10 days');
+        $to = $this->getOpt('to') ?: strtotime('-1 day');
+
+        $boostViews = new Core\Analytics\EntityCentric\BoostViewsDaily();
+        $data = $boostViews->getDataSetForDateRange($from, $to);
+        print_r($data);
+    }
 }

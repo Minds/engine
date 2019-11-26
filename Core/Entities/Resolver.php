@@ -8,6 +8,7 @@
 namespace Minds\Core\Entities;
 
 use Minds\Common\Urn;
+use Minds\Core\Entities\Delegates\BoostCampaignResolverDelegate;
 use Minds\Core\Entities\Delegates\EntityGuidResolverDelegate;
 use Minds\Core\Entities\Delegates\BoostGuidResolverDelegate;
 use Minds\Core\Entities\Delegates\ResolverDelegate;
@@ -42,7 +43,11 @@ class Resolver
         $this->resolverDelegates = $resolverDelegates ?: [
             EntityGuidResolverDelegate::class => new EntityGuidResolverDelegate(),
             BoostGuidResolverDelegate::class => new BoostGuidResolverDelegate(),
+            BoostCampaignResolverDelegate::class => new BoostCampaignResolverDelegate(),
         ];
+        foreach ($this->resolverDelegates as $resolverDelegate) {
+            $resolverDelegate->setResolver($this);
+        }
 
         $this->acl = $acl ?: ACL::_();
     }
@@ -126,7 +131,7 @@ class Resolver
 
         // Filter out forbidden entities
 
-        $sorted = array_filter($sorted, function($entity) { 
+        $sorted = array_filter($sorted, function($entity) {
             return $this->acl->read($entity, $this->user);
                 //&& !Flags::shouldFail($entity);
         });
@@ -136,6 +141,11 @@ class Resolver
         return $sorted;
     }
 
+    /**
+     * Resolves a single entity
+     * @param Urn $urn
+     * @return mixed
+     */
     public function single($urn)
     {
         $this->urns = [ $urn ];

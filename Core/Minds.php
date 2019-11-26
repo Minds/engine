@@ -66,6 +66,7 @@ class Minds extends base
         (new Config\ConfigProvider())->register();
         (new OAuth\OAuthProvider())->register();
         (new Sessions\SessionsProvider())->register();
+        (new Counters\CountersProvider())->register();
         (new Boost\BoostProvider())->register();
         (new Data\DataProvider())->register();
         //(new Core\Notification\NotificationProvider())->register();

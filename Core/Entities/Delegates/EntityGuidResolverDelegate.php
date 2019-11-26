@@ -9,6 +9,7 @@ namespace Minds\Core\Entities\Delegates;
 
 use Minds\Common\Urn;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Resolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Top\Entities as TopEntities;
 
@@ -19,6 +20,9 @@ class EntityGuidResolverDelegate implements ResolverDelegate
      */
     protected $entitiesBuilder;
 
+    /** @var Resolver */
+    protected $resolver;
+
     /**
      * EntityGuidResolverDelegate constructor.
      * @param EntitiesBuilder $entitiesBuilder
@@ -26,6 +30,16 @@ class EntityGuidResolverDelegate implements ResolverDelegate
     public function __construct($entitiesBuilder = null)
     {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
+    }
+
+    /**
+     * @param Resolver $resolver
+     * @return EntityGuidResolverDelegate
+     */
+    public function setResolver(Resolver $resolver)
+    {
+        $this->resolver = $resolver;
+        return $this;
     }
 
     /**
