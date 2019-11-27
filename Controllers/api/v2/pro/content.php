@@ -43,9 +43,12 @@ class content implements Interfaces\Api
         }
 
         $type = '';
+        $algorithm = strtolower($_GET['algorithm'] ?? 'top');
+
         switch ($pages[1]) {
             case 'activities':
                 $type = 'activity';
+                $algorithm = 'latest';
                 break;
             case 'images':
                 $type = 'object:image';
@@ -127,7 +130,7 @@ class content implements Interfaces\Api
             'custom_type' => null,
             'limit' => $limit,
             'type' => $type,
-            'algorithm' => 'top',
+            'algorithm' => $algorithm,
             'period' => '7d',
             'sync' => $sync,
             'from_timestamp' => $fromTimestamp,
@@ -159,7 +162,7 @@ class content implements Interfaces\Api
         try {
             $result = $this->getData($entities, $opts, $asActivities, $sync);
 
-            if ($result->count() <= static::MIN_COUNT) {
+            if ($opts['algorithm'] !== 'latest' && $result->count() <= static::MIN_COUNT) {
                 $opts['algorithm'] = 'latest';
                 $result = $this->getData($entities, $opts, $asActivities, $sync);
             }
