@@ -12,6 +12,7 @@ RUN apk add --no-cache --virtual build-deps \
     coreutils \
     imagemagick \
     nodejs \
+    npm \
     ffmpeg \
     && docker-php-ext-install -j$(nproc) bcmath \
     && docker-php-ext-install -j$(nproc) zip \
