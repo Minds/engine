@@ -61,6 +61,12 @@ class wire implements Interfaces\Api
         $recurring = isset($_POST['recurring']) ? $_POST['recurring'] : false;
         $recurringInterval = $_POST['recurring_interval'] ?? 'once';
 
+        if ($recurring && $recurringInterval === 'once') {
+            $recurringInterval = 'monthly';
+            // Client side bug we need to track down, so lets log in Sentry
+            \Sentry\captureMessage("Recurring Subscription was created with 'once' interval");
+        }
+
         if (!$amount) {
             return Factory::response(['status' => 'error', 'message' => 'you must send an amount']);
         }
