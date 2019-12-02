@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
       <title></title>
       <style>
-        p { 
+        p, li { 
           font-family: Roboto,Arial,sans-serif;
           font-size: 18px;
           line-height: 1.5;

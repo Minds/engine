@@ -46,6 +46,9 @@ class Manager
     /** @var bool $recurring */
     protected $recurring;
 
+    /** @var string $recurringInterval */
+    protected $recurringInterval;
+
     /** @var array $payload */
     protected $payload;
 
@@ -161,6 +164,17 @@ class Manager
     }
 
     /**
+     * Recurring interval
+     * @param string $interval
+     * @return self
+     */
+    public function setRecurringInterval(string $interval): self
+    {
+        $this->recurringInterval = $interval;
+        return $this;
+    }
+
+    /**
      * Set the payload of the transaction.
      *
      * @param array $payload
@@ -192,7 +206,8 @@ class Manager
             ->setReceiver($this->receiver)
             ->setEntity($this->entity)
             ->setAmount($this->amount)
-            ->setTimestamp(time());
+            ->setTimestamp(time())
+            ->setRecurringInterval($this->recurringInterval);
 
         switch ($this->payload['method']) {
             case 'onchain':

@@ -35,7 +35,8 @@ class RecurringDelegate
             ->setPaymentMethod($wire->getMethod())
             ->setAmount($wire->getAmount())
             ->setUser($wire->getSender())
-            ->setEntity($wire->getReceiver());
+            ->setEntity($wire->getReceiver())
+            ->setInterval($wire->getRecurringInterval());
 
         $this->subscriptionsManager->setSubscription($subscription);
         $this->subscriptionsManager->create();
