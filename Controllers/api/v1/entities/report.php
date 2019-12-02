@@ -36,8 +36,12 @@ class report implements Interfaces\Api
         /** @var Core\Reports\Repository $repository */
         $repository = Di::_()->get('Reports\Repository');
 
-        $done = $repository->create($pages[0], Core\Session::getLoggedinUser(),
-            $reason, $reason_note);
+        $done = $repository->create(
+            $pages[0],
+            Core\Session::getLoggedinUser(),
+            $reason,
+            $reason_note
+        );
 
         return Factory::response([
             'done' => $done

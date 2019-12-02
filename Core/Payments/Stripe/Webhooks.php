@@ -1,7 +1,4 @@
 <?php
-/**
- * Braintree webhooks
- */
 
 namespace Minds\Core\Payments\Stripe;
 

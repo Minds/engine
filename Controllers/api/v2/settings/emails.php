@@ -1,5 +1,5 @@
 <?php
-namespace Minds\Controllers\Api\v2\settings;
+namespace Minds\Controllers\api\v2\settings;
 
 use Minds\Api\Factory;
 use Minds\Core;
@@ -13,6 +13,12 @@ class emails implements Interfaces\Api
     public function get($pages)
     {
         $user = Core\Session::getLoggedInUser();
+        if (!$user) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'User must be logged in.'
+            ]);
+        }
 
         $campaigns = [ 'when', 'with', 'global' ];
 

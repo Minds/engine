@@ -12,14 +12,28 @@ use Minds\Entities\Video;
 
 class Manager
 {
-    /** @var FFMepg */
+    /** @var FFMpeg */
     private $ffmpeg;
 
     /** @var Guid $guid */
     private $guid;
 
+    /** @var bool */
+    private $full_hd;
+
     /** @var Save $save */
     private $save;
+
+
+    /**
+     * @param bool $value
+     * @return Manager
+     */
+    public function setFullHD(bool $value): Manager
+    {
+        $this->full_hd = $value;
+        return $this;
+    }
 
     public function __construct(
         FFMpeg $FFMpeg = null,
@@ -70,11 +84,15 @@ class Manager
         $video->set('guid', $lease->getGuid());
         $video->set('cinemr_guid', $lease->getGuid());
         $video->set('access_id', 0); // Hide until published
+        $video->setFlag('full_hd', $this->full_hd);
 
         // Save the video
         $this->save->setEntity($video)->save();
 
         $this->ffmpeg->setKey($lease->getGuid());
+
+        // Set the full hd flag
+        $this->ffmpeg->setFullHD($this->full_hd);
 
         // Start the transcoding process
         $this->ffmpeg->transcode();

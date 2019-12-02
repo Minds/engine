@@ -157,6 +157,7 @@ class Push implements Interfaces\NotificationExtensionInterface
                 if (!empty($entity->custom_data)) {
                     return $entity->custom_data[0]['src'];
                 }
+                // no break
             default:
                 return null;
 

@@ -122,7 +122,8 @@ class ElggSite extends ElggEntity {
 		return true;
 	}
 
-	public function save(){
+    public function save($timebased = true)
+    {
 		global $CONFIG;
 		if(isset($CONFIG->site_name)){
 			return; //the site is not an entitiy, it is static from settings

@@ -19,6 +19,13 @@ class review implements Interfaces\Api
         $group = Entities\Factory::build($pages[0]);
         $user = Core\Session::getLoggedInUser();
 
+        if (!$group) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Group not found'
+            ]);
+        }
+
         if (!$group->isOwner($user) && !$group->isModerator($user)) {
             return Factory::response([
                 'status' => 'error',

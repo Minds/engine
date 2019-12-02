@@ -56,17 +56,19 @@ class FeedDispatcher implements Interfaces\QueueRunner
                            $ninetyDays = (60 * 60 * 24 * 90);
 
                            foreach ($followers as $follower) {
-                               $db->insert("$entity->type:network:$follower",
-                                    [ $entity->guid => $entity->guid ],
-                                    $ninetyDays, //ttl
+                               $db->insert(
+                                   "$entity->type:network:$follower",
+                                   [ $entity->guid => $entity->guid ],
+                                   $ninetyDays, //ttl
                                     true //async (silent)
-                                );
+                               );
                                if ($entity->subtype) {
-                                   $db->insert("$entity->type:$entity->subtype:network:$follower",
-                                        [ $entity->guid => $entity->guid ],
-                                        $ninetyDays, //ttl
+                                   $db->insert(
+                                       "$entity->type:$entity->subtype:network:$follower",
+                                       [ $entity->guid => $entity->guid ],
+                                       $ninetyDays, //ttl
                                         true //async (silent)
-                                    );
+                                   );
                                }
                            }
 

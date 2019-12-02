@@ -3,6 +3,7 @@
 namespace Minds\Core\Blogs;
 
 use Minds\Core;
+use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Helpers;
 use Minds\Helpers\Counters;
@@ -10,13 +11,8 @@ use Zend\Diactoros\ServerRequestFactory;
 
 class SEO
 {
-    /** @var Manager */
-    protected $manager;
-
     public function __construct(
-        $manager = null
     ) {
-        $this->manager = $manager ?: new Manager();
     }
 
     public function setup()
@@ -104,7 +100,7 @@ class SEO
         });
     }
 
-    public function viewHandler($slugs = [])
+    public function viewHandler($slugs = [], $manager = null)
     {
         if (!is_numeric($slugs[0]) && isset($slugs[1]) && is_numeric($slugs[1])) {
             $guid = $slugs[1];
@@ -112,7 +108,10 @@ class SEO
             $guid = $slugs[0];
         }
 
-        $blog = $this->manager->get($guid);
+        if (is_null($manager)) {
+            $manager = Di::_()->get('Blogs\Manager');
+        }
+        $blog = $manager->get($guid);
         if (!$blog || !$blog->getTitle() || Helpers\Flags::shouldFail($blog) || !Core\Security\ACL::_()->read($blog)) {
             header("HTTP/1.0 404 Not Found");
             return [

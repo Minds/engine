@@ -299,28 +299,6 @@ class merchant implements Interfaces\Api
                   $response['uploaded'] = true;
               }
               break;
-          case "charge":
-            $sale = (new Payments\Sale)
-              ->setId($pages[1]);
-
-            try {
-                Payments\Factory::build('braintree', ['gateway'=>'merchants'])->chargeSale($sale);
-            } catch (\Exception $e) {
-                var_dump($e);
-                exit;
-            }
-            exit;
-            break;
-          case "void":
-            $sale = (new Payments\Sale)
-              ->setId($pages[1]);
-            Payments\Factory::build('braintree', ['gateway'=>'merchants'])->voidSale($sale);
-            break;
-          case "refund":
-            $sale = (new Payments\Sale)
-              ->setId($pages[1]);
-            Payments\Factory::build('braintree', ['gateway'=>'merchants'])->refundSale($sale);
-            break;
         }
 
         return Factory::response($response);

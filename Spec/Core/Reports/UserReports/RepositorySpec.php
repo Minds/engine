@@ -43,7 +43,8 @@ class RepositorySpec extends ObjectBehavior
 
         $userReport->getReport()
             ->shouldBeCalled()
-            ->willReturn((new Report)
+            ->willReturn(
+                (new Report)
                 ->setEntityUrn("urn:activity:123")
                 ->setTimestamp($ts)
                 ->setReasonCode(2)

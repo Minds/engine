@@ -28,7 +28,14 @@ class transactions implements Interfaces\Api
                 'message' => 'There was an error returning the usd account',
             ]);
         }
- 
+
+        if (!$account) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Stripe account not found',
+            ]);
+        }
+
         $transactionsManger = new Stripe\Transactions\Manager();
         $transactions = $transactionsManger->getByAccount($account);
 

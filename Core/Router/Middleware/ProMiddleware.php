@@ -20,9 +20,6 @@ class ProMiddleware implements RouterMiddleware
     /** @var Domain */
     protected $domain;
 
-    /** @var Domain\Security */
-    protected $domainSecurity;
-
     /** @var Manager */
     protected $manager;
 
@@ -35,20 +32,17 @@ class ProMiddleware implements RouterMiddleware
     /**
      * ProMiddleware constructor.
      * @param Domain $domain
-     * @param Domain\Security $domainSecurity
      * @param Manager $manager
      * @param SEO $seo
      * @param EntitiesBuilder $entitiesBuilder
      */
     public function __construct(
         $domain = null,
-        $domainSecurity = null,
         $manager = null,
         $seo = null,
         $entitiesBuilder = null
     ) {
         $this->domain = $domain ?: Di::_()->get('Pro\Domain');
-        $this->domainSecurity = $domainSecurity ?:  Di::_()->get('Pro\Domain\Security');
         $this->manager = $manager ?: Di::_()->get('Pro\Manager');
         $this->seo = $seo ?: Di::_()->get('Pro\SEO');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
@@ -65,8 +59,8 @@ class ProMiddleware implements RouterMiddleware
         $serverParams = $request->getServerParams() ?? [];
         $originalHost = $serverParams['HTTP_HOST'];
 
-        $scheme = $request->getUri()->getScheme();
         $host = parse_url($serverParams['HTTP_ORIGIN'] ?? '', PHP_URL_HOST) ?: $originalHost;
+        $scheme = parse_url($serverParams['HTTP_ORIGIN'] ?? '', PHP_URL_SCHEME) ?: $request->getUri()->getScheme();
 
         if (!$host) {
             return null;
@@ -103,17 +97,6 @@ class ProMiddleware implements RouterMiddleware
         $this->seo
             ->setUser($user)
             ->setup($settings);
-
-        // Initialize XRSF JWT cookie, only if we're on Pro domain's scope
-        // If not and within 1 minute, update XSRF cookie to match it
-
-        if ($originalHost === $settings->getDomain()) {
-            $this->domainSecurity
-                ->setUp($settings->getDomain());
-        } else {
-            $this->domainSecurity
-                ->syncCookies($request);
-        }
 
         return null;
     }

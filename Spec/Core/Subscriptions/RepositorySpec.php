@@ -7,6 +7,8 @@ use Minds\Core\Subscriptions\Subscription;
 use Minds\Core\Data\Cassandra\Client;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Spec\Minds\Mocks\Cassandra\Rows;
+use Minds\Common\Repository\Response;
 
 class RepositorySpec extends ObjectBehavior
 {
@@ -61,5 +63,41 @@ class RepositorySpec extends ObjectBehavior
         $newSubscription = $this->delete($subscription);
         $newSubscription->isActive()
             ->shouldBe(false);
+    }
+
+    public function it_should_get_subscribers()
+    {
+        $this->client->request(Argument::that(function ($prepared) {
+            var_dump($prepared->getTemplate());
+
+            return $prepared->getTemplate() === "SELECT * FROM friendsof WHERE key = ?";
+        }))
+            ->shouldBeCalled()
+            ->willReturn(new Rows([
+                [ 'guid' => 1 ],
+                [ 'guid' => 2 ],
+            ], 'paging-token'));
+
+        $this->getList([
+            'guid' => '1234567891',
+            'type' => 'subscribers',
+        ])->shouldImplement(Response::class);
+    }
+
+    public function it_should_get_subscriptions()
+    {
+        $this->client->request(Argument::that(function ($prepared) {
+            return $prepared->getTemplate() === "SELECT * FROM friends WHERE key = ?";
+        }))
+            ->shouldBeCalled()
+            ->willReturn(new Rows([
+                [ 'guid' => 1 ],
+                [ 'guid' => 2 ],
+            ], 'paging-token'));
+
+        $this->getList([
+            'guid' => '1234567891',
+            'type' => 'subscriptions',
+        ])->shouldImplement(Response::class);
     }
 }

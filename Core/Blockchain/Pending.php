@@ -85,11 +85,13 @@ class Pending
     public function delete($type, $tx_id)
     {
         $query = new Core\Data\Cassandra\Prepared\Custom();
-        $query->query("DELETE FROM blockchain_pending WHERE type = ? AND tx_id = ?",
+        $query->query(
+            "DELETE FROM blockchain_pending WHERE type = ? AND tx_id = ?",
             [
                 (string) $type,
                 (string) $tx_id
-            ]);
+            ]
+        );
 
         try {
             return (bool) $this->db->request($query);

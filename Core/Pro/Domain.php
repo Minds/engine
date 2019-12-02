@@ -9,6 +9,7 @@ namespace Minds\Core\Pro;
 use Exception;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Util\StringValidator;
 use Minds\Entities\User;
 
 class Domain
@@ -47,6 +48,37 @@ class Domain
         return $this->repository->getList([
             'domain' => $domain,
         ])->first();
+    }
+
+    /**
+     * @param string $domain
+     * @param string $userGuid
+     * @return bool|null
+     */
+    public function isAvailable(string $domain, string $userGuid): ?bool
+    {
+        $rootDomains = $this->config->get('pro')['root_domains'] ?? [];
+
+        if (in_array(strtolower($domain), $rootDomains, true)) {
+            return false;
+        }
+
+        if (!StringValidator::isDomain($domain)) {
+            return null;
+        }
+
+        $settings = $this->lookup($domain);
+        return !$settings || ((string) $settings->getUserGuid() === $userGuid);
+    }
+
+    /**
+     * @param string $domain
+     * @return bool
+     */
+    public function isRoot(string $domain): bool
+    {
+        $rootDomains = $this->config->get('pro')['root_domains'] ?? [];
+        return in_array(strtolower($domain), $rootDomains, true);
     }
 
     /**

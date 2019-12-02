@@ -153,8 +153,9 @@ class Image extends File
                     $w = 1024;
                     $s = false;
                     $u = true;
+                    break;
                 default:
-                    continue;
+                    continue 2;
             }
 
             /** @var Core\Media\Imagick\Autorotate $autorotate */

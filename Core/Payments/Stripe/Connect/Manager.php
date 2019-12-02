@@ -78,21 +78,22 @@ class Manager
         // Required for JP only
 
         if ($account->getGender()) {
-            $data['legal_entity']['gender'] = $account->getGender();
+            $data['individual']['gender'] = $account->getGender();
         }
 
         if ($account->getPhoneNumber()) {
-            $data['legal_entity']['phone_number'] = $account->getPhoneNumber();
+            $data['individual']['phone'] = $account->getPhoneNumber();
         }
 
         // US 1099 requires SSN
 
         if ($account->getSSN()) {
-            $data['legal_entity']['ssn_last_4'] = $account->getSSN();
+            $data['individual']['ssn_last_4'] = $account->getSSN();
+            $data['requested_capabilities'] = ['card_payments', 'transfers'];
         }
 
         if ($account->getPersonalIdNumber()) {
-            $data['legal_entity']['personal_id_number'] = $account->getPersonalIdNumber();
+            $data['individual']['id_number'] = $account->getPersonalIdNumber();
         }
 
         $result = $this->accountInstance->create($data);

@@ -7,7 +7,7 @@ use Prophecy\Argument;
 use Minds\Core;
 use Minds\Entities\User;
 use Minds\Entities\Entity;
-use Minds\Entities\Object;
+use Minds\Entities\MindsObject;
 
 class ACLSpec extends ObjectBehavior
 {
@@ -56,7 +56,7 @@ class ACLSpec extends ObjectBehavior
         $this->read($entity)->shouldReturn(false);
     }
 
-    public function it_should_trigger_acl_read_event(Object $entity)
+    public function it_should_trigger_acl_read_event(MindsObject $entity)
     {
         $this->mock_session(true);
 
@@ -95,7 +95,7 @@ class ACLSpec extends ObjectBehavior
         $this->mock_session(false);
     }
 
-    public function it_should_trigger_acl_write_event(Object $entity)
+    public function it_should_trigger_acl_write_event(MindsObject $entity)
     {
         $this->mock_session(true);
 
@@ -136,7 +136,7 @@ class ACLSpec extends ObjectBehavior
         $this->mock_session(false);
     }
 
-    public function it_should_return_false_on_acl_interact_event(Object $entity)
+    public function it_should_return_false_on_acl_interact_event(MindsObject $entity)
     {
         $this->mock_session(true);
 

@@ -8,30 +8,39 @@
 
 namespace Minds\Core\Blockchain\Events;
 
-use Minds\Core\Blockchain\Contracts\MindsToken;
-use Minds\Core\Blockchain\Transactions\Manager;
+use Exception;
+use Minds\Core\Blockchain\Transactions\Repository as TransactionsRepository;
+use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Blockchain\Util;
+use Minds\Core\Config;
 use Minds\Core\Di\Di;
-use Minds\Core\Rewards\Withdraw;
+use Minds\Core\Rewards\Withdraw\Manager;
+use Minds\Core\Rewards\Withdraw\Request;
 use Minds\Core\Util\BigNumber;
 
 class WithdrawEvent implements BlockchainEventInterface
 {
-    /** @var array $eventsMap */
+    /** @var array */
     public static $eventsMap = [
         '0x317c0f5ab60805d3e3fb6aaa61ccb77253bbb20deccbbe49c544de4baa4d7f8f' => 'onRequest',
         'blockchain:fail' => 'withdrawFail',
     ];
 
-    /** @var Manager $manager */
-    private $manager;
+    /** @var Manager */
+    protected $manager;
 
-    /** @var Repository $repository **/
+    /** @var TransactionsRepository **/
     protected $txRepository;
 
-    /** @var Config $config */
-    private $config;
+    /** @var Config */
+    protected $config;
 
+    /**
+     * WithdrawEvent constructor.
+     * @param Manager $manager
+     * @param TransactionsRepository $txRepository
+     * @param Config $config
+     */
     public function __construct($manager = null, $txRepository = null, $config = null)
     {
         $this->txRepository = $txRepository ?: Di::_()->get('Blockchain\Transactions\Repository');
@@ -50,30 +59,31 @@ class WithdrawEvent implements BlockchainEventInterface
     /**
      * @param $topic
      * @param array $log
-     * @throws \Exception
+     * @param $transaction
+     * @throws Exception
      */
     public function event($topic, array $log, $transaction)
     {
         $method = static::$eventsMap[$topic];
 
         if ($log['address'] != $this->config->get('blockchain')['contracts']['withdraw']['contract_address']) {
-            throw new \Exception('Event does not match address');
+            throw new Exception('Event does not match address');
         }
 
         if (method_exists($this, $method)) {
             $this->{$method}($log, $transaction);
         } else {
-            throw new \Exception('Method not found');
+            throw new Exception('Method not found');
         }
     }
 
-    public function onRequest($log, $transaction)
+    public function onRequest($log, Transaction $transaction)
     {
         $address = $log['address'];
 
         if ($address != $this->config->get('blockchain')['contracts']['withdraw']['contract_address']) {
             $this->withdrawFail($log, $transaction);
-            throw new \Exception('Incorrect address sent the withdraw event');
+            throw new Exception('Incorrect address sent the withdraw event');
         }
 
         $tx = $log['transactionHash'];
@@ -82,30 +92,43 @@ class WithdrawEvent implements BlockchainEventInterface
         $gas = (string) BigNumber::fromHex($gas);
         $amount = (string) BigNumber::fromHex($amount);
 
-        //double check the details of this transaction match with what the user actually requested
-        $request = new Withdraw\Request();
-
-        $request
-            ->setTx($tx)
-            ->setAddress($address)
-            ->setUserGuid($user_guid)
-            ->setGas($gas)
-            ->setTimestamp($transaction->getTimestamp())
-            ->setAmount($amount);
-
         try {
-            $this->manager->complete($request, $transaction);
-        } catch (\Exception $e) {
-            var_dump($e);
-            error_log(print_r($e, true));
+            $request = $this->manager->get(
+                (new Request())
+                    ->setUserGuid($user_guid)
+                    ->setTimestamp($transaction->getTimestamp())
+                    ->setTx($tx)
+            );
+
+            if (!$request) {
+                throw new \Exception('Unknown withdrawal');
+            }
+
+            if ((string) $address !== (string) $request->getAddress()) {
+                throw new \Exception('Wrong address value');
+            } elseif ((string) $gas !== (string) $request->getGas()) {
+                throw new \Exception('Wrong gas value');
+            } elseif ((string) $amount !== (string) $request->getAmount()) {
+                throw new \Exception('Wrong amount value');
+            }
+
+            $this->manager->confirm($request, $transaction);
+        } catch (Exception $e) {
+            $this->manager->fail(
+                (new Request())
+                    ->setUserGuid($user_guid)
+                    ->setTimestamp($transaction->getTimestamp())
+                    ->setTx($tx)
+            );
+
+            error_log($e);
         }
     }
 
     public function withdrawFail($log, $transaction)
     {
         if ($transaction->getContract() !== 'withdraw') {
-            throw new \Exception("Failed but not a withdrawal");
-            return;
+            throw new Exception("Failed but not a withdrawal");
         }
 
         $transaction->setFailed(true);

@@ -20,6 +20,9 @@ class ManagerSpec extends ObjectBehavior
     /** @var Delegates\Artifacts\Factory */
     protected $artifactsDelegatesFactory;
 
+    /** @var Delegates\MetricsDelegate */
+    protected $metricsDelegate;
+
     /** @var Delegates\Logout */
     protected $logoutDelegate;
 
@@ -28,16 +31,19 @@ class ManagerSpec extends ObjectBehavior
 
     public function let(
         Delegates\Artifacts\Factory $artifactsDelegatesFactory,
+        Delegates\MetricsDelegate $metricsDelegate,
         Delegates\Logout $logoutDelegate,
         QueueClient $queueClient
     ) {
         $this->beConstructedWith(
             $artifactsDelegatesFactory,
+            $metricsDelegate,
             $logoutDelegate,
             $queueClient
         );
 
         $this->artifactsDelegatesFactory = $artifactsDelegatesFactory;
+        $this->metricsDelegate = $metricsDelegate;
         $this->logoutDelegate = $logoutDelegate;
         $this->queueClient = $queueClient;
     }
@@ -138,6 +144,9 @@ class ManagerSpec extends ObjectBehavior
         $artifactsDelegateMock->delete(1000)
             ->shouldBeCalledTimes(count($deletionDelegates))
             ->willReturn(true);
+
+        $this->metricsDelegate->onDelete($user)
+            ->shouldBeCalled();
 
         $this->logoutDelegate->logout($user)
             ->shouldBeCalled()

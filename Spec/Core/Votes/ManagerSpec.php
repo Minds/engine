@@ -28,7 +28,7 @@ class ManagerSpec extends ObjectBehavior
         ACL $acl,
         Counters $counters,
         Indexes $indexes,
-    EventsDispatcher $dispatcher
+        EventsDispatcher $dispatcher
     ) {
         $this->acl = $acl;
         $this->counters = $counters;

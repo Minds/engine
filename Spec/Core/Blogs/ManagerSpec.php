@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Blogs;
 use Minds\Core\Blogs\Blog;
 use Minds\Core\Blogs\Delegates;
 use Minds\Core\Blogs\Repository;
+use Minds\Core\Entities\PropagateProperties;
 use Minds\Core\Security\Spam;
 
 use PhpSpec\ObjectBehavior;
@@ -30,13 +31,16 @@ class ManagerSpec extends ObjectBehavior
     /** @var Delegates\Search */
     protected $search;
 
+    protected $propagateProperties;
+
     public function let(
         Repository $repository,
         Delegates\PaywallReview $paywallReview,
         Delegates\Slug $slug,
         Delegates\Feeds $feeds,
         Spam $spam,
-        Delegates\Search $search
+        Delegates\Search $search,
+        PropagateProperties $propagateProperties
     ) {
         $this->beConstructedWith(
             $repository,
@@ -44,7 +48,8 @@ class ManagerSpec extends ObjectBehavior
             $slug,
             $feeds,
             $spam,
-            $search
+            $search,
+            $propagateProperties
         );
 
         $this->repository = $repository;
@@ -53,6 +58,7 @@ class ManagerSpec extends ObjectBehavior
         $this->feeds = $feeds;
         $this->spam = $spam;
         $this->search = $search;
+        $this->propagateProperties = $propagateProperties;
     }
 
     public function it_is_initializable()
@@ -244,6 +250,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->propagateProperties->from($blog)->shouldBeCalled();
         $this
             ->update($blog)
             ->shouldReturn(true);
@@ -268,28 +275,26 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_abort_if_spam(Blog $blog)
+    public function it_should_check_for_spam(Blog $blog, Spam $spam)
     {
         $this->beConstructedWith(
             $this->repository,
             $this->paywallReview,
             $this->slug,
             $this->feeds,
-            null,
+            $this->spam,
             $this->search
         );
 
+        $spamUrl = 'movieblog.tumblr.com';
+
         $blog->getType()
-            ->willReturn('object');
+                ->willReturn('object');
 
         $blog->getSubtype()
-            ->willReturn('blog');
+                ->willReturn('blog');
 
-        $blog->getBody()
-            ->shouldBeCalled()
-            ->willReturn('movieblog.tumblr.com');
-
-        $this->shouldThrow(new \Exception('Sorry, you included a reference to a domain name linked to spam. You can not use short urls (eg. bit.ly). Please remove it and try again'))
-            ->duringAdd($blog);
+        $this->spam->check(Argument::any())->shouldBeCalled()->willReturn(true);
+        $this->add($blog);
     }
 }

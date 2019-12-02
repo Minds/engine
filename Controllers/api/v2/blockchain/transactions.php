@@ -123,10 +123,11 @@ class transactions implements Interfaces\Api
                 break;
             case "withdraw":
                 $request = new Withdraw\Request();
-                $request->setTx($_POST['tx'])
+                $request
                     ->setUserGuid(Session::getLoggedInUser()->guid)
-                    ->setAddress($_POST['address'])
                     ->setTimestamp(time())
+                    ->setTx($_POST['tx'])
+                    ->setAddress($_POST['address'])
                     ->setGas($_POST['gas'])
                     ->setAmount((string) BigNumber::_($_POST['amount']));
 

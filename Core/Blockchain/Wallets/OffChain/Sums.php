@@ -46,14 +46,16 @@ class Sums
         $query = new Custom();
 
         if ($this->user) {
-            $query->query("SELECT 
+            $query->query(
+                "SELECT 
                 SUM(amount) as balance 
                 FROM blockchain_transactions_mainnet_by_address
                 WHERE user_guid = ?
                 AND wallet_address = 'offchain'",
                 [
                     new Varint((int) $this->user->guid)
-                ]);
+                ]
+            );
             $query->setOpts([
                 'consistency' => \Cassandra::CONSISTENCY_ALL
             ]);
@@ -78,6 +80,9 @@ class Sums
 
     public function getContractBalance($contract = '', $onlySpend = false)
     {
+        if (!$this->user) {
+            return 0;
+        }
         $cql = "SELECT SUM(amount) as balance from blockchain_transactions_mainnet WHERE user_guid = ? AND wallet_address = ?";
         $values = [
             new Varint($this->user->guid),

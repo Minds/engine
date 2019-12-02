@@ -124,10 +124,14 @@ class feed implements Interfaces\Api
                     //     $next = 0;
                     // }
                     $len = count($boosts);
-                    $next = $boosts[$len -1]->getTimestamp();
+                    if ($boosts[$len -1]) {
+                        $next = $boosts[$len -1]->getTimestamp();
+                    }
                 } elseif ($isBoostFeed) {
                     $len = count($boosts);
-                    $next = $boosts[$len -1]->getTimestamp();
+                    if ($boosts[$len -1]) {
+                        $next = $boosts[$len -1]->getTimestamp();
+                    }
                 }
 
                 // $ttl = 1800; // 30 minutes

@@ -244,8 +244,10 @@ class Iterator implements \Iterator
         foreach ($boosts as $boost) {
             $owner_guids[] = $boost->owner_guid;
         }
-        $blocked = array_flip(Core\Security\ACL\Block::_()->isBlocked($owner_guids,
-            Core\Session::getLoggedInUserGuid()));
+        $blocked = array_flip(Core\Security\ACL\Block::_()->isBlocked(
+            $owner_guids,
+            Core\Session::getLoggedInUserGuid()
+        ));
 
         foreach ($boosts as $i => $boost) {
             if (isset($blocked[$boost->owner_guid])) {

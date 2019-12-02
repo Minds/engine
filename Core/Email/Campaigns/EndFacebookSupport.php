@@ -72,8 +72,10 @@ class EndFacebookSupport
         foreach ($this->getUsers() as $user) {
             if (!$user instanceof \Minds\Entities\User || !$user->guid || $user->disabled_emails || $user->enabled != "yes") {
                 $skipped++;
-                echo "\r [emails]: $queued queued | $skipped skipped | " . date('d-m-Y',
-                        $user->time_created) . " | $user->guid ";
+                echo "\r [emails]: $queued queued | $skipped skipped | " . date(
+                    'd-m-Y',
+                    $user->time_created
+                ) . " | $user->guid ";
                 continue;
             }
             $queued++;
@@ -95,8 +97,10 @@ class EndFacebookSupport
             if (!$this->dryRun) {
                 $this->mailer->queue($message);
             }
-            echo "\r [emails]: $queued queued | $skipped skipped | " . date('d-m-Y',
-                    $user->time_created) . " | $user->guid ";
+            echo "\r [emails]: $queued queued | $skipped skipped | " . date(
+                'd-m-Y',
+                $user->time_created
+            ) . " | $user->guid ";
         }
         echo "[emails]: Completed ($queued queued | $skipped skipped) \n";
     }
