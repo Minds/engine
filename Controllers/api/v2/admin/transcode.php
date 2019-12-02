@@ -10,7 +10,7 @@ use Minds\Interfaces;
 use Minds\Core\Media\Video\Manager;
 use Minds\Entities;
 
-class transcode implements Interfaces\Api //, Interfaces\ApiAdminPam
+class transcode implements Interfaces\Api, Interfaces\ApiAdminPam
 {
     /**
      * Not yet implemented GET.
