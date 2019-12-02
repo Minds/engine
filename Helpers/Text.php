@@ -90,4 +90,26 @@ class Text
     {
         return (string) $value;
     }
+
+    /**
+     * Runs through a body of text, checking it for values.
+     *
+     * @param [type] $haystack - Body of text.
+     * @param [type] $needles - Array of values to be searched for.
+     * @param integer $offset - offset to start.
+     * @return boolean|string - The matching value.
+     */
+    public static function strposa($haystack, $needles, $offset = 0)
+    {
+        if (!is_array($needles)) {
+            $needles = [$needles];
+        }
+        foreach ($needles as $query) {
+            if (stripos($haystack, $query, $offset) !== false) {
+                // stop on first true result
+                return $query;
+            }
+        }
+        return false;
+    }
 }
