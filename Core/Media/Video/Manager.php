@@ -80,15 +80,14 @@ class Manager
     /**
      * Add a video to the transcoding queue
      *
-     * @param Integer $guid - the guid of the video.
-     * @param boolean $fullhd - whether to transcode full_hd.
+     * @param Entity $entity - the entity to be re-transcoded.
      * @return boolean true if video added to transcode queue.
      */
-    public function queueTranscoding($guid, $fullhd = false)
+    public function transcode($entity): bool
     {
         try {
-            $this->transcoder->setKey($guid);
-            $this->transcoder->setFullHD($fullhd ?? false);
+            $this->transcoder->setKey($entity->guid);
+            $this->transcoder->setFullHD($entity->getOwnerEntity()->isPro() ?? false);
             $this->transcoder->transcode();
             return true;
         } catch (\Exception $e) {

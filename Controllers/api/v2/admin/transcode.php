@@ -10,7 +10,7 @@ use Minds\Interfaces;
 use Minds\Core\Media\Video\Manager;
 use Minds\Entities;
 
-class transcode implements Interfaces\Api, Interfaces\ApiAdminPam
+class transcode implements Interfaces\Api //, Interfaces\ApiAdminPam
 {
     /**
      * Not yet implemented GET.
@@ -30,7 +30,6 @@ class transcode implements Interfaces\Api, Interfaces\ApiAdminPam
     public function post($pages)
     {
         $guid = intval($_POST['guid']);
-
         if (!$guid) {
             return Factory::response(['status' => 'error', 'message' => 'You must send a GUID.']);
         }
@@ -41,15 +40,9 @@ class transcode implements Interfaces\Api, Interfaces\ApiAdminPam
             return Factory::response(['status' => 'error', 'message' => 'Entity not found.']);
         }
 
-        $user = $entity->getOwnerEntity();
-
-        if (!$user) {
-            return Factory::response(['status' => 'error', 'message' => 'User not found.']);
-        }
-        
         $videoManager = new Manager();
 
-        if (!$videoManager->queueTranscoding($guid, $user->isPro())) {
+        if (!$videoManager->transcode($entity)) {
             return Factory::response(['status' => 'error', 'message' => 'Failed to add video to transcoding queue.']);
         }
 

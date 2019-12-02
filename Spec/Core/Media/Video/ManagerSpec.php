@@ -10,6 +10,8 @@ use Psr\Http\Message\RequestInterface;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Minds\Core\Media\Services\FFMpeg;
+use Minds\Entities\Entity;
+use Minds\Entities\User;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -99,29 +101,37 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe('https://url.com/cinemr123/720.mp4');
     }
 
-    public function it_should_manually_transcode_a_non_hd_video(FFMpeg $transcoder)
+    public function it_should_manually_transcode_a_non_hd_video(FFMpeg $transcoder, Entity $entity, User $owner)
     {
         $guid = '123';
         $hd = false;
 
+        $owner->isPro()->shouldBeCalled()->willReturn($hd);
+        $entity->getOwnerEntity()->shouldBeCalled()->willReturn($owner);
+        $entity->get('guid')->shouldBeCalled()->willReturn($guid);
+
         $transcoder->setKey($guid)->shouldBeCalled();
         $transcoder->setFullHD($hd)->shouldBeCalled();
         $transcoder->transcode()->shouldBeCalled();
 
-        $this->queueTranscoding($guid, $hd)
+        $this->transcode($entity)
             ->shouldReturn(true);
     }
 
-    public function it_should_manually_transcode_a_hd_video(FFMpeg $transcoder)
+    public function it_should_manually_transcode_a_hd_video(FFMpeg $transcoder, Entity $entity, User $owner)
     {
         $guid = '123';
         $hd = true;
 
+        $owner->isPro()->shouldBeCalled()->willReturn($hd);
+        $entity->getOwnerEntity()->shouldBeCalled()->willReturn($owner);
+        $entity->get('guid')->shouldBeCalled()->willReturn($guid);
+
         $transcoder->setKey($guid)->shouldBeCalled();
         $transcoder->setFullHD($hd)->shouldBeCalled();
         $transcoder->transcode()->shouldBeCalled();
 
-        $this->queueTranscoding($guid, $hd)
+        $this->transcode($entity)
             ->shouldReturn(true);
     }
 }
