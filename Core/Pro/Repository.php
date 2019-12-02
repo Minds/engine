@@ -92,13 +92,16 @@ class Repository
                         ->setTextColor($data['text_color'] ?? '')
                         ->setPrimaryColor($data['primary_color'] ?? '')
                         ->setPlainBackgroundColor($data['plain_background_color'] ?? '')
-                        ->setLogoGuid($data['logo_guid'] ?? '')
                         ->setTileRatio($data['tile_ratio'] ?? '')
                         ->setFooterText($data['footer_text'] ?? '')
                         ->setFooterLinks($data['footer_links'] ?? [])
                         ->setTagList($data['tag_list'] ?? [])
                         ->setScheme($data['scheme'] ?? '')
                         ->setCustomHead($data['custom_head'] ?? '')
+                        ->setHasCustomLogo($data['has_custom_logo'] ?? false)
+                        ->setHasCustomBackground($data['has_custom_background'] ?? false)
+                        ->setTimeUpdated($data['time_updated'] ?? 0)
+                        ->setPayoutMethod($data['payout_method'] ?? 'usd')
                     ;
 
                     $response[] = $settings;
@@ -140,12 +143,15 @@ class Repository
                 'primary_color' => $settings->getPrimaryColor(),
                 'plain_background_color' => $settings->getPlainBackgroundColor(),
                 'tile_ratio' => $settings->getTileRatio(),
-                'logo_guid' => $settings->getLogoGuid(),
                 'footer_text' => $settings->getFooterText(),
                 'footer_links' => $settings->getFooterLinks(),
                 'tag_list' => $settings->getTagList(),
                 'scheme' => $settings->getScheme(),
                 'custom_head' => $settings->getCustomHead(),
+                'has_custom_logo' => $settings->hasCustomLogo(),
+                'has_custom_background' => $settings->hasCustomBackground(),
+                'time_updated' => $settings->getTimeUpdated(),
+                'payout_method' => $settings->getPayoutMethod(),
             ]),
         ];
 

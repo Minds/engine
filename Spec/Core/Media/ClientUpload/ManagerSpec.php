@@ -58,7 +58,7 @@ class ManagerSpec extends ObjectBehavior
 
         $lease->getGuid()
             ->willReturn(456);
-        
+
         $this->save->setEntity(Argument::that(function ($video) {
             return $video->guid == 456
                 && $video->access_id == 0;
@@ -72,10 +72,14 @@ class ManagerSpec extends ObjectBehavior
         $this->ffmpeg->setKey(456)
             ->shouldBeCalled();
 
+        $this->ffmpeg->setFullHD(false)
+            ->shouldBeCalled();
+
         $this->ffmpeg->transcode()
             ->shouldBeCalled();
 
-        $this->complete($lease)
+        $this->setFullHD(false)
+            ->complete($lease)
             ->shouldReturn(true);
     }
 }

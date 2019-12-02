@@ -48,23 +48,8 @@ class stripe implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         $hooks->run();
 
-
-        // Do something with $event_json
-
         http_response_code(200); // PHP 5.4 or greater
         exit;
-
-        /*$gateway = isset($pages[0]) ? $pages[0] : 'default';
-
-        $bt = Payments\Factory::build('braintree', ['gateway'=>$gateway]);
-
-        $hooks = new Payments\Hooks();
-        $hooks->loadDefaults();
-
-        $webhooks = new Payments\Braintree\Webhooks($hooks, $bt);
-        $webhooks->setSignature($_POST['bt_signature'])
-          ->setPayload($_POST['bt_payload'])
-          ->run();*/
 
         return Factory::response([]);
     }

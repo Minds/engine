@@ -51,8 +51,17 @@ class ManagerSpec extends ObjectBehavior
         Delegates\NewPurchaseEmail $newPurchaseEmail,
         Delegates\EthRate $ethRate
     ) {
-        $this->beConstructedWith($repo, $txManager, $config, $issueTokens, $newPurchaseNotification,
-            $issuedTokenNotification, $issuedTokenEmail, $newPurchaseEmail, $ethRate);
+        $this->beConstructedWith(
+            $repo,
+            $txManager,
+            $config,
+            $issueTokens,
+            $newPurchaseNotification,
+            $issuedTokenNotification,
+            $issuedTokenEmail,
+            $newPurchaseEmail,
+            $ethRate
+        );
 
         $this->repo = $repo;
         $this->txManager = $txManager;

@@ -42,7 +42,6 @@ class Notifications
         $cql = null,
         $notifications = null,
         $notificationBatches = null
-    
     ) {
         $this->relDB = $relDb ?: Di::_()->get('Database\Cassandra\Relationships');
         $this->indexDb = $indexDb ?: Di::_()->get('Database\Cassandra\Indexes');

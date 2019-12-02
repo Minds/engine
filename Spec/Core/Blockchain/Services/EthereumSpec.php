@@ -134,8 +134,10 @@ class EthereumSpec extends ObjectBehavior
             ->willReturn('hash');
 
         $this->shouldThrow(new \Exception('Ethereum::call only supports raw hex parameters'))
-            ->during('encodeContractMethod',
-                ['issue(address,uint256)', ['123', BigNumber::_(10 ** 18)->toHex(true)]]);
+            ->during(
+                'encodeContractMethod',
+                ['issue(address,uint256)', ['123', BigNumber::_(10 ** 18)->toHex(true)]]
+            );
     }
 
     public function it_should_run_a_raw_method_unsigned_call()
@@ -236,8 +238,10 @@ class EthereumSpec extends ObjectBehavior
             'server_gas_price' => 100,
         ]);
 
-        $this->shouldThrow(new \Exception('Transaction must have `from` and `gasLimit`'))->during('sendRawTransaction',
-            ['privateKey', $transaction]);
+        $this->shouldThrow(new \Exception('Transaction must have `from` and `gasLimit`'))->during(
+            'sendRawTransaction',
+            ['privateKey', $transaction]
+        );
     }
 
     public function it_should_fail_when_sending_raw_transaction_because_theres_no_from_gasLimit()
@@ -253,8 +257,10 @@ class EthereumSpec extends ObjectBehavior
             'server_gas_price' => 100,
         ]);
 
-        $this->shouldThrow(new \Exception('Transaction must have `from` and `gasLimit`'))->during('sendRawTransaction',
-            ['privateKey', $transaction]);
+        $this->shouldThrow(new \Exception('Transaction must have `from` and `gasLimit`'))->during(
+            'sendRawTransaction',
+            ['privateKey', $transaction]
+        );
     }
 
     public function it_should_fail_when_sending_raw_transaction_because_theres_an_error_signing_the_transaction()
@@ -287,7 +293,9 @@ class EthereumSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('');
 
-        $this->shouldThrow(new \Exception('Error signing transaction'))->during('sendRawTransaction',
-            ['privateKey', $transaction]);
+        $this->shouldThrow(new \Exception('Error signing transaction'))->during(
+            'sendRawTransaction',
+            ['privateKey', $transaction]
+        );
     }
 }

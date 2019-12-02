@@ -65,8 +65,10 @@ class Invoice
 
         $message = new Message();
         $message->setTo($this->user)
-            ->setMessageId(implode('-',
-                [$this->user->guid, sha1($this->user->getEmail()), sha1('invoice' . time())]))
+            ->setMessageId(implode(
+                '-',
+                [$this->user->guid, sha1($this->user->getEmail()), sha1('invoice' . time())]
+            ))
             ->setSubject($subject)
             ->setHtml($this->template);
 

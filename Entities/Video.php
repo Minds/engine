@@ -12,7 +12,7 @@ use Minds\Core\Di\Di;
 use cinemr;
 use Minds\Helpers;
 
-class Video extends Object
+class Video extends MindsObject
 {
     private $cinemr;
 
@@ -55,8 +55,9 @@ class Video extends Object
 
         $transcoder = ServiceFactory::build('FFMpeg');
         $transcoder->setKey($this->getGuid())
-          ->saveToFilestore($filepath)
-          ->transcode();
+            ->setFullHD($this->getFlag('full_hd'))
+            ->saveToFilestore($filepath)
+            ->transcode();
 
         $this->cinemr_guid = $this->getGuid();
     }
@@ -193,6 +194,7 @@ class Video extends Object
             'container_guid' => null,
             'rating' => 2, //open by default
             'time_sent' => time(),
+            'full_hd' => false,
         ], $data);
 
         $allowed = [
@@ -205,7 +207,8 @@ class Video extends Object
             'mature',
             'boost_rejection_reason',
             'rating',
-            'time_sent'
+            'time_sent',
+            'full_hd',
         ];
 
         foreach ($allowed as $field) {
@@ -215,8 +218,8 @@ class Video extends Object
 
             if ($field == 'access_id') {
                 $data[$field] = (int) $data[$field];
-            } elseif ($field == 'mature') {
-                $this->setFlag('mature', !!$data['mature']);
+            } elseif (in_array($field, ['mature', 'full_hd'], true)) {
+                $this->setFlag($field, !!$data[$field]);
                 continue;
             }
 
@@ -253,6 +256,7 @@ class Video extends Object
                 'thumbnail_src' => $this->getIconUrl(),
                 'guid' => $this->guid,
                 'mature' => $this->getFlag('mature'),
+                'full_hd' => $this->getFlag('full_hd'),
                 'license' => $this->license ?? '',
             ]
         ];

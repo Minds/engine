@@ -16,5 +16,9 @@ class AnalyticsProvider extends Provider
         $this->di->bind('Analytics\Graphs\Repository', function ($di) {
             return new Graphs\Repository();
         }, ['useFactory' => true]);
+
+        $this->di->bind('Analytics\Dashboards\Manager', function ($di) {
+            return new Dashboards\Manager();
+        }, ['useFactory' => true]);
     }
 }

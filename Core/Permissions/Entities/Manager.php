@@ -22,8 +22,8 @@ class Manager
     public function __construct(
         EntitiesBuilder $entitiesBuilder = null,
         Call $db = null,
-        Save $save = null)
-    {
+        Save $save = null
+    ) {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->db = $db ?: new Call('entities_by_time');
         $this->save = $save ?: new Save(); //Mockable, else instantiate a new one on save.

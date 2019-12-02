@@ -358,7 +358,8 @@ class newsfeed implements Interfaces\Api
                                         ->setCustom('video', [
                                             'thumbnail_src' => $embeded->getIconUrl(),
                                             'guid' => $embeded->guid,
-                                            'mature' => $embeded instanceof Flaggable ? $embeded->getFlag('mature') : false
+                                            'mature' => $embeded instanceof Flaggable ? $embeded->getFlag('mature') : false,
+                                            'full_hd' => $embeded->getFlag('full_hd') ?? false,
                                         ])
                                         ->setTitle($embeded->title)
                                         ->setBlurb($embeded->description)
@@ -378,7 +379,7 @@ class newsfeed implements Interfaces\Api
                                             ->setTitle($embeded->title)
                                             ->setBlurb($embeded->description)
                                             ->export()
-                                        )
+                                    )
                                         ->setMessage($message);
                                 }
                                 $save->setEntity($activity)
@@ -416,7 +417,7 @@ class newsfeed implements Interfaces\Api
                                             ->setTitle($embeded->title)
                                             ->setBlurb($embeded->description)
                                             ->export()
-                                        )
+                                    )
                                         ->setMessage($message);
                                 }
                                 $save->setEntity($activity)
@@ -514,9 +515,6 @@ class newsfeed implements Interfaces\Api
                     $activity->indexes = ["activity:$activity->owner_guid:edits"]; //don't re-index on edit
                     (new Core\Translation\Storage())->purge($activity->guid);
 
-                    $attachmentPaywallDelegate = new Core\Feeds\Activity\Delegates\AttachmentPaywallDelegate();
-                    $attachmentPaywallDelegate->onUpdate($activity);
-
                     if (isset($_POST['time_created']) && ($_POST['time_created'] != $activity->getTimeCreated())) {
                         try {
                             $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
@@ -528,9 +526,11 @@ class newsfeed implements Interfaces\Api
                             ]);
                         }
                     }
-                    
+
                     $save->setEntity($activity)
                         ->save();
+
+                    (new Core\Entities\PropagateProperties())->from($activity);
 
                     $activity->setExportContext(true);
                     return Factory::response(['guid' => $activity->guid, 'activity' => $activity->export(), 'edited' => true]);

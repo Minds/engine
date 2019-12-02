@@ -18,7 +18,7 @@ class Events
      */
     public function register()
     {
-        \elgg_register_plugin_hook_handler('entities_class_loader', 'all', function ($hook, $type, $return, $row) {
+        Dispatcher::register('entities_class_loader', "elgg/hook/all", function ($hook, $type, $return, $row) {
             if ($row->type == 'group') {
                 $entity = new GroupEntity();
                 $entity->loadFromArray((array) $row);

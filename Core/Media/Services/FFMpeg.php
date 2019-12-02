@@ -38,6 +38,9 @@ class FFMpeg implements ServiceInterface
     /** @var string $dir */
     private $dir = 'cinemr_data';
 
+    /** @var bool $full_hd */
+    private $full_hd = false;
+
     public function __construct(
         $queue = null,
         $ffmpeg = null,
@@ -51,6 +54,7 @@ class FFMpeg implements ServiceInterface
             'ffmpeg.binaries' => '/usr/bin/ffmpeg',
             'ffprobe.binaries' => '/usr/bin/ffprobe',
             'ffmpeg.threads' => $this->config->get('transcoder')['threads'],
+            'timeout' => 0,
         ]);
         $this->ffprobe = $ffprobe ?: FFProbeClient::create([
             'ffprobe.binaries' => '/usr/bin/ffprobe',
@@ -71,10 +75,24 @@ class FFMpeg implements ServiceInterface
         $this->dir = $this->config->get('transcoder')['dir'];
     }
 
+    /**
+     * @param $key
+     * @return FFMpeg
+     */
     public function setKey($key)
     {
         $this->key = $key;
 
+        return $this;
+    }
+
+    /**
+     * @param bool $value
+     * @return FFMpeg
+     */
+    public function setFullHD(bool $value)
+    {
+        $this->full_hd = $value;
         return $this;
     }
 
@@ -136,6 +154,7 @@ class FFMpeg implements ServiceInterface
             ->setQueue('Transcode')
             ->send([
                 'key' => $this->key,
+                'full_hd' => $this->full_hd,
             ]);
 
         return $this;
@@ -207,6 +226,10 @@ class FFMpeg implements ServiceInterface
                 'formats' => ['mp4', 'webm'],
             ], $opts);
 
+            if ($opts['pro'] && !$this->full_hd) {
+                continue;
+            }
+
             if ($rotated) {
                 $ratio = $videostream->get('width') / $videostream->get('height');
                 $width = round($opts['height'] * $ratio);
@@ -215,8 +238,10 @@ class FFMpeg implements ServiceInterface
             }
 
             $video->filters()
-                ->resize(new \FFMpeg\Coordinate\Dimension($opts['width'], $opts['height']),
-                    $rotated ? ResizeFilter::RESIZEMODE_FIT : ResizeFilter::RESIZEMODE_SCALE_WIDTH)
+                ->resize(
+                    new \FFMpeg\Coordinate\Dimension($opts['width'], $opts['height']),
+                    $rotated ? ResizeFilter::RESIZEMODE_FIT : ResizeFilter::RESIZEMODE_SCALE_WIDTH
+                )
                 ->synchronize();
 
             $formatMap = [
@@ -229,19 +254,25 @@ class FFMpeg implements ServiceInterface
                 $pfx = ($rotated ? $opts['width'] : $opts['height']).'.'.$format;
                 $path = $sourcePath.'-'.$pfx;
                 try {
-                    echo "\nTranscoding: $path ($this->key)";
+                    echo "\nTranscoding: $path ($this->key)\n";
+
+                    $formatMap[$format]->on('progress', function ($a, $b, $pct) {
+                        echo "\r$pct% transcoded";
+                        // also emit out to cassandra so frontend can keep track
+                    });
+
                     $formatMap[$format]
                         ->setKiloBitRate($opts['bitrate'])
-                        ->setAudioChannels(2)
+                        // ->setAudioChannels(2)
                         ->setAudioKiloBitrate($opts['audio_bitrate']);
                     $video->save($formatMap[$format], $path);
 
                     //now upload to s3
                     $this->uploadTranscodedFile($path, $pfx);
-                    //cleanup tmp file
-                    @unlink($path);
                 } catch (\Exception $e) {
                     echo " failed {$e->getMessage()}";
+                    //cleanup tmp file
+                    @unlink($path);
                 }
             }
         }

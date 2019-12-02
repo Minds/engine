@@ -40,12 +40,14 @@ class CustomerSync extends Cli\Controller implements Interfaces\CliControllerInt
             $guid = $data[29];
             try {
                 $insert = new Core\Data\Cassandra\Prepared\Custom();
-                $insert->query("INSERT INTO user_index_to_guid (key, column1, value) VALUES (?, ?, ?)",
-                [
+                $insert->query(
+                    "INSERT INTO user_index_to_guid (key, column1, value) VALUES (?, ?, ?)",
+                    [
                   "$guid:payments",
                   "customer_id",
                   $id
-                ]);
+                ]
+                );
                 $this->db->request($insert);
                 $this->out("$guid with customer id $id done");
             } catch (\Exception $e) {

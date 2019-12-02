@@ -17,5 +17,9 @@ class ConfigProvider extends Provider
         $this->di->bind('Config', function ($di) {
             return new Config();
         }, ['useFactory'=>true]);
+
+        $this->di->bind('Config\Exported', function ($di) {
+            return new Exported();
+        }, ['useFactory' => true]);
     }
 }

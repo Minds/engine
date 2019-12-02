@@ -13,6 +13,7 @@ class Subscription
 {
     private $stripe;
     private $repo;
+    /** @var User */
     protected $user;
     /** @var Manager $subscriptionsManager */
     protected $subscriptionsManager;
@@ -44,13 +45,15 @@ class Subscription
      */
     public function isActive()
     {
-        $subscription = $this->getSubscription();
+        return $this->user->isPlus();
+    }
 
-        if (!$subscription) {
-            return false;
-        }
-
-        return $subscription->getStatus() == 'active';
+    /**
+     * @return bool
+     */
+    public function canBeCancelled()
+    {
+        return ((int) $this->user->plus_expires) > time();
     }
 
     /**

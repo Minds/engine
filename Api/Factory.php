@@ -2,10 +2,7 @@
 
 namespace Minds\Api;
 
-use Minds\Core\Di\Di;
-use Minds\Core\Pro\Domain\Security as ProDomainSecurity;
 use Minds\Interfaces;
-use Minds\Helpers;
 use Minds\Core\Security;
 use Minds\Core\Session;
 
@@ -111,11 +108,17 @@ class Factory
 
             static::setCORSHeader();
 
+            $code = !Security\XSRF::validateRequest() ? 403 : 401;
+
+            if (isset($_SERVER['HTTP_APP_VERSION'])) {
+                $code = 401; // Mobile requires 401 errors
+            }
+
             header('Content-type: application/json');
-            header('HTTP/1.1 401 Unauthorized', true, 401);
+            http_response_code($code);
             echo json_encode([
                 'error' => 'Sorry, you are not authenticated',
-                'code' => 401,
+                'code' => $code,
                 'loggedin' => false
                 ]);
             exit;

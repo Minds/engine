@@ -15,9 +15,9 @@ class SecurityProvider extends Provider
     {
         $this->di->bind('Security\ACL\Block', function ($di) {
             return new ACL\Block(
-              Di::_()->get('Database\Cassandra\Indexes'),
-              Di::_()->get('Database\Cassandra\Cql'),
-              Core\Data\cache\factory::build()
+                Di::_()->get('Database\Cassandra\Indexes'),
+                Di::_()->get('Database\Cassandra\Cql'),
+                Core\Data\cache\factory::build()
             );
         }, ['useFactory'=>true]);
 

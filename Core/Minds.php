@@ -3,6 +3,7 @@
 namespace Minds\Core;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Events\Dispatcher;
 
 /**
  * Core Minds Engine.
@@ -15,6 +16,7 @@ class Minds extends base
 
     private $modules = [
         Events\Module::class,
+        SSO\Module::class,
         Email\Module::class,
         Experiments\Module::class,
         Helpdesk\Module::class,
@@ -26,6 +28,7 @@ class Minds extends base
         Referrals\Module::class,
         Reports\Module::class,
         VideoChat\Module::class,
+        Front\Module::class,
     ];
 
     /**
@@ -111,6 +114,7 @@ class Minds extends base
         (new Feeds\FeedsProvider())->register();
         (new Analytics\AnalyticsProvider())->register();
         (new Channels\ChannelsProvider())->register();
+        (new Blogs\BlogsProvider())->register();
     }
 
     /**
@@ -141,12 +145,12 @@ class Minds extends base
         /*
          * Boot the system, @todo this should be oop?
          */
-        \elgg_trigger_event('boot', 'system');
+        Dispatcher::trigger('boot', 'elgg/event/system', null, true);
 
         /*
          * Complete the boot process for both engine and plugins
          */
-        elgg_trigger_event('init', 'system');
+        Dispatcher::trigger('init', 'elgg/event/system', null, true);
 
         /*
          * tell the system that we have fully booted
@@ -156,7 +160,7 @@ class Minds extends base
         /*
          * System loaded and ready
          */
-        \elgg_trigger_event('ready', 'system');
+        Dispatcher::trigger('ready', 'elgg/event/system', null, true);
     }
 
     /**

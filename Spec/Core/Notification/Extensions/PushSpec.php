@@ -293,7 +293,7 @@ class PushSpec extends ObjectBehavior
         ], $user, $entity)->shouldBe('@Bob wants to chat with you!');
     }
 
-    public function getMatchers()
+    public function getMatchers(): array
     {
         $matchers['beAnArrayOf'] = function ($subject, $count, $class) {
             if (!is_array($subject) || ($count !== null && count($subject) !== $count)) {
