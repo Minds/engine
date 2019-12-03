@@ -386,4 +386,26 @@ class Image extends File
         $this->time_sent = $time_sent;
         return $this;
     }
+
+
+    /**
+     * Return description
+     * @return string
+     */
+    public function getDescription(): string
+    {
+        return $this->description  ?: '';
+    }
+
+    /**
+    * Set description
+    *
+    * @param string $description - description to be set.
+    * @return Image
+    */
+    public function setDescription($description): Image
+    {
+        $this->description = $description;
+        return $this;
+    }
 }
