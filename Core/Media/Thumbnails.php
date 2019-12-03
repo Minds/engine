@@ -26,9 +26,10 @@ class Thumbnails
      */
     public function get($entity, $size)
     {
-        if (is_string($entity)) {
-            $entity = $this->entitiesBuilder->build($entity);
+        if (is_numeric($entity)) {
+            $entity = $this->entitiesBuilder->single($entity);
         }
+
         if (!$entity || !Core\Security\ACL::_()->read($entity)) {
             return false;
         }
