@@ -53,6 +53,21 @@ class S3Storage implements TranscodeStorageInterface
         ]);
     }
 
+    /**
+     * This will return a url that can be used by an HTTP client
+     * to upload the source file
+     * @param Transcode $transcode
+     * @return string
+     */
+    public function getClientSideUploadUrl(Transcode $transcode): string
+    {
+        $cmd = $this->s3->getCommand('PutObject', [
+            'Bucket' => 'cinemr',
+            'Key' => "$this->dir/{$transcode->getGuid()}/{$transcode->getProfile()->getStorageName()}",
+        ]);
+
+        return (string) $this->s3->createPresignedRequest($cmd, '+20 minutes')->getUri();
+    }
 
     /**
      * @param Transcode $transcode

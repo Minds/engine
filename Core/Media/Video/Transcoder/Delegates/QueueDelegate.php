@@ -12,7 +12,7 @@ class QueueDelegate
 
     public function __construct($queueClient = null)
     {
-        $this->queueClient = $queueClient ?? Di::_()->get('Queue\SQS');
+        $this->queueClient = $queueClient ?? Di::_()->get('Queue');
     }
 
     /**

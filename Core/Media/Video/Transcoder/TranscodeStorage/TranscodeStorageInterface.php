@@ -13,6 +13,14 @@ interface TranscodeStorageInterface
     public function add(Transcode $transcode, string $path): bool;
 
     /**
+     * This will return a url that can be used by an HTTP client
+     * to upload the source file
+     * @param Transcode $transcode
+     * @return string
+     */
+    public function getClientSideUploadUrl(Transcode $transcode): string;
+
+    /**
      * @param Transcode $transcode
      * @return string
      */

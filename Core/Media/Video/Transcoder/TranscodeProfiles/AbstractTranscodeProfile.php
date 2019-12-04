@@ -47,7 +47,7 @@ abstract class AbstractTranscodeProfile implements TranscodeProfileInterface
      */
     public function getId(): string
     {
-        $path = explode('\\', __CLASS__);
+        $path = explode('\\', get_called_class());
         return array_pop($path);
     }
 

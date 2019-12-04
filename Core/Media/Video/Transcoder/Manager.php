@@ -84,6 +84,21 @@ class Manager
     }
 
     /**
+     * This will return a url that can be used by an HTTP client
+     * to upload the source file
+     * @param Video $video
+     * @return string
+     */
+    public function getClientSideUploadUrl(Video $video): string
+    {
+        $source = new Transcode();
+        $source
+            ->setVideo($video)
+            ->setProfile(new TranscodeProfiles\Source());
+        return $this->transcodeStorage->getClientSideUploadUrl($source);
+    }
+
+    /**
      * Create the transcodes from from
      * @param Video $video
      * @return void
