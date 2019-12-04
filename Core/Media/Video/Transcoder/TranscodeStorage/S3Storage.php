@@ -1,0 +1,75 @@
+<?php
+namespace Minds\Core\Media\Video\Transcoder\TranscodeStorage;
+
+use Aws\S3\S3Client;
+use Minds\Core\Config;
+use Minds\Core\Di\Di;
+use Minds\Core\Media\Video\Transcoder\Transcode;
+
+class S3Storage implements TranscodeStorageInterface
+{
+    /** @var string */
+    private $dir = 'cinemr_data';
+
+    /** @var Config */
+    private $config;
+
+    /** @var S3Client */
+    private $s3;
+
+    public function __construct($config = null, $s3 = null)
+    {
+        $this->config = $config ?? Di::_()->get('Config');
+        $this->dir = $this->config->get('transcoder')['dir'];
+        
+        $awsConfig = $this->config->get('aws');
+        $opts = [
+            'region' => $awsConfig['region'],
+        ];
+
+        if (!isset($awsConfig['useRoles']) || !$awsConfig['useRoles']) {
+            $opts['credentials'] = [
+                'key' => $awsConfig['key'],
+                'secret' => $awsConfig['secret'],
+            ];
+        }
+
+        $this->s3 = $s3 ?: new S3Client(array_merge(['version' => '2006-03-01'], $opts));
+    }
+
+    /**
+     * Add a transcode to storage
+     * @param Transcode $transcode
+     * @param string $path
+     * @return bool
+     */
+    public function add(Transcode $transcode, string $path): bool
+    {
+        return (bool) $this->s3->putObject([
+            'ACL' => 'public-read',
+            'Bucket' => 'cinemr',
+            'Key' => "$this->dir/{$transcode->getGuid()}/{$transcode->getProfile()->getStorageName()}",
+            'Body' => fopen($path, 'r'),
+        ]);
+    }
+
+
+    /**
+     * @param Transcode $transcode
+     * @return string
+     */
+    public function downloadToTmp(Transcode $transcode): string
+    {
+        // Create a temporary file where our source file will go
+        $sourcePath = tempnam(sys_get_temp_dir(), "{$transcode->getGuid()}-{$transcode->getProfile()->getStorageName()}");
+
+        // Grab from S3
+        $this->s3->getObject([
+            'Bucket' => 'cinemr',
+            'Key' => "$this->dir/{$transcode->getGuid()}/{$transcode->getProfile()->getStorageName()}",
+            'SaveAs' => $sourcePath,
+        ]);
+        
+        return $sourcePath;
+    }
+}

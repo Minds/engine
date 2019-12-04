@@ -114,6 +114,11 @@ class Mock
         return (int) $this->a;
     }
 
+    public function microtime()
+    {
+        return (int) $this->a;
+    }
+
     public function toInt()
     {
         return (int) $this->a;

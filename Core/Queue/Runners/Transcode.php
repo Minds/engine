@@ -14,11 +14,12 @@ class Transcode implements Interfaces\QueueRunner
         $client->setQueue("Transcode")
             ->receive(function ($data) {
                 $d = $data->getData();
+                $transcode = unserialize($d['transcode']);
+
                 echo "Received a transcode request \n";
-                $transcoder = new Core\Media\Services\FFMpeg();
-                $transcoder->setKey($d['key']);
-                $transcoder->setFullHD($d['full_hd']);
-                $transcoder->onQueue();
+                
+                $transcoderManeger = Di::_()->get('Media\Video\Transcoder\Manager');
+                $transcoderManager->transcode($transcode);
             }, [ 'max_messages' => 1 ]);
     }
 }
