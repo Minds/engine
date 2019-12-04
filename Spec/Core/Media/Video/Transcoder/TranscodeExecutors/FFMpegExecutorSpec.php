@@ -80,6 +80,9 @@ class FFMpegExecutorSpec extends ObjectBehavior
         $this->transcodeStorage->add($transcode, '/tmp/fake-path-for-source-thumbnails/thumbnail-00120.png')
             ->shouldBeCalled();
 
+        $transcode->setProgress(100)
+            ->shouldBeCalled();
+
         $transcode->setStatus('completed')
             ->shouldBeCalled();
 

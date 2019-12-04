@@ -51,6 +51,15 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
+    public function it_should_return_a_signed_url_for_client_upload()
+    {
+        $this->transcodeStorage->getClientSideUploadUrl(Argument::type(Transcode::class))
+            ->shouldBeCalled()
+            ->willReturn('signed-url-here');
+        $this->getClientSideUploadUrl(new Video())
+            ->shouldBe('signed-url-here');
+    }
+
     public function it_should_create_transcodes_from_video()
     {
         $video = new Video();

@@ -131,7 +131,7 @@ class FFMpegExecutor implements TranscodeExecutorInterface
             // $this->logger->info("Transcoding: $path ({$transcode->getGuid()})");
 
             // Update our progress
-            $formatMap[$format]->on('progress', function ($a, $b, $pct) {
+            $formatMap[$format]->on('progress', function ($a, $b, $pct) use ($progressCallback) {
                 // $this->logger->info("$pct% transcoded");
                 $progressCallback($pct);
             });
@@ -196,6 +196,7 @@ class FFMpegExecutor implements TranscodeExecutorInterface
                 // Cleanup tmp
                 @unlink($path);
             }
+            $transcode->setProgress(100);
             $transcode->setStatus('completed');
         } catch (\Exception $e) {
             $transcode->setStatus('failed');

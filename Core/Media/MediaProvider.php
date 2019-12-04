@@ -83,5 +83,9 @@ class MediaProvider extends Provider
         $this->di->bind('Media\Video\Transcoder\Manager', function ($di) {
             return new Video\Transcoder\Manager();
         }, ['useFactory' => false]);
+
+        $this->di->bind('Media\Video\Transcode\TranscodeStorage', function ($di) {
+            return new Video\Transcoder\TranscodeStorage\S3Storage();
+        }, ['useFactory' => false]);
     }
 }

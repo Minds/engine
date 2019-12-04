@@ -59,6 +59,7 @@ class RepositorySpec extends ObjectBehavior
                     'profile_id' => 'X264_360p',
                     'last_event_timestamp_ms' => new Timestamp(microtime(true)),
                     'progress' => new Varint(0),
+                    'status' => null,
                     'length_secs' => new Varint(0),
                     'bytes' => new Varint(0),
                 ]
@@ -81,6 +82,7 @@ class RepositorySpec extends ObjectBehavior
                     'profile_id' => 'X264_360p',
                     'last_event_timestamp_ms' => new Timestamp(microtime(true)),
                     'progress' => new Varint(0),
+                    'status' => null,
                     'length_secs' => new Varint(0),
                     'bytes' => new Varint(0),
                 ],
@@ -89,6 +91,7 @@ class RepositorySpec extends ObjectBehavior
                     'profile_id' => 'X264_720p',
                     'last_event_timestamp_ms' => new Timestamp(microtime(true)),
                     'progress' => new Varint(0),
+                    'status' => null,
                     'length_secs' => new Varint(0),
                     'bytes' => new Varint(0),
                 ]

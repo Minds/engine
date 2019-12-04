@@ -158,13 +158,14 @@ class Manager
         // Perform the transcode
         try {
             $ref = $this;
-            $success = $this->transcodeExecutor->transcode($transcode, function ($progress) use ($ref) {
-                $transcode->setProgress($pct);
-                $this->update($transcode, 'progress');
+            $success = $this->transcodeExecutor->transcode($transcode, function ($progress) use ($ref, $transcode) {
+                $transcode->setProgress($progress);
+                $this->update($transcode, [ 'progress' ]);
             });
             if (!$success) { // This is actually unkown as an exception should have been thrown
                 throw new TranscodeExecutors\FailedTranscodeException();
             }
+            $transcode->setProgress(100); // If completed should be assumed 100%
             $transcode->setStatus('completed');
         } catch (TranscodeExecutors\FailedTranscodeException $e) {
             $transcode->setStatus('failed');

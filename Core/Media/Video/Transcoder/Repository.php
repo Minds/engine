@@ -174,9 +174,9 @@ class Repository
         }
 
         // Convert our $set to statement
-        $statement .= " SET " . implode(' ', array_map(function ($field) {
+        $statement .= " SET " . implode(' , ', array_map(function ($field) {
             return "$field = ?";
-        }, $set));
+        }, array_keys($set)));
 
         // Move to values array
         $values = array_values($set);
@@ -236,6 +236,7 @@ class Repository
         $transcode->setGuid((string) $row['guid'])
             ->setProfile(TranscodeProfiles\Factory::build((string) $row['profile_id']))
             ->setProgress($row['progress']->value())
+            ->setStatus($row['status'])
             ->setLastEventTimestampMs(round($row['last_event_timestamp_ms']->microtime(true) * 1000))
             ->setLength($row['length_secs']->value())
             ->setBytes($row['bytes']->value());
