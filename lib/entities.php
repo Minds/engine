@@ -879,8 +879,9 @@ function elgg_get_entities(array $options = array()) {
                     }
 
                     $entity = entity_row_to_elggstar($newrow);
-                    if(Minds\Core\Security\ACL::_()->read($entity))
+                    if ($entity && Minds\Core\Security\ACL::_()->read($entity)) {
                         $entities[] = $entity;
+                    }
                 }
             }
         } catch(Exception $e){

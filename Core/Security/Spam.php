@@ -29,7 +29,9 @@ class Spam
                     $foundSpam = Text::strposa($entity->getBody(), ProhibitedDomains::DOMAINS);
                     break;
                 }
-                $foundSpam = Text::strposa($entity->getDescription(), ProhibitedDomains::DOMAINS);
+                if (method_exists($entity, 'getDescription')) {
+                    $foundSpam = Text::strposa($entity->getDescription(), ProhibitedDomains::DOMAINS);
+                }
                 break;
             case 'user':
                 $foundSpam = Text::strposa($entity->briefdescription, ProhibitedDomains::DOMAINS);
