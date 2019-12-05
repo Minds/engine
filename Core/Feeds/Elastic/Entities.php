@@ -5,7 +5,7 @@
  * @author: Emiliano Balbuena <edgebal>
  */
 
-namespace Minds\Core\Feeds\Top;
+namespace Minds\Core\Feeds\Elastic;
 
 use Minds\Core\Blogs\Blog;
 use Minds\Core\Di\Di;

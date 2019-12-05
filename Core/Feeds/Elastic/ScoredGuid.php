@@ -5,13 +5,13 @@
  * @author: Emiliano Balbuena <edgebal>
  */
 
-namespace Minds\Core\Feeds\Top;
+namespace Minds\Core\Feeds\Elastic;
 
 use Minds\Traits\MagicAttributes;
 
 /**
  * Class ScoredGuid
- * @package Minds\Core\Feeds\Top
+ * @package Minds\Core\Feeds\Elastic
  * @method int|string getGuid()
  * @method ScoredGuid setGuid(int|string $guid)
  * @method float getScore()

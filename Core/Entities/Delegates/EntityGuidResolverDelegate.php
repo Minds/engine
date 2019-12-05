@@ -10,7 +10,7 @@ namespace Minds\Core\Entities\Delegates;
 use Minds\Common\Urn;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Feeds\Top\Entities as TopEntities;
+use Minds\Core\Feeds\Elastic\Entities as TopEntities;
 
 class EntityGuidResolverDelegate implements ResolverDelegate
 {
