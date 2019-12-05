@@ -9,7 +9,7 @@ namespace Minds\Core\Pro\Channel;
 use Exception;
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Di\Di;
-use Minds\Core\Feeds\Top\Manager as TopManager;
+use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Core\Pro\Repository;
 use Minds\Core\Pro\Settings;
 use Minds\Entities\User;
@@ -21,8 +21,8 @@ class Manager
     /** @var Repository */
     protected $repository;
 
-    /** @var TopManager */
-    protected $top;
+    /** @var ElasticManager */
+    protected $elastic;
 
     /** @var abstractCacher */
     protected $cache;
@@ -33,7 +33,7 @@ class Manager
     /**
      * Manager constructor.
      * @param Repository $repository
-     * @param TopManager $top
+     * @param ElasticManager $top
      * @param abstractCacher $cache
      */
     public function __construct(
@@ -42,7 +42,7 @@ class Manager
         $cache = null
     ) {
         $this->repository = $repository ?: new Repository();
-        $this->top = $top ?: new TopManager();
+        $this->elastic = $top ?: new ElasticManager();
         $this->cache = $cache ?: Di::_()->get('Cache');
     }
 
@@ -103,11 +103,11 @@ class Manager
                 'single_owner_threshold' => 0,
             ];
 
-            $content = $this->top->getList($opts)->toArray();
+            $content = $this->elastic->getList($opts)->toArray();
 
             if (count($content) < 2) {
                 $opts['algorithm'] = 'latest';
-                $content = $this->top->getList($opts)->toArray();
+                $content = $this->elastic->getList($opts)->toArray();
             }
 
             $output[] = [

@@ -260,6 +260,16 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
     }
 
     /**
+     * @param array $data
+     * @return Response
+     */
+    public function pushArray(array $data)
+    {
+        array_push($this->data, ...$data);
+        return $this;
+    }
+
+    /**
      * Exports the data array
      * @return array
      */

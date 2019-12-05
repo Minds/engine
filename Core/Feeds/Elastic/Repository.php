@@ -1,28 +1,43 @@
 <?php
 
-namespace Minds\Core\Feeds\Top;
+namespace Minds\Core\Feeds\Elastic;
 
 use Minds\Core\Data\ElasticSearch\Client as ElasticsearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Di\Di;
+use Minds\Core\Features\Manager as Features;
 use Minds\Core\Search\SortingAlgorithms;
 use Minds\Helpers\Text;
 
 class Repository
 {
+    const PERIODS = [
+        '12h' => 43200,
+        '24h' => 86400,
+        '7d' => 604800,
+        '30d' => 2592000,
+        '1y' => 31536000,
+    ];
+
     /** @var ElasticsearchClient */
     protected $client;
 
+    /** @var Features */
+    protected $features;
+
+    /** @var string */
     protected $index;
 
     /** @var array $pendingBulkInserts * */
     private $pendingBulkInserts = [];
 
-    public function __construct($client = null, $config = null)
+    public function __construct($client = null, $config = null, $features = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
 
         $config = $config ?: Di::_()->get('Config');
+
+        $this->features = $features ?: Di::_()->get('Features');
 
         $this->index = $config->get('elasticsearch')['index'];
     }
@@ -53,7 +68,7 @@ class Repository
             'exclude_moderated' => false,
             'moderation_reservations' => null,
             'pinned_guids' => null,
-            'time_created_upper' => time(),
+            'future' => false,
             'exclude' => null,
         ], $opts);
 
@@ -65,7 +80,7 @@ class Repository
             throw new \Exception('Algorithm must be provided');
         }
 
-        if (!in_array($opts['period'], ['12h', '24h', '7d', '30d', '1y'], true)) {
+        if (!in_array($opts['period'], array_keys(static::PERIODS), true)) {
             throw new \Exception('Unsupported period');
         }
 
@@ -102,28 +117,15 @@ class Repository
             'sort' => [],
         ];
 
-        /*if ($type === 'group' && false) {
-            if (!isset($body['query']['function_score']['query']['bool']['must_not'])) {
-                $body['query']['function_score']['query']['bool']['must_not'] = [];
-            }
-            $body['query']['function_score']['query']['bool']['must_not'][] = [
-                'terms' => [
-                    'access_id' => ['0', '1', '2'],
-                ],
-            ];
-        } elseif ($type === 'user') {
-            $body['query']['function_score']['query']['bool']['must'][] = [
-                'term' => [
-                    'access_id' => '2',
-                ],
-            ];
-        }*/
-
         //
 
         switch ($opts['algorithm']) {
             case "top":
-                $algorithm = new SortingAlgorithms\Top();
+                if ($this->features->has('top-feeds-by-age')) {
+                    $algorithm = new SortingAlgorithms\TopByPostAge();
+                } else {
+                    $algorithm = new SortingAlgorithms\Top();
+                }
                 break;
             case "controversial":
                 $algorithm = new SortingAlgorithms\Controversial();
@@ -248,31 +250,49 @@ class Repository
             ];
         }
 
+        // Time bounds
+
+        $timestampUpperBounds = []; // LTE
+        $timestampLowerBounds = []; // GT
+
+        if ($algorithm->isTimestampConstrain()) {
+            $timestampLowerBounds[] = (time() - static::PERIODS[$opts['period']]) * 1000;
+        }
+
         if ($opts['from_timestamp']) {
+            $timestampUpperBounds[] = (int) $opts['from_timestamp'];
+        }
+
+        if ($opts['future']) {
+            $timestampLowerBounds[] = time() * 1000;
+        } else {
+            $timestampUpperBounds[] = time() * 1000;
+        }
+
+        if ($timestampUpperBounds || $timestampLowerBounds) {
+            if (!isset($body['query']['function_score']['query']['bool']['must'])) {
+                $body['query']['function_score']['query']['bool']['must'] = [];
+            }
+
+            $range = [];
+
+            if ($timestampUpperBounds) {
+                $range['lte'] = min($timestampUpperBounds);
+            }
+
+            if ($timestampLowerBounds) {
+                $range['gt'] = max($timestampLowerBounds);
+            }
+
             $body['query']['function_score']['query']['bool']['must'][] = [
                 'range' => [
-                    '@timestamp' => [
-                        'lte' => (int) $opts['from_timestamp'],
-                    ],
+                    '@timestamp' => $range,
                 ],
             ];
         }
 
-        // Filter by time created to cut out scheduled feeds
-        $time_created_upper = $opts['time_created_upper'] ? 'lte' : 'gt';
-        if (!isset($body['query']['function_score']['query']['bool']['must'])) {
-            $body['query']['function_score']['query']['bool']['must'] = [];
-        }
-
-        $body['query']['function_score']['query']['bool']['must'][] = [
-            'range' => [
-                '@timestamp' => [
-                    $time_created_upper => ((int) ($opts['time_created_upper'] ?: time())) * 1000,
-                ],
-            ],
-        ];
-
         //
+
         if ($opts['query']) {
             $words = explode(' ', $opts['query']);
 
@@ -430,12 +450,16 @@ class Repository
 
     public function add(MetricsSync $metric)
     {
-        $body = [];
+        $key = $metric->getMetric();
 
-        $key = $metric->getMetric() . ':' . $metric->getPeriod();
-        $body[$key] = $metric->getCount();
+        if ($metric->getPeriod()) {
+            $key .= ":{$metric->getPeriod()}";
+        }
 
-        $body[$key . ':synced'] = $metric->getSynced();
+        $body = [
+            $key => $metric->getCount(),
+            "{$key}:synced" => $metric->getSynced()
+        ];
 
         $this->pendingBulkInserts[] = [
             'update' => [

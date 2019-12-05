@@ -2,13 +2,22 @@
 /**
  * Converts a static class to use instances
  */
+
 namespace Minds\Common;
+
+use ReflectionClass;
+use ReflectionException;
 
 class StaticToInstance
 {
-    /** @var $class */
+    /** @var ReflectionClass */
     private $class;
 
+    /**
+     * StaticToInstance constructor.
+     * @param $class
+     * @throws ReflectionException
+     */
     public function __construct($class)
     {
         $this->setClass($class);
@@ -16,11 +25,13 @@ class StaticToInstance
 
     /**
      * Set the class in question
-     * @return StripeStaticToOO
+     * @param $class
+     * @return static
+     * @throws ReflectionException
      */
     public function setClass($class)
     {
-        $this->class = new \ReflectionClass($class);
+        $this->class = new ReflectionClass($class);
         return clone $this;
     }
 
@@ -28,7 +39,7 @@ class StaticToInstance
      * Call the static functions as OO style
      * @param string $method
      * @param array $arguments
-     * @return midex
+     * @return mixed
      */
     public function __call($method, $arguments)
     {

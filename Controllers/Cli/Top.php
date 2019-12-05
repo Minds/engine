@@ -4,7 +4,7 @@ namespace Minds\Controllers\Cli;
 
 use Minds\Core\Minds;
 use Minds\Cli;
-use Minds\Core\Feeds\Top\Manager;
+use Minds\Core\Feeds\Elastic\Manager;
 use Minds\Exceptions\CliException;
 use Minds\Interfaces;
 
