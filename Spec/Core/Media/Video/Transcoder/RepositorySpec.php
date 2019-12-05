@@ -38,6 +38,10 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(new TranscodeProfiles\X264_360p());
     
+        $transcode->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('created');
+
         $this->db->request(Argument::that(function ($prepared) {
             return true;
         }))

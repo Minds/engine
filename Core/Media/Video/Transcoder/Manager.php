@@ -5,6 +5,7 @@
 namespace Minds\Core\Media\Video\Transcoder;
 
 use Minds\Core\Media\Video\Transcoder\Delegates\QueueDelegate;
+use Minds\Core\Media\Video\Transcoder\Delegates\NotificationDelegate;
 use Minds\Entities\Video;
 use Minds\Traits\MagicAttributes;
 
@@ -21,6 +22,9 @@ class Manager
         TranscodeProfiles\Webm_1080p::class,
     ];
 
+    /** @var int */
+    const TRANSCODER_TIMEOUT_SECS = 600; // 10 minutes with not progress
+
     /** @var Repository */
     private $repository;
 
@@ -33,12 +37,16 @@ class Manager
     /** @var TranscodeExecutors\TranscodeExecutorInterfsce */
     private $transcodeExecutor;
 
-    public function __construct($repository = null, $queueDelegate = null, $transcodeStorage = null, $transcodeExecutor = null)
+    /** @var NotificationDelegate */
+    private $notificationDelegate;
+
+    public function __construct($repository = null, $queueDelegate = null, $transcodeStorage = null, $transcodeExecutor = null, $notificationDelegate = null)
     {
         $this->repository = $repository ?? new Repository();
         $this->queueDelegate = $queueDelegate ?? new QueueDelegate();
         $this->transcodeStorage = $transcodeStorage ?? new TranscodeStorage\S3Storage();
         $this->transcodeExecutor = $transcodeExecutor ?? new TranscodeExecutors\FFMpegExecutor();
+        $this->notificationDelegate = $notificationDelegate ?? new NotificationDelegate();
     }
 
     /**
@@ -110,7 +118,8 @@ class Manager
                 $transcode = new Transcode();
                 $transcode
                     ->setVideo($video)
-                    ->setProfile(new $profile);
+                    ->setProfile(new $profile)
+                    ->setStatus(TranscodeStates::CREATED);
                 // Add the transcode to database and queue
                 $this->add($transcode);
             } catch (TranscodeProfiles\UnavailableTranscodeProfileException $e) {
@@ -173,14 +182,6 @@ class Manager
             $this->update($transcode, [ 'progress', 'status' ]);
         }
 
-        // Was this the last transcode to complete?
-        // if ($this->isLastToTrancode($transcode)) {
-        //     // Sent a notification to the user saying the transcode is completed
-        // }
+        $this->notificationDelegate->onTranscodeCompleted($transcode);
     }
-
-    // protected function isLastToTrancode(Transcode $transcode): bool
-    // {
-
-    // }
 }

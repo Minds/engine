@@ -9,6 +9,7 @@ use Minds\Core\Media\Video\Transcoder\TranscodeProfiles;
 use Minds\Core\Media\Video\Transcoder\TranscodeStorage\TranscodeStorageInterface;
 use Minds\Core\Media\Video\Transcoder\TranscodeExecutors\TranscodeExecutorInterface;
 use Minds\Core\Media\Video\Transcoder\Transcode;
+use Minds\Core\Media\Video\Transcoder\Delegates\NotificationDelegate;
 use Minds\Entities\Video;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -20,14 +21,16 @@ class ManagerSpec extends ObjectBehavior
     private $queueDelegate;
     private $transcodeStorage;
     private $transcodeExecutor;
+    private $notificationDelegate;
 
-    public function let(Repository $repository, QueueDelegate $queueDelegate, TranscodeStorageInterface $transcodeStorage, TranscodeExecutorInterface $transcodeExecutor)
+    public function let(Repository $repository, QueueDelegate $queueDelegate, TranscodeStorageInterface $transcodeStorage, TranscodeExecutorInterface $transcodeExecutor, NotificationDelegate $notificationDelegate)
     {
-        $this->beConstructedWith($repository, $queueDelegate, $transcodeStorage, $transcodeExecutor);
+        $this->beConstructedWith($repository, $queueDelegate, $transcodeStorage, $transcodeExecutor, $notificationDelegate);
         $this->repository = $repository;
         $this->queueDelegate = $queueDelegate;
         $this->transcodeStorage = $transcodeStorage;
         $this->transcodeExecutor = $transcodeExecutor;
+        $this->notificationDelegate = $notificationDelegate;
     }
 
     public function it_is_initializable()
@@ -121,6 +124,7 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_execute_the_transcode()
     {
         $transcode = new Transcode();
+        $transcode->setGuid('123');
     
         $this->repository->update(Argument::that(function ($transcode) {
             return $transcode->getStatus() === 'transcoding';
@@ -134,6 +138,10 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->update(Argument::that(function ($transcode) {
             return $transcode->getStatus() === 'completed';
         }), [ 'progress', 'status' ])
+            ->shouldBeCalled();
+
+        // Check for future transcodes is called
+        $this->notificationDelegate->onTranscodeCompleted($transcode)
             ->shouldBeCalled();
 
         $this->transcode($transcode);

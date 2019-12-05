@@ -38,7 +38,14 @@ class Repository
             'status' => null,
         ], $opts);
 
-        $statement = "SELECT * FROM video_transcodes";
+        $statement = "SELECT 
+            guid,
+            profile_id,
+            progress,
+            status,
+            last_event_timestamp_ms,
+            bytes
+            FROM video_transcodes";
 
         $where = [];
         $values = [];
@@ -88,7 +95,14 @@ class Repository
         $urn = Urn::_($urn);
         list($guid, $profile) = explode('-', $urn->getNss());
 
-        $statement = "SELECT * FROM video_transcodes
+        $statement = "SELECT 
+            guid,
+            profile_id,
+            progress,
+            status,
+            last_event_timestamp_ms,
+            bytes
+            FROM video_transcodes
             WHERE guid = ?
             AND profile = ?";
         $values = [
@@ -119,10 +133,11 @@ class Repository
      */
     public function add(Transcode $transcode): bool
     {
-        $statement = "INSERT INTO video_transcodes (guid, profile_id) VALUES (?, ?)";
+        $statement = "INSERT INTO video_transcodes (guid, profile_id, status) VALUES (?, ?)";
         $values = [
             new Bigint($transcode->getGuid()),
             $transcode->getProfile()->getId(),
+            $transcode->getStatus(),
         ];
 
         $prepared = new Custom();
@@ -235,11 +250,11 @@ class Repository
         $transcode = new Transcode();
         $transcode->setGuid((string) $row['guid'])
             ->setProfile(TranscodeProfiles\Factory::build((string) $row['profile_id']))
-            ->setProgress($row['progress']->value())
+            ->setProgress($row['progress'])
             ->setStatus($row['status'])
             ->setLastEventTimestampMs(round($row['last_event_timestamp_ms']->microtime(true) * 1000))
-            ->setLength($row['length_secs']->value())
-            ->setBytes($row['bytes']->value());
+            ->setLengthSecs($row['length_secs'])
+            ->setBytes($row['bytes']);
         return $transcode;
     }
 }
