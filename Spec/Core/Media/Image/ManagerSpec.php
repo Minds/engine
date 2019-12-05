@@ -34,9 +34,10 @@ class ManagerSpec extends ObjectBehavior
         $activity = new Activity();
         $activity->set('entity_guid', 123);
         $activity->set('access_id', ACCESS_PRIVATE);
+        $activity->set('last_updated', 1575542933);
         $this->config->get('cdn_url')
             ->willReturn('https://minds.dev/');
-        $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge';
+        $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge/1575542933';
         $this->signedUri->sign($uri, Argument::any())
             ->willReturn('signed url will be here');
         $this->getPublicAssetUri($activity)
@@ -48,10 +49,11 @@ class ManagerSpec extends ObjectBehavior
         $activity = new Activity();
         $activity->set('entity_guid', 123);
         $activity->set('access_id', ACCESS_PUBLIC);
+        $activity->set('last_updated', 1575542933);
         $this->config->get('cdn_url')
             ->willReturn('https://minds.dev/');
         $this->getPublicAssetUri($activity)
-            ->shouldBe('https://minds.dev/fs/v1/thumbnail/123/xlarge');
+            ->shouldBe('https://minds.dev/fs/v1/thumbnail/123/xlarge/1575542933');
     }
 
     public function it_should_return_public_asset_uri_for_image()
@@ -61,7 +63,7 @@ class ManagerSpec extends ObjectBehavior
         $entity->set('access_id', ACCESS_PRIVATE);
         $this->config->get('cdn_url')
             ->willReturn('https://minds.dev/');
-        $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge';
+        $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge/';
         $this->signedUri->sign($uri, Argument::any())
             ->willReturn('signed url will be here');
         $this->getPublicAssetUri($entity)
@@ -76,7 +78,7 @@ class ManagerSpec extends ObjectBehavior
         $this->config->get('cdn_url')
             ->willReturn('https://minds.dev/');
         $this->getPublicAssetUri($entity)
-            ->shouldBe('https://minds.dev/fs/v1/thumbnail/123/xlarge');
+            ->shouldBe('https://minds.dev/fs/v1/thumbnail/123/xlarge/');
     }
 
     public function it_should_return_public_asset_uri_for_video()
@@ -84,9 +86,10 @@ class ManagerSpec extends ObjectBehavior
         $entity = new Video();
         $entity->set('guid', 123);
         $entity->set('access_id', ACCESS_PRIVATE);
+        $entity->set('last_updated', 1575542933);
         $this->config->get('cdn_url')
             ->willReturn('https://minds.dev/');
-        $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge';
+        $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge/1575542933';
         $this->signedUri->sign($uri, Argument::any())
             ->willReturn('signed url will be here');
         $this->getPublicAssetUri($entity)
@@ -98,11 +101,12 @@ class ManagerSpec extends ObjectBehavior
         $entity = new Video();
         $entity->set('guid', 123);
         $entity->set('access_id', ACCESS_PUBLIC);
+        $entity->set('last_updated', 1575542933);
         $this->config->get('cdn_url')
             ->willReturn('https://minds.dev/');
-        $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge';
+        $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge/1575542933';
         $this->getPublicAssetUri($entity)
-            ->shouldBe('https://minds.dev/fs/v1/thumbnail/123/xlarge');
+            ->shouldBe('https://minds.dev/fs/v1/thumbnail/123/xlarge/1575542933');
     }
 
 
@@ -112,7 +116,7 @@ class ManagerSpec extends ObjectBehavior
         $entity->setAttachment('attachment_guid', '123');
         $this->config->get('cdn_url')
             ->willReturn('https://minds.dev/');
-        $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge';
+        $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge/';
         $this->signedUri->sign($uri, Argument::any())
             ->willReturn('signed url will be here');
         $this->getPublicAssetUri($entity)
@@ -127,6 +131,6 @@ class ManagerSpec extends ObjectBehavior
         $this->config->get('cdn_url')
             ->willReturn('https://minds.dev/');
         $this->getPublicAssetUri($entity)
-            ->shouldBe('https://minds.dev/fs/v1/thumbnail/123/xlarge');
+            ->shouldBe('https://minds.dev/fs/v1/thumbnail/123/xlarge/');
     }
 }
