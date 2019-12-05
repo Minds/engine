@@ -1,12 +1,12 @@
 <?php
 /**
- * Controversial
+ * TopByPostAge
  *
  * @author: Emiliano Balbuena <edgebal>
  */
 namespace Minds\Core\Search\SortingAlgorithms;
 
-class Controversial implements SortingAlgorithm
+class TopByPostAge implements SortingAlgorithm
 {
     protected $period;
 
@@ -15,7 +15,7 @@ class Controversial implements SortingAlgorithm
      */
     public function isTimestampConstrain(): bool
     {
-        return false; // Old period-based algorithms shouldn't be constrained
+        return true;
     }
 
     /**
@@ -24,7 +24,6 @@ class Controversial implements SortingAlgorithm
      */
     public function setPeriod($period)
     {
-        $this->period = $period;
         return $this;
     }
 
@@ -37,10 +36,8 @@ class Controversial implements SortingAlgorithm
             'bool' => [
                 'must' => [
                     [
-                        'range' => [
-                            "votes:up:{$this->period}:synced" => [
-                                'gte' => strtotime('7 days ago', time()),
-                            ],
+                        'exists' => [
+                            'field' => "votes:up",
                         ],
                     ],
                 ],
@@ -54,17 +51,17 @@ class Controversial implements SortingAlgorithm
     public function getScript()
     {
         return "
-            def up = doc['votes:up:{$this->period}'].value ?: 0;
-            def down = doc['votes:down:{$this->period}'].value ?: 0;
+            def up = (doc['votes:up'].value ?: 0) * 1.0;
+            def down = (doc['votes:down'].value ?: 0) * 1.0;
+            def magnitude = up + down;
             
-            if (down <= 0 || up <= 0) {
-                return 0;
+            if (magnitude <= 0) {
+                return -10;
             }
             
-            def magnitude = up + down;
-            def balance = (up > down) ? 1.0 * down / up : 1.0 * up / down;
-
-            return Math.log(Math.pow(magnitude, balance));
+            def score = ((up + 1.9208) / (up + down) - 1.96 * Math.sqrt((up * down) / (up + down) + 0.9604) / (up + down)) / (1 + 3.8416 / (up + down));
+            
+            return score;
         ";
     }
 

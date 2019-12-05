@@ -111,8 +111,8 @@ class content implements Interfaces\Api
             $query = $_GET['query'];
         }
 
-        /** @var Core\Feeds\Top\Entities $entities */
-        $entities = new Core\Feeds\Top\Entities();
+        /** @var Core\Feeds\Elastic\Entities $entities */
+        $entities = new Core\Feeds\Elastic\Entities();
         $entities->setActor($currentUser);
 
         $isOwner = false;
@@ -181,7 +181,7 @@ class content implements Interfaces\Api
     }
 
     /**
-     * @param Core\Feeds\Top\Entities $entities
+     * @param Core\Feeds\Elastic\Entities $entities
      * @param array $opts
      * @param bool $asActivities
      * @param bool $sync
@@ -191,8 +191,8 @@ class content implements Interfaces\Api
     private function getData($entities, $opts, $asActivities, $sync)
     {
 
-        /** @var Core\Feeds\Top\Manager $manager */
-        $manager = Di::_()->get('Feeds\Top\Manager');
+        /** @var Core\Feeds\Elastic\Manager $manager */
+        $manager = Di::_()->get('Feeds\Elastic\Manager');
         $result = $manager->getList($opts);
 
         if (!$sync) {

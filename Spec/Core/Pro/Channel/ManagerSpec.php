@@ -4,7 +4,7 @@ namespace Spec\Minds\Core\Pro\Channel;
 
 use Minds\Common\Repository\Response;
 use Minds\Core\Data\cache\abstractCacher;
-use Minds\Core\Feeds\Top\Manager as TopManager;
+use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Core\Pro\Channel\Manager;
 use Minds\Core\Pro\Repository;
 use Minds\Core\Pro\Settings;
@@ -17,22 +17,22 @@ class ManagerSpec extends ObjectBehavior
     /** @var Repository */
     protected $repository;
 
-    /** @var TopManager */
-    protected $top;
+    /** @var ElasticManager */
+    protected $elastic;
 
     /** @var abstractCacher */
     protected $cache;
 
     public function let(
         Repository $repository,
-        TopManager $top,
+        ElasticManager $elastic,
         abstractCacher $cache
     ) {
         $this->repository = $repository;
-        $this->top = $top;
+        $this->elastic = $elastic;
         $this->cache = $cache;
 
-        $this->beConstructedWith($repository, $top, $cache);
+        $this->beConstructedWith($repository, $elastic, $cache);
     }
 
     public function it_is_initializable()
@@ -74,7 +74,7 @@ class ManagerSpec extends ObjectBehavior
                 ['tag' => 'test2', 'label' => 'Test 2'],
             ]);
 
-        $this->top->getList(Argument::that(function (array $opts) {
+        $this->elastic->getList(Argument::that(function (array $opts) {
             return $opts['algorithm'] === 'top' && $opts['hashtags'] === ['test1'];
         }))
             ->shouldBeCalled()
@@ -84,7 +84,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([5000, 5001, 5002]);
 
-        $this->top->getList(Argument::that(function (array $opts) {
+        $this->elastic->getList(Argument::that(function (array $opts) {
             return $opts['algorithm'] === 'top' && $opts['hashtags'] === ['test2'];
         }))
             ->shouldBeCalled()
@@ -94,7 +94,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([]);
 
-        $this->top->getList(Argument::that(function (array $opts) {
+        $this->elastic->getList(Argument::that(function (array $opts) {
             return $opts['algorithm'] === 'latest' && $opts['hashtags'] === ['test2'];
         }))
             ->shouldBeCalled()
