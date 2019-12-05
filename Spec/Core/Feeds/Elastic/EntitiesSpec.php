@@ -1,10 +1,10 @@
 <?php
 
-namespace Spec\Minds\Core\Feeds\Top;
+namespace Spec\Minds\Core\Feeds\Elastic;
 
 use Minds\Core\Blogs\Blog;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Feeds\Top\Entities;
+use Minds\Core\Feeds\Elastic\Entities;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Entities\Image;

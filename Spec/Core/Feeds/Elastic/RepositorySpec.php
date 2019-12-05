@@ -1,12 +1,12 @@
 <?php
 
-namespace Spec\Minds\Core\Feeds\Top;
+namespace Spec\Minds\Core\Feeds\Elastic;
 
 use Minds\Core\Config;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Data\ElasticSearch\Prepared\Search;
-use Minds\Core\Feeds\Top\MetricsSync;
-use Minds\Core\Feeds\Top\Repository;
+use Minds\Core\Feeds\Elastic\MetricsSync;
+use Minds\Core\Feeds\Elastic\Repository;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
