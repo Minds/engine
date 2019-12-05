@@ -42,6 +42,7 @@ class Manager
     {
         $uri = null;
         $asset_guid = null;
+        $lastUpdated = null;
         switch (get_class($entity)) {
             case Activity::class:
                 switch ($entity->get('custom_type')) {
@@ -51,19 +52,21 @@ class Manager
                     default:
                         $asset_guid = $entity->get('entity_guid');
                 }
+                $lastUpdated = $entity->get('last_updated');
                 break;
             case Image::class:
                 $asset_guid = $entity->getGuid();
                 break;
             case Video::class:
                 $asset_guid = $entity->getGuid();
+                $lastUpdated = $entity->get('last_updated');
                 break;
             case Comment::class:
                 $asset_guid = $entity->getAttachments()['attachment_guid'];
                 break;
         }
 
-        $uri = $this->config->get('cdn_url') . 'fs/v1/thumbnail/' . $asset_guid . '/' . $size;
+        $uri = $this->config->get('cdn_url') . 'fs/v1/thumbnail/' . $asset_guid . '/' . $size . '/' . $lastUpdated;
 
         if ($entity->access_id !== ACCESS_PUBLIC) {
             $uri = $this->signUri($uri);
