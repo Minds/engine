@@ -502,6 +502,7 @@ class Blog extends RepositoryEntity
             }
         }
         $this->nsfw = $array;
+        $this->markAsDirty('nsfw');
         return $this;
     }
     
