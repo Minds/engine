@@ -60,6 +60,7 @@ class CreateActivity
             ->setThumbnail($blog->getIconUrl())
             ->setFromEntity($blog)
             ->setMature($blog->isMature())
+            ->setNsfw($blog->getNsfw())
             ->setOwner($owner->export())
             ->setWireThreshold($blog->getWireThreshold())
             ->setPaywall($blog->isPaywall());
