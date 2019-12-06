@@ -64,7 +64,7 @@ class Hot implements SortingAlgorithm
             def up = doc['votes:up:{$this->period}'].value ?: 0;
             def down = doc['votes:down:{$this->period}'].value ?: 0;
 
-            def age = $time - (doc['@timestamp'].value / 1000) - 1546300800;
+            def age = $time - (doc['@timestamp'].value.millis / 1000) - 1546300800;
 
             def votes = up - down;
             def sign = (votes > 0) ? 1 : (votes < 0 ? -1 : 0);
