@@ -265,6 +265,7 @@ class Image extends File
             'description' => null,
             'license' => null,
             'mature' => null,
+            'nsfw' => null,
             'boost_rejection_reason' => null,
             'hidden' => null,
             'batch_guid' => null,
@@ -283,6 +284,7 @@ class Image extends File
             'access_id',
             'container_guid',
             'mature',
+            'nsfw',
             'boost_rejection_reason',
             'rating',
             'time_sent',
@@ -297,7 +299,8 @@ class Image extends File
                 $data[$field] = (int) $data[$field];
             } elseif ($field == 'mature') {
                 $this->setFlag('mature', !!$data['mature']);
-                continue;
+            } elseif ($field == 'nsfw') {
+                $this->setNsfw($data['nsfw']);
             }
 
             $this->$field = $data[$field];
@@ -344,6 +347,7 @@ class Image extends File
                 'src' => \elgg_get_site_url() . 'fs/v1/thumbnail/' . $this->guid,
                 'href' => \elgg_get_site_url() . 'media/' . ($this->container_guid ? $this->container_guid . '/' : '') . $this->guid,
                 'mature' => $this->getFlag('mature'),
+                'nsfw' => $this->nsfw ?: [],
                 'width' => $this->width ?? 0,
                 'height' => $this->height ?? 0,
                 'gif' => (bool) ($this->gif ?? false),

@@ -539,6 +539,7 @@ class newsfeed implements Interfaces\Api
                 $activity = new Activity();
 
                 $activity->setMature(isset($_POST['mature']) && !!$_POST['mature']);
+                $activity->setNsfw($_POST['nsfw'] ?? []);
 
                 $user = Core\Session::getLoggedInUser();
 
