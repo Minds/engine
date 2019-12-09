@@ -29,104 +29,157 @@ class feeds implements Interfaces\Api
     {
         Factory::isLoggedIn();
 
-        $now = time();
-        $periodsInSecs = Core\Feeds\Elastic\Repository::PERIODS;
+        /** @var User $actor */
+        $actor = Core\Session::getLoggedinUser();
 
-        /** @var User $currentUser */
-        $currentUser = Core\Session::getLoggedinUser();
-
-        $filter = $pages[0] ?? null;
-
-        if (!$filter) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => 'Invalid filter'
-            ]);
-        }
-
-        $algorithm = $pages[1] ?? null;
-
-        if (!$algorithm) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => 'Invalid algorithm'
-            ]);
-        }
-
-        $type = '';
-        switch ($pages[2]) {
+        switch ($pages[2] ?? '') {
             case 'activities':
                 $type = 'activity';
                 break;
+
             case 'channels':
                 $type = 'user';
                 break;
+
             case 'images':
                 $type = 'object:image';
                 break;
+
             case 'videos':
                 $type = 'object:video';
                 break;
+
             case 'groups':
                 $type = 'group';
                 break;
+
             case 'blogs':
                 $type = 'object:blog';
                 break;
+
+            default:
+                $type = $pages[2] ?? '';
         }
 
-        $period = $_GET['period'] ?? '12h';
+        $limit = ($_GET['limit'] ?? 0) ?: 12;
 
-        if ($algorithm === 'hot') {
-            $period = '12h';
-        } elseif ($algorithm === 'latest') {
-            $period = '1y';
-        }
+        $hashtags =
 
-        //
+        $feedCollection = new Core\Feeds\FeedCollection();
+        $feedCollection
+            ->setActor($actor)
+            ->setFilter($pages[0] ?? '')
+            ->setAlgorithm($pages[1] ?? '')
+            ->setType($type)
+            ->setPeriod($_GET['period'] ?? '12h')
+            ->setLimit($limit)
+            ->setOffset($_GET['offset'] ?? 0)
+            ->setCap($actor->isAdmin() ? 5000 : 600)
+            ->setAll((bool) $_GET['all'] ?? false)
+            ->setHashtags($hashtags)
+        ;
 
-        $hardLimit = 600;
+        /////////////////////////////////////////////////////////
 
-        if ($currentUser && $currentUser->isAdmin()) {
-            $hardLimit = 5000;
-        }
+        $now = time();
+        $periodsInSecs = Core\Feeds\Elastic\Repository::PERIODS;
 
-        $offset = 0;
+//        /** @var User $currentUser */
+//        $currentUser = Core\Session::getLoggedinUser();
 
-        if (isset($_GET['offset'])) {
-            $offset = intval($_GET['offset']);
-        }
+//        $filter = $pages[0] ?? null;
+//
+//        if (!$filter) {
+//            return Factory::response([
+//                'status' => 'error',
+//                'message' => 'Invalid filter'
+//            ]);
+//        }
 
-        $limit = 12;
+//        $algorithm = $pages[1] ?? null;
 
-        if (isset($_GET['limit'])) {
-            $limit = abs(intval($_GET['limit']));
-        }
+//        if (!$algorithm) {
+//            return Factory::response([
+//                'status' => 'error',
+//                'message' => 'Invalid algorithm'
+//            ]);
+//        }
 
-        if (($offset + $limit) > $hardLimit) {
-            $limit = $hardLimit - $offset;
-        }
+//        $type = '';
+//
+//        switch ($pages[2]) {
+//            case 'activities':
+//                $type = 'activity';
+//                break;
+//            case 'channels':
+//                $type = 'user';
+//                break;
+//            case 'images':
+//                $type = 'object:image';
+//                break;
+//            case 'videos':
+//                $type = 'object:video';
+//                break;
+//            case 'groups':
+//                $type = 'group';
+//                break;
+//            case 'blogs':
+//                $type = 'object:blog';
+//                break;
+//        }
 
-        if ($limit <= 0) {
-            return Factory::response([
-                'status' => 'success',
-                'entities' => [],
-                'load-next' => $hardLimit,
-                'overflow' => true,
-            ]);
-        }
+//        $period = $_GET['period'] ?? '12h';
+//
+//        if ($algorithm === 'hot') {
+//            $period = '12h';
+//        } elseif ($algorithm === 'latest') {
+//            $period = '1y';
+//        }
 
-        //
+//        //
+//
+//        $hardLimit = 600;
+//
+//        if ($currentUser && $currentUser->isAdmin()) {
+//            $hardLimit = 5000;
+//        }
+//
+//        $offset = 0;
+//
+//        if (isset($_GET['offset'])) {
+//            $offset = intval($_GET['offset']);
+//        }
+//
+//        $limit = 12;
+//
+//        if (isset($_GET['limit'])) {
+//            $limit = abs(intval($_GET['limit']));
+//        }
 
-        $hashtag = null;
-        if (isset($_GET['hashtag'])) {
-            $hashtag = strtolower($_GET['hashtag']);
-        }
+//        if (($offset + $limit) > $hardLimit) {
+//            $limit = $hardLimit - $offset;
+//        }
+//
+//        if ($limit <= 0) {
+//            return Factory::response([
+//                'status' => 'success',
+//                'entities' => [],
+//                'load-next' => $hardLimit,
+//                'overflow' => true,
+//            ]);
+//        }
 
-        $all = false;
-        if (!$hashtag && isset($_GET['all']) && $_GET['all']) {
-            $all = true;
-        }
+//        //
+//
+//        $hashtag = null;
+//        if (isset($_GET['hashtag'])) {
+//            $hashtag = strtolower($_GET['hashtag']);
+//        }
+//
+//        $all = false;
+//        if (!$hashtag && isset($_GET['all']) && $_GET['all']) {
+//            $all = true;
+//        }
 
         $sync = (bool) ($_GET['sync'] ?? false);
 

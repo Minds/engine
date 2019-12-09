@@ -24,7 +24,10 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
     /** @var bool */
     protected $lastPage = false;
 
-    public function __construct(array $data = null, $pagingToken = null)
+    /** @var array */
+    protected $attributes = [];
+
+    public function __construct(array $data = null, $pagingToken = null, array $attributes = [])
     {
         if ($data !== null) {
             $this->data = $data;
@@ -32,6 +35,10 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
 
         if ($pagingToken !== null) {
             $this->pagingToken = $pagingToken;
+        }
+
+        if ($this->attributes) {
+            $this->attributes = [];
         }
     }
 
@@ -96,12 +103,50 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
     }
 
     /**
-     * Returns if the result set is fauly
+     * Returns if the result set is faulty
      * @return bool
      */
     public function hasFailed()
     {
         return !!$this->exception;
+    }
+
+    /**
+     * @param array $attributes
+     * @return Response
+     */
+    public function setAttributes(array $attributes)
+    {
+        $this->attributes = $attributes;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAttributes()
+    {
+        return $this->attributes;
+    }
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     * @return Response
+     */
+    public function setAttribute(string $key, $value)
+    {
+        $this->attributes[$key] = $value;
+        return $this;
+    }
+
+    /**
+     * @param string $key
+     * @return mixed|null
+     */
+    public function getAttribute(string $key)
+    {
+        return $this->attributes[$key] ?? null;
     }
 
     /**
@@ -296,7 +341,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      */
     public function reverse($preserveKeys = false)
     {
-        return new static(array_reverse($this->data, $preserveKeys), $this->pagingToken);
+        return new static(array_reverse($this->data, $preserveKeys), $this->pagingToken, $this->attributes);
     }
 
     /**
@@ -315,7 +360,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
             $filtered = array_values($filtered);
         }
 
-        return new static($filtered, $this->pagingToken);
+        return new static($filtered, $this->pagingToken, $this->attributes);
     }
 
     /**
@@ -325,7 +370,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      */
     public function map($callback)
     {
-        return new static(array_map($callback, $this->data), $this->pagingToken);
+        return new static(array_map($callback, $this->data), $this->pagingToken, $this->attributes);
     }
 
     /**
