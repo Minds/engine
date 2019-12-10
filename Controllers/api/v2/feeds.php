@@ -2,6 +2,7 @@
 
 namespace Minds\Controllers\api\v2;
 
+use Exception;
 use Minds\Api\Exportable;
 use Minds\Api\Factory;
 use Minds\Common\Repository\Response;
@@ -9,297 +10,103 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Entities\User;
+use Minds\Helpers\Text;
 use Minds\Interfaces;
 
 class feeds implements Interfaces\Api
 {
-    const PERIOD_FALLBACK = [
-        '12h' => '7d',
-        '24h' => '7d',
-        '7d' => '30d',
-        '30d' => '1y'
-    ];
+
 
     /**
      * Gets a list of suggested hashtags, including the ones the user has opted in
      * @param array $pages
-     * @throws \Exception
+     * @throws Exception
      */
     public function get($pages)
     {
         Factory::isLoggedIn();
 
-        /** @var User $actor */
-        $actor = Core\Session::getLoggedinUser();
-
-        switch ($pages[2] ?? '') {
-            case 'activities':
-                $type = 'activity';
-                break;
-
-            case 'channels':
-                $type = 'user';
-                break;
-
-            case 'images':
-                $type = 'object:image';
-                break;
-
-            case 'videos':
-                $type = 'object:video';
-                break;
-
-            case 'groups':
-                $type = 'group';
-                break;
-
-            case 'blogs':
-                $type = 'object:blog';
-                break;
-
-            default:
-                $type = $pages[2] ?? '';
-        }
-
-        $limit = ($_GET['limit'] ?? 0) ?: 12;
-
-        $hashtags =
-
-        $feedCollection = new Core\Feeds\FeedCollection();
-        $feedCollection
-            ->setActor($actor)
-            ->setFilter($pages[0] ?? '')
-            ->setAlgorithm($pages[1] ?? '')
-            ->setType($type)
-            ->setPeriod($_GET['period'] ?? '12h')
-            ->setLimit($limit)
-            ->setOffset($_GET['offset'] ?? 0)
-            ->setCap($actor->isAdmin() ? 5000 : 600)
-            ->setAll((bool) $_GET['all'] ?? false)
-            ->setHashtags($hashtags)
-        ;
-
-        /////////////////////////////////////////////////////////
-
-        $now = time();
-        $periodsInSecs = Core\Feeds\Elastic\Repository::PERIODS;
-
-//        /** @var User $currentUser */
-//        $currentUser = Core\Session::getLoggedinUser();
-
-//        $filter = $pages[0] ?? null;
-//
-//        if (!$filter) {
-//            return Factory::response([
-//                'status' => 'error',
-//                'message' => 'Invalid filter'
-//            ]);
-//        }
-
-//        $algorithm = $pages[1] ?? null;
-
-//        if (!$algorithm) {
-//            return Factory::response([
-//                'status' => 'error',
-//                'message' => 'Invalid algorithm'
-//            ]);
-//        }
-
-//        $type = '';
-//
-//        switch ($pages[2]) {
-//            case 'activities':
-//                $type = 'activity';
-//                break;
-//            case 'channels':
-//                $type = 'user';
-//                break;
-//            case 'images':
-//                $type = 'object:image';
-//                break;
-//            case 'videos':
-//                $type = 'object:video';
-//                break;
-//            case 'groups':
-//                $type = 'group';
-//                break;
-//            case 'blogs':
-//                $type = 'object:blog';
-//                break;
-//        }
-
-//        $period = $_GET['period'] ?? '12h';
-//
-//        if ($algorithm === 'hot') {
-//            $period = '12h';
-//        } elseif ($algorithm === 'latest') {
-//            $period = '1y';
-//        }
-
-//        //
-//
-//        $hardLimit = 600;
-//
-//        if ($currentUser && $currentUser->isAdmin()) {
-//            $hardLimit = 5000;
-//        }
-//
-//        $offset = 0;
-//
-//        if (isset($_GET['offset'])) {
-//            $offset = intval($_GET['offset']);
-//        }
-//
-//        $limit = 12;
-//
-//        if (isset($_GET['limit'])) {
-//            $limit = abs(intval($_GET['limit']));
-//        }
-
-//        if (($offset + $limit) > $hardLimit) {
-//            $limit = $hardLimit - $offset;
-//        }
-//
-//        if ($limit <= 0) {
-//            return Factory::response([
-//                'status' => 'success',
-//                'entities' => [],
-//                'load-next' => $hardLimit,
-//                'overflow' => true,
-//            ]);
-//        }
-
-//        //
-//
-//        $hashtag = null;
-//        if (isset($_GET['hashtag'])) {
-//            $hashtag = strtolower($_GET['hashtag']);
-//        }
-//
-//        $all = false;
-//        if (!$hashtag && isset($_GET['all']) && $_GET['all']) {
-//            $all = true;
-//        }
-
-        $sync = (bool) ($_GET['sync'] ?? false);
-
-        $periodFallback = (bool) ($_GET['period_fallback'] ?? false);
-
-        $asActivities = (bool) ($_GET['as_activities'] ?? true);
-
-        $query = isset($_GET['query']) ? urldecode($_GET['query']) : null;
-
-        $container_guid = $_GET['container_guid'] ?? null;
-        $custom_type = isset($_GET['custom_type']) && $_GET['custom_type'] ? [$_GET['custom_type']] : null;
-
-        if ($container_guid) {
-            $container = EntitiesFactory::build($container_guid);
-
-            if (!$container || !Core\Security\ACL::_()->read($container)) {
-                return Factory::response([
-                    'status' => 'error',
-                    'message' => 'Forbidden'
-                ]);
-            }
-        }
-
-        /** @var Core\Feeds\Elastic\Manager $manager */
-        $manager = Di::_()->get('Feeds\Elastic\Manager');
-
-        /** @var Core\Feeds\Elastic\Entities $elasticEntities */
-        $elasticEntities = new Core\Feeds\Elastic\Entities();
-        $elasticEntities
-            ->setActor($currentUser);
-
-        $opts = [
-            'cache_key' => Core\Session::getLoggedInUserGuid(),
-            'container_guid' => $container_guid,
-            'access_id' => 2,
-            'custom_type' => $custom_type,
-            'limit' => $limit,
-            'offset' => $offset,
-            'type' => $type,
-            'algorithm' => $algorithm,
-            'period' => $period,
-            'sync' => $sync,
-            'query' => $query ?? null,
-            'single_owner_threshold' => 36,
-            'as_activities' => $asActivities,
-        ];
-
-        $nsfw = $_GET['nsfw'] ?? '';
-        $opts['nsfw'] = explode(',', $nsfw);
-
-        if ($hashtag) {
-            $opts['hashtags'] = [$hashtag];
-            $opts['filter_hashtags'] = true;
-        } elseif (isset($_GET['hashtags']) && $_GET['hashtags']) {
-            $opts['hashtags'] = explode(',', $_GET['hashtags']);
-            $opts['filter_hashtags'] = true;
-        } elseif (!$all) {
-            /** @var Core\Hashtags\User\Manager $hashtagsManager */
-            $hashtagsManager = Di::_()->get('Hashtags\User\Manager');
-            $hashtagsManager->setUser(Core\Session::getLoggedInUser());
-
-            $result = $hashtagsManager->get([
-                'limit' => 50,
-                'trending' => false,
-                'defaults' => false,
-            ]);
-
-            $opts['hashtags'] = array_column($result ?: [], 'value');
-            $opts['filter_hashtags'] = false;
-        }
-
         try {
-            $entities = new Response();
-            $fallbackAt = null;
-            $i = 0;
+            /** @var User $actor */
+            $actor = Core\Session::getLoggedinUser();
 
-            while ($entities->count() < $limit) {
-                $rows = $manager->getList($opts);
-
-                $entities = $entities->pushArray($rows->toArray());
-
-                if (
-                    !$periodFallback ||
-                    $opts['algorithm'] !== 'top' ||
-                    !isset(static::PERIOD_FALLBACK[$opts['period']]) ||
-                    ++$i > 2 // Stop at 2nd fallback (i.e. 12h > 7d > 30d)
-                ) {
+            switch ($pages[2] ?? '') {
+                case 'activities':
+                    $type = 'activity';
                     break;
-                }
 
-                $period = $opts['period'];
-                $from = $now - $periodsInSecs[$period];
-                $opts['from_timestamp'] = $from * 1000;
-                $opts['period'] = static::PERIOD_FALLBACK[$period];
+                case 'channels':
+                    $type = 'user';
+                    break;
 
-                if (!$fallbackAt) {
-                    $fallbackAt = $from;
-                }
+                case 'images':
+                    $type = 'object:image';
+                    break;
+
+                case 'videos':
+                    $type = 'object:video';
+                    break;
+
+                case 'groups':
+                    $type = 'group';
+                    break;
+
+                case 'blogs':
+                    $type = 'object:blog';
+                    break;
+
+                default:
+                    $type = $pages[2] ?? '';
             }
 
-            if (!$sync) {
-                // Remove all unlisted content, if ES document is not in sync, it'll
-                // also remove pending activities
-                $entities = $entities->filter([$elasticEntities, 'filter']);
+            $limit = ($_GET['limit'] ?? 0) ?: 12;
 
-                if ($asActivities) {
-                    // Cast to ephemeral Activity entities, if another type
-                    $entities = $entities->map([$elasticEntities, 'cast']);
-                }
+            $hashtags = null;
+
+            if ($_GET['hashtag'] ?? null) {
+                $hashtags = Text::buildArray($_GET['hashtag']);
+            } elseif ($_GET['hashtags'] ?? null) {
+                $hashtags = Text::buildArray(explode(',', $_GET['hashtags']));
             }
+
+            /** @var Core\Feeds\FeedCollection $feedCollection */
+            $feedCollection = Di::_()->get('Feeds\FeedCollection');
+            $feedCollection
+                ->setActor($actor)
+                ->setFilter($pages[0] ?? '')
+                ->setAlgorithm($pages[1] ?? '')
+                ->setType($type)
+                ->setPeriod($_GET['period'] ?? '12h')
+                ->setLimit($limit)
+                ->setOffset($_GET['offset'] ?? 0)
+                ->setCap($actor->isAdmin() ? 5000 : 600)
+                ->setAll((bool)($_GET['all'] ?? false))
+                ->setHashtags($hashtags)
+                ->setSync((bool)($_GET['sync'] ?? false))
+                ->setPeriodFallback((bool)($_GET['period_fallback'] ?? false))
+                ->setAsActivities((bool)($_GET['as_activities'] ?? true))
+                ->setQuery(urldecode($_GET['query'] ?? ''))
+                ->setCustomType($_GET['custom_type'] ?? '')
+                ->setContainerGuid($_GET['container_guid'] ?? null)
+                ->setNsfw(explode(',', $_GET['nsfw'] ?? ''))
+                ->setAccessIds([2])
+                ->setSingleOwnerThreshold(36);
+
+            $response = $feedCollection->fetch();
 
             return Factory::response([
                 'status' => 'success',
-                'entities' => Exportable::_($entities),
-                'fallback_at' => $fallbackAt,
-                'load-next' => $limit + $offset,
+                'entities' => $response,
+                'fallback_at' => $response->getAttribute('feedbackAt'),
+                'load-next' => $response->getPagingToken(),
             ]);
-        } catch (\Exception $e) {
-            error_log($e);
-            return Factory::response(['status' => 'error', 'message' => $e->getMessage()]);
+        } catch (Exception $e) {
+            error_log((string) $e);
+
+            return Factory::response([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
         }
     }
 

@@ -8,6 +8,10 @@ class FeedsProvider extends Provider
 {
     public function register()
     {
+        $this->di->bind('Feeds\FeedCollection', function ($di) {
+            return new FeedCollection();
+        }, ['useFactory' => true]);
+
         $this->di->bind('Feeds\Elastic\Manager', function ($di) {
             return new Elastic\Manager();
         });
