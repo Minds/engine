@@ -15,8 +15,6 @@ use Minds\Interfaces;
 
 class feeds implements Interfaces\Api
 {
-
-
     /**
      * Gets a list of suggested hashtags, including the ones the user has opted in
      * @param array $pages

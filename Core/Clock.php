@@ -6,7 +6,6 @@
  */
 namespace Minds\Core;
 
-
 class Clock
 {
     /**

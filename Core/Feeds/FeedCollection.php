@@ -127,8 +127,7 @@ class FeedCollection
         $elasticEntities = null,
         $userHashtagsManager = null,
         $clock = null
-    )
-    {
+    ) {
         $this->elasticManager = $elasticManager ?: Di::_()->get('Feeds\Elastic\Manager');
         $this->elasticEntities = $elasticEntities ?: new ElasticEntities();
         $this->userHashtagsManager = $userHashtagsManager ?: Di::_()->get('Hashtags\User\Manager');
