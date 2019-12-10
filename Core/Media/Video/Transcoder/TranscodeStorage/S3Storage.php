@@ -84,7 +84,23 @@ class S3Storage implements TranscodeStorageInterface
             'Key' => "$this->dir/{$transcode->getGuid()}/{$transcode->getProfile()->getStorageName()}",
             'SaveAs' => $sourcePath,
         ]);
-        
+
         return $sourcePath;
+    }
+
+    /**
+     * Return a list of files from storage
+     * @param string $guid
+     * @return array
+     */
+    public function ls(string $guid): array
+    {
+        $awsResult = $this->s3->listObjects([
+            'Bucket' => 'cinemr',
+            'Prefix' => "{$this->dir}/{$guid}",
+        ]);
+
+        $s3Contents = $awsResult['Contents'];
+        return array_column($s3Contents, 'Key');
     }
 }

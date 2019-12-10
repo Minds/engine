@@ -38,7 +38,10 @@ class FFMpegExecutorSpec extends ObjectBehavior
         \FFMpeg\FFProbe\DataMapping\Format $ffprobeFormat,
         \FFMpeg\Media\Frame $ffmpegFrame
     ) {
-        //$transcode = new Transcode();
+        $transcode->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
         $transcode->getProfile()
             ->shouldBeCalled()
             ->willReturn(new TranscodeProfiles\Thumbnails());
@@ -97,6 +100,10 @@ class FFMpegExecutorSpec extends ObjectBehavior
         \FFMpeg\FFProbe\DataMapping\Format $ffprobeFormat,
         \FFMpeg\Filters\Video\VideoFilters $ffmpegVideoFilters
     ) {
+        $transcode->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
         $transcode->getProfile()
             ->shouldBeCalled()
             ->willReturn(new TranscodeProfiles\X264_360p());
@@ -146,6 +153,10 @@ class FFMpegExecutorSpec extends ObjectBehavior
         \FFMpeg\FFProbe\DataMapping\Format $ffprobeFormat,
         \FFMpeg\Filters\Video\VideoFilters $ffmpegVideoFilters
     ) {
+        $transcode->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
         $transcode->getProfile()
             ->shouldBeCalled()
             ->willReturn(new TranscodeProfiles\X264_360p());

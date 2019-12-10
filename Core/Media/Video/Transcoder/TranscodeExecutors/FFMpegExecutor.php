@@ -64,7 +64,8 @@ class FFMpegExecutor implements TranscodeExecutorInterface
 
         // Prepare the source of this transcode
         $source = new Transcode();
-        $source->setProfile(new TranscodeProfiles\Source()); // Simply change the source
+        $source->setGuid($transcode->getGuid())
+            ->setProfile(new TranscodeProfiles\Source()); // Simply change the source
 
         // Download the source
         $sourcePath = $this->transcodeStorage->downloadToTmp($source);

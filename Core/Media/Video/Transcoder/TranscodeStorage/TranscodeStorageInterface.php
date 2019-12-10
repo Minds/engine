@@ -25,4 +25,11 @@ interface TranscodeStorageInterface
      * @return string
      */
     public function downloadToTmp(Transcode $transcode): string;
+
+    /**
+     * Return a list of files from storage
+     * @param string $guid
+     * @return array
+     */
+    public function ls(string $guid): array;
 }

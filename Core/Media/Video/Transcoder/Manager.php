@@ -8,6 +8,8 @@ use Minds\Core\Media\Video\Transcoder\Delegates\QueueDelegate;
 use Minds\Core\Media\Video\Transcoder\Delegates\NotificationDelegate;
 use Minds\Entities\Video;
 use Minds\Traits\MagicAttributes;
+use Minds\Common\Repository\Response;
+use Minds\Core\Media\Video\Source;
 
 class Manager
 {
@@ -53,15 +55,53 @@ class Manager
      * Return a list of transcodes
      * @return Response
      */
-    public function getList($opts): Response
+    public function getList($opts): ?Response
     {
         $opts = array_merge([
             'guid' => null,
             'profileId' => null,
             'status' => null,
+            'legacyPolyfill' => false,
         ], $opts);
 
-        return $this->repository->getList($opts);
+        $response = $this->repository->getList($opts);
+
+        if ($opts['legacyPolyfill'] && !$response->count()) {
+            $response = $this->getLegacyPolyfill($opts);
+        }
+
+        return $response;
+    }
+
+    /**
+     * Return a list of legacy transcodes by reading from storage
+     * @param array
+     * @return Response
+     */
+    private function getLegacyPolyfill(array $opts): ?Response
+    {
+        $files = $this->transcodeStorage->ls($opts['guid']);
+        if (!$files) {
+            return null;
+        }
+
+        $response = new Response();
+
+        foreach ($files as $fileName) {
+            // Loop through each profile to see if fileName is a match
+            foreach (self::TRANSCODE_PROFILES as $profile) {
+                $profile = new $profile();
+                if ($profile->getStorageName() && strpos($fileName, $profile->getStorageName()) !== false) {
+                    $transcode = new Transcode();
+                    $transcode
+                        ->setGuid($opts['guid'])
+                        ->setProfile($profile)
+                        ->setStatus(TranscodeStates::COMPLETED);
+                    $response[] = $transcode;
+                }
+            }
+        }
+        return $response;
     }
 
     /**

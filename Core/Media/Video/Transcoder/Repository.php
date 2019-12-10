@@ -133,7 +133,7 @@ class Repository
      */
     public function add(Transcode $transcode): bool
     {
-        $statement = "INSERT INTO video_transcodes (guid, profile_id, status) VALUES (?, ?)";
+        $statement = "INSERT INTO video_transcodes (guid, profile_id, status) VALUES (?, ?, ?)";
         $values = [
             new Bigint($transcode->getGuid()),
             $transcode->getProfile()->getId(),
@@ -252,7 +252,7 @@ class Repository
             ->setProfile(TranscodeProfiles\Factory::build((string) $row['profile_id']))
             ->setProgress($row['progress'])
             ->setStatus($row['status'])
-            ->setLastEventTimestampMs(round($row['last_event_timestamp_ms']->microtime(true) * 1000))
+            ->setLastEventTimestampMs($row['last_event_timestamp_ms'] ? round($row['last_event_timestamp_ms']->microtime(true) * 1000) : null)
             ->setLengthSecs($row['length_secs'])
             ->setBytes($row['bytes']);
         return $transcode;

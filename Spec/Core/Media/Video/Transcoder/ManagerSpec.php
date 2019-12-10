@@ -12,6 +12,7 @@ use Minds\Core\Media\Video\Transcoder\Transcode;
 use Minds\Core\Media\Video\Transcoder\Delegates\NotificationDelegate;
 use Minds\Entities\Video;
 use Minds\Entities\User;
+use Minds\Common\Repository\Response;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -145,5 +146,33 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->transcode($transcode);
+    }
+
+    public function it_should_get_legacy_files()
+    {
+        $this->repository->getList([
+            'guid' => '123',
+            'profileId' => null,
+            'status' => null,
+            'legacyPolyfill' => true,
+        ])
+            ->shouldBeCalled()
+            ->willReturn(new Response());
+
+        $this->transcodeStorage->ls('123')
+            ->shouldBeCalled()
+            ->willReturn([
+                '/my-dir/123/360p.mp4',
+                '/my-dir/123/720p.mp4',
+                '/my-dir/123/360p.webm',
+            ]);
+
+        $transcodes = $this->getList([
+            'guid' => '123',
+            'legacyPolyfill' => true,
+        ]);
+        $transcodes->shouldHaveCount(3);
+        $transcodes[0]->getProfile()
+            ->getStorageName('360p.mp4');
     }
 }
