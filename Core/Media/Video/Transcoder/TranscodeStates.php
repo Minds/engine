@@ -40,6 +40,7 @@ class TranscodeStates
             'guid' => $video->getGuid(),
         ]);
 
+        $created = 0;
         $failures = 0;
         $completed = 0;
 
@@ -58,7 +59,7 @@ class TranscodeStates
                     break;
                 case TranscodeStates::CREATED:
                     // If not started to transcode then we are in a created state
-                    return TranscodeStates::CREATED;
+                    ++$created;
                     break;
                 case TranscodeStates::FAILED:
                     ++$failures;
@@ -66,9 +67,12 @@ class TranscodeStates
                     break;
                 case TranscodeStates::COMPLETED:
                     ++$completed;
-                    // We should allow failures for some transcodes
                     break;
             }
+        }
+
+        if ($created > ($completed + $failures)) {
+            return TranscodeStates::CREATED;
         }
 
         // If we have more completions then failures the declare completed
