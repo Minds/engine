@@ -3,11 +3,14 @@
 namespace Minds\Core\Boost\Network;
 
 use Minds\Common\Repository\Response;
+use Minds\Core\Boost\Checksum;
+use Minds\Core\Boost\Delegates\ValidateCampaignDatesDelegate;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\GuidBuilder;
 use Minds\Core\Events\Dispatcher;
 use Minds\Entities\Entity;
+use Minds\Entities\User;
 
 class Manager
 {
@@ -26,9 +29,13 @@ class Manager
     /** @var Config $config */
     private $config;
 
+    /** @var User $actor */
+    private $actor;
+
     const OPT_STATEQUERY_ACTIVE = 'active';
     const OPT_STATEQUERY_REVIEW = 'review';
     const OPT_STATEQUERY_APPROVED = 'approved';
+    const OPT_PAUSEQUERY_ANY = 'any';
 
     const VALID_OPT_STATEQUERY = [
         self::OPT_STATEQUERY_ACTIVE,
@@ -264,5 +271,67 @@ class Manager
         ]);
 
         return $offchainBoosts;
+    }
+
+    public function getCampaigns(array $opts)
+    {
+        $opts = array_merge([
+            'owner_guid' => $this->actor->getGUID(),
+            'boost_type' => Boost::BOOST_TYPE_CAMPAIGN
+        ], $opts);
+        return $this->elasticRepository->getList($opts);
+    }
+
+    public function setActor(User $user): self
+    {
+        $this->actor = $user;
+        return $this;
+    }
+
+    public function createCampaign(Campaign $campaign): Campaign
+    {
+        if (!$campaign->getGuid()) {
+            $campaign->setGuid($this->guidBuilder->build());
+        }
+        $campaign->setOwnerGuid($this->actor->getGUID());
+
+        if (!$campaign->getOwnerGuid()) {
+            throw new CampaignException('Campaign should have an owner');
+        }
+
+        if (!$campaign->getName()) {
+            throw new CampaignException('Campaign should have a name');
+        }
+
+        $validTypes = ['newsfeed', 'content', 'banner', 'video'];
+
+        if (!in_array($campaign->getType(), $validTypes, true)) {
+            throw new CampaignException('Invalid campaign type');
+        }
+
+        /** TODO: Checksum Verification
+        $checksum = (new Checksum())->setGuid($campaign->getGuid())->setEntity($campaign->getEntityGuid())->generate();
+        if (!$campaign->getChecksum() || ($campaign->getChecksum() !== $checksum)) {
+            throw new CampaignException('Invalid checksum value');
+        }*/
+
+        $campaign = (new ValidateCampaignDatesDelegate())->onCreate($campaign);
+
+        $this->cassandraRepository->add($campaign);
+        $this->elasticRepository->add($campaign);
+
+        return $campaign;
+    }
+
+    public function updateCampaign(Campaign $campaign): Campaign
+    {
+        // TODO: Implement this...
+        return $campaign;
+    }
+
+    public function cancelCampaign(Campaign $campaign): Campaign
+    {
+        // TODO: Implement this...
+        return $campaign;
     }
 }

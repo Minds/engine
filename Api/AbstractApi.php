@@ -139,9 +139,9 @@ abstract class AbstractApi implements Interfaces\Api
         $this->sendError(500);
     }
 
-    protected function sendBadRequest(): void
+    protected function sendBadRequest(string $message = null): void
     {
-        $this->sendError(400);
+        $this->sendError(400, $message);
     }
 
     protected function sendNotImplemented(): void
@@ -154,9 +154,9 @@ abstract class AbstractApi implements Interfaces\Api
         $this->sendError(304);
     }
 
-    protected function sendNotAcceptable(): void
+    protected function sendNotAcceptable(string $message = null): void
     {
-        $this->sendError(406);
+        $this->sendError(406, $message);
     }
 
     protected function sendUnauthorised(): void

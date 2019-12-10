@@ -112,7 +112,6 @@ class boosts implements Interfaces\Api, Interfaces\ApiAdminPam
 
         if ($action == 'accept') {
             $boost->setRating($rating);
-            $boost->setQuality($quality);
             $review->setBoost($boost);
 
             try {

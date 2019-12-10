@@ -53,6 +53,8 @@ use Minds\Traits\MagicAttributes;
  * @method Boost setRejectedReason(int $reason)
  * @method string getChecksum()
  * @method Boost setChecksum(string $checksum)
+ * @method string getBoostType()
+ * @method Boost setBoostType(string $boostType)
  */
 class Boost
 {
@@ -70,71 +72,77 @@ class Boost
     const RATING_SAFE = 1;
     const RATING_OPEN = 2;
 
+    const BOOST_TYPE_NOW = 'now';
+    const BOOST_TYPE_CAMPAIGN = 'campaign';
+
     /** @var int $guid */
-    private $guid;
+    protected $guid;
 
     /** @var int $entityGuid */
-    private $entityGuid;
+    protected $entityGuid;
 
     /** @var Entity $entity */
-    private $entity;
+    protected $entity;
 
     /** @var double $bid */
-    private $bid;
+    protected $bid;
 
     /** @var string $bidType */
-    private $bidType;
+    protected $bidType;
 
     /** @var int $impressions */
-    private $impressions;
+    protected $impressions;
 
     /** @var int $impressionsMet */
-    private $impressionsMet;
+    protected $impressionsMet;
 
     /** @var int $ownerGuid */
-    private $ownerGuid;
+    protected $ownerGuid;
 
     /** @var User $owner */
-    private $owner;
+    protected $owner;
 
     /** @var int $createdTimestamp */
-    private $createdTimestamp;
+    protected $createdTimestamp;
 
     /** @var int $reviewedTimestamp */
-    private $reviewedTimestamp;
+    protected $reviewedTimestamp;
 
     /** @var int $rejectedTimestamp */
-    private $rejectedTimestamp;
+    protected $rejectedTimestamp;
 
     /** @var int $revokedTimestamp */
-    private $revokedTimestamp;
+    protected $revokedTimestamp;
 
     /** @var int $completedTimestamp */
-    private $completedTimestamp;
+    protected $completedTimestamp;
 
     /** @var string $transactionId */
-    private $transactionId;
+    protected $transactionId;
 
     /** @var string $type */
-    private $type = 'newsfeed';
+    protected $type = 'newsfeed';
 
     /** @var bool $priority */
-    private $priority = false;
+    protected $priority = false;
 
     /** @var int $rating */
-    private $rating;
+    protected $rating;
 
     /** @var array $tags */
-    private $tags = [];
+    protected $tags = [];
 
     /** @var array $nsfw */
-    private $nsfw = [];
+    protected $nsfw = [];
 
     /** @var int $rejectedReason */
-    private $rejectedReason = -1;
+    protected $rejectedReason = -1;
 
     /** @var string $checksum */
-    private $checksum;
+    protected $checksum;
+
+    /** @var string $boostType */
+    protected $boostType = self::BOOST_TYPE_NOW;
 
     /**
      * Return the state
@@ -181,11 +189,11 @@ class Boost
             'bid' => $this->bid,
             'bid_type' => $this->bidType,
             'impressions' => $this->impressions,
-            '@created' => $this->createdTimestamp,
-            '@reviewed' => $this->reviewedTimestamp,
-            '@rejected' => $this->rejectedTimestamp,
-            '@revoked' => $this->revokedTimestamp,
-            '@completed' => $this->completedTimestamp,
+            'created' => $this->createdTimestamp,
+            'reviewed' => $this->reviewedTimestamp,
+            'rejected' => $this->rejectedTimestamp,
+            'revoked' => $this->revokedTimestamp,
+            'completed' => $this->completedTimestamp,
             'priority' => (bool) $this->priority,
             'rating' => (int) $this->rating,
             'tags' => $this->tags,
@@ -193,6 +201,9 @@ class Boost
             'checksum' => $this->checksum,
             'state' => $this->getState(),
             'transaction_id' => $this->transactionId,
+            'type' => $this->type,
+            'rejection_reason' => $this->rejectedReason,
+            'boost_type' => $this->boostType,
         ];
     }
 

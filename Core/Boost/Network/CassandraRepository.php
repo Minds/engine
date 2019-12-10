@@ -185,32 +185,12 @@ class CassandraRepository
             (?, ?, ?, ?, ?)
         ";
 
-        $data = [
-            'guid' => $boost->getGuid(),
-            'schema' => '04-2019',
-            'entity_guid' => $boost->getEntityGuid(),
-            'entity' => $boost->getEntity() ? $boost->getEntity()->export() : null, //TODO: remove once on production
-            'bid' => $boost->getBid(),
-            'impressions' => $boost->getImpressions(),
-            'bidType' => in_array($boost->getBidType(), [ 'onchain', 'offchain' ], true) ? 'tokens' : $boost->getBidType(), //TODO: remove once on production
-            'owner_guid' => $boost->getOwnerGuid(),
-            'owner' => $boost->getOwner() ? $boost->getOwner()->export() : null, //TODO: remove once on production
-            '@created' => $boost->getCreatedTimestamp(),
-            '@reviewed' => $boost->getReviewedTimestamp(),
-            '@rejected' => $boost->getRejectedTimestamp(),
-            '@revoked' => $boost->getRevokedTimestamp(),
-            '@completed' => $boost->getCompletedTimestamp(),
-            'transactionId' => $boost->getTransactionId(),
-            'type' => $boost->getType(),
-            'handler' => $boost->getType(), //TODO: remove once on production
-            'state' => $boost->getState(), //TODO: remove once on production
-            'priority' => $boost->getPriority(),
-            'rating' => $boost->getRating(),
-            'tags' => $boost->getTags(),
-            'nsfw' => $boost->getNsfw(),
-            'rejection_reason'=> $boost->getRejectedReason(),
-            'checksum' => $boost->getChecksum(),
-        ];
+        $data = $boost->export();
+
+        /* Additional parameters that differ from boost export */
+        $data['schema'] = '04-2019';
+        $data['bidType'] = in_array($boost->getBidType(), ['onchain', 'offchain'], true) ? 'tokens' : $boost->getBidType();
+        $data['handler'] = $boost->getType();
 
         $values = [
             (string) $boost->getType(),

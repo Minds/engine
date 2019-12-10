@@ -33,23 +33,30 @@ class ElasticRepository
             'offset' => null,
             'order' => null,
             'offchain' => null,
+            'type' => null,
+            'boost_type' => null,
+            'paused' => false
         ], $opts);
 
         $must = [];
         $must_not = [];
         $sort = [ '@timestamp' => $opts['order'] ?? 'asc' ];
 
-        $must[] = [
-            'term' => [
-                'bid_type' => 'tokens',
-            ],
-        ];
+        if ($opts['boost_type'] !== Boost::BOOST_TYPE_CAMPAIGN) {
+            $must[] = [
+                'term' => [
+                    'bid_type' => 'tokens',
+                ],
+            ];
+        }
 
-        $must[] = [
-            'term' => [
-                'type' => $opts['type'],
-            ],
-        ];
+        if ($opts['type']) {
+            $must[] = [
+                'term' => [
+                    'type' => $opts['type'],
+                ],
+            ];
+        }
 
         if ($opts['offset']) {
             $must[] = [
@@ -157,6 +164,30 @@ class ElasticRepository
             ];
         }
 
+        if ($opts['boost_type']) {
+            $must[] = [
+                'term' => [
+                    'boost_type' => $opts['boost_type'],
+                ],
+            ];
+        }
+
+        if (empty($opts['paused'])) {
+            $must_not[] = [
+                'term' => [
+                    'paused' => 1,
+                ]
+            ];
+        } else {
+            if ($opts['paused'] !== Manager::OPT_PAUSEQUERY_ANY) {
+                $must[] = [
+                    'term' => [
+                        'paused' => intval($opts['paused']),
+                    ]
+                ];
+            }
+        }
+
         $body = [
             'query' => [
                 'bool' => [
@@ -181,8 +212,25 @@ class ElasticRepository
         $response = new Response;
 
         $offset = 0;
+
         foreach ($result['hits']['hits'] as $doc) {
-            $boost = new Boost();
+            if (isset($doc['_source']['boost_type'])) {
+                $boostType = $doc['_source']['boost_type'];
+                if ($boostType === Boost::BOOST_TYPE_CAMPAIGN) {
+                    $boost = new Campaign();
+                    $boost->setName($doc['_source']['name']);
+                    $boost->setStart($doc['_source']['@start']);
+                    $boost->setEnd($doc['_source']['@end']);
+                    $boost->setBudget($doc['_source']['budget']);
+                    $boost->setPaused($doc['_source']['paused']);
+                } else {
+                    $boost = new Boost();
+                }
+                $boost->setBoostType($boostType);
+            } else {
+                $boost = new Boost();
+            }
+
             $boost
                 ->setGuid($doc['_id'])
                 ->setEntityGuid($doc['_source']['entity_guid'])
@@ -195,8 +243,8 @@ class ElasticRepository
                 ->setPriority($doc['_source']['priority'] ?? false)
                 ->setType($doc['_source']['type'])
                 ->setRating($doc['_source']['rating'])
-                ->setImpressions($doc['_source']['impressions'])
-                ->setImpressionsMet($doc['_source']['impressions_met'])
+                ->setImpressions($doc['_source']['impressions'] ?? 0)
+                ->setImpressionsMet($doc['_source']['impressions_met'] ?? 0)
                 ->setBid($doc['_source']['bid'])
                 ->setBidType($doc['_source']['bid_type']);
             $offset = $boost->getCreatedTimestamp();
@@ -219,7 +267,7 @@ class ElasticRepository
 
     /**
      * Add a boost
-     * @param Boost $boost
+     * @param Boost|Campaign $boost
      * @return bool
      * @throws \Exception
      */
@@ -236,10 +284,18 @@ class ElasticRepository
                 'owner_guid' => $boost->getOwnerGuid(),
                 'rating' => $boost->getRating(),
                 'type' => $boost->getType(),
-                'priority' => (bool) $boost->isPriority(),
+                'boost_type' => $boost->getBoostType(),
             ],
             'doc_as_upsert' => true,
         ];
+
+        if ($boost instanceof Campaign) {
+            $body['doc']['name'] = $boost->getName();
+            $body['doc']['budget'] = $boost->getBudget();
+            $body['doc']['@start'] = $boost->getStart();
+            $body['doc']['@end'] = $boost->getEnd();
+            $body['doc']['paused'] = $boost->getPaused();
+        }
 
         if ($boost->getBidType() === 'tokens') {
             $body['doc']['token_method'] = (strpos($boost->getTransactionId(), '0x', 0) === 0)

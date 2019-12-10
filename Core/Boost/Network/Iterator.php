@@ -111,7 +111,11 @@ class Iterator implements \Iterator
      */
     protected function getList(): void
     {
+        $iterations = 0;
+        $maxIterations = 3;
+
         while ($this->fetchMore) {
+            $iterations++;
             $boosts = $this->elasticRepository->getList([
                 'type' => $this->type,
                 'limit' => $this->limit,
@@ -123,6 +127,10 @@ class Iterator implements \Iterator
             $this->offset = intval($boosts->getPagingToken());
             $hasMore = $this->offset > 0;
             $boostsTaken = 0;
+
+            if ($iterations === $maxIterations) {
+                return;
+            }
 
             foreach ($boosts as $boost) {
                 $boostsTaken++;

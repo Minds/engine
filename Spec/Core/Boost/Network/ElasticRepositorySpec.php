@@ -56,8 +56,7 @@ class ElasticRepositorySpec extends ObjectBehavior
                 && $body['doc']['impressions'] === 10000
                 && $body['doc']['impressions_met'] === 10
                 && $body['doc']['owner_guid'] === 456
-                && $body['doc']['type'] === 'newsfeed'
-                && $body['doc']['priority'] === false;
+                && $body['doc']['type'] === 'newsfeed';
         }))
             ->shouldBeCalled()
             ->willReturn(true);
