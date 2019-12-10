@@ -25,5 +25,5 @@ class X264_360p extends AbstractTranscodeProfile
     protected $proOnly = false;
 
     /** @var string */
-    protected $storageName = '360p.mp4';
+    protected $storageName = '360.mp4';
 }

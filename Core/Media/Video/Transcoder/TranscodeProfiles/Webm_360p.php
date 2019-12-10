@@ -25,5 +25,5 @@ class Webm_360p extends AbstractTranscodeProfile
     protected $proOnly = false;
 
     /** @var string */
-    protected $storageName = '360p.webm';
+    protected $storageName = '360.webm';
 }

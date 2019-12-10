@@ -162,9 +162,9 @@ class ManagerSpec extends ObjectBehavior
         $this->transcodeStorage->ls('123')
             ->shouldBeCalled()
             ->willReturn([
-                '/my-dir/123/360p.mp4',
-                '/my-dir/123/720p.mp4',
-                '/my-dir/123/360p.webm',
+                '/my-dir/123/360.mp4',
+                '/my-dir/123/720.mp4',
+                '/my-dir/123/360.webm',
             ]);
 
         $transcodes = $this->getList([
@@ -173,6 +173,6 @@ class ManagerSpec extends ObjectBehavior
         ]);
         $transcodes->shouldHaveCount(3);
         $transcodes[0]->getProfile()
-            ->getStorageName('360p.mp4');
+            ->getStorageName('360.mp4');
     }
 }

@@ -25,5 +25,5 @@ class X264_1080p extends AbstractTranscodeProfile
     protected $proOnly = true;
 
     /** @var string */
-    protected $storageName = '1080p.mp4';
+    protected $storageName = '1080.mp4';
 }

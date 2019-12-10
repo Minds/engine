@@ -25,5 +25,5 @@ class Webm_1080p extends AbstractTranscodeProfile
     protected $proOnly = true;
 
     /** @var string */
-    protected $storageName = '1080p.webm';
+    protected $storageName = '1080.webm';
 }

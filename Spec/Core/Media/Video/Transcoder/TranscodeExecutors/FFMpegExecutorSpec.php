@@ -133,10 +133,10 @@ class FFMpegExecutorSpec extends ObjectBehavior
         $ffmpegVideo->save(Argument::that(function ($format) {
             return $format->getKiloBitRate() === 500
                 && $format->getAudioKiloBitrate() === 80;
-        }), '/tmp/fake-path-for-source-360p.mp4')
+        }), '/tmp/fake-path-for-source-360.mp4')
             ->shouldBeCalled();
 
-        $this->transcodeStorage->add($transcode, '/tmp/fake-path-for-source-360p.mp4')
+        $this->transcodeStorage->add($transcode, '/tmp/fake-path-for-source-360.mp4')
             ->shouldBeCalled();
 
         $transcode->setStatus('completed')
@@ -186,11 +186,11 @@ class FFMpegExecutorSpec extends ObjectBehavior
         $ffmpegVideo->save(Argument::that(function ($format) {
             return $format->getKiloBitRate() === 500
                 && $format->getAudioKiloBitrate() === 80;
-        }), '/tmp/fake-path-for-source-360p.mp4')
+        }), '/tmp/fake-path-for-source-360.mp4')
             ->shouldBeCalled()
             ->willThrow(new \FFMpeg\Exception\RuntimeException());
 
-        $this->transcodeStorage->add($transcode, '/tmp/fake-path-for-source-360p.mp4')
+        $this->transcodeStorage->add($transcode, '/tmp/fake-path-for-source-360.mp4')
             ->shouldNotBeCalled();
 
         $transcode->setStatus('failed')
