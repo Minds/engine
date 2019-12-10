@@ -447,7 +447,7 @@ class FeedCollection
             if (
                 !$this->periodFallback ||
                 !in_array($this->algorithm, static::ALLOWED_TO_FALLBACK, true) ||
-                !isset(static::PERIOD_FALLBACK[$this->period]) ||
+                !isset(static::PERIOD_FALLBACK[$opts['period']]) ||
                 ++$i > 2 // Stop at 2nd fallback (i.e. 12h > 7d > 30d)
             ) {
                 break;
