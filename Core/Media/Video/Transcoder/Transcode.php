@@ -79,7 +79,7 @@ class Transcode
      */
     public function setProfile(TranscodeProfiles\TranscodeProfileInterface $profile): self
     {
-        if ($profile->isProOnly() && !$this->video->getOwnerEntity()->isPro()) {
+        if ($profile->isProOnly() && $this->video && !$this->video->getOwnerEntity()->isPro()) {
             throw new TranscodeProfiles\UnavailableTranscodeProfileException();
         }
         $this->profile = $profile;

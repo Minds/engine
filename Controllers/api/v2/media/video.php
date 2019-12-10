@@ -23,6 +23,7 @@ class video implements Interfaces\Api, Interfaces\ApiIgnorePam
     public function get($pages)
     {
         $videoManager = Di::_()->get('Media\Video\Manager');
+        $transcodeStates = Di::_()->get('Media\Video\Transcoder\TranscodeStates');
 
         $video = $videoManager->get($pages[0]);
 
@@ -30,6 +31,7 @@ class video implements Interfaces\Api, Interfaces\ApiIgnorePam
             'entity' => $video->export(),
             'sources' => Factory::exportable($videoManager->getSources($video)),
             'poster' => $video->getIconUrl(),
+            'transcode_status' => $transcodeStates->getStatus($video), // Currently not efficient as no caching
         ]);
     }
 

@@ -76,7 +76,7 @@ class Manager
         $sources = [];
 
         foreach ($transcodes as $transcode) {
-            if ($transcode->getStatus() != 'completed') {
+            if ($transcode->getStatus() != Transcoder\TranscodeStates::COMPLETED) {
                 continue;
             }
             if ($transcode->getProfile() instanceof Transcoder\TranscodeProfiles\Thumbnails) {
