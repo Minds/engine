@@ -69,6 +69,8 @@ class feeds implements Interfaces\Api
                 $hashtags = Text::buildArray(explode(',', $_GET['hashtags']));
             }
 
+            $nsfw = array_values(array_filter(explode(',', $_GET['nsfw'] ?? '')));
+
             /** @var Core\Feeds\FeedCollection $feedCollection */
             $feedCollection = Di::_()->get('Feeds\FeedCollection');
             $feedCollection
@@ -88,7 +90,7 @@ class feeds implements Interfaces\Api
                 ->setQuery(urldecode($_GET['query'] ?? ''))
                 ->setCustomType($_GET['custom_type'] ?? '')
                 ->setContainerGuid($_GET['container_guid'] ?? null)
-                ->setNsfw(explode(',', $_GET['nsfw'] ?? ''))
+                ->setNsfw($nsfw)
                 ->setAccessIds([2])
                 ->setSingleOwnerThreshold(36);
 
@@ -97,7 +99,7 @@ class feeds implements Interfaces\Api
             return Factory::response([
                 'status' => 'success',
                 'entities' => $response,
-                'fallback_at' => $response->getAttribute('feedbackAt'),
+                'fallback_at' => $response->getAttribute('fallbackAt'),
                 'load-next' => $response->getPagingToken(),
             ]);
         } catch (Exception $e) {
