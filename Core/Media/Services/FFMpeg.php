@@ -1,6 +1,6 @@
 <?php
 /**
- * Minds FFMpeg.
+ * Minds FFMpeg. (This now deprecated in favour of Core/Media/Video/Transcoder/Manager)
  */
 
 namespace Minds\Core\Media\Services;

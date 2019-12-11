@@ -2,6 +2,7 @@
 namespace Minds\Core\Queue\Runners;
 
 use Minds\Core;
+use Minds\Core\Di\Di;
 use Minds\Core\Queue\Interfaces;
 
 class Transcode implements Interfaces\QueueRunner
@@ -14,11 +15,12 @@ class Transcode implements Interfaces\QueueRunner
         $client->setQueue("Transcode")
             ->receive(function ($data) {
                 $d = $data->getData();
+                $transcode = unserialize($d['transcode']);
+
                 echo "Received a transcode request \n";
-                $transcoder = new Core\Media\Services\FFMpeg();
-                $transcoder->setKey($d['key']);
-                $transcoder->setFullHD($d['full_hd']);
-                $transcoder->onQueue();
+
+                $transcoderManager = Di::_()->get('Media\Video\Transcoder\Manager');
+                $transcoderManager->transcode($transcode);
             }, [ 'max_messages' => 1 ]);
     }
 }

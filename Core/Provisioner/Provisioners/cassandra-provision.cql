@@ -1533,3 +1533,14 @@ CREATE MATERIALIZED VIEW minds.withdrawals_by_status AS
     WHERE status IS NOT NULL AND user_guid IS NOT NULL AND timestamp IS NOT NULL AND tx IS NOT NULL
     PRIMARY KEY (status, timestamp, user_guid, tx)
     WITH CLUSTERING ORDER BY (timestamp ASC, user_guid ASC, tx ASC);
+
+CREATE TABLE minds.video_transcodes (
+    guid bigint,
+    profile_id text,
+    progress int,
+    status text,
+    last_event_timestamp_ms timestamp,
+    length_secs int,
+    bytes int,
+    PRIMARY KEY (guid, profile_id)
+);
