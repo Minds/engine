@@ -89,7 +89,8 @@ class Manager
                 ->setLabel($transcode->getProfile()->getId())
                 ->setSize($transcode->getProfile()->getHeight())
                 ->setSrc(implode('/', [
-                    $this->config->get('transcoder')['cdn_url'] ?? 'https://cdn-cinemr.minds.com/cinemr_dev',
+                    $this->config->get('transcoder')['cdn_url'] ?? 'https://cdn-cinemr.minds.com',
+                    $this->config->get('transcoder')['dir'],
                     $transcode->getGuid(),
                     $transcode->getProfile()->getStorageName()
                 ]));

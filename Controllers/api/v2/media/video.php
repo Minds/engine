@@ -9,8 +9,7 @@ namespace Minds\Controllers\api\v2\media;
 
 use Minds\Api\Factory;
 use Minds\Core\Di\Di;
-use Minds\Core\Media\Proxy\Download;
-use Minds\Core\Media\Proxy\Resize;
+use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Interfaces;
 
 class video implements Interfaces\Api, Interfaces\ApiIgnorePam
@@ -27,11 +26,18 @@ class video implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         $video = $videoManager->get($pages[0]);
 
+        $sources = $videoManager->getSources($video);
+        $status = $transcodeStates->getStatus($video); // Currently not efficient as no caching
+
+        if ($status === TranscodeStates::FAILED && count($sources)) {
+            $status = TranscodeStates::COMPLETED;
+        }
+
         Factory::response([
             'entity' => $video->export(),
-            'sources' => Factory::exportable($videoManager->getSources($video)),
+            'sources' => Factory::exportable($sources),
             'poster' => $video->getIconUrl(),
-            'transcode_status' => $transcodeStates->getStatus($video), // Currently not efficient as no caching
+            'transcode_status' => $status,
         ]);
     }
 
