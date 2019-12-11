@@ -72,10 +72,24 @@ class MediaProvider extends Provider
             return new ClientUpload\Manager();
         }, ['useFactory' => true]);
 
-        // Services
+        // Services (deprecated)
 
         $this->di->bind('Media\Services\FFMpeg', function ($di) {
             return new Services\FFMpeg();
+        }, ['useFactory' => false]);
+
+        // Transcoder
+
+        $this->di->bind('Media\Video\Transcoder\Manager', function ($di) {
+            return new Video\Transcoder\Manager();
+        }, ['useFactory' => false]);
+
+        $this->di->bind('Media\Video\Transcoder\TranscodeStates', function ($di) {
+            return new Video\Transcoder\TranscodeStates();
+        }, ['useFactory' => false]);
+
+        $this->di->bind('Media\Video\Transcode\TranscodeStorage', function ($di) {
+            return new Video\Transcoder\TranscodeStorage\S3Storage();
         }, ['useFactory' => false]);
     }
 }

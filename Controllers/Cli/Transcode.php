@@ -21,9 +21,14 @@ class Transcode extends Cli\Controller implements Interfaces\CliControllerInterf
 
     public function exec()
     {
-        $transcoder = new Core\Media\Services\FFMpeg;
-        $transcoder->setKey($this->getOpt('guid'));
-        $transcoder->setFullHD($this->getOpt('full_hd') ?? false);
-        $transcoder->onQueue();
+        $entity = Di::_()->get('EntitiesBuilder')->single($this->getOpt('guid'));
+
+        if (!$entity) {
+            $this->out('Entity not found');
+            return;
+        }
+
+        $manager = Di::_()->get('Media\Video\Transcoder\Manager');
+        $manager->createTranscodes($entity);
     }
 }
