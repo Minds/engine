@@ -23,10 +23,11 @@ class Manager
     /** @var Cookie $cookie */
     private $cookie;
     
-    public function __construct($config = null, $cookie = null)
+    public function __construct($config = null, $cookie = null, $user = null)
     {
         $this->config = $config ?: Di::_()->get('Config');
         $this->cookie = $cookie ?: new Cookie;
+        $this->user = $user ?? Session::getLoggedInUser();
     }
 
     /**
@@ -56,6 +57,10 @@ class Manager
         }
 
         if ($features[$feature] === 'admin' && $this->user->isAdmin()) {
+            return true;
+        }
+
+        if ($features[$feature] === 'canary' && $this->user && $this->user->get('canary')) {
             return true;
         }
 

@@ -1,5 +1,5 @@
 <?php
-namespace Minds\Core\Feeds\Top;
+namespace Minds\Core\Feeds\Elastic;
 
 use Minds\Core\Trending\Aggregates;
 

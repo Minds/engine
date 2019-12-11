@@ -138,6 +138,7 @@ class Manager
             }
 
             $this->paywallReview->queue($blog);
+            $this->propagateProperties->from($blog);
         }
 
         return $saved;
