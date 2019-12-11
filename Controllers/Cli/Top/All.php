@@ -154,7 +154,7 @@ class All extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->out(sprintf(
             "%s -> %s",
             date('r', $from),
-            date('r', $to),
+            date('r', $to)
         ));
         $this->out("Syncing {$displayType} / {$metric}");
 
