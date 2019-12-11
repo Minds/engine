@@ -93,7 +93,7 @@ class RepositorySpec extends ObjectBehavior
 
         $this->client->request(Argument::that(function ($query) {
             $query = $query->build();
-            return $query['type'] === 'user' && in_array('guid', $query['body']['_source'], true);
+            return $query['type'] === 'activity,object:image,object:video,object:blog' && in_array('owner_guid', $query['body']['_source'], true);
         }))
             ->shouldBeCalled()
             ->willReturn([
@@ -126,10 +126,10 @@ class RepositorySpec extends ObjectBehavior
         $gen = $this->getList($opts);
 
         $gen->current()->getGuid()->shouldReturn('1');
-        $gen->current()->getScore()->shouldReturn(100.0);
+        $gen->current()->getScore()->shouldReturn(log10(100.0));
         $gen->next();
         $gen->current()->getGuid()->shouldReturn('2');
-        $gen->current()->getScore()->shouldReturn(50.0);
+        $gen->current()->getScore()->shouldReturn(log10(50.0));
     }
 
     public function it_should_query_a_list_of_group_guids()
@@ -143,7 +143,7 @@ class RepositorySpec extends ObjectBehavior
 
         $this->client->request(Argument::that(function ($query) {
             $query = $query->build();
-            return $query['type'] === 'group' && in_array('guid', $query['body']['_source'], true);
+            return $query['type'] === 'activity,object:image,object:video,object:blog' && in_array('container_guid', $query['body']['_source'], true);
         }))
             ->shouldBeCalled()
             ->willReturn([
@@ -178,10 +178,10 @@ class RepositorySpec extends ObjectBehavior
         $gen = $this->getList($opts);
 
         $gen->current()->getGuid()->shouldReturn('1');
-        $gen->current()->getScore()->shouldReturn(100.0);
+        $gen->current()->getScore()->shouldReturn(log10(100));
         $gen->next();
         $gen->current()->getGuid()->shouldReturn('2');
-        $gen->current()->getScore()->shouldReturn(50.0);
+        $gen->current()->getScore()->shouldReturn(log10(50));
     }
 
     // Seems like yielded functions have issues with PHPSpec

@@ -7,9 +7,22 @@
 
 namespace Minds\Core\Search\SortingAlgorithms;
 
+use Minds\Core\Di\Di;
+use Minds\Core\Features\Manager as Features;
+
 class Hot implements SortingAlgorithm
 {
+    /** @var Features */
+    protected $features;
+
+    /** @var string */
     protected $period;
+
+    public function __construct($features = null)
+    {
+        $this->features = $features ?? Di::_()->get('Features');
+    }
+
 
     /**
      * @return bool
@@ -25,7 +38,9 @@ class Hot implements SortingAlgorithm
      */
     public function setPeriod($period)
     {
-        $this->period = $period;
+        if (!$this->features->has('top-feeds-by-age')) {
+            $this->period = $period;
+        }
         return $this;
     }
 
@@ -34,24 +49,34 @@ class Hot implements SortingAlgorithm
      */
     public function getQuery()
     {
-        return [
-            'bool' => [
-                'must' => [
-                    [
-                        'range' => [
-                            "votes:up:{$this->period}:synced" => [
-                                'gte' => strtotime("1 hour ago", time()),
+        if ($this->period) {
+            return [
+                'bool' => [
+                    'must' => [
+                        [
+                            'range' => [
+                                "votes:up:{$this->period}:synced" => [
+                                    'gte' => strtotime("7 days ago", time()),
+                                ],
                             ],
                         ],
-                        /*'range' => [
-                            "votes:up:{$this->period}" => [
-                                'gte' => 1,
-                            ],
-                        ],*/
                     ],
-                ],
-            ]
-        ];
+                   ]
+            ];
+        }
+        return [
+               'bool' => [
+                   'must' => [
+                       [
+                           'range' => [
+                               "votes:up" => [
+                                   'gte' => 1,
+                               ],
+                           ],
+                       ],
+                   ],
+               ]
+           ];
     }
 
     /**
@@ -60,17 +85,32 @@ class Hot implements SortingAlgorithm
     public function getScript()
     {
         $time = time();
-        return "
-            def up = doc['votes:up:{$this->period}'].value ?: 0;
-            def down = doc['votes:down:{$this->period}'].value ?: 0;
+        if ($this->period) {
+            return "
+                def up = doc['votes:up:{$this->period}'].value ?: 0;
+                def down = doc['votes:down:{$this->period}'].value ?: 0;
 
-            def age = $time - (doc['@timestamp'].value.millis / 1000) - 1546300800;
+                def age = $time - (doc['@timestamp'].value.millis / 1000) - 1546300800;
+
+                def votes = up - down;
+                def sign = (votes > 0) ? 1 : (votes < 0 ? -1 : 0);
+                def order = Math.log(Math.max(Math.abs(votes), 1));
+
+                return (sign * order) - (age / 43200);
+            ";
+        }
+        return "
+            def up = doc['votes:up'].value ?: 0;
+            def down = doc['votes:down'].value ?: 0;
+
+            def age = doc['@timestamp'].value.millis / 1000;
 
             def votes = up - down;
             def sign = (votes > 0) ? 1 : (votes < 0 ? -1 : 0);
             def order = Math.log(Math.max(Math.abs(votes), 1));
 
-            return (sign * order) - (age / 43200);
+            // Rounds to 7
+            return Math.round((sign * order + age / 43200) * 1000000) / 1000000;
         ";
     }
 
