@@ -42,9 +42,9 @@ class NotificationDelegate
         $status = $this->transcodeStates->getStatus($video);
 
         if ($status === TranscodeStates::COMPLETED) {
-            $this->emitCompletedNotification($video);
+            // $this->emitCompletedNotification($video);
         } elseif ($status === TranscodeStates::FAILED) {
-            $this->emitFailedNotification($video);
+            // $this->emitFailedNotification($video);
         }
     }
 

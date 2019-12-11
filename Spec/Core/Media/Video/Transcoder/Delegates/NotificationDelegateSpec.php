@@ -41,43 +41,43 @@ class NotificationDelegateSpec extends ObjectBehavior
         $this->shouldHaveType(NotificationDelegate::class);
     }
 
-    public function it_should_send_notification_of_completed()
-    {
-        $transcode = new Transcode();
-        $transcode->setGuid('123');
+    // public function it_should_send_notification_of_completed()
+    // {
+    //     $transcode = new Transcode();
+    //     $transcode->setGuid('123');
 
-        $this->mockFetchVideo();
+    //     $this->mockFetchVideo();
 
-        $this->transcodeStates->getStatus(Argument::that(function ($video) {
-            return $video->getGuid() === '123';
-        }))
-            ->shouldBeCalled()
-            ->willReturn('completed');
+    //     $this->transcodeStates->getStatus(Argument::that(function ($video) {
+    //         return $video->getGuid() === '123';
+    //     }))
+    //         ->shouldBeCalled()
+    //         ->willReturn('completed');
 
-        $this->eventsDispatcher->trigger('notification', 'transcoder', Argument::type('array'))
-            ->shouldBeCalled();
+    //     $this->eventsDispatcher->trigger('notification', 'transcoder', Argument::type('array'))
+    //         ->shouldBeCalled();
 
-        $this->onTranscodeCompleted($transcode);
-    }
+    //     $this->onTranscodeCompleted($transcode);
+    // }
 
-    public function it_should_send_notification_of_failed()
-    {
-        $transcode = new Transcode();
-        $transcode->setGuid('123');
+    // public function it_should_send_notification_of_failed()
+    // {
+    //     $transcode = new Transcode();
+    //     $transcode->setGuid('123');
 
-        $this->mockFetchVideo();
+    //     $this->mockFetchVideo();
 
-        $this->transcodeStates->getStatus(Argument::that(function ($video) {
-            return $video->getGuid() === '123';
-        }))
-            ->shouldBeCalled()
-            ->willReturn('failed');
+    //     $this->transcodeStates->getStatus(Argument::that(function ($video) {
+    //         return $video->getGuid() === '123';
+    //     }))
+    //         ->shouldBeCalled()
+    //         ->willReturn('failed');
 
-        $this->eventsDispatcher->trigger('notification', 'transcoder', Argument::type('array'))
-            ->shouldBeCalled();
+    //     $this->eventsDispatcher->trigger('notification', 'transcoder', Argument::type('array'))
+    //         ->shouldBeCalled();
 
-        $this->onTranscodeCompleted($transcode);
-    }
+    //     $this->onTranscodeCompleted($transcode);
+    // }
 
     public function it_should_do_nothing()
     {
