@@ -250,6 +250,16 @@ class Repository
             ];
         }
 
+        if ($type === 'group') {
+            $body['query']['function_score']['query']['bool']['must'][] = [
+                'range' => [
+                    'access_id' => [
+                        'gt' => 2,
+                    ]
+                ]
+            ];
+        }
+
         // Time bounds
 
         $timestampUpperBounds = []; // LTE
@@ -386,6 +396,10 @@ class Repository
 
         $esType = $opts['type'];
 
+        if ($type === 'user' || $type === 'group') {
+            $esType = 'activity,object:image,object:video,object:blog';
+        }
+
         if ($esType === 'all') {
             $esType = 'object:image,object:video,object:blog';
         }
@@ -416,9 +430,31 @@ class Repository
                 ]);
             }
         }
- 
+
+        $docs = $response['hits']['hits'];
+
+        // Sort channels / groups by post scores
+        if ($type === 'user' || $type === 'group') {
+            $newDocs = []; // New array so we return only users and groups, not posts
+            foreach ($docs as $doc) {
+                $key = $doc['_source'][$this->getSourceField($type)];
+                $newDocs[$key] = $newDocs[$key] ?? [
+                    '_source' => [
+                        'guid' => $key,
+                        'owner_guid' => $key,
+                        $this->getSourceField($type) => $key,
+                        '@timestamp' => $doc['_source']['@timestamp'],
+                    ],
+                    '_type' => $type,
+                    '_score' => 0,
+                ];
+                $newDocs[$key]['_score'] = log10($newDocs[$key]['_score'] + $algorithm->fetchScore($doc));
+            }
+            $docs = $newDocs;
+        }
+
         $guids = [];
-        foreach ($response['hits']['hits'] as $doc) {
+        foreach ($docs as $doc) {
             $guid = $doc['_source'][$this->getSourceField($opts['type'])];
             if (isset($guids[$guid])) {
                 continue;
@@ -436,12 +472,12 @@ class Repository
     private function getSourceField(string $type)
     {
         switch ($type) {
-            //case 'user':
-            //    return 'owner_guid';
-            //    break;
-            //case 'group':
-            //    return 'container_guid';
-            //    break;
+            case 'user':
+                return 'owner_guid';
+                break;
+            case 'group':
+                return 'container_guid';
+                break;
             default:
                 return 'guid';
                 break;
