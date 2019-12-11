@@ -40,6 +40,7 @@ class TranscodeStates
             'guid' => $video->getGuid(),
         ]);
 
+        $total = 0;
         $created = 0;
         $failures = 0;
         $completed = 0;
@@ -48,6 +49,7 @@ class TranscodeStates
             if ($transcode instanceof TranscodeProfiles\Thumbnails) {
                 continue; // We skip thumbnails as these are likely to succeed
             }
+            ++$total;
             switch ($transcode->getStatus()) {
                 case TranscodeStates::TRANSCODING:
                     if ($transcode->getLastEventTimestampMs() >= (time() - Manager::TRANSCODER_TIMEOUT_SECS) * 1000) {
@@ -72,6 +74,10 @@ class TranscodeStates
         }
 
         if ($created > ($completed + $failures)) {
+            return TranscodeStates::CREATED;
+        }
+
+        if ($total < ($completed + $failures)) {
             return TranscodeStates::CREATED;
         }
 
