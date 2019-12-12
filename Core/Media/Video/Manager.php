@@ -69,8 +69,13 @@ class Manager
      */
     public function getSources(Video $video): array
     {
+        $guid = $video->getGuid();
+        if (($legacyGuid = $video->get('cinemr_guid')) && $legacyGuid != $guid) {
+            $guid = $legacyGuid;
+        }
+
         $transcodes = $this->transcoderManager->getList([
-            'guid' => $video->getGuid(),
+            'guid' => $guid,
             'legacyPolyfill' => true,
         ]);
         $sources = [];
