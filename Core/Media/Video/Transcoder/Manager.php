@@ -201,7 +201,7 @@ class Manager
     public function transcode(Transcode $transcode): void
     {
         // Update the background so everyone knows this is inprogress
-        $transcode->setStatus('transcoding');
+        $transcode->setStatus(TranscodeStates::TRANSCODING);
         $this->update($transcode, [ 'status' ]);
 
         // Perform the transcode
@@ -215,11 +215,12 @@ class Manager
                 throw new TranscodeExecutors\FailedTranscodeException();
             }
             $transcode->setProgress(100); // If completed should be assumed 100%
-            $transcode->setStatus('completed');
+            $transcode->setStatus(TranscodeStates::COMPLETED);
         } catch (TranscodeExecutors\FailedTranscodeException $e) {
-            $transcode->setStatus('failed');
+            $transcode->setStatus(TranscodeStates::FAILED);
+            $transcode->setFailureReason($e->getMessage());
         } finally {
-            $this->update($transcode, [ 'progress', 'status' ]);
+            $this->update($transcode, [ 'progress', 'status', 'failureReason' ]);
         }
 
         $this->notificationDelegate->onTranscodeCompleted($transcode);

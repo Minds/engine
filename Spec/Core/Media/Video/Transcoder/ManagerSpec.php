@@ -8,6 +8,7 @@ use Minds\Core\Media\Video\Transcoder\Delegates\QueueDelegate;
 use Minds\Core\Media\Video\Transcoder\TranscodeProfiles;
 use Minds\Core\Media\Video\Transcoder\TranscodeStorage\TranscodeStorageInterface;
 use Minds\Core\Media\Video\Transcoder\TranscodeExecutors\TranscodeExecutorInterface;
+use Minds\Core\Media\Video\Transcoder\TranscodeExecutors\FailedTranscodeException;
 use Minds\Core\Media\Video\Transcoder\Transcode;
 use Minds\Core\Media\Video\Transcoder\Delegates\NotificationDelegate;
 use Minds\Entities\Video;
@@ -137,8 +138,36 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->repository->update(Argument::that(function ($transcode) {
-            return $transcode->getStatus() === 'completed';
-        }), [ 'progress', 'status' ])
+            return $transcode->getStatus() === 'completed'
+                && $transcode->getFailureReason() === null;
+        }), [ 'progress', 'status', 'failureReason' ])
+            ->shouldBeCalled();
+
+        // Check for future transcodes is called
+        $this->notificationDelegate->onTranscodeCompleted($transcode)
+            ->shouldBeCalled();
+
+        $this->transcode($transcode);
+    }
+
+    public function it_should_record_failure_reason()
+    {
+        $transcode = new Transcode();
+        $transcode->setGuid('123');
+    
+        $this->repository->update(Argument::that(function ($transcode) {
+            return $transcode->getStatus() === 'transcoding';
+        }), [ 'status' ])
+            ->shouldBeCalled();
+
+        $this->transcodeExecutor->transcode($transcode, Argument::any())
+            ->shouldBeCalled()
+            ->willThrow(new FailedTranscodeException("Custom error message here"));
+
+        $this->repository->update(Argument::that(function ($transcode) {
+            return $transcode->getStatus() === 'failed'
+                && $transcode->getFailureReason() === "Custom error message here";
+        }), [ 'progress', 'status', 'failureReason' ])
             ->shouldBeCalled();
 
         // Check for future transcodes is called
