@@ -57,7 +57,7 @@ class Repository
 
         if ($opts['profileId']) {
             $where[] = "profile_id = ?";
-            $values[] = $opts['profile_id'];
+            $values[] = $opts['profileId'];
         }
 
         if ($opts['status']) {
@@ -184,6 +184,9 @@ class Repository
                     break;
                 case 'bytes':
                     $set['bytes'] = (int) $transcode->getBytes();
+                    break;
+                case 'failureReason':
+                    $set['failure_reason'] = $transcode->getFailureReason();
                     break;
             }
         }

@@ -23,6 +23,8 @@ use Minds\Traits\MagicAttributes;
  * @method int getLengthSecs()
  * @method Transcode setBytes(int $bytes)
  * @method int getBytes()
+ * @method Transcode setFailureReason(string $reason)
+ * @method string getFailureReason()
  */
 class Transcode
 {
@@ -30,10 +32,10 @@ class Transcode
 
     /** @var string */
     const TRANSCODE_STATES = [
-        'created',
-        'transcoding',
-        'failed',
-        'completed',
+        TranscodeStates::CREATED,
+        TranscodeStates::TRANSCODING,
+        TranscodeStates::FAILED,
+        TranscodeStates::COMPLETED,
     ];
 
     /** @var string */
@@ -59,6 +61,9 @@ class Transcode
 
     /** @var int */
     private $bytes;
+
+    /** @var string */
+    private $failureReason;
 
     /**
      * @param Video $video

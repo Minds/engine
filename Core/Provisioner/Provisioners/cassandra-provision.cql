@@ -1544,3 +1544,5 @@ CREATE TABLE minds.video_transcodes (
     bytes int,
     PRIMARY KEY (guid, profile_id)
 );
+
+ALTER TABLE minds.video_transcodes ADD failure_reason text;

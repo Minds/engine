@@ -15,6 +15,7 @@ use Minds\Entities\Video;
 use Minds\Core\Di\Di;
 use Minds\Core\Media\TranscodingStatus;
 use Minds\Core\Media\Video\Transcoder\Transcode;
+use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Core\Media\Video\Transcoder\TranscodeStorage\TranscodeStorageInterface;
 use Minds\Core\Media\Video\Transcoder\TranscodeProfiles;
 
@@ -149,10 +150,11 @@ class FFMpegExecutor implements TranscodeExecutorInterface
 
             // Completed!
             // $this->logger->info("Completed: $path ({$transcode->getGuid()})");
-            $transcode->setStatus('completed');
+            $transcode->setStatus(TranscodeStates::COMPLETED);
         } catch (\Exception $e) {
+            error_log("FAILED: {$transcode->getGuid()} {$e->getMessage()}");
             // $this->logger->out("Failed {$e->getMessage()}");
-            $transcode->setStatus('failed');
+            $transcode->setStatus(TranscodeStates::FAILED);
             // TODO: Should we also save the failure reason in the db?
             // Throw a new 'failed' exception
             throw new FailedTranscodeException($e->getMessage());
@@ -181,7 +183,7 @@ class FFMpegExecutor implements TranscodeExecutorInterface
 
             // Create thumbnails
             $length = round((int) $this->ffprobe->format($sourcePath)->get('duration'));
-            $secs = [0, 1, round($length / 2), $length - 1, $length];
+            $secs = [0, 1, round($length / 2), $length - 1];
             foreach ($secs as $sec) {
                 $frame = $video->frame(\FFMpeg\Coordinate\TimeCode::fromSeconds($sec));
                 $pad = str_pad($sec, 5, '0', STR_PAD_LEFT);
@@ -198,9 +200,10 @@ class FFMpegExecutor implements TranscodeExecutorInterface
                 @unlink($path);
             }
             $transcode->setProgress(100);
-            $transcode->setStatus('completed');
+            $transcode->setStatus(TranscodeStates::COMPLETED);
         } catch (\Exception $e) {
-            $transcode->setStatus('failed');
+            error_log("FAILED: {$transcode->getGuid()} {$e->getMessage()}");
+            $transcode->setStatus(TranscodeStates::FAILED);
             // TODO: Should we also save the failure reason in the db?
             // Throw a new 'failed' exception
             throw new FailedTranscodeException($e->getMessage());
