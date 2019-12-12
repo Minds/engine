@@ -24,6 +24,12 @@ use Minds\Traits\MagicAttributes;
  * @method Account getSSN(): string
  * @method Account getPersonalIdNumber(): string
  * @method Account getUser(): User
+ * @method string getEmail()
+ * @method Account setEmail(string $email)
+ * @method string getUrl()
+ * @method Account setUrl(string $url)
+ * @method array getMetadata()
+ * @method Account setMetdata(array $metadata)
  */
 class Account
 {
@@ -31,6 +37,9 @@ class Account
 
     /** @var string $id */
     private $id;
+
+    /** @var User */
+    private $user;
 
     /** @var string $userGuid */
     private $userGuid;
@@ -47,11 +56,14 @@ class Account
     /** @var string $email */
     private $email;
 
+    /** @var string $url */
+    private $url;
+
     /** @var string $dob */
-    private $dob;
+    private $dateOfBirth;
 
     /** @var string $ssn */
-    private $ssn;
+    private $sSN;
 
     /** @var string $personalIdNumber */
     private $personalIdNumber;
@@ -112,6 +124,12 @@ class Account
 
     /** @var string $requirement */
     private $requirement;
+
+    /** @var string */
+    private $ip;
+
+    /** @var array */
+    private $metadata;
 
     /** @var array $exportable */
     private $exportable = [

@@ -12,7 +12,7 @@ use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Core\Payments\Stripe;
 
-class photoid implements Interfaces\Api
+class document implements Interfaces\Api
 {
     public function get($pages)
     {
@@ -21,11 +21,20 @@ class photoid implements Interfaces\Api
 
     public function post($pages)
     {
+        $documentType = $pages[0] ?? null;
+
+        if (!$documentType) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => '/:documentType must be provided',
+            ]);
+        }
+
         $user = Session::getLoggedInUser();
         $connectManager = new Stripe\Connect\Manager();
         $account = $connectManager->getByUser($user);
         $fp = fopen($_FILES['file']['tmp_name'], 'r');
-        $connectManager->addPhotoId($account, $fp);
+        $connectManager->addDocument($account, $fp, $documentType);
         return Factory::response([ 'account_id' => $account->getId() ]);
     }
 

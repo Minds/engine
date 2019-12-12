@@ -81,15 +81,23 @@ class Manager
             $data['individual']['gender'] = $account->getGender();
         }
 
+        if ($account->getEmail()) {
+            $data['individual']['email'] = $account->getEmail();
+        }
+
+        if ($account->getUrl()) {
+            $data['business_profile']['url'] = $account->getUrl();
+        }
+
         if ($account->getPhoneNumber()) {
-            $data['individual']['phone'] = $account->getPhoneNumber();
+            $data['individual']['phone'] = "+" . $account->getPhoneNumber();
         }
 
         // US 1099 requires SSN
 
         if ($account->getSSN()) {
             $data['individual']['ssn_last_4'] = $account->getSSN();
-            $data['requested_capabilities'] = ['card_payments', 'transfers'];
+            $data['requested_capabilities'] = ['legacy_payments', 'card_payments', 'transfers'];
         }
 
         if ($account->getPersonalIdNumber()) {
@@ -132,45 +140,50 @@ class Manager
     {
         try {
             $stripeAccount = $this->accountInstance->retrieve($account->getId());
+            if ($stripeAccount->individual->verification->status !== 'verified') {
+                $stripeAccount->individual->first_name = $account->getFirstName();
+                $stripeAccount->individual->last_name = $account->getLastName();
 
-            if ($stripeAccount->legal_entity->verification->status !== 'verified') {
-                $stripeAccount->legal_entity->first_name = $account->getFirstName();
-                $stripeAccount->legal_entity->last_name = $account->getLastName();
-
-                $stripeAccount->legal_entity->address->city = $account->getCity();
-                $stripeAccount->legal_entity->address->line1 = $account->getStreet();
-                $stripeAccount->legal_entity->address->postal_code = $account->getPostCode();
-                $stripeAccount->legal_entity->address->state = $account->getState();
+                $stripeAccount->individual->address->city = $account->getCity();
+                $stripeAccount->individual->address->line1 = $account->getStreet();
+                $stripeAccount->individual->address->postal_code = $account->getPostCode();
+                $stripeAccount->individual->address->state = $account->getState();
 
                 $dob = explode('-', $account->getDateOfBirth());
-                $stripeAccount->legal_entity->dob->day = $dob[2];
-                $stripeAccount->legal_entity->dob->month = $dob[1];
-                $stripeAccount->legal_entity->dob->year = $dob[0];
+                $stripeAccount->individual->dob->day = $dob[2];
+                $stripeAccount->individual->dob->month = $dob[1];
+                $stripeAccount->individual->dob->year = $dob[0];
 
                 if ($account->getGender()) {
-                    $stripeAccount->legal_entity->gender = $account->getGender();
+                    $stripeAccount->individual->gender = $account->getGender();
                 }
 
                 if ($account->getPhoneNumber()) {
-                    $stripeAccount->legal_entity->phone_number = $account->getPhoneNumber();
+                    $stripeAccount->individual->phone = $account->getPhoneNumber();
                 }
             } else {
-                if (!$stripeAccount->legal_entity->ssn_last_4_provided && $account->getSSN()) {
-                    $stripeAccount->legal_entity->ssn_last_4 = $account->getSSN();
-                }
-
-                if (!$account->legal_entity->personal_id_number_provided && $account->getPersonalIdNumber()) {
-                    $account->legal_entity->personal_id_number = $account->getPersonalIdNumber();
+                if (!($stripeAccount->individual->ssn_last_4i ?? null) && $account->getSSN()) {
+                    $stripeAccount->individual->ssn_last_4 = $account->getSSN();
                 }
             }
 
-            if ($account->getAccountNumber()) {
-                $stripeAccount->external_account->account_number = $account->getAccountNumber();
+            if (!$account->individual->id_number_provided && $account->getPersonalIdNumber()) {
+                $stripeAccount->individual->id_number = $account->getPersonalIdNumber();
             }
 
-            if ($account->getRoutingNumber()) {
-                $stripeAccount->external_account->routing_number = $account->getRoutingNumber();
+            if ($account->getEmail()) {
+                $stripeAccount->individual->email = $account->getEmail();
             }
+
+            if ($account->getUrl()) {
+                $stripeAccount->business_profile->url = $account->getUrl();
+            }
+
+            if ($account->getPhoneNumber()) {
+                $stripeAccount->individual->phone = $account->getPhoneNumber();
+            }
+
+            $stripeAccount->metadata = $account->getMetadata();
 
             $stripeAccount->save();
         } catch (\Exception $e) {
@@ -230,17 +243,28 @@ class Manager
     }
 
     /**
-     * Add photo Id
+     * Add document
      * @param Account $account
      * @param resource $file
+     * @param string $documentType
      * @return bool
      */
-    public function addPhotoId(Account $account, $file) : bool
+    public function addDocument(Account $account, $file, string $documentType) : bool
     {
-        return (bool) $this->fileInstance->create([
+        $fileId =  $this->fileInstance->create([
             'purpose' => 'identity_document',
             'file' => $file,
         ], [ 'stripe_account' => $account->getId() ]);
+
+        return (bool) $this->accountInstance->update($account->getId(), [
+            'individual' => [
+                'verification' => [
+                    $documentType => [
+                        'front' => $fileId,
+                    ],
+                ],
+            ]
+        ]);
     }
 
     /**
@@ -252,41 +276,37 @@ class Manager
     {
         try {
             $result = $this->accountInstance->retrieve($id);
-
             $account = (new Account())
               ->setId($result->id)
               ->setStatus('active')
               ->setCountry($result->country)
-              ->setFirstName($result->legal_entity->first_name)
-              ->setLastName($result->legal_entity->last_name)
-              ->setGender($result->legal_entity->gender)
-              ->setDateOfBirth($result->legal_entity->dob->year . '-' . str_pad($result->legal_entity->dob->month, 2, '0', STR_PAD_LEFT) . '-' . str_pad($result->legal_entity->dob->day, 2, '0', STR_PAD_LEFT))
-              ->setStreet($result->legal_entity->address->line1)
-              ->setCity($result->legal_entity->address->city)
-              ->setPostCode($result->legal_entity->address->postal_code)
-              ->setState($result->legal_entity->address->state)
-              ->setPhoneNumber($result->legal_entity->phone_number)
-              ->setSSN($result->legal_entity->ssn_last_4)
-              ->setPersonalIdNumber($result->legal_entity->personal_id_number)
+              ->setFirstName($result->individual->first_name)
+              ->setLastName($result->individual->last_name)
+              ->setGender($result->individual->gender ?? null)
+              ->setDateOfBirth($result->individual->dob->year . '-' . str_pad($result->individual->dob->month, 2, '0', STR_PAD_LEFT) . '-' . str_pad($result->individual->dob->day, 2, '0', STR_PAD_LEFT))
+              ->setStreet($result->individual->address->line1)
+              ->setCity($result->individual->address->city)
+              ->setPostCode($result->individual->address->postal_code)
+              ->setState($result->individual->address->state)
+              ->setPhoneNumber($result->individual->phone ?? null)
+              ->setSSN($result->individual->ssn_last_4 ?? null)
+              ->setPersonalIdNumber($result->individual->id_number ?? null)
               ->setBankAccount($result->external_accounts->data[0])
               ->setAccountNumber($result->external_accounts->data[0]['last4'])
               ->setRoutingNumber($result->external_accounts->data[0]['routing_number'])
               ->setDestination('bank')
               ->setPayoutInterval($result->settings->payouts->schedule->interval)
               ->setPayoutDelay($result->settings->payouts->schedule->delay_days)
-              ->setPayoutAnchor($result->settings->payouts->schedule->monthly_anchor);
+              ->setPayoutAnchor($result->settings->payouts->schedule->monthly_anchor ?? null)
+              ->setMetadata($result->metadata);
 
             //verifiction check
-            if ($result->legal_entity->verification->status === 'verified') {
+            if ($result->individual->verification->status === 'verified') {
                 $account->setVerified(true);
             }
 
             if (!$account->getVerified()) {
-                switch ($result->requirements->disabled_reason) {
-                    case 'requirements.past_due':
-                        $account->setRequirement($result->requirements->currently_due[0]);
-                        break;
-                }
+                $account->setRequirement($result->requirements->currently_due[0]);
             }
 
             $account->setTotalBalance($this->getBalanceById($result->id, 'available'));
@@ -350,5 +370,31 @@ class Manager
             ->save();
 
         return true;
+    }
+
+    /**
+     * Return an iterator of accounts
+     * @return iterable
+     */
+    public function getList(): iterable
+    {
+        $startingAfter = null;
+        while (true) {
+            $opts = [
+                'limit' => 10,
+            ];
+
+            if ($startingAfter) {
+                $opts['starting_after'] = $startingAfter;
+            }
+            $accounts = $this->accountInstance->all($opts);
+            if (!$accounts) {
+                return null;
+            }
+            foreach ($accounts as $account) {
+                yield $account;
+                $startingAfter = $account->id;
+            }
+        }
     }
 }
