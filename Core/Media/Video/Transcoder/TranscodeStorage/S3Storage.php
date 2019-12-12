@@ -101,6 +101,6 @@ class S3Storage implements TranscodeStorageInterface
         ]);
 
         $s3Contents = $awsResult['Contents'];
-        return array_column($s3Contents, 'Key');
+        return array_column($s3Contents, 'Key') ?: [];
     }
 }
