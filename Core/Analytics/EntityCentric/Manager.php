@@ -13,11 +13,12 @@ class Manager
 {
     /** @var array */
     const SYNCHRONISERS = [
-        EngagementSynchroniser::class,
-        PartnerEarningsSynchroniser::class,
+//        EngagementSynchroniser::class,
+//        PartnerEarningsSynchroniser::class,
         SignupsSynchroniser::class,
-        ActiveUsersSynchroniser::class,
-        ViewsSynchroniser::class,
+        ReferralsSynchroniser::class
+//        ActiveUsersSynchroniser::class,
+//        ViewsSynchroniser::class,
     ];
 
     /** @var Repository */
@@ -52,9 +53,10 @@ class Manager
 
     /**
      * Synchronise views from cassandra to elastic
+     * @param array $opts
      * @return iterable
      */
-    public function sync(): iterable
+    public function sync(array $opts = []): iterable
     {
         foreach (Manager::SYNCHRONISERS as $synchroniserClass) {
             $synchroniser = new $synchroniserClass;

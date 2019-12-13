@@ -39,7 +39,7 @@ class SignupsSynchroniser
         $days = (int) $date->diff($now)->format('%a');
 
         foreach ($this->signupMetric->get($days) as $bucket) {
-            error_log($bucket['date']);
+            error_log("Signups (total {$bucket['date']}) {$bucket['total']}");
             $record = new EntityCentricRecord();
             $record->setEntityUrn("urn:metric:global")
                 ->setOwnerGuid((string) 0) // Site is owner
