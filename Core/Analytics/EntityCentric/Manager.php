@@ -13,12 +13,12 @@ class Manager
 {
     /** @var array */
     const SYNCHRONISERS = [
-//        EngagementSynchroniser::class,
-//        PartnerEarningsSynchroniser::class,
+        EngagementSynchroniser::class,
+        PartnerEarningsSynchroniser::class,
         SignupsSynchroniser::class,
-        ReferralsSynchroniser::class
-//        ActiveUsersSynchroniser::class,
-//        ViewsSynchroniser::class,
+        ReferralsSynchroniser::class,
+        ActiveUsersSynchroniser::class,
+        ViewsSynchroniser::class,
     ];
 
     /** @var Repository */
