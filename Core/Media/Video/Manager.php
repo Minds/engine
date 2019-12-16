@@ -37,7 +37,7 @@ class Manager
         $s3 = null,
         $entitiesBuilder = null,
         $transcoderManager = null,
-        $transcoder = null
+        $ffmpeg = null
     ) {
         $this->config = $config ?? Di::_()->get('Config');
 
