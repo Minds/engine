@@ -1,8 +1,8 @@
 <?php
 
-namespace Spec\Minds\Core\Feeds\Top;
+namespace Spec\Minds\Core\Feeds\Elastic;
 
-use Minds\Core\Feeds\Top\ScoredGuid;
+use Minds\Core\Feeds\Elastic\ScoredGuid;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 

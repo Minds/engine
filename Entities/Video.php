@@ -51,14 +51,15 @@ class Video extends MindsObject
 
     public function upload($filepath)
     {
+        // TODO: Confirm why this is still here
         $this->generateGuid();
 
-        $transcoder = ServiceFactory::build('FFMpeg');
-        $transcoder->setKey($this->getGuid())
-            ->setFullHD($this->getFlag('full_hd'))
-            ->saveToFilestore($filepath)
-            ->transcode();
+        // Upload the source and start the transcoder pipeline
+        $transcoderManager = Di::_()->get('Media\Video\Transcoder\Manager');
+        $transcoderManager->uploadSource($this, $filepath)
+            ->createTranscodes($this);
 
+        // Legacy support
         $this->cinemr_guid = $this->getGuid();
     }
 
@@ -188,6 +189,7 @@ class Video extends MindsObject
             'description' => null,
             'license' => null,
             'mature' => null,
+            'nsfw' => null,
             'boost_rejection_reason' => null,
             'hidden' => null,
             'access_id' => null,
@@ -205,6 +207,7 @@ class Video extends MindsObject
             'access_id',
             'container_guid',
             'mature',
+            'nsfw',
             'boost_rejection_reason',
             'rating',
             'time_sent',

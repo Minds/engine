@@ -263,10 +263,10 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
         $entity = Core\Media\Factory::build($clientType);
 
         $container_guid = isset($data['container_guid']) && is_numeric($data['container_guid']) ? $data['container_guid'] : null;
-
         $entity->patch([
             'title' => isset($data['name']) ? $data['name'] : '',
             'mature' => isset($data['mature']) && !!$data['mature'],
+            'nsfw' => !is_array($_POST['nsfw']) ? json_decode($_POST['nsfw']) : $_POST['nsfw'],
             'batch_guid' => 0,
             'access_id' => 0,
             'owner_guid' => $user->guid,

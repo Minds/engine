@@ -8,8 +8,8 @@ class FeedsProvider extends Provider
 {
     public function register()
     {
-        $this->di->bind('Feeds\Top\Manager', function ($di) {
-            return new Top\Manager();
+        $this->di->bind('Feeds\Elastic\Manager', function ($di) {
+            return new Elastic\Manager();
         });
 
         $this->di->bind('Feeds\Firehose\Manager', function ($di) {

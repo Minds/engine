@@ -4,6 +4,7 @@ namespace Minds\Controllers\api\v2;
 
 use Minds\Api\Exportable;
 use Minds\Api\Factory;
+use Minds\Common\Repository\Response;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities\Factory as EntitiesFactory;
@@ -12,6 +13,13 @@ use Minds\Interfaces;
 
 class feeds implements Interfaces\Api
 {
+    const PERIOD_FALLBACK = [
+        '12h' => '7d',
+        '24h' => '7d',
+        '7d' => '30d',
+        '30d' => '1y'
+    ];
+
     /**
      * Gets a list of suggested hashtags, including the ones the user has opted in
      * @param array $pages
@@ -20,6 +28,9 @@ class feeds implements Interfaces\Api
     public function get($pages)
     {
         Factory::isLoggedIn();
+
+        $now = time();
+        $periodsInSecs = Core\Feeds\Elastic\Repository::PERIODS;
 
         /** @var User $currentUser */
         $currentUser = Core\Session::getLoggedinUser();
@@ -119,6 +130,8 @@ class feeds implements Interfaces\Api
 
         $sync = (bool) ($_GET['sync'] ?? false);
 
+        $periodFallback = (bool) ($_GET['period_fallback'] ?? false);
+
         $asActivities = (bool) ($_GET['as_activities'] ?? true);
 
         $query = isset($_GET['query']) ? urldecode($_GET['query']) : null;
@@ -137,12 +150,13 @@ class feeds implements Interfaces\Api
             }
         }
 
-        /** @var Core\Feeds\Top\Manager $manager */
-        $manager = Di::_()->get('Feeds\Top\Manager');
+        /** @var Core\Feeds\Elastic\Manager $manager */
+        $manager = Di::_()->get('Feeds\Elastic\Manager');
 
-        /** @var Core\Feeds\Top\Entities $entities */
-        $entities = new Core\Feeds\Top\Entities();
-        $entities->setActor($currentUser);
+        /** @var Core\Feeds\Elastic\Entities $elasticEntities */
+        $elasticEntities = new Core\Feeds\Elastic\Entities();
+        $elasticEntities
+            ->setActor($currentUser);
 
         $opts = [
             'cache_key' => Core\Session::getLoggedInUserGuid(),
@@ -185,22 +199,49 @@ class feeds implements Interfaces\Api
         }
 
         try {
-            $result = $manager->getList($opts);
+            $entities = new Response();
+            $fallbackAt = null;
+            $i = 0;
+
+            while ($entities->count() < $limit) {
+                $rows = $manager->getList($opts);
+
+                $entities = $entities->pushArray($rows->toArray());
+
+                if (
+                    !$periodFallback ||
+                    $opts['algorithm'] !== 'top' ||
+                    !isset(static::PERIOD_FALLBACK[$opts['period']]) ||
+                    ++$i > 2 // Stop at 2nd fallback (i.e. 12h > 7d > 30d)
+                ) {
+                    break;
+                }
+
+                $period = $opts['period'];
+                $from = $now - $periodsInSecs[$period];
+                $opts['from_timestamp'] = $from * 1000;
+                $opts['period'] = static::PERIOD_FALLBACK[$period];
+
+                if (!$fallbackAt) {
+                    $fallbackAt = $from;
+                }
+            }
 
             if (!$sync) {
                 // Remove all unlisted content, if ES document is not in sync, it'll
                 // also remove pending activities
-                $result = $result->filter([$entities, 'filter']);
+                $entities = $entities->filter([$elasticEntities, 'filter']);
 
                 if ($asActivities) {
                     // Cast to ephemeral Activity entities, if another type
-                    $result = $result->map([$entities, 'cast']);
+                    $entities = $entities->map([$elasticEntities, 'cast']);
                 }
             }
 
             return Factory::response([
                 'status' => 'success',
-                'entities' => Exportable::_($result),
+                'entities' => Exportable::_($entities),
+                'fallback_at' => $fallbackAt,
                 'load-next' => $limit + $offset,
             ]);
         } catch (\Exception $e) {

@@ -5,7 +5,10 @@ namespace Spec\Minds\Core\Media\Video;
 use Minds\Core\Config;
 use Aws\S3\S3Client;
 use Minds\Core\Media\Video\Manager;
+use Minds\Core\Media\Video\Transcoder;
 use Minds\Entities\Video;
+use Minds\Core\EntitiesBuilder;
+use Minds\Common\Repository\Response;
 use Psr\Http\Message\RequestInterface;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -17,19 +20,72 @@ class ManagerSpec extends ObjectBehavior
 {
     private $config;
     private $s3;
-    private $transcoder;
+    private $ffmpeg;
+    private $entitiesBuilder;
+    private $transcoderManager;
 
-    public function let(Config $config, S3Client $s3, FFMpeg $transcoder)
+    public function let(Config $config, S3Client $s3, EntitiesBuilder $entitiesBuilder, Transcoder\Manager $transcoderManager, FFMpeg $ffmpeg)
     {
-        $this->beConstructedWith($config, $s3, $transcoder);
+        $this->beConstructedWith($config, $s3, $entitiesBuilder, $transcoderManager, $ffmpeg);
         $this->config = $config;
         $this->s3 = $s3;
-        $this->transcoder = $transcoder;
+        $this->entitiesBuilder = $entitiesBuilder;
+        $this->transcoderManager = $transcoderManager;
+        $this->ffmpeg = $ffmpeg;
     }
 
     public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
+    }
+
+    public function it_should_return_a_video()
+    {
+        $video = new Video();
+
+        $this->entitiesBuilder->single(123)
+            ->shouldBeCalled()
+            ->willReturn($video);
+
+        $this->get(123)
+            ->shouldReturn($video);
+    }
+
+    public function it_should_return_available_sources()
+    {
+        $video = new Video();
+        $video->set('guid', '123');
+
+        $this->transcoderManager->getList([
+            'guid' => '123',
+            'legacyPolyfill' => true,
+        ])
+            ->shouldBeCalled()
+            ->willReturn(new Response([
+                (new Transcoder\Transcode())
+                    ->setGuid('123')
+                    ->setProfile(new Transcoder\TranscodeProfiles\X264_720p())
+                    ->setStatus('created'),
+                (new Transcoder\Transcode())
+                    ->setGuid('123')
+                    ->setProfile(new Transcoder\TranscodeProfiles\X264_360p())
+                    ->setStatus('completed'),
+                (new Transcoder\Transcode())
+                    ->setGuid('123')
+                    ->setProfile(new Transcoder\TranscodeProfiles\Webm_360p())
+                    ->setStatus('completed'),
+            ]));
+
+        $sources = $this->getSources($video);
+        $sources->shouldHaveCount(2);
+
+        $sources[0]->getType()
+            ->shouldBe('video/mp4');
+        $sources[0]->getSize(360);
+    
+        $sources[1]->getType()
+            ->shouldBe('video/webm');
+        $sources[1]->getSize(360);
     }
 
     public function it_should_get_a_signed_720p_video_url(RequestInterface $request, \Aws\CommandInterface $cmd)
@@ -101,7 +157,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe('https://url.com/cinemr123/720.mp4');
     }
 
-    public function it_should_manually_transcode_a_non_hd_video(FFMpeg $transcoder, Entity $entity, User $owner)
+    public function it_should_manually_transcode_a_non_hd_video(FFMpeg $ffmpeg, Entity $entity, User $owner)
     {
         $guid = '123';
         $hd = false;
@@ -110,15 +166,15 @@ class ManagerSpec extends ObjectBehavior
         $entity->getOwnerEntity()->shouldBeCalled()->willReturn($owner);
         $entity->get('guid')->shouldBeCalled()->willReturn($guid);
 
-        $transcoder->setKey($guid)->shouldBeCalled();
-        $transcoder->setFullHD($hd)->shouldBeCalled();
-        $transcoder->transcode()->shouldBeCalled();
+        $ffmpeg->setKey($guid)->shouldBeCalled();
+        $ffmpeg->setFullHD($hd)->shouldBeCalled();
+        $ffmpeg->transcode()->shouldBeCalled();
 
         $this->transcode($entity)
             ->shouldReturn(true);
     }
 
-    public function it_should_manually_transcode_a_hd_video(FFMpeg $transcoder, Entity $entity, User $owner)
+    public function it_should_manually_transcode_a_hd_video(FFMpeg $ffmpeg, Entity $entity, User $owner)
     {
         $guid = '123';
         $hd = true;
@@ -127,9 +183,9 @@ class ManagerSpec extends ObjectBehavior
         $entity->getOwnerEntity()->shouldBeCalled()->willReturn($owner);
         $entity->get('guid')->shouldBeCalled()->willReturn($guid);
 
-        $transcoder->setKey($guid)->shouldBeCalled();
-        $transcoder->setFullHD($hd)->shouldBeCalled();
-        $transcoder->transcode()->shouldBeCalled();
+        $ffmpeg->setKey($guid)->shouldBeCalled();
+        $ffmpeg->setFullHD($hd)->shouldBeCalled();
+        $ffmpeg->transcode()->shouldBeCalled();
 
         $this->transcode($entity)
             ->shouldReturn(true);

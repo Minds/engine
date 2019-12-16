@@ -5,7 +5,7 @@ namespace Minds\Core\Feeds\Firehose;
 use Minds\Entities\User;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Di\Di;
-use Minds\Core\Feeds\Top\Manager as TopFeedsManager;
+use Minds\Core\Feeds\Elastic\Manager as TopFeedsManager;
 use Minds\Core\Entities\PropagateProperties;
 
 class Manager
@@ -25,7 +25,7 @@ class Manager
         Save $save = null,
         PropagateProperties $propagateProperties = null
     ) {
-        $this->topFeedsManager = $topFeedsManager ?: Di::_()->get('Feeds\Top\Manager');
+        $this->topFeedsManager = $topFeedsManager ?: Di::_()->get('Feeds\Elastic\Manager');
         $this->moderationCache = $moderationCache ?: new ModerationCache();
         $this->save = $save ?: new Save();
         $this->propagateProperties = $propagateProperties ?? Di::_()->get('PropagateProperties');

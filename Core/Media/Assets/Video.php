@@ -57,6 +57,9 @@ class Video implements AssetsInterface
             $file->write($data);
             $file->close();
 
+            $this->entity->last_updated = time();
+            $this->entity->save();
+
             $assets['thumbnail'] = $filename;
         }
 

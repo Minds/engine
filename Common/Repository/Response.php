@@ -260,6 +260,16 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
     }
 
     /**
+     * @param array $data
+     * @return Response
+     */
+    public function pushArray(array $data)
+    {
+        array_push($this->data, ...$data);
+        return $this;
+    }
+
+    /**
      * Exports the data array
      * @return array
      */
@@ -327,6 +337,18 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
     public function reduce($callback, $initialValue = null)
     {
         return array_reduce($this->data, $callback, $initialValue);
+    }
+
+    /**
+     * @param callable $callback
+     * @return Response
+     */
+    public function sort(callable $callback): Response
+    {
+        $data = $this->data;
+        usort($data, $callback);
+
+        return new static($data, $this->pagingToken);
     }
 
     /**

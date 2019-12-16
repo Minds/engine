@@ -4,7 +4,7 @@
  */
 namespace Minds\Core\Media\ClientUpload;
 
-use Minds\Core\Media\Services\FFMpeg;
+use Minds\Core\Media\Video\Transcoder\Manager as TranscoderManager;
 use Minds\Core\GuidBuilder;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Di\Di;
@@ -12,35 +12,22 @@ use Minds\Entities\Video;
 
 class Manager
 {
-    /** @var FFMpeg */
-    private $ffmpeg;
+    /** @var TranscoderManager */
+    private $transcoderManager;
 
     /** @var Guid $guid */
     private $guid;
-
-    /** @var bool */
-    private $full_hd;
 
     /** @var Save $save */
     private $save;
 
 
-    /**
-     * @param bool $value
-     * @return Manager
-     */
-    public function setFullHD(bool $value): Manager
-    {
-        $this->full_hd = $value;
-        return $this;
-    }
-
     public function __construct(
-        FFMpeg $FFMpeg = null,
+        TranscoderManager $transcoderManager = null,
         GuidBuilder $guid = null,
         Save $save = null
     ) {
-        $this->ffmpeg = $FFMpeg ?: Di::_()->get('Media\Services\FFMpeg');
+        $this->transcoderManager = $transcoderManager ?: Di::_()->get('Media\Video\Transcoder\Manager');
         $this->guid = $guid ?: new GuidBuilder();
         $this->save = $save ?: new Save();
     }
@@ -56,13 +43,13 @@ class Manager
             throw new \Exception("$type is not currently supported for client based uploads");
         }
 
-        $guid = $this->guid->build();
+        $video = new Video();
+        $video->set('guid', $this->guid->build());
 
-        $this->ffmpeg->setKey($guid);
-        $preSignedUrl = $this->ffmpeg->getPresignedUrl();
+        $preSignedUrl = $this->transcoderManager->getClientSideUploadUrl($video);
 
         $lease = new ClientUploadLease();
-        $lease->setGuid($guid)
+        $lease->setGuid($video->getGuid())
             ->setMediaType($type)
             ->setPresignedUrl($preSignedUrl);
 
@@ -84,18 +71,12 @@ class Manager
         $video->set('guid', $lease->getGuid());
         $video->set('cinemr_guid', $lease->getGuid());
         $video->set('access_id', 0); // Hide until published
-        $video->setFlag('full_hd', $this->full_hd);
 
         // Save the video
         $this->save->setEntity($video)->save();
 
-        $this->ffmpeg->setKey($lease->getGuid());
-
-        // Set the full hd flag
-        $this->ffmpeg->setFullHD($this->full_hd);
-
-        // Start the transcoding process
-        $this->ffmpeg->transcode();
+        // Kick off the transcoder
+        $this->transcoderManager->createTranscodes($video);
 
         return true;
     }

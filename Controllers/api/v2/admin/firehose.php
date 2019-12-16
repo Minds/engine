@@ -112,8 +112,8 @@ class firehose implements Interfaces\Api, Interfaces\ApiAdminPam
         }
 
         if ($type !== 'activity') {
-            /** @var Core\Feeds\Top\Entities $entities */
-            $entities = new Core\Feeds\Top\Entities();
+            /** @var Core\Feeds\Elastic\Entities $entities */
+            $entities = new Core\Feeds\Elastic\Entities();
             $entities->setActor($currentUser);
             $activities = $activities->map([$entities, 'cast']);
         }
