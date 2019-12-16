@@ -64,7 +64,11 @@ class EngagementSynchroniser
                 ->setResolution('day');
 
             foreach ($buckets['metrics']['buckets'] as $metrics) {
-                $record->incrementSum($metrics['key'] . '::total', (int) $metrics['doc_count']);
+                $aggType = 'total';
+                if ($metrics['key'] === 'referral') {
+                    $aggType = 'rewards';
+                }
+                $record->incrementSum("{$metrics['key']}::{$aggType}", (int) $metrics['doc_count']);
             }
             $this->records[] = $record;
             ++$i;

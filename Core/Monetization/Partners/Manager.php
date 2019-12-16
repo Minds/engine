@@ -12,7 +12,11 @@ use DateTime;
 
 class Manager
 {
+    /** @var int */
     const VIEWS_RPM_CENTS = 100; // $1 USD
+
+    /** @var int */
+    const REFERRAL_CENTS = 10; // $0.10
 
     /** @var Repository */
     private $repository;
@@ -60,7 +64,18 @@ class Manager
         $opts = array_merge([
             'from' => strtotime('midnight'),
         ], $opts);
-        
+
+        yield from $this->issuePageviewDeposits($opts);
+        yield from $this->issueReferralDeposits($opts);
+    }
+
+    /**
+     * Issuse the pageview deposits
+     * @param array
+     * @return iterable
+     */
+    protected function issuePageviewDeposits(array $opts): iterable
+    {
         $users = [];
 
         foreach ($this->entityCentricManager->getListAggregatedByOwner([
@@ -86,6 +101,39 @@ class Manager
                 ->setUserGuid($ownerSum['key'])
                 ->setAmountCents($amountCents)
                 ->setItem("views");
+
+            $this->repository->add($deposit);
+
+            yield $deposit;
+        }
+    }
+
+    /**
+     * Issue the referral deposits
+     * @param array
+     * @return iterable
+     */
+    protected function issueReferralDeposits(array $opts): iterable
+    {
+        foreach ($this->entityCentricManager->getListAggregatedByOwner([
+            'fields' => [ 'referral::active' ],
+            'from' => strtotime('-7 days', $opts['from']),
+        ]) as $ownerSum) {
+            $count = $ownerSum['referral::active']['value'];
+            $amountCents = $count * static::REFERRAL_CENTS;
+
+            // Is this user in the pro program?
+            $owner = $this->entitiesBuilder->single($ownerSum['key']);
+
+            if (!$owner || !$owner->isPro()) {
+                continue;
+            }
+
+            $deposit = new EarningsDeposit();
+            $deposit->setTimestamp($opts['from'])
+                ->setUserGuid($ownerSum['key'])
+                ->setAmountCents($amountCents)
+                ->setItem("referrals");
 
             $this->repository->add($deposit);
 
