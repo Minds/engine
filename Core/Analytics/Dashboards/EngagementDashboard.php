@@ -78,8 +78,7 @@ class EngagementDashboard implements DashboardInterface
                 new Metrics\Engagement\CommentsMetric(),
                 new Metrics\Engagement\RemindsMetric(),
                 new Metrics\Engagement\SubscribersMetric(),
-                new Metrics\Engagement\ReferralsMetric(),
-                new Metrics\Engagement\ReferralsActiveMetric()
+                new Metrics\Engagement\ReferralsMetric()
             )
             ->build();
 

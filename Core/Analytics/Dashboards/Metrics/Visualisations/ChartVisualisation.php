@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Analytics\Dashboards\Metrics\Visualisations;
 
+use Minds\Core\Analytics\Dashboards\Metrics\HistogramSegment;
 use Minds\Traits\MagicAttributes;
 
 class ChartVisualisation extends AbstractVisualisation
@@ -15,14 +16,11 @@ class ChartVisualisation extends AbstractVisualisation
     /** @var string */
     private $xLabel = 'Date';
 
-    /** @var array */
-    private $xValues;
-
     /** @var string */
     private $yLabel  = 'count';
 
-    /** @var array */
-    private $yValues;
+    /** @var HistogramSegment[] */
+    private $segments;
 
     /** @var array */
     private $buckets = [];
@@ -34,13 +32,18 @@ class ChartVisualisation extends AbstractVisualisation
      */
     public function export(array $extras = []): array
     {
+        if (!$this->segments) { // TODO: show deprecated message as we should use segments now
+            $this->segments = [
+                (new HistogramSegment())
+                    ->setBuckets($this->buckets),
+            ];
+        }
+
         return [
             'type' => $this->type,
-            'segments' => [
-                [
-                    'buckets' => (array) $this->buckets,
-                ],
-            ]
+            'segments' => array_map(function ($segment) {
+                return $segment->export();
+            }, $this->segments),
         ];
     }
 }
