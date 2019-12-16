@@ -17,6 +17,7 @@ class Repository
         '7d' => 604800,
         '30d' => 2592000,
         '1y' => 31536000,
+        'all' => -1,
     ];
 
     /** @var ElasticsearchClient */
@@ -265,7 +266,7 @@ class Repository
         $timestampUpperBounds = []; // LTE
         $timestampLowerBounds = []; // GT
 
-        if ($algorithm->isTimestampConstrain()) {
+        if ($algorithm->isTimestampConstrain() && static::PERIODS[$opts['period']] > -1) {
             $timestampLowerBounds[] = (time() - static::PERIODS[$opts['period']]) * 1000;
         }
 
@@ -323,23 +324,19 @@ class Repository
                 ];
             }
         } elseif ($opts['hashtags']) {
-            if ($opts['filter_hashtags'] || $algorithm instanceof SortingAlgorithms\Chronological) {
-                if (!isset($body['query']['function_score']['query']['bool']['must'])) {
-                    $body['query']['function_score']['query']['bool']['must'] = [];
-                }
-
-                $body['query']['function_score']['query']['bool']['must'][] = [
-                    'terms' => [
-                        'tags' => $opts['hashtags'],
-                    ],
-                ];
-            } else {
-                $body['query']['function_score']['query']['bool']['must'][] = [
-                    'terms' => [
-                        'tags' => $opts['hashtags'],
-                    ],
-                ];
+            if (!isset($body['query']['function_score']['query']['bool']['must'])) {
+                $body['query']['function_score']['query']['bool']['must'] = [];
             }
+
+            $body['query']['function_score']['query']['bool']['must'][] = [
+                'multi_match' => [
+                    'query' => implode(' ', $opts['hashtags']),
+                    'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^64'],
+                    'operator' => 'or',
+                    'minimum_should_match' => 1,
+                ],
+            ];
+            $body['query']['function_score']['boost_mode'] = 'replace';
         }
 
         if ($opts['exclude']) {
