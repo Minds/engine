@@ -80,7 +80,7 @@ review:start:
   image: minds/helm-eks:latest
   script:
     - aws eks update-kubeconfig --name=sandbox
-    - git clone --branch=sandbox-wip https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/minds/helm-charts.git
+    - git clone --branch=master https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/minds/helm-charts.git
     - echo "Upgrading helm for pipeline ${CI_PIPELINE_ID}"
     - echo "Setting to image ${CI_REGISTRY_IMAGE}"
     - "helm upgrade \
