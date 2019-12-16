@@ -6,10 +6,8 @@
             "bool": {
                 "must": [
                     {
-                        "match_phrase": {
-                            "action.keyword": {
-                                "query": "active"
-                            }
+                        "terms": {
+                            "action.keyword": [ "active", "signup" ]
                         }
                     },
                     {

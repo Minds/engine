@@ -37,7 +37,7 @@ class EntityCentric extends Cli\Controller implements Interfaces\CliControllerIn
 
         $i = 0;
         foreach ($manager->sync() as $record) {
-            $this->out(++$i);
+            $this->out(++$i .": {$record->getUrn()}");
         }
     }
 }
