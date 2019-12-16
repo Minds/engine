@@ -53,7 +53,7 @@ class Manager
             ];
         }
         $this->s3 = $s3 ?: new S3Client(array_merge(['version' => '2006-03-01'], $opts));
-        $this->ffmpeg = $transcoder ?: new FFMpeg();
+        $this->ffmpeg = $ffmpeg ?: new FFMpeg();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->transcoderManager = $transcoderManager ?? Di::_()->get('Media\Video\Transcoder\Manager');
     }
