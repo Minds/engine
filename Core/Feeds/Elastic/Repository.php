@@ -334,6 +334,7 @@ class Repository
                     'fields' => ['title^12', 'message^12', 'description^12', 'tags^64'],
                     'operator' => 'or',
                     'minimum_should_match' => 1,
+                    'boost' => 0
                 ],
             ];
         }
