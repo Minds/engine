@@ -324,19 +324,25 @@ class Repository
                 ];
             }
         } elseif ($opts['hashtags']) {
-            if (!isset($body['query']['function_score']['query']['bool']['must'])) {
-                $body['query']['function_score']['query']['bool']['must'] = [];
+            if (!isset($body['query']['function_score']['query']['bool']['should'])) {
+                $body['query']['function_score']['query']['bool']['should'] = [];
             }
 
-            $body['query']['function_score']['query']['bool']['must'][] = [
-                'multi_match' => [
-                    'query' => implode(' ', $opts['hashtags']),
-                    'fields' => ['title^12', 'message^12', 'description^12', 'tags^64'],
-                    'operator' => 'or',
-                    'minimum_should_match' => 1,
-                    'boost' => 0
+            $body['query']['function_score']['query']['bool']['should'][] = [
+                'terms' => [
+                     'tags' => $opts['hashtags'],
+                     'boost' => 1, // hashtags are 10x more valuable then non-hashtags
                 ],
             ];
+            $body['query']['function_score']['query']['bool']['should'][] = [
+                'multi_match' => [
+                    'query' => implode(' ', $opts['hashtags']),
+                    'fields' => ['title', 'message', 'description'],
+                    'operator' => 'or',
+                    'boost' => 0.1
+                ],
+            ];
+            $body['query']['function_score']['query']['bool']['minimum_should_match'] = 1;
         }
 
         if ($opts['exclude']) {
