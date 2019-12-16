@@ -17,7 +17,8 @@ class feeds implements Interfaces\Api
         '12h' => '7d',
         '24h' => '7d',
         '7d' => '30d',
-        '30d' => '1y'
+        '30d' => '1y',
+        '1y' => 'all'
     ];
 
     /**
@@ -221,6 +222,7 @@ class feeds implements Interfaces\Api
                 $from = $now - $periodsInSecs[$period];
                 $opts['from_timestamp'] = $from * 1000;
                 $opts['period'] = static::PERIOD_FALLBACK[$period];
+                $opts['limit'] = $limit - $entities->count();
 
                 if (!$fallbackAt) {
                     $fallbackAt = $from;
