@@ -283,5 +283,9 @@ class ProhibitedDomains
         'localmodels.online',
         'kaikki-mallit.com',
         'hotswishes.com',
+        '/diigo.com',
+        '.storeboard.com',
+        '.folkd.com',
+        '/ttlink.com',
     ];
 }
