@@ -213,6 +213,7 @@ class feeds implements Interfaces\Api
                     !$periodFallback ||
                     $opts['algorithm'] !== 'top' ||
                     !isset(static::PERIOD_FALLBACK[$opts['period']]) ||
+                    in_array($opts['type'], ['user', 'group'], true) ||
                     ++$i > 2 // Stop at 2nd fallback (i.e. 12h > 7d > 30d)
                 ) {
                     break;
