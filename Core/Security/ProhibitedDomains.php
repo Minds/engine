@@ -288,5 +288,11 @@ class ProhibitedDomains
         '.folkd.com',
         '/ttlink.com',
         '/mix.com',
+        '/list.ly',
+        '.adpost.com',
+        '.23hq.com',
+        '/lineupnow.com',
+        '/amusecandy.com',
+        '/360mate.com',
     ];
 }
