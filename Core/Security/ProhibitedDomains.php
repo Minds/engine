@@ -287,5 +287,6 @@ class ProhibitedDomains
         '.storeboard.com',
         '.folkd.com',
         '/ttlink.com',
+        '/mix.com',
     ];
 }
