@@ -4,6 +4,7 @@ namespace Minds\Core;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
+use Minds\Interfaces\ModuleInterface;
 
 /**
  * Core Minds Engine.
@@ -28,6 +29,7 @@ class Minds extends base
         Referrals\Module::class,
         Reports\Module::class,
         VideoChat\Module::class,
+        Feeds\Module::class,
         Front\Module::class,
     ];
 
@@ -60,6 +62,7 @@ class Minds extends base
         /*
          * Initialise the modules
          */
+        /** @var ModuleInterface $module */
         foreach ($modules as $module) {
             $module->onInit();
         }
@@ -111,7 +114,6 @@ class Minds extends base
         (new Plus\PlusProvider())->register();
         (new Pro\ProProvider())->register();
         (new Hashtags\HashtagsProvider())->register();
-        (new Feeds\FeedsProvider())->register();
         (new Analytics\AnalyticsProvider())->register();
         (new Channels\ChannelsProvider())->register();
         (new Blogs\BlogsProvider())->register();

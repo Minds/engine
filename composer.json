@@ -32,7 +32,10 @@
         "sentry/sdk": "^2.0.3",
         "zendframework/zend-permissions-rbac": "^3.0",
         "php-amqplib/php-amqplib": "^2.10",
-        "facebook/graph-sdk": "^5.7"
+        "facebook/graph-sdk": "^5.7",
+        "psr/http-message": "1.0.1",
+        "psr/http-server-handler": "1.0.1",
+        "psr/http-server-middleware": "1.0.1"
     },
     "repositories": [
         {
