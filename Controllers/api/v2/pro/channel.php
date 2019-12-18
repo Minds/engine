@@ -28,11 +28,13 @@ class channel implements Interfaces\Api
      */
     public function get($pages)
     {
+        $currentUser = Session::getLoggedinUser();
+
         $channel = new User(strtolower($pages[0]));
         $channel->fullExport = true; //get counts
         $channel->exportCounts = true;
 
-        if (!$channel->isPro()) {
+        if (!$channel->isPro() && $channel->getGuid() !== $currentUser->getGuid()) {
             return Factory::response([
                 'status' => 'error',
                 'message' => 'E_NOT_PRO'
