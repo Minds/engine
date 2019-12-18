@@ -337,6 +337,15 @@ class blog implements Interfaces\Api
             ]);
         }
 
+        // This is a first create blog that should have a banner
+        // We are trying to stop spam with this check
+        if ($blog->isPublished() && !$editing && !is_uploaded_file($_FILES['file']['tmp_name'])) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'You must upload a banner'
+            ]);
+        }
+
         try {
             if ($editing) {
                 $saved = $manager->update($blog);
