@@ -158,7 +158,7 @@ class Manager
         ])->first();
 
         // If requested by an inactive user, this is preview mode
-        if (!$settings && !$this->isActive() && ($this->user === $this->actor)) {
+        if (!$settings && !$this->isActive()) {
             $settings = new Settings();
             $settings->setUserGuid($this->user->guid);
             $settings->setTitle($this->user->name ?: $this->user->username);
