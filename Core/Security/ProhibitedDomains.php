@@ -294,5 +294,6 @@ class ProhibitedDomains
         '/lineupnow.com',
         '/amusecandy.com',
         '/360mate.com',
+        'rebrand.ly',
     ];
 }
