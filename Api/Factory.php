@@ -181,7 +181,10 @@ class Factory
             'status' => 'success', //should success be assumed?
         ], $data);
 
-        ob_end_clean();
+        if (ob_get_level() > 1) {
+            // New PSR-7 Router has an OB started all the time
+            ob_end_clean();
+        }
 
         static::setCORSHeader();
 

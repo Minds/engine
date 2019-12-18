@@ -12,8 +12,12 @@ class RouterProvider extends Provider
 {
     public function register()
     {
-        $this->di->bind('Router\Manager', function ($di) {
-            return new Manager();
-        }, [ 'useFactory' => true ]);
+        $this->di->bind('Router', function ($di) {
+            return new Dispatcher();
+        }, ['useFactory' => true]);
+
+        $this->di->bind('Router\Registry', function ($di) {
+            return Registry::_();
+        }, ['useFactory' => true]);
     }
 }

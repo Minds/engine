@@ -472,6 +472,7 @@ $CONFIG->set('max_video_length', 900);
 $CONFIG->set('max_video_length_plus', 1860);
 
 $CONFIG->set('features', [
+    'psr7-router' => true,
     'es-feeds' => false,
     'helpdesk' => true,
     'top-feeds' => true,

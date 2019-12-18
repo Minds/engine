@@ -4,7 +4,7 @@
  * @author edgebal
  */
 
-namespace Minds\Core\Router\Middleware;
+namespace Minds\Core\Router\PrePsr7\Middleware;
 
 use Exception;
 use Minds\Core\EntitiesBuilder;
