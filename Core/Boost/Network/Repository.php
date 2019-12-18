@@ -102,7 +102,7 @@ class Repository
                     ->setRating($data['rating'])
                     ->setTags($data['tags'])
                     ->setNsfw($data['nsfw'])
-                    ->setRejectReason($data['rejection_reason'])
+                    ->setRejectedReason($data['rejection_reason'])
                     ->setChecksum($data['checksum']);
                 
                 $response[] = $boost;
