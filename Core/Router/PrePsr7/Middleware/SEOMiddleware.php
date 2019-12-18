@@ -1,6 +1,6 @@
 <?php
 
-namespace Minds\Core\Router\Middleware;
+namespace Minds\Core\Router\PrePsr7\Middleware;
 
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
