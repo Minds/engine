@@ -157,6 +157,13 @@ class Manager
             'user_guid' => $this->user->guid,
         ])->first();
 
+        // If requested by an inactive user, this is preview mode
+        if (!$settings && !$this->isActive()) {
+            $settings = new Settings();
+            $settings->setUserGuid($this->user->guid);
+            $settings->setTitle($this->user->name ?: $this->user->username);
+        }
+
         if (!$settings) {
             return null;
         }
@@ -333,8 +340,11 @@ class Manager
 
         $settings->setTimeUpdated(time());
 
-        $this->setupRoutingDelegate
-            ->onUpdate($settings);
+        // Only update routing if we are active
+        if ($this->isActive()) {
+            $this->setupRoutingDelegate
+                ->onUpdate($settings);
+        }
 
         return $this->repository->update($settings);
     }

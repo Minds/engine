@@ -75,14 +75,14 @@ class settings implements Interfaces\Api
             ->setUser($user)
             ->setActor(Session::getLoggedinUser());
 
-        if (!$manager->isActive()) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => 'You are not Pro',
-            ]);
-        }
+        // if (!$manager->isActive()) {
+        //     return Factory::response([
+        //         'status' => 'error',
+        //         'message' => 'You are not Pro',
+        //     ]);
+        // }
 
-        if (isset($_POST['domain'])) {
+        if (isset($_POST['domain']) && $manager->isActive()) {
             /** @var ProDomain $proDomain */
             $proDomain = Di::_()->get('Pro\Domain');
 

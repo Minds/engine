@@ -85,12 +85,12 @@ class assets implements Interfaces\Api
             ->setUser($user)
             ->setActor(Session::getLoggedinUser());
 
-        if (!$manager->isActive()) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => 'You are not Pro',
-            ]);
-        }
+        // if (!$manager->isActive()) {
+        //     return Factory::response([
+        //         'status' => 'error',
+        //         'message' => 'You are not Pro',
+        //     ]);
+        // }
 
         /** @var AssetsManager $assetsManager */
         $assetsManager = Di::_()->get('Pro\Assets\Manager');
