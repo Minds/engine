@@ -19,8 +19,8 @@ class UserSpec extends ObjectBehavior
     {
         //remove ip whitelist check
         $_SERVER['HTTP_X_FORWARDED_FOR'] = '10.56.0.10';
-        $this->admin = 'yes';
 
+        $this->admin = 'yes';
         $this->isAdmin()->shouldBe(false);
         //Di::_()->get('Config')->set('admin_ip_whitelist', [ '10.56.0.1' ]);
     }
