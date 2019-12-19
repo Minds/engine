@@ -60,6 +60,7 @@ class User extends \ElggUser
         $this->attributes['onchain_booster'] = null;
         $this->attributes['toaster_notifications'] = 1;
         $this->attributes['mode'] = ChannelMode::OPEN;
+        $this->attributes['max_video_length'] = null;
 
         parent::initializeAttributes();
     }
@@ -317,7 +318,6 @@ class User extends \ElggUser
      */
     public function setEmail($email)
     {
-        global $CONFIG; //@todo use object config instead
         if (base64_decode($email, true)) {
             return $this;
         }
@@ -847,6 +847,7 @@ class User extends \ElggUser
         $export['onchain_booster'] = $this->getOnchainBooster();
         $export['toaster_notifications'] = $this->getToasterNotifications();
         $export['mode'] = $this->getMode();
+        $export['max_video_length'] = $this->getMaxVideoLength();
 
         if (is_string($export['social_profiles'])) {
             $export['social_profiles'] = json_decode($export['social_profiles']);
@@ -1176,6 +1177,7 @@ class User extends \ElggUser
             'onchain_booster',
             'toaster_notifications',
             'mode',
+            'max_video_length',
             'btc_address',
         ]);
     }
@@ -1344,4 +1346,19 @@ class User extends \ElggUser
 
         return $this;
     }
+
+    /**
+     * Returns max_video_length value for the user.
+     *
+     * @return int maximum video length for user.
+     */
+    public function getMaxVideoLength(): int
+    {
+        global $CONFIG; //@todo use object config instead
+        return (int) $this->isPro() 
+            ? $CONFIG->max_video_length * 3
+            : $CONFIG->max_video_length
+            ?: 0;
+    }
+
 }

@@ -19,7 +19,6 @@ class UserSpec extends ObjectBehavior
     {
         //remove ip whitelist check
         $_SERVER['HTTP_X_FORWARDED_FOR'] = '10.56.0.10';
-
         $this->admin = 'yes';
         $this->isAdmin()->shouldBe(false);
         //Di::_()->get('Config')->set('admin_ip_whitelist', [ '10.56.0.1' ]);
@@ -64,6 +63,24 @@ class UserSpec extends ObjectBehavior
         $this->getMode()->shouldEqual(ChannelMode::CLOSED);
         $this->setMode(ChannelMode::MODERATED);
         $this->getMode()->shouldEqual(ChannelMode::MODERATED);
+    }
+
+    public function it_should_assign_max_video_length_for_a_plus_user()
+    {
+        global $CONFIG;
+        $CONFIG->max_video_length = 1;
+
+        $this->pro_expires = 9999999999999;
+        $this->getMaxVideoLength()->shouldEqual(3);
+    }
+
+    public function it_should_assign_max_video_length_for_a_non_plus_user()
+    {
+        global $CONFIG;
+        $CONFIG->max_video_length = 1;
+
+        $this->pro_expires = 0;
+        $this->getMaxVideoLength()->shouldEqual(1);
     }
 
     public function it_should_export_values()
