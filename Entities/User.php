@@ -318,6 +318,7 @@ class User extends \ElggUser
      */
     public function setEmail($email)
     {
+        global $CONFIG; //@todo use object config instead
         if (base64_decode($email, true)) {
             return $this;
         }
@@ -1355,10 +1356,9 @@ class User extends \ElggUser
     public function getMaxVideoLength(): int
     {
         global $CONFIG; //@todo use object config instead
-        return (int) $this->isPro() 
+        return (int) $this->isPro()
             ? $CONFIG->max_video_length * 3
             : $CONFIG->max_video_length
             ?: 0;
     }
-
 }
