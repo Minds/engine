@@ -188,6 +188,14 @@ class ElasticRepository
             }
         }
 
+        if ($opts['guid']) {
+            $must[] = [
+                'term' => [
+                    '_id' => $opts['guid']
+                ]
+            ];
+        }
+
         $body = [
             'query' => [
                 'bool' => [
