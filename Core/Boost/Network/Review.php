@@ -5,13 +5,14 @@ namespace Minds\Core\Boost\Network;
 use Minds\Core;
 use Minds\Entities\Boost\Network;
 use Minds\Helpers\MagicAttributes;
+use Minds\Helpers\Time;
 use Minds\Interfaces\BoostReviewInterface;
 use Minds\Core\Boost\Delegates;
 use Minds\Core\Boost\Delegates\OnchainBadgeDelegate;
 
 class Review implements BoostReviewInterface
 {
-    /** @var  Network $boost */
+    /** @var  Boost|Campaign $boost */
     protected $boost;
 
     /** @var Manager $manager */
@@ -65,12 +66,18 @@ class Review implements BoostReviewInterface
         if (!$this->boost) {
             throw new \Exception('Boost wasn\'t set');
         }
-        $success = Core\Di\Di::_()->get('Boost\Payment')->charge($this->boost);
-        if ($success) {
+        /** @var Core\Boost\Payment $payment */
+        $payment = Core\Di\Di::_()->get('Boost\Payment');
+        $paymentTaken = $payment->charge($this->boost);
+        if ($paymentTaken) {
             if ($this->boost->isOnChain()) {
                 $this->onchainBadge->dispatch($this->boost);
             }
-            $this->boost->setReviewedTimestamp(round(microtime(true) * 1000));
+            $this->boost->setReviewedTimestamp(Time::sToMs(time()));
+            if ($this->boost->getBoostType() === Boost::BOOST_TYPE_CAMPAIGN) {
+                /** TODO: Emit event that campaign post has been approved and is running */
+                $this->boost->unpause();
+            }
             return $this->manager->update($this->boost);
         }
         throw new \Exception('error while accepting the boost');
@@ -201,13 +208,14 @@ class Review implements BoostReviewInterface
      * @param  string $offset
      * @return array
      */
-    public function getReviewQueue($limit, $offset = "")
+    public function getReviewQueue($limit, $offset = null)
     {
         return $this->manager->getList([
             'type' => $this->type,
             'state' => Manager::OPT_STATEQUERY_REVIEW,
             'limit' => $limit,
             'offset' => $offset,
+            'paused' => Manager::OPT_PAUSEQUERY_ANY
         ]);
     }
 

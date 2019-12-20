@@ -41,12 +41,8 @@ class ReviewSpec extends ObjectBehavior
             return $payment->getWrappedObject();
         });
 
-        $payment->charge(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $this->manager->update($boost)
-            ->shouldNotBeCalled();
+        $payment->charge(Argument::any())->shouldBeCalled()->willReturn(false);
+        $this->manager->update($boost)->shouldNotBeCalled();
 
         $this->setBoost($boost);
         $this->shouldThrow(new \Exception('error while accepting the boost'))
@@ -61,13 +57,8 @@ class ReviewSpec extends ObjectBehavior
             return $payment->getWrappedObject();
         });
 
-        $payment->charge(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->manager->update($boost)
-            ->shouldBeCalled()
-            ->willReturn(true);
+        $payment->charge(Argument::any())->shouldBeCalled()->willReturn(true);
+        $this->manager->update($boost)->shouldBeCalled()->willReturn(true);
 
         $this->setBoost($boost);
         $this->accept();
@@ -76,13 +67,11 @@ class ReviewSpec extends ObjectBehavior
 
     public function it_should_accept_an_onchain_boost_and_call_onchain_badge_delegate(Payment $payment, Boost $boost)
     {
-        $boost->isOnChain()
-            ->shouldBeCalled()
-            ->willReturn(true);
+        $boost->isOnChain()->shouldBeCalled()->willReturn(true);
 
         $boost->setReviewedTimestamp(Argument::approximate(time() * 1000, -4))
-            ->shouldBeCalled()
-            ->willReturn(true);
+            ->shouldBeCalled()->willReturn(true);
+        $boost->getBoostType()->shouldBeCalled()->willReturn('newsfeed');
             
         $this->setBoost($boost);
   
@@ -90,30 +79,20 @@ class ReviewSpec extends ObjectBehavior
             return $payment->getWrappedObject();
         });
         
-        $payment->charge(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(true);
-        
-        $this->onchainBadge->dispatch($boost)
-            ->shouldBeCalled()
-            ->willReturn(true);
-            
-        $this->manager->update($boost)
-            ->shouldBeCalled()
-            ->willReturn(true);
+        $payment->charge(Argument::any())->shouldBeCalled()->willReturn(true);
+        $this->onchainBadge->dispatch($boost)->shouldBeCalled()->willReturn(true);
+        $this->manager->update($boost)->shouldBeCalled()->willReturn(true);
 
         $this->accept();
     }
 
     public function it_should_accept_an_offchain_boost_and_not_call_onchain_badge_delegate(Payment $payment, Boost $boost, User $user)
     {
-        $boost->isOnChain()
-            ->shouldBeCalled()
-            ->willReturn(false);
+        $boost->isOnChain()->shouldBeCalled()->willReturn(false);
 
         $boost->setReviewedTimestamp(Argument::approximate(time() * 1000, -4))
-            ->shouldBeCalled()
-            ->willReturn(true);
+            ->shouldBeCalled()->willReturn(true);
+        $boost->getBoostType()->shouldBeCalled()->willReturn('newsfeed');
             
         $this->setBoost($boost);
   
@@ -121,17 +100,9 @@ class ReviewSpec extends ObjectBehavior
             return $payment->getWrappedObject();
         });
         
-        $payment->charge(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(true);
-        
-        $this->onchainBadge->dispatch($boost)
-            ->shouldNotBeCalled()
-            ->willReturn(true);
-            
-        $this->manager->update($boost)
-            ->shouldBeCalled()
-            ->willReturn(true);
+        $payment->charge(Argument::any())->shouldBeCalled()->willReturn(true);
+        $this->onchainBadge->dispatch($boost)->shouldNotBeCalled()->willReturn(true);
+        $this->manager->update($boost)->shouldBeCalled()->willReturn(true);
 
         $this->accept();
     }
@@ -149,31 +120,20 @@ class ReviewSpec extends ObjectBehavior
             return $payment->getWrappedObject();
         });
 
-        $payment->refund(Argument::any())
-            ->shouldBeCalled();
-
-        $this->manager->update($boost)
-            ->shouldBeCalled()
-            ->willReturn(true);
+        $payment->refund(Argument::any())->shouldBeCalled();
+        $this->manager->update($boost)->shouldBeCalled()->willReturn(true);
 
         $owner = new \stdClass();
         $owner->guid = '123';
-        $boost->getOwner()
-            ->willReturn($owner);
-        $boost->setReviewedTimestamp(Argument::any())
-            ->shouldBeCalled();
-        $boost->setRejectedTimestamp(Argument::any())
-            ->shouldBeCalled();
-        $boost->setRejectedReason(3)
-            ->shouldBeCalled()
-            ->willReturn($boost);
-        $boost->getRejectedReason()
-            ->willReturn(3);
+        $boost->getOwner()->willReturn($owner);
+        $boost->setReviewedTimestamp(Argument::any())->shouldBeCalled();
+        $boost->setRejectedTimestamp(Argument::any())->shouldBeCalled();
+        $boost->setRejectedReason(3)->shouldBeCalled()->willReturn($boost);
+        $boost->getRejectedReason()->willReturn(3);
 
         $entity = new \stdClass();
         $entity->title = 'title';
-        $boost->getEntity()
-            ->willReturn($entity);
+        $boost->getEntity()->willReturn($entity);
 
         $this->setBoost($boost);
         $this->reject(3);
@@ -187,23 +147,17 @@ class ReviewSpec extends ObjectBehavior
 
     public function it_should_revoke_a_boost(Boost $boost)
     {
-        $this->manager->update($boost)
-            ->shouldBeCalled()
-            ->willReturn(true);
+        $this->manager->update($boost)->shouldBeCalled()->willReturn(true);
 
         $owner = new \stdClass();
         $owner->guid = '123';
-        $boost->getOwner()
-            ->willReturn($owner);
-
+        $boost->getOwner()->willReturn($owner);
         $boost->setRevokedTimestamp(Argument::approximate(time() * 1000, -4))
-            ->shouldBeCalled()
-            ->willReturn($boost);
+            ->shouldBeCalled()->willReturn($boost);
 
         $entity = new \stdClass();
         $entity->title = 'title';
-        $boost->getEntity()
-            ->willReturn($entity);
+        $boost->getEntity()->willReturn($entity);
 
         $this->setBoost($boost);
         $this->revoke();
@@ -229,12 +183,9 @@ class ReviewSpec extends ObjectBehavior
             'limit' => 12,
             'offset' => '456',
             'order' => 'DESC'
-        ]))
-            ->shouldBeCalled()
-            ->willReturn($boosts);
+        ]))->shouldBeCalled()->willReturn($boosts);
 
         $this->setType('newsfeed');
-
         $this->getOutbox('123', 12, '456')->shouldReturn($boosts);
     }
 }

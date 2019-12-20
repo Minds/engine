@@ -16,8 +16,6 @@ use Minds\Interfaces;
 
 class boosts implements Interfaces\Api, Interfaces\ApiAdminPam
 {
-    private $rate = 1;
-
     /**
      * Returns a list of boosts
      */

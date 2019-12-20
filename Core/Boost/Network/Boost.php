@@ -75,6 +75,9 @@ class Boost
     const BOOST_TYPE_NOW = 'now';
     const BOOST_TYPE_CAMPAIGN = 'campaign';
 
+    const BID_TYPE_TOKENS = 'tokens';
+    const BID_TYPE_USD = 'usd';
+
     /** @var int $guid */
     protected $guid;
 

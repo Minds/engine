@@ -19,6 +19,10 @@ class CassandraRepository
     /** @var Urn $urn */
     private $urn;
 
+    const SCHEMA_CURRENT = self::SCHEMA_V2;
+    const SCHEMA_V1 = '04-2019';
+    const SCHEMA_V2 = '12-2019';
+
     public function __construct($client = null, $urn = null)
     {
         $this->client = $client ?: Di::_()->get('Database\Cassandra\Cql');
@@ -63,24 +67,36 @@ class CassandraRepository
             $result = $this->client->request($query);
 
             foreach ($result as $row) {
-                $boost = new Boost();
                 $data = json_decode($row['data'], true);
-
                 $data = $this->updateTimestampsToMsValues($data);
+                $data = $this->updateOldSchema($data);
 
-                if (!isset($data['schema']) && $data['schema'] != '04-2019') {
-                    $data = $this->updateOldSchema($data);
+                if (isset($data['boost_type'])) {
+                    $boostType = $data['boost_type'];
+                    if ($boostType === Boost::BOOST_TYPE_CAMPAIGN) {
+                        $boost = new Campaign();
+                        $boost->setName($data['name']);
+                        $boost->setStart($data['start']);
+                        $boost->setEnd($data['end']);
+                        $boost->setBudget($data['budget']);
+                        $boost->setPaused($data['paused']);
+                    } else {
+                        $boost = new Boost();
+                    }
+                    $boost->setBoostType($boostType);
+                } else {
+                    $boost = new Boost();
                 }
 
                 $boost->setGuid((string) $row['guid'])
                     ->setEntityGuid($data['entity_guid'])
                     ->setOwnerGuid($data['owner_guid'])
                     ->setType($row['type'])
-                    ->setCreatedTimestamp($data['@created'])
-                    ->setReviewedTimestamp($data['@reviewed'])
-                    ->setRevokedTimestamp($data['@revoked'])
-                    ->setRejectedTimestamp($data['@rejected'])
-                    ->setCompletedTimestamp($data['@completed'])
+                    ->setCreatedTimestamp($data['created'])
+                    ->setReviewedTimestamp($data['reviewed'])
+                    ->setRevokedTimestamp($data['revoked'])
+                    ->setRejectedTimestamp($data['rejected'])
+                    ->setCompletedTimestamp($data['completed'])
                     ->setBid($data['bid'])
                     ->setBidType($data['bidType'])
                     ->setImpressions($data['impressions'])
@@ -134,14 +150,34 @@ class CassandraRepository
      */
     protected function updateOldSchema(array $data): array
     {
-        $data['entity_guid'] = $data['entity']['guid'];
-        $data['owner_guid'] = $data['owner']['guid'];
-        $data['@created'] = $data['time_created'];
-        $data['@reviewed'] = $data['state'] === Boost::STATE_APPROVED ? $data['last_updated'] : null;
-        $data['@revoked'] = $data['state'] === Boost::STATE_REVOKED ? $data['last_updated'] : null;
-        $data['@rejected'] = $data['state'] === Boost::STATE_REJECTED ? $data['last_updated'] : null;
-        $data['@completed'] = $data['state'] === Boost::STATE_COMPLETED ? $data['last_updated'] : null;
-        $data['schema'] = '04-2019';
+        if (!isset($data['schema']) && $data['schema'] != self::SCHEMA_CURRENT) {
+            if (!isset($data['schema']) && $data['schema'] != self::SCHEMA_V1) {
+                $data['entity_guid'] = $data['entity']['guid'];
+                $data['owner_guid'] = $data['owner']['guid'];
+                $data['@created'] = $data['time_created'];
+                $data['@reviewed'] = $data['state'] === Boost::STATE_APPROVED ? $data['last_updated'] : null;
+                $data['@revoked'] = $data['state'] === Boost::STATE_REVOKED ? $data['last_updated'] : null;
+                $data['@rejected'] = $data['state'] === Boost::STATE_REJECTED ? $data['last_updated'] : null;
+                $data['@completed'] = $data['state'] === Boost::STATE_COMPLETED ? $data['last_updated'] : null;
+                unset($data['time_created']);
+                unset($data['last_updated']);
+                $data['schema'] = self::SCHEMA_V1;
+            }
+
+            if (!isset($data['schema']) && $data['schema'] != self::SCHEMA_V2) {
+                $data['created'] = $data['@created'];
+                $data['reviewed'] = $data['@reviewed'];
+                $data['revoked'] = $data['@revoked'];
+                $data['rejected'] = $data['@rejected'];
+                $data['completed'] = $data['@completed'];
+                unset($data['@created']);
+                unset($data['@reviewed']);
+                unset($data['@revoked']);
+                unset($data['@rejected']);
+                unset($data['@completed']);
+                $data['schema'] = self::SCHEMA_V2;
+            }
+        }
 
         return $data;
     }
@@ -188,7 +224,7 @@ class CassandraRepository
         $data = $boost->export();
 
         /* Additional parameters that differ from boost export */
-        $data['schema'] = '04-2019';
+        $data['schema'] = self::SCHEMA_CURRENT;
         $data['bidType'] = in_array($boost->getBidType(), ['onchain', 'offchain'], true) ? 'tokens' : $boost->getBidType();
         $data['handler'] = $boost->getType();
 

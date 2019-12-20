@@ -147,8 +147,9 @@ class Manager
 
     /**
      * Add a boost
-     * @param Boost $boost
+     * @param Boost|Campaign $boost
      * @return bool
+     * @throws \Exception
      */
     public function add($boost)
     {
@@ -160,6 +161,11 @@ class Manager
         return true;
     }
 
+    /**
+     * Update a boost
+     * @param Boost|Campaign $boost
+     * @param array $fields
+     */
     public function update($boost, $fields = [])
     {
         $this->cassandraRepository->update($boost, $fields);
@@ -317,8 +323,7 @@ class Manager
 
         $campaign = (new ValidateCampaignDatesDelegate())->onCreate($campaign);
 
-        $this->cassandraRepository->add($campaign);
-        $this->elasticRepository->add($campaign);
+        $this->add($campaign);
 
         return $campaign;
     }

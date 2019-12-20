@@ -12,6 +12,8 @@ use Minds\Entities\Boost\Network;
 use Minds\Entities\Boost\Peer;
 use Minds\Entities\User;
 use Minds\Core\Data\Locks\LockFailedException;
+use Minds\Core\Boost\Network\Boost;
+use Minds\Core\Boost\Network\Campaign;
 
 class Payment
 {
@@ -50,13 +52,18 @@ class Payment
     }
 
     /**
-     * @param Core\Boost\Network\Boost $boost
+     * @param Boost|Campaign $boost
      * @param $payload
      * @return null
      * @throws \Exception
      */
     public function pay($boost, $payload)
     {
+        $noPaymentRequired = true;
+        if (!$this->isPeerBoost($boost) && $boost->getBoostType() === Core\Boost\Network\Boost::BOOST_TYPE_CAMPAIGN) {
+            return $noPaymentRequired;
+        }
+
         $currency = method_exists($boost, 'getMethod') ?
             $boost->getMethod() : $boost->getBidType();
 
@@ -256,8 +263,18 @@ class Payment
         throw new \Exception('Payment Method not supported');
     }
 
-    public function charge($boost)
+    /**
+     * @param Boost|Campaign $boost
+     * @return bool
+     * @throws LockFailedException
+     */
+    public function charge($boost): bool
     {
+        $noPaymentRequired = true;
+        if (!$this->isPeerBoost($boost) && $boost->getBoostType() === Core\Boost\Network\Boost::BOOST_TYPE_CAMPAIGN) {
+            return $noPaymentRequired;
+        }
+
         $currency = method_exists($boost, 'getMethod') ?
             $boost->getMethod() : $boost->getBidType();
 
@@ -318,10 +335,20 @@ class Payment
         throw new \Exception('Payment Method not supported');
     }
 
+    /**
+     * @param Boost|Campaign $boost
+     * @return bool
+     * @throws LockFailedException
+     */
     public function refund($boost)
     {
+        $noPaymentRequired = true;
+        if (!$this->isPeerBoost($boost) && $boost->getBoostType() === Core\Boost\Network\Boost::BOOST_TYPE_CAMPAIGN) {
+            return $noPaymentRequired;
+        }
+
         $currency = method_exists($boost, 'getMethod') ?
-            $boost->getMethod() : $boost->getBidType();
+        $boost->getMethod() : $boost->getBidType();
 
         if (in_array($currency, [ 'onchain', 'offchain' ], true)) {
             $currency = 'tokens';

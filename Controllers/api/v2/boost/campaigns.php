@@ -4,6 +4,7 @@ namespace Minds\Controllers\api\v2\boost;
 
 use Exception;
 use Minds\Common\Urn;
+use Minds\Core\Boost\Network\Boost;
 use Minds\Core\Boost\Network\Campaign;
 use Minds\Core\Boost\Network\Manager;
 use Minds\Core\Di\Di;
@@ -88,6 +89,7 @@ class campaigns implements Interfaces\Api
                 ->setEntityGuid($entityGuid)
                 ->setCreatedTimestamp(Time::sToMs(time()))
                 ->setChecksum($_POST['checksum'] ?? '')
+                ->setBidType(Boost::BID_TYPE_TOKENS)
                 ->pause();
         } else {
             $campaign->setGuid($guid);

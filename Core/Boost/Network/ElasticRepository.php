@@ -42,10 +42,10 @@ class ElasticRepository
         $must_not = [];
         $sort = [ '@timestamp' => $opts['order'] ?? 'asc' ];
 
-        if ($opts['boost_type'] !== Boost::BOOST_TYPE_CAMPAIGN) {
+        if ($opts['bid_type']) {
             $must[] = [
                 'term' => [
-                    'bid_type' => 'tokens',
+                    'bid_type' => $opts['bid_type'],
                 ],
             ];
         }
@@ -281,11 +281,17 @@ class ElasticRepository
      */
     public function add($boost)
     {
+        if (empty($boost->getBid())) {
+            $bid = 0;
+        } else {
+            $bid =  $boost->getBidType() === 'tokens' ?
+                (string) BigNumber::fromPlain($boost->getBid(), 18)->toDouble() : $boost->getBid();
+        }
+
         $body = [
             'doc' => [
                 '@timestamp' => $boost->getCreatedTimestamp(),
-                'bid' => $boost->getBidType() === 'tokens' ?
-                    (string) BigNumber::fromPlain($boost->getBid(), 18)->toDouble() : $boost->getBid(),
+                'bid' => $bid,
                 'bid_type' => $boost->getBidType(),
                 'entity_guid' => $boost->getEntityGuid(),
                 'impressions' => $boost->getImpressions(),
