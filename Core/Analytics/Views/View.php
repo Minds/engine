@@ -44,6 +44,10 @@ class View
 {
     use MagicAttributes;
 
+    const TYPE_BOOST = 'boost';
+    const TYPE_ENTITY = 'entity';
+    const TYPE_ACTIVITY = 'activity';
+
     /** @var int */
     protected $year;
 
