@@ -94,7 +94,7 @@ class Boost
     protected $bidType;
 
     /** @var int $impressions */
-    protected $impressions;
+    protected $impressions = 0;
 
     /** @var int $impressionsMet */
     protected $impressionsMet;

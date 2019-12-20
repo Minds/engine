@@ -40,5 +40,9 @@ class BoostProvider extends Di\Provider
         $this->di->bind('Boost\Payment', function ($di) {
             return new Payment();
         }, ['useFactory' => true]);
+
+        $this->di->bind('Boost\Network\Metrics', function ($di) {
+            return new Network\Metrics();
+        }, ['useFactory' => false]);
     }
 }

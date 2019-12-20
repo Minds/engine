@@ -77,8 +77,6 @@ class Record
      */
     public function recordBoost(): bool
     {
-        /** @var Core\Boost\Network\Expire $expire */
-        $expire = Di::_()->get('Boost\Network\Expire');
         /** @var Core\Boost\Network\Metrics $metrics */
         $metrics = Di::_()->get('Boost\Network\Metrics');
         /** @var Core\Boost\Network\Manager $manager */
@@ -92,12 +90,33 @@ class Record
             return false;
         }
 
-        $count = $metrics->incrementViews($boost);
+        $impressionsTotal = $metrics->incrementTotalViews($boost);
+        $impressionsRequested = $boost->getImpressions();
+        $impressionsDaily = $metrics->incrementDailyViews($boost);
 
-        if ($count > $boost->getImpressions()) {
-            $expire->setBoost($boost);
-            $expire->expire();
+        $this->boostData = [
+            'impressions' => $impressionsRequested,
+            'impressions_met' => $impressionsTotal,
+            'impressions_daily' => $impressionsDaily
+        ];
+
+        if ($boost->getBoostType() === Core\Boost\Network\Boost::BOOST_TYPE_CAMPAIGN) {
+            $impressionsDailyCap = $boost->getDailyCap();
+            if ($impressionsDaily >= $impressionsDailyCap) {
+                // TODO: Pause campaign with status notification when daily cap reached
+                error_log("boost|pause|daily:{$impressionsDaily}|cap:{$impressionsDailyCap}");
+            }
+        } else {
+            if ($impressionsTotal >= $impressionsRequested) {
+                $manager->expire($boost);
+            }
         }
+
+        $this->boostData = [
+            'impressions' => $impressionsRequested,
+            'impressions_met' => $impressionsTotal,
+            'impressions_daily' => $impressionsDaily
+        ];
 
         Counters::increment($boost->getEntity()->guid, "impression");
         Counters::increment($boost->getEntity()->owner_guid, "impression");
@@ -113,10 +132,7 @@ class Record
             error_log($e);
         }
 
-        $this->boostData = [
-            'impressions' => $boost->getImpressions(),
-            'impressions_met' => $count
-        ];
+
 
         return true;
     }
