@@ -1356,7 +1356,7 @@ class User extends \ElggUser
     public function getMaxVideoLength(): int
     {
         global $CONFIG; //@todo use object config instead
-        return (int) $this->isPro()
+        return (int) $this->isPro() || $this->isPlus()
             ? $CONFIG->max_video_length * 3
             : $CONFIG->max_video_length
             ?: 0;
