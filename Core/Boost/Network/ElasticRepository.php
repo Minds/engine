@@ -231,6 +231,7 @@ class ElasticRepository
                     $boost->setEnd($doc['_source']['@end']);
                     $boost->setBudget($doc['_source']['budget']);
                     $boost->setPaused($doc['_source']['paused']);
+                    $boost->setDailyCap($doc['_source']['daily_cap'] ?? 0);
                 } else {
                     $boost = new Boost();
                 }
@@ -309,6 +310,7 @@ class ElasticRepository
             $body['doc']['@start'] = $boost->getStart();
             $body['doc']['@end'] = $boost->getEnd();
             $body['doc']['paused'] = $boost->getPaused();
+            $body['doc']['daily_cap'] = $boost->getDailyCap();
         }
 
         if ($boost->getBidType() === 'tokens') {

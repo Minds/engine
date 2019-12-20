@@ -16,7 +16,7 @@ class Metrics
         Helpers\Counters::increment((string) $boost->getGuid(), $this->getTotalKey(), 1);
         Helpers\Counters::increment(0, $this->getTotalKey(), 1);
 
-        return Helpers\Counters::get((string) $boost->getGuid(), $this->getTotalKey(), false);
+        return $this->getTotalViews($boost);
     }
 
     /**
@@ -29,14 +29,42 @@ class Metrics
         Helpers\Counters::increment((string) $boost->getGuid(), $this->getDailyKey(), 1);
         Helpers\Counters::increment(0, $this->getDailyKey(), 1);
 
+        return $this->getDailyViews($boost);
+    }
+
+    /**
+     * Get the boost total views value
+     * @param Boost|Campaign $boost
+     * @return int Total boost views
+     */
+    public function getTotalViews($boost): int
+    {
+        return Helpers\Counters::get((string) $boost->getGuid(), $this->getTotalKey(), false);
+    }
+
+    /**
+     * Get the boost daily views value
+     * @param Boost|Campaign $boost
+     * @return int Daily boost views
+     */
+    public function getDailyViews($boost): int
+    {
         return Helpers\Counters::get((string) $boost->getGuid(), $this->getDailyKey(), false);
     }
 
+    /**
+     * Returns key for boost impressions metric
+     * @return string
+     */
     public function getTotalKey(): string
     {
         return 'boost_impressions';
     }
 
+    /**
+     * Returns key for boost daily impressions metric
+     * @return string
+     */
     public function getDailyKey(): string
     {
         return 'boost_impressions_' . date('dmy');

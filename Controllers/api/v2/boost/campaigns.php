@@ -99,7 +99,9 @@ class campaigns implements Interfaces\Api
             ->setName(trim($_POST['name'] ?? ''))
             ->setStart((int) ($_POST['start'] ?? 0))
             ->setEnd((int) ($_POST['end'] ?? 0))
-            ->setBudget((float) ($_POST['budget'] ?? 0));
+            ->setBudget((float) ($_POST['budget'] ?? 0))
+            ->setDailyCap((int) ($_POST['daily_cap'] ?? 0))
+            ->setImpressions($_POST['impressions'] ?? 0);
 
         /** @var Manager $manager */
         $manager = Di::_()->get('Boost\Network\Manager');

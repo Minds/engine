@@ -68,6 +68,8 @@ use Minds\Traits\MagicAttributes;
  * @method Campaign setDailyCap(int $dailyCap)
  * @method int getPaused()
  * @method Campaign setPaused(int $paused)
+ * @method int getTodayImpressions()
+ * @method Campaign setTodayImpressions($todayImpressions)
  */
 class Campaign extends Boost implements \JsonSerializable
 {
@@ -89,6 +91,8 @@ class Campaign extends Boost implements \JsonSerializable
     protected $dailyCap;
     /** @var bool $paused */
     protected $paused;
+    /** @var int $todayImpressions */
+    protected $todayImpressions = 0;
 
     public function export($fields = []): array
     {
@@ -101,7 +105,8 @@ class Campaign extends Boost implements \JsonSerializable
             'daily_cap' => $this->dailyCap,
             'delivery_status' => $this->getDeliveryStatus(),
             'cpm' => $this->cpm(),
-            'urn' => $this->getUrn()
+            'urn' => $this->getUrn(),
+            'today_impressions' => $this->todayImpressions
         ];
 
         return array_merge($boostExport, $campaignExport);

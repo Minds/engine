@@ -285,7 +285,20 @@ class Manager
             'owner_guid' => $this->actor->getGUID(),
             'boost_type' => Boost::BOOST_TYPE_CAMPAIGN
         ], $opts);
-        return $this->elasticRepository->getList($opts);
+        $response = $this->elasticRepository->getList($opts);
+
+        /** @var Metrics $metrics */
+        $metrics = Di::_()->get('Boost\Network\Metrics');
+
+        /** @var Campaign $campaign */
+        foreach ($response as $campaign) {
+            $todayImpressions = $metrics->getDailyViews($campaign);
+            $totalImpressions = $metrics->getTotalViews($campaign);
+            $campaign->setTodayImpressions($todayImpressions);
+            $campaign->setImpressionsMet($totalImpressions);
+        }
+
+        return $response;
     }
 
     public function setActor(User $user): self

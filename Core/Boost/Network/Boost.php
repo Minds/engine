@@ -207,6 +207,7 @@ class Boost
             'type' => $this->type,
             'rejection_reason' => $this->rejectedReason,
             'boost_type' => $this->boostType,
+            'impressions_met' => $this->impressionsMet
         ];
     }
 

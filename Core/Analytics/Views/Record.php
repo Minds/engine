@@ -132,8 +132,6 @@ class Record
             error_log($e);
         }
 
-
-
         return true;
     }
 

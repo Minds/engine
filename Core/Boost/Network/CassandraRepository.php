@@ -80,6 +80,7 @@ class CassandraRepository
                         $boost->setEnd($data['end']);
                         $boost->setBudget($data['budget']);
                         $boost->setPaused($data['paused']);
+                        $boost->setDailyCap($data['daily_cap'] ?? 0);
                     } else {
                         $boost = new Boost();
                     }
