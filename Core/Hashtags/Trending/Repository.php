@@ -45,8 +45,8 @@ class Repository
                     'must' => [
                         [
                             'range' => [
-                                'votes:up:24h:synced' => [
-                                    'gte' => $opts['from'],
+                                '@timestamp' => [
+                                    'gte' => $opts['from'] * 1000,
                                 ],
                             ],
                         ],
@@ -81,7 +81,7 @@ class Repository
                     'aggs' => [
                         'counts' => [
                             'max' => [
-                                'field' => 'votes:up:24h',
+                                'field' => 'votes:up',
                             ],
                         ],
                         'owners' => [
