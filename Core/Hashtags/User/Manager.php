@@ -149,6 +149,16 @@ class Manager
     }
 
     /**
+     * @param array $opts
+     * @return array
+     * @throws \Exception
+     */
+    public function values(array $opts = [])
+    {
+        return array_column($this->get($opts) ?: [], 'value');
+    }
+
+    /**
      * @param HashtagEntity[] $hashtags
      * @return bool
      */
