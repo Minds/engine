@@ -10,6 +10,7 @@ use Exception;
 use Minds\Common\Repository\Response;
 use Minds\Core\Clock;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Elastic\Entities as ElasticEntities;
 use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Core\Hashtags\User\Manager as UserHashtagsManager;
@@ -112,6 +113,9 @@ class FeedCollection
     /** @var UserHashtagsManager */
     protected $userHashtagsManager;
 
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
     /** @var Clock */
     protected $clock;
 
@@ -120,17 +124,20 @@ class FeedCollection
      * @param ElasticManager $elasticManager
      * @param ElasticEntities $elasticEntities
      * @param UserHashtagsManager $userHashtagsManager
+     * @param EntitiesBuilder $entitiesBuilder
      * @param Clock $clock
      */
     public function __construct(
         $elasticManager = null,
         $elasticEntities = null,
         $userHashtagsManager = null,
+        $entitiesBuilder = null,
         $clock = null
     ) {
         $this->elasticManager = $elasticManager ?: Di::_()->get('Feeds\Elastic\Manager');
         $this->elasticEntities = $elasticEntities ?: new ElasticEntities();
         $this->userHashtagsManager = $userHashtagsManager ?: Di::_()->get('Hashtags\User\Manager');
+        $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->clock = $clock ?: new Clock();
     }
 
@@ -475,8 +482,10 @@ class FeedCollection
             }
         }
 
+        $pagingToken = $this->limit + $this->offset;
+
         $response
-            ->setPagingToken($this->limit + $this->offset)
+            ->setPagingToken((string) $pagingToken)
             ->setAttribute('fallbackAt', $fallbackAt);
 
         return $response;
