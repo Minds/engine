@@ -65,8 +65,7 @@ class FeedCollectionSpec extends ObjectBehavior
         Response $elasticManagerResponse,
         FeedSyncEntity $feedSyncEntity1,
         FeedSyncEntity $feedSyncEntity2
-    )
-    {
+    ) {
         $this->elasticManager->getList([
             'cache_key' => null,
             'container_guid' => null,
@@ -165,8 +164,7 @@ class FeedCollectionSpec extends ObjectBehavior
     public function it_should_fetch_with_sync_on_using_offset_limit_and_cap(
         Response $elasticManagerResponse,
         FeedSyncEntity $feedSyncEntity
-    )
-    {
+    ) {
         $baseOpts = [
             'cache_key' => null,
             'container_guid' => null,
@@ -251,8 +249,7 @@ class FeedCollectionSpec extends ObjectBehavior
     public function it_should_fetch_with_sync_on_by_all_or_filtering_by_hashtag(
         Response $elasticManagerResponse,
         FeedSyncEntity $feedSyncEntity
-    )
-    {
+    ) {
         $baseOpts = [
             'cache_key' => null,
             'container_guid' => null,
