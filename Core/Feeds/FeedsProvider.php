@@ -8,7 +8,7 @@ class FeedsProvider extends Provider
 {
     public function register()
     {
-        $this->di->bind('Feeds\FeedCollection', function ($di) {
+        $this->di->bind('Feeds\Collection', function ($di) {
             return new FeedCollection();
         }, ['useFactory' => true]);
 

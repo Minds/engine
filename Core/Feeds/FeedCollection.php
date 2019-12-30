@@ -13,7 +13,9 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Elastic\Entities as ElasticEntities;
 use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
+use Minds\Core\Feeds\Exceptions\OverflowException;
 use Minds\Core\Hashtags\User\Manager as UserHashtagsManager;
+use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 
 class FeedCollection
@@ -116,6 +118,9 @@ class FeedCollection
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
+    /** @var ACL */
+    protected $acl;
+
     /** @var Clock */
     protected $clock;
 
@@ -125,6 +130,7 @@ class FeedCollection
      * @param ElasticEntities $elasticEntities
      * @param UserHashtagsManager $userHashtagsManager
      * @param EntitiesBuilder $entitiesBuilder
+     * @param ACL $acl
      * @param Clock $clock
      */
     public function __construct(
@@ -132,12 +138,14 @@ class FeedCollection
         $elasticEntities = null,
         $userHashtagsManager = null,
         $entitiesBuilder = null,
+        $acl = null,
         $clock = null
     ) {
         $this->elasticManager = $elasticManager ?: Di::_()->get('Feeds\Elastic\Manager');
         $this->elasticEntities = $elasticEntities ?: new ElasticEntities();
         $this->userHashtagsManager = $userHashtagsManager ?: Di::_()->get('Hashtags\User\Manager');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
+        $this->acl = $acl ?: ACL::_();
         $this->clock = $clock ?: new Clock();
     }
 
@@ -336,115 +344,26 @@ class FeedCollection
      */
     public function fetch()
     {
-        if (!$this->filter) {
-            throw new Exception('Missing filter');
+        try {
+            $parameters = $this->buildParameters();
+        } catch (OverflowException $e) {
+            $emptyResponse = new Response([]);
+            $emptyResponse
+                ->setPagingToken((string) $this->cap)
+                ->setLastPage(true)
+                ->setAttribute('overflow', true);
+
+            return $emptyResponse;
         }
 
-        if (!$this->algorithm /* TODO: Validate */) {
-            throw new Exception('Missing algorithm');
-        }
-
-        if (!$this->type /* TODO: Validate */) {
-            throw new Exception('Missing type');
-        }
-
-        if (!$this->period /* TODO: Validate */) {
-            throw new Exception('Missing period');
-        }
-
-        // Normalize period
-
-        $period = $this->period;
-
-        switch ($this->algorithm) {
-            case 'hot':
-                $period = '12h';
-                break;
-
-            case 'latest':
-                $period = '1y';
-                break;
-        }
-
-        // Normalize and calculate limit
-
-        $offset = abs(intval($this->offset ?: 0));
-        $limit = abs(intval($this->limit ?: 0));
-
-        if ($limit) {
-            if ($this->cap && ($offset + $limit) > $this->cap) {
-                $limit = $this->cap - $offset;
-            }
-
-            if ($limit < 0) {
-                $emptyResponse = new Response([]);
-                $emptyResponse
-                    ->setPagingToken((string) $this->cap)
-                    ->setLastPage(true)
-                    ->setAttribute('overflow', true);
-
-                return $emptyResponse;
-            }
-        }
-
-        // Normalize hashtags
-
-        $all = !$this->hashtags && $this->all;
-        $hashtags = $this->hashtags;
-        $filterHashtags = true;
-
-        // Fetch preferred hashtags
-
-        if (!$all && !$hashtags && $this->actor) {
-            $hashtags = $this->userHashtagsManager
-                ->setUser($this->actor)
-                ->values([
-                    'limit' => 50,
-                    'trending' => false,
-                    'defaults' => false,
-                ]);
-
-            $filterHashtags = false;
-        }
-
-        // Check container readability
-
-        if ($this->containerGuid) {
-            $container = $this->entitiesBuilder->single($this->containerGuid);
-
-            if (!$container || !$this->acl->read($container)) {
-                throw new Exception('Forbidden container');
-            }
-        }
-
-        // Build options
-
-        $opts = [
-            'cache_key' => $this->actor ? (string) $this->actor->guid : null,
-            'container_guid' => $this->containerGuid,
-            'access_id' => $this->accessIds,
-            'custom_type' => $this->customType,
-            'limit' => $this->limit,
-            'offset' => $this->offset,
-            'type' => $this->type,
-            'algorithm' => $this->algorithm,
-            'period' => $period,
-            'sync' => $this->sync,
-            'query' => $this->query,
-            'single_owner_threshold' => $this->singleOwnerThreshold,
-            'as_activities' => $this->asActivities,
-            'nsfw' => $this->nsfw,
-            'hashtags' => $hashtags,
-            'filter_hashtags' => $filterHashtags
-        ];
-
-        //
+        $opts = $parameters->getOpts();
+        $softLimit = $parameters->getSoftLimit();
 
         $response = new Response();
         $fallbackAt = null;
         $i = 0;
 
-        while ($response->count() < $limit) {
+        while ($response->count() < $softLimit) {
             $result = $this->elasticManager->getList($opts);
 
             $response = $response
@@ -489,5 +408,150 @@ class FeedCollection
             ->setAttribute('fallbackAt', $fallbackAt);
 
         return $response;
+    }
+
+    /**
+     * @param string|null $documentId
+     * @return array
+     * @throws Exception
+     */
+    public function fetchAdjacent(?string $documentId): array
+    {
+        if (!$documentId) {
+            throw new Exception('Invalid document ID');
+        }
+
+        $opts = $this->buildParameters([
+            'sync' => true,
+            'limit' => 1,
+            'from_id' => $documentId,
+            'reverse' => true,
+        ])->getOpts();
+
+        $prev = $this->elasticManager
+            ->getList($opts)
+            ->toArray()[0] ?? null;
+
+        $opts = $this->buildParameters([
+            'sync' => true,
+            'limit' => 1,
+            'from_id' => $documentId
+        ])->getOpts();
+
+        $next = $this->elasticManager
+            ->getList($opts)
+            ->toArray()[0] ?? null;
+
+        return [$prev, $next];
+    }
+
+    /**
+     * @param array $optsOverride
+     * @return FeedCollectionParameters
+     * @throws OverflowException
+     * @throws Exception
+     */
+    protected function buildParameters(array $optsOverride = []): FeedCollectionParameters
+    {
+        if (!$this->filter) {
+            throw new Exception('Missing filter');
+        }
+
+        if (!$this->algorithm /* TODO: Validate */) {
+            throw new Exception('Missing algorithm');
+        }
+
+        if (!$this->type /* TODO: Validate */) {
+            throw new Exception('Missing type');
+        }
+
+        if (!$this->period /* TODO: Validate */) {
+            throw new Exception('Missing period');
+        }
+
+        // Normalize period
+
+        $period = $this->period;
+
+        switch ($this->algorithm) {
+            case 'hot':
+                $period = '12h';
+                break;
+
+            case 'latest':
+                $period = '1y';
+                break;
+        }
+
+        // Normalize and calculate limit
+
+        $offset = abs(intval($this->offset ?: 0));
+        $limit = abs(intval($this->limit ?: 0));
+
+        if ($limit) {
+            if ($this->cap && ($offset + $limit) > $this->cap) {
+                $limit = $this->cap - $offset;
+            }
+
+            if ($limit < 0) {
+                throw new OverflowException();
+            }
+        }
+
+        // Normalize hashtags
+
+        $all = !$this->hashtags && $this->all;
+        $hashtags = $this->hashtags;
+        $filterHashtags = true;
+
+        // Fetch preferred hashtags
+
+        if (!$all && !$hashtags && $this->actor) {
+            $hashtags = $this->userHashtagsManager
+                ->setUser($this->actor)
+                ->values([
+                    'limit' => 50,
+                    'trending' => false,
+                    'defaults' => false,
+                ]);
+
+            $filterHashtags = false;
+        }
+
+        // Check container readability
+
+        if ($this->containerGuid) {
+            $container = $this->entitiesBuilder->single($this->containerGuid);
+
+            if (!$container || !$this->acl->read($container)) {
+                throw new Exception('Forbidden container');
+            }
+        }
+
+        // Build parameters
+
+        $feedCollectionParameters = new FeedCollectionParameters();
+        $feedCollectionParameters
+            ->setOpts(array_merge([
+                'cache_key' => $this->actor ? (string) $this->actor->guid : null,
+                'container_guid' => $this->containerGuid,
+                'access_id' => $this->accessIds,
+                'custom_type' => $this->customType,
+                'limit' => $this->limit,
+                'offset' => $this->offset,
+                'type' => $this->type,
+                'algorithm' => $this->algorithm,
+                'period' => $period,
+                'sync' => $this->sync,
+                'query' => $this->query,
+                'single_owner_threshold' => $this->singleOwnerThreshold,
+                'as_activities' => $this->asActivities,
+                'nsfw' => $this->nsfw,
+                'hashtags' => $hashtags,
+                'filter_hashtags' => $filterHashtags
+            ], $optsOverride))
+            ->setSoftLimit($limit);
+
+        return $feedCollectionParameters;
     }
 }

@@ -66,11 +66,13 @@ class Repository
             'query' => null,
             'nsfw' => null,
             'from_timestamp' => null,
+            'from_id' => null,
             'exclude_moderated' => false,
             'moderation_reservations' => null,
             'pinned_guids' => null,
             'future' => false,
             'exclude' => null,
+            'reverse' => false,
         ], $opts);
 
         if (!$opts['type']) {
@@ -366,6 +368,12 @@ class Repository
                     'guid' => $opts['moderation_reservations'],
                 ],
             ];
+        }
+
+        //
+
+        if ($opts['from_id']) {
+            // TODO: Return results based on 'from_id' and 'reverse' order if necessary
         }
 
         //

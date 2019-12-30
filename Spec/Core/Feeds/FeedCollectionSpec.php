@@ -11,6 +11,7 @@ use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Core\Feeds\FeedCollection;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Hashtags\User\Manager as UserHashtagsManager;
+use Minds\Core\Security\ACL;
 use Minds\Entities\Entity;
 use Minds\Entities\User;
 use PhpSpec\Exception\Example\FailureException;
@@ -31,6 +32,9 @@ class FeedCollectionSpec extends ObjectBehavior
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
+    /** @var ACL */
+    protected $acl;
+
     /** @var Clock */
     protected $clock;
 
@@ -39,12 +43,14 @@ class FeedCollectionSpec extends ObjectBehavior
         ElasticEntities $elasticEntities,
         UserHashtagsManager $userHashtagsManager,
         EntitiesBuilder $entitiesBuilder,
+        ACL $acl,
         Clock $clock
     ) {
         $this->elasticManager = $elasticManager;
         $this->elasticEntities = $elasticEntities;
         $this->userHashtagsManager = $userHashtagsManager;
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->acl = $acl;
         $this->clock = $clock;
 
         $this->beConstructedWith(
@@ -52,6 +58,7 @@ class FeedCollectionSpec extends ObjectBehavior
             $elasticEntities,
             $userHashtagsManager,
             $entitiesBuilder,
+            $acl,
             $clock
         );
     }

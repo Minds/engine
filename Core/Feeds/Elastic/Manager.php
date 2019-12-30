@@ -89,6 +89,7 @@ class Manager
             'type' => null,
             'sync' => false,
             'from_timestamp' => null,
+            'from_id' => null,
             'query' => null,
             'nsfw' => null,
             'single_owner_threshold' => 36,
@@ -96,6 +97,7 @@ class Manager
             'pinned_guids' => null,
             'as_activities' => false,
             'exclude' => null,
+            'reverse' => false,
         ], $opts);
 
         if (isset($opts['query']) && $opts['query']) {

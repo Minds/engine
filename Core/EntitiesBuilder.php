@@ -9,9 +9,9 @@ class EntitiesBuilder
 {
     /**
      * Build by a single guid
-     * @param $guid number
+     * @param $guid int|string
      * @param $opts array
-     * @return Entity
+     * @return mixed
      */
     public function single($guid, $opts = [])
     {
