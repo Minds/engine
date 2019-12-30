@@ -385,6 +385,18 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
     }
 
     /**
+     * @param callable $callback
+     * @return Response
+     */
+    public function sort(callable $callback): Response
+    {
+        $data = $this->data;
+        usort($data, $callback);
+
+        return new static($data, $this->pagingToken, $this->attributes);
+    }
+
+    /**
      * Returns the first element of the Response, or null if empty
      * @return mixed|null
      */
