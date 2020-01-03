@@ -4,6 +4,7 @@ namespace Minds\Controllers\api\v2\settings;
 use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Email\Confirmation\Manager as EmailConfirmation;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Entities\User;
 use Minds\Interfaces;
@@ -67,8 +68,27 @@ class emails implements Interfaces\Api
                 ]);
             }
 
+            $emailChange = strtolower($_POST['email']) !== strtolower($user->getEmail());
+
             $user->setEmail($_POST['email']);
             $user->save();
+
+            if ($emailChange) {
+                /** @var EmailConfirmation $emailConfirmation */
+                $emailConfirmation = Di::_()->get('Email\Confirmation');
+                $emailConfirmation
+                    ->setUser($user);
+
+                $reset = $emailConfirmation
+                    ->reset();
+
+                if ($reset) {
+                    $emailConfirmation
+                        ->sendEmail();
+                } else {
+                    error_log('Cannot reset email confirmation for ' . $user->guid);
+                }
+            }
         }
 
         if (isset($_POST['notifications'])) {

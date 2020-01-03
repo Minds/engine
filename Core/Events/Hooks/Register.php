@@ -55,17 +55,22 @@ class Register
             if ($params['user']->captcha_failed) {
                 return false;
             }
-            //send welcome email
+
+            try {
+                /** @var Core\Email\Confirmation\Manager $emailConfirmation */
+                $emailConfirmation = Di::_()->get('Email\Confirmation');
+                $emailConfirmation
+                    ->setUser($params['user'])
+                    ->sendEmail();
+            } catch (\Exception $e) {
+                error_log((string) $e);
+            }
+
             try {
                 Core\Queue\Client::build()->setQueue('Registered')
                     ->send([
-                        'user_guid' => $params['user']->guid,
+                        'user_guid' => (string) $params['user']->guid,
                     ]);
-                //Delay by 15 minutes (aws max) so the user has time to complete their profile
-                Core\Queue\Client::build()->setQueue('WelcomeEmail')
-                    ->send([
-                        'user_guid' => $params['user']->guid,
-                    ], 900);
             } catch (\Exception $e) {
             }
         });

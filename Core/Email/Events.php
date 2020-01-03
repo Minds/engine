@@ -52,11 +52,15 @@ class Events
         Dispatcher::register('welcome_email', 'all', function ($opts) {
             $this->sendCampaign(new Delegates\WelcomeSender(), $opts->getParameters());
         });
+
+        Dispatcher::register('confirmation_email', 'all', function ($opts) {
+            $this->sendCampaign(new Delegates\ConfirmationSender(), $opts->getParameters());
+        });
     }
 
     private function sendCampaign(SenderInterface $sender, $params)
     {
-        $user = new User($params['user_guid']);
+        $user = new User($params['user_guid'], $params['cache'] ?? true);
         $sender->send($user);
     }
 }

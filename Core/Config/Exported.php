@@ -106,6 +106,10 @@ class Exported
             $exported['MindsEmbed'] = $embedded_entity ?? null;
         }
 
+        if ($_GET['__e_cnf_token'] ?? false) {
+            $exported['from_email_confirmation'] = true;
+        }
+
         return $exported;
     }
 }
