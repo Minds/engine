@@ -609,3 +609,8 @@ $CONFIG->set('upgrades', [
         ]
     ],
 ]);
+
+$CONFIG->set('email_confirmation', [
+    'signing_key' => '',
+    'expiration' => 172800, // 48 hours
+]);

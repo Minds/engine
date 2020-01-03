@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Email;
 
+use Minds\Core\Email\Confirmation\Manager as ConfirmationManager;
 use Minds\Core\Email\RouterHooks;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\Analytics\Metrics\Event;
@@ -12,10 +13,13 @@ class RouterHooksSpec extends ObjectBehavior
 {
     private $event;
 
-    public function let(Event $event)
+    private $confirmationManager;
+
+    public function let(Event $event, ConfirmationManager $confirmationManager)
     {
-        $this->beConstructedWith($event);
+        $this->beConstructedWith($event, $confirmationManager);
         $this->event = $event;
+        $this->confirmationManager = $confirmationManager;
     }
 
     public function it_is_initializable()

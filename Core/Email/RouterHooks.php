@@ -2,13 +2,29 @@
 
 namespace Minds\Core\Email;
 
+use Exception;
 use Minds\Core\Analytics\Metrics\Event;
+use Minds\Core\Di\Di;
+use Minds\Core\Email\Confirmation\Manager as ConfirmationManager;
+use Minds\Core\Session;
 
 class RouterHooks
 {
-    public function __construct($event = null)
+    /** @var Event */
+    protected $event;
+
+    /** @var ConfirmationManager */
+    protected $confirmationManager;
+
+    /**
+     * RouterHooks constructor.
+     * @param Event $event
+     * @param ConfirmationManager $confirmationManager
+     */
+    public function __construct($event = null, $confirmationManager = null)
     {
         $this->event = $event ?: new Event();
+        $this->confirmationManager = $confirmationManager ?: Di::_()->get('Email\Confirmation');
     }
 
     public function withRouterRequest($request)
@@ -18,6 +34,17 @@ class RouterHooks
         $action = 'email:clicks';
         if (strpos($path, '/emails/unsubscribe') !== false) {
             $action = 'email:unsubscribe';
+        } elseif (isset($queryParams['__e_cnf_token'])) {
+            try {
+                $this->confirmationManager
+                    ->confirm($queryParams['__e_cnf_token']);
+            } catch (Exception $e) {
+                // Do not continue processing.
+                // TODO: Log?
+                return;
+            }
+
+            $action = 'email:confirm';
         }
         $platform = isset($queryParams['cb']) ? 'mobile' : 'browser';
         if (isset($queryParams['platform'])) {
