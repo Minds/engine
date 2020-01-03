@@ -11,6 +11,7 @@ use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Email\Confirmation\Manager as EmailConfirmation;
 use Minds\Core\Queue\Client as Queue;
 use Minds\Entities;
 use Minds\Interfaces;
@@ -79,8 +80,14 @@ class settings implements Interfaces\Api
             $user->name = trim($_POST['name']);
         }
 
+        $emailChange = false;
+
         if (isset($_POST['email']) && $_POST['email']) {
             $user->setEmail($_POST['email']);
+
+            if (strtolower($_POST['email']) !== strtolower($user->getEmail())) {
+                $emailChange = true;
+            }
         }
 
         if (isset($_POST['boost_rating'])) {
@@ -144,6 +151,23 @@ class settings implements Interfaces\Api
         $response = [];
         if (!$user->save()) {
             $response['status'] = 'error';
+        }
+
+        if ($emailChange) {
+            /** @var EmailConfirmation $emailConfirmation */
+            $emailConfirmation = Di::_()->get('Email\Confirmation');
+            $emailConfirmation
+                ->setUser($user);
+
+            $reset = $emailConfirmation
+                ->reset();
+
+            if ($reset) {
+                $emailConfirmation
+                    ->sendEmail();
+            } else {
+                error_log('Cannot reset email confirmation for ' . $user->guid);
+            }
         }
 
         return Factory::response($response);

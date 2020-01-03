@@ -259,6 +259,14 @@ class Defaults
             ];
         });
 
+        // Do not index email confirmation and redirect OG to /
+        Manager::add(Core\Email\Confirmation\Url::EMAIL_CONFIRMATION_PATH, function ($slugs = []) {
+            return [
+                'og:url' => $this->config->site_url,
+                'robots' => 'noindex'
+            ];
+        });
+
         Manager::add('/wallet/tokens/transactions', function ($slugs = []) {
             $meta = [
                 'title' => 'Transactions Ledger',
