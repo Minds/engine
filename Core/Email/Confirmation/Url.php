@@ -54,7 +54,7 @@ class Url
             static::EMAIL_CONFIRMATION_PATH,
             http_build_query(array_merge($params, [
                 '__e_cnf_token' => $this->user->getEmailConfirmationToken(),
-            ])),
+            ]))
         );
     }
 }
