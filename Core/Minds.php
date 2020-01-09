@@ -16,6 +16,7 @@ class Minds extends base
     public static $booted = false;
 
     private $modules = [
+        Log\Module::class,
         Events\Module::class,
         SSO\Module::class,
         Email\Module::class,
