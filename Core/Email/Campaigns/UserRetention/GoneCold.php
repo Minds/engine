@@ -62,19 +62,23 @@ class GoneCold extends EmailCampaign
 
         $message = new Message();
         $message->setTo($this->user)
-            ->setMessageId(implode('-',
-                [$this->user->guid, sha1($this->user->getEmail()), sha1($this->campaign.$this->topic.time())]))
+            ->setMessageId(implode(
+                '-',
+                [$this->user->guid, sha1($this->user->getEmail()), sha1($this->campaign.$this->topic.time())]
+            ))
             ->setSubject($subject)
             ->setHtml($this->template);
 
         return $message;
     }
 
-    public function send()
+    public function send($time = null)
     {
+        $time = $time ?: time();
         //send email
         if ($this->canSend()) {
             $this->mailer->queue($this->build());
+            $this->saveCampaignLog($time);
         }
     }
 }

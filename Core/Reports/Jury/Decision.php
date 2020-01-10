@@ -63,5 +63,4 @@ class Decision
 
         return $export;
     }
-
 }

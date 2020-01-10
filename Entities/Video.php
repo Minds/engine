@@ -8,11 +8,11 @@ namespace Minds\Entities;
 
 use Minds\Core;
 use Minds\Core\Media\Services\Factory as ServiceFactory;
+use Minds\Core\Di\Di;
 use cinemr;
 use Minds\Helpers;
 
-
-class Video extends Object
+class Video extends MindsObject
 {
     private $cinemr;
 
@@ -24,6 +24,7 @@ class Video extends Object
         $this->attributes['subtype'] = "video";
         $this->attributes['boost_rejection_reason'] = -1;
         $this->attributes['rating'] = 2;
+        $this->attributes['time_sent'] = null;
     }
 
 
@@ -39,8 +40,8 @@ class Video extends Object
      */
     public function getSourceUrl($transcode = '720.mp4')
     {
-        $url = Core\Config::_()->cinemr_url . $this->cinemr_guid . '/' . $transcode;
-        return $url;
+        $mediaManager = Di::_()->get('Media\Video\Manager');
+        return $mediaManager->getPublicAssetUri($this, $transcode);
     }
 
     /**
@@ -50,25 +51,30 @@ class Video extends Object
 
     public function upload($filepath)
     {
+        // TODO: Confirm why this is still here
         $this->generateGuid();
 
-        $transcoder = ServiceFactory::build('FFMpeg');
-        $transcoder->setKey($this->getGuid())
-          ->saveToFilestore($filepath)
-          ->transcode();
+        // Upload the source and start the transcoder pipeline
+        $transcoderManager = Di::_()->get('Media\Video\Transcoder\Manager');
+        $transcoderManager->uploadSource($this, $filepath)
+            ->createTranscodes($this);
 
+        // Legacy support
         $this->cinemr_guid = $this->getGuid();
     }
 
     public function getIconUrl($size = "medium")
     {
-        $domain = elgg_get_site_url();
-        global $CONFIG;
-        if (isset($CONFIG->cdn_url) && !$this->getFlag('paywall') && !$this->getWireThreshold()) {
-            $domain = $CONFIG->cdn_url;
-        }
+        // $domain = elgg_get_site_url();
+        // global $CONFIG;
+        // if (isset($CONFIG->cdn_url) && !$this->getFlag('paywall') && !$this->getWireThreshold()) {
+        //     $domain = $CONFIG->cdn_url;
+        // }
 
-        return $domain . 'api/v1/media/thumbnails/' . $this->guid . '/' . $this->time_updated;
+        // return $domain . 'api/v1/media/thumbnails/' . $this->guid . '/' . $this->time_updated;
+
+        $mediaManager = Di::_()->get('Media\Image\Manager');
+        return $mediaManager->getPublicAssetUri($this, 'medium');
     }
 
     public function getURL()
@@ -107,14 +113,15 @@ class Video extends Object
 
     public function getExportableValues()
     {
-        return array_merge(parent::getExportableValues(), array(
+        return array_merge(parent::getExportableValues(), [
             'thumbnail',
             'cinemr_guid',
             'license',
             'monetized',
             'mature',
-            'boost_rejection_reason'
-        ));
+            'boost_rejection_reason',
+            'time_sent',
+        ]);
     }
 
     public function getAlbumChildrenGuids()
@@ -135,15 +142,16 @@ class Video extends Object
     {
         $export = parent::export();
         $export['thumbnail_src'] = $this->getIconUrl();
-        $export['src'] = array(
+        $export['src'] = [
             '360.mp4' => $this->getSourceUrl('360.mp4'),
             '720.mp4' => $this->getSourceUrl('720.mp4')
-        );
+        ];
         $export['play:count'] = Helpers\Counters::get($this->guid, 'plays');
         $export['thumbs:up:count'] = Helpers\Counters::get($this->guid, 'thumbs:up');
         $export['thumbs:down:count'] = Helpers\Counters::get($this->guid, 'thumbs:down');
         $export['description'] = (new Core\Security\XSS())->clean($this->description); //videos need to be able to export html.. sanitize soon!
         $export['rating'] = $this->getRating();
+        $export['time_sent'] = $this->getTimeSent();
 
         if (!Helpers\Flags::shouldDiscloseStatus($this) && isset($export['flags']['spam'])) {
             unset($export['flags']['spam']);
@@ -153,7 +161,7 @@ class Video extends Object
             unset($export['flags']['deleted']);
         }
 
-	$export['boost_rejection_reason'] = $this->getBoostRejectionReason() ?: -1;
+        $export['boost_rejection_reason'] = $this->getBoostRejectionReason() ?: -1;
         return $export;
     }
 
@@ -181,11 +189,14 @@ class Video extends Object
             'description' => null,
             'license' => null,
             'mature' => null,
+            'nsfw' => null,
             'boost_rejection_reason' => null,
             'hidden' => null,
             'access_id' => null,
             'container_guid' => null,
             'rating' => 2, //open by default
+            'time_sent' => time(),
+            'full_hd' => false,
         ], $data);
 
         $allowed = [
@@ -196,8 +207,11 @@ class Video extends Object
             'access_id',
             'container_guid',
             'mature',
+            'nsfw',
             'boost_rejection_reason',
             'rating',
+            'time_sent',
+            'full_hd',
         ];
 
         foreach ($allowed as $field) {
@@ -207,8 +221,8 @@ class Video extends Object
 
             if ($field == 'access_id') {
                 $data[$field] = (int) $data[$field];
-            } elseif ($field == 'mature') {
-                $this->setFlag('mature', !!$data['mature']);
+            } elseif (in_array($field, ['mature', 'full_hd'], true)) {
+                $this->setFlag($field, !!$data[$field]);
                 continue;
             }
 
@@ -245,6 +259,7 @@ class Video extends Object
                 'thumbnail_src' => $this->getIconUrl(),
                 'guid' => $this->guid,
                 'mature' => $this->getFlag('mature'),
+                'full_hd' => $this->getFlag('full_hd'),
                 'license' => $this->license ?? '',
             ]
         ];
@@ -259,5 +274,50 @@ class Video extends Object
     public function getBoostRejectionReason()
     {
         return $this->boost_rejection_reason;
+    }
+
+    public function getUrn()
+    {
+        return "urn:video:{$this->getGuid()}";
+    }
+
+    /**
+     * Return time_sent
+     * @return int
+     */
+    public function getTimeSent()
+    {
+        return $this->time_sent;
+    }
+
+    /**
+     * Set time_sent
+     * @return Image
+     */
+    public function setTimeSent($time_sent)
+    {
+        $this->time_sent = $time_sent;
+        return $this;
+    }
+
+    /**
+     * Return description
+     * @return string
+     */
+    public function getDescription(): string
+    {
+        return $this->description  ?: '';
+    }
+
+    /**
+    * Set description
+    *
+    * @param string $description - description to be set.
+    * @return Video
+    */
+    public function setDescription($description): Video
+    {
+        $this->description = $description;
+        return $this;
     }
 }

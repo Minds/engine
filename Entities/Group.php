@@ -15,7 +15,6 @@ use Minds\Traits\MagicAttributes;
 
 class Group extends NormalizedEntity
 {
-
     use MagicAttributes;
 
     protected $type = 'group';
@@ -41,6 +40,7 @@ class Group extends NormalizedEntity
     protected $mature = false;
     protected $rating = 1;
     protected $videoChatDisabled = 0; // enable by default
+    protected $conversationDisabled = 0; // enable by default
     protected $pinned_posts = [];
     protected $nsfw = [];
     protected $nsfw_lock = [];
@@ -63,6 +63,7 @@ class Group extends NormalizedEntity
         'mature',
         'rating',
         'videoChatDisabled',
+        'conversationDisabled',
         'pinned_posts',
     ];
 
@@ -103,6 +104,7 @@ class Group extends NormalizedEntity
             'rating' => $this->rating,
             'mature' => $this->mature,
             'videoChatDisabled' => $this->videoChatDisabled,
+            'conversationDisabled' => $this->conversationDisabled,
             'pinned_posts' => $this->pinned_posts,
             'nsfw' => $this->getNSFW(),
             'nsfw_lock' => $this->getNSFWLock()
@@ -404,6 +406,36 @@ class Group extends NormalizedEntity
     }
 
     /**
+     * @return bool
+     */
+    public function isConversationDisabled()
+    {
+        return (bool) $this->conversationDisabled;
+    }
+
+    /**
+     * @param $value
+     * @return $this
+     */
+    public function setConversationDisabled($value)
+    {
+        $this->conversationDisabled = $value ? 1 : 0;
+        return $this;
+    }
+    
+    /**
+     * Return the original `owner_guid` for the group.
+     * @return string guid
+     */
+    public function getOwnerGuid()
+    {
+        $guids = $this->getOwnerGuids();
+        return $guids
+            ? $guids[0]
+            : $this->getOwnerObj()->guid;
+    }
+
+    /**
      * Gets `owner_guids`
      * @return mixed
      */
@@ -520,7 +552,7 @@ class Group extends NormalizedEntity
      */
     public function isBanned($user = null)
     {
-        return (new Membership($this))->isInvited($user);
+        return Membership::_($this)->isBanned($user);
     }
 
     /**
@@ -540,14 +572,14 @@ class Group extends NormalizedEntity
 
         $user_guid = is_object($user) ? $user->guid : $user;
 
-        return $this->isCreator($user) || in_array($user_guid, $this->getOwnerGuids());
+        return $this->isCreator($user) || in_array($user_guid, $this->getOwnerGuids(), false);
     }
 
-     /**
-     * Checks if a user is moderator
-     * @param  User    $user
-     * @return boolean
-     */
+    /**
+    * Checks if a user is moderator
+    * @param  User    $user
+    * @return boolean
+    */
     public function isModerator($user = null)
     {
         if (!$user) {
@@ -556,7 +588,7 @@ class Group extends NormalizedEntity
 
         $user_guid = is_object($user) ? $user->guid : $user;
 
-        return in_array($user_guid, $this->getModeratorGuids());
+        return in_array($user_guid, $this->getModeratorGuids(), true);
     }
 
     /**
@@ -652,10 +684,10 @@ class Group extends NormalizedEntity
         $pinned = $this->getPinnedPosts();
         if (!$pinned) {
             $pinned = [];
-        } else if (count($pinned) > 2) {
+        } elseif (count($pinned) > 2) {
             array_shift($pinned);
         }
-        if (array_search($guid, $pinned) === false) {
+        if (array_search($guid, $pinned, true) === false) {
             $pinned[] = (string) $guid;
             $this->setPinnedPosts($pinned);
         }
@@ -668,7 +700,7 @@ class Group extends NormalizedEntity
     {
         $pinned = $this->getPinnedPosts();
         if ($pinned && count($pinned) > 0) {
-            $index = array_search((string)$guid, $pinned);
+            $index = array_search((string)$guid, $pinned, true);
             if (is_numeric($index)) {
                 array_splice($pinned, $index, 1);
                 $this->pinned_posts = $pinned;
@@ -681,7 +713,8 @@ class Group extends NormalizedEntity
      * @param array $pinned
      * @return $this
      */
-    public function setPinnedPosts($pinned) {
+    public function setPinnedPosts($pinned)
+    {
         if (count($pinned) > 3) {
             $pinned = array_slice($pinned, 0, 3);
         }
@@ -692,8 +725,9 @@ class Group extends NormalizedEntity
      * Gets the group's pinned posts
      * @return array
      */
-    public function getPinnedPosts() {
-        if(is_string($this->pinned_posts)) {
+    public function getPinnedPosts()
+    {
+        if (is_string($this->pinned_posts)) {
             return json_decode($this->pinned_posts);
         }
         return $this->pinned_posts;
@@ -737,10 +771,10 @@ class Group extends NormalizedEntity
         return $this->rating;
     }
 
-     /**
-     * Get NSFW options
-     * @return array
-     */
+    /**
+    * Get NSFW options
+    * @return array
+    */
     public function getNsfw()
     {
         $array = [];
@@ -769,7 +803,7 @@ class Group extends NormalizedEntity
         $this->nsfw = $array;
         return $this;
     }
-	
+    
     /**
      * Get NSFW Lock options.
      *
@@ -787,7 +821,7 @@ class Group extends NormalizedEntity
 
         return $array;
     }
-	
+    
     /**
      * Set NSFW lock tags for administrators. Users cannot remove these themselves.
      *
@@ -839,8 +873,15 @@ class Group extends NormalizedEntity
         $export['is:creator'] = $userIsAdmin || $this->isCreator(Core\Session::getLoggedInUser());
         $export['is:awaiting'] = $this->isAwaiting(Core\Session::getLoggedInUser());
 
+        $export['urn'] = $this->getUrn();
+
         $export = array_merge($export, Dispatcher::trigger('export:extender', 'group', [ 'entity' => $this ], []));
 
         return $export;
+    }
+
+    public function getUrn()
+    {
+        return "urn:group:{$this->guid}";
     }
 }

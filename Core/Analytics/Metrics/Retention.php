@@ -49,34 +49,34 @@ class Retention implements AnalyticsMetric
             $startTs = $timestamps[$x+1];
             $signups = [];
             $offset = "";
-            echo "\n Gathering signups \n";
+            // echo "\n Gathering signups \n";
             while (true) {
                 $data = $this->db->getRow("analytics:signup:day:$startTs", ['limit'=>200, 'offset' => $offset]);
-                if(count($data) <= 1)
+                if (count($data) <= 1) {
                     break;
+                }
                 foreach ($data as $k => $v) {
                     echo "\r $k";
                     $signups[$k] = $v;
                     $offset = $k;
                 }
             }
-            echo " (done)";
+            // echo " (done)";
 
             //now get active users from each interval after this date
             $endTs =  $timestamps[$x-$x+1];
             //echo "[$x]:: actives: " . date('d-m-Y', $endTs) . " signups: " . date('d-m-Y', $startTs) . "\n";
             $offset = "";
-            echo "\n Gathering actives \n";
+            // echo "\n Gathering actives \n";
             foreach ($signups as $signup => $ts) {
                 if ($this->wasActive($signup, $now)) {
                     $this->db->insert("{$this->namespace}:$x:$now", [$signup=>time()]);
-                    echo "\r $x: $signup (active) $offset"; 
+                    echo "\r $x: $signup (active) $offset";
                 } else {
                     echo "\r $x: $signup (not active) $offset";
                 }
             }
-            echo "(done)";
-
+            // echo "(done)";
         }
 
         return true;
@@ -96,8 +96,9 @@ class Retention implements AnalyticsMetric
         $timestamps = array_reverse(Timestamps::span(30, $unit));
         $data = [];
         foreach ($spans as $i => $ts) {
-            if($i < 28)
+            if ($i < 28) {
                 continue;
+            }
             $totals = [];
             $total = 0;
             $retained = [];
@@ -161,14 +162,15 @@ class Retention implements AnalyticsMetric
         try {
             $result = Core\Di\Di::_()->get('Database\ElasticSearch')->request($prepared);
         } catch (\Exception $e) {
-            var_dump($e); exit;
+            var_dump($e);
+            exit;
             return [];
         }
 
         if ($result['hits']['total'] >= 1) {
             return true;
         }
-        
+
         return false;
     }
 

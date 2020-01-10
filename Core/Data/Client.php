@@ -2,11 +2,12 @@
 /**
  * Minds Data Client Factory
  */
-namespace Minds\Core\data;
+
+namespace Minds\Core\Data;
 
 class Client
 {
-    private static $default = '\Minds\Core\Data\cassandra\client';
+    private static $default = '\Minds\Core\Data\Cassandra\Client';
     private static $clients = [];
 
     /**
@@ -15,7 +16,7 @@ class Client
      * @param string $handler - The handler to load
      * @return object
      */
-    public static function build($handler = null, $options = array())
+    public static function build($handler = null, $options = [])
     {
         if (!$handler) {
             $handler = self::$default;

@@ -3,7 +3,6 @@
 
 namespace Minds\Core\Email\Campaigns;
 
-
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Message;
 use Minds\Core\Email\Template;
@@ -40,8 +39,10 @@ class WithImprovementTips extends EmailCampaign
 
         $message = new Message();
         $message->setTo($this->user)
-            ->setMessageId(implode('-',
-                [$this->user->guid, sha1($this->user->getEmail()), sha1($this->campaign . $this->topic . time())]))
+            ->setMessageId(implode(
+                '-',
+                [$this->user->guid, sha1($this->user->getEmail()), sha1($this->campaign . $this->topic . time())]
+            ))
             ->setSubject($subject)
             ->setHtml($this->template);
 

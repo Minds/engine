@@ -849,7 +849,9 @@ function _elgg_php_exception_handler($exception) {
 	// make sure the error isn't cached
 	header("Cache-Control: no-cache, must-revalidate", true);
 	header('Expires: Fri, 05 Feb 1982 00:00:00 -0500', true);
-	// @note Do not send a 500 header because it is not a server error
+    // @note Do not send a 500 header because it is not a server error
+    
+    Sentry\captureException($exception);
 }
 
 /**
@@ -940,7 +942,9 @@ function fatalErrorShutdownHandler(){
 		header('Fatal error', true, 500);
 
 		echo file_get_contents(dirname(dirname(dirname(__FILE__))) . '/errors/500.html');
-	}
+    }
+
+    \Sentry\captureLastError();
 }
 
 /**

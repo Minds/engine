@@ -102,7 +102,7 @@ class membership implements Interfaces\Api
                 }
 
                 $suggestions = (new Documents())->suggestQuery($_GET['q'], [ 'size' => 100 ]);
-                $guids = array_map(function($row) {
+                $guids = array_map(function ($row) {
                     return $row['_source']['guid'];
                 }, $suggestions['suggest']['autocomplete'][0]['options']);
 
@@ -115,7 +115,7 @@ class membership implements Interfaces\Api
                 }
 
                 $i = 0;
-                $guids = array_filter($guids, function($guid) use ($membership, &$i) {
+                $guids = array_filter($guids, function ($guid) use ($membership, &$i) {
                     if ($is > 12) {
                         return false;
                     }

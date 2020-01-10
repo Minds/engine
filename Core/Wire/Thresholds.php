@@ -23,15 +23,20 @@ class Thresholds
             throw new \Exception('Entity cannot be paywalled');
         }
 
-	    if ($user && ($user->guid == $entity->getOwnerEntity()->guid || $user->isAdmin())) {
+        if ($user && ($user->guid == $entity->getOwnerEntity()->guid || $user->isAdmin())) {
             return true;
         }
 
         $isPaywall = false;
-        if (method_exists($entity, 'isPaywall') && $entity->isPaywall()) {
+
+        if ((MagicAttributes::getterExists($entity, 'isPaywall') || method_exists($entity, 'isPaywall')) && $entity->isPaywall()) {
             $isPaywall = true;
         } elseif (method_exists($entity, 'getFlag') && $entity->getFlag('paywall')) {
             $isPaywall = true;
+        }
+
+        if (!$user && $isPaywall) {
+            return false;
         }
 
         $threshold = $entity->getWireThreshold();
@@ -45,12 +50,17 @@ class Thresholds
 
         //make sure legacy posts can work
         if ($isPaywall) {
-
             $amount = 0;
+
+            if (MagicAttributes::getterExists($entity, 'getOwnerGuid')) {
+                $ownerGuid = $entity->getOwnerGuid();
+            } else {
+                $ownerGuid = $entity->getOwnerGUID();
+            }
 
             /** @var Sums $sums */
             $sums = Di::_()->get('Wire\Sums');
-            $sums->setReceiver($entity->getOwnerGUID())
+            $sums->setReceiver($ownerGuid)
                 ->setSender($user->guid)
                 ->setFrom((new \DateTime('midnight'))->modify("-30 days")->getTimestamp());
 
@@ -76,10 +86,8 @@ class Thresholds
                     return true;
                 }
             }
-
             return false;
         }
-
         return true;
     }
 }

@@ -49,21 +49,23 @@ class TestnetSums
             throw new \Exception('User is not set');
         }
         
-        $query->query("SELECT 
+        $query->query(
+            "SELECT 
             SUM(amount) as balance 
             FROM blockchain_transactions_by_address
             WHERE user_guid = ?
-            AND wallet_address = 'offchain'", 
+            AND wallet_address = 'offchain'",
             [
                 new Varint((int) $this->user->guid)
-            ]);
+            ]
+        );
         $query->setOpts([
             'consistency' => \Cassandra::CONSISTENCY_ALL
         ]);
 
-        try{
+        try {
             $rows = $this->db->request($query);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             error_log($e->getMessage());
             return 0;
         }
@@ -74,5 +76,4 @@ class TestnetSums
         
         return (string) BigNumber::_($rows[0]['balance']);
     }
-
 }

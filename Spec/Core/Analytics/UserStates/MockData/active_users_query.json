@@ -6,10 +6,8 @@
             "bool": {
                 "must": [
                     {
-                        "match_phrase": {
-                            "action.keyword": {
-                                "query": "active"
-                            }
+                        "terms": {
+                            "action.keyword": [ "active", "signup" ]
                         }
                     },
                     {
@@ -168,3 +166,92 @@
         }
     }
 }
+
+
+{
+    "_source": [
+      "guid",
+      "owner_guid",
+      "@timestamp",
+      "time_created",
+      "access_id",
+      "moderator_guid"
+    ],
+    "query": {
+      "function_score": {
+        "query": {
+          "bool": {
+            "must_not": [
+              {
+                "term": {
+                  "deleted": true
+                }
+              },
+              {
+                "terms": {
+                  "nsfw": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6
+                  ]
+                }
+              },
+              {
+                "term": {
+                  "mature": true
+                }
+              }
+            ],
+            "must": [
+              {
+                "terms": {
+                  "access_id": [
+                    "2"
+                  ]
+                }
+              },
+              {
+                "range": {
+                  "@timestamp": {
+                    "lte": 1576624259000,
+                    "gt": 1576581059000
+                  }
+                }
+              },
+              {
+                "exists": {
+                  "field": "votes:up"
+                }
+              }
+            ]
+          }
+        },
+        "score_mode": "sum",
+        "functions": [
+          {
+            "filter": {
+              "match_all": {}
+            },
+            "weight": 1
+          },
+          {
+            "script_score": {
+              "script": {
+                "source": "\n            def up = (doc['votes:up'].value ?: 0) * 1.0;\n            def down = (doc['votes:down'].value ?: 0) * 1.0;\n            def magnitude = up + down;\n            \n            if (magnitude <= 0) {\n                return -10;\n            }\n            \n            def score = ((up + 1.9208) / (up + down) - 1.96 * Math.sqrt((up * down) / (up + down) + 0.9604) / (up + down)) / (1 + 3.8416 / (up + down));\n            \n            return score;\n        "
+              }
+            }
+          }
+        ]
+      }
+    },
+    "sort": [
+      {
+        "_score": {
+          "order": "desc"
+        }
+      }
+    ]
+  }

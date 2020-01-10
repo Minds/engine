@@ -20,7 +20,7 @@ class Image implements AssetsInterface
 
     public function upload(array $media, array $data)
     {
-        $filename = "/image/{$this->entity->batch_guid}/{$this->entity->guid}/master.jpg";
+        $filename = "image/{$this->entity->batch_guid}/{$this->entity->guid}/master.jpg";
 
         // @note: legacy file handling
         $file = new \ElggFile();
@@ -36,7 +36,7 @@ class Image implements AssetsInterface
 
             if ($exif && isset($exif['Orientation'])) {
                 // check and invert
-                if (in_array($exif['Orientation'], [5, 6, 7, 8])) {
+                if (in_array($exif['Orientation'], [5, 6, 7, 8], true)) {
                     list($height, $width) = [$width, $height];
                 }
             }

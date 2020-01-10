@@ -9,6 +9,7 @@ use Minds\Entities\User;
 use Minds\Core\Email\Campaigns\UserRetention\GoneCold;
 use Minds\Core\Email\Campaigns\WhenBoost;
 use Minds\Core\Email\Campaigns\WireReceived;
+use Minds\Core\Email\Campaigns\WirePromotions;
 use Minds\Core\Email\Campaigns\UserRetention\WelcomeComplete;
 use Minds\Core\Email\Campaigns\UserRetention\WelcomeIncomplete;
 use Minds\Core\Suggestions\Manager;
@@ -186,6 +187,28 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             file_put_contents($output, $message->buildHtml());
         } else {
             $this->out($message->buildHtml());
+        }
+    }
+
+    public function testWirePromotion()
+    {
+        $userguid = $this->getOpt('guid');
+        $output = $this->getOpt('output');
+        $send = $this->getOpt('send');
+        $user = new User($userguid);
+
+        if (!$user->guid) {
+            $this->out('User not found');
+            exit;
+        }
+
+        $campaign = (new WirePromotions())
+            ->setUser($user);
+
+        $message = $campaign->build();
+
+        if ($send) {
+            $campaign->send();
         }
     }
 

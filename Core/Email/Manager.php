@@ -3,19 +3,27 @@
 
 namespace Minds\Core\Email;
 
-
 use Minds\Core\Di\Di;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Entities;
+use Minds\Entities\User;
+use Minds\Core\Email\Repository;
+use Minds\Core\Email\CampaignLogs\Repository as CampaignLogsRepository;
+use Minds\Core\Email\CampaignLogs\CampaignLog;
 
 class Manager
 {
     /** @var Repository */
     protected $repository;
 
-    public function __construct($repository = null)
+    /** @var CampaignLogsRepository */
+    protected $campaignLogsRepository;
+
+
+    public function __construct(Repository $repository = null, CampaignLogsRepository $campaignLogsRepository = null)
     {
         $this->repository = $repository ?: Di::_()->get('Email\Repository');
+        $this->campaignLogsRepository = $campaignLogsRepository ?: Di::_()->get('Email\CampaignLogs\Repository');
     }
 
     public function getSubscribers($options = [])
@@ -30,10 +38,14 @@ class Manager
 
         $result = $this->repository->getList($options);
 
-        if (!$result || count($result['data'] === 0)) {
+        if (!$result || count($result['data']) === 0) {
             return [];
         }
 
+        /*$guids = [];
+        foreach($result['data'] as $subscription) {
+            $guids[] = $subscription->getUserGuid();
+        }*/
         $guids = array_map(function ($item) {
             return $item->getUserGuid();
         }, $result['data']);
@@ -70,7 +82,7 @@ class Manager
         }
 
         if (!$topics) {
-            $topics = [ 
+            $topics = [
                 'unread_notifications',
                 'wire_received',
                 'boost_completed',
@@ -108,4 +120,22 @@ class Manager
         return true;
     }
 
+    /**
+     * Saves a log when we send a user a campaign email
+     * Used to select subsequent mailings and send different emails
+     * @param CampaignLog $campaignLog the receiver, time and campaign class name
+     * @return boolean the add result
+     */
+    public function saveCampaignLog(CampaignLog $campaignLog)
+    {
+        $this->campaignLogsRepository->add($campaignLog);
+    }
+
+    public function getCampaignLogs(User $receiver)
+    {
+        $options = [
+            'receiver_guid' => $receiver->guid
+        ];
+        return $this->campaignLogsRepository->getList($options);
+    }
 }

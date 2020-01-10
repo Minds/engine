@@ -12,6 +12,9 @@ use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Helpers\MagicAttributes;
 
+/**
+ * Save Action
+ */
 class Save
 {
     /** @var Dispatcher */
@@ -89,7 +92,7 @@ class Save
     {
         $nsfwReasons = [];
 
-        if(method_exists($this->entity, 'getNSFW')) {
+        if (method_exists($this->entity, 'getNSFW')) {
             $nsfwReasons = array_merge($nsfwReasons, $this->entity->getNSFW());
             $nsfwReasons = array_merge($nsfwReasons, $this->entity->getNSFWLock());
         }

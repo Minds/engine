@@ -10,11 +10,14 @@ namespace Minds\Controllers\api\v1;
 use Minds\Core;
 use Minds\Core\Security;
 use Minds\Core\Session;
+use Minds\Core\Features;
 use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Exceptions\TwoFactorRequired;
+use Minds\Core\Queue;
+use Minds\Core\Subscriptions;
 
 class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
@@ -23,7 +26,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function get($pages)
     {
-        return Factory::response(array('status'=>'error', 'message'=>'GET is not supported for this endpoint'));
+        return Factory::response(['status'=>'error', 'message'=>'GET is not supported for this endpoint']);
     }
 
     /**
@@ -43,6 +46,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         $user = new Entities\User(strtolower($_POST['username']));
+
         /** @var Core\Security\LoginAttempts $attempts */
         $attempts = Core\Di\Di::_()->get('Security\LoginAttempts');
 
@@ -87,7 +91,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
             $response['code'] = $e->getCode();
             $response['message'] = $e->getMessage();
             return Factory::response($response);
-        } 
+        }
 
         $sessions = Di::_()->get('Sessions\Manager');
         $sessions->setUser($user);
@@ -96,8 +100,12 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         \set_last_login($user); // TODO: Refactor this
 
-        Session::generateJWTCookie($sessions->getSession()); 
+        Session::generateJWTCookie($sessions->getSession());
         Security\XSRF::setCookie(true);
+
+        // Set the canary cookie
+        Di::_()->get('Features\Manager')
+            ->setCanaryCookie($user->isCanary());
 
         $response['status'] = 'success';
         $response['user'] = $user->export();
@@ -111,8 +119,9 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
     public function delete($pages)
     {
+        /** @var Core\Sessions\Manager $sessions */
         $sessions = Di::_()->get('Sessions\Manager');
-        
+
         if (isset($pages[0]) && $pages[0] === 'all') {
             $sessions->destroy(true);
         } else {

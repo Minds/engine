@@ -9,7 +9,6 @@ use Minds\Core\Hashtags\User\LegacyRepository;
 use Minds\Core\Hashtags\User\Repository;
 use Minds\Interfaces;
 
-
 class UserHashtags extends Cli\Controller implements Interfaces\CliControllerInterface
 {
     public function help($command = null)

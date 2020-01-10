@@ -48,7 +48,8 @@ class EmailRewards
                 $points = 500;
                 $wire = true;
             } else {
-                echo "Validator failed"; exit;
+                echo "Validator failed";
+                exit;
             }
             break;
           case "when":
@@ -74,11 +75,11 @@ class EmailRewards
               $validator = $_GET['validator'];
               //$key = '.md';
               //return;
-              if ($validator == sha1($campaign . 'gift-24-05-19.md' . $topic . $user->guid . Config::_()->get('emails_secret'))) {
-                  $tokens = 5 * (10 ** 18);
+              if ($validator == sha1($campaign . 'gift-30-10-19.mdl' . $topic . $user->guid . Config::_()->get('emails_secret'))) {
+                  $tokens = 1 * (10 ** 18);
                   $campaign = $validator; //hack
               } else {
-                return;
+                  return;
               }
               break;
           default:
@@ -95,7 +96,7 @@ class EmailRewards
         if (!$row || key($row) != $user_guid) {
             $db->insert("analytics:rewarded:email:$campaign", [ $user_guid => time()]);
 
-            $transaction = new Transaction(); 
+            $transaction = new Transaction();
             $transaction
                 ->setUserGuid($user->guid)
                 ->setWalletAddress('offchain')

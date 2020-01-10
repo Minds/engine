@@ -5,7 +5,6 @@ use Minds\Core\Security\Captcha\QuestionsInterface;
 
 class Captcha
 {
-
     private $config;
     private $secret = "";
 
@@ -46,6 +45,4 @@ class Captcha
         $sum = $this->questions[0]; //refactor when we add more questions
         return $sum->validateAnswer($answer['question'], $answer['answer'], $answer['nonce'], $answer['hash']);
     }
-
-
 }

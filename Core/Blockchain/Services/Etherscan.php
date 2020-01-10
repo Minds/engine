@@ -215,7 +215,8 @@ class Etherscan
      * @param integer $number
      * @return void
      */
-    public function getBlock($number) {
+    public function getBlock($number)
+    {
         $result = $this->request("module=block&action=getblockreward&blockno={$number}&apikey={$this->apiKey}");
         return $result['result'];
     }

@@ -32,7 +32,7 @@ class spam implements Interfaces\Api, Interfaces\ApiAdminPam
 
         if (method_exists($entity, 'getSpam')) {
             $isSpam = $entity->getSpam();
-        } else if (method_exists($entity, 'getFlag')) {
+        } elseif (method_exists($entity, 'getFlag')) {
             $isSpam = $entity->getFlag('spam');
         }
 
@@ -64,7 +64,7 @@ class spam implements Interfaces\Api, Interfaces\ApiAdminPam
 
         if (method_exists($entity, 'setSpam')) {
             $entity->setSpam(true);
-        } else if (method_exists($entity, 'setFlag')) {
+        } elseif (method_exists($entity, 'setFlag')) {
             $entity->setFlag('spam', true);
         } else {
             return Factory::response([
@@ -78,7 +78,7 @@ class spam implements Interfaces\Api, Interfaces\ApiAdminPam
 
             if (method_exists($child, 'setSpam')) {
                 $child->setSpam(true);
-            } else if (method_exists($child, 'setFlag')) {
+            } elseif (method_exists($child, 'setFlag')) {
                 $child->setFlag('spam', true);
             }
 
@@ -113,7 +113,7 @@ class spam implements Interfaces\Api, Interfaces\ApiAdminPam
 
         if (method_exists($entity, 'setSpam')) {
             $entity->setSpam(false);
-        } else if (method_exists($entity, 'setFlag')) {
+        } elseif (method_exists($entity, 'setFlag')) {
             $entity->setFlag('spam', false);
         } else {
             return Factory::response([
@@ -127,7 +127,7 @@ class spam implements Interfaces\Api, Interfaces\ApiAdminPam
 
             if (method_exists($child, 'setSpam')) {
                 $child->setSpam(false);
-            } else if (method_exists($child, 'setFlag')) {
+            } elseif (method_exists($child, 'setFlag')) {
                 $child->setFlag('spam', false);
             }
 

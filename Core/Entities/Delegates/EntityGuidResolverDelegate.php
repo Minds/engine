@@ -10,7 +10,7 @@ namespace Minds\Core\Entities\Delegates;
 use Minds\Common\Urn;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Feeds\Top\Entities as TopEntities;
+use Minds\Core\Feeds\Elastic\Entities as TopEntities;
 
 class EntityGuidResolverDelegate implements ResolverDelegate
 {
@@ -34,7 +34,15 @@ class EntityGuidResolverDelegate implements ResolverDelegate
      */
     public function shouldResolve(Urn $urn)
     {
-        return $urn->getNid() === 'entity' || $urn->getNid() === 'activity' || $urn->getNid() === 'user';
+        return in_array($urn->getNid(), [
+                'entity',
+                'activity',
+                'image',
+                'video',
+                'blog',
+                'user',
+                'group',
+            ], true);
     }
 
     /**
@@ -71,6 +79,7 @@ class EntityGuidResolverDelegate implements ResolverDelegate
     }
 
     /**
+     * @param $urn
      * @param mixed $entity
      * @return mixed
      */

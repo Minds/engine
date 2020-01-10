@@ -48,8 +48,10 @@ class peer implements Interfaces\Api
             case 'inbox':
             default:
                 $review->setType(Core\Session::getLoggedinUser()->guid);
-                $boosts = $review->getReviewQueue(isset($_GET['limit']) ? $_GET['limit'] : 12,
-                    isset($_GET['offset']) ? $_GET['offset'] : "");
+                $boosts = $review->getReviewQueue(
+                    isset($_GET['limit']) ? $_GET['limit'] : 12,
+                    isset($_GET['offset']) ? $_GET['offset'] : ""
+                );
 
                 $response['boosts'] = Factory::exportable($boosts['data']);
 
@@ -179,13 +181,13 @@ class peer implements Interfaces\Api
 
                 $checksum = isset($_POST['checksum']) ? $_POST['checksum'] : null;
 
-                $prehash = $guid 
-                    . $entity->type 
-                    . $entity->guid 
+                $prehash = $guid
+                    . $entity->type
+                    . $entity->guid
                     . ($entity->owner_guid ?: '')
                     . ($entity->perma_url ?: '')
-                    . ($entity->message ?: '') 
-                    . ($entity->title ?: '') 
+                    . ($entity->message ?: '')
+                    . ($entity->title ?: '')
                     . $entity->time_created;
 
                 if ($checksum !== md5($prehash)) {
@@ -208,7 +210,6 @@ class peer implements Interfaces\Api
             $boost
                 ->setTransactionId($transactionId)
                 ->save();
-
         } catch (\Exception $e) {
             return Factory::response([
                 'status' => 'error',
@@ -304,7 +305,7 @@ class peer implements Interfaces\Api
         // Notify
 
         Core\Events\Dispatcher::trigger('notification', 'boost', [
-            'to'=>array($boost->getOwner()->guid),
+            'to'=>[$boost->getOwner()->guid],
             'entity' => $boost->getEntity(),
             'notification_view' => 'boost_peer_accepted',
             'params' => ['bid' => $boost->getBid(), 'type' => $boost->getType(), 'title' => $boost->getEntity()->title]
@@ -344,7 +345,7 @@ class peer implements Interfaces\Api
                 $review->revoke();
             } else {
                 Core\Events\Dispatcher::trigger('notification', 'boost', [
-                    'to' => array($boost->getOwner()->guid),
+                    'to' => [$boost->getOwner()->guid],
                     'entity' => $boost->getEntity(),
                     'notification_view' => 'boost_peer_rejected',
                     'params' => [

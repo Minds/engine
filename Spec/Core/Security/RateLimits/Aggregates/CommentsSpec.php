@@ -9,12 +9,12 @@ use Prophecy\Argument;
 
 class CommentsSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Comments::class);
     }
 
-    function it_should_return_comments_with_new_score(Client $client)
+    public function it_should_return_comments_with_new_score(Client $client)
     {
         $this->beConstructedWith($client);
 

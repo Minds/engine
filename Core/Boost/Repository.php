@@ -139,7 +139,7 @@ class Repository
 
         $query->setOpts([
             'page_size' => (int) $options['limit'],
-            'paging_state_token' => base64_decode($options['offset'])
+            'paging_state_token' => base64_decode($options['offset'], true)
         ]);
 
         $boosts = [];
@@ -151,6 +151,12 @@ class Repository
             foreach ($result as $row) {
                 $boost = (new Entities\Boost\Factory())->build($row['type']);
                 $boost->loadFromArray($row['data']);
+
+                $data = @json_decode($row['data'], true);
+                
+                if ($data && $data['is_campaign']) {
+                    continue;
+                }
 
                 $boosts[] = $boost;
             }
@@ -295,4 +301,3 @@ class Repository
         return $success;
     }
 }
-

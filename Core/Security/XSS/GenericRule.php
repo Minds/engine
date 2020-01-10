@@ -55,7 +55,8 @@ class GenericRule implements Interfaces\XSSRule
      */
     public function clean()
     {
-        $this->cleanString = preg_replace_callback('%
+        $this->cleanString = preg_replace_callback(
+            '%
             (
             <(?=[^a-zA-Z!/])  # a lone <
             |                 # or
@@ -66,18 +67,19 @@ class GenericRule implements Interfaces\XSSRule
             >                 # just a >
             )%x',
             [$this, 'cleanSplit'],
-            $this->dirtyString);
+            $this->dirtyString
+        );
 
-            $this->cleanString  = $this->cleanAttributes($this->cleanString);
+        $this->cleanString  = $this->cleanAttributes($this->cleanString);
 
-          //remove trailing line
-          if ($this->cleanString && 
-              strlen($this->cleanString) >= 2 && 
+        //remove trailing line
+        if ($this->cleanString &&
+              strlen($this->cleanString) >= 2 &&
               strpos($this->cleanString, "\n", strlen($this->cleanString)-2) !== false &&
-              strlen($this->dirtyString) >= 2 && 
+              strlen($this->dirtyString) >= 2 &&
               strpos($this->dirtyString, "\n", strlen($this->dirtyString)-2) === false) {
-              $this->cleanString = substr($this->cleanString, 0, strlen($this->cleanString)-1);
-          }
+            $this->cleanString = substr($this->cleanString, 0, strlen($this->cleanString)-1);
+        }
 
         return $this;
     }
@@ -96,7 +98,7 @@ class GenericRule implements Interfaces\XSSRule
 
         if (!preg_match('%^<\s*(/\s*)?([a-zA-Z0-9\-]+)([^>]*)>?|(<!--.*?-->)$%', $string, $matches)) {
             // Seriously malformed.
-          return '';
+            return '';
         }
 
         $slash = trim($matches[1]);

@@ -6,6 +6,8 @@ if (PHP_SAPI !== 'cli') {
     exit(1);
 }
 
+define('__MINDS_ROOT__', dirname(__FILE__));
+
 require_once(dirname(__FILE__) . "/vendor/autoload.php");
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -16,7 +18,7 @@ array_shift($argv);
 if (isset($argv[0]) && $argv[0] == 'help') {
     $help = true;
     array_shift($argv);
-} elseif (array_search('--help', $argv)) {
+} elseif (array_search('--help', $argv, true)) {
     $help = true;
 }
 

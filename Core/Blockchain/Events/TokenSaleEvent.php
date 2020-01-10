@@ -74,11 +74,11 @@ class TokenSaleEvent implements BlockchainEventInterface
         $purchase = $this->manager->getPurchase($transaction->getData()['phone_number_hash'], $transaction->getTx());
 
         if (!$purchase) {
-            echo "purchase not found";
+            error_log("purchase not found");
             return; //purchase not found
         }
 
-        var_dump($log);
+        error_log(print_r($log, true));
         //is the requested amount below what has already been recorded
         if ($transaction->getAmount() > $purchase->getUnissuedAmount()) {
             return; //requested more than can issue

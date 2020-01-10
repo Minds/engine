@@ -14,13 +14,13 @@ class Custom implements Interfaces\PreparedInterface
 
     public function build()
     {
-        return array(
+        return [
             'string' => $this->template,
             'values'=>$this->values
-            );
+            ];
     }
 
-    public function query($cql, $values = array())
+    public function query($cql, $values = [])
     {
         $this->template = $cql;
         $this->values = $values;
@@ -36,5 +36,16 @@ class Custom implements Interfaces\PreparedInterface
     public function getOpts()
     {
         return $this->opts;
+    }
+
+    /**
+     * Gets the template of the custom query
+     * e.g. "SELECT * FROM friendsof WHERE column1 = ?"
+     *
+     * @return string the template.
+     */
+    public function getTemplate(): string
+    {
+        return $this->template;
     }
 }

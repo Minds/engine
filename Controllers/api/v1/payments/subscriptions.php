@@ -91,15 +91,12 @@ class subscriptions implements Interfaces\Api
                 if ($subscription->getEntity()->guid) { //if a wire
                     $user = new Entities\User($subscription->getEntity()->guid);
                     $subscription->setMerchant($user->getMerchant());
-                } elseif (Core\Session::getLoggedInUser()->referrer){
+                } elseif (Core\Session::getLoggedInUser()->referrer) {
                     $referrer = new Entities\User(Core\Session::getLoggedInUser()->referrer);
                     $subscription->setMerchant($referrer->getMerchant());
                 }
                 $stripe = Core\Di\Di::_()->get('StripePayments');
                 $stripe->cancelSubscription($subscription);
-            } else {
-                $braintree = Payments\Factory::build("Braintree", ['gateway'=>'default']);
-                $braintree->cancelSubscription($subscription);
             }
         }
         
@@ -117,5 +114,4 @@ class subscriptions implements Interfaces\Api
             'done' => (bool) $success
         ]);
     }
-
 }

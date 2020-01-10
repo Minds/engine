@@ -13,7 +13,7 @@ class BalanceSpec extends ObjectBehavior
     private $token;
     private $cache;
 
-    function let(Token $token, Redis $cache)
+    public function let(Token $token, Redis $cache)
     {
         $this->token = $token;
         $this->cache = $cache;
@@ -21,12 +21,12 @@ class BalanceSpec extends ObjectBehavior
         $this->beConstructedWith($token, $cache);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Balance::class);
     }
 
-    function it_should_get_the_balance_from_cache(User $user)
+    public function it_should_get_the_balance_from_cache(User $user)
     {
         $user->getEthWallet()
             ->shouldBeCalled()
@@ -40,7 +40,7 @@ class BalanceSpec extends ObjectBehavior
         $this->get()->shouldReturn(10 ** 18);
     }
 
-    function it_should_get_the_balance_from_database(User $user)
+    public function it_should_get_the_balance_from_database(User $user)
     {
         $user->getEthWallet()
             ->shouldBeCalled()
@@ -61,7 +61,7 @@ class BalanceSpec extends ObjectBehavior
         $this->get()->shouldReturn(10 ** 18);
     }
 
-    function it_shouldnt_get_the_balance_if_the_user_has_no_wallet_set(User $user)
+    public function it_shouldnt_get_the_balance_if_the_user_has_no_wallet_set(User $user)
     {
         $user->getEthWallet()
             ->shouldBeCalled()
@@ -69,5 +69,27 @@ class BalanceSpec extends ObjectBehavior
 
         $this->setUser($user);
         $this->get()->shouldReturn(0);
+    }
+
+    public function it_should_not_store_null_values_in_cache(User $user)
+    {
+        $user->getEthWallet()
+            ->shouldBeCalled()
+            ->willReturn('0x123');
+
+        $this->cache->get('blockchain:balance:0x123')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->token->balanceOf('0x123')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->cache->set('blockchain:balance:0x123', null, 60)
+            ->shouldBeCalledTimes(0);
+
+        $this->setUser($user);
+
+        $this->get()->shouldReturn(null);
     }
 }

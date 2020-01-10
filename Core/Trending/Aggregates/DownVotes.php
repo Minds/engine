@@ -8,12 +8,11 @@ use Minds\Core\Data\ElasticSearch;
 
 class DownVotes extends Aggregate
 {
-
     protected $multiplier = -1;
 
     public function get()
     {
-        $filter = [ 
+        $filter = [
             'term' => [
                 'action' => 'vote:down'
             ]
@@ -77,7 +76,7 @@ class DownVotes extends Aggregate
                 ],
                 'aggs' => [
                     'entities' => [
-                        'terms' => [ 
+                        'terms' => [
                             'field' => "$field.keyword",
                             'size' => $this->limit,
              //               'order' => [ 'uniques' => 'DESC' ],
@@ -105,5 +104,4 @@ class DownVotes extends Aggregate
         }
         return $entities;
     }
-
 }

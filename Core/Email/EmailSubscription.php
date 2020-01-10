@@ -3,6 +3,12 @@ namespace Minds\Core\Email;
 
 use Minds\Traits\MagicAttributes;
 
+/**
+ * Class EmailSubscription
+ * @package Minds\Core\Email
+ *
+ * @method string getUserGuid()
+ */
 class EmailSubscription
 {
     use MagicAttributes;
@@ -37,7 +43,8 @@ class EmailSubscription
         }
     }
 
-    public function export() {
+    public function export()
+    {
         $export = [];
 
         $export['campaign'] = $this->getCampaign();
@@ -46,5 +53,4 @@ class EmailSubscription
         $export['value'] = $this->getValue();
         return $export;
     }
-
 }

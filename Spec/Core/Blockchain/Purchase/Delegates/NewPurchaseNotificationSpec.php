@@ -10,12 +10,12 @@ use PhpSpec\ObjectBehavior;
 
 class NewPurchaseNotificationSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(NewPurchaseNotification::class);
     }
 
-    function it_should_notify(Config $config, EventsDispatcher $dispatcher, Purchase $purchase)
+    public function it_should_notify(Config $config, EventsDispatcher $dispatcher, Purchase $purchase)
     {
         $this->beConstructedWith($config, $dispatcher);
 

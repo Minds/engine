@@ -16,7 +16,7 @@ class BoostEventSpec extends ObjectBehavior
     protected $boostRepository;
     protected $config;
 
-    function let(Client $mongo, Repository $txRepository, \Minds\Core\Boost\Repository $boostRepository, Config $config)
+    public function let(Client $mongo, Repository $txRepository, \Minds\Core\Boost\Repository $boostRepository, Config $config)
     {
         $this->beConstructedWith($mongo, $txRepository, $boostRepository, $config);
 
@@ -35,12 +35,12 @@ class BoostEventSpec extends ObjectBehavior
             ]);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blockchain\Events\BoostEvent');
     }
 
-    function it_should_get_the_topics()
+    public function it_should_get_the_topics()
     {
         $this->getTopics()->shouldReturn([
             '0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040',
@@ -51,7 +51,7 @@ class BoostEventSpec extends ObjectBehavior
         ]);
     }
 
-    function it_should_execute_a_boost_sent_event(Transaction $transaction, Network $boost)
+    public function it_should_execute_a_boost_sent_event(Transaction $transaction, Network $boost)
     {
         $transaction->getData()
             ->shouldBeCalled()
@@ -83,11 +83,14 @@ class BoostEventSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('456');
 
-        $this->event('0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040', ['address' => '0xasd'],
-            $transaction);
+        $this->event(
+            '0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040',
+            ['address' => '0xasd'],
+            $transaction
+        );
     }
 
-    function it_should_execute_a_boost_sent_event_but_not_find_the_boost(Transaction $transaction)
+    public function it_should_execute_a_boost_sent_event_but_not_find_the_boost(Transaction $transaction)
     {
         $transaction->getData()
             ->shouldBeCalled()
@@ -104,15 +107,17 @@ class BoostEventSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $this->shouldThrow(new \Exception("No boost with hash 0x123123asdasd"))->during('event',
+        $this->shouldThrow(new \Exception("No boost with hash 0x123123asdasd"))->during(
+            'event',
             [
                 '0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040',
                 ['address' => '0xasd'],
                 $transaction
-            ]);
+            ]
+        );
     }
 
-    function it_should_execute_a_boost_sent_event_but_boost_has_been_processed_already(
+    public function it_should_execute_a_boost_sent_event_but_boost_has_been_processed_already(
         Transaction $transaction,
         Network $boost
     ) {
@@ -135,15 +140,17 @@ class BoostEventSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('created');
 
-        $this->shouldThrow(new \Exception("Boost with hash 0x123123asdasd already processed. State: created"))->during('event',
+        $this->shouldThrow(new \Exception("Boost with hash 0x123123asdasd already processed. State: created"))->during(
+            'event',
             [
                 '0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040',
                 ['address' => '0xasd'],
                 $transaction
-            ]);
+            ]
+        );
     }
 
-    function it_shoud_execute_a_boost_fail_event(Transaction $transaction, Network $boost)
+    public function it_shoud_execute_a_boost_fail_event(Transaction $transaction, Network $boost)
     {
         $transaction->getContract()
             ->shouldBeCalled()
@@ -190,17 +197,19 @@ class BoostEventSpec extends ObjectBehavior
         $this->event('blockchain:fail', ['address' => '0xasd'], $transaction);
     }
 
-    function it_should_execute_a_boost_fail_event_but_not_a_boost(Transaction $transaction)
+    public function it_should_execute_a_boost_fail_event_but_not_a_boost(Transaction $transaction)
     {
         $transaction->getContract()
             ->shouldBeCalled()
             ->willReturn('wire');
 
-        $this->shouldThrow(new \Exception("Failed but not a boost"))->during('event',
-            ['blockchain:fail', ['address' => '0xasd'], $transaction]);
+        $this->shouldThrow(new \Exception("Failed but not a boost"))->during(
+            'event',
+            ['blockchain:fail', ['address' => '0xasd'], $transaction]
+        );
     }
 
-    function it_should_execute_a_boost_fail_event_but_boost_isnt_found(Transaction $transaction)
+    public function it_should_execute_a_boost_fail_event_but_boost_isnt_found(Transaction $transaction)
     {
         $transaction->getContract()
             ->shouldBeCalled()
@@ -221,11 +230,13 @@ class BoostEventSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('0x123123asdasd');
 
-        $this->shouldThrow(new \Exception("No boost with hash 0x123123asdasd"))->during('event',
-            ['blockchain:fail', ['address' => '0xasd'], $transaction]);
+        $this->shouldThrow(new \Exception("No boost with hash 0x123123asdasd"))->during(
+            'event',
+            ['blockchain:fail', ['address' => '0xasd'], $transaction]
+        );
     }
 
-    function it_should_execute_a_boost_fail_event_but_boost_already_processed(Transaction $transaction, Network $boost)
+    public function it_should_execute_a_boost_fail_event_but_boost_already_processed(Transaction $transaction, Network $boost)
     {
         $transaction->getContract()
             ->shouldBeCalled()
@@ -250,11 +261,13 @@ class BoostEventSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('created');
 
-        $this->shouldThrow(new \Exception("Boost with hash 0x123123asdasd already processed. State: created"))->during('event',
-            ['blockchain:fail', ['address' => '0xasd'], $transaction]);
+        $this->shouldThrow(new \Exception("Boost with hash 0x123123asdasd already processed. State: created"))->during(
+            'event',
+            ['blockchain:fail', ['address' => '0xasd'], $transaction]
+        );
     }
 
-    function it_should_record_as_failed(
+    public function it_should_record_as_failed(
         Network $boost
     ) {
         $boost->getState()
@@ -290,7 +303,7 @@ class BoostEventSpec extends ObjectBehavior
         $this->boostFail(['address' => '0xasd'], $transaction);
     }
 
-    function it_should_fail_if_address_is_wrong(Transaction $transaction)
+    public function it_should_fail_if_address_is_wrong(Transaction $transaction)
     {
         $log = [
             'address' => '0xaaa',
@@ -300,8 +313,9 @@ class BoostEventSpec extends ObjectBehavior
                 '0x123123'
             ]
         ];
-        $this->shouldThrow(new \Exception('Event does not match address'))->during('event',
-            ['0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040', $log, $transaction]);
-
+        $this->shouldThrow(new \Exception('Event does not match address'))->during(
+            'event',
+            ['0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040', $log, $transaction]
+        );
     }
 }

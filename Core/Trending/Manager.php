@@ -7,7 +7,6 @@ use Minds\Core\EntitiesBuilder;
 
 class Manager
 {
-
     private $repository;
     private $validator;
 
@@ -92,7 +91,7 @@ class Manager
 
                         //validate this entity is ok
                         if (!$this->validator->isValid($entity, $rating)) {
-                            echo "\n[$rating] $key: $guid ($score) invalid";
+                            error_log("[$rating] $key: $guid ($score) invalid");
                             continue;
                         }
 
@@ -126,12 +125,11 @@ class Manager
                 $guids = [];
                 foreach ($scores[$key] as $guid => $score) {
                     $guids[] = $guid;
-                    echo "\n[$rating] $key: $guid ($score)";
+                    error_log("[$rating] $key: $guid ($score)");
                 }
 
                 $this->repository->add($key, $guids, $rating);
             }
         }
     }
-
 }

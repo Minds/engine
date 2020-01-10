@@ -54,7 +54,7 @@ class suggested implements Interfaces\Api
             $offset = intval($_GET['offset']);
         }
 
-        $rating = Core\Session::getLoggedinUser()->boost_rating ?: 1; 
+        $rating = Core\Session::getLoggedinUser()->boost_rating ?: 1;
         if (isset($_GET['rating'])) {
             $rating = intval($_GET['rating']);
         }
@@ -67,9 +67,6 @@ class suggested implements Interfaces\Api
         if (isset($_GET['hashtag'])) {
             $hashtag = $_GET['hashtag'];
         }
-
-        /** @var Core\Feeds\Suggested\Manager $repo */
-        $repo = Di::_()->get('Feeds\Suggested\Manager');
 
         $opts = [
             'user_guid' => Core\Session::getLoggedInUserGuid(),
@@ -84,17 +81,19 @@ class suggested implements Interfaces\Api
             $opts['hashtag'] = $hashtag;
         }
 
-        $result = $repo->getFeed($opts);
+        // @deprecated
+        $result = [];
 
-        // Remove all unlisted content if it appears
-        $result = array_values(array_filter($result, function($entity) {
-            return $entity->getAccessId() != 0;
-        }));
+        // @deprecated
+        // // Remove all unlisted content if it appears
+        // $result = array_values(array_filter($result, function($entity) {
+        //     return $entity->getAccessId() != 0;
+        // }));
 
         return Factory::response([
             'status' => 'success',
             'entities' => Factory::exportable($result),
-            'load-next' => $limit + $offset,
+            'load-next' => '',
         ]);
     }
 
@@ -113,4 +112,3 @@ class suggested implements Interfaces\Api
         return Factory::response([]);
     }
 }
-

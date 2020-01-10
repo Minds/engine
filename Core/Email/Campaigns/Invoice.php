@@ -2,7 +2,6 @@
 
 namespace Minds\Core\Email\Campaigns;
 
-
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Message;
 use Minds\Core\Email\Template;
@@ -43,7 +42,8 @@ class Invoice
         return $this;
     }
 
-    public function setDescription($description) {
+    public function setDescription($description)
+    {
         $this->description = $description;
         return $this;
     }
@@ -65,13 +65,14 @@ class Invoice
 
         $message = new Message();
         $message->setTo($this->user)
-            ->setMessageId(implode('-',
-                [$this->user->guid, sha1($this->user->getEmail()), sha1('invoice' . time())]))
+            ->setMessageId(implode(
+                '-',
+                [$this->user->guid, sha1($this->user->getEmail()), sha1('invoice' . time())]
+            ))
             ->setSubject($subject)
             ->setHtml($this->template);
 
         //send email
         $this->mailer->queue($message);
     }
-
 }

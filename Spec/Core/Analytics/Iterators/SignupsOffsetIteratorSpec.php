@@ -17,19 +17,19 @@ class SignupsOffsetIteratorSpec extends ObjectBehavior
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    function let(Client $db, EntitiesBuilder $entitiesBuilder)
+    public function let(Client $db, EntitiesBuilder $entitiesBuilder)
     {
         $this->beConstructedWith($db, $entitiesBuilder);
         $this->db = $db;
         $this->entitiesBuilder = $entitiesBuilder;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(SignupsOffsetIterator::class);
     }
 
-    function it_should_get_the_users(User $user1, User $user2)
+    public function it_should_get_the_users(User $user1, User $user2)
     {
         $this->db->request(Argument::that(function ($query) {
             $built = $query->build();

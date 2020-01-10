@@ -7,6 +7,7 @@ use Minds\Interfaces\Flaggable;
 /**
  * File Entity
  * @todo Do not inherit from ElggFile
+ * @package Minds\Entities\File
  */
 class File extends \ElggFile implements Flaggable
 {
@@ -21,6 +22,8 @@ class File extends \ElggFile implements Flaggable
 
         $this->attributes['flags'] = [];
         $this->attributes['wire_threshold'] = 0;
+        $this->attributes['moderator_guid'] = null;
+        $this->attributes['time_moderated'] = null;
     }
 
     /**
@@ -31,7 +34,9 @@ class File extends \ElggFile implements Flaggable
     {
         return array_merge(parent::getExportableValues(), [
             'flags',
-            'wire_threshold'
+            'wire_threshold',
+            'moderator_guid',
+            'time_moderated'
         ]);
     }
 
@@ -78,7 +83,7 @@ class File extends \ElggFile implements Flaggable
             if ($this->dirtyIndexes) {
                 $db = new Core\Data\Call('entities_by_time');
 
-                foreach($this->getIndexKeys(true) as $idx) {
+                foreach ($this->getIndexKeys(true) as $idx) {
                     $db->removeAttributes($idx, [$this->guid], false);
                 }
             }
@@ -103,8 +108,8 @@ class File extends \ElggFile implements Flaggable
                 "$this->type:$this->subtype:user:$this->owner_guid",
             ];
 
-            foreach($remove as $index) {
-                $db->removeAttributes($index, array($this->guid), false);
+            foreach ($remove as $index) {
+                $db->removeAttributes($index, [$this->guid], false);
             }
         }
     }
@@ -112,7 +117,8 @@ class File extends \ElggFile implements Flaggable
     /**
      * Returns the sum of every wire that's been made to this entity
      */
-     public function getWireTotals() {
+    public function getWireTotals()
+    {
         $totals = [];
         // $totals['bitcoin'] = \Minds\Core\Wire\Counter::getSumByEntity($this->guid, 'bitcoin');
         return $totals;
@@ -139,6 +145,46 @@ class File extends \ElggFile implements Flaggable
     public function setWireThreshold($wire_threshold)
     {
         $this->wire_threshold = $wire_threshold;
+        return $this;
+    }
+
+    /**
+     * Returns the user who moderated
+     * @return int moderator guid
+     */
+    public function getModeratorGuid()
+    {
+        return $this->moderator_guid;
+    }
+
+    /**
+    * Sets the user who moderated
+    * @param int $moderatorGuid
+    * @return File
+    */
+    public function setModeratorGuid(int $moderatorGuid)
+    {
+        $this->moderator_guid = $moderatorGuid;
+        return $this;
+    }
+
+    /**
+    * Returns when the file was moderated
+    * @return int time_moderated timestamp
+    */
+    public function getTimeModerated()
+    {
+        return $this->time_moderated;
+    }
+
+    /**
+    * Sets when the file was moderated
+    * @param int $timeModerated
+    * @return File
+    */
+    public function setTimeModerated(int $timeModerated)
+    {
+        $this->time_moderated = $timeModerated;
         return $this;
     }
 }

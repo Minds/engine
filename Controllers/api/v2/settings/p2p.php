@@ -1,6 +1,6 @@
 <?php
 
-namespace Minds\Controllers\Api\v2\settings;
+namespace Minds\Controllers\api\v2\settings;
 
 use Minds\Api\Factory;
 use Minds\Core;
@@ -44,5 +44,4 @@ class p2p implements Interfaces\Api
 
         return Factory::response(['done' => true]);
     }
-
 }

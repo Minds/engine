@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Blogs\Delegates;
 
 use Minds\Core\Blogs\Blog;
+use Minds\Core\Data\Call;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
@@ -14,24 +15,27 @@ class CreateActivitySpec extends ObjectBehavior
     /** @var Save */
     protected $saveAction;
 
-    function let(
-        Save $saveAction
-    ) {
-        $this->beConstructedWith($saveAction);
+    /** @var Call */
+    protected $db;
 
+    public function let(
+        Save $saveAction,
+        Call $db
+    ) {
+        $this->beConstructedWith($saveAction, $db);
         $this->saveAction = $saveAction;
+        $this->db = $db;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blogs\Delegates\CreateActivity');
     }
 
-    function it_should_save(
+    public function it_should_save_when_no_activity(
         Blog $blog,
         User $user
-    )
-    {
+    ) {
         $blog->getOwnerEntity()
             ->shouldBeCalled()
             ->willReturn($user);
@@ -51,10 +55,26 @@ class CreateActivitySpec extends ObjectBehavior
         $blog->getIconUrl()
             ->shouldBeCalled()
             ->willReturn('http://phpspec/icon.spec.ext');
-
+        
         $blog->isMature()
             ->shouldBeCalled()
             ->willReturn(false);
+
+        $blog->getNsfw()
+            ->shouldBeCalled()
+            ->willReturn([]);
+
+        $blog->getWireThreshold()
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $blog->isPaywall()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $blog->getGuid()
+            ->shouldBeCalled()
+            ->willReturn(9999);
 
         $user->export()
             ->shouldBeCalled()
@@ -63,6 +83,14 @@ class CreateActivitySpec extends ObjectBehavior
         $user->get('guid')
             ->shouldBeCalled()
             ->willReturn(1000);
+
+        $blog->getTimeCreated()
+            ->shouldBeCalled()
+            ->willReturn(9999);
+
+        $this->db->getRow("activity:entitylink:9999")
+            ->shouldBeCalled()
+            ->willReturn([]);
 
         $this->saveAction->setEntity(Argument::type(Activity::class))
             ->shouldBeCalled()
@@ -74,7 +102,34 @@ class CreateActivitySpec extends ObjectBehavior
 
         $this
             ->save($blog)
-            ->shouldNotThrow();
+            ->shouldReturn(true);
+    }
 
+    public function it_should_save_when_previous_activity(
+        Blog $blog
+    ) {
+        $blog->getGuid()
+            ->shouldBeCalled()
+            ->willReturn(9999);
+
+        $blog->getTimeCreated()
+            ->shouldBeCalled()
+            ->willReturn(9999);
+
+        $this->db->getRow("activity:entitylink:9999")
+            ->shouldBeCalled()
+            ->willReturn(['activity1']);
+
+        $this->saveAction->setEntity(Argument::type(Activity::class))
+        ->shouldBeCalled()
+        ->willReturn($this->saveAction);
+
+        $this->saveAction->save()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this
+            ->save($blog)
+            ->shouldReturn(true);
     }
 }

@@ -12,19 +12,19 @@ class SumsSpec extends ObjectBehavior
     /** @var Client */
     private $db;
 
-    function let(Client $db)
+    public function let(Client $db)
     {
         $this->db = $db;
 
         $this->beConstructedWith($db);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blockchain\Wallets\OffChain\Sums');
     }
 
-    function it_should_get_a_balance()
+    public function it_should_get_a_balance()
     {
         $this->db->request(Argument::any())
             ->willReturn([
@@ -35,7 +35,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn('12');
     }
 
-    function it_shouldnt_find_a_balance()
+    public function it_shouldnt_find_a_balance()
     {
         $this->db->request(Argument::any())
             ->willReturn([]);
@@ -44,7 +44,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn(0);
     }
 
-    function it_should_get_a_user_balance(User $user)
+    public function it_should_get_a_user_balance(User $user)
     {
         $user->get('guid')
             ->shouldBeCalled()
@@ -69,7 +69,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn('12');
     }
 
-    function it_should_fail_getting_a_balance(User $user)
+    public function it_should_fail_getting_a_balance(User $user)
     {
         $this->db->request(Argument::that(function ($query) {
             $built = $query->build();
@@ -90,7 +90,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn(0);
     }
 
-    function it_should_get_a_contract_balance(User $user)
+    public function it_should_get_a_contract_balance(User $user)
     {
         $user->get('guid')->willReturn(1000);
 
@@ -116,7 +116,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn('12');
     }
 
-    function it_should_get_a_contract_balance_spend_only(User $user)
+    public function it_should_get_a_contract_balance_spend_only(User $user)
     {
         $user->get('guid')->willReturn(1000);
 
@@ -142,7 +142,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn('12');
     }
 
-    function it_should_get_a_contract_balance_spend_only_and_timestamp(User $user)
+    public function it_should_get_a_contract_balance_spend_only_and_timestamp(User $user)
     {
         $user->get('guid')->willReturn(1000);
 
@@ -171,7 +171,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn('12');
     }
 
-    function it_should_fail_to_get_a_contract_balance(User $user)
+    public function it_should_fail_to_get_a_contract_balance(User $user)
     {
         $user->get('guid')->willReturn(1000);
 
@@ -195,7 +195,7 @@ class SumsSpec extends ObjectBehavior
             ->shouldReturn(0);
     }
 
-    function it_shouldnt_find_a_contract_balance(User $user)
+    public function it_shouldnt_find_a_contract_balance(User $user)
     {
         $user->get('guid')->willReturn(1000);
 
@@ -218,5 +218,4 @@ class SumsSpec extends ObjectBehavior
             ->getContractBalance('spec', false)
             ->shouldReturn(0);
     }
-
 }

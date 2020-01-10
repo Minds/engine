@@ -1,9 +1,10 @@
 <?php
-namespace Minds\Controllers\Api\v2\settings;
+namespace Minds\Controllers\api\v2\settings;
 
 use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Email\Confirmation\Manager as EmailConfirmation;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Entities\User;
 use Minds\Interfaces;
@@ -13,10 +14,16 @@ class emails implements Interfaces\Api
     public function get($pages)
     {
         $user = Core\Session::getLoggedInUser();
+        if (!$user) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'User must be logged in.'
+            ]);
+        }
 
         $campaigns = [ 'when', 'with', 'global' ];
 
-        $topics = [ 
+        $topics = [
             'unread_notifications',
             'wire_received',
             'boost_completed',
@@ -31,7 +38,7 @@ class emails implements Interfaces\Api
 
         /** @var Core\Email\Repository $rpository */
         $repository = Di::_()->get('Email\Repository');
-        $result = $repository->getList([ 
+        $result = $repository->getList([
             'campaigns' => $campaigns,
             'topics' => $topics,
             'user_guid' => $user->guid,
@@ -47,7 +54,6 @@ class emails implements Interfaces\Api
 
     public function post($pages)
     {
-
         if (Core\Session::getLoggedInUser()->isAdmin() && isset($pages[0])) {
             $user = new User($pages[0]);
         } else {
@@ -62,8 +68,27 @@ class emails implements Interfaces\Api
                 ]);
             }
 
+            $emailChange = strtolower($_POST['email']) !== strtolower($user->getEmail());
+
             $user->setEmail($_POST['email']);
             $user->save();
+
+            if ($emailChange) {
+                /** @var EmailConfirmation $emailConfirmation */
+                $emailConfirmation = Di::_()->get('Email\Confirmation');
+                $emailConfirmation
+                    ->setUser($user);
+
+                $reset = $emailConfirmation
+                    ->reset();
+
+                if ($reset) {
+                    $emailConfirmation
+                        ->sendEmail();
+                } else {
+                    error_log('Cannot reset email confirmation for ' . $user->guid);
+                }
+            }
         }
 
         if (isset($_POST['notifications'])) {
@@ -84,7 +109,7 @@ class emails implements Interfaces\Api
                         $repository->add($model);
                     } catch (\Exception $e) {
                         return Factory::response([
-                            'status' => 'error', 
+                            'status' => 'error',
                             'message' => $e->getMessage()
                         ]);
                     }
@@ -104,5 +129,4 @@ class emails implements Interfaces\Api
     {
         return Factory::response([]);
     }
-
 }

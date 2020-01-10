@@ -24,6 +24,9 @@ class ActiveUsersIterator implements \Iterator
     private $active;
     private $valid = true;
 
+    /** @var array */
+    private $filterUserGuids;
+
     public function __construct($client = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
@@ -45,6 +48,12 @@ class ActiveUsersIterator implements \Iterator
     {
         $this->rangeOffset = $rangeOffset;
 
+        return $this;
+    }
+
+    public function setFilterUserGuids(array $userGuids): self
+    {
+        $this->filterUserGuids = $userGuids;
         return $this;
     }
 
@@ -99,20 +108,54 @@ class ActiveUsersIterator implements \Iterator
             $bucketAggregations["day-$dayOffset"] = $this->buildBucketCountAggregation("day-$dayOffset");
         }
 
-        $must = [
-            ['match_phrase' => [
-                'action.keyword' => [
-                    'query' => 'active',
-                ],
-            ]],
-            ['range' => [
-                  '@timestamp' => [
+        $must = [];
+
+        $must[] = [
+            'terms' => [
+                'action.keyword' => [ 'active', 'signup' ],
+            ],
+        ];
+
+        $must[] = [
+            'range' => [
+                '@timestamp' => [
                     'from' => $from * 1000, //midnight of the first day
                     'to' => $to * 1000, //midnight of the last day
                     'format' => 'epoch_millis',
-                  ],
-            ]],
+                ],
+            ]
         ];
+
+        if ($this->filterUserGuids) {
+            $must[] = [
+                'terms' => [
+                    'user_guid.keyword' => $this->filterUserGuids,
+                ],
+            ];
+        }
+        /*}
+            $bool = [
+                'should' => [
+                    [
+                        'match' => [
+                            'action.keyword' => 'signup',
+                        ],
+                    ],
+                    [
+                        'exists' => [
+                            'field' => 'referrer_guid',
+                        ],
+                    ],
+                ],
+                'must' => [
+                    $must[1], // We copy the range
+                ],
+                "minimum_should_match" => 2
+            ];
+            $must = [
+                'bool' => $bool,
+            ];
+    }*/
 
         //split up users by user guid
         $aggs = [

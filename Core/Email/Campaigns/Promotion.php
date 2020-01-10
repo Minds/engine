@@ -40,7 +40,6 @@ class Promotion extends EmailCampaign
     {
         $this->subject = $subject;
         return $this;
-
     }
 
     /**
@@ -71,13 +70,14 @@ class Promotion extends EmailCampaign
 
         $message = new Message();
         $message->setTo($this->user)
-            ->setMessageId(implode('-',
-                [$this->user->guid, sha1($this->user->getEmail()), sha1($this->campaign . $this->topic . time())]))
+            ->setMessageId(implode(
+                '-',
+                [$this->user->guid, sha1($this->user->getEmail()), sha1($this->campaign . $this->topic . time())]
+            ))
             ->setSubject($this->subject)
             ->setHtml($this->template);
 
         //send email
         $this->mailer->send($message);
     }
-
 }

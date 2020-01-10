@@ -12,12 +12,12 @@ use Minds\Plugin;
 
 class FactorySpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Search\Mappings\Factory');
     }
 
-    function it_should_build_an_activity_mapping(Entities\Activity $activity)
+    public function it_should_build_an_activity_mapping(Entities\Activity $activity)
     {
         $activity->getType()
             ->shouldBeCalled()
@@ -35,7 +35,7 @@ class FactorySpec extends ObjectBehavior
             ->shouldBeAnInstanceOf(Mappings\ActivityMapping::class);
     }
 
-    function it_should_build_a_generic_entity_mapping(Entities\Entity $entity)
+    public function it_should_build_a_generic_entity_mapping(Entities\Entity $entity)
     {
         $entity->getGUID()
             ->shouldBeCalled()
@@ -53,7 +53,7 @@ class FactorySpec extends ObjectBehavior
             ->shouldBeAnInstanceOf(Mappings\EntityMapping::class);
     }
 
-    function it_should_build_a_group_mapping(Entities\Group $group)
+    public function it_should_build_a_group_mapping(Entities\Group $group)
     {
         $group->getGuid()
             ->shouldBeCalled()
@@ -67,7 +67,7 @@ class FactorySpec extends ObjectBehavior
             ->shouldBeAnInstanceOf(Mappings\GroupMapping::class);
     }
 
-    function it_should_build_an_object_blog_mapping(Blog $blog)
+    public function it_should_build_an_object_blog_mapping(Blog $blog)
     {
         $blog->getGuid()
             ->shouldBeCalled()
@@ -85,7 +85,7 @@ class FactorySpec extends ObjectBehavior
             ->shouldBeAnInstanceOf(Mappings\ObjectBlogMapping::class);
     }
 
-    function it_should_build_an_object_image_mapping(Entities\Image $image)
+    public function it_should_build_an_object_image_mapping(Entities\Image $image)
     {
         $image->getGUID()
             ->shouldBeCalled()
@@ -103,7 +103,7 @@ class FactorySpec extends ObjectBehavior
             ->shouldBeAnInstanceOf(Mappings\ObjectImageMapping::class);
     }
 
-    function it_should_build_an_object_video_mapping(Entities\Video $video)
+    public function it_should_build_an_object_video_mapping(Entities\Video $video)
     {
         $video->getGUID()
             ->shouldBeCalled()
@@ -121,7 +121,7 @@ class FactorySpec extends ObjectBehavior
             ->shouldBeAnInstanceOf(Mappings\ObjectVideoMapping::class);
     }
 
-    function it_should_build_an_user_mapping(Entities\User $user)
+    public function it_should_build_an_user_mapping(Entities\User $user)
     {
         $user->getGUID()
             ->shouldBeCalled()

@@ -30,11 +30,13 @@ class ElasticRepository
             'rating' => 3,
             'token' => 0,
             'offset' => null,
+            'order' => null,
+            'offchain' => null,
         ], $opts);
-        
+
         $must = [];
         $must_not = [];
-        $sort = [ '@timestamp' => 'asc' ];
+        $sort = [ '@timestamp' => $opts['order'] ?? 'asc' ];
 
         $must[] = [
             'term' => [
@@ -48,12 +50,34 @@ class ElasticRepository
             ],
         ];
 
+        $must_not[] = [
+            'term' => [
+                'is_campaign' => true,
+            ]
+        ];
+
         if ($opts['offset']) {
             $must[] = [
                 'range' => [
                     '@timestamp' => [
                         'gt' => $opts['offset'],
                     ],
+                ],
+            ];
+        }
+
+        if ($opts['entity_guid']) {
+            $must[] = [
+                'term' => [
+                    'entity_guid' => $opts['entity_guid'],
+                ],
+            ];
+        }
+
+        if ($opts['owner_guid']) {
+            $must[] = [
+                'term' => [
+                    'owner_guid' => $opts['owner_guid'],
                 ],
             ];
         }
@@ -73,16 +97,24 @@ class ElasticRepository
             ];
         }
 
+        if ($opts['offchain']) {
+            $must[] = [
+                'term' => [
+                    'token_method' => 'offchain',
+                ],
+            ];
+        }
+
         if ($opts['state'] === 'review') {
             $must_not[] = [
                 'exists' => [
                     'field' => '@reviewed',
                 ],
             ];
-            $sort = [ '@timestamp' => 'asc' ];
+            $sort = ['@timestamp' => 'asc'];
         }
 
-        if ($opts['state'] === 'approved' || $opts['state'] === 'review') {
+        if ($opts['state'] === 'approved' || $opts['state'] === 'review' || $opts['state'] === 'active') {
             $must_not[] = [
                 'exists' => [
                     'field' => '@completed',
@@ -104,7 +136,7 @@ class ElasticRepository
             'query' => [
                 'bool' => [
                     'must' => $must,
-                    'must_not' => $must_not, 
+                    'must_not' => $must_not,
                 ],
             ],
             'sort' => $sort,
@@ -164,6 +196,7 @@ class ElasticRepository
      * Add a boost
      * @param Boost $boost
      * @return bool
+     * @throws \Exception
      */
     public function add($boost)
     {
@@ -184,7 +217,7 @@ class ElasticRepository
         ];
 
         if ($boost->getBidType() === 'tokens') {
-            $body['doc']['token_method'] = (strpos($boost->getTransactionId(), '0x', 0) === 0) 
+            $body['doc']['token_method'] = (strpos($boost->getTransactionId(), '0x', 0) === 0)
                 ? 'onchain' : 'offchain';
         }
 
@@ -223,6 +256,7 @@ class ElasticRepository
      * Update a boost
      * @param Boost $boost
      * @return bool
+     * @throws \Exception
      */
     public function update($boost, $fields = [])
     {
@@ -235,6 +269,4 @@ class ElasticRepository
     public function delete($boost)
     {
     }
-
 }
-

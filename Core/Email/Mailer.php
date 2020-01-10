@@ -37,7 +37,7 @@ class Mailer
         $this->mailer->SMTPAuth = true;
         $this->mailer->Username = Core\Config::_()->email['smtp']['username'];
         $this->mailer->Password = Core\Config::_()->email['smtp']['password'];
-        $this->mailer->SMTPSecure = "ssl";
+        $this->mailer->SMTPSecure = Core\Config::_()->email['smtp']['smtp_secure'] ?? "ssl";
         $this->mailer->Port = Core\Config::_()->email['smtp']['port'];
     }
 
@@ -86,7 +86,8 @@ class Mailer
                     "message" => serialize($message)
                 ]);
         } catch (\Exception $e) {
-            var_dump($e); exit;
+            var_dump($e);
+            exit;
         }
     }
 

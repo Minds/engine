@@ -96,7 +96,7 @@ class ads extends Controller implements Interfaces\Api
                 $period = isset($_GET['period']) ? (int) $_GET['period'] : 28;
                 $offset = isset($_GET['offset']) ? $_GET['offset'] : '';
 
-                if($period >= Config::_()->get('payouts')['retentionDays']) {
+                if ($period >= Config::_()->get('payouts')['retentionDays']) {
                     $list = $ads->getPayoutsList($offset, 50);
                 } else {
                     $list = $ads->getBreakdownList($period, $offset, 50);

@@ -24,7 +24,7 @@ class PendingSpec extends ObjectBehavior
     protected $ethereumClient;
     protected $blockchainTx;
 
-    function let(
+    public function let(
         Config $config,
         Pending $pendingManager,
         Ethereum $ethereumClient,
@@ -38,16 +38,15 @@ class PendingSpec extends ObjectBehavior
         $this->beConstructedWith($config, $pendingManager, $ethereumClient, $blockchainTx);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Boost\Pending');
     }
 
-    function it_should_add(
+    public function it_should_add(
         Network $boost,
         User $owner
-    )
-    {
+    ) {
         $owner->get('guid')->willReturn(1000);
 
         $boost->getOwner()->willReturn($owner);
@@ -81,12 +80,11 @@ class PendingSpec extends ObjectBehavior
             ->duringAdd('tx123', $boost);
     }
 
-    function it_should_resolve(
+    public function it_should_resolve(
         Repository $repository,
         Network $boost,
         User $owner
-    )
-    {
+    ) {
         Di::_()->bind('Boost\Repository', function () use ($repository) {
             return $repository->getWrappedObject();
         });
@@ -130,12 +128,11 @@ class PendingSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_resolve_a_peer_boost(
+    public function it_should_resolve_a_peer_boost(
         Repository $repository,
         Peer $boost,
         User $owner
-    )
-    {
+    ) {
         Di::_()->bind('Boost\Repository', function () use ($repository) {
             return $repository->getWrappedObject();
         });
@@ -179,10 +176,9 @@ class PendingSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_throw_if_no_pending_during_resolve(
+    public function it_should_throw_if_no_pending_during_resolve(
         Repository $repository
-    )
-    {
+    ) {
         Di::_()->bind('Boost\Repository', function () use ($repository) {
             return $repository->getWrappedObject();
         });
@@ -198,10 +194,9 @@ class PendingSpec extends ObjectBehavior
             ->duringResolve('tx123', 4000);
     }
 
-    function it_should_return_false_if_different_boost_guid_during_resolve(
+    public function it_should_return_false_if_different_boost_guid_during_resolve(
         Repository $repository
-    )
-    {
+    ) {
         Di::_()->bind('Boost\Repository', function () use ($repository) {
             return $repository->getWrappedObject();
         });
@@ -225,12 +220,11 @@ class PendingSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    function it_should_return_false_if_different_sender_during_resolve(
+    public function it_should_return_false_if_different_sender_during_resolve(
         Repository $repository,
         Network $boost,
         User $owner
-    )
-    {
+    ) {
         Di::_()->bind('Boost\Repository', function () use ($repository) {
             return $repository->getWrappedObject();
         });
@@ -262,10 +256,9 @@ class PendingSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    function it_should_approve(
+    public function it_should_approve(
         Network $boost
-    )
-    {
+    ) {
         $boost->getGuid()->willReturn(1000);
 
         $this->config->get('blockchain')->willReturn([
@@ -292,10 +285,9 @@ class PendingSpec extends ObjectBehavior
             ->shouldReturn('0xTX');
     }
 
-    function it_should_reject(
+    public function it_should_reject(
         Network $boost
-    )
-    {
+    ) {
         $boost->getGuid()->willReturn(1000);
 
         $this->config->get('blockchain')->willReturn([

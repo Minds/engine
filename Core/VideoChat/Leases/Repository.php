@@ -11,7 +11,6 @@ use Minds\Core\Di\Di;
 
 class Repository
 {
-
     /** @var Client */
     private $db;
 
@@ -86,18 +85,18 @@ class Repository
         $query->query($cql, $values);
         $query->setOpts([
             'page_size' => (int) $options['limit'],
-            'paging_state_token' => base64_decode($options['token'])
+            'paging_state_token' => base64_decode($options['token'], true)
         ]);
 
         $leases = new Response();
 
-        try{
+        try {
             $rows = $this->db->request($query);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             error_log($e->getMessage());
         }
 
-        foreach($rows as $row) {
+        foreach ($rows as $row) {
             $lease = new VideoChatLease();
             $lease
                 ->setKey((string) $row['key'])
@@ -133,5 +132,4 @@ class Repository
     {
         // TODO: Implement delete() method.
     }
-
 }

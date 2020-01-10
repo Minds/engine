@@ -22,9 +22,13 @@ class OpenSSLSpec extends ObjectBehavior
         $this->setMessage($message)->getMessage()->shouldHaveType('Minds\Entities\Message');
     }
 
-    public function it_should_encrypt_a_message(Message $message, Conversation $conversation, Keystore $keystore,
-      User $user1, User $user2)
-    {
+    public function it_should_encrypt_a_message(
+        Message $message,
+        Conversation $conversation,
+        Keystore $keystore,
+        User $user1,
+        User $user2
+    ) {
         $this->beConstructedWith($keystore);
 
         $keypair = $this->generateKeypair('foobar');

@@ -8,15 +8,14 @@ use Prophecy\Argument;
 
 class UserMappingSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Search\Mappings\UserMapping');
     }
 
-    function it_should_map_a_user(
+    public function it_should_map_a_user(
         User $user
-    )
-    {
+    ) {
         $now = time();
 
         $user->get('interactions')->willReturn(42);
@@ -37,6 +36,8 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('username')->willReturn('phpspec');
         $user->get('briefdescription')->willReturn('PHPSpec Brief Description #invalidhashtag');
         $user->get('rating')->willReturn(1);
+        $user->get('moderator_guid')->willReturn('123');
+        $user->get('time_moderated')->willReturn($now);
         $user->isBanned()->willReturn(false);
 
         $user->isMature()->willReturn(false);
@@ -76,13 +77,14 @@ class UserMappingSpec extends ObjectBehavior
                 'public' => true,
                 'tags' => [ 'spaceiscool' ],
                 'nsfw' => [ 1 ],
-                'group_membership' => [ 2000 ],
+                'moderator_guid' => '123',
+                '@moderated' => $now * 1000,
+                'group_membership' => [ 2000 ]
             ]);
     }
 
     public function it_should_throw_exception_if_banned(User $user)
     {
-
         $now = time();
 
         $user->get('interactions')->willReturn(42);
@@ -110,7 +112,8 @@ class UserMappingSpec extends ObjectBehavior
         $user->isMature()->willReturn(true);
         $user->getMatureContent()->willReturn(false);
         $user->getGroupMembership()->willReturn([ 2000 ]);
-
+        $user->get('moderator_guid')->willReturn(null);
+        $user->get('time_moderated')->willReturn(null);
         $this
             ->setEntity($user)
             ->shouldThrow('Minds\Exceptions\BannedException')
@@ -122,8 +125,7 @@ class UserMappingSpec extends ObjectBehavior
 
     public function it_should_suggest_map(
         User $user
-    )
-    {
+    ) {
         $user->get('username')->willReturn('phpspec');
         $user->get('name')->willReturn('testing framework');
         $user->get('featured_id')->willReturn(12000);
@@ -146,8 +148,7 @@ class UserMappingSpec extends ObjectBehavior
     }
     public function it_should_suggest_map_permutating_camelcase_name(
         User $user
-    )
-    {
+    ) {
         $user->get('username')->willReturn('phpspec');
         $user->get('name')->willReturn('TestingFramework');
         $user->get('featured_id')->willReturn(12000);

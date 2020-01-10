@@ -42,9 +42,8 @@ class Scanner
                 }
 
                 $this->manager->impose();
-                echo "\n$user->guid is now rate limited for {$opts['period']} seconds";
+                error_log("$user->guid is now rate limited for {$opts['period']} seconds");
             }
-
         }
     }
 
@@ -67,5 +66,4 @@ class Scanner
         }
         return $guids;
     }
-
 }

@@ -17,7 +17,7 @@ class Client implements Interfaces\ClientInterface
     private $prepared;
     protected $debug;
 
-    public function __construct(array $options = array())
+    public function __construct(array $options = [])
     {
         $options = array_merge((array) Config::_()->cassandra, $options);
         $retry_policy = new Driver\RetryPolicy\DowngradingConsistency();
@@ -38,23 +38,23 @@ class Client implements Interfaces\ClientInterface
     public function request(Interfaces\PreparedInterface $request, $silent = false)
     {
         $cql = $request->build();
-        try{
+        try {
             $statement = $this->session->prepare($cql['string']);
             $future = $this->session->executeAsync(
-              $statement,
-              @new Driver\ExecutionOptions(array_merge(
-                  [
+                $statement,
+                @new Driver\ExecutionOptions(array_merge(
+                    [
                     'arguments' => $cql['values']
                   ],
-                  $request->getOpts()
-                  ))
+                    $request->getOpts()
+                ))
             );
             if ($silent) {
                 return $future;
             } else {
                 return $response = $future->get();
             }
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             if ($this->debug) {
                 error_log('[CQL Error: ' . get_class($e) . '] ' . $e->getMessage());
                 error_log(json_encode($cql));
@@ -75,7 +75,7 @@ class Client implements Interfaces\ClientInterface
         return $this->session->execute($statement);
     }
 
-    public function batchRequest($requests = array(), $batchType = Driver::BATCH_COUNTER, $silent = false)
+    public function batchRequest($requests = [], $batchType = Driver::BATCH_COUNTER, $silent = false)
     {
         $batch = new Driver\BatchStatement($batchType);
 

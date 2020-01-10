@@ -19,5 +19,13 @@ define('__MINDS_ROOT__', dirname(__FILE__));
  */
 require_once(__MINDS_ROOT__ . '/vendor/autoload.php');
 
+// Sentry
+Sentry\init([
+    'dsn' => getenv('SENTRY_DSN'),
+    'release' => getenv('MINDS_VERSION') ?: 'Unknown',
+    'environment' => getenv('MINDS_ENV') ?: 'development',
+    'send_default_pii' => false,
+]);
+
 $minds = new Minds\Core\Minds();
 $minds->start();

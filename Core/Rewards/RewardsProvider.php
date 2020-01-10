@@ -7,6 +7,10 @@ class RewardsProvider extends Provider
 {
     public function register()
     {
+        $this->di->bind('Rewards\Contributions\Manager', function ($di) {
+            return new Contributions\Manager();
+        }, [ 'useFactory'=> true ]);
+
         $this->di->bind('Rewards\Contributions\Repository', function ($di) {
             return new Contributions\Repository();
         }, [ 'useFactory'=> true ]);

@@ -14,7 +14,6 @@ use Minds\Core\Util\BigNumber;
 
 class Manager
 {
-
     /** @var Contributions\Manager $contributions */
     protected $contributions;
 
@@ -48,8 +47,7 @@ class Manager
         $txRepository = null,
         $eth = null,
         $config = null
-    )
-    {
+    ) {
         $this->contributions = $contributions ?: new Contributions\Manager;
         $this->transactions = $transactions ?: Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
         $this->txRepository = $txRepository ?: Di::_()->get('Blockchain\Transactions\Repository');
@@ -113,13 +111,13 @@ class Manager
             ->setTo($this->to)
             ->setUser($this->user);
 
-        if ($this->user) { 
+        if ($this->user) {
             $this->contributions->setUser($this->user);
         }
 
         $amount = $this->contributions->getRewardsAmount();
  
-        $transaction = new Transaction(); 
+        $transaction = new Transaction();
         $transaction
             ->setUserGuid($this->user->guid)
             ->setWalletAddress('offchain')
@@ -137,7 +135,8 @@ class Manager
 
         try {
             $this->bonus();
-        } catch (\Exception $e) { }
+        } catch (\Exception $e) {
+        }
 
         //$this->txRepository->delete($this->user->guid, strtotime("+24 hours - 1 second", $this->from / 1000), 'offchain');
         return $transaction;
@@ -150,7 +149,7 @@ class Manager
             ->setTo($this->to)
             ->setUser($this->user);
 
-        if (!$this->user || !$this->user->eth_wallet) { 
+        if (!$this->user || !$this->user->eth_wallet) {
             return;
         }
 
@@ -158,7 +157,7 @@ class Manager
 
         if ($amount <= 0) {
             return;
-        } 
+        }
 
         $res = $this->eth->sendRawTransaction($this->config->get('blockchain')['contracts']['bonus']['wallet_pkey'], [
             'from' => $this->config->get('blockchain')['contracts']['bonus']['wallet_address'],
@@ -172,7 +171,7 @@ class Manager
             ])
         ]);
         
-        $transaction = new Transaction(); 
+        $transaction = new Transaction();
         $transaction
             ->setUserGuid($this->user->guid)
             ->setWalletAddress($this->user->eth_wallet)
@@ -185,6 +184,4 @@ class Manager
         $this->txRepository->add($transaction);
         return $transaction;
     }
-
 }
-

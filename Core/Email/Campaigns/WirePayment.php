@@ -118,13 +118,14 @@ class WirePayment
 
         $message = new Message();
         $message->setTo($this->user)
-            ->setMessageId(implode('-',
-                [$this->user->guid, sha1($this->user->getEmail()), sha1($this->template . time())]))
+            ->setMessageId(implode(
+                '-',
+                [$this->user->guid, sha1($this->user->getEmail()), sha1($this->template . time())]
+            ))
             ->setSubject($subject)
             ->setHtml($this->template);
 
         //send email
         $this->mailer->queue($message);
     }
-
 }

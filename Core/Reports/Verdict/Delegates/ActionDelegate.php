@@ -32,33 +32,37 @@ class ActionDelegate
     /** @var EmailDelegate $emailDelegate */
     private $emailDelegate;
 
+    /** @var Core\Channels\Ban $channelsBanManager */
+    private $channelsBanManager;
+
     public function __construct(
         $entitiesBuilder = null,
         $actions = null,
         $urn = null,
         $strikesManager = null,
         $saveAction = null,
-        $emailDelegate = null
-    )
-    {
+        $emailDelegate = null,
+        $channelsBanManager = null
+    ) {
         $this->entitiesBuilder = $entitiesBuilder  ?: Di::_()->get('EntitiesBuilder');
         $this->actions = $actions ?: Di::_()->get('Reports\Actions');
         $this->urn = $urn ?: new Urn;
         $this->strikesManager = $strikesManager ?: Di::_()->get('Moderation\Strikes\Manager');
         $this->saveAction = $saveAction ?: new SaveAction;
         $this->emailDelegate = $emailDelegate ?: new EmailDelegate;
+        $this->channelsBanManager = $channelsBanManager ?: Di::_()->get('Channels\Ban');
     }
 
     public function onAction(Verdict $verdict)
     {
         if ($verdict->isAppeal() || !$verdict->isUpheld()) {
             error_log('Not upheld so no action');
-            return; // Can not 
+            return; // Can not
         }
 
         $report = $verdict->getReport();
 
-        // Disable ACL 
+        // Disable ACL
         ACL::$ignore = true;
         $entityUrn = $verdict->getReport()->getEntityUrn();
         $entityGuid = $this->urn->setUrn($entityUrn)->getNss();
@@ -223,11 +227,11 @@ class ActionDelegate
     private function applyBan($report)
     {
         $user = $this->entitiesBuilder->single($report->getEntityOwnerGuid());
-        $user->banned = 'yes';
-        $user->ban_reason = implode('.', [ $report->getReasonCode(), $report->getSubReasonCode() ]);
-        $user->save();
+
+        $this->channelsBanManager
+            ->setUser($user)
+            ->ban(implode('.', [ $report->getReasonCode(), $report->getSubReasonCode() ]));
 
         $this->emailDelegate->onBan($report);
     }
-
 }
