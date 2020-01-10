@@ -12,6 +12,8 @@ use Minds\Helpers;
 use Minds\Interfaces;
 use Minds\Entities;
 use Minds\Api\Factory;
+use Minds\Common\ChannelMode;
+use Minds\Core\Di\Di;
 use ElggFile;
 
 class channel implements Interfaces\Api
@@ -34,32 +36,36 @@ class channel implements Interfaces\Api
 
         $user = new Entities\User($pages[0]);
         if (!$user->username || Helpers\Flags::shouldFail($user)) {
-            return Factory::response(array('status'=>'error', 'message'=>'The user could not be found'));
+            return Factory::response(['status'=>'error', 'message'=>'The user could not be found']);
         }
 
         if ($user->enabled != "yes") {
-            return Factory::response(array('status'=>'error', 'message'=>'The user is disabled'));
+            return Factory::response(['status'=>'error', 'message'=>'The user is disabled']);
         }
 
         if ($user->banned == 'yes' && !Core\Session::isAdmin()) {
-            return Factory::response(array('status'=>'error', 'message'=>'The user is banned'));
+            return Factory::response(['status'=>'error', 'message'=>'The user is banned']);
         }
+
+        Di::_()->get('Referrals\Cookie')
+            ->setEntity($user)
+            ->create();
 
         $user->fullExport = true; //get counts
         $user->exportCounts = true;
-        $return = Factory::exportable(array($user));
+        $return = Factory::exportable([$user]);
 
         $response['channel'] = $return[0];
         if (Core\Session::getLoggedinUser()->guid == $user->guid) {
             $response['channel']['admin'] = $user->admin;
         }
-        $response['channel']['avatar_url'] = array(
+        $response['channel']['avatar_url'] = [
             'tiny' => $user->getIconURL('tiny'),
             'small' => $user->getIconURL('small'),
             'medium' => $user->getIconURL('medium'),
             'large' => $user->getIconURL('large'),
             'master' => $user->getIconURL('master')
-        );
+        ];
 
         $response['channel']['briefdescription'] = $response['channel']['briefdescription'] ?: '';
         $response['channel']['city'] = $response['channel']['city'] ?: "";
@@ -72,19 +78,32 @@ class channel implements Interfaces\Api
             $response['channel']['activity_count'] = $feed_count;
         }
 
-        $carousels = Core\Entities::get(array('subtype'=>'carousel', 'owner_guid'=>$user->guid));
+        $carousels = Core\Entities::get(['subtype'=>'carousel', 'owner_guid'=>$user->guid]);
         if ($carousels) {
             foreach ($carousels as $carousel) {
-                $response['channel']['carousels'][] = array(
+                $response['channel']['carousels'][] = [
                   'guid' => (string) $carousel->guid,
                   'top_offset' => $carousel->top_offset,
                   'src'=> Core\Config::_()->cdn_url . "fs/v1/banners/$carousel->guid/fat/$carousel->last_updated"
-                );
+                ];
             }
         }
 
         $block = Core\Security\ACL\Block::_();
         $response['channel']['blocked'] = $block->isBlocked($user);
+
+        if ($user->isPro()) {
+            /** @var Core\Pro\Manager $manager */
+            $manager = Core\Di\Di::_()->get('Pro\Manager');
+            $manager
+                ->setUser($user);
+
+            $proSettings = $manager->get();
+
+            if ($proSettings) {
+                $response['channel']['pro_settings'] = $proSettings;
+            }
+        }
 
         return Factory::response($response);
     }
@@ -98,6 +117,9 @@ class channel implements Interfaces\Api
             $guid = Core\Session::getLoggedinUser()->legacy_guid;
         }
 
+        /** @var Core\Media\Imagick\Manager $manager */
+        $manager = Core\Di\Di::_()->get('Media\Imagick\Manager');
+
         $response = [];
 
         switch ($pages[0]) {
@@ -105,17 +127,19 @@ class channel implements Interfaces\Api
                 $icon_sizes = Core\Config::_()->get('icon_sizes');
                 // get the images and save their file handlers into an array
                 // so we can do clean up if one fails.
-                $files = array();
+                $files = [];
                 foreach ($icon_sizes as $name => $size_info) {
-                    $resized = get_resized_image_from_uploaded_file('file', $size_info['w'], $size_info['h'], $size_info['square'], $size_info['upscale']);
+                    $manager->setImage($_FILES['file']['tmp_name'])
+                        ->autorotate()
+                        ->resize($size_info['w'], $size_info['h'], $size_info['upscale'], $size_info['square']);
 
-                    if ($resized) {
+                    if ($blob = $manager->getJpeg()) {
                         //@todo Make these actual entities.  See exts #348.
                         $file = new ElggFile();
                         $file->owner_guid = Core\Session::getLoggedinUser()->guid;
                         $file->setFilename("profile/{$guid}{$name}.jpg");
                         $file->open('write');
-                        $file->write($resized);
+                        $file->write($blob);
                         $file->close();
                         $files[] = $file;
                     } else {
@@ -157,12 +181,15 @@ class channel implements Interfaces\Api
                 $item->save();
 
                 if (is_uploaded_file($_FILES['file']['tmp_name'])) {
-                    $resized = get_resized_image_from_uploaded_file('file', 2000, 10000);
+                    $manager->setImage($_FILES['file']['tmp_name'])
+                        ->autorotate()
+                        ->resize(2000, 10000);
+
                     $file = new Entities\File();
                     $file->owner_guid = $item->owner_guid;
                     $file->setFilename("banners/{$item->guid}.jpg");
                     $file->open('write');
-                    $file->write($resized);
+                    $file->write($manager->getJpeg());
                     $file->close();
 
                     $response['uploaded'] = true;
@@ -176,19 +203,22 @@ class channel implements Interfaces\Api
               $item->last_updated = time();
               $item->save();
 
-              $response['carousel'] = array(
+              $response['carousel'] = [
                  'guid' => (string) $item->guid,
                  'top_offset' => $item->top_offset,
                  'src'=> Core\Config::build()->cdn_url . "fs/v1/banners/$item->guid/fat/$item->last_updated"
-              );
+              ];
 
-              if (is_uploaded_file($_FILES['file']['tmp_name'])) {
-                  $resized = get_resized_image_from_uploaded_file('file', 2000, 10000);
+              if ($item->canEdit() && is_uploaded_file($_FILES['file']['tmp_name'])) {
+                  $manager->setImage($_FILES['file']['tmp_name'])
+                      ->autorotate()
+                      ->resize(2000, 10000);
+
                   $file = new Entities\File();
                   $file->owner_guid = $item->owner_guid;
                   $file->setFilename("banners/{$item->guid}.jpg");
                   $file->open('write');
-                  $file->write($resized);
+                  $file->write($manager->getJpeg());
                   $file->close();
 
                   $response['uploaded'] = true;
@@ -199,10 +229,10 @@ class channel implements Interfaces\Api
             case "info":
             default:
                 if (!$owner->canEdit()) {
-                    return Factory::response(array('status'=>'error'));
+                    return Factory::response(['status'=>'error']);
                 }
 
-                $update = array();
+                $update = [];
                 foreach (['name', 'website', 'briefdescription', 'gender',
                   'dob', 'city', 'coordinates', 'monetized'] as $field) {
                     if (isset($_POST[$field])) {
@@ -211,6 +241,11 @@ class channel implements Interfaces\Api
                     }
                 }
 
+                if (isset($_POST['nsfw']) && is_array($_POST['nsfw'])) {
+                    $nsfw = array_unique(array_merge($_POST['nsfw'], $owner->getNsfwLock()));
+                    $update['nsfw'] = json_encode($nsfw);
+                    $owner->setNsfw($nsfw);
+                }
 
                 if (isset($_POST['tags']) && $_POST['tags']) {
                     $update['tags'] = json_encode($_POST['tags']);
@@ -224,6 +259,10 @@ class channel implements Interfaces\Api
                     } catch (\Exception $e) {
                         return Factory::response(['status'=>'error', 'message' => $e->getMessage() ]);
                     }
+                }
+
+                if (isset($_POST['mode']) && ChannelMode::isValid($_POST['mode'])) {
+                    $update['mode'] = $_POST['mode'];
                 }
 
                 if (isset($_POST['social_profiles']) && is_array($_POST['social_profiles'])) {
@@ -264,7 +303,7 @@ class channel implements Interfaces\Api
 
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     /**
@@ -273,7 +312,7 @@ class channel implements Interfaces\Api
     public function delete($pages)
     {
         if (!Core\Session::getLoggedinUser()) {
-            return Factory::response(array('status' => 'error', 'message' => 'not logged in'));
+            return Factory::response(['status' => 'error', 'message' => 'not logged in']);
         }
 
         switch ($pages[0]) {
@@ -288,17 +327,9 @@ class channel implements Interfaces\Api
                 $channel->enabled = 'no';
                 $channel->save();
 
-                $customer = (new Core\Payments\Customer())
-                    ->setUser($channel);
-
-                $stripe = Core\Di\Di::_()->get('StripePayments');
-                $customer = $stripe->getCustomer($customer);
-                if ($customer) {
-                    $stripe->deleteCustomer($customer);
-                }
                 (new Core\Data\Sessions())->destroyAll($channel->guid);
         }
 
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }

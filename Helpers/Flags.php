@@ -45,7 +45,7 @@ class Flags
     {
         if (method_exists($entity, 'getSpam')) {
             return !!$entity->getSpam();
-        } else if (method_exists($entity, 'getFlag')) {
+        } elseif (method_exists($entity, 'getFlag')) {
             return !!$entity->getFlag('spam');
         }
 
@@ -54,9 +54,9 @@ class Flags
 
     public static function isDeleted($entity)
     {
-        if (method_exists($entity, 'getDeleted')) {
+        if (MagicAttributes::getterExists($entity, 'getDeleted')) {
             return !!$entity->getDeleted();
-        } else if (method_exists($entity, 'getFlag')) {
+        } elseif (method_exists($entity, 'getFlag')) {
             return !!$entity->getFlag('deleted');
         }
 

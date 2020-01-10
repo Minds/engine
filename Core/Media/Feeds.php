@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\Media;
 
 use Minds\Core;
@@ -7,15 +8,12 @@ use Minds\Helpers;
 
 class Feeds
 {
-    private $indexDb;
-    private $entityDb;
-
     protected $entity;
+    protected $propagateProperties;
 
-    public function __construct($indexDb, $entityDb)
+    public function __construct(Core\Entities\PropagateProperties $propagateProperties = null)
     {
-        $this->indexDb = $indexDb;
-        $this->entityDb = $entityDb;
+        $this->propagateProperties = $propagateProperties ?? Core\Di\Di::_()->get('PropagateProperties');
     }
 
     public function setEntity($entity)
@@ -25,7 +23,7 @@ class Feeds
         return $this;
     }
 
-    public function createActivity()
+    public function createActivity(): Entities\Activity
     {
         if (!$this->entity) {
             throw new \Exception('Entity not set');
@@ -54,11 +52,7 @@ class Feeds
             throw new \Exception('Entity not set');
         }
 
-        foreach ($this->indexDb->getRow("activity:entitylink:{$this->entity->guid}") as $guid => $ts) {
-            $this->entityDb->insert($guid, [ 'message' => $this->entity->title ]);
-        }
-
-        return true;
+        $this->propagateProperties->from($this->entity);
     }
 
     public function dispatch(array $targets = [])

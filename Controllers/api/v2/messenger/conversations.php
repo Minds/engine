@@ -20,7 +20,6 @@ use Minds\Core\Sockets;
 
 class conversations implements Interfaces\Api
 {
-
     /**
      * Returns the conversations or conversation
      * @param array $pages
@@ -74,9 +73,11 @@ class conversations implements Interfaces\Api
             $blocked = false;
             $unavailable = false;
 
-            if (is_array($response['participants']) && false) {
+            if (is_array($response['participants'])) {
                 foreach ($response['participants'] as $participant) {
-                    if (!Security\ACL::_()->interact(Core\Session::getLoggedInUser(), $participant['guid'])) {
+                    if (Core\Security\ACL\Block::_()->isBlocked($participant['guid'])
+                        || !Security\ACL::_()->interact(Core\Session::getLoggedInUser(), $participant['guid'])
+                    ) {
                         $blocked = true;
                         break;
                     }
@@ -229,7 +230,7 @@ class conversations implements Interfaces\Api
             $messages = [];
             foreach ($conversation->getParticipants() as $guid) {
                 $key = "message:$guid";
-                $messages[$guid] = base64_encode(base64_decode(rawurldecode($_POST[$key]))); //odd bug sometimes with device base64..
+                $messages[$guid] = base64_encode(base64_decode(rawurldecode($_POST[$key]), true)); //odd bug sometimes with device base64..
             }
             $message->setMessages($messages, true);
             $message->message = $messages[Session::getLoggedInUserGuid()];
@@ -305,16 +306,16 @@ class conversations implements Interfaces\Api
             case 'call':
                \Minds\Core\Queue\Client::build()->setExchange("mindsqueue")
                                                 ->setQueue("Push")
-                                                ->send(array(
+                                                ->send([
                                                      "user_guid"=>$pages[1],
                                                     "message"=> \Minds\Core\Session::getLoggedInUser()->name . " is calling you.",
                                                     "uri" => 'call',
                                                     "sound" => 'ringing-1.m4a',
-                                                    "json" => json_encode(array(
+                                                    "json" => json_encode([
                                                         "from_guid"=>\Minds\Core\Session::getLoggedInUser()->guid,
                                                         "from_name"=>\Minds\Core\Session::getLoggedInUser()->name
-                                                    ))
-                                                ));
+                                                    ])
+                                                ]);
                 break;
             case 'no-answer':
               //leave a notification
@@ -324,12 +325,12 @@ class conversations implements Interfaces\Api
               $conversation->update();
               Core\Queue\Client::build()->setExchange("mindsqueue")
                                         ->setQueue("Push")
-                                        ->send(array(
+                                        ->send([
                                               "user_guid"=>$pages[1],
                                               "message"=> \Minds\Core\Session::getLoggedInUser()->name . " tried to call you.",
                                               "uri" => 'chat',
 
-                                             ));
+                                             ]);
               break;
             case 'ended':
               $conversation = new entities\conversation(elgg_get_logged_in_user_guid(), $pages[1]);
@@ -338,7 +339,7 @@ class conversations implements Interfaces\Api
               break;
         }
 
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     public function delete($pages)
@@ -405,7 +406,8 @@ class conversations implements Interfaces\Api
         }
     }
 
-    private function hasValidMessages($message) {
+    private function hasValidMessages($message)
+    {
         $messages = $message->getMessages();
 
         foreach ($messages as $guid => $message) {
@@ -417,7 +419,8 @@ class conversations implements Interfaces\Api
         return true;
     }
     
-    private function getInvalidMessageOrigins($message) {
+    private function getInvalidMessageOrigins($message)
+    {
         $messages = $message->getMessages();
         $origins = [];
 
@@ -430,7 +433,8 @@ class conversations implements Interfaces\Api
         return $origins;
     }
 
-    private function getInvalidPublicKeyUsers(array $users) {
+    private function getInvalidPublicKeyUsers(array $users)
+    {
         $keystore = new Messenger\Keystore();
         $invalid = [];
 
@@ -447,7 +451,8 @@ class conversations implements Interfaces\Api
         return $invalid;
     }
 
-    private function sendInvite($users) {
+    private function sendInvite($users)
+    {
         if (!is_array($users)) {
             $users = [ $users ];
         }

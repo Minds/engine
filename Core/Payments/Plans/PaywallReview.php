@@ -7,13 +7,12 @@ use Minds\Core\Di\Di;
 
 class PaywallReview
 {
-
     private $db;
     private $config;
 
     private $entity_guid;
 
-    public function __construct($db = NULL, $config = NULL)
+    public function __construct($db = null, $config = null)
     {
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
         $this->config = $config ?: Di::_()->get('Config');
@@ -57,7 +56,8 @@ class PaywallReview
             }
             return $guids;
         } catch (\Exception $e) {
-            var_dump($e); exit;
+            var_dump($e);
+            exit;
             return [];
         }
     }
@@ -65,17 +65,20 @@ class PaywallReview
     public function add()
     {
         $query = new Core\Data\Cassandra\Prepared\Custom();
-        $query->query("INSERT INTO entities_by_time
+        $query->query(
+            "INSERT INTO entities_by_time
           (key, column1, value)
           VALUES ('paywall:review', ?, ?)",
-          [
+            [
             (string) $this->entity_guid,
             (string) $this->entity_guid
-          ]);
+          ]
+        );
         try {
             $result = $this->db->request($query);
         } catch (\Exception $e) {
-          var_dump($e); exit;
+            var_dump($e);
+            exit;
         }
         return $this;
     }
@@ -83,7 +86,8 @@ class PaywallReview
     public function remove()
     {
         $query = new Core\Data\Cassandra\Prepared\Custom();
-        $query->query("DELETE FROM entities_by_time
+        $query->query(
+            "DELETE FROM entities_by_time
             WHERE key = 'paywall:review' AND column1 = ?",
             [
                 (string) $this->entity_guid

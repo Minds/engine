@@ -34,7 +34,7 @@ class Poloniex
      */
     public function getChartData($from, $to, $resolution)
     {
-        if (!in_array((int) $resolution, self::VALID_RESOLUTIONS)) {
+        if (!in_array((int) $resolution, self::VALID_RESOLUTIONS, true)) {
             throw new \Exception("Poloniex: Invalid resolution $resolution");
         }
 
@@ -53,6 +53,6 @@ class Poloniex
         if (!is_array($response)) {
             throw new \Exception('Invalid response');
         }
-         return $response;
+        return $response;
     }
 }

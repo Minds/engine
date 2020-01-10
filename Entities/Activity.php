@@ -3,6 +3,7 @@ namespace Minds\Entities;
 
 use Minds\Helpers;
 use Minds\Core;
+use Minds\Core\Di\Di;
 use Minds\Core\Queue;
 use Minds\Core\Analytics;
 
@@ -15,6 +16,8 @@ class Activity extends Entity
 
     protected $dirtyIndexes = false;
 
+    protected $hide_impressions = false;
+
     /**
      * Initialize entity attributes
      * @return null
@@ -22,7 +25,7 @@ class Activity extends Entity
     public function initializeAttributes()
     {
         parent::initializeAttributes();
-        $this->attributes = array_merge($this->attributes, array(
+        $this->attributes = array_merge($this->attributes, [
             'type' => 'activity',
             'owner_guid' => elgg_get_logged_in_user_guid(),
             'access_id' => 2, //private,
@@ -37,8 +40,9 @@ class Activity extends Entity
             'pending' => false,
             'rating' => 2, //open by default
             'ephemeral' => false,
+            'time_sent' => null,
             //	'node' => elgg_get_site_url()
-        ));
+        ]);
     }
 
     public function __construct($guid = null)
@@ -53,7 +57,6 @@ class Activity extends Entity
      */
     public function save($index = true)
     {
-
         if ($this->getEphemeral()) {
             throw new \Exception('Cannot save an ephemeral activity');
         }
@@ -119,17 +122,17 @@ class Activity extends Entity
 
         $db = new Core\Data\Call('entities_by_time');
         foreach ($indexes as $index) {
-            $db->removeAttributes($index, array($this->guid));
+            $db->removeAttributes($index, [$this->guid]);
         }
 
         (new Core\Translation\Storage())->purge($this->guid);
 
         Queue\Client::build()->setQueue("FeedCleanup")
-                            ->send(array(
+                            ->send([
                                 "guid" => $this->guid,
                                 "owner_guid" => $this->owner_guid,
                                 "type" => "activity"
-                            ));
+                            ]);
 
         Core\Events\Dispatcher::trigger('delete', 'activity', [ 'entity' => $this ]);
 
@@ -147,9 +150,9 @@ class Activity extends Entity
             return $this->indexes;
         }
 
-        $indexes = array(
+        $indexes = [
             $this->type
-        );
+        ];
 
         $owner = $this->getOwnerEntity();
 
@@ -184,8 +187,9 @@ class Activity extends Entity
      */
     public function getExportableValues()
     {
-        return array_merge(parent::getExportableValues(),
-            array(
+        return array_merge(
+            parent::getExportableValues(),
+            [
                 'title',
                 'blurb',
                 'perma_url',
@@ -215,7 +219,11 @@ class Activity extends Entity
                 'pending',
                 'rating',
                 'ephemeral',
-            ));
+                'hide_impressions',
+                'pinned',
+                'time_sent',
+            ]
+        );
     }
 
     /**
@@ -246,7 +254,7 @@ class Activity extends Entity
             $export['thumbs:up:count'] = Helpers\Counters::get($this->entity_guid, 'thumbs:up');
             $export['thumbs:down:count'] = Helpers\Counters::get($this->entity_guid, 'thumbs:down');
         } elseif ($this->remind_object) {
-            $export['remind_object']['nsfw'] = array_map(function($reason) {
+            $export['remind_object']['nsfw'] = array_map(function ($reason) {
                 return (int) $reason;
             }, $export['remind_object']['nsfw'] ?? []);
             if ($this->remind_object['entity_guid']) {
@@ -271,8 +279,15 @@ class Activity extends Entity
         $export['rating'] = $this->getRating();
         $export['ephemeral'] = $this->getEphemeral();
         $export['ownerObj'] = $this->getOwnerObj();
+        $export['time_sent'] = $this->getTimeSent();
 
-        switch($this->custom_type) {
+        if ($this->hide_impressions) {
+            $export['hide_impressions'] = $this->hide_impressions;
+        }
+
+        $export['thumbnails'] = $this->getThumbnails();
+
+        switch ($this->custom_type) {
             case 'video':
                 if ($this->custom_data['guid']) {
                     $export['play:count'] = Helpers\Counters::get($this->custom_data['guid'], 'plays');
@@ -282,7 +297,11 @@ class Activity extends Entity
                 // fix old images src
                 if (is_array($export['custom_data']) && strpos($export['custom_data'][0]['src'], '/wall/attachment') !== false) {
                     $export['custom_data'][0]['src'] = Core\Config::_()->cdn_url . 'fs/v1/thumbnail/' . $this->entity_guid;
+                    $this->custom_data[0]['src'] = $export['custom_data'][0]['src'];
                 }
+                // go directly to cdn
+                $mediaManager = Di::_()->get('Media\Image\Manager');
+                $export['custom_data'][0]['src'] = $export['thumbnails']['xlarge'];
                 break;
         }
 
@@ -291,7 +310,7 @@ class Activity extends Entity
             $export['deleted'] = (bool) $this->getDeleted();
         }
 
-        $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'activity', array('entity'=>$this), array()));
+        $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'activity', ['entity'=>$this], []));
 
 
         return $export;
@@ -324,6 +343,15 @@ class Activity extends Entity
     {
         $this->message = $message;
         return $this;
+    }
+
+    /**
+     * Set the message
+     * @return string
+     */
+    public function getMessage(): string
+    {
+        return $this->message;
     }
 
     /**
@@ -416,11 +444,23 @@ class Activity extends Entity
      * @param array $data
      * @return $this
      */
-    public function setCustom($type, $data = array())
+    public function setCustom($type, $data = [])
     {
         $this->custom_type = $type;
         $this->custom_data = $data;
         return $this;
+    }
+
+    /**
+     * Get the custom data
+     * @return array
+     */
+    public function getCustom(): array
+    {
+        return [
+            $this->custom_type,
+            $this->custom_data
+        ];
     }
 
     /**
@@ -555,11 +595,13 @@ class Activity extends Entity
      * Sets if comments are enabled
      * @param boolean
      */
-    public function enableComments() {
+    public function enableComments()
+    {
         $this->comments_enabled = true;
         return $this;
     }
-    public function disableComments() {
+    public function disableComments()
+    {
         $this->comments_enabled = false;
         return $this;
     }
@@ -568,7 +610,8 @@ class Activity extends Entity
      * Gets if comments are enabled
      * @return boolean
      */
-    public function canComment($user_guid = 0 /* ignored */) {
+    public function canComment($user_guid = 0 /* ignored */)
+    {
         return (bool) $this->comments_enabled;
     }
 
@@ -638,7 +681,8 @@ class Activity extends Entity
     /**
      * Returns the sum of every wire that's been made to this entity
      */
-    public function getWireTotals() {
+    public function getWireTotals()
+    {
         $guid = $this->guid;
 
         if ($this->remind_object) {
@@ -681,6 +725,24 @@ class Activity extends Entity
         return $this;
     }
 
+    /**
+     * @return bool
+     */
+    public function getHideImpressions()
+    {
+        return (bool) $this->hide_impressions;
+    }
+
+    /**
+     * @param $value
+     * @return $this
+     */
+    public function setHideImpressions($value)
+    {
+        $this->hide_impressions = (bool) $value;
+        return $this;
+    }
+
     public function getOwnerObj()
     {
         if (!$this->ownerObj && $this->owner_guid) {
@@ -692,6 +754,27 @@ class Activity extends Entity
     }
 
     /**
+     * Return thumbnails array to be used with export
+     * @return array
+     */
+    public function getThumbnails(): array
+    {
+        $thumbnails = [];
+        switch ($this->custom_type) {
+            case 'video':
+                break;
+            case 'batch':
+                $mediaManager = Di::_()->get('Media\Image\Manager');
+                $sizes = [ 'xlarge', 'large' ];
+                foreach ($sizes as $size) {
+                    $thumbnails[$size] = $mediaManager->getPublicAssetUri($this, $size);
+                }
+                break;
+        }
+        return $thumbnails;
+    }
+
+    /**
      * Return a preferred urn
      * @return string
      */
@@ -700,4 +783,22 @@ class Activity extends Entity
         return "urn:activity:{$this->getGuid()}";
     }
 
+    /**
+    * Return time_sent
+    * @return int
+    */
+    public function getTimeSent()
+    {
+        return $this->time_sent;
+    }
+
+    /**
+     * Set time_sent
+     * @return Activity
+     */
+    public function setTimeSent($time_sent)
+    {
+        $this->time_sent = $time_sent;
+        return $this;
+    }
 }

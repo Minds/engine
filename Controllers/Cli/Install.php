@@ -18,8 +18,8 @@ class Install extends Cli\Controller implements Interfaces\CliControllerInterfac
     {
         $this->out('Configures web server and provisions and sets up databases for the minds application.');
         $this->out('use-existing-settings: uses the existing settings in settings.php.');
-        $this->out('only=[keys|site|cassandra|cockroach] to set up individual components.');
-        $this->out('cleanCassandra cleanCockroach: deletes and recreates db.');
+        $this->out('only=[keys|site|cassandra|] to set up individual components.');
+        $this->out('cleanCassandra: deletes and recreates db.');
         $this->out('graceful-storage-provision: causes installation to proceed past storage (db) failures.');
     }
 
@@ -52,7 +52,7 @@ class Install extends Cli\Controller implements Interfaces\CliControllerInterfac
             $provisioner->checkOptions();
             $this->out('OK');
 
-            // only=[keys|cassandra|cockroach|site]
+            // only=[keys|cassandra|site]
             $installOnly = $this->getopt('only');
             $installType = $installOnly ? $installOnly : "all";
 
@@ -62,7 +62,7 @@ class Install extends Cli\Controller implements Interfaces\CliControllerInterfac
 
             try {
                 if ($installType == "all" || $installType == "cassandra") {
-                    $this->out('- Provisioning Cassandra: ', $this::OUTPUT_INLINE);
+                    $this->out('- Provisioning Cassandra:', $this::OUTPUT_INLINE);
                     $isCleanCassandra = $this->getopt("cleanCassandra") != null;
                     $provisioner->provisionCassandra(null, $isCleanCassandra);
                     $this->out('OK');
@@ -71,34 +71,8 @@ class Install extends Cli\Controller implements Interfaces\CliControllerInterfac
                     $provisioner->reloadStorage();
                     $this->out('OK');
                 }
-            } catch (Exception $e) {
-                // REVNOTE: This seems unused, currently. None of the database provisioners currently
-                // throw ProvisionException. We should maybe catch general exceptions (log them) and continue,
-                // and not ProvisionExceptions. I considered removing this altogether, but it is useful to continue
-                // past server errors in an setup.
-                if ($this->getOpt('graceful-storage-provision')) {
-                    $this->out($e->getMessage());
-                    $this->out('Error in cassandra setup. Continuing.');
-                } else {
-                    throw $e;
-                }
-            }
-
-            try {
-                if ($installType == "all" || $installType == "cockroach") {
-                    $this->out('- Provisioning Cockroach:', $this::OUTPUT_INLINE);
-                    $isCleanCockroach = $this->getopt("cleanCockroach") != null;
-                    $provisioner->provisionCockroach(null, $isCleanCockroach);
-                    $this->out('OK');
-                }
-            } catch (Exception $e) {
-                // See REVNOTE above.
-                if ($this->getOpt('graceful-storage-provision')) {
-                    $this->out($e->getMessage());
-                    $this->out('Error in cockroach setup. Continuing.');
-                } else {
-                    throw $e;
-                }
+            } catch (Exception $ex) {
+                $this->out('Something BAD happened while provisioning Cassandra' . $ex->getMessage());
             }
 
             if (($installType == "all") || ($installType == "site")) {
@@ -106,9 +80,13 @@ class Install extends Cli\Controller implements Interfaces\CliControllerInterfac
                 $provisioner->setupSite();
                 $this->out('OK');
 
-                $this->out('- Setting up administrative user (ignore warnings, if any):', $this::OUTPUT_INLINE);
-                $provisioner->setupFirstAdmin();
-                $this->out('OK');
+                try {
+                    $this->out('- Setting up administrative user (ignore warnings, if any):', $this::OUTPUT_INLINE);
+                    $provisioner->setupFirstAdmin();
+                    $this->out('OK');
+                } catch (\Exception $ex) {
+                    $this->out('Could not setup initial user');
+                }
             }
 
             $this->out(['Done!', 'Open your browser and go to ' . $provisioner->getSiteUrl()], $this::OUTPUT_PRE);

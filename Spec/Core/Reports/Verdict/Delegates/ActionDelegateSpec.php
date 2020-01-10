@@ -11,6 +11,7 @@ use Minds\Core\Reports\Actions;
 use Minds\Core\Reports\Strikes\Manager as StrikesManager;
 use Minds\Entities\Entity;
 use Minds\Core\Entities\Actions\Save as SaveAction;
+use Minds\Core\Channels\Ban;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -21,29 +22,39 @@ class ActionDelegateSpec extends ObjectBehavior
     private $strikesManager;
     private $saveAction;
     private $emailDelegate;
+    private $channelsBanManager;
 
-    function let(
+    public function let(
         EntitiesBuilder $entitiesBuilder,
         Actions $actions,
         StrikesManager $strikesManager,
         SaveAction $saveAction,
-        EmailDelegate $emailDelegate
-    )
-    {
-        $this->beConstructedWith($entitiesBuilder, $actions, null, $strikesManager, $saveAction, $emailDelegate);
+        EmailDelegate $emailDelegate,
+        Ban $channelsBanManager
+    ) {
+        $this->beConstructedWith(
+            $entitiesBuilder,
+            $actions,
+            null,
+            $strikesManager,
+            $saveAction,
+            $emailDelegate,
+            $channelsBanManager
+        );
         $this->entitiesBuilder = $entitiesBuilder;
         $this->actions = $actions;
         $this->strikesManager = $strikesManager;
         $this->saveAction = $saveAction;
         $this->emailDelegate = $emailDelegate;
+        $this->channelsBanManager = $channelsBanManager;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(ActionDelegate::class);
     }
 
-    function it_should_apply_nsfw_flags(Entity $entity)
+    public function it_should_apply_nsfw_flags(Entity $entity)
     {
         $report = new Report;
         $report->setEntityUrn('urn:activity:123')
@@ -88,7 +99,7 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->onAction($verdict);
     }
 
-    function it_should_removed_if_illegal(Entity $entity, Entity $user)
+    public function it_should_removed_if_illegal(Entity $entity, Entity $user)
     {
         $report = new Report;
         $report->setEntityUrn('urn:activity:123')
@@ -108,6 +119,12 @@ class ActionDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
+        $this->channelsBanManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->channelsBanManager);
+        $this->channelsBanManager->ban('1.1')
+            ->shouldBeCalled();
+
         $this->actions->setDeletedFlag($entity, true)
             ->shouldBeCalled();
 
@@ -120,7 +137,7 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->onAction($verdict);
     }
 
-    function it_should_removed_if_spam(Entity $entity)
+    public function it_should_removed_if_spam(Entity $entity)
     {
         $report = new Report;
         $report->setEntityUrn('urn:activity:123')
@@ -146,5 +163,4 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->onAction($verdict);
     }
-
 }

@@ -33,10 +33,9 @@ class Twilio implements SMSServiceInterface
      */
     public function verify($number)
     {
-
         try {
             $phone_number = $this->client->lookups->v1->phoneNumbers($number)
-                ->fetch(array("type" => "carrier"));
+                ->fetch(["type" => "carrier"]);
 
             return $phone_number->carrier['type'] !== 'voip';
         } catch (\Exception $e) {
@@ -54,10 +53,12 @@ class Twilio implements SMSServiceInterface
 
         try {
             $result = $this->client->messages->create(
-                $number, [
+                $number,
+                [
                 'from' => $this->config['from'],
                 'body' => $message,
-            ]);
+            ]
+            );
         } catch (\Exception $e) {
             error_log("[guard] Twilio error: {$e->getMessage()}");
         }

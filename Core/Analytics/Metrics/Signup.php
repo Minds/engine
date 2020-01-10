@@ -76,7 +76,7 @@ class Signup implements AnalyticsMetric
                     'date' => date('d-m-Y', $ts),
                     'total' => $this->db->countRow("{$this->namespace}:$unit:$ts")
                 ];
-            } catch (\Exception $e){
+            } catch (\Exception $e) {
             }
         }
         return $data;

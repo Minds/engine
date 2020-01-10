@@ -50,7 +50,9 @@ class Ads
         $list = [];
         $accuracyVar = 1;
         if (count($list) < 50 && array_sum(array_column($items, 'views')) < $totalViews) {
-            $accuracyVar = array_sum(array_map(function($item){ return $item['views']; }, $items)) / $totalViews;
+            $accuracyVar = array_sum(array_map(function ($item) {
+                return $item['views'];
+            }, $items)) / $totalViews;
         }
         foreach ($items as $item) {
             $pct = ($item['views'] / ($totalViews * $accuracyVar));
@@ -114,7 +116,10 @@ class Ads
 
         $dateRange = $payouts->getPayoutDateRange();
         $list = $dateRange ? $this->getList(
-            $dateRange['start'], $dateRange['end'], $offset, $count
+            $dateRange['start'],
+            $dateRange['end'],
+            $offset,
+            $count
         ) : [];
 
         return [

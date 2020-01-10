@@ -20,5 +20,9 @@ class GroupsProvider extends Provider
         $this->di->bind('Groups\Feeds', function ($di) {
             return new Feeds();
         }, [ 'useFactory'=> false ]);
+
+        $this->di->bind('Groups\Ownership', function ($di) {
+            return new Ownership();
+        }, [ 'useFactory'=> true ]);
     }
 }

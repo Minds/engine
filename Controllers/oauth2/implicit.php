@@ -11,7 +11,7 @@ use Zend\Diactoros\ServerRequestFactory;
 use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Diactoros\Response\SapiEmitter;
 
-class Implicit extends core\page implements Interfaces\page
+class implicit extends core\page implements Interfaces\page
 {
     public function get($pages)
     {

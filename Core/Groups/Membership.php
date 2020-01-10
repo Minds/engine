@@ -39,8 +39,7 @@ class Membership
         $acl = null,
         $cache = null,
         $updateMarkers = null
-    )
-    {
+    ) {
         $this->relDB = $db ?: Di::_()->get('Database\Cassandra\Relationships');
         $this->notifications = $notifications ?: new Notifications;
         $this->cache = $cache ?: Di::_()->get('Cache');
@@ -337,7 +336,8 @@ class Membership
 
         try {
             $this->notifications->unmute($user_guid);
-        } catch (\Exception $e) { }
+        } catch (\Exception $e) {
+        }
 
         $done = $this->relDB->remove('member', $this->group->getGuid());
 
@@ -579,7 +579,7 @@ class Membership
         $result = [];
 
         foreach ($users as $user) {
-            $result[$user] = in_array($user, $banned_guids);
+            $result[$user] = in_array($user, $banned_guids, false);
         }
 
         return $result;
@@ -634,6 +634,22 @@ class Membership
         $user->context('');
     }
 
+    public function getGroupGuidsByMember($opts = [])
+    {
+        $opts = array_merge([
+            'limit' => 500
+        ], $opts);
+
+        // Grab all groups we are a member of
+        $this->relDB
+            ->setGuid((string) $opts['user_guid']);
+
+        return $this->relDB->get('member', [
+            'limit' => $opts['limit'],
+            'inverse' => false,
+        ]);
+    }
+
     public function getGroupsByMember($opts = [])
     {
         $opts = array_merge([
@@ -649,16 +665,14 @@ class Membership
             'limit' => 1000,
         ])->toArray();
 
-        // Grab all groups we are a member of
-        $this->relDB->setGuid($opts['user_guid']);
-        $guids = $this->relDB->get('member', [
+        $guids = $this->getGroupGuidsByMember([
+            'user_guid' => $opts['user_guid'],
             'limit' => 500,
-            'inverse' => false,
         ]);
 
         // Populate all groups to markers
-        $markers = array_map(function($guid) use ($markers) {
-            $marker = array_slice(array_filter($markers, function($m) use ($guid) {
+        $markers = array_map(function ($guid) use ($markers) {
+            $marker = array_slice(array_filter($markers, function ($m) use ($guid) {
                 return $m->getEntityGuid() == $guid;
             }), 0, 1)[0];
             if (!$marker) {
@@ -684,7 +698,7 @@ class Membership
         });
 
         // Reduce back to just a guid
-        $guids = array_map(function($marker) {
+        $guids = array_map(function ($marker) {
             return $marker->getEntityGuid();
         }, $markers);
 

@@ -11,8 +11,8 @@ use Minds\Traits\MagicAttributes;
 class Message
 {
     use MagicAttributes;
-    public $from = array();
-    public $to = array();
+    public $from = [];
+    public $to = [];
     public $subject = '';
     public $html = '';
     public $messageId = '';
@@ -26,7 +26,7 @@ class Message
     {
         $this->from = [
           'name' => 'Minds',
-          'email' => 'info@minds.com',
+          'email' => 'no-reply@minds.com',
         ];
     }
 

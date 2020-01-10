@@ -16,13 +16,13 @@ use Minds\Entities\Boost\BoostEntityInterface;
 class BoostGuidResolverDelegate implements ResolverDelegate
 {
     /**
-     * @var Manager 
+     * @var Manager
      */
     protected $manager;
 
     /**
      * BoostGuidResolverDelegate constructor.
-     * @param Manager $manager 
+     * @param Manager $manager
      */
     public function __construct($manager = null)
     {

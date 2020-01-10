@@ -2,6 +2,7 @@
 /**
  * Minds Session Manager
  */
+
 namespace Minds\Core\Sessions;
 
 use Minds\Common\Cookie;
@@ -13,7 +14,6 @@ use Lcobucci\JWT\Signer\Rsa\Sha512;
 
 class Manager
 {
-
     /** @var Repository $repository */
     private $repository;
 
@@ -22,6 +22,9 @@ class Manager
 
     /** @var Cookie $cookie */
     private $cookie;
+
+    /** @var SentryScopeDelegate $sentryScopeDelegate */
+    private $sentryScopeDelegate;
 
     /** @var Session $session */
     private $session;
@@ -34,14 +37,15 @@ class Manager
         $config = null,
         $cookie = null,
         $jwtBuilder = null,
-        $jwtParser = null
-    )
-    {
+        $jwtParser = null,
+        $sentryScopeDelegate = null
+    ) {
         $this->repository = $repository ?: new Repository;
         $this->config = $config ?: Di::_()->get('Config');
         $this->cookie = $cookie ?: new Cookie;
         $this->jwtBuilder = $jwtBuilder ?: new JWT\Builder;
         $this->jwtParser = $jwtParser ?: new JWT\Parser;
+        $this->sentryScopeDelegate = $sentryScopeDelegate ?? new Delegates\SentryScopeDelegate;
     }
 
     /**
@@ -64,7 +68,7 @@ class Manager
         return $this->session;
     }
 
-    /** 
+    /**
      * Set the user for the session
      * @param User $user
      * @return $this
@@ -77,17 +81,27 @@ class Manager
 
     /**
      * Build session from jwt cookie
-     * @return $this
+     * @param $request
+     * @return Manager
      */
-    public function withRouterRequest($request)
+    public function withRouterRequest($request): Manager
     {
         $cookies = $request->getCookieParams();
         if (!isset($cookies['minds_sess'])) {
             return $this;
         }
 
+        return $this->withString((string) $cookies['minds_sess']);
+    }
+
+    /**
+     * @param string $sessionToken
+     * @return Manager
+     */
+    public function withString(string $sessionToken): Manager
+    {
         try {
-            $token = $this->jwtParser->parse((string) $cookies['minds_sess']); // Collect from cookie
+            $token = $this->jwtParser->parse($sessionToken);
             $token->getHeaders();
             $token->getClaims();
         } catch (\Exception $e) {
@@ -124,6 +138,9 @@ class Manager
         // Hack, needs refactoring
         Core\Session::generateJWTCookie($session);
 
+        // Allow Sentry to attach user metadata
+        $this->sentryScopeDelegate->onSession($session);
+
         return $this;
     }
 
@@ -144,7 +161,7 @@ class Manager
         }
 
         if (
-            !$session->getId() 
+            !$session->getId()
             || $session->getId() != $validated->getId()
         ) {
             return false;
@@ -178,13 +195,13 @@ class Manager
         $expires = time() + (60 * 60 * 24 * 30); // 30 days
 
         $token = $this->jwtBuilder
-                    //->issuedBy($this->config->get('site_url'))
-                    //->canOnlyBeUsedBy($this->config->get('site_url'))
-                    ->setId($id, true)
-                    ->setExpiration($expires)
-                    ->set('user_guid', (string) $this->user->getGuid())
-                    ->sign(new Sha512, $this->config->get('sessions')['private_key'])
-                    ->getToken();
+            //->issuedBy($this->config->get('site_url'))
+            //->canOnlyBeUsedBy($this->config->get('site_url'))
+            ->setId($id, true)
+            ->setExpiration($expires)
+            ->set('user_guid', (string) $this->user->getGuid())
+            ->sign(new Sha512, $this->config->get('sessions')['private_key'])
+            ->getToken();
 
         $this->session = new Session();
         $this->session
@@ -192,7 +209,7 @@ class Manager
             ->setToken($token)
             ->setUserGuid($this->user->getGuid())
             ->setExpires($expires);
-            
+
         return $this;
     }
 
@@ -228,8 +245,10 @@ class Manager
      */
     public function destroy($all = false)
     {
-        $this->repository->delete($this->session, $all);
-               
+        if ($this->session) {
+            $this->repository->delete($this->session, $all);
+        }
+
         $this->cookie
             ->setName('minds_sess')
             ->setValue('')
@@ -248,5 +267,4 @@ class Manager
     {
         return $this->repository->getCount($this->user->getGuid());
     }
-
 }

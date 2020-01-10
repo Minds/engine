@@ -4,10 +4,10 @@
  */
 namespace Minds\Core\Search;
 
+use Exception;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Event;
-use Minds\Entities;
 
 class Events
 {
@@ -41,7 +41,6 @@ class Events
                         'entity' => $params['entity']
                     ]);
                 }
-
             } catch (\Exception $e) {
                 error_log('[Search/Events/search:index] ' . get_class($e) . ': ' . $e->getMessage());
             }
@@ -61,7 +60,6 @@ class Events
 
                 Di::_()->get('Search\Queue')
                     ->queue($params['entity']);
-
             } catch (\Exception $e) {
                 error_log('[Search/Events/search:index:queue] ' . get_class($e) . ': ' . $e->getMessage());
             }
@@ -79,13 +77,30 @@ class Events
                     return;
                 }
 
-                Di::_()->get('Search\Index')
-                    ->index(
-                        is_string($params['entity']) ?
-                            unserialize($params['entity']) :
-                            $params['entity']
-                    );
+                $entity = is_string($params['entity']) ?
+                    unserialize($params['entity']) :
+                    $params['entity'];
 
+                try {
+                    $wasIndexed = (bool) Di::_()->get('Search\Index')
+                        ->index($entity);
+                } catch (Exception $e) {
+                    error_log("[Search/Events/search:index:dispatch] {$e}");
+                    $wasIndexed = false;
+                }
+
+                // BannedException will return null (which is also falsy)
+                // So we should retry only on non-null responses from index()
+                if ($wasIndexed !== null) {
+                    /** @var Core\Search\RetryQueue\Manager $retryQueueManager */
+                    $retryQueueManager = Di::_()->get('Search\RetryQueue\Manager');
+
+                    if ($wasIndexed) {
+                        $retryQueueManager->prune($entity);
+                    } else {
+                        $retryQueueManager->retry($entity);
+                    }
+                }
             } catch (\Exception $e) {
                 error_log('[Search/Events/search:index:dispatch] ' . get_class($e) . ': ' . $e->getMessage());
             }
@@ -116,7 +131,6 @@ class Events
                         'entity' => $params['entity']
                     ]);
                 }
-
             } catch (\Exception $e) {
                 error_log('[Search/Events/search:cleanup] ' . get_class($e) . ': ' . $e->getMessage());
             }
@@ -136,7 +150,6 @@ class Events
 
                 Di::_()->get('Search\Queue')
                     ->queueCleanup($params['entity']);
-
             } catch (\Exception $e) {
                 error_log('[Search/Events/search:cleanup:queue] ' . get_class($e) . ': ' . $e->getMessage());
             }
@@ -160,7 +173,6 @@ class Events
                             unserialize($params['entity']) :
                             $params['entity']
                     );
-
             } catch (\Exception $e) {
                 error_log('[Search/Events/search:cleanup:dispatch] ' . get_class($e) . ': ' . $e->getMessage());
             }
@@ -189,7 +201,7 @@ class Events
                 $key .= ':' . $entity->subtype;
             }
 
-            if (in_array($key, $allowedTypes)) {
+            if (in_array($key, $allowedTypes, true)) {
                 /** @var Core\Events\Dispatcher $dispatcher */
                 $dispatcher = Di::_()->get('EventsDispatcher');
 
@@ -228,7 +240,7 @@ class Events
                 $key .= ':' . $entity->subtype;
             }
 
-            if (in_array($key, $allowedTypes)) {
+            if (in_array($key, $allowedTypes, true)) {
                 /** @var Core\Events\Dispatcher $dispatcher */
                 $dispatcher = Di::_()->get('EventsDispatcher');
 

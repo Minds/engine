@@ -8,22 +8,23 @@ class Rows implements \IteratorAggregate, \ArrayAccess
     public $_pagingStateToken = '';
     public $_isLastPage = false;
 
-    public function __construct(array $items, $pagingStateToken)
+    public function __construct(array $items, $pagingStateToken, $isLastPage = false)
     {
         $this->_items = $items;
         $this->_pagingStateToken = $pagingStateToken;
+        $this->_isLastPage = $isLastPage;
     }
 
     public function getIterator()
     {
         return call_user_func(function () {
-            while (list($key, $val) = each($this->_items)) {
+            foreach ($this->_items as $key => $val) {
                 yield $key => $val;
             }
         });
     }
 
-    function pagingStateToken()
+    public function pagingStateToken()
     {
         return $this->_pagingStateToken;
     }
@@ -62,5 +63,4 @@ class Rows implements \IteratorAggregate, \ArrayAccess
     {
         return $this->_items[key($this->_items)];
     }
-
 }

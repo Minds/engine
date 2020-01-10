@@ -1,7 +1,4 @@
 <?php
-/**
- * Braintree webhooks
- */
 
 namespace Minds\Core\Payments\Stripe;
 
@@ -9,7 +6,6 @@ use Minds\Core;
 use Minds\Core\Guid;
 use Minds\Core\Payments;
 use Minds\Entities;
-
 
 class Webhooks
 {
@@ -102,7 +98,7 @@ class Webhooks
         $metadata = [];
 
         foreach ($lines as $line) {
-            if($line->type == "subscription"){
+            if ($line->type == "subscription") {
                 $metadata = $line->metadata->__toArray(false);
                 $subscriptionId = $line->id;
                 $planId = $line->plan->id;
@@ -137,7 +133,6 @@ class Webhooks
 
     protected function onCancelled()
     {
-
         $subscriptionObj = $this->event->data->object;
 
         //grab the customer

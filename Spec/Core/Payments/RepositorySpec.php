@@ -10,21 +10,20 @@ class RepositorySpec extends ObjectBehavior
 {
     protected $cql;
 
-    function let(
+    public function let(
         Client $cql
-    )
-    {
+    ) {
         $this->cql = $cql;
 
         $this->beConstructedWith($cql);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Payments\Repository');
     }
 
-    function it_should_get_by_payment_id()
+    public function it_should_get_by_payment_id()
     {
         $this->cql->request(Argument::that(function ($query) {
             return stripos($query->build()['string'], 'select * from payments_by_payment_id') === 0 &&
@@ -38,7 +37,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(1337);
     }
 
-    function it_should_return_false_if_request_is_falsy_during_get_payment_by_id()
+    public function it_should_return_false_if_request_is_falsy_during_get_payment_by_id()
     {
         $this->cql->request(Argument::that(function ($query) {
             return stripos($query->build()['string'], 'select * from payments_by_payment_id') === 0 &&
@@ -52,7 +51,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    function it_should_throw_if_no_payment_id_during_get_payment_by_id()
+    public function it_should_throw_if_no_payment_id_during_get_payment_by_id()
     {
         $this->cql->request(Argument::cetera())
             ->shouldNotBeCalled();
@@ -62,7 +61,7 @@ class RepositorySpec extends ObjectBehavior
             ->duringGetByPaymentId(null);
     }
 
-    function it_should_upsert()
+    public function it_should_upsert()
     {
         $this->cql->request(Argument::that(function ($query) {
             return stripos($query->build()['string'], 'insert into payments') === 0;
@@ -75,7 +74,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    function it_should_return_false_if_request_is_falsy_during_upsert()
+    public function it_should_return_false_if_request_is_falsy_during_upsert()
     {
         $this->cql->request(Argument::that(function ($query) {
             return stripos($query->build()['string'], 'insert into payments') === 0;
@@ -88,7 +87,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    function it_should_throw_if_no_type_during_upsert()
+    public function it_should_throw_if_no_type_during_upsert()
     {
         $this->cql->request(Argument::cetera())
             ->shouldNotBeCalled();
@@ -98,7 +97,7 @@ class RepositorySpec extends ObjectBehavior
             ->duringUpsert(null, 1000, 10000000, 'test:5000', [ 'amount' => 1 ]);
     }
 
-    function it_should_throw_if_no_user_guid_during_upsert()
+    public function it_should_throw_if_no_user_guid_during_upsert()
     {
         $this->cql->request(Argument::cetera())
             ->shouldNotBeCalled();
@@ -108,7 +107,7 @@ class RepositorySpec extends ObjectBehavior
             ->duringUpsert('test', null, 10000000, 'test:5000', [ 'amount' => 1 ]);
     }
 
-    function it_should_throw_if_no_time_created_during_upsert()
+    public function it_should_throw_if_no_time_created_during_upsert()
     {
         $this->cql->request(Argument::cetera())
             ->shouldNotBeCalled();
@@ -118,7 +117,7 @@ class RepositorySpec extends ObjectBehavior
             ->duringUpsert('test', 1000, null, 'test:5000', [ 'amount' => 1 ]);
     }
 
-    function it_should_throw_if_no_payment_id_during_upsert()
+    public function it_should_throw_if_no_payment_id_during_upsert()
     {
         $this->cql->request(Argument::cetera())
             ->shouldNotBeCalled();
@@ -128,7 +127,7 @@ class RepositorySpec extends ObjectBehavior
             ->duringUpsert('test', 1000, 10000000, null, [ 'amount' => 1 ]);
     }
 
-    function it_should_throw_if_no_data_during_upsert()
+    public function it_should_throw_if_no_data_during_upsert()
     {
         $this->cql->request(Argument::cetera())
             ->shouldNotBeCalled();

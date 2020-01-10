@@ -29,13 +29,20 @@ class Wire
     /** @var bool **/
     private $recurring = false;
 
-    /** @var method **/
+    /** @var string **/
+    private $recurringInterval;
+
+    /** @var string $method */
     private $method = 'tokens';
+
+    /** @var string $address */
+    private $address;
 
     /** @var int $timestamp **/
     private $timestamp;
 
-    public function getGuid() {
+    public function getGuid()
+    {
         if (!$this->guid) {
             $this->guid = Guid::build();
         }
@@ -43,7 +50,8 @@ class Wire
         return $this->guid;
     }
 
-    public function export() {
+    public function export()
+    {
         return [
             'timestamp' => $this->timestamp,
             'amount' => $this->amount,
@@ -52,5 +60,4 @@ class Wire
             'recurring' => $this->recurring,
         ];
     }
-
 }

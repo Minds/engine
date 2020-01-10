@@ -28,8 +28,7 @@ class Repository
      */
     public function __construct(
         $db = null
-    )
-    {
+    ) {
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
     }
 
@@ -42,25 +41,54 @@ class Repository
         $opts = array_merge([
             'limit' => 500,
             'offset' => '',
+            'year' => null,
+            'month' => null,
+            'day' => null,
+            'from' => null,
         ], $opts) ;
 
         $cql = "SELECT * FROM views";
         $values = [];
         $cqlOpts = [];
+        $where = [];
 
         // TODO: Implement constraints (by year/month/day/timeuuid)
+
+        if ($opts['year']) {
+            $where[] = 'year = ?';
+            $values[] = (int) $opts['year'];
+        }
+
+        if ($opts['month']) {
+            $where[] = 'month = ?';
+            $values[] = new Tinyint($opts['month']);
+        }
+
+        if ($opts['day']) {
+            $where[] = 'day = ?';
+            $values[] = new Tinyint($opts['day']);
+        }
+
+        if ($opts['from']) {
+            $where[] = 'uuid > ?';
+            $values[] = new Timeuuid($opts['from'] * 1000);
+        }
+
+        if (count($where)) {
+            $cql .= " WHERE " . implode(' AND ', $where);
+        }
 
         if ($opts['limit']) {
             $cqlOpts['page_size'] = (int) $opts['limit'];
         }
 
         if ($opts['offset']) {
-            $cqlOpts['paging_state_token'] = base64_decode($opts['offset']);
+            $cqlOpts['paging_state_token'] = base64_decode($opts['offset'], true);
         }
 
         $prepared = new Custom();
         $prepared->query($cql, $values);
-        $prepared->setOpts($opts);
+        $prepared->setOpts($cqlOpts);
 
         $response = new Response();
 
@@ -76,6 +104,7 @@ class Repository
                     ->setDay((int) $row['day'] ?: null)
                     ->setUuid($row['uuid']->uuid() ?: null)
                     ->setEntityUrn($row['entity_urn'])
+                    ->setOwnerGuid($row['owner_guid'])
                     ->setPageToken($row['page_token'])
                     ->setPosition((int) $row['position'])
                     ->setSource($row['platform'])
@@ -107,13 +136,14 @@ class Repository
         $timestamp = $view->getTimestamp() ?: time();
         $date = new DateTime("@{$timestamp}", new DateTimeZone('utc'));
 
-        $cql = "INSERT INTO views (year, month, day, uuid, entity_urn, page_token, position, platform, source, medium, campaign, delta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $cql = "INSERT INTO views (year, month, day, uuid, entity_urn, owner_guid, page_token, position, platform, source, medium, campaign, delta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $values = [
             (int) ($view->getYear() ?? $date->format('Y')),
             new Tinyint((int) ($view->getMonth() ?? $date->format('m'))),
             new Tinyint((int) ($view->getDay() ?? $date->format('d'))),
             new Timeuuid($view->getUuid() ?? $timestamp * 1000),
             $view->getEntityUrn() ?: '',
+            (string) ($view->getOwnerGuid() ?? ''),
             $view->getPageToken() ?: '',
             (int) ($view->getPosition() ?? -1),
             $view->getPlatform() ?: '',

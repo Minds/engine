@@ -13,61 +13,51 @@ use Minds\Entities\User;
 
 class SubscriptionSpec extends ObjectBehavior
 {
-
-    function it_is_initializable(Stripe $stripe)
+    public function it_is_initializable(Stripe $stripe)
     {
         $this->beConstructedWith($stripe);
         $this->shouldHaveType('Minds\Core\Plus\Subscription');
     }
 
-    function it_should_return_if_a_subscription_is_active(
+    public function it_should_return_if_a_subscription_is_active(
         Stripe $stripe,
-        Repository $repo, 
-        Subscription $subscription
-    )
-    {
+        Repository $repo,
+        User $user
+    ) {
         $this->beConstructedWith($stripe, null, $repo);
 
-        $repo->getList(Argument::any())->willReturn([
-            $subscription
-        ]);
+        $user->isPlus()
+            ->shouldBeCalled()
+            ->willReturn(true);
 
-        $subscription->getStatus()->willReturn('active');
-
-        $user = new User();
-        $user->guid = 123;
-
-        $this->setUser($user);
-        $this->isActive()->shouldBe(true);
+        $this
+            ->setUser($user)
+            ->isActive()
+            ->shouldBe(true);
     }
 
-    function it_should_return_false_if_a_subscription_is_active(
+    public function it_should_return_false_if_a_subscription_is_active(
         Stripe $stripe,
-        Repository $repo, 
-        Subscription $subscription
-    )
-    {
+        Repository $repo,
+        User $user
+    ) {
         $this->beConstructedWith($stripe, null, $repo);
 
-        $repo->getList(Argument::any())->willReturn([
-            $subscription
-        ]);
+        $user->isPlus()
+            ->shouldBeCalled()
+            ->willReturn(false);
 
-        $subscription->getStatus()->willReturn('cancelled');
-
-        $user = new User();
-        $user->guid = 123;
-
-        $this->setUser($user);
-        $this->isActive()->shouldBe(false);
+        $this
+            ->setUser($user)
+            ->isActive()
+            ->shouldBe(false);
     }
 
-    function is_should_create_a_new_subscription(
+    public function is_should_create_a_new_subscription(
         Stripe $stripe,
         Manager $manager,
         Subscription $subscription
-    )
-    {
+    ) {
         $this->beConstructedWith($stripe, $manager);
         
         $subscription->setInterval('monthly')
@@ -85,13 +75,12 @@ class SubscriptionSpec extends ObjectBehavior
             ->shouldReturn($this);
     }
 
-    function is_should_cancel_exisiting_subscription(
+    public function is_should_cancel_exisiting_subscription(
         Stripe $stripe,
         Repository $repository,
         Manager $manager,
         Subscription $subscription
-    )
-    {
+    ) {
         $this->beConstructedWith($stripe, $manager, $repository);
         
         $repository->getList([
@@ -114,5 +103,4 @@ class SubscriptionSpec extends ObjectBehavior
         $this->cancel()
             ->shouldReturn($this);
     }
-
 }

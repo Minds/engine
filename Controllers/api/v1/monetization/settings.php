@@ -31,7 +31,7 @@ class settings extends Controller implements Interfaces\Api
         $merchant = $stripe->getMerchant($user->getMerchant()['id']);
 
         if (!$merchant->getId()) {
-          return Factory::response([
+            return Factory::response([
             'status' => 'error',
             'message' => 'User is not a merchant'
           ]);
@@ -58,7 +58,7 @@ class settings extends Controller implements Interfaces\Api
         $merchant = (new Merchant)->setId($user->getMerchant()['id']);
 
         if (!$merchant->getId()) {
-          return Factory::response([
+            return Factory::response([
             'status' => 'error',
             'message' => 'User is not a merchant'
           ]);
@@ -68,12 +68,12 @@ class settings extends Controller implements Interfaces\Api
           ->setAccountNumber($_POST['accountNumber'])
           ->setRoutingNumber($_POST['routingNumber']);
 
-        try{
+        try {
             $stripe->updateMerchantAccount($merchant);
             return Factory::response([
               'bank' => true
             ]);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return Factory::response([
               'status' => 'error',
               'message' => $e->getMessage()

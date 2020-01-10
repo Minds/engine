@@ -51,7 +51,7 @@ class issues implements Interfaces\Api
         $issue = new Issue;
         $issue->setTitle($title)
             ->setDescription($description)
-            ->setLabels('S - Triage (New), T - Bug (Triage)');
+            ->setLabels('Status::Validation, Type::Bug (Triage)');
 
         // call gitlab api
         $res = $manager->postIssue($issue, $pages[0]);
@@ -70,8 +70,8 @@ class issues implements Interfaces\Api
     private function formatError($res)
     {
         $message = '';
-        foreach($res['message'] as $k => $v) {
-            $message .= $k. ': ' . implode(', ',$v).PHP_EOL;
+        foreach ($res['message'] as $k => $v) {
+            $message .= $k. ': ' . implode(', ', $v).PHP_EOL;
         }
         return $message;
     }

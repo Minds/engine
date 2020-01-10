@@ -2,9 +2,14 @@
 
 ini_set('memory_limit', '256M');
 
+# Redirect error_log output to blackhole
+ini_set('error_log', '/dev/null');
+
 global $CONFIG;
 
 date_default_timezone_set('UTC');
+
+define('__MINDS_ROOT__', dirname(__FILE__) . '/../');
 
 $minds = new Minds\Core\Minds();
 $minds->loadLegacy();
@@ -20,26 +25,13 @@ $CONFIG->cassandra->username = 'cassandra';
 $CONFIG->cassandra->password = 'cassandra';
 
 $CONFIG->payments = [
-  'braintree' => [
-    'default' => [
-      'environment' => 'sandbox',
-      'merchant_id' => 'foobar',
-      'master_merchant_id' => 'foobar',
-      'public_key' => 'random',
-      'private_key' => 'random_private'
+    'stripe' => [
+        'api_key' => 'phpspec',
     ],
-    'merchants' => [
-      'environment' => 'sandbox',
-      'merchant_id' => 'foobar',
-      'master_merchant_id' => 'foobar',
-      'public_key' => 'random',
-      'private_key' => 'random_private'
-    ],
-  ]];
+];
 
-class Mock 
+class Mock
 {
-
     private $a;
 
     const BATCH_COUNTER = null;
@@ -80,12 +72,10 @@ class Mock
 
     public function request()
     {
-
     }
 
     public function create()
     {
-      
     }
 
     public function withContactPoints()
@@ -100,22 +90,18 @@ class Mock
 
     public static function text()
     {
-      
     }
 
     public static function varint()
     {
-
     }
 
     public static function bigint()
     {
-
     }
 
     public static function timestamp()
     {
-
     }
 
     public function uuid()
@@ -124,6 +110,11 @@ class Mock
     }
 
     public function time()
+    {
+        return (int) $this->a;
+    }
+
+    public function microtime()
     {
         return (int) $this->a;
     }
@@ -185,12 +176,10 @@ class Mock
 
     public static function get()
     {
-
     }
 
     public static function boolean()
     {
-
     }
 
     public static function set(...$args)
@@ -200,7 +189,6 @@ class Mock
 
     public function add()
     {
-
     }
 }
 
@@ -257,14 +245,11 @@ class MockCollectionValues implements ArrayAccess
 
     public function offsetSet($offset, $value)
     {
-
     }
     
     public function offsetUnset($offset)
     {
-
     }
-
 }
 
 class MockSet
@@ -306,11 +291,14 @@ if (!class_exists('Cassandra')) {
     class_alias('Mock', 'Cassandra\Uuid');
     class_alias('Mock', 'Cassandra\Timeuuid');
     class_alias('Mock', 'Cassandra\Boolean');
-    class_alias('Mock', 'MongoDB\BSON\UTCDateTime');
     class_alias('Mock', 'Cassandra\RetryPolicy\Logging');
     class_alias('Mock', 'Cassandra\RetryPolicy\DowngradingConsistency');
 }
 
-Minds\Core\Di\Di::_()->bind('Database\Cassandra\Cql', function($di) {
+if (!class_exists('MongoDB\BSON\UTCDateTime')) {
+    class_alias('Mock', 'MongoDB\BSON\UTCDateTime');
+}
+
+Minds\Core\Di\Di::_()->bind('Database\Cassandra\Cql', function ($di) {
     return new Mock;
 });

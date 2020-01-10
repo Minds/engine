@@ -10,14 +10,13 @@ namespace Minds\Controllers\fs\v1;
 use Minds\Core;
 use Minds\Entities;
 use Minds\Interfaces;
-use Minds\Api\Factory;
+use Minds\Helpers\File;
 
 class paywall implements Interfaces\FS
 {
     public function get($pages)
     {
-
-        switch($pages[0]){
+        switch ($pages[0]) {
             case "preview":
               $channel = Entities\Factory::build($pages[1]);
 
@@ -32,9 +31,7 @@ class paywall implements Interfaces\FS
                   $contents = file_get_contents(Core\Di\Di::_()->get('Config')->get('path') . 'engine/Assets/photos/andromeda-galaxy.jpg');
               }
 
-              $finfo    = finfo_open(FILEINFO_MIME);
-              $mimetype = finfo_file($finfo, $filepath);
-              finfo_close($finfo);
+              $mimetype = File::getMime($contents);
               header('Content-Type: '.$mimetype);
               header('Expires: ' . date('r', time() + 864000));
               header("Pragma: public");
@@ -44,6 +41,5 @@ class paywall implements Interfaces\FS
 
               break;
         }
-
     }
 }

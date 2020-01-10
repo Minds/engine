@@ -37,6 +37,9 @@ class DataProvider extends Provider
         $this->di->bind('Database\Cassandra\Cql', function ($di) {
             return new Cassandra\Client();
         }, ['useFactory'=>true]);
+        $this->di->bind('Database\Cassandra\Cql\Scroll', function ($di) {
+            return new Cassandra\Scroll();
+        }, ['useFactory'=>true]);
         $this->di->bind('Database\Cassandra\Entities', function ($di) {
             return new Call('entities');
         }, ['useFactory'=>false]);
@@ -72,14 +75,16 @@ class DataProvider extends Provider
             $sslmode = isset($config['sslmode']) ? $config['sslmode'] : 'disable';
             $username = isset($config['username']) ? $config['username'] : 'php';
             // This is a generic data object using the postgres driver to connect to cockroachdb.
-            return new PDO("pgsql:host=$host;port=$port;dbname=$name;sslmode=$sslmode",
+            return new PDO(
+                "pgsql:host=$host;port=$port;dbname=$name;sslmode=$sslmode",
                 $username,
                 null,
                 [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_EMULATE_PREPARES => true,
                     PDO::ATTR_PERSISTENT => isset($config['persistent']) ? $config['persistent'] : false,
-                ]);
+                ]
+            );
         }, ['useFactory'=>true]);
         /**
          * Locks
@@ -98,6 +103,21 @@ class DataProvider extends Provider
          */
         $this->di->bind('PubSub\Redis', function ($di) {
             return new PubSub\Redis\Client();
+        }, ['useFactory'=>true]);
+        /**
+         * Redis
+         */
+        $this->di->bind('Redis', function ($di) {
+            $master = $di->get('Config')->redis['master'];
+            $client = new Redis\Client();
+            $client->connect($master);
+            return $client;
+        }, ['useFactory'=>true]);
+        $this->di->bind('Redis\Slave', function ($di) {
+            $slave = $di->get('Config')->redis['slave'];
+            $client = new Redis\Client();
+            $client->connect($slave);
+            return $client;
         }, ['useFactory'=>true]);
         /**
          * Prepared statements

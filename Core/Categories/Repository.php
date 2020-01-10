@@ -6,7 +6,6 @@ use Minds\Core\Di\Di;
 
 class Repository
 {
-
     private $db;
     private $config;
 
@@ -14,7 +13,7 @@ class Repository
     private $type;
     private $categories;
 
-    public function __construct($db = NULL, $config = NULL)
+    public function __construct($db = null, $config = null)
     {
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
         $this->config = $config ?: Di::_()->get('Config');
@@ -34,14 +33,14 @@ class Repository
 
     public function setCategories($categories)
     {
-          $availableCategories = $this->config->get('categories');
-          //sanitize these categories
-          foreach ($categories as $category) {
-              if (isset($availableCategories[$category])) {
-                  $this->categories[] = $category;
-              }
-          }
-          return $this;
+        $availableCategories = $this->config->get('categories');
+        //sanitize these categories
+        foreach ($categories as $category) {
+            if (isset($availableCategories[$category])) {
+                $this->categories[] = $category;
+            }
+        }
+        return $this;
     }
 
     public function getCategories()
@@ -98,13 +97,16 @@ class Repository
             return $this;
         }
         foreach ($this->categories as $category) {
-            $query->query("INSERT INTO categories
+            $query->query(
+                "INSERT INTO categories
               (type, category, filter, guid)
               VALUES (?, ?, ?, ?)",
-              [ $this->type, $category, $this->filter, (string) $guid ]);
+                [ $this->type, $category, $this->filter, (string) $guid ]
+            );
             try {
                 $result = $this->db->request($query);
-            } catch (\Exception $e) { }
+            } catch (\Exception $e) {
+            }
         }
         return $this;
     }
@@ -116,14 +118,16 @@ class Repository
             return $this;
         }
         foreach ($this->categories as $category) {
-            $query->query("DELETE FROM categories
+            $query->query(
+                "DELETE FROM categories
               WHERE type = ? AND category = ? AND filter = ? AND guid = ?",
-              [ $this->type, $category, $this->filter, (string) $guid ]);
+                [ $this->type, $category, $this->filter, (string) $guid ]
+            );
             try {
                 $result = $this->db->request($query);
-            } catch (\Exception $e) { }
+            } catch (\Exception $e) {
+            }
         }
         return $this;
     }
-
 }

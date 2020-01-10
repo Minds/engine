@@ -14,13 +14,12 @@ use Zend\Diactoros\ServerRequestFactory;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\Response\SapiEmitter;
+use Sentry;
 
 class token implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
-
     public function get($pages = [])
     {
-        
     }
 
     public function post($pages = [])
@@ -48,12 +47,11 @@ class token implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
         
         $emitter = new SapiEmitter();
-        $emitter->emit($response);  
+        $emitter->emit($response);
     }
 
     public function put($pages = [])
     {
-        
     }
 
     public function delete($pages = [])
@@ -73,15 +71,15 @@ class token implements Interfaces\Api, Interfaces\ApiIgnorePam
             $refreshTokenRepository->revokeRefreshToken($tokenId);
             $response = new JsonResponse([]);
         } catch (\Exception $e) {
+            Sentry\captureException($e); // Log to sentry
             $body = [
                 'status' => 'error',
-                'message' => $exception->getMessage(),
+                'message' => $e->getMessage(),
             ];
-            $response = new JsonResponse($body, 500); 
+            $response = new JsonResponse($body, 500);
         }
 
         $emitter = new SapiEmitter();
         $emitter->emit($response);
     }
-
 }

@@ -9,6 +9,11 @@ namespace Minds\Core\Search\SortingAlgorithms;
 interface SortingAlgorithm
 {
     /**
+     * @return bool
+     */
+    public function isTimestampConstrain(): bool;
+
+    /**
      * @param string $period
      * @return $this
      */

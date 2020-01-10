@@ -10,27 +10,26 @@ use Minds\Core\Analytics\Timestamps;
 
 class SignupSpec extends ObjectBehavior
 {
-
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Analytics\Metrics\Signup');
     }
 
-    function it_should_increment_the_metric(Call $db)
+    public function it_should_increment_the_metric(Call $db)
     {
         $this->beConstructedWith($db);
-        foreach(Timestamps::get(['day', 'month'])  as $p => $ts){
+        foreach (Timestamps::get(['day', 'month'])  as $p => $ts) {
             $db->insert("analytics:signup:$p:$ts", Argument::type('array'))->willReturn();
         }
         $this->setKey('foobar');
         $this->increment()->shouldReturn(true);
     }
 
-    function it_should_return_a_span_of_metrics(Call $db)
+    public function it_should_return_a_span_of_metrics(Call $db)
     {
         $this->beConstructedWith($db);
         $timestamps = Timestamps::span(3, 'day');
-        foreach($timestamps as $ts){
+        foreach ($timestamps as $ts) {
             $db->countRow("analytics:signup:day:$ts")->willReturn(3);
         }
         $this->get(3, 'day')->shouldHaveCount(3);
@@ -40,5 +39,4 @@ class SignupSpec extends ObjectBehavior
           'total' => 3
         ]);*/
     }
-
 }

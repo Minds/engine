@@ -5,10 +5,11 @@ namespace Minds\Core\Storage\Services;
 use Aws\S3\S3Client;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Helpers\File;
 
 class S3 implements ServiceInterface
 {
-
+    /** @var S3Client */
     public $s3;
     public $filepath;
     public $mode;
@@ -22,8 +23,7 @@ class S3 implements ServiceInterface
 
     public function open($path, $mode)
     {
-
-        if ($mode && !in_array($mode, $this->modes)) {
+        if ($mode && !in_array($mode, $this->modes, true)) {
             throw new \Exception("$mode is not a supported type");
         }
 
@@ -63,26 +63,16 @@ class S3 implements ServiceInterface
 
     public function write($data)
     {
-        
-        //TODO: check mime performance here
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $mimeType = $finfo->buffer($data);
+        $mimeType = File::getMimeType($data);
 
         $write =  $this->s3->putObject([
-          'ACL' => 'public-read',
+          // 'ACL' => 'public-read',
           'Bucket' => Config::_()->aws['bucket'],
           'Key' => $this->filepath,
           'ContentType' => $mimeType,
           'ContentLength' => strlen($data),
-          //'ContentLength' => filesize($file),
           'Body' => $data,
         ]);
-
-        //also write to disk until full migration
-        /*$disk = new Disk();
-        $disk->open($this->filepath, 'write');
-        $disk->write($data);
-        $disk->close();*/
 
         return true;
     }
@@ -95,33 +85,35 @@ class S3 implements ServiceInterface
                 return $url;
                 break;
             case "read":
-                try{
+                try {
                     $result = $this->s3->getObject([
                         'Bucket' => Config::_()->aws['bucket'],
-                        'Key' => $this->filepath 
+                        'Key' => $this->filepath
                     ]);
-                } catch (\Exception $e){
+                } catch (\Exception $e) {
                 }
                 return $result['Body'];
                 break;
             case "redirect":
             default:
-                //for now, check if the file exists, and fallback to disk if not!
-                /*if (!$this->s3->doesObjectExist(Config::_()->aws['bucket'], $this->filepath)) {
-                    $disk = new Disk();
-                    $disk->open($this->filepath, 'read');
-                    $content = $disk->read();
-                    $disk->close();
-                    return $content;
-                }*/
-
                 $url = $this->s3->getObjectUrl(Config::_()->aws['bucket'], $this->filepath, "+15 minutes");
-                //$this->filepath = str_replace('//', '/', $this->filepath);
-                //$url = Config::_()->aws['cloudfront'] . $this->filepath;
                 header("Location: $url");
                 exit;
         }
+    }
 
+    /**
+     * Return a signed url
+     * @return string
+     */
+    public function getSignedUrl(): string
+    {
+        $cmd = $this->s3->getCommand('GetObject', [
+           'Bucket' => Config::_()->aws['bucket'],
+           'Key' => $this->filepath,
+        ]);
+        $request = $this->s3->createPresignedRequest($cmd, '+20 minutes');
+        return (string) $request->getUri();
     }
 
     public function seek($offset = 0)
@@ -131,8 +123,5 @@ class S3 implements ServiceInterface
 
     public function destroy()
     {
-
     }
-
-
 }

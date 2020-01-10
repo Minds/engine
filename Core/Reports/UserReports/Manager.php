@@ -32,8 +32,7 @@ class Manager
         $elasticRepository = null,
         $notificationDelegate = null,
         $reportsManager = null
-    )
-    {
+    ) {
         $this->repository = $repository ?: new Repository;
         $this->elasticRepository = $elasticRepository ?: new ElasticRepository;
         $this->notificationDelegate = $notificationDelegate ?: new Delegates\NotificationDelegate;
@@ -63,11 +62,11 @@ class Manager
         // Return the latest report, or the same supplied report if none exist
         $report = $this->reportsManager->getLatestReport($userReport->getReport());
 
-        if ($report->getState() !== 'reported' 
-            && !in_array($report->getEntity()->type, [ 'user', 'group' ])
+        if ($report->getState() !== 'reported'
+            && !in_array($report->getEntity()->type, [ 'user', 'group' ], true)
         ) {
             return true; // Already past report threshold
-        } 
+        }
         
         if ($report->getState() === 'initial_jury_decided' && $report->isUpheld()) {
             return true; // Until appealed, don't accept any more reports
@@ -79,6 +78,13 @@ class Manager
 
         if ($report->getState() === 'appeal_jury_decided' && $report->isUpheld()) {
             return true; // Do not accept further reports if appeal jury uphols
+        }
+        
+        if ($report->getReasonCode() == 2
+            && $report->getEntity()->getNsfw()
+            && in_array($report->getSubReasonCode(), $report->getEntity()->getNsfw(), false)
+        ) {
+            return true; // If the post is NSFW and tagged, do not allow report
         }
 
         if ($report->getState() !== 'reported') {
@@ -92,5 +98,4 @@ class Manager
         $this->notificationDelegate->onAction($userReport);
         return true;
     }
-
 }

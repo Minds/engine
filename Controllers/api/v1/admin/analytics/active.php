@@ -23,7 +23,7 @@ class active implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function get($pages)
     {
-        $response = array();
+        $response = [];
 
         $db = new Core\Data\Call('entities_by_time');
 
@@ -44,7 +44,7 @@ class active implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function post($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     /**
@@ -52,7 +52,7 @@ class active implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     /**
@@ -60,6 +60,6 @@ class active implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function delete($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }

@@ -8,15 +8,14 @@ use Prophecy\Argument;
 
 class ObjectVideoMappingSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Search\Mappings\ObjectVideoMapping');
     }
 
-    function it_should_map_a_video(
+    public function it_should_map_a_video(
         Video $video
-    )
-    {
+    ) {
         $now = time();
 
         $video->get('rating')->willReturn(1);
@@ -39,6 +38,8 @@ class ObjectVideoMappingSpec extends ObjectBehavior
 
         $video->getFlag('mature')->willReturn(false);
         $video->getFlag('paywall')->willReturn(false);
+        $video->get('moderator_guid')->willReturn('123');
+        $video->get('time_moderated')->willReturn($now);
         $video->getNsfw()->willReturn([ 1 ]);
 
         $this
@@ -71,6 +72,8 @@ class ObjectVideoMappingSpec extends ObjectBehavior
                 'public' => true,
                 'tags' => [ 'test', 'hashtag' ],
                 'nsfw' => [ 1 ],
+                'moderator_guid' => '123',
+                '@moderated' => $now * 1000
             ]);
     }
 }

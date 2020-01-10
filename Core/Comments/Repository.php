@@ -28,7 +28,7 @@ class Repository
     protected $legacyRepository;
 
     /** @var array */
-    static $allowedEntityAttributes = [
+    public static $allowedEntityAttributes = [
         'entityGuid',
         'parentGuid',
         'parentGuidL1',
@@ -86,7 +86,7 @@ class Repository
         $opts['parent_guid_l1'] = $parent_guids[0] ?? 0;
         $opts['parent_guid_l2'] = $parent_guids[1] ?? 0;
         $opts['parent_guid_l3'] = 0; //do not support l3 yet
-        
+
         $cql = "SELECT * from comments";
         $values = [];
         $cqlOpts = [];
@@ -94,16 +94,25 @@ class Repository
         $where = [];
 
         if ($opts['entity_guid']) {
+            if (!is_numeric($opts['entity_guid'])) {
+                return new Response();
+            }
             $where[] = 'entity_guid = ?';
             $values[] = new Varint($opts['entity_guid']);
         }
 
         if ($opts['parent_guid_l1'] !== null) {
+            if (!is_numeric($opts['parent_guid_l1'])) {
+                return new Response();
+            }
             $where[] = 'parent_guid_l1 = ?';
             $values[] = new Varint((int) $opts['parent_guid_l1']);
         }
 
         if ($opts['parent_guid_l2'] !== null) {
+            if (!is_numeric($opts['parent_guid_l2'])) {
+                return new Response();
+            }
             $where[] = 'parent_guid_l2 = ?';
             $values[] = new Varint((int) $opts['parent_guid_l2']);
         }
@@ -121,7 +130,6 @@ class Repository
         if ($opts['offset']) {
             if ($opts['include_offset']) {
                 $where[] = $opts['descending'] ? " guid <= ?" : "guid >= ?";
-
             } else {
                 $where[] = $opts['descending'] ? " guid < ?" : "guid > ?";
             }
@@ -137,7 +145,7 @@ class Repository
         }
 
         if ($opts['token']) {
-            $cqlOpts['paging_state_token'] = base64_decode($opts['token']);
+            $cqlOpts['paging_state_token'] = base64_decode($opts['token'], true);
         }
 
         if ($opts['limit']) {
@@ -185,8 +193,9 @@ class Repository
                 $comments[] = $comment;
             }
 
-            if ($rows)
-              $comments->setPagingToken(base64_encode($rows->pagingStateToken()));
+            if ($rows) {
+                $comments->setPagingToken(base64_encode($rows->pagingStateToken()));
+            }
         } catch (\Exception $e) {
             error_log($e);
         }
@@ -205,7 +214,6 @@ class Repository
         }
 
         if ($this->legacyRepository->isLegacy($entity_guid)) {
-
             $comments = $this->legacyRepository->getList([
                 'limit' => 1,
                 'offset' => base64_encode($guid),
@@ -305,7 +313,7 @@ class Repository
 
         $result = $this->cql->request($prepared);
 
-        if (!isset($result) 
+        if (!isset($result)
             || !isset($result[0])
             || !isset($result[0]['count'])
         ) {
@@ -333,35 +341,35 @@ class Repository
 
         $fields = [];
 
-        if (in_array('repliesCount', $attributes)) {
+        if (in_array('repliesCount', $attributes, true)) {
             $fields['replies_count'] = new Varint($comment->getRepliesCount());
         }
 
-        if (in_array('parentGuidL1', $attributes)) {
+        if (in_array('parentGuidL1', $attributes, true)) {
             $fields['parent_guid_l1'] = new Varint($comment->getParentGuidL1() ?: 0);
         }
 
-        if (in_array('parentGuidL2', $attributes)) {
+        if (in_array('parentGuidL2', $attributes, true)) {
             $fields['parent_guid_l2'] = new Varint($comment->getParentGuidL2() ?: 0);
         }
 
-        if (in_array('ownerGuid', $attributes)) {
+        if (in_array('ownerGuid', $attributes, true)) {
             $fields['owner_guid'] = new Varint($comment->getOwnerGuid() ?: 0);
         }
 
-        if (in_array('timeCreated', $attributes)) {
+        if (in_array('timeCreated', $attributes, true)) {
             $fields['time_created'] = new Timestamp($comment->getTimeCreated());
         }
 
-        if (in_array('timeUpdated', $attributes)) {
+        if (in_array('timeUpdated', $attributes, true)) {
             $fields['time_updated'] = new Timestamp($comment->getTimeUpdated());
         }
 
-        if (in_array('body', $attributes)) {
+        if (in_array('body', $attributes, true)) {
             $fields['body'] = (string) $comment->getBody();
         }
 
-        if (in_array('attachments', $attributes)) {
+        if (in_array('attachments', $attributes, true)) {
             // TODO: Check a way to make atomic updates
             $fields['attachments'] = new Map(Type::text(), Type::text());
 
@@ -372,10 +380,10 @@ class Repository
         }
 
         if (
-            in_array('mature', $attributes) ||
-            in_array('edited', $attributes) ||
-            in_array('spam', $attributes) ||
-            in_array('deleted', $attributes)
+            in_array('mature', $attributes, true) ||
+            in_array('edited', $attributes, true) ||
+            in_array('spam', $attributes, true) ||
+            in_array('deleted', $attributes, true)
         ) {
             // TODO: Check a way to make atomic updates
             $fields['flags'] = new Map(Type::text(), Type::boolean());
@@ -386,7 +394,7 @@ class Repository
             $fields['flags']->set('deleted', $comment->isDeleted());
         }
 
-        if (in_array('ownerObj', $attributes)) {
+        if (in_array('ownerObj', $attributes, true)) {
             $fields['owner_obj'] = $comment->getOwnerObj() ? json_encode($comment->getOwnerObj()) : null;
         }
 
@@ -479,5 +487,4 @@ class Repository
 
         return true;
     }
-
 }

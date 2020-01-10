@@ -48,8 +48,8 @@ class Block
             return [];
         }
 
-        $list = $this->db->getRow("acl:blocked:$from", array('limit' => $limit, 'offset' => $offset));
-        return $list ? array_keys($list) : array();
+        $list = $this->db->getRow("acl:blocked:$from", ['limit' => $limit, 'offset' => $offset]);
+        return $list ? array_keys($list) : [];
     }
 
     /**
@@ -94,8 +94,10 @@ class Block
         $prepared = new Cassandra\Prepared\Custom();
         $collection = \Cassandra\Type::collection(\Cassandra\Type::text())
             ->create(... $user_guids);
-        $prepared->query("SELECT * from entities_by_time WHERE key= ? AND column1 IN ? LIMIT ?",
-          [ "acl:blocked:$from", $collection, 1000 ]);
+        $prepared->query(
+            "SELECT * from entities_by_time WHERE key= ? AND column1 IN ? LIMIT ?",
+            [ "acl:blocked:$from", $collection, 1000 ]
+        );
 
         $list = [];
         $result = $this->cql->request($prepared);
@@ -139,7 +141,7 @@ class Block
 
         Core\Events\Dispatcher::trigger('acl:block', 'all', compact('user', 'from'));
 
-        return $this->db->insert("acl:blocked:$from", array($user => time()));
+        return $this->db->insert("acl:blocked:$from", [$user => time()]);
     }
 
     /**
@@ -163,7 +165,7 @@ class Block
 
         Core\Events\Dispatcher::trigger('acl:unblock', 'all', compact('user', 'from'));
 
-        return $this->db->remove("acl:blocked:$from", array($user));
+        return $this->db->remove("acl:blocked:$from", [$user]);
     }
 
     /**

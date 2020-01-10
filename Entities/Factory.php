@@ -35,7 +35,7 @@ class Factory
             $entity = Core\Events\Dispatcher::trigger('entity:resolve', $luid->getType(), [
                 'luid' => $luid
             ], null);
-        } else if (is_numeric($value)) {
+        } elseif (is_numeric($value)) {
             if ($options['cache'] && isset(self::$entitiesCache[$value])) {
                 return self::$entitiesCache[$value];
             }

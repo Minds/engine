@@ -8,7 +8,6 @@ use Minds\Interfaces\ModuleInterface;
 
 class Manager
 {
-
     /** @param Sampler $sampler */
     private $sampler;
 
@@ -18,6 +17,7 @@ class Manager
     /** @param array $experiments */
     private $experiments = [
         'Homepage121118' => Hypotheses\Homepage121118::class,
+        'Homepage200619' => Hypotheses\Homepage200619::class,
     ];
 
     public function __construct($sampler = null)
@@ -64,5 +64,4 @@ class Manager
 
         return $this->sampler->getBucket();
     }
-
 }

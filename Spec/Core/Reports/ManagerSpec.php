@@ -12,18 +12,18 @@ class ManagerSpec extends ObjectBehavior
 {
     private $repository;
 
-    function let(Repository $repo)
+    public function let(Repository $repo)
     {
         $this->beConstructedWith($repo);
         $this->repository = $repo;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_add_a_report_to_the_repository()
+    public function it_should_add_a_report_to_the_repository()
     {
         $this->repository->add(Argument::type(Report::class))
             ->shouldBeCalled()
@@ -33,7 +33,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    function it_should_return_false_if_repository_add_failed()
+    public function it_should_return_false_if_repository_add_failed()
     {
         $this->repository->add(Argument::type(Report::class))
             ->shouldBeCalled()
@@ -42,5 +42,4 @@ class ManagerSpec extends ObjectBehavior
         $this->add(new Report)
             ->shouldBe(false);
     }
-
 }

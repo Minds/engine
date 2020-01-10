@@ -8,15 +8,14 @@ use Prophecy\Argument;
 
 class ObjectBlogMappingSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Search\Mappings\ObjectBlogMapping');
     }
 
-    function it_should_map_a_blog(
+    public function it_should_map_a_blog(
         Blog $blog
-    )
-    {
+    ) {
         $now = time();
 
         $blog->getInteractions()->willReturn(42);
@@ -36,7 +35,8 @@ class ObjectBlogMappingSpec extends ObjectBehavior
         $blog->getTags()->willReturn([ 'art' ]);
         $blog->getRating()->willReturn(1);
         $blog->getNsfw()->willReturn([ 1 ]);
-
+        $blog->getModeratorGuid()->willReturn('3');
+        $blog->getTimeModerated()->willReturn($now);
         $this
             ->setEntity($blog)
             ->map([
@@ -64,6 +64,8 @@ class ObjectBlogMappingSpec extends ObjectBehavior
                 'public' => true,
                 'tags' => [ 'art', 'test', 'hashtag' ],
                 'rating' => 1,
+                'moderator_guid' => '3',
+                '@moderated' => $now * 1000
             ]);
     }
 }

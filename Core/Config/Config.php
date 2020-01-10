@@ -11,7 +11,7 @@ namespace Minds\Core\Config;
 class Config
 {
     public static $_;
-    private $config = array();
+    private $config = [];
 
     public function __construct()
     {
@@ -26,13 +26,13 @@ class Config
     {
         //$this->lastcache = 0;
         $this->config['icon_sizes'] = [
-            'topbar' => array('w'=>16, 'h'=>16, 'square'=>true, 'upscale'=>true),
-            'tiny' => array('w'=>25, 'h'=>25, 'square'=>true, 'upscale'=>true),
-            'small' => array('w'=>40, 'h'=>40, 'square'=>true, 'upscale'=>true),
-            'medium' => array('w'=>100, 'h'=>100, 'square'=>true, 'upscale'=>true),
-            'large' => array('w'=>425, 'h'=>425, 'square'=>false, 'upscale'=>false),
+            'topbar' => ['w'=>16, 'h'=>16, 'square'=>true, 'upscale'=>true],
+            'tiny' => ['w'=>25, 'h'=>25, 'square'=>true, 'upscale'=>true],
+            'small' => ['w'=>40, 'h'=>40, 'square'=>true, 'upscale'=>true],
+            'medium' => ['w'=>100, 'h'=>100, 'square'=>true, 'upscale'=>true],
+            'large' => ['w'=>425, 'h'=>425, 'square'=>false, 'upscale'=>false],
             //'xlarge'=> array('w'=>400, 'h'=>400, 'square'=>false, 'upscale'=>false),
-            'master' => array('w'=>550, 'h'=>550, 'square'=>false, 'upscale'=>false)
+            'master' => ['w'=>550, 'h'=>550, 'square'=>false, 'upscale'=>false]
         ];
         $this->config['minusername'] = 2;
     }
@@ -61,12 +61,12 @@ class Config
     {
 
         //legacy nasty fallback
-        if(property_exists($this, $key)){
+        if (property_exists($this, $key)) {
             $this->$key = $value;
         }
 
         $opts = array_merge([ 'recursive' => false ], $opts);
-        if($value && is_array($value) && isset($this->config[$key]) && is_array($this->config[$key]) && $opts['recursive']){
+        if ($value && is_array($value) && isset($this->config[$key]) && is_array($this->config[$key]) && $opts['recursive']) {
             $this->config[$key] = array_merge($this->config[$key], $value);
             return;
         }

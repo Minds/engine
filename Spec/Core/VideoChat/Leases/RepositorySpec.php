@@ -13,21 +13,20 @@ use Prophecy\Argument;
 
 class RepositorySpec extends ObjectBehavior
 {
-
     private $db;
 
-    function let(Client $db)
+    public function let(Client $db)
     {
         $this->beConstructedWith($db);
         $this->db = $db;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    function it_should_add_lease_to_the_database()
+    public function it_should_add_lease_to_the_database()
     {
         $lease = new VideoChatLease();
         $lease->setKey('testkey')
@@ -35,20 +34,20 @@ class RepositorySpec extends ObjectBehavior
             ->setHolderGuid(123)
             ->setLastRefreshed(time());
 
-        $this->db->request(Argument::that(function($prepared) {
-                $query = $prepared->build();
-                return $query['values'][0] === 'testkey'
+        $this->db->request(Argument::that(function ($prepared) {
+            $query = $prepared->build();
+            return $query['values'][0] === 'testkey'
                     && $query['values'][1] === 'secret'
                     && $query['values'][2]->value() == 123
                     && $query['values'][3]->time() == time();
-            }))
+        }))
             ->shouldBeCalled()
             ->willReturn(true);
         
         $this->add($lease)->shouldBe(true);
     }
 
-    function it_should_return_a_single_lease_by_key()
+    public function it_should_return_a_single_lease_by_key()
     {
         $this->db->request(Argument::any())
             ->shouldBeCalled()
@@ -66,5 +65,4 @@ class RepositorySpec extends ObjectBehavior
         $lease->getHolderGuid()->shouldReturn(123);
         $lease->getLastRefreshed()->shouldReturn(time());
     }
-
 }

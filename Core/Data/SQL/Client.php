@@ -1,6 +1,6 @@
 <?php
 /**
- * 
+ *
  */
 namespace Minds\Core\Data\SQL;
 
@@ -11,13 +11,15 @@ class Client
 
     public function __construct($dbh = null)
     {
-        $this->dbh = $dbh ?: new PDO('pgsql:host=cockroachdb;port=26257;dbname=minds;sslmode=disable',
+        $this->dbh = $dbh ?: new PDO(
+            'pgsql:host=cockroachdb;port=26257;dbname=minds;sslmode=disable',
             'maxroach',
-            null, 
+            null,
             [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_EMULATE_PREPARES => true,
-            ]);
+            ]
+        );
     }
 
     /**
@@ -29,5 +31,4 @@ class Client
     {
         $this->dbh->exec("SELECT * FROM suggested");
     }
-
 }

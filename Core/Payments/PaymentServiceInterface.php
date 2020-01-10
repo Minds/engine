@@ -9,7 +9,7 @@ interface PaymentServiceInterface
     public function getToken();
 
     public function setSale(Sale $sale);
-    public function getSales(Merchant $merchant, array $options = array());
+    public function getSales(Merchant $merchant, array $options = []);
     public function chargeSale(Sale $sale);
     public function voidSale(Sale $sale);
     public function refundSale(Sale $sale);

@@ -10,7 +10,6 @@ use Minds\Entities;
 
 class Aggregates
 {
-
     private $start = 0;
     private $end = 0;
     private $limit = 100;
@@ -47,8 +46,8 @@ class Aggregates
                 'query' => [
                     'bool' => [
                         'filter' => [
-                            'term' => [ 
-                                'action' => 'vote:down' 
+                            'term' => [
+                                'action' => 'vote:down'
                             ]
                         ],
                         'must' => [
@@ -200,5 +199,4 @@ class Aggregates
     //{
     //
     //}
-
 }

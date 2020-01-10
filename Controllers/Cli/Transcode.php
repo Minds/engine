@@ -18,11 +18,44 @@ class Transcode extends Cli\Controller implements Interfaces\CliControllerInterf
     {
         $this->out('TBD');
     }
-    
+
     public function exec()
     {
-        $transcoder = new Core\Media\Services\FFMpeg;
-        $transcoder->setKey($this->getOpt('guid'));
-        $transcoder->transcode();
+        $entity = Di::_()->get('EntitiesBuilder')->single($this->getOpt('guid'));
+
+        if (!$entity) {
+            $this->out('Entity not found');
+            return;
+        }
+
+        $manager = Di::_()->get('Media\Video\Transcoder\Manager');
+        $manager->createTranscodes($entity);
+    }
+
+    /**
+     * Retries the transcode on the current thread
+     * @return void
+     */
+    public function retry()
+    {
+        $entity = Di::_()->get('EntitiesBuilder')->single($this->getOpt('guid'));
+
+        if (!$entity) {
+            $this->out('Entity not found');
+            return;
+        }
+
+        $manager = Di::_()->get('Media\Video\Transcoder\Manager');
+        $transcode = $manager->getList([
+            'guid' => $this->getOpt('guid'),
+            'profileId' => $this->getOpt('profile-id'),
+        ])[0];
+
+        if (!$transcode) {
+            $this->out('Transcode not found');
+            return;
+        }
+
+        $manager->transcode($transcode);
     }
 }

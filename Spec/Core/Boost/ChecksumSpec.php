@@ -8,15 +8,14 @@ use Prophecy\Argument;
 
 class ChecksumSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Boost\Checksum');
     }
 
-    function it_should_generate(
+    public function it_should_generate(
         Activity $activity
-    )
-    {
+    ) {
         $activity->get('type')->willReturn('activity');
         $activity->get('guid')->willReturn(5000);
         $activity->get('owner_guid')->willReturn(1000);
@@ -32,10 +31,9 @@ class ChecksumSpec extends ObjectBehavior
             ->shouldReturn('96672d8063790730d769b04e5ff331a9');
     }
 
-    function it_should_throw_if_no_guid_during_generate(
+    public function it_should_throw_if_no_guid_during_generate(
         Activity $activity
-    )
-    {
+    ) {
         $this
             ->setGuid(null)
             ->setEntity($activity)
@@ -43,7 +41,7 @@ class ChecksumSpec extends ObjectBehavior
             ->duringGenerate();
     }
 
-    function it_should_throw_if_no_entity_during_generate()
+    public function it_should_throw_if_no_entity_during_generate()
     {
         $this
             ->setGuid(6000)

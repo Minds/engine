@@ -18,7 +18,6 @@ use Minds\Interfaces;
 
 class fetch implements Interfaces\Api
 {
-
     /**
      * Return a list of boosts that a user needs to review
      * @param array $pages
@@ -178,32 +177,7 @@ class fetch implements Interfaces\Api
 
     private function getSuggestedPosts($opts = [])
     {
-        $opts = array_merge([
-            'offset' => 0,
-            'limit' => 12,
-            'rating' => 1,
-        ], $opts);
-
-        /** @var Core\Feeds\Suggested\Manager $repo */
-        $repo = Di::_()->get('Feeds\Suggested\Manager');
-
-        $opts = [
-            'user_guid' => Core\Session::getLoggedInUserGuid(),
-            'rating' => $opts['rating'],
-            'limit' => $opts['limit'],
-            'offset' => $opts['offset'],
-            'type' => 'newsfeed',
-            'all' => true,
-        ];
-
-        $result = $repo->getFeed($opts);
-
-        // Remove all unlisted content if it appears
-        $result = array_values(array_filter($result, function($entity) {
-            return $entity->getAccessId() != 0;
-        }));
-
-        return $result;
+        // @deprecated
+        return [];
     }
 }
-

@@ -3,7 +3,6 @@
 
 namespace Minds\Core\Email\Campaigns;
 
-
 use Minds\Core\Config;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Message;
@@ -49,7 +48,6 @@ class WhenWire extends EmailCampaign
 
     public function send()
     {
-
         if (!method_exists($this->user, 'getEmail')) {
             return;
         }
@@ -77,13 +75,14 @@ class WhenWire extends EmailCampaign
 
         $message = new Message();
         $message->setTo($this->user)
-            ->setMessageId(implode('-',
-                [$this->user->guid, sha1($this->user->getEmail()), sha1($this->campaign . $this->topic . time())]))
+            ->setMessageId(implode(
+                '-',
+                [$this->user->guid, sha1($this->user->getEmail()), sha1($this->campaign . $this->topic . time())]
+            ))
             ->setSubject($this->subject)
             ->setHtml($this->template);
 
         //send email
         $this->mailer->queue($message);
     }
-
 }

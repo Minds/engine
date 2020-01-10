@@ -15,6 +15,9 @@
  * @property int    $access_id      Specifies the visibility level of this entity
  * @property int    $time_created   A UNIX timestamp of when the entity was created (read-only, set on first save)
  * @property int    $time_updated   A UNIX timestamp of when the entity was last updated (automatically updated on save)
+ * @property int    $moderator_guid The GUID of the moderator
+ * @property int    $moderated_at   A UNIX timestamp of when the entity was moderated
+ * @property bool   $allow_comments A boolean value that turns off comments for an entity
  * @property-read string $enabled
  */
 abstract class ElggEntity extends ElggData implements
@@ -68,7 +71,9 @@ abstract class ElggEntity extends ElggData implements
 		$this->attributes['tags'] = null;
 		$this->attributes['nsfw'] = [];
 		$this->attributes['nsfw_lock'] = [];
-
+		$this->attributes['moderator_guid'] = null;
+		$this->attributes['time_moderated'] = null;
+		$this->attributes['allow_comments'] = true;
 	}
 
 	/**
@@ -997,7 +1002,7 @@ abstract class ElggEntity extends ElggData implements
 			$url = "_graphics/icons/default/$size.png";
 		}
 
-		return elgg_normalize_url($url);
+		return $url;
 	}
 
 	/**
@@ -1051,56 +1056,36 @@ abstract class ElggEntity extends ElggData implements
 	 * @throws IOException
 	 */
 	public function save($timebased = true) {
-
-            $new = true;
-            if($this->guid){
-                if (!$this->canEdit()) {
-                    return false;
-                }
-                $new = false;
-                $this->time_updated = time();
-                elgg_trigger_event('update', $this->type, $this);
-                //@todo review... memecache actually make us slower anyway.. do we need it?
-                if (is_memcache_available()) {
-                    $memcache = new ElggMemcache('new_entity_cache');
-                    $memcache->delete($this->guid);
-                }
-            } else {
-                $this->guid = Minds\Core\Guid::build();
-				elgg_trigger_event('create', $this->type, $this);
-				if (!$this->canEdit()) {
-					return false;
-				}
+        if ($this->guid) {
+            if (!$this->canEdit()) {
+                return false;
             }
-
-            $db = new Minds\Core\Data\Call('entities');
-            $result = $db->insert($this->guid, $this->toArray());
-            if ($result && $timebased) {
-                $db = new Minds\Core\Data\Call('entities_by_time');
-                $data =  array($result => $result);
-
-                foreach ($this->getIndexKeys() as $index) {
-                    $db->insert($index, $data);
-                }
-
-                if (in_array($this->access_id, array(2, -2, 1))) {
-                    Minds\Core\Queue\Client::build()->setQueue("FeedDispatcher")
-                        ->send(array(
-                            "guid" => $this->guid,
-                            "owner_guid" => $this->owner_guid,
-                            "type" => $this->type,
-                            "subtype" => $this->subtype,
-                            "super_subtype" => $this->super_subtype
-                        ));
-                 }
-
-                 if(!$new && $this->access_id != ACCESS_PUBLIC){
-                     $remove = array("$this->type", "$this->type:$this->subtype", "$this->type:$this->super_subtype");
-			//	foreach($remove as $index)
-			//		$db->removeAttributes($index, array($this->guid), false);
-                 }
+            $this->time_updated = time();
+            elgg_trigger_event('update', $this->type, $this);
+            //@todo review... memecache actually make us slower anyway.. do we need it?
+            if (is_memcache_available()) {
+                $memcache = new ElggMemcache('new_entity_cache');
+                $memcache->delete($this->guid);
             }
-            return $this->guid;
+        } else {
+            $this->guid = Minds\Core\Guid::build();
+            elgg_trigger_event('create', $this->type, $this);
+            if (!$this->canEdit()) {
+                return false;
+            }
+        }
+
+        $db = new Minds\Core\Data\Call('entities');
+        $result = $db->insert($this->guid, $this->toArray());
+        if ($result && $timebased) {
+            $db = new Minds\Core\Data\Call('entities_by_time');
+            $data = array($result => $result);
+
+            foreach ($this->getIndexKeys() as $index) {
+                $db->insert($index, $data);
+            }
+        }
+        return $this->guid;
 	}
 
 	/**
@@ -1208,11 +1193,10 @@ abstract class ElggEntity extends ElggData implements
 	/**
 	 * Delete this entity.
 	 *
-	 * @param bool $recursive Whether to delete all the entities contained by this entity
-	 *
 	 * @return bool
 	 */
-	public function delete($recursive = true) {
+    public function delete()
+    {
 		global $CONFIG, $ENTITY_CACHE;
 
 		//some plugins may want to halt the delete...
@@ -1365,7 +1349,7 @@ abstract class ElggEntity extends ElggData implements
 	 */
 	public function getExportableValues() {
 		return array(
-			'guid',
+            'guid',
 			'type',
 			'subtype',
 			'time_created',
@@ -1376,21 +1360,24 @@ abstract class ElggEntity extends ElggData implements
 			'access_id',
             'tags',
 			'nsfw',
-			'nsfw_lock'
+            'nsfw_lock',
+            'allow_comments'
 		);
 	}
 
-	public function export(){
-		$export = array();
-		foreach($this->getExportableValues() as $v){
-			if(!is_null($this->$v)){
-			    $export[$v] = $this->$v;
-			}
-		}
-		$export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'all', array('entity'=>$this), []) ?: []);
+    public function export(){
+        $export = array();
+        foreach($this->getExportableValues() as $v) {
+            if (!is_null($this->$v)) {
+                    $export[$v] = $this->$v;
+            }
+        }
+        $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'all', array('entity'=>$this), []) ?: []);
         $export = \Minds\Helpers\Export::sanitize($export);
-		$export['nsfw'] = $this->getNsfw();
-		$export['nsfw_lock'] = $this->getNsfwLock();
+        $export['nsfw'] = $this->getNsfw();
+        $export['nsfw_lock'] = $this->getNsfwLock();
+        $export['urn'] = $this->getUrn();
+        $export['allow_comments'] = $this->getAllowComments();
 		return $export;
 	}
 
@@ -1628,4 +1615,53 @@ abstract class ElggEntity extends ElggData implements
 		return "urn:entity:{$this->getGuid()}";
 	}
 
+	/** gets the guid of the moderator
+	 * @return int
+	 */
+	public function getModeratorGuid() {
+		return $this->moderator_guid;
+	}
+
+
+	/**
+	 * Marks the user as moderated by a user
+	 * @param int $moderatorGuid the moderator
+	 */
+	public function setModeratorGuid(int $moderatorGuid)
+    {
+        $this->moderator_guid = $moderatorGuid;
+    }
+
+    /**
+     * Marks the time as when an entity was moderated
+     * @param int $timeModerated unix timestamp when the entity was moderated
+     */
+    public function setTimeModerated(int $timeModerated)
+    {
+        $this->time_moderated = $timeModerated;
+    }
+	
+    /**
+     * Gets the time moderated
+     * @return int
+     */
+	public function getTimeModerated() {
+        return $this->time_moderated;
+	}
+
+    /**
+     * Sets the flag for allowing comments on an entity
+     * @param bool $allowComments
+     */
+    public function setAllowComments(bool $allowComments) {
+        $this->allow_comments = $allowComments;
+        return $this;
+    }
+
+    /**
+     * Gets the flag for allowing comments on an entity
+     */
+    public function getAllowComments() {
+        return (bool) $this->allow_comments;
+	}
 }

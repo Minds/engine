@@ -23,7 +23,7 @@ class ManagerSpec extends ObjectBehavior
     /** @var EventsDispatcher */
     private $dispatcher;
 
-    function let(
+    public function let(
         Repository $repo,
         Ethereum $eth,
         \Minds\Core\Queue\RabbitMQ\Client $rabbit,
@@ -39,12 +39,12 @@ class ManagerSpec extends ObjectBehavior
         $this->beConstructedWith($repo, $eth, $rabbit, $cacher, $dispatcher);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blockchain\Transactions\Manager');
     }
 
-    function it_should_add_a_transaction_to_the_queue(Transaction $transaction)
+    public function it_should_add_a_transaction_to_the_queue(Transaction $transaction)
     {
         $transaction->getUserGuid()
             ->shouldBeCalled()
@@ -80,7 +80,7 @@ class ManagerSpec extends ObjectBehavior
         $this->add($transaction);
     }
 
-    function it_should_run_but_fail_because_the_transaction_does_not_exist()
+    public function it_should_run_but_fail_because_the_transaction_does_not_exist()
     {
         $this->setUserGuid('123');
         $this->setTimestamp('12345678');
@@ -101,7 +101,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow(new \Exception('Transaction 0x123 not found'))->during('run');
     }
 
-    function it_should_run_but_fail_because_the_transaction_has_been_already_completed(Transaction $transaction)
+    public function it_should_run_but_fail_because_the_transaction_has_been_already_completed(Transaction $transaction)
     {
         $this->setUserGuid('123');
         $this->setTimestamp('12345678');
@@ -126,7 +126,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow(new \Exception('Transaction already completed'))->during('run');
     }
 
-    function it_should_run_and_add_the_receipt(Transaction $transaction)
+    public function it_should_run_and_add_the_receipt(Transaction $transaction)
     {
         $this->setUserGuid('123');
         $this->setTimestamp('12345678');
@@ -187,7 +187,7 @@ class ManagerSpec extends ObjectBehavior
         $this->run();
     }
 
-    function it_should_run_but_fail_because_the_receipt_has_a_wrong_status(
+    public function it_should_run_but_fail_because_the_receipt_has_a_wrong_status(
         Transaction $transaction,
         WireEvent $wireEvent
     ) {
@@ -245,7 +245,7 @@ class ManagerSpec extends ObjectBehavior
         $this->run();
     }
 
-    function it_should_run_and_call_topics(Transaction $transaction, WireEvent $wireEvent)
+    public function it_should_run_and_call_topics(Transaction $transaction, WireEvent $wireEvent)
     {
         $this->setUserGuid('123');
         $this->setTimestamp('12345678');

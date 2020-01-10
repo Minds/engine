@@ -8,12 +8,13 @@
 namespace Minds\Core\Entities;
 
 use Minds\Common\Urn;
-use Minds\Core\Entities\Delegates\EntityGuidResolverDelegate;
 use Minds\Core\Entities\Delegates\BoostGuidResolverDelegate;
+use Minds\Core\Entities\Delegates\CommentGuidResolverDelegate;
+use Minds\Core\Entities\Delegates\EntityGuidResolverDelegate;
 use Minds\Core\Entities\Delegates\ResolverDelegate;
+use Minds\Core\Entities\Delegates\FilterEntitiesDelegate;
 use Minds\Core\Security\ACL;
 use Minds\Entities\User;
-use Minds\Helpers\Flags;
 
 class Resolver
 {
@@ -42,6 +43,7 @@ class Resolver
         $this->resolverDelegates = $resolverDelegates ?: [
             EntityGuidResolverDelegate::class => new EntityGuidResolverDelegate(),
             BoostGuidResolverDelegate::class => new BoostGuidResolverDelegate(),
+            CommentGuidResolverDelegate::class => new CommentGuidResolverDelegate(),
         ];
 
         $this->acl = $acl ?: ACL::_();
@@ -122,14 +124,13 @@ class Resolver
 
         // Filter out invalid entities
 
-        $sorted = array_filter($sorted, function($entity) { return (bool) $entity; });
+        $sorted = array_filter($sorted, function ($entity) {
+            return (bool) $entity;
+        });
 
         // Filter out forbidden entities
-
-        $sorted = array_filter($sorted, function($entity) { 
-            return $this->acl->read($entity, $this->user);
-                //&& !Flags::shouldFail($entity);
-        });
+        $filterDelegate = new FilterEntitiesDelegate($this->user, time(), $this->acl);
+        $sorted = $filterDelegate->filter($sorted);
 
         //
 
@@ -138,7 +139,7 @@ class Resolver
 
     public function single($urn)
     {
-        $this->urns = [ $urn ];
+        $this->urns = [$urn];
         $entities = $this->fetch();
         return $entities[0];
     }

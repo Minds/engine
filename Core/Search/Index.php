@@ -87,13 +87,13 @@ class Index
             $result = (bool) $this->client->request($prepared);
 
             // if hashtags were found, index them separately
-            if (in_array('tags', $body) && is_array($body['tags'])) {
-                foreach($body['tags'] as $tag) {
+            if (in_array('tags', $body, true) && is_array($body['tags'])) {
+                foreach ($body['tags'] as $tag) {
                     $this->hashtagsManager->index($tag);
                 }
             }
         } catch (BannedException $e) {
-            $result = false;
+            $result = null;
         } catch (\Exception $e) {
             error_log('[Search/Index] ' . get_class($e) . ": {$e->getMessage()}");
             $result = false;

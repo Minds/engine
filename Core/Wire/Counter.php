@@ -6,7 +6,6 @@
 
 namespace Minds\Core\Wire;
 
-
 use Minds\Core\Data\cache\Redis;
 use Minds\Core\Di\Di;
 use Minds\Entities\Entity;
@@ -25,13 +24,16 @@ class Counter
             ->setFrom($timestamp);
 
         //if (($cached = $cache->get(static::getIndexName($user_guid, null, $method, $timestamp, false, false))) !== false) {
-            //return $cached;
+        //return $cached;
         //}
 
         $sum = $sums->getReceived();
 
-        $cache->set(static::getIndexName($user_guid, null, $method, $timestamp, false, false), $sum,
-            $timestamp ? static::CACHE_DURATION : false);
+        $cache->set(
+            static::getIndexName($user_guid, null, $method, $timestamp, false, false),
+            $sum,
+            $timestamp ? static::CACHE_DURATION : false
+        );
 
         return $sum;
     }
@@ -45,16 +47,25 @@ class Counter
         $sums->setFrom($timestamp)
             ->setSender($user_guid);
 
-        if (($cached = $cache->get(static::getIndexName($user_guid, null, $method, $timestamp, false,
-                true))) !== false) {
+        if (($cached = $cache->get(static::getIndexName(
+            $user_guid,
+            null,
+            $method,
+            $timestamp,
+            false,
+            true
+        ))) !== false) {
             return $cached;
         }
 
         try {
             $sum = $sums->getSent();
-            $cache->set(static::getIndexName($user_guid, null, $method, $timestamp, false, true), $sum,
-                $timestamp ? static::CACHE_DURATION : false);
-        } catch(\Exception $e) {
+            $cache->set(
+                static::getIndexName($user_guid, null, $method, $timestamp, false, true),
+                $sum,
+                $timestamp ? static::CACHE_DURATION : false
+            );
+        } catch (\Exception $e) {
             $sum = 0;
         }
 
@@ -71,15 +82,24 @@ class Counter
             ->setSender($sender_guid)
             ->setReceiver($receiver_guid);
 
-        if (($cached = $cache->get(static::getIndexName($sender_guid, $receiver_guid, $method, $timestamp, false,
-                true))) !== false) {
+        if (($cached = $cache->get(static::getIndexName(
+            $sender_guid,
+            $receiver_guid,
+            $method,
+            $timestamp,
+            false,
+            true
+        ))) !== false) {
             return $cached;
         }
 
         $sum = $sums->getSent();
 
-        $cache->set(static::getIndexName($sender_guid, $receiver_guid, $method, $timestamp, false, true), $sum,
-            $timestamp ? static::CACHE_DURATION : false);
+        $cache->set(
+            static::getIndexName($sender_guid, $receiver_guid, $method, $timestamp, false, true),
+            $sum,
+            $timestamp ? static::CACHE_DURATION : false
+        );
 
         return $sum;
     }
@@ -98,8 +118,11 @@ class Counter
 
         try {
             $sum = $sums->getEntity();
-            $cache->set(static::getIndexName($entity_guid, null, $method, $timestamp, true), $sum,
-                $timestamp ? static::CACHE_DURATION : false);
+            $cache->set(
+                static::getIndexName($entity_guid, null, $method, $timestamp, true),
+                $sum,
+                $timestamp ? static::CACHE_DURATION : false
+            );
         } catch (\Exception $e) {
             $sum = 0;
         }
@@ -131,5 +154,4 @@ class Counter
         }
         return 'counter:wire:sums:' . $guid . ':' . $method . $lastPart;
     }
-
 }

@@ -11,6 +11,14 @@ class Top implements SortingAlgorithm
     protected $period;
 
     /**
+     * @return bool
+     */
+    public function isTimestampConstrain(): bool
+    {
+        return false; // Old period-based algorithms shouldn't be constrained
+    }
+
+    /**
      * @param string $period
      * @return $this
      */

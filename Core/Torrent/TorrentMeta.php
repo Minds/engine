@@ -167,4 +167,3 @@ class TorrentMeta
         return base64_encode($torrent->encode($torrent));
     }
 }
-

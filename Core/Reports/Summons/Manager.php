@@ -49,8 +49,7 @@ class Manager
         $reportsManager = null,
         $queueClient = null,
         $socketDelegate = null
-    )
-    {
+    ) {
         $this->cohort = $cohort ?: new Cohort();
         $this->repository = $repository ?: new Repository();
         $this->reportsManager = $reportsManager ?: new ReportsManager();
@@ -70,7 +69,7 @@ class Manager
             'include_only' => null,
             'active_threshold' => 5 * 60,
             'jury_size' => 12,
-            'awaiting_ttl' => 300,
+            'awaiting_ttl' => 120,
         ], $opts);
 
         // Get a fresh report to collect completed jurors
@@ -79,7 +78,7 @@ class Manager
         $reportUrn = $report->getUrn();
         $juryType = 'appeal_jury';
 
-        $completedJurorGuids = array_map(function($decision) {
+        $completedJurorGuids = array_map(function ($decision) {
             return $decision->getJurorGuid();
         }, array_merge($report->getAppealJuryDecisions() ?: [], $report->getInitialJuryDecisions() ?: []));
 
@@ -93,7 +92,7 @@ class Manager
         // Remove the summonses of jurors who have already voted
 
         $summonses = array_filter($summonses, function (Summons $summons) use ($completedJurorGuids) {
-            return !in_array($summons->getJurorGuid(), $completedJurorGuids);
+            return !in_array($summons->getJurorGuid(), $completedJurorGuids, false);
         });
 
         // Check how many are missing
@@ -133,7 +132,7 @@ class Manager
         // Pick up to missing size
 
         $cohort = $this->cohort->pick([
-            'size' => $poolSize,
+            'size' => $poolSize * 500, // 500 users
             'for' => $appeal->getOwnerGuid(),
             'except' => $alreadyInvolvedGuids,
             'except_hashes' => $alreadyInvolvedPhoneHashes,
@@ -143,7 +142,11 @@ class Manager
 
         // Build Summonses
 
+        $sent = 0;
         foreach ($cohort as $juror) {
+            if (++$sent > $poolSize) {
+                break;
+            }
             $summons = new Summons();
             $summons
                 ->setReportUrn($reportUrn)
@@ -154,6 +157,7 @@ class Manager
 
             $this->repository->add($summons);
             $this->socketDelegate->onSummon($summons);
+            echo "\nSummoning $juror for $reportUrn";
         }
 
         //

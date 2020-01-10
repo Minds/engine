@@ -11,21 +11,20 @@ use Spec\Minds\Mocks\Cassandra\Rows;
 
 class RepositorySpec extends ObjectBehavior
 {
-
     protected $db;
 
-    function let(Client $db)
+    public function let(Client $db)
     {
         $this->db = $db;
         $this->beConstructedWith($db);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Email\Repository');
     }
 
-    function it_should_get_a_list_of_subscriptions()
+    public function it_should_get_a_list_of_subscriptions()
     {
         $opts = [
             'campaign' => 'when',
@@ -56,12 +55,12 @@ class RepositorySpec extends ObjectBehavior
         $this->getList($opts)->shouldBeArray();
     }
 
-    function it_should_throw_if_calling_add_without_user_guid() 
+    public function it_should_throw_if_calling_add_without_user_guid()
     {
         $this->shouldThrow(new \Exception('user_guid is required'))->duringAdd(new EmailSubscription());
     }
 
-    function it_should_throw_if_calling_add_without_campaign() 
+    public function it_should_throw_if_calling_add_without_campaign()
     {
         $model = new EmailSubscription();
         $model->setUserGuid(123);
@@ -69,7 +68,7 @@ class RepositorySpec extends ObjectBehavior
         $this->shouldThrow(new \Exception('campaign is required'))->duringAdd($model);
     }
 
-    function it_should_throw_if_calling_add_without_topic() 
+    public function it_should_throw_if_calling_add_without_topic()
     {
         $model = new EmailSubscription();
         $model->setUserGuid(123)
@@ -78,7 +77,7 @@ class RepositorySpec extends ObjectBehavior
         $this->shouldThrow(new \Exception('topic is required'))->duringAdd($model);
     }
 
-    function it_should_insert_a_new_subscription()
+    public function it_should_insert_a_new_subscription()
     {
         $model = new EmailSubscription();
         $model->setUserGuid(123)
@@ -95,5 +94,4 @@ class RepositorySpec extends ObjectBehavior
 
         $this->add($model)->shouldReturn(true);
     }
-
 }

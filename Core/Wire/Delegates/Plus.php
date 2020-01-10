@@ -9,7 +9,6 @@ use Minds\Core\Di\Di;
 
 class Plus
 {
-
     /** @var Config $config */
     private $config;
 
@@ -40,7 +39,7 @@ class Plus
                 || $receiver_address == $this->config->get('blockchain')['contracts']['wire']['plus_address']
             )
         ) {
-            return $wire; //not offchain or potential onchain fraud 
+            return $wire; //not offchain or potential onchain fraud
         }
 
         // 20 tokens
@@ -55,11 +54,15 @@ class Plus
         $user = $this->entitiesBuilder->single($user->getGuid(), [
             'cache' => false,
         ]);
+
+        if (!$user) {
+            return $wire;
+        }
+
         $user->setPlusExpires(strtotime('+30 days', $wire->getTimestamp()));
         $user->save();
 
         //$wire->setSender($user);
         return $wire;
     }
-
 }

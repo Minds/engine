@@ -46,6 +46,8 @@ class groups implements Interfaces\Api
             $response['load-next'] =  (string) key($guids);
             break;
           case "member":
+            Factory::isLoggedIn();
+
             $manager = new Membership();
             $guids = $manager->getGroupsByMember([
                 'user_guid' => $user->guid,

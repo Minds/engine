@@ -3,6 +3,7 @@
 namespace Minds\Entities;
 
 use Minds\Core\Di\Provider;
+use Minds\Core\Counters;
 use Minds\Core\Entities;
 use Minds\Core\EntitiesBuilder;
 
@@ -20,8 +21,14 @@ class EntitiesProvider extends Provider
         $this->di->bind('EntitiesBuilder', function ($di) {
             return new EntitiesBuilder();
         }, ['useFactory' => true]);
+        $this->di->bind('Entities\Counters', function ($di) {
+            return new Counters();
+        }, ['useFactory' => true]);
         $this->di->bind('Entities\Factory', function ($di) {
             return new EntitiesFactory();
+        }, ['useFactory' => true]);
+        $this->di->bind('PropagateProperties', function ($di) {
+            return new Entities\PropagateProperties();
         }, ['useFactory' => true]);
     }
 }

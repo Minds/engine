@@ -31,8 +31,7 @@ class Feeds
     public function __construct(
         $feedsRepository = null,
         $queue = null
-    )
-    {
+    ) {
         $this->feedsRepository = $feedsRepository ?: new FeedsRepository();
         $this->queue = $queue ?: Client::build();
     }
@@ -68,17 +67,6 @@ class Feeds
      */
     public function dispatch(Blog $blog)
     {
-        if (in_array($blog->getAccessId(), [2, 1, -1])) {
-            $this->queue
-                ->setQueue('FeedDispatcher')
-                ->send([
-                    'guid' => $blog->getGuid(),
-                    'owner_guid' => $blog->getOwnerGuid(),
-                    'type' => $blog->getType(),
-                    'subtype' => $blog->getSubtype(),
-                    'super_subtype' => '',
-                ]);
-        }
     }
 
     /**

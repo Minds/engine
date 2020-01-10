@@ -8,6 +8,7 @@ use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Manager;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Suggestions\Suggestion;
+use Minds\Core\Email\CampaignLogs\CampaignLog;
 use Minds\Entities\User;
 use Prophecy\Argument;
 
@@ -41,6 +42,7 @@ class GoneColdSpec extends ObjectBehavior
         $user->get('guid')->shouldBeCalled()->willReturn($this->testGUID);
         $user->getEmail()->shouldBeCalled()->willReturn($this->testEmail);
         $user->get('username')->shouldBeCalled()->willReturn($this->testUsername);
+        $user->get('banned')->shouldBeCalled()->willReturn(false);
 
         $this->getCampaign()->shouldEqual('global');
         $this->getTopic()->shouldEqual('minds_tips');
@@ -57,15 +59,24 @@ class GoneColdSpec extends ObjectBehavior
         $data['username']->shouldEqual($this->testUsername);
 
         $this->mailer->queue(Argument::any())->shouldBeCalled();
-
+        
         $testEmailSubscription = (new EmailSubscription())
             ->setUserGuid($this->testGUID)
             ->setCampaign('global')
             ->setTopic('minds_tips')
             ->setValue(true);
 
+        $time = time();
+
+        $campaignLog = (new CampaignLog())
+            ->setReceiverGuid($this->testGUID)
+            ->setTimeSent($time)
+            ->setEmailCampaignId($this->getEmailCampaignId()->getWrappedObject());
+
+        $this->manager->saveCampaignLog($campaignLog)->shouldBeCalled();
         $this->manager->isSubscribed($testEmailSubscription)->shouldBeCalled()->willReturn(true);
-        $this->send();
+        
+        $this->send($time);
     }
 
     public function it_should_not_send_unsubscribed(User $user)
@@ -76,6 +87,7 @@ class GoneColdSpec extends ObjectBehavior
         $user->get('guid')->shouldBeCalled()->willReturn($this->testGUID);
         $user->getEmail()->shouldBeCalled()->willReturn($this->testEmail);
         $user->get('username')->shouldBeCalled()->willReturn($this->testUsername);
+        $user->get('banned')->shouldBeCalled()->willReturn(false);
 
         $this->getCampaign()->shouldEqual('global');
         $this->getTopic()->shouldEqual('minds_tips');
@@ -107,6 +119,7 @@ class GoneColdSpec extends ObjectBehavior
         $user->get('guid')->shouldBeCalled()->willReturn($this->testGUID);
         $user->getEmail()->shouldBeCalled()->willReturn($this->testEmail);
         $user->get('username')->shouldBeCalled()->willReturn($this->testUsername);
+        $user->get('banned')->shouldBeCalled()->willReturn(false);
 
         $this->getCampaign()->shouldEqual('global');
         $this->getTopic()->shouldEqual('minds_tips');
@@ -164,6 +177,7 @@ class GoneColdSpec extends ObjectBehavior
         $user->get('guid')->shouldBeCalled()->willReturn($this->testGUID);
         $user->getEmail()->shouldBeCalled()->willReturn($this->testEmail);
         $user->get('username')->shouldBeCalled()->willReturn($this->testUsername);
+        $user->get('banned')->shouldBeCalled()->willReturn(false);
 
         $this->setUser($user);
         $this->build();

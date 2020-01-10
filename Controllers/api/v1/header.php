@@ -35,23 +35,24 @@ class header implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         try {
             echo $header->read();
-        } catch (\Exception $e) { }
+        } catch (\Exception $e) {
+        }
 
         exit;
     }
 
     public function post($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     public function delete($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 }

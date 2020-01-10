@@ -37,8 +37,8 @@ class encrypt extends base
     public function decrypt($decrypt)
     {
         $decrypt = explode('|', $decrypt);
-        $decoded = base64_decode($decrypt[0]);
-        $iv = base64_decode($decrypt[1]);
+        $decoded = base64_decode($decrypt[0], true);
+        $iv = base64_decode($decrypt[1], true);
         if (strlen($iv)!==\mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_CBC)) {
             return false;
         }

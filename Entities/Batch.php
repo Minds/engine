@@ -8,7 +8,7 @@ namespace Minds\Entities;
 
 use Minds\Core\Data;
 
-class Batch extends Object
+class Batch extends MindsObject
 {
     public function __construct($guid = null)
     {
@@ -20,7 +20,7 @@ class Batch extends Object
     public function addToList($guid)
     {
         $index = new Data\indexes('batch');
-        return $index->set($this->guid, array($guid=>$guid));
+        return $index->set($this->guid, [$guid=>$guid]);
     }
     
     /**
@@ -30,7 +30,7 @@ class Batch extends Object
     public function getList($limit=10000000)
     {
         $index = new Data\indexes('batch');
-        return $index->get($this->guid, array('limit'=>$limit));
+        return $index->get($this->guid, ['limit'=>$limit]);
     }
 
     /**

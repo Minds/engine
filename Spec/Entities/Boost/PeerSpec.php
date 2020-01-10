@@ -42,11 +42,11 @@ class PeerSpec extends ObjectBehavior
         $this->getMethod()->shouldReturn('mockmethod');
     }
 
-  //function it_should_should_save(Call $db){
+    //function it_should_should_save(Call $db){
     //$db->insert(Argument::type('string'), Argument::type('array'))->willReturn(true);
     //$this->beConstructedWith($db);
     //$this->save()->willReturn('foo');
-  //}
+    //}
 
     public function it_should_set_the_entity(Entity $entity)
     {

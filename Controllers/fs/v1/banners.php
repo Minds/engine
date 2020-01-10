@@ -10,7 +10,7 @@ namespace Minds\Controllers\fs\v1;
 use Minds\Core;
 use Minds\Entities;
 use Minds\Interfaces;
-use Minds\Api\Factory;
+use Minds\Helpers\File;
 
 class banners implements Interfaces\FS
 {
@@ -37,7 +37,7 @@ class banners implements Interfaces\FS
         switch ($type) {
           case "user":
             $size = isset($pages[1]) ? $pages[1] : 'fat';
-            $carousels = Core\Entities::get(array('subtype'=>'carousel', 'owner_guid'=>$entity->guid));
+            $carousels = Core\Entities::get(['subtype'=>'carousel', 'owner_guid'=>$entity->guid]);
             if ($carousels) {
                 $f = new Entities\File();
                 $f->owner_guid = $entity->guid;
@@ -46,7 +46,7 @@ class banners implements Interfaces\FS
                 $content = $f->read();
                 if (!$content) {
                     $filepath =  Core\Config::build()->dataroot . 'carousel/' . $carousels[0]->guid . $size;
-                    $f = Core\Di\Di::_()->get('Storage')->open($filepath, 'read'); 
+                    $f = Core\Di\Di::_()->get('Storage')->open($filepath, 'read');
                     $content = $f->read();
                 }
             }
@@ -56,6 +56,7 @@ class banners implements Interfaces\FS
             $f->owner_guid = $entity->owner_guid ?: $entity->getOwnerObj()->guid;
             $f->setFilename("group/{$entity->getGuid()}.jpg");
             $f->open('read');
+            // no break
           case "object":
             break;
         }
@@ -77,7 +78,7 @@ class banners implements Interfaces\FS
             $f->open('read');
 
             $content = $f->read();
-            if(!$content){
+            if (!$content) {
                 $filepath =  Core\Config::build()->dataroot . 'carousel/' . $entity->guid . $size;
                 $f = Core\Di\Di::_()->get('Storage')->open($filepath, 'read');
                 $content = $f->read();
@@ -96,14 +97,12 @@ class banners implements Interfaces\FS
 
         if (!$content && $f) {
             $content = $f->read();
-            if(!$content){
+            if (!$content) {
                 exit;
             }
         }
 
-        $finfo    = finfo_open(FILEINFO_MIME);
-        $mimetype = finfo_buffer($finfo, $content);
-        finfo_close($finfo);
+        $mimetype = File::getMime($content);
 
         header('Content-Type: '.$mimetype);
         header('Expires: ' . date('r', time() + 864000));

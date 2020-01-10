@@ -28,7 +28,7 @@ class sitemaps implements Interfaces\Api
         ]);
 
         header('Content-type: application/xml');
-        echo $sitemap->getSitemap(implode('/',$pages));
+        echo $sitemap->getSitemap(implode('/', $pages));
     }
 
     public function post($pages)
@@ -45,5 +45,4 @@ class sitemaps implements Interfaces\Api
     {
         return Factory::response([]);
     }
-
 }

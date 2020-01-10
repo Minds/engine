@@ -8,12 +8,11 @@ use Minds\Core\Data\ElasticSearch;
 
 class ActionsHistogram extends Aggregate
 {
-
     protected $multiplier = 2;
 
     public function get()
     {
-        $filter = [ 
+        $filter = [
             'term' => [
                 'action' => $this->action
             ]
@@ -68,7 +67,7 @@ class ActionsHistogram extends Aggregate
                 ],
                 'aggs' => [
                     'counts' => [
-                        'date_histogram' => [ 
+                        'date_histogram' => [
                             'field' => '@timestamp',
                             'interval' => $this->interval,
                             'order' => [
@@ -99,5 +98,4 @@ class ActionsHistogram extends Aggregate
         }
         return $counts;
     }
-
 }

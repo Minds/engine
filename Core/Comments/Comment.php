@@ -9,6 +9,8 @@ use Minds\Entities\RepositoryEntity;
 use Minds\Entities\User;
 use Minds\Helpers\Flags;
 use Minds\Helpers\Unknown;
+use Minds\Helpers\Export;
+use Minds\Core\Di\Di;
 
 /**
  * Comment Entity
@@ -28,7 +30,6 @@ use Minds\Helpers\Unknown;
  * @method Comment setTimeUpdated(int $value)
  * @method int getTimeUpdated()
  * @method Comment setBody(string $value)
- * @method string getBody()
  * @method Comment setAttachments(array $value)
  * @method array getAttachments()
  * @method Comment setMature(bool $value)
@@ -105,6 +106,7 @@ class Comment extends RepositoryEntity
     /** @var array */
     protected $votesDown;
 
+    /** @var bool */
     protected $groupConversation = false;
 
     /** @var bool */
@@ -120,6 +122,10 @@ class Comment extends RepositoryEntity
         return $this->entityGuid;
     }
 
+    /**
+     * @return Luid
+     * @throws \Minds\Exceptions\InvalidLuidException
+     */
     public function getLuid()
     {
         $luid = new Luid();
@@ -155,7 +161,7 @@ class Comment extends RepositoryEntity
     {
         if (is_string($value) && $value) {
             $value = json_decode($value, true);
-        } else if ($value instanceof User) {
+        } elseif ($value instanceof User) {
             $value = $value->export();
         }
 
@@ -173,6 +179,7 @@ class Comment extends RepositoryEntity
     /**
      * Gets (hydrates if necessary) the owner object
      * @return array
+     * @throws \Exception
      */
     public function getOwnerObj()
     {
@@ -185,6 +192,9 @@ class Comment extends RepositoryEntity
         return $this->ownerObj;
     }
 
+    /**
+     * @return string
+     */
     public function getBody()
     {
         if (strlen($this->body) > 1500) {
@@ -222,7 +232,7 @@ class Comment extends RepositoryEntity
             return false;
         }
 
-        if (in_array(substr($this->attachments[$attachment], 0, 1), ['[', '{'])) {
+        if (in_array(substr($this->attachments[$attachment], 0, 1), ['[', '{'], true)) {
             return json_decode($this->attachments[$attachment], true);
         }
 
@@ -240,7 +250,7 @@ class Comment extends RepositoryEntity
     }
 
     /**
-     * Get exact path, includes all the partition 
+     * Get exact path, includes all the partition
      * @return string
      */
     public function getPartitionPath()
@@ -262,7 +272,7 @@ class Comment extends RepositoryEntity
     }
 
     /**
-     * Return the partition path to be used to 
+     * Return the partition path to be used to
      * fetch child replies
      */
     public function getChildPath()
@@ -274,6 +284,21 @@ class Comment extends RepositoryEntity
             return "{$this->getParentGuidL1()}:{$this->getGuid()}:0";
         }
         return "{$this->getParentGuidL1()}:{$this->getParentGuidL2()}:{$this->getGuid()}";
+    }
+
+    /**
+     * Return an array of thumbnails
+     * @return array
+     */
+    public function getThumbnails(): array
+    {
+        $thumbnails = [];
+        $mediaManager = Di::_()->get('Media\Image\Manager');
+        $sizes = [ 'xlarge', 'large' ];
+        foreach ($sizes as $size) {
+            $thumbnails[$size] = $mediaManager->getPublicAssetUri($this, $size);
+        }
+        return $thumbnails;
     }
 
     /**
@@ -322,6 +347,7 @@ class Comment extends RepositoryEntity
     /**
      * @param array $export
      * @return array
+     * @throws \Minds\Exceptions\InvalidLuidException
      */
     protected function _extendExport(array $export)
     {
@@ -375,9 +401,13 @@ class Comment extends RepositoryEntity
             $output['thumbs:down:count'] = count($this->getVotesDown());
         }
 
+        $output['thumbnails'] = $this->getThumbnails();
+
         $output['can_reply'] = (bool) !$this->getParentGuidL2();
 
         //$output['parent_guid'] = (string) $this->entityGuid;
+
+        $output = Export::sanitize($output);
 
         return $output;
     }

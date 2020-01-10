@@ -21,11 +21,15 @@ class MetricsDelegate
      */
     public function onCast(Verdict $verdict)
     {
+        if (!$verdict->isAppeal()) {
+            return; // No need to record this
+        }
+
         $decisions = $verdict->isAppeal() ?
             $verdict->getReport()->getAppealJuryDecisions() :
             $verdict->getReport()->getInitialJuryDecisions();
 
-        $jurorGuids = array_map(function(Decision $decision) {
+        $jurorGuids = array_map(function (Decision $decision) {
             return $decision->getJurorGuid();
         }, $decisions);
 

@@ -18,7 +18,7 @@ class Events
      */
     public function register()
     {
-        \elgg_register_plugin_hook_handler('entities_class_loader', 'all', function ($hook, $type, $return, $row) {
+        Dispatcher::register('entities_class_loader', "elgg/hook/all", function ($hook, $type, $return, $row) {
             if ($row->type == 'group') {
                 $entity = new GroupEntity();
                 $entity->loadFromArray((array) $row);
@@ -79,6 +79,20 @@ class Events
 
             $group = $entity;
             $e->setResponse(($group->isOwner($user->guid) || $group->isModerator($user->guid)) && $group->isMember($user->guid));
+        });
+
+        Dispatcher::register('acl:interact', 'activity', function ($e) {
+            $params = $e->getParameters();
+            $activity = $params['entity'];
+            $user = $params['user'];
+
+            if ($activity instanceof Activity && $activity->container_guid && $activity->container_guid !== $activity->owner_guid) {
+                $container = EntitiesFactory::build($activity->container_guid);
+
+                if ($container->type === 'group') {
+                    $e->setResponse($container->isMember($user->guid));
+                }
+            }
         });
 
         Dispatcher::register('acl:interact', 'group', function ($e) {
@@ -163,7 +177,7 @@ class Events
 
             if ($group->getModerated() && !$group->isOwner($activity->owner_guid)) {
                 $key = "activity:container:{$group->guid}";
-                $index = array_search($key, $activity->indexes);
+                $index = array_search($key, $activity->indexes, true);
                 if ($index !== false) {
                     unset($activity->indexes[$index]);
                 }

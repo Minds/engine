@@ -31,21 +31,21 @@ class HourlyRewards
         //CAMPAIGN:: Reward 10 points per day if a user opens their app
         $db = new Core\Data\Call('entities_by_time');
 
-        $row = $db->getRow("analytics:rewarded:hourly:$ts", array('offset'=>Core\Session::getLoggedinUser()->guid, 'limit'=>1));
+        $row = $db->getRow("analytics:rewarded:hourly:$ts", ['offset'=>Core\Session::getLoggedinUser()->guid, 'limit'=>1]);
         if (!$row || key($row) != Core\Session::getLoggedinUser()->guid) {
-            $db->insert("analytics:rewarded:hourly:$ts", array(Core\Session::getLoggedinUser()->guid => time()));
+            $db->insert("analytics:rewarded:hourly:$ts", [Core\Session::getLoggedinUser()->guid => time()]);
 
             //$points = rand(50,100);
             $points = 50;
             Helpers\Wallet::createTransaction(Core\Session::getLoggedinUser()->guid, $points, Core\Session::getLoggedinUser()->guid, "Hourly Reward");
             $message = "You have received $points points as an hourly reward. Hit the newsfeed every hour to receive more points!";
-            Core\Events\Dispatcher::trigger('notification', 'dailyReward', array(
-              'to'=>array(Core\Session::getLoggedinUser()->guid),
+            Core\Events\Dispatcher::trigger('notification', 'dailyReward', [
+              'to'=>[Core\Session::getLoggedinUser()->guid],
               'from' => 100000000000000519,
               'notification_view' => 'custom_message',
-              'params' => array('message'=>$message),
+              'params' => ['message'=>$message],
               'message'=>$message
-              ));
+              ]);
         }
         $cacher->set("rewarded:$ts:" . Core\Session::getLoggedinUser()->guid, true, strtotime('tomorrow', time()) - time());
     }

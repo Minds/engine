@@ -12,8 +12,7 @@ use Spec\Minds\Mocks;
 
 class RepositorySpec extends ObjectBehavior
 {
-
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blockchain\Transactions\Repository');
     }
@@ -50,7 +49,7 @@ class RepositorySpec extends ObjectBehavior
         $this->add($transaction);
     }*/
 
-    function it_should_get_a_list_of_transaction(Client $db)
+    public function it_should_get_a_list_of_transaction(Client $db)
     {
         $this->beConstructedWith($db);
 
@@ -104,7 +103,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(['foo' => 'bar']);
     }
 
-    function it_should_get_a_list_of_transaction_with_multiple_addresses(Client $db)
+    public function it_should_get_a_list_of_transaction_with_multiple_addresses(Client $db)
     {
         $this->beConstructedWith($db);
 
@@ -126,7 +125,7 @@ class RepositorySpec extends ObjectBehavior
         ]);
     }
 
-    function it_should_get_a_single_transaction(Client $db)
+    public function it_should_get_a_single_transaction(Client $db)
     {
         $this->beConstructedWith($db);
 
@@ -180,7 +179,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(['foo' => 'bar']);
     }
 
-    function it_should_update_transaction(Client $db)
+    public function it_should_update_transaction(Client $db)
     {
         $this->beConstructedWith($db);
 
@@ -208,7 +207,7 @@ class RepositorySpec extends ObjectBehavior
         $this->update($transaction, ['failed']);
     }
 
-    function it_should_delete_a_transaction(Client $db)
+    public function it_should_delete_a_transaction(Client $db)
     {
         $time = time();
 
@@ -225,7 +224,7 @@ class RepositorySpec extends ObjectBehavior
         $this->delete('123', $time, '0x123');
     }
 
-    function it_should_fail_to_delete_a_transaction(Client $db)
+    public function it_should_fail_to_delete_a_transaction(Client $db)
     {
         $time = time();
 
@@ -242,5 +241,4 @@ class RepositorySpec extends ObjectBehavior
 
         $this->delete('123', $time, '0x123')->shouldReturn([]);
     }
-
 }

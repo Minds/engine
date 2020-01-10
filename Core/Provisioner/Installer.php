@@ -22,6 +22,7 @@ class Installer
             'domain' => 'http://localhost:8080',
             'username' => 'minds',
             'password' => 'Pa$$w0rd',
+            'development_mode' => true,
             'email' => 'minds@minds.com',
             'email-private-key' => '/.dev/minds.pem',
             'email-public-key' => '/.dev/minds.pub',
@@ -227,26 +228,19 @@ class Installer
         }
     }
 
-    public function setupStorage(Provisioners\ProvisionerInterface $cassandraStorage = null,
-                                 Provisioners\ProvisionerInterface $cockroachProvisioner = null,
-                                 $cleanData = false)
-    {
+    public function setupStorage(
+        Provisioners\ProvisionerInterface $cassandraStorage = null,
+        $cleanData = false
+    ) {
         $this->provisionCassandra($cassandraStorage, $cleanData);
-        $this->provisionCockroach($cockroachProvisioner, $cleanData);
     }
 
-    public function provisionCassandra(Provisioners\ProvisionerInterface $cassandraStorage = null,
-                                       $cleanData = false)
-    {
+    public function provisionCassandra(
+        Provisioners\ProvisionerInterface $cassandraStorage = null,
+        $cleanData = false
+    ) {
         $cassandraStorage = $cassandraStorage ?: new Provisioners\CassandraProvisioner();
         $cassandraStorage->provision($cleanData);
-    }
-
-    public function provisionCockroach(Provisioners\ProvisionerInterface $cockroachProvisioner = null,
-                                       $cleanData = false)
-    {
-        $cockroachProvisioner = $cockroachProvisioner ?: new Provisioners\CockroachProvisioner();
-        $cockroachProvisioner->provision($cleanData);
     }
 
     public function reloadStorage()

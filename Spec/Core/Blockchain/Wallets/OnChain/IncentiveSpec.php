@@ -16,7 +16,7 @@ class IncentiveSpec extends ObjectBehavior
     protected $eth;
     protected $dispatcher;
 
-    function let(
+    public function let(
         Config $config,
         Ethereum $eth,
         EventsDispatcher $dispatcher
@@ -28,12 +28,12 @@ class IncentiveSpec extends ObjectBehavior
         $this->beConstructedWith($config, $eth, $dispatcher);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Blockchain\Wallets\OnChain\Incentive');
     }
 
-    function it_should_send(User $user)
+    public function it_should_send(User $user)
     {
         $user->getEthWallet()
             ->shouldBeCalled()
@@ -93,7 +93,7 @@ class IncentiveSpec extends ObjectBehavior
     }
 
 
-    function it_should_return_false_during_send_if_not_on_testnet(User $user)
+    public function it_should_return_false_during_send_if_not_on_testnet(User $user)
     {
         $user->getEthWallet()
             ->shouldBeCalled()
@@ -127,7 +127,7 @@ class IncentiveSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    function it_should_return_false_during_send_if_no_address(User $user)
+    public function it_should_return_false_during_send_if_no_address(User $user)
     {
         $user->getEthWallet()
             ->shouldBeCalled()
@@ -148,7 +148,7 @@ class IncentiveSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    function it_should_return_false_during_send_if_already_sent(User $user)
+    public function it_should_return_false_during_send_if_already_sent(User $user)
     {
         $user->getEthWallet()
             ->willReturn('0xTEST');

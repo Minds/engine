@@ -11,7 +11,7 @@ class Provider extends DiProvider
 {
     public function register()
     {
-        $this->di->bind('Experiments\Manager', function($di) {
+        $this->di->bind('Experiments\Manager', function ($di) {
             return new Manager;
         });
     }

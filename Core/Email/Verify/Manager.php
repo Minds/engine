@@ -8,7 +8,6 @@ use Minds\Core\Security\SpamBlocks;
 
 class Manager
 {
-
     /** @var $service */
     private $service;
 
@@ -21,8 +20,17 @@ class Manager
         'emailweb.xyz',
         'buydiscountdeal.com',
         'palantirmails.com',
-	'vincentralpark.com',
+        'vincentralpark.com',
         'clickmail.info',
+        'marketlink.info',
+        'atnextmail.com',
+        'hostguru.top',
+        'daymailonline.com',
+        'uber-mail.com',
+        'mailmetal.com',
+        'email-24x7.com',
+        'getsimpleemail.com',
+        'mailsoul.com',
     ];
 
     public function __construct($service = null, $spamBlocksManager = null)
@@ -39,7 +47,7 @@ class Manager
     public function verify($email)
     {
         $domain = explode('@', strtolower($email))[1];
-        if (in_array($domain, $this->bannedDomains)) {
+        if (in_array($domain, $this->bannedDomains, true)) {
             return false;
         }
 
@@ -59,5 +67,4 @@ class Manager
 
         return true;
     }
-
 }

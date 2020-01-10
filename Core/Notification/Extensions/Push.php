@@ -157,6 +157,7 @@ class Push implements Interfaces\NotificationExtensionInterface
                 if (!empty($entity->custom_data)) {
                     return $entity->custom_data[0]['src'];
                 }
+                // no break
             default:
                 return null;
 
@@ -192,7 +193,7 @@ class Push implements Interfaces\NotificationExtensionInterface
      * @param  mixed  $entity
      * @return string
      */
-    protected static function buildNotificationMessage(array $notification = [], $from_user, $entity)
+    public static function buildNotificationMessage(array $notification = [], $from_user, $entity)
     {
         $message = '';
 
@@ -207,8 +208,22 @@ class Push implements Interfaces\NotificationExtensionInterface
         $name = $from_user->name;
 
         $isOwner = $notification['to'] == $entity->owner_guid;
-        $prefix = $isOwner ? 'your ': $entity->ownerObj['name']."'s ";
-        $desc = ($entity->type == 'activity') ? 'activity': $entity->subtype;
+
+        $prefix = '';
+        if ($isOwner) {
+            $prefix = 'your ';
+        } elseif (isset($entity->ownerObj['name'])) {
+            $prefix = $entity->ownerObj['name'].'\'s ';
+        }
+
+        $desc = 'a post';
+        if ($entity->type == 'activity') {
+            $desc = 'activity';
+        } elseif (isset($entity->subtype)) {
+            $desc = $entity->subtype;
+        } elseif ($isOwner || isset($entity->ownerObj['name'])) {
+            $desc = 'post';
+        }
 
         $boostDescription = $entity->title ?: $entity->name ?: ($entity->type !== 'user' ? 'post' : 'channel');
 
@@ -263,6 +278,15 @@ class Push implements Interfaces\NotificationExtensionInterface
 
             case 'messenger_invite':
                 return sprintf('@%s wants to chat with you!', $name);
+
+            case 'referral_ping':
+                return sprintf('Free tokens are waiting for you! Once you join the rewards program by setting up your Minds wallet, both you and @%s will earn tokens for your referral', $name);
+
+            case 'referral_pending':
+                return sprintf('You have a pending referral! @%s used your referral link when they signed up for Minds. You\'ll get tokens once they join the rewards program and set up their wallet', $name);
+
+            case 'referral_complete':
+                return sprintf('You\'ve earned tokens for the completed referral of @%s', $name);
 
             default:
                 return "";

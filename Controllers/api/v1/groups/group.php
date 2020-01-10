@@ -59,7 +59,7 @@ class group implements Interfaces\Api
             }
 
             $response['group'] = array_filter($response['group'], function ($key) use ($allowed) {
-                return in_array($key, $allowed);
+                return in_array($key, $allowed, true);
             }, ARRAY_FILTER_USE_KEY);
         }
 
@@ -184,6 +184,10 @@ class group implements Interfaces\Api
             $group->setVideoChatDisabled($_POST['videoChatDisabled']);
         }
 
+        if (isset($_POST['conversationDisabled'])) {
+            $group->setConversationDisabled($_POST['conversationDisabled']);
+        }
+
         if (isset($_POST['tags'])) {
             $tags = $_POST['tags'];
             $sanitized_tags = [];
@@ -234,7 +238,7 @@ class group implements Interfaces\Api
             }
         }
 
-        $response = array();
+        $response = [];
         $response['guid'] = $group->getGuid();
 
         if ($creation && isset($_POST['invitees']) && $_POST['invitees']) {
@@ -257,7 +261,7 @@ class group implements Interfaces\Api
 
     public function put($pages)
     {
-        return Factory::response(array());
+        return Factory::response([]);
     }
 
     public function delete($pages)
@@ -271,11 +275,7 @@ class group implements Interfaces\Api
             return Factory::response([]);
         }
 
-        $canDelete = Session::isAdmin();
-
-        if (!$canDelete && $group->isCreator($user)) {
-            $canDelete = $group->getMembersCount() <= 1;
-        }
+        $canDelete = Session::isAdmin() || $group->isCreator($user);
 
         if (!$canDelete) {
             return Factory::response([
@@ -298,10 +298,11 @@ class group implements Interfaces\Api
 
     /**
      * Uploads a Group avatar
-     * @param  GroupEntity $group
+     * @param GroupEntity $group
      * @return GroupEntity
      * @throws \IOException
      * @throws \InvalidParameterException
+     * @throws \ImagickException
      */
     protected function uploadAvatar(GroupEntity $group)
     {
@@ -309,13 +310,18 @@ class group implements Interfaces\Api
         $group_owner = EntitiesFactory::build($group->getOwnerObj());
 
         foreach (['tiny', 'small', 'medium', 'large'] as $size) {
-            $resized = get_resized_image_from_uploaded_file('file', $icon_sizes[$size]['w'], $icon_sizes[$size]['h'], $icon_sizes[$size]['square']);
+            /** @var Core\Media\Imagick\Manager $manager */
+            $manager = Core\Di\Di::_()->get('Media\Imagick\Manager');
+
+            $manager->setImage($_FILES['file']['tmp_name'])
+                ->autorotate()
+                ->resize($icon_sizes[$size]['w'], $icon_sizes[$size]['h'], true, $icon_sizes[$size]['square']);
 
             $file = new FileEntity();
             $file->owner_guid = $group->owner_guid ?: $group_owner->getGuid();
             $file->setFilename("groups/{$group->getGuid()}{$size}.jpg");
             $file->open('write');
-            $file->write($resized);
+            $file->write($manager->getJpeg());
             $file->close();
         }
 
@@ -327,27 +333,34 @@ class group implements Interfaces\Api
 
     /**
      * Uploads a Group banner
-     * @param  GroupEntity $group
+     * @param GroupEntity $group
      * @param $banner_position
      * @return GroupEntity
      * @throws \IOException
      * @throws \InvalidParameterException
+     * @throws \ImagickException
      */
     protected function uploadBanner($group, $banner_position)
     {
         $group_owner = EntitiesFactory::build($group->getOwnerObj());
 
-        $resized = get_resized_image_from_uploaded_file('file', 3840, 1404);
+        /** @var Core\Media\Imagick\Manager $manager */
+        $manager = Core\Di\Di::_()->get('Media\Imagick\Manager');
+
+        $manager->setImage($_FILES['file']['tmp_name'])
+            ->autorotate()
+            ->resize(3840, 1404);
+
         $file = new FileEntity();
         $file->owner_guid = $group->owner_guid ?: $group_owner->getGuid();
         $file->setFilename("group/{$group->getGuid()}.jpg");
         $file->open('write');
-        $file->write($resized);
+        $file->write($manager->getJpeg());
         $file->close();
 
         $group
-          ->setBanner(time())
-          ->setBannerPosition($banner_position);
+            ->setBanner(time())
+            ->setBannerPosition($banner_position);
 
         $group->save();
 
