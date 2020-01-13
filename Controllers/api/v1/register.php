@@ -78,7 +78,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             $hasSignupTags = false;
             if (isset($_COOKIE['mexp'])) {
                 $manager = Core\Di\Di::_()->get('Experiments\Manager');
-                $bucket = $manager->getBucketForExperiment('Homepage200619');
+                $bucket = $manager->getBucketForExperiment('Homepage121119');
                 $user->expHomepage200619 = $bucket->getId();
             }
 
