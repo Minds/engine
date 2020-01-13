@@ -49,6 +49,7 @@ class experiments implements Interfaces\Api
             $_COOKIE['mexp'] = $cookieid;
         }
 
+        /** @var Core\Experiments\Manager $manager */
         $manager = Di::_()->get('Experiments\Manager');
 
         if (Core\Session::isLoggedIn()) {
