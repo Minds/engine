@@ -5,6 +5,9 @@
  */
 namespace Minds\Core\Experiments;
 
+use Minds\Core\Analytics\User;
+use Minds\Core\Data\Client;
+use Minds\Core\Experiments\Hypotheses\HypothesisInterface;
 use Minds\Interfaces\ModuleInterface;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\Cassandra\Prepared;
@@ -17,7 +20,7 @@ class Sampler
     /** @param User $user */
     private $user;
 
-    /** @param HypthosesInterface $hypothesis */
+    /** @param HypothesisInterface $hypothesis */
     private $hypothesis;
 
     /** @param array $buckets */
@@ -43,6 +46,7 @@ class Sampler
      * Set the hypothesis to sample
      * @param HypothesisInterface $hypothesis
      * @return Sampler
+     * @throws \Exception
      */
     public function setHypothesis($hypothesis)
     {
@@ -71,6 +75,7 @@ class Sampler
     /**
      * Return the bucket for a user
      * @return Bucket
+     * @throws \Exception
      */
     public function getBucket()
     {
