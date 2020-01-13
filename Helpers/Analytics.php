@@ -35,8 +35,18 @@ class Analytics
     {
         $phone_number_hash = null;
         if (!$user_guid) {
-            $user_guid = Core\Session::getLoggedinUser()->guid;
-            $phone_number_hash = Core\Session::getLoggedInUser()->getPhoneNumberHash();
+            $currentUser = Core\Session::getLoggedinUser();
+
+            if ($currentUser) {
+                $user_guid = $currentUser->guid;
+                $phone_number_hash = $currentUser->getPhoneNumberHash();
+            } else {
+                // No user, generate a negative ID based on IP address
+                $ipHash = new Core\Security\SpamBlocks\IPHash();
+                $user_guid = $ipHash->generateTempId(
+                    $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR']
+                );
+            }
         }
 
         $platform = isset($_REQUEST['cb']) ? 'mobile' : 'browser';

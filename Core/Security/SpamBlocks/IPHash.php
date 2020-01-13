@@ -15,6 +15,18 @@ class IPHash
     }
 
     /**
+     * Generates a temporary ID based on a truncated IP address hash
+     * @param string $ip
+     * @param int $bits
+     * @return int
+     */
+    public function generateTempId(string $ip, int $bits = 60): int
+    {
+        $hash = hash('sha256', $ip);
+        return -1 * hexdec(substr($hash, 0, floor($bits / 4)));
+    }
+
+    /**
      * Return if an IP is valid
      */
     public function isValid($ip)
