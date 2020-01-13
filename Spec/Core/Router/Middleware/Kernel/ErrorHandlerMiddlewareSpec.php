@@ -9,11 +9,23 @@ use Prophecy\Argument;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Log\LoggerInterface;
 use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Diactoros\Response\JsonResponse;
 
 class ErrorHandlerMiddlewareSpec extends ObjectBehavior
 {
+    /** @var LoggerInterface */
+    protected $logger;
+
+    public function let(
+        LoggerInterface $logger
+    ) {
+        $this->logger = $logger;
+
+        $this->beConstructedWith($logger);
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(ErrorHandlerMiddleware::class);
@@ -29,7 +41,6 @@ class ErrorHandlerMiddlewareSpec extends ObjectBehavior
             ->willReturn($response);
 
         $this
-            ->setSentryEnabled(false)
             ->process($request, $handler)
             ->shouldReturn($response);
     }
@@ -39,16 +50,21 @@ class ErrorHandlerMiddlewareSpec extends ObjectBehavior
         RequestHandlerInterface $handler,
         ResponseInterface $response
     ) {
+        $exception = new Exception('PHPSpec');
+
         $handler->handle($request)
             ->shouldBeCalled()
-            ->willThrow(new Exception('PHPSpec'));
+            ->willThrow($exception);
+
+        $this->logger->critical($exception, ['exception' => $exception])
+            ->shouldBeCalled()
+            ->willReturn(null);
 
         $request->getAttribute('accept')
             ->shouldBeCalled()
             ->willReturn('html');
 
         $this
-            ->setSentryEnabled(false)
             ->process($request, $handler)
             ->shouldBeAnInstanceOf(HtmlResponse::class);
     }
@@ -58,16 +74,21 @@ class ErrorHandlerMiddlewareSpec extends ObjectBehavior
         RequestHandlerInterface $handler,
         ResponseInterface $response
     ) {
+        $exception = new Exception('PHPSpec');
+
         $handler->handle($request)
             ->shouldBeCalled()
-            ->willThrow(new Exception('PHPSpec'));
+            ->willThrow($exception);
+
+        $this->logger->critical($exception, ['exception' => $exception])
+            ->shouldBeCalled()
+            ->willReturn(null);
 
         $request->getAttribute('accept')
             ->shouldBeCalled()
             ->willReturn('json');
 
         $this
-            ->setSentryEnabled(false)
             ->process($request, $handler)
             ->shouldBeAnInstanceOf(JsonResponse::class);
     }

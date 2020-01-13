@@ -7,6 +7,8 @@
 namespace Minds\Core\Router\Middleware\Kernel;
 
 use Exception;
+use Minds\Core\Di\Di;
+use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Psr\Http\Message\ResponseInterface;
@@ -15,21 +17,20 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Diactoros\Response\JsonResponse;
-use function Sentry\captureException;
 
 class ErrorHandlerMiddleware implements MiddlewareInterface
 {
-    /** @var bool */
-    protected $sentryEnabled = true;
+    /** @var Logger */
+    protected $logger;
 
     /**
-     * @param bool $sentryEnabled
-     * @return ErrorHandlerMiddleware
+     * ErrorHandlerMiddleware constructor.
+     * @param Logger $logger
      */
-    public function setSentryEnabled(bool $sentryEnabled): ErrorHandlerMiddleware
-    {
-        $this->sentryEnabled = $sentryEnabled;
-        return $this;
+    public function __construct(
+        $logger = null
+    ) {
+        $this->logger = $logger ?: Di::_()->get('Logger');
     }
 
     /**
@@ -58,15 +59,7 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
             $status = 403;
         } catch (Exception $e) {
             // Log
-
-            // TODO: Monolog
-            error_log((string) $e);
-
-            // Sentry
-
-            if ($this->sentryEnabled) {
-                captureException($e);
-            }
+            $this->logger->critical($e, ['exception' => $e]);
         }
 
         switch ($request->getAttribute('accept')) {

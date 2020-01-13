@@ -18,6 +18,7 @@ class Manager
     private $experiments = [
         'Homepage121118' => Hypotheses\Homepage121118::class,
         'Homepage200619' => Hypotheses\Homepage200619::class,
+        'Homepage121119' => Hypotheses\Homepage121119::class,
     ];
 
     public function __construct($sampler = null)
@@ -49,6 +50,7 @@ class Manager
      * Return the bucket for an experiment
      * @param string $experimentId
      * @return Bucket
+     * @throws \Exception
      */
     public function getBucketForExperiment($experimentId)
     {
