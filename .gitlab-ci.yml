@@ -16,7 +16,7 @@ build:
     - apk add --no-cache git
     - sh tools/setup.sh production
   artifacts:
-    name: '$CI_COMMIT_REF_SLUG'
+    name: "$CI_COMMIT_REF_SLUG"
     paths:
       - vendor
       - bin
@@ -39,7 +39,7 @@ prepare:fpm:
   services:
     - docker:dind
   script:
-    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY} 
+    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - |
       docker build \
         -t $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID \
@@ -80,27 +80,27 @@ review:start:
   image: minds/helm-eks:latest
   script:
     - aws eks update-kubeconfig --name=sandbox
-    - git clone --branch=master https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/minds/helm-charts.git
+    - git clone --branch=epic/SSR https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/minds/helm-charts.git
     - echo "Upgrading helm for pipeline ${CI_PIPELINE_ID}"
     - echo "Setting to image ${CI_REGISTRY_IMAGE}"
     - "helm upgrade \
-        --install \
-        --reuse-values \
-        --set phpfpm.image.repository=$CI_REGISTRY_IMAGE/fpm \
-        --set-string phpfpm.image.tag=$CI_PIPELINE_ID \
-        --set runners.image.repository=$CI_REGISTRY_IMAGE/runners \
-        --set-string runners.image.tag=$CI_PIPELINE_ID \
-        --set domain=$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN \
-        --set elasticsearch.clusterName=$CI_BUILD_REF_SLUG-elasticsearch \
-        --wait \
-        $CI_BUILD_REF_SLUG \
-        ./helm-charts/minds"
+      --install \
+      --reuse-values \
+      --set phpfpm.image.repository=$CI_REGISTRY_IMAGE/fpm \
+      --set-string phpfpm.image.tag=$CI_PIPELINE_ID \
+      --set runners.image.repository=$CI_REGISTRY_IMAGE/runners \
+      --set-string runners.image.tag=$CI_PIPELINE_ID \
+      --set domain=$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN \
+      --set elasticsearch.clusterName=$CI_BUILD_REF_SLUG-elasticsearch \
+      --wait \
+      $CI_BUILD_REF_SLUG \
+      ./helm-charts/minds"
     - sentry-cli releases deploys $CI_PIPELINE_ID new -e review-$CI_COMMIT_REF_SLUG
   environment:
     name: review/$CI_COMMIT_REF_NAME
     url: https://$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
     on_stop: review:stop
-  except: 
+  except:
     refs:
       - master
       - test/gitlab-ci
@@ -118,7 +118,7 @@ review:stop:
   variables:
     GIT_STRATEGY: none
   when: manual
-  except: 
+  except:
     refs:
       - master
       - test/gitlab-ci
@@ -157,7 +157,7 @@ staging:fpm:
   environment:
     name: staging
     url: https://www.minds.com/?staging=1
-  only: 
+  only:
     refs:
       - master
       - test/gitlab-ci
