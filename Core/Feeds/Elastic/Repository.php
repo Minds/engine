@@ -66,6 +66,7 @@ class Repository
             'query' => null,
             'nsfw' => null,
             'from_timestamp' => null,
+            'reverse_sort' => null,
             'exclude_moderated' => false,
             'moderation_reservations' => null,
             'pinned_guids' => null,
@@ -271,7 +272,11 @@ class Repository
         }
 
         if ($opts['from_timestamp']) {
-            $timestampUpperBounds[] = (int) $opts['from_timestamp'];
+            if (!$opts['reverse_sort']) {
+                $timestampUpperBounds[] = (int) $opts['from_timestamp'];
+            } else {
+                $timestampLowerBounds[] = (int) $opts['from_timestamp'];
+            }
         }
 
         if ($opts['future']) {
@@ -392,6 +397,10 @@ class Repository
 
         $esSort = $algorithm->getSort();
         if ($esSort) {
+            if ($opts['reverse_sort']) {
+                $esSort = $this->reverseSort($esSort);
+            }
+
             $body['sort'][] = $esSort;
         }
 
@@ -485,6 +494,19 @@ class Repository
                 return 'guid';
                 break;
         }
+    }
+
+    private function reverseSort(array $sort)
+    {
+        foreach ($sort as $field => $opts) {
+            if (isset($opts['order'])) {
+                $opts['order'] = $opts['order'] == 'asc' ? 'desc' : 'asc';
+            }
+
+            $sort[$field] = $opts;
+        }
+
+        return $sort;
     }
 
     public function add(MetricsSync $metric)
