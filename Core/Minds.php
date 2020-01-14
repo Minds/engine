@@ -32,6 +32,7 @@ class Minds extends base
         VideoChat\Module::class,
         Feeds\Module::class,
         Front\Module::class,
+        Classifier\Module::class,
     ];
 
     /**
