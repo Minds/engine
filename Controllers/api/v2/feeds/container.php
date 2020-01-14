@@ -100,6 +100,8 @@ class container implements Interfaces\Api
 
         $forcePublic = (bool) ($_GET['force_public'] ?? false);
 
+        $reverseSort = (bool) ($_GET['reverse_sort'] ?? false);
+
         $query = null;
 
         if (isset($_GET['query'])) {
@@ -133,6 +135,7 @@ class container implements Interfaces\Api
             'period' => '1y',
             'sync' => $sync,
             'from_timestamp' => $fromTimestamp,
+            'reverse_sort' => $reverseSort,
             'query' => $query,
             'single_owner_threshold' => 0,
             'pinned_guids' => $type === 'activity' ? array_reverse($container->getPinnedPosts()) : null,

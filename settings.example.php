@@ -486,6 +486,7 @@ $CONFIG->set('features', [
     'homepage-december-2019' => true,
     'onboarding-december-2019' => true,
     'register_pages-december-2019' => true,
+    'modal-pager' => true,
 ]);
 
 $CONFIG->set('email', [
