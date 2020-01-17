@@ -8,6 +8,7 @@ use Minds\Common\Repository\Response;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities\Factory as EntitiesFactory;
+use Minds\Entities\Group;
 use Minds\Entities\User;
 use Minds\Interfaces;
 
@@ -41,7 +42,7 @@ class feeds implements Interfaces\Api
         if (!$filter) {
             return Factory::response([
                 'status' => 'error',
-                'message' => 'Invalid filter'
+                'message' => 'Invalid filter',
             ]);
         }
 
@@ -50,7 +51,7 @@ class feeds implements Interfaces\Api
         if (!$algorithm) {
             return Factory::response([
                 'status' => 'error',
-                'message' => 'Invalid algorithm'
+                'message' => 'Invalid algorithm',
             ]);
         }
 
@@ -82,6 +83,12 @@ class feeds implements Interfaces\Api
             $period = '12h';
         } elseif ($algorithm === 'latest') {
             $period = '1y';
+        }
+
+        $exportCounts = false;
+
+        if (isset($_GET['exportCounts'])) {
+            $exportCounts = true;
         }
 
         //
@@ -146,7 +153,7 @@ class feeds implements Interfaces\Api
             if (!$container || !Core\Security\ACL::_()->read($container)) {
                 return Factory::response([
                     'status' => 'error',
-                    'message' => 'Forbidden'
+                    'message' => 'Forbidden',
                 ]);
             }
         }
@@ -238,6 +245,12 @@ class feeds implements Interfaces\Api
                 if ($asActivities) {
                     // Cast to ephemeral Activity entities, if another type
                     $entities = $entities->map([$elasticEntities, 'cast']);
+                }
+            }
+
+            if ($type === 'user' && $exportCounts) {
+                foreach ($entities as $entity) {
+                    $entity->exportCounts = true;
                 }
             }
 
