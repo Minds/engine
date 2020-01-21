@@ -134,13 +134,16 @@ qa:manual:
       - test/gitlab-ci
   allow_failure: false
 
-staging:fpm:
+################
+# Deploy Stage #
+################
+
+.deploy: &deploy
   stage: deploy:staging
   image: minds/ci:latest
   services:
     - docker:dind
   script:
-    - IMAGE_LABEL="staging"
     - $(aws ecr get-login --no-include-email --region us-east-1)
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - docker pull $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
@@ -151,9 +154,16 @@ staging:fpm:
     - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
     - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
     # Deploy to staging
-    - aws ecs update-service --service=$ECS_APP_STAGING_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
+    - aws ecs update-service --service=$ECS_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
     # Update sentry
     - sentry-cli releases deploys $CI_PIPELINE_ID new -e $IMAGE_LABEL
+
+staging:fpm:
+  <<: *deploy
+  stage: deploy:staging
+  variables:
+    IMAGE_LABEL: "staging"
+    ECS_SERVICE: $ECS_APP_STAGING_SERVICE
   environment:
     name: staging
     url: https://www.minds.com/?staging=1
@@ -162,26 +172,28 @@ staging:fpm:
       - master
       - test/gitlab-ci
 
+review:preprod:
+  <<: *deploy
+  stage: review
+  when: manual
+  allow_failure: true
+  variables:
+    IMAGE_LABEL: "preprod"
+    ECS_SERVICE: $ECS_APP_PREPROD_SERVICE
+  environment:
+    name: preprod
+    url: https://www.minds.com/?preprod=1
+  except:
+    refs:
+      - master
+      - test/gitlab-ci
+
 canary:fpm:
+  <<: *deploy
   stage: deploy:canary
-  image: minds/ci:latest
-  services:
-    - docker:dind
-  script:
-    - IMAGE_LABEL="canary"
-    - $(aws ecr get-login --no-include-email --region us-east-1)
-    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
-    - docker pull $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
-    # Push to AWS registry
-    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $ECR_REPOSITORY_URL_FPM:$IMAGE_LABEL
-    - docker push $ECR_REPOSITORY_URL_FPM:$IMAGE_LABEL
-    # Push to Gitlab registry
-    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
-    - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
-    # Deploy to ECS
-    - aws ecs update-service --service=$ECS_APP_CANARY_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
-    # Update sentry
-    - sentry-cli releases deploys $CI_PIPELINE_ID new -e $IMAGE_LABEL
+  variables:
+    IMAGE_LABEL: "canary"
+    ECS_SERVICE: $ECS_APP_CANARY_SERVICE
   only:
     refs:
       - master
@@ -193,25 +205,11 @@ canary:fpm:
   allow_failure: false # prevents auto deploy to full production
 
 production:fpm:
+  <<: *deploy
   stage: deploy:production
-  image: minds/ci:latest
-  services:
-    - docker:dind
-  script:
-    - IMAGE_LABEL="production"
-    - $(aws ecr get-login --no-include-email --region us-east-1)
-    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
-    - docker pull $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
-    # Push to AWS registry
-    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $ECR_REPOSITORY_URL_FPM:$IMAGE_LABEL
-    - docker push $ECR_REPOSITORY_URL_FPM:$IMAGE_LABEL
-    # Push to Gitlab registry
-    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
-    - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
-    # Delpoy to ECS
-    - aws ecs update-service --service=$ECS_APP_PRODUCTION_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
-    # Update sentry
-    - sentry-cli releases deploys $CI_PIPELINE_ID new -e $IMAGE_LABEL
+  variables:
+    IMAGE_LABEL: "production"
+    ECS_SERVICE: $ECS_APP_PRODUCTION_SERVICE
   only:
     refs:
       - master
