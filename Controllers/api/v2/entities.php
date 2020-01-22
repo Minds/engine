@@ -24,6 +24,7 @@ class entities implements Interfaces\Api
     public function get($pages)
     {
         $asActivities = (bool) ($_GET['as_activities'] ?? false);
+        $exportUserCounts = (bool) ($_GET['export_user_counts'] ?? false);
         $urns = array_map([Urn::class, '_'], array_filter(explode(',', $_GET['urns'] ?? ''), [Urn::class, 'isValid']));
 
         $resolver = new Resolver();
@@ -31,10 +32,16 @@ class entities implements Interfaces\Api
             ->setUser(Session::getLoggedinUser() ?: null)
             ->setUrns($urns)
             ->setOpts([
-                'asActivities' => $asActivities
+                'asActivities' => $asActivities,
             ]);
 
         $entities = $resolver->fetch();
+
+        if ($exportUserCounts) {
+            foreach ($entities as $user) {
+                $user->exportCounts = true;
+            }
+        }
 
         // Return
         return Factory::response([
