@@ -85,48 +85,79 @@ class Defaults
         /**
          * Activity SEO default
          */
-        Manager::add('/newsfeed', function ($slugs = []) {
-            if (isset($slugs[0]) && is_numeric($slugs[0])) {
-                $activity = new Entities\Activity($slugs[0]);
-                if (!$activity->guid || Helpers\Flags::shouldFail($activity)) {
-                    header("HTTP/1.0 404 Not Found");
-                    return [
-                      'robots' => 'noindex'
+        Manager::add('/newsfeed', function ($slugs = [], $params = [], $fullRoute) {
+            if (isset($slugs[0])) {
+                if (is_numeric($slugs[0])) {
+                    $activity = new Entities\Activity($slugs[0]);
+                    if (!$activity->guid || Helpers\Flags::shouldFail($activity)) {
+                        header("HTTP/1.0 404 Not Found");
+                        return [
+                            'robots' => 'noindex',
+                        ];
+                    }
+                    if ($activity->paywall) {
+                        return;
+                    }
+                    if ($activity->remind_object) {
+                        $activity = new Entities\Activity($activity->remind_object);
+                    }
+
+                    // More than 2 votes allows indexing to search engines (prevents spam)
+
+                    $allowIndexing = Counters::get($activity->getGuid(), 'thumbs:up') >= 2;
+
+                    $meta = [
+                        'title' => $activity->title ?: $activity->message,
+                        'description' => $activity->blurb ?: "@{$activity->ownerObj['username']} on {$this->config->site_name}",
+                        'og:title' => $activity->title ?: $activity->message,
+                        'og:description' => $activity->blurb ?: "@{$activity->ownerObj['username']} on {$this->config->site_name}",
+                        'og:url' => $activity->getUrl(),
+                        'og:image' => $activity->custom_type == 'batch' ? $activity->custom_data[0]['src'] : $activity->thumbnail_src,
+                        'og:image:width' => 2000,
+                        'og:image:height' => 1000,
+                        'twitter:site' => '@minds',
+                        'twitter:card' => 'summary',
+                        'al:ios:url' => 'minds://activity/' . $activity->guid,
+                        'al:android:url' => 'minds://minds/activity/' . $activity->guid,
+                        'robots' => $allowIndexing ? 'all' : 'noindex',
                     ];
+
+                    if ($activity->custom_type == 'video') {
+                        $meta['og:type'] = "video";
+                        $meta['og:image'] = $activity->custom_data['thumbnail_src'];
+                    }
+
+                    return $meta;
+                } else if(is_string($slugs[0])) {
+                    $meta = [];
+                    switch($slugs[0]) {
+                        case 'subscriptions':
+                            $meta = [
+                                'title' => 'Your feed',
+                                'og:title' => 'Your feed',
+                                'description' => 'See the content from your network',
+                                'og:description' => 'See the content from your network',
+                            ];
+                            break;
+                        case 'global':
+                            $algorithm = $slugs[1] ? ucfirst($slugs[1]) : 'Top';
+
+                            $type = $params['type'] ? ucfirst($params['type']) : 'Activities';
+                            $allowIndexing = $algorithm !== 'Latest';
+
+                            $meta = [
+                                'title' => "$algorithm $type",
+                                'og:title' => "$algorithm $type",
+                                'description' => "List of $algorithm $type",
+                                'og:description' => "List of $algorithm $type",
+                                'og:url' => $this->config->site_url . $fullRoute,
+                                'robots' => $allowIndexing ? 'all' : 'noindex',
+                            ];
+                            break;
+                    }
+
+                    return $meta;
                 }
-                if ($activity->paywall) {
-                    return;
-                }
-                if ($activity->remind_object) {
-                    $activity = new Entities\Activity($activity->remind_object);
-                }
-
-                // More than 2 votes allows indexing to search engines (prevents spam)
-
-                $allowIndexing = Counters::get($activity->getGuid(), 'thumbs:up') >= 2;
-
-                $meta = [
-                  'title' => $activity->title ?: $activity->message,
-                  'description' => $activity->blurb ?: "@{$activity->ownerObj['username']} on {$this->config->site_name}",
-                  'og:title' => $activity->title ?: $activity->message,
-                  'og:description' => $activity->blurb ?: "@{$activity->ownerObj['username']} on {$this->config->site_name}",
-                  'og:url' => $activity->getUrl(),
-                  'og:image' => $activity->custom_type == 'batch' ? $activity->custom_data[0]['src'] : $activity->thumbnail_src,
-                  'og:image:width' => 2000,
-                  'og:image:height' => 1000,
-                  'twitter:site' => '@minds',
-                  'twitter:card' => 'summary',
-                  'al:ios:url' => 'minds://activity/' . $activity->guid,
-                  'al:android:url' => 'minds://minds/activity/' . $activity->guid,
-                  'robots' => $allowIndexing ? 'all' : 'noindex',
-                ];
-
-                if ($activity->custom_type == 'video') {
-                    $meta['og:type'] = "video";
-                    $meta['og:image'] = $activity->custom_data['thumbnail_src'];
-                }
-
-                return $meta;
             }
         });
 
