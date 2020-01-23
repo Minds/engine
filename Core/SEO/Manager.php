@@ -52,7 +52,9 @@ class Manager
         }
 
         $slugs = [];
+        $params = null;
         $meta = [];
+        $originalRoute = $route;
 
         while ($route) {
             $event = Dispatcher::trigger('seo:route', $route, [
@@ -66,9 +68,19 @@ class Manager
             }
 
             if (isset(self::$routes[$route])) {
-                $meta = call_user_func_array(self::$routes[$route], [array_reverse($slugs)]) ?: [];
+                $meta = call_user_func_array(self::$routes[$route], [array_reverse($slugs), $params, $originalRoute]) ?: [];
                 break;
             } else {
+                if (!$params) {
+                    $list = explode(';', $route);
+                    $route = array_shift($list); // remove url part
+
+                    $params = [];
+                    foreach($list as $v) {
+                        $v = explode('=', $v);
+                        $params[$v[0]] = $v[1] ?? '';
+                    }
+                }
                 $slugs[] = substr($route, strrpos($route, '/') + 1);
                 if (strrpos($route, '/') === 0) {
                     $route = '/';
