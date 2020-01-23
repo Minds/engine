@@ -38,12 +38,14 @@ class Exported
         $config = null,
         $thirdPartyNetworks = null,
         $i18n = null,
-        $blockchain = null
+        $blockchain = null,
+        $proDomain = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
         $this->i18n = $i18n ?: Di::_()->get('I18n');
         $this->blockchain = $blockchain ?: Di::_()->get('Blockchain\Manager');
+        $this->proDomain = $proDomain ?: Di::_()->get('Pro\Domain');
     }
 
     /**
@@ -108,6 +110,12 @@ class Exported
 
         if ($_GET['__e_cnf_token'] ?? false) {
             $exported['from_email_confirmation'] = true;
+        }
+
+        // Pro export
+
+        if ($pro = $this->proDomain->lookup($_SERVER['HTTP_HOST'] ?? null)) {
+            $exported['pro'] = $pro;
         }
 
         return $exported;
