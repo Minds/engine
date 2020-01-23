@@ -8,6 +8,7 @@ use Minds\Core\Di\Di;
 /**
  * @method AccountInstance create()
  * @method AccountInstance retrieve()
+ * @method AccountInstance deleteExternalAccount()
  */
 class AccountInstance extends StaticToInstance
 {
