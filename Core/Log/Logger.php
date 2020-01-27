@@ -36,13 +36,17 @@ class Logger extends MonologLogger
         $options = array_merge([
             'isProduction' => true,
             'devToolsLogger' => '',
+            'minLogLevel' => null,
         ], $options);
+
+        $isProduction = (bool) $options['isProduction'];
+        $level = $options['minLogLevel'] ?? MonologLogger::WARNING;
 
         $handlers = [];
 
         $errorLogHandler = new ErrorLogHandler(
             ErrorLogHandler::OPERATING_SYSTEM,
-            $options['isProduction'] ? MonologLogger::INFO : MonologLogger::DEBUG,
+            $level,
             true,
             true
         );
@@ -51,29 +55,30 @@ class Logger extends MonologLogger
             ->setFormatter(new LineFormatter(
                 "%channel%.%level_name%: %message% %context% %extra%\n",
                 'c',
-                !$options['isProduction'], // Allow newlines on dev mode
+                !$isProduction, // Allow newlines on dev mode
                 true
             ));
 
         $handlers[] = $errorLogHandler;
 
-        if ($options['isProduction']) {
-            $handlers[] = new SentryHandler(SentrySdk::getCurrentHub());
+        if ($isProduction) {
+            // Do _NOT_ send INFO or DEBUG
+            $handlers[] = new SentryHandler(SentrySdk::getCurrentHub(), max($level, MonologLogger::WARNING));
         } else {
             // Extra handlers for Development Mode
 
             switch ($options['devToolsLogger']) {
                 case 'firephp':
-                    $handlers[] = new FirePHPHandler();
+                    $handlers[] = new FirePHPHandler($level);
                     break;
 
                 case 'chromelogger':
-                    $handlers[] = new ChromePHPHandler();
+                    $handlers[] = new ChromePHPHandler($level);
                     break;
 
                 case 'phpconsole':
                     try {
-                        $handlers[] = new PHPConsoleHandler();
+                        $handlers[] = new PHPConsoleHandler(null, null, $level);
                     } catch (Exception $exception) {
                         // If the server-side vendor package is not installed, ignore any warnings.
                     }

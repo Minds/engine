@@ -104,8 +104,8 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         Security\XSRF::setCookie(true);
 
         // Set the canary cookie
-        Di::_()->get('Features\Manager')
-            ->setCanaryCookie($user->isCanary());
+        Di::_()->get('Features\Canary')
+            ->setCookie($user->isCanary());
 
         $response['status'] = 'success';
         $response['user'] = $user->export();

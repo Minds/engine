@@ -8,6 +8,7 @@ namespace Minds\Core\Config;
 
 use Minds\Core\Blockchain\Manager as BlockchainManager;
 use Minds\Core\Di\Di;
+use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Core\I18n\I18n;
 use Minds\Core\Navigation\Manager as NavigationManager;
 use Minds\Core\Rewards\Contributions\ContributionValues;
@@ -27,23 +28,29 @@ class Exported
     /** @var I18n */
     protected $i18n;
 
+    /** @var FeaturesManager */
+    protected $features;
+
     /**
      * Exported constructor.
      * @param Config $config
      * @param ThirdPartyNetworksManager $thirdPartyNetworks
      * @param I18n $i18n
      * @param BlockchainManager $blockchain
+     * @param FeaturesManager $features
      */
     public function __construct(
         $config = null,
         $thirdPartyNetworks = null,
         $i18n = null,
-        $blockchain = null
+        $blockchain = null,
+        $features = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
         $this->i18n = $i18n ?: Di::_()->get('I18n');
         $this->blockchain = $blockchain ?: Di::_()->get('Blockchain\Manager');
+        $this->features = $features ?: Di::_()->get('Features\Manager');
     }
 
     /**
@@ -71,7 +78,7 @@ class Exported
             'recaptchaKey' => $this->config->get('google')['recaptcha']['site_key'],
             'max_video_length' => $this->config->get('max_video_length'),
             'max_video_file_size' => $this->config->get('max_video_file_size'),
-            'features' => (object) ($this->config->get('features') ?: []),
+            'features' => (object) ($this->features->export() ?: []),
             'blockchain' => (object) $this->blockchain->getPublicSettings(),
             'sale' => $this->config->get('blockchain')['sale'],
             'last_tos_update' => $this->config->get('last_tos_update') ?: time(),
