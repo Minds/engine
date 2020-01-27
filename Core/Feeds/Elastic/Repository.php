@@ -38,7 +38,7 @@ class Repository
 
         $config = $config ?: Di::_()->get('Config');
 
-        $this->features = $features ?: Di::_()->get('Features');
+        $this->features = $features ?: Di::_()->get('Features\Manager');
 
         $this->index = $config->get('elasticsearch')['index'];
     }
