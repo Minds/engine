@@ -9,87 +9,90 @@
 namespace Minds\Core\Features;
 
 use Minds\Core\Di\Di;
-use Minds\Common\Cookie;
-use Minds\Core\Session;
+use Minds\Core\Features\Exceptions\FeatureNotImplementedException;
+use Minds\Core\Sessions\ActiveSession;
 
+/**
+ * Features Manager
+ * @package Minds\Core\Features
+ */
 class Manager
 {
-    /** @var User $user */
-    private $user;
+    /** @var Services\ServiceInterface[] */
+    protected $services;
 
-    /** @var Config $config */
-    private $config;
+    /** @var ActiveSession */
+    protected $activeSession;
 
-    /** @var Cookie $cookie */
-    private $cookie;
-    
-    public function __construct($config = null, $cookie = null, $user = null)
-    {
-        $this->config = $config ?: Di::_()->get('Config');
-        $this->cookie = $cookie ?: new Cookie;
-        $this->user = $user ?? Session::getLoggedInUser();
-    }
+    /** @var string[] */
+    protected $featureKeys;
 
     /**
-     * Set the user
-     * @param User $user
-     * @return $this
+     * Manager constructor.
+     * @param Services\ServiceInterface[] $services
+     * @param ActiveSession $activeSession
+     * @param string[] $features
      */
-    public function setUser($user)
-    {
-        $this->user = $user;
-        return $this;
+    public function __construct(
+        $services = null,
+        $activeSession = null,
+        array $features = null
+    ) {
+        $this->services = $services ?: [
+            new Services\Config(),
+            new Services\Unleash(),
+            new Services\Environment(),
+        ];
+        $this->activeSession = $activeSession ?: Di::_()->get('Sessions\ActiveSession');
+        $this->featureKeys = ($features ?? Di::_()->get('Features\Keys')) ?: [];
     }
 
     /**
-     * Checks if a featured is enabled
-     * @param $feature
+     * Checks if a feature is enabled
+     * @param string $feature
      * @return bool
+     * @throws FeatureNotImplementedException
      */
-    public function has($feature)
+    public function has(string $feature): ?bool
     {
-        $features = $this->config->get('features') ?: [];
+        $features = $this->export();
 
         if (!isset($features[$feature])) {
-            // error_log("[Features\Manager] Feature '{$feature}' is not declared. Assuming false.");
-
-            return false;
+            throw new FeatureNotImplementedException(
+                "${feature}: Not Implemented"
+            );
         }
 
-        if ($features[$feature] === 'admin' && $this->user->isAdmin()) {
-            return true;
-        }
-
-        if ($features[$feature] === 'canary' && $this->user && $this->user->get('canary')) {
-            return true;
-        }
-
-        return $features[$feature] === true;
+        return (bool) $features[$feature];
     }
 
     /**
-     * Exports the features array
+     * Exports the whole features array based on Features DI
      * @return array
      */
-    public function export()
+    public function export(): array
     {
-        return $this->config->get('features') ?: [];
-    }
+        $features = [];
 
-    /**
-     * Set the canary cookie
-     * @param bool $enabled
-     * @return void
-     */
-    public function setCanaryCookie(bool $enabled = true) : void
-    {
-        $this->cookie
-            ->setName('canary')
-            ->setValue((int) $enabled)
-            ->setExpire(0)
-            ->setSecure(true) //only via ssl
-            ->setHttpOnly(true) //never by browser
-            ->setPath('/')
-            ->create();
+        // Initialize array with false values
+
+        foreach ($this->featureKeys as $feature) {
+            $features[$feature] = false;
+        }
+
+        // Fetch from every service
+
+        foreach ($this->services as $service) {
+            $features = array_merge(
+                $features,
+                $service
+                    ->setUser($this->activeSession->getUser())
+                    ->fetch($this->featureKeys)
+            );
+        }
+
+        //
+
+        return $features;
     }
 }
