@@ -618,3 +618,11 @@ $CONFIG->set('email_confirmation', [
     'signing_key' => '',
     'expiration' => 172800, // 48 hours
 ]);
+
+$CONFIG->set('unleash', [
+    'apiUrl' => '',
+    'instanceId' => '',
+    'applicationName' => '',
+    'pollingIntervalSeconds' => 300,
+    'metricsIntervalSeconds' => 15
+]);
