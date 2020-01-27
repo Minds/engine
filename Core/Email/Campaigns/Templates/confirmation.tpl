@@ -19,14 +19,6 @@
     </tr>
     <tr>
         <td>
-            <p>
-                Thanks,<br>
-                The Minds Team
-            </p>
-        </td>
-    </tr>
-    <tr>
-        <td>
             <p>Also, be sure to download our mobile app using the links below:</p>
         </td>
     </tr>
