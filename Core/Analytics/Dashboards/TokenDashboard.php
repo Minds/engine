@@ -56,11 +56,11 @@ class TokenDashboard implements DashboardInterface
         $this->timespansCollection
             ->setSelectedId($this->timespanId)
             ->addTimespans(
-                new Timespans\TodayTimespan(),
+                new Timespans\_7dTimespan(),
                 new Timespans\_30dTimespan(),
+                new Timespans\_90dTimespan(),
                 new Timespans\_1yTimespan(),
-                new Timespans\MtdTimespan(),
-                new Timespans\YtdTimespan()
+                new Timespans\MaxTimespan()
             );
         $this->filtersCollection
             ->setSelectedIds($this->filterIds)
