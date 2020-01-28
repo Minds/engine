@@ -55,7 +55,7 @@ class Confirmation extends EmailCampaign
             'state' => 'new',
         ];
 
-        $subject = 'Confirm your Minds email (Action required)';
+        $subject = 'Please, confirm your email';
 
         $this->template->setTemplate('default.tpl');
         $this->template->setBody('./Templates/confirmation.tpl');

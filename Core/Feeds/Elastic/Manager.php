@@ -89,6 +89,7 @@ class Manager
             'type' => null,
             'sync' => false,
             'from_timestamp' => null,
+            'reverse_sort' => null,
             'query' => null,
             'nsfw' => null,
             'single_owner_threshold' => 36,
