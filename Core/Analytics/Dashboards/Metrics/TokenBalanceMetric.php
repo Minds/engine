@@ -27,6 +27,9 @@ class TokenBalanceMetric extends AbstractMetric
     /** @var array */
     protected $permissions = [ 'admin', 'user' ];
 
+    /** @var string */
+    protected $unit = 'tokens';
+
     public function __construct($es = null, $offchainWalletBalance = null)
     {
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
@@ -84,7 +87,7 @@ class TokenBalanceMetric extends AbstractMetric
                         'date_histogram' => [
                             'field' => '@timestamp',
                             'interval' =>  $timespan->getInterval(),
-                            'min_doc_count' =>  1,
+                            'min_doc_count' =>  0,
                             'extended_bounds' => [
                                 'min' => $timespan->getFromTsMs(),
                                 'max' => time() * 1000,
