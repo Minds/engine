@@ -19,7 +19,7 @@ class feeds implements Interfaces\Api
         '24h' => '7d',
         '7d' => '30d',
         '30d' => '1y',
-        '1y' => 'all'
+        '1y' => 'all',
     ];
 
     /**
@@ -87,7 +87,7 @@ class feeds implements Interfaces\Api
 
         $exportCounts = false;
 
-        if (isset($_GET['exportCounts'])) {
+        if (isset($_GET['export_user_counts'])) {
             $exportCounts = true;
         }
 
@@ -247,10 +247,9 @@ class feeds implements Interfaces\Api
                     $entities = $entities->map([$elasticEntities, 'cast']);
                 }
             }
-
             if ($type === 'user' && $exportCounts) {
                 foreach ($entities as $entity) {
-                    $entity->exportCounts = true;
+                    $entity->getEntity()->exportCounts = true;
                 }
             }
 

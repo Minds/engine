@@ -18,6 +18,7 @@ class Minds extends base
     private $modules = [
         Log\Module::class,
         Events\Module::class,
+        Features\Module::class,
         SSO\Module::class,
         Email\Module::class,
         Experiments\Module::class,
@@ -105,7 +106,6 @@ class Minds extends base
         (new Groups\GroupsProvider())->register();
         (new Search\SearchProvider())->register();
         (new Votes\VotesProvider())->register();
-        (new Features\FeaturesProvider())->register();
         (new SMS\SMSProvider())->register();
         (new Blockchain\BlockchainProvider())->register();
         (new Issues\IssuesProvider())->register();
