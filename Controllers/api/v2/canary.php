@@ -24,8 +24,8 @@ class canary implements Interfaces\Api
         }
 
         // Refresh the canary cookie
-        Di::_()->get('Features\Manager')
-            ->setCanaryCookie($user->isCanary());
+        Di::_()->get('Features\Canary')
+            ->setCookie($user->isCanary());
 
         return Factory::response([
             'enabled' => (bool) $user->isCanary(),
@@ -57,8 +57,8 @@ class canary implements Interfaces\Api
         ]);
 
         // Set the canary cookie
-        Di::_()->get('Features\Manager')
-            ->setCanaryCookie($user->isCanary());
+        Di::_()->get('Features\Canary')
+            ->setCookie($user->isCanary());
         
         return Factory::response([]);
     }

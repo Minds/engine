@@ -25,9 +25,9 @@ class progress implements Interfaces\Api
         $manager->setUser(Session::getLoggedInUser());
 
         /** @var \Minds\Core\Features\Manager $manager */
-        $manager = Di::_()->get('Features\Manager');
+        $featuresManager = Di::_()->get('Features\Manager');
 
-        if ($manager->has('onboarding-december-2019')) {
+        if ($featuresManager->has('onboarding-december-2019')) {
             return Factory::response([
                 'show_onboarding' => !$manager->wasOnboardingShown(),
             ]);

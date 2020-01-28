@@ -486,6 +486,7 @@ $CONFIG->set('features', [
     'homepage-december-2019' => true,
     'onboarding-december-2019' => true,
     'register_pages-december-2019' => true,
+    'modal-pager' => true,
 ]);
 
 $CONFIG->set('email', [
@@ -616,4 +617,12 @@ $CONFIG->set('upgrades', [
 $CONFIG->set('email_confirmation', [
     'signing_key' => '',
     'expiration' => 172800, // 48 hours
+]);
+
+$CONFIG->set('unleash', [
+    'apiUrl' => '',
+    'instanceId' => '',
+    'applicationName' => '',
+    'pollingIntervalSeconds' => 300,
+    'metricsIntervalSeconds' => 15
 ]);

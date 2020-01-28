@@ -25,6 +25,9 @@ class DataProvider extends Provider
         $this->di->bind('Cache\Apcu', function ($di) {
             return new cache\apcu();
         }, ['useFactory'=>true]);
+        $this->di->bind('Cache\PsrWrapper', function ($di) {
+            return new cache\PsrWrapper();
+        }, ['useFactory'=>true]);
         /**
          * Database bindings
          */
