@@ -29,6 +29,7 @@ class Provider extends DiProvider
                 'allow-comments-toggle',
                 'permissions',
                 'pro',
+                'purchase-pro',
                 'webtorrent',
                 'top-feeds-by-age',
                 'homepage-december-2019',

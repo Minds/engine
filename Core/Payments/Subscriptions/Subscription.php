@@ -18,6 +18,7 @@ class Subscription
     private $id;
     private $customer;
     private $merchant;
+    private $entity;
 
     private $fee;
     private $quantity = 1;
@@ -185,7 +186,7 @@ class Subscription
         $this->interval = $interval;
         return $this;
     }
-
+ 
     public function getInterval()
     {
         return $this->interval;
