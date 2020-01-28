@@ -37,7 +37,7 @@ class Router
         $fallback = null
     ) {
         $this->dispatcher = $dispatcher ?: Di::_()->get('Router');
-        $this->features = $features ?: Di::_()->get('Features');
+        $this->features = $features ?: Di::_()->get('Features\Manager');
         $this->fallback = $fallback ?: new Fallback();
     }
 

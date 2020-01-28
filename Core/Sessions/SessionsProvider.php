@@ -15,5 +15,9 @@ class SessionsProvider extends Provider
         $this->di->bind('Sessions\Manager', function ($di) {
             return new Manager;
         }, ['useFactory'=>true]);
+
+        $this->di->bind('Sessions\ActiveSession', function ($di) {
+            return new ActiveSession();
+        }, ['useFactory'=>true]);
     }
 }

@@ -20,7 +20,7 @@ class Hot implements SortingAlgorithm
 
     public function __construct($features = null)
     {
-        $this->features = $features ?? Di::_()->get('Features');
+        $this->features = $features ?? Di::_()->get('Features\Manager');
     }
 
 
