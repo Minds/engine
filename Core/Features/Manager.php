@@ -8,6 +8,7 @@
 
 namespace Minds\Core\Features;
 
+use Exception;
 use Minds\Core\Di\Di;
 use Minds\Core\Features\Exceptions\FeatureNotImplementedException;
 use Minds\Core\Sessions\ActiveSession;
@@ -45,6 +46,24 @@ class Manager
         ];
         $this->activeSession = $activeSession ?: Di::_()->get('Sessions\ActiveSession');
         $this->featureKeys = ($features ?? Di::_()->get('Features\Keys')) ?: [];
+    }
+
+    /**
+     * Synchronizes all services using their respective mechanisms
+     * @param int $ttl
+     * @return iterable
+     */
+    public function sync(int $ttl): iterable
+    {
+        foreach ($this->services as $service) {
+            try {
+                $output = $service->sync($ttl) ? 'OK' : 'NOT SYNC\'D';
+            } catch (Exception $e) {
+                $output = $e;
+            }
+
+            yield get_class($service) => $output;
+        }
     }
 
     /**
