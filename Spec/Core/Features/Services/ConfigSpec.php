@@ -25,6 +25,13 @@ class ConfigSpec extends ObjectBehavior
         $this->shouldHaveType(Config::class);
     }
 
+    public function it_should_sync()
+    {
+        $this
+            ->sync(30)
+            ->shouldReturn(true);
+    }
+
     public function it_should_fetch(
         User $user1,
         User $user2
