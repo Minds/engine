@@ -103,6 +103,7 @@ review:start:
   except: 
     refs:
       - master
+      - production
       - test/gitlab-ci
 
 review:stop:
@@ -121,6 +122,7 @@ review:stop:
   except: 
     refs:
       - master
+      - production
       - test/gitlab-ci
 
 qa:manual:
@@ -131,6 +133,7 @@ qa:manual:
   only:
     refs:
       - master
+      - production
       - test/gitlab-ci
   allow_failure: false
 
@@ -160,6 +163,7 @@ staging:fpm:
   only: 
     refs:
       - master
+      - production
       - test/gitlab-ci
 
 canary:fpm:
@@ -185,6 +189,7 @@ canary:fpm:
   only:
     refs:
       - master
+      - production
       - test/gitlab-ci
   environment:
     name: canary
@@ -215,6 +220,7 @@ production:fpm:
   only:
     refs:
       - master
+      - production
       - test/gitlab-ci
   environment:
     name: production
@@ -242,6 +248,7 @@ production:runners:
   only:
     refs:
       - master
+      - production
       - test/gitlab-ci
   environment:
     name: production
