@@ -183,10 +183,10 @@ review:preprod:
   environment:
     name: preprod
     url: https://www.minds.com/?preprod=1
-  except:
-    refs:
-      - master
-      - test/gitlab-ci
+  # except:
+  #   refs:
+  #     - master
+  #     - test/gitlab-ci
 
 canary:fpm:
   <<: *deploy
