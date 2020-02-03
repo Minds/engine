@@ -2,13 +2,12 @@
 
 namespace Spec\Minds\Core\Features;
 
-use Minds\Core\Config;
-use Minds\Core\Di\Di;
 use Minds\Core\Features\Exceptions\FeatureNotImplementedException;
 use Minds\Core\Features\Manager;
 use Minds\Core\Features\Services\ServiceInterface;
 use Minds\Core\Sessions\ActiveSession;
 use Minds\Entities\User;
+use PhpSpec\Exception\Example\FailureException;
 use PhpSpec\ObjectBehavior;
 
 class ManagerSpec extends ObjectBehavior
@@ -41,6 +40,24 @@ class ManagerSpec extends ObjectBehavior
     public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
+    }
+
+    public function it_should_sync()
+    {
+        $this->service1->sync(30)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->service2->sync(30)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this
+            ->sync(30)
+            ->shouldBeAnIterator([
+                get_class($this->service1->getWrappedObject()) => 'OK',
+                get_class($this->service2->getWrappedObject()) => 'NOT SYNC\'D',
+            ]);
     }
 
     public function it_should_throw_during_has_if_a_feature_does_not_exist(
@@ -180,5 +197,26 @@ class ManagerSpec extends ObjectBehavior
                 'feature2' => true,
                 'feature3' => false,
             ]);
+    }
+
+    public function getMatchers(): array
+    {
+        $matchers = [];
+
+        $matchers['beAnIterator'] = function ($subject, $elements = null) {
+            if (!is_iterable($subject)) {
+                throw new FailureException("Subject should be an iterable");
+            }
+
+            $resolvedSubject = iterator_to_array($subject);
+
+            if ($elements !== null && $elements !== $resolvedSubject) {
+                throw new FailureException("Subject elements don't match");
+            }
+
+            return true;
+        };
+
+        return $matchers;
     }
 }
