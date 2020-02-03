@@ -487,7 +487,7 @@ $CONFIG->set('features', [
     'onboarding-december-2019' => true,
     'register_pages-december-2019' => true,
     'modal-pager' => true,
-    'wallet-redesign' => false
+    'wallet-upgrade' => false
 ]);
 
 $CONFIG->set('email', [
