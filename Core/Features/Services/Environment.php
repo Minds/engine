@@ -29,6 +29,15 @@ class Environment extends BaseService
     /**
      * @inheritDoc
      */
+    public function sync(int $ttl): bool
+    {
+        // No need for sync
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function fetch(array $keys): array
     {
         $output = [];
