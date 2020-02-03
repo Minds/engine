@@ -33,6 +33,15 @@ class Config extends BaseService
     /**
      * @inheritDoc
      */
+    public function sync(int $ttl): bool
+    {
+        // No need for sync
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function fetch(array $keys): array
     {
         // Return whitelisted 'features' array with its values resolved
