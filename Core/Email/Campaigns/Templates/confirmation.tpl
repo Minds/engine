@@ -1,44 +1,72 @@
-<table cellspacing="8" cellpadding="8" border="0" width="600" align="center">
-    <tbody>
+<table
+    width="100%"
+    border="0"
+    cellpadding="0"
+    cellspacing="0"
+    style="padding: 73px 0 0; font-family: sans-serif; font-size: 16px; line-height: 22px;"
+>
     <tr>
-        <td>
-            <p>
-                Please take a moment to validate your email address. This helps us prevent spam and ensure users are real.
-                Click the button below and we'll know it's you.
-            </p>
+        <td
+            style="padding: 49px 83px 38px; font-size: 26px; line-height: 34px; background-color: #10314B; color: #FFFFFF;"
+            align="center"
+        >
+            Welcome
+            <span style="color: #B4C8D7;">@<?= $vars['username'] ?></span>
+            to the Minds Community
         </td>
     </tr>
-    <tr>
-        <td align="center">
-            <p>
-                <a href="<?php echo $vars['confirmation_url'] ?>">
-                    <img src="<?php echo $vars['cdn_assets_url'] ?>assets/emails/cta_complete_setup.png" width="142" alt="Complete Setup"/>
-                </a>
-            </p>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <p>Also, be sure to download our mobile app using the links below:</p>
-        </td>
-    </tr>
-    <tr align="center">
-        <td>
-            <p>
-                <a href="https://itunes.apple.com/us/app/minds-com/id961771928?ls=1&mt=8" style="text-decoration: none">
-                    <img src="<?php echo $vars['cdn_assets_url']; ?>assets/ext/appstore.png" width="142" alt="Apple App Store"/>
-                </a>
-                <a href="<?php echo "{$vars['site_url']}mobile?{$vars['tracking']}"?>" style="text-decoration: none">
-                <img src="<?php echo $vars['cdn_assets_url']; ?>assets/photos/minds-android-app.png" width="142" alt="Google Play"/>
-                </a>
-            </p>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <p>Thank you for being a pioneer of the free and open internet.</p>
-        </td>
-    </tr>
-    </tbody>
-</table>
 
+    <tr>
+        <td>
+            <img
+                width="100%"
+                src="<?= $vars['cdn_assets_url'] . 'assets/email-2020/confirmation-splash.jpg' ?>"
+                alt=""
+            />
+        </td>
+    </tr>
+
+    <tr>
+        <td style="padding: 40px 0 0; color: #808080;">
+            Your journey to taking back control of your social media
+            starts today!<br/>
+            <br/>
+            Please take a moment to verify your email address. This
+            will help us verify that you are a real person, and not
+            one of those pesky bots.
+        </td>
+    </tr>
+
+    <tr>
+        <td style="padding: 53px 0 0;"
+            align="center">
+            <a
+                href="<?= $vars['confirmation_url'] ?>"
+                style="color: #0091FF;"
+            >
+                <img
+                    src="verify-account-btn.png"
+                    alt="Verify Account"
+                />
+            </a>
+        </td>
+    </tr>
+
+    <tr>
+        <td style="padding: 30px 40px 0; word-break: break-all;">
+            <a
+                href="<?= $vars['confirmation_url'] ?>"
+                style="color: #0091FF;"
+            >
+                <?= $vars['confirmation_url'] ?>
+            </a>
+        </td>
+    </tr>
+
+    <tr>
+        <td style="padding: 53px 0 0; color: #808080;">
+            Thanks,<br/>
+            The Minds Team
+        </td>
+    </tr>
+</table>
