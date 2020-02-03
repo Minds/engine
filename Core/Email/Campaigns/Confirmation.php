@@ -57,7 +57,7 @@ class Confirmation extends EmailCampaign
 
         $subject = 'Please, confirm your email';
 
-        $this->template->setTemplate('default.tpl');
+        $this->template->setTemplate('default-2020.tpl');
         $this->template->setBody('./Templates/confirmation.tpl');
         $this->template->set('user', $this->user);
         $this->template->set('username', $this->user->username);

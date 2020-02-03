@@ -105,7 +105,7 @@
                     >
                         Minds, Inc. &copy; 2020
                         &nbsp;
-                        <a href="<?= $vars['site_url'] . 'settings/emails?__e_ct_guid=' . $vars['guid'] ?>" style="color: #0091FF;">Manage email settings</a>
+                        <a href="<?= $vars['site_url'] . 'settings/emails?' . $vars['tracking'] ?>" style="color: #0091FF;">Manage email settings</a>
                     </td>
                 </tr>
 
@@ -119,12 +119,7 @@
                             $vars['email'],
                             $vars['campaign'],
                             $vars['topic'],
-                            http_build_query([
-                                '__e_ct_guid' => $vars['guid'],
-                                'campaign' => $vars['campaign'],
-                                'topic' => $vars['topic'],
-                                'state' => $vars['state']
-                            ])
+                            $vars['tracking']
                         ) ?>" style="color: #0091FF;">Unsubscribe</a> from this type of email
                     </td>
                 </tr>
