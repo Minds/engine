@@ -626,3 +626,8 @@ $CONFIG->set('unleash', [
     'pollingIntervalSeconds' => 300,
     'metricsIntervalSeconds' => 15
 ]);
+
+
+$CONFIG->set('captcha', [
+    'jwt_secret' => '{{site-secret}}',
+]);
