@@ -31,6 +31,7 @@ class ManagerSpec extends ObjectBehavior
         $this->activeSession = $activeSession;
 
         $this->beConstructedWith(
+            'phpspec',
             [ $service1, $service2 ],
             $activeSession,
             ['feature1', 'feature2', 'feature3']
@@ -44,9 +45,17 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_sync()
     {
+        $this->service1->setEnvironment('phpspec')
+            ->shouldBeCalled()
+            ->willReturn($this->service1);
+
         $this->service1->sync(30)
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->service2->setEnvironment('phpspec')
+            ->shouldBeCalled()
+            ->willReturn($this->service2);
 
         $this->service2->sync(30)
             ->shouldBeCalled()
@@ -55,8 +64,8 @@ class ManagerSpec extends ObjectBehavior
         $this
             ->sync(30)
             ->shouldBeAnIterator([
-                get_class($this->service1->getWrappedObject()) => 'OK',
-                get_class($this->service2->getWrappedObject()) => 'NOT SYNC\'D',
+                get_class($this->service1->getWrappedObject()) => true,
+                get_class($this->service2->getWrappedObject()) => false,
             ]);
     }
 
@@ -66,6 +75,10 @@ class ManagerSpec extends ObjectBehavior
         $this->activeSession->getUser()
             ->shouldBeCalled()
             ->willReturn($user);
+
+        $this->service1->setEnvironment('phpspec')
+            ->shouldBeCalled()
+            ->willReturn($this->service1);
 
         $this->service1->setUser($user)
             ->shouldBeCalled()
@@ -77,6 +90,10 @@ class ManagerSpec extends ObjectBehavior
                 'feature1' => true,
                 'feature2' => false,
             ]);
+
+        $this->service2->setEnvironment('phpspec')
+            ->shouldBeCalled()
+            ->willReturn($this->service2);
 
         $this->service2->setUser($user)
             ->shouldBeCalled()
@@ -100,6 +117,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
+        $this->service1->setEnvironment('phpspec')
+            ->shouldBeCalled()
+            ->willReturn($this->service1);
+
         $this->service1->setUser($user)
             ->shouldBeCalled()
             ->willReturn($this->service1);
@@ -110,6 +131,10 @@ class ManagerSpec extends ObjectBehavior
                 'feature1' => true,
                 'feature2' => false,
             ]);
+
+        $this->service2->setEnvironment('phpspec')
+            ->shouldBeCalled()
+            ->willReturn($this->service2);
 
         $this->service2->setUser($user)
             ->shouldBeCalled()
@@ -134,6 +159,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
+        $this->service1->setEnvironment('phpspec')
+            ->shouldBeCalled()
+            ->willReturn($this->service1);
+
         $this->service1->setUser($user)
             ->shouldBeCalled()
             ->willReturn($this->service1);
@@ -144,6 +173,10 @@ class ManagerSpec extends ObjectBehavior
                 'feature1' => true,
                 'feature2' => false,
             ]);
+
+        $this->service2->setEnvironment('phpspec')
+            ->shouldBeCalled()
+            ->willReturn($this->service2);
 
         $this->service2->setUser($user)
             ->shouldBeCalled()
@@ -168,6 +201,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
+        $this->service1->setEnvironment('phpspec')
+            ->shouldBeCalled()
+            ->willReturn($this->service1);
+
         $this->service1->setUser($user)
             ->shouldBeCalled()
             ->willReturn($this->service1);
@@ -178,6 +215,10 @@ class ManagerSpec extends ObjectBehavior
                 'feature1' => true,
                 'feature2' => false,
             ]);
+
+        $this->service2->setEnvironment('phpspec')
+            ->shouldBeCalled()
+            ->willReturn($this->service2);
 
         $this->service2->setUser($user)
             ->shouldBeCalled()
