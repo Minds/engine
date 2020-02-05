@@ -37,12 +37,28 @@ class Features extends Cli\Controller implements Interfaces\CliControllerInterfa
         $manager = Di::_()->get('Features\Manager');
 
         $ttl = $this->getOpt('ttl') ?: 300;
+        $environmentList = array_filter(explode(',', $this->getOpt('environment') ?: ''));
+
+        if (!$environmentList) {
+            throw new CliException('Specify an environment');
+        }
 
         while (true /* Forever running task */) {
-            $this->out([date('c'), "TTL: {$ttl}"], static::OUTPUT_PRE);
+            foreach ($environmentList as $environment) {
+                $this->out([
+                    date('c'),
+                    "TTL: {$ttl}",
+                    "Environment: {$environment}"
+                ], static::OUTPUT_PRE);
 
-            foreach ($manager->sync($ttl) as $key => $output) {
-                $this->out(sprintf("Sync %s: %s", $key, $output));
+
+                $sync = $manager
+                    ->setEnvironment($environment)
+                    ->sync($ttl);
+
+                foreach ($sync as $key => $output) {
+                    $this->out(sprintf("Sync %s: %s", $key, $output));
+                }
             }
 
             if (!$this->getOpt('forever')) {
