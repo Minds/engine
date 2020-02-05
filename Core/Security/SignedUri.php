@@ -82,5 +82,4 @@ class SignedUri
         $token = $this->jwtParser->parse($providedSig);
         return $token->getClaim('user_guid');
     }
-
 }
