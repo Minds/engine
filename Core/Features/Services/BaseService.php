@@ -15,8 +15,22 @@ use Minds\Entities\User;
  */
 abstract class BaseService implements ServiceInterface
 {
+    /** @var string */
+    protected $environment;
+
     /** @var User */
     protected $user;
+
+    /**
+     * @inheritDoc
+     * @param string $environment
+     * @return ServiceInterface
+     */
+    public function setEnvironment(string $environment): ServiceInterface
+    {
+        $this->environment = $environment;
+        return $this;
+    }
 
     /**
      * @inheritDoc

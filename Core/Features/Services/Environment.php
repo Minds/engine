@@ -17,6 +17,14 @@ class Environment extends BaseService
     protected $global = null;
 
     /**
+     * @inheritDoc
+     */
+    public function getReadableName(): string
+    {
+        return 'EnvVars';
+    }
+
+    /**
      * @param array $global
      * @return Environment
      */
