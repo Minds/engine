@@ -21,7 +21,6 @@ class thumbnail extends Core\page implements Interfaces\page
             exit;
         }
 
-        Core\Security\ACL::$ignore = true;
         $guid = $pages[0] ?? null;
 
         if (!$guid) {
@@ -30,8 +29,6 @@ class thumbnail extends Core\page implements Interfaces\page
                 'message' => 'guid must be provided'
             ]);
         }
-
-        $size = isset($pages[1]) ? $pages[1] : null;
 
         $entity = Entities\Factory::build($guid);
 
@@ -47,6 +44,9 @@ class thumbnail extends Core\page implements Interfaces\page
         if ($entity->access_id !== Common\Access::PUBLIC && $featuresManager->has('cdn-jwt')) {
             $signedUri = new Core\Security\SignedUri();
             $uri = (string) \Zend\Diactoros\ServerRequestFactory::fromGlobals()->getUri();
+            $userGuid = $signedUri->deriveUserGuid($uri);
+            $user = new Entities\User($userGuid);
+
             if (!$signedUri->confirm($uri)) {
                 exit;
             }
@@ -56,7 +56,9 @@ class thumbnail extends Core\page implements Interfaces\page
         $mediaThumbnails = Di::_()->get('Media\Thumbnails');
 
 
-        $thumbnail = $mediaThumbnails->get($entity, $size);
+        Core\Security\ACL::$ignore = true;
+        $size = isset($pages[1]) ? $pages[1] : null;
+        $thumbnail = $mediaThumbnails->get($entity, $size, $user ?? null);
 
         if ($thumbnail instanceof \ElggFile) {
             $thumbnail->open('read');

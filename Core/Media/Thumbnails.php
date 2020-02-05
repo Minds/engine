@@ -24,7 +24,7 @@ class Thumbnails
      * @param $size
      * @return bool|\ElggFile|mixed|string
      */
-    public function get($entity, $size)
+    public function get($entity, $size, $user = null)
     {
         if (is_numeric($entity)) {
             $entity = $this->entitiesBuilder->single($entity);
@@ -34,7 +34,7 @@ class Thumbnails
             return false;
         }
 
-        $loggedInUser = Core\Session::getLoggedinUser();
+        $loggedInUser = $user ?: Core\Session::getLoggedinUser();
 
         try {
             if (!Di::_()->get('Wire\Thresholds')->isAllowed($loggedInUser, $entity)) {
@@ -45,15 +45,16 @@ class Thumbnails
             // don't do anything if the entity cannot be paywalled
         }
 
-        $user = $entity->getOwnerEntity(false);
-        $userGuid = $user->guid;
+        $owner = $entity->getOwnerEntity(false);
+        $ownerGuid = $owner->guid;
 
-        if ($user->legacy_guid) {
-            $userGuid = $user->legacy_guid;
+        if ($owner->legacy_guid) {
+            $ownerGuid = $owner->legacy_guid;
         }
 
         $thumbnail = new \ElggFile();
-        $thumbnail->owner_guid = $userGuid;
+        $thumbnail->owner_guid = $ownerGuid;
+
         $thumbnail->setFilename("/archive/thumbnails/$entity->guid.jpg");
 
         switch ($entity->subtype) {

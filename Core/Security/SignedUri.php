@@ -68,4 +68,19 @@ class SignedUri
         }
         return ((string) $token->getClaim('uri') === (string) $providedUri->withQuery(''));
     }
+    
+    /**
+     * Derives the user guid from a given URI.
+     * @param string $uri the uri to be derived from.
+     * @return string the guid of the user specified in the URI.
+     */
+    public function deriveUserGuid($uri): string
+    {
+        $providedUri = new Uri($uri);
+        parse_str($providedUri->getQuery(), $queryParams);
+        $providedSig = $queryParams['jwtsig'];
+        $token = $this->jwtParser->parse($providedSig);
+        return $token->getClaim('user_guid');
+    }
+
 }
