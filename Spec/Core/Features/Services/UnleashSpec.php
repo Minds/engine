@@ -28,28 +28,28 @@ class UnleashSpec extends ObjectBehavior
     /** @var UnleashFeatureArrayFactory */
     protected $unleashFeatureArrayFactory;
 
-    /** @var UnleashClient */
-    protected $unleashClient;
+    /** @var Unleash\ClientFactory */
+    protected $unleashClientFactory;
 
     public function let(
         Config $config,
         Repository $repository,
         UnleashResolver $unleashResolver,
         UnleashFeatureArrayFactory $unleashFeatureArrayFactory,
-        UnleashClient $unleashClient
+        Unleash\ClientFactory $unleashClientFactory
     ) {
         $this->config = $config;
         $this->repository = $repository;
         $this->unleashResolver = $unleashResolver;
         $this->unleashFeatureArrayFactory = $unleashFeatureArrayFactory;
-        $this->unleashClient = $unleashClient;
+        $this->unleashClientFactory = $unleashClientFactory;
 
         $this->beConstructedWith(
             $config,
             $repository,
             $unleashResolver,
             $unleashFeatureArrayFactory,
-            $unleashClient
+            $unleashClientFactory
         );
     }
 
@@ -58,13 +58,18 @@ class UnleashSpec extends ObjectBehavior
         $this->shouldHaveType(Unleash::class);
     }
 
-    public function it_should_sync()
-    {
-        $this->unleashClient->register()
+    public function it_should_sync(
+        UnleashClient $client
+    ) {
+        $this->unleashClientFactory->build('phpspec')
+            ->shouldBeCalled()
+            ->willReturn($client);
+
+        $client->register()
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->unleashClient->fetch()
+        $client->fetch()
             ->shouldBeCalled()
             ->willReturn([
                 ['name' => 'feature1'],
@@ -76,6 +81,7 @@ class UnleashSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this
+            ->setEnvironment('phpspec')
             ->sync(30)
             ->shouldReturn(true);
     }
@@ -86,7 +92,9 @@ class UnleashSpec extends ObjectBehavior
         $featuresMock = ['featuresMock' . mt_rand()];
         $resolvedFeaturesMock = ['resolvedFeaturesMock' . mt_rand()];
 
-        $this->repository->getAllData()
+        $this->repository->getAllData([
+            'environment' => 'phpspec'
+        ])
             ->shouldBeCalled()
             ->willReturn($response);
 
@@ -124,6 +132,7 @@ class UnleashSpec extends ObjectBehavior
             ]);
 
         $this
+            ->setEnvironment('phpspec')
             ->fetch([
                 'feature1',
                 'feature2',
@@ -149,7 +158,9 @@ class UnleashSpec extends ObjectBehavior
         $featuresMock = ['featuresMock' . mt_rand()];
         $resolvedFeaturesMock = ['resolvedFeaturesMock' . mt_rand()];
 
-        $this->repository->getAllData()
+        $this->repository->getAllData([
+            'environment' => 'phpspec'
+        ])
             ->shouldBeCalled()
             ->willReturn($response);
 
@@ -207,6 +218,7 @@ class UnleashSpec extends ObjectBehavior
             ]);
 
         $this
+            ->setEnvironment('phpspec')
             ->setUser($user)
             ->fetch([
                 'feature1',

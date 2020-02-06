@@ -33,6 +33,7 @@ class Minds extends base
         VideoChat\Module::class,
         Feeds\Module::class,
         Front\Module::class,
+        Captcha\Module::class,
     ];
 
     /**

@@ -20,7 +20,6 @@ use Minds\UnleashClient\Exceptions\NoContextException;
 use Minds\UnleashClient\Factories\FeatureArrayFactory as UnleashFeatureArrayFactory;
 use Minds\UnleashClient\Entities\Context;
 use Minds\UnleashClient\Unleash as UnleashResolver;
-use Minds\UnleashClient\Http\Client as UnleashClient;
 
 /**
  * Unleash server (GitLab FF) feature flags service
@@ -40,8 +39,8 @@ class Unleash extends BaseService
     /** @var UnleashFeatureArrayFactory */
     protected $unleashFeatureArrayFactory;
 
-    /** @var UnleashClient */
-    protected $unleashClient;
+    /** @var Unleash\ClientFactory */
+    protected $unleashClientFactory;
 
     /**
      * Unleash constructor.
@@ -49,20 +48,28 @@ class Unleash extends BaseService
      * @param Repository $repository
      * @param UnleashResolver $unleashResolver
      * @param UnleashFeatureArrayFactory $unleashFeatureArrayFactory
-     * @param UnleashClient $unleashClient
+     * @param Unleash\ClientFactory $unleashClientFactory
      */
     public function __construct(
         $config = null,
         $repository = null,
         $unleashResolver = null,
         $unleashFeatureArrayFactory = null,
-        $unleashClient = null
+        $unleashClientFactory = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->repository = $repository ?: new Repository();
         $this->unleashResolver = $unleashResolver ?: new UnleashResolver(Di::_()->get('Logger\Singleton'));
         $this->unleashFeatureArrayFactory = $unleashFeatureArrayFactory ?: new UnleashFeatureArrayFactory();
-        $this->unleashClient = $unleashClient ?: (new Unleash\ClientFactory($this->config, Di::_()->get('Logger\Singleton')))->build();
+        $this->unleashClientFactory = $unleashClientFactory ?: new Unleash\ClientFactory($this->config, Di::_()->get('Logger\Singleton'));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getReadableName(): string
+    {
+        return 'GitLab';
     }
 
     /**
@@ -71,19 +78,23 @@ class Unleash extends BaseService
      */
     public function sync(int $ttl): bool
     {
-        $registered = $this->unleashClient->register();
+        $client = $this->unleashClientFactory
+            ->build($this->environment);
+
+        $registered = $client->register();
 
         if (!$registered) {
             throw new Exception('Could not register Unleash client');
         }
 
         $now = time();
-        $features = $this->unleashClient->fetch();
+        $features = $client->fetch();
 
         foreach ($features as $feature) {
             $entity = new Entity();
             $entity
-                ->setId($feature['name'])
+                ->setEnvironment($this->environment)
+                ->setFeatureName($feature['name'])
                 ->setData($feature)
                 ->setCreatedAt($now)
                 ->setStaleAt($now + $ttl);
@@ -104,6 +115,7 @@ class Unleash extends BaseService
      * @throws InvalidFeaturesArrayException
      * @throws InvalidStrategyImplementationException
      * @throws NoContextException
+     * @throws Exception
      */
     public function fetch(array $keys): array
     {
@@ -123,7 +135,9 @@ class Unleash extends BaseService
         $features = $this->unleashFeatureArrayFactory
             ->build(
                 $this->repository
-                    ->getAllData()
+                    ->getAllData([
+                        'environment' => $this->environment,
+                    ])
                     ->toArray()
             );
 
