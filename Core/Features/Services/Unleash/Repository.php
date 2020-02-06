@@ -33,14 +33,27 @@ class Repository
 
     /**
      * Returns a list of all feature toggles cached in Cassandra
+     * @param array $opts
      * @return Response
+     * @throws Exception
      */
-    public function getList(): Response
+    public function getList(array $opts = []): Response
     {
-        $cql = "SELECT * FROM feature_toggles_cache";
+        $opts = array_merge([
+            'environment' => null,
+        ], $opts);
+
+        if (!$opts['environment']) {
+            throw new Exception('Specify an environment');
+        }
+
+        $cql = "SELECT * FROM feature_toggles_cache_ns WHERE environment = ?";
+        $values = [
+            (string) $opts['environment']
+        ];
 
         $prepared = new Custom();
-        $prepared->query($cql);
+        $prepared->query($cql, $values);
 
         $response = new Response();
 
@@ -50,7 +63,8 @@ class Repository
             foreach ($rows ?: [] as $row) {
                 $entity = new Entity();
                 $entity
-                    ->setId($row['id'])
+                    ->setEnvironment($row['environment'])
+                    ->setFeatureName($row['feature_name'])
                     ->setData(json_decode($row['data'], true))
                     ->setCreatedAt($row['created_at']->time())
                     ->setStaleAt($row['stale_at']->time());
@@ -65,13 +79,17 @@ class Repository
 
     /**
      * Shortcut method that casts all the data from getList() entities
+     * @param array $opts getList() opts
      * @return Response
+     * @throws Exception
      */
-    public function getAllData(): Response
+    public function getAllData(array $opts = []): Response
     {
-        return $this->getList()->map(function (Entity $entity) {
-            return $entity->getData();
-        });
+        return $this
+            ->getList($opts)
+            ->map(function (Entity $entity) {
+                return $entity->getData();
+            });
     }
 
     /**
@@ -82,13 +100,18 @@ class Repository
      */
     public function add(Entity $entity): bool
     {
-        if (!$entity->getId()) {
-            throw new Exception('Invalid Unleash entity name');
+        if (!$entity->getEnvironment()) {
+            throw new Exception('Invalid Unleash entity namespace');
         }
 
-        $cql = "INSERT INTO feature_toggles_cache (id, data, created_at, stale_at) VALUES (?, ?, ?, ?)";
+        if (!$entity->getFeatureName()) {
+            throw new Exception('Invalid Unleash entity feature name');
+        }
+
+        $cql = "INSERT INTO feature_toggles_cache_ns (environment, feature_name, data, created_at, stale_at) VALUES (?, ?, ?, ?, ?)";
         $values = [
-            (string) $entity->getId(),
+            (string) $entity->getEnvironment(),
+            (string) $entity->getFeatureName(),
             (string) json_encode($entity->getData()),
             new Timestamp($entity->getCreatedAt()),
             new Timestamp($entity->getStaleAt())

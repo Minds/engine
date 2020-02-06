@@ -49,10 +49,10 @@ class Provider extends DiProvider
 
         $this->di->bind('Features\Manager', function ($di) {
             return new Manager();
-        }, [ 'useFactory'=> true ]);
+        }, [ 'useFactory' => true ]);
 
         $this->di->bind('Features\Canary', function ($di) {
             return new Canary();
-        }, [ 'useFactory'=> true ]);
+        }, [ 'useFactory' => true ]);
     }
 }
