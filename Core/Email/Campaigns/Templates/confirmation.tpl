@@ -11,7 +11,7 @@
             align="center"
         >
             Welcome
-            <span style="color: #B4C8D7;">@<?= $vars['username'] ?></span>
+            <span style="color: #B4C8D7;">@<?php echo $vars['username'] ?></span>
             to the Minds Community
         </td>
     </tr>
@@ -20,7 +20,7 @@
         <td>
             <img
                 width="100%"
-                src="<?= $vars['cdn_assets_url'] . 'assets/email-2020/confirmation-splash.jpg' ?>"
+                src="<?php echo $vars['cdn_assets_url'] . 'assets/email-2020/confirmation-splash.jpg' ?>"
                 alt=""
             />
         </td>
@@ -41,11 +41,11 @@
         <td style="padding: 53px 0 0;"
             align="center">
             <a
-                href="<?= $vars['confirmation_url'] ?>"
+                href="<?php echo $vars['confirmation_url'] ?>"
                 style="color: #0091FF;"
             >
                 <img
-                    src="verify-account-btn.png"
+                    src="<?php echo $vars['cdn_assets_url'] . 'assets/email-2020/verify-account-btn.png' ?>"
                     alt="Verify Account"
                 />
             </a>
@@ -55,10 +55,10 @@
     <tr>
         <td style="padding: 30px 40px 0; word-break: break-all;">
             <a
-                href="<?= $vars['confirmation_url'] ?>"
+                href="<?php echo $vars['confirmation_url'] ?>"
                 style="color: #0091FF;"
             >
-                <?= $vars['confirmation_url'] ?>
+                <?php echo $vars['confirmation_url'] ?>
             </a>
         </td>
     </tr>

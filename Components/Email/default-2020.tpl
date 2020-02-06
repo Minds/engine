@@ -28,7 +28,7 @@
                     <td align="center">
                         <!-- LOGO -->
                         <img
-                            src="<?= $vars['cdn_assets_url'] . 'assets/email-2020/logo.svg' ?>"
+                            src="<?php echo $vars['cdn_assets_url'] . 'assets/email-2020/logo.svg' ?>"
                             width="116"
                             height="43"
                             alt="Minds"
@@ -45,7 +45,7 @@
                 <tr>
                     <td style="padding: 38px 0 0;">
                         <img
-                            src="<?= $vars['cdn_assets_url'] . 'assets/email-2020/sep.png' ?>"
+                            src="<?php echo $vars['cdn_assets_url'] . 'assets/email-2020/sep.png' ?>"
                             alt=""
                         />
                     </td>
@@ -67,11 +67,11 @@
                         align="center"
                     >
                         <a
-                            href="<?= $vars['site_url'] . 'mobile?__e_ct_guid=' . $vars['guid'] ?>"
+                            href="<?php echo $vars['site_url'] . 'mobile?__e_ct_guid=' . $vars['guid'] ?>"
                             style="color: #0091FF; text-decoration: none;"
                         >
                             <img
-                                src="<?= $vars['cdn_assets_url'] . 'assets/email-2020/dl-android-app.png' ?>"
+                                src="<?php echo $vars['cdn_assets_url'] . 'assets/email-2020/dl-android-app.png' ?>"
                                 alt="Download Android App"
                                 style="display: inline-block;"
                             />
@@ -82,7 +82,7 @@
                             style="color: #0091FF; text-decoration: none;"
                         >
                             <img
-                                src="<?= $vars['cdn_assets_url'] . 'assets/email-2020/dl-ios-app.png' ?>"
+                                src="<?php echo $vars['cdn_assets_url'] . 'assets/email-2020/dl-ios-app.png' ?>"
                                 alt="Download on the Apple App Store"
                                 style="display: inline-block;"
                             />
@@ -93,7 +93,7 @@
                 <tr>
                     <td style="padding: 75px 0 0;">
                         <img
-                            src="<?= $vars['cdn_assets_url'] . 'assets/email-2020/sep.png' ?>"
+                            src="<?php echo $vars['cdn_assets_url'] . 'assets/email-2020/sep.png' ?>"
                             alt=""
                         />
                     </td>
@@ -105,7 +105,7 @@
                     >
                         Minds, Inc. &copy; 2020
                         &nbsp;
-                        <a href="<?= $vars['site_url'] . 'settings/emails?' . $vars['tracking'] ?>" style="color: #0091FF;">Manage email settings</a>
+                        <a href="<?php echo $vars['site_url'] . 'settings/emails?' . $vars['tracking'] ?>" style="color: #0091FF;">Manage email settings</a>
                     </td>
                 </tr>
 
@@ -113,7 +113,7 @@
                     <td
                         style="padding: 12px 0 0; font-size: 13px; line-height: 18px; color: #808080;"
                     >
-                        <a href="<?= $vars['site_url'] . sprintf(
+                        <a href="<?php echo $vars['site_url'] . sprintf(
                             'emails/unsubscribe/%s/%s/%s/%s?%s',
                             $vars['username'],
                             $vars['email'],
