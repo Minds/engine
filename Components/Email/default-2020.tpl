@@ -38,7 +38,7 @@
                 <tr>
                     <td>
                         <!-- INNER CONTENT -->
-                        <?php $vars['body'] ?>
+                        <?php echo $vars['body'] ?>
                     </td>
                 </tr>
 
@@ -103,7 +103,7 @@
                     <td
                         style="padding: 38px 0 0; font-size: 13px; line-height: 18px; color: #808080;"
                     >
-                        Minds, Inc. &copy; 2020
+                        Minds, Inc. &copy; <?php echo date('Y') ?>
                         &nbsp;
                         <a href="<?php echo $vars['site_url'] . 'settings/emails?' . $vars['tracking'] ?>" style="color: #0091FF;">Manage email settings</a>
                     </td>
