@@ -10,7 +10,7 @@
         "firebase/php-jwt": "^3.0",
         "kramnorth/cinemr-php-sdk": "dev-master@dev",
         "kickbox/kickbox": "*",
-        "Minds/Surge": "dev-master@dev",
+        "minds/surge": "dev-master@dev",
         "minds/mw3": "dev-master@dev",
         "phpmailer/phpmailer": "~5.2",
         "stripe/stripe-php": "^6.43",
@@ -43,7 +43,7 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://bc220f12a84437201d2bc003c3afe0b543040b36@github.com/minds/Surge.git"
+            "url": "https://bc220f12a84437201d2bc003c3afe0b543040b36@github.com/minds/surge.git"
         },
         {
             "type": "vcs",
