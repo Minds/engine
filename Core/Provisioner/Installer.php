@@ -237,10 +237,11 @@ class Installer
 
     public function provisionCassandra(
         Provisioners\ProvisionerInterface $cassandraStorage = null,
-        $cleanData = false
+        $cleanData = false,
+        $exitOnFailure = false
     ) {
         $cassandraStorage = $cassandraStorage ?: new Provisioners\CassandraProvisioner();
-        $cassandraStorage->provision($cleanData);
+        $cassandraStorage->provision($cleanData, $exitOnFailure);
     }
 
     public function reloadStorage()

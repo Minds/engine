@@ -5,5 +5,5 @@ use Minds\Core\Provisioner\Tasks\TaskInterface;
 
 interface ProvisionerInterface
 {
-    public function provision(bool $cleanData);
+    public function provision(bool $cleanData, bool $exitOnFailure);
 }

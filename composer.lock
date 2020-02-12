@@ -7,11 +7,11 @@
     "content-hash": "8d780cdee45441b9106ff5986f7afbd0",
     "packages": [
         {
-            "name": "Minds/Surge",
+            "name": "minds/surge",
             "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://bc220f12a84437201d2bc003c3afe0b543040b36@github.com/minds/Surge.git",
+                "url": "https://bc220f12a84437201d2bc003c3afe0b543040b36@github.com/minds/surge.git",
                 "reference": "28efecd8e6518869aca8e0357cdb869e82caf6d4"
             },
             "type": "library",

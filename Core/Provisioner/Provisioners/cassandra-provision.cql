@@ -1545,6 +1545,7 @@ CREATE TABLE minds.experiments (
     AND min_index_interval = 128
     AND read_repair_chance = 0.0
     AND speculative_retry = '99PERCENTILE';
+
 CREATE INDEX experiments_key_idx ON minds.experiments (key);
 
 ALTER TABLE minds.withdrawals ADD (status text, address text, gas varint);

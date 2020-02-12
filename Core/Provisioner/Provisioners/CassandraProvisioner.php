@@ -18,7 +18,7 @@ class CassandraProvisioner implements ProvisionerInterface
         $this->client = $client ?: null; // Should be created on-the-fly at provision()
     }
 
-    public function provision(bool $cleanData)
+    public function provision(bool $cleanData, bool $exitOnFailure = false)
     {
         // TODO: Add cleanData to provisioner.
         $config = $this->config->get('cassandra');
@@ -39,6 +39,9 @@ class CassandraProvisioner implements ProvisionerInterface
             }
         } catch (\Exception $e) {
             error_log("Error provisioning cassandra: " . $e->getMessage());
+            if ($exitOnFailure) {
+                exit(1);
+            }
         }
  
         return true;

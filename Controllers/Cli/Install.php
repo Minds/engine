@@ -64,7 +64,8 @@ class Install extends Cli\Controller implements Interfaces\CliControllerInterfac
                 if ($installType == "all" || $installType == "cassandra") {
                     $this->out('- Provisioning Cassandra:', $this::OUTPUT_INLINE);
                     $isCleanCassandra = $this->getopt("cleanCassandra") != null;
-                    $provisioner->provisionCassandra(null, $isCleanCassandra);
+                    $exitOnFailure = (bool) $this->getopt("exitOnFailure");
+                    $provisioner->provisionCassandra(null, $isCleanCassandra, $exitOnFailure);
                     $this->out('OK');
 
                     $this->out('- Emptying Cassandra pool:', $this::OUTPUT_INLINE);
@@ -85,7 +86,7 @@ class Install extends Cli\Controller implements Interfaces\CliControllerInterfac
                     $provisioner->setupFirstAdmin();
                     $this->out('OK');
                 } catch (\Exception $ex) {
-                    $this->out('Could not setup initial user');
+                    $this->out("Could not setup initial user: {$ex->getMessage()}");
                 }
             }
 
