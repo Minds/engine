@@ -71,4 +71,18 @@ class UserSpec extends ObjectBehavior
         $export = $this->export()->getWrappedObject();
         expect($export['mode'])->shouldEqual(ChannelMode::OPEN);
     }
+
+    public function it_should_get_surge_token()
+    {
+        $token = '11111';
+        $this->surge_token = $token;
+        $this->getSurgeToken()->shouldReturn($token);
+    }
+
+    public function it_should_set_surge_token()
+    {
+        $token = '11111';
+        $this->setSurgeToken($token)->shouldReturnAnInstanceOf('Minds\Entities\User');
+        $this->getSurgeToken()->shouldReturn($token);
+    }
 }
