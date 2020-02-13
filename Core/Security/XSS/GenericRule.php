@@ -163,7 +163,7 @@ class GenericRule implements Interfaces\XSSRule
             //make all urls force open in a new tab/window
             if ($element->nodeName == 'a') {
                 $element->setAttribute('target', '_blank');
-                $element->setAttribute('rel', 'noopener noreferrer nofollow'); //nofollow hurts spammers
+                $element->setAttribute('rel', 'noopener noreferrer nofollow ugc'); //nofollow hurts spammers
             }
         }
 
