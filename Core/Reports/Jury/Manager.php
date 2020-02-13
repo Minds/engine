@@ -4,19 +4,17 @@
  */
 namespace Minds\Core\Reports\Jury;
 
-use Minds\Core;
-use Minds\Core\Di\Di;
-use Minds\Core\Data;
-use Minds\Core\Data\Cassandra\Prepared;
-use Minds\Entities;
-use Minds\Entities\DenormalizedEntity;
-use Minds\Entities\NormalizedEntity;
 use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
+use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
-use Minds\Core\Reports\Summons\SummonsNotFoundException;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Reports\Summons\Manager as SummonsManager;
 use Minds\Core\Reports\Summons\Summons as SummonsEntity;
+use Minds\Core\Reports\Summons\SummonsNotFoundException;
+use Minds\Core\Reports\Verdict\Manager as VerdictManager;
 use Minds\Core\Security\ACL;
+use Minds\Entities\User;
 
 class Manager
 {
@@ -165,7 +163,7 @@ class Manager
         }
 
         $this->verdictManager->decideFromReport($report);
-  
+
         return $success;
     }
 

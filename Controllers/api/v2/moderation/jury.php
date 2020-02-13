@@ -24,6 +24,7 @@ class jury implements Interfaces\Api
             exit;
         }
 
+        /** @var Core\Reports\Jury\Manager $juryManager */
         $juryManager = Di::_()->get('Moderation\Jury\Manager');
         $juryManager->setJuryType($juryType)
             ->setUser(Core\Session::getLoggedInUser());
@@ -57,7 +58,7 @@ class jury implements Interfaces\Api
                 'message' => 'You must supply the jury type in the URI like /:juryType/:entityGuid',
             ]);
         }
-        
+
         if (!$urn) {
             return Factory::response([
                 'status' => 'error',
@@ -105,7 +106,7 @@ class jury implements Interfaces\Api
                 'message' => 'A summons could not be found'
             ]);
         }
-        
+
         return Factory::response([]);
     }
 

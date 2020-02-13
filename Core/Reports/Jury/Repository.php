@@ -94,8 +94,9 @@ class Repository
      * Return a single report
      * @param string $urn
      * @return Report
+     * @throws \Exception
      */
-    public function get($urn)
+    public function get($urn): Report
     {
         // TODO: Do not return if we no longer meet criteria
         return $this->reportsRepository->get($urn);
