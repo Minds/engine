@@ -1194,7 +1194,6 @@ class User extends \ElggUser
         return array_merge(parent::getExportableValues(), [
             'website',
             'briefdescription',
-            'dob',
             'gender',
             'city',
             'merchant',
