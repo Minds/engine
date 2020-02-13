@@ -51,13 +51,15 @@ class Repository
         $statement = "UPDATE moderation_reports
             SET reports += ?,
             state = 'reported',
-            entity_owner_guid = ?";
-        
+            entity_owner_guid = ?,
+            original_entity = ?";
+
         $set = new Set(Type::bigint());
         $set->add(new Bigint($report->getReporterGuid()));
         $values = [
             $set,
             new Bigint($report->getReport()->getEntityOwnerGuid()),
+            (string) json_encode($report->getReport()->getEntity()->export())
         ];
 
         if ($report->getReporterHash()) {
@@ -71,11 +73,12 @@ class Repository
             AND reason_code = ?
             AND sub_reason_code = ?
             AND timestamp = ?";
+
         $values[] = $report->getReport()->getEntityUrn();
         $values[] = new Tinyint($report->getReport()->getReasonCode());
         $values[] = new Decimal($report->getReport()->getSubReasonCode() ?? 0);
         $values[] = new Timestamp($report->getReport()->getTimestamp());
-        
+
         $prepared = new Prepared;
         $prepared->query($statement, $values);
 
