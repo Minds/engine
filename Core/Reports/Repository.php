@@ -1,22 +1,17 @@
 <?php
 namespace Minds\Core\Reports;
 
-use Cassandra;
 use Cassandra\Decimal;
 use Cassandra\Timestamp;
 use Cassandra\Tinyint;
-
-use Minds\Core;
-use Minds\Core\Di\Di;
+use Minds\Common\Repository\Response;
+use Minds\Common\Urn;
 use Minds\Core\Data;
 use Minds\Core\Data\Cassandra\Prepared;
-use Minds\Entities;
-use Minds\Entities\DenormalizedEntity;
-use Minds\Entities\NormalizedEntity;
-use Minds\Common\Repository\Response;
-use Minds\Core\Reports\UserReports\UserReport;
+use Minds\Core\Di\Di;
 use Minds\Core\Reports\ReportedEntity;
-use Minds\Common\Urn;
+use Minds\Core\Reports\UserReports\UserReport;
+use Minds\Entities\Factory as EntitiesFactory;
 
 class Repository
 {
@@ -141,7 +136,7 @@ class Repository
      * @return Report
      * @throws \Exception
      */
-    public function get($urn)
+    public function get($urn): Report
     {
         $parts = explode('-', $this->urn->setUrn($urn)->getNss());
 
@@ -149,7 +144,7 @@ class Repository
         $reasonCode = $parts[1];
         $subReasonCode = $parts[2] ?? 0;
         $timestamp = $parts[3];
-        
+
 
         $response = $this->getList([
             'entity_urn' => $entityUrn,
@@ -157,7 +152,7 @@ class Repository
             'sub_reason_code' => $subReasonCode,
             'timestamp' => $timestamp,
         ]);
-        
+
         if (!$response[0]) {
             return null;
         }
@@ -259,7 +254,8 @@ class Repository
             ->setUserHashes(
                 isset($row['user_hashes']) ?
                 $row['user_hashes']->values() : null
-            );
+            )
+            ->setOriginalEntity($row['original_entity'] ?: null);
         return $report;
     }
 }
