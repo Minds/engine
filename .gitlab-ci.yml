@@ -48,6 +48,11 @@ prepare:fpm:
         --build-arg SENTRY_DSN=$SENTRY_DSN \
         .
     - docker push $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
+    - >
+      if [ $CI_COMMIT_BRANCH == "test-docker-tag" ]; then 
+        docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:latest &&
+        docker push $CI_REGISTRY_IMAGE/fpm:latest
+      fi
 
 prepare:runners:
   stage: prepare
