@@ -70,7 +70,6 @@ class channel implements Interfaces\Api
         $response['channel']['briefdescription'] = $response['channel']['briefdescription'] ?: '';
         $response['channel']['city'] = $response['channel']['city'] ?: "";
         $response['channel']['gender'] = $response['channel']['gender'] ?: "";
-        $response['channel']['dob'] = $response['channel']['dob'] ?: "";
 
         if (!$user->merchant || !$supporters_count) {
             $db = new Core\Data\Call('entities_by_time');
@@ -234,7 +233,7 @@ class channel implements Interfaces\Api
 
                 $update = [];
                 foreach (['name', 'website', 'briefdescription', 'gender',
-                  'dob', 'city', 'coordinates', 'monetized'] as $field) {
+                        'city', 'coordinates', 'monetized'] as $field) {
                     if (isset($_POST[$field])) {
                         $update[$field] = $_POST[$field];
                         $owner->$field = $_POST[$field];
