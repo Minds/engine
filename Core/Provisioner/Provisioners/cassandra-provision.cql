@@ -1578,3 +1578,5 @@ CREATE TABLE minds.feature_toggles_cache_ns (
     stale_at timestamp,
     PRIMARY KEY (environment, feature_name)
 );
+
+ALTER TABLE minds.moderation_reports ADD original_entity text;
