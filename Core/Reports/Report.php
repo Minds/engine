@@ -2,6 +2,7 @@
 /**
  * Reported Entity
  */
+
 namespace Minds\Core\Reports;
 
 use Minds\Core\Reports\Jury\Decision;
@@ -25,12 +26,14 @@ use Minds\Traits\MagicAttributes;
  * @method Report setTimestamp(int $timestamp)
  * @method Report setReasonCode(int $value)
  * @method Report setSubReasonCode(int $value)
+ * @method string getOriginalEntity()
+ * @method Report setOriginalEntity(string $value)
  */
 class Report
 {
     use MagicAttributes;
 
-    /** @var long $entityGuid  */
+    /** @var long $entityGuid */
     private $entityGuid;
 
     /** @var string $entityUrn */
@@ -39,8 +42,11 @@ class Report
     /** @var long $entityOwnerGuid */
     private $entityOwnerGuid;
 
-    /** @var Entity $entity  */
+    /** @var Entity $entity */
     private $entity;
+
+    /** @var Entity $entity */
+    private $originalEntity;
 
     /** @var int $timestamp */
     private $timestamp;
@@ -48,10 +54,10 @@ class Report
     /** @var array<UserReport> $reports */
     private $reports = [];
 
-    /** @var array<Decisions> $initialJuryDecisions */
+    /** @var array<Decision> $initialJuryDecisions */
     private $initialJuryDecisions = [];
 
-    /** @var array<Decisions> $appealJuryDecisions */
+    /** @var array<Decision> $appealJuryDecisions */
     private $appealJuryDecisions = [];
 
     /** @var boolean $uphold */
@@ -77,7 +83,7 @@ class Report
 
     /** @var array $stateChanges */
     private $stateChanges;
-    
+
     /**
      * Return the state of the report from the state changes
      */
@@ -124,6 +130,7 @@ class Report
             'urn' => $this->getUrn(),
             'entity_urn' => $this->entityUrn,
             'entity' => $this->entity ? $this->entity->export() : null,
+            'original_entity' => $this->originalEntity ?: null,
             /*'reports' => $this->reports ? array_map(function($report){
                 return $report->export();
              }, $this->reports) : [],*/
