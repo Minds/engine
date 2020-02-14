@@ -14,8 +14,11 @@ use Minds\Traits\MagicAttributes;
  * Class Report
  * @method int getEntityGuid()
  * @method string getEntityUrn()
+ * @method Report setEntityUrn()
  * @method UserReport[] getReports()
  * @method Entity getEntity()
+ * @method Report setEntity(Entity $value)
+ * @method Report setEntityOwnerGuid(int $value)
  * @method boolean isAppeal()
  * @method Decision[] getInitialJuryDecisions()
  * @method Decision[] getAppealJuryDecisions()
@@ -28,6 +31,8 @@ use Minds\Traits\MagicAttributes;
  * @method Report setSubReasonCode(int $value)
  * @method string getOriginalEntity()
  * @method Report setOriginalEntity(string $value)
+ * @method bool getUphold()
+ * @method Report setUphold(bool $value)
  */
 class Report
 {
