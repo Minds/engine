@@ -123,6 +123,9 @@ class Exported
 
         if ($pro = $this->proDomain->lookup($_SERVER['HTTP_HOST'] ?? null)) {
             $exported['pro'] = $pro;
+        } elseif (!$this->proDomain->isRoot($_SERVER['HTTP_HOST'] ?? null)) {
+            // If not a pro site and not root then tell frontend to redirect
+            $exported['redirect_to_root_on_init'] = true;
         }
 
         return $exported;
