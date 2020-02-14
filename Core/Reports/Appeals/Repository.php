@@ -1,21 +1,16 @@
 <?php
 namespace Minds\Core\Reports\Appeals;
 
-use Cassandra;
 use Cassandra\Bigint;
-use Cassandra\Tinyint;
 use Cassandra\Decimal;
-use Cassandra\Type;
 use Cassandra\Map;
 use Cassandra\Timestamp;
-use Minds\Core;
-use Minds\Core\Di\Di;
+use Cassandra\Tinyint;
+use Cassandra\Type;
+use Minds\Common\Repository\Response;
 use Minds\Core\Data;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
-use Minds\Entities;
-use Minds\Entities\DenormalizedEntity;
-use Minds\Entities\NormalizedEntity;
-use Minds\Common\Repository\Response;
+use Minds\Core\Di\Di;
 use Minds\Core\Reports\Repository as ReportsRepository;
 
 class Repository

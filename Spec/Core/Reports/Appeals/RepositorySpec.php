@@ -26,7 +26,7 @@ class RepositorySpec extends ObjectBehavior
     {
         $this->beConstructedWith($cql);
         $this->cql = $cql;
-        //$this->reportsRepository = $reportsRepository;
+        $this->reportsRepository = $reportsRepository;
     }
 
     public function it_is_initializable()
@@ -149,11 +149,11 @@ class RepositorySpec extends ObjectBehavior
         $appeal->getReport()
             ->shouldBeCalled()
             ->willReturn($report);
-        
+
         $appeal->getNote()
             ->shouldBeCalled()
             ->willReturn('Should not be reported because this is a test');
-        
+
         $this->add($appeal)
             ->shouldBe(true);
     }

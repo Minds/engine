@@ -255,7 +255,7 @@ class Repository
                 isset($row['user_hashes']) ?
                 $row['user_hashes']->values() : null
             )
-            ->setOriginalEntity($row['original_entity'] ? $this->buildFromJson($row['original_entity']) : null);
+            ->setOriginalEntity(isset($row['original_entity']) ? $this->buildFromJson($row['original_entity']) : null);
         return $report;
     }
 
@@ -277,8 +277,9 @@ class Repository
 
     private function isJson($string)
     {
-        if (!is_string($string))
+        if (!is_string($string)) {
             return false;
+        }
 
         json_decode($string);
         return (json_last_error() == JSON_ERROR_NONE);
