@@ -44,7 +44,7 @@ class Provider extends DiProvider
                 'wire-multi-currency',
                 'cdn-jwt',
                 'post-scheduler',
-                'navigation-2020',
+                'navigation',
                 'wallet-upgrade'
             ];
         });
