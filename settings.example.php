@@ -143,7 +143,7 @@ $CONFIG->__site_secret__ = '{{site-secret}}';
 // $CONFIG->cdn_url = 'http://{{domain}}/';
 $CONFIG->site_url = 'http://{{domain}}/';
 $CONFIG->cdn_url = 'http://{{domain}}/';
-$CONFIG->cdn_assets_url = 'http://{{domain}}/en/';
+$CONFIG->cdn_assets_url = 'http://{{domain}}/';
 $CONFIG->zmq_server = 'localhost';
 $CONFIG->checkout_url = 'http://{{checkout_domain}}/';
 
@@ -585,7 +585,7 @@ $CONFIG->set('gitlab', [
 
 $CONFIG->set('pro', [
     'handler' => '',
-    'root_domains' => ['minds.com', 'www.minds.com', 'localhost'],
+    'root_domains' => ['minds.com', 'www.minds.com', 'localhost', 'localhost:8080', 'localhost:4200'],
     'subdomain_suffix' => 'minds.com',
     'dynamodb_table_name' => 'traefik',
 ]);

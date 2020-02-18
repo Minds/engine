@@ -44,6 +44,7 @@ class Provider extends DiProvider
                 'wire-multi-currency',
                 'cdn-jwt',
                 'post-scheduler',
+                'navigation',
                 'activity-v2--single-page',
                 'activity-v2--feeds',
                 'activity-v2--boosts',

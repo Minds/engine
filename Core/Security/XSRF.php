@@ -17,8 +17,8 @@ class XSRF
 
     public static function validateRequest()
     {
-        if (!Core\Session::isLoggedIn() && $_SERVER['REQUEST_METHOD'] === 'GET') {
-            return true; // If logged out and GET request we can accept
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            return true; // XSRF only needed for modifiers
         }
 
         if (!isset($_SERVER['HTTP_X_XSRF_TOKEN'])) {

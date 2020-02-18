@@ -48,6 +48,11 @@ prepare:fpm:
         --build-arg SENTRY_DSN=$SENTRY_DSN \
         .
     - docker push $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
+    - >
+      if [ $CI_COMMIT_BRANCH == "master" ]; then 
+        docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:latest &&
+        docker push $CI_REGISTRY_IMAGE/fpm:latest
+      fi
 
 prepare:runners:
   stage: prepare
@@ -64,6 +69,11 @@ prepare:runners:
         --build-arg SENTRY_DSN=$SENTRY_DSN \
         .
     - docker push $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
+    - >
+      if [ $CI_COMMIT_BRANCH == "master" ]; then 
+        docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/runners:latest &&
+        docker push $CI_REGISTRY_IMAGE/runners:latest
+      fi
 
 prepare:all:sentry:
   stage: prepare
