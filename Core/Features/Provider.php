@@ -45,6 +45,7 @@ class Provider extends DiProvider
                 'cdn-jwt',
                 'post-scheduler',
                 'activity-composer',
+                'navigation',
             ];
         });
 
