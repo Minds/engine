@@ -87,7 +87,7 @@ class Report
     private $userHashes;
 
     /** @var array $stateChanges */
-    private $stateChanges = ['reported'];
+    private $stateChanges = [];
     
     /**
      * @param string $state pushes a state into our state change array
@@ -105,6 +105,9 @@ class Report
      */
     public function getState() : string
     {
+        if (!$this->stateChanges) {
+            return 'reported';
+        }
         $sortedStates = $this->stateChanges;
         arsort($sortedStates);
         return $sortedStates[0];
