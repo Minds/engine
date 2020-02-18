@@ -61,7 +61,6 @@ class Manager
     {
         // Return the latest report, or the same supplied report if none exist
         $report = $this->reportsManager->getLatestReport($userReport->getReport());
-
         if ($report->getState() !== 'reported'
             && !in_array($report->getEntity()->type, [ 'user', 'group' ], true)
         ) {
