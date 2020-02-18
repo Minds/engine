@@ -96,6 +96,7 @@ class Report
     public function setState(string $state) : Report
     {
         $this->stateChanges[] = $state;
+        return $this;
     }
     
 
