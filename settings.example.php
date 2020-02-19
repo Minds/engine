@@ -585,7 +585,7 @@ $CONFIG->set('gitlab', [
 
 $CONFIG->set('pro', [
     'handler' => '',
-    'root_domains' => ['minds.com', 'www.minds.com', 'localhost', 'localhost:8080', 'localhost:4200'],
+    'root_domains' => ['minds.com', 'www.minds.com', 'localhost', 'localhost:8080', 'localhost:4200', 'nginx', 'host.docker.internal'],
     'subdomain_suffix' => 'minds.com',
     'dynamodb_table_name' => 'traefik',
 ]);
