@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Entities;
 use Minds\Interfaces;
+use Minds\Core\Security\SignedUri;
 
 class threshold implements Interfaces\Api
 {
@@ -45,6 +46,12 @@ class threshold implements Interfaces\Api
             if ($entity->type == 'activity') {
                 $response['activity'] = $entity->export();
                 $response['activity']['paywall_unlocked'] = true;
+                
+                if (isset($entity->custom_type) && $entity->custom_type === 'batch') {
+                    $signedUri = new SignedUri(); // Sign URI so that user can view it.
+                    $signed = $signedUri->sign($entity->custom_data[0]['src']);
+                    $response['activity']['custom_data'][0]['src'] = $signed;
+                }
             } else {
                 $response['entity'] = $entity->export();
                 $response['entity']['paywall_unlocked'] = true;
