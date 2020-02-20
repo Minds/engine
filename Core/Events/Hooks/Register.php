@@ -67,6 +67,45 @@ class Register
             }
 
             try {
+                /** @var Entities\User $user */
+                $user = $params['user'];
+
+                $platform = 'browser';
+                if ($user->signupParentId === 'mobile-native') {
+                    $platform = 'mobile';
+                }
+
+                $event = new Core\Analytics\Metrics\Event();
+                $event
+                    ->setType('action')
+                    ->setAction('signup')
+                    ->setProduct('platform')
+                    ->setPlatform($platform)
+                    ->setUserGuid($user->guid)
+                    ->setCookieId($_COOKIE['mwa'] ?? '')
+                    ->setLoggedIn(true);
+
+                if ($user->referrer) {
+                    $event->setReferrerGuid($user->referrer);
+
+                    try {
+                        $referrer = new Entities\User($user->referrer, false);
+
+                        if ($referrer && $referrer->guid) {
+                            $event->setProReferrer($referrer->isPro());
+                        }
+                    } catch (\Exception $e) {
+                        // Do not fail if we couldn't find referrer user
+                        // Might be deleted, disabled or banned
+                    }
+                }
+
+                $event->push();
+            } catch (\Exception $e) {
+                error_log((string) $e);
+            }
+
+            try {
                 Core\Queue\Client::build()->setQueue('Registered')
                     ->send([
                         'user_guid' => (string) $params['user']->guid,
