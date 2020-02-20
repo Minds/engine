@@ -6,6 +6,7 @@
 namespace Minds\Core\SMS\Services;
 
 use Minds\Core\Di\Di;
+use Minds\Core\SMS\Exceptions\InvalidPhoneException;
 use Minds\Core\SMS\SMSServiceInterface;
 use Twilio\Rest\Client as TwilioClient;
 
@@ -30,6 +31,7 @@ class Twilio implements SMSServiceInterface
      * Verifies the number isn't a voip line
      * @param $number
      * @return boolean
+     * @throws InvalidPhoneException
      */
     public function verify($number)
     {
@@ -40,8 +42,8 @@ class Twilio implements SMSServiceInterface
             return $phone_number->carrier['type'] !== 'voip';
         } catch (\Exception $e) {
             error_log("[guard] Twilio error: {$e->getMessage()}");
+            throw new InvalidPhoneException('Invalid Phone Number', 0, $e);
         }
-        return false;
     }
 
     /**
