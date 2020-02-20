@@ -473,9 +473,9 @@ class Blog extends RepositoryEntity
     }
 
     /**
-      * Get NSFW options
-      * @return array
-      */
+     * Get NSFW options
+     * @return array
+     */
     public function getNsfw()
     {
         $array = [];
@@ -505,7 +505,7 @@ class Blog extends RepositoryEntity
         $this->markAsDirty('nsfw');
         return $this;
     }
-    
+
     /**
      * Get NSFW Lock options.
      *
@@ -523,7 +523,7 @@ class Blog extends RepositoryEntity
 
         return $array;
     }
-    
+
     /**
      * Set NSFW lock tags for administrators. Users cannot remove these themselves.
      *
