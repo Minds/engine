@@ -131,7 +131,7 @@ class RepositorySpec extends ObjectBehavior
         $this->cql->request(Argument::that(function ($prepared) {
             $values = $prepared->build()['values'];
             $statement = $prepared->build()['string'];
-            return strpos($statement, 'SET initial_jury') !== false
+            return strpos($statement, 'initial_jury') !== false
                 && $values[0]->values()[0] == true
                 && $values[1]->values()[0] === '0xqj1'
                 && $values[2] === 'urn:activity:123'

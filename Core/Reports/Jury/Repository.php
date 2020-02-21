@@ -14,6 +14,7 @@ use Minds\Core\Data;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
 use Minds\Core\Di\Di;
 use Minds\Core\Reports\Report;
+use Minds\Common\Repository\Response;
 use Minds\Core\Reports\Repository as ReportsRepository;
 
 class Repository
@@ -105,14 +106,9 @@ class Repository
      */
     public function add(Decision $decision)
     {
-        $statement = "UPDATE moderation_reports
-            SET initial_jury += ?,
-            user_hashes += ?
-            WHERE entity_urn = ?
-            AND reason_code = ?
-            AND sub_reason_code = ?
-            AND timestamp = ?
-            AND original_entity = ?";
+        $statement = "INSERT INTO moderation_reports
+            (initial_jury, user_hashes, entity_urn, reason_code, sub_reason_code, timestamp, original_entity)
+            VALUES(?,?,?,?,?,?,?)";
 
         $map = new Map(Type::bigint(), Type::boolean());
         $map->set(new Bigint($decision->getJurorGuid()), $decision->isUpheld());

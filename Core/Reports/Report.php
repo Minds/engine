@@ -103,7 +103,7 @@ class Report
     /**
      * Return the state of the report from the state changes
      */
-    public function getState(): string
+    public function getState()
     {
         if (!$this->stateChanges) {
             return 'reported';

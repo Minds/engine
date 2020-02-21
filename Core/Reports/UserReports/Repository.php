@@ -46,15 +46,13 @@ class Repository
         $statement = "UPDATE moderation_reports
             SET reports += ?,
             state = 'reported',
-            entity_owner_guid = ?,
-            original_entity = ?";
+            entity_owner_guid = ?";
 
         $set = new Set(Type::bigint());
         $set->add(new Bigint($report->getReporterGuid()));
         $values = [
             $set,
             new Bigint($report->getReport()->getEntityOwnerGuid()),
-            (string) json_encode($report->getReport()->getEntity()->export()),
         ];
 
         if ($report->getReporterHash()) {
