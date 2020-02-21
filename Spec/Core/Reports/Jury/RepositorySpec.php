@@ -49,8 +49,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([
                 [
-                    'user_hashes' => (Type::set(Type::text())->create(''))
-                        ->add('hash'),
+                    'user_hashes' => (Type::set(Type::text())->create('hash')),
                     'entity_urn' => 'urn:activity:123',
                     'entity_owner_guid' => new Bigint(456),
                     'reason_code' => new Float_(2),
@@ -59,12 +58,10 @@ class RepositorySpec extends ObjectBehavior
                     'state' => 'reported',
                     'state_changes' => (new Map(Type::text(), Type::timestamp()))
                         ->set('reported', time() * 1000),
-                    'reports' => (Type::set(Type::text())->create(1))
-                        ->add(789),
+                    'reports' => (Type::set(Type::text())->create(789))
                 ],
                 [
-                    'user_hashes' => (Type::set(Type::text())->create(''))
-                        ->add('hash'),
+                    'user_hashes' => (Type::set(Type::text())->create('hash')),
                     'entity_urn' => 'urn:activity:456',
                     'entity_owner_guid' => new Bigint(456),
                     'reason_code' => new Float_(2),
@@ -73,8 +70,7 @@ class RepositorySpec extends ObjectBehavior
                     'state' => 'reported',
                     'state_changes' => (new Map(Type::text(), Type::timestamp()))
                         ->set('reported', time() * 1000),
-                    'reports' => (Type::set(Type::text())->create(1))
-                        ->add(789),
+                    'reports' => (Type::set(Type::text())->create(789))
                 ],
             ]);
 
@@ -134,8 +130,8 @@ class RepositorySpec extends ObjectBehavior
             $values = $prepared->build()['values'];
             $statement = $prepared->build()['string'];
             return strpos($statement, 'initial_jury') !== false
-                && $values[0]->values()[0] == true
-                && $values[1]->values()[0] === '0xqj1'
+                && $values[0]->values()[456]->values()[0] == true
+                && $values[1]->values()[0]->values()[0] === '0xqj1'
                 && $values[2] === 'urn:activity:123'
                 && $values[3]->value() == 2
                 && $values[4]->value() == 5;
@@ -177,8 +173,8 @@ class RepositorySpec extends ObjectBehavior
             $values = $prepared->build()['values'];
             $statement = $prepared->build()['string'];
             return strpos($statement, 'SET appeal_jury') !== false
-                && $values[0]->values()[0] == true
-                && $values[1]->values()[0] === '0xqj1'
+                && $values[0]->values()[456]->values()[0] == true
+                && $values[1]->values()[0]->values()[0] === '0xqj1'
                 && $values[2] === 'urn:activity:123'
                 && $values[3]->value() == 2
                 && $values[4]->value() == 5;
