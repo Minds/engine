@@ -7,6 +7,8 @@ use Minds\Core\Config;
 use Minds\Core\Pro\Domain;
 use Minds\Core\Pro\Repository;
 use Minds\Core\Pro\Settings;
+use Minds\Core\Pro\Manager as ProManager;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -19,14 +21,26 @@ class DomainSpec extends ObjectBehavior
     /** @var Repository */
     protected $repository;
 
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
+    /** @var ProManager */
+    protected $proManager;
+
     public function let(
         Config $config,
-        Repository $repository
+        Repository $repository,
+        EntitiesBuilder $entitiesBuilder,
+        ProManager $proManager
     ) {
         $this->config = $config;
         $this->repository = $repository;
+        $this->entitiesBuilder = $entitiesBuilder;
+        $this->proManager = $proManager;
 
-        $this->beConstructedWith($config, $repository);
+        $this->beConstructedWith($config, $repository, $entitiesBuilder, $proManager);
+        $entitiesBuilder->single(Argument::any())
+            ->willReturn(new User);
     }
 
     public function it_is_initializable()
@@ -52,6 +66,12 @@ class DomainSpec extends ObjectBehavior
 
         $getListResponse->first()
             ->shouldBeCalled()
+            ->willReturn($settings);
+
+        $this->proManager->setUser(Argument::any())
+            ->willReturn($this->proManager);
+
+        $this->proManager->hydrate($settings)
             ->willReturn($settings);
 
         $this
@@ -99,6 +119,12 @@ class DomainSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(1001);
 
+        $this->proManager->setUser(Argument::any())
+            ->willReturn($this->proManager);
+
+        $this->proManager->hydrate($settings)
+            ->willReturn($settings);
+
         $this
             ->isAvailable('phpspec-test.com', 1000)
             ->shouldReturn(false);
@@ -127,6 +153,12 @@ class DomainSpec extends ObjectBehavior
         $settings->getUserGuid()
             ->shouldBeCalled()
             ->willReturn(1000);
+
+        $this->proManager->setUser(Argument::any())
+            ->willReturn($this->proManager);
+
+        $this->proManager->hydrate($settings)
+            ->willReturn($settings);
 
         $this
             ->isAvailable('phpspec-test.com', 1000)
