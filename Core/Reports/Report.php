@@ -25,7 +25,7 @@ use Minds\Traits\MagicAttributes;
  * @method int getAppealTimestamp()
  * @method int getReasonCode()
  * @method int getSubReasonCode()
- * @method Report setState(string $string)
+ * @method int getTimestamp()
  * @method Report setTimestamp(int $timestamp)
  * @method Report setReasonCode(int $value)
  * @method Report setSubReasonCode(int $value)
@@ -88,22 +88,22 @@ class Report
 
     /** @var array $stateChanges */
     private $stateChanges = [];
-    
+
     /**
      * @param string $state pushes a state into our state change array
      * @return Report this
      */
-    public function setState(string $state) : Report
+    public function setState(string $state): Report
     {
         $this->stateChanges[] = $state;
         return $this;
     }
-    
+
 
     /**
      * Return the state of the report from the state changes
      */
-    public function getState() : string
+    public function getState(): string
     {
         if (!$this->stateChanges) {
             return 'reported';
@@ -126,7 +126,7 @@ class Report
      * Return the URN of this case
      * @return string
      */
-    public function getUrn()
+    public function getUrn(): string
     {
         $parts = [
             "({$this->getEntityUrn()})",
@@ -140,13 +140,13 @@ class Report
     /**
      * @return array
      */
-    public function export()
+    public function export(): array
     {
         $export = [
             'urn' => $this->getUrn(),
             'entity_urn' => $this->entityUrn,
             'entity' => $this->entity ? $this->entity->export() : null,
-            'original_entity' => $this->originalEntity ?: null,
+            'original_entity' => $this->originalEntity ? $this->originalEntity->export() : null,
             /*'reports' => $this->reports ? array_map(function($report){
                 return $report->export();
              }, $this->reports) : [],*/

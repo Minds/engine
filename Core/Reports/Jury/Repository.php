@@ -1,24 +1,19 @@
 <?php
+
 namespace Minds\Core\Reports\Jury;
 
-use Cassandra;
-use Cassandra\Type;
+use Cassandra\Bigint;
+use Cassandra\Decimal;
 use Cassandra\Map;
 use Cassandra\Set;
-use Cassandra\Bigint;
-use Cassandra\Tinyint;
-use Cassandra\Decimal;
 use Cassandra\Timestamp;
-
-use Minds\Core;
-use Minds\Core\Di\Di;
+use Cassandra\Tinyint;
+use Cassandra\Type;
+use Minds\Common\Repository\Response;
 use Minds\Core\Data;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
-use Minds\Entities;
-use Minds\Entities\DenormalizedEntity;
-use Minds\Entities\NormalizedEntity;
+use Minds\Core\Di\Di;
 use Minds\Core\Reports\Report;
-use Minds\Common\Repository\Response;
 use Minds\Core\Reports\Repository as ReportsRepository;
 
 class Repository
@@ -116,17 +111,8 @@ class Repository
             WHERE entity_urn = ?
             AND reason_code = ?
             AND sub_reason_code = ?
-            AND timestamp = ?";
-
-        if ($decision->isAppeal()) {
-            $statement = "UPDATE moderation_reports
-                SET appeal_jury += ?,
-                user_hashes += ?
-                WHERE entity_urn = ?
-                AND reason_code = ?
-                AND sub_reason_code = ?
-                AND timestamp = ?";
-        }
+            AND timestamp = ?
+            AND original_entity = ?";
 
         $map = new Map(Type::bigint(), Type::boolean());
         $map->set(new Bigint($decision->getJurorGuid()), $decision->isUpheld());
@@ -141,6 +127,18 @@ class Repository
             new Decimal($decision->getReport()->getSubReasonCode()),
             new Timestamp($decision->getReport()->getTimestamp()),
         ];
+
+        if ($decision->isAppeal()) {
+            $statement = "UPDATE moderation_reports
+                SET appeal_jury += ?,
+                user_hashes += ?
+                WHERE entity_urn = ?
+                AND reason_code = ?
+                AND sub_reason_code = ?
+                AND timestamp = ?";
+        } else {
+            $params[] = (string) json_encode($decision->getReport()->getEntity()->export());
+        }
 
         $prepared = new Prepared();
         $prepared->query($statement, $params);

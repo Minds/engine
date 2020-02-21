@@ -2,17 +2,16 @@
 
 namespace Spec\Minds\Core\Reports\Jury;
 
-use Minds\Core\Reports\Jury\Repository;
-use Minds\Core\Reports\Jury\Decision;
-use Minds\Core\Reports\Report;
-use Minds\Core\Data\Cassandra\Client;
-use Minds\Entities\User;
-use Cassandra\Type\Set;
-use Cassandra\Type\Map;
-use Cassandra\Type;
-use Cassandra\Float_;
 use Cassandra\Bigint;
 use Cassandra\Timestamp;
+use Cassandra\Type;
+use Cassandra\Type\Map;
+use Minds\Core\Data\Cassandra\Client;
+use Minds\Core\Reports\Jury\Decision;
+use Minds\Core\Reports\Jury\Repository;
+use Minds\Core\Reports\Report;
+use Minds\Entities\Activity;
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -32,13 +31,13 @@ class RepositorySpec extends ObjectBehavior
         $this->shouldHaveType(Repository::class);
     }
 
-    
+
     public function it_should_return_reports_we_can_use_in_jury()
     {
         $user = new User();
         $user->set('guid', 123);
         $user->setPhoneNumberHash('phoneHash');
-        
+
         $this->cql->request(Argument::that(function ($prepared) {
             $query = $prepared->build();
             $values = $query['values'];
@@ -76,7 +75,7 @@ class RepositorySpec extends ObjectBehavior
                         ->add(789),
                 ],
             ]);
-        
+
         $response = $this->getList([
             'user' => $user,
             'juryType' => 'initial',
@@ -84,7 +83,7 @@ class RepositorySpec extends ObjectBehavior
         $response->shouldHaveCount(2);
     }
 
-    public function it_should_add_to_initial_jury(Decision $decision)
+    public function it_should_add_to_initial_jury(Decision $decision, Report $report, Activity $activity)
     {
         $decision->getJurorGuid()
             ->shouldBeCalled()
@@ -102,20 +101,39 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
+        $report->getEntityUrn()
+            ->shouldBeCalled()
+            ->willReturn('urn:activity:123');
+
+        $report->getReasonCode()
+            ->shouldBeCalled()
+            ->willReturn(2);
+
+        $report->getSubReasonCode()
+            ->shouldBeCalled()
+            ->willReturn(5);
+
+        $report->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($activity);
+
+        $report->getTimestamp()
+            ->shouldBeCalled()
+            ->willReturn(time());
+
+        $activity->export()
+            ->shouldBeCalled()
+            ->willReturn("{ 'guid': 123 }");
+
         $decision->getReport()
-            ->willReturn(
-                (new Report)
-                ->setEntityUrn('urn:activity:123')
-                ->setReasonCode(2)
-                ->setSubReasonCode(5)
-            );
+            ->willReturn($report);
 
         $this->cql->request(Argument::that(function ($prepared) {
             $values = $prepared->build()['values'];
             $statement = $prepared->build()['string'];
             return strpos($statement, 'SET initial_jury') !== false
-                && $values[0]->values()[456]->value() == true
-                && $values[1]->values()[0]->value() === '0xqj1'
+                && $values[0]->values()[0] == true
+                && $values[1]->values()[0] === '0xqj1'
                 && $values[2] === 'urn:activity:123'
                 && $values[3]->value() == 2
                 && $values[4]->value() == 5;
@@ -148,17 +166,17 @@ class RepositorySpec extends ObjectBehavior
         $decision->getReport()
             ->willReturn(
                 (new Report)
-                ->setEntityUrn('urn:activity:123')
-                ->setReasonCode(2)
-                ->setSubReasonCode(5)
+                    ->setEntityUrn('urn:activity:123')
+                    ->setReasonCode(2)
+                    ->setSubReasonCode(5)
             );
 
         $this->cql->request(Argument::that(function ($prepared) {
             $values = $prepared->build()['values'];
             $statement = $prepared->build()['string'];
             return strpos($statement, 'SET appeal_jury') !== false
-                && $values[0]->values()[456]->value() == true
-                && $values[1]->values()[0]->value() === '0xqj1'
+                && $values[0]->values()[0] == true
+                && $values[1]->values()[0] === '0xqj1'
                 && $values[2] === 'urn:activity:123'
                 && $values[3]->value() == 2
                 && $values[4]->value() == 5;

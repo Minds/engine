@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\Reports;
 
 use Cassandra\Decimal;
@@ -21,10 +22,14 @@ class Repository
     /** @var Urn $urn */
     protected $urn;
 
-    public function __construct($cql = null, $urn = null)
+    /** @var EntitiesFactory */
+    protected $entitiesFactory;
+
+    public function __construct($cql = null, $urn = null, EntitiesFactory $entitiesFactory = null)
     {
         $this->cql = $cql ?: Di::_()->get('Database\Cassandra\Cql');
         $this->urn = $urn ?: new Urn;
+        $this->entitiesFactory = $entitiesFactory ?: Di::_()->get('Entities\Factory');
     }
 
     /**
@@ -43,7 +48,7 @@ class Repository
             'user' => null,
             'must' => [],
             'must_not' => [],
-            'timestamp' => null
+            'timestamp' => null,
         ], $opts);
 
         /*$must = $opts['must'];
@@ -145,7 +150,6 @@ class Repository
         $subReasonCode = $parts[2] ?? 0;
         $timestamp = $parts[3];
 
-
         $response = $this->getList([
             'entity_urn' => $entityUrn,
             'reason_code' => $reasonCode,
@@ -229,17 +233,17 @@ class Repository
             ->setUphold(isset($row['uphold']) ? (bool) $row['uphold'] : null)
             ->setStateChanges(
                 isset($row['state_changes']) ?
-                array_map(function ($timestamp) {
-                    return $timestamp->time();
-                }, $this->mapToAssoc($row['state_changes']))
-                : null
+                    array_map(function ($timestamp) {
+                        return $timestamp->time();
+                    }, $this->mapToAssoc($row['state_changes']))
+                    : null
             )
             ->setAppeal(isset($row['appeal_note']) ? true : false)
             ->setAppealNote(isset($row['appeal_note']) ? (string) $row['appeal_note'] : '')
             ->setReports(
                 isset($row['reports']) ?
-                $this->buildReports($row['reports']->values())
-                : null
+                    $this->buildReports($row['reports']->values())
+                    : null
             )
             ->setInitialJuryDecisions(
                 isset($row['initial_jury']) ?
@@ -253,35 +257,9 @@ class Repository
             )
             ->setUserHashes(
                 isset($row['user_hashes']) ?
-                $row['user_hashes']->values() : null
+                    $row['user_hashes']->values() : null
             )
-            ->setOriginalEntity(isset($row['original_entity']) ? $this->buildFromJson($row['original_entity']) : null);
+            ->setOriginalEntity(isset($row['original_entity']) ? $this->entitiesFactory->build($row['original_entity']) : null);
         return $report;
-    }
-
-
-    private function buildFromJson(string $data)
-    {
-        $arr = json_decode($data, true);
-
-        foreach ($arr as $k => $v) {
-            if ($this->isJson($v)) {
-                $v = json_decode($v, true);
-            }
-
-            $arr[$k] = $v;
-        }
-
-        return $arr;
-    }
-
-    private function isJson($string)
-    {
-        if (!is_string($string)) {
-            return false;
-        }
-
-        json_decode($string);
-        return (json_last_error() == JSON_ERROR_NONE);
     }
 }

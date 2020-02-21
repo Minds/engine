@@ -1,21 +1,16 @@
 <?php
+
 namespace Minds\Core\Reports\UserReports;
 
-use Cassandra;
-use Cassandra\Type;
-use Cassandra\Tinyint;
 use Cassandra\Bigint;
 use Cassandra\Decimal;
 use Cassandra\Set;
 use Cassandra\Timestamp;
-
-use Minds\Core;
-use Minds\Core\Di\Di;
+use Cassandra\Tinyint;
+use Cassandra\Type;
 use Minds\Core\Data;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
-use Minds\Entities;
-use Minds\Entities\DenormalizedEntity;
-use Minds\Entities\NormalizedEntity;
+use Minds\Core\Di\Di;
 
 class Repository
 {
@@ -37,13 +32,13 @@ class Repository
             'limit' => 12,
             'offset' => '',
             'state' => '',
-            'owner' => null
+            'owner' => null,
         ], $opts);
     }
 
     /**
      * Add a report for an entity
-     * @param Report $report
+     * @param UserReport $report
      * @return boolean
      */
     public function add(UserReport $report)
@@ -59,7 +54,7 @@ class Repository
         $values = [
             $set,
             new Bigint($report->getReport()->getEntityOwnerGuid()),
-            (string) json_encode($report->getReport()->getEntity()->export())
+            (string) json_encode($report->getReport()->getEntity()->export()),
         ];
 
         if ($report->getReporterHash()) {

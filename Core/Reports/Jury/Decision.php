@@ -4,6 +4,7 @@
  */
 namespace Minds\Core\Reports\Jury;
 
+use Minds\Core\Reports\Report;
 use Minds\Traits\MagicAttributes;
 
 /**

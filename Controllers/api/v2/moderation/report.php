@@ -80,7 +80,7 @@ class report implements Interfaces\Api
                 'message' => 'Report could not be saved',
             ]);
         }
-        
+
         // Auto accept admin reports
         if ($user->isAdmin()) {
             $decision = new Decision();
@@ -91,7 +91,8 @@ class report implements Interfaces\Api
                 ->setTimestamp(time())
                 ->setJurorGuid($user->getGuid())
                 ->setJurorHash($user->getPhoneNumberHash());
-            
+
+            /** @var Reports\Jury\Manager $juryManager */
             $juryManager = Di::_()->get('Moderation\Jury\Manager');
             $juryManager->cast($decision);
         }
