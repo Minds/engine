@@ -49,7 +49,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([
                 [
-                    'user_hashes' => (new Set(Type::text()))
+                    'user_hashes' => (Type::set(Type::text())->create(''))
                         ->add('hash'),
                     'entity_urn' => 'urn:activity:123',
                     'entity_owner_guid' => new Bigint(456),
@@ -59,11 +59,11 @@ class RepositorySpec extends ObjectBehavior
                     'state' => 'reported',
                     'state_changes' => (new Map(Type::text(), Type::timestamp()))
                         ->set('reported', time() * 1000),
-                    'reports' => (new Set(Type::bigint()))
+                    'reports' => (Type::set(Type::text())->create(1))
                         ->add(789),
                 ],
                 [
-                    'user_hashes' => (new Set(Type::text()))
+                    'user_hashes' => (Type::set(Type::text())->create(''))
                         ->add('hash'),
                     'entity_urn' => 'urn:activity:456',
                     'entity_owner_guid' => new Bigint(456),
@@ -73,7 +73,7 @@ class RepositorySpec extends ObjectBehavior
                     'state' => 'reported',
                     'state_changes' => (new Map(Type::text(), Type::timestamp()))
                         ->set('reported', time() * 1000),
-                    'reports' => (new Set(Type::bigint()))
+                    'reports' => (Type::set(Type::text())->create(1))
                         ->add(789),
                 ],
             ]);
