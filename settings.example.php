@@ -630,4 +630,5 @@ $CONFIG->set('unleash', [
 
 $CONFIG->set('captcha', [
     'jwt_secret' => '{{site-secret}}',
+    'bypass_key' => '{{site-secret}}',
 ]);

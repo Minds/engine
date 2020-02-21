@@ -16,12 +16,15 @@ class Manager
     /** @var string */
     private $secret;
 
+    /** @var Config */
+    private $config;
+
     public function __construct($imageGenerator = null, $jwt = null, $config = null)
     {
         $this->imageGenerator = $imageGenerator ?? new ImageGenerator;
         $this->jwt = $jwt ?? new Jwt();
-        $config = $config ?? Di::_()->get('Config');
-        $this->secret = $config->get('captcha') ? $config->get('captcha')['jwt_secret'] : 'todo';
+        $this->config = $config ?? Di::_()->get('Config');
+        $this->secret = $this->config->get('captcha') ? $this->config->get('captcha')['jwt_secret'] : 'todo';
         $this->jwt->setKey($this->secret);
     }
 
@@ -46,10 +49,14 @@ class Manager
      */
     public function verify(Captcha $captcha): bool
     {
+        if (isset($_COOKIE['captcha_bypass'])) {
+            return $this->verifyBypass($captcha);
+        }
+
         $jwtToken = $captcha->getJwtToken();
         $decodedJwtToken = $this->jwt->decode($jwtToken);
         $salt = $decodedJwtToken['salt'];
-        $hash = $decodedJwtToken['public_hash'];
+        $hash = $decodedJwtToken['public_hash'] ;
 
         // This is what the client has said the captcha image has
         $clientText = $captcha->getClientText();
@@ -58,6 +65,29 @@ class Manager
         $clientHash = $this->buildCaptchaHash($clientText, $salt);
 
         return $clientHash === $hash;
+    }
+
+    /**
+     * This is used for testing purposes and for e2e to bypass
+     * the captvha
+     * @param Captcha $captcha
+     * @return bool
+     */
+    protected function verifyBypass(Captcha $captcha): bool
+    {
+        if (!isset($_COOKIE['captcha_bypass'])) {
+            return false;
+        }
+
+        $bypassKey = $this->config->get('captcha')['bypass_key'];
+
+        $decoded = $this->jwt
+            ->setKey($bypassKey)
+            ->decode($_COOKIE['captcha_bypass']);
+
+        $inputted = (int) $decoded['data'];
+
+        return $inputted == $captcha->getClientText();
     }
 
     /**
