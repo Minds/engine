@@ -14,7 +14,6 @@ use Minds\Core\Data;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
 use Minds\Core\Di\Di;
 use Minds\Core\Reports\Report;
-use Minds\Common\Repository\Response;
 use Minds\Core\Reports\Repository as ReportsRepository;
 
 class Repository
