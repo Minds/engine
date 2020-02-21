@@ -2,16 +2,18 @@
 
 namespace Spec\Minds\Core\Reports\Jury;
 
-use Cassandra\Bigint;
-use Cassandra\Timestamp;
-use Cassandra\Type;
-use Cassandra\Type\Map;
-use Minds\Core\Data\Cassandra\Client;
-use Minds\Core\Reports\Jury\Decision;
 use Minds\Core\Reports\Jury\Repository;
+use Minds\Core\Reports\Jury\Decision;
 use Minds\Core\Reports\Report;
+use Minds\Core\Data\Cassandra\Client;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
+use Cassandra\Type\Set;
+use Cassandra\Type\Map;
+use Cassandra\Type;
+use Cassandra\Float_;
+use Cassandra\Bigint;
+use Cassandra\Timestamp;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
