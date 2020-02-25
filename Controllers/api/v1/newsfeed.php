@@ -514,10 +514,12 @@ class newsfeed implements Interfaces\Api
                     $activity->indexes = ["activity:$activity->owner_guid:edits"]; //don't re-index on edit
                     (new Core\Translation\Storage())->purge($activity->guid);
 
-                    if (($_POST['time_created'] ?? null) && ($_POST['time_created'] != $activity->getTimeCreated())) {
+                    $scheduled = $_POST['time_created'] ?? null;
+
+                    if ($scheduled && ($scheduled != $activity->getTimeCreated())) {
                         try {
                             $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
-                            $timeCreatedDelegate->onUpdate($activity, $_POST['time_created'], time());
+                            $timeCreatedDelegate->onUpdate($activity, $scheduled, $activity->getTimeSent());
                         } catch (\Exception $e) {
                             return Factory::response([
                                 'status' => 'error',
@@ -542,16 +544,16 @@ class newsfeed implements Interfaces\Api
 
                 $user = Core\Session::getLoggedInUser();
 
-                if (isset($_POST['time_created'])) {
-                    try {
-                        $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
-                        $timeCreatedDelegate->onAdd($activity, $_POST['time_created'], time());
-                    } catch (\Exception $e) {
-                        return Factory::response([
-                            'status' => 'error',
-                            'message' => $e->getMessage(),
-                        ]);
-                    }
+                $now = time();
+
+                try {
+                    $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
+                    $timeCreatedDelegate->onAdd($activity, $_POST['time_created'] ?? $now, $now);
+                } catch (\Exception $e) {
+                    return Factory::response([
+                        'status' => 'error',
+                        'message' => $e->getMessage(),
+                    ]);
                 }
 
                 if ($user->isMature()) {
