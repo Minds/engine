@@ -13,7 +13,7 @@ use DateTime;
 class Manager
 {
     /** @var int */
-    const VIEWS_RPM_CENTS = 100; // $1 USD
+    const VIEWS_RPM_CENTS = 1000; // $10 USD
 
     /** @var int */
     const REFERRAL_CENTS = 10; // $0.10

@@ -7,6 +7,7 @@ namespace Minds\Controllers\api\v1\rewards;
 
 use Minds\Api\Factory;
 use Minds\Core;
+use Minds\Core\SMS\Exceptions\VoIpPhoneException;
 use Minds\Interfaces;
 
 class phone implements Interfaces\Api
@@ -24,7 +25,7 @@ class phone implements Interfaces\Api
             switch ($pages[0]) {
                 case 'check':
                     return Factory::response([
-                        'onboarded' => (bool) Core\Session::getLoggedinUser()->getPhoneNumberHash()
+                        'onboarded' => (bool) Core\Session::getLoggedinUser()->getPhoneNumberHash(),
                     ]);
                     break;
                 case 'verify':
@@ -52,7 +53,7 @@ class phone implements Interfaces\Api
                         $user->save();
                         return Factory::response([
                             'status' => 'success',
-                            'message' => 'You have successfully onboarded to Minds Rewards System'
+                            'message' => 'You have successfully onboarded to Minds Rewards System',
                         ]);
                     } else {
                         return Factory::response(['status' => 'error', 'message' => 'Wrong code']);
@@ -73,11 +74,18 @@ class phone implements Interfaces\Api
         /** @var Core\SMS\SMSServiceInterface $sms */
         $sms = Core\Di\Di::_()->get('SMS');
 
-        if (!$sms->verify($phone)) {
-            return Factory::response(['status' => 'success', 'message' => 'voip phones not allowed']);
+        try {
+            if (!$sms->verify($phone)) {
+                throw new VoIpPhoneException();
+            }
+        } catch (\Exception $e) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ]);
         }
 
-        $message = 'From Minds.com: Your code is '. $code;
+        $message = 'From Minds.com: Your code is ' . $code;
         $sms->send($phone, $message);
 
         return Factory::response(['status' => 'success', 'secret' => $secret]);

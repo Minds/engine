@@ -148,6 +148,10 @@ class settings implements Interfaces\Api
             $user->setToasterNotifications((bool) $_POST['toaster_notifications']);
         }
 
+        if (isset($_POST['hide_share_buttons'])) {
+            $user->setHideShareButtons((bool) $_POST['hide_share_buttons']);
+        }
+
         $response = [];
         if (!$user->save()) {
             $response['status'] = 'error';

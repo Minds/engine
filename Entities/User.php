@@ -63,6 +63,7 @@ class User extends \ElggUser
         $this->attributes['email_confirmation_token'] = null;
         $this->attributes['email_confirmed_at'] = null;
         $this->attributes['surge_token'] = '';
+        $this->attributes['hide_share_buttons'] = 0;
 
         parent::initializeAttributes();
     }
@@ -685,6 +686,24 @@ class User extends \ElggUser
     }
 
     /**
+     * @return bool
+     */
+    public function getHideShareButtons(): bool
+    {
+        return (bool) $this->hide_share_buttons;
+    }
+
+    /**
+     * @param bool $value
+     * @return User
+     */
+    public function setHideShareButtons(bool $value): User
+    {
+        $this->hide_share_buttons = $value;
+        return $this;
+    }
+
+    /**
      * Subscribes user to another user.
      *
      * @param mixed $guid
@@ -922,6 +941,8 @@ class User extends \ElggUser
 
         $export['eth_wallet'] = $this->getEthWallet() ?: '';
         $export['rating'] = $this->getRating();
+
+        $export['hide_share_buttons'] = $this->getHideShareButtons();
 
         return $export;
     }
@@ -1228,6 +1249,7 @@ class User extends \ElggUser
             'mode',
             'btc_address',
             'surge_token',
+            'hide_share_buttons',
         ]);
     }
 

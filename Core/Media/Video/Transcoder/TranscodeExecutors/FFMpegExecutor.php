@@ -103,7 +103,7 @@ class FFMpegExecutor implements TranscodeExecutorInterface
         $height = $transcodeProfiler->getHeight();
 
         // Logic for rotated videos
-        $rotated = isset($tags['rotate']) && in_array($tags['rotate'], [270, 90], true);
+        $rotated = isset($tags['rotate']) && in_array($tags['rotate'], [270, 90], false);
         if ($rotated) {
             $ratio = $videostream->get('width') / $videostream->get('height');
             // Invert width and height
