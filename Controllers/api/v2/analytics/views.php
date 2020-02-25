@@ -10,7 +10,7 @@ use Minds\Entities;
 use Minds\Helpers\Counters;
 use Minds\Interfaces;
 
-class views implements Interfaces\Api
+class views implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
     public function get($pages)
     {

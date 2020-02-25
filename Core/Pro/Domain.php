@@ -11,6 +11,7 @@ use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Util\StringValidator;
 use Minds\Entities\User;
+use Minds\Core\EntitiesBuilder;
 
 class Domain
 {
@@ -20,6 +21,12 @@ class Domain
     /** @var Repository */
     protected $repository;
 
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
+    /** @var Manager */
+    protected $proManager;
+
     /**
      * Domain constructor.
      * @param Config $config
@@ -27,10 +34,14 @@ class Domain
      */
     public function __construct(
         $config = null,
-        $repository = null
+        $repository = null,
+        $entitiesBuilder = null,
+        $proManager = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->repository = $repository ?: new Repository();
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->proManager = $proManager ?? Di::_()->get('Pro\Manager');
     }
 
     /**
@@ -45,9 +56,19 @@ class Domain
             return null;
         }
 
-        return $this->repository->getList([
+        $settings = $this->repository->getList([
             'domain' => $domain,
         ])->first();
+
+        if (!$settings) {
+            return null;
+        }
+
+        $user = $this->entitiesBuilder->single($settings->getUserGuid());
+    
+        return $this->proManager
+            ->setUser($user)
+            ->hydrate($settings);
     }
 
     /**

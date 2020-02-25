@@ -53,7 +53,6 @@ class newsfeed implements Interfaces\Api
                 if (!$activity->guid || Helpers\Flags::shouldFail($activity)) {
                     return Factory::response(['status' => 'error']);
                 }
-
                 return Factory::response(['activity' => $activity->export()]);
                 break;
             default:
