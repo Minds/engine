@@ -251,6 +251,10 @@ class blog implements Interfaces\Api
             }
         }
 
+        if (isset($_POST['editor_version'])) {
+            $blog->setEditorVersion($_POST['editor_version']);
+        }
+
         $blog->setLastSave(time());
 
         if (isset($_POST['wire_threshold'])) {
