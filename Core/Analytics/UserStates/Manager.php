@@ -25,16 +25,20 @@ class Manager
     /** @var UserStateIterator */
     private $userStateIterator;
 
+    /** @var Delegates\EntityDelegate */
+    private $entityDelegate;
+
     /** @var array $pendingBulkInserts * */
     private $pendingBulkInserts = [];
 
-    public function __construct($client = null, $index = null, $queue = null, $activeUsersIterator = null, $userStateIterator = null)
+    public function __construct($client = null, $index = null, $queue = null, $activeUsersIterator = null, $userStateIterator = null, $entityDelegate = null)
     {
         $this->es = $client ?: Di::_()->get('Database\ElasticSearch');
         $this->userStateIndex = $index ?: 'minds-kite';
         $this->queue = $queue ?: Queue\Client::build();
         $this->activeUsersIterator = $activeUsersIterator ?: new ActiveUsersIterator();
         $this->userStateIterator = $userStateIterator ?: new UserStateIterator();
+        $this->entityDelegate = $entityDelegate = new Delegates\EntityDelegate;
     }
 
     public function setReferenceDate($referenceDate)
@@ -118,6 +122,7 @@ class Manager
     {
         if (count($this->pendingBulkInserts) > 0) {
             $this->es->bulk(['body' => $this->pendingBulkInserts]);
+            $this->entityDelegate->bulk($this->pendingBulkInserts);
             $this->pendingBulkInserts = [];
         }
     }

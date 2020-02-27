@@ -586,7 +586,7 @@ $CONFIG->set('gitlab', [
 
 $CONFIG->set('pro', [
     'handler' => '',
-    'root_domains' => ['minds.com', 'www.minds.com', 'localhost'],
+    'root_domains' => ['minds.com', 'www.minds.com', 'localhost', 'localhost:8080', 'localhost:4200', 'nginx', 'host.docker.internal'],
     'subdomain_suffix' => 'minds.com',
     'dynamodb_table_name' => 'traefik',
 ]);
@@ -631,4 +631,5 @@ $CONFIG->set('unleash', [
 
 $CONFIG->set('captcha', [
     'jwt_secret' => '{{site-secret}}',
+    'bypass_key' => '{{site-secret}}',
 ]);

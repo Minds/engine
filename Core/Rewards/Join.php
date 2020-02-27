@@ -2,11 +2,13 @@
 /**
  * Join the rewards program
  */
+
 namespace Minds\Core\Rewards;
 
 use Minds\Core\Di\Di;
 use Minds\Core;
 use Minds\Core\Referrals\Referral;
+use Minds\Core\SMS\Exceptions\VoIpPhoneException;
 use Minds\Entities\User;
 use Minds\Core\Util\BigNumber;
 
@@ -108,6 +110,10 @@ class Join
         return $this;
     }
 
+    /**
+     * @return string
+     * @throws VoIpPhoneException
+     */
     public function verify()
     {
         $secret = $this->twofactor->createSecret();
@@ -117,8 +123,9 @@ class Join
         $this->db->insert("rewards:verificationcode:$user_guid", compact('code', 'secret'));
 
         if (!$this->sms->verify($this->number)) {
-            throw new \Exception('voip phones not allowed');
+            throw new VoIpPhoneException();
         }
+
         $this->sms->send($this->number, $code);
 
         return $secret;
@@ -131,7 +138,7 @@ class Join
 
         if (!empty($row)) {
             if (!$this->sms->verify($this->number)) {
-                throw new \Exception('voip phones not allowed');
+                throw new VoIpPhoneException();
             }
             $this->sms->send($this->number, $row['code']);
 

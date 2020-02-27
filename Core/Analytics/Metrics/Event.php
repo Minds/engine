@@ -24,10 +24,14 @@ use Minds\Core;
  * @method Event setEmailCampaign($value)
  * @method Event setEmailTopic($topic)
  * @method Event setEmailState($state)
+ * @method Event setCookieId($cookieId)
+ * @method Event setLoggedIn(bool $loggedIn)
+ * @method Event setReferrerGuid($referrerGuid)
+ * @method Event setProReferrer(bool $proReferrer)
  */
 class Event
 {
-    private $elatic;
+    private $elastic;
     private $index = 'minds-metrics-';
     protected $data;
 
