@@ -12,6 +12,7 @@ use Minds\Api\Exportable;
 use Minds\Api\Factory;
 use Minds\Common\Access;
 use Minds\Core;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Helpers;
 use Minds\Interfaces;
 use Minds\Core\Blogs\Delegates\CreateActivity;
@@ -352,6 +353,8 @@ class blog implements Interfaces\Api
             } else {
                 $saved = $manager->add($blog);
             }
+        } catch (UnverifiedEmailException $e) {
+            throw $e;
         } catch (\Exception $e) {
             return Factory::response([
                 'status' => 'error',

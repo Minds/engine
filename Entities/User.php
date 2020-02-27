@@ -2,9 +2,9 @@
 
 namespace Minds\Entities;
 
+use Minds\Common\ChannelMode;
 use Minds\Core;
 use Minds\Helpers;
-use Minds\Common\ChannelMode;
 
 /**
  * User Entity.
@@ -501,7 +501,6 @@ class User extends \ElggUser
 
         $this->pinned_posts = array_slice($pinned, -$maxPinnedPosts, null, false);
 
-
         return $this;
     }
 
@@ -703,6 +702,17 @@ class User extends \ElggUser
     {
         $this->hide_share_buttons = $value;
         return $this;
+    }
+
+    /**
+     * It returns true if the user is verified or if the user is older than the new email confirmation feature
+     * @return bool
+     */
+    public function isTrusted(): bool
+    {
+        return
+            (!$this->getEmailConfirmationToken() && !$this->getEmailConfirmedAt()) || // Old users poly-fill
+            $this->isEmailConfirmed();
     }
 
     /**
@@ -944,8 +954,6 @@ class User extends \ElggUser
         $export['eth_wallet'] = $this->getEthWallet() ?: '';
         $export['rating'] = $this->getRating();
 
-        $export['hide_share_buttons'] = $this->getHideShareButtons();
-
         return $export;
     }
 
@@ -957,8 +965,8 @@ class User extends \ElggUser
     public function getImpressions()
     {
         $app = Core\Analytics\App::_()
-                ->setMetric('impression')
-                ->setKey($this->guid);
+            ->setMetric('impression')
+            ->setKey($this->guid);
 
         return $app->total();
     }
@@ -1125,7 +1133,7 @@ class User extends \ElggUser
     {
         $join_date = $this->getTimeCreated();
 
-        return elgg_get_site_url()."icon/$this->guid/$size/$join_date/$this->icontime/".Core\Config::_()->lastcache;
+        return elgg_get_site_url() . "icon/$this->guid/$size/$join_date/$this->icontime/" . Core\Config::_()->lastcache;
     }
 
     /**
@@ -1277,13 +1285,13 @@ class User extends \ElggUser
     /**
      * Set the users canary status.
      *
-     * @var bool
-     *
      * @return $this
+     * @var bool
      */
     public function setCanary($enabled = true)
     {
         $this->canary = $enabled ? 1 : 0;
+        return $this;
     }
 
     /**
