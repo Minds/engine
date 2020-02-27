@@ -64,6 +64,8 @@ class User extends \ElggUser
         $this->attributes['email_confirmed_at'] = null;
         $this->attributes['surge_token'] = '';
         $this->attributes['hide_share_buttons'] = 0;
+        $this->attributes['kite_ref_ts'] = 0;
+        $this->attributes['kite_state'] = 'unknown';
 
         parent::initializeAttributes();
     }
