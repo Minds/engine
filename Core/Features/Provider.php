@@ -45,7 +45,10 @@ class Provider extends DiProvider
                 'cdn-jwt',
                 'post-scheduler',
                 'navigation',
-                'wallet-upgrade'
+                'wallet-upgrade',
+                'activity-v2--single-page',
+                'activity-v2--feeds',
+                'activity-v2--boosts',
             ];
         });
 
