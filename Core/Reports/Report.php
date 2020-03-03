@@ -110,7 +110,7 @@ class Report
         }
         $sortedStates = $this->stateChanges;
         arsort($sortedStates);
-        return $sortedStates[0];
+        return key($sortedStates);
     }
 
     /**
