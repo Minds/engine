@@ -5,9 +5,15 @@
 namespace Minds\Core\Security;
 
 use Minds\Core;
-use Minds\Entities;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\RateLimits\Manager as RateLimitsManager;
+use Minds\Entities;
+use Minds\Entities\Entity;
+use Minds\Entities\RepositoryEntity;
+use Minds\Entities\User;
+use Minds\Exceptions\StopEventException;
 use Minds\Helpers\Flags;
+use Minds\Helpers\MagicAttributes;
 
 class ACL
 {
@@ -44,7 +50,7 @@ class ACL
 
     /**
      * Checks access read rights to entity
-     * @param Entities\Entity $entity
+     * @param Entity $entity
      * @param $user optional
      * @param $strict optional. skips public access checks
      * @return boolean
@@ -141,9 +147,11 @@ class ACL
 
     /**
      * Checks access read rights to entity
-     * @param Entity|Entities\RepositoryEntity $entity
-     * @param $user (optional)
+     * @param Entity|RepositoryEntity $entity
+     * @param User $user (optional)
      * @return boolean
+     * @throws UnverifiedEmailException
+     * @throws StopEventException
      */
     public function write($entity, $user = null)
     {
@@ -167,6 +175,13 @@ class ACL
         }
 
         /**
+         * If the user hasn't verified the email
+         */
+        if (!$user->isTrusted()) {
+            throw new UnverifiedEmailException();
+        }
+
+        /**
          * Does the user own the entity, or is it the container?
          */
         if ($entity->owner_guid
@@ -182,7 +197,8 @@ class ACL
         /**
          * Check if its the same entity (is user)
          */
-        if ($entity->guid == $user->guid) {
+        if ((isset($entity->guid) && $entity->guid == $user->guid) ||
+            MagicAttributes::getterExists($entity, 'getGuid') && $entity->getGuid() == $user->guid) {
             return true;
         }
 
@@ -196,6 +212,7 @@ class ACL
         /**
          * Allow plugins to extend the ACL check
          */
+        $type = property_exists($entity, 'type') ? $entity->type : 'all';
         if (Core\Events\Dispatcher::trigger('acl:write', $entity->type, ['entity'=>$entity, 'user'=>$user], false) === true) {
             return true;
         }
@@ -229,7 +246,7 @@ class ACL
 
     /**
      * Check if a user can interact with the entity
-     * @param Entities\Entity $entity
+     * @param Entity $entity
      * @param (optional) $user
      * @return boolean
      */
@@ -251,6 +268,13 @@ class ACL
          */
         if ($user->isBanned() || !$user->isEnabled()) {
             return false;
+        }
+
+        /**
+         * If the user hasn't verified the email
+         */
+        if (!$user->isTrusted()) {
+            throw new UnverifiedEmailException();
         }
 
         /**
@@ -289,7 +313,7 @@ class ACL
                     'user'=>$user,
                     'interaction' => $interaction,
                 ], null);
-                
+
         if ($event === false) {
             return false;
         }

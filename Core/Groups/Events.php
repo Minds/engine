@@ -53,6 +53,10 @@ class Events
             $entity = $params['entity'];
             $user = $params['user'];
 
+            if (!method_exists($entity, 'getContainerEntity')) {
+                return;
+            }
+
             $group = $entity->getContainerEntity();
 
             if (!($group instanceof GroupEntity)) {
@@ -90,7 +94,7 @@ class Events
                 $container = EntitiesFactory::build($activity->container_guid);
 
                 if ($container->type === 'group') {
-                    $e->setResponse($container->isMember($user->guid));
+                    $e->setResponse($container->isPublic() || $container->isMember($user->guid));
                 }
             }
         });
@@ -212,7 +216,7 @@ class Events
         Dispatcher::register('save', 'comment', function ($e) {
             $params = $e->getParameters();
             $comment = $params['entity'];
-            
+
             if (!$comment->isGroupConversation()) {
                 return;
             }

@@ -42,7 +42,7 @@ class Events
             return $event->setResponse(true);
         });
 
-        // Wire ermails
+        // Wire emails
         Dispatcher::register('wire-receipt:email', 'wire', function (Core\Events\Event $event) {
             $params = $event->getParameters();
             $wire = $params['wire'];
@@ -52,6 +52,18 @@ class Events
                 ->send();
 
             return $event->setResponse(true);
+        });
+
+        Dispatcher::register('acl:write', 'all', function (Core\Events\Event $event) {
+            $params = $event->getParameters();
+            $entity = $params['entity'];
+            $user = $params['user'];
+
+            if (!$entity instanceof Wire) {
+                return;
+            }
+
+            $event->setResponse($entity->getSender()->guid === $user->guid);
         });
     }
 }

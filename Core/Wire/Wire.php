@@ -2,34 +2,59 @@
 /**
  * Wire model
  */
+
 namespace Minds\Core\Wire;
 
 use Minds\Core\Guid;
+use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
+/**
+ * Class Wire
+ * @package Minds\Core\Wire
+ * @method Wire setGuid(int $value)
+ * @method User getReceiver()
+ * @method Wire setReceiver(User $value)
+ * @method User getEntity()
+ * @method Wire setEntity(User $value)
+ * @method User getSender()
+ * @method Wire setSender(User $value)
+ * @method string getAmount()
+ * @method Wire setAmount(string $value)
+ * @method bool getRecurring()
+ * @method Wire setRecurring(bool $value)
+ * @method string getRecurringInterval()
+ * @method Wire setRecurringInterval(string $value)
+ * @method string getMethod()
+ * @method Wire setMethod(string $value)
+ * @method string getAddress()
+ * @method Wire setAddress(string $value)
+ * @method int getTimestamp()
+ * @method Wire setTimestamp(int $value)
+ */
 class Wire
 {
     use MagicAttributes;
 
-    /** @var int **/
+    /** @var int */
     private $guid;
 
-    /** @var User **/
+    /** @var User */
     private $receiver;
 
-    /** @var User **/
+    /** @var User */
     private $entity;
 
-    /** @var User **/
+    /** @var User */
     private $sender;
 
-    /** @var string **/
+    /** @var string */
     private $amount;
 
-    /** @var bool **/
+    /** @var bool */
     private $recurring = false;
 
-    /** @var string **/
+    /** @var string */
     private $recurringInterval;
 
     /** @var string $method */
@@ -38,7 +63,7 @@ class Wire
     /** @var string $address */
     private $address;
 
-    /** @var int $timestamp **/
+    /** @var int $timestamp */
     private $timestamp;
 
     public function getGuid()
