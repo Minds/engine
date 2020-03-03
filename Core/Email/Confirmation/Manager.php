@@ -97,6 +97,7 @@ class Manager
 
         $this->user
             ->setEmailConfirmationToken($token)
+            ->setEmailConfirmationTokenInvalid(false)
             ->save();
 
         $this->eventsDispatcher->trigger('confirmation_email', 'all', [
@@ -117,6 +118,7 @@ class Manager
 
         $this->user
             ->setEmailConfirmationToken('')
+            ->setEmailConfirmationTokenInvalid(false)
             ->setEmailConfirmedAt(0);
 
         return (bool) $this->user
@@ -145,6 +147,10 @@ class Manager
             !$confirmation['user_guid'] ||
             !$confirmation['code']
         ) {
+            $this->user
+            ->setEmailConfirmationTokenInvalid(true)
+            ->save();
+
             throw new Exception('Invalid JWT');
         }
 
@@ -169,6 +175,7 @@ class Manager
 
         $user
             ->setEmailConfirmationToken('')
+            ->setEmailConfirmationTokenInvalid(false)
             ->setEmailConfirmedAt(time())
             ->save();
 

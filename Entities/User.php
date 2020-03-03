@@ -61,6 +61,7 @@ class User extends \ElggUser
         $this->attributes['toaster_notifications'] = 1;
         $this->attributes['mode'] = ChannelMode::OPEN;
         $this->attributes['email_confirmation_token'] = null;
+        $this->attributes['email_confirmation_token_invalid'] = null;
         $this->attributes['email_confirmed_at'] = null;
         $this->attributes['surge_token'] = '';
         $this->attributes['hide_share_buttons'] = 0;
@@ -687,6 +688,24 @@ class User extends \ElggUser
     }
 
     /**
+     * @param bool $value
+     * @return User
+     */
+    public function setEmailConfirmationTokenInvalid(bool $value): User
+    {
+        $this->email_confirmation_token_invalid = $value;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getEmailConfirmationTokenInvalid(): bool
+    {
+        return (bool) $this->email_confirmation_token_invalid;
+    }
+
+    /**
      * @return bool
      */
     public function getHideShareButtons(): bool
@@ -950,6 +969,9 @@ class User extends \ElggUser
         $export['email_confirmed'] =
             (!$this->getEmailConfirmationToken() && !$this->getEmailConfirmedAt()) || // Old users poly-fill
             $this->isEmailConfirmed();
+
+        $export['email_confirmation_token_invalid'] =
+            $this->getEmailConfirmationTokenInvalid();
 
         $export['eth_wallet'] = $this->getEthWallet() ?: '';
         $export['rating'] = $this->getRating();
