@@ -81,6 +81,10 @@ class Group extends NormalizedEntity
             $creation = true;
         }
 
+        if (!$this->canEdit()) {
+            return false;
+        }
+
         $saved = $this->saveToDb([
             'type' => $this->type,
             'guid' => $this->guid,
@@ -126,6 +130,10 @@ class Group extends NormalizedEntity
      */
     public function delete()
     {
+        if (!$this->canEdit()) {
+            return false;
+        }
+
         $this->unFeature();
 
         Di::_()->get('Queue')
@@ -422,7 +430,7 @@ class Group extends NormalizedEntity
         $this->conversationDisabled = $value ? 1 : 0;
         return $this;
     }
-    
+
     /**
      * Return the original `owner_guid` for the group.
      * @return string guid
@@ -803,7 +811,7 @@ class Group extends NormalizedEntity
         $this->nsfw = $array;
         return $this;
     }
-    
+
     /**
      * Get NSFW Lock options.
      *
@@ -821,7 +829,7 @@ class Group extends NormalizedEntity
 
         return $array;
     }
-    
+
     /**
      * Set NSFW lock tags for administrators. Users cannot remove these themselves.
      *
