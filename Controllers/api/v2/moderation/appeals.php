@@ -2,6 +2,7 @@
 /**
  * Api endpoint to appeal a decision
  */
+
 namespace Minds\Controllers\api\v2\moderation;
 
 use Minds\Api\Factory;
@@ -24,7 +25,7 @@ class appeals implements Interfaces\Api
         }
 
         if ($_POST['offset']) {
-            return Factory::response([ ]);
+            return Factory::response([]);
         }
 
         $appealManager = Di::_()->get('Moderation\Appeals\Manager');
@@ -67,9 +68,19 @@ class appeals implements Interfaces\Api
             ->setReport($report)
             ->setTimestamp(time());
 
-        $success = $appealManager->appeal($appeal);
+        try {
+            $success = $appealManager->appeal($appeal);
+        } catch (Core\Reports\Appeals\NotAppealableException $e) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ]);
+        }
 
-        return Factory::response([]);
+        return Factory::response([
+            'status' => 'success',
+            'done' => $success,
+        ]);
     }
 
     public function put($pages)
