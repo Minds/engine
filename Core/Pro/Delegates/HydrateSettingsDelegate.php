@@ -10,7 +10,6 @@ use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Pro\Settings;
-use Minds\Entities\Object\Carousel;
 use Minds\Entities\User;
 use Minds\Helpers\Text;
 
@@ -68,18 +67,6 @@ class HydrateSettingsDelegate
                     $settings->getUserGuid(),
                     $settings->getTimeUpdated()
                 );
-            } else {
-                $carousels = $this->entitiesBuilder->get(['subtype' => 'carousel', 'owner_guid' => (string) $user->guid]);
-                $carousel = $carousels[0] ?? null;
-
-                if ($carousel) {
-                    $backgroundImage = sprintf(
-                        '%sfs/v1/banners/%s/fat/%s',
-                        $this->config->get('cdn_url'),
-                        $carousel->guid,
-                        $carousel->last_updated
-                    );
-                }
             }
 
             if ($backgroundImage) {
