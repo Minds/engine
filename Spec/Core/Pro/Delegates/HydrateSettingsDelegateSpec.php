@@ -8,7 +8,6 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Pro\Delegates\HydrateSettingsDelegate;
 use Minds\Core\Pro\Settings;
 use Minds\Entities\Activity;
-use Minds\Entities\Object\Carousel;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -39,7 +38,6 @@ class HydrateSettingsDelegateSpec extends ObjectBehavior
     public function it_should_hydrate_settings_on_get(
         User $user,
         Settings $settings,
-        Carousel $carousel,
         Activity $activity1,
         Activity $activity2
     ) {
@@ -117,14 +115,9 @@ class HydrateSettingsDelegateSpec extends ObjectBehavior
     public function it_should_hydrate_settings_with_default_assets_on_get(
         User $user,
         Settings $settings,
-        Carousel $carousel,
         Activity $activity1,
         Activity $activity2
     ) {
-        $this->config->get('cdn_url')
-            ->shouldBeCalled()
-            ->willReturn('http://phpspec.test/');
-
         $settings->hasCustomLogo()
             ->shouldBeCalled()
             ->willReturn(false);
@@ -137,33 +130,9 @@ class HydrateSettingsDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($settings);
 
-
         $settings->hasCustomBackground()
             ->shouldBeCalled()
             ->willReturn(false);
-
-        $user->get('guid')
-            ->shouldBeCalled()
-            ->willReturn(1000);
-
-        $this->entitiesBuilder->get([
-            'subtype' => 'carousel',
-            'owner_guid' => '1000'
-        ])
-            ->shouldBeCalled()
-            ->willReturn([ $carousel ]);
-
-        $carousel->get('guid')
-            ->shouldBeCalled()
-            ->willReturn(9500);
-
-        $carousel->get('last_updated')
-            ->shouldBeCalled()
-            ->willReturn(9999999);
-
-        $settings->setBackgroundImage('http://phpspec.test/fs/v1/banners/9500/fat/9999999')
-            ->shouldBeCalled()
-            ->willReturn($settings);
 
         $user->getPinnedPosts()
             ->shouldBeCalled()
