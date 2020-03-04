@@ -58,6 +58,8 @@ class TokenBalanceMetric extends AbstractMetric
     {
         $timespan = $this->timespansCollection->getSelected();
 
+        $must = [];
+
         $must[] = [
             'range' => [
                 '@timestamp' => [
@@ -68,10 +70,19 @@ class TokenBalanceMetric extends AbstractMetric
 
         $must[] = [
             'term' => [
-                'user_guid' => $this->getUserGuid(),
+                'user_guid' => $this->getUser()->getGuid(),
             ],
         ];
-        
+
+        $bounds =  [
+          'min' => $timespan->getFromTsMs(),
+          'max' => time() * 1000,
+        ];
+
+        if ($timespan->getId() === 'max') {
+            unset($bounds['min']);
+        }
+
         // Do the query
         $query = [
             'index' => 'minds-offchain*',
@@ -88,10 +99,7 @@ class TokenBalanceMetric extends AbstractMetric
                             'field' => '@timestamp',
                             'interval' =>  $timespan->getInterval(),
                             'min_doc_count' =>  0,
-                            'extended_bounds' => [
-                                'min' => $timespan->getFromTsMs(),
-                                'max' => time() * 1000,
-                            ],
+                            'extended_bounds' => $bounds,
                         ],
                         'aggs' => [
                             '2' => [
@@ -110,13 +118,13 @@ class TokenBalanceMetric extends AbstractMetric
 
         $response = $this->es->request($prepared);
 
-        $this->offchainWalletBalance->setUser((new User())->set('guid', $this->getUserGuid()));
+        $this->offchainWalletBalance->setUser($this->getUser());
 
         $currentBalance = (string) BigNumber::fromPlain($this->offchainWalletBalance->get(), 18);
         $runningBalance = $currentBalance;
 
         $buckets = [];
-        foreach ($response['aggregations']['1']['buckets'] as $bucket) {
+        foreach (array_reverse($response['aggregations']['1']['buckets']) as $bucket) {
             $date = date(Visualisations\ChartVisualisation::DATE_FORMAT, $bucket['key'] / 1000);
 
             $volume = $bucket['2']['value'];
@@ -131,12 +139,13 @@ class TokenBalanceMetric extends AbstractMetric
             ];
         }
 
+
         $this->visualisation = (new Visualisations\ChartVisualisation())
             ->setXValues($xValues)
             ->setYValues($yValues)
             ->setXLabel('Date')
-            ->setYLabel('Balacnce')
-            ->setBuckets($buckets);
+            ->setYLabel('Balancce')
+            ->setBuckets(array_reverse($buckets));
 
         return $this;
     }

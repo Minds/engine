@@ -10,7 +10,7 @@ class MaxTimespan extends AbstractTimespan
     protected $label = 'Max';
 
     /** @var string */
-    protected $interval = 'day';
+    protected $interval = 'week';
 
     /** @var int */
     protected $fromTsMs;
