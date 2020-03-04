@@ -12,6 +12,14 @@ class TheChecker
     /** @var Config $config */
     private $config;
 
+    /** Whitelisted domains */
+    private $whitelist = [
+        '@icloud\.com',
+        '@me\.com',
+        '@mac\.com',
+        '@comporium\.net,'
+    ];
+
     public function __construct($http = null, $config = null)
     {
         $this->config = $config ?: Config::_();
@@ -26,6 +34,10 @@ class TheChecker
     public function verify($email)
     {
         if (!$this->config->get('thechecker_secret')) {
+            return true;
+        }
+
+        if ($this->isWhitelisted($email)) {
             return true;
         }
 
@@ -45,5 +57,21 @@ class TheChecker
 
         $response = json_decode($content, true);
         return !($response['result'] == 'undeliverable');
+    }
+
+    /**
+     * Returns whether the email address is whitelisted.
+     *
+     * @param string $email - the email address to check
+     * @return boolean true if email is whitelisted.
+     */
+    public function isWhitelisted($email): bool
+    {
+        foreach ($this->whitelist as $whitelisted) {
+            if (preg_match("/".$whitelisted."$/", $email)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
