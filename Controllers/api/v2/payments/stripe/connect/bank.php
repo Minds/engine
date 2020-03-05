@@ -60,6 +60,26 @@ class bank implements Interfaces\Api
 
     public function delete($pages)
     {
+        $user = Session::getLoggedInUser();
+        $connectManager = new Stripe\Connect\Manager();
+
+        $account = $connectManager->getByUser($user);
+        if (!$account) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'You must have a stripe account to remove a bank account',
+            ]);
+        }
+
+        try {
+            $connectManager->removeBankAccount($account);
+        } catch (\Exception $e) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ]);
+        }
+
         return Factory::response([]);
     }
 }
