@@ -359,4 +359,14 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
     {
         return $this->data[0] ?? null;
     }
+
+    /**
+     * Returns the last element
+     * @return mixed | null
+     */
+    public function last()
+    {
+        $count = count($this->data);
+        return $this->data[$count - 1] ?? null;
+    }
 }

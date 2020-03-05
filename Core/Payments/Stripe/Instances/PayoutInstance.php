@@ -6,16 +6,14 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 
 /**
- * @method AccountInstance create()
- * @method AccountInstance retrieve()
- * @method AccountInstance deleteExternalAccount()
+ * @method PayoutInstance all()
  */
-class AccountInstance extends StaticToInstance
+class PayoutInstance extends StaticToInstance
 {
     public function __construct(Config $config = null)
     {
         $config = $config ?? Di::_()->get('Config');
         \Stripe\Stripe::setApiKey($config->get('payments')['stripe']['api_key']);
-        $this->setClass(new \Stripe\Account);
+        $this->setClass(new \Stripe\Payout);
     }
 }
