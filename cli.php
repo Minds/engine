@@ -15,6 +15,9 @@ date_default_timezone_set('UTC');
 
 array_shift($argv);
 
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
 if (isset($argv[0]) && $argv[0] == 'help') {
     $help = true;
     array_shift($argv);

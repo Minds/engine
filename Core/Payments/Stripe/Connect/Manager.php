@@ -243,6 +243,25 @@ class Manager
     }
 
     /**
+     * Remove bank account from stripe account
+     * @param Account $account
+     * @return bool
+     */
+    public function removeBankAccount(Account $account) : bool
+    {
+        $stripeAccount = $this->accountInstance->retrieve($account->getId());
+        $bankAccountId = $stripeAccount->external_accounts->data[0]->id;
+
+        try {
+            $this->accountInstance->deleteExternalAccount($account->getId(), $bankAccountId);
+        } catch (Stripe\Error\InvalidRequest $e) {
+            throw new \Exception($e->getMessage());
+        }
+
+        return true;
+    }
+
+    /**
      * Add document
      * @param Account $account
      * @param resource $file
