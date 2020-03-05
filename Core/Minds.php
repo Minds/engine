@@ -5,6 +5,7 @@ namespace Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Interfaces\ModuleInterface;
+use Minds\Helpers;
 
 /**
  * Core Minds Engine.
@@ -162,8 +163,8 @@ class Minds extends base
         self::$booted = true;
 
         /*
-         * System loaded and ready
-         */
+        * System loaded and ready
+        */
         Dispatcher::trigger('ready', 'elgg/event/system', null, true);
     }
 
@@ -186,6 +187,11 @@ class Minds extends base
         if (file_exists(__MINDS_ROOT__.'/multi.settings.php')) {
             define('multisite', true);
             require_once __MINDS_ROOT__.'/multi.settings.php';
+        }
+        // Load environment values
+        $env = Helpers\Env::getMindsEnv();
+        foreach ($env as $key => $value) {
+            $CONFIG->set($key, $value, ['recursive' => true]);
         }
     }
 
