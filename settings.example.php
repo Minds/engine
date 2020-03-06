@@ -14,6 +14,7 @@ $CONFIG->cassandra = (object) [
     'password' => 'cassandra',
 ];
 
+
 $CONFIG->redis = [
     'master' => 'redis',
     'slave' => 'redis'
