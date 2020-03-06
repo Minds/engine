@@ -20,7 +20,7 @@ class jury implements Interfaces\Api
     {
         $juryType = $pages[0] ?? 'appeal';
 
-        if ($juryType === 'appeal' || !Core\Session::isAdmin()) {
+        if ($juryType === 'appeal' && !Core\Session::isAdmin()) {
             exit;
         }
 
