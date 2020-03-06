@@ -32,6 +32,7 @@ class report implements Interfaces\Api
             ]);
         }
 
+        /** @var Reports\UserReports\Manager $manager */
         $manager = Di::_()->get('Moderation\UserReports\Manager');
 
         if (!isset($_POST['entity_guid'])) {
