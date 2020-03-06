@@ -72,7 +72,7 @@ class WelcomeSenderSpec extends ObjectBehavior
         ->setUserGuid(123)
         ->setCampaign('global')
         ->setTopic('minds_tips')
-        ->setValue('true');
+        ->setValue(true);
 
         $time = time();
 
@@ -105,7 +105,7 @@ class WelcomeSenderSpec extends ObjectBehavior
         ->setUserGuid(123)
         ->setCampaign('global')
         ->setTopic('minds_tips')
-        ->setValue('true');
+        ->setValue(true);
 
         $time = time();
 
