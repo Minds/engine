@@ -201,7 +201,9 @@ class EtherscanTransactionsByDate
         do {
             $attemps++;
             $data = $this->fetch($estimatedNumb - $this->estimationBoundary, $estimatedNumb + $this->estimationBoundary);
-
+            if (!$data) {
+                break;
+            }
             $in = $this->isInRange($data, $timestamp);
 
             switch ($in) {

@@ -126,7 +126,10 @@ class account implements Interfaces\Api
             ->setPhoneNumber($vars['phoneNumber'])
             ->setIp($_SERVER['HTTP_X_FORWARDED_FOR'])
             ->setEmail($user->getEmail())
-            ->setUrl(Config::_()->get('site_url') . $user->username);
+            ->setUrl(Config::_()->get('site_url') . $user->username)
+            ->setMetadata([
+                'user_guid' => $user->guid
+            ]);
 
         try {
             $stripeConnectManager = Core\Di\Di::_()->get('Stripe\Connect\Manager');
