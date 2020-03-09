@@ -69,6 +69,8 @@ class Manager
               'year' => $dob[0]
             ],
           ],
+          'metadata' => $account->getMetadata(),
+          'requested_capabilities' => [ 'card_payments', 'transfers' ],
           'tos_acceptance' => [
             'date' => time(),
             'ip' => $account->getIp(),
@@ -235,6 +237,25 @@ class Manager
 
         try {
             $stripeAccount->save();
+        } catch (Stripe\Error\InvalidRequest $e) {
+            throw new \Exception($e->getMessage());
+        }
+
+        return true;
+    }
+
+    /**
+     * Remove bank account from stripe account
+     * @param Account $account
+     * @return bool
+     */
+    public function removeBankAccount(Account $account) : bool
+    {
+        $stripeAccount = $this->accountInstance->retrieve($account->getId());
+        $bankAccountId = $stripeAccount->external_accounts->data[0]->id;
+
+        try {
+            $this->accountInstance->deleteExternalAccount($account->getId(), $bankAccountId);
         } catch (Stripe\Error\InvalidRequest $e) {
             throw new \Exception($e->getMessage());
         }

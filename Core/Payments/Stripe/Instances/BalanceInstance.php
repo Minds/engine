@@ -13,8 +13,7 @@ class BalanceInstance extends StaticToInstance
 {
     public function __construct(Config $config = null)
     {
-        $config = $config ?? Di::_()->get('Config');
-        \Stripe\Stripe::setApiKey($config->get('payments')['stripe']['api_key']);
+        Di::_()->get('StripeSDK');
         $this->setClass(new \Stripe\Balance);
     }
 }

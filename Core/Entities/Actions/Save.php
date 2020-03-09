@@ -10,6 +10,9 @@ namespace Minds\Core\Entities\Actions;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
+use Minds\Core\Security\ACL;
+use Minds\Exceptions\StopEventException;
 use Minds\Helpers\MagicAttributes;
 
 /**
@@ -50,12 +53,10 @@ class Save
 
     /**
      * Saves the entity.
-     *
      * @param mixed ...$args
-     *
      * @return bool
-     *
-     * @throws \Minds\Exceptions\StopEventException
+     * @throws StopEventException
+     * @throws UnverifiedEmailException
      */
     public function save(...$args)
     {
@@ -64,7 +65,7 @@ class Save
         }
 
         $this->beforeSave();
-        
+
         if (method_exists($this->entity, 'save')) {
             return $this->entity->save(...$args);
         }
@@ -102,7 +103,7 @@ class Save
             $nsfwReasons = array_merge($nsfwReasons, $this->entity->getOwnerEntity()->getNSFWLock());
             // Legacy explicit follow through
             if ($this->entity->getOwnerEntity()->isMature()) {
-                $nsfwReasons = array_merge($nsfwReasons, [ 6 ]);
+                $nsfwReasons = array_merge($nsfwReasons, [6]);
                 if (MagicAttributes::setterExists($this->entity, 'setMature')) {
                     $this->entity->setMature(true);
                 } elseif (method_exists($this->entity, 'setFlag')) {

@@ -29,6 +29,17 @@ To enable admin functionality, set 'development_mode' to **true** in your settin
 * Assuming your container is named 'minds_php-fpm_1'
 * run ```docker exec -it minds_php-fpm_1 php '/var/www/Minds/engine/cli.php' suggested sync_newsfeed```inside the php-fpm container
 
+### Environment variables locally
+
+Override environment variables locally by adding them to the ./.env file in the root of engine. The file is ignored and won't pick up your changes. These values
+override the settings in settings.php
+
+Prefix the environment variables with MINDS_ENV_. All others are ignored
+Suffix the environment variables with the key in Config.php
+Nest arrays with {prefix}{key}__subkey__{...}_{Config Key}
+
+You can then manage these ENVs out on the review sites with the [Deployment Guide](https://developers.minds.com/docs/guides/deployment/)
+
 ### Running php tests
 
 * Have a fully setup development environment so all the composer dependencies are installed.

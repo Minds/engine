@@ -46,9 +46,11 @@ class Provider extends DiProvider
                 'post-scheduler',
                 'activity-composer',
                 'navigation',
+                'wallet-upgrade',
                 'activity-v2--single-page',
                 'activity-v2--feeds',
                 'activity-v2--boosts',
+                'settings',
             ];
         });
 

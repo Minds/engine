@@ -68,6 +68,10 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('test@minds.com');
         $account->getUrl()
             ->willReturn('https://minds.com/test');
+        $account->getMetadata()
+            ->willReturn([
+                'user_guid' => '123'
+            ]);
         
         $this->accountInstance->create(Argument::any())
             ->shouldBeCalled()

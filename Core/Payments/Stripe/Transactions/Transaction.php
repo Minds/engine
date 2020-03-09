@@ -11,6 +11,9 @@ class Transaction
     /** @var string $id */
     private $id;
 
+    /** @var string */
+    private $type;
+
     /** @var int $timestamp */
     private $timestamp;
  
@@ -32,6 +35,9 @@ class Transaction
     /** @var User $customerUser */
     private $customerUser;
 
+    /** @var string */
+    private $status;
+
     /**
      * Expose to the public apis
      * @param array $extend
@@ -41,6 +47,8 @@ class Transaction
     {
         return [
             'id' => $this->id,
+            'type' => $this->type,
+            'status' => $this->status,
             'timestamp' => $this->timestamp,
             'gross' => $this->gross,
             'currency' => $this->currency,
