@@ -6,13 +6,13 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 
 /**
- * @method FileInstance create()
+ * @method PayoutInstance all()
  */
-class FileInstance extends StaticToInstance
+class PayoutInstance extends StaticToInstance
 {
     public function __construct(Config $config = null)
     {
         Di::_()->get('StripeSDK');
-        $this->setClass(new \Stripe\File);
+        $this->setClass(new \Stripe\Payout);
     }
 }

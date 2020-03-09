@@ -30,6 +30,12 @@ class PaymentsProvider extends Provider
             return new Stripe\Stripe($di->get('Config'));
         }, ['useFactory'=>true]);
 
+        $this->di->bind('StripeSDK', function ($di) {
+            $config = $di->get('Config');
+            \Stripe\Stripe::setApiKey($config->get('payments')['stripe']['api_key']);
+            \Stripe\Stripe::setApiVersion('2020-03-02');
+        }, ['useFactory'=>true]);
+
         $this->di->bind('Stripe\Connect\Manager', function ($di) {
             return new Stripe\Connect\Manager();
         }, ['useFactory'=>true]);

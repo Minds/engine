@@ -53,7 +53,7 @@ class group implements Interfaces\Api
 
         if (!$canRead) {
             // Restrict output if cannot read
-            $allowed = ['guid', 'name', 'membership', 'type', 'is:awaiting', 'is:invited', 'nsfw', 'nsfw_lock' ];
+            $allowed = ['guid', 'name', 'membership', 'type', 'is:awaiting', 'is:invited', 'nsfw', 'nsfw_lock', 'conversationDisabled' ];
             if ($response['group']['membership'] == 2) {
                 $allowed = array_merge($allowed, ['members:count', 'activity:count', 'comments:count']);
             }

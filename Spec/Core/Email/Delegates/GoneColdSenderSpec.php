@@ -60,7 +60,7 @@ class GoneColdSenderSpec extends ObjectBehavior
             ->setUserGuid(123)
             ->setCampaign('global')
             ->setTopic('minds_tips')
-            ->setValue('true');
+            ->setValue(true);
 
         $time = time();
 
