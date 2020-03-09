@@ -50,6 +50,7 @@ class Provider extends DiProvider
                 'activity-v2--single-page',
                 'activity-v2--feeds',
                 'activity-v2--boosts',
+                'settings',
             ];
         });
 
