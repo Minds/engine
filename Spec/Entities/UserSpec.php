@@ -29,7 +29,7 @@ class UserSpec extends ObjectBehavior
     {
         //remove ip whitelist check
         $_SERVER['HTTP_X_FORWARDED_FOR'] = '10.56.0.1';
-        Di::_()->get('Config')->set('admin_ip_whitelist', ['10.56.0.1']);
+        Di::_()->get('Config')->set('admin_ip_whitelist', [ '10.56.0.1' ]);
 
         $this->admin = 'yes';
         $this->isAdmin()->shouldBe(true);
@@ -64,27 +64,6 @@ class UserSpec extends ObjectBehavior
         $this->getMode()->shouldEqual(ChannelMode::CLOSED);
         $this->setMode(ChannelMode::MODERATED);
         $this->getMode()->shouldEqual(ChannelMode::MODERATED);
-    }
-
-    public function it_should_have_write_permissions_if_its_an_old_user()
-    {
-        $this->setEmailConfirmationToken('');
-        $this->setEmailConfirmedAt(null);
-        $this->isTrusted()->shouldReturn(true);
-    }
-
-    public function it_should_have_write_permissions_if_email_is_verified()
-    {
-        $this->setEmailConfirmedAt(time());
-        $this->isTrusted()->shouldReturn(true);
-    }
-
-    public function it_should_not_have_write_permissions_if_its_a_new_user_with_unverified_email()
-    {
-        $this->setEmailConfirmationToken('token');
-        $this->setEmailConfirmedAt(0);
-
-        $this->isTrusted()->shouldReturn(false);
     }
 
     public function it_should_export_values()
