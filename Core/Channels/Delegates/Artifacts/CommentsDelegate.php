@@ -61,7 +61,7 @@ class CommentsDelegate implements ArtifactsDelegateInterface
                     ->setUserGuid($userGuid)
                     ->setType('comments')
                     ->setKey($commentLuid)
-                    ->setJsonData([ 'comment' => serialize($comment) ]);
+                    ->setJsonData(['comment' => serialize($comment)]);
 
                 $this->repository->add($snapshot);
             } catch (\Exception $e) {
@@ -141,45 +141,49 @@ class CommentsDelegate implements ArtifactsDelegateInterface
      */
     protected function fetchComments($userGuid)
     {
-        $body = [
-            'query' => [
-                'bool' => [
-                    'must' => [
-                        'term' => [
-                            'user_guid.keyword' => $userGuid,
+        $from = 0;
+        do {
+            $body = [
+                'query' => [
+                    'bool' => [
+                        'must' => [
+                            [
+                                'term' => [
+                                    'user_guid.keyword' => $userGuid,
+                                ],
+                            ],
+                            [
+                                'term' => [
+                                    'action' => 'comment',
+                                ],
+                            ],
                         ],
                     ],
                 ],
-            ],
-            'aggs' => [
-                'comment_luids' => [
-                    'terms' => [
-                        'field' => 'comment_guid.keyword',
-                        'size' => 500000,
-                    ]
-                ]
-            ]
-        ];
+            ];
 
-        $query = [
-            'body' => $body,
-            'size' => 0,
-            'index' => 'minds-metrics-*',
-            'type' => 'action',
-        ];
+            $query = [
+                'body' => $body,
+                'size' => 1000,
+                'from' => $from,
+                'index' => 'minds-metrics-*',
+                'type' => 'action',
+            ];
 
-        $prepared = new Search();
-        $prepared->query($query);
+            $prepared = new Search();
+            $prepared->query($query);
 
-        try {
-            $result = $this->elasticsearch->request($prepared);
-        } catch (\Exception $e) {
-            error_log((string) $e);
-            throw $e; // Re-throw
-        }
+            try {
+                $result = $this->elasticsearch->request($prepared);
+            } catch (\Exception $e) {
+                error_log((string) $e);
+                throw $e; // Re-throw
+            }
 
-        foreach ($result['aggregations']['comment_luids']['buckets'] as $row) {
-            yield $row['key'];
-        }
+            foreach ($result['hits']['hits'] as $row) {
+                $from++;
+                yield $row['_source']['comment_guid'];
+            }
+        } while ($result && isset($result['hits']) && isset($result['hits']['hits']) && count($result['hits']['hits']) > 0);
     }
 }
