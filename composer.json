@@ -13,7 +13,7 @@
         "minds/surge": "dev-master@dev",
         "minds/mw3": "dev-master@dev",
         "phpmailer/phpmailer": "~5.2",
-        "stripe/stripe-php": "^6.43",
+        "stripe/stripe-php": "^7.27",
         "thobbs/phpcassa": "dev-minds-legacy",
         "tijsverkoyen/twitteroauth": "dev-master@dev",
         "twilio/sdk": "^5.26",
@@ -40,7 +40,8 @@
         "minds/unleash-client-php": "0.1.2",
         "sentry/sdk": "^2.1",
         "vlucas/phpdotenv": "^4.1",
-        "sendgrid/sendgrid": "^7.4"
+        "sendgrid/sendgrid": "^7.4",
+        "ocramius/package-versions": "1.5"
     },
     "repositories": [
         {

@@ -69,6 +69,8 @@ class Manager
               'year' => $dob[0]
             ],
           ],
+          'metadata' => $account->getMetadata(),
+          'requested_capabilities' => [ 'card_payments', 'transfers' ],
           'tos_acceptance' => [
             'date' => time(),
             'ip' => $account->getIp(),

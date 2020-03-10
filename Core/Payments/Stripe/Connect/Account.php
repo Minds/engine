@@ -133,6 +133,7 @@ class Account
 
     /** @var array $exportable */
     private $exportable = [
+        'id',
         'guid',
         'gender',
         'firstName',
