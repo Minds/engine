@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8bb924fd1f021f2f3f546f6623898ffa",
+    "content-hash": "9d2b241e5151a9170a8be8f9195fac7f",
     "packages": [
         {
             "name": "Minds/Surge",
@@ -189,16 +189,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.133.30",
+            "version": "3.133.32",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "1ae0cff5226ffdd9b8a1d7b1f69c65fbaa5cb4e1"
+                "reference": "c4bd227436446f02d2b9963f3ea4ae6dc380420b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/1ae0cff5226ffdd9b8a1d7b1f69c65fbaa5cb4e1",
-                "reference": "1ae0cff5226ffdd9b8a1d7b1f69c65fbaa5cb4e1",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/c4bd227436446f02d2b9963f3ea4ae6dc380420b",
+                "reference": "c4bd227436446f02d2b9963f3ea4ae6dc380420b",
                 "shasum": ""
             },
             "require": {
@@ -269,7 +269,7 @@
                 "s3",
                 "sdk"
             ],
-            "time": "2020-03-05T19:19:55+00:00"
+            "time": "2020-03-09T18:10:46+00:00"
         },
         {
             "name": "clue/stream-filter",
@@ -3597,6 +3597,114 @@
                 "promises"
             ],
             "time": "2019-01-07T21:25:54+00:00"
+        },
+        {
+            "name": "sendgrid/php-http-client",
+            "version": "3.10.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/sendgrid/php-http-client.git",
+                "reference": "8b303f0e13288b5a6d51953a05462256b3c1f316"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/sendgrid/php-http-client/zipball/8b303f0e13288b5a6d51953a05462256b3c1f316",
+                "reference": "8b303f0e13288b5a6d51953a05462256b3c1f316",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.6"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~4.4",
+                "squizlabs/php_codesniffer": "~2.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "SendGrid\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Matt Bernier",
+                    "email": "dx@sendgrid.com"
+                },
+                {
+                    "name": "Elmer Thomas",
+                    "email": "ethomas@twilio.com"
+                }
+            ],
+            "description": "HTTP REST client, simplified for PHP",
+            "homepage": "http://github.com/sendgrid/php-http-client",
+            "keywords": [
+                "api",
+                "fluent",
+                "http",
+                "rest",
+                "sendgrid"
+            ],
+            "time": "2020-03-04T22:06:37+00:00"
+        },
+        {
+            "name": "sendgrid/sendgrid",
+            "version": "7.4.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/sendgrid/sendgrid-php.git",
+                "reference": "3410f216fc5c575912fa253a24fcbe39ca09b110"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/sendgrid/sendgrid-php/zipball/3410f216fc5c575912fa253a24fcbe39ca09b110",
+                "reference": "3410f216fc5c575912fa253a24fcbe39ca09b110",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "ext-mbstring": "*",
+                "ext-openssl": "*",
+                "php": ">=5.6",
+                "sendgrid/php-http-client": "~3.10"
+            },
+            "replace": {
+                "sendgrid/sendgrid-php": "*"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^5.7.9 || ^6.4.3",
+                "squizlabs/php_codesniffer": "3.*",
+                "swaggest/json-diff": "^3.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "SendGrid\\Mail\\": "lib/mail/",
+                    "SendGrid\\Contacts\\": "lib/contacts/",
+                    "SendGrid\\Stats\\": "lib/stats/"
+                },
+                "files": [
+                    "lib/SendGrid.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "This library allows you to quickly and easily send emails through Twilio SendGrid using PHP.",
+            "homepage": "http://github.com/sendgrid/sendgrid-php",
+            "keywords": [
+                "email",
+                "grid",
+                "send",
+                "sendgrid",
+                "twilio sendgrid"
+            ],
+            "time": "2020-03-04T22:15:09+00:00"
         },
         {
             "name": "sentry/sdk",
