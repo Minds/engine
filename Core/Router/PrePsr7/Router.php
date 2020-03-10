@@ -38,9 +38,7 @@ class Router
         '/not-supported' => "Minds\Controllers\\notSupported",
         //  "/app" => "minds\\pages\\app",
         '/emails/unsubscribe' => 'Minds\\Controllers\\emails\\unsubscribe',
-        '/sitemap' => 'Minds\\Controllers\\sitemap',
         '/apple-app-site-association' => '\\Minds\\Controllers\\deeplinks',
-        '/sitemaps' => '\\Minds\\Controllers\\sitemaps',
         '/checkout' => '\\Minds\\Controllers\\checkout',
     ];
 
@@ -81,7 +79,6 @@ class Router
         /** @var RouterMiddleware[] $prePsr7Middleware */
         $prePsr7Middleware = [
             new ProMiddleware(),
-            new SEOMiddleware(),
         ];
 
         foreach ($prePsr7Middleware as $middleware) {

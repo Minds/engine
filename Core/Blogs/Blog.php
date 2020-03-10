@@ -137,6 +137,9 @@ class Blog extends RepositoryEntity
     /** @var string */
     protected $slug = '';
 
+    /** @var string */
+    protected $permaUrl;
+
     /** @var bool */
     protected $hasHeaderBg;
 
