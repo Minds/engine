@@ -23,6 +23,7 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('type')->willReturn('user');
         $user->get('subtype')->willReturn('');
         $user->get('time_created')->willReturn($now);
+        $user->get('email_confirmed_at')->willReturn($now);
         $user->get('access_id')->willReturn(2);
         $user->get('owner_guid')->willReturn(false);
         $user->get('container_guid')->willReturn(1000);
@@ -72,6 +73,7 @@ class UserMappingSpec extends ObjectBehavior
                 'rating' => 1,
                 'username' => 'phpspec',
                 'briefdescription' => 'PHPSpec Brief Description #invalidhashtag',
+                'email_confirmed_at' =>  $now,
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'user',
                 'public' => true,
@@ -79,7 +81,7 @@ class UserMappingSpec extends ObjectBehavior
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',
                 '@moderated' => $now * 1000,
-                'group_membership' => [ 2000 ]
+                'group_membership' => [ 2000 ],
             ]);
     }
 
