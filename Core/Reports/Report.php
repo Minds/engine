@@ -110,7 +110,9 @@ class Report
         }
         $sortedStates = $this->stateChanges;
         arsort($sortedStates);
-        return key($sortedStates);
+        // before saving the report, the array has the following structure: ['reported', 'appealed'], but after
+        // saving, it's like this: ['reported' => 1615383981]
+        return !isset($sortedStates[0]) || is_numeric($sortedStates[0]) ? key($sortedStates) : $sortedStates[0];
     }
 
     /**
