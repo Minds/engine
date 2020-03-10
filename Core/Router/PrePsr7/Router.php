@@ -4,9 +4,6 @@ namespace Minds\Core\Router\PrePsr7;
 
 use Minds\Core\Di\Di;
 use Minds\Core\I18n\I18n;
-use Minds\Core\Router\Exceptions\ForbiddenException;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
-use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Router\PrePsr7\Middleware\ProMiddleware;
 use Minds\Core\Router\PrePsr7\Middleware\RouterMiddleware;
 use Minds\Core\Router\PrePsr7\Middleware\SEOMiddleware;
@@ -24,24 +21,22 @@ class Router
 {
     // these are core pages, other pages are registered by plugins
     public static $routes = [
-        '/archive/thumbnail' => 'Minds\\Controllers\\fs\\v1\\thumbnail',
-        '/api/v1/archive/thumbnails' => 'Minds\\Controllers\\api\\v1\\media\\thumbnails',
+      '/archive/thumbnail' => 'Minds\\Controllers\\fs\\v1\\thumbnail',
+      '/api/v1/archive/thumbnails' => 'Minds\\Controllers\\api\\v1\\media\\thumbnails',
 
-        '/oauth2/token' => 'Minds\\Controllers\\oauth2\\token',
-        '/oauth2/implicit' => 'Minds\\Controllers\\oauth2\\implicit',
-        '/icon' => 'Minds\\Controllers\\icon',
-        '//icon' => 'Minds\\Controllers\\icon',
-        '/api' => 'Minds\\Controllers\\api\\api',
-        '/fs' => 'Minds\\Controllers\\fs\\fs',
-        '/thumbProxy' => 'Minds\\Controllers\\thumbProxy',
-        '/wall' => 'Minds\\Controllers\\Legacy\\wall',
-        '/not-supported' => "Minds\Controllers\\notSupported",
+      '/oauth2/token' => 'Minds\\Controllers\\oauth2\\token',
+      '/oauth2/implicit' => 'Minds\\Controllers\\oauth2\\implicit',
+      '/icon' => 'Minds\\Controllers\\icon',
+      '//icon' => 'Minds\\Controllers\\icon',
+      '/api' => 'Minds\\Controllers\\api\\api',
+      '/fs' => 'Minds\\Controllers\\fs\\fs',
+      '/thumbProxy' => 'Minds\\Controllers\\thumbProxy',
+      '/wall' => 'Minds\\Controllers\\Legacy\\wall',
+      '/not-supported' => "Minds\Controllers\\notSupported",
         //  "/app" => "minds\\pages\\app",
-        '/emails/unsubscribe' => 'Minds\\Controllers\\emails\\unsubscribe',
-        '/sitemap' => 'Minds\\Controllers\\sitemap',
-        '/apple-app-site-association' => '\\Minds\\Controllers\\deeplinks',
-        '/sitemaps' => '\\Minds\\Controllers\\sitemaps',
-        '/checkout' => '\\Minds\\Controllers\\checkout',
+      '/emails/unsubscribe' => 'Minds\\Controllers\\emails\\unsubscribe',
+      '/apple-app-site-association' => '\\Minds\\Controllers\\deeplinks',
+      '/checkout' => '\\Minds\\Controllers\\checkout',
     ];
 
     /**
@@ -81,7 +76,6 @@ class Router
         /** @var RouterMiddleware[] $prePsr7Middleware */
         $prePsr7Middleware = [
             new ProMiddleware(),
-            new SEOMiddleware(),
         ];
 
         foreach ($prePsr7Middleware as $middleware) {
@@ -137,7 +131,7 @@ class Router
         while ($loop >= 0) {
             $offset = $loop - 1;
             if ($loop < count($segments)) {
-                $slug_length = strlen($segments[$offset + 1] . '/');
+                $slug_length = strlen($segments[$offset + 1].'/');
                 $route_length = strlen($route);
                 $route = substr($route, 0, $route_length - $slug_length);
             }
@@ -155,20 +149,7 @@ class Router
                         $handler->setResponse($response);
                     }
 
-                    try {
-                        return $handler->$method($pages);
-                    } catch (UnverifiedEmailException $e) {
-                        http_response_code(403);
-
-                        header('HTTP/1.1 403 Forbidden', true, 403);
-                        echo json_encode([
-                            'status' => 'error',
-                            'message' => $e->getMessage(),
-                            'must_verify' => true
-                        ]);
-
-                        exit;
-                    }
+                    return $handler->$method($pages);
                 } else {
                     return null;
                 }

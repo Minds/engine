@@ -137,6 +137,9 @@ class Blog extends RepositoryEntity
     /** @var string */
     protected $slug = '';
 
+    /** @var string */
+    protected $permaUrl;
+
     /** @var bool */
     protected $hasHeaderBg;
 
@@ -454,8 +457,6 @@ class Blog extends RepositoryEntity
      * Returns if the entity can be edited by the current user
      * @param User|null $user
      * @return bool
-     * @throws \Minds\Core\Router\Exceptions\UnverifiedEmailException
-     * @throws \Minds\Exceptions\StopEventException
      */
     public function canEdit(User $user = null)
     {
