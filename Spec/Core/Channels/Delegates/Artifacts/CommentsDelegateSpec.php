@@ -39,8 +39,8 @@ class CommentsDelegateSpec extends ObjectBehavior
         $this->shouldHaveType(CommentsDelegate::class);
     }
 
-    public function it_should_snapshot(
-    ) {
+    public function it_should_snapshot()
+    {
         $this->elasticsearch->request(Argument::that(function (PreparedSearch $search) {
             $query = $search->build();
 
@@ -49,13 +49,35 @@ class CommentsDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(
                 [
-                    'aggregations' => [
-                        'comment_luids' => [
-                            'buckets' => [
-                                ['key' => 'a0000001'],
-                                ['key' => 'a0000002'],
+                    'hits' => [
+                        'hits' => [
+                            [
+                                "_id" => "1",
+                                "_source" =>
+                                    [
+                                        "type" => "action",
+                                        "action" => "comment",
+                                        "product" => "platform",
+                                        "comment_guid" => "a0000001",
+                                    ],
+                            ],
+                            [
+                                "_id" => "2",
+                                "_source" =>
+                                    [
+                                        "type" => "action",
+                                        "action" => "comment",
+                                        "product" => "platform",
+                                        "comment_guid" => "a0000002",
+                                    ],
                             ],
                         ],
+                    ],
+                ],
+                // second call returns nothing
+                [
+                    'hits' => [
+                        'hits' => [],
                     ],
                 ]
             );
@@ -112,19 +134,40 @@ class CommentsDelegateSpec extends ObjectBehavior
         $this->elasticsearch->request(Argument::that(function (PreparedSearch $search) {
             $query = $search->build();
 
-
             return $query['index'] === 'minds-metrics-*';
         }))
             ->shouldBeCalled()
             ->willReturn(
                 [
-                    'aggregations' => [
-                        'comment_luids' => [
-                            'buckets' => [
-                                ['key' => 'a0000001'],
-                                ['key' => 'a0000002'],
+                    'hits' => [
+                        'hits' => [
+                            [
+                                "_id" => "1",
+                                "_source" =>
+                                    [
+                                        "type" => "action",
+                                        "action" => "comment",
+                                        "product" => "platform",
+                                        "comment_guid" => "a0000001",
+                                    ],
+                            ],
+                            [
+                                "_id" => "2",
+                                "_source" =>
+                                    [
+                                        "type" => "action",
+                                        "action" => "comment",
+                                        "product" => "platform",
+                                        "comment_guid" => "a0000002",
+                                    ],
                             ],
                         ],
+                    ],
+                ],
+                // second call returns nothing
+                [
+                    'hits' => [
+                        'hits' => [],
                     ],
                 ]
             );
@@ -137,7 +180,7 @@ class CommentsDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($commentMock);
 
-        $this->commentManager->delete($commentMock, [ 'force' => true ])
+        $this->commentManager->delete($commentMock, ['force' => true])
             ->shouldBeCalledTimes(2)
             ->willReturn(true);
 
@@ -152,19 +195,40 @@ class CommentsDelegateSpec extends ObjectBehavior
         $this->elasticsearch->request(Argument::that(function (PreparedSearch $search) {
             $query = $search->build();
 
-
             return $query['index'] === 'minds-metrics-*';
         }))
             ->shouldBeCalled()
             ->willReturn(
                 [
-                    'aggregations' => [
-                        'comment_luids' => [
-                            'buckets' => [
-                                ['key' => 'a0000001'],
-                                ['key' => 'a0000002'],
+                    'hits' => [
+                        'hits' => [
+                            [
+                                "_id" => "1",
+                                "_source" =>
+                                    [
+                                        "type" => "action",
+                                        "action" => "comment",
+                                        "product" => "platform",
+                                        "comment_guid" => "a0000001",
+                                    ],
+                            ],
+                            [
+                                "_id" => "2",
+                                "_source" =>
+                                    [
+                                        "type" => "action",
+                                        "action" => "comment",
+                                        "product" => "platform",
+                                        "comment_guid" => "a0000002",
+                                    ],
                             ],
                         ],
+                    ],
+                ],
+                // second call returns nothing
+                [
+                    'hits' => [
+                        'hits' => [],
                     ],
                 ]
             );
@@ -177,7 +241,7 @@ class CommentsDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($commentMock);
 
-        $this->commentManager->delete($commentMock, [ 'force' => true ])
+        $this->commentManager->delete($commentMock, ['force' => true])
             ->shouldBeCalledTimes(2)
             ->willReturn(true);
 

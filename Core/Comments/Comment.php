@@ -46,6 +46,8 @@ use Minds\Core\Di\Di;
  * @method array getVotesDown()
  * @method Comment setEphemeral(bool $value)
  * @method bool isEphemeral()
+ * @method int getContainerGuid()
+ * @method Comment setContainerGuid(int $value)
  */
 class Comment extends RepositoryEntity
 {
@@ -111,6 +113,8 @@ class Comment extends RepositoryEntity
 
     /** @var bool */
     protected $ephemeral = true;
+
+    protected $containerGuid;
 
     /**
      * Gets the entity guid for the comment.
