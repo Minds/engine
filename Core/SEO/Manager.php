@@ -9,6 +9,9 @@ use Minds\Core\Events\Dispatcher;
 
 class Manager
 {
+    /** @var string */
+    public const MIN_METRIC_FOR_ROBOTS = 5;
+
     public static $routes = [];
     public static $defaults = [
         'title' => '',
