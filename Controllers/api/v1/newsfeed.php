@@ -641,7 +641,7 @@ class newsfeed implements Interfaces\Api
                                 'gif' => (bool) $attachment->gif ?? false,
                             ]])
                                 ->setFromEntity($attachment)
-                                ->setTitle($attachment->message);
+                                ->setTitle($attachment->title);
                             break;
                         case "video":
                             $activity->setFromEntity($attachment)
@@ -649,7 +649,7 @@ class newsfeed implements Interfaces\Api
                                     'thumbnail_src' => $attachment->getIconUrl(),
                                     'guid' => $attachment->guid,
                                     'mature' => $attachment instanceof Flaggable ? $attachment->getFlag('mature') : false])
-                                ->setTitle($attachment->message);
+                                ->setTitle($attachment->title);
                             break;
                     }
                 } elseif ($_POST['title'] ?? null) {
