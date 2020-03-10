@@ -30,7 +30,6 @@ class SEOMiddleware implements RouterMiddleware
      */
     public function onRequest(ServerRequest $request, JsonResponse &$response): ?bool
     {
-        new SEO\Defaults($this->config);
         return null;
     }
 }
