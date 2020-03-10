@@ -13,7 +13,6 @@ use Minds\Entities\RepositoryEntity;
 use Minds\Entities\User;
 use Minds\Exceptions\StopEventException;
 use Minds\Helpers\Flags;
-use Minds\Helpers\MagicAttributes;
 
 class ACL
 {
@@ -197,8 +196,7 @@ class ACL
         /**
          * Check if its the same entity (is user)
          */
-        if ((isset($entity->guid) && $entity->guid == $user->guid) ||
-            MagicAttributes::getterExists($entity, 'getGuid') && $entity->getGuid() == $user->guid) {
+        if ($entity->guid == $user->guid) {
             return true;
         }
 
@@ -212,7 +210,6 @@ class ACL
         /**
          * Allow plugins to extend the ACL check
          */
-        $type = property_exists($entity, 'type') ? $entity->type : 'all';
         if (Core\Events\Dispatcher::trigger('acl:write', $entity->type, ['entity'=>$entity, 'user'=>$user], false) === true) {
             return true;
         }
