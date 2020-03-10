@@ -567,13 +567,6 @@ class newsfeed implements Interfaces\Api
                     $activity->setMessage(rawurldecode($_POST['message']));
                 }
 
-                if (isset($_POST['title']) && $_POST['title']) {
-                    $activity->setTitle(rawurldecode($_POST['title']))
-                        ->setBlurb(rawurldecode($_POST['description']))
-                        ->setURL(rawurldecode($_POST['url']))
-                        ->setThumbnail($_POST['thumbnail']);
-                }
-
                 if (isset($_POST['wire_threshold']) && $_POST['wire_threshold']) {
                     if (is_array($_POST['wire_threshold']) && ($_POST['wire_threshold']['min'] <= 0 || !$_POST['wire_threshold']['type'])) {
                         return Factory::response([
@@ -587,7 +580,15 @@ class newsfeed implements Interfaces\Api
                 }
 
                 if (isset($_POST['attachment_guid']) && $_POST['attachment_guid']) {
+                    // WIP: On upcoming MR, move this to a Delegate
+                    // WIP: On upcoming MR, apply this same logic to edit
+                    // WIP: On upcoming MR, allow hot-swapping/deleting attachments when editing a post
+
+                    // TODO: Ellipsis?
+                    $title = substr(($_POST['title'] ?? null) ?: $activity->getMessage(), 0, 250);
+
                     $attachment = entities\Factory::build($_POST['attachment_guid']);
+
                     if (!$attachment) {
                         break;
                     }
@@ -599,7 +600,7 @@ class newsfeed implements Interfaces\Api
                         ]);
                     }
 
-                    $attachment->title = $activity->message;
+                    $attachment->title = $title;
                     $attachment->access_id = 2;
 
                     if (isset($_POST['attachment_license'])) {
@@ -651,6 +652,12 @@ class newsfeed implements Interfaces\Api
                                 ->setTitle($attachment->message);
                             break;
                     }
+                } elseif ($_POST['title'] ?? null) {
+                    $activity
+                        ->setTitle(rawurldecode($_POST['title']))
+                        ->setBlurb(rawurldecode($_POST['description']))
+                        ->setURL(rawurldecode($_POST['url']))
+                        ->setThumbnail($_POST['thumbnail']);
                 }
 
                 $container = null;
