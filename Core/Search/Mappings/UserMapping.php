@@ -21,7 +21,6 @@ class UserMapping extends EntityMapping implements MappingInterface
             'username' => [ 'type' => 'text', '$exportField' => 'username' ],
             'briefdescription' => [ 'type' => 'text', '$exportField' => 'briefdescription' ],
             'group_membership' => [ 'type' => 'text' ],
-            'email_confirmed_at' => [ 'type' => 'integer', '$exportField' => 'time_created' ],
             'suggest' => [ 'type' => 'completion' ]
         ]);
     }
@@ -96,7 +95,7 @@ class UserMapping extends EntityMapping implements MappingInterface
         if (strlen($username) > 30) {
             $map['weight'] = 1; //spammy username
         }
-
+        
         return $map;
     }
 
