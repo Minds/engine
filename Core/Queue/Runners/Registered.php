@@ -2,7 +2,6 @@
 
 namespace Minds\Core\Queue\Runners;
 
-use Minds\Common\Urn;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Email\Repository;
