@@ -3,6 +3,9 @@
 /**
  * Minds Blog Entity
  *
+ * Note - When adding a new attribute be sure to make
+ * necessary changes to to Core/Blogs/Legacy/Entity.php
+ *
  * @author emi
  */
 
@@ -97,6 +100,8 @@ use Minds\Traits\MagicAttributes;
  * @method bool getAllowComments()
  * @method int getTimeSent()
  * @method Blog setTimeSent(int $time_sent)
+ * @method bool getEditorVersion()
+ * @method bool setEditorVersion(int $editorVersion)
  */
 class Blog extends RepositoryEntity
 {
@@ -131,6 +136,9 @@ class Blog extends RepositoryEntity
 
     /** @var string */
     protected $slug = '';
+
+    /** @var string */
+    protected $permaUrl;
 
     /** @var bool */
     protected $hasHeaderBg;
@@ -245,6 +253,8 @@ class Blog extends RepositoryEntity
     /** @var int */
     protected $timeSent;
 
+    /** @var int */
+    protected $editorVersion = 1;
     /**
      * Blog constructor.
      * @param null $eventsDispatcher
@@ -447,8 +457,6 @@ class Blog extends RepositoryEntity
      * Returns if the entity can be edited by the current user
      * @param User|null $user
      * @return bool
-     * @throws \Minds\Core\Router\Exceptions\UnverifiedEmailException
-     * @throws \Minds\Exceptions\StopEventException
      */
     public function canEdit(User $user = null)
     {
@@ -591,6 +599,7 @@ class Blog extends RepositoryEntity
             'nsfw_lock',
             'allow_comments',
             'time_sent',
+            'editor_version',
             function ($export) {
                 return $this->_extendExport($export);
             }
@@ -619,6 +628,7 @@ class Blog extends RepositoryEntity
         $output['nsfw_lock'] = $this->getNsfwLock();
         $output['allow_comments'] = $this->getAllowComments();
         $output['time_sent'] = $this->getTimeSent();
+        $output['editor_version'] = $this->getEditorVersion();
         $output['header_bg'] = $export['has_header_bg'];
 
         if (!$this->isEphemeral()) {

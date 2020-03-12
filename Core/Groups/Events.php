@@ -53,10 +53,6 @@ class Events
             $entity = $params['entity'];
             $user = $params['user'];
 
-            if (!method_exists($entity, 'getContainerEntity')) {
-                return;
-            }
-
             $group = $entity->getContainerEntity();
 
             if (!($group instanceof GroupEntity)) {
@@ -216,7 +212,7 @@ class Events
         Dispatcher::register('save', 'comment', function ($e) {
             $params = $e->getParameters();
             $comment = $params['entity'];
-
+            
             if (!$comment->isGroupConversation()) {
                 return;
             }

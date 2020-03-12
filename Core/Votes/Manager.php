@@ -10,10 +10,8 @@ namespace Minds\Core\Votes;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
-use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Factory;
-use Minds\Exceptions\StopEventException;
 
 class Manager
 {
@@ -41,11 +39,10 @@ class Manager
 
     /**
      * Casts a vote
-     * @param Vote $vote
+     * @param string $direction
      * @param array $options
      * @return bool
-     * @throws UnverifiedEmailException
-     * @throws StopEventException
+     * @throws \Exception
      */
     public function cast($vote, array $options = [])
     {
@@ -80,11 +77,10 @@ class Manager
 
     /**
      * Cancels a vote
-     * @param $vote
+     * @param string $direction
      * @param array $options
      * @return bool
-     * @throws UnverifiedEmailException
-     * @throws StopEventException
+     * @throws \Exception
      */
     public function cancel($vote, array $options = [])
     {
@@ -115,9 +111,9 @@ class Manager
 
     /**
      * Returns a boolean stating if actor voted on the entity
-     * @param $vote
+     * @param string $direction
      * @return bool
-     * @throws StopEventException
+     * @throws \Exception
      */
     public function has($vote)
     {
@@ -134,11 +130,10 @@ class Manager
 
     /**
      * Toggles a vote (cancels if exists, votes if doesn't) [wrapper]
-     * @param $vote
+     * @param string $direction
      * @param array $options
      * @return bool
-     * @throws StopEventException
-     * @throws UnverifiedEmailException
+     * @throws \Exception
      */
     public function toggle($vote, array $options = [])
     {

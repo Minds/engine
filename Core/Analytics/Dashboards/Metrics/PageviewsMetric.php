@@ -102,7 +102,6 @@ class PageviewsMetric extends AbstractMetric
     public function buildVisualisation(): self
     {
         $timespan = $this->timespansCollection->getSelected();
-        $this->filtersCollection->clear();
 
         // TODO: make this respect the filters
         $field = "views::single";

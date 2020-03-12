@@ -10,7 +10,6 @@ namespace Minds\Core\Blogs;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\PropagateProperties;
-use Minds\Core\Security\ACL;
 use Minds\Core\Security\Spam;
 
 class Manager
@@ -27,7 +26,7 @@ class Manager
     /** @var Delegates\Feeds */
     protected $feeds;
 
-    /** @var Spam * */
+    /** @var Spam **/
     protected $spam;
 
     /** @var Delegates\Search */
