@@ -48,8 +48,7 @@ class AttachmentDelegate
         $entitiesBuilder = null,
         $saveAction = null,
         $deleteAction = null
-    )
-    {
+    ) {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->saveAction = $saveAction ?: new Save();
         $this->deleteAction = $deleteAction ?: new Delete();
