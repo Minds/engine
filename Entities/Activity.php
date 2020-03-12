@@ -41,6 +41,7 @@ class Activity extends Entity
             'rating' => 2, //open by default
             'ephemeral' => false,
             'time_sent' => null,
+            'license' => '',
             //	'node' => elgg_get_site_url()
         ]);
     }
@@ -280,6 +281,7 @@ class Activity extends Entity
         $export['ephemeral'] = $this->getEphemeral();
         $export['ownerObj'] = $this->getOwnerObj();
         $export['time_sent'] = $this->getTimeSent();
+        $export['license'] = $this->license;
 
         if ($this->hide_impressions) {
             $export['hide_impressions'] = $this->hide_impressions;
@@ -399,6 +401,17 @@ class Activity extends Entity
     }
 
     /**
+     * Sets the license
+     * @param string $license
+     * @return Activity
+     */
+    public function setLicense(string $license): Activity
+    {
+        $this->license = $license;
+        return $this;
+    }
+
+    /**
      * Sets the owner
      * @param mixed $owner
      * @return $this
@@ -413,6 +426,26 @@ class Activity extends Entity
         $this->owner = $owner;
 
         return $this;
+    }
+
+    /**
+     * Sets the entity GUID for this activity
+     * @param string|int $entityGuid
+     * @return Activity
+     */
+    public function setEntityGuid($entityGuid = ''): Activity
+    {
+        $this->entity_guid = $entityGuid ?: '';
+        return $this;
+    }
+
+    /**
+     * Gets the entity GUID from this activity. Can be null.
+     * @return string|int|null
+     */
+    public function getEntityGuid()
+    {
+        return $this->entity_guid ?: null;
     }
 
     /**
