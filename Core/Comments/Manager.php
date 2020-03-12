@@ -124,7 +124,6 @@ class Manager
      * @return bool
      * @throws BlockedUserException
      * @throws \Minds\Exceptions\StopEventException
-     * @throws \Minds\Core\Router\Exceptions\UnverifiedEmailException
      */
     public function add(Comment $comment)
     {

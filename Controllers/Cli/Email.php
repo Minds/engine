@@ -339,4 +339,10 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             $this->out($message->buildHtml());
         }
     }
+
+    public function sync_sendgrid_lists(): void
+    {
+        $sendGridManager = Di::_()->get('SendGrid\Manager');
+        $sendGridManager->syncContactLists();
+    }
 }

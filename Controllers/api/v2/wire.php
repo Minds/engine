@@ -11,7 +11,6 @@ namespace Minds\Controllers\api\v2;
 
 use Minds\Api\Factory;
 use Minds\Core;
-use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Util\BigNumber;
 use Minds\Core\Wire\Exceptions\WalletNotSetupException;
 use Minds\Entities;
@@ -107,8 +106,6 @@ class wire implements Interfaces\Api
 
             $response['status'] = 'error';
             $response['message'] = $e->getMessage();
-        } catch (UnverifiedEmailException $e) {
-            throw $e;
         } catch (\Exception $e) {
             $response['status'] = 'error';
             $response['message'] = $e->getMessage();

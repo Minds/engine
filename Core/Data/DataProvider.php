@@ -70,6 +70,9 @@ class DataProvider extends Provider
         $this->di->bind('Database\ElasticSearch', function ($di) {
             return new ElasticSearch\Client();
         }, ['useFactory'=>true]);
+        $this->di->bind('Database\ElasticSearch\Scroll', function ($di) {
+            return new ElasticSearch\Scroll();
+        }, ['useFactory'=>true]);
         $this->di->bind('Database\PDO', function ($di) {
             $config = $di->get('Config')->get('database');
             $host = isset($config['host']) ? $config['host'] : 'cockroachdb';

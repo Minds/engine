@@ -5,9 +5,9 @@ namespace Spec\Minds\Core\Entities\Actions;
 use Minds\Core\Blogs\Blog;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Events\EventsDispatcher;
+use Minds\Entities\User;
 use Minds\Entities\Activity;
 use Minds\Entities\Group;
-use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 
 class SaveSpec extends ObjectBehavior
@@ -44,8 +44,7 @@ class SaveSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([]);
 
-        $user->setNsfw([])
-            ->shouldBeCalled();
+        $user->setNsfw([])->shouldBeCalled();
 
         $user->save()
             ->shouldBeCalled()
@@ -79,7 +78,7 @@ class SaveSpec extends ObjectBehavior
         $this->setEntity($blog);
         $this->save($blog)->shouldReturn(true);
     }
-
+    
     public function it_should_save_an_entity_using_its_save_method_with_NSFW_from_owner(Activity $activity, User $owner)
     {
         $nsfw = [1, 2, 3, 4, 5, 6];
@@ -196,6 +195,7 @@ class SaveSpec extends ObjectBehavior
         $activity->save()
             ->shouldBeCalled()
             ->willReturn(true);
+
         $this->setEntity($activity);
 
         $this->save()->shouldReturn(true);

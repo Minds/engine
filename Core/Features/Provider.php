@@ -45,6 +45,7 @@ class Provider extends DiProvider
                 'cdn-jwt',
                 'post-scheduler',
                 'activity-composer',
+                'ckeditor5',
                 'navigation',
                 'wallet-upgrade',
                 'activity-v2--single-page',
