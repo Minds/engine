@@ -32,9 +32,9 @@ class Delete
     /**
      * Sets the entity
      * @param mixed $entity
-     * @return Save
+     * @return Delete
      */
-    public function setEntity($entity)
+    public function setEntity($entity): Delete
     {
         $this->entity = $entity;
         return $this;
@@ -42,11 +42,10 @@ class Delete
 
     /**
      * Delete the entity
-     * @param mixed ...$args
      * @return bool
      * @throws \Minds\Exceptions\StopEventException
      */
-    public function delete(...$args)
+    public function delete()
     {
         if (!$this->entity) {
             return false;
