@@ -479,8 +479,8 @@ class Activity extends Entity
      */
     public function setCustom($type, $data = [])
     {
-        $this->custom_type = $type;
-        $this->custom_data = $data;
+        $this->custom_type = $type ?: '';
+        $this->custom_data = $data ?: [];
         return $this;
     }
 
@@ -491,7 +491,7 @@ class Activity extends Entity
     public function getCustom(): array
     {
         return [
-            $this->custom_type,
+            $this->custom_type ?: null,
             $this->custom_data
         ];
     }
