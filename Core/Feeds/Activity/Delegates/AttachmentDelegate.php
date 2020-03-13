@@ -218,6 +218,9 @@ class AttachmentDelegate
 
             // Set the activity entity GUID to an empty value, no matter what happened above
             $activity->setEntityGuid(null);
+
+            // Empties the activity entity's custom meta attributes, no matter what happened above
+            $activity->setCustom(null, null);
         }
 
         return $activity;

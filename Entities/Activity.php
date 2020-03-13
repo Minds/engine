@@ -473,8 +473,8 @@ class Activity extends Entity
     /**
      * Set a custom, arbitrary set. For example a custom video view, or maybe a set of images. I envisage
      * certain service could extend this.
-     * @param string $type
-     * @param array $data
+     * @param string|null $type
+     * @param array|null $data
      * @return $this
      */
     public function setCustom($type, $data = [])
