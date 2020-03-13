@@ -8,6 +8,7 @@
 namespace Minds\Core\Feeds\Activity\Delegates;
 
 use Exception;
+use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Delete;
 use Minds\Core\Entities\Actions\Save;
@@ -26,6 +27,9 @@ use Minds\Interfaces\Flaggable;
  */
 class AttachmentDelegate
 {
+    /** @var Config */
+    protected $config;
+
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
@@ -40,15 +44,18 @@ class AttachmentDelegate
 
     /**
      * AttachmentDelegate constructor.
+     * @param $config
      * @param $entitiesBuilder
      * @param $saveAction
      * @param $deleteAction
      */
     public function __construct(
+        $config = null,
         $entitiesBuilder = null,
         $saveAction = null,
         $deleteAction = null
     ) {
+        $this->config = $config ?: Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->saveAction = $saveAction ?: new Save();
         $this->deleteAction = $deleteAction ?: new Delete();
@@ -81,13 +88,14 @@ class AttachmentDelegate
         }
 
         if (
-            !$this->actor->isAdmin() ||
+            !$this->actor->isAdmin() &&
             ((string) $attachment->owner_guid !== (string) $this->actor->guid)
         ) {
             throw new Exception('You have no permissions to use this media attachment');
         }
 
         $attachment->title = $activity->title;
+
         $attachment->access_id = 2;
 
         if ($activity->license) {
@@ -119,18 +127,20 @@ class AttachmentDelegate
 
         switch ($attachment->subtype) {
             case 'image':
-                $activity->setCustom('batch', [[
-                    'src' => elgg_get_site_url() . 'fs/v1/thumbnail/' . $attachment->guid,
-                    'href' => elgg_get_site_url() . 'media/' . $attachment->container_guid . '/' . $attachment->guid,
-                    'mature' => $attachment instanceof Flaggable ? $attachment->getFlag('mature') : false,
-                    'width' => $attachment->width,
-                    'height' => $attachment->height,
-                    'gif' => (bool) $attachment->gif ?? false,
-                ]])
-                    ->setFromEntity($attachment);
+                $activity
+                    ->setFromEntity($attachment)
+                    ->setCustom('batch', [[
+                        'src' => sprintf("%sfs/v1/thumbnail/%s", $this->config->get('cdn_url'), $attachment->guid),
+                        'href' => sprintf("%smedia/%s/%s", $this->config->get('site_url'), $attachment->container_guid, $attachment->guid),
+                        'mature' => $attachment instanceof Flaggable ? $attachment->getFlag('mature') : false,
+                        'width' => $attachment->width,
+                        'height' => $attachment->height,
+                        'gif' => (bool) $attachment->gif ?? false,
+                    ]]);
                 break;
             case 'video':
-                $activity->setFromEntity($attachment)
+                $activity
+                    ->setFromEntity($attachment)
                     ->setCustom('video', [
                         'thumbnail_src' => $attachment->getIconUrl(),
                         'guid' => $attachment->guid,
