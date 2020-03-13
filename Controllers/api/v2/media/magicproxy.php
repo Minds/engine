@@ -12,7 +12,7 @@ use Minds\Core\Di\Di;
 use Minds\Interfaces;
 use Minds\Core\Media\Proxy\MagicResize;
 
-class MagicProxy implements Interfaces\Api, Interfaces\ApiIgnorePam
+class magicproxy implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
     const MAX_TIME = 5;
 

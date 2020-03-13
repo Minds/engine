@@ -49,5 +49,13 @@ class Provider extends DiProvider
         $this->di->bind('Email\Confirmation\Url', function ($di) {
             return new Confirmation\Url();
         }, ['useFactory' => true]);
+
+        // SendGrid
+        $this->di->bind('SendGrid\Manager', function ($di) {
+            return new SendGrid\Manager();
+        }, ['useFactory' => true]);
+        $this->di->bind('SendGrid\Webhooks', function ($di) {
+            return new SendGrid\Webhooks();
+        }, ['useFactory' => true]);
     }
 }

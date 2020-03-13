@@ -90,7 +90,7 @@ class Events
                 $container = EntitiesFactory::build($activity->container_guid);
 
                 if ($container->type === 'group') {
-                    $e->setResponse($container->isMember($user->guid));
+                    $e->setResponse($container->isPublic() || $container->isMember($user->guid));
                 }
             }
         });

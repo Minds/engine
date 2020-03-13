@@ -12,6 +12,7 @@ use Minds\Core\Blockchain\Services\Etherscan;
 class EtherscanTransactionsByDateSpec extends ObjectBehavior
 {
     private $address;
+    private $service;
     // estimationBoundary
     private $_eb = 8000;
     private $_eb2;
@@ -26,6 +27,7 @@ class EtherscanTransactionsByDateSpec extends ObjectBehavior
                 ]
             ]);
         $this->beConstructedWith($service, $config);
+        $this->service = $service;
         $this->_eb2 = 2 * $this->_eb;
     }
 
@@ -226,10 +228,10 @@ class EtherscanTransactionsByDateSpec extends ObjectBehavior
         $this->searchBegining($timestamp)->shouldReturn($fakeData1);
     }
 
-    public function it_should_detect_if_timestamp_is_on_the_limit_of_new_data(Etherscan $service)
+    public function it_should_detect_if_timestamp_is_on_the_limit_of_new_data()
     {
         $timestamp = time() - (60 * 60 * 2);
-        $service->getLastBlockNumber()->willReturn(650000);
+        $this->service->getLastBlockNumber()->willReturn(650000);
         $this->estimateBlock($timestamp)->shouldReturn((double) 649510);
 
         $fakeData0 = [
@@ -260,19 +262,19 @@ class EtherscanTransactionsByDateSpec extends ObjectBehavior
         ];
 
         list($from, $to) = $this->_page(649510);
-        $service->getTransactions($from, $to)->shouldBeCalled()->willReturn($fakeData0);
+        $this->service->getTransactions($from, $to)->shouldBeCalled()->willReturn($fakeData0);
         list($from, $to) = $this->_page(649510, 1);
-        $service->getTransactions($from, $to)->shouldBeCalled()->willReturn($fakeData1);
+        $this->service->getTransactions($from, $to)->shouldBeCalled()->willReturn($fakeData1);
         list($from, $to) = $this->_page(649510, 2);
-        $service->getTransactions($from, $to)->shouldBeCalled()->willReturn($fakeData2);
+        $this->service->getTransactions($from, $to)->shouldBeCalled()->willReturn($fakeData2);
 
         $this->searchBegining($timestamp)->shouldReturn($fakeData2);
     }
 
-    public function it_should_throw_error_if_search_fail_after_three_fetchs(Etherscan $service)
+    public function it_should_throw_error_if_search_fail_after_five_fetchs()
     {
         $timestamp = time() - (60 * 60 * 2);
-        $service->getLastBlockNumber()->willReturn(650000);
+        $this->service->getLastBlockNumber()->willReturn(650000);
         $this->estimateBlock($timestamp)->shouldReturn((double) 649510);
 
 
@@ -288,12 +290,18 @@ class EtherscanTransactionsByDateSpec extends ObjectBehavior
             ['timeStamp' => $timestamp - 5],
         ];
 
+        $fakeData3 = [
+            ['timeStamp' => $timestamp],
+        ];
+
         list($from, $to) = $this->_page(649510);
-        $service->getTransactions($from, $to)->shouldBeCalled()->willReturn($fakeData0);
+        $this->service->getTransactions($from, $to)->shouldBeCalled()->willReturn($fakeData0);
         list($from, $to) = $this->_page(649510, 1);
-        $service->getTransactions($from, $to)->shouldBeCalled()->willReturn($fakeData1);
+        $this->service->getTransactions($from, $to)->shouldBeCalled()->willReturn($fakeData1);
         list($from, $to) = $this->_page(649510, 2);
-        $service->getTransactions($from, $to)->shouldBeCalled()->willReturn($fakeData2);
+        $this->service->getTransactions($from, $to)->shouldBeCalled()->willReturn($fakeData2);
+        list($from, $to) = $this->_page(649510, 3);
+        $this->service->getTransactions($from, $to)->shouldBeCalled()->willReturn(null);
 
 
         // is contained

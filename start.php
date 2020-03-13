@@ -27,5 +27,8 @@ Sentry\init([
     'send_default_pii' => false,
 ]);
 
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
 $minds = new Minds\Core\Minds();
 $minds->start();

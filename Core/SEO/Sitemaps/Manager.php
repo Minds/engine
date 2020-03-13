@@ -4,66 +4,112 @@ namespace Minds\Core\SEO\Sitemaps;
 
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Spatie\Sitemap\SitemapGenerator;
+use Aws\S3\S3Client;
 
 class Manager
 {
     /** @var Config */
     protected $config;
 
-    protected $routes = [];
+    /** @var SitemapGenerator */
+    protected $generator;
 
-    public function __construct($dynamicMaps = null)
+    /** @var S3 */
+    protected $s3;
+
+    /** @var string */
+    protected $tmpOutputDirPath;
+
+    protected $resolvers = [
+        Resolvers\MarketingResolver::class,
+        Resolvers\ActivityResolver::class,
+        Resolvers\UsersResolver::class,
+        Resolvers\HelpdeskResolver::class,
+        Resolvers\BlogsResolver::class,
+    ];
+
+    public function __construct($config = null, $generator = null, $s3 = null)
     {
-        $this->config = Di::_()->get('Config');
+        $this->config = $config ?: Di::_()->get('Config');
+        $this->tmpOutputDirPath = $this->getOutputDir();
+        $this->generator = $generator ?: new \Icamys\SitemapGenerator\SitemapGenerator(substr($this->config->get('site_url'), 0, -1), $this->tmpOutputDirPath);
+        $this->s3 = $s3 ?? new S3Client([ 'version' => '2006-03-01', 'region' => 'us-east-1' ]);
     }
 
-    public function addModules($routes)
+    /**
+     * Set the resolvers to user
+     * @param array $resolvers
+     * @return self
+     */
+    public function setResolvers(array $resolvers): self
     {
-        $this->routes = array_merge($this->routes, $routes);
+        $this->resolvers = $resolvers;
+        return $this;
     }
 
-    public function getSitemap($uri)
+    /**
+     * Build the sitemap
+     * @return void
+     */
+    public function build(): void
     {
-        $routes = $this->route($uri);
-        $sitemap = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">';
+        $this->generator->setSitemapFileName("sitemaps/sitemap.xml");
+        $this->generator->setSitemapIndexFileName("sitemaps/sitemap.xml");
+        $this->generator->setMaxURLsPerSitemap(50000);
 
-        foreach ($routes as $route => $ts) {
-            $date = date(DATE_ATOM, $ts);
-            $fullRoute = $this->config->site_url . $route;
-            $sitemap .= "<url>
-              <loc>{$fullRoute}</loc>
-              <lastmod>{$date}</lastmod>
-            </url>";
-        }
-        $sitemap .= '</urlset>';
-        return $sitemap;
-    }
-
-    protected function route($uri)
-    {
-        $route = rtrim($uri, '/');
-        $segments = explode('/', $route);
-        $loop = count($segments);
-        while ($loop >= 0) {
-            $offset = $loop -1;
-            if ($loop < count($segments)) {
-                $slug_length = strlen($segments[$offset+1].'/');
-                $route_length = strlen($route);
-                $route = substr($route, 0, $route_length-$slug_length);
+        foreach ($this->resolvers as $resolver) {
+            $resolver = is_object($resolver) ? $resolver : new $resolver;
+            foreach ($resolver->getUrls() as $sitemapUrl) {
+                $this->generator->addURL(
+                    $sitemapUrl->getLoc(),
+                    $sitemapUrl->getLastModified(),
+                    $sitemapUrl->getChangeFreq(),
+                    $sitemapUrl->getPriority()
+                );
             }
-
-            if (isset($this->routes[$route])) {
-                /** @var SitemapModule $module */
-                $module = new $this->routes[$route]();
-
-                $pages = array_splice($segments, $loop) ?: [];
-
-                $module->collect($pages, $segments);
-
-                return $module->getRoutes();
-            }
-            --$loop;
         }
-        return [];
+
+        $this->generator->createSitemap();
+        $this->generator->writeSitemap();
+
+        // Upload to s3
+        $this->uploadToS3();
+
+        $this->generator->submitSitemap();
+    }
+
+    /**
+     * Get and make an output directory
+     * @return string
+     */
+    protected function getOutputDir(): string
+    {
+        $outputDir = sys_get_temp_dir() . '/' . uniqid();
+        mkdir($outputDir . '/sitemaps', 0700, true);
+        return $outputDir;
+    }
+
+    /**
+     * Uploads to S3
+     * @return void
+     */
+    protected function uploadToS3(): void
+    {
+        $dir = $this->tmpOutputDirPath . '/sitemaps/';
+        $files = scandir($dir);
+        foreach ($files as $file) {
+            if ($file === '.' || $file === '..') {
+                continue;
+            }
+            $this->s3->putObject([
+                  'ACL' => 'public-read',
+                  'Bucket' => 'minds-sitemaps',
+                  'Key' => "minds.com/$file",
+                  'Body' => fopen($dir.$file, 'r'),
+              ]);
+            unlink($dir.$file);
+        }
+        rmdir($dir);
     }
 }

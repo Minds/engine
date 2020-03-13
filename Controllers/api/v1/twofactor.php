@@ -12,6 +12,7 @@ use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Security;
+use Minds\Core\SMS\Exceptions\VoIpPhoneException;
 use Minds\Entities;
 use Minds\Interfaces;
 
@@ -63,8 +64,15 @@ class twofactor implements Interfaces\Api
                 /** @var Core\SMS\SMSServiceInterface $sms */
                 $sms = Core\Di\Di::_()->get('SMS');
 
-                if (!$sms->verify($_POST['tel'])) {
-                    return Factory::response(['status' => 'error', 'message' => 'voip phones are not supported']);
+                try {
+                    if (!$sms->verify($_POST['tel'])) {
+                        throw new VoIpPhoneException();
+                    }
+                } catch (\Exception $e) {
+                    return Factory::response([
+                        'status' => 'error',
+                        'message' => $e->getMessage(),
+                    ]);
                 }
 
                 $message = 'From Minds.com: Your code is '. $twofactor->getCode($secret);
@@ -111,12 +119,12 @@ class twofactor implements Interfaces\Api
                 if ($twofactor->verifyCode($secret, $_POST['code'], 1)) {
                     global $TWOFACTOR_SUCCESS;
                     $TWOFACTOR_SUCCESS = true;
-                    
+
                     $sessions = Core\Di\Di::_()->get('Sessions\Manager');
                     $sessions->setUser($user);
                     $sessions->createSession();
                     $sessions->save(); // save to db and cookie
-                    
+
                     //\login($user, true);
 
                     $response['status'] = 'success';
@@ -129,14 +137,14 @@ class twofactor implements Interfaces\Api
                 break;
             case "remove":
                 $validator = Di::_()->get('Security\Password');
-            
+
                 if (!$validator->check(Core\Session::getLoggedinUser(), $_POST['password'])) {
                     return Factory::response([
                         'status' => 'error',
                         'message' => 'Password incorrect'
                     ]);
                 }
-        
+
                 $user = Core\Session::getLoggedInUser();
                 $user->twofactor = false;
                 $user->telno = false;

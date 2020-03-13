@@ -52,7 +52,8 @@ class Entity
         'moderatorGuid' => 'moderator_guid',
         'timeModerated' => 'time_moderated',
         'allowComments' => 'allow_comments',
-        'timeSent' => 'time_sent'
+        'timeSent' => 'time_sent',
+        'editorVersion' => 'editor_version'
     ];
 
     public static $jsonEncodedFields = [

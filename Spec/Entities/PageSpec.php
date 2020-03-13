@@ -68,7 +68,7 @@ class PageSpec extends ObjectBehavior
 
     public function it_should_throw_an_exception_on_failed_save(Call $db)
     {
-        $db->insert(Argument::type('string'), Argument::any())->willReturn(false);
+        $db->insert(Argument::type('string'), Argument::any(), Argument::any())->willReturn(false);
         $this->shouldThrow('\Exception')->during('save');
     }
 
