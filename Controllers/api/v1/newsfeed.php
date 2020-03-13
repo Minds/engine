@@ -537,7 +537,6 @@ class newsfeed implements Interfaces\Api
                     }
 
                     // Attachment
-                    // Depends on XXX, YYY, ZZZ being set
 
                     $entityGuid = $_POST['entity_guid'] ?? null;
 
@@ -650,7 +649,6 @@ class newsfeed implements Interfaces\Api
 
                 if ($entityGuid) {
                     // Attachment
-                    // Depends on XXX, YYY, ZZZ being set
 
                     if ($_POST['title'] ?? null) {
                         $activity->setTitle($_POST['title']);
