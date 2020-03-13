@@ -215,13 +215,13 @@ class AttachmentDelegate
             } catch (Exception $e) {
                 Log::error(sprintf("Cannot delete activity %s attachment: %s", $activity->guid, $attachmentGuid));
             }
-
-            // Set the activity entity GUID to an empty value, no matter what happened above
-            $activity->setEntityGuid(null);
-
-            // Empties the activity entity's custom meta attributes, no matter what happened above
-            $activity->setCustom(null, null);
         }
+
+        // Set the activity entity GUID to an empty value, no matter what happened above
+        $activity->setEntityGuid(null);
+
+        // Empties the activity entity's custom meta attributes, no matter what happened above
+        $activity->setCustom(null, null);
 
         return $activity;
     }
