@@ -361,6 +361,10 @@ class AttachmentDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($activity);
 
+        $activity->setCustom(null, null)
+            ->shouldBeCalled()
+            ->willReturn($activity);
+
         $this
             ->onDelete($activity)
             ->shouldReturn($activity);
