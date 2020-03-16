@@ -9,7 +9,7 @@ class EntitiesBuilder
 {
     /**
      * Build by a single guid
-     * @param $guid number
+     * @param $guid int|string
      * @param $opts array
      * @return Entity
      */
