@@ -508,48 +508,4 @@ class Repository
 
         return $sort;
     }
-
-    public function add(MetricsSync $metric)
-    {
-        $key = $metric->getMetric();
-
-        if ($metric->getPeriod()) {
-            $key .= ":{$metric->getPeriod()}";
-        }
-
-        $body = [
-            $key => $metric->getCount(),
-            "{$key}:synced" => $metric->getSynced()
-        ];
-
-        $this->pendingBulkInserts[] = [
-            'update' => [
-                '_id' => (string) $metric->getGuid(),
-                '_index' => 'minds_badger',
-                '_type' => $metric->getType(),
-            ],
-        ];
-
-        $this->pendingBulkInserts[] = [
-            'doc' => $body,
-            'doc_as_upsert' => true,
-        ];
-
-        if (count($this->pendingBulkInserts) > 2000) { //1000 inserts
-            $this->bulk();
-        }
-
-        return true;
-    }
-
-    /**
-     * Run a bulk insert job (quicker).
-     */
-    public function bulk()
-    {
-        if (count($this->pendingBulkInserts) > 0) {
-            $res = $this->client->bulk(['body' => $this->pendingBulkInserts]);
-            $this->pendingBulkInserts = [];
-        }
-    }
 }

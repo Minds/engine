@@ -3,7 +3,9 @@
 namespace Minds\Controllers\Cli\Top;
 
 use Exception;
-use Minds\Core\Feeds\Elastic\Sync;
+use Minds\Core\Di\Di;
+use Minds\Core\Search\MetricsSync\Manager;
+use Minds\Core\Search\MetricsSync\Resolvers;
 use Minds\Core\Minds;
 use Minds\Cli;
 use Minds\Exceptions\CliException;
@@ -21,8 +23,8 @@ class All extends Cli\Controller implements Interfaces\CliControllerInterface
     {
         $minds = new Minds();
         $minds->start();
-
-        $this->sync = new Sync();
+        Di::_()->get('Config')->set('min_log_level', 'INFO');
+        $this->sync = new Manager();
     }
 
     /**
@@ -130,10 +132,6 @@ class All extends Cli\Controller implements Interfaces\CliControllerInterface
      */
     protected function syncBy($type, $subtype, $metric, $from, $to): void
     {
-        if (!$metric) {
-            throw new CliException('Missing `metric`');
-        }
-
         if (!$from || !is_numeric($from)) {
             throw new CliException('Missing or invalid `from` value');
         }
@@ -144,6 +142,23 @@ class All extends Cli\Controller implements Interfaces\CliControllerInterface
 
         if ($from > $to) {
             throw new CliException('`from` must be lesser than `to`');
+        }
+
+        $resolvers = [];
+        switch ($metric) {
+            case 'up':
+                $resolvers[] = Resolvers\VotesUpMetricResolver::class;
+                break;
+            case 'down':
+                $resolvers[] = Resolvers\VotesDownMetricResolver::class;
+                break;
+            case 'comments':
+                $resolvers[] = Resolvers\CommentsCountMetricResolver::class;
+                break;
+            case '':
+                break;
+            default:
+                 throw new CliException('Metric not supported');
         }
 
         error_reporting(E_ALL);
@@ -161,10 +176,9 @@ class All extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->sync
             ->setType($type ?: '')
             ->setSubtype($subtype ?: '')
-            ->setMetric($metric)
             ->setFrom($from * 1000)
             ->setTo($to * 1000)
-            ->run();
+            ->run($resolvers);
 
         $this->out("\nCompleted syncing '{$displayType}'.");
     }

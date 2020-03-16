@@ -1,5 +1,5 @@
 <?php
-namespace Minds\Core\Feeds\Elastic;
+namespace Minds\Core\Search\MetricsSync;
 
 use Minds\Traits\MagicAttributes;
 
