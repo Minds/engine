@@ -531,7 +531,8 @@ class newsfeed implements Interfaces\Api
 
                     // Attachment and rich embed
 
-                    $canUpdateEntity = $activity->getEntityGuid() && $activity->getURL();
+                    // An activity can be updated ONLY if doesn't have either entity or URL
+                    $canUpdateEntity = !$activity->getEntityGuid() || !$activity->getURL();
 
                     $wasEntityUpdated = $_POST['entity_guid_update'] ?? false;
                     $entityGuid = $_POST['entity_guid'] ?? null;
