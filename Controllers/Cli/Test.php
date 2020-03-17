@@ -41,8 +41,8 @@ class Test extends Cli\Controller implements Interfaces\CliControllerInterface
         $options['guids'] = $result['guids'];
 
         $activities = Core\Entities::get(array_merge([
-                'type' => 'activity'
-            ], $options));
+            'type' => 'activity'
+        ], $options));
 
         $activities = array_filter($activities, function ($activity) {
             if ($activity->paywall) {
