@@ -95,8 +95,8 @@ class AttachmentDelegate
         }
 
         $attachment->title = $activity->title;
-
-        $attachment->access_id = 2;
+        $attachment->container_guid = $activity->getContainerGUID();
+        $attachment->access_id = $activity->getAccessID();
 
         if ($activity->license) {
             $attachment->license = $activity->license;
