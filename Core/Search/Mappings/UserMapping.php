@@ -18,11 +18,12 @@ class UserMapping extends EntityMapping implements MappingInterface
     public function __construct()
     {
         $this->mappings = array_merge($this->mappings, [
-            'username' => [ 'type' => 'text', '$exportField' => 'username' ],
-            'briefdescription' => [ 'type' => 'text', '$exportField' => 'briefdescription' ],
-            'group_membership' => [ 'type' => 'text' ],
-            'email_confirmed_at' => [ 'type' => 'date', '$exportField' => 'email_confirmed_at' ],
-            'suggest' => [ 'type' => 'completion' ]
+            'username' => ['type' => 'text', '$exportField' => 'username'],
+            'briefdescription' => ['type' => 'text', '$exportField' => 'briefdescription'],
+            'group_membership' => ['type' => 'text'],
+            'email_confirmed_at' => ['type' => 'date', '$exportField' => 'email_confirmed_at'],
+            'banned' => ['type' => 'text', '$exportField' => 'banned'],
+            'suggest' => ['type' => 'completion'],
         ]);
     }
 
@@ -38,9 +39,9 @@ class UserMapping extends EntityMapping implements MappingInterface
         //    unset($map['tags']);
         //}
 
-        if ($this->entity->isBanned() == 'yes') {
-            throw new BannedException('User is banned');
-        }
+        //        if ($this->entity->isBanned() == 'yes') {
+        //            throw new BannedException('User is banned');
+        //        }
 
         if (method_exists($this->entity, 'isMature')) {
             $map['mature'] = $this->entity->isMature();
@@ -71,6 +72,10 @@ class UserMapping extends EntityMapping implements MappingInterface
     {
         $map = parent::suggestMap($defaultValues);
 
+        if ($this->entity->isBanned()) {
+            return [];
+        }
+
         $name = preg_replace('/[0-9]*/', '', $this->entity->name);
         $username = preg_replace('/[0-9]*/', '', $this->entity->username);
 
@@ -79,14 +84,14 @@ class UserMapping extends EntityMapping implements MappingInterface
             return $map;
         }
 
-        $inputs = [ $username, $name ];
+        $inputs = [$username, $name];
         //split out the name based on CamelCase
         $nameParts = preg_split('/([\s])?(?=[A-Z])/', $name, -1, PREG_SPLIT_NO_EMPTY);
         $inputs = array_unique(array_merge($inputs, $this->permutateInputs($nameParts)));
 
         $map = array_merge($map, [
             'input' => array_values($inputs),
-            'weight' => count(array_values($inputs)) == 1 ? 4 : 2
+            'weight' => count(array_values($inputs)) == 1 ? 4 : 2,
         ]);
 
         if ($this->entity->featured_id) {

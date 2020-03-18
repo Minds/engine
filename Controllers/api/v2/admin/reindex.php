@@ -6,15 +6,16 @@
 namespace Minds\Controllers\api\v2\admin;
 
 use Minds\Api\Factory;
-use Minds\Entities;
 use Minds\Core\Di\Di;
+use Minds\Core\Events\EventsDispatcher;
+use Minds\Entities;
 use Minds\Interfaces;
 
 class reindex implements Interfaces\Api, Interfaces\ApiAdminPam
 {
     /**
      * Equivalent to HTTP GET method
-     * @param  array $pages
+     * @param array $pages
      * @return mixed|null
      */
     public function get($pages)
@@ -24,7 +25,7 @@ class reindex implements Interfaces\Api, Interfaces\ApiAdminPam
 
     /**
      * Equivalent to HTTP POST method
-     * @param  array $pages
+     * @param array $pages
      * @return mixed|null
      */
     public function post($pages)
@@ -41,12 +42,12 @@ class reindex implements Interfaces\Api, Interfaces\ApiAdminPam
             return Factory::response(['status' => 'error', 'message' => 'Entity not found.']);
         }
 
-        /** @var Core\Events\Dispatcher $dispatcher */
+        /** @var EventsDispatcher $dispatcher */
         $dispatcher = Di::_()->get('EventsDispatcher');
 
         $dispatcher->trigger('search:index', 'all', [
             'entity' => $entity,
-            'immediate' => true
+            'immediate' => true,
         ]);
 
         return Factory::response([]);
@@ -54,7 +55,7 @@ class reindex implements Interfaces\Api, Interfaces\ApiAdminPam
 
     /**
      * Equivalent to HTTP PUT method
-     * @param  array $pages
+     * @param array $pages
      * @return mixed|null
      */
     public function put($pages)
@@ -64,7 +65,7 @@ class reindex implements Interfaces\Api, Interfaces\ApiAdminPam
 
     /**
      * Equivalent to HTTP DELETE method
-     * @param  array $pages
+     * @param array $pages
      * @return mixed|null
      */
     public function delete($pages)

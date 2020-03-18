@@ -1389,6 +1389,9 @@
         "subtype": {
           "type": "text"
         },
+        "banned": {
+          "type": "text"
+        },
         "suggest": {
           "type": "completion",
           "analyzer": "simple",

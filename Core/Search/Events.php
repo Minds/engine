@@ -8,6 +8,7 @@ use Exception;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Event;
+use Minds\Core\Events\EventsDispatcher;
 
 class Events
 {
@@ -29,7 +30,7 @@ class Events
                     return;
                 }
 
-                /** @var Core\Events\Dispatcher $dispatcher */
+                /** @var EventsDispatcher $dispatcher */
                 $dispatcher = Di::_()->get('EventsDispatcher');
 
                 if ($params['immediate']) {
