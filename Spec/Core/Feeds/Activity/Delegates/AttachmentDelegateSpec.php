@@ -72,7 +72,27 @@ class AttachmentDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($video);
 
-        $video->set('access_id', 2)
+        $activity->getMessage()
+            ->shouldBeCalled()
+            ->willReturn('phpspec test');
+
+        $video->setDescription('phpspec test')
+            ->shouldBeCalled()
+            ->willReturn($video);
+
+        $activity->getContainerGUID()
+            ->shouldBeCalled()
+            ->willReturn(888);
+
+        $video->set('container_guid', 888)
+            ->shouldBeCalled()
+            ->willReturn($video);
+
+        $activity->getAccessID()
+            ->shouldBeCalled()
+            ->willReturn(999);
+
+        $video->set('access_id', 999)
             ->shouldBeCalled()
             ->willReturn($video);
 
@@ -129,6 +149,14 @@ class AttachmentDelegateSpec extends ObjectBehavior
             ->willReturn(998877);
 
         $video->set('time_created', 998877)
+            ->shouldBeCalled()
+            ->willReturn($video);
+
+        $activity->getTags()
+            ->shouldBeCalled()
+            ->willReturn(['tag1', 'tag2']);
+
+        $video->setTags(['tag1', 'tag2'])
             ->shouldBeCalled()
             ->willReturn($video);
 
@@ -203,7 +231,27 @@ class AttachmentDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($image);
 
-        $image->set('access_id', 2)
+        $activity->getMessage()
+            ->shouldBeCalled()
+            ->willReturn('phpspec test');
+
+        $image->setDescription('phpspec test')
+            ->shouldBeCalled()
+            ->willReturn($image);
+
+        $activity->getContainerGUID()
+            ->shouldBeCalled()
+            ->willReturn(888);
+
+        $image->set('container_guid', 888)
+            ->shouldBeCalled()
+            ->willReturn($image);
+
+        $activity->getAccessID()
+            ->shouldBeCalled()
+            ->willReturn(999);
+
+        $image->set('access_id', 999)
             ->shouldBeCalled()
             ->willReturn($image);
 
@@ -251,6 +299,14 @@ class AttachmentDelegateSpec extends ObjectBehavior
             ->willReturn(998877);
 
         $image->set('time_created', 998877)
+            ->shouldBeCalled()
+            ->willReturn($image);
+
+        $activity->getTags()
+            ->shouldBeCalled()
+            ->willReturn(['tag1', 'tag2']);
+
+        $image->setTags(['tag1', 'tag2'])
             ->shouldBeCalled()
             ->willReturn($image);
 

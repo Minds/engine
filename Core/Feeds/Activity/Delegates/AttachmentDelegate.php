@@ -95,6 +95,7 @@ class AttachmentDelegate
         }
 
         $attachment->title = $activity->title;
+        $attachment->setDescription($activity->getMessage());
         $attachment->container_guid = $activity->getContainerGUID();
         $attachment->access_id = $activity->getAccessID();
 
@@ -124,6 +125,9 @@ class AttachmentDelegate
 
         $attachment
             ->set('time_created', $activity->getTimeCreated());
+
+        $attachment
+            ->setTags($activity->getTags() ?: []);
 
         switch ($attachment->subtype) {
             case 'image':
