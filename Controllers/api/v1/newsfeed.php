@@ -464,15 +464,8 @@ class newsfeed implements Interfaces\Api
                         return Factory::response(['status' => 'error', 'message' => 'Post not editable']);
                     }
 
-                    $allowed = ['message', 'title'];
-                    foreach ($allowed as $allowed) {
-                        if (isset($_POST[$allowed]) && $_POST[$allowed] !== false) {
-                            $activity->$allowed = $_POST[$allowed];
-                        }
-                    }
-
-                    if (isset($_POST['thumbnail'])) {
-                        $activity->setThumbnail($_POST['thumbnail']);
+                    if (isset($_POST['message'])) {
+                        $activity->setMessage($_POST['message']);
                     }
 
                     if (isset($_POST['mature'])) {
@@ -536,34 +529,52 @@ class newsfeed implements Interfaces\Api
                         $activity->setLicense($license);
                     }
 
-                    // Attachment
+                    // Attachment and rich embed
 
+                    // An activity can be updated ONLY if doesn't have either entity or URL
+                    $canUpdateEntity = !$activity->getEntityGuid() || !$activity->getURL();
+
+                    $wasEntityUpdated = $_POST['entity_guid_update'] ?? false;
                     $entityGuid = $_POST['entity_guid'] ?? null;
 
-                    if ($_POST['entity_guid_update'] ?? false) {
-                        // Changes only if entity_guid_update is set
+                    // - Attachment
 
-                        if ($entityGuid) {
-                            // TODO: Remove rich embed, if exists?
-
-                            if ($_POST['title'] ?? null) {
-                                $activity->setTitle($_POST['title']);
-                            }
-                        }
-
-                        // Edits the attachment, if needed
+                    // Changes only if entity_guid_update is set
+                    if ($wasEntityUpdated && $canUpdateEntity) {
+                        // Edit the attachment, if needed
                         $activity = (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
                             ->setActor(Core\Session::getLoggedinUser())
                             ->onEdit($activity, (string) $entityGuid);
+
+                        // Clean rich embed
+                        $activity
+                            ->setTitle('')
+                            ->setBlurb('')
+                            ->setURL('')
+                            ->setThumbnail('');
+
+                        if ($activity->getEntityGuid() && ($_POST['title'] ?? null)) {
+                            // Re-set title if passed
+                            $activity->setTitle($_POST['title']);
+                        }
+                    }
+
+                    // - Rich Embed
+
+                    if (!$activity->getEntityGuid() && $canUpdateEntity) {
+                        // Set-up rich embed
+
+                        $activity
+                            ->setTitle(rawurldecode($_POST['title'] ?? ''))
+                            ->setBlurb(rawurldecode($_POST['description'] ?? ''))
+                            ->setURL(rawurldecode($_POST['url'] ?? ''))
+                            ->setThumbnail($_POST['thumbnail'] ?? '');
                     }
 
                     //
 
-                    // TODO: Remove title if not a rich embed
-
-                    //
-
-                    $save->setEntity($activity)
+                    $save
+                        ->setEntity($activity)
                         ->save();
 
                     (new Core\Entities\PropagateProperties())->from($activity);
@@ -646,8 +657,9 @@ class newsfeed implements Interfaces\Api
                 $activity->setLicense($_POST['license'] ?? $_POST['attachment_license'] ?? '');
 
                 $entityGuid = $_POST['entity_guid'] ?? $_POST['attachment_guid'] ?? null;
+                $url = $_POST['url'] ?? null;
 
-                if ($entityGuid) {
+                if ($entityGuid && !$url) {
                     // Attachment
 
                     if ($_POST['title'] ?? null) {
@@ -658,7 +670,7 @@ class newsfeed implements Interfaces\Api
                     $activity = (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
                         ->setActor(Core\Session::getLoggedinUser())
                         ->onCreate($activity, (string) $entityGuid);
-                } elseif ($_POST['title'] ?? null) {
+                } elseif (!$entityGuid && $url) {
                     // Set-up rich embed
 
                     $activity
@@ -666,6 +678,9 @@ class newsfeed implements Interfaces\Api
                         ->setBlurb(rawurldecode($_POST['description']))
                         ->setURL(rawurldecode($_POST['url']))
                         ->setThumbnail($_POST['thumbnail']);
+                } else {
+                    // TODO: Handle immutable embeds (like blogs, which have an entity_guid and a URL)
+                    // These should not appear naturally when creating, but might be implemented in the future.
                 }
 
                 try {
