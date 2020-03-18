@@ -171,22 +171,23 @@ class EntityMapping implements MappingInterface
             $fullText .= ' ' . $map['message'];
         }
 
+        if (isset($map['description'])) {
+            $fullText .= ' ' . $map['description'];
+        }
+
         $htRe = '/(^|\s||)#(\w*[a-zA-Z0-9_]+\w*)/';
         $matches = [];
 
         preg_match_all($htRe, $fullText, $matches);
 
-        $tags = [];
+        $messageTags = ($matches[2] ?? null) ?: [];
+        $entityTags = method_exists($this->entity, 'getTags') ? ($this->entity->getTags() ?: []) : [];
 
-        if (isset($matches[2]) && $matches[2]) {
-            $tags = array_values(array_unique($matches[2]));
-        }
+        $tags = array_map(function ($tag) {
+            return strtolower(trim($tag, " \t\n\r\0\x0B#"));
+        }, array_merge($map['tags'] ?? [], $messageTags, $entityTags));
 
-        if (!isset($map['tags'])) {
-            $map['tags'] = [];
-        }
-
-        $map['tags'] = array_values(array_unique(array_merge($map['tags'], array_map('strtolower', $tags))));
+        $map['tags'] = array_values(array_unique($tags));
 
         $map['nsfw'] = array_unique($this->entity->getNsfw());
 

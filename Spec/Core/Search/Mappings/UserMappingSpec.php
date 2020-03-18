@@ -112,6 +112,7 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('username')->willReturn('phpspec');
         $user->get('briefdescription')->willReturn('PHPSpec Brief Description #invalidhashtag');
         $user->get('rating')->willReturn(1);
+        $user->getTags()->willReturn([ 'spaceiscool' ]);
         $user->isBanned()->willReturn(true);
 
         $user->getNsfw()->willReturn([ 1 ]);
