@@ -534,41 +534,43 @@ class newsfeed implements Interfaces\Api
                     // An activity can be updated ONLY if doesn't have either entity or URL
                     $canUpdateEntity = !$activity->getEntityGuid() || !$activity->getURL();
 
-                    $wasEntityUpdated = $_POST['entity_guid_update'] ?? false;
-                    $entityGuid = $_POST['entity_guid'] ?? null;
+                    if ($canUpdateEntity) {
+                        $wasEntityUpdated = $_POST['entity_guid_update'] ?? false;
+                        $entityGuid = $_POST['entity_guid'] ?? null;
 
-                    // - Attachment
+                        // - Attachment
 
-                    // Changes only if entity_guid_update is set
-                    if ($wasEntityUpdated && $canUpdateEntity) {
-                        // Edit the attachment, if needed
-                        $activity = (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
-                            ->setActor(Core\Session::getLoggedinUser())
-                            ->onEdit($activity, (string) $entityGuid);
+                        // Changes only if entity_guid_update is set
+                        if ($wasEntityUpdated) {
+                            // Edit the attachment, if needed
+                            $activity = (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
+                                ->setActor(Core\Session::getLoggedinUser())
+                                ->onEdit($activity, (string) $entityGuid);
 
-                        // Clean rich embed
-                        $activity
-                            ->setTitle('')
-                            ->setBlurb('')
-                            ->setURL('')
-                            ->setThumbnail('');
+                            // Clean rich embed
+                            $activity
+                                ->setTitle('')
+                                ->setBlurb('')
+                                ->setURL('')
+                                ->setThumbnail('');
 
-                        if ($activity->getEntityGuid() && ($_POST['title'] ?? null)) {
-                            // Re-set title if passed
-                            $activity->setTitle($_POST['title']);
+                            if ($activity->getEntityGuid() && ($_POST['title'] ?? null)) {
+                                // Re-set title if passed
+                                $activity->setTitle($_POST['title']);
+                            }
                         }
-                    }
 
-                    // - Rich Embed
+                        // - Rich Embed
 
-                    if (!$activity->getEntityGuid() && $canUpdateEntity) {
-                        // Set-up rich embed
+                        if (!$activity->getEntityGuid()) {
+                            // Set-up rich embed
 
-                        $activity
-                            ->setTitle(rawurldecode($_POST['title'] ?? ''))
-                            ->setBlurb(rawurldecode($_POST['description'] ?? ''))
-                            ->setURL(rawurldecode($_POST['url'] ?? ''))
-                            ->setThumbnail($_POST['thumbnail'] ?? '');
+                            $activity
+                                ->setTitle(rawurldecode($_POST['title'] ?? ''))
+                                ->setBlurb(rawurldecode($_POST['description'] ?? ''))
+                                ->setURL(rawurldecode($_POST['url'] ?? ''))
+                                ->setThumbnail($_POST['thumbnail'] ?? '');
+                        }
                     }
 
                     //
