@@ -5,7 +5,9 @@ namespace Spec\Minds\Core\Email\Confirmation;
 use Exception;
 use Minds\Common\Jwt;
 use Minds\Core\Config;
+use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Email\Confirmation\Manager;
+use Minds\Core\Entities\Resolver;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Queue\Interfaces\QueueClient;
 use Minds\Entities\User;
@@ -24,8 +26,14 @@ class ManagerSpec extends ObjectBehavior
     /** @var QueueClient */
     protected $queue;
 
+    /** @var Client */
+    protected $es;
+
     /** @var UserFactory */
     protected $userFactory;
+
+    /** @var Resolver */
+    protected $resolver;
 
     /** @var EventsDispatcher */
     protected $eventsDispatcher;
@@ -34,22 +42,26 @@ class ManagerSpec extends ObjectBehavior
         Config $config,
         Jwt $jwt,
         QueueClient $queue,
+        Client $es,
         UserFactory $userFactory,
+        Resolver $resolver,
         EventsDispatcher $eventsDispatcher
     ) {
         $this->config = $config;
         $this->jwt = $jwt;
         $this->queue = $queue;
+        $this->es = $es;
         $this->userFactory = $userFactory;
+        $this->resolver = $resolver;
         $this->eventsDispatcher = $eventsDispatcher;
 
         $this->config->get('email_confirmation')
             ->willReturn([
                 'expiration' => 30,
-                'signing_key' => '~key~'
+                'signing_key' => '~key~',
             ]);
 
-        $this->beConstructedWith($config, $jwt, $queue, $userFactory, $eventsDispatcher);
+        $this->beConstructedWith($config, $jwt, $queue, $es, $userFactory, $resolver, $eventsDispatcher);
     }
 
     public function it_is_initializable()
@@ -93,7 +105,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->eventsDispatcher->trigger('confirmation_email', 'all', [
             'user_guid' => '1000',
-            'cache' => false
+            'cache' => false,
         ])
             ->shouldBeCalled()
             ->willReturn(true);
@@ -202,7 +214,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($this->queue);
 
         $this->queue->send([
-            'user_guid' => '1000'
+            'user_guid' => '1000',
         ])
             ->shouldBeCalled()
             ->willReturn(true);
@@ -335,5 +347,63 @@ class ManagerSpec extends ObjectBehavior
         $this
             ->shouldThrow(new Exception('Invalid confirmation token data'))
             ->duringConfirm('~token~');
+    }
+
+    public function it_should_fetch_unverified_users(User $user1, User $user2)
+    {
+        $this->es->request(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn([
+                'hits' => [
+                    'hits' => [
+                        [
+                            '_source' => [
+                                'guid' => '1',
+                            ],
+                        ],
+                        [
+                            '_source' => [
+                                'guid' => '2',
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+
+        $this->resolver->setUrns(Argument::that(function ($urns) {
+            return $urns[0]->getUrn() === 'urn:user:1'
+                && $urns[1]->getUrn() === 'urn:user:2';
+        }))
+            ->shouldBeCalled();
+
+        $this->resolver->fetch()
+            ->shouldBeCalled()
+            ->willReturn([$user1, $user2]);
+
+        $this->fetchNewUnverifiedUsers()
+            ->shouldReturn([$user1, $user2]);
+    }
+
+    public function it_should_fetch_unverified_users_but_not_find_any(User $user1, User $user2)
+    {
+        $this->es->request(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn([
+                'hits' => [
+                    'hits' => [],
+                ],
+            ]);
+
+        $this->resolver->setUrns(Argument::that(function ($urns) {
+            return count($urns) === 0;
+        }))
+            ->shouldBeCalled();
+
+        $this->resolver->fetch()
+            ->shouldBeCalled()
+            ->willReturn([$user1, $user2]);
+
+        $this->fetchNewUnverifiedUsers()
+            ->shouldReturn([$user1, $user2]);
     }
 }
