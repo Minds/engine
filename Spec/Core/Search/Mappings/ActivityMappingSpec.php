@@ -74,7 +74,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'activity',
                 'public' => true,
-                'tags' => [ 'test', 'hashtag', 'spaceiscool' ],
+                'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ]
             ]);
     }
@@ -139,7 +139,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'activity',
                 'public' => true,
-                'tags' => [ 'test', 'hashtag', 'spaceiscool' ],
+                'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',
                 '@moderated' => $now * 1000
