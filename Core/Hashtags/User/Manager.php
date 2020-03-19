@@ -87,7 +87,8 @@ class Manager
         $trending = [];
 
         if ($opts['trending']) {
-            $cached = $this->cacher->get($this->getCacheKey('trending'));
+            // $cached = $this->cacher->get($this->getCacheKey('trending'));
+            $cached = false;
 
             if ($cached !== false) {
                 $trending = json_decode($cached, true);
@@ -96,16 +97,14 @@ class Manager
 
                 if ($results) {
                     $trending = $results;
-                    $this->cacher->set($this->getCacheKey('trending'), json_encode($trending), 60 * 15); // 15 minutes
+                    // $this->cacher->set($this->getCacheKey('trending'), json_encode($trending), 60 * 15); // 15 minutes
                 }
             }
         }
 
         // Default hashtags
 
-        if ($opts['defaults']) {
-            $defaults = $opts['defaults'] ? $this->config->get('tags') : [];
-        }
+        $defaults = $opts['defaults'] ? $this->config->get('tags') : [];
 
         // Merge and output
 
@@ -120,8 +119,11 @@ class Manager
                 'type' => 'user',
             ];
         }
-
+        
         foreach ($trending as $tag) {
+            $posts = $tag['posts'];
+            $votes = $tag['votes'];
+            $tag = $tag['tag'];
             if (isset($output[$tag])) {
                 continue;
             }
@@ -129,6 +131,8 @@ class Manager
             $output[$tag] = [
                 'selected' => false,
                 'value' => $tag,
+                'posts_count' => $posts,
+                'votes_count' => $votes,
                 'type' => 'trending',
             ];
         }
