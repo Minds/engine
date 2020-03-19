@@ -71,7 +71,7 @@ class ObjectVideoMappingSpec extends ObjectBehavior
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'object:video',
                 'public' => true,
-                'tags' => [ 'test', 'hashtag', 'spaceiscool' ],
+                'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',
                 '@moderated' => $now * 1000

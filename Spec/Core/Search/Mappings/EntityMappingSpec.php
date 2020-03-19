@@ -134,7 +134,7 @@ class EntityMappingSpec extends ObjectBehavior
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'entity',
                 'public' => true,
-                'tags' => [ 'test', 'hashtag', 'spaceiscool' ],
+                'tags' => [ 'hashtag', 'spaceiscool', 'test' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',
                 '@moderated' => $now * 1000

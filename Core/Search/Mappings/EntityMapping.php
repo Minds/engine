@@ -188,7 +188,7 @@ class EntityMapping implements MappingInterface
 
         $tags = array_map(function ($tag) {
             return strtolower(trim($tag, " \t\n\r\0\x0B#"));
-        }, array_merge($entityTags, $messageTags,$map['tags'] ?? []));
+        }, array_merge($entityTags, $messageTags, $map['tags'] ?? []));
 
         $map['tags'] = array_slice(array_values(array_unique($tags)), 0, static::MAX_HASHTAGS);
 
