@@ -22,10 +22,14 @@ class Repository
     /** @var ElasticSearchClient $es */
     protected $es;
 
-    public function __construct($db = null, $es = null)
+    /** @var Config */
+    protected $config;
+
+    public function __construct($db = null, $es = null, $config = null)
     {
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
         $this->es = $es ?: Di::_()->get('Database\ElasticSearch');
+        $this->config = $config ?: Di::_()->get('Config');
     }
 
     /**
@@ -36,7 +40,7 @@ class Repository
     {
         $opts = array_merge([
             'limit' => 12,
-            'from' => strtotime('-24 hours', time()),
+            'from' => strtotime('-12 hours', time()),
         ], $opts);
 
         $body = [
@@ -59,11 +63,6 @@ class Repository
                                         'nsfw' => [ 1, 2, 3, 4, 5, 6 ],
                                     ],
                                 ],
-                                [
-                                    'terms' => [
-                                        'tags' => array_column($this->getHidden(), 'hashtag'),
-                                    ],
-                                ],
                             ],
                         ],
                     ],
@@ -73,9 +72,10 @@ class Repository
                 'tags' => [
                     'terms' => [
                         'field' => 'tags.keyword',
-                        'size' => $opts['limit'] * 20,
+                        'size' => $opts['limit'],
+                        'exclude' => array_merge($this->config->get('tags'), array_column($this->getHidden(), 'hashtag')),
                         'order' => [
-                            'counts' => 'desc',
+                            'owners' => 'desc',
                         ],
                     ],
                     'aggs' => [
@@ -111,14 +111,18 @@ class Repository
         $rows = $result['aggregations']['tags']['buckets'];
 
         usort($rows, function ($a, $b) {
-            $a_score = $this->getConfidenceScore($a['owners']['value'], $a['doc_count']);
-            $b_score = $this->getConfidenceScore($b['owners']['value'], $b['doc_count']);
+            $a_score = $this->getConfidenceScore($a['owners']['value'], $a['counts']['value']);
+            $b_score = $this->getConfidenceScore($b['owners']['value'], $b['counts']['value']);
 
             return $a_score < $b_score ? 1 : 0;
         });
 
         foreach ($rows as $row) {
-            $response[] = $row['key'];
+            $response[] = [
+                'tag' => $row['key'],
+                'posts' => $row['doc_count'],
+                'votes' => $row['counts']['value']
+            ];
             if (count($response) > $opts['limit']) {
                 break;
             }
