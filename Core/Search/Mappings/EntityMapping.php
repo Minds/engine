@@ -10,6 +10,9 @@ namespace Minds\Core\Search\Mappings;
 
 class EntityMapping implements MappingInterface
 {
+    /** @var int */
+    const MAX_HASHTAGS = 5;
+
     /** @var array $mappings */
     protected $mappings = [
         '@timestamp' => [ 'type' => 'date' ],
@@ -185,9 +188,9 @@ class EntityMapping implements MappingInterface
 
         $tags = array_map(function ($tag) {
             return strtolower(trim($tag, " \t\n\r\0\x0B#"));
-        }, array_merge($map['tags'] ?? [], $messageTags, $entityTags));
+        }, array_merge($entityTags, $messageTags,$map['tags'] ?? []));
 
-        $map['tags'] = array_values(array_unique($tags));
+        $map['tags'] = array_slice(array_values(array_unique($tags)), 0, static::MAX_HASHTAGS);
 
         $map['nsfw'] = array_unique($this->entity->getNsfw());
 
