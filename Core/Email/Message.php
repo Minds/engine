@@ -13,6 +13,7 @@ class Message
     use MagicAttributes;
     public $from = [];
     public $to = [];
+    public $replyTo = [];
     public $subject = '';
     public $html = '';
     public $messageId = '';
@@ -111,5 +112,29 @@ class Message
     public function buildHtml()
     {
         return $this->html->render();
+    }
+
+    /**
+     * Get reply-to.
+     *
+     * @return array array containing email and username.
+     */
+    public function getReplyTo()
+    {
+        return $this->replyTo ?? [];
+    }
+    /**
+     * Set reply-to.
+     *
+     * @param string $email - the email address for the reply.
+     * @param string $name - the name to be replied to.
+     *
+     * @return Message returns $this instance for chaining.
+     */
+    public function setReplyTo($email, $name = 'Minds'): Message
+    {
+        $this->replyTo['email'] = $email;
+        $this->replyTo['name'] = $name;
+        return $this;
     }
 }
