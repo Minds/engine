@@ -51,8 +51,18 @@ class Mailer
         $this->mailer->ClearAllRecipients();
         $this->mailer->ClearAttachments();
 
-        $this->mailer->From = $message->from['email'];
-        $this->mailer->FromName = $message->from['name'];
+        if ($message->getReplyTo()) {
+            $this->mailer->ClearReplyTos();
+            $this->mailer->addReplyTo(
+                $message->getReplyTo()['email'],
+                $message->getReplyTo()['name'] ?? 'Minds'
+            );
+        }
+        
+        $this->mailer->setFrom(
+            $message->from['email'],
+            $message->from['name'] ?? 'Minds'
+        );
 
         foreach ($message->to as $to) {
             if ($this->filter->isSpam($to['email'])) {

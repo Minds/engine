@@ -7,6 +7,7 @@ use Minds\Cli;
 use Minds\Interfaces;
 use Minds\Exceptions;
 use Minds\Entities;
+use Minds\Core\Channels\Ban;
 
 class User extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -80,6 +81,48 @@ class User extends Cli\Controller implements Interfaces\CliControllerInterface
             $this->out("An error has occured");
             $this->out($e);
         }
+    }
+
+    /**
+     * Ban a user.
+     * Requires username.
+     * Optionally pass in reason
+     * Example call: php ./cli.php User ban --username=testuser123 --reason=1
+     * @return void
+     */
+    public function ban()
+    {
+        if (!$this->getOpt('username')) {
+            throw new Exceptions\CliException('Missing username');
+        }
+        $username = $this->getOpt('username');
+        $ban = new Ban();
+        $user = new Entities\User($this->getOpt('username'));
+        $ban->setUser($user);
+        $this->out("Banning ".$username."...");
+        $ban->ban($this->getOpt('reason') ?? 1);
+        $this->out("Success if there are no errors above. Banned ".$username.".");
+    }
+
+    /**
+     * Unban a user.
+     * Requires username.
+     *
+     * Example call: php ./cli.php User unban --username=testuser123
+     * @return void
+     */
+    public function unban()
+    {
+        if (!$this->getOpt('username')) {
+            throw new Exceptions\CliException('Missing username');
+        }
+        $username = $this->getOpt('username');
+        $ban = new Ban();
+        $user = new Entities\User();
+        $ban->setUser($user);
+        $this->out("Unbanning ".$username);
+        $ban->unban();
+        $this->out("Success if there are no errors above. Unbanned ".$username.".");
     }
 
     public function register_complete()
