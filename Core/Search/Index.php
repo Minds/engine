@@ -96,7 +96,7 @@ class Index
                 }
             }
         } catch (BannedException $e) {
-            $result = null;
+            $result = true; // Null was resolving as 'false' so setting to true
         } catch (\Exception $e) {
             error_log('[Search/Index] ' . get_class($e) . ": {$e->getMessage()}");
             $result = false;
