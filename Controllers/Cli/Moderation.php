@@ -20,7 +20,7 @@ class Moderation extends Cli\Controller implements Interfaces\CliControllerInter
     {
         $this->out('TBD');
     }
-    
+
     public function exec()
     {
         error_reporting(E_ALL);
@@ -84,7 +84,7 @@ class Moderation extends Cli\Controller implements Interfaces\CliControllerInter
         $queueClient
             ->setQueue('ReportsAppealSummon')
             ->send([
-                'appeal' => $appeal,
+                'appeal' => serialize($appeal),
                 'cohort' => $guids ?: null,
             ]);
 
