@@ -148,8 +148,8 @@ class settings implements Interfaces\Api
             $user->setToasterNotifications((bool) $_POST['toaster_notifications']);
         }
 
-        if (isset($_POST['autoplay_videos'])) {
-            $user->setAutoplayVideos((bool) $_POST['autoplay_videos']);
+        if (isset($_POST['disable_autoplay_videos'])) {
+            $user->setDisableAutoplayVideos((bool) $_POST['disable_autoplay_videos']);
         }
 
         if (isset($_POST['hide_share_buttons'])) {
