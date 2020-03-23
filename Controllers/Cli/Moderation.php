@@ -83,7 +83,7 @@ class Moderation extends Cli\Controller implements Interfaces\CliControllerInter
             ->setOwnerGuid($report->getEntityOwnerGuid())
             ->setNote($note);
 
-        /** @var Core\Reports\Appeals\Manager $appeals */
+        /** @var Core\Reports\Appeals\Manager $appealsManager */
         $appealsManager = Di::_()->get('Moderation\Appeals\Manager');
 
         $success = $appealsManager->appeal($appeal);
@@ -96,7 +96,7 @@ class Moderation extends Cli\Controller implements Interfaces\CliControllerInter
         $queueClient
             ->setQueue('ReportsAppealSummon')
             ->send([
-                'appeal' => $appeal,
+                'appeal' => serialize($appeal),
                 'cohort' => $guids ?: null,
             ]);
 
