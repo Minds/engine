@@ -75,7 +75,7 @@ class Repository
         ], $opts);
 
         if (!$opts['type']) {
-            throw new \Exception('Type must be provided');
+            //   throw new \Exception('Type must be provided');
         }
 
         if (!$opts['algorithm']) {
@@ -128,6 +128,9 @@ class Repository
                 } else {
                     $algorithm = new SortingAlgorithms\Top();
                 }
+                break;
+            case "topV2":
+                $algorithm = new SortingAlgorithms\TopV2();
                 break;
             case "controversial":
                 $algorithm = new SortingAlgorithms\Controversial();
