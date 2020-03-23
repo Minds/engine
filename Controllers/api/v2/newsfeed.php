@@ -1,12 +1,9 @@
 <?php
 /**
- * Minds Newsfeed API
- *
- * @version 1
- * @author Mark Harding
+ * Minds Newsfeed API.
  */
 
-namespace Minds\Controllers\api\v1;
+namespace Minds\Controllers\api\v2;
 
 use Minds\Api\Factory;
 use Minds\Core;
@@ -14,13 +11,13 @@ use Minds\Core\Security;
 use Minds\Entities;
 use Minds\Entities\Activity;
 use Minds\Helpers;
-use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Helpers\Counters;
 use Minds\Interfaces;
 use Minds\Interfaces\Flaggable;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
 
+// WIP: Modernize. Use PSR-7 router.
 class newsfeed implements Interfaces\Api
 {
     /**
@@ -82,7 +79,7 @@ class newsfeed implements Interfaces\Api
                         'rating' => isset($_GET['rating']) ? (int) $_GET['rating'] : 1,
                         'limit' => 12,
                         'offset' => $offset
-                      ]);
+                    ]);
                 ksort($result['guids']);
                 $options['guids'] = $result['guids'];
                 if (!$options['guids']) {
@@ -464,15 +461,8 @@ class newsfeed implements Interfaces\Api
                         return Factory::response(['status' => 'error', 'message' => 'Post not editable']);
                     }
 
-                    $allowed = ['message', 'title'];
-                    foreach ($allowed as $allowed) {
-                        if (isset($_POST[$allowed]) && $_POST[$allowed] !== false) {
-                            $activity->$allowed = $_POST[$allowed];
-                        }
-                    }
-
-                    if (isset($_POST['thumbnail'])) {
-                        $activity->setThumbnail($_POST['thumbnail']);
+                    if (isset($_POST['message'])) {
+                        $activity->setMessage($_POST['message']);
                     }
 
                     if (isset($_POST['mature'])) {
@@ -514,10 +504,12 @@ class newsfeed implements Interfaces\Api
                     $activity->indexes = ["activity:$activity->owner_guid:edits"]; //don't re-index on edit
                     (new Core\Translation\Storage())->purge($activity->guid);
 
-                    if (isset($_POST['time_created']) && ($_POST['time_created'] != $activity->getTimeCreated())) {
+                    $scheduled = $_POST['time_created'] ?? null;
+
+                    if ($scheduled && ($scheduled != $activity->getTimeCreated())) {
                         try {
                             $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
-                            $timeCreatedDelegate->onUpdate($activity, $_POST['time_created'], time());
+                            $timeCreatedDelegate->onUpdate($activity, $scheduled, $activity->getTimeSent());
                         } catch (\Exception $e) {
                             return Factory::response([
                                 'status' => 'error',
@@ -526,7 +518,62 @@ class newsfeed implements Interfaces\Api
                         }
                     }
 
-                    $save->setEntity($activity)
+                    // Activity license
+
+                    $license = $_POST['license'] ?? $_POST['attachment_license'] ?? '';
+
+                    if ($license) {
+                        $activity->setLicense($license);
+                    }
+
+                    // Attachment and rich embed
+
+                    // An activity can be updated ONLY if doesn't have either entity or URL
+                    $canUpdateEntity = !$activity->getEntityGuid() || !$activity->getURL();
+
+                    if ($canUpdateEntity) {
+                        $wasEntityUpdated = $_POST['entity_guid_update'] ?? false;
+                        $entityGuid = $_POST['entity_guid'] ?? null;
+
+                        // - Attachment
+
+                        // Changes only if entity_guid_update is set
+                        if ($wasEntityUpdated) {
+                            // Edit the attachment, if needed
+                            $activity = (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
+                                ->setActor(Core\Session::getLoggedinUser())
+                                ->onEdit($activity, (string) $entityGuid);
+
+                            // Clean rich embed
+                            $activity
+                                ->setTitle('')
+                                ->setBlurb('')
+                                ->setURL('')
+                                ->setThumbnail('');
+
+                            if ($activity->getEntityGuid() && ($_POST['title'] ?? null)) {
+                                // Re-set title if passed
+                                $activity->setTitle($_POST['title']);
+                            }
+                        }
+
+                        // - Rich Embed
+
+                        if (!$activity->getEntityGuid()) {
+                            // Set-up rich embed
+
+                            $activity
+                                ->setTitle(rawurldecode($_POST['title'] ?? ''))
+                                ->setBlurb(rawurldecode($_POST['description'] ?? ''))
+                                ->setURL(rawurldecode($_POST['url'] ?? ''))
+                                ->setThumbnail($_POST['thumbnail'] ?? '');
+                        }
+                    }
+
+                    //
+
+                    $save
+                        ->setEntity($activity)
                         ->save();
 
                     (new Core\Entities\PropagateProperties())->from($activity);
@@ -542,16 +589,16 @@ class newsfeed implements Interfaces\Api
 
                 $user = Core\Session::getLoggedInUser();
 
-                if (isset($_POST['time_created'])) {
-                    try {
-                        $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
-                        $timeCreatedDelegate->onAdd($activity, $_POST['time_created'], time());
-                    } catch (\Exception $e) {
-                        return Factory::response([
-                            'status' => 'error',
-                            'message' => $e->getMessage(),
-                        ]);
-                    }
+                $now = time();
+
+                try {
+                    $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
+                    $timeCreatedDelegate->onAdd($activity, $_POST['time_created'] ?? $now, $now);
+                } catch (\Exception $e) {
+                    return Factory::response([
+                        'status' => 'error',
+                        'message' => $e->getMessage(),
+                    ]);
                 }
 
                 if ($user->isMature()) {
@@ -566,13 +613,6 @@ class newsfeed implements Interfaces\Api
                     $activity->setMessage(rawurldecode($_POST['message']));
                 }
 
-                if (isset($_POST['title']) && $_POST['title']) {
-                    $activity->setTitle(rawurldecode($_POST['title']))
-                        ->setBlurb(rawurldecode($_POST['description']))
-                        ->setURL(rawurldecode($_POST['url']))
-                        ->setThumbnail($_POST['thumbnail']);
-                }
-
                 if (isset($_POST['wire_threshold']) && $_POST['wire_threshold']) {
                     if (is_array($_POST['wire_threshold']) && ($_POST['wire_threshold']['min'] <= 0 || !$_POST['wire_threshold']['type'])) {
                         return Factory::response([
@@ -583,73 +623,6 @@ class newsfeed implements Interfaces\Api
 
                     $activity->setWireThreshold($_POST['wire_threshold']);
                     $activity->setPayWall(true);
-                }
-
-                if (isset($_POST['attachment_guid']) && $_POST['attachment_guid']) {
-                    $attachment = entities\Factory::build($_POST['attachment_guid']);
-                    if (!$attachment) {
-                        break;
-                    }
-
-                    if ((string) $attachment->owner_guid !== (string) Core\Session::getLoggedinUser()->guid) {
-                        return Factory::response([
-                            'status' => 'error',
-                            'message' => 'You are not the owner of this attachment'
-                        ]);
-                    }
-
-                    $attachment->title = $activity->message;
-                    $attachment->access_id = 2;
-
-                    if (isset($_POST['attachment_license'])) {
-                        $attachment->license = $_POST['attachment_license'];
-                    }
-
-                    if ($attachment instanceof Flaggable) {
-                        $attachment->setFlag('mature', $activity->getMature());
-                    }
-
-                    if ($activity->isPaywall()) {
-                        $attachment->access_id = 0;
-                        $attachment->hidden = true;
-
-                        if (method_exists($attachment, 'setFlag')) {
-                            $attachment->setFlag('paywall', true);
-                        }
-
-                        if (method_exists($attachment, 'setWireThreshold')) {
-                            $attachment->setWireThreshold($activity->getWireThreshold());
-                        }
-                    }
-
-                    $attachment->setNsfw($activity->getNsfw());
-
-                    $attachment->set('time_created', $activity->getTimeCreated());
-
-                    $save->setEntity($attachment)->save();
-
-                    switch ($attachment->subtype) {
-                        case "image":
-                            $activity->setCustom('batch', [[
-                                'src' => elgg_get_site_url() . 'fs/v1/thumbnail/' . $attachment->guid,
-                                'href' => elgg_get_site_url() . 'media/' . $attachment->container_guid . '/' . $attachment->guid,
-                                'mature' => $attachment instanceof Flaggable ? $attachment->getFlag('mature') : false,
-                                'width' => $attachment->width,
-                                'height' => $attachment->height,
-                                'gif' => (bool) $attachment->gif ?? false,
-                            ]])
-                                ->setFromEntity($attachment)
-                                ->setTitle($attachment->message);
-                            break;
-                        case "video":
-                            $activity->setFromEntity($attachment)
-                                ->setCustom('video', [
-                                    'thumbnail_src' => $attachment->getIconUrl(),
-                                    'guid' => $attachment->guid,
-                                    'mature' => $attachment instanceof Flaggable ? $attachment->getFlag('mature') : false])
-                                ->setTitle($attachment->message);
-                            break;
-                    }
                 }
 
                 $container = null;
@@ -671,11 +644,6 @@ class newsfeed implements Interfaces\Api
                         'container' => $container,
                         'activity' => $activity,
                     ]);
-
-                    if ($activity->getPending() && $attachment) {
-                        $attachment->access_id = 0;
-                        $save->setEntity($attachment)->save();
-                    }
                 }
 
                 if (isset($_POST['tags'])) {
@@ -684,6 +652,35 @@ class newsfeed implements Interfaces\Api
 
                 $nsfw = $_POST['nsfw'] ?? [];
                 $activity->setNsfw($nsfw);
+
+                $activity->setLicense($_POST['license'] ?? $_POST['attachment_license'] ?? '');
+
+                $entityGuid = $_POST['entity_guid'] ?? $_POST['attachment_guid'] ?? null;
+                $url = $_POST['url'] ?? null;
+
+                if ($entityGuid && !$url) {
+                    // Attachment
+
+                    if ($_POST['title'] ?? null) {
+                        $activity->setTitle($_POST['title']);
+                    }
+
+                    // Sets the attachment
+                    $activity = (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
+                        ->setActor(Core\Session::getLoggedinUser())
+                        ->onCreate($activity, (string) $entityGuid);
+                } elseif (!$entityGuid && $url) {
+                    // Set-up rich embed
+
+                    $activity
+                        ->setTitle(rawurldecode($_POST['title']))
+                        ->setBlurb(rawurldecode($_POST['description']))
+                        ->setURL(rawurldecode($_POST['url']))
+                        ->setThumbnail($_POST['thumbnail']);
+                } else {
+                    // TODO: Handle immutable embeds (like blogs, which have an entity_guid and a URL)
+                    // These should not appear naturally when creating, but might be implemented in the future.
+                }
 
                 try {
                     $guid = $save->setEntity($activity)->save();
@@ -721,10 +718,10 @@ class newsfeed implements Interfaces\Api
                         ->setUserGuid(Core\Session::getLoggedInUserGuid())
                         ->follow();
 
-                    if (isset($attachment) && $attachment) {
-                        // Follow attachment
+                    if ($activity->getEntityGuid()) {
+                        // Follow activity entity as well
                         (new Core\Notification\PostSubscriptions\Manager())
-                            ->setEntityGuid($attachment->guid)
+                            ->setEntityGuid($activity->getEntityGuid())
                             ->setUserGuid(Core\Session::getLoggedInUserGuid())
                             ->follow();
                     }
@@ -793,27 +790,15 @@ class newsfeed implements Interfaces\Api
         if (!$activity->canEdit()) {
             return Factory::response(['status' => 'error', 'message' => 'you don\'t have permission']);
         }
-        /** @var Entities\User $owner */
-        $owner = $activity->getOwnerEntity();
 
-        if (
-            $activity->entity_guid &&
-            in_array($activity->custom_type, ['batch', 'video'], true)
-        ) {
-            // Delete attachment object
-            try {
-                $attachment = Entities\Factory::build($activity->entity_guid);
-
-                if ($attachment && $owner->guid == $attachment->owner_guid) {
-                    $attachment->delete();
-                }
-            } catch (\Exception $e) {
-                error_log("Cannot delete attachment: {$activity->entity_guid}");
-            }
-        }
+        // Delete attachment, if applicable
+        $activity = (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
+            ->setActor(Core\Session::getLoggedinUser())
+            ->onDelete($activity);
 
         // remove from pinned
-        $owner->removePinned($activity->guid);
+
+        $activity->getOwnerEntity()->removePinned($activity->guid);
 
         if ($activity->delete()) {
             if ($activity->remind_object && $activity->remind_object['owner_guid'] != Core\Session::getLoggedinUser()->guid) {
