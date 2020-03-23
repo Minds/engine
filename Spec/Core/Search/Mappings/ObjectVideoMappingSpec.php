@@ -35,6 +35,7 @@ class ObjectVideoMappingSpec extends ObjectBehavior
         $video->get('description')->willReturn('PHPSpec Description');
         $video->get('paywall')->willReturn(false);
         $video->get('license')->willReturn('cc-test-lic');
+        $video->getTags()->willReturn([ 'spaceiscool' ]);
 
         $video->getFlag('mature')->willReturn(false);
         $video->getFlag('paywall')->willReturn(false);
@@ -70,7 +71,7 @@ class ObjectVideoMappingSpec extends ObjectBehavior
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'object:video',
                 'public' => true,
-                'tags' => [ 'test', 'hashtag' ],
+                'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',
                 '@moderated' => $now * 1000

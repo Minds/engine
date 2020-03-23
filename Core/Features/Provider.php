@@ -44,6 +44,7 @@ class Provider extends DiProvider
                 'wire-multi-currency',
                 'cdn-jwt',
                 'post-scheduler',
+                'activity-composer',
                 'ckeditor5',
                 'navigation',
                 'wallet-upgrade',
