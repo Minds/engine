@@ -49,6 +49,7 @@ class Moderation extends Cli\Controller implements Interfaces\CliControllerInter
 
         $reportUrn = $this->getOpt('report');
         $cohort = $this->getOpt('cohort');
+        $note = $this->getOpt('note') ?? 'test';
 
         if (!$reportUrn || !$cohort) {
             $this->out([
@@ -79,12 +80,23 @@ class Moderation extends Cli\Controller implements Interfaces\CliControllerInter
         $appeal = new Core\Reports\Appeals\Appeal();
         $appeal
             ->setReport($report)
-            ->setOwnerGuid($report->getEntityOwnerGuid());
+            ->setOwnerGuid($report->getEntityOwnerGuid())
+            ->setNote($note);
+
+        /** @var Core\Reports\Appeals\Manager $appeals */
+        $appealsManager = Di::_()->get('Moderation\Appeals\Manager');
+
+        $success = $appealsManager->appeal($appeal);
+
+        if (!$success) {
+            $this->out('Error while saving appeal');
+            return;
+        }
 
         $queueClient
             ->setQueue('ReportsAppealSummon')
             ->send([
-                'appeal' => serialize($appeal),
+                'appeal' => $appeal,
                 'cohort' => $guids ?: null,
             ]);
 
@@ -137,7 +149,7 @@ class Moderation extends Cli\Controller implements Interfaces\CliControllerInter
             $appeal->setReport($report);
 
             $missing = $summonsManager->summon($appeal, [
-                'include_only' => [ (string) $user->guid ],
+                'include_only' => [(string) $user->guid],
                 'active_threshold' => (int) $activeThreshold,
             ]);
 
