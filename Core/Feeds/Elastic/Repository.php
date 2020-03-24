@@ -319,7 +319,7 @@ class Repository
                 $body['query']['function_score']['query']['bool']['must'][] = [
                     'multi_match' => [
                         'query' => $opts['query'],
-                        'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^64'],
+                        'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^12'],
                     ],
                 ];
             } else {

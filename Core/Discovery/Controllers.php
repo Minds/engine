@@ -43,7 +43,7 @@ class Controllers
         return new JsonResponse([
             'status' => 'success',
             'trends' => Exportable::_($trends),
-            'hero' => $hero->export(),
+            'hero' => $hero ? $hero->export() : null,
         ]);
     }
 
