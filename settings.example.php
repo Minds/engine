@@ -483,9 +483,7 @@ $CONFIG->set('features', [
     'pro' => false,
     'webtorrent' => false,
     'top-feeds-by-age' => true,
-    'homepage-december-2019' => true,
-    'onboarding-december-2019' => true,
-    'register_pages-december-2019' => true,
+    'ux-2020' => true,
     'modal-pager' => true,
     'wallet-upgrade' => true
 ]);
