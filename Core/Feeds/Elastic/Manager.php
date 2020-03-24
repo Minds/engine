@@ -223,6 +223,9 @@ class Manager
     {
         $feedSyncEntities = [];
 
+        // Replace #
+        $opts['query'] = str_replace('#', '', $opts['query']);
+
         if (!in_array($opts['type'], [ 'user', 'group' ], true)) {
             return [];
         }
@@ -239,16 +242,10 @@ class Manager
         }
 
         if ($opts['type'] === 'group') {
-            $options = [
-                'text' => $opts['query'],
-                'taxonomies' => 'group',
-                'sort' => 'relevant',
-            ];
-
-            $response = $this->search->query($options, $opts['limit'], $opts['offset']);
+            $response = $this->search->suggest('group', $opts['query'], $opts['limit']);
             foreach ($response as $row) {
                 $feedSyncEntities[] = (new FeedSyncEntity())
-                    ->setGuid($row)
+                    ->setGuid($row['guid'])
                     ->setOwnerGuid(-1)
                     ->setUrn("urn:group:{$row['guid']}")
                     ->setTimestamp(0);
