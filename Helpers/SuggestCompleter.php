@@ -38,11 +38,11 @@ class SuggestCompleter
 
         $inputs = array_values(
             array_unique(
-                          array_map(function ($value) {
-                              return (string) utf8_encode($value);
-                          //return (string) preg_replace("/[^a-zA-Z0-9\s]+/", "", $value);
-                          }, $values)
-                      )
+                array_map(function ($value) {
+                    return (string) utf8_encode($value);
+                //return (string) preg_replace("/[^a-zA-Z0-9\s]+/", "", $value);
+                }, $values)
+            )
         );
         
         $weight = count($inputs) === 1 ? 4 : 2;
