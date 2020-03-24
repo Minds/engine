@@ -167,7 +167,7 @@ class Manager
     public function getPostTrends(array $tags, array $opts = []): array
     {
         $opts = array_merge([
-            'hoursAgo' => 12,
+            'hoursAgo' => rand(12, 32),
             'limit' => 5,
             'shuffle' => true,
         ], $opts);
@@ -187,10 +187,12 @@ class Manager
                                 ],
                             ],
                             [
-                                'terms' => [
-                                    'tags' => $tags,
-                                ]
-                            ],
+                                'multi_match' => [
+                                    'query' => implode(' ', $tags),
+                                    'operator' => 'OR',
+                                    'fields' => ['title^12', 'message^12', 'tags^24'],
+                                ],
+                            ]
                         ]
                     ]
                 ],
@@ -205,8 +207,15 @@ class Manager
         $response = $this->es->request($prepared);
         
         $trends = [];
+        $ownerGuids = [];
 
         foreach ($response['hits']['hits'] as $doc) {
+            $ownerGuid = $doc['_source']['owner_guid'];
+            if (isset($ownerGuids[$ownerGuid])) {
+                continue;
+            }
+            $ownerGuids[$ownerGuid] = true;
+
             $title = $doc['_source']['title'] ?: $doc['_source']['message'];
 
             shuffle($doc['_source']['tags']);
