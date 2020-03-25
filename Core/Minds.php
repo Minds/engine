@@ -36,6 +36,7 @@ class Minds extends base
         Front\Module::class,
         Captcha\Module::class,
         SEO\Sitemaps\Module::class,
+        Discovery\Module::class,
     ];
 
     /**

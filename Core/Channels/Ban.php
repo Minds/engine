@@ -84,7 +84,7 @@ class Ban
         if (!$this->user) {
             throw new \Exception('Missing User');
         }
-
+        
         $banned = $this->banDelegate->ban($this->user, $banReason);
 
         if ($banned) {
