@@ -38,6 +38,8 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->get('custom_type')->willReturn('video');
         $activity->get('entity_guid')->willReturn(8000);
         $activity->getNsfw()->willReturn([ 1 ]);
+        $activity->getTags()->willReturn([ 'spaceiscool' ]);
+        $activity->get('license')->willReturn('cc-test-lic');
 
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
@@ -68,10 +70,11 @@ class ActivityMappingSpec extends ObjectBehavior
                 'rating' => 1,
                 'custom_type' => 'video',
                 'entity_guid' => '8000',
+                'license' => 'cc-test-lic',
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'activity',
                 'public' => true,
-                'tags' => [ 'test', 'hashtag' ],
+                'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ]
             ]);
     }
@@ -103,6 +106,8 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->getNsfw()->willReturn([ 1 ]);
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
+        $activity->getTags()->willReturn([ 'spaceiscool' ]);
+        $activity->get('license')->willReturn('cc-test-lic');
 
         $this
             ->setEntity($activity)
@@ -130,10 +135,11 @@ class ActivityMappingSpec extends ObjectBehavior
                 'rating' => 1,
                 'custom_type' => 'video',
                 'entity_guid' => '8000',
+                'license' => 'cc-test-lic',
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'activity',
                 'public' => true,
-                'tags' => [ 'test', 'hashtag' ],
+                'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',
                 '@moderated' => $now * 1000

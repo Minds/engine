@@ -11,6 +11,7 @@ use Minds\Core\Events\Dispatcher;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Core\Groups\Membership;
 use Minds\Core\Groups\Invitations;
+use Minds\Core\Groups\Delegates\ElasticSearchDelegate;
 use Minds\Traits\MagicAttributes;
 
 class Group extends NormalizedEntity
@@ -33,6 +34,7 @@ class Group extends NormalizedEntity
     protected $featured = 0;
     protected $featured_id;
     protected $tags = '';
+    protected $time_created;
     protected $owner_guids = [];
     protected $moderator_guids = [];
     protected $boost_rejection_reason = -1;
@@ -107,7 +109,8 @@ class Group extends NormalizedEntity
             'conversationDisabled' => $this->conversationDisabled,
             'pinned_posts' => $this->pinned_posts,
             'nsfw' => $this->getNSFW(),
-            'nsfw_lock' => $this->getNSFWLock()
+            'nsfw_lock' => $this->getNSFWLock(),
+            'time_created' => $this->getTimeCreated(),
         ]);
 
         if (!$saved) {
@@ -116,6 +119,9 @@ class Group extends NormalizedEntity
 
         $this->saveToIndex();
         \elgg_trigger_event($creation ? 'create' : 'update', $this->type, $this);
+
+        // Temporary until this is refactored into a Manager
+        (new ElasticSearchDelegate())->onSave($this);
 
         return $saved;
     }
@@ -363,6 +369,26 @@ class Group extends NormalizedEntity
     public function getIconTime()
     {
         return $this->icon_time;
+    }
+
+    /**
+     * Set the time created
+     * @param int $time_created
+     * @return self
+     */
+    public function setTimeCreated($time_created)
+    {
+        $this->time_created = $time_created;
+        return $this;
+    }
+
+    /**
+     * Return the time created
+     * @return int
+     */
+    public function getTimeCreated()
+    {
+        return $this->time_created;
     }
 
     /**

@@ -32,9 +32,6 @@ class Provider extends DiProvider
                 'purchase-pro',
                 'webtorrent',
                 'top-feeds-by-age',
-                'homepage-december-2019',
-                'onboarding-december-2019',
-                'register_pages-december-2019',
                 'modal-pager',
                 'blockchain_creditcard',
                 'channel-filter-feeds',
@@ -44,6 +41,7 @@ class Provider extends DiProvider
                 'wire-multi-currency',
                 'cdn-jwt',
                 'post-scheduler',
+                'activity-composer',
                 'ckeditor5',
                 'navigation',
                 'wallet-upgrade',
@@ -52,6 +50,7 @@ class Provider extends DiProvider
                 'activity-v2--boosts',
                 'settings',
                 'channels',
+                'ux-2020',
             ];
         });
 

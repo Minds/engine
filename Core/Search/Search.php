@@ -207,6 +207,9 @@ class Search
         if ($taxonomy === 'tags') {
             $index = $this->tagsIndex;
         }
+        if ($taxonomy === 'group') {
+            $index = 'minds-groups';
+        }
 
         $prepared = new Prepared\Suggest();
         $prepared->query($index, $query, $params);

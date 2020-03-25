@@ -66,7 +66,7 @@ class User extends \ElggUser
         $this->attributes['hide_share_buttons'] = 0;
         $this->attributes['kite_ref_ts'] = 0;
         $this->attributes['kite_state'] = 'unknown';
-        $this->attributes['autoplay_videos'] = 0;
+        $this->attributes['disable_autoplay_videos'] = 0;
 
         parent::initializeAttributes();
     }
@@ -946,7 +946,7 @@ class User extends \ElggUser
         $export['rating'] = $this->getRating();
 
         $export['hide_share_buttons'] = $this->getHideShareButtons();
-        $export['autoplay_videos'] = $this->getAutoplayVideos();
+        $export['disable_autoplay_videos'] = $this->getDisableAutoplayVideos();
 
         return $export;
     }
@@ -1379,23 +1379,23 @@ class User extends \ElggUser
     }
 
     /**
-     * Returns toaster notifications state.
+     * Returns if video autoplay is disabled
      *
      * @return bool true if autoplay videos is enabled
      */
-    public function getAutoplayVideos()
+    public function getDisableAutoplayVideos()
     {
-        return (bool) $this->autoplay_videos;
+        return (bool) $this->disable_autoplay_videos;
     }
 
     /**
-     * Set on/off autoplay videos.
+     * Set on/off disable autoplay videos.
      *
      * @return User
      */
-    public function setAutoplayVideos($enabled = true)
+    public function setDisableAutoplayVideos($disabled = false)
     {
-        $this->autoplay_videos = $enabled ? 1 : 0;
+        $this->disable_autoplay_videos = $disabled ? 1 : 0;
 
         return $this;
     }
