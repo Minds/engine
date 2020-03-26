@@ -44,6 +44,7 @@ class reindex implements Interfaces\Api, Interfaces\ApiAdminPam
 
         /** @var EventsDispatcher $dispatcher */
         $dispatcher = Di::_()->get('EventsDispatcher');
+        error_log("reindexing user: " . print_r($entity, true));
 
         $dispatcher->trigger('search:index', 'all', [
             'entity' => $entity,
