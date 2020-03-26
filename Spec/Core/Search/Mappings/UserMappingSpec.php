@@ -130,7 +130,7 @@ class UserMappingSpec extends ObjectBehavior
                 'passedValue' => 'PHPSpec',
                 'input' => 'phpspec-will-disappear'
             ])
-            ->shouldReturn([]);
+            ->shouldReturn(['input' => '']);
     }
 
     public function it_should_suggest_map_permutating_camelcase_name(

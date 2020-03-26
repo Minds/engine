@@ -71,12 +71,10 @@ class UserMapping extends EntityMapping implements MappingInterface
     public function suggestMap(array $defaultValues = [])
     {
         $map = parent::suggestMap($defaultValues);
-        if ($this->entity->isBanned()) {
-            error_log('user is banned');
-            return [];
-        }
 
-        error_log('user is not banned');
+        if ($this->entity->isBanned()) {
+            return ['input' => ''];
+        }
 
         $name = preg_replace('/[0-9]*/', '', $this->entity->name);
         $username = preg_replace('/[0-9]*/', '', $this->entity->username);
