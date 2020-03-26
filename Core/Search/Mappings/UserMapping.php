@@ -73,7 +73,10 @@ class UserMapping extends EntityMapping implements MappingInterface
         $map = parent::suggestMap($defaultValues);
 
         if ($this->entity->isBanned()) {
-            return ['input' => ''];
+            return [
+                'input' => '',
+                'weight' => 0,
+            ];
         }
 
         $name = preg_replace('/[0-9]*/', '', $this->entity->name);
@@ -103,7 +106,7 @@ class UserMapping extends EntityMapping implements MappingInterface
         }
 
         if (strlen($username) > 30) {
-            $map['weight'] = 1; //spammy username
+            $map['weight'] = 1; // spammy username
         }
 
         return $map;
