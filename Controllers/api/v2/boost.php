@@ -290,7 +290,7 @@ class boost implements Interfaces\Api
                         ->setType(lcfirst($pages[0]))
                         ->setPriority(false);
 
-                    if ($manager->checkExisting($boost)) {
+                    if (!$boost->isOnChain() && $manager->checkExisting($boost)) {
                         return Factory::response([
                             'status' => 'error',
                             'message' => "There's already an ongoing boost for this entity"
