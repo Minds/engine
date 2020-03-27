@@ -4,7 +4,7 @@ Please use the button below to claim your gift (note: you will need to open the 
 
 | |
 |:--:|
-| [![Claim Gift](https://cdn-assets.minds.com/emails/claim-gift.png){=150x}](https://www.minds.com/wallet/tokens/transactions?__e_ct_guid=<?= $vars['guid']?>&campaign=<?= $vars['campaign']?>&topic=<?= $vars['topic'] ?>&validator=<?= $vars['validator'] ?>) |
+| [![Claim Gift](https://cdn-assets.minds.com/emails/claim-gift.png){=150x}](https://www.minds.com/wallet/tokens/transactions?__e_ct_guid=<?= $vars['guid']?>&campaign=<?= $vars['campaign']?>&topic=<?= $vars['topic'] ?>&validator=<?= $vars['validator'] ?>&wire=true) |
 | |
 
 
