@@ -635,3 +635,7 @@ $CONFIG->set('captcha', [
     'jwt_secret' => '{{site-secret}}',
     'bypass_key' => '{{site-secret}}',
 ]);
+
+$CONFIG->set('cypress', [
+    'shared_key' => '{{site-secret}}',
+]);
