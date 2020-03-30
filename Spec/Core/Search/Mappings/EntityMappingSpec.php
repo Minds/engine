@@ -104,6 +104,7 @@ class EntityMappingSpec extends ObjectBehavior
         $entity->get('rating')->willReturn(1);
         $entity->get('moderator_guid')->willReturn('123');
         $entity->get('time_moderated')->willReturn($now);
+        $entity->getTags()->willReturn([ 'hashtag', 'spaceiscool' ]);
         $entity->getNsfw()->willReturn([ 1 ]);
 
         $this
@@ -133,7 +134,7 @@ class EntityMappingSpec extends ObjectBehavior
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'entity',
                 'public' => true,
-                'tags' => [ 'test', 'hashtag' ],
+                'tags' => [ 'hashtag', 'spaceiscool', 'test' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',
                 '@moderated' => $now * 1000

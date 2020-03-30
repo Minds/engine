@@ -10,6 +10,9 @@ namespace Minds\Core\Search\Mappings;
 
 class EntityMapping implements MappingInterface
 {
+    /** @var int */
+    const MAX_HASHTAGS = 5;
+
     /** @var array $mappings */
     protected $mappings = [
         '@timestamp' => [ 'type' => 'date' ],
@@ -171,22 +174,23 @@ class EntityMapping implements MappingInterface
             $fullText .= ' ' . $map['message'];
         }
 
+        if (isset($map['description'])) {
+            $fullText .= ' ' . $map['description'];
+        }
+
         $htRe = '/(^|\s||)#(\w*[a-zA-Z0-9_]+\w*)/';
         $matches = [];
 
         preg_match_all($htRe, $fullText, $matches);
 
-        $tags = [];
+        $messageTags = ($matches[2] ?? null) ?: [];
+        $entityTags = method_exists($this->entity, 'getTags') ? ($this->entity->getTags() ?: []) : [];
 
-        if (isset($matches[2]) && $matches[2]) {
-            $tags = array_values(array_unique($matches[2]));
-        }
+        $tags = array_map(function ($tag) {
+            return strtolower(trim($tag, " \t\n\r\0\x0B#"));
+        }, array_merge($entityTags, $messageTags, $map['tags'] ?? []));
 
-        if (!isset($map['tags'])) {
-            $map['tags'] = [];
-        }
-
-        $map['tags'] = array_values(array_unique(array_merge($map['tags'], array_map('strtolower', $tags))));
+        $map['tags'] = array_slice(array_values(array_unique($tags)), 0, static::MAX_HASHTAGS);
 
         $map['nsfw'] = array_unique($this->entity->getNsfw());
 

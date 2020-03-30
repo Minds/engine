@@ -75,7 +75,7 @@ class Repository
         ], $opts);
 
         if (!$opts['type']) {
-            throw new \Exception('Type must be provided');
+            //   throw new \Exception('Type must be provided');
         }
 
         if (!$opts['algorithm']) {
@@ -128,6 +128,9 @@ class Repository
                 } else {
                     $algorithm = new SortingAlgorithms\Top();
                 }
+                break;
+            case "topV2":
+                $algorithm = new SortingAlgorithms\TopV2();
                 break;
             case "controversial":
                 $algorithm = new SortingAlgorithms\Controversial();
@@ -316,7 +319,7 @@ class Repository
                 $body['query']['function_score']['query']['bool']['must'][] = [
                     'multi_match' => [
                         'query' => $opts['query'],
-                        'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^64'],
+                        'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^12'],
                     ],
                 ];
             } else {
@@ -507,49 +510,5 @@ class Repository
         }
 
         return $sort;
-    }
-
-    public function add(MetricsSync $metric)
-    {
-        $key = $metric->getMetric();
-
-        if ($metric->getPeriod()) {
-            $key .= ":{$metric->getPeriod()}";
-        }
-
-        $body = [
-            $key => $metric->getCount(),
-            "{$key}:synced" => $metric->getSynced()
-        ];
-
-        $this->pendingBulkInserts[] = [
-            'update' => [
-                '_id' => (string) $metric->getGuid(),
-                '_index' => 'minds_badger',
-                '_type' => $metric->getType(),
-            ],
-        ];
-
-        $this->pendingBulkInserts[] = [
-            'doc' => $body,
-            'doc_as_upsert' => true,
-        ];
-
-        if (count($this->pendingBulkInserts) > 2000) { //1000 inserts
-            $this->bulk();
-        }
-
-        return true;
-    }
-
-    /**
-     * Run a bulk insert job (quicker).
-     */
-    public function bulk()
-    {
-        if (count($this->pendingBulkInserts) > 0) {
-            $res = $this->client->bulk(['body' => $this->pendingBulkInserts]);
-            $this->pendingBulkInserts = [];
-        }
     }
 }

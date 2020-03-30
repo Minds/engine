@@ -23,6 +23,7 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('type')->willReturn('user');
         $user->get('subtype')->willReturn('');
         $user->get('time_created')->willReturn($now);
+        $user->get('email_confirmed_at')->willReturn($now);
         $user->get('access_id')->willReturn(2);
         $user->get('owner_guid')->willReturn(false);
         $user->get('container_guid')->willReturn(1000);
@@ -39,6 +40,9 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('moderator_guid')->willReturn('123');
         $user->get('time_moderated')->willReturn($now);
         $user->isBanned()->willReturn(false);
+        $user->getEmailConfirmedAt()
+            ->shouldBeCalled()
+            ->willReturn($now);
 
         $user->isMature()->willReturn(false);
         $user->getMatureContent()->willReturn(false);
@@ -72,6 +76,7 @@ class UserMappingSpec extends ObjectBehavior
                 'rating' => 1,
                 'username' => 'phpspec',
                 'briefdescription' => 'PHPSpec Brief Description #invalidhashtag',
+                'email_confirmed_at' =>  $now * 1000,
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'user',
                 'public' => true,
@@ -79,7 +84,7 @@ class UserMappingSpec extends ObjectBehavior
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',
                 '@moderated' => $now * 1000,
-                'group_membership' => [ 2000 ]
+                'group_membership' => [ 2000 ],
             ]);
     }
 
@@ -92,6 +97,7 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('type')->willReturn('user');
         $user->get('subtype')->willReturn('');
         $user->get('time_created')->willReturn($now);
+        $user->get('email_confirmed_at')->willReturn($now);
         $user->get('access_id')->willReturn(2);
         $user->get('owner_guid')->willReturn(false);
         $user->get('container_guid')->willReturn(1000);
@@ -106,6 +112,7 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('username')->willReturn('phpspec');
         $user->get('briefdescription')->willReturn('PHPSpec Brief Description #invalidhashtag');
         $user->get('rating')->willReturn(1);
+        $user->getTags()->willReturn([ 'spaceiscool' ]);
         $user->isBanned()->willReturn(true);
 
         $user->getNsfw()->willReturn([ 1 ]);

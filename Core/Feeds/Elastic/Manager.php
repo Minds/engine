@@ -223,6 +223,9 @@ class Manager
     {
         $feedSyncEntities = [];
 
+        // Replace #
+        $opts['query'] = str_replace('#', '', $opts['query']);
+
         if (!in_array($opts['type'], [ 'user', 'group' ], true)) {
             return [];
         }
@@ -239,16 +242,10 @@ class Manager
         }
 
         if ($opts['type'] === 'group') {
-            $options = [
-                'text' => $opts['query'],
-                'taxonomies' => 'group',
-                'sort' => 'relevant',
-            ];
-
-            $response = $this->search->query($options, $opts['limit'], $opts['offset']);
+            $response = $this->search->suggest('group', $opts['query'], $opts['limit']);
             foreach ($response as $row) {
                 $feedSyncEntities[] = (new FeedSyncEntity())
-                    ->setGuid($row)
+                    ->setGuid($row['guid'])
                     ->setOwnerGuid(-1)
                     ->setUrn("urn:group:{$row['guid']}")
                     ->setTimestamp(0);
@@ -279,115 +276,5 @@ class Manager
         }
 
         return $entities;
-    }
-
-    public function run($opts = [])
-    {
-        $opts = array_merge([
-            'period' => null,
-            'metric' => null,
-        ], $opts);
-
-        $maps = [
-            '12h' => [
-                'period' => '12h',
-                'from' => strtotime('-12 hours') * 1000,
-            ],
-            '24h' => [
-                'period' => '24h',
-                'from' => strtotime('-24 hours') * 1000,
-            ],
-            '7d' => [
-                'period' => '7d',
-                'from' => strtotime('-7 days') * 1000,
-            ],
-            '30d' => [
-                'period' => '30d',
-                'from' => strtotime('-30 days') * 1000,
-            ],
-            '1y' => [
-                'period' => '1y',
-                'from' => strtotime('-1 year') * 1000,
-            ],
-        ];
-
-        $period = $opts['period'];
-
-        if (!isset($maps[$period]['from'])) {
-            throw new \Exception('Invalid period');
-        }
-
-        $this->from = $maps[$period]['from'];
-
-        $type = $this->type;
-        if ($this->subtype) {
-            $type = implode(':', [$this->type, $this->subtype]);
-        }
-
-        switch ($opts['metric']) {
-            case 'up':
-                $metricMethod = 'getVotesUp';
-                $metricId = 'votes:up';
-                $sign = 1;
-                break;
-
-            case 'down':
-                $metricMethod = 'getVotesDown';
-                $metricId = 'votes:down';
-                $sign = -1;
-                break;
-
-            default:
-                throw new \Exception('Invalid metric');
-        }
-
-        //sync
-        $i = 0;
-        foreach ($this->{$metricMethod}() as $guid => $count) {
-            $countValue = $sign * $count;
-
-            $metric = new MetricsSync();
-            $metric
-                ->setGuid($guid)
-                ->setType($type)
-                ->setMetric($metricId)
-                ->setCount($countValue)
-                ->setPeriod($maps[$period]['period'])
-                ->setSynced(time());
-            try {
-                $this->repository->add($metric);
-            } catch (\Exception $e) {
-            }
-
-            $i++;
-            echo "\n$i: $guid -> $metricId = $countValue";
-        }
-        // clear any pending bulk inserts
-        $this->repository->bulk();
-    }
-
-
-    protected function getVotesUp()
-    {
-        $aggregates = new Aggregates\Votes;
-        $aggregates->setLimit(10000);
-        $aggregates->setType($this->type);
-        $aggregates->setSubtype($this->subtype);
-        $aggregates->setFrom($this->from);
-        $aggregates->setTo($this->to);
-
-        return $aggregates->get();
-    }
-
-    protected function getVotesDown()
-    {
-        $aggregates = new Aggregates\DownVotes;
-        $aggregates->setLimit(10000);
-        $aggregates->setType($this->type);
-        $aggregates->setSubtype($this->subtype);
-        $aggregates->setFrom($this->from);
-        $aggregates->setTo($this->to);
-
-        return $aggregates->get();
     }
 }

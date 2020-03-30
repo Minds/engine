@@ -27,7 +27,7 @@ class progress implements Interfaces\Api
         /** @var \Minds\Core\Features\Manager $manager */
         $featuresManager = Di::_()->get('Features\Manager');
 
-        if ($featuresManager->has('onboarding-december-2019')) {
+        if ($featuresManager->has('ux-2020')) {
             return Factory::response([
                 'show_onboarding' => !$manager->wasOnboardingShown(),
             ]);

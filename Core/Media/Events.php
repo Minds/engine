@@ -3,6 +3,7 @@ namespace Minds\Core\Media;
 
 use Minds\Core;
 use Minds\Core\Events\Dispatcher;
+use Minds\Core\Events\Event;
 use Minds\Entities;
 
 class Events
@@ -32,6 +33,30 @@ class Events
                         break;
                 }
             }
+        });
+
+        /**
+         * Delete action event handler for images
+         */
+        Dispatcher::register('entity:delete', 'object:image', function (Event $event) {
+            $params = $event->getParameters();
+
+            /** @var Entities\Image $entity */
+            $entity = $params['entity'];
+
+            $event->setResponse($entity->delete());
+        });
+
+        /**
+         * Delete action event handler for videos
+         */
+        Dispatcher::register('entity:delete', 'object:video', function (Event $event) {
+            $params = $event->getParameters();
+
+            /** @var Entities\Video $entity */
+            $entity = $params['entity'];
+
+            $event->setResponse($entity->delete());
         });
     }
 }

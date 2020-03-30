@@ -67,7 +67,7 @@ class Config
 
         $opts = array_merge([ 'recursive' => false ], $opts);
         if ($value && is_array($value) && isset($this->config[$key]) && is_array($this->config[$key]) && $opts['recursive']) {
-            $this->config[$key] = array_merge($this->config[$key], $value);
+            $this->config[$key] = array_replace_recursive($this->config[$key], $value);
             return;
         }
         $this->config[$key] = $value;

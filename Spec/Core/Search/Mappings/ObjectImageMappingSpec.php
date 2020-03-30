@@ -35,6 +35,7 @@ class ObjectImageMappingSpec extends ObjectBehavior
         $image->get('description')->willReturn('PHPSpec Description');
         $image->get('paywall')->willReturn(false);
         $image->get('license')->willReturn('cc-test-lic');
+        $image->getTags()->willReturn([ 'spaceiscool' ]);
 
         $image->getFlag('mature')->willReturn(false);
         $image->getFlag('paywall')->willReturn(false);
@@ -70,7 +71,7 @@ class ObjectImageMappingSpec extends ObjectBehavior
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'object:image',
                 'public' => true,
-                'tags' => [ 'test', 'hashtag' ],
+                'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',
                 '@moderated' => $now * 1000

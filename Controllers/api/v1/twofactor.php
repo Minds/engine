@@ -43,10 +43,6 @@ class twofactor implements Interfaces\Api
      */
     public function post($pages)
     {
-        if (!Core\Security\XSRF::validateRequest()) {
-            return false;
-        }
-
         $twofactor = new Security\TwoFactor();
         $user = Core\Session::getLoggedInUser();
         $response = [];
