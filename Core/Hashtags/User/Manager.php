@@ -168,6 +168,22 @@ class Manager
     }
 
     /**
+     * @param HashtagEntity[] $add
+     * @param HashtagEntity[] $remove
+     * @return bool
+     */
+    public function batch(array $add, array $remove): bool
+    {
+        $success = $this->repository->batch($add, $remove);
+
+        if ($success) {
+            $this->cacher->destroy($this->getCacheKey());
+        }
+
+        return $success;
+    }
+
+    /**
      * @param HashtagEntity[] $hashtags
      * @return bool
      */
