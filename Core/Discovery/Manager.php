@@ -343,7 +343,7 @@ class Manager
         }, $this->hashtagManager
             ->setUser($this->user)
             ->get([
-                'defaults' => false,
+                'defaults' => true,
             ]));
     }
 
