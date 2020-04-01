@@ -250,7 +250,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $this->hashtagManager
             ->get([
-                'defaults' => false,
+                'defaults' => true,
                 'trending' => true,
                 'limit' => 20,
             ])

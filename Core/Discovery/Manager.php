@@ -313,7 +313,7 @@ class Manager
         $tagsList = $this->hashtagManager
             ->setUser($this->user)
             ->get([
-                'defaults' => false,
+                'defaults' => true,
                 'trending' => true,
                 'limit' => 20,
             ]);
@@ -323,7 +323,7 @@ class Manager
         });
 
         $trending = array_filter($tagsList, function ($tag) {
-            return $tag['type'] === 'trending';
+            return $tag['type'] === 'trending' || $tag['type'] === 'default';
         });
 
         return [
@@ -343,7 +343,7 @@ class Manager
         }, $this->hashtagManager
             ->setUser($this->user)
             ->get([
-                'defaults' => true,
+                'defaults' => false,
             ]));
     }
 
