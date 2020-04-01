@@ -25,6 +25,9 @@ class Trend
     /** @var int */
     protected $volume;
 
+    /** @var int */
+    protected $period;
+
     /** @var bool */
     protected $deleted = false;
 
@@ -42,6 +45,7 @@ class Trend
             'hashtag' => $this->hashtag,
             'title' => $this->title,
             'volume' => $this->volume,
+            'period' => $this->period,
         ];
     }
 }
