@@ -32,7 +32,7 @@ class JsonPayloadMiddleware implements MiddlewareInterface
 
         if (in_array($contentType, static::JSON_MIME_TYPES, true)) {
             $request = $request
-                ->withParsedBody(json_decode($request->getBody(), true));
+                ->withParsedBody(json_decode((string) $request->getBody(), true));
         }
 
         return $handler
