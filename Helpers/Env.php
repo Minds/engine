@@ -17,7 +17,7 @@ class Env
     public static function getMindsEnv() : array
     {
         $config = [];
-        foreach (getenv() as $envKey => $value) {
+        foreach ($_ENV as $envKey => $value) {
             if (empty($value) || !static::isMindsEnv($envKey)) {
                 continue;
             }
