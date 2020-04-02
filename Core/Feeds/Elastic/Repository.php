@@ -18,6 +18,7 @@ class Repository
         '30d' => 2592000,
         '1y' => 31536000,
         'all' => -1,
+        'relevant'=> -1,
     ];
 
     /** @var ElasticsearchClient */
