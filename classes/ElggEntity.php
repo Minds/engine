@@ -1560,7 +1560,7 @@ abstract class ElggEntity extends ElggData implements
         $array = array_unique($array);
         foreach ($array as $reason) {
             if ($reason < 1 || $reason > 6) {
-                throw \Exception('Incorrect NSFW value provided');
+                throw new \Exception('Incorrect NSFW value provided');
             }
     	}
 		

@@ -10,7 +10,7 @@ use Minds\Core\Analytics;
 /**
  * Activity Entity
  */
-class Activity extends Entity
+class Activity extends Entity implements MutatableEntityInterface
 {
     public $indexes = null;
 
@@ -368,6 +368,15 @@ class Activity extends Entity
     }
 
     /**
+     * Get the title
+     * @return string
+     */
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+
+    /**
      * Sets the blurb
      * @param string $blurb
      * @return $this
@@ -376,6 +385,15 @@ class Activity extends Entity
     {
         $this->blurb = $blurb;
         return $this;
+    }
+
+    /**
+     * Gets the blurb
+     * @return string
+     */
+    public function getBlurb(): string
+    {
+        return $this->blurb;
     }
 
     /**
@@ -401,6 +419,15 @@ class Activity extends Entity
     }
 
     /**
+     * Sets the thumbnail
+     * @return string
+     */
+    public function getThumbnail(): string
+    {
+        return $this->thumbnail_src;
+    }
+
+    /**
      * Sets the license
      * @param string $license
      * @return Activity
@@ -409,6 +436,15 @@ class Activity extends Entity
     {
         $this->license = $license;
         return $this;
+    }
+
+    /**
+     * Gets the license
+     * @return string
+     */
+    public function getLicense(): string
+    {
+        return $this->license;
     }
 
     /**
@@ -675,6 +711,15 @@ class Activity extends Entity
     {
         $this->paywall = (bool) $value;
         return $this;
+    }
+
+    /**
+     * Return if there is a paywall or not
+     * @return bool
+     */
+    public function getPayWall(): bool
+    {
+        return (bool) $this->paywall;
     }
 
     /**
