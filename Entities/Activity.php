@@ -18,6 +18,9 @@ class Activity extends Entity implements MutatableEntityInterface
 
     protected $hide_impressions = false;
 
+    /** @var string */
+    protected $videoPosterBase64Blob; // Never saves
+
     /**
      * Initialize entity attributes
      * @return null
@@ -878,5 +881,25 @@ class Activity extends Entity implements MutatableEntityInterface
     {
         $this->time_sent = $time_sent;
         return $this;
+    }
+
+    /**
+     * Sets base64 video blob but never saves
+     * @param string $blob
+     * @return self
+     */
+    public function setVideoPosterBase64Blob(string $blob): self
+    {
+        $this->videoPosterBase64Blob = $blob;
+        return $this;
+    }
+
+    /**
+     * Returns base64 video poster if provided (never saved to db)
+     * @return string
+     */
+    public function getVideoPosterBase64Blob(): ?string
+    {
+        return $this->videoPosterBase64Blob;
     }
 }
