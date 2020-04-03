@@ -25,6 +25,9 @@ class Manager
     /** @var Delegates\TimeCreatedDelegate */
     private $timeCreatedDelegate;
 
+    /** @var Delegates\VideoPosterDelegate */
+    private $videoPosterDelegate;
+
     /** @var Save */
     private $save;
 
@@ -37,7 +40,8 @@ class Manager
         $attachmentDelegate = null,
         $timeCreatedDelegate = null,
         $save = null,
-        $propagateProperties = null
+        $propagateProperties = null,
+        $videoPosterDelegate = null
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -45,6 +49,7 @@ class Manager
         $this->timeCreatedDelegate = $timeCreatedDelegate ?? new Delegates\TimeCreatedDelegate();
         $this->save = $save ?? new Save();
         $this->propagateProperties = $propagateProperties ?? new PropagateProperties();
+        $this->videoPosterDelegate = $videoPosterDelegate ?? new Delegates\VideoPosterDelegate();
     }
 
     /**
@@ -88,7 +93,6 @@ class Manager
 
             // - Attachment
 
-            // Changes only if entity_guid_update is set
             if ($activityMutation->hasMutated('entityGuid')) {
                 // Edit the attachment, if needed
                 $activity = $this->attachmentDelegate
@@ -105,6 +109,10 @@ class Manager
                 if (!$activityMutation->hasMutated('title')) {
                     $activity->setTitle('');
                 }
+            }
+
+            if ($activityMutation->hasMutated('videoPosterBase64Blob')) {
+                $this->videoPosterDelegate->onUpdate($activity, $activityMutation);
             }
         }
 
