@@ -125,54 +125,7 @@ abstract class ElggEntity extends ElggData implements
 		json_decode($string);
 		return (json_last_error() == JSON_ERROR_NONE);
 	}
-
-	/**
-	 * Clone an entity
-	 *
-	 * Resets the guid so that the entity can be saved as a distinct entity from
-	 * the original. Creation time will be set when this new entity is saved.
-	 * The owner and container guids come from the original entity. The clone
-	 * method copies metadata but does not copy annotations or private settings.
-	 *
-	 * @note metadata will have its owner and access id set when the entity is saved
-	 * and it will be the same as that of the entity.
-	 *
-	 * @return void
-	 */
-	public function __clone() {
-		$orig_entity = get_entity($this->guid);
-		if (!$orig_entity) {
-			elgg_log("Failed to clone entity with GUID $this->guid", "ERROR");
-			return;
-		}
-
-		$metadata_array = elgg_get_metadata(array(
-			'guid' => $this->guid,
-			'limit' => 0
-		));
-
-		$this->attributes['guid'] = "";
-
-		$this->attributes['subtype'] = $orig_entity->getSubtype();
-
-		// copy metadata over to new entity - slightly convoluted due to
-		// handling of metadata arrays
-		if (is_array($metadata_array)) {
-			// create list of metadata names
-			$metadata_names = array();
-			foreach ($metadata_array as $metadata) {
-				$metadata_names[] = $metadata['name'];
-			}
-			// arrays are stored with multiple enties per name
-			$metadata_names = array_unique($metadata_names);
-
-			// move the metadata over
-			foreach ($metadata_names as $name) {
-				$this->set($name, $orig_entity->$name);
-			}
-		}
-	}
-
+	
 	/**
 	 * Return the value of a property.
 	 *
@@ -1560,7 +1513,7 @@ abstract class ElggEntity extends ElggData implements
         $array = array_unique($array);
         foreach ($array as $reason) {
             if ($reason < 1 || $reason > 6) {
-                throw \Exception('Incorrect NSFW value provided');
+                throw new \Exception('Incorrect NSFW value provided');
             }
     	}
 		
