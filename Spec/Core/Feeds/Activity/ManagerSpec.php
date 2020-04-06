@@ -35,6 +35,11 @@ class ManagerSpec extends ObjectBehavior
         Session::setUser((new User())->set('guid', 123)->set('username', 'test'));
     }
 
+    public function letGo()
+    {
+        Session::setUser(null);
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
