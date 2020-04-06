@@ -10,6 +10,7 @@ use Minds\Entities\Activity;
 use Minds\Common\EntityMutation;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Entities\PropagateProperties;
+use Minds\Core\Session;
 
 class Manager
 {
@@ -84,36 +85,28 @@ class Manager
             $this->timeCreatedDelegate->onUpdate($activityMutation->getOriginalEntity(), $activity->getTimeCreated(), $activity->getTimeSent());
         }
 
-        // Attachment and rich embed
+        // - Attachment
 
-        // An activity can be updated ONLY if doesn't have either entity or URL
-        $canUpdateEntity = !$activity->getEntityGuid() || !$activity->getURL();
+        if ($activityMutation->hasMutated('entityGuid')) {
+            // Edit the attachment, if needed
+            $activity = $this->attachmentDelegate
+                ->setActor(Session::getLoggedinUser())
+                ->onEdit($activity, (string) $activity->getEntityGuid());
 
-        if ($canUpdateEntity) {
+            // Clean rich embed
+            $activity
+                //->setTitle('')
+                ->setBlurb('')
+                ->setURL('')
+                ->setThumbnail('');
 
-            // - Attachment
-
-            if ($activityMutation->hasMutated('entityGuid')) {
-                // Edit the attachment, if needed
-                $activity = $this->attachmentDelegate
-                    ->setActor(Core\Session::getLoggedinUser())
-                    ->onEdit($activity, (string) $activity->getEntityGuid());
-
-                // Clean rich embed
-                $activity
-                    //->setTitle('')
-                    ->setBlurb('')
-                    ->setURL('')
-                    ->setThumbnail('');
-
-                if (!$activityMutation->hasMutated('title')) {
-                    $activity->setTitle('');
-                }
+            if (!$activityMutation->hasMutated('title')) {
+                $activity->setTitle('');
             }
+        }
 
-            if ($activityMutation->hasMutated('videoPosterBase64Blob')) {
-                $this->videoPosterDelegate->onUpdate($activity, $activityMutation);
-            }
+        if ($activityMutation->hasMutated('videoPosterBase64Blob')) {
+            $this->videoPosterDelegate->onUpdate($activity);
         }
 
         $this->save

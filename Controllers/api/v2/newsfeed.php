@@ -520,6 +520,10 @@ class newsfeed implements Interfaces\Api
                             ->setThumbnail($_POST['thumbnail'] ?? '');
                     }
 
+                    if (isset($_POST['video_poster'])) {
+                        $activityMutation->setVideoPosterBase64Blob($_POST['video_poster']);
+                    }
+
                     // Update the entity
 
                     $activityManager = Di::_()->get('Feeds\Activity\Manager');
@@ -640,6 +644,13 @@ class newsfeed implements Interfaces\Api
                 } else {
                     // TODO: Handle immutable embeds (like blogs, which have an entity_guid and a URL)
                     // These should not appear naturally when creating, but might be implemented in the future.
+                }
+
+                // TODO: Move this to Core/Feeds/Activity/Manager
+                if ($_POST['video_poster'] ?? null) {
+                    $activity->setVideoPosterBase64Blob($_POST['video_poster']);
+                    $videoPosterDelegate = new Core\Feeds\Activity\Delegates\VideoPosterDelegate();
+                    $videoPosterDelegate->onAdd($activity);
                 }
 
                 try {
