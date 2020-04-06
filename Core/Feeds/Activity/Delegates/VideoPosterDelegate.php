@@ -5,8 +5,8 @@ use Minds\Core\Translation\Storage;
 use Minds\Entities\Entity;
 use Minds\Entities\Activity;
 use Minds\Entities\Factory;
-use Minds\Common\EntityMutation;
 use Minds\Core\Media\Assets;
+use Minds\Core\Di\Di;
 use Minds\Helpers;
 
 class VideoPosterDelegate
@@ -14,28 +14,54 @@ class VideoPosterDelegate
     /** @var Assets\Video */
     private $videoAssets;
 
-    public function __construct($videoAssets = null)
+    /** @var EntitiesBuilder */
+    private $entitiesBuilder;
+
+    /** @var Save */
+    private $save;
+
+    public function __construct($videoAssets = null, $entitiesBuilder = null)
     {
         $this->videoAssets = $videoAssets ?? new Assets\Video;
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+    }
+
+    /**
+     * On adding the activity
+     * @param Activity $activity
+     * @return void
+     */
+    public function onAdd(Activity $activity): void
+    {
+        $this->updateThumbnails($activity);
     }
 
     /**
      * Clears the translation storage on update
-     * @param Entity $entity
-     * @param EntityMutation $activityMutation
+     * @param Activity $activity
      * @return void
      */
-    public function onUpdate(Entity $entity, EntityMutation $entityMutation): void
+    public function onUpdate(Activity $activity): void
     {
-        $assets = $this->videoAssets
-            ->setDoSave(false)
-            ->setEntity($activity)
+        $this->updateThumbnails($activity);
+    }
+
+    /**
+     * Upload the poster
+     * @param Activity $activity
+     * @return void
+     */
+    private function updateThumbnails(Activity $activity): void
+    {
+        list($customType, $customData) = $activity->getCustom();
+        if ($customType !== 'video') {
+            return;
+        }
+        $video = $this->entitiesBuilder->single($activity->getEntityGuid());
+        $this->videoAssets
+            ->setDoSave(true)
+            ->setEntity($video)
             ->update([ 'file' => $activity->getVideoPosterBase64Blob() ]);
-
-        $thumbnail = $assets['thumbnail'];
-
-        $custom = $activity->getCustom();
-        $custom['thumbnail_src'] = $thumbnail;
-        $entityMutation->setCustom($custom);
+        $activity->setCustom(...$video->getActivityParameters());
     }
 }
