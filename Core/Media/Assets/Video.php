@@ -10,7 +10,7 @@ class Video implements AssetsInterface
     protected $entity;
 
     /** @var bool */
-    protected $doSave = false;
+    protected $doSave = true;
 
     public function setEntity($entity): self
     {
@@ -74,6 +74,7 @@ class Video implements AssetsInterface
             $file->close();
 
             if ($this->doSave) {
+                $this->entity->thumbnail = $filename;
                 $this->entity->last_updated = time();
                 $this->entity->save();
             }
