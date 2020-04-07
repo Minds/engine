@@ -80,4 +80,19 @@ class Controllers
             'trending' => $tags['trending'],
         ]);
     }
+
+    /**
+     * Set the tags a user wants to prefer
+     * @param ServerRequest $request
+     * @return JsonResponse
+     */
+    public function setTags(ServerRequest $request): JsonResponse
+    {
+        $body = $request->getParsedBody();
+        $selected = $body['selected'] ?? [];
+        $deselected = $body['deselected'] ?? [];
+
+        $success = $this->manager->setTags($selected, $deselected);
+        return new JsonResponse([ 'status' => $success ? 'success' : 'error', ]);
+    }
 }

@@ -16,6 +16,7 @@ use Minds\Interfaces;
 use Minds\Interfaces\Flaggable;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Common\EntityMutation;
 
 // WIP: Modernize. Use PSR-7 router.
 class newsfeed implements Interfaces\Api
@@ -457,29 +458,30 @@ class newsfeed implements Interfaces\Api
                 if (is_numeric($pages[0])) {
                     $activity = new Activity($pages[0]);
 
-                    if (!$activity->canEdit() || $activity->type !== 'activity') {
-                        return Factory::response(['status' => 'error', 'message' => 'Post not editable']);
-                    }
+                    $activityMutation = new EntityMutation($activity);
 
                     if (isset($_POST['message'])) {
-                        $activity->setMessage($_POST['message']);
+                        $activityMutation->setMessage($_POST['message']);
+                    }
+
+                    if (isset($_POST['title'])) {
+                        $activityMutation->setTitle($_POST['title']);
+                    }
+
+                    if (isset($_POST['entity_guid'])) {
+                        $activityMutation->setEntityGuid($_POST['entity_guid']);
                     }
 
                     if (isset($_POST['mature'])) {
-                        $activity->setMature($_POST['mature']);
+                        $activityMutation->setMature($_POST['mature']);
                     }
 
                     if (isset($_POST['tags'])) {
-                        $activity->setTags($_POST['tags']);
+                        $activityMutation->setTags($_POST['tags']);
                     }
 
                     if (isset($_POST['nsfw'])) {
-                        $activity->setNsfw($_POST['nsfw']);
-                    }
-
-                    $user = Core\Session::getLoggedInUser();
-                    if ($user->isMature()) {
-                        $activity->setMature(true);
+                        $activityMutation->setNsfw($_POST['nsfw']);
                     }
 
                     if (isset($_POST['wire_threshold'])) {
@@ -490,96 +492,58 @@ class newsfeed implements Interfaces\Api
                             ]);
                         }
 
-                        $activity->setWireThreshold($_POST['wire_threshold']);
-                        $activity->setPaywall(!!$_POST['wire_threshold']);
+                        $activityMutation->setWireThreshold($_POST['wire_threshold']);
+                        $activityMutation->setPaywall(!!$_POST['wire_threshold']);
                     }
 
                     if (isset($_POST['paywall']) && !$_POST['paywall']) {
-                        $activity->setWireThreshold(null);
-                        $activity->setPaywall(false);
+                        $activityMutation->setWireThreshold(null);
+                        $activityMutation->setPaywall(false);
                     }
-
-                    $activity->setEdited(true);
-
-                    $activity->indexes = ["activity:$activity->owner_guid:edits"]; //don't re-index on edit
-                    (new Core\Translation\Storage())->purge($activity->guid);
-
-                    $scheduled = $_POST['time_created'] ?? null;
-
-                    if ($scheduled && ($scheduled != $activity->getTimeCreated())) {
-                        try {
-                            $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
-                            $timeCreatedDelegate->onUpdate($activity, $scheduled, $activity->getTimeSent());
-                        } catch (\Exception $e) {
-                            return Factory::response([
-                                'status' => 'error',
-                                'message' => $e->getMessage(),
-                            ]);
-                        }
-                    }
-
-                    // Activity license
 
                     $license = $_POST['license'] ?? $_POST['attachment_license'] ?? '';
 
                     if ($license) {
-                        $activity->setLicense($license);
+                        $activityMutation->setLicense($license);
                     }
 
-                    // Attachment and rich embed
-
-                    // An activity can be updated ONLY if doesn't have either entity or URL
-                    $canUpdateEntity = !$activity->getEntityGuid() || !$activity->getURL();
-
-                    if ($canUpdateEntity) {
-                        $wasEntityUpdated = $_POST['entity_guid_update'] ?? false;
-                        $entityGuid = $_POST['entity_guid'] ?? null;
-
-                        // - Attachment
-
-                        // Changes only if entity_guid_update is set
-                        if ($wasEntityUpdated) {
-                            // Edit the attachment, if needed
-                            $activity = (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
-                                ->setActor(Core\Session::getLoggedinUser())
-                                ->onEdit($activity, (string) $entityGuid);
-
-                            // Clean rich embed
-                            $activity
-                                ->setTitle('')
-                                ->setBlurb('')
-                                ->setURL('')
-                                ->setThumbnail('');
-
-                            if ($activity->getEntityGuid() && ($_POST['title'] ?? null)) {
-                                // Re-set title if passed
-                                $activity->setTitle($_POST['title']);
-                            }
-                        }
-
-                        // - Rich Embed
-
-                        if (!$activity->getEntityGuid()) {
-                            // Set-up rich embed
-
-                            $activity
-                                ->setTitle(rawurldecode($_POST['title'] ?? ''))
-                                ->setBlurb(rawurldecode($_POST['description'] ?? ''))
-                                ->setURL(rawurldecode($_POST['url'] ?? ''))
-                                ->setThumbnail($_POST['thumbnail'] ?? '');
-                        }
+                    if (isset($_POST['time_created'])) {
+                        $activityMutation->setTimeCreated($_POST['time_created']);
                     }
 
-                    //
+                    // Rich embed fields (manager will override if entity_guid exists)
 
-                    $save
-                        ->setEntity($activity)
-                        ->save();
+                    if (isset($_POST['url'])) {
+                        $activityMutation
+                            ->setBlurb(rawurldecode($_POST['blurb'] ?? ''))
+                            ->setURL(rawurldecode($_POST['url'] ?? ''))
+                            ->setThumbnail($_POST['thumbnail'] ?? '');
+                    }
 
-                    (new Core\Entities\PropagateProperties())->from($activity);
+                    if (isset($_POST['video_poster'])) {
+                        $activityMutation->setVideoPosterBase64Blob($_POST['video_poster']);
+                    }
+
+                    // Update the entity
+
+                    $activityManager = Di::_()->get('Feeds\Activity\Manager');
+
+                    try {
+                        $activityManager->update($activityMutation);
+                    } catch (\Exception $e) {
+                        return Factory::response([
+                            'status' => 'error',
+                            'message' => $e->getMessage(),
+                        ]);
+                    }
 
                     $activity->setExportContext(true);
-                    return Factory::response(['guid' => $activity->guid, 'activity' => $activity->export(), 'edited' => true]);
+                    
+                    return Factory::response([
+                        'guid' => $activity->guid,
+                        'activity' => $activity->export(),
+                        'edited' => true
+                    ]);
                 }
 
                 $activity = new Activity();
@@ -680,6 +644,13 @@ class newsfeed implements Interfaces\Api
                 } else {
                     // TODO: Handle immutable embeds (like blogs, which have an entity_guid and a URL)
                     // These should not appear naturally when creating, but might be implemented in the future.
+                }
+
+                // TODO: Move this to Core/Feeds/Activity/Manager
+                if ($_POST['video_poster'] ?? null) {
+                    $activity->setVideoPosterBase64Blob($_POST['video_poster']);
+                    $videoPosterDelegate = new Core\Feeds\Activity\Delegates\VideoPosterDelegate();
+                    $videoPosterDelegate->onAdd($activity);
                 }
 
                 try {
