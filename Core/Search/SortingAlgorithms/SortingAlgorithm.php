@@ -39,4 +39,14 @@ interface SortingAlgorithm
      * @return int|float
      */
     public function fetchScore($doc);
+
+    /**
+     * @return array
+     */
+    public function getFunctionScores(): ?array;
+
+    /**
+     * @return string
+     */
+    public function getScoreMode(): string;
 }

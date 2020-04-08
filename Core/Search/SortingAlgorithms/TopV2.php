@@ -40,6 +40,13 @@ class TopV2 implements SortingAlgorithm
                             ],
                         ],
                     ],
+                    [
+                        'range' => [
+                            'votes:up' => [
+                                'gte' => 2,
+                            ]
+                        ]
+                    ],
                 ],
             ]
         ];
@@ -50,21 +57,63 @@ class TopV2 implements SortingAlgorithm
      */
     public function getScript()
     {
-        $now = time();
-        return "
-            def up = doc['votes:up'].value ?: 0;
-            def down = doc['votes:down'].value ?: 0;
-            def comments = doc['comments:count'].value ?: 0;
+        return "";
+    }
 
-            def age = $now - (doc['@timestamp'].value.millis / 1000);
-
-			def votes = (comments * 2) + up - down;
-            def sign = (votes > 0) ? 1 : (votes < 0 ? -1 : 0);
-            def order = Math.log(Math.max(Math.abs(votes), 1));
-
-            // Rounds to 7
-            return (sign * order) - (age / 43200);
-		";
+    /**
+     * @return array
+     */
+    public function getFunctionScores(): array
+    {
+        return [
+            [
+                'field_value_factor' => [
+                    'field' => 'votes:up',
+                    'factor' => 1,
+                    'modifier' => 'sqrt',
+                    'missing' => 0,
+                ],
+            ],
+            [
+                'field_value_factor' => [
+                    'field' => 'comments:count',
+                    'factor' => 2,
+                    'modifier' => 'sqrt',
+                    'missing' => 0,
+                ],
+            ],
+            [
+                'filter' => [
+                    'range' => [
+                        '@timestamp' => [
+                            'gte' => 'now-12h',
+                        ]
+                    ],
+                ],
+                'weight' => 4,
+            ],
+            [
+                'filter' => [
+                    'range' => [
+                        '@timestamp' => [
+                            'lt' => 'now-12h',
+                            'gte' => 'now-36h',
+                        ]
+                    ],
+                ],
+                'weight' => 2,
+            ],
+            [
+                'gauss' => [
+                    '@timestamp' => [
+                        'offset' => '12h', // Do not decay until we reach this bound
+                        'scale' => '24h', // Peak decay will be here
+                        'decay' => 0.9
+                    ],
+                ],
+                'weight' => 20,
+            ]
+        ];
     }
 
     /**
@@ -86,5 +135,13 @@ class TopV2 implements SortingAlgorithm
     public function fetchScore($doc)
     {
         return $doc['_score'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getScoreMode(): string
+    {
+        return "multiply";
     }
 }
