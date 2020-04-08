@@ -354,7 +354,7 @@ class Activity extends Entity implements MutatableEntityInterface
      * Set the message
      * @return string
      */
-    public function getMessage(): string
+    public function getMessage(): ?string
     {
         return $this->message;
     }
@@ -374,7 +374,7 @@ class Activity extends Entity implements MutatableEntityInterface
      * Get the title
      * @return string
      */
-    public function getTitle(): string
+    public function getTitle(): ?string
     {
         return $this->title;
     }

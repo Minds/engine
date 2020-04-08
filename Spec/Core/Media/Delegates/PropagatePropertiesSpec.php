@@ -29,8 +29,12 @@ class PropagatePropertiesSpec extends ObjectBehavior
     public function it_should_propagate_changes_to_activity()
     {
         $this->entity->get('title')->shouldBeCalled()->willReturn('new title');
-        $this->activity->getMessage()->shouldBeCalled()->willReturn('old title');
-        $this->activity->setMessage('new title')->shouldBeCalled();
+        $this->activity->getTitle()->shouldBeCalled()->willReturn('old title');
+        $this->activity->setTitle('new title')->shouldBeCalled();
+
+        $this->entity->get('description')->shouldBeCalled()->willReturn('new message');
+        $this->activity->getMessage()->shouldBeCalled()->willReturn('');
+        $this->activity->setMessage('new message')->shouldBeCalled();
 
         $activityParameters = [
             'batch',
@@ -49,7 +53,11 @@ class PropagatePropertiesSpec extends ObjectBehavior
 
     public function it_should_propogate_properties_from_activity()
     {
-        $this->activity->getMessage()->shouldBeCalled()->willReturn('new title');
+        $this->activity->getMessage()->shouldBeCalled()->willReturn('new description');
+        $this->entity->get('description')->shouldbeCalled()->willReturn('old description');
+        $this->entity->set('description', 'new description')->shouldBeCalled();
+
+        $this->activity->getTitle()->shouldBeCalled()->willReturn('new title');
         $this->entity->get('title')->shouldbeCalled()->willReturn('old title');
         $this->entity->set('title', 'new title')->shouldBeCalled();
 

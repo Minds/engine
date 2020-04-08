@@ -36,7 +36,7 @@ class ForeignEntityDelegate
      */
     public function onUpdate(Activity $activity, EntityMutation $entityMutation): void
     {
-        $entity = Factory::build($activity);
+        $entity = Factory::build((object) $activity);
 
         foreach ($entityMutation->getMutatedValues() as $var => $value) {
             $setterName = 'set' . ucfirst($var);
