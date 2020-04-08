@@ -301,6 +301,26 @@ class Video extends MindsObject
     }
 
     /**
+     * Set title
+     * @param string $title
+     * @return self
+     */
+    public function setTitle(string $title): self
+    {
+        $this->title = $title;
+        return $this;
+    }
+
+    /**
+     * Get Title
+     * @return string
+     */
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+
+    /**
      * Return description
      * @return string
      */
@@ -315,9 +335,19 @@ class Video extends MindsObject
     * @param string $description - description to be set.
     * @return Video
     */
-    public function setDescription($description): Video
+    public function setDescription($description): self
     {
         $this->description = $description;
         return $this;
+    }
+
+    /**
+     * Set message (description)
+     * @param string $description
+     * @return self
+     */
+    public function setMessage($description): self
+    {
+        return $this->setDescription($description);
     }
 }
