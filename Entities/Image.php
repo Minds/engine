@@ -391,6 +391,25 @@ class Image extends File
         return $this;
     }
 
+    /**
+     * Set title
+     * @param string $title
+     * @return self
+     */
+    public function setTitle(string $title): self
+    {
+        $this->title = $title;
+        return $this;
+    }
+
+    /**
+     * Get Title
+     * @return string
+     */
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
 
     /**
      * Return description
@@ -411,5 +430,15 @@ class Image extends File
     {
         $this->description = $description;
         return $this;
+    }
+
+    /**
+     * Set message (description)
+     * @param string $description
+     * @return self
+     */
+    public function setMessage($description): self
+    {
+        return $this->setDescription($description);
     }
 }
