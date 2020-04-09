@@ -88,4 +88,20 @@ class Top implements SortingAlgorithm
     {
         return $doc['_score'];
     }
+
+    /**
+     * @return array
+     */
+    public function getFunctionScores(): ?array
+    {
+        return null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getScoreMode(): string
+    {
+        return "sum";
+    }
 }
