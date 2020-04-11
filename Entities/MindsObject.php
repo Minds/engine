@@ -77,7 +77,7 @@ class MindsObject extends \ElggObject implements Flaggable
      *
      * @return bool
      */
-    public function getDeleted(): bool
+    public function getDeleted(): ?bool
     {
         return (bool) $this->deleted || $this->getFlag('deleted');
     }
