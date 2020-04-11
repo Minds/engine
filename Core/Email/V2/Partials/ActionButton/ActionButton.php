@@ -18,6 +18,7 @@ class ActionButton extends Template
         $this->setTemplate('./template.tpl');
         $this->set('path', $this->path);
         $this->set('label', $this->label);
-            return $this->render();
+
+        return $this->render();
     }
 }
