@@ -34,6 +34,7 @@ class VideoPosterDelegate
     public function onAdd(Activity $activity): void
     {
         $this->updateThumbnails($activity);
+        // Cleanup the base64 poster as we won't use it again
     }
 
     /**
@@ -63,5 +64,7 @@ class VideoPosterDelegate
             ->setEntity($video)
             ->update([ 'file' => $activity->getVideoPosterBase64Blob() ]);
         $activity->setCustom(...$video->getActivityParameters());
+        // Cleanup the base64 poster as we won't use it again
+        $activity->setVideoPosterBase64Blob('');
     }
 }
