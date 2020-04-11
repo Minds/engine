@@ -21,4 +21,3 @@ class ActionButton extends Template
             return $this->render();
     }
 }
-

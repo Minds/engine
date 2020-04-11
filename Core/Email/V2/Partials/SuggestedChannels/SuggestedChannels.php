@@ -23,4 +23,3 @@ class SuggestedChannels extends Template
         }
     }
 }
-
