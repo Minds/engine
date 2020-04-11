@@ -1,6 +1,6 @@
 <?php
 
-namespace Minds\Core\Email\V2\Campaigns\UserRetention\WelcomeComplete;
+namespace Minds\Core\Email\V2\Campaigns\UserRetention\WelcomeIncomplete;
 
 use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\Mailer;
@@ -12,7 +12,7 @@ use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
 use Minds\Traits\MagicAttributes;
 use Minds\Core\Di\Di;
 
-class WelcomeComplete extends EmailCampaign
+class WelcomeIncomplete extends EmailCampaign
 {
     use MagicAttributes;
     protected $db;
@@ -43,6 +43,7 @@ class WelcomeComplete extends EmailCampaign
             'topic' => $this->topic,
             'state' => $this->state,
         ];
+
         $trackingQuery = http_build_query($tracking);
         $subject = 'Welcome to Minds';
 
@@ -56,18 +57,19 @@ class WelcomeComplete extends EmailCampaign
         $this->template->set('campaign', $this->campaign);
         $this->template->set('topic', $this->topic);
         $this->template->set('state', $this->state);
-        $this->template->set('preheader', 'Here\'s a free token for your new channel.');
+        $this->template->set('preheader', 'Enjoy all of the different features Minds has to offer when you finish setting up your channel');
         $this->template->set('tracking', $trackingQuery);
 
         $actionButton = (new ActionButton())
         ->setPath('newsfeed/subscribed?'. $trackingQuery)
-        ->setLabel('Make a Post');
+        ->setLabel('Complete Setup');
 
         $this->template->set('actionButton', $actionButton->build());
 
+
         $suggestedChannels = (new SuggestedChannels())
-        ->setTracking(http_build_query($tracking))
-        ->setSuggestions($this->suggestions);
+            ->setTracking(http_build_query($tracking))
+            ->setSuggestions($this->suggestions);
 
         $this->template->set('suggestions', $suggestedChannels->build());
 
@@ -83,13 +85,12 @@ class WelcomeComplete extends EmailCampaign
         return $message;
     }
 
-    public function send($time = null)
+    public function send()
     {
-        $time = $time ?: time();
         //send email
         if ($this->canSend()) {
             $this->mailer->queue($this->build());
-            $this->saveCampaignLog($time);
+            $this->saveCampaignLog();
         }
     }
 }

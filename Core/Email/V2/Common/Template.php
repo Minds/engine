@@ -1,6 +1,6 @@
 <?php
 
-namespace Minds\Core\Email;
+namespace Minds\Core\Email\V2\Common;
 
 use Minds\Core\Markdown\Markdown;
 use Minds\Core\Di\Di;
@@ -26,7 +26,7 @@ class Template
     public function __construct($markdown = null, $config = null, $emailStyles = null)
     {
         $this->markdown = $markdown ?: new Markdown();
-        $this->emailStyles = $emailStyles ?: Di::_()->get('Email\EmailStyles');
+        $this->emailStyles = $emailStyles ?: Di::_()->get('Email\V2\Common\EmailStyles');
         $this->config = $config ?: Di::_()->get('Config');
         $this->data['site_url'] = $this->config->get('site_url') ?: 'https://www.minds.com/';
         $this->data['cdn_assets_url'] = $this->config->get('cdn_assets_url') ?: 'https://cdn-assets.minds.com/front/dist/';
@@ -37,7 +37,7 @@ class Template
     {
         $this->template = $this->findTemplate($template);
         if (!$this->template) {
-            $this->template = __MINDS_ROOT__.'/Components/Email/default.tpl';
+            $this->template = __MINDS_ROOT__.'/Core/Email/V2/Common/default.tpl';
         }
 
         return $this;
