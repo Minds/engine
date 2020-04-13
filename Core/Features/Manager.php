@@ -50,6 +50,7 @@ class Manager
             new Services\Config(),
             new Services\Unleash(),
             new Services\Environment(),
+            new Services\Cypress(),
         ];
         $this->activeSession = $activeSession ?: Di::_()->get('Sessions\ActiveSession');
         $this->featureKeys = ($features ?? Di::_()->get('Features\Keys')) ?: [];

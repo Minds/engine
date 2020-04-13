@@ -128,7 +128,7 @@ class Manager
         $subscription->setSubscriberGuid($this->subscriber->getGuid())
             ->setPublisherGuid($publisher->getGuid());
 
-        if ($this->getSubscriptionsCount() >= static::MAX_SUBSCRIPTIONS) {
+        if ($this->getSubscriptionsCount() >= static::MAX_SUBSCRIPTIONS && $this->sendEvents) {
             $this->sendNotificationDelegate->onMaxSubscriptions($subscription);
             throw new TooManySubscriptionsException();
         }

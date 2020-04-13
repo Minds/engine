@@ -75,6 +75,16 @@ class File extends \ElggFile implements Flaggable
         return $this;
     }
 
+    /**
+     * Gets the `deleted` flag.
+     *
+     * @return bool
+     */
+    public function getDeleted(): bool
+    {
+        return (bool) $this->deleted || $this->getFlag('deleted');
+    }
+
     public function save($index = true)
     {
         if ($this->getFlag('deleted')) {
