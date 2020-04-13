@@ -141,4 +141,47 @@ class ManagerSpec extends ObjectBehavior
         $this->campaignLogsRepository->getList($options)->shouldBeCalled();
         $this->getCampaignLogs($user);
     }
+
+    public function it_should_unset_all_campaigns()
+    {
+        $user = new User();
+        $user->guid = '123';
+        $subscriptions = [[
+            (new EmailSubscription)
+                ->setUserGuid($user->guid)
+                ->setCampaign('when')
+                ->setTopic('unread_notifications'),
+            (new EmailSubscription)
+                ->setUserGuid($user->guid)
+                ->setCampaign('with')
+                ->setTopic('top_posts'),
+        ]];
+    
+        $this->repository->getList([
+            'campaigns' => [ 'when', 'with', 'global' ],
+            'topics' => [
+                'unread_notifications',
+                'wire_received',
+                'boost_completed',
+                'top_posts',
+                'channel_improvement_tips',
+                'posts_missed_since_login',
+                'new_channels',
+                'minds_news',
+                'minds_tips',
+                'exclusive_promotions',
+            ],
+            'user_guid' => $user->guid,
+        ])
+            ->shouldBeCalled()
+            ->willReturn($subscriptions);
+
+        $this->repository->add(Argument::that(function ($model) {
+            return $model->getValue() === '0';
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->unsetAllCampaigns($user->guid);
+    }
 }

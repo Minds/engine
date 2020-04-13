@@ -3,6 +3,7 @@
 
 namespace Minds\Core\Email;
 
+use Exception;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Entities;
@@ -19,6 +20,22 @@ class Manager
     /** @var CampaignLogsRepository */
     protected $campaignLogsRepository;
 
+    /** @var array */
+    const CAMPAIGNS = [ 'when', 'with', 'global' ];
+
+    /** @var array */
+    const TOPICS = [
+        'unread_notifications',
+        'wire_received',
+        'boost_completed',
+        'top_posts',
+        'channel_improvement_tips',
+        'posts_missed_since_login',
+        'new_channels',
+        'minds_news',
+        'minds_tips',
+        'exclusive_promotions',
+    ];
 
     public function __construct(Repository $repository = null, CampaignLogsRepository $campaignLogsRepository = null)
     {
@@ -137,5 +154,43 @@ class Manager
             'receiver_guid' => $receiver->guid
         ];
         return $this->campaignLogsRepository->getList($options);
+    }
+
+    /**
+     * Unset all campaigns for a user by guid.
+     * @param string $guid - the GUID of the user.
+     * @return boolean - success.
+     */
+    public function unsetAllCampaigns($guid): bool
+    {
+        if (!$guid) {
+            return false;
+        }
+
+        $emailSubscriptions = $this->repository->getList([
+            'campaigns' => $this::CAMPAIGNS,
+            'topics' => $this::TOPICS,
+            'user_guid' => $guid,
+        ]);
+
+        foreach ($emailSubscriptions as $emailSubscription) {
+            if (is_iterable($emailSubscription)) {
+                foreach ($emailSubscription as $subscription) {
+                    $model = new EmailSubscription();
+                    $model->setUserGuid($guid)
+                        ->setCampaign($subscription->getCampaign())
+                        ->setTopic($subscription->getTopic())
+                        ->setValue('0');
+
+                    try {
+                        $this->repository->add($model);
+                    } catch (\Exception $e) {
+                        throw new Exception("Unable to remove email subscription.");
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 }

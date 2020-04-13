@@ -7,6 +7,7 @@
 use Minds\Core;
 use Minds\Entities;
 use Minds\Helpers;
+use Minds\Core\Email\Manager;
 use Minds\Core\Analytics\Metrics\Event;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Di\Di;
@@ -36,7 +37,8 @@ class Events
                 ->setHtml($template);
             Di::_()->get('Mailer')->queue($message);
 
-            // Record metric
+            $emailManager = Di::_()->get('Email\Manager');
+            $emailManager->unsetAllCampaigns($user->guid);
 
             $event = new Event();
             $event->setType('action')

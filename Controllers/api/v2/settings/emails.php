@@ -5,6 +5,7 @@ use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Confirmation\Manager as EmailConfirmation;
+use Minds\Core\Email\Manager as EmailManager;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Entities\User;
 use Minds\Interfaces;
@@ -21,26 +22,11 @@ class emails implements Interfaces\Api
             ]);
         }
 
-        $campaigns = [ 'when', 'with', 'global' ];
-
-        $topics = [
-            'unread_notifications',
-            'wire_received',
-            'boost_completed',
-            'top_posts',
-            'channel_improvement_tips',
-            'posts_missed_since_login',
-            'new_channels',
-            'minds_news',
-            'minds_tips',
-            'exclusive_promotions',
-        ];
-
-        /** @var Core\Email\Repository $rpository */
+        /** @var Core\Email\Repository $repository */
         $repository = Di::_()->get('Email\Repository');
         $result = $repository->getList([
-            'campaigns' => $campaigns,
-            'topics' => $topics,
+            'campaigns' => EmailManager::CAMPAIGNS,
+            'topics' => EmailManager::TOPICS,
             'user_guid' => $user->guid,
         ]);
 
