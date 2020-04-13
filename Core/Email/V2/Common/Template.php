@@ -134,6 +134,10 @@ class Template
         return;
     }
 
+    /**
+     * Renders template.
+     * @return string
+     */
     public function render()
     {
         $body = $this->loadFromFile ? $this->compile($this->body) : $this->body;

@@ -9,9 +9,16 @@ class ActionButton extends Template
 {
     use MagicAttributes;
 
+    /** @var string */
     protected $path;
+
+    /** @var string */
     protected $label;
 
+
+    /** Build button
+     * @return string
+     */
     public function build()
     {
         $this->loadFromFile = false;
