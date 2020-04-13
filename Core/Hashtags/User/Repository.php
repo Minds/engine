@@ -3,6 +3,7 @@
 namespace Minds\Core\Hashtags\User;
 
 use Cassandra\Varint;
+use Cassandra\Timestamp;
 use Minds\Common\Repository\Response;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
@@ -87,6 +88,45 @@ class Repository
                 error_log(static::class . '::add() CQL Exception ' . $e->getMessage());
                 return false;
             }
+        }
+
+        return true;
+    }
+
+    /**
+     * Batch hashtags
+     * @param array $add
+     * @param array $remove
+     * @return bool
+     */
+    public function batch(array $add, array $remove): bool
+    {
+        $requests = [];
+
+        foreach ($add as $hashtag) {
+            $requests[] = [
+                'string' => "INSERT INTO user_hashtags (user_guid, hashtag) VALUES (?, ?)",
+                'values' => [
+                    new Varint($hashtag->getGuid()),
+                    (string) $hashtag->getHashtag(),
+                ],
+            ];
+        }
+
+        foreach ($remove as $hashtag) {
+            $requests[] = [
+                'string' => "DELETE FROM user_hashtags WHERE user_guid = ? and hashtag = ?",
+                'values' => [
+                    new Varint($hashtag->getGuid()),
+                    (string) $hashtag->getHashtag(),
+                ],
+            ];
+        }
+
+        try {
+            $this->db->batchRequest($requests, \Cassandra::BATCH_LOGGED, false);
+        } catch (\Exception $e) {
+            return false;
         }
 
         return true;

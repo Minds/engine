@@ -10,13 +10,16 @@ use Minds\Core\Analytics;
 /**
  * Activity Entity
  */
-class Activity extends Entity
+class Activity extends Entity implements MutatableEntityInterface
 {
     public $indexes = null;
 
     protected $dirtyIndexes = false;
 
     protected $hide_impressions = false;
+
+    /** @var string */
+    protected $videoPosterBase64Blob; // Never saves
 
     /**
      * Initialize entity attributes
@@ -351,7 +354,7 @@ class Activity extends Entity
      * Set the message
      * @return string
      */
-    public function getMessage(): string
+    public function getMessage(): ?string
     {
         return $this->message;
     }
@@ -368,6 +371,15 @@ class Activity extends Entity
     }
 
     /**
+     * Get the title
+     * @return string
+     */
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    /**
      * Sets the blurb
      * @param string $blurb
      * @return $this
@@ -376,6 +388,15 @@ class Activity extends Entity
     {
         $this->blurb = $blurb;
         return $this;
+    }
+
+    /**
+     * Gets the blurb
+     * @return string
+     */
+    public function getBlurb(): string
+    {
+        return $this->blurb;
     }
 
     /**
@@ -401,6 +422,15 @@ class Activity extends Entity
     }
 
     /**
+     * Sets the thumbnail
+     * @return string
+     */
+    public function getThumbnail(): string
+    {
+        return $this->thumbnail_src;
+    }
+
+    /**
      * Sets the license
      * @param string $license
      * @return Activity
@@ -409,6 +439,15 @@ class Activity extends Entity
     {
         $this->license = $license;
         return $this;
+    }
+
+    /**
+     * Gets the license
+     * @return string
+     */
+    public function getLicense(): string
+    {
+        return $this->license;
     }
 
     /**
@@ -678,6 +717,15 @@ class Activity extends Entity
     }
 
     /**
+     * Return if there is a paywall or not
+     * @return bool
+     */
+    public function getPayWall(): bool
+    {
+        return (bool) $this->paywall;
+    }
+
+    /**
      * Checks if there is a paywall for this post
      * @return boolean
      */
@@ -833,5 +881,25 @@ class Activity extends Entity
     {
         $this->time_sent = $time_sent;
         return $this;
+    }
+
+    /**
+     * Sets base64 video blob but never saves
+     * @param string $blob
+     * @return self
+     */
+    public function setVideoPosterBase64Blob(string $blob): self
+    {
+        $this->videoPosterBase64Blob = $blob;
+        return $this;
+    }
+
+    /**
+     * Returns base64 video poster if provided (never saved to db)
+     * @return string
+     */
+    public function getVideoPosterBase64Blob(): ?string
+    {
+        return $this->videoPosterBase64Blob;
     }
 }

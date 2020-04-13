@@ -36,6 +36,10 @@ class Routes extends ModuleRoutes
                     'tags',
                     Ref::_('Discovery\Controllers', 'getTags')
                 );
+                $route->post(
+                    'tags',
+                    Ref::_('Discovery\Controllers', 'setTags')
+                );
             });
     }
 }
