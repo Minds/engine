@@ -7,8 +7,8 @@ use Minds\Core\Di\Di;
 use Minds\Core\Suggestions\Manager as SuggestionsManager;
 use Minds\Core\Onboarding\Manager as OnboardingManager;
 use Minds\Interfaces\SenderInterface;
-use Minds\Core\Email\V2\Campaigns\UserRetention\WelcomeComplete;
-use Minds\Core\Email\V2\Campaigns\UserRetention\WelcomeIncomplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete;
 
 class WelcomeSender implements SenderInterface
 {
@@ -33,7 +33,10 @@ class WelcomeSender implements SenderInterface
         $this->welcomeIncomplete = $welcomeIncomplete ?: new WelcomeIncomplete();
     }
 
-    public function send(User $user)
+    /** Send the relevant template
+     * @return void
+    */
+    public function send(User $user): void
     {
         $this->onboardingManager->setUser($user);
         $campaign = $this->welcomeComplete;

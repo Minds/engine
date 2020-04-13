@@ -2,7 +2,8 @@
 /**
  * Email Styles
  * Since CSS in emails don't work properly, we are forced to use inline styles
- * This class marries the two by providing a dictionary of classes that can be applied in combination.
+ * This class marries the two by providing a dictionary of classes that can be applied in combination
+ *
  * NOTE: Cannot be used in conjunction with hard-coded inline styles,
  * as whichever comes second will be cancelled.
  */
@@ -14,7 +15,7 @@ class EmailStyles
     protected $styles;
 
     //Define your 'css classes' here
-    //In your templates, class <?php $emailStyles->getStyle('mix', 'match', 'combine')
+    //In your templates, class <?php $emailStyles->getStyle('m-fonts', 'm-link', 'm-clear')
     public function __construct()
     {
         $this->styles = [
@@ -30,8 +31,8 @@ class EmailStyles
             'm-signature' => 'margin: 0 0 4px 0;padding: 0 !important;',
 
         // SPACING & LAYOUT ///////////////////////////
-            'm-maxWidth' => 'max-width:587px;',
-            'm-maxWidth--copy' => 'width:80%;max-width:487px',
+            'm-maxWidth' => 'max-width:600px;',
+            'm-maxWidth--copy' => 'width:80%;max-width:500px',
             'm-spacer--small' => 'padding: 22px 0;',
             'm-spacer--medium' => 'padding: 40px 0;',
             'm-spacer--large' => 'padding: 56px 0;',

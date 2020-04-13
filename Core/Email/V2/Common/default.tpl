@@ -136,9 +136,9 @@
         <tr>
           <td bgcolor="#ffffff" align="center">
             <!--[if (gte mso 9)|(IE)]>
-                <table align="center" border="0" cellspacing="0" cellpadding="0" width="500">
+                <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
                 <tr>
-                <td align="center" valign="top" width="500">
+                <td align="center" valign="top" width="600">
                 <![endif]-->
             <table
               border="0"
@@ -175,9 +175,9 @@
         <tr>
           <td bgcolor="#ffffff" align="center">
             <!--[if (gte mso 9)|(IE)]>
-                <table align="center" border="0" cellspacing="0" cellpadding="0" width="500">
+                <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
                 <tr>
-                <td align="center" valign="top" width="500">
+                <td align="center" valign="top" width="600">
                 <![endif]-->
             <table
               border="0"
@@ -223,9 +223,9 @@
         <tr>
           <td bgcolor="#ffffff" align="center">
             <!--[if (gte mso 9)|(IE)]>
-                <table align="center" border="0" cellspacing="0" cellpadding="0" width="500">
+                <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
                 <tr>
-                <td align="center" valign="top" width="500">
+                <td align="center" valign="top" width="600">
                 <![endif]-->
             <table
               border="0"
@@ -256,9 +256,9 @@
           <tr>
             <td bgcolor="#ffffff" align="center">
               <!--[if (gte mso 9)|(IE)]>
-                  <table align="center" border="0" cellspacing="0" cellpadding="0" width="500">
+                  <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
                   <tr>
-                  <td align="center" valign="top" width="500">
+                  <td align="center" valign="top" width="600">
                   <![endif]-->
               <table
                 border="0"
@@ -329,9 +329,9 @@
         <tr>
           <td bgcolor="#ffffff" align="center">
             <!--[if (gte mso 9)|(IE)]>
-                <table align="center" border="0" cellspacing="0" cellpadding="0" width="500">
+                <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
                 <tr>
-                <td align="center" valign="top" width="500">
+                <td align="center" valign="top" width="600">
                 <![endif]-->
             <table
               border="0"
@@ -503,9 +503,9 @@
         <tr>
           <td bgcolor="#ffffff" align="center">
             <!--[if (gte mso 9)|(IE)]>
-            <table align="center" border="0" cellspacing="0" cellpadding="0" width="500">
+            <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
             <tr>
-            <td align="center" valign="top" width="500">
+            <td align="center" valign="top" width="600">
             <![endif]-->
             <!--<?php echo $emailStyles->getStyles('m-maxWidth--copy'); ?> -->
             <table

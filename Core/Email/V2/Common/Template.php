@@ -101,7 +101,7 @@ class Template
      *
      * @param string $template
      *
-     * @return string
+     * @return string|null
      */
     protected function findTemplate($template)
     {
