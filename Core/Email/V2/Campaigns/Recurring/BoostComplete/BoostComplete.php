@@ -1,7 +1,8 @@
 <?php
 
-namespace Minds\Core\Email\V2\Campaigns\Recurring;
+namespace Minds\Core\Email\V2\Campaigns\Recurring\BoostComplete;
 
+use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\V2\Common\Template;
@@ -11,6 +12,7 @@ use Minds\Core\Di\Di;
 
 class BoostComplete extends EmailCampaign
 {
+    // TODO code docs
     protected $db;
     protected $template;
     protected $mailer;
