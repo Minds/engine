@@ -617,7 +617,7 @@ class Blog extends RepositoryEntity
 
         // Sanitize body
         $output['body'] = (new XSS())
-            ->setAllowed(['<pre>', '<code>'])
+            ->setAllowed(['<pre>', '<code>', '<figure>', '<figcaption>', '<table>', '<tbody>', '<tr>', '<td>'])
             ->clean($export['body']);
 
         // Legacy
