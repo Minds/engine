@@ -639,3 +639,6 @@ $CONFIG->set('captcha', [
 $CONFIG->set('cypress', [
     'shared_key' => '{{site-secret}}',
 ]);
+
+$CONFIG->set('onboarding_modal_timestamp', 0);
+$CONFIG->set('onboarding_v2_timestamp', 0);

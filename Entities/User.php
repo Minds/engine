@@ -67,6 +67,7 @@ class User extends \ElggUser
         $this->attributes['kite_ref_ts'] = 0;
         $this->attributes['kite_state'] = 'unknown';
         $this->attributes['disable_autoplay_videos'] = 0;
+        $this->attributes['dob'] = 0;
 
         parent::initializeAttributes();
     }
@@ -1397,6 +1398,24 @@ class User extends \ElggUser
     {
         $this->disable_autoplay_videos = $disabled ? 1 : 0;
 
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getDateOfBirth()
+    {
+        return $this->dob;
+    }
+
+    /**
+     * @param string $value
+     * @return $this
+     */
+    public function setDateOfBirth(string $value)
+    {
+        $this->dob = $value;
         return $this;
     }
 
