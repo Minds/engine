@@ -2,7 +2,7 @@
 
 namespace Spec\Minds\Core\Email\Campaigns;
 
-use Minds\Core\Email\Campaigns\WireReceived;
+use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Manager;

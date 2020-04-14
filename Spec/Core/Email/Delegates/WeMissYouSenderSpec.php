@@ -2,17 +2,17 @@
 
 namespace Spec\Minds\Core\Email\Delegates;
 
-use Minds\Core\Email\Delegates\GoneColdSender;
+use Minds\Core\Email\V2\Delegates\WeMissYouSender;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\Suggestions\Manager as SuggestionsManager;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Email\Manager;
 use Minds\Core\Email\Mailer;
 use Minds\Entities\User;
-use Minds\Core\Email\Campaigns\UserRetention\GoneCold;
+use Minds\Core\Email\V2\Campaigns\Recurring\WeMissYou\WeMissYou;
 use Minds\Core\Email\CampaignLogs\CampaignLog;
 
-class GoneColdSenderSpec extends ObjectBehavior
+class WeMissYouSenderSpec extends ObjectBehavior
 {
     /** @var Manager $manager */
     private $manager;
@@ -20,7 +20,7 @@ class GoneColdSenderSpec extends ObjectBehavior
     private $suggestionsManager;
     /** @var Mailer $mailer */
     private $mailer;
-    /** @var GoneCold $campaign */
+    /** @var WeMissYou $campaign */
     private $campaign;
     private $testGUID = 123;
     private $testName = 'test_name';
@@ -33,14 +33,14 @@ class GoneColdSenderSpec extends ObjectBehavior
         $this->manager = $manager;
         $this->suggestionsManager = $suggestionsManager;
         $this->mailer = $mailer;
-        $campaign = new GoneCold(null, $mailer->getWrappedObject(), $manager->getWrappedObject());
+        $campaign = new WeMissYou(null, $mailer->getWrappedObject(), $manager->getWrappedObject());
         $this->campaign = $campaign;
         $this->beConstructedWith($suggestionsManager, $campaign);
     }
 
     public function it_is_initializable()
     {
-        $this->shouldHaveType(GoneColdSender::class);
+        $this->shouldHaveType(WeMissYouSender::class);
     }
 
     public function it_should_send(User $user)

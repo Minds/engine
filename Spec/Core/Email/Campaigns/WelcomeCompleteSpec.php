@@ -1,8 +1,8 @@
 <?php
 
-namespace Spec\Minds\Core\Email\Campaigns\UserRetention;
+namespace Spec\Minds\Core\Email\Campaigns;
 
-use Minds\Core\Email\Campaigns\UserRetention\GoneCold;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Manager;
@@ -12,15 +12,16 @@ use Minds\Core\Email\CampaignLogs\CampaignLog;
 use Minds\Entities\User;
 use Prophecy\Argument;
 
-class GoneColdSpec extends ObjectBehavior
+class WelcomeCompleteSpec extends ObjectBehavior
 {
     protected $mailer;
     protected $manager;
+
     private $testGUID = 123456789;
     private $testName = 'test_name';
+    private $testBriefDescription = 'test brief description';
     private $testEmail = 'test@minds.com';
     private $testUsername = 'testUsername';
-    private $testBriefDescription = 'test brief description';
 
     public function let(Mailer $mailer, Manager $manager)
     {
@@ -31,10 +32,10 @@ class GoneColdSpec extends ObjectBehavior
 
     public function it_is_initializable()
     {
-        $this->shouldHaveType(GoneCold::class);
+        $this->shouldHaveType(WelcomeComplete::class);
     }
 
-    public function it_should_send_a_gone_cold_email(User $user)
+    public function it_should_send_a_welcome_complete_email(User $user)
     {
         $user->getGUID()->shouldBeCalled()->willReturn($this->testGUID);
         $user->get('enabled')->shouldBeCalled()->willReturn('yes');
@@ -46,25 +47,27 @@ class GoneColdSpec extends ObjectBehavior
 
         $this->getCampaign()->shouldEqual('global');
         $this->getTopic()->shouldEqual('minds_tips');
-        $this->getState()->shouldEqual('cold');
-        $this->setUser($user);
+        $this->getState()->shouldEqual('new');
         $this->setSuggestions($this->mockSuggestions());
+        $this->setUser($user);
         $message = $this->build();
-        $message->getSubject()->shouldEqual('What fascinates you?');
+        $message->getSubject()->shouldEqual('Welcome to Minds');
         $to = $message->getTo()[0]['name']->shouldEqual($this->testName);
         $to = $message->getTo()[0]['email']->shouldEqual($this->testEmail);
+
         $data = $this->getTemplate()->getData();
         $data['guid']->shouldEqual($this->testGUID);
         $data['email']->shouldEqual($this->testEmail);
         $data['username']->shouldEqual($this->testUsername);
 
         $this->mailer->queue(Argument::any())->shouldBeCalled();
-        
+
         $testEmailSubscription = (new EmailSubscription())
             ->setUserGuid($this->testGUID)
             ->setCampaign('global')
             ->setTopic('minds_tips')
             ->setValue(true);
+
 
         $time = time();
 
@@ -75,8 +78,7 @@ class GoneColdSpec extends ObjectBehavior
 
         $this->manager->saveCampaignLog($campaignLog)->shouldBeCalled();
         $this->manager->isSubscribed($testEmailSubscription)->shouldBeCalled()->willReturn(true);
-        
-        $this->send($time);
+        $this->send();
     }
 
     public function it_should_not_send_unsubscribed(User $user)
@@ -91,7 +93,7 @@ class GoneColdSpec extends ObjectBehavior
 
         $this->getCampaign()->shouldEqual('global');
         $this->getTopic()->shouldEqual('minds_tips');
-        $this->getState()->shouldEqual('cold');
+        $this->getState()->shouldEqual('new');
         $this->setUser($user);
         $this->build();
 
@@ -123,7 +125,7 @@ class GoneColdSpec extends ObjectBehavior
 
         $this->getCampaign()->shouldEqual('global');
         $this->getTopic()->shouldEqual('minds_tips');
-        $this->getState()->shouldEqual('cold');
+        $this->getState()->shouldEqual('new');
         $this->setUser($user);
         $this->build();
 

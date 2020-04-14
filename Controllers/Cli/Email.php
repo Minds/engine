@@ -6,9 +6,9 @@ use Minds\Core;
 use Minds\Cli;
 use Minds\Interfaces;
 use Minds\Entities\User;
-use Minds\Core\Email\Campaigns\WhenBoost;
-use Minds\Core\Email\Campaigns\WireReceived;
-use Minds\Core\Email\Campaigns\WirePromotions;
+use Minds\Core\Email\V2\Campaigns\Recurring\BoostComplete\BoostComplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
+use Minds\Core\Email\V2\Campaigns\Recurring\WirePromotion\WirePromotion;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WeMissYou\WeMissYou;
@@ -29,8 +29,8 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             case 'exec':
                 $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/exec.txt'));
                 break;
-            case 'testWhenBoost':
-                $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testWhenBoost.txt'));
+            case 'testBoostComplete':
+                $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testBoostComplete.txt'));
                 break;
             case 'testWeMissYou':
                 $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testWeMissYou.txt'));
@@ -43,6 +43,9 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
                 break;
             case 'testWireReceived':
                 $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testWireReceived.txt'));
+                break;
+            case 'testWirePromotion':
+                $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testWirePromotion.txt'));
                 break;
             default:
                 $this->out('Utilities for testing emails and sending them manually');
@@ -203,7 +206,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             exit;
         }
 
-        $campaign = (new WirePromotions())
+        $campaign = (new WirePromotion())
             ->setUser($user);
 
         $message = $campaign->build();
@@ -298,7 +301,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         }
     }
 
-    public function testWhenBoost()
+    public function testBoostComplete()
     {
         $output = $this->getOpt('output');
         $entityGuid = $this->getOpt('guid');

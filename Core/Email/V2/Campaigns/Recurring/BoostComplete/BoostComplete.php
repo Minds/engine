@@ -1,93 +1,75 @@
 <?php
 
-namespace Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete;
+namespace Minds\Core\Email\V2\Campaigns\Recurring;
 
-use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\Mailer;
-use Minds\Core\Email\Manager;
-use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Common\Message;
-use Minds\Core\Email\V2\Partials\SuggestedChannels\SuggestedChannels;
+use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
-use Minds\Traits\MagicAttributes;
+use Minds\Core\Email\Manager;
 use Minds\Core\Di\Di;
 
-class WelcomeComplete extends EmailCampaign
+class BoostComplete extends EmailCampaign
 {
-    use MagicAttributes;
-
     protected $db;
-    protected $amount;
-
-    /** @var  \Minds\Core\Email\V2\Common\Template */
     protected $template;
-
-    /** @var Mailer */
     protected $mailer;
 
-    /** @var string */
-    protected $campaign;
-
-    /** @var array */
-    protected $suggestions;
+    protected $boost;
 
     /** @var ActionButton */
     protected $actionButton;
-
-    /** @var \Minds\Core\Config\Config */
-    protected $config;
 
     public function __construct(Template $template = null, Mailer $mailer = null, Manager $manager = null)
     {
         $this->template = $template ?: new Template();
         $this->mailer = $mailer ?: new Mailer();
+        $this->campaign = 'when';
+        $this->topic = 'boost_completed';
         $this->manager = $manager ?: Di::_()->get('Email\Manager');
-
-        $this->campaign = 'global';
-        $this->topic = 'minds_tips';
-        $this->state = 'new';
     }
 
-    /**
-     * Build template
-     * @return Message
-     */
-
-    public function build(): Message
+    public function setBoost($boost)
     {
+        $this->boost = $boost;
+
+        return $this;
+    }
+
+    public function build()
+    {
+        if (!$this->user) {
+            return false;
+        }
+
         $tracking = [
             '__e_ct_guid' => $this->user->getGUID(),
             'campaign' => $this->campaign,
             'topic' => $this->topic,
-            'state' => $this->state,
         ];
         $trackingQuery = http_build_query($tracking);
-        $subject = 'Welcome to Minds';
 
+        $subject = 'Boost Completed';
         $this->template->set('title', $subject);
         $this->template->setTemplate('default.tpl');
         $this->template->setBody('./template.tpl');
+
+        $this->template->set('guid', $this->user->guid);
         $this->template->set('user', $this->user);
         $this->template->set('username', $this->user->username);
         $this->template->set('email', $this->user->getEmail());
-        $this->template->set('guid', $this->user->getGUID());
+        $this->template->set('boost', $this->boost);
         $this->template->set('campaign', $this->campaign);
         $this->template->set('topic', $this->topic);
-        $this->template->set('state', $this->state);
-        $this->template->set('preheader', 'Here\'s a free token for your new channel.');
+        $this->template->set('preheader', 'Your boost is complete.');
+        $this->template->set('signoff', 'Thank you,');
         $this->template->set('tracking', $trackingQuery);
 
+
         $actionButton = (new ActionButton())
-        ->setPath('newsfeed/subscribed?'. $trackingQuery)
-        ->setLabel('Make a Post');
-
+        ->setPath('boost/console?'. $trackingQuery)
+        ->setLabel('View Boost');
         $this->template->set('actionButton', $actionButton->build());
-
-        $suggestedChannels = (new SuggestedChannels())
-        ->setTracking(http_build_query($tracking))
-        ->setSuggestions($this->suggestions);
-
-        $this->template->set('suggestions', $suggestedChannels->build());
 
         $message = new Message();
         $message->setTo($this->user)
@@ -101,16 +83,10 @@ class WelcomeComplete extends EmailCampaign
         return $message;
     }
 
-    /** Send the email
-     * @return void
-     */
-    public function send($time = null): void
+    public function send()
     {
-        $time = $time ?: time();
-        //send email
         if ($this->canSend()) {
             $this->mailer->queue($this->build());
-            $this->saveCampaignLog($time);
         }
     }
 }

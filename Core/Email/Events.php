@@ -46,7 +46,7 @@ class Events
         });
 
         Dispatcher::register('user_state_change', UserActivityBuckets::STATE_COLD, function ($opts) {
-            $this->sendCampaign(new Delegates\GoneColdSender(), $opts->getParameters());
+            $this->sendCampaign(new Delegates\WeMissYouSender(), $opts->getParameters());
         });
 
         Dispatcher::register('welcome_email', 'all', function ($opts) {

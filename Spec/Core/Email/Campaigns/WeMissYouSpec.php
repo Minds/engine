@@ -1,25 +1,26 @@
 <?php
 
-namespace Spec\Minds\Core\Email\Campaigns\UserRetention;
+namespace Spec\Minds\Core\Email\Campaigns;
 
-use Minds\Core\Email\Campaigns\UserRetention\WelcomeIncomplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WeMissYou\WeMissYou;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Manager;
 use Minds\Core\Email\EmailSubscription;
+use Minds\Core\Suggestions\Suggestion;
 use Minds\Core\Email\CampaignLogs\CampaignLog;
 use Minds\Entities\User;
 use Prophecy\Argument;
 
-class WelcomeIncompleteSpec extends ObjectBehavior
+class WeMissYouSpec extends ObjectBehavior
 {
     protected $mailer;
     protected $manager;
-
     private $testGUID = 123456789;
     private $testName = 'test_name';
     private $testEmail = 'test@minds.com';
     private $testUsername = 'testUsername';
+    private $testBriefDescription = 'test brief description';
 
     public function let(Mailer $mailer, Manager $manager)
     {
@@ -30,10 +31,10 @@ class WelcomeIncompleteSpec extends ObjectBehavior
 
     public function it_is_initializable()
     {
-        $this->shouldHaveType(WelcomeIncomplete::class);
+        $this->shouldHaveType(WeMissYou::class);
     }
 
-    public function it_should_send_a_welcome_incomplete_email(User $user)
+    public function it_should_send_a_we_miss_you_email(User $user)
     {
         $user->getGUID()->shouldBeCalled()->willReturn($this->testGUID);
         $user->get('enabled')->shouldBeCalled()->willReturn('yes');
@@ -45,13 +46,13 @@ class WelcomeIncompleteSpec extends ObjectBehavior
 
         $this->getCampaign()->shouldEqual('global');
         $this->getTopic()->shouldEqual('minds_tips');
-        $this->getState()->shouldEqual('new');
+        $this->getState()->shouldEqual('cold');
         $this->setUser($user);
+        $this->setSuggestions($this->mockSuggestions());
         $message = $this->build();
-        $message->getSubject()->shouldEqual('Welcome to Minds');
+        $message->getSubject()->shouldEqual('What fascinates you?');
         $to = $message->getTo()[0]['name']->shouldEqual($this->testName);
         $to = $message->getTo()[0]['email']->shouldEqual($this->testEmail);
-
         $data = $this->getTemplate()->getData();
         $data['guid']->shouldEqual($this->testGUID);
         $data['email']->shouldEqual($this->testEmail);
@@ -90,7 +91,7 @@ class WelcomeIncompleteSpec extends ObjectBehavior
 
         $this->getCampaign()->shouldEqual('global');
         $this->getTopic()->shouldEqual('minds_tips');
-        $this->getState()->shouldEqual('new');
+        $this->getState()->shouldEqual('cold');
         $this->setUser($user);
         $this->build();
 
@@ -122,7 +123,7 @@ class WelcomeIncompleteSpec extends ObjectBehavior
 
         $this->getCampaign()->shouldEqual('global');
         $this->getTopic()->shouldEqual('minds_tips');
-        $this->getState()->shouldEqual('new');
+        $this->getState()->shouldEqual('cold');
         $this->setUser($user);
         $this->build();
 
@@ -191,5 +192,18 @@ class WelcomeIncompleteSpec extends ObjectBehavior
 
         $this->mailer->queue(Argument::any())->shouldNotBeCalled();
         $this->send();
+    }
+
+    private function mockSuggestions()
+    {
+        $user = new User($this->testGUID);
+        $user['name'] = $this->testName;
+        $user['briefdescription'] = $this->testBriefDescription;
+
+        $suggestion = (new Suggestion())
+            ->setEntityType('user')
+            ->setEntity($user);
+
+        return [$suggestion];
     }
 }
