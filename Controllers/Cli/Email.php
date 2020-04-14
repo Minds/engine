@@ -6,12 +6,13 @@ use Minds\Core;
 use Minds\Cli;
 use Minds\Interfaces;
 use Minds\Entities\User;
-use Minds\Core\Email\Campaigns\UserRetention\GoneCold;
 use Minds\Core\Email\Campaigns\WhenBoost;
 use Minds\Core\Email\Campaigns\WireReceived;
 use Minds\Core\Email\Campaigns\WirePromotions;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WeMissYou\WeMissYou;
+
 use Minds\Core\Suggestions\Manager;
 use Minds\Core\Analytics\Timestamps;
 use Minds\Core\Di\Di;
@@ -31,8 +32,8 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             case 'testWhenBoost':
                 $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testWhenBoost.txt'));
                 break;
-            case 'testGoneCold':
-                $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testGoneCold.txt'));
+            case 'testWeMissYou':
+                $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testWeMissYou.txt'));
                 break;
             case 'testWelcomeComplete':
                 $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testWelcomeComplete.txt'));
@@ -122,7 +123,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             ->run();
     }
 
-    public function testGoneCold()
+    public function testWeMissYou()
     {
         $userguid = $this->getOpt('guid');
         $output = $this->getOpt('output');
@@ -138,7 +139,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $manager->setUser($user);
         $suggestions = $manager->getList();
 
-        $campaign = (new GoneCold())
+        $campaign = (new WeMissYou())
             ->setUser($user)
             ->setSuggestions($suggestions);
 

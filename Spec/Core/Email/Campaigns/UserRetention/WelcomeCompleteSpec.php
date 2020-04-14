@@ -2,7 +2,7 @@
 
 namespace Spec\Minds\Core\Email\Campaigns\UserRetention;
 
-use Minds\Core\Email\Campaigns\UserRetention\WelcomeComplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Manager;
@@ -68,7 +68,7 @@ class WelcomeCompleteSpec extends ObjectBehavior
             ->setTopic('minds_tips')
             ->setValue(true);
 
-        
+
         $time = time();
 
         $campaignLog = (new CampaignLog())

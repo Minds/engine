@@ -9,8 +9,8 @@ use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Analytics\UserStates\UserActivityBuckets;
 
-use Minds\Core\Email\Campaigns\UserRetention\WelcomeComplete;
-use Minds\Core\Email\Campaigns\UserRetention\WelcomeIncomplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
 use Minds\Entities\User;
 use Minds\Core\Email\Manager;
 use Minds\Core\Suggestions\Manager as SuggestionManager;

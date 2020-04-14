@@ -2,7 +2,7 @@
 
 namespace Spec\Minds\Core\Email\Delegates;
 
-use Minds\Core\Email\Delegates\WelcomeSender;
+use Minds\Core\Email\V2\Delegates\WelcomeSender;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\Suggestions\Manager as SuggestionsManager;
 use Minds\Core\Onboarding\Manager as OnboardingManager;
@@ -10,8 +10,8 @@ use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Email\Manager;
 use Minds\Core\Email\Mailer;
 use Minds\Entities\User;
-use Minds\Core\Email\Campaigns\UserRetention\WelcomeComplete;
-use Minds\Core\Email\Campaigns\UserRetention\WelcomeIncomplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
 use Minds\Core\Email\CampaignLogs\CampaignLog;
 
 class WelcomeSenderSpec extends ObjectBehavior
