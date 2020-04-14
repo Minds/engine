@@ -9,9 +9,7 @@
         <p>
             For any issues, please contact us at
             <a href="mailto:info@minds.com" <?php echo $emailStyles->getStyles('m-link'); ?>>
-                info@minds.com
-            </a>.
+                info@minds.com</a>.
         </p>
     </td>
 </tr>
-

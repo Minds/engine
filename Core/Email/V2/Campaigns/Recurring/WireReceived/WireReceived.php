@@ -1,7 +1,7 @@
 <?php
+namespace Minds\Core\Email\V2\Campaigns\Recurring\WireReceived;
 
-namespace Minds\Core\Email\V2\Campaigns\Recurring;
-
+use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\V2\Common\Template;
@@ -13,11 +13,12 @@ use Minds\Core\Util\BigNumber;
 
 class WireReceived extends EmailCampaign
 {
+    // TODO code docs
     use MagicAttributes;
     protected $template;
     protected $mailer;
     protected $method;
-    protected $subject = 'You received a wire';
+    protected $subject = 'Payment received';
     /* @var Wire */
     protected $wire;
 
@@ -26,7 +27,6 @@ class WireReceived extends EmailCampaign
         $this->template = $template ?: new Template();
         $this->mailer = $mailer ?: new Mailer();
         $this->manager = $manager ?: Di::_()->get('Email\Manager');
-
         $this->campaign = 'when';
         $this->topic = 'wire_received';
     }
@@ -43,7 +43,7 @@ class WireReceived extends EmailCampaign
         $contract = $this->wire->getMethod() === 'onchain' ? 'wire' : 'offchain:wire';
 
         $this->template->setTemplate('default.tpl');
-        $this->template->setBody('./Templates/wire-received.tpl');
+        $this->template->setBody('./template.tpl');
         $this->template->set('user', $this->user);
         $this->template->set('username', $this->user->username);
         $this->template->set('email', $this->user->getEmail());
@@ -54,6 +54,10 @@ class WireReceived extends EmailCampaign
         $this->template->set('contract', $contract);
         $this->template->set('campaign', $this->campaign);
         $this->template->set('topic', $this->topic);
+        $this->template->set('signoff', 'Thank you,');
+        $this->template->set('title', $this->subject);
+        $this->template->set('preheader', 'You\'ve received a payment on Minds.');
+
         $this->template->set('tracking', http_build_query($tracking));
 
         $message = new Message();

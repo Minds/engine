@@ -119,7 +119,7 @@
                   <div
             style="display: none; font-size: 1px; color: #fefefe; line-height: 1px; font-family: Roboto, Helvetica, Arial, sans-serif; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;"
           >
-            We want you back!          </div>
+            You've received a payment on Minds.          </div>
         
 
       <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:100%">
@@ -193,7 +193,7 @@
                       <td style="padding-bottom: 48px;">
                         <p
                            style="font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;;font-size:26px; text-align:center;color: #4f4f50;margin-top: 0;"                         >
-                          We Miss You                        </p>
+                          Payment received                        </p>
                       </td>
                     </tr>
                   </table>
@@ -276,53 +276,34 @@
                 <!------------------------------>
                   <tr>
     <td>
-        <p>
-            We want you back! Check in with the button below to let us know you are active so we can prioritize your channel in our recommendations to others. Our goal is to provide relevant suggestions without invasive surveillance.
+        <p>You received a payment from
+            <a
+                href="http://localhost:8080/minds"
+                 style="text-decoration: underline; color: #1b85d6 !important;" >
+                 @minds</a> as a tip.
         </p>
     </td>
-</tr>
-
-<tr>
-
-  <td align="center" style="padding: 0;">
-    <table
-      width="100%"
-      border="0"
-      cellspacing="0"
-      cellpadding="0"
-    >
-      <tr>
-        <td align="center" style="padding: 36px 8%;">
-          <table
-            border="0"
-            cellspacing="0"
-            cellpadding="0"
-            class="m-mobileButtonContainer"
-          >
-            <tr>
-              <td
-                align="center"
-                style="border-radius: 27px; padding: 0;"
-                bgcolor="#5DBAC0"
-              >
-                <a href="http://localhost:8080/newsfeed/subscribed?__e_ct_guid=1095036819759697938&campaign=global&topic=minds_tips&state=cold"
-                  target="_blank"
-                  style="font-size: 20px; font-family: Roboto, Helvetica Neue, Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 27px; padding: 15px 25px; border: 1px solid #5DBAC0; display: inline-block;"
-                  class="m-mobileButton"
-                  >Check-in</a
-                >
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </td>
 </tr>
 <tr>
     <td>
         <p>
-            Thank you for being a pioneer of the free and open Internet!
+            <div>
+                <div style="display: inline-block;">Transfer date: </div>
+                <div style="display: inline-block;">Tuesday April 14th 2020</div>
+            </div>
+            <div>
+                <div style="display: inline-block;">Amount: </div>
+                <div style="display: inline-block;">1 tokens</div>
+            </div>
+        </p>
+    </td>
+</tr>
+<tr>
+    <td>
+        <p>
+            For any issues, please contact us at
+            <a href="mailto:info@minds.com"  style="text-decoration: underline; color: #1b85d6 !important;" >
+                info@minds.com</a>.
         </p>
     </td>
 </tr>
@@ -338,7 +319,7 @@
                   <tr>
                     <td>
                       <p  style="font-size:16px;line-height:22px;text-align:left;font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;color: #4f4f50;;margin: 0 0 4px 0;padding: 0 !important;" >
-                                                  We hope to see you again!                                              </p>
+                                                  Thank you,                                              </p>
                       <p  style="font-size:16px;line-height:22px;text-align:left;font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;color: #4f4f50;;color: #7d7d82 !important;;margin: 0 0 4px 0;padding: 0 !important;"  > The Minds Team
                       </p>
                     </td>

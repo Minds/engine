@@ -265,7 +265,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             exit;
         }
 
-        if (!timestamp) {
+        if (!$timestamp) {
             $this->out('--timestamp=timestamp required');
             exit;
         }
