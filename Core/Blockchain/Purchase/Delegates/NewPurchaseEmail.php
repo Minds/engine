@@ -13,7 +13,7 @@ use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Util\BigNumber;
-use Minds\Core\Email\V2\Campaigns\Custom;
+use Minds\Core\Email\V2\Campaigns\Custom\Custom;
 use Minds\Entities\User;
 
 class NewPurchaseEmail

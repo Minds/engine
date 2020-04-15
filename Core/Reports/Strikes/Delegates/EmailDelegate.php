@@ -8,7 +8,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Reports\Strikes\Strike;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Common\Urn;
-use Minds\Core\Email\V2\Campaigns\Custom;
+use Minds\Core\Email\V2\Campaigns\Custom\Custom;
 
 class EmailDelegate
 {
