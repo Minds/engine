@@ -57,7 +57,6 @@ class WireReceived extends EmailCampaign
         $this->template->set('signoff', 'Thank you,');
         $this->template->set('title', $this->subject);
         $this->template->set('preheader', 'You\'ve received a payment on Minds.');
-
         $this->template->set('tracking', http_build_query($tracking));
 
         $message = new Message();

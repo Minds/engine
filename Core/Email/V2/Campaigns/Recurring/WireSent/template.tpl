@@ -1,15 +1,15 @@
 <?php
     $wireDate = date('l F jS Y', ($vars['timestamp']));
     $amount = $vars['amount'];
-    $senderName = $vars['sender']->get('name');
+    $receiverName = $vars['receiver']->get('name');
 ?>
 <tr>
     <td>
         <p>You made a payment to
             <a
-                href="<?php echo $vars['site_url']?><?php echo $senderName ?>"
+                href="<?php echo $vars['site_url']?><?php echo $receiverName ?>"
                 <?php echo $emailStyles->getStyles('m-link'); ?>>
-                 @<?php echo $senderName; ?></a>.
+                 @<?php echo $receiverName; ?></a>.
         </p>
     </td>
 </tr>

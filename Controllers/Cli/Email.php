@@ -8,10 +8,11 @@ use Minds\Interfaces;
 use Minds\Entities\User;
 use Minds\Core\Email\V2\Campaigns\Recurring\BoostComplete\BoostComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
-use Minds\Core\Email\V2\Campaigns\Recurring\WirePromotion\WirePromotion;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WeMissYou\WeMissYou;
+use Minds\Core\Email\Campaigns\Recurring\WirePromotions;
+
 
 use Minds\Core\Suggestions\Manager;
 use Minds\Core\Analytics\Timestamps;

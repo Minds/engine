@@ -16,9 +16,6 @@ class WelcomeComplete extends EmailCampaign
 {
     use MagicAttributes;
 
-    protected $db;
-    protected $amount;
-
     /** @var  \Minds\Core\Email\V2\Common\Template */
     protected $template;
 
@@ -34,8 +31,6 @@ class WelcomeComplete extends EmailCampaign
     /** @var ActionButton */
     protected $actionButton;
 
-    /** @var \Minds\Core\Config\Config */
-    protected $config;
 
     public function __construct(Template $template = null, Mailer $mailer = null, Manager $manager = null)
     {

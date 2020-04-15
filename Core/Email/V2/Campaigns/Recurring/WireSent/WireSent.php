@@ -46,7 +46,7 @@ class WireSent extends EmailCampaign
         $contract = $this->wire->getMethod() === 'onchain' ? 'wire' : 'offchain:wire';
 
         $this->template->setTemplate('default.tpl');
-        $this->template->setBody('./Templates/wire-sent.tpl');
+        $this->template->setBody('./template.tpl');
         $this->template->set('user', $this->user);
         $this->template->set('username', $this->user->username);
         $this->template->set('email', $this->user->getEmail());
