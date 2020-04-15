@@ -102,25 +102,6 @@ class Events
 
             $container_guid = $entity->type === 'comment' ? $entity->parent->container_guid : $entity->container_guid;
 
-            $event = new Core\Analytics\Metrics\Event();
-            $event->setType('action')
-                ->setProduct('platform')
-                ->setUserGuid((string) $actor->guid)
-                ->setUserPhoneNumberHash($actor->getPhoneNumberHash())
-                ->setEntityGuid((string) $entity->guid)
-                ->setEntityContainerGuid((string) $container_guid)
-                ->setEntityAccessId($entity->access_id)
-                ->setEntityType($entity->type)
-                ->setEntitySubtype((string) $entity->subtype)
-                ->setEntityOwnerGuid((string) $entity->owner_guid)
-                ->setAction("vote:{$direction}");
-            
-            if ($entity->type == 'activity' && $entity->remind_object) {
-                $event->setIsRemind(true);
-            }
-
-            $event->push();
-            
             if ($entity->type == 'activity' && $entity->custom_type) {
                 $subtype = '';
                 switch ($entity->custom_type) {
@@ -147,7 +128,30 @@ class Events
                     ->setEntityOwnerGuid((string) $entity->owner_guid)
                     ->setAction("vote:{$direction}")
                     ->push();
+
+                // Do not record to activity too
+                // Core/Search/MetricsSync handles this
+                return;
             }
+
+            $event = new Core\Analytics\Metrics\Event();
+            $event->setType('action')
+                ->setProduct('platform')
+                ->setUserGuid((string) $actor->guid)
+                ->setUserPhoneNumberHash($actor->getPhoneNumberHash())
+                ->setEntityGuid((string) $entity->guid)
+                ->setEntityContainerGuid((string) $container_guid)
+                ->setEntityAccessId($entity->access_id)
+                ->setEntityType($entity->type)
+                ->setEntitySubtype((string) $entity->subtype)
+                ->setEntityOwnerGuid((string) $entity->owner_guid)
+                ->setAction("vote:{$direction}");
+
+            if ($entity->type == 'activity' && $entity->remind_object) {
+                $event->setIsRemind(true);
+            }
+
+            $event->push();
         });
 
         Dispatcher::register('vote:cancel', 'all', function (Event $event) {
