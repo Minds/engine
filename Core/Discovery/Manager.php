@@ -176,7 +176,7 @@ class Manager
 
         $query = [
             'index' => $this->config->get('elasticsearch')['index'],
-            'type' => 'activity,object:video,object:blog',
+            'type' => 'activity',
             'body' =>  [
                 'query' => [
                     'bool' => [
