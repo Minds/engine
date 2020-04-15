@@ -14,7 +14,6 @@ use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
 
-
 class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
     /** @var ActionButton */
