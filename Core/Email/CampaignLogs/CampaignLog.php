@@ -24,5 +24,5 @@ class CampaignLog
     protected $timeSent;
 
     /** @var string $emailCampaignId the class name of the email campaign */
-    protected $emailCampaignID;
+    protected $emailCampaignId;
 }
