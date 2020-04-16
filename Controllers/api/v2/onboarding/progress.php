@@ -28,9 +28,9 @@ class progress implements Interfaces\Api
         $featuresManager = Di::_()->get('Features\Manager');
 
         // if ($featuresManager->has('ux-2020')) {
-            // return Factory::response([
-            //     'show_onboarding' => !$manager->wasOnboardingShown(),
-            // ]);
+        // return Factory::response([
+        //     'show_onboarding' => !$manager->wasOnboardingShown(),
+        // ]);
         // }
 
         $allItems = $manager->getAllItems();
