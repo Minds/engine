@@ -27,11 +27,11 @@ class progress implements Interfaces\Api
         /** @var \Minds\Core\Features\Manager $manager */
         $featuresManager = Di::_()->get('Features\Manager');
 
-        if ($featuresManager->has('ux-2020')) {
-            return Factory::response([
-                'show_onboarding' => !$manager->wasOnboardingShown(),
-            ]);
-        }
+        // if ($featuresManager->has('ux-2020')) {
+            // return Factory::response([
+            //     'show_onboarding' => !$manager->wasOnboardingShown(),
+            // ]);
+        // }
 
         $allItems = $manager->getAllItems();
         $completedItems = $manager->getCompletedItems();
@@ -39,7 +39,7 @@ class progress implements Interfaces\Api
         return Factory::response([
             'show_onboarding' => !$manager->wasOnboardingShown() && count($allItems) > count($completedItems),
             'all_items' => $allItems,
-            'completed_items' => $completedItems,
+            'completed_items' => $completedItems ?? [],
             'creator_frequency' => $manager->getCreatorFrequency(),
         ]);
     }
