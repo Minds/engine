@@ -15,6 +15,6 @@ class DateOfBirthDelegate implements OnboardingDelegate
      */
     public function isCompleted(User $user)
     {
-        return (bool) $user->getDateOfBirth() !== '';
+        return (bool) $user->getDateOfBirth();
     }
 }
