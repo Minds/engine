@@ -2,9 +2,13 @@
 namespace Minds\Core\Search\MetricsSync\Resolvers;
 
 use Minds\Core\Search\MetricsSync\MetricsSync;
+use Minds\Core\Data\Call;
 
 abstract class AbstractMetricResolver implements MetricResolverInterface
 {
+    /** @var Call */
+    protected $db;
+
     /** @var string */
     protected $type;
 
@@ -22,6 +26,11 @@ abstract class AbstractMetricResolver implements MetricResolverInterface
 
     /** @var string */
     protected $metricId;
+
+    public function __construct($db = null)
+    {
+        $this->db = $db ?? new Call('entities_by_time');
+    }
 
     /**
      * Set the type
@@ -98,7 +107,26 @@ abstract class AbstractMetricResolver implements MetricResolverInterface
                 ->setSynced(time() * 1000);
 
             yield $metricsSync;
+
+            foreach ($this->getActivityGuids($metricsSync) as $guid) {
+                $activityMetricsSync = clone $metricsSync;
+                $activityMetricsSync->setType('activity')
+                    ->setGuid($guid);
+                yield $activityMetricsSync;
+            }
         }
+    }
+
+    /**
+     * Return the activity guids
+     */
+    protected function getActivityGuids(MetricsSync $metricsSync): array
+    {
+        if ($metricsSync->getType() === 'activity') {
+            return [];
+        }
+        $guids = $this->db->getRow("activity:entitylink:{$metricsSync->getGuid()}");
+        return array_values($guids);
     }
 
     /**

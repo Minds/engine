@@ -176,7 +176,7 @@ class Manager
 
         $query = [
             'index' => $this->config->get('elasticsearch')['index'],
-            'type' => 'activity,object:video,object:blog',
+            'type' => 'activity',
             'body' =>  [
                 'query' => [
                     'bool' => [
@@ -200,7 +200,7 @@ class Manager
                 ],
                 'sort' => [ 'comments:count' => 'desc', ]
             ],
-            'size' => $opts['limit'] * 2,
+            'size' => $opts['limit'] * 10, // * 10 accounts for single users having the most comments in period
         ];
 
         $prepared = new ElasticSearch\Prepared\Search();
