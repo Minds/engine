@@ -31,6 +31,10 @@ class Manager
         'email-24x7.com',
         'getsimpleemail.com',
         'mailsoul.com',
+        'portablemails.com',
+        'sdghgfsd.com',
+        'sdgdsfhs.com',
+        'cemeonline77.com',
     ];
 
     public function __construct($service = null, $spamBlocksManager = null)
