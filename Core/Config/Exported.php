@@ -86,6 +86,7 @@ class Exported
             'last_tos_update' => $this->config->get('last_tos_update') ?: time(),
             'tags' => $this->config->get('tags') ?: [],
             'plus' => $this->config->get('plus'),
+            'sendwyre' => $this->config->get('sendwyre'),
             'report_reasons' => $this->config->get('report_reasons'),
             'handlers' => [
                 'plus' => $this->config->get('plus')['handler'] ?? null,

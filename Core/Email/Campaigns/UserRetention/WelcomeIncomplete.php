@@ -13,6 +13,7 @@ use Minds\Core\Di\Di;
 
 class WelcomeIncomplete extends EmailCampaign
 {
+    // TODO code docs
     use MagicAttributes;
     protected $db;
     protected $template;

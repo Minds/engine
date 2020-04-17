@@ -476,153 +476,163 @@
                   </table>
                 </td>
               </tr>
-
+              <!------------------------------>
+              <!-- DOWNLOAD APP: End -->
+              <!------------------------------>
+              <!------------------------------>
+              <!-- BORDER/SPACER: Start -->
+              <!------------------------------>
               <tr>
                 <td <?php echo $emailStyles->getStyles('m-spacer--large'); ?>>
                 </td>
               </tr>
-            </table>
-
-            <!--[if (gte mso 9)|(IE)]>
-            </td>
-            </tr>
-            </table>
-            <![endif]-->
-          </td>
-        </tr>
-        <!------------------------------>
-        <!-- DOWNLOAD APP: End -->
-        <!------------------------------>
-        <!------------------------------>
-        <!-- FOOTER LINKS: Start -->
-        <!------------------------------>
-        <tr>
-          <td <?php echo $emailStyles->getStyles('m-spacer--small', 'm-borderTop'); ?> >
-          </td>
-        </tr>
-        <tr>
-          <td bgcolor="#ffffff" align="center">
-            <!--[if (gte mso 9)|(IE)]>
-            <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
-            <tr>
-            <td align="center" valign="top" width="600">
-            <![endif]-->
-            <!--<?php echo $emailStyles->getStyles('m-maxWidth--copy'); ?> -->
-            <table
-              border="0"
-              cellpadding="0"
-              cellspacing="0"
-              width="100%"
-              style="width:95%;"
-
-              class="m-responsiveTable" >
-              <!------------------------------>
-              <!-- TWO COLUMNS : FOOTER LINKS -->
-              <!------------------------------>
-
               <tr>
-                <td>
+                <td <?php echo $emailStyles->getStyles('m-spacer--small', 'm-borderTop'); ?> >
+                </td>
+              </tr>
+              <!------------------------------>
+              <!-- BORDER/SPACER: End -->
+              <!------------------------------>
+              <!------------------------------>
+              <!-- FOOTER LINKS: Start -->
+              <!------------------------------>
+              <tr>
+                <td bgcolor="#ffffff" align="center">
+                  <!--[if (gte mso 9)|(IE)]>
+                  <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+                  <tr>
+                  <td align="center" valign="top" width="600">
+                  <![endif]-->
                   <table
-                    cellspacing="0"
-                    cellpadding="0"
                     border="0"
-                    width="100%"
-                  >
+                    cellpadding="0"
+                    cellspacing="0"
+                    width="95%"
+                    class="m-responsiveTable" >
+                    <!------------------------------>
+                    <!-- TWO COLUMNS : FOOTER LINKS -->
+                    <!------------------------------>
+
                     <tr>
-                      <td valign="top">
-                        <!------------------------------>
-                        <!-- LEFT COLUMN -->
-                        <!------------------------------>
+                      <td>
                         <table
-                          cellpadding="0"
                           cellspacing="0"
+                          cellpadding="0"
                           border="0"
-                          width="47%"
-                          style="width: 47%;"
-                          align="left"
+                          width="100%"
                         >
                           <tr>
-                            <td>
+                            <td valign="top">
+                              <!------------------------------>
+                              <!-- LEFT COLUMN -->
+                              <!------------------------------>
                               <table
                                 cellpadding="0"
                                 cellspacing="0"
                                 border="0"
-                                width="100%"
+                                width="47%"
+                                style="width: 47%;"
+                                align="left"
                               >
                                 <tr>
-                                  <td
-                                    align="left"
-                                    style="
-                                      font-size: 14px;
-                                      font-family: Roboto, Helvetica, sans-serif;
-                                      color: #7d7d82;
-                                    "
-                                  >
-                                    <div style="display: inline-block;">
-                                      Sent to you from
-                                    </div>
-                                    <div style="display: inline-block;">
-                                      Minds Inc
-                                      <span style="white-space: nowrap;"
-                                        >© 2020</span
-                                      >
-                                    </div>
+                                  <td>
+                                    <table
+                                      cellpadding="0"
+                                      cellspacing="0"
+                                      border="0"
+                                      width="100%"
+                                    >
+                                      <tr>
+                                        <td
+                                          align="left"
+                                          style="
+                                            font-size: 14px;
+                                            font-family: Roboto, Helvetica, sans-serif;
+                                            color: #7d7d82;
+                                          "
+                                        >
+                                          <div>
+                                            <div style="display: inline-block;">
+                                              Sent to you from
+                                            </div>
+                                            <div style="display: inline-block;">
+                                              Minds Inc
+                                              <span style="white-space: nowrap;"
+                                                >© 2020</span
+                                              >
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <div style="display: inline-block;">PO Box 7681, </div>
+                                            <div style="display: inline-block;">Wilton, CT 06897</div>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    </table>
+                                  </td>
+                                </tr>
+                              </table>
+
+                              <!------------------------------>
+                              <!-- RIGHT COLUMN -->
+                              <!------------------------------>
+                              <table
+                                cellpadding="0"
+                                cellspacing="0"
+                                border="0"
+                                width="47%"
+                                style="width: 47%;"
+                                align="right"
+                              >
+                                <tr>
+                                  <td>
+                                    <table
+                                      cellpadding="0"
+                                      cellspacing="0"
+                                      border="0"
+                                      width="100%"
+                                    >
+                                      <tr>
+                                        <td align="right">
+                                          <a
+                                            style="
+                                              font-size: 14px;
+                                              color: #1b85d6;
+                                              text-decoration: underline;
+                                              font-family: Roboto, Helvetica,
+                                                sans-serif;
+                                            "
+                                            href="https://www.minds.com/settings/canary/account/email-notifications"
+                                            target="_blank"
+                                            >Manage email settings</a
+                                          >
+                                        </td>
+                                      </tr>
+                                    </table>
                                   </td>
                                 </tr>
                               </table>
                             </td>
                           </tr>
-                        </table>
-
-                        <!------------------------------>
-                        <!-- RIGHT COLUMN -->
-                        <!------------------------------>
-                        <table
-                          cellpadding="0"
-                          cellspacing="0"
-                          border="0"
-                          width="47%"
-                          style="width: 47%;"
-                          align="right"
-                        >
                           <tr>
-                            <td>
-                              <table
-                                cellpadding="0"
-                                cellspacing="0"
-                                border="0"
-                                width="100%"
-                              >
-                                <tr>
-                                  <td align="right">
-                                    <a
-                                      style="
-                                        font-size: 14px;
-                                        color: #1b85d6;
-                                        text-decoration: underline;
-                                        font-family: Roboto, Helvetica,
-                                          sans-serif;
-                                      "
-                                      href="https://www.minds.com/settings/canary/account/email-notifications"
-                                      target="_blank"
-                                      >Manage email settings</a
-                                    >
-                                  </td>
-                                </tr>
-                              </table>
-                            </td>
+                            <td style="padding: 40px 0;"></td>
                           </tr>
                         </table>
                       </td>
                     </tr>
-                    <tr>
-                      <td style="padding: 40px 0;"></td>
-                    </tr>
                   </table>
+
+                  <!--[if (gte mso 9)|(IE)]>
+                  </td>
+                  </tr>
+                  </table>
+                  <![endif]-->
                 </td>
               </tr>
+              <!------------------------------>
+              <!-- FOOTER LINKS: End -->
+              <!------------------------------>
             </table>
-
             <!--[if (gte mso 9)|(IE)]>
             </td>
             </tr>
@@ -630,11 +640,7 @@
             <![endif]-->
           </td>
         </tr>
-        <!------------------------------>
-        <!-- FOOTER LINKS: Start -->
-        <!------------------------------>
       </tfoot>
-
       <!------------------------------>
       <!-- FOOTER: End -->
       <!------------------------------>

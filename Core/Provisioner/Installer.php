@@ -24,7 +24,7 @@ class Installer
             'username' => 'minds',
             'password' => 'Pa$$w0rd',
             'development_mode' => true,
-            'email' => 'minds@minds.com',
+            'admin-email' => 'minds@minds.com',
             'email-private-key' => '/.dev/minds.pem',
             'email-public-key' => '/.dev/minds.pub',
             'phone-number-private-key' => '/.dev/minds.pem',
@@ -102,9 +102,9 @@ class Installer
             throw new ProvisionException('Admin password is too short');
         }
 
-        if (!isset($this->options['email']) || !$this->options['email']) {
+        if (!isset($this->options['admin-email']) || !$this->options['admin-email']) {
             throw new ProvisionException('Admin email was not provided');
-        } elseif (!filter_var($this->options['email'], FILTER_VALIDATE_EMAIL)) {
+        } elseif (!filter_var($this->options['admin-email'], FILTER_VALIDATE_EMAIL)) {
             throw new ProvisionException('Admin email is invalid');
         }
 
