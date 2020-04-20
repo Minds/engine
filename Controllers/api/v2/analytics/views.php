@@ -37,7 +37,7 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
                     ]);
                 }
 
-                if ($_POST['client_meta']['position'] < 0) {
+                if ($_POST['client_meta']['medium'] === 'boost-rotator' && $_POST['client_meta']['position'] < 0) {
                     throw new \Exception("Boost rotator position can't be less than 0");
                 }
 
