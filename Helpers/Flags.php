@@ -11,7 +11,7 @@ class Flags
         $owner = $entity->type == 'user' ? $entity->guid : $entity->owner_guid;
 
         if (
-            Core\Session::isAdmin() ||
+            // Core\Session::isAdmin() ||
             ($currentUser && $currentUser == $owner) ||
             !$entity
         ) {

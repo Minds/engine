@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Onboarding;
 
 use Minds\Core\Config;
+use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Core\Onboarding\Delegates\OnboardingDelegate;
 use Minds\Core\Onboarding\Manager;
 use Minds\Entities\User;
@@ -13,6 +14,9 @@ class ManagerSpec extends ObjectBehavior
     /** @var OnboardingDelegate[] */
     protected $delegates;
 
+    /** @var FeaturesManager */
+    protected $features;
+
     /** @var Config */
     protected $config;
 
@@ -20,6 +24,7 @@ class ManagerSpec extends ObjectBehavior
         OnboardingDelegate $onboardingDelegate1,
         OnboardingDelegate $onboardingDelegate2,
         OnboardingDelegate $onboardingDelegate3,
+        FeaturesManager $features,
         Config $config
     ) {
         $this->delegates = [
@@ -28,9 +33,11 @@ class ManagerSpec extends ObjectBehavior
             'delegate3' => $onboardingDelegate3,
         ];
 
+        $this->features = $features;
+
         $this->config = $config;
 
-        $this->beConstructedWith($this->delegates, $this->config);
+        $this->beConstructedWith($this->delegates, $this->features, $this->config);
     }
 
     public function it_is_initializable()

@@ -1,27 +1,36 @@
 <?php
 
-namespace Minds\Core\Email\Campaigns\UserRetention;
+namespace Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete;
 
 use Minds\Core\Email\Campaigns\EmailCampaign;
-use Minds\Core\Email\Template;
 use Minds\Core\Email\Mailer;
-use Minds\Core\Email\Message;
 use Minds\Core\Email\Manager;
+use Minds\Core\Email\V2\Common\Template;
+use Minds\Core\Email\V2\Common\Message;
+use Minds\Core\Email\V2\Partials\SuggestedChannels\SuggestedChannels;
+use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
 use Minds\Traits\MagicAttributes;
-use Minds\Core\Email\Partials\SuggestedChannels;
 use Minds\Core\Di\Di;
 
-class WelcomeIncomplete extends EmailCampaign
+class WelcomeComplete extends EmailCampaign
 {
-    // TODO code docs
     use MagicAttributes;
-    protected $db;
+
+    /** @var  \Minds\Core\Email\V2\Common\Template */
     protected $template;
+
+    /** @var Mailer */
     protected $mailer;
-    protected $amount;
+
+    /** @var string */
     protected $campaign;
+
+    /** @var array */
     protected $suggestions;
-    protected $config;
+
+    /** @var ActionButton */
+    protected $actionButton;
+
 
     public function __construct(Template $template = null, Mailer $mailer = null, Manager $manager = null)
     {
@@ -34,7 +43,12 @@ class WelcomeIncomplete extends EmailCampaign
         $this->state = 'new';
     }
 
-    public function build()
+    /**
+     * Build template
+     * @return Message
+     */
+
+    public function build(): Message
     {
         $tracking = [
             '__e_ct_guid' => $this->user->getGUID(),
@@ -42,9 +56,12 @@ class WelcomeIncomplete extends EmailCampaign
             'topic' => $this->topic,
             'state' => $this->state,
         ];
+        $trackingQuery = http_build_query($tracking);
+        $subject = 'Welcome to Minds';
 
+        $this->template->set('title', $subject);
         $this->template->setTemplate('default.tpl');
-        $this->template->setBody('./Templates/welcome_incomplete.tpl');
+        $this->template->setBody('./template.tpl');
         $this->template->set('user', $this->user);
         $this->template->set('username', $this->user->username);
         $this->template->set('email', $this->user->getEmail());
@@ -52,14 +69,20 @@ class WelcomeIncomplete extends EmailCampaign
         $this->template->set('campaign', $this->campaign);
         $this->template->set('topic', $this->topic);
         $this->template->set('state', $this->state);
-        $this->template->set('tracking', http_build_query($tracking));
+        $this->template->set('preheader', 'Here\'s a free token for your new channel.');
+        $this->template->set('tracking', $trackingQuery);
+
+        $actionButton = (new ActionButton())
+        ->setPath('newsfeed/subscribed?'. $trackingQuery)
+        ->setLabel('Make a Post');
+
+        $this->template->set('actionButton', $actionButton->build());
+
         $suggestedChannels = (new SuggestedChannels())
-            ->setTracking(http_build_query($tracking))
-            ->setSuggestions($this->suggestions);
+        ->setTracking(http_build_query($tracking))
+        ->setSuggestions($this->suggestions);
 
         $this->template->set('suggestions', $suggestedChannels->build());
-
-        $subject = 'Welcome to Minds';
 
         $message = new Message();
         $message->setTo($this->user)
@@ -73,12 +96,16 @@ class WelcomeIncomplete extends EmailCampaign
         return $message;
     }
 
-    public function send()
+    /** Send the email
+     * @return void
+     */
+    public function send($time = null): void
     {
+        $time = $time ?: time();
         //send email
         if ($this->canSend()) {
             $this->mailer->queue($this->build());
-            $this->saveCampaignLog();
+            $this->saveCampaignLog($time);
         }
     }
 }
