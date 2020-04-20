@@ -136,10 +136,10 @@ class feed implements Interfaces\Api
                     }
                 }
 
-                // $ttl = 1800; // 30 minutes
-                // if (($next / 1000) < strtotime('48 hours ago')) {
+                $ttl = 1800; // 30 minutes
+                if (($next / 1000) < strtotime('48 hours ago')) {
                     $ttl = 300; // 5 minutes;
-                // }
+                }
 
                 $cacher->set(Core\Session::getLoggedinUser()->guid . ':boost-offset-rotator', $next, $ttl);
                 break;
