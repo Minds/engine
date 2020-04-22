@@ -130,4 +130,31 @@ class Repository
     public function delete(EarningsDeposit $deposit): bool
     {
     }
+
+    /**
+     * @param string $guid
+     * @return EarningsBalance
+     */
+    public function getBalance($guid): EarningsBalance
+    {
+        $statement = "SELECT SUM(amount_cents) as cents, SUM(amount_tokens) as tokens
+			FROM partner_earnings_ledger
+			WHERE user_guid = ?
+		";
+        $values = [
+             new Bigint($guid)
+        ];
+
+        $prepared = new Prepared();
+        $prepared->query($statement, $values);
+
+        $result = $this->db->request($prepared);
+        $row = $result[0];
+        
+        $balance = new EarningsBalance();
+        $balance->setUserGuid($guid)
+            ->setAmountCents($row['cents'])
+            ->setAmountTokens($row['tokens']->value());
+        return $balance;
+    }
 }

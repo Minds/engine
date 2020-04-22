@@ -71,6 +71,11 @@ class channel implements Interfaces\Api
         $response['channel']['city'] = $response['channel']['city'] ?: "";
         $response['channel']['gender'] = $response['channel']['gender'] ?: "";
 
+        // if we are querying for our own user
+        if (Core\Session::getLoggedinUser()->guid === $user->guid) {
+            $response['channel']['dob'] = $user->getDateOfBirth();
+        }
+
         if (!$user->merchant || !$supporters_count) {
             $db = new Core\Data\Call('entities_by_time');
             //$feed_count = $db->countRow("activity:user:" . $user->guid);
@@ -238,6 +243,11 @@ class channel implements Interfaces\Api
                         $update[$field] = $_POST[$field];
                         $owner->$field = $_POST[$field];
                     }
+                }
+
+                if (isset($_POST['dob'])) {
+                    $update['dob'] = $_POST['dob'];
+                    $owner->setDateOfBirth($_POST['dob']);
                 }
 
                 if (isset($_POST['nsfw']) && is_array($_POST['nsfw'])) {

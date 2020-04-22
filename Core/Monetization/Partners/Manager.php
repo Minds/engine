@@ -8,6 +8,7 @@ use Minds\Core\Analytics\EntityCentric\Manager as EntityCentricManager;
 use Minds\Core\EntitiesBuilder;
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
+use Minds\Entities\User;
 use DateTime;
 
 class Manager
@@ -139,5 +140,15 @@ class Manager
 
             yield $deposit;
         }
+    }
+
+    /**
+     * Return balance for a user
+     * @param User $user
+     * @return EarningsBalance
+     */
+    public function getBalance(User $user): EarningsBalance
+    {
+        return $this->repository->getBalance((string) $user->getGuid());
     }
 }

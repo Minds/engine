@@ -19,10 +19,10 @@ class CommentsCountMetricResolverSpec extends ObjectBehavior
     {
         $this->beConstructedWith($commentsManager, $aggregator);
         
-        $commentsManager->count('123')
+        $commentsManager->count('123', null, true)
             ->shouldBeCalled()
             ->willReturn(10);
-        $commentsManager->count('456')
+        $commentsManager->count('456', null, true)
             ->shouldBeCalled()
             ->willReturn(100);
 

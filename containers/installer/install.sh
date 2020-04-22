@@ -16,7 +16,7 @@ php /var/www/Minds/engine/cli.php install \
     --domain=localhost:8080 \
     --username=minds \
     --password="Pa\$\$w0rd" \
-    --email=minds@minds.com \
+    --admin-email=minds@minds.com \
     --email-private-key=/.dev/minds.pem \
     --email-public-key=/.dev/minds.pub \
     --phone-number-private-key=/.dev/minds.pem \

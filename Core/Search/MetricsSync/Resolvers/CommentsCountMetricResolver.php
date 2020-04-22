@@ -15,8 +15,9 @@ class CommentsCountMetricResolver extends AbstractMetricResolver
     /** @var string */
     protected $metricId = 'comments:count';
 
-    public function __construct($commentsManager = null, $aggregator = null)
+    public function __construct($commentsManager = null, $aggregator = null, $db = null)
     {
+        parent::__construct($db);
         $this->commentsManager = $commentsManager ?? new Manager;
         $this->aggregator = $aggregator ?? new Aggregates\Comments;
     }
@@ -42,7 +43,7 @@ class CommentsCountMetricResolver extends AbstractMetricResolver
     protected function getTotalCount(string $guid): int
     {
         try {
-            return $this->commentsManager->count($guid);
+            return $this->commentsManager->count($guid, null, true);
         } catch (Exception $e) {
             return 0;
         }

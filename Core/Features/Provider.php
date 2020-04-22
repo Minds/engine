@@ -52,6 +52,8 @@ class Provider extends DiProvider
                 'channels',
                 'ux-2020',
                 'pay',
+                'onboarding-reminder',
+                'boost-rotator',
             ];
         });
 

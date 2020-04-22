@@ -12,8 +12,9 @@ abstract class AbstractVotesMetricResolver extends AbstractMetricResolver
     /** @var string */
     protected $counterMetricId;
 
-    public function __construct($counters = null)
+    public function __construct($counters = null, $db = null)
     {
+        parent::__construct($db);
         $this->counters = $counters ?? Di::_()->get('Entities\Counters');
     }
 
