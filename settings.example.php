@@ -127,7 +127,6 @@ $CONFIG->set(
   ]
 );
 
-
 /**
  * Other Elgg Settings
  */
