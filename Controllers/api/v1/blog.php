@@ -315,7 +315,7 @@ class blog implements Interfaces\Api
             } catch (\Exception $e) {
                 return Factory::response([
                     'status' => 'error',
-                    'message' => $e->getMessage(),
+                    'message' => $e->getMessage() ?: 'Sorry, an error has occurred setting the creation time. ',
                 ]);
             }
         }
@@ -359,7 +359,7 @@ class blog implements Interfaces\Api
         } catch (\Exception $e) {
             return Factory::response([
                 'status' => 'error',
-                'message' => $e->getMessage(),
+                'message' => $e->getMessage() ?: 'An unknown error has occured when saving this blog',
             ]);
         }
 
