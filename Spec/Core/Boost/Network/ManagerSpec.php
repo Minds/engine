@@ -388,6 +388,59 @@ class ManagerSpec extends ObjectBehavior
         $this->isBoostLimitExceededBy($boost)->shouldReturn(false);
     }
 
+    public function it_should_allow_a_pro_user_to_boost_when_offchain_limit_reached(Boost $boost, User $user)
+    {
+        $boostArray = [];
+        for ($i = 0; $i < 2; $i++) {
+            $newBoost = new Boost();
+            $newBoost->setCreatedTimestamp('9999999999999999');
+            $newBoost->setImpressions(5001);
+            array_push($boostArray, $newBoost);
+        }
+
+        $boost->isOnChain()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $boost->getOwner()
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $user->isAdmin()
+            ->willReturn(false);
+
+        $user->isPro()
+            ->willReturn(true);
+
+        Di::_()->get('Config')->set('max_daily_boost_views', 20000);
+        $this->isBoostLimitExceededBy($boost)->shouldReturn(false);
+    }
+
+    public function it_should_allow_an_admin_to_boost_when_offchain_limit_reached(Boost $boost, User $user)
+    {
+        $boostArray = [];
+        for ($i = 0; $i < 2; $i++) {
+            $newBoost = new Boost();
+            $newBoost->setCreatedTimestamp('9999999999999999');
+            $newBoost->setImpressions(5001);
+            array_push($boostArray, $newBoost);
+        }
+
+        $boost->isOnChain()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $boost->getOwner()
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $user->isAdmin()
+            ->willReturn(true);
+
+        Di::_()->get('Config')->set('max_daily_boost_views', 20000);
+        $this->isBoostLimitExceededBy($boost)->shouldReturn(false);
+    }
+
     public function runThroughGetList($boost, $existingBoosts, $onchain = false)
     {
         $this->elasticRepository->getList([
@@ -422,5 +475,8 @@ class ManagerSpec extends ObjectBehavior
         $boost->getImpressions()
             ->shouldBeCalled()
             ->willReturn(1000);
+
+        $boost->getOwner()
+            ->shouldBeCalled();
     }
 }

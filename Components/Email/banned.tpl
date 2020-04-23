@@ -16,7 +16,7 @@
             <?php echo $vars['reason'] ?>
           </li>
         </ul>
-        Please reply this email to appeal.
+        Please reply to info@minds.com to appeal.
       </td>
     </tr>
     <tr>
