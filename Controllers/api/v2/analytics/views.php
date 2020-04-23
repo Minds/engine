@@ -36,7 +36,14 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
                         'message' => 'Could not find boost'
                     ]);
                 }
-                
+
+                if ($_POST['client_meta']['medium'] === 'boost-rotator' && $_POST['client_meta']['position'] < 0) {
+                    return Factory::response([
+                        'status' => 'error',
+                        'message' => 'Boost rotator position can not be below 0'
+                    ]);
+                }
+
                 $count = $metrics->incrementViews($boost);
 
                 if ($count > $boost->getImpressions()) {

@@ -55,6 +55,7 @@ class Provider extends DiProvider
                 'pay',
                 'onboarding-reminder',
                 'composer-blogs',
+                'boost-rotator',
             ];
         });
 

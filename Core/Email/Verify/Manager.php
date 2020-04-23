@@ -35,6 +35,20 @@ class Manager
         'sdghgfsd.com',
         'sdgdsfhs.com',
         'cemeonline77.com',
+        'juispow.com',
+        'aquiopc.com',
+        'ediob.com',
+        'weauo.com',
+        'irishmanbox.com',
+        'oiesl.com',
+        'eaeam.com',
+        'hiopsps.com',
+        'gdijejds.com',
+        'aquiopc.com',
+        'serpmails.com',
+        'lynleegypsycobs.com.au',
+        'casino368.com',
+        'ooelt.com',
     ];
 
     public function __construct($service = null, $spamBlocksManager = null)
