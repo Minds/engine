@@ -95,6 +95,7 @@ class Exported
             'upgrades' => $this->config->get('upgrades'),
             'contribution_values' => ContributionValues::export(),
             'environment' => getenv('MINDS_ENV') ?: 'development',
+            'boost_rotator_interval' => $this->config->get('boost_rotator_interval'),
         ];
 
         if (Session::isLoggedIn()) {
