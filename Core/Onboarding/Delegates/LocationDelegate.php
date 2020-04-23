@@ -15,6 +15,6 @@ class LocationDelegate implements OnboardingDelegate
      */
     public function isCompleted(User $user)
     {
-        return (bool) $user->getLocation();
+        return (bool) $user->city;
     }
 }
