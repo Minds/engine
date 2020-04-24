@@ -37,20 +37,29 @@ class NewPurchaseEmailSpec extends ObjectBehavior
         $campaign->setUser(Argument::type('Minds\Entities\User'))
             ->shouldBeCalled()
             ->willReturn($campaign);
-        $campaign->setSubject('Your purchase of 10 Tokens is being processed.')
+        $campaign->setSubject('Token purchase')
             ->shouldBeCalled()
             ->willReturn($campaign);
-        $campaign->setTemplate('new-token-purchase.md')
+        $campaign->setTemplate('token-purchase-new')
             ->shouldBeCalled()
             ->willReturn($campaign);
         $campaign->setTopic('billing')
+            ->shouldBeCalled()
+            ->willReturn($campaign);
+        $campaign->setTitle('Token purchase')
+            ->shouldBeCalled()
+            ->willReturn($campaign);
+        $campaign->setSignoff('Thank you,')
+            ->shouldBeCalled()
+            ->willReturn($campaign);
+        $campaign->setPreheader('Your purchase of 10 Tokens is being processed.')
             ->shouldBeCalled()
             ->willReturn($campaign);
         $campaign->setCampaign('tokens')
             ->shouldBeCalled()
             ->willReturn($campaign);
         $campaign->setVars([
-            'date' => date('d-M-Y', time()),
+            'date' => date('l F jS Y', time()),
             'amount' => 10
         ])
             ->shouldBeCalled()
