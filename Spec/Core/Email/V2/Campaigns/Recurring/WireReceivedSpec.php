@@ -1,8 +1,8 @@
 <?php
 
-namespace Spec\Minds\Core\Email\Campaigns;
+namespace Spec\Minds\Core\Email\V2\Campaigns\Recurring\WireReceived;
 
-use Minds\Core\Email\Campaigns\WireSent;
+use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Manager;
@@ -12,7 +12,7 @@ use Prophecy\Argument;
 use Minds\Core\Wire\Wire;
 use Minds\Core\Util\BigNumber;
 
-class WireSentSpec extends ObjectBehavior
+class WireReceivedSpec extends ObjectBehavior
 {
     protected $mailer;
     protected $manager;
@@ -46,6 +46,7 @@ class WireSentSpec extends ObjectBehavior
         $receiver->get('guid')->willReturn($this->receiverGUID);
         $receiver->getEmail()->willReturn($this->receiverEmail);
         $receiver->get('username')->willReturn($this->receiverUsername);
+        $receiver->get('banned')->willReturn(false);
 
         $sender->getGUID()->willReturn($this->senderGUID);
         $sender->get('enabled')->willReturn('yes');
@@ -53,7 +54,6 @@ class WireSentSpec extends ObjectBehavior
         $sender->get('guid')->willReturn($this->senderGUID);
         $sender->getEmail()->willReturn($this->senderEmail);
         $sender->get('username')->willReturn($this->senderUsername);
-        $sender->get('banned')->willReturn(false);
 
         $this->receiver = $receiver;
         $this->sender = $sender;
@@ -63,28 +63,31 @@ class WireSentSpec extends ObjectBehavior
 
     public function it_is_initializable()
     {
-        $this->shouldHaveType(WireSent::class);
+        $this->shouldHaveType(WireReceived::class);
     }
 
     public function it_should_send_a_wire_received_email_tokens()
     {
+        $this->wire->setMethod('tokens');
+        $this->wire->setAmount(2000000000000000);
         $this->getCampaign()->shouldEqual('when');
         $this->getTopic()->shouldEqual('wire_received');
-        $this->setUser($this->sender);
+        $this->setUser($this->receiver);
         $this->setWire($this->wire);
         $message = $this->build();
-        $message->getSubject()->shouldEqual('Your Wire receipt');
-        $to = $message->getTo()[0]['name']->shouldEqual($this->senderName);
-        $to = $message->getTo()[0]['email']->shouldEqual($this->senderEmail);
+        $message->getSubject()->shouldEqual('You received a wire');
+        $to = $message->getTo()[0]['name']->shouldEqual($this->receiverName);
+        $to = $message->getTo()[0]['email']->shouldEqual($this->receiverEmail);
         $data = $this->getTemplate()->getData();
-        $data['guid']->shouldEqual($this->senderGUID);
-        $data['email']->shouldEqual($this->senderEmail);
-        $data['username']->shouldEqual($this->senderUsername);
-        //$data['amount']->shouldEqual(BigNumber::fromPlain(10, 18)->toDouble()); It is correct just in the wrong format to assert
+        $data['guid']->shouldEqual($this->receiverGUID);
+        $data['email']->shouldEqual($this->receiverEmail);
+        $data['username']->shouldEqual($this->receiverUsername);
+        $data['amount']->shouldEqual('0.002 tokens');
+
         $this->mailer->send(Argument::any())->shouldBeCalled();
 
         $testEmailSubscription = (new EmailSubscription())
-            ->setUserGuid($this->senderGUID)
+            ->setUserGuid($this->receiverGUID)
             ->setCampaign('when')
             ->setTopic('wire_received')
             ->setValue(true);
@@ -93,29 +96,29 @@ class WireSentSpec extends ObjectBehavior
         $this->send();
     }
 
-    public function it_should_send_a_wire_received_email_onchain()
+    public function it_should_send_a_wire_received_email_eth()
     {
-        $this->wire->setMethod('onchain');
-
+        $this->wire->setMethod('eth');
+        $this->wire->setAmount(7);
         $this->getCampaign()->shouldEqual('when');
         $this->getTopic()->shouldEqual('wire_received');
-        $this->setUser($this->sender);
+        $this->setUser($this->receiver);
         $this->setWire($this->wire);
         $this->setSuggestions($this->mockSuggestions());
         $message = $this->build();
-        $message->getSubject()->shouldEqual('Your Wire receipt');
-        $to = $message->getTo()[0]['name']->shouldEqual($this->senderName);
-        $to = $message->getTo()[0]['email']->shouldEqual($this->senderEmail);
+        $message->getSubject()->shouldEqual('You received a wire');
+        $to = $message->getTo()[0]['name']->shouldEqual($this->receiverName);
+        $to = $message->getTo()[0]['email']->shouldEqual($this->receiverEmail);
         $data = $this->getTemplate()->getData();
-        $data['guid']->shouldEqual($this->senderGUID);
-        $data['email']->shouldEqual($this->senderEmail);
-        $data['username']->shouldEqual($this->senderUsername);
-        $data['contract']->shouldEqual('wire');
-        $data['amount']->shouldEqual('10 ONCHAIN');
+        $data['guid']->shouldEqual($this->receiverGUID);
+        $data['email']->shouldEqual($this->receiverEmail);
+        $data['username']->shouldEqual($this->receiverUsername);
+        $data['amount']->shouldEqual('7 ETH');
+
         $this->mailer->send(Argument::any())->shouldBeCalled();
 
         $testEmailSubscription = (new EmailSubscription())
-            ->setUserGuid($this->senderGUID)
+            ->setUserGuid($this->receiverGUID)
             ->setCampaign('when')
             ->setTopic('wire_received')
             ->setValue(true);
@@ -123,25 +126,86 @@ class WireSentSpec extends ObjectBehavior
         $this->manager->isSubscribed($testEmailSubscription)->shouldBeCalled()->willReturn(true);
         $this->send();
     }
+
+    public function it_should_send_a_wire_received_email_usd()
+    {
+        $this->wire->setMethod('usd');
+        $this->wire->setAmount(500);
+        $this->getCampaign()->shouldEqual('when');
+        $this->getTopic()->shouldEqual('wire_received');
+        $this->setUser($this->receiver);
+        $this->setWire($this->wire);
+        $this->setSuggestions($this->mockSuggestions());
+        $message = $this->build();
+        $message->getSubject()->shouldEqual('You received a wire');
+        $to = $message->getTo()[0]['name']->shouldEqual($this->receiverName);
+        $to = $message->getTo()[0]['email']->shouldEqual($this->receiverEmail);
+        $data = $this->getTemplate()->getData();
+        $data['guid']->shouldEqual($this->receiverGUID);
+        $data['email']->shouldEqual($this->receiverEmail);
+        $data['username']->shouldEqual($this->receiverUsername);
+        $data['amount']->shouldEqual('5 USD');
+
+        $this->mailer->send(Argument::any())->shouldBeCalled();
+
+        $testEmailSubscription = (new EmailSubscription())
+            ->setUserGuid($this->receiverGUID)
+            ->setCampaign('when')
+            ->setTopic('wire_received')
+            ->setValue(true);
+
+        $this->manager->isSubscribed($testEmailSubscription)->shouldBeCalled()->willReturn(true);
+        $this->send();
+    }
+
+    // public function it_should_send_a_wire_received_email_onchain()
+    // {
+    //     $this->wire->setMethod('onchain');
+    //     $this->getCampaign()->shouldEqual('when');
+    //     $this->getTopic()->shouldEqual('wire_received');
+    //     $this->setUser($this->receiver);
+    //     $this->setWire($this->wire);
+    //     $this->setSuggestions($this->mockSuggestions());
+    //     $message = $this->build();
+    //     $message->getSubject()->shouldEqual('You received a wire');
+    //     $to = $message->getTo()[0]['name']->shouldEqual($this->receiverName);
+    //     $to = $message->getTo()[0]['email']->shouldEqual($this->receiverEmail);
+    //     $data = $this->getTemplate()->getData();
+    //     $data['guid']->shouldEqual($this->receiverGUID);
+    //     $data['email']->shouldEqual($this->receiverEmail);
+    //     $data['username']->shouldEqual($this->receiverUsername);
+    //     $data['contract']->shouldEqual('wire');
+    //     $data['amount']->shouldEqual('2000000000000000 ONCHAIN');
+    //     $this->mailer->send(Argument::any())->shouldBeCalled();
+
+    //     $testEmailSubscription = (new EmailSubscription())
+    //         ->setUserGuid($this->receiverGUID)
+    //         ->setCampaign('when')
+    //         ->setTopic('wire_received')
+    //         ->setValue(true);
+
+    //     $this->manager->isSubscribed($testEmailSubscription)->shouldBeCalled()->willReturn(true);
+    //     $this->send();
+    // }
 
     public function it_should_not_send_unsubscribed()
     {
         $this->getCampaign()->shouldEqual('when');
         $this->getTopic()->shouldEqual('wire_received');
 
-        $this->setUser($this->sender);
+        $this->setUser($this->receiver);
         $this->setWire($this->wire);
 
         $this->build();
 
         $data = $this->getTemplate()->getData();
-        $data['email']->shouldEqual($this->senderEmail);
-        $data['username']->shouldEqual($this->senderUsername);
+        $data['email']->shouldEqual($this->receiverEmail);
+        $data['username']->shouldEqual($this->receiverUsername);
 
         $this->mailer->send(Argument::any())->shouldNotBeCalled();
 
         $testEmailSubscription = (new EmailSubscription())
-            ->setUserGuid($this->senderGUID)
+            ->setUserGuid($this->receiverGUID)
             ->setCampaign('when')
             ->setTopic('wire_received')
             ->setValue(true);
@@ -155,18 +219,18 @@ class WireSentSpec extends ObjectBehavior
         $this->getCampaign()->shouldEqual('when');
         $this->getTopic()->shouldEqual('wire_received');
 
-        $this->setUser($this->sender);
+        $this->setUser($this->receiver);
         $this->setWire($this->wire);
         $this->build();
 
         $data = $this->getTemplate()->getData();
-        $data['email']->shouldEqual($this->senderEmail);
-        $data['username']->shouldEqual($this->senderUsername);
+        $data['email']->shouldEqual($this->receiverEmail);
+        $data['username']->shouldEqual($this->receiverUsername);
 
         $this->mailer->send(Argument::any())->shouldNotBeCalled();
 
         $testEmailSubscription = (new EmailSubscription())
-            ->setUserGuid($this->senderGUID)
+            ->setUserGuid($this->receiverGUID)
             ->setCampaign('when')
             ->setTopic('wire_received')
             ->setValue(true);
@@ -183,13 +247,13 @@ class WireSentSpec extends ObjectBehavior
 
     public function it_should_not_send_disabled()
     {
-        $this->setUser($this->sender);
+        $this->setUser($this->receiver);
         $this->setWire($this->wire);
         $this->build();
 
         $data = $this->getTemplate()->getData();
-        $data['email']->shouldEqual($this->senderEmail);
-        $data['username']->shouldEqual($this->senderUsername);
+        $data['email']->shouldEqual($this->receiverEmail);
+        $data['username']->shouldEqual($this->receiverUsername);
 
         $this->mailer->send(Argument::any())->shouldNotBeCalled();
         $this->send();
@@ -197,13 +261,13 @@ class WireSentSpec extends ObjectBehavior
 
     public function it_should_send_not_send_unsubscribed_emails()
     {
-        $this->setUser($this->sender);
+        $this->setUser($this->receiver);
         $this->setWire($this->wire);
         $this->build();
 
         $data = $this->getTemplate()->getData();
-        $data['email']->shouldEqual($this->senderEmail);
-        $data['username']->shouldEqual($this->senderUsername);
+        $data['email']->shouldEqual($this->receiverEmail);
+        $data['username']->shouldEqual($this->receiverUsername);
 
         $this->manager->isSubscribed(Argument::type(EmailSubscription::class))
             ->shouldBeCalled()

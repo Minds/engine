@@ -1,25 +1,23 @@
 <?php
 
-namespace Spec\Minds\Core\Email\Campaigns;
+namespace Spec\Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete;
 
-use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Manager;
 use Minds\Core\Email\EmailSubscription;
-use Minds\Core\Suggestions\Suggestion;
 use Minds\Core\Email\CampaignLogs\CampaignLog;
 use Minds\Entities\User;
 use Prophecy\Argument;
 
-class WelcomeCompleteSpec extends ObjectBehavior
+class WelcomeIncompleteSpec extends ObjectBehavior
 {
     protected $mailer;
     protected $manager;
 
     private $testGUID = 123456789;
     private $testName = 'test_name';
-    private $testBriefDescription = 'test brief description';
     private $testEmail = 'test@minds.com';
     private $testUsername = 'testUsername';
 
@@ -32,10 +30,10 @@ class WelcomeCompleteSpec extends ObjectBehavior
 
     public function it_is_initializable()
     {
-        $this->shouldHaveType(WelcomeComplete::class);
+        $this->shouldHaveType(WelcomeIncomplete::class);
     }
 
-    public function it_should_send_a_welcome_complete_email(User $user)
+    public function it_should_send_a_welcome_incomplete_email(User $user)
     {
         $user->getGUID()->shouldBeCalled()->willReturn($this->testGUID);
         $user->get('enabled')->shouldBeCalled()->willReturn('yes');
@@ -48,7 +46,6 @@ class WelcomeCompleteSpec extends ObjectBehavior
         $this->getCampaign()->shouldEqual('global');
         $this->getTopic()->shouldEqual('minds_tips');
         $this->getState()->shouldEqual('new');
-        $this->setSuggestions($this->mockSuggestions());
         $this->setUser($user);
         $message = $this->build();
         $message->getSubject()->shouldEqual('Welcome to Minds');
@@ -68,7 +65,6 @@ class WelcomeCompleteSpec extends ObjectBehavior
             ->setTopic('minds_tips')
             ->setValue(true);
 
-
         $time = time();
 
         $campaignLog = (new CampaignLog())
@@ -78,7 +74,8 @@ class WelcomeCompleteSpec extends ObjectBehavior
 
         $this->manager->saveCampaignLog($campaignLog)->shouldBeCalled();
         $this->manager->isSubscribed($testEmailSubscription)->shouldBeCalled()->willReturn(true);
-        $this->send();
+
+        $this->send($time);
     }
 
     public function it_should_not_send_unsubscribed(User $user)
@@ -194,18 +191,5 @@ class WelcomeCompleteSpec extends ObjectBehavior
 
         $this->mailer->queue(Argument::any())->shouldNotBeCalled();
         $this->send();
-    }
-
-    private function mockSuggestions()
-    {
-        $user = new User($this->testGUID);
-        $user['name'] = $this->testName;
-        $user['briefdescription'] = $this->testBriefDescription;
-
-        $suggestion = (new Suggestion())
-            ->setEntityType('user')
-            ->setEntity($user);
-
-        return [$suggestion];
     }
 }

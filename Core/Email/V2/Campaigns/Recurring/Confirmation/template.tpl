@@ -1,6 +1,13 @@
 <tr>
     <td>
         <p>
+            Welcome to Minds! We are an open source social network dedicated to Internet freedom. That means we actually care about things like digital rights and fairly rewarding you for your contribution to the network.
+        </p>
+    </td>
+</tr>
+<tr>
+    <td>
+        <p>
             Please take a moment to verify your email address. This helps us prevent spam and ensure that you are a real human.
         </p>
     </td>

@@ -7,7 +7,7 @@ use Minds\Core\Blockchain\Purchase\Purchase;
 use Minds\Core\Config;
 use Minds\Core\Data\lookup;
 use Minds\Core\Di\Di;
-use Minds\Core\Email\Campaigns\Custom;
+use Minds\Core\Email\V2\Campaigns\Custom\Custom;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 

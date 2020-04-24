@@ -1,6 +1,6 @@
 <?php
 
-namespace Spec\Minds\Core\Email\Delegates;
+namespace Spec\Minds\Core\Email\V2\Delegates;
 
 use Minds\Core\Email\V2\Delegates\WeMissYouSender;
 use PhpSpec\ObjectBehavior;
