@@ -11,6 +11,7 @@ use Minds\Common\Repository\Response;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities\Factory as EntitiesFactory;
+use Minds\Entities\Group;
 use Minds\Entities\User;
 use Minds\Interfaces;
 
@@ -24,7 +25,6 @@ class content implements Interfaces\Api
         $currentUser = Core\Session::getLoggedinUser();
 
         $container_guid = $pages[0] ?? null;
-        $owner_guid = null;
 
         if (!$container_guid) {
             return Factory::response([
@@ -43,9 +43,12 @@ class content implements Interfaces\Api
         }
 
         $type = '';
+        $algorithm = strtolower($_GET['algorithm'] ?? 'top');
+
         switch ($pages[1]) {
             case 'activities':
                 $type = 'activity';
+                $algorithm = 'latest';
                 break;
             case 'images':
                 $type = 'object:image';
@@ -58,8 +61,6 @@ class content implements Interfaces\Api
                 break;
             case 'groups':
                 $type = 'group';
-                $container_guid = null;
-                $owner_guid = $pages[0];
                 break;
             case 'all':
                 $type = 'all';
@@ -108,8 +109,8 @@ class content implements Interfaces\Api
             $query = $_GET['query'];
         }
 
-        /** @var Core\Feeds\Top\Entities $entities */
-        $entities = new Core\Feeds\Top\Entities();
+        /** @var Core\Feeds\Elastic\Entities $entities */
+        $entities = new Core\Feeds\Elastic\Entities();
         $entities->setActor($currentUser);
 
         $isOwner = false;
@@ -122,12 +123,12 @@ class content implements Interfaces\Api
         $opts = [
             'cache_key' => $currentUser ? $currentUser->guid : null,
             'container_guid' => $container_guid,
-            'owner_guid' => $owner_guid,
             'access_id' => $isOwner && !$forcePublic ? [0, 1, 2, $container_guid] : [2, $container_guid],
             'custom_type' => null,
             'limit' => $limit,
+            'offset' => $offset,
             'type' => $type,
-            'algorithm' => 'top',
+            'algorithm' => $algorithm,
             'period' => '7d',
             'sync' => $sync,
             'from_timestamp' => $fromTimestamp,
@@ -159,7 +160,11 @@ class content implements Interfaces\Api
         try {
             $result = $this->getData($entities, $opts, $asActivities, $sync);
 
-            if ($result->count() <= static::MIN_COUNT) {
+            if (
+                $opts['algorithm'] !== 'latest' &&
+                $opts['type'] !== 'group' &&
+                $result->count() <= static::MIN_COUNT
+            ) {
                 $opts['algorithm'] = 'latest';
                 $result = $this->getData($entities, $opts, $asActivities, $sync);
             }
@@ -178,7 +183,7 @@ class content implements Interfaces\Api
     }
 
     /**
-     * @param Core\Feeds\Top\Entities $entities
+     * @param Core\Feeds\Elastic\Entities $entities
      * @param array $opts
      * @param bool $asActivities
      * @param bool $sync
@@ -187,20 +192,34 @@ class content implements Interfaces\Api
      */
     private function getData($entities, $opts, $asActivities, $sync)
     {
+        switch ($opts['type']) {
+            case 'group':
+                /** @var Core\Groups\Ownership $manager */
+                $manager = Di::_()->get('Groups\Ownership');
 
-        /** @var Core\Feeds\Top\Manager $manager */
-        $manager = Di::_()->get('Feeds\Top\Manager');
-        $result = $manager->getList($opts);
+                $result = $manager
+                    ->setUserGuid($opts['container_guid'])
+                    ->fetch();
 
-        if (!$sync) {
-            // Remove all unlisted content, if ES document is not in sync, it'll
-            // also remove pending activities
-            $result = $result->filter([$entities, 'filter']);
+                break;
 
-            if ($asActivities) {
-                // Cast to ephemeral Activity entities, if another type
-                $result = $result->map([$entities, 'cast']);
-            }
+            default:
+                /** @var Core\Feeds\Elastic\Manager $manager */
+                $manager = Di::_()->get('Feeds\Elastic\Manager');
+                $result = $manager->getList($opts);
+
+                if (!$sync) {
+                    // Remove all unlisted content, if ES document is not in sync, it'll
+                    // also remove pending activities
+                    $result = $result->filter([$entities, 'filter']);
+
+                    if ($asActivities) {
+                        // Cast to ephemeral Activity entities, if another type
+                        $result = $result->map([$entities, 'cast']);
+                    }
+                }
+
+                break;
         }
 
         return $result;

@@ -921,7 +921,7 @@ CREATE TABLE minds.notifications (
 CREATE MATERIALIZED VIEW minds.notifications_by_type_group AS
     SELECT *
     FROM minds.notifications
-    WHERE to_guid IS NOT NULL 
+    WHERE to_guid IS NOT NULL
     AND uuid IS NOT NULL
     AND type_group IS NOT NULL
     PRIMARY KEY (to_guid, type_group, uuid)
@@ -1525,3 +1525,56 @@ CREATE TABLE minds.notification_batches (
     primary key (user_guid, batch_id)
 );
 
+CREATE TABLE minds.experiments (
+    id text,
+    bucket text,
+    key text,
+    PRIMARY KEY (id, bucket, key)
+) WITH CLUSTERING ORDER BY (bucket ASC, key ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE INDEX experiments_key_idx ON minds.experiments (key);
+
+ALTER TABLE minds.withdrawals ADD (status text, address text, gas varint);
+
+CREATE MATERIALIZED VIEW minds.withdrawals_by_status AS
+    SELECT *
+    FROM minds.withdrawals
+    WHERE status IS NOT NULL AND user_guid IS NOT NULL AND timestamp IS NOT NULL AND tx IS NOT NULL
+    PRIMARY KEY (status, timestamp, user_guid, tx)
+    WITH CLUSTERING ORDER BY (timestamp ASC, user_guid ASC, tx ASC);
+
+CREATE TABLE minds.video_transcodes (
+    guid bigint,
+    profile_id text,
+    progress int,
+    status text,
+    last_event_timestamp_ms timestamp,
+    length_secs int,
+    bytes int,
+    PRIMARY KEY (guid, profile_id)
+);
+
+ALTER TABLE minds.video_transcodes ADD failure_reason text;
+
+CREATE TABLE minds.feature_toggles_cache_ns (
+    environment text,
+    feature_name text,
+    data text,
+    created_at timestamp,
+    stale_at timestamp,
+    PRIMARY KEY (environment, feature_name)
+);

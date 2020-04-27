@@ -151,6 +151,9 @@ class Defaults
 
         // Channels events
         (new Core\Channels\Events())->register();
+
+        // Feeds events
+        (new Core\Feeds\Events())->register();
     }
 
     public static function _()

@@ -9,8 +9,9 @@ use Minds\Entities\User;
 use Minds\Core\Email\Campaigns\UserRetention\GoneCold;
 use Minds\Core\Email\Campaigns\WhenBoost;
 use Minds\Core\Email\Campaigns\WireReceived;
-use Minds\Core\Email\Campaigns\UserRetention\WelcomeComplete;
-use Minds\Core\Email\Campaigns\UserRetention\WelcomeIncomplete;
+use Minds\Core\Email\Campaigns\WirePromotions;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
 use Minds\Core\Suggestions\Manager;
 use Minds\Core\Analytics\Timestamps;
 use Minds\Core\Di\Di;
@@ -189,6 +190,28 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         }
     }
 
+    public function testWirePromotion()
+    {
+        $userguid = $this->getOpt('guid');
+        $output = $this->getOpt('output');
+        $send = $this->getOpt('send');
+        $user = new User($userguid);
+
+        if (!$user->guid) {
+            $this->out('User not found');
+            exit;
+        }
+
+        $campaign = (new WirePromotions())
+            ->setUser($user);
+
+        $message = $campaign->build();
+
+        if ($send) {
+            $campaign->send();
+        }
+    }
+
     public function testWelcomeIncomplete()
     {
         $userguid = $this->getOpt('guid');
@@ -315,5 +338,11 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         } else {
             $this->out($message->buildHtml());
         }
+    }
+
+    public function sync_sendgrid_lists(): void
+    {
+        $sendGridManager = Di::_()->get('SendGrid\Manager');
+        $sendGridManager->syncContactLists();
     }
 }

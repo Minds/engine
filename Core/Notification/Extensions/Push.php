@@ -279,6 +279,15 @@ class Push implements Interfaces\NotificationExtensionInterface
             case 'messenger_invite':
                 return sprintf('@%s wants to chat with you!', $name);
 
+            case 'referral_ping':
+                return sprintf('Free tokens are waiting for you! Once you join the rewards program by setting up your Minds wallet, both you and @%s will earn tokens for your referral', $name);
+
+            case 'referral_pending':
+                return sprintf('You have a pending referral! @%s used your referral link when they signed up for Minds. You\'ll get tokens once they join the rewards program and set up their wallet', $name);
+
+            case 'referral_complete':
+                return sprintf('You\'ve earned tokens for the completed referral of @%s', $name);
+
             default:
                 return "";
         }

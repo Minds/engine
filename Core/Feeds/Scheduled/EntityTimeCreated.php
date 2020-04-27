@@ -18,7 +18,7 @@ class EntityTimeCreated
             throw new \InvalidParameterException();
         }
 
-        if ($time_created < strtotime('+5 Minutes')) {
+        if ($time_created < strtotime('+2 Minutes')) {
             $time_created = $time_sent;
         }
 

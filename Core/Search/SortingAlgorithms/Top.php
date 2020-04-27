@@ -11,6 +11,14 @@ class Top implements SortingAlgorithm
     protected $period;
 
     /**
+     * @return bool
+     */
+    public function isTimestampConstrain(): bool
+    {
+        return false; // Old period-based algorithms shouldn't be constrained
+    }
+
+    /**
      * @param string $period
      * @return $this
      */
@@ -79,5 +87,21 @@ class Top implements SortingAlgorithm
     public function fetchScore($doc)
     {
         return $doc['_score'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getFunctionScores(): ?array
+    {
+        return null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getScoreMode(): string
+    {
+        return "sum";
     }
 }

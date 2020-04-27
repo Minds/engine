@@ -9,6 +9,7 @@ class Manager
         'trending' => TrendingDashboard::class,
         'earnings' => EarningsDashboard::class,
         'engagement' => EngagementDashboard::class,
+        'token' => TokenDashboard::class,
     ];
 
     /**

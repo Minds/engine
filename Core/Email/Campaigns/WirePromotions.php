@@ -82,7 +82,8 @@ class WirePromotions extends EmailCampaign
             ->setSubject($this->subject)
             ->setHtml($this->template);
 
-        //send email
-        $this->mailer->send($message);
+        if ($this->canSend()) {
+            $this->mailer->send($message);
+        }
     }
 }

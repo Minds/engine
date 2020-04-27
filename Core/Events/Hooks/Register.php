@@ -55,17 +55,61 @@ class Register
             if ($params['user']->captcha_failed) {
                 return false;
             }
-            //send welcome email
+
+            try {
+                /** @var Core\Email\Confirmation\Manager $emailConfirmation */
+                $emailConfirmation = Di::_()->get('Email\Confirmation');
+                $emailConfirmation
+                    ->setUser($params['user'])
+                    ->sendEmail();
+            } catch (\Exception $e) {
+                error_log((string) $e);
+            }
+
+            try {
+                /** @var Entities\User $user */
+                $user = $params['user'];
+
+                $platform = 'browser';
+                if ($user->signupParentId === 'mobile-native') {
+                    $platform = 'mobile';
+                }
+
+                $event = new Core\Analytics\Metrics\Event();
+                $event
+                    ->setType('action')
+                    ->setAction('signup')
+                    ->setProduct('platform')
+                    ->setPlatform($platform)
+                    ->setUserGuid($user->guid)
+                    ->setCookieId($_COOKIE['mwa'] ?? '')
+                    ->setLoggedIn(true);
+
+                if ($user->referrer) {
+                    $event->setReferrerGuid($user->referrer);
+
+                    try {
+                        $referrer = new Entities\User($user->referrer, false);
+
+                        if ($referrer && $referrer->guid) {
+                            $event->setProReferrer($referrer->isPro());
+                        }
+                    } catch (\Exception $e) {
+                        // Do not fail if we couldn't find referrer user
+                        // Might be deleted, disabled or banned
+                    }
+                }
+
+                $event->push();
+            } catch (\Exception $e) {
+                error_log((string) $e);
+            }
+
             try {
                 Core\Queue\Client::build()->setQueue('Registered')
                     ->send([
-                        'user_guid' => $params['user']->guid,
+                        'user_guid' => (string) $params['user']->guid,
                     ]);
-                //Delay by 15 minutes (aws max) so the user has time to complete their profile
-                Core\Queue\Client::build()->setQueue('WelcomeEmail')
-                    ->send([
-                        'user_guid' => $params['user']->guid,
-                    ], 900);
             } catch (\Exception $e) {
             }
         });

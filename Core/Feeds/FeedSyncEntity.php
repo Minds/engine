@@ -22,11 +22,8 @@ use Minds\Traits\MagicAttributes;
  * @method FeedSyncEntity setTimestamp(int $timestamp)
  * @method string getUrn()
  * @method FeedSyncEntity setUrn(string $urn)
- * @method int getAccessId()
- * @method FeedSyncEntity setAccessId(int $accessId)
- * @method string getType()
- * @method FeedSyncEntity setType(string $type)
  * @method Entity getEntity()
+ * @method void setEntity(Entity $entity)
  */
 class FeedSyncEntity implements JsonSerializable
 {
@@ -41,31 +38,14 @@ class FeedSyncEntity implements JsonSerializable
     /** @var int */
     protected $timestamp;
 
-    /** @var int */
-    protected $accessId;
-
     /** @var string */
     protected $urn;
 
     /** @var Entity */
     protected $entity;
 
-    /**
-     * Setter for populating the child entity on feed sync items
-     * Some FeedSyncEntity managers populate the entity with the hydrated object
-     * Do not assume this is always called because you can easily
-     * Just have the header information stored in ES (without the entity)
-     */
-    public function setEntity($entity) : FeedSyncEntity
-    {
-        $this->entity = $entity;
-        $this->accessId = $entity->getAccessId();
-        $this->type = $entity->getType();
-        return $this;
-    }
-
-    /** @var type */
-    public $type;
+    /** @var bool */
+    protected $deleted = false;
 
     /**
      * Export to public API
@@ -76,10 +56,8 @@ class FeedSyncEntity implements JsonSerializable
         return [
             'guid' => (string) $this->guid,
             'owner_guid' => (string) $this->ownerGuid,
-            'access_id' => (int) $this->accessId,
             'timestamp' => $this->timestamp,
             'urn' => $this->urn,
-            'type' => $this->type,
             'entity' => $this->entity ? $this->entity->export() : null,
         ];
     }

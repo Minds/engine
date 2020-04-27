@@ -70,7 +70,11 @@ class channel implements Interfaces\Api
         $response['channel']['briefdescription'] = $response['channel']['briefdescription'] ?: '';
         $response['channel']['city'] = $response['channel']['city'] ?: "";
         $response['channel']['gender'] = $response['channel']['gender'] ?: "";
-        $response['channel']['dob'] = $response['channel']['dob'] ?: "";
+
+        // if we are querying for our own user
+        if (Core\Session::getLoggedinUser()->guid === $user->guid) {
+            $response['channel']['dob'] = $user->getDateOfBirth();
+        }
 
         if (!$user->merchant || !$supporters_count) {
             $db = new Core\Data\Call('entities_by_time');
@@ -234,11 +238,16 @@ class channel implements Interfaces\Api
 
                 $update = [];
                 foreach (['name', 'website', 'briefdescription', 'gender',
-                  'dob', 'city', 'coordinates', 'monetized'] as $field) {
+                        'city', 'coordinates', 'monetized'] as $field) {
                     if (isset($_POST[$field])) {
                         $update[$field] = $_POST[$field];
                         $owner->$field = $_POST[$field];
                     }
+                }
+
+                if (isset($_POST['dob'])) {
+                    $update['dob'] = $_POST['dob'];
+                    $owner->setDateOfBirth($_POST['dob']);
                 }
 
                 if (isset($_POST['nsfw']) && is_array($_POST['nsfw'])) {

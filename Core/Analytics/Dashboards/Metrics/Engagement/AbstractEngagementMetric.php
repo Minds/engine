@@ -7,6 +7,8 @@ use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Analytics\Dashboards\Metrics\AbstractMetric;
 use Minds\Core\Analytics\Dashboards\Metrics\MetricSummary;
 use Minds\Core\Analytics\Dashboards\Metrics\Visualisations;
+use Minds\Core\Analytics\Dashboards\Metrics\HistogramSegment;
+use Minds\Core\Analytics\Dashboards\Metrics\HistogramBucket;
 
 abstract class AbstractEngagementMetric extends AbstractMetric
 {
@@ -30,6 +32,9 @@ abstract class AbstractEngagementMetric extends AbstractMetric
 
     /** @var string */
     protected $aggField = '';
+
+    /** @var HistogramSegment[] */
+    protected $segments = [];
 
     public function __construct($es = null)
     {
@@ -118,6 +123,15 @@ abstract class AbstractEngagementMetric extends AbstractMetric
      */
     public function buildVisualisation(): self
     {
+        // This is for backwards compatability. We should put deprecated notice here soon
+        if (empty($this->segments)) {
+            $this->segments = [
+                (new HistogramSegment)
+                    ->setAggField($this->aggField)
+                    ->setAggType('sum'),
+            ];
+        }
+
         $timespan = $this->timespansCollection->getSelected();
         $filters = $this->filtersCollection->getSelected();
 
@@ -140,9 +154,19 @@ abstract class AbstractEngagementMetric extends AbstractMetric
 
         $must[] = [
             'exists' => [
-               'field' => $this->aggField,
+               'field' => $this->segments[0]->getAggField(),
             ],
         ];
+
+        $aggs = [];
+        foreach ($this->segments as $i => $segment) {
+            $key = (string) $i + 2;
+            $aggs[$key] = [
+                $segment->getAggType() => [
+                    'field' => $segment->getAggField(),
+                ],
+            ];
+        }
 
         // Do the query
         $query = [
@@ -165,18 +189,12 @@ abstract class AbstractEngagementMetric extends AbstractMetric
                                 'max' => time() * 1000,
                             ],
                         ],
-                        'aggs' => [
-                            '2' => [
-                                'sum' => [
-                                    'field' => $this->aggField,
-                                ],
-                            ],
-                        ],
+                        'aggs' => $aggs,
                     ],
                 ],
             ],
         ];
-
+        
         // Query elasticsearch
         $prepared = new ElasticSearch\Prepared\Search();
         $prepared->query($query);
@@ -185,17 +203,22 @@ abstract class AbstractEngagementMetric extends AbstractMetric
         $buckets = [];
         foreach ($response['aggregations']['1']['buckets'] as $bucket) {
             $date = date(Visualisations\ChartVisualisation::DATE_FORMAT, $bucket['key'] / 1000);
-            $buckets[] = [
-                'key' => $bucket['key'],
-                'date' => date('c', $bucket['key'] / 1000),
-                'value' => $bucket['2']['value']
-            ];
+
+            foreach ($this->segments as $i => $segment) {
+                $key = (string) $i + 2;
+                $segment->addBucket(
+                    (new HistogramBucket)
+                        ->setKey($bucket['key'])
+                        ->setTimestampMs($bucket['key'])
+                        ->setValue($bucket[$key]['value'])
+                );
+            }
         }
 
         $this->visualisation = (new Visualisations\ChartVisualisation())
             ->setXLabel('Date')
             ->setYLabel('Count')
-            ->setBuckets($buckets);
+            ->setSegments($this->segments);
 
         return $this;
     }

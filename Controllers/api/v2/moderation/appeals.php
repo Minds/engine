@@ -16,6 +16,13 @@ class appeals implements Interfaces\Api
 {
     public function get($pages)
     {
+        if (!Core\Session::isLoggedIn()) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'You must be loggedin',
+            ]);
+        }
+
         if ($_POST['offset']) {
             return Factory::response([ ]);
         }

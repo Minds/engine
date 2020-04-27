@@ -32,6 +32,9 @@ class Manager
 
     /** @var Delegates\SetupRoutingDelegate */
     protected $setupRoutingDelegate;
+    
+    /** @var Delegates\SubscriptionDelegate */
+    protected $subscriptionDelegate;
 
     /** @var User */
     protected $user;
@@ -47,6 +50,7 @@ class Manager
      * @param Delegates\InitializeSettingsDelegate $initializeSettingsDelegate
      * @param Delegates\HydrateSettingsDelegate $hydrateSettingsDelegate
      * @param Delegates\SetupRoutingDelegate $setupRoutingDelegate
+     * @param Delegates\SubscriptionDelegate $subscriptionDelegate
      */
     public function __construct(
         $repository = null,
@@ -54,7 +58,8 @@ class Manager
         $entitiesBuilder = null,
         $initializeSettingsDelegate = null,
         $hydrateSettingsDelegate = null,
-        $setupRoutingDelegate = null
+        $setupRoutingDelegate = null,
+        $subscriptionDelegate = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->saveAction = $saveAction ?: new Save();
@@ -62,6 +67,7 @@ class Manager
         $this->initializeSettingsDelegate = $initializeSettingsDelegate ?: new Delegates\InitializeSettingsDelegate();
         $this->hydrateSettingsDelegate = $hydrateSettingsDelegate ?: new Delegates\HydrateSettingsDelegate();
         $this->setupRoutingDelegate = $setupRoutingDelegate ?: new Delegates\SetupRoutingDelegate();
+        $this->subscriptionDelegate = $subscriptionDelegate ?: new Delegates\SubscriptionDelegate();
     }
 
     /**
@@ -131,7 +137,8 @@ class Manager
             throw new Exception('Invalid user');
         }
 
-        // TODO: Disable subscription instead, let Pro expire itself at the end of the sub
+        $this->subscriptionDelegate
+            ->onDisable($this->user);
 
         $this->user
             ->setProExpires(0);
@@ -156,6 +163,13 @@ class Manager
         $settings = $this->repository->getList([
             'user_guid' => $this->user->guid,
         ])->first();
+
+        // If requested by an inactive user, this is preview mode
+        if (!$settings && !$this->isActive()) {
+            $settings = new Settings();
+            $settings->setUserGuid($this->user->guid);
+            $settings->setTitle($this->user->name ?: $this->user->username);
+        }
 
         if (!$settings) {
             return null;
@@ -333,8 +347,11 @@ class Manager
 
         $settings->setTimeUpdated(time());
 
-        $this->setupRoutingDelegate
-            ->onUpdate($settings);
+        // Only update routing if we are active
+        if ($this->isActive()) {
+            $this->setupRoutingDelegate
+                ->onUpdate($settings);
+        }
 
         return $this->repository->update($settings);
     }

@@ -70,8 +70,10 @@ class feed implements Interfaces\Api
             $rating = 1; // they can only see safe content
             $quality = 90;
         } elseif (time() - $currentUser->getTimeCreated() <= 3600) {
-            $rating = 1; // they can only see safe content
-            $quality = 75;
+            // No boost for first hour
+            return Factory::response([
+                'boosts' => [],
+            ]);
         }
 
         //
@@ -134,10 +136,10 @@ class feed implements Interfaces\Api
                     }
                 }
 
-                // $ttl = 1800; // 30 minutes
-                // if (($next / 1000) < strtotime('48 hours ago')) {
+                $ttl = 1800; // 30 minutes
+                if (($next / 1000) < strtotime('48 hours ago')) {
                     $ttl = 300; // 5 minutes;
-                // }
+                }
 
                 $cacher->set(Core\Session::getLoggedinUser()->guid . ':boost-offset-rotator', $next, $ttl);
                 break;

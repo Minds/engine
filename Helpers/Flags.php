@@ -11,7 +11,7 @@ class Flags
         $owner = $entity->type == 'user' ? $entity->guid : $entity->owner_guid;
 
         if (
-            Core\Session::isAdmin() ||
+            // Core\Session::isAdmin() ||
             ($currentUser && $currentUser == $owner) ||
             !$entity
         ) {
@@ -54,7 +54,7 @@ class Flags
 
     public static function isDeleted($entity)
     {
-        if (method_exists($entity, 'getDeleted')) {
+        if (MagicAttributes::getterExists($entity, 'getDeleted')) {
             return !!$entity->getDeleted();
         } elseif (method_exists($entity, 'getFlag')) {
             return !!$entity->getFlag('deleted');

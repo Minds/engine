@@ -242,7 +242,9 @@ class Repository
             ->setAppeal(isset($row['appeal_note']) ? true : false)
             ->setAppealNote(isset($row['appeal_note']) ? (string) $row['appeal_note'] : '')
             ->setReports(
+                isset($row['reports']) ?
                 $this->buildReports($row['reports']->values())
+                : null
             )
             ->setInitialJuryDecisions(
                 isset($row['initial_jury']) ?

@@ -81,17 +81,27 @@ class Manager
 
     /**
      * Build session from jwt cookie
-     * @return $this
+     * @param $request
+     * @return Manager
      */
-    public function withRouterRequest($request)
+    public function withRouterRequest($request): Manager
     {
         $cookies = $request->getCookieParams();
         if (!isset($cookies['minds_sess'])) {
             return $this;
         }
 
+        return $this->withString((string) $cookies['minds_sess']);
+    }
+
+    /**
+     * @param string $sessionToken
+     * @return Manager
+     */
+    public function withString(string $sessionToken): Manager
+    {
         try {
-            $token = $this->jwtParser->parse((string) $cookies['minds_sess']); // Collect from cookie
+            $token = $this->jwtParser->parse($sessionToken);
             $token->getHeaders();
             $token->getClaims();
         } catch (\Exception $e) {

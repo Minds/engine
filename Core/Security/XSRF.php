@@ -17,6 +17,10 @@ class XSRF
 
     public static function validateRequest()
     {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            return true; // XSRF only needed for modifiers
+        }
+
         if (!isset($_SERVER['HTTP_X_XSRF_TOKEN'])) {
             return false;
         }

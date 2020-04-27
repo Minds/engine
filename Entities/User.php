@@ -8,13 +8,13 @@ use Minds\Common\ChannelMode;
 
 /**
  * User Entity.
+ *
  * @todo Do not inherit from ElggUser
  */
 class User extends \ElggUser
 {
     public $fullExport = true;
     public $exportCounts = false;
-    public const INDEXING_RATE_LIMIT_SECONDS = 7200;
 
     protected function initializeAttributes()
     {
@@ -60,7 +60,14 @@ class User extends \ElggUser
         $this->attributes['onchain_booster'] = null;
         $this->attributes['toaster_notifications'] = 1;
         $this->attributes['mode'] = ChannelMode::OPEN;
-        $this->attributes['indexed_at'] = null;
+        $this->attributes['email_confirmation_token'] = null;
+        $this->attributes['email_confirmed_at'] = null;
+        $this->attributes['surge_token'] = '';
+        $this->attributes['hide_share_buttons'] = 0;
+        $this->attributes['kite_ref_ts'] = 0;
+        $this->attributes['kite_state'] = 'unknown';
+        $this->attributes['disable_autoplay_videos'] = 0;
+        $this->attributes['dob'] = 0;
 
         parent::initializeAttributes();
     }
@@ -639,6 +646,68 @@ class User extends \ElggUser
     }
 
     /**
+     * @param string $token
+     * @return User
+     */
+    public function setEmailConfirmationToken(string $token): User
+    {
+        $this->email_confirmation_token = $token;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getEmailConfirmationToken(): ?string
+    {
+        return ((string) $this->email_confirmation_token) ?: null;
+    }
+
+    /**
+     * @param int $time
+     * @return User
+     */
+    public function setEmailConfirmedAt(?int $time): User
+    {
+        $this->email_confirmed_at = $time;
+        return $this;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getEmailConfirmedAt(): ?int
+    {
+        return ((int) $this->email_confirmed_at) ?: null;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isEmailConfirmed(): bool
+    {
+        return (bool) $this->email_confirmed_at;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getHideShareButtons(): bool
+    {
+        return (bool) $this->hide_share_buttons;
+    }
+
+    /**
+     * @param bool $value
+     * @return User
+     */
+    public function setHideShareButtons(bool $value): User
+    {
+        $this->hide_share_buttons = $value;
+        return $this;
+    }
+
+    /**
      * Subscribes user to another user.
      *
      * @param mixed $guid
@@ -826,7 +895,7 @@ class User extends \ElggUser
         $export['programs'] = $this->getPrograms();
         $export['plus'] = (bool) $this->isPlus();
         $export['pro'] = (bool) $this->isPro();
-        $export['pro_published'] = (bool) $this->isProPublished();
+        $export['pro_published'] = $this->isPro() && $this->isProPublished();
         $export['verified'] = (bool) $this->verified;
         $export['founder'] = (bool) $this->founder;
         $export['disabled_boost'] = (bool) $this->disabled_boost;
@@ -870,8 +939,15 @@ class User extends \ElggUser
             $export['deleted'] = $this->getDeleted();
         }
 
+        $export['email_confirmed'] =
+            (!$this->getEmailConfirmationToken() && !$this->getEmailConfirmedAt()) || // Old users poly-fill
+            $this->isEmailConfirmed();
+
         $export['eth_wallet'] = $this->getEthWallet() ?: '';
         $export['rating'] = $this->getRating();
+
+        $export['hide_share_buttons'] = $this->getHideShareButtons();
+        $export['disable_autoplay_videos'] = $this->getDisableAutoplayVideos();
 
         return $export;
     }
@@ -1145,7 +1221,6 @@ class User extends \ElggUser
         return array_merge(parent::getExportableValues(), [
             'website',
             'briefdescription',
-            'dob',
             'gender',
             'city',
             'merchant',
@@ -1178,7 +1253,8 @@ class User extends \ElggUser
             'toaster_notifications',
             'mode',
             'btc_address',
-            'indexed_at',
+            'surge_token',
+            'hide_share_buttons',
         ]);
     }
 
@@ -1304,11 +1380,51 @@ class User extends \ElggUser
     }
 
     /**
+     * Returns if video autoplay is disabled
+     *
+     * @return bool true if autoplay videos is enabled
+     */
+    public function getDisableAutoplayVideos()
+    {
+        return (bool) $this->disable_autoplay_videos;
+    }
+
+    /**
+     * Set on/off disable autoplay videos.
+     *
+     * @return User
+     */
+    public function setDisableAutoplayVideos($disabled = false)
+    {
+        $this->disable_autoplay_videos = $disabled ? 1 : 0;
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getDateOfBirth()
+    {
+        return $this->dob;
+    }
+
+    /**
+     * @param string $value
+     * @return $this
+     */
+    public function setDateOfBirth(string $value)
+    {
+        $this->dob = $value;
+        return $this;
+    }
+
+    /**
      * Returns channel mode value.
      *
      * @return int channel mode
      */
-    public function getMode() : int
+    public function getMode()
     {
         return (int) $this->mode;
     }
@@ -1318,7 +1434,7 @@ class User extends \ElggUser
      *
      * @return User
      */
-    public function setMode(int $mode) : User
+    public function setMode(int $mode)
     {
         $this->mode = $mode;
 
@@ -1347,42 +1463,25 @@ class User extends \ElggUser
         return $this;
     }
 
-
     /**
-    * Returns channel mode value.
-    *
-    * @return int channel mode
-    */
-    public function getIndexedAt() : int
-    {
-        return (int) $this->indexed_at;
-    }
-
-
-    /**
-     * Sets the channel mode.
+     * Gets the Surge Token of the user for push notifications.
      *
-     * @return User
+     * @return string Token.
      */
-    public function setIndexedAt(int $indexed_at) : User
+    public function getSurgeToken(): string
     {
-        $this->indexed_at = $indexed_at;
-
-        return $this;
+        return (string) $this->surge_token ?? '';
     }
 
     /**
-     * Checks if a user has been reindexed within the rate limit threshold
-     * @return bool
+     * Sets the Surge Token of the user for push notifications.
+     *
+     * @param string $token - the token string.
+     * @return User instance of $this for chaining.
      */
-    public function canBeIndexed($time = null) : bool
+    public function setSurgeToken(string $token = ''): User
     {
-        $time = $time ?: time();
-        $threshold = $time - User::INDEXING_RATE_LIMIT_SECONDS;
-
-        if ($this->indexed_at && $this->indexed_at > $threshold) {
-            return false;
-        }
-        return true;
+        $this->surge_token = $token;
+        return $this;
     }
 }

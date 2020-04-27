@@ -16,7 +16,7 @@ build:
     - apk add --no-cache git
     - sh tools/setup.sh production
   artifacts:
-    name: '$CI_COMMIT_REF_SLUG'
+    name: "$CI_COMMIT_REF_SLUG"
     paths:
       - vendor
       - bin
@@ -39,7 +39,7 @@ prepare:fpm:
   services:
     - docker:dind
   script:
-    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY} 
+    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - |
       docker build \
         -t $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID \
@@ -48,6 +48,11 @@ prepare:fpm:
         --build-arg SENTRY_DSN=$SENTRY_DSN \
         .
     - docker push $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
+    - >
+      if [ $CI_COMMIT_BRANCH == "master" ]; then 
+        docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:latest &&
+        docker push $CI_REGISTRY_IMAGE/fpm:latest
+      fi
 
 prepare:runners:
   stage: prepare
@@ -64,6 +69,11 @@ prepare:runners:
         --build-arg SENTRY_DSN=$SENTRY_DSN \
         .
     - docker push $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
+    - >
+      if [ $CI_COMMIT_BRANCH == "master" ]; then 
+        docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/runners:latest &&
+        docker push $CI_REGISTRY_IMAGE/runners:latest
+      fi
 
 prepare:all:sentry:
   stage: prepare
@@ -80,29 +90,30 @@ review:start:
   image: minds/helm-eks:latest
   script:
     - aws eks update-kubeconfig --name=sandbox
-    - git clone --branch=sandbox-wip https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/minds/helm-charts.git
+    - git clone --branch=master https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/minds/helm-charts.git
     - echo "Upgrading helm for pipeline ${CI_PIPELINE_ID}"
     - echo "Setting to image ${CI_REGISTRY_IMAGE}"
     - "helm upgrade \
-        --install \
-        --reuse-values \
-        --set phpfpm.image.repository=$CI_REGISTRY_IMAGE/fpm \
-        --set-string phpfpm.image.tag=$CI_PIPELINE_ID \
-        --set runners.image.repository=$CI_REGISTRY_IMAGE/runners \
-        --set-string runners.image.tag=$CI_PIPELINE_ID \
-        --set domain=$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN \
-        --set elasticsearch.clusterName=$CI_BUILD_REF_SLUG-elasticsearch \
-        --wait \
-        $CI_BUILD_REF_SLUG \
-        ./helm-charts/minds"
+      --install \
+      --reuse-values \
+      --set phpfpm.image.repository=$CI_REGISTRY_IMAGE/fpm \
+      --set-string phpfpm.image.tag=$CI_PIPELINE_ID \
+      --set runners.image.repository=$CI_REGISTRY_IMAGE/runners \
+      --set-string runners.image.tag=$CI_PIPELINE_ID \
+      --set domain=$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN \
+      --set elasticsearch.clusterName=$CI_BUILD_REF_SLUG-elasticsearch \
+      --wait \
+      $CI_BUILD_REF_SLUG \
+      ./helm-charts/minds"
     - sentry-cli releases deploys $CI_PIPELINE_ID new -e review-$CI_COMMIT_REF_SLUG
   environment:
     name: review/$CI_COMMIT_REF_NAME
     url: https://$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
     on_stop: review:stop
-  except: 
+  except:
     refs:
       - master
+      - production
       - test/gitlab-ci
 
 review:stop:
@@ -118,9 +129,10 @@ review:stop:
   variables:
     GIT_STRATEGY: none
   when: manual
-  except: 
+  except:
     refs:
       - master
+      - production
       - test/gitlab-ci
 
 qa:manual:
@@ -131,16 +143,20 @@ qa:manual:
   only:
     refs:
       - master
+      - production
       - test/gitlab-ci
   allow_failure: false
 
-staging:fpm:
+################
+# Deploy Stage #
+################
+
+.deploy: &deploy
   stage: deploy:staging
   image: minds/ci:latest
   services:
     - docker:dind
   script:
-    - IMAGE_LABEL="staging"
     - $(aws ecr get-login --no-include-email --region us-east-1)
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - docker pull $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
@@ -151,40 +167,51 @@ staging:fpm:
     - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
     - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
     # Deploy to staging
-    - aws ecs update-service --service=$ECS_APP_STAGING_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
+    - aws ecs update-service --service=$ECS_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
     # Update sentry
     - sentry-cli releases deploys $CI_PIPELINE_ID new -e $IMAGE_LABEL
+
+staging:fpm:
+  <<: *deploy
+  stage: deploy:staging
+  variables:
+    IMAGE_LABEL: "staging"
+    ECS_SERVICE: $ECS_APP_STAGING_SERVICE
   environment:
     name: staging
     url: https://www.minds.com/?staging=1
-  only: 
-    refs:
-      - master
-      - test/gitlab-ci
-
-canary:fpm:
-  stage: deploy:canary
-  image: minds/ci:latest
-  services:
-    - docker:dind
-  script:
-    - IMAGE_LABEL="canary"
-    - $(aws ecr get-login --no-include-email --region us-east-1)
-    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
-    - docker pull $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
-    # Push to AWS registry
-    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $ECR_REPOSITORY_URL_FPM:$IMAGE_LABEL
-    - docker push $ECR_REPOSITORY_URL_FPM:$IMAGE_LABEL
-    # Push to Gitlab registry
-    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
-    - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
-    # Deploy to ECS
-    - aws ecs update-service --service=$ECS_APP_CANARY_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
-    # Update sentry
-    - sentry-cli releases deploys $CI_PIPELINE_ID new -e $IMAGE_LABEL
   only:
     refs:
       - master
+      - production
+      - test/gitlab-ci
+
+review:preprod:
+  <<: *deploy
+  stage: review
+  when: manual
+  allow_failure: true
+  variables:
+    IMAGE_LABEL: "preprod"
+    ECS_SERVICE: $ECS_APP_PREPROD_SERVICE
+  environment:
+    name: preprod
+    url: https://www.minds.com/?preprod=1
+  # except:
+  #   refs:
+  #     - master
+  #     - test/gitlab-ci
+
+canary:fpm:
+  <<: *deploy
+  stage: deploy:canary
+  variables:
+    IMAGE_LABEL: "canary"
+    ECS_SERVICE: $ECS_APP_CANARY_SERVICE
+  only:
+    refs:
+      - master
+      - production
       - test/gitlab-ci
   environment:
     name: canary
@@ -193,28 +220,15 @@ canary:fpm:
   allow_failure: false # prevents auto deploy to full production
 
 production:fpm:
+  <<: *deploy
   stage: deploy:production
-  image: minds/ci:latest
-  services:
-    - docker:dind
-  script:
-    - IMAGE_LABEL="production"
-    - $(aws ecr get-login --no-include-email --region us-east-1)
-    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
-    - docker pull $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
-    # Push to AWS registry
-    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $ECR_REPOSITORY_URL_FPM:$IMAGE_LABEL
-    - docker push $ECR_REPOSITORY_URL_FPM:$IMAGE_LABEL
-    # Push to Gitlab registry
-    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
-    - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
-    # Delpoy to ECS
-    - aws ecs update-service --service=$ECS_APP_PRODUCTION_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
-    # Update sentry
-    - sentry-cli releases deploys $CI_PIPELINE_ID new -e $IMAGE_LABEL
+  variables:
+    IMAGE_LABEL: "production"
+    ECS_SERVICE: $ECS_APP_PRODUCTION_SERVICE
   only:
     refs:
       - master
+      - production
       - test/gitlab-ci
   environment:
     name: production
@@ -242,6 +256,7 @@ production:runners:
   only:
     refs:
       - master
+      - production
       - test/gitlab-ci
   environment:
     name: production

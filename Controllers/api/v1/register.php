@@ -45,9 +45,9 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         try {
-            $captcha = Core\Di\Di::_()->get('Security\ReCaptcha');
-            $captcha->setAnswer($_POST['captcha']);
-            if (isset($_POST['captcha']) && !$captcha->validate()) {
+            $captcha = Core\Di\Di::_()->get('Captcha\Manager');
+            
+            if (isset($_POST['captcha']) && !$captcha->verifyFromClientJson($_POST['captcha'])) {
                 throw new \Exception('Captcha failed');
             }
 
@@ -78,7 +78,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             $hasSignupTags = false;
             if (isset($_COOKIE['mexp'])) {
                 $manager = Core\Di\Di::_()->get('Experiments\Manager');
-                $bucket = $manager->getBucketForExperiment('Homepage200619');
+                $bucket = $manager->getBucketForExperiment('Homepage121119');
                 $user->expHomepage200619 = $bucket->getId();
             }
 

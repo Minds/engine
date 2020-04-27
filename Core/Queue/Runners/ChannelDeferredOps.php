@@ -125,6 +125,6 @@ class ChannelDeferredOps implements Interfaces\QueueRunner
                     default:
                         echo "ERROR! Invalid type {$type} passed\n\n";
                 }
-            });
+            }, [ 'max_messages' => 1 ]);
     }
 }

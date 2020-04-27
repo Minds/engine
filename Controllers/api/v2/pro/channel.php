@@ -34,12 +34,21 @@ class channel implements Interfaces\Api
         $channel->fullExport = true; //get counts
         $channel->exportCounts = true;
 
-        if (!$channel->isPro()) {
+        if (!$channel) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'The channel does not exist'
+            ]);
+        }
+
+        if (!$channel->isPro() && $channel->getGuid() !== $currentUser->getGuid()) {
             return Factory::response([
                 'status' => 'error',
                 'message' => 'E_NOT_PRO'
             ]);
         }
+
+        $currentUser = Session::getLoggedinUser();
 
         /** @var Manager $manager */
         $manager = Di::_()->get('Pro\Manager');

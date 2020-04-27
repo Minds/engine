@@ -10,6 +10,14 @@ namespace Minds\Core\Search\SortingAlgorithms;
 class Chronological implements SortingAlgorithm
 {
     /**
+     * @return bool
+     */
+    public function isTimestampConstrain(): bool
+    {
+        return false; // Old period-based algorithms shouldn't be constrained
+    }
+
+    /**
      * @param string $period
      * @return $this
      */
@@ -41,7 +49,7 @@ class Chronological implements SortingAlgorithm
     public function getSort()
     {
         return [
-            'time_created' => [
+            '@timestamp' => [
                 'order' => 'desc'
             ]
         ];
@@ -54,5 +62,21 @@ class Chronological implements SortingAlgorithm
     public function fetchScore($doc)
     {
         return $doc['_source']['time_created'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getFunctionScores(): ?array
+    {
+        return null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getScoreMode(): string
+    {
+        return "multiply";
     }
 }

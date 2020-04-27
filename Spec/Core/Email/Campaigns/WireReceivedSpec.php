@@ -46,6 +46,7 @@ class WireReceivedSpec extends ObjectBehavior
         $receiver->get('guid')->willReturn($this->receiverGUID);
         $receiver->getEmail()->willReturn($this->receiverEmail);
         $receiver->get('username')->willReturn($this->receiverUsername);
+        $receiver->get('banned')->willReturn(false);
 
         $sender->getGUID()->willReturn($this->senderGUID);
         $sender->get('enabled')->willReturn('yes');

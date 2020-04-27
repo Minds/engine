@@ -6,11 +6,27 @@ use Minds\Entities;
 
 class Video implements AssetsInterface
 {
+    /** @var Entity */
     protected $entity;
 
-    public function setEntity($entity)
+    /** @var bool */
+    protected $doSave = true;
+
+    public function setEntity($entity): self
     {
         $this->entity = $entity;
+        return $this;
+    }
+
+    /**
+     * Disables to save action
+     * @param bool $doSave
+     * @return self
+     */
+    public function setDoSave(bool $doSave): self
+    {
+        $this->doSave = $doSave;
+        return $this;
     }
 
     public function validate(array $media)
@@ -56,6 +72,12 @@ class Video implements AssetsInterface
             $file->open('write');
             $file->write($data);
             $file->close();
+
+            if ($this->doSave) {
+                $this->entity->thumbnail = $filename;
+                $this->entity->last_updated = time();
+                $this->entity->save();
+            }
 
             $assets['thumbnail'] = $filename;
         }

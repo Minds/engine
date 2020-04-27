@@ -7,8 +7,7 @@ use Minds\Cli;
 use Minds\Interfaces;
 use Minds\Exceptions;
 use Minds\Entities;
-use Minds\Core\Channels\Manager;
-use Minds\Core\Di\Di;
+use Minds\Core\Channels\Ban;
 
 class User extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -84,18 +83,62 @@ class User extends Cli\Controller implements Interfaces\CliControllerInterface
         }
     }
 
-    //Updates an user's activities based on their current state
-    public function reindex() : void
+    /**
+     * Ban a user.
+     * Requires username.
+     * Optionally pass in reason
+     * Example call: php ./cli.php User ban --username=testuser123 --reason=1
+     * @return void
+     */
+    public function ban()
+    {
+        if (!$this->getOpt('username')) {
+            throw new Exceptions\CliException('Missing username');
+        }
+        $username = $this->getOpt('username');
+        $ban = new Ban();
+        $user = new Entities\User($this->getOpt('username'));
+        $ban->setUser($user);
+        $this->out("Banning ".$username."...");
+        $ban->ban($this->getOpt('reason') ?? 1);
+        $this->out("Success if there are no errors above. Banned ".$username.".");
+    }
+
+    /**
+     * Unban a user.
+     * Requires username.
+     *
+     * Example call: php ./cli.php User unban --username=testuser123
+     * @return void
+     */
+    public function unban()
+    {
+        if (!$this->getOpt('username')) {
+            throw new Exceptions\CliException('Missing username');
+        }
+        $username = $this->getOpt('username');
+        $ban = new Ban();
+        $user = new Entities\User();
+        $ban->setUser($user);
+        $this->out("Unbanning ".$username);
+        $ban->unban();
+        $this->out("Success if there are no errors above. Unbanned ".$username.".");
+    }
+
+    public function register_complete()
     {
         $username = $this->getOpt('username');
-        $user = new Entities\User($username);
-        if ($user === null || $user->getType() !== 'user') {
-            $this->out("Cannot find user to reindex");
+
+        if (!$username) {
+            throw new Exceptions\CliException('Missing username');
         }
-        $this->out("Reindexing {$username}");
-        /** @var Manager $channelsManager */
-        $channelsManager = Di::_()->get('Channels\Manager');
-        $channelsManager->setUser($user);
-        $channelsManager->updateOwnerObject();
+
+        $user = new Entities\User(strtolower($username));
+
+        if (!$user->guid) {
+            throw new Exceptions\CliException('User does not exist');
+        }
+
+        Core\Events\Dispatcher::trigger('register/complete', 'user', [ 'user' => $user ]);
     }
 }

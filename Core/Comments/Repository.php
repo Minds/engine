@@ -268,6 +268,37 @@ class Repository
     }
 
     /**
+     * Counts the unique comments on an entity (one owner)
+     * @param int $entity_guid
+     * @return int
+     */
+    public function countOwners($entity_guid)
+    {
+        if (!$entity_guid) {
+            return 0;
+        }
+
+        $cql = "SELECT owner_guid FROM comments WHERE entity_guid = ?";
+        $values = [
+            new Varint($entity_guid)
+        ];
+
+        $prepared = new Custom();
+        $prepared->query($cql, $values);
+
+        $result = $this->cql->request($prepared);
+
+        if (!isset($result)) {
+            return 0;
+        }
+        
+        $ownerGuids = array_map(function ($row) {
+            return (string) $row['owner_guid'];
+        }, iterator_to_array($result));
+        return count(array_unique($ownerGuids));
+    }
+
+    /**
      * Counts the comments on a comment
      * @param Comment $comment
      * @return int

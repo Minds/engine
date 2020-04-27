@@ -58,9 +58,7 @@ class upload implements Interfaces\Api
                 $lease->setGuid($guid)
                     ->setMediaType($mediaType);
 
-                $manager
-                    ->setFullHD(Session::getLoggedinUser()->isPro())
-                    ->complete($lease);
+                $manager->complete($lease);
             break;
         }
         return Factory::response([]);

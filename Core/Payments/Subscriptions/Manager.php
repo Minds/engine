@@ -186,4 +186,26 @@ class Manager
 
         return true;
     }
+
+    /**
+     * Cancels all subscriptions to a specific entity guid
+     * @param string $fromGuid
+     * @param string $entityGuid
+     * @return bool
+     */
+    public function cancelSubscriptions($fromGuid, $entityGuid): bool
+    {
+        $subscriptions = $this->repository
+            ->getList([
+                'user_guid' => $fromGuid
+            ]);
+
+        foreach ($subscriptions as $subscription) {
+            if ($subscription->getEntity()->getGuid() === $entityGuid) {
+                $this->repository->delete($subscription);
+            }
+        }
+
+        return true;
+    }
 }

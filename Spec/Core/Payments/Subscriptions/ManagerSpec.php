@@ -284,4 +284,22 @@ class ManagerSpec extends ObjectBehavior
             ->shouldThrow(new \Exception('Invalid recurring value'))
             ->duringGetNextBilling($last_billing, '^}invalid-recurring-value');
     }*/
+
+    public function it_should_cancel_subscriptions()
+    {
+        $subscription = new Subscription();
+        $subscription->setUserGuid("123")
+            ->setEntity((new User())->set("guid", "456"));
+
+        $this->repository->getList([
+            'user_guid' => "123"
+        ])
+            ->shouldBeCalled()
+            ->willReturn([ $subscription ]);
+
+        $this->repository->delete($subscription)
+            ->shouldBeCalled();
+
+        $this->cancelSubscriptions("123", "456");
+    }
 }

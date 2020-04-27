@@ -120,20 +120,15 @@ class Manager
     /**
      * Subscribe to a publisher
      * @param User $publisher
-     * @param bool $force
      * @return Subscription
      */
-    public function subscribe($publisher, bool $force = false): ?Subscription
+    public function subscribe($publisher)
     {
         $subscription = new Subscription();
         $subscription->setSubscriberGuid($this->subscriber->getGuid())
             ->setPublisherGuid($publisher->getGuid());
 
-        if ($publisher->getMode() === 2 && !$force) {
-            throw new RequiresSubscriptionRequestException();
-        }
-
-        if ($this->getSubscriptionsCount() >= static::MAX_SUBSCRIPTIONS) {
+        if ($this->getSubscriptionsCount() >= static::MAX_SUBSCRIPTIONS && $this->sendEvents) {
             $this->sendNotificationDelegate->onMaxSubscriptions($subscription);
             throw new TooManySubscriptionsException();
         }

@@ -127,7 +127,6 @@ $CONFIG->set(
   ]
 );
 
-
 /**
  * Other Elgg Settings
  */
@@ -143,7 +142,7 @@ $CONFIG->__site_secret__ = '{{site-secret}}';
 // $CONFIG->cdn_url = 'http://{{domain}}/';
 $CONFIG->site_url = 'http://{{domain}}/';
 $CONFIG->cdn_url = 'http://{{domain}}/';
-$CONFIG->cdn_assets_url = 'http://{{domain}}/en/';
+$CONFIG->cdn_assets_url = 'http://{{domain}}/';
 $CONFIG->zmq_server = 'localhost';
 $CONFIG->checkout_url = 'http://{{checkout_domain}}/';
 
@@ -472,6 +471,7 @@ $CONFIG->set('max_video_length', 900);
 $CONFIG->set('max_video_length_plus', 1860);
 
 $CONFIG->set('features', [
+    'psr7-router' => true,
     'es-feeds' => false,
     'helpdesk' => true,
     'top-feeds' => true,
@@ -480,6 +480,11 @@ $CONFIG->set('features', [
     'allow-comments-toggle' => false,
     'permissions' => false,
     'pro' => false,
+    'webtorrent' => false,
+    'top-feeds-by-age' => true,
+    'ux-2020' => true,
+    'modal-pager' => true,
+    'wallet-upgrade' => true
 ]);
 
 $CONFIG->set('email', [
@@ -578,11 +583,15 @@ $CONFIG->set('gitlab', [
 
 $CONFIG->set('pro', [
     'handler' => '',
-    'root_domains' => ['minds.com', 'www.minds.com', 'localhost'],
+    'root_domains' => ['minds.com', 'www.minds.com', 'localhost', 'localhost:8080', 'localhost:4200', 'nginx', 'host.docker.internal'],
     'subdomain_suffix' => 'minds.com',
     'dynamodb_table_name' => 'traefik',
 ]);
 
+$CONFIG->set('contact_details', [
+    'name' => 'Minds',
+    'email' => 'info@minds.com',
+]);
 
 $CONFIG->set('upgrades', [
     'pro' => [
@@ -606,3 +615,34 @@ $CONFIG->set('upgrades', [
         ]
     ],
 ]);
+
+$CONFIG->set('email_confirmation', [
+    'signing_key' => '',
+    'expiration' => 172800, // 48 hours
+]);
+
+$CONFIG->set('unleash', [
+    'apiUrl' => '',
+    'instanceId' => '',
+    'applicationName' => '',
+    'pollingIntervalSeconds' => 300,
+    'metricsIntervalSeconds' => 15
+]);
+
+
+$CONFIG->set('captcha', [
+    'jwt_secret' => '{{site-secret}}',
+    'bypass_key' => '{{site-secret}}',
+]);
+
+$CONFIG->set('cypress', [
+    'shared_key' => '{{site-secret}}',
+]);
+
+$CONFIG->set('sendwyre', [
+    'baseUrl' => 'https://pay.sendwyre.com/',
+    'accountId' => '',
+]);
+
+$CONFIG->set('onboarding_modal_timestamp', 0);
+$CONFIG->set('onboarding_v2_timestamp', 0);

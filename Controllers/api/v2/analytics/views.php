@@ -10,7 +10,7 @@ use Minds\Entities;
 use Minds\Helpers\Counters;
 use Minds\Interfaces;
 
-class views implements Interfaces\Api
+class views implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
     public function get($pages)
     {
@@ -36,7 +36,14 @@ class views implements Interfaces\Api
                         'message' => 'Could not find boost'
                     ]);
                 }
-                
+
+                if ($_POST['client_meta']['medium'] === 'boost-rotator' && $_POST['client_meta']['position'] < 0) {
+                    return Factory::response([
+                        'status' => 'error',
+                        'message' => 'Boost rotator position can not be below 0'
+                    ]);
+                }
+
                 $count = $metrics->incrementViews($boost);
 
                 if ($count > $boost->getImpressions()) {

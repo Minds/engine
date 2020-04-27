@@ -305,9 +305,12 @@ class Manager
      * @param int $parent_guid
      * @return int
      */
-    public function count($entity_guid, $parent_guid = null)
+    public function count($entity_guid, $parent_guid = null, $countOwners = false)
     {
         try {
+            if ($countOwners) {
+                return $this->repository->countOwners($entity_guid);
+            }
             $count = $this->repository->count($entity_guid, $parent_guid);
         } catch (\Exception $e) {
             error_log('Comments\Manager::count ' . get_class($e) . ':' . $e->getMessage());

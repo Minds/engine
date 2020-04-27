@@ -53,8 +53,7 @@ class newsfeed implements Interfaces\Api
                 if (!$activity->guid || Helpers\Flags::shouldFail($activity)) {
                     return Factory::response(['status' => 'error']);
                 }
-
-                return Factory::response(['activity' => Factory::export($activity)]);
+                return Factory::response(['activity' => $activity->export()]);
                 break;
             default:
             case 'personal':
@@ -539,6 +538,7 @@ class newsfeed implements Interfaces\Api
                 $activity = new Activity();
 
                 $activity->setMature(isset($_POST['mature']) && !!$_POST['mature']);
+                $activity->setNsfw($_POST['nsfw'] ?? []);
 
                 $user = Core\Session::getLoggedInUser();
 

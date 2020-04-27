@@ -110,6 +110,7 @@ class ElasticsearchDocumentsDelegate implements ArtifactsDelegateInterface
         $query = [
             'index' => $this->config->get('elasticsearch')['index'],
             'body' => $body,
+            'conflicts' => 'proceed'
         ];
 
         $this->elasticsearch->getClient()->updateByQuery($query);

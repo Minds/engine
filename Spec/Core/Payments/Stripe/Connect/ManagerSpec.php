@@ -64,6 +64,14 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(null);
         $account->getPersonalIdNumber()
             ->willReturn(null);
+        $account->getEmail()
+            ->willReturn('test@minds.com');
+        $account->getUrl()
+            ->willReturn('https://minds.com/test');
+        $account->getMetadata()
+            ->willReturn([
+                'user_guid' => '123'
+            ]);
         
         $this->accountInstance->create(Argument::any())
             ->shouldBeCalled()
@@ -99,7 +107,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn((object) [
                 'id' => 'acc_123',
                 'country' => 'GB',
-                'legal_entity' => (object) [
+                'individual' => (object) [
                     'first_name' => 'George',
                     'last_name' => 'Harrison',
                     'gender' => null,
@@ -141,6 +149,7 @@ class ManagerSpec extends ObjectBehavior
                         ],
                     ],
                 ],
+                'metadata' => [],
             ]);
 
         $this->balanceInstance->retrieve([ 'stripe_account' => 'acc_123'])
@@ -179,7 +188,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn((object) [
                 'id' => 'acc_123',
                 'country' => 'GB',
-                'legal_entity' => (object) [
+                'individual' => (object) [
                     'first_name' => 'George',
                     'last_name' => 'Harrison',
                     'gender' => null,
@@ -220,7 +229,8 @@ class ManagerSpec extends ObjectBehavior
                             'monthly_anchor' => 31,
                         ]
                     ]
-                ]
+                ],
+                'metadata' => [],
             ]);
 
         $this->balanceInstance->retrieve([ 'stripe_account' => 'acc_123'])

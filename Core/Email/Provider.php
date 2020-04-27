@@ -38,8 +38,28 @@ class Provider extends DiProvider
             return new EmailStyles();
         }, ['useFactory' => false]);
 
+        $this->di->bind('Email\V2\Common\EmailStyles', function ($di) {
+            return new V2\Common\EmailStyles();
+        }, ['useFactory' => false]);
+
         $this->di->bind('Email\CampaignLogs\Repository', function ($di) {
             return new CampaignLogs\Repository();
+        }, ['useFactory' => true]);
+
+        $this->di->bind('Email\Confirmation', function ($di) {
+            return new Confirmation\Manager();
+        }, ['useFactory' => true]);
+
+        $this->di->bind('Email\Confirmation\Url', function ($di) {
+            return new Confirmation\Url();
+        }, ['useFactory' => true]);
+
+        // SendGrid
+        $this->di->bind('SendGrid\Manager', function ($di) {
+            return new SendGrid\Manager();
+        }, ['useFactory' => true]);
+        $this->di->bind('SendGrid\Webhooks', function ($di) {
+            return new SendGrid\Webhooks();
         }, ['useFactory' => true]);
     }
 }

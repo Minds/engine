@@ -84,9 +84,34 @@ class MagicResize
         return $this;
     }
 
-    public function roundCorners($x, $y)
+    /**
+     * Rounds the corners of an image
+     * NOTE: We can't use Imagick::roundCorners due to https://github.com/Imagick/imagick/issues/213
+     * @param int $x
+     * @param int $y
+     * @return self
+     */
+    public function roundCorners($x, $y): self
     {
-        $this->output->roundCorners($x, $y);
+        $width = $this->output->getImageWidth();
+        $height = $this->output->getImageHeight();
+
+        $mask = new \Imagick();
+        $mask->newImage(
+            $width,
+            $height,
+            new \ImagickPixel('transparent'),
+            'png'
+        );
+
+        $shape = new \ImagickDraw();
+        $shape->setFillColor(new \ImagickPixel('black'));
+        $shape->roundRectangle(0, 0, $width -1, $height -1, $x, $y);
+
+        $mask->drawImage($shape);
+
+        $this->output->setImageMatte(1);
+        $this->output->compositeImage($mask, \Imagick::COMPOSITE_DSTIN, 0, 0);
 
         return $this;
     }

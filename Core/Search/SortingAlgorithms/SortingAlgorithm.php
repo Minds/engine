@@ -9,6 +9,11 @@ namespace Minds\Core\Search\SortingAlgorithms;
 interface SortingAlgorithm
 {
     /**
+     * @return bool
+     */
+    public function isTimestampConstrain(): bool;
+
+    /**
      * @param string $period
      * @return $this
      */
@@ -34,4 +39,14 @@ interface SortingAlgorithm
      * @return int|float
      */
     public function fetchScore($doc);
+
+    /**
+     * @return array
+     */
+    public function getFunctionScores(): ?array;
+
+    /**
+     * @return string
+     */
+    public function getScoreMode(): string;
 }

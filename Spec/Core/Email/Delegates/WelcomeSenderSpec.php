@@ -61,6 +61,7 @@ class WelcomeSenderSpec extends ObjectBehavior
         $user->get('guid')->shouldBeCalled()->willReturn($this->testGUID);
         $user->getEmail()->shouldBeCalled()->willReturn($this->testEmail);
         $user->get('username')->shouldBeCalled()->willReturn($this->testUsername);
+        $user->get('banned')->shouldBeCalled()->willReturn(false);
 
         $this->onboardingManager->setUser($user)->shouldBeCalled();
         $this->onboardingManager->isComplete()->shouldBeCalled()->willReturn(true);
@@ -71,7 +72,7 @@ class WelcomeSenderSpec extends ObjectBehavior
         ->setUserGuid(123)
         ->setCampaign('global')
         ->setTopic('minds_tips')
-        ->setValue('true');
+        ->setValue(true);
 
         $time = time();
 
@@ -93,6 +94,7 @@ class WelcomeSenderSpec extends ObjectBehavior
         $user->get('guid')->shouldBeCalled()->willReturn($this->testGUID);
         $user->getEmail()->shouldBeCalled()->willReturn($this->testEmail);
         $user->get('username')->shouldBeCalled()->willReturn($this->testUsername);
+        $user->get('banned')->shouldBeCalled()->willReturn(false);
 
         $this->onboardingManager->setUser($user)->shouldBeCalled();
         $this->onboardingManager->isComplete()->shouldBeCalled()->willReturn(false);
@@ -103,7 +105,7 @@ class WelcomeSenderSpec extends ObjectBehavior
         ->setUserGuid(123)
         ->setCampaign('global')
         ->setTopic('minds_tips')
-        ->setValue('true');
+        ->setValue(true);
 
         $time = time();
 

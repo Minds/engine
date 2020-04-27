@@ -275,28 +275,26 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_abort_if_spam(Blog $blog)
+    public function it_should_check_for_spam(Blog $blog, Spam $spam)
     {
         $this->beConstructedWith(
             $this->repository,
             $this->paywallReview,
             $this->slug,
             $this->feeds,
-            null,
+            $this->spam,
             $this->search
         );
 
+        $spamUrl = 'movieblog.tumblr.com';
+
         $blog->getType()
-            ->willReturn('object');
+                ->willReturn('object');
 
         $blog->getSubtype()
-            ->willReturn('blog');
+                ->willReturn('blog');
 
-        $blog->getBody()
-            ->shouldBeCalled()
-            ->willReturn('movieblog.tumblr.com');
-
-        $this->shouldThrow(new \Exception('Sorry, you included a reference to a domain name linked to spam. You can not use short urls (eg. bit.ly). Please remove it and try again'))
-            ->duringAdd($blog);
+        $this->spam->check(Argument::any())->shouldBeCalled()->willReturn(true);
+        $this->add($blog);
     }
 }

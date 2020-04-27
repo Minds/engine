@@ -14,6 +14,8 @@ use Zend\Diactoros\ServerRequestFactory;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\Response\SapiEmitter;
+use Minds\Core\Entities\Actions\Save;
+use Sentry;
 
 class token implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
@@ -68,11 +70,21 @@ class token implements Interfaces\Api, Interfaces\ApiIgnorePam
             $tokenId = $request->getAttribute('oauth_access_token_id');
             $accessTokenRepository->revokeAccessToken($tokenId);
             $refreshTokenRepository->revokeRefreshToken($tokenId);
+
+            // remove surge token for push notifications.
+            $user = Session::getLoggedinUser();
+            $user->setSurgeToken('');
+            
+            $save = new Save();
+            $save->setEntity($user)
+              ->save();
+            
             $response = new JsonResponse([]);
         } catch (\Exception $e) {
+            Sentry\captureException($e); // Log to sentry
             $body = [
                 'status' => 'error',
-                'message' => $exception->getMessage(),
+                'message' => $e->getMessage(),
             ];
             $response = new JsonResponse($body, 500);
         }

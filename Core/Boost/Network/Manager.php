@@ -175,6 +175,15 @@ class Manager
             return false;
         }
 
+        // admins can boost
+        if ($boost->getOwner() && $boost->getOwner()->isAdmin()) {
+            return false;
+        }
+
+        if ($boost->getOwner() && $boost->getOwner()->isPro()) {
+            return false;
+        }
+
         //get offchain boosts
         $offchain = $this->getOffchainBoosts($boost);
         

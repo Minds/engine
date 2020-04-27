@@ -40,11 +40,9 @@ class CommentsDelegateSpec extends ObjectBehavior
     }
 
     public function it_should_snapshot(
-        Comment $commentMock
     ) {
         $this->elasticsearch->request(Argument::that(function (PreparedSearch $search) {
             $query = $search->build();
-
 
             return $query['index'] === 'minds-metrics-*';
         }))
@@ -64,14 +62,15 @@ class CommentsDelegateSpec extends ObjectBehavior
 
         $this->commentManager->getByLuid('a0000001')
             ->shouldBeCalled()
-            ->willReturn($commentMock);
+            ->willReturn((new Comment()));
 
         $this->commentManager->getByLuid('a0000002')
             ->shouldBeCalled()
-            ->willReturn($commentMock);
+            ->willReturn((new Comment()));
 
-        $this->repository->add(Argument::that(function (Snapshot $snapshot) use ($commentMock) {
-            return $snapshot->getJsonData() === ['comment' => serialize($commentMock->getWrappedObject())];
+        $this->repository->add(Argument::that(function (Snapshot $snapshot) {
+            $comment = new Comment();
+            return $snapshot->getJsonData() === ['comment' => serialize($comment)];
         }))
             ->shouldBeCalledTimes(2)
             ->willReturn(true);
@@ -82,8 +81,7 @@ class CommentsDelegateSpec extends ObjectBehavior
     }
 
     public function it_should_restore(
-        Snapshot $snapshotMock,
-        Comment $commentMock
+        Snapshot $snapshotMock
     ) {
         $this->repository->getList([
             'user_guid' => 1000,
@@ -97,7 +95,7 @@ class CommentsDelegateSpec extends ObjectBehavior
 
         $snapshotMock->getJsonData()
             ->shouldBeCalledTimes(2)
-            ->willReturn(['comment' => serialize($commentMock->getWrappedObject())]);
+            ->willReturn(['comment' => serialize(new Comment())]);
 
         $this->commentManager->restore(Argument::type(Comment::class))
             ->shouldBeCalledTimes(2)

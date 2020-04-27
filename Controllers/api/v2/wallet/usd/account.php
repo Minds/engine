@@ -8,6 +8,7 @@
 namespace Minds\Controllers\api\v2\wallet\usd;
 
 use Minds\Core;
+use Minds\Core\Config;
 use Minds\Helpers;
 use Minds\Interfaces;
 use Minds\Api\Factory;
@@ -103,11 +104,13 @@ class account implements Interfaces\Api
         Factory::isLoggedIn();
         $response = [];
 
-        $vars = Core\Router::getPutVars();
+        $vars = Core\Router\PrePsr7\Router::getPutVars();
+
+        $user = Core\Session::getLoggedInUser();
 
         $account = (new Payments\Stripe\Connect\Account())
-            ->setUserGuid(Core\Session::getLoggedInUser()->guid)
-            ->setUser(Core\Session::getLoggedInUser())
+            ->setUserGuid($user->guid)
+            ->setUser($user)
             ->setDestination('bank')
             ->setCountry($vars['country'])
             ->setSSN($vars['ssn'] ? str_pad((string) $vars['ssn'], 4, '0', STR_PAD_LEFT) : '')
@@ -121,7 +124,12 @@ class account implements Interfaces\Api
             ->setState($vars['state'])
             ->setPostCode($vars['postCode'])
             ->setPhoneNumber($vars['phoneNumber'])
-            ->setIp($_SERVER['HTTP_X_FORWARDED_FOR']);
+            ->setIp($_SERVER['HTTP_X_FORWARDED_FOR'])
+            ->setEmail($user->getEmail())
+            ->setUrl(Config::_()->get('site_url') . $user->username)
+            ->setMetadata([
+                'user_guid' => $user->guid
+            ]);
 
         try {
             $stripeConnectManager = Core\Di\Di::_()->get('Stripe\Connect\Manager');
