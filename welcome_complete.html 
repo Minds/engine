@@ -1,0 +1,665 @@
+<!-- Credit: Litmus.com -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <title></title>
+    <style>
+      /* RESET STYLES*/
+
+      /* Pad <td> instead of <p> b/c Outlook */
+      #tbody tr td {
+        padding: 10px 0;
+      }
+
+      p, li {
+        margin: 0 !important;
+        font-family: Roboto, Helvetica Neue, Helvetica, Arial, sans-serif !important;
+        font-size:16px;
+        line-height:22px;
+        text-align:left;
+        color: #4f4f50;
+      }
+      img {
+        border: 0;
+        height: auto;
+        line-height: 100%;
+        outline: none;
+        text-decoration: none;
+      }
+      table {
+        border-collapse: collapse !important;
+      }
+      body {
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+      }
+
+
+
+      /* iOS BLUE LINKS */
+      a[x-apple-data-detectors] {
+        color: inherit !important;
+        text-decoration: none !important;
+        font-size: inherit !important;
+        font-family: inherit !important;
+        font-weight: inherit !important;
+        line-height: inherit !important;
+      }
+
+      /* ANDROID CENTER FIX */
+      div[style*='margin: 16px 0;'] {
+        margin: 0 !important;
+      }
+
+      /* CLIENT-SPECIFIC STYLES */
+      body,
+      table,
+      td,
+      a {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      } /* Prevent WebKit and Windows mobile changing default text sizes */
+      table,
+      td {
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+      } /* Remove spacing between tables in Outlook 2007 and up */
+      img {
+        -ms-interpolation-mode: bicubic;
+      } /* Allow smoother rendering of resized image in Internet Explorer */
+
+      /* MOBILE-ONLY STYLES */
+      @media screen and (max-width: 525px) {
+        /* ALLOWS FOR FLUID TABLES */
+        .m-wrapper {
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+
+        /* USE THESE CLASSES TO HIDE CONTENT ON MOBILE */
+        .m-mobileHide {
+          display: none !important;
+        }
+
+        .m-imgMax {
+          max-width: 100% !important;
+          width: 100% !important;
+          height: auto !important;
+        }
+
+        /* FULL-WIDTH TABLES */
+        .m-responsiveTable {
+          width: 90% !important;
+        }
+
+        /* ADJUST BUTTONS ON MOBILE */
+        .m-mobileButtonContainer {
+          margin: 0 auto;
+          width: 100% !important;
+        }
+
+        .m-mobileButton {
+          padding: 15px !important;
+          border: 0 !important;
+          font-size: 18px !important;
+          display: block !important;
+        }
+      }
+    </style>
+  </head>
+  <body style="margin: 0; padding: 0;">
+    <!------------------------------>
+    <!-- HIDDEN PREHEADER TEXT -->
+    <!------------------------------>
+                  <div
+            style="display: none; font-size: 1px; color: #fefefe; line-height: 1px; font-family: Roboto, Helvetica, Arial, sans-serif; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;"
+          >
+            You've received a payment on Minds.          </div>
+        
+
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:100%">
+      <!------------------------------>
+      <!-- HEADER: Start -->
+      <!------------------------------>
+      <thead>
+        <!------------------------------>
+        <!-- LOGO: Start -->
+        <!------------------------------>
+        <tr>
+          <td bgcolor="#ffffff" align="center">
+            <!--[if (gte mso 9)|(IE)]>
+                <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+                <tr>
+                <td align="center" valign="top" width="600">
+                <![endif]-->
+            <table
+              border="0"
+              cellpadding="0"
+              cellspacing="0"
+              width="100%"
+              class="m-wrapper"
+               style="max-width:600px;"  >
+              <tr>
+                <td align="center" valign="top" style="padding: 65px 0 38px 0;">
+                    <a href="http://localhost:8080/?__e_ct_guid=1095036819759697938"  target="_blank">
+                    <img src="http://localhost:8080/assets/logos/logo-email.png" alt="Logo" style="display: block; width: 168px;max-height:80px;" border="0"
+                    />
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+            <!--[if (gte mso 9)|(IE)]>
+                </td>
+                </tr>
+                </table>
+                <![endif]-->
+          </td>
+        </tr>
+        <!------------------------------>
+        <!-- LOGO: End -->
+        <!------------------------------>
+
+                <!------------------------------>
+        <!-- TITLE: Start -->
+        <!------------------------------>
+        <tr>
+          <td bgcolor="#ffffff" align="center">
+            <!--[if (gte mso 9)|(IE)]>
+                <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+                <tr>
+                <td align="center" valign="top" width="600">
+                <![endif]-->
+            <table
+              border="0"
+              cellpadding="0"
+              cellspacing="0"
+              width="100%"
+              class="m-responsiveTable"
+               style="max-width:600px;"  >
+              <tr>
+                <td>
+                  <table
+                    width="100%"
+                    border="0"
+                    cellspacing="0"
+                    cellpadding="0">
+                    <tr>
+                      <td style="padding-bottom: 48px;">
+                        <p
+                           style="font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;;font-size:26px; text-align:center;color: #4f4f50;margin-top: 0;"                         >
+                          Payment received                        </p>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!--[if (gte mso 9)|(IE)]>
+                      </td>
+                      </tr>
+                      </table>
+                      <![endif]-->
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!------------------------------>
+        <!-- TITLE: End -->
+        <!------------------------------>
+        <!------------------------------>
+        <!-- BORDER/SPACER: Start -->
+        <!------------------------------>
+        <tr>
+          <td bgcolor="#ffffff" align="center">
+            <!--[if (gte mso 9)|(IE)]>
+                <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+                <tr>
+                <td align="center" valign="top" width="600">
+                <![endif]-->
+            <table
+              border="0"
+              cellpadding="0"
+              cellspacing="0"
+              width="100%"
+              class="m-responsiveTable"
+               style="max-width:600px;"  >
+              <tr>
+                <td  style="padding: 40px 0;;border-top:1px solid #d4d4d4;"  >
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!------------------------------>
+        <!-- BORDER/SPACER: End -->
+        <!------------------------------>
+              </thead>
+      <!------------------------------>
+      <!-- HEADER: End -->
+      <!------------------------------>
+      <!------------------------------>
+      <!-- BODY: Start -->
+      <!------------------------------>
+        <tbody id="tbody"  style="font-size:16px;line-height:22px;text-align:left;font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;color: #4f4f50;" >
+          <tr>
+            <td bgcolor="#ffffff" align="center">
+              <!--[if (gte mso 9)|(IE)]>
+                  <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+                  <tr>
+                  <td align="center" valign="top" width="600">
+                  <![endif]-->
+              <table
+                border="0"
+                cellpadding="0"
+                cellspacing="0"
+                class="m-responsiveTable"
+                 style="width:80%;max-width:500px" >
+                <!------------------------------>
+                <!-- GREETING: Start -->
+                <!------------------------------>
+                  <tr>
+                    <td>
+                      <p  style="font-size:16px;line-height:22px;text-align:left;font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;color: #4f4f50;"  > Hi @sendmeemails,
+                      </p>
+                    </td>
+                  </tr>
+                <!------------------------------>
+                <!-- GREETING: End -->
+                <!------------------------------>
+                <!------------------------------>
+                <!-- TEMPLATE: Start -->
+                <!------------------------------>
+                  <tr>
+    <td>
+        <p>You received a payment from
+            <a
+                href="http://localhost:8080/minds"
+                 style="text-decoration: underline; color: #1b85d6 !important;" >
+                 @minds</a> as a tip.
+        </p>
+    </td>
+</tr>
+<tr>
+    <td>
+        <p>
+            <div>
+                <div style="display: inline-block;">Transfer date: </div>
+                <div style="display: inline-block;">Tuesday April 14th 2020</div>
+            </div>
+            <div>
+                <div style="display: inline-block;">Amount: </div>
+                <div style="display: inline-block;">1 tokens</div>
+            </div>
+        </p>
+    </td>
+</tr>
+<tr>
+    <td>
+        <p>
+            For any issues, please contact us at
+            <a href="mailto:info@minds.com"  style="text-decoration: underline; color: #1b85d6 !important;" >
+                info@minds.com</a>.
+        </p>
+    </td>
+</tr>
+                <!------------------------------>
+                <!-- TEMPLATE: End -->
+                <!------------------------------>
+                <!------------------------------>
+                <!-- SIGNATURE: Start -->
+                <!------------------------------>
+                  <tr>
+                    <td s style="padding: 22px 0;" ></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p  style="font-size:16px;line-height:22px;text-align:left;font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;color: #4f4f50;;margin: 0 0 4px 0;padding: 0 !important;" >
+                                                  Thank you,                                              </p>
+                      <p  style="font-size:16px;line-height:22px;text-align:left;font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;color: #4f4f50;;color: #7d7d82 !important;;margin: 0 0 4px 0;padding: 0 !important;"  > The Minds Team
+                      </p>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td  style="padding: 40px 0;" >
+                    </td>
+                  </tr>
+                <!------------------------------>
+                <!-- SIGNATURE: End -->
+                <!------------------------------>
+              </table>
+              <!--[if (gte mso 9)|(IE)]>
+                  </td>
+                  </tr>
+                  </table>
+                  <![endif]-->
+              </td>
+            </tr>
+        </tbody>
+      <!------------------------------>
+      <!-- BODY: End -->
+      <!------------------------------>
+      <!------------------------------>
+      <!-- FOOTER: Start -->
+      <!------------------------------>
+      <tfoot>
+        <tr>
+          <td bgcolor="#ffffff" align="center">
+            <!--[if (gte mso 9)|(IE)]>
+                <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+                <tr>
+                <td align="center" valign="top" width="600">
+                <![endif]-->
+            <table
+              border="0"
+              cellpadding="0"
+              cellspacing="0"
+              width="100%"
+               style="max-width:600px;"  class="m-responsiveTable" >
+              <!------------------------------>
+              <!-- BORDER/SPACER: Start -->
+              <!------------------------------>
+              <tr>
+                <td  style="padding: 56px 0;;border-top:1px solid #d4d4d4;"  >
+                </td>
+              </tr>
+              <!------------------------------>
+              <!-- BORDER/SPACER: End -->
+              <!------------------------------>
+              <!------------------------------>
+              <!-- DOWNLOAD APP: Start -->
+              <!------------------------------>
+              <tr>
+                <td>
+                  <table
+                    width="100%"
+                    border="0"
+                    cellspacing="0"
+                    cellpadding="0"
+                  >
+                    <tr>
+                      <td
+                        align="center"
+                        style="
+                          font-weight: bold;
+                          text-align: center;
+                          font-family: Roboto, Helvetica, sans-serif;
+                          color: #4f4f50;
+                          font-size: 22px;
+                        "
+                      >
+                        Download the Minds app today!
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <!------------------------------>
+                        <!-- TWO COLUMNS : DOWNLOAD BUTTONS -->
+                        <!------------------------------>
+                        <tr>
+                          <td>
+                            <table
+                              cellspacing="0"
+                              cellpadding="0"
+                              border="0"
+                              width="100%"
+                            >
+                              <tr>
+                                <td  style="padding: 22px 0;" >
+                                </td>
+                              </tr>
+                              <tr>
+                                <td valign="top">
+                                  <!------------------------------>
+                                  <!-- LEFT COLUMN -->
+                                  <!------------------------------>
+                                  <table
+                                    cellpadding="0"
+                                    cellspacing="0"
+                                    border="0"
+                                    width="47%"
+                                    style="width: 47%;"
+                                    align="left"
+                                  >
+                                    <tr>
+                                      <td>
+                                        <table
+                                          cellpadding="0"
+                                          cellspacing="0"
+                                          border="0"
+                                          width="100%"
+                                        >
+                                          <tr>
+                                            <td align="right">
+                                              <a href="http://localhost:8080//mobile"
+                                                target="_blank"
+                                                style="text-decoration: none;"
+                                              >
+                                                <img
+                                                src="http://localhost:8080/assets/homepage/android.png" style="width: 142px;max-height:44px;" alt="Google Play"
+                                                />
+                                              </a>
+                                            </td>
+                                          </tr>
+                                        </table>
+                                      </td>
+                                    </tr>
+                                  </table>
+
+                                  <!------------------------------>
+                                  <!-- RIGHT COLUMN -->
+                                  <!------------------------------>
+                                  <table
+                                    cellpadding="0"
+                                    cellspacing="0"
+                                    border="0"
+                                    width="47%"
+                                    style="width: 47%;"
+                                    align="right"
+                                  >
+                                    <tr>
+                                      <td>
+                                        <table
+                                          cellpadding="0"
+                                          cellspacing="0"
+                                          border="0"
+                                          width="100%"
+                                        >
+                                          <tr>
+                                            <td align="left">
+                                              <a
+                                                href="https://itunes.apple.com/us/app/minds-com/id961771928?ls=1&mt=8"
+                                                target="_blank"
+                                                style="text-decoration: none;"
+                                              >
+                                                <img
+                                                  src="http://localhost:8080/assets/homepage/app-store.png" style="width: 142px;max-height:44px;"
+                                                  alt="Apple App Store"
+                                                />
+                                              </a>
+                                            </td>
+                                          </tr>
+                                        </table>
+                                      </td>
+                                    </tr>
+                                  </table>
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <tr>
+                <td  style="padding: 56px 0;" >
+                </td>
+              </tr>
+            </table>
+
+            <!--[if (gte mso 9)|(IE)]>
+            </td>
+            </tr>
+            </table>
+            <![endif]-->
+          </td>
+        </tr>
+        <!------------------------------>
+        <!-- DOWNLOAD APP: End -->
+        <!------------------------------>
+        <!------------------------------>
+        <!-- FOOTER LINKS: Start -->
+        <!------------------------------>
+        <tr>
+          <td  style="padding: 22px 0;;border-top:1px solid #d4d4d4;"  >
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#ffffff" align="center">
+            <!--[if (gte mso 9)|(IE)]>
+            <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+            <tr>
+            <td align="center" valign="top" width="600">
+            <![endif]-->
+            <!-- style="width:80%;max-width:500px"  -->
+            <table
+              border="0"
+              cellpadding="0"
+              cellspacing="0"
+              width="100%"
+              style="width:95%;"
+
+              class="m-responsiveTable" >
+              <!------------------------------>
+              <!-- TWO COLUMNS : FOOTER LINKS -->
+              <!------------------------------>
+
+              <tr>
+                <td>
+                  <table
+                    cellspacing="0"
+                    cellpadding="0"
+                    border="0"
+                    width="100%"
+                  >
+                    <tr>
+                      <td valign="top">
+                        <!------------------------------>
+                        <!-- LEFT COLUMN -->
+                        <!------------------------------>
+                        <table
+                          cellpadding="0"
+                          cellspacing="0"
+                          border="0"
+                          width="47%"
+                          style="width: 47%;"
+                          align="left"
+                        >
+                          <tr>
+                            <td>
+                              <table
+                                cellpadding="0"
+                                cellspacing="0"
+                                border="0"
+                                width="100%"
+                              >
+                                <tr>
+                                  <td
+                                    align="left"
+                                    style="
+                                      font-size: 14px;
+                                      font-family: Roboto, Helvetica, sans-serif;
+                                      color: #7d7d82;
+                                    "
+                                  >
+                                    <div style="display: inline-block;">
+                                      Sent to you from
+                                    </div>
+                                    <div style="display: inline-block;">
+                                      Minds Inc
+                                      <span style="white-space: nowrap;"
+                                        >© 2020</span
+                                      >
+                                    </div>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                        </table>
+
+                        <!------------------------------>
+                        <!-- RIGHT COLUMN -->
+                        <!------------------------------>
+                        <table
+                          cellpadding="0"
+                          cellspacing="0"
+                          border="0"
+                          width="47%"
+                          style="width: 47%;"
+                          align="right"
+                        >
+                          <tr>
+                            <td>
+                              <table
+                                cellpadding="0"
+                                cellspacing="0"
+                                border="0"
+                                width="100%"
+                              >
+                                <tr>
+                                  <td align="right">
+                                    <a
+                                      style="
+                                        font-size: 14px;
+                                        color: #1b85d6;
+                                        text-decoration: underline;
+                                        font-family: Roboto, Helvetica,
+                                          sans-serif;
+                                      "
+                                      href="https://www.minds.com/settings/canary/account/email-notifications"
+                                      target="_blank"
+                                      >Manage email settings</a
+                                    >
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 40px 0;"></td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!--[if (gte mso 9)|(IE)]>
+            </td>
+            </tr>
+            </table>
+            <![endif]-->
+          </td>
+        </tr>
+        <!------------------------------>
+        <!-- FOOTER LINKS: Start -->
+        <!------------------------------>
+      </tfoot>
+
+      <!------------------------------>
+      <!-- FOOTER: End -->
+      <!------------------------------>
+    </table>
+  </body>
+</html>

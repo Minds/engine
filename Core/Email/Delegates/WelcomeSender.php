@@ -7,8 +7,8 @@ use Minds\Core\Di\Di;
 use Minds\Core\Suggestions\Manager as SuggestionsManager;
 use Minds\Core\Onboarding\Manager as OnboardingManager;
 use Minds\Interfaces\SenderInterface;
-use Minds\Core\Email\Campaigns\UserRetention\WelcomeComplete;
-use Minds\Core\Email\Campaigns\UserRetention\WelcomeIncomplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
 
 class WelcomeSender implements SenderInterface
 {

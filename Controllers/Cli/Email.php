@@ -6,12 +6,18 @@ use Minds\Core;
 use Minds\Cli;
 use Minds\Interfaces;
 use Minds\Entities\User;
-use Minds\Core\Email\Campaigns\UserRetention\GoneCold;
-use Minds\Core\Email\Campaigns\WhenBoost;
-use Minds\Core\Email\Campaigns\WireReceived;
-use Minds\Core\Email\Campaigns\WirePromotions;
+use Minds\Core\Email\V2\Campaigns\Recurring\BoostComplete\BoostComplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WeMissYou\WeMissYou;
+use Minds\Core\Email\Campaigns\Recurring\WirePromotions;
+use Minds\Core\Email\V2\Delegates\ConfirmationSender;
+use Minds\Core\Reports;
+use Minds\Core\Blockchain\Purchase\Delegates\IssuedTokenEmail;
+use Minds\Core\Blockchain\Purchase\Delegates\NewPurchaseEmail;
+use Minds\Core\Blockchain\Purchase\Purchase;
+
 use Minds\Core\Suggestions\Manager;
 use Minds\Core\Analytics\Timestamps;
 use Minds\Core\Di\Di;
@@ -28,11 +34,11 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             case 'exec':
                 $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/exec.txt'));
                 break;
-            case 'testWhenBoost':
-                $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testWhenBoost.txt'));
+            case 'testBoostComplete':
+                $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testBoostComplete.txt'));
                 break;
-            case 'testGoneCold':
-                $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testGoneCold.txt'));
+            case 'testWeMissYou':
+                $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testWeMissYou.txt'));
                 break;
             case 'testWelcomeComplete':
                 $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testWelcomeComplete.txt'));
@@ -42,6 +48,9 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
                 break;
             case 'testWireReceived':
                 $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testWireReceived.txt'));
+                break;
+            case 'testWirePromotion':
+                $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testWirePromotion.txt'));
                 break;
             default:
                 $this->out('Utilities for testing emails and sending them manually');
@@ -122,7 +131,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             ->run();
     }
 
-    public function testGoneCold()
+    public function testWeMissYou()
     {
         $userguid = $this->getOpt('guid');
         $output = $this->getOpt('output');
@@ -138,20 +147,37 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $manager->setUser($user);
         $suggestions = $manager->getList();
 
-        $campaign = (new GoneCold())
+        $campaign = (new WeMissYou())
             ->setUser($user)
             ->setSuggestions($suggestions);
 
         $message = $campaign->build();
 
         if ($send) {
-            $campaign->send();
+            Core\Events\Dispatcher::trigger('user_state_change', 'cold', [ 'user_guid' => $userguid ]);
         }
 
         if ($output) {
             file_put_contents($output, $message->buildHtml());
         } else {
             $this->out($message->buildHtml());
+        }
+    }
+
+    public function testWelcomeSender()
+    {
+        $userguid = $this->getOpt('guid');
+        $output = $this->getOpt('output');
+        $send = $this->getOpt('send');
+        $user = new User($userguid);
+
+        if (!$user->guid) {
+            $this->out('User not found');
+            exit;
+        }
+    
+        if ($send) {
+            Core\Events\Dispatcher::trigger('welcome_email', 'all', [ 'user_guid' => $userguid ]);
         }
     }
 
@@ -202,7 +228,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             exit;
         }
 
-        $campaign = (new WirePromotions())
+        $campaign = (new WirePromotion())
             ->setUser($user);
 
         $message = $campaign->build();
@@ -261,7 +287,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             exit;
         }
 
-        if (!timestamp) {
+        if (!$timestamp) {
             $this->out('--timestamp=timestamp required');
             exit;
         }
@@ -297,7 +323,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         }
     }
 
-    public function testWhenBoost()
+    public function testBoostComplete()
     {
         $output = $this->getOpt('output');
         $entityGuid = $this->getOpt('guid');
@@ -323,7 +349,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             exit;
         }
 
-        $campaign = (new WhenBoost())
+        $campaign = (new BoostComplete())
             ->setUser($boost->getOwner())
             ->setBoost($boost->export());
 
@@ -338,6 +364,96 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         } else {
             $this->out($message->buildHtml());
         }
+    }
+
+    public function testConfirmationEmail()
+    {
+        $userGuid = $this->getOpt('guid');
+        // $output = $this->getOpt('output');
+        // $send = $this->getOpt('send');
+
+        $user = new User($userGuid);
+        $sender = new ConfirmationSender();
+        $sender->send($user);
+
+        $this->out('sent');
+    }
+
+    public function testModerationBanned()
+    {
+        $entityUrn = $this->getOpt('entityUrn');
+
+        if (!$entityUrn) {
+            return $this->out('entityUrn must be supplied');
+        }
+
+        $userGuid = $this->getOpt('guid');
+        $user = new User($userGuid);
+
+        if (!$userGuid) {
+            return $this->out('userGuid must be supplied');
+        }
+
+        // Use 8 for strike
+        $reasonCode = $this->getOpt('reasonCode');
+
+        $banDelegate = new Reports\Verdict\Delegates\EmailDelegate();
+        $report = new Reports\Report();
+        $report->setEntityUrn($entityUrn);
+        $report->setReasonCode($reasonCode);
+
+        $banDelegate->onBan($report);
+    }
+
+    public function testModerationStrike()
+    {
+        $entityUrn = $this->getOpt('entityUrn');
+
+        if (!$entityUrn) {
+            return $this->out('entityUrn must be supplied');
+        }
+
+        $userGuid = $this->getOpt('guid');
+        $user = new User($userGuid);
+
+        if (!$userGuid) {
+            return $this->out('userGuid must be supplied');
+        }
+
+        // Use 8 for strike
+        $reasonCode = $this->getOpt('reasonCode');
+
+        $strikeDelegate = new Reports\Strikes\Delegates\EmailDelegate();
+        
+        $report = new Reports\Report();
+        $report->setEntityUrn($entityUrn);
+        $report->setReasonCode($reasonCode);
+        $strike = new Reports\Strikes\Strike();
+        $strike->setReport($report);
+
+        $strikeDelegate->onStrike($strike);
+    }
+
+    public function testTokenPurchase()
+    {
+        $issued = $this->getOpt('issued');
+        $amount = $this->getOpt('amount') ?: 10 ** 18;
+       
+
+        $userGuid = $this->getOpt('userGuid');
+        $user = new User($userGuid);
+
+        $purchase = new Purchase();
+        $purchase->setUserGuid($userGuid)
+            ->setRequestedAmount($amount);
+
+        if ($issued) {
+            $delegate = new IssuedTokenEmail();
+        } else {
+            $delegate = new NewPurchaseEmail();
+        }
+
+        $delegate->send($purchase);
     }
 
     public function sync_sendgrid_lists(): void

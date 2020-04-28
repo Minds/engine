@@ -8,7 +8,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Reports\Report;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Common\Urn;
-use Minds\Core\Email\Campaigns\Custom;
+use Minds\Core\Email\V2\Campaigns\Custom\Custom;
 
 class EmailDelegate
 {
@@ -45,7 +45,7 @@ class EmailDelegate
             $type = $entity->subtype;
         }
 
-        $template = 'moderation-banned.md';
+        $template = 'moderation-banned';
 
         $action = 'removed';
         switch ($report->getReasonCode()) {
@@ -54,13 +54,17 @@ class EmailDelegate
                 break;
             case 4:
             case 8:
-                $template = 'moderation-3-strikes.md';
+                $template = 'moderation-3-strikes';
                 break;
         }
 
+        $subject = 'Account banned';
+
         $this->campaign->setUser($owner);
         $this->campaign->setTemplate($template);
-        $this->campaign->setSubject('You have been banned');
+        $this->campaign->setSubject($subject);
+        $this->campaign->setTitle($title);
+        $this->campaign->setPreheader('You have been banned');
         $this->campaign->setVars([
             'type' => $type,
             'action' => $action,
