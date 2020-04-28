@@ -12,9 +12,13 @@ use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
 
 class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+    /** @var ActionButton */
+    protected $actionButton;
+
     /**
      * NOT AVAILABLE
      */
@@ -24,7 +28,7 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
     }
 
     /**
-     * Resets a a frogotten password
+     * Resets a forgotten password
      * @param array $pages
      *
      * @SWG\Post(
@@ -52,21 +56,31 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
           $code = Core\Security\Password::reset($user);
           $link = elgg_get_site_url() . "forgot-password;username=" . $user->username . ";code=" . $code;
 
+          //prepare the action button
+
+        $actionButton = (new ActionButton())
+            ->setPath($link)
+            ->setLabel('Reset Password');
+
           //now send an email
+          $subject = 'Password reset';
           $mailer = Di::_()->get('Mailer');
-          $message = new Core\Email\Message();
-          $template = new Core\Email\Template();
+          $message = new Core\Email\V2\Common\Message();
+          $template = new Core\Email\V2\Common\Template();
           $template
-            ->setTemplate()
-            ->setBody('forgotpassword.tpl')
+            ->setTemplate('default.tpl')
+            ->setBody(dirname(dirname(dirname(dirname(__FILE__)))) . '/Core/Email/V2/Campaigns/Recurring/ForgotPassword/template.tpl')
             ->set('user', $user)
             ->set('username', $user->username)
-            ->set('link', $link);
+            ->set('link', $link)
+            ->set('signoff', 'Thank you,')
+            ->set('preheader', 'Reset your password by clicking this link.')
+            ->set('title', $subject)
+            ->set('actionButton', $actionButton->build());
           $message->setTo($user)
-            ->setSubject("Password Reset")
+            ->setSubject($subject)
             ->setHtml($template);
           $mailer->queue($message, true);
-
           break;
         case "reset":
           $user = new Entities\User(strtolower($_POST['username']));

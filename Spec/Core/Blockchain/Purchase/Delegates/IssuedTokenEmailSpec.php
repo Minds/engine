@@ -7,7 +7,7 @@ use Minds\Core\Blockchain\Purchase\Purchase;
 use Minds\Core\Config;
 use Minds\Core\Data\lookup;
 use Minds\Core\Di\Di;
-use Minds\Core\Email\Campaigns\Custom;
+use Minds\Core\Email\V2\Campaigns\Custom\Custom;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -37,20 +37,29 @@ class IssuedTokenEmailSpec extends ObjectBehavior
         $campaign->setUser(Argument::type('Minds\Entities\User'))
             ->shouldBeCalled()
             ->willReturn($campaign);
-        $campaign->setSubject('Your purchase of 10 Tokens has now been issued.')
+        $campaign->setSubject('Thank you for your purchase')
             ->shouldBeCalled()
             ->willReturn($campaign);
-        $campaign->setTemplate('issued-token-purchase.md')
+        $campaign->setTemplate('token-purchase-issued')
             ->shouldBeCalled()
             ->willReturn($campaign);
         $campaign->setTopic('billing')
+            ->shouldBeCalled()
+            ->willReturn($campaign);
+        $campaign->setTitle('Thank you for your purchase')
+            ->shouldBeCalled()
+            ->willReturn($campaign);
+        $campaign->setSignoff('Thank you,')
+            ->shouldBeCalled()
+            ->willReturn($campaign);
+        $campaign->setPreheader('Your purchase of 10 Tokens has now been issued.')
             ->shouldBeCalled()
             ->willReturn($campaign);
         $campaign->setCampaign('tokens')
             ->shouldBeCalled()
             ->willReturn($campaign);
         $campaign->setVars([
-            'date' => date('d-M-Y', time()),
+            'date' => date('l F jS Y', time()),
             'amount' => 10
         ])
             ->shouldBeCalled()
