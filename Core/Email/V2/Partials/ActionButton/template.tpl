@@ -21,7 +21,7 @@
                 style="border-radius: 27px; padding: 0;"
                 bgcolor="#5DBAC0"
               >
-                <a href="<?php echo "{$vars['site_url']}{$vars['path']}"?>"
+                <a href="<?php echo "{$vars['href']}"?>"
                   target="_blank"
                   style="font-size: 20px; font-family: Roboto, Helvetica Neue, Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 27px; padding: 15px 25px; border: 1px solid #5DBAC0; display: inline-block;"
                   class="m-mobileButton"
