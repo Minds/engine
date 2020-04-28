@@ -23,7 +23,16 @@ class ActionButton extends Template
     {
         $this->loadFromFile = false;
         $this->setTemplate('./template.tpl');
-        $this->set('path', $this->path);
+
+        $siteUrl = $this->data['site_url'];
+
+        if (strpos($this->path, 'http', 0) === 0) {
+            $href = $this->path;
+        } else {
+            $href = $siteUrl . $this->path;
+        }
+
+        $this->set('href', $href);
         $this->set('label', $this->label);
 
         return $this->render();
