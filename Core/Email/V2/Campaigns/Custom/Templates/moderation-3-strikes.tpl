@@ -1,7 +1,7 @@
 <tr>
     <td>
         <p>
-            Unfortunately, your channel has been banned for receiving three strikes for posting terrorism propaganda.
+            Unfortunately, your channel has been banned for receiving three strikes aginst our Content Policy.
         </p>
     </td>
 </tr>

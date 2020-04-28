@@ -68,8 +68,8 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
           $message = new Core\Email\V2\Common\Message();
           $template = new Core\Email\V2\Common\Template();
           $template
-            ->setTemplate()
-            ->setBody('../Core/Emails/V2/Campaigns/Recurring/ForgotPassword/template.tpl')
+            ->setTemplate('default.tpl')
+            ->setBody(dirname(dirname(dirname(dirname(__FILE__)))) . '/Core/Email/V2/Campaigns/Recurring/ForgotPassword/template.tpl')
             ->set('user', $user)
             ->set('username', $user->username)
             ->set('link', $link)
