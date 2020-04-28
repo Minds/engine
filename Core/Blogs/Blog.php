@@ -616,7 +616,9 @@ class Blog extends RepositoryEntity
         $output = [];
 
         // Sanitize body
-        $output['body'] = (new XSS())->clean($export['body']);
+        $output['body'] = (new XSS())
+            ->setAllowed(['<pre>', '<code>', '<figure>', '<figcaption>', '<table>', '<tbody>', '<tr>', '<td>'])
+            ->clean($export['body']);
 
         // Legacy
         $output['ownerObj'] = $this->getOwnerObj();
