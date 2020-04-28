@@ -1,14 +1,14 @@
 <?php
 
-namespace Minds\Core\Email\Delegates;
+namespace Minds\Core\Email\V2\Delegates;
 
 use Minds\Entities\User;
 use Minds\Core\Di\Di;
 use Minds\Core\Suggestions\Manager as SuggestionsManager;
 use Minds\Core\Onboarding\Manager as OnboardingManager;
 use Minds\Interfaces\SenderInterface;
-use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete;
-use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
 
 class WelcomeSender implements SenderInterface
 {
