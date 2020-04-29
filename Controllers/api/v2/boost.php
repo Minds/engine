@@ -290,14 +290,14 @@ class boost implements Interfaces\Api
                         ->setType(lcfirst($pages[0]))
                         ->setPriority(false);
 
-                    if (!$boost->isOnChain() && $manager->checkExisting($boost)) {
+                    if ($manager->checkExisting($boost)) {
                         return Factory::response([
                             'status' => 'error',
                             'message' => "There's already an ongoing boost for this entity"
                         ]);
                     }
                   
-                    if ($manager->isBoostLimitExceededBy($boost)) {
+                    if ($state !== 'pending' && $manager->isBoostLimitExceededBy($boost)) {
                         $maxDaily = Di::_()->get('Config')->get('max_daily_boost_views') / 1000;
                         return Factory::response([
                             'status' => 'error',
