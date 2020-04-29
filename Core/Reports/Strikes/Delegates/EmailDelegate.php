@@ -8,7 +8,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Reports\Strikes\Strike;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Common\Urn;
-use Minds\Core\Email\Campaigns\Custom;
+use Minds\Core\Email\V2\Campaigns\Custom\Custom;
 
 class EmailDelegate
 {
@@ -52,9 +52,14 @@ class EmailDelegate
                 break;
         }
 
+        $subject = 'Strike received';
+
         $this->campaign->setUser($owner);
-        $this->campaign->setTemplate('moderation-strike.md');
-        $this->campaign->setSubject('You have received a strike');
+        $this->campaign->setTemplate('moderation-strike');
+        $this->campaign->setSubject($subject);
+        $this->campaign->setTitle($subject);
+        $this->campaign->setPreheader('You have received a strike');
+
         $this->campaign->setVars([
             'type' => $type,
             'action' => $action,
