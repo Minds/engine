@@ -130,6 +130,7 @@ class Boost
 
     /**
      * Return if the boost is an onchain boost
+     * Do not rely on this function if the TXID is not set.
      * @return boolean
      */
     public function isOnChain()
