@@ -52,10 +52,22 @@ class TheChecker
                 ],
             ]);
         } catch (\Exception $e) {
+            error_log('TheChecker | Error communicating with provider.');
             return true; // If provider errors out then verify
         }
 
         $response = json_decode($content, true);
+
+
+        if ($response['result'] !== 'deliverable') {
+            error_log(
+                'TheChecker | not-deliverable'
+                .', result: '.$response['result']
+                .', for email: '.$response['email']
+                .', with reason: '.$response['reason']
+            );
+        }
+
         return !($response['result'] == 'undeliverable');
     }
 
