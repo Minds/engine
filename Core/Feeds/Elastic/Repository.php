@@ -270,9 +270,9 @@ class Repository
         }
 
         if (isset($opts['pending']) && !$opts['pending']) {
-            $body['query']['function_score']['query']['bool']['must'][] = [
+            $body['query']['function_score']['query']['bool']['must_not'][] = [
                 'term' => [
-                    'pending' => false,
+                    'pending' => true,
                 ]
             ];
         }
