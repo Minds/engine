@@ -19,6 +19,7 @@ class ActivityMapping extends EntityMapping implements MappingInterface
             'rating' => [ 'type' => 'integer', '$exportField' => 'rating' ],
             'custom_type' => [ 'type' => 'text', '$exportField' => 'custom_type' ],
             'entity_guid' => [ 'type' => 'text', '$exportField' => 'entity_guid' ],
+            'pending' =>  [ 'type' => 'boolean', '$exportField' => 'pending' ],
             'license' => [ 'type' => 'text', '$exportField' => 'license' ],
         ]);
     }

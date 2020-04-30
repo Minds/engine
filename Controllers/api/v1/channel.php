@@ -72,8 +72,22 @@ class channel implements Interfaces\Api
         $response['channel']['gender'] = $response['channel']['gender'] ?: "";
 
         // if we are querying for our own user
-        if (Core\Session::getLoggedinUser()->guid === $user->guid) {
+        if (
+            $user->getDateOfBirth() &&
+            (
+                Core\Session::isAdmin() ||
+                ((string) Core\Session::getLoggedinUser()->guid === (string) $user->guid) ||
+                (Core\Session::isLoggedin() && $user->isPublicDateOfBirth())
+            )
+        ) {
             $response['channel']['dob'] = $user->getDateOfBirth();
+        }
+
+        if (
+            Core\Session::isAdmin() ||
+            ((string) Core\Session::getLoggedinUser()->guid === (string) $user->guid)
+        ) {
+            $response['channel']['public_dob'] = $user->isPublicDateOfBirth();
         }
 
         if (!$user->merchant || !$supporters_count) {
@@ -250,13 +264,20 @@ class channel implements Interfaces\Api
                     $owner->setDateOfBirth($_POST['dob']);
                 }
 
+                if (isset($_POST['public_dob'])) {
+                    $publicDob = (bool) $_POST['public_dob'];
+
+                    $update['public_dob'] = $publicDob;
+                    $owner->setPublicDateOfBirth($publicDob);
+                }
+
                 if (isset($_POST['nsfw']) && is_array($_POST['nsfw'])) {
                     $nsfw = array_unique(array_merge($_POST['nsfw'], $owner->getNsfwLock()));
                     $update['nsfw'] = json_encode($nsfw);
                     $owner->setNsfw($nsfw);
                 }
 
-                if (isset($_POST['tags']) && $_POST['tags']) {
+                if (isset($_POST['tags']) && is_array($_POST['tags'])) {
                     $update['tags'] = json_encode($_POST['tags']);
                     $owner->$field = $update['tags'];
                 }

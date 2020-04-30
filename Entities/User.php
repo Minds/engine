@@ -68,6 +68,8 @@ class User extends \ElggUser
         $this->attributes['kite_state'] = 'unknown';
         $this->attributes['disable_autoplay_videos'] = 0;
         $this->attributes['dob'] = 0;
+        $this->attributes['public_dob'] = 0;
+        $this->attributes['dismissed_widgets'] = [];
 
         parent::initializeAttributes();
     }
@@ -948,6 +950,7 @@ class User extends \ElggUser
 
         $export['hide_share_buttons'] = $this->getHideShareButtons();
         $export['disable_autoplay_videos'] = $this->getDisableAutoplayVideos();
+        $export['dismissed_widgets'] = $this->getDismissedWidgets();
 
         return $export;
     }
@@ -1255,6 +1258,7 @@ class User extends \ElggUser
             'btc_address',
             'surge_token',
             'hide_share_buttons',
+            'dismissed_widgets'
         ]);
     }
 
@@ -1402,7 +1406,7 @@ class User extends \ElggUser
     }
 
     /**
-     * @return bool
+     * @return string
      */
     public function getDateOfBirth()
     {
@@ -1416,6 +1420,26 @@ class User extends \ElggUser
     public function setDateOfBirth(string $value)
     {
         $this->dob = $value;
+        return $this;
+    }
+
+    /**
+     * Sets the public date of birth flag
+     * @return bool
+     */
+    public function isPublicDateOfBirth(): bool
+    {
+        return (bool) $this->public_dob;
+    }
+
+    /**
+     * Sets the public date of birth flag
+     * @param bool $public_dob
+     * @return $this
+     */
+    public function setPublicDateOfBirth(bool $public_dob): User
+    {
+        $this->public_dob = $public_dob;
         return $this;
     }
 
@@ -1482,6 +1506,26 @@ class User extends \ElggUser
     public function setSurgeToken(string $token = ''): User
     {
         $this->surge_token = $token;
+        return $this;
+    }
+
+    /**
+     * Return an array of dismissed widgets
+     * @return array
+     */
+    public function getDismissedWidgets(): ?array
+    {
+        return $this->dismissed_widgets;
+    }
+
+    /**
+     * Set dismissed widgets
+     * @param array $dimissedWidgets
+     * @return self
+     */
+    public function setDismissedWidgets(array $dismissedWidgets = []): self
+    {
+        $this->dismissed_widgets = $dismissedWidgets;
         return $this;
     }
 }
