@@ -96,7 +96,7 @@ class RepositorySpec extends ObjectBehavior
             'type' => 'user',
             'algorithm' => 'top',
             'period' => '1y',
-            'query' => 'test'
+            'query' => 'test',
         ];
 
         $this->client->request(Argument::that(function ($query) {

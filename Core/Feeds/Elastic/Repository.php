@@ -73,6 +73,7 @@ class Repository
             'pinned_guids' => null,
             'future' => false,
             'exclude' => null,
+            'pending' => false,
         ], $opts);
 
         if (!$opts['type']) {
@@ -264,6 +265,14 @@ class Repository
                     'access_id' => [
                         'gt' => 2,
                     ]
+                ]
+            ];
+        }
+
+        if ($opts['pending'] === false) {
+            $body['query']['function_score']['query']['bool']['must_not'][] = [
+                'term' => [
+                    'pending' => true,
                 ]
             ];
         }

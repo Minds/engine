@@ -187,6 +187,15 @@ class blog implements Interfaces\Api
             }
         }
 
+        $captcha = Core\Di\Di::_()->get('Captcha\Manager');
+
+        if (!$captcha->verifyFromClientJson($_POST['captcha'] ?? '')) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Please ensure that the captcha you entered is correct',
+            ]);
+        }
+
         if (isset($_POST['title'])) {
             $blog->setTitle($_POST['title']);
         }

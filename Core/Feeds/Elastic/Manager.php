@@ -97,6 +97,7 @@ class Manager
             'pinned_guids' => null,
             'as_activities' => false,
             'exclude' => null,
+            'pending' => false,
         ], $opts);
 
         if (isset($opts['query']) && $opts['query']) {
