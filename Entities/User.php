@@ -68,6 +68,7 @@ class User extends \ElggUser
         $this->attributes['kite_state'] = 'unknown';
         $this->attributes['disable_autoplay_videos'] = 0;
         $this->attributes['dob'] = 0;
+        $this->attributes['public_dob'] = 0;
         $this->attributes['dismissed_widgets'] = [];
 
         parent::initializeAttributes();
@@ -1405,7 +1406,7 @@ class User extends \ElggUser
     }
 
     /**
-     * @return bool
+     * @return string
      */
     public function getDateOfBirth()
     {
@@ -1419,6 +1420,26 @@ class User extends \ElggUser
     public function setDateOfBirth(string $value)
     {
         $this->dob = $value;
+        return $this;
+    }
+
+    /**
+     * Sets the public date of birth flag
+     * @return bool
+     */
+    public function isPublicDateOfBirth(): bool
+    {
+        return (bool) $this->public_dob;
+    }
+
+    /**
+     * Sets the public date of birth flag
+     * @param bool $public_dob
+     * @return $this
+     */
+    public function setPublicDateOfBirth(bool $public_dob): User
+    {
+        $this->public_dob = $public_dob;
         return $this;
     }
 
