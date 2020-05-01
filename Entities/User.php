@@ -89,7 +89,8 @@ class User extends \ElggUser
     }
 
     /**
-     * Sets `tags`.
+     * Sets all `tags` - to set an individual tag
+     * use addHashtag or removeHashtag.
      *
      * @return array
      */
@@ -97,6 +98,34 @@ class User extends \ElggUser
     {
         $this->tags = $tags;
 
+        return $this;
+    }
+
+    /**
+     * Adds a hashtag to the tags array.
+     * @param string $hashtag - string of the hashtag e.g. #OpenSource.
+     * @return User allows chaining.
+     */
+    public function addHashtag(string $hashtag): User
+    {
+        $this->setHashtags(
+            array_merge($this->getHashtags(), [$hashtag])
+        );
+        return $this;
+    }
+
+    /**
+     * Removes a hashtag to the tags array by string content.
+     * @param string $hashtag - string of the hashtag e.g. #OpenSource.f
+     * @return User allows chaining.
+     */
+    public function removeHashtag($hashtag): User
+    {
+        $this->setHashtags(
+            array_values(
+                array_diff($this->getHashtags(), [$hashtag])
+            )
+        );
         return $this;
     }
 
