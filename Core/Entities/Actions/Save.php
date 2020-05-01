@@ -41,7 +41,7 @@ class Save
      *
      * @return Save
      */
-    public function setEntity($entity)
+    public function setEntity($entity): Save
     {
         $this->entity = $entity;
 
@@ -64,7 +64,7 @@ class Save
         }
 
         $this->beforeSave();
-        
+
         if (method_exists($this->entity, 'save')) {
             return $this->entity->save(...$args);
         }

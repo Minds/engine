@@ -78,7 +78,7 @@ class Manager
         $activity->setEdited(true);
 
         $activity->indexes = ["activity:$activity->owner_guid:edits"]; //don't re-index on edit
-        
+
         $this->translationsDelegate->onUpdate($activity);
 
         if ($activityMutation->hasMutated('timeCreated')) {
@@ -114,5 +114,28 @@ class Manager
             ->save();
 
         $this->propagateProperties->from($activity);
+    }
+
+    /**
+     * @param \ElggEntity $entity
+     * @return Activity
+     */
+    public function createFromEntity($entity): Activity
+    {
+        $activity = new Activity();
+        $activity->setTimeCreated($entity->getTimeCreated() ?: time());
+        $activity->setTimeSent($entity->getTimeCreated() ?: time());
+        $activity->setTitle($entity->title);
+        $activity->setMessage($entity->description);
+        $activity->setFromEntity($entity);
+        $activity->owner_guid = $entity->owner_guid;
+        $activity->container_guid = $entity->container_guid;
+        $activity->access_id = $entity->access_id;
+
+        if ($entity->type === 'object' && in_array($entity->subtype, ['image', 'video'], true)) {
+            $activity->setCustom(...$entity->getActivityParameters());
+        }
+
+        return $activity;
     }
 }
