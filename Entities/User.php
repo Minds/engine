@@ -69,7 +69,6 @@ class User extends \ElggUser
         $this->attributes['disable_autoplay_videos'] = 0;
         $this->attributes['dob'] = 0;
         $this->attributes['yt_channels'] = [];
-        $this->attributes['auto_import_yt_videos'] = false;
         $this->attributes['public_dob'] = 0;
         $this->attributes['dismissed_widgets'] = [];
 
@@ -1535,27 +1534,6 @@ class User extends \ElggUser
         if (!$updated) {
             array_push($this->attributes['yt_channels'], $channel);
         }
-    }
-
-    /**
-     * Returns if the user's YouTube videos should be auto-imported
-     * @return bool
-     */
-    public function getAutoImportYouTubeVideos()
-    {
-        return (bool) $this->attributes['auto_import_yt_videos'] ?? false;
-    }
-
-    /**
-     * Sets if the user's YouTube videos should be auto-imported
-     * @param bool $value
-     * @return $this
-     */
-    public function setAutoImportYouTubeVideos(bool $value)
-    {
-        $this->attributes['auto_import_yt_videos'] = $value;
-
-        return $this;
     }
 
     /**

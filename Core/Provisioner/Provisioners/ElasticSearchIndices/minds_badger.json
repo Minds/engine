@@ -530,6 +530,15 @@
         },
         "votes:up:12h:synced": {
           "type": "long"
+        },
+        "youtube_id": {
+          "type": "keyword"
+        },
+        "youtube_channel_id": {
+          "type": "keyword"
+        },
+        "transcoding_status": {
+          "type": "keyword"
         }
       }
     },
