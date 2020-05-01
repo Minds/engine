@@ -19,6 +19,7 @@ class Transcode implements Interfaces\QueueRunner
 
                 echo "Received a transcode request \n";
 
+                /** @var Core\Media\Video\Transcoder\Manager $transcoderManager */
                 $transcoderManager = Di::_()->get('Media\Video\Transcoder\Manager');
                 $transcoderManager->transcode($transcode);
             }, [ 'max_messages' => 1 ]);

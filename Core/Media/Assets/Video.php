@@ -33,7 +33,7 @@ class Video implements AssetsInterface
     {
         $maxMins = 40;
 
-        $length = exec("ffmpeg -i {$media['file']} 2>&1 | grep 'Duration' | cut -d ' ' -f 4 | sed s/,//");
+        $length = $media['length'] ?? exec("ffmpeg -i {$media['file']} 2>&1 | grep 'Duration' | cut -d ' ' -f 4 | sed s/,//");
         $timeSplit = explode(':', $length);
 
         $hours = $timeSplit[0];
