@@ -125,6 +125,8 @@ class Controller
 
         $status = $queryParams['status'] ?? null;
 
+        $offset = $queryParams['offset'] ?? null;
+
         /** @var User $user */
         $user = Session::getLoggedinUser();
 
@@ -135,6 +137,7 @@ class Controller
                 'youtube_id' => $youtubeId,
                 'youtube_channel_id' => $channelId,
                 'status' => $status,
+                'offset' => $offset,
             ]);
 
             return new JsonResponse([

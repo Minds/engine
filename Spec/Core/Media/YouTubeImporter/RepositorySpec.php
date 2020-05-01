@@ -63,13 +63,33 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn('1');
 
         $this->client->request(Argument::any())
-            ->shouldBeCalledTimes(2)
-            ->willReturn(['count' => 3]);
+            ->shouldBeCalled()
+            ->willReturn([
+                'aggregations' => [
+                    'counts' => [
+                        'buckets' => [
+                            [
+                                'key' => 'queued',
+                            'doc_count' => 3,
+                            ],
+                            [
+                                'key' => 'completed',
+                                'doc_count' => 2,
+                            ],
+                            [
+                                'key' => 'transcoding',
+                                'doc_count' => 5,
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
 
         $this->getCount($user)
             ->shouldReturn([
                 'queued' => 3,
-                'transcoding' => 3,
+                'transferring' => 5,
+                'completed' => 2,
             ]);
     }
 

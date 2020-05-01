@@ -138,42 +138,47 @@ class Repository
 
     public function getCount(User $user): array
     {
-        $statuses = ['queued', 'transcoding'];
-
-        $response = ['queued' => 0, 'transcoding' => 0];
-
-        foreach ($statuses as $status) {
-            $query = [
-                'index' => 'minds_badger',
-                'type' => 'object:video',
-                'body' => [
-                    'query' => [
-                        'bool' => [
-                            'filter' => [
-                                [
-                                    'term' => [
-                                        'transcoding_status' => $status,
-                                    ],
-                                ],
-                                [
-                                    'term' => [
-                                        'owner_guid' => $user->getGUID(),
-                                    ],
+        $query = [
+            'index' => 'minds_badger',
+            'type' => 'object:video',
+            'size' => 0,
+            'body' => [
+                'query' => [
+                    'bool' => [
+                        'filter' => [
+                            [
+                                'term' => [
+                                    'owner_guid' => $user->getGUID(),
                                 ],
                             ],
                         ],
                     ],
                 ],
-            ];
+                'aggs' => [
+                    'counts' => [
+                        'terms' => [
+                            'field' => 'transcoding_status',
+                        ],
+                    ],
+                ],
+            ],
+        ];
 
-            $prepared = new Count();
-            $prepared->query($query);
+        $prepared = new Search();
+        $prepared->query($query);
+        $result = $this->client->request($prepared);
 
-            try {
-                $result = $this->client->request($prepared);
-                $response[$status] = $result['count'];
-            } catch (\Exception $e) {
-                error_log('[YouTubeImporter\Repository]' . $e->getMessage());
+        $response = [
+            'queued' => 0,
+            'transferring' => 0,
+            'completed' => 0,
+        ];
+
+        if ($result['aggregations']['counts']['buckets']) {
+            foreach ($result['aggregations']['counts']['buckets'] as $bucket) {
+                $key = in_array($bucket['key'], ['queued', 'completed'], true) ? $bucket['key'] : 'transferring';
+
+                $response[$key] = $bucket['doc_count'];
             }
         }
 
