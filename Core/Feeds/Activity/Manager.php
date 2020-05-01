@@ -115,4 +115,25 @@ class Manager
 
         $this->propagateProperties->from($activity);
     }
+
+    /**
+     * @param \ElggEntity $entity
+     * @return Activity
+     */
+    public function createFromEntity($entity): Activity
+    {
+        $activity = new Activity();
+        $activity->setTimeCreated(time());
+        $activity->setTimeSent(time());
+        $activity->setTitle($entity->title);
+        $activity->setMessage($entity->description);
+        $activity->setFromEntity($entity);
+        $activity->access_id = $entity->access_id;
+
+        if ($entity->type === 'object' && in_array($entity->subtype, ['image', 'video'], true)) {
+            $activity->setCustom($entity->getActivityParameters());
+        }
+
+        return $activity;
+    }
 }

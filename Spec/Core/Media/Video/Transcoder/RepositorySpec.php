@@ -6,6 +6,7 @@ use Minds\Core\Media\Video\Transcoder\Repository;
 use Minds\Core\Media\Video\Transcoder\Transcode;
 use Minds\Core\Media\Video\Transcoder\TranscodeProfiles;
 use Minds\Core\Data\Cassandra\Client;
+use Minds\Entities\Video;
 use Spec\Minds\Mocks\Cassandra\Rows;
 use Cassandra\Bigint;
 use Cassandra\Timestamp;
@@ -37,7 +38,7 @@ class RepositorySpec extends ObjectBehavior
         $transcode->getProfile()
             ->shouldBeCalled()
             ->willReturn(new TranscodeProfiles\X264_360p());
-    
+
         $transcode->getStatus()
             ->shouldBeCalled()
             ->willReturn('created');
@@ -112,7 +113,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe("456");
     }
 
-    public function it_should_update(Transcode $transcode)
+    public function it_should_update(Transcode $transcode, Video $video)
     {
         $transcode->getGuid()
             ->shouldBeCalled()
@@ -129,11 +130,31 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(round(microtime(true) * 1000));
 
+        $transcode->getVideo()
+        ->shouldBeCalled()
+        ->willReturn($video);
+
+        $transcode->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('completed');
+
+        $video->getTranscodingStatus()
+            ->shouldBeCalled()
+            ->willReturn('queued');
+
+        $video->patch(['transcoding_status' => 'completed'])
+            ->shouldBeCalled()
+            ->willReturn($video);
+
+        $video->save()
+            ->shouldBeCalled();
+
+
         $this->db->request(Argument::that(function ($prepared) {
             return true;
         }))
             ->shouldBeCalled();
-    
+
         $this->update($transcode, [])
             ->shouldReturn(true);
     }
@@ -152,7 +173,7 @@ class RepositorySpec extends ObjectBehavior
             return true;
         }))
             ->shouldBeCalled();
-        
+
         $this->delete($transcode)
             ->shouldReturn(true);
     }

@@ -68,6 +68,8 @@ class User extends \ElggUser
         $this->attributes['kite_state'] = 'unknown';
         $this->attributes['disable_autoplay_videos'] = 0;
         $this->attributes['dob'] = 0;
+        $this->attributes['yt_channels'] = [];
+        $this->attributes['auto_import_yt_videos'] = false;
         $this->attributes['public_dob'] = 0;
         $this->attributes['dismissed_widgets'] = [];
 
@@ -981,6 +983,8 @@ class User extends \ElggUser
         $export['disable_autoplay_videos'] = $this->getDisableAutoplayVideos();
         $export['dismissed_widgets'] = $this->getDismissedWidgets();
 
+        $export['yt_channels'] = $this->getYouTubeChannels();
+
         return $export;
     }
 
@@ -1490,6 +1494,66 @@ class User extends \ElggUser
     public function setMode(int $mode)
     {
         $this->mode = $mode;
+
+        return $this;
+    }
+
+    /**
+     * Returns the YouTube OAuth Token
+     * @return array
+     */
+    public function getYouTubeChannels()
+    {
+        return $this->attributes['yt_channels'] ?? [];
+    }
+
+    /**
+     * Sets YouTube OAuth Token and when updates the connection timestamp
+     * @param array $channels
+     * @return $this
+     */
+    public function setYouTubeChannels(array $channels)
+    {
+        $this->attributes['yt_channels'] = $channels;
+
+        return $this;
+    }
+
+    /**
+     * Updates or add a YouTube channel
+     * @param array $channel
+     */
+    public function updateYouTubeChannel(array $channel)
+    {
+        $updated = array_walk($this->attributes['yt_channels'], function (&$item) use ($channel) {
+            if ($item['id'] === $channel['id']) {
+                $item = array_replace($item, $channel);
+            }
+        });
+
+        // if it didn't update, this means it's not there, so we'll add it
+        if (!$updated) {
+            array_push($this->attributes['yt_channels'], $channel);
+        }
+    }
+
+    /**
+     * Returns if the user's YouTube videos should be auto-imported
+     * @return bool
+     */
+    public function getAutoImportYouTubeVideos()
+    {
+        return (bool) $this->attributes['auto_import_yt_videos'] ?? false;
+    }
+
+    /**
+     * Sets if the user's YouTube videos should be auto-imported
+     * @param bool $value
+     * @return $this
+     */
+    public function setAutoImportYouTubeVideos(bool $value)
+    {
+        $this->attributes['auto_import_yt_videos'] = $value;
 
         return $this;
     }
