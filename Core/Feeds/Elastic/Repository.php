@@ -73,7 +73,7 @@ class Repository
             'pinned_guids' => null,
             'future' => false,
             'exclude' => null,
-            'pending' => null,
+            'pending' => false,
         ], $opts);
 
         if (!$opts['type']) {
@@ -269,7 +269,7 @@ class Repository
             ];
         }
 
-        if (isset($opts['pending']) && !$opts['pending']) {
+        if ($opts['pending'] === false) {
             $body['query']['function_score']['query']['bool']['must_not'][] = [
                 'term' => [
                     'pending' => true,

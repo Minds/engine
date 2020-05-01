@@ -38,6 +38,7 @@ class Minds extends base
         SEO\Sitemaps\Module::class,
         Discovery\Module::class,
         Monetization\Partners\Module::class,
+        Media\YouTubeImporter\Module::class,
         DismissibleWidgets\Module::class,
     ];
 

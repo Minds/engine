@@ -85,4 +85,26 @@ class UserSpec extends ObjectBehavior
         $this->setSurgeToken($token)->shouldReturnAnInstanceOf('Minds\Entities\User');
         $this->getSurgeToken()->shouldReturn($token);
     }
+
+    public function it_should_add_single_hashtag()
+    {
+        $hashtag = 'minds';
+        
+        $this->addHashtag($hashtag)
+            ->shouldReturnAnInstanceOf('Minds\Entities\User');
+        
+        $this->getHashtags()[0]->shouldReturn($hashtag);
+    }
+
+    public function it_should_remove_single_hashtag()
+    {
+        $hashtag = 'minds';
+        
+        $this->addHashtag($hashtag);
+        
+        $this->removeHashtag($hashtag)
+            ->shouldReturnAnInstanceOf('Minds\Entities\User');
+        
+        $this->getHashtags()->shouldEqual([]);
+    }
 }

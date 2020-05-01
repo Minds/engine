@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1f5860a9ae2a08a7180cfe12b5f9ca80",
+    "content-hash": "510c6c19d8cdc3eeed31ad83c098cfff",
     "packages": [
         {
             "name": "Minds/Surge",
@@ -3569,6 +3569,49 @@
             "time": "2017-10-23T01:57:42+00:00"
         },
         {
+            "name": "pubsubhubbub/subscriber",
+            "version": "1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pubsubhubbub/php-subscriber.git",
+                "reference": "a5b623fa322861a08d5e42d73b4332993c294a18"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pubsubhubbub/php-subscriber/zipball/a5b623fa322861a08d5e42d73b4332993c294a18",
+                "reference": "a5b623fa322861a08d5e42d73b4332993c294a18",
+                "shasum": ""
+            },
+            "require": {
+                "php": "~5.4 || ~7.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Pubsubhubbub\\Subscriber\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "pubsubhubbub subscriber Contributors",
+                    "homepage": "https://github.com/pubsubhubbub/php-subscriber/contributors"
+                }
+            ],
+            "description": "pubsubhubbub implementation of subscriber.",
+            "homepage": "https://github.com/pubsubhubbub/php-subscriber",
+            "keywords": [
+                "data",
+                "feeds",
+                "pubsubhubbub",
+                "subscribers"
+            ],
+            "time": "2015-11-04T13:36:53+00:00"
+        },
+        {
             "name": "ralouphie/getallheaders",
             "version": "3.0.3",
             "source": {
@@ -3765,6 +3808,17 @@
         {
             "name": "sentry/sdk",
             "version": "2.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/getsentry/sentry-php-sdk.git",
+                "reference": "18921af9c2777517ef9fb480845c22a98554d6af"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/getsentry/sentry-php-sdk/zipball/18921af9c2777517ef9fb480845c22a98554d6af",
+                "reference": "18921af9c2777517ef9fb480845c22a98554d6af",
+                "shasum": ""
+            },
             "require": {
                 "http-interop/http-factory-guzzle": "^1.0",
                 "php-http/guzzle6-adapter": "^1.1|^2.0",
@@ -6929,5 +6983,6 @@
         "php": "~7.1",
         "ext-redis": "~4.3"
     },
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
 }

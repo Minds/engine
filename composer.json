@@ -42,7 +42,8 @@
         "sentry/sdk": "^2.1",
         "vlucas/phpdotenv": "^4.1",
         "sendgrid/sendgrid": "^7.4",
-        "ocramius/package-versions": "1.5"
+        "ocramius/package-versions": "1.5",
+        "pubsubhubbub/subscriber": "^1.1"
     },
     "repositories": [
         {
