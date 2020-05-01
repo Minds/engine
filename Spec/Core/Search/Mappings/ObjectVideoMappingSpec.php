@@ -35,19 +35,23 @@ class ObjectVideoMappingSpec extends ObjectBehavior
         $video->get('description')->willReturn('PHPSpec Description');
         $video->get('paywall')->willReturn(false);
         $video->get('license')->willReturn('cc-test-lic');
-        $video->getTags()->willReturn([ 'spaceiscool' ]);
+        $video->getTags()->willReturn(['spaceiscool']);
 
         $video->getFlag('mature')->willReturn(false);
         $video->getFlag('paywall')->willReturn(false);
         $video->get('moderator_guid')->willReturn('123');
         $video->get('time_moderated')->willReturn($now);
-        $video->getNsfw()->willReturn([ 1 ]);
+        $video->getNsfw()->willReturn([1]);
+
+        $video->get('youtube_channel_id')->willReturn('channel_id');
+        $video->get('youtube_id')->willReturn('youtube_id');
+        $video->get('transcoding_status')->willReturn('queued');
 
         $this
             ->setEntity($video)
             ->map([
                 'passedValue' => 'PHPSpec',
-                'guid' => '4999-will-disappear'
+                'guid' => '4999-will-disappear',
             ])
             ->shouldReturn([
                 'passedValue' => 'PHPSpec',
@@ -68,13 +72,16 @@ class ObjectVideoMappingSpec extends ObjectBehavior
                 'paywall' => false,
                 'rating' => 1,
                 'license' => 'cc-test-lic',
+                'youtube_id' => 'youtube_id',
+                'youtube_channel_id' => 'channel_id',
+                'transcoding_status' => 'queued',
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'object:video',
                 'public' => true,
-                'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
-                'nsfw' => [ 1 ],
+                'tags' => ['spaceiscool', 'test', 'hashtag'],
+                'nsfw' => [1],
                 'moderator_guid' => '123',
-                '@moderated' => $now * 1000
+                '@moderated' => $now * 1000,
             ]);
     }
 }

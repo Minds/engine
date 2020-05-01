@@ -17,6 +17,9 @@ class TranscodeStates
     /** @var string */
     public const COMPLETED = 'completed';
 
+    /** @var string */
+    public const QUEUED = 'queued'; // only used by YouTubeImporter
+
     /** @var Repository */
     private $repository;
 
