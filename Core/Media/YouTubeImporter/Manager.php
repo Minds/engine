@@ -195,9 +195,10 @@ class Manager
                 'gt' => null,
             ],
             'statistics' => true,
+            'cli' => false,
         ], $opts);
 
-        if (!$this->validateChannel($opts['user'], $opts['youtube_channel_id'])) {
+        if (!$opts['cli'] && !$this->validateChannel($opts['user'], $opts['youtube_channel_id'])) {
             throw new UnregisteredChannelException();
         }
 
