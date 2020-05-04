@@ -57,7 +57,7 @@ class Manager
      * @param string $guid
      * @return Video
      */
-    public function get($guid): Video
+    public function get($guid): ?Video
     {
         return $this->entitiesBuilder->single($guid);
     }
