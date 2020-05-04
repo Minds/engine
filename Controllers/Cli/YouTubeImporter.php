@@ -5,6 +5,7 @@ namespace Minds\Controllers\Cli;
 use Minds\Core;
 use Minds\Cli;
 use Minds\Core\Di\Di;
+use Minds\Entities\Video;
 use Minds\Interfaces;
 use Minds\Exceptions;
 use Minds\Exceptions\ProvisionException;
@@ -31,8 +32,9 @@ class YouTubeImporter extends Cli\Controller implements Interfaces\CliController
         // get videos
 
         $videos = $manager->getVideos([
+            'cli' => true,
             'status' => 'queued',
-            'limit' => 1000
+            'limit' => 1000,
         ]);
 
         $this->out("[Cli/YouTubeImporter] Found {$videos->count()} videos");
@@ -51,10 +53,11 @@ class YouTubeImporter extends Cli\Controller implements Interfaces\CliController
         $ownerGuids = $manager->getOwnersEligibility($ownerGuids);
 
         // for all eligible owners, transcode their videos, keeping count so we don't surpass the threshold
+        /** @var Video $video */
         foreach ($videos as $video) {
             if (array_key_exists($video->getOwnerGUID(), $ownerGuids)
                 && $ownerGuids[$video->getOwnerGUID()] < $manager->getThreshold()) {
-                $this->out("[Cli/YouTubeDownloader] Sending video to transcode (guid: {$video->guid}");
+                $this->out("[Cli/Importer] Sending video to transcode (guid: {$video->guid} / owner: {$video->getOwnerGUID()})");
 
                 // transcode
                 $manager->queue($video);
