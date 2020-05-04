@@ -54,9 +54,10 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->repository->getList([
-            'limit' => 24,
+            'limit' => 24 * 3,
             'paging-token' => '',
             'user_guid' => 123,
+            'type' => 'user',
         ])
             ->shouldBeCalled()
             ->willReturn($response);
