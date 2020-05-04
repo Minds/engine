@@ -604,9 +604,9 @@ class Manager
             foreach ($playlistResponse['items'] as $item) {
                 $youtubeId = $item['snippet']['resourceId']['videoId'];
 
-                $currentVideo = array_filter($videoResponse['items'], function ($item) use ($youtubeId) {
-                    return $item['id'] === $youtubeId;
-                })[0];
+                $currentVideo = array_values(array_filter($videoResponse['items'], function (\Google_Service_YouTube_Video $item) use ($youtubeId) {
+                    return $item->getId() === $youtubeId;
+                }))[0];
 
                 $values = [
                     'id' => $item['snippet']['resourceId']['videoId'],
@@ -664,7 +664,7 @@ class Manager
 
         return [
             'details' => $videoDetails,
-            'format' => $format
+            'format' => $format,
         ];
     }
 
