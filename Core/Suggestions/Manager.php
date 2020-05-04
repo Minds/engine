@@ -101,7 +101,7 @@ class Manager
 
         // Hydrate the entities
         // TODO: make this a bulk request vs sequential
-        $response = $response->map(function($suggestion) {
+        $response = $response->map(function ($suggestion) {
             $entity = $suggestion->getEntity() ?: $this->entitiesBuilder->single($suggestion->getEntityGuid());
             if (!$entity) {
                 error_log("{$suggestion->getEntityGuid()} suggested user not found");
@@ -109,7 +109,7 @@ class Manager
             }
             if ($entity->getDeleted()) {
                 error_log("Deleted entity ".$entity->guid." has been omitted from suggestions t-".time());
-                return null; 
+                return null;
             }
             if ($entity->getType() === 'group' && !$entity->isPublic()) {
                 return null;
@@ -122,11 +122,11 @@ class Manager
         });
 
         // Remove missing entities
-        $response = $response->filter(function($suggestion) {
+        $response = $response->filter(function ($suggestion) {
             return $suggestion && $suggestion->getEntity();
         });
 
-        $response = $response->filter(function($suggestion, $i) use ($opts) {
+        $response = $response->filter(function ($suggestion, $i) use ($opts) {
             return $i < ($opts['limit'] / 3);
         });
 
