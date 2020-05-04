@@ -195,9 +195,10 @@ class Manager
                 'gt' => null,
             ],
             'statistics' => true,
+            'cli' => false,
         ], $opts);
 
-        if (!$this->validateChannel($opts['user'], $opts['youtube_channel_id'])) {
+        if (!$opts['cli'] && !$this->validateChannel($opts['user'], $opts['youtube_channel_id'])) {
             throw new UnregisteredChannelException();
         }
 
@@ -262,6 +263,7 @@ class Manager
         // if video ID is "all", we need to get all youtube videos
         if ($ytVideo->getVideoId() === 'all') {
             $videos = $this->getYouTubeVideos([
+                'youtube_channel_id' => $ytVideo->getChannelId(),
                 'statistics' => false,
             ]);
         }
@@ -275,6 +277,7 @@ class Manager
 
             // only import it if it's not been imported already
             if (count($response) === 0) {
+                $video->setOwner($ytVideo->getOwner());
                 $this->importVideo($video);
             }
         }
@@ -309,10 +312,15 @@ class Manager
     {
         $this->logger->info("[YouTubeImporter] Downloading YouTube video ({$video->getYoutubeId()}) \n");
 
+        // fetch the video's data and choose a format
+        $ytVideo = (new YTVideo())
+            ->setVideoId($video->getYoutubeId());
+        $data = $this->fetchVideoData($ytVideo);
+
         // download the file
         $file = tmpfile();
         $path = stream_get_meta_data($file)['uri'];
-        file_put_contents($path, fopen($video->getChosenFormatUrl(), 'r'));
+        file_put_contents($path, fopen($data['format']['url'], 'r'));
 
         $this->logger->info("[YouTubeImporter] File saved \n");
 
@@ -598,9 +606,9 @@ class Manager
             foreach ($playlistResponse['items'] as $item) {
                 $youtubeId = $item['snippet']['resourceId']['videoId'];
 
-                $currentVideo = array_filter($videoResponse['items'], function ($item) use ($youtubeId) {
-                    return $item['id'] === $youtubeId;
-                })[0];
+                $currentVideo = array_values(array_filter($videoResponse['items'], function (\Google_Service_YouTube_Video $item) use ($youtubeId) {
+                    return $item->getId() === $youtubeId;
+                }))[0];
 
                 $values = [
                     'id' => $item['snippet']['resourceId']['videoId'],
@@ -620,12 +628,12 @@ class Manager
     }
 
     /**
-     * Imports a YouTube video
+     * Fetches the data of a YouTube Video
      * @param YTVideo $ytVideo
-     * @return void
+     * @return array
      * @throws \Exception
      */
-    private function importVideo(YTVideo $ytVideo): void
+    private function fetchVideoData(YTVideo $ytVideo): array
     {
         // get and decode the data
         parse_str(file_get_contents("https://youtube.com/get_video_info?video_id=" . $ytVideo->getVideoId()), $info);
@@ -656,12 +664,28 @@ class Manager
             $i++;
         }
 
+        return [
+            'details' => $videoDetails,
+            'format' => $format,
+        ];
+    }
+
+    /**
+     * Imports a YouTube video
+     * @param YTVideo $ytVideo
+     * @return void
+     * @throws \Exception
+     */
+    private function importVideo(YTVideo $ytVideo): void
+    {
+        $data = $this->fetchVideoData($ytVideo);
+
         // create the video
         $video = new Video();
 
         $video->patch([
-            'title' => isset($videoDetails['title']) ? $videoDetails['title'] : '',
-            'description' => isset($videoDetails['description']) ? $videoDetails['description'] : '',
+            'title' => isset($data['details']['title']) ? $data['details']['title'] : '',
+            'description' => isset($data['details']['description']) ? $data['details']['description'] : '',
             'batch_guid' => 0,
             'access_id' => 0,
             'owner_guid' => $ytVideo->getOwnerGuid(),
@@ -670,8 +694,10 @@ class Manager
             'youtube_id' => $ytVideo->getVideoId(),
             'youtube_channel_id' => $ytVideo->getChannelId(),
             'transcoding_status' => 'queued',
-            'chosen_format_url' => $format['url'],
         ]);
+        $this->save
+            ->setEntity($video)
+            ->save();
 
         // check if we're below the threshold
         if ($this->getOwnersEligibility([$ytVideo->getOwner()->guid])[$ytVideo->getOwner()->guid] < $this->getThreshold()) {
