@@ -9,13 +9,18 @@ use Minds\Core;
 use Minds\Entities;
 use Minds\Helpers;
 use Minds\Core\Analytics\Metrics;
+use Minds\Core\Di\Di;
+use Minds\Core\Features\Manager;
 
 class Defaults
 {
     private static $_;
+    /** @var FeaturesManager */
+    private $features;
 
-    public function __construct()
+    public function __construct($features = null)
     {
+        $this->features = $features ?? Di::_()->get('Features\Manager');
         $this->init();
     }
 
@@ -37,6 +42,24 @@ class Defaults
                 //  $export['ownerObj']['guid'] = (string) $params['entity']->ownerObj['guid'];
                 $event->setResponse($export);
             }
+        });
+
+        // Decode special characters and strip tags.
+        Dispatcher::register('export:extender', 'activity', function ($event) {
+            $export = $event->response() ?: [];
+            $params = $event->getParameters();
+
+            $allowedTags = '';
+            if ($this->features->has('code-highlight')) {
+                $allowedTags = "<pre><code>";
+            }
+
+            $export['message'] = strip_tags(
+                htmlspecialchars_decode($params['entity']['message']),
+                $allowedTags
+            );
+
+            $event->setResponse($export);
         });
 
         //Comments count export extender
