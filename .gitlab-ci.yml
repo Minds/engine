@@ -1,8 +1,7 @@
 image: minds/php:7.3
 
 stages:
-  - build
-  - test
+  - test and build
   - prepare
   - review
   - deploy:staging
@@ -11,7 +10,7 @@ stages:
   - deploy:production
 
 build:
-  stage: build
+  stage: test and build
   script:
     - apk add --no-cache git
     - sh tools/setup.sh production
@@ -22,13 +21,13 @@ build:
       - bin
 
 test:
-  stage: test
+  stage: test and build
   image: minds/php:7.3
   script:
     - php -n -c Spec/php-test.ini bin/phpspec run
 
 lint:
-  stage: test
+  stage: test and build
   image: minds/php:7.3
   script:
     - bin/php-cs-fixer fix --allow-risky=yes --verbose --dry-run
