@@ -263,6 +263,7 @@ class Manager
         // if video ID is "all", we need to get all youtube videos
         if ($ytVideo->getVideoId() === 'all') {
             $videos = $this->getYouTubeVideos([
+                'youtube_channel_id' => $ytVideo->getChannelId(),
                 'statistics' => false,
             ]);
         }
@@ -276,6 +277,7 @@ class Manager
 
             // only import it if it's not been imported already
             if (count($response) === 0) {
+                $video->setOwner($ytVideo->getOwner());
                 $this->importVideo($video);
             }
         }
@@ -693,6 +695,9 @@ class Manager
             'youtube_channel_id' => $ytVideo->getChannelId(),
             'transcoding_status' => 'queued',
         ]);
+        $this->save
+            ->setEntity($video)
+            ->save();
 
         // check if we're below the threshold
         if ($this->getOwnersEligibility([$ytVideo->getOwner()->guid])[$ytVideo->getOwner()->guid] < $this->getThreshold()) {
