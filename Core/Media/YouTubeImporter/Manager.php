@@ -310,10 +310,15 @@ class Manager
     {
         $this->logger->info("[YouTubeImporter] Downloading YouTube video ({$video->getYoutubeId()}) \n");
 
+        // fetch the video's data and choose a format
+        $ytVideo = (new YTVideo())
+            ->setVideoId($video->getYoutubeId());
+        $data = $this->fetchVideoData($ytVideo);
+
         // download the file
         $file = tmpfile();
         $path = stream_get_meta_data($file)['uri'];
-        file_put_contents($path, fopen($video->getChosenFormatUrl(), 'r'));
+        file_put_contents($path, fopen($data['format']['url'], 'r'));
 
         $this->logger->info("[YouTubeImporter] File saved \n");
 
@@ -621,12 +626,12 @@ class Manager
     }
 
     /**
-     * Imports a YouTube video
+     * Fetches the data of a YouTube Video
      * @param YTVideo $ytVideo
-     * @return void
+     * @return array
      * @throws \Exception
      */
-    private function importVideo(YTVideo $ytVideo): void
+    private function fetchVideoData(YTVideo $ytVideo): array
     {
         // get and decode the data
         parse_str(file_get_contents("https://youtube.com/get_video_info?video_id=" . $ytVideo->getVideoId()), $info);
@@ -657,12 +662,28 @@ class Manager
             $i++;
         }
 
+        return [
+            'details' => $videoDetails,
+            'format' => $format
+        ];
+    }
+
+    /**
+     * Imports a YouTube video
+     * @param YTVideo $ytVideo
+     * @return void
+     * @throws \Exception
+     */
+    private function importVideo(YTVideo $ytVideo): void
+    {
+        $data = $this->fetchVideoData($ytVideo);
+
         // create the video
         $video = new Video();
 
         $video->patch([
-            'title' => isset($videoDetails['title']) ? $videoDetails['title'] : '',
-            'description' => isset($videoDetails['description']) ? $videoDetails['description'] : '',
+            'title' => isset($data['details']['title']) ? $data['details']['title'] : '',
+            'description' => isset($data['details']['description']) ? $data['details']['description'] : '',
             'batch_guid' => 0,
             'access_id' => 0,
             'owner_guid' => $ytVideo->getOwnerGuid(),
@@ -671,7 +692,6 @@ class Manager
             'youtube_id' => $ytVideo->getVideoId(),
             'youtube_channel_id' => $ytVideo->getChannelId(),
             'transcoding_status' => 'queued',
-            'chosen_format_url' => $format['url'],
         ]);
 
         // check if we're below the threshold
