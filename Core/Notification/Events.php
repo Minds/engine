@@ -201,7 +201,7 @@ class Events
 
                 $uuid = $manager->add($notification);
 
-                $notification->setUUID($uuid);
+                $notification->setUuid($uuid);
                 
                 $counters->setUser($to_user)
                   ->increaseCounter($to_user);
