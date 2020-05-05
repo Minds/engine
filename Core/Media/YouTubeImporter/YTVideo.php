@@ -84,9 +84,20 @@ class YTVideo
     /** @var string */
     protected $thumbnail;
 
+    /**
+     * @return string
+     */
     public function getYoutubeUrl(): string
     {
         return "https://www.youtube.com/watch?v={$this->getVideoId()}";
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDeleted(): bool
+    {
+        return false;
     }
 
     public function export()
