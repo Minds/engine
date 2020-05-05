@@ -84,7 +84,7 @@ class Repository
         if (isset($opts['youtube_id'])) {
             $filter[] = [
                 'term' => [
-                    'youtube_id.keyword' => $opts['youtube_id'],
+                    'youtube_id' => $opts['youtube_id'],
                 ],
             ];
         }
