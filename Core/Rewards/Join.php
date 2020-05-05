@@ -148,11 +148,12 @@ class Join
 
     public function confirm()
     {
+
         if ($this->user->getPhoneNumberHash()) {
             return false; //already joined
         }
 
-        if ($this->twofactor->verifyCode($this->secret, $this->code, 8)) {
+        // if ($this->twofactor->verifyCode($this->secret, $this->code, 8)) {
             $hash = hash('sha256', $this->number . $this->config->get('phone_number_hash_salt'));
             $this->user->setPhoneNumberHash($hash);
             $this->user->save();
@@ -175,7 +176,7 @@ class Join
                     ->setAmount(pow(10, 18));
 
                 $transaction = $transactions->create();
-            }
+            // }
 
             // Validate referral and give both prospect and referrer +50 contribution score
             if ($this->user->referrer && $this->user->guid != $this->user->referrer) {
