@@ -29,7 +29,7 @@ class QueueDelegate
         $this->queueClient
             ->setQueue('YouTubeImporter')
             ->send([
-                'video' => serialize($video),
+                'video_guid' => $video->getGuid(),
             ]);
     }
 }

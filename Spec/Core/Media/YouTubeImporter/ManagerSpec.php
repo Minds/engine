@@ -16,6 +16,7 @@ use Minds\Core\Media\YouTubeImporter\Exceptions\UnregisteredChannelException;
 use Minds\Core\Media\YouTubeImporter\Manager;
 use Minds\Core\Media\YouTubeImporter\Repository;
 use Minds\Core\Media\YouTubeImporter\YTVideo;
+use Minds\Core\Media\Video\Manager as VideoManager;
 use Minds\Entities\User;
 use Minds\Entities\Video;
 use PhpSpec\ObjectBehavior;
@@ -60,6 +61,9 @@ class ManagerSpec extends ObjectBehavior
     /** @var Logger */
     protected $logger;
 
+    /** @var VideoManager */
+    protected $videoManager;
+
     public function let(
         Repository $repository,
         MediaRepository $mediaRepository,
@@ -72,7 +76,8 @@ class ManagerSpec extends ObjectBehavior
         VideoAssets $videoAssets,
         EntitiesBuilder $entitiesBuilder,
         Subscriber $subscriber,
-        Logger $logger
+        Logger $logger,
+        VideoManager $videoManager
     ) {
         $this->repository = $repository;
         $this->mediaRepository = $mediaRepository;
@@ -86,6 +91,7 @@ class ManagerSpec extends ObjectBehavior
         $this->videoAssets = $videoAssets;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->subscriber = $subscriber;
+        $this->videoManager = $videoManager;
 
         $this->beConstructedWith(
             $repository,
@@ -99,7 +105,8 @@ class ManagerSpec extends ObjectBehavior
             $videoAssets,
             $entitiesBuilder,
             $subscriber,
-            $logger
+            $logger,
+            $videoManager
         );
     }
 

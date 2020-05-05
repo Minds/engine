@@ -26,7 +26,7 @@ class Manager
     private $checkRateLimit;
 
     /** @var string $type */
-    private $type;
+    private $type = 'user';
 
     public function __construct(
         $repository = null,
@@ -77,11 +77,12 @@ class Manager
      *
      * @return Response
      */
-    public function getList($opts = [])
+    public function getList($opts = []): Response
     {
         $opts = array_merge([
             'limit' => 12,
             'paging-token' => '',
+            'type' => $this->type,
         ], $opts);
 
         if (!$this->checkRateLimit->check($this->user->guid)) {
@@ -89,6 +90,8 @@ class Manager
         }
 
         $opts['user_guid'] = $this->user->getGuid();
+
+        $opts['limit'] = $opts['limit'] * 3; // To prevent removed channels or closed groups
 
         $response = $this->repository->getList($opts);
 
@@ -98,20 +101,35 @@ class Manager
 
         // Hydrate the entities
         // TODO: make this a bulk request vs sequential
-        foreach ($response as $k => $suggestion) {
+        $response = $response->map(function ($suggestion) {
             $entity = $suggestion->getEntity() ?: $this->entitiesBuilder->single($suggestion->getEntityGuid());
             if (!$entity) {
                 error_log("{$suggestion->getEntityGuid()} suggested user not found");
-                unset($response[$k]);
-                continue;
+                return null;
             }
             if ($entity->getDeleted()) {
                 error_log("Deleted entity ".$entity->guid." has been omitted from suggestions t-".time());
-                unset($response[$k]);
-                continue;
+                return null;
+            }
+            if ($entity->getType() === 'group' && !$entity->isPublic()) {
+                return null;
+            }
+            if ($entity->getType() === 'user') {
+                $entity->exportCounts = true;
             }
             $suggestion->setEntity($entity);
-        }
+            return $suggestion;
+        });
+
+        // Remove missing entities
+        $response = $response->filter(function ($suggestion) {
+            return $suggestion && $suggestion->getEntity();
+        });
+
+        $response = $response->filter(function ($suggestion, $i) use ($opts) {
+            return $i < ($opts['limit'] / 3);
+        });
+
 
         return $response;
     }

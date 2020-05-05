@@ -38,7 +38,6 @@ class Video extends MindsObject
         $this->attributes['youtube_id'] = null;
         $this->attributes['youtube_channel_id'] = null;
         $this->attributes['transcoding_status'] = null;
-        $this->attributes['chosen_format_url'] = null;
         $this->attributes['youtube_thumbnail'] = null; // this is ephemeral
     }
 
@@ -229,7 +228,6 @@ class Video extends MindsObject
             'youtube_channel_id' => null,
             'transcoding_status' => null,
             'owner_guid' => null,
-            'chosen_format_url' => null,
         ], $data);
 
         $allowed = [
@@ -249,7 +247,6 @@ class Video extends MindsObject
             'youtube_channel_id',
             'transcoding_status',
             'owner_guid',
-            'chosen_format_url',
         ];
 
         foreach ($allowed as $field) {
@@ -467,26 +464,6 @@ class Video extends MindsObject
     public function setYouTubeThumbnail(string $url): Video
     {
         $this->youtube_thumbnail = $url;
-        return $this;
-    }
-
-    /**
-     * Returns the chosen format URL
-     * @return string
-     */
-    public function getChosenFormatUrl(): string
-    {
-        return $this->chosen_format_url ?: '';
-    }
-
-    /**
-     * Sets the chosen format URL
-     * @param string $url
-     * @return Video
-     */
-    public function setChosenFormatUrl(string $url): Video
-    {
-        $this->chosen_format_url = $url;
         return $this;
     }
 }

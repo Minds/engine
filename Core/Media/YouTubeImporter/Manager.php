@@ -17,6 +17,8 @@ use Minds\Core\Media\Repository as MediaRepository;
 use Minds\Core\Media\YouTubeImporter\Delegates\EntityCreatorDelegate;
 use Minds\Core\Media\YouTubeImporter\Delegates\QueueDelegate;
 use Minds\Core\Media\YouTubeImporter\Exceptions\UnregisteredChannelException;
+use Minds\Core\Media\Video\Manager as VideoManager;
+use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Entities\EntitiesFactory;
 use Minds\Entities\User;
 use Minds\Entities\Video;
@@ -70,6 +72,9 @@ class Manager
     /** @var Logger */
     protected $logger;
 
+    /** @var VideoManager */
+    protected $videoManager;
+
     public function __construct(
         $repository = null,
         $mediaRepository = null,
@@ -82,7 +87,8 @@ class Manager
         $assets = null,
         $entitiesBuilder = null,
         $subscriber = null,
-        $logger = null
+        $logger = null,
+        $videoManager = null
     ) {
         $this->repository = $repository ?: Di::_()->get('Media\YouTubeImporter\Repository');
         $this->mediaRepository = $mediaRepository ?: Di::_()->get('Media\Repository');
@@ -96,6 +102,7 @@ class Manager
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->subscriber = $subscriber ?: new Subscriber('https://pubsubhubbub.appspot.com/subscribe', $this->config->get('site_url') . 'api/v3/media/youtube-importer/hook');
         $this->logger = $logger ?: Di::_()->get('Logger');
+        $this->videoManager = $videoManager ?: Di::_()->get('Media\Video\Manager');
     }
 
     /**
@@ -195,14 +202,15 @@ class Manager
                 'gt' => null,
             ],
             'statistics' => true,
+            'cli' => false,
         ], $opts);
 
-        if (!$this->validateChannel($opts['user'], $opts['youtube_channel_id'])) {
+        if (!$opts['cli'] && !$this->validateChannel($opts['user'], $opts['youtube_channel_id'])) {
             throw new UnregisteredChannelException();
         }
 
         // if status is 'queued' or 'completed', then we don't consult youtube
-        if (isset($opts['status']) && in_array($opts['status'], ['queued', 'completed'], true)) {
+        if (isset($opts['status']) && in_array($opts['status'], [TranscodeStates::QUEUED, TranscodeStates::COMPLETED], true)) {
             return $this->repository->getList($opts);
         }
 
@@ -229,10 +237,32 @@ class Manager
                     ->setOwnerGuid($video->owner_guid)
                     ->setOwner($video->getOwnerEntity())
                     ->setStatus($video->getTranscodingStatus());
+
+                if ($YTVideo->getStatus() === TranscodeStates::QUEUED) {
+                    $transcodes = $this->videoManager->getSources($video);
+                    if (count($transcodes) > 0) {
+                        $YTVideo->setStatus(TranscodeStates::COMPLETED);
+                        // We should not have received a completed event here, so lets resave
+                        $video->setTranscodingStatus(TranscodeStates::COMPLETED);
+                        $this->saveVideo($video);
+                    }
+                }
             }
         }
 
         return $videos;
+    }
+
+    /**
+     * Save the video
+     * @param Video $video
+     * @return bool
+     */
+    protected function saveVideo(Video $video): bool
+    {
+        return $this->save
+            ->setEntity($video)
+            ->save(true);
     }
 
     /**
@@ -262,6 +292,7 @@ class Manager
         // if video ID is "all", we need to get all youtube videos
         if ($ytVideo->getVideoId() === 'all') {
             $videos = $this->getYouTubeVideos([
+                'youtube_channel_id' => $ytVideo->getChannelId(),
                 'statistics' => false,
             ]);
         }
@@ -275,6 +306,7 @@ class Manager
 
             // only import it if it's not been imported already
             if (count($response) === 0) {
+                $video->setOwner($ytVideo->getOwner());
                 $this->importVideo($video);
             }
         }
@@ -309,10 +341,15 @@ class Manager
     {
         $this->logger->info("[YouTubeImporter] Downloading YouTube video ({$video->getYoutubeId()}) \n");
 
+        // fetch the video's data and choose a format
+        $ytVideo = (new YTVideo())
+            ->setVideoId($video->getYoutubeId());
+        $data = $this->fetchVideoData($ytVideo);
+
         // download the file
         $file = tmpfile();
         $path = stream_get_meta_data($file)['uri'];
-        file_put_contents($path, fopen($video->getChosenFormatUrl(), 'r'));
+        file_put_contents($path, fopen($data['format']['url'], 'r'));
 
         $this->logger->info("[YouTubeImporter] File saved \n");
 
@@ -598,9 +635,9 @@ class Manager
             foreach ($playlistResponse['items'] as $item) {
                 $youtubeId = $item['snippet']['resourceId']['videoId'];
 
-                $currentVideo = array_filter($videoResponse['items'], function ($item) use ($youtubeId) {
-                    return $item['id'] === $youtubeId;
-                })[0];
+                $currentVideo = array_values(array_filter($videoResponse['items'], function (\Google_Service_YouTube_Video $item) use ($youtubeId) {
+                    return $item->getId() === $youtubeId;
+                }))[0];
 
                 $values = [
                     'id' => $item['snippet']['resourceId']['videoId'],
@@ -620,12 +657,12 @@ class Manager
     }
 
     /**
-     * Imports a YouTube video
+     * Fetches the data of a YouTube Video
      * @param YTVideo $ytVideo
-     * @return void
+     * @return array
      * @throws \Exception
      */
-    private function importVideo(YTVideo $ytVideo): void
+    private function fetchVideoData(YTVideo $ytVideo): array
     {
         // get and decode the data
         parse_str(file_get_contents("https://youtube.com/get_video_info?video_id=" . $ytVideo->getVideoId()), $info);
@@ -656,12 +693,28 @@ class Manager
             $i++;
         }
 
+        return [
+            'details' => $videoDetails,
+            'format' => $format,
+        ];
+    }
+
+    /**
+     * Imports a YouTube video
+     * @param YTVideo $ytVideo
+     * @return void
+     * @throws \Exception
+     */
+    private function importVideo(YTVideo $ytVideo): void
+    {
+        $data = $this->fetchVideoData($ytVideo);
+
         // create the video
         $video = new Video();
 
         $video->patch([
-            'title' => isset($videoDetails['title']) ? $videoDetails['title'] : '',
-            'description' => isset($videoDetails['description']) ? $videoDetails['description'] : '',
+            'title' => isset($data['details']['title']) ? $data['details']['title'] : '',
+            'description' => isset($data['details']['description']) ? $data['details']['description'] : '',
             'batch_guid' => 0,
             'access_id' => 0,
             'owner_guid' => $ytVideo->getOwnerGuid(),
@@ -669,9 +722,10 @@ class Manager
             'full_hd' => $ytVideo->getOwner()->isPro(),
             'youtube_id' => $ytVideo->getVideoId(),
             'youtube_channel_id' => $ytVideo->getChannelId(),
-            'transcoding_status' => 'queued',
-            'chosen_format_url' => $format['url'],
+            'transcoding_status' => TranscodeStates::QUEUED,
         ]);
+
+        $this->saveVideo($video);
 
         // check if we're below the threshold
         if ($this->getOwnersEligibility([$ytVideo->getOwner()->guid])[$ytVideo->getOwner()->guid] < $this->getThreshold()) {
