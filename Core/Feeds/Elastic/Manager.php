@@ -181,11 +181,12 @@ class Manager
                 if ($opts['as_activities']) {
                     $entity = $this->entities->cast($entity);
                 }
+
                 $entities[] = (new FeedSyncEntity)
                                 ->setGuid($entity->getGuid())
                                 ->setOwnerGuid($entity->getOwnerGuid())
                                 ->setAccessId($entity->getAccessId())
-                                ->setType($scoredGuid->getType())
+                                ->setType($entity->getType())
                                 ->setUrn($entity->getUrn())
                                 ->setEntity($entity);
             }
