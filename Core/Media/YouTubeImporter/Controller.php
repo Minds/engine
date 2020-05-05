@@ -224,6 +224,8 @@ class Controller
      */
     public function cancel(ServerRequest $request): JsonResponse
     {
+        $params = $request->getQueryParams();
+
         if (!isset($params['videoId'])) {
             return new JsonResponse([
                 'status' => 'error',
@@ -246,7 +248,7 @@ class Controller
      */
     public function subscribe(ServerRequest $request): JsonResponse
     {
-        $params = $request->getParsedBody();
+        $params = $request->getQueryParams();
 
         if (!isset($params['channelId'])) {
             return new JsonResponse([

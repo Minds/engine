@@ -201,7 +201,7 @@ class Events
 
                 $uuid = $manager->add($notification);
 
-                $notification->setUUID($uuid);
+                $notification->setUuid($uuid);
                 
                 $counters->setUser($to_user)
                   ->increaseCounter($to_user);
@@ -221,11 +221,11 @@ class Events
                 try {
                     (new Sockets\Events())
                     ->setUser($to_user)
-                    ->emit('notification', (string) $notification->getUUID());
+                    ->emit('notification', (string) $notification->getUuid());
                 } catch (\Exception $e) { /* TODO: To log or not to log */
                 }
 
-                echo "[notification][{$notification->getUUID()}]: Saved {$params['notification_view']} \n";
+                echo "[notification][{$notification->getUuid()}]: Saved {$params['notification_view']} \n";
             }
         });
 

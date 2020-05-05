@@ -11,12 +11,16 @@ use Minds\Core\Hashtags\User\Manager as HashtagManager;
 use Minds\Core\Hashtags\HashtagEntity;
 use Minds\Common\Repository\Response;
 use Minds\Core\Feeds\Elastic\Manager as ElasticFeedsManager;
+use Minds\Core\Search\SortingAlgorithms;
 use Minds\Api\Exportable;
 use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\Response\JsonResponse;
 
 class Manager
 {
+    /** @var array */
+    const GLOBAL_EXCLUDED_TAGS = [ 'minds', 'news' ];
+
     /** @var array */
     private $tagCloud = [];
 
@@ -87,6 +91,8 @@ class Manager
             'limit' => 10,
         ], $opts);
 
+        $excludeTags = array_merge(self::GLOBAL_EXCLUDED_TAGS, $excludeTags);
+
         $query = [
             'index' => $this->config->get('elasticsearch')['index'],
             'type' => 'activity',
@@ -120,7 +126,7 @@ class Manager
                     'tags' => [
                         'terms' => [
                             'field' => 'tags.keyword',
-                            'min_doc_count' => 2,
+                            'min_doc_count' => 10,
                             'exclude' => $excludeTags,
                             'size' => $opts['limit'],
                             'order' => [
@@ -169,55 +175,147 @@ class Manager
     public function getPostTrends(array $tags, array $opts = []): array
     {
         $opts = array_merge([
-            'hoursAgo' => rand(12, 32),
+            'hoursAgo' => 72,
             'limit' => 5,
             'shuffle' => true,
         ], $opts);
+
+        $algorithm = new SortingAlgorithms\TopV2();
+
+        $highlightTemplate = [
+           'fragment_size' => 400,
+           'number_of_fragments' => 1,
+           'no_match_size' => 20
+        ];
 
         $query = [
             'index' => $this->config->get('elasticsearch')['index'],
             'type' => 'activity',
             'body' =>  [
                 'query' => [
-                    'bool' => [
-                        'must' => [
-                            [
-                                'range' => [
-                                    '@timestamp' => [
-                                        'gte' => strtotime("{$opts['hoursAgo']} hours ago") * 1000,
+                    'function_score' => [
+                        'query' => [
+                            'bool' => [
+                                'must' => [
+                                    [
+                                        'range' => [
+                                            '@timestamp' => [
+                                                'gte' => strtotime("{$opts['hoursAgo']} hours ago") * 1000,
+                                            ]
+                                        ],
+                                    ],
+                                    [
+                                        'range' => [
+                                            'comments:count' => [
+                                                'gte' => 1,
+                                            ]
+                                        ]
+                                    ],
+                                    [
+                                        'multi_match' => [
+                                            //'type' => 'cross_fields',
+                                            'query' => implode(' ', $tags),
+                                            'operator' => 'OR',
+                                            'fields' => ['title', 'message', 'tags^2'],
+                                            'boost' => 0,
+                                        ],
                                     ]
+                                ],
+                                'must_not' => [
+                                    [
+                                        'terms' => [
+                                            'nsfw' => [0,1,2,3,4,5,6],
+                                        ]
+                                    ],
+                                ]
+                            ]
+                        ],
+                        "score_mode" => 'multiply',
+                        'functions' => [
+                            /*[
+                            	'filter' => [
+                                	'match_all' => (object) [],
+                            	],
+                            	'weight' => 1,
+                        	],*/
+                            [
+                                'filter' => [
+                                    'multi_match' => [
+                                        'query' => implode(' ', $this->tagCloud),
+                                        'operator' => 'OR',
+                                        'fields' => ['title', 'message', 'tags'],
+                                        'boost' => 0,
+                                    ],
+                                ],
+                                'weight' => 2,
+                            ],
+                            [
+                                'filter' => [
+                                    'terms' => [
+                                        'subtype' => [ 'video', 'blog' ],
+                                    ]
+                                ],
+                                'weight' => 10, // videos and blogs are worth 10x
+                            ],
+                            [
+                                'field_value_factor' => [
+                                    'field' => 'comments:count',
+                                    'factor' => 10,
+                                    'modifier' => 'sqrt',
+                                    'missing' => 0,
                                 ],
                             ],
                             [
-                                'multi_match' => [
-                                    'query' => implode(' ', $tags),
-                                    'operator' => 'OR',
-                                    'fields' => ['title^12', 'message^12', 'tags^24'],
+                                'gauss' => [
+                                    '@timestamp' => [
+                                        'offset' => '6h', // Do not decay until we reach this bound
+                                        //'offset' => $opts['hoursAgo'] . 'h',
+                                        'scale' => '24h', // Peak decay will be here
+                                        //'scale' => '12h',
+                                        //'decay' => rand(1, 9) / 10
+                                    ],
                                 ],
+                                'weight' => 10,
                             ]
-                        ]
+                        ],
                     ]
                 ],
-                'sort' => [ 'comments:count' => 'desc', ]
+                "collapse" => [
+                    "field" => "owner_guid.keyword"
+                ],
+                "highlight" => [
+                     "pre_tags" => [
+                        "<span class='m-highlighted'>"
+                     ],
+                     "post_tags" => [
+                        "</span>"
+                     ],
+                     "fields" => [
+                        "title" => $highlightTemplate,
+                        "message" => $highlightTemplate,
+                        "tags" => $highlightTemplate,
+                     ]
+                ],
+                'sort' => [
+                    [
+                        '_score' => [
+                            'order' => 'desc'
+                        ],
+                    ]
+                ]
             ],
-            'size' => $opts['limit'] * 10, // * 10 accounts for single users having the most comments in period
+            'size' => $opts['limit'] * 3, // * 3 because not all have thumbnails (improve our indexing!)
         ];
 
         $prepared = new ElasticSearch\Prepared\Search();
         $prepared->query($query);
 
         $response = $this->es->request($prepared);
-        
+ 
         $trends = [];
-        $ownerGuids = [];
-
         foreach ($response['hits']['hits'] as $doc) {
             $ownerGuid = $doc['_source']['owner_guid'];
-            if (isset($ownerGuids[$ownerGuid])) {
-                continue;
-            }
-            $ownerGuids[$ownerGuid] = true;
-
+            
             $title = $doc['_source']['title'] ?: $doc['_source']['message'];
 
             shuffle($doc['_source']['tags']);
@@ -227,6 +325,7 @@ class Manager
 
             $exportedEntity = $entity->export();
             if (!$exportedEntity['thumbnail_src']) {
+                error_log("{$exportedEntity['guid']} has not thumbnail");
                 continue;
             }
 

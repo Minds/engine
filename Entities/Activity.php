@@ -306,7 +306,9 @@ class Activity extends Entity implements MutatableEntityInterface
                 }
                 // go directly to cdn
                 $mediaManager = Di::_()->get('Media\Image\Manager');
-                $export['custom_data'][0]['src'] = $export['thumbnails']['xlarge'];
+                $src = $export['thumbnails']['xlarge'];
+                $export['custom_data'][0]['src'] = $src;
+                $export['thumbnail_src'] = $src;
                 break;
         }
 

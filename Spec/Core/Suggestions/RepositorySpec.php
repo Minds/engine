@@ -52,6 +52,7 @@ class RepositorySpec extends ObjectBehavior
             'limit' => 5,
             'offset' => 0,
             'user_guid' => 123,
+            'type' => 'user',
         ]);
 
         $response[0]->getEntityGuid()
