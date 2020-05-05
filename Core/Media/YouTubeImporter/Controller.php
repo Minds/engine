@@ -224,6 +224,8 @@ class Controller
      */
     public function cancel(ServerRequest $request): JsonResponse
     {
+        $params = $request->getQueryParams();
+
         if (!isset($params['videoId'])) {
             return new JsonResponse([
                 'status' => 'error',
