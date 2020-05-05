@@ -475,6 +475,7 @@ class Repository
                     '_source' => [
                         'guid' => $key,
                         'owner_guid' => $key,
+                        'access_id' => $doc['_source']['access_id'],
                         $this->getSourceField($type) => $key,
                         '@timestamp' => $doc['_source']['@timestamp'],
                     ],

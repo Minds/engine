@@ -23,6 +23,7 @@ $CONFIG->cassandra->servers = ['127.0.0.1'];
 $CONFIG->cassandra->cql_servers = ['127.0.0.1'];
 $CONFIG->cassandra->username = 'cassandra';
 $CONFIG->cassandra->password = 'cassandra';
+$CONFIG->cypress = ['shared_key' => 'test'];
 
 $CONFIG->payments = [
     'stripe' => [
