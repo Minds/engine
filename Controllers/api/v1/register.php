@@ -127,6 +127,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 "RegistrationError | username: ".$_POST['username']
                 .", email:".$_POST['email']
                 .", signupParentId".$user->signupParentId
+                .", exception: ".$e->getMessage()
             );
             $response = ['status' => 'error', 'message' => $e->getMessage()];
         }
