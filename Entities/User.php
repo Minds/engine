@@ -1620,14 +1620,14 @@ class User extends \ElggUser
         return ((int) $this->indexed_at) ?: null;
     }
 
-    /** 
+    /**
      * Users can only be indexed if they
      * Have never been indexed
-     * Or have been indexed past the rate limit 
+     * Or have been indexed past the rate limit
     */
     public function canBeIndexed(int $time): bool
     {
-        if ($this->indexed_at === null 
+        if ($this->indexed_at === null
             || $time <= $this->indexed_at - User::INDEXING_RATE_LIMIT_SECONDS) {
             return true;
         }
