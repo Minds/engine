@@ -15,6 +15,7 @@ class User extends \ElggUser
 {
     public $fullExport = true;
     public $exportCounts = false;
+    const INDEXING_RATE_LIMIT_SECONDS = 300;
 
     protected function initializeAttributes()
     {
@@ -71,6 +72,7 @@ class User extends \ElggUser
         $this->attributes['yt_channels'] = [];
         $this->attributes['public_dob'] = 0;
         $this->attributes['dismissed_widgets'] = [];
+        $this->attributes['indexed_at'] = [];
 
         parent::initializeAttributes();
     }
@@ -1598,5 +1600,37 @@ class User extends \ElggUser
     {
         $this->dismissed_widgets = $dismissedWidgets;
         return $this;
+    }
+
+    /**
+     * @param int $time
+     * @return User
+     */
+    public function setIndexedAt(?int $time): User
+    {
+        $this->indexed_at = $time;
+        return $this;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getIndexedAt(): ?int
+    {
+        return ((int) $this->indexed_at) ?: null;
+    }
+
+    /** 
+     * Users can only be indexed if they
+     * Have never been indexed
+     * Or have been indexed past the rate limit 
+    */
+    public function canBeIndexed(int $time): bool
+    {
+        if ($this->indexed_at === null 
+            || $time <= $this->indexed_at - User::INDEXING_RATE_LIMIT_SECONDS) {
+            return true;
+        }
+        return false;
     }
 }

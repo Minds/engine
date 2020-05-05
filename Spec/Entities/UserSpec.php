@@ -76,11 +76,18 @@ class UserSpec extends ObjectBehavior
     public function it_should_allow_indexing()
     {
         $time = time();
-        $this->setIndexedAt($time - User::INDEXING_RATE_LIMIT_SECONDS);
+        $this->setIndexedAt($time + User::INDEXING_RATE_LIMIT_SECONDS);
         $this->canBeIndexed($time)->shouldEqual(true);
 
-        $this->setIndexedAt($time - User::INDEXING_RATE_LIMIT_SECONDS + 1);
+        $this->setIndexedAt($time + User::INDEXING_RATE_LIMIT_SECONDS - 1);
         $this->canBeIndexed($time)->shouldEqual(false);
+    }
+
+    public function it_should_allow_indexing_with_null()
+    {
+        $time = time();
+        $this->setIndexedAt(null);
+        $this->canBeIndexed($time)->shouldEqual(true);
     }
 
     public function it_should_export_values()
