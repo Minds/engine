@@ -130,26 +130,6 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(round(microtime(true) * 1000));
 
-        $transcode->getVideo()
-        ->shouldBeCalled()
-        ->willReturn($video);
-
-        $transcode->getStatus()
-            ->shouldBeCalled()
-            ->willReturn('completed');
-
-        $video->getTranscodingStatus()
-            ->shouldBeCalled()
-            ->willReturn('queued');
-
-        $video->patch(['transcoding_status' => 'completed'])
-            ->shouldBeCalled()
-            ->willReturn($video);
-
-        $video->save()
-            ->shouldBeCalled();
-
-
         $this->db->request(Argument::that(function ($prepared) {
             return true;
         }))

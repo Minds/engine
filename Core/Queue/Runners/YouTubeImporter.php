@@ -18,15 +18,24 @@ class YouTubeImporter implements Interfaces\QueueRunner
             ->receive(function ($data) {
                 $d = $data->getData();
                 /** @var Video $video */
-                $video = unserialize($d['video']);
+                $videoGuid = $d['video_guid'];
+
+                Core\Security\ACL::$ignore = true;
+
+                $video = Di::_()->get('EntitiesBuilder')->single($videoGuid);
+
+                if (!$video) {
+                    error_log("Video $videoGuid not found");
+                    return;
+                }
 
                 echo "[YouTubeImporter] Received a YouTube download request from {$video->getOwnerEntity()->username} ({$video->getOwnerEntity()->guid})\n";
 
                 /** @var Core\Media\YouTubeImporter\Manager $manager */
                 $manager = Di::_()->get('Media\YouTubeImporter\Manager');
 
-                Core\Security\ACL::$ignore = true;
                 $manager->onQueue($video);
+
                 Core\Security\ACL::$ignore = false;
             }, ['max_messages' => 1]);
     }
