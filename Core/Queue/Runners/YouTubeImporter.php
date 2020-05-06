@@ -29,7 +29,7 @@ class YouTubeImporter implements Interfaces\QueueRunner
                     return;
                 }
 
-                echo "[YouTubeImporter] Received a YouTube download request from {$video->getOwnerEntity()->username} ({$video->getOwnerEntity()->guid})\n";
+                echo "[YouTubeImporter] Received a YouTube download request from {$video->getOwnerEntity()->username} ({$video->getOwnerEntity()->guid}) {$video->getGuid()}\n";
 
                 /** @var Core\Media\YouTubeImporter\Manager $manager */
                 $manager = Di::_()->get('Media\YouTubeImporter\Manager');

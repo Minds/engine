@@ -135,17 +135,17 @@ review:stop:
       - production
       - test/gitlab-ci
 
-qa:manual:
-  stage: qa
-  script:
-    - echo "Manually approved"
-  when: manual
-  only:
-    refs:
-      - master
-      - production
-      - test/gitlab-ci
-  allow_failure: false
+# qa:manual:
+#   stage: qa
+#   script:
+#     - echo "Manually approved"
+#   when: manual
+#   only:
+#     refs:
+#       - master
+#       - production
+#       - test/gitlab-ci
+#   allow_failure: false
 
 ################
 # Deploy Stage #
