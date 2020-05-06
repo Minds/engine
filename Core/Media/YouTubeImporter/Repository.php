@@ -89,6 +89,14 @@ class Repository
             ];
         }
 
+        if (isset($opts['user_guid'])) {
+            $filter[] = [
+                'term' => [
+                    'owner_guid' => $opts['user_guid'],
+                ],
+            ];
+        }
+
         if (count($timeCreatedRange) > 0) {
             $filter[]['range'] = [
                 'time_created' => [
