@@ -95,13 +95,8 @@ class Feeds
 
         /** @var AdminQueue $adminQueue */
         $adminQueue = Di::_()->get('Groups\AdminQueue');
-        $rows = $adminQueue->count($this->group);
 
-        if (!$rows) {
-            return 0;
-        }
-
-        return (int) $rows[0]['count']->value();
+        return $adminQueue->count($this->group) ?: 0;
     }
 
     /**

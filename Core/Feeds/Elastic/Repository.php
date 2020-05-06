@@ -118,36 +118,50 @@ class Repository
 
         $algorithm->setPeriod($opts['period']);
 
-        $body = [
-            '_source' => array_unique([
-                'guid',
-                'owner_guid',
-                '@timestamp',
-                'time_created',
-                'access_id',
-                'moderator_guid',
-                $this->getSourceField($type),
-            ]),
-            'query' => [
-                'function_score' => [
-                    'query' => [
-                        'bool' => [
-                            //'must_not' => [ ],
-                        ],
-                    ],
-                    "score_mode" => $algorithm->getScoreMode(),
-                    'functions' => [
-                        [
-                            'filter' => [
-                                'match_all' => (object) [],
+        if (!$opts['count']) {
+            $body = [
+                '_source' => array_unique([
+                    'guid',
+                    'owner_guid',
+                    '@timestamp',
+                    'time_created',
+                    'access_id',
+                    'moderator_guid',
+                    $this->getSourceField($type),
+                ]),
+                'query' => [
+                    'function_score' => [
+                        'query' => [
+                            'bool' => [
+                                //'must_not' => [ ],
                             ],
-                            'weight' => 1,
+                        ],
+                        "score_mode" => $algorithm->getScoreMode(),
+                        'functions' => [
+                            [
+                                'filter' => [
+                                    'match_all' => (object) [],
+                                ],
+                                'weight' => 1,
+                            ],
                         ],
                     ],
                 ],
-            ],
-            'sort' => [],
-        ];
+                'sort' => [],
+            ];
+        } else {
+            $body = [
+                'query' => [
+                    'function_score' => [
+                        'query' => [
+                            'bool' => [
+                                //'must_not' => [ ],
+                            ],
+                        ]
+                    ],
+                ]
+            ];
+        }
 
 
         //
@@ -271,6 +285,12 @@ class Repository
 
         if ($opts['pending'] === false) {
             $body['query']['function_score']['query']['bool']['must_not'][] = [
+                'term' => [
+                    'pending' => true,
+                ]
+            ];
+        } else {
+            $body['query']['function_score']['query']['bool']['must'][] = [
                 'term' => [
                     'pending' => true,
                 ]
@@ -415,14 +435,15 @@ class Repository
         }
 
         //
+        if (!$opts['count']) {
+            $esSort = $algorithm->getSort();
+            if ($esSort) {
+                if ($opts['reverse_sort']) {
+                    $esSort = $this->reverseSort($esSort);
+                }
 
-        $esSort = $algorithm->getSort();
-        if ($esSort) {
-            if ($opts['reverse_sort']) {
-                $esSort = $this->reverseSort($esSort);
+                $body['sort'][] = $esSort;
             }
-
-            $body['sort'][] = $esSort;
         }
 
         //
@@ -439,16 +460,26 @@ class Repository
 
         $query = [
             'index' => $this->index,
-            'type' => $esType,
             'body' => $body,
-            'size' => $opts['limit'],
-            'from' => $opts['offset'],
         ];
 
         $prepared = new Prepared\Search();
-        $prepared->query($query);
 
+        if (!$opts['count']) {
+            $query['type'] = $esType;
+            $query['size'] = $opts['limit'];
+            $query['from'] = (int) $opts['offset'];
+        } else {
+            $prepared->setMethod('count');
+        }
+
+        $prepared->query($query);
+        error_log(json_encode($query));
         $response = $this->client->request($prepared);
+
+        if ($opts['count']) {
+            return $response['count'];
+        }
 
         if ($opts['pinned_guids']) { // Hack the response so we can have pinned posts
             foreach ($opts['pinned_guids'] as $pinned_guid) {

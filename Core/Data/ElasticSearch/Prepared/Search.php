@@ -13,6 +13,7 @@ use Minds\Core\Data\Interfaces\PreparedMethodInterface;
 class Search implements PreparedMethodInterface
 {
     protected $_query;
+    private $method = 'search';
 
     /**
      * @param array $params
@@ -39,11 +40,22 @@ class Search implements PreparedMethodInterface
     }
 
     /**
-     * Sets the prepared method
+     * Gets the prepared method
      * @return string
      */
-    public function getMethod()
+    public function getMethod(): string
     {
-        return 'search';
+        return $this->method;
+    }
+
+    /**
+     * Sets the prepared method.
+     * @param string $method - method of search e.g 'search', 'count'.
+     * @return Search for chaining.
+     */
+    public function setMethod(string $method): Search
+    {
+        $this->method = $method;
+        return $this;
     }
 }

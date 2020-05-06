@@ -278,4 +278,46 @@ class Manager
 
         return $entities;
     }
+
+     /**
+     * Counts matches.
+     *
+     * @param array $opts - options array
+     * @return 
+     */
+    public function count($opts)
+    {
+        $opts = array_merge([
+            'algorithm' => null,
+            'cache_key' => null,
+            'user_guid' => null,
+            'container_guid' => null,
+            'owner_guid' => null,
+            'subscriptions' => null,
+            'access_id' => null,
+            'custom_type' => null,
+            'offset' => 0,
+            'limit' => 12,
+            'type' => null,
+            'sync' => false,
+            'from_timestamp' => null,
+            'reverse_sort' => null,
+            'query' => null,
+            'nsfw' => null,
+            'single_owner_threshold' => 36,
+            'filter_hashtags' => false,
+            'pinned_guids' => null,
+            'as_activities' => false,
+            'exclude' => null,
+            'count' => true,
+        ], $opts);
+
+        if (isset($opts['query']) && $opts['query']) {
+            $opts['query'] = str_replace('#', '', strtolower($opts['query']));
+        }
+
+        return $this->repository->getList($opts, true)->getReturn();
+    }
+
+
 }

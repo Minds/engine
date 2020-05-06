@@ -13,6 +13,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Data\Cassandra\Prepared;
 use Minds\Entities;
 use Minds\Plugin;
+use Minds\Core\Feeds\Elastic\Manager;
 
 // TODO: Migrate to new Feeds CQL
 class AdminQueue
@@ -20,13 +21,17 @@ class AdminQueue
     /** @var Core\Data\Cassandra\Client $client */
     protected $client;
 
+     	    /** @var Core\Feeds\Elastic\Manager; $elasticManager */
+             protected $elasticManager;
+
     /**
      * AdminQueue constructor.
      * @param Core\Data\Cassandra\Client $db
      */
-    public function __construct($db = null)
+    public function __construct($db = null, $elasticManager = null)
     {
         $this->client = $db ?: Di::_()->get('Database\Cassandra\Cql');
+        $this->elasticManager = $elasticManager ?: new Manager();    
     }
 
     /**
@@ -79,25 +84,32 @@ class AdminQueue
     }
 
     /**
-     * @param $group
-     * @return \Cassandra\Rows
-     * @throws \Exception
+     * Counts amount of items in a groups moderation queue.
+     * 
+     * @param mixed $group - group entity
+     * @param array options - options for query.
+     * @return int - the amount of documents found.
      */
-    public function count($group)
+    public function count($group = null, array $options = []): int
     {
-        if (!$group) {
-            throw new \Exception('Group is required');
-        }
+        $options = array_merge([
+            'limit' => null,
+            'offset' => 0,
+            'pending' => true,
+            'type' => 'activity',
+            'algorithm' => 'latest',
+            'period' => '1y',
+            'single_owner_threshold' => 0,
+            'access_id' => [2, $group->guid],
+            'from_timestamp' => 0,
+            'container_guid' => $group->guid,
+            'as_activities' => true,
+            'count' => true,
+        ], $options);
 
-        $rowKey = "group:adminqueue:{$group->getGuid()}";
-        $template = "SELECT COUNT(*) FROM entities_by_time WHERE key = ?";
-        $values = [ $rowKey ];
-
-        $query = new Prepared\Custom();
-        $query->query($template, $values);
-
-        return $this->client->request($query);
+        return $this->elasticManager->count($options);
     }
+
 
     /**
      * @param \Minds\Entities\Group $group
