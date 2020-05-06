@@ -173,13 +173,15 @@ class Manager
      * @param Transcode $transcode
      * @return void
      */
-    public function add(Transcode $transcode): void
+    public function add(Transcode $transcode, $sendToQueue = true): void
     {
         // Add to repository
         $this->repository->add($transcode);
 
-        // Notify the background queue
-        $this->queueDelegate->onAdd($transcode);
+        if ($sendToQueue) {
+            // Notify the background queue
+            $this->queueDelegate->onAdd($transcode);
+        }
     }
 
     /**
@@ -190,28 +192,7 @@ class Manager
      */
     public function update(Transcode $transcode, array $dirty = []): bool
     {
-        $success = $this->repository->update($transcode, $dirty);
-
-        // For the benefit of the YouTubeImporter
-        // We only care about X264_360p
-        if (in_array('status', $dirty, true) && $transcode->getProfile()->getId() === 'X264_360p') {
-            // also update the status in the video
-            try {
-                error_log("Updating transcode for X264_360p {$transcode->getVideo()->getGuid()}");
-                if ($transcode->getStatus() !== $transcode->getVideo()->getTranscodingStatus()) {
-                    $transcode->getVideo()
-                        ->patch([
-                            'transcoding_status' => $transcode->getStatus(),
-                        ])
-                        ->save(true);
-                    error_log("Patched {$transcode->getStatus()}");
-                }
-            } catch (\Exception $e) {
-                error_log('[Transcoder\Repository] ' . $e->getMessage());
-            }
-        }
-
-        return $success;
+        return $this->repository->update($transcode, $dirty);
     }
 
     /**
