@@ -8,16 +8,29 @@ use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Spec\Minds\Mocks;
 use Minds\Core\Data\Cassandra;
+use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
+use Minds\Common\Repository\Response;
+use Minds\Core\Blogs\Legacy\Entity;
+
+interface ResponseElement
+{
+    public function getEntity();
+}
 
 class AdminQueueSpec extends ObjectBehavior
 {
     protected $_client;
 
+    /** @var ElasticManager */
+    protected $_elasticManager;
+
     public function let(
-        Cassandra\Client $client
+        Cassandra\Client $client,
+        ElasticManager $elasticManager
     ) {
-        $this->beConstructedWith($client);
         $this->_client = $client;
+        $this->_elasticManager = $elasticManager;
+        $this->beConstructedWith($client, $elasticManager);
     }
 
     public function it_is_initializable()
@@ -58,21 +71,17 @@ class AdminQueueSpec extends ObjectBehavior
     // count()
 
     public function it_should_count(
-        Group $group
+        Group $group,
+        ElasticManager $elasticManager,
+        Response $topGetListResponse1
     ) {
-        $rows = new Mocks\Cassandra\Rows([], '');
-
-        $group->getGuid()->willReturn(1000);
-
-        $this->_client->request(Argument::that(function ($query) {
-            return $query->build()['values'][0] == 'group:adminqueue:1000';
+        $elasticManager->count(Argument::that(function (array $opts) {
+            return gettype($opts) === 'array';
         }))
             ->shouldBeCalled()
-            ->willReturn($rows);
+            ->willReturn(2);
 
-        $this
-            ->count($group)
-            ->shouldReturn($rows);
+        $this->count($group);
     }
 
     public function it_should_throw_during_count_if_no_group()

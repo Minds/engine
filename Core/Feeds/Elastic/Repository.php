@@ -74,6 +74,7 @@ class Repository
             'future' => false,
             'exclude' => null,
             'pending' => false,
+            'count' => false,
         ], $opts);
 
         if (!$opts['type']) {

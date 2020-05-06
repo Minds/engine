@@ -145,16 +145,14 @@ class FeedsSpec extends ObjectBehavior
     public function it_should_count(
         Group $group
     ) {
-        $this->_adminQueue->count($group)
-            ->shouldBeCalled()
-            ->willReturn([
-                [ 'count' => new Mocks\Cassandra\Value(2) ]
-            ]);
+        $rows = new Mocks\Cassandra\Rows([], '');
 
-        $this
-            ->setGroup($group)
-            ->count()
-            ->shouldReturn(2);
+        $this->_adminQueue->getAll($group, [])
+            ->shouldBeCalled()
+            ->willReturn($rows);
+
+        $this->setGroup($group)
+            ->getAll();
     }
 
     public function it_should_count_zero_if_no_rows(
