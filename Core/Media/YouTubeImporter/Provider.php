@@ -19,5 +19,9 @@ class Provider extends DiProvider
         $this->di->bind('Media\YouTubeImporter\Manager', function ($di) {
             return new Manager();
         });
+
+        $this->di->bind('Media\YouTubeImporter\YTClient', function ($di) {
+            return new YTClient();
+        }, [ 'useFactory' => true ]);
     }
 }
