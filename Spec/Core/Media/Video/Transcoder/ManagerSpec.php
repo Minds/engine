@@ -127,21 +127,6 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->update($transcode, [ 'status' ])
             ->shouldBeCalled();
 
-        $video->getGUID()
-            ->willReturn(123);
-
-        $video->getTranscodingStatus()
-            ->shouldBeCalled()
-            ->willReturn('queued');
-
-        $video->patch(['transcoding_status' => 'transcoding'])
-            ->shouldBeCalled()
-            ->willReturn($video);
-
-        $video->save(true)
-            ->shouldBeCalled();
-
-
         $this->update($transcode, [ 'status' ]);
     }
 

@@ -15,8 +15,10 @@ use Minds\Core\Media\YouTubeImporter\Delegates\QueueDelegate;
 use Minds\Core\Media\YouTubeImporter\Exceptions\UnregisteredChannelException;
 use Minds\Core\Media\YouTubeImporter\Manager;
 use Minds\Core\Media\YouTubeImporter\Repository;
+use Minds\Core\Media\YouTubeImporter\TranscoderBridge;
 use Minds\Core\Media\YouTubeImporter\YTVideo;
-use Minds\Core\Media\Video\Manager as VideoManager;
+use Minds\Core\Media\YouTubeImporter\YTClient;
+use Minds\Core\Media\YouTubeImporter\YTApi;
 use Minds\Entities\User;
 use Minds\Entities\Video;
 use PhpSpec\ObjectBehavior;
@@ -31,8 +33,11 @@ class ManagerSpec extends ObjectBehavior
     /** @var MediaRepository */
     protected $mediaRepository;
 
-    /** @var \Google_Client */
-    protected $client;
+    /** @var YTClient */
+    protected $ytClient;
+
+    /** @var YTApi */
+    protected $ytApi;
 
     /** @var Config */
     protected $config;
@@ -46,9 +51,6 @@ class ManagerSpec extends ObjectBehavior
     /** @var Save */
     protected $save;
 
-    /** @var Call */
-    protected $call;
-
     /** @var VideoAssets */
     protected $videoAssets;
 
@@ -61,80 +63,55 @@ class ManagerSpec extends ObjectBehavior
     /** @var Logger */
     protected $logger;
 
-    /** @var VideoManager */
-    protected $videoManager;
+    /** @var TranscoderBridge */
+    protected $transcoderBridge;
 
     public function let(
         Repository $repository,
         MediaRepository $mediaRepository,
-        \Google_Client $client,
+        YTClient $ytClient,
+        YTApi $ytApi,
         QueueDelegate $queueDelegate,
         EntityCreatorDelegate $entityDelegate,
         Save $save,
         Config $config,
-        Call $call,
         VideoAssets $videoAssets,
         EntitiesBuilder $entitiesBuilder,
-        Subscriber $subscriber,
         Logger $logger,
-        VideoManager $videoManager
+        TranscoderBridge $transcoderBridge
     ) {
         $this->repository = $repository;
         $this->mediaRepository = $mediaRepository;
-        $this->config = $config;
+        $this->ytClient = $ytClient;
+        $this->ytApi = $ytApi;
         $this->queueDelegate = $queueDelegate;
         $this->entityDelegate = $entityDelegate;
         $this->save = $save;
-        $this->call = $call;
-        $this->logger = $logger;
-        $this->client = $client;
+        $this->config = $config;
         $this->videoAssets = $videoAssets;
+        $this->logger = $logger;
         $this->entitiesBuilder = $entitiesBuilder;
-        $this->subscriber = $subscriber;
-        $this->videoManager = $videoManager;
+        $this->transcoderBridge = $transcoderBridge;
 
         $this->beConstructedWith(
             $repository,
             $mediaRepository,
-            $client,
+            $ytClient,
+            $ytApi,
             $queueDelegate,
             $entityDelegate,
             $save,
-            $call,
             $config,
             $videoAssets,
             $entitiesBuilder,
-            $subscriber,
             $logger,
-            $videoManager
+            $transcoderBridge
         );
     }
 
     public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
-    }
-
-    public function it_should_return_auth_url()
-    {
-        $this->config->get('google')
-            ->shouldBeCalled()
-            ->willReturn([
-                'youtube' => [
-                    'client_id' => 'client_id',
-                    'client_secret' => 'client_secret',
-                ],
-            ]);
-        $this->client->setDeveloperKey('')
-            ->shouldBeCalled();
-        $this->client->setClientId('client_id')
-            ->shouldBeCalled();
-        $this->client->setClientSecret('client_secret')
-            ->shouldBeCalled();
-        $this->client->createAuthUrl()
-            ->shouldBeCalled()
-            ->willReturn('url');
-        $this->connect()->shouldReturn('url');
     }
 
     public function it_should_not_get_videos_if_channel_is_not_associated_to_user(Response $response, User $user)
@@ -174,102 +151,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn($response);
     }
 
-    public function it_should_not_receive_a_new_video_if_it_already_exists(YTVideo $video, Video $video2, User $user)
-    {
-        $video->getVideoId()
-            ->shouldBeCalled()
-            ->willReturn('id');
-
-        $this->repository->getList(['youtube_id' => 'id'])
-            ->shouldBeCalled()
-            ->willReturn(new Response([$video2]));
-
-        $this->receiveNewVideo($video);
-    }
-
-    public function it_should_not_receive_a_new_video_if_no_user_is_associated_to_that_yt_channel(YTVideo $video, User $user)
-    {
-        $video->getVideoId()
-            ->shouldBeCalled()
-            ->willReturn('id');
-
-        $this->repository->getList(['youtube_id' => 'id'])
-            ->shouldBeCalled()
-            ->willReturn(new Response());
-
-        $video->getChannelId()
-            ->shouldBeCalled()
-            ->willReturn('channel_id');
-
-        $this->call->getRow('yt_channel:user:channel_id')
-            ->shouldBeCalled()
-            ->willReturn([]);
-
-        $this->receiveNewVideo($video);
-    }
-
-    public function it_should_not_receive_a_new_video_if_user_is_banned(YTVideo $video, User $user)
-    {
-        $video->getVideoId()
-            ->shouldBeCalled()
-            ->willReturn('id');
-
-        $this->repository->getList(['youtube_id' => 'id'])
-            ->shouldBeCalled()
-            ->willReturn(new Response());
-
-        $video->getChannelId()
-            ->shouldBeCalled()
-            ->willReturn('channel_id');
-
-        $this->call->getRow('yt_channel:user:channel_id')
-            ->shouldBeCalled()
-            ->willReturn(['channel_id' => '1']);
-
-        $this->entitiesBuilder->single('1')
-            ->shouldBeCalled()
-            ->willReturn($user);
-
-        $user->isBanned()
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->receiveNewVideo($video);
-    }
-
-    public function it_should_not_receive_a_new_video_if_user_is_deleted(YTVideo $video, User $user)
-    {
-        $video->getVideoId()
-            ->shouldBeCalled()
-            ->willReturn('id');
-
-        $this->repository->getList(['youtube_id' => 'id'])
-            ->shouldBeCalled()
-            ->willReturn(new Response());
-
-        $video->getChannelId()
-            ->shouldBeCalled()
-            ->willReturn('channel_id');
-
-        $this->call->getRow('yt_channel:user:channel_id')
-            ->shouldBeCalled()
-            ->willReturn(['channel_id' => '1']);
-
-        $this->entitiesBuilder->single('1')
-            ->shouldBeCalled()
-            ->willReturn($user);
-
-        $user->isBanned()
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $user->getDeleted()
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->receiveNewVideo($video);
-    }
-
     public function it_should_get_a_count_of_videos(User $user)
     {
         $this->repository->getCount($user)
@@ -307,5 +188,43 @@ class ManagerSpec extends ObjectBehavior
             ]);
 
         $this->getThreshold()->shouldReturn(10);
+    }
+
+    public function it_should_download_and_save_on_queue()
+    {
+        $video = new Video();
+        $video->setYouTubeId('ytId');
+
+        $this->ytApi->getVideoInfo('ytId')
+            ->willReturn([
+                'videoDetails' => [],
+                'streamingData' => [
+                    'formats' => [
+                        [
+                            'itag' => 35, //Invalid, should skip
+                        ],
+                        [
+                            'itag' => 18, // 360p
+                        ],
+                        [
+                            'itag' => 22, // 720p
+                        ],
+                    ]
+                ]
+            ]);
+
+        $this->transcoderBridge->addFromYouTube($video, Argument::that(function ($source) {
+            return true;
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->save->setEntity($video)
+            ->willReturn($this->save);
+
+        $this->save->save(Argument::any())
+            ->willReturn(true);
+
+        $this->onQueue($video);
     }
 }

@@ -8,7 +8,6 @@ namespace Minds\Core\Media\YouTubeImporter;
 use Minds\Api\Exportable;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
-use Minds\Core\Session;
 use Minds\Entities\User;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
@@ -18,12 +17,24 @@ class Controller
     /** @var Manager */
     protected $manager;
 
+    /** @var YTAuth */
+    protected $ytAuth;
+
+    /** @var YTSubscription */
+    protected $ytSubscription;
+
     /** @var Config */
     protected $config;
 
-    public function __construct($manager = null, $config = null)
-    {
+    public function __construct(
+        $manager = null,
+        $ytAuth = null,
+        $ytSubscription = null,
+        $config = null
+    ) {
         $this->manager = $manager ?: Di::_()->get('Media\YouTubeImporter\Manager');
+        $this->ytAuth = $ytAuth ?? new YTAuth();
+        $this->ytSubscription = $ytSubscription ?? new YTSubscription();
         $this->config = $config ?: Di::_()->get('Config');
     }
 
@@ -37,7 +48,7 @@ class Controller
     {
         return new JsonResponse([
             'status' => 'success',
-            'url' => $this->manager->connect(),
+            'url' => $this->ytAuth->connect(),
         ]);
     }
 
@@ -59,10 +70,10 @@ class Controller
         }
 
         /** @var User $user */
-        $user = Session::getLoggedinUser();
+        $user = $request->getAttribute('_user');
 
         try {
-            $this->manager->disconnect($user, $channelId);
+            $this->ytAuth->disconnect($user, $channelId);
         } catch (\Exception $e) {
             return new JsonResponse([
                 'status' => 'error',
@@ -87,7 +98,7 @@ class Controller
         $code = $request->getQueryParams()['code'];
 
         /** @var User $user */
-        $user = Session::getLoggedinUser();
+        $user = $request->getAttribute('_user');
 
         if (!isset($code)) {
             return new JsonResponse([
@@ -96,7 +107,7 @@ class Controller
             ]);
         }
 
-        $this->manager->fetchToken($user, $code);
+        $this->ytAuth->fetchToken($user, $code);
 
         // redirect back to the URL
         // TODO this should redirect to an URL with the youtube importer opened
@@ -125,10 +136,13 @@ class Controller
 
         $status = $queryParams['status'] ?? null;
 
-        $offset = $queryParams['offset'] ?? null;
+        $offset = $queryParams['nextPageToken'] ?? null;
+        if ($offset === 'null' || !$offset) { // Frontend sends null
+            $offset = null;
+        }
 
         /** @var User $user */
-        $user = Session::getLoggedinUser();
+        $user = $request->getAttribute('_user');
 
         try {
             $videos = $this->manager->getVideos([
@@ -160,9 +174,10 @@ class Controller
      */
     public function getCount(ServerRequest $request): JsonResponse
     {
+        $user = $request->getAttribute('_user');
         return new JsonResponse([
             'status' => 'success',
-            'counts' => $this->manager->getCount(Session::getLoggedinUser()),
+            'counts' => $this->manager->getCount($user),
         ]);
     }
 
@@ -176,7 +191,7 @@ class Controller
         $params = $request->getParsedBody();
 
         /** @var User $user */
-        $user = Session::getLoggedinUser();
+        $user = $request->getAttribute('_user');
 
         if (!isset($params['channelId'])) {
             return new JsonResponse([
@@ -233,11 +248,13 @@ class Controller
             ]);
         }
 
+        $user = $request->getAttribute('_user');
+
         $videoId = $params['videoId'];
 
         return new JsonResponse([
             'status' => 'status',
-            'done' => $this->manager->cancel(Session::getLoggedinUser(), $videoId)
+            'done' => $this->manager->cancel($user, $videoId)
         ]);
     }
 
@@ -258,10 +275,10 @@ class Controller
         }
 
         /** @var User $user */
-        $user = Session::getLoggedinUser();
+        $user = $request->getAttribute('_user');
 
         try {
-            $done = $this->manager->updateSubscription($user, $params['channelId'], true);
+            $done = $this->ytSubscription->update($user, $params['channelId'], true);
 
             return new JsonResponse([
                 'status' => 'success',
@@ -292,10 +309,10 @@ class Controller
         }
 
         /** @var User $user */
-        $user = Session::getLoggedinUser();
+        $user = $request->getAttribute('_user');
 
         try {
-            $done = $this->manager->updateSubscription($user, $params['channelId'], false);
+            $done = $this->ytSubscription->update($user, $params['channelId'], false);
 
             return new JsonResponse([
                 'status' => 'success',
@@ -332,7 +349,7 @@ class Controller
             ->setVideoId($videoId)
             ->setChannelId($channelId);
 
-        $this->manager->receiveNewVideo($video);
+        $this->ytSubscription->onNewVideo($video);
 
         return new JsonResponse([
             'status' => 'success',
