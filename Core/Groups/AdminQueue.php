@@ -21,8 +21,8 @@ class AdminQueue
     /** @var Core\Data\Cassandra\Client $client */
     protected $client;
 
-     	    /** @var Core\Feeds\Elastic\Manager; $elasticManager */
-             protected $elasticManager;
+    /** @var Core\Feeds\Elastic\Manager; $elasticManager */
+    protected $elasticManager;
 
     /**
      * AdminQueue constructor.
@@ -31,7 +31,7 @@ class AdminQueue
     public function __construct($db = null, $elasticManager = null)
     {
         $this->client = $db ?: Di::_()->get('Database\Cassandra\Cql');
-        $this->elasticManager = $elasticManager ?: new Manager();    
+        $this->elasticManager = $elasticManager ?: new Manager();
     }
 
     /**
@@ -85,7 +85,7 @@ class AdminQueue
 
     /**
      * Counts amount of items in a groups moderation queue.
-     * 
+     *
      * @param mixed $group - group entity
      * @param array options - options for query.
      * @return int - the amount of documents found.

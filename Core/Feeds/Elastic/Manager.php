@@ -279,12 +279,12 @@ class Manager
         return $entities;
     }
 
-     /**
-     * Counts matches.
-     *
-     * @param array $opts - options array
-     * @return 
-     */
+    /**
+    * Counts matches.
+    *
+    * @param array $opts - options array
+    * @return
+    */
     public function count($opts)
     {
         $opts = array_merge([
@@ -318,6 +318,4 @@ class Manager
 
         return $this->repository->getList($opts, true)->getReturn();
     }
-
-
 }
