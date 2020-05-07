@@ -43,12 +43,12 @@ class UserMappingSpec extends ObjectBehavior
         $user->getEmailConfirmedAt()
             ->shouldBeCalled()
             ->willReturn($now);
-
         $user->isMature()->willReturn(false);
         $user->getMatureContent()->willReturn(false);
         $user->getGroupMembership()->willReturn([ 2000 ]);
         $user->getNsfw()->willReturn([ 1 ]);
         $user->getTags()->willReturn([ 'spaceiscool' ]);
+        $user->get('wire_threshold')->willReturn(null);
 
         $this
             ->setEntity($user)
@@ -80,6 +80,7 @@ class UserMappingSpec extends ObjectBehavior
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'user',
                 'public' => true,
+                'wire_support_tier' => null,
                 'tags' => [ 'spaceiscool' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',
@@ -114,13 +115,14 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('rating')->willReturn(1);
         $user->getTags()->willReturn([ 'spaceiscool' ]);
         $user->isBanned()->willReturn(true);
-
         $user->getNsfw()->willReturn([ 1 ]);
         $user->isMature()->willReturn(true);
         $user->getMatureContent()->willReturn(false);
         $user->getGroupMembership()->willReturn([ 2000 ]);
         $user->get('moderator_guid')->willReturn(null);
         $user->get('time_moderated')->willReturn(null);
+        $user->get('wire_threshold')->willReturn(null);
+
         $this
             ->setEntity($user)
             ->shouldThrow('Minds\Exceptions\BannedException')

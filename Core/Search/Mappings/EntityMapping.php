@@ -35,6 +35,7 @@ class EntityMapping implements MappingInterface
         'tags' => [ 'type' => 'text' ],
         'nsfw' => [ 'type' => 'integer' ],
         'paywall' => [ 'type' => 'boolean', '$exportField' => 'paywall' ],
+        'wire_support_tier' => [ 'type' => 'text' ],
         'rating' => [ 'type' => 'integer', '$exportField' => 'rating' ],
         'moderator_guid' => [ 'type' => 'text'],
         '@moderated' => [ 'type' => 'date'],
@@ -155,6 +156,20 @@ class EntityMapping implements MappingInterface
         }
 
         $map['paywall'] = $paywall;
+
+        // Support Tier
+
+        $supportTier = null;
+
+        if ($this->entity && ($this->entity->wire_threshold ?? null)) {
+            $wireThreshold = is_string($this->entity->wire_threshold) ?
+                json_decode($this->entity->wire_threshold, true) :
+                $this->entity->wire_threshold;
+
+            $supportTier = $wireThreshold['support_tier']['urn'] ?? null;
+        }
+
+        $map['wire_support_tier'] = $supportTier;
 
         // Text
 
