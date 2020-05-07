@@ -41,6 +41,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->getNsfw()->willReturn([ 1 ]);
         $activity->getTags()->willReturn([ 'spaceiscool' ]);
         $activity->get('license')->willReturn('cc-test-lic');
+        $activity->get('wire_threshold')->willReturn(null);
 
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
@@ -76,6 +77,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'activity',
                 'public' => true,
+                'wire_support_tier' => null,
                 'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ],
             ]);
@@ -111,6 +113,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
         $activity->getTags()->willReturn([ 'spaceiscool' ]);
+        $activity->get('wire_threshold')->willReturn(null);
 
         $this
             ->setEntity($activity)
@@ -143,6 +146,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'activity',
                 'public' => true,
+                'wire_support_tier' => null,
                 'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',
