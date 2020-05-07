@@ -71,6 +71,10 @@ class Manager
 
         $this->tagCloud = $this->getTagCloud();
 
+        if (empty($this->tagCloud)) {
+            throw new NoTagsException();
+        }
+
         $tagTrends12 = $this->getTagTrendsForPeriod(12, [], [ 'limit' => round($opts['limit'] / 2) ]);
         $tagTrends24 = $this->getTagTrendsForPeriod(24, array_map(function ($trend) {
             return $trend->getHashtag();
