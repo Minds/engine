@@ -86,6 +86,9 @@
         "paywall": {
           "type": "boolean"
         },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
         "public": {
           "type": "boolean"
         },
@@ -215,6 +218,9 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
         },
         "public": {
           "type": "boolean"
@@ -353,6 +359,9 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
         },
         "public": {
           "type": "boolean"
@@ -495,6 +504,9 @@
         "paywall": {
           "type": "boolean"
         },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
         "public": {
           "type": "boolean"
         },
@@ -619,6 +631,9 @@
         "paywall": {
           "type": "boolean"
         },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
         "public": {
           "type": "boolean"
         },
@@ -730,6 +745,9 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
         },
         "public": {
           "type": "boolean"
@@ -889,6 +907,9 @@
         "paywall": {
           "type": "boolean"
         },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1019,6 +1040,9 @@
         "paywall": {
           "type": "boolean"
         },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1106,6 +1130,9 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
         },
         "public": {
           "type": "boolean"
@@ -1219,6 +1246,9 @@
         "paywall": {
           "type": "boolean"
         },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1319,6 +1349,9 @@
         "paywall": {
           "type": "boolean"
         },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1388,6 +1421,9 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
         },
         "public": {
           "type": "boolean"
@@ -1523,6 +1559,9 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
         },
         "public": {
           "type": "boolean"
@@ -1666,6 +1705,9 @@
         "paywall": {
           "type": "boolean"
         },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1750,6 +1792,9 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
         },
         "public": {
           "type": "boolean"
@@ -1865,6 +1910,9 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
         },
         "public": {
           "type": "boolean"
@@ -1998,6 +2046,9 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
         },
         "public": {
           "type": "boolean"

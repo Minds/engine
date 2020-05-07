@@ -60,7 +60,7 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
             $status = 403;
         } catch (UserErrorException $e) {
             $message = $e->getMessage();
-            $status = 400;
+            $status = ((int) $e->getCode()) ?: 400;
         } catch (Exception $e) {
             // Log
             $this->logger->critical($e, ['exception' => $e]);

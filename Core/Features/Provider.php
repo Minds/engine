@@ -58,6 +58,7 @@ class Provider extends DiProvider
                 'boost-rotator',
                 'yt-importer',
                 'settings-referrals',
+                'channels-shop',
             ];
         });
 
