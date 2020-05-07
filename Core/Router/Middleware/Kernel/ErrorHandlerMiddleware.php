@@ -11,6 +11,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
+use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -57,6 +58,9 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
         } catch (ForbiddenException $e) {
             $message = 'Forbidden';
             $status = 403;
+        } catch (UserErrorException $e) {
+            $message = $e->getMessage();
+            $status = 400;
         } catch (Exception $e) {
             // Log
             $this->logger->critical($e, ['exception' => $e]);
@@ -71,6 +75,7 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
                 return new JsonResponse([
                     'status' => 'error',
                     'message' => $message,
+                    'errorId' => str_replace('\\', '::', get_class($e)),
                 ], $status);
         }
     }
