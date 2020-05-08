@@ -79,7 +79,7 @@ class Repository
             'offset' => null,
             'include_offset' => false,
             'token' => null,
-            'descending' => true
+            'descending' => true,
         ], $opts);
 
         $parent_guids = explode(':', $opts['parent_path']);
@@ -122,18 +122,35 @@ class Repository
         $where[] = 'parent_guid_l3 = ?';
         $values[] = new Varint($opts['parent_guid_l3']);
 
-
         if ($opts['guid']) {
             $where[] = 'guid = ?';
             $values[] = new Varint($opts['guid']);
         }
+
         if ($opts['offset']) {
-            if ($opts['include_offset']) {
-                $where[] = $opts['descending'] ? " guid <= ?" : "guid >= ?";
+            if (is_numeric($opts['offset'])) {
+                if ($opts['include_offset']) {
+                    $where[] = $opts['descending'] ? "guid <= ?" : "guid >= ?";
+                } else {
+                    $where[] = $opts['descending'] ? "guid < ?" : "guid > ?";
+                }
+                $values[] = new Varint((int) $opts['offset']);
             } else {
-                $where[] = $opts['descending'] ? " guid < ?" : "guid > ?";
+                $cqlOpts['paging_state_token'] = base64_decode($opts['offset'], true);
             }
-            $values[] = new Varint($opts['offset']);
+        }
+
+        if ($opts['token']) {
+            if (is_numeric($opts['token'])) {
+                if ($opts['include_offset']) {
+                    $where[] = $opts['descending'] ? "guid <= ?" : "guid >= ?";
+                } else {
+                    $where[] = $opts['descending'] ? "guid < ?" : "guid > ?";
+                }
+                $values[] = new Varint((int) $opts['token']);
+            } else {
+                $cqlOpts['paging_state_token'] = base64_decode($opts['token'], true);
+            }
         }
 
         if ($where) {
@@ -142,10 +159,6 @@ class Repository
 
         if (!$opts['descending']) {
             $cql .= ' ORDER BY parent_guid_l1 DESC, parent_guid_l2 DESC, parent_guid_l3 DESC, guid ASC';
-        }
-
-        if ($opts['token']) {
-            $cqlOpts['paging_state_token'] = base64_decode($opts['token'], true);
         }
 
         if ($opts['limit']) {
@@ -195,6 +208,7 @@ class Repository
 
             if ($rows) {
                 $comments->setPagingToken(base64_encode($rows->pagingStateToken()));
+                $comments->setLastPage($rows->isLastPage());
             }
         } catch (\Exception $e) {
             error_log($e);
@@ -291,7 +305,7 @@ class Repository
         if (!isset($result)) {
             return 0;
         }
-        
+
         $ownerGuids = array_map(function ($row) {
             return (string) $row['owner_guid'];
         }, iterator_to_array($result));

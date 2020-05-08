@@ -112,6 +112,7 @@ class Manager
                 $newResponse[] = $comment;
             }
             $newResponse->setPagingToken($response->getPagingToken());
+            $newResponse->setLastPage($response->isLastPage());
             return $newResponse;
         }
 

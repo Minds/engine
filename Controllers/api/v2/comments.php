@@ -45,33 +45,53 @@ class comments implements Interfaces\Api
         $manager = new Core\Comments\Manager();
 
         $limit = $_GET['limit'] ?? 12;
-        $loadNext = isset($_GET['load-next']) ? (int) $_GET['load-next'] : null;
+        $loadNext = isset($_GET['load-next']) ? (string) $_GET['load-next'] : null;
         $loadPrevious = isset($_GET['load-previous']) ? (string) $_GET['load-previous'] : null;
         if ($loadPrevious === 'null') {
             $loadPrevious = null;
         }
+        if ($loadNext === 'null') {
+            $loadNext = null;
+        }
 
         $descending = $loadNext ? false : true;
         $focusedUrn = $_GET['focused_urn'] ?? null;
+
+        $includeOffset = isset($_GET['include_offset']) ? !($_GET['include_offset'] === "false") : true;
+        if ($focusedUrn) {
+            $includeOffset = true;
+        }
+
         $comments = $manager->getList([
             'entity_guid' => $guid,
             'parent_path' => $parent_path,
             'limit' => (int) $limit,
             'offset' => $loadNext ?: null,
-            'include_offset' => isset($_GET['include_offset']) ? !($_GET['include_offset'] === "false") : true,
+            'include_offset' => $includeOffset,
             'token' => $loadPrevious ?: null,
             'descending' => $descending,
             'is_focused' => $focusedUrn && (strpos($focusedUrn, 'urn:') === 0),
         ]);
+
+        $token = (string) $comments->getPagingToken();
 
         if ($descending) {
             // Reversed order output
             $comments = $comments->reverse();
         }
 
+        // if this page is the last, return no offset
+        if ($comments->isLastPage()) {
+            $offset = '';
+        } elseif ($descending) {
+            // if it's not the last page and it's descending, return last comment guid
+            $offset = count($comments) <= $limit ? '' : $comments[count($comments) - 1]->getGuid();
+        } else {
+            // if it's not the last page and it's NOT descending, return first comment guid
+            $offset = count($comments) >= 0 ? $comments[0]->getGuid() : '';
+        }
+
         $response['comments'] = Exportable::_($comments);
-        $token = (string) $comments->getPagingToken();
-        $offset = count($comments) <= $limit ? '' : $comments[count($comments)-1]->getGuid();
 
         $response['load-previous'] = $descending ? $token : $offset;
         $response['load-next'] = $descending ? $offset : $token;
@@ -340,7 +360,7 @@ class comments implements Interfaces\Api
         }
         //check if owner of activity trying to remove
         $entity = Entities\Factory::build($comment->getEntityGuid());
-        
+
         if ($entity->owner_guid == Core\Session::getLoggedInUserGuid()) {
             $manager->delete($comment, [ 'force' => true ]);
             return Factory::response([]);
