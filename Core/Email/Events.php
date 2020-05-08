@@ -52,7 +52,7 @@ class Events
         });
 
         Dispatcher::register('welcome_email', 'all', function ($opts) {
-            $this->sendCampaign(new Delegates\WelcomeSender(), $opts->getParameters());
+            // $this->sendCampaign(new Delegates\WelcomeSender(), $opts->getParameters());
         });
 
         Dispatcher::register('confirmation_email', 'all', function ($opts) {
