@@ -77,7 +77,7 @@ class Events
                 ->setEntityUrn(method_exists($entity, 'getUrn') ? $entity->getUrn() : "urn:entity:$entityGuid")
                 ->setType($params['notification_view'])
                 ->setData($data);
-            
+
             try {
                 Queue\Client::build()
                   ->setQueue('NotificationDispatcher')
@@ -171,7 +171,7 @@ class Events
             }
 
             $entity = Entities\Factory::build($notification->getEntityGuid());
-            
+
             if ($entity->parent_guid || method_exists($entity, 'getEntityGuid')) {
                 $parentGuid = method_exists($entity, 'getEntityGuid') ? $entity->getEntityGuid() : $entity->parent_guid;
                 $parent = Entities\Factory::build($parentGuid, [ 'cache' => false ]);
@@ -199,10 +199,8 @@ class Events
 
                 $notification->setToGuid($to_user);
 
-                $uuid = $manager->add($notification);
+                $manager->add($notification);
 
-                $notification->setUuid($uuid);
-                
                 $counters->setUser($to_user)
                   ->increaseCounter($to_user);
 
