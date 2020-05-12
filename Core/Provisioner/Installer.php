@@ -270,7 +270,7 @@ class Installer
             $this->options['username'],
             $this->options['password'],
             $this->options['username'],
-            $this->options['email']
+            $this->options['admin-email']
         );
 
         if (!$user) {
