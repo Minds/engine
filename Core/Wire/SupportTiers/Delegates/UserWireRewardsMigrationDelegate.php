@@ -7,6 +7,7 @@ use Minds\Core\Guid;
 use Minds\Core\Wire\SupportTiers\Repository;
 use Minds\Core\Wire\SupportTiers\RepositoryGetListOptions;
 use Minds\Core\Wire\SupportTiers\SupportTier;
+use Minds\Core\Wire\SupportTiers\TierNameBuilder;
 use Minds\Entities\User;
 use Minds\Helpers\Log;
 
@@ -22,16 +23,23 @@ class UserWireRewardsMigrationDelegate
     /** @var Save */
     protected $saveAction;
 
+    /** @var TierNameBuilder */
+    protected $tierNameBuilder;
+
     /**
      * UserWireRewardsMigrationDelegate constructor.
      * @param $repository
+     * @param $saveAction
+     * @param $tierNameBuilder
      */
     public function __construct(
         $repository = null,
-        $saveAction = null
+        $saveAction = null,
+        $tierNameBuilder = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->saveAction = $saveAction ?: new Save();
+        $this->tierNameBuilder = $tierNameBuilder ?: new TierNameBuilder();
     }
 
     /**
@@ -58,10 +66,15 @@ class UserWireRewardsMigrationDelegate
             'usd' => $wireRewards['rewards']['money'] ?: [],
         ];
 
+        usort($data['tokens'], [$this->tierNameBuilder, 'sortRewards']);
+        usort($data['usd'], [$this->tierNameBuilder, 'sortRewards']);
+
         $response = new Response();
         $response->setLastPage(true);
 
         foreach ($data as $currency => $rewards) {
+            $i = 0;
+
             foreach ($rewards as $reward) {
                 $supportTier = new SupportTier();
                 $supportTier
@@ -69,14 +82,15 @@ class UserWireRewardsMigrationDelegate
                     ->setCurrency($currency)
                     ->setGuid(Guid::build())
                     ->setAmount((float) $reward['amount'])
-                    ->setName($reward['description'])
-                    ->setDescription('');
+                    ->setName($this->tierNameBuilder->buildName($i))
+                    ->setDescription($reward['description'] ?: '');
 
                 if ($write) {
                     $this->repository->add($supportTier);
                 }
 
                 $response[] = $supportTier;
+                $i++;
             }
         }
 
