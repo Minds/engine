@@ -21,7 +21,12 @@ class Routes extends ModuleRoutes
             ->withPrefix('api/v3/wire/supporttiers')
             ->do(function (Route $route) {
                 $route->get(
-                    '/:guid',
+                    '/:urn',
+                    Ref::_('Wire\SupportTiers\Controller', 'getSingle')
+                );
+
+                $route->get(
+                    '/all/:guid',
                     Ref::_('Wire\SupportTiers\Controller', 'getAll')
                 );
 
