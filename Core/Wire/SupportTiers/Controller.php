@@ -35,6 +35,32 @@ class Controller
     }
 
     /**
+     * Gets a single support tier
+     * @param ServerRequest $request
+     * @return JsonResponse
+     * @throws Exception
+     */
+    public function getSingle(ServerRequest $request): JsonResponse
+    {
+        $urn = Urn::parse($request->getAttribute('parameters')['urn'], 'support-tier');
+
+        if (!$urn || count($urn) !== 3) {
+            throw new UserErrorException('Invalid URN', 400);
+        }
+
+        $supportTier = new SupportTier();
+        $supportTier
+            ->setEntityGuid($urn[0])
+            ->setCurrency($urn[1])
+            ->setGuid($urn[2]);
+
+        return new JsonResponse([
+            'status' => 'success',
+            'support_tier' => $this->manager->get($supportTier)
+        ]);
+    }
+
+    /**
      * Gets the list of Support Tiers for an entity
      * @param ServerRequest $request
      * @return JsonResponse
