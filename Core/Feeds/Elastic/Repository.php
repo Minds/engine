@@ -100,6 +100,9 @@ class Repository
                 } else {
                     $algorithm = new SortingAlgorithms\Top();
                 }
+                if ($this->features->has('topv2-algo')) {
+                    $algorithm = new SortingAlgorithms\TopV2();
+                }
                 break;
             case "topV2":
                 $algorithm = new SortingAlgorithms\TopV2();

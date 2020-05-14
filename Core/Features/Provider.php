@@ -59,6 +59,7 @@ class Provider extends DiProvider
                 'yt-importer',
                 'settings-referrals',
                 'channels-shop',
+                'topv2-algo',
             ];
         });
 
