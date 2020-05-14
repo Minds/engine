@@ -7,7 +7,7 @@ use Minds\Core\Guid;
 use Minds\Core\Wire\SupportTiers\Repository;
 use Minds\Core\Wire\SupportTiers\RepositoryGetListOptions;
 use Minds\Core\Wire\SupportTiers\SupportTier;
-use Minds\Core\Wire\SupportTiers\TierNameBuilder;
+use Minds\Core\Wire\SupportTiers\TierBuilder;
 use Minds\Entities\User;
 use Minds\Helpers\Log;
 
@@ -23,23 +23,23 @@ class UserWireRewardsMigrationDelegate
     /** @var Save */
     protected $saveAction;
 
-    /** @var TierNameBuilder */
-    protected $tierNameBuilder;
+    /** @var TierBuilder */
+    protected $tierBuilder;
 
     /**
      * UserWireRewardsMigrationDelegate constructor.
      * @param $repository
      * @param $saveAction
-     * @param $tierNameBuilder
+     * @param $tierBuilder
      */
     public function __construct(
         $repository = null,
         $saveAction = null,
-        $tierNameBuilder = null
+        $tierBuilder = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->saveAction = $saveAction ?: new Save();
-        $this->tierNameBuilder = $tierNameBuilder ?: new TierNameBuilder();
+        $this->tierBuilder = $tierBuilder ?: new TierBuilder();
     }
 
     /**
@@ -57,17 +57,15 @@ class UserWireRewardsMigrationDelegate
             $wireRewards = json_decode($wireRewards, true);
         }
 
-        if (!$wireRewards) {
-            return new Response([]);
-        }
-
         $data = [
             'tokens' => $wireRewards['rewards']['tokens'] ?: [],
             'usd' => $wireRewards['rewards']['money'] ?: [],
         ];
 
-        usort($data['tokens'], [$this->tierNameBuilder, 'sortRewards']);
-        usort($data['usd'], [$this->tierNameBuilder, 'sortRewards']);
+        usort($data['tokens'], [$this->tierBuilder, 'sortRewards']);
+        usort($data['usd'], [$this->tierBuilder, 'sortRewards']);
+
+        $urns = [];
 
         $response = new Response();
         $response->setLastPage(true);
@@ -76,21 +74,39 @@ class UserWireRewardsMigrationDelegate
             $i = 0;
 
             foreach ($rewards as $reward) {
+                $amount = (float) $reward['amount'];
+
                 $supportTier = new SupportTier();
                 $supportTier
                     ->setEntityGuid((string) $user->guid)
                     ->setCurrency($currency)
-                    ->setGuid(Guid::build())
-                    ->setAmount((float) $reward['amount'])
-                    ->setName($this->tierNameBuilder->buildName($i))
+                    ->setGuid(($reward['guid'] ?? '') ?: $this->tierBuilder->buildGuid($currency, $amount))
+                    ->setAmount($amount)
+                    ->setName(($reward['name'] ?? '') ?: $this->tierBuilder->buildName($i))
                     ->setDescription($reward['description'] ?: '');
 
                 if ($write) {
                     $this->repository->add($supportTier);
                 }
 
+                $urns[] = $supportTier->getUrn();
                 $response[] = $supportTier;
                 $i++;
+            }
+        }
+
+        if ($write) {
+            $all = $this->repository->getList(
+                (new RepositoryGetListOptions())
+                    ->setEntityGuid((string) $user->guid)
+            );
+
+            $removedSupportTiers = $all->filter(function (SupportTier $supportTier) use ($urns) {
+                return !in_array($supportTier->getUrn(), $urns, true);
+            });
+
+            foreach ($removedSupportTiers as $supportTier) {
+                $this->repository->delete($supportTier);
             }
         }
 
@@ -122,8 +138,10 @@ class UserWireRewardsMigrationDelegate
 
         foreach ($supportTiers as $supportTier) {
             $reward = [
+                'guid' => (string) $supportTier->getGuid(),
                 'amount' => (float) $supportTier->getAmount(),
-                'description' => (string) $supportTier->getName(),
+                'name' => (string) $supportTier->getName(),
+                'description' => (string) $supportTier->getDescription(),
             ];
 
             switch ($supportTier->getCurrency()) {
