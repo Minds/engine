@@ -112,6 +112,9 @@ class Repository
                 break;
             case "hot":
                 $algorithm = new SortingAlgorithms\Hot();
+                if ($this->features->has('topv2-algo')) {
+                    $algorithm = new SortingAlgorithms\TopV2();
+                }
                 break;
             case "latest":
             default:
