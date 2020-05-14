@@ -44,23 +44,30 @@ class SupportTier implements JsonSerializable
     protected $description;
 
     /**
-     * Exports the tier into an associative array
-     * @return array
+     * Builds URN
+     * @return string|null
      */
-    public function export(): array
+    public function getUrn(): ?string
     {
-        $urn = null;
-
         if ($this->entityGuid && $this->currency && $this->guid) {
-            $urn = Urn::build('support-tier', [
+            return Urn::build('support-tier', [
                 $this->entityGuid,
                 $this->currency,
                 $this->guid,
             ]);
         }
 
+        return null;
+    }
+
+    /**
+     * Exports the tier into an associative array
+     * @return array
+     */
+    public function export(): array
+    {
         return [
-            'urn' => $urn,
+            'urn' => $this->getUrn(),
             'entity_guid' => $this->entityGuid,
             'currency' => $this->currency,
             'guid' => $this->guid,
