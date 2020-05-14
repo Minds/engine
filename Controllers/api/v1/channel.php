@@ -36,15 +36,27 @@ class channel implements Interfaces\Api
 
         $user = new Entities\User($pages[0]);
         if (!$user->username || Helpers\Flags::shouldFail($user)) {
-            return Factory::response(['status'=>'error', 'message'=>'The user could not be found']);
+            return Factory::response([
+                'status'=>'error',
+                'message'=>'Sorry, this user could not be found',
+                'type'=>'ChannelNotFoundException',
+            ]);
         }
 
         if ($user->enabled != "yes") {
-            return Factory::response(['status'=>'error', 'message'=>'The user is disabled']);
+            return Factory::response([
+                'status'=>'error',
+                'message'=>'Sorry, this user is disabled',
+                'type'=>'ChannelDisabledException',
+            ]);
         }
 
         if ($user->banned == 'yes' && !Core\Session::isAdmin()) {
-            return Factory::response(['status'=>'error', 'message'=>'The user is banned']);
+            return Factory::response([
+                'status'=>'error',
+                'message'=>'This user has been banned',
+                'type'=>'ChannelBannedException',
+            ]);
         }
 
         Di::_()->get('Referrals\Cookie')
