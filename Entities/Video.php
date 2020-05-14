@@ -222,6 +222,7 @@ class Video extends MindsObject
             'access_id' => null,
             'container_guid' => null,
             'rating' => 2, //open by default
+            'time_created' => time(),
             'time_sent' => time(),
             'full_hd' => false,
             'youtube_id' => null,
@@ -241,6 +242,7 @@ class Video extends MindsObject
             'nsfw',
             'boost_rejection_reason',
             'rating',
+            'time_created',
             'time_sent',
             'full_hd',
             'youtube_id',
