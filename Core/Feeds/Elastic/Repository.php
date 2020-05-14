@@ -385,7 +385,7 @@ class Repository
         if ($opts['exclude_moderated']) {
             $body['query']['function_score']['query']['bool']['must_not'][] = ['exists' => ['field' => 'moderator_guid']];
         }
-       
+
         if ($opts['moderation_reservations']) {
             $body['query']['function_score']['query']['bool']['must_not'][] = [
                 'terms' => [
@@ -456,7 +456,7 @@ class Repository
 
         $response = $this->client->request($prepared);
 
-        if ($opts['pinned_guids']) { // Hack the response so we can have pinned posts
+        if ($opts['pinned_guids'] && !$opts['from_timestamp']) { // Hack the response so we can have pinned posts
             foreach ($opts['pinned_guids'] as $pinned_guid) {
                 array_unshift($response['hits']['hits'], [
                     '_type' => 'activity',
