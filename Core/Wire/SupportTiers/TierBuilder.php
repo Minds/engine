@@ -5,7 +5,7 @@ namespace Minds\Core\Wire\SupportTiers;
  * Tier names helper
  * @package Minds\Core\Wire\SupportTiers
  */
-class TierNameBuilder
+class TierBuilder
 {
     /**
      * Tier names. Last one will have `+` appended in case there are more tiers.
@@ -26,6 +26,33 @@ class TierNameBuilder
     public function sortRewards($a, $b): int
     {
         return (($a['amount'] ?? 0) < ($b['amount'] ?? 0)) ? -1 : 1;
+    }
+
+    /**
+     * Unique-for-entity legacy persistent GUID (from wire_rewards).
+     * Should not be used outside URN!
+     * @param int $baseGuid
+     * @param string $currency
+     * @param float $amount
+     * @return int
+     */
+    public function buildGuid(string $currency, float $amount): int
+    {
+        $guid = 0;
+
+        switch ($currency) {
+            case 'tokens':
+                $guid += 1 * pow(10, 16);
+                break;
+
+            case 'usd':
+                $guid += 2 * pow(10, 16);
+                break;
+        }
+
+        $guid += floor($amount * pow(10, 6));
+
+        return $guid;
     }
 
     /**

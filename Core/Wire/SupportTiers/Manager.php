@@ -157,4 +157,18 @@ class Manager
 
         return $success;
     }
+
+    /**
+     * Migrates wire_reward field to Support Tier
+     * @throws Exception
+     */
+    public function migrate(): void
+    {
+        if (!($this->entity instanceof User)) {
+            throw new Exception('Entity is not a User');
+        }
+
+        $this->userWireRewardsMigrationDelegate
+            ->migrate($this->entity, true);
+    }
 }
