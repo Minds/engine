@@ -265,7 +265,7 @@ class Controller
      */
     public function subscribe(ServerRequest $request): JsonResponse
     {
-        $params = $request->getQueryParams();
+        $params = $request->getParsedBody();
 
         if (!isset($params['channelId'])) {
             return new JsonResponse([
