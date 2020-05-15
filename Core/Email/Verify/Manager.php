@@ -49,6 +49,14 @@ class Manager
         'lynleegypsycobs.com.au',
         'casino368.com',
         'ooelt.com',
+        'lgoisopc.com',
+        'jfisduod.com',
+        'rtsfgdso.com',
+        'uodib.com',
+        'sukkerpappa.com',
+        'hoaup.com',
+        'oeewc.com',
+        'us.yoshisad.com'
     ];
 
     public function __construct($service = null, $spamBlocksManager = null)
