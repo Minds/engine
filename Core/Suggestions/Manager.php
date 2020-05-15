@@ -114,6 +114,12 @@ class Manager
             if ($entity->getType() === 'group' && !$entity->isPublic()) {
                 return null;
             }
+            if (
+                $entity->getType() === 'user' &&
+                ($entity->banned === 'yes' || $entity->enabled != 'yes')
+            ) {
+                return null;
+            }
             if ($entity->getType() === 'user') {
                 $entity->exportCounts = true;
             }
