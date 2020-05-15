@@ -35,6 +35,11 @@ class channel implements Interfaces\Api
         }
 
         $user = new Entities\User($pages[0]);
+
+        // Flush the cache when viewing a channel page
+        $channelsManager = Di::_()->get('Channels\Manager');
+        $channelsManager->flushCache($user);
+
         if (!$user->username || Helpers\Flags::shouldFail($user)) {
             return Factory::response([
                 'status'=>'error',

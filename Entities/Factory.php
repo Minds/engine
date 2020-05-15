@@ -3,6 +3,7 @@ namespace Minds\Entities;
 
 use Minds\Core;
 use Minds\Core\Data;
+use Minds\Core\Di\Di;
 
 /**
  * Entities Factory
@@ -19,10 +20,11 @@ class Factory
      */
     public static function build($value, array $options = [])
     {
-        $options = array_merge([ 'cache'=> true ], $options);
+        $options = array_merge([ 'cache'=> true, 'cacheTtl' => -1 ], $options);
 
         $entity = null;
         $canBeCached = false;
+        $psrCache = Di::_()->get('Cache\PsrWrapper');
 
         if (Core\Luid::isValid($value)) {
             if ($options['cache'] && isset(self::$entitiesCache[$value])) {
@@ -38,6 +40,13 @@ class Factory
         } elseif (is_numeric($value)) {
             if ($options['cache'] && isset(self::$entitiesCache[$value])) {
                 return self::$entitiesCache[$value];
+            }
+
+            if ($options['cache'] && $options['cacheTtl'] > 0) {
+                $cached = $psrCache->get("entity:$value");
+                if ($cached) {
+                    return unserialize($cached);
+                }
             }
 
             $canBeCached = true;
@@ -63,6 +72,10 @@ class Factory
 
         if ($options['cache'] && $canBeCached && $entity) {
             self::$entitiesCache[$value] = $entity;
+        }
+
+        if ($options['cache'] && $options['cacheTtl'] > 0) {
+            $psrCache->set("entity:$value", serialize($entity), $opts['cacheTtl']);
         }
 
         return $entity;

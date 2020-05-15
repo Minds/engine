@@ -1599,4 +1599,13 @@ class User extends \ElggUser
         $this->dismissed_widgets = $dismissedWidgets;
         return $this;
     }
+
+    /**
+     * True if banned
+     * @return bool
+     */
+    public function isBanned(): bool
+    {
+        return $this->banned === 'yes';
+    }
 }
