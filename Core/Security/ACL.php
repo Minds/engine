@@ -5,8 +5,11 @@
 namespace Minds\Core\Security;
 
 use Minds\Core;
+use Minds\Core\Di\Di;
+use Minds\Core\Log\Logger;
 use Minds\Entities;
 use Minds\Core\Security\RateLimits\Manager as RateLimitsManager;
+use Minds\Core\EntitiesBuilder;
 use Minds\Helpers\Flags;
 
 class ACL
@@ -17,9 +20,17 @@ class ACL
     /** @var RateLimitsManager $rateLimits */
     private $rateLimits;
 
-    public function __construct($rateLimits = null)
+    /** @var EntitiesBuilder */
+    private $entitiesBuilder;
+
+    /** @var Logger */
+    private $logger;
+
+    public function __construct($rateLimits = null, $entitiesBuilder = null, $logger = null)
     {
         $this->rateLimits = $rateLimits ?: new RateLimitsManager;
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->logger = $logger ?? Di::_()->get('Logger');
     }
 
     /**
@@ -61,6 +72,37 @@ class ACL
 
         if (Flags::shouldFail($entity)) {
             return false;
+        }
+
+        /**
+         * Below is a quick and hacky solution to ensuring that content has
+         * a valid owner.
+         *
+         * TODO: We want to move this to also be able to rehydrate the ownerObj
+         */
+        if ($entity->owner_guid && !$entity instanceof Entities\User) {
+            $ownerEntity = $this->entitiesBuilder->single($entity->owner_guid, [
+                'cache' => true,
+                'cacheTtl' => 604800, // Cache for 7 days
+            ]);
+
+            // Owner not found
+            if (!$ownerEntity) {
+                $this->logger->error("$entity->guid was requested but owner $entity->owner_guid was not found");
+                return false;
+            }
+
+            // Owner is banned or disabled
+            if ($ownerEntity->isBanned() || !$ownerEntity->isEnabled()) {
+                $this->logger->error("$entity->guid was requested but owner $entity->owner_guid {$ownerEntity->username}) is banned or disabled");
+                return false;
+            }
+
+            // Owner passes other ACL rules (fallback)
+            if ($this->read($ownerEntity, $user) !== true) {
+                $this->logger->error("$entity->guid was requested but owner $entity->owner_guid failed to pass its own ACL READ event");
+                return false;
+            }
         }
 
         // If logged out and public and not container
