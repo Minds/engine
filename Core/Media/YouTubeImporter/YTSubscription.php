@@ -1,11 +1,13 @@
 <?php
+
 namespace Minds\Core\Media\YouTubeImporter;
 
-use Minds\Core\Di\Di;
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Data\Call;
-use Minds\Common\Repository\Response;
+use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Media\YouTubeImporter\Exceptions\UnregisteredChannelException;
+use Minds\Entities\User;
 use Pubsubhubbub\Subscriber\Subscriber;
 
 class YTSubscription
@@ -53,10 +55,12 @@ class YTSubscription
 
     /**
      * (Un)Subscribes from YouTube's push notifications
+     * @param User $user
      * @param string $channelId
      * @param bool $subscribe
      * @return bool returns true if it succeeds
      * @throws UnregisteredChannelException
+     * @throws \Minds\Exceptions\StopEventException
      */
     public function update(User $user, string $channelId, bool $subscribe): bool
     {
@@ -101,14 +105,13 @@ class YTSubscription
     /**
      * Imports a newly added YT video. This is called when the hook receives a new update.
      * @param YTVideo $ytVideo
-     * @throws \IOException
-     * @throws \InvalidParameterException
+     * @throws Exceptions\UnregisteredChannelException
      */
     public function onNewVideo(YTVideo $ytVideo): void
     {
         // see if we have a video like this already saved
         $response = $this->repository->getList([
-            'youtube_id' => $ytVideo->getVideoId()
+            'youtube_id' => $ytVideo->getVideoId(),
         ]);
 
         // if the video isn't there, we'll download it
@@ -128,7 +131,7 @@ class YTSubscription
                 return;
             }
 
-            $video->setOwner($user);
+            $ytVideo->setOwner($user);
 
             // Import the new video
             $this->manager->import($ytVideo);
