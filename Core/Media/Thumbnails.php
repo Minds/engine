@@ -82,7 +82,8 @@ class Thumbnails
 
             case 'video':
                 if (!$entity->thumbnail) {
-                    $thumbnail = $this->config->get('cinemr_url') . $entity->cinemr_guid . '/thumbnail-00001.png';
+                    $guid = $entity->cinemr_guid ?: $entity->guid;
+                    $thumbnail = $this->config->get('cinemr_url') . $guid . '/thumbnail-00001.png';
 
                     break;
                 }

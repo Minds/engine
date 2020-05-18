@@ -55,6 +55,10 @@ class TranscoderBridge
             ->setProfile(new $transcodeProfile)
             ->setStatus(TranscodeStates::TRANSCODING);
 
+        if ($transcode->getProfile() instanceof TranscodeProfiles\Thumbnails) {
+            $transcode->getProfile()->setStorageName("thumbnail-00001.png");
+        }
+
         $this->transcoderManager->add($transcode, false);
 
         $tmpFile = tmpfile();
