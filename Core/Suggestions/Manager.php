@@ -95,7 +95,7 @@ class Manager
 
         $response = $this->repository->getList($opts);
 
-        if (!count($response)) {
+        if (!count($response) && $opts['type'] === 'user') {
             $response = $this->getFallbackSuggested($opts);
         }
 
