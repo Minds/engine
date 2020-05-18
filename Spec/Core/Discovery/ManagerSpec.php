@@ -91,11 +91,28 @@ class ManagerSpec extends ObjectBehavior
                         ]
                     ]
                 ]
+            ],
+            // 3rd
+            [
+                'aggregations' => [
+                    'tags' => [
+                        'buckets' => [
+                            [
+                                'key' => 'animation',
+                                'doc_count' => 100
+                            ],
+                            [
+                                'key' => 'phpspec',
+                                'doc_count' => 100
+                            ],
+                        ]
+                    ]
+                ]
             ]
             );
 
         $tagTrends = $this->getTagTrends();
-        $tagTrends->shouldHaveCount(3);
+        $tagTrends->shouldHaveCount(5);
         $tagTrends[0]
             ->getHashtag()
             ->shouldBe('music');

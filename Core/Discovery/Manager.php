@@ -75,12 +75,23 @@ class Manager
             throw new NoTagsException();
         }
 
-        $tagTrends12 = $this->getTagTrendsForPeriod(12, [], [ 'limit' => round($opts['limit'] / 2) ]);
+        $tagTrends12 = $this->getTagTrendsForPeriod(12, [], [ 'limit' => ceil($opts['limit'] / 2) ]);
         $tagTrends24 = $this->getTagTrendsForPeriod(24, array_map(function ($trend) {
             return $trend->getHashtag();
-        }, $tagTrends12), [ 'limit' => round($opts['limit'] / 2) ]);
+        }, $tagTrends12), [ 'limit' => floor($opts['limit'] / 2) ]);
 
-        return array_merge($tagTrends12, $tagTrends24);
+        $results = array_merge($tagTrends12, $tagTrends24);
+
+        if (count($results) < $opts['limit'] / 2) {
+            $missingCount = $opts['limit'] - count($results);
+            $tagTrendsFallback = $this->getTagTrendsForPeriod(2160 /* 90d */, array_map(function ($trend) {
+                return $trend->getHashtag();
+            }, $results), [ 'limit' => $missingCount ]);
+
+            $results = array_merge($results, $tagTrendsFallback);
+        }
+
+        return array_slice($results, 0, $opts['limit']);
     }
 
     /**
