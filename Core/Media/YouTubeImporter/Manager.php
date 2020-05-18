@@ -200,6 +200,7 @@ class Manager
             $ytVideos = $this->getYouTubeVideos([
                 'youtube_channel_id' => $ytVideo->getChannelId(),
                 'statistics' => false,
+                'limit' => 100,
             ]);
         }
 
@@ -519,7 +520,7 @@ class Manager
             'access_id' => 0,
             'owner_guid' => $ytVideo->getOwnerGuid(),
             'container_guid' => $ytVideo->getOwnerGuid(),
-            'full_hd' => $ytVideo->getOwner()->isPro(),
+            // 'full_hd' => $ytVideo->getOwner()->isPro(),
             'youtube_id' => $ytVideo->getVideoId(),
             'youtube_channel_id' => $ytVideo->getChannelId(),
             'transcoding_status' => TranscodeStates::QUEUED,

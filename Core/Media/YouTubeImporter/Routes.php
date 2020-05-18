@@ -72,7 +72,7 @@ class Routes extends ModuleRoutes
                 );
                 $route->delete(
                     'subscribe',
-                    Ref::_('Media\YouTubeImporter\Controller', 'subscribe')
+                    Ref::_('Media\YouTubeImporter\Controller', 'unsubscribe')
                 );
 
                 // YT webhook
