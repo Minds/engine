@@ -2,7 +2,6 @@
 namespace Minds\Core\Channels\Groups;
 
 use Minds\Common\Repository\Response;
-use Minds\Core\Groups\Membership;
 
 /**
  * Channel Groups Manager
@@ -10,29 +9,20 @@ use Minds\Core\Groups\Membership;
  */
 class Manager
 {
-    /** @var int */
-    const MAX_GROUPS = 5000;
-
     /** @var string */
     protected $userGuid;
 
     /** @var Repository */
     protected $repository;
 
-    /** @var Membership */
-    protected $membership;
-
     /**
      * Manager constructor.
      * @param $repository
-     * @param $membership
      */
     public function __construct(
-        $repository = null,
-        $membership = null
+        $repository = null
     ) {
         $this->repository = $repository ?: new Repository();
-        $this->membership = $membership ?: new Membership();
     }
 
     /**
@@ -52,22 +42,10 @@ class Manager
      */
     public function getList(array $opts = []): Response
     {
-        $opts = array_merge([
-            'pageToken' => '',
-        ], $opts);
-
-        $guids = $this->membership->getGroupGuidsByMember([
-            'user_guid' => $this->userGuid,
-            'limit' => static::MAX_GROUPS,
-        ]);
-
-        $guids = array_values(array_filter(array_map(function ($guid) {
-            return (string) $guid;
-        }, $guids)));
-
         return $this->repository->getList([
-            'guids' => $guids,
-            'pageToken' => $opts['pageToken'],
+            'user_guid' => $this->userGuid,
+            'query' => $opts['query'] ?? '',
+            'pageToken' => $opts['pageToken'] ?? '',
         ]);
     }
 
@@ -77,17 +55,8 @@ class Manager
      */
     public function count(): int
     {
-        $guids = $this->membership->getGroupGuidsByMember([
-            'user_guid' => $this->userGuid,
-            'limit' => static::MAX_GROUPS,
-        ]);
-
-        $guids = array_values(array_filter(array_map(function ($guid) {
-            return (string) $guid;
-        }, $guids)));
-
         return $this->repository->count([
-            'guids' => $guids,
+            'user_guid' => $this->userGuid,
         ]);
     }
 }
