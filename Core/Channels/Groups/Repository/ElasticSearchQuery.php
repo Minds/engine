@@ -9,12 +9,13 @@ class ElasticSearchQuery
 {
     /**
      * Builds the ES Query
-     * @param array $guids
+     * @param string $userGuid
+     * @param string $searchQuery
      * @return array
      */
-    public function build(array $guids = []): array
+    public function build(string $userGuid, string $searchQuery = ''): array
     {
-        return [
+        $query = [
             'index' => 'minds_badger',
             'body' => [
                 'query' => [
@@ -32,7 +33,12 @@ class ElasticSearchQuery
                             ],
                             [
                                 'terms' => [
-                                    'guid' => $guids
+                                    'guid' => [
+                                        'index' => 'minds_badger',
+                                        'type' => 'user',
+                                        'id' => $userGuid,
+                                        'path' => 'group_membership',
+                                    ],
                                 ]
                             ]
                         ]
@@ -40,5 +46,17 @@ class ElasticSearchQuery
                 ]
             ]
         ];
+
+        if ($searchQuery) {
+            $query['body']['query']['bool']['must'][] = [
+                'multi_match' => [
+                    'query' => $searchQuery,
+                    'operator' => 'OR',
+                    'fields' => ['name^10', 'brief_description'],
+                ],
+            ];
+        }
+
+        return $query;
     }
 }
