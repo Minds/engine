@@ -44,6 +44,7 @@ class Controller
         return new JsonResponse([
             'status' => 'success',
             'entities' => $this->manager->getList([
+                'query' => $request->getQueryParams()['q'] ?? '',
                 'pageToken' => $request->getQueryParams()['pageToken'] ?? '',
             ]),
         ]);

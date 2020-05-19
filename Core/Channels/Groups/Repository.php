@@ -41,16 +41,17 @@ class Repository
     public function getList(array $opts = []): Response
     {
         $opts = array_merge([
-            'guids' => null,
+            'user_guid' => null,
             'pageToken' => '',
+            'query' => '',
             'limit' => 500,
         ], $opts);
 
-        if (!$opts['guids']) {
+        if (!$opts['user_guid']) {
             return new Response([]);
         }
 
-        $query = $this->esQuery->build($opts['guids']);
+        $query = $this->esQuery->build($opts['user_guid'], $opts['query']);
 
         $query['size'] = $opts['limit'];
         $query['from'] = (int) $opts['pageToken'] ?? 0;
@@ -85,15 +86,15 @@ class Repository
     public function count(array $opts = []): int
     {
         $opts = array_merge([
-            'guids' => null,
+            'user_guid' => null,
         ], $opts);
 
-        if (!$opts['guids']) {
+        if (!$opts['user_guid']) {
             return 0;
         }
 
         $prepared = new Count();
-        $prepared->query($this->esQuery->build($opts['guids']));
+        $prepared->query($this->esQuery->build($opts['user_guid']));
 
         $response = $this->es->request($prepared);
 
