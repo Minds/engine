@@ -9,6 +9,7 @@ use Minds\Core\Suggestions\Manager;
 use Minds\Core\Suggestions\Suggestion;
 use Minds\Core\Suggestions\Repository;
 use Minds\Core\Subscriptions\Manager as SubscriptionsManager;
+use Minds\Core\Features;
 use Minds\Core\EntitiesBuilder;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -28,14 +29,18 @@ class ManagerSpec extends ObjectBehavior
         Repository $repository,
         EntitiesBuilder $entitiesBuilder,
         SubscriptionsManager $subscriptionsManager,
-        CheckRateLimit $checkRateLimit
+        CheckRateLimit $checkRateLimit,
+        Features\Manager $features
     ) {
         $this->repository = $repository;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->checkRateLimit = $checkRateLimit;
         $this->subscriptionsManager = $subscriptionsManager;
 
-        $this->beConstructedWith($repository, $entitiesBuilder, null, $subscriptionsManager, $checkRateLimit);
+        $features->has('suggestions')
+            ->willReturn(true);
+
+        $this->beConstructedWith($repository, $entitiesBuilder, null, $subscriptionsManager, $checkRateLimit, $features);
     }
 
     public function it_is_initializable()
