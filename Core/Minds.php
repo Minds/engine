@@ -42,6 +42,7 @@ class Minds extends base
         Media\YouTubeImporter\Module::class,
         DismissibleWidgets\Module::class,
         Wire\SupportTiers\Module::class,
+        Wire\Paywall\Module::class,
     ];
 
     /**
