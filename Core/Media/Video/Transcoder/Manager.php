@@ -36,7 +36,7 @@ class Manager
     /** @var TranscodeStorage\TranscodeStorageInterface */
     private $transcodeStorage;
 
-    /** @var TranscodeExecutors\TranscodeExecutorInterfsce */
+    /** @var TranscodeExecutors\TranscodeExecutorInterface */
     private $transcodeExecutor;
 
     /** @var NotificationDelegate */
