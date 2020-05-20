@@ -5,6 +5,7 @@ namespace Minds\Core\Suggestions;
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Features;
 use Minds\Core\Suggestions\Delegates\CheckRateLimit;
 use Minds\Entities\User;
 
@@ -25,6 +26,9 @@ class Manager
     /** @var CheckRateLimit */
     private $checkRateLimit;
 
+    /** @var Features\Manager */
+    private $features;
+
     /** @var string $type */
     private $type = 'user';
 
@@ -33,13 +37,15 @@ class Manager
         $entitiesBuilder = null,
         $suggestedFeedsManager = null,
         $subscriptionsManager = null,
-        $checkRateLimit = null
+        $checkRateLimit = null,
+        $features = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder();
         //$this->suggestedFeedsManager = $suggestedFeedsManager ?: Di::_()->get('Feeds\Suggested\Manager');
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Subscriptions\Manager');
         $this->checkRateLimit = $checkRateLimit ?: new CheckRateLimit();
+        $this->features = $features ?? new Features\Manager();
     }
 
     /**
@@ -79,6 +85,10 @@ class Manager
      */
     public function getList($opts = []): Response
     {
+        if (!$this->features->has('suggestions')) {
+            return new Response([]);
+        }
+
         $opts = array_merge([
             'limit' => 12,
             'paging-token' => '',
