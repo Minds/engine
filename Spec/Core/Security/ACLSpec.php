@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Security;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Minds\Core;
+use Minds\Core\Config;
 use Minds\Entities\User;
 use Minds\Entities\Entity;
 use Minds\Entities\MindsObject;
@@ -18,12 +19,14 @@ class ACLSpec extends ObjectBehavior
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
-    public function let(Core\Security\RateLimits\Manager $rateLimits, EntitiesBuilder $entitiesBuilder)
+    public function let(Core\Security\RateLimits\Manager $rateLimits, EntitiesBuilder $entitiesBuilder, Config $config)
     {
         $this->rateLimits = $rateLimits;
         $this->entitiesBuilder = $entitiesBuilder;
+        $config->get('normalize_entities')
+            ->willReturn(true);
 
-        $this->beConstructedWith($rateLimits, $entitiesBuilder);
+        $this->beConstructedWith($rateLimits, $entitiesBuilder, null, $config);
     }
 
     public function mock_session($on = true)
