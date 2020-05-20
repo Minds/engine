@@ -36,6 +36,7 @@ class Repository
             'offset' => '',
             'guid' => null,
             'type' => null,
+            'hydrate' => true,
         ], $opts);
 
         if (!$opts['guid']) {
@@ -75,7 +76,7 @@ class Repository
             }
 
             foreach ($rows as $row) {
-                $user = new User($row['column1']);
+                $user = $opts['hydrate'] ? new User($row['column1']) : $row['column1'];
                 $response[] = $user;
             }
 

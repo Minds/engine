@@ -28,6 +28,7 @@ class Repository
             'limit' => 12,
             'offset' => 0,
             'user_guid' => null,
+            'user_guids' => null,
             'paging-token' => '',
             'allowFallback' => false,
         ], $opts);
@@ -39,15 +40,24 @@ class Repository
         $must = [ ];
         $must_not = [];
 
-        // Terms lookup against minds-graph:subscrpitions
-        $must[]['terms'] = [
-            'user_guid.keyword' => [
-                'index' => 'minds-graph',
-                'type' => 'subscriptions',
-                'id' => $opts['user_guid'],
-                'path' => 'guids',
-            ],
-        ];
+        if ($opts['user_guids'] && $opts['type'] === 'user') {
+            $must[]['terms'] = [
+                'entity_guid.keyword' => $opts['user_guids'],
+            ];
+        } elseif ($opts['user_guids'] && $opts['type'] === 'group') {
+            $must[]['terms'] = [
+                'user_guid.keyword' => $opts['user_guids'],
+            ];
+        } else { // Terms lookup against minds-graph:subscrpitions
+            $must[]['terms'] = [
+                'user_guid.keyword' => [
+                    'index' => 'minds-graph',
+                    'type' => 'subscriptions',
+                    'id' => $opts['user_guid'],
+                    'path' => 'guids',
+                ],
+            ];
+        }
 
         if ($opts['type'] === 'group') {
             // Check join (group) action
@@ -104,6 +114,11 @@ class Repository
                 'id' => $opts['user_guid'],
                 'path' => 'guids',
             ],
+        ];
+
+        // Remove Minds channel
+        $must_not[]['term'] = [
+            'user_guid.keyword' => '100000000000000519',
         ];
 
         $query = [
