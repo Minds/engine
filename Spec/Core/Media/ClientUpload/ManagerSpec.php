@@ -7,6 +7,7 @@ use Minds\Core\Media\ClientUpload\ClientUploadLease;
 use Minds\Core\Media\Video\Transcoder;
 use Minds\Core\GuidBuilder;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Entities\User;
 use Minds\Entities\Video;
 
 use PhpSpec\ObjectBehavior;
@@ -50,13 +51,19 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe('s3-url-here');
     }
 
-    public function it_should_complete_an_upload(ClientUploadLease $lease)
+    public function it_should_complete_an_upload(ClientUploadLease $lease, User $user)
     {
         $lease->getMediaType()
             ->willReturn('video');
 
         $lease->getGuid()
             ->willReturn(456);
+
+        $lease->getUser()
+            ->willReturn($user);
+
+        $user->isPro()
+            ->willReturn(true);
 
         $this->save->setEntity(Argument::that(function ($video) {
             return $video->guid == 456
