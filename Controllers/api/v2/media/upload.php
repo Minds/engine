@@ -56,6 +56,7 @@ class upload implements Interfaces\Api
 
                 $lease = new ClientUploadLease();
                 $lease->setGuid($guid)
+                    ->setUser(Session::getLoggedinUser())
                     ->setMediaType($mediaType);
 
                 $manager->complete($lease);

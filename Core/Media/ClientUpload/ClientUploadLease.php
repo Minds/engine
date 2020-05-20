@@ -2,14 +2,20 @@
 
 namespace Minds\Core\Media\ClientUpload;
 
+use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
 /**
  * Class ClientUploadLease
  * @package Minds\Core\Media\ClientUpload
  * @method string getGuid()
+ * @method ClientUploadLease setGuid(string $value)
  * @method string getMediaType()
+ * @method ClientUploadLease setMediaType(string $value)
  * @method string getPresignedUrl()
+ * @method ClientUploadLease setPresignedUrl(string $value)
+ * @method User getUser()
+ * @method ClientUploadLease setUser(User $value)
  */
 class ClientUploadLease
 {
@@ -23,6 +29,9 @@ class ClientUploadLease
 
     /** @var string $mediaType */
     private $mediaType;
+
+    /** @var User $user */
+    private $user;
 
     /**
      * Export to API
