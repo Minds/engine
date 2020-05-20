@@ -93,9 +93,11 @@ class Manager
 
         $opts['limit'] = $opts['limit'] * 3; // To prevent removed channels or closed groups
 
-        $response = $this->repository->getList($opts);
 
-        if (!count($response) && $opts['type'] === 'user') {
+        if ($this->subscriptionsManager->setSubscriber($this->user)
+            ->getSubscriptionsCount() > 1) {
+            $response = $this->repository->getList($opts);
+        } else {
             $response = $this->getFallbackSuggested($opts);
         }
 
@@ -142,11 +144,6 @@ class Manager
 
     private function getFallbackSuggested($opts = [])
     {
-        $this->subscriptionsManager->setSubscriber($this->user);
-        if ($this->subscriptionsManager->getSubscriptionsCount() > 1) {
-            return new Response();
-        }
-
         $opts = array_merge([
             'user_guid' => $this->user->getGuid(),
             'type' => 'user',
@@ -154,28 +151,17 @@ class Manager
 
         $response = new Response();
 
-        $guids = [
-            626772382194872329,
-            100000000000065670,
-            100000000000081444,
-            732703596054847489,
-            884147802853089287,
-            100000000000000341,
-            823662468030013460,
-            942538426693984265,
-            607668752611287060,
-            602551056588615697,
-        ];
+        $users = $this->subscriptionsManager->getList([
+            'guid' => '100000000000000519',
+            'type' => 'subscriptions',
+            'hydrate' => false,
+            'limit' => 500,
+        ]);
 
-        foreach ($guids as $i => $guid) {
-            if ($i >= $opts['limit']) {
-                continue;
-            }
-            $suggestion = new Suggestion();
-            $suggestion->setEntityGuid($guid);
-            $response[] = $suggestion;
-        }
+        $opts['user_guids'] = array_map(function ($user) {
+            return $user;
+        }, $users->toArray());
 
-        return $response;
+        return $this->repository->getList($opts);
     }
 }
