@@ -26,11 +26,13 @@ class ACL
     /** @var Logger */
     private $logger;
 
-    public function __construct($rateLimits = null, $entitiesBuilder = null, $logger = null)
+    public function __construct($rateLimits = null, $entitiesBuilder = null, $logger = null, $config = null)
     {
         $this->rateLimits = $rateLimits ?: new RateLimitsManager;
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->logger = $logger ?? Di::_()->get('Logger');
+        $config= $config ?? Di::_()->get('Config');
+        $this->normalizeEntities = $config->get('normalize_entities');
     }
 
     /**
@@ -80,7 +82,7 @@ class ACL
          *
          * TODO: We want to move this to also be able to rehydrate the ownerObj
          */
-        if ($entity->owner_guid && !$entity instanceof Entities\User) {
+        if ($entity->owner_guid && !$entity instanceof Entities\User && $this->normalizeEntities) {
             $ownerEntity = $this->entitiesBuilder->single($entity->owner_guid, [
                 'cache' => true,
                 'cacheTtl' => 604800, // Cache for 7 days
