@@ -54,10 +54,12 @@ class Defaults
                 $allowedTags = "<pre><code>";
             }
 
-            $export['message'] = strip_tags(
-                htmlspecialchars_decode($params['entity']['message']),
-                $allowedTags
-            );
+            if ($export['message']) {
+                $export['message'] = strip_tags(
+                    htmlspecialchars_decode($params['entity']['message']),
+                    $allowedTags
+                );
+            }
 
             $event->setResponse($export);
         });
