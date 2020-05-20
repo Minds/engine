@@ -21,6 +21,8 @@ class ManagerSpec extends ObjectBehavior
     private $entitiesBuilder;
     /** @var CheckRateLimit */
     private $checkRateLimit;
+    /** @var SubscriptionsManager */
+    private $subscriptionsManager;
 
     public function let(
         Repository $repository,
@@ -31,6 +33,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository = $repository;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->checkRateLimit = $checkRateLimit;
+        $this->subscriptionsManager = $subscriptionsManager;
 
         $this->beConstructedWith($repository, $entitiesBuilder, null, $subscriptionsManager, $checkRateLimit);
     }
@@ -48,6 +51,12 @@ class ManagerSpec extends ObjectBehavior
 
         $response[] = (new Suggestion)
             ->setEntityGuid(789);
+
+        $this->subscriptionsManager->setSubscriber(Argument::any())
+            ->willReturn($this->subscriptionsManager);
+
+        $this->subscriptionsManager->getSubscriptionsCount()
+            ->willReturn(10);
 
         $this->checkRateLimit->check(123)
             ->shouldBeCalled()
