@@ -60,6 +60,7 @@ class Provider extends DiProvider
                 'settings-referrals',
                 'channels-shop',
                 'topv2-algo',
+                'localization-2020',
             ];
         });
 
