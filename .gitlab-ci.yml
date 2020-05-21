@@ -203,7 +203,8 @@ review:preprod:
 canary:fpm:
   <<: *deploy
   stage: deploy
-  needs: staging:fpm
+  needs:
+    - staging:fpm
   variables:
     IMAGE_LABEL: "canary"
     ECS_SERVICE: $ECS_APP_CANARY_SERVICE
@@ -221,7 +222,8 @@ canary:fpm:
 production:fpm:
   <<: *deploy
   stage: deploy
-  needs: staging:fpm
+  needs:
+    - staging:fpm
   variables:
     IMAGE_LABEL: "production"
     ECS_SERVICE: $ECS_APP_PRODUCTION_SERVICE
@@ -238,7 +240,8 @@ production:fpm:
 
 production:runners:
   stage: deploy
-  needs: canary:fpm
+  needs:
+    - canary:fpm
   image: minds/ci:latest
   services:
     - docker:dind
