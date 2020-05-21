@@ -87,7 +87,7 @@ class Manager
         $trending = [];
 
         if ($opts['trending']) {
-            $cached = $this->cacher->get($this->getCacheKey('trending'));
+            $cached = $this->cacher->get($this->getSharedCacheKey('trending'));
             // $cached = false;
 
             if ($cached !== false) {
@@ -97,7 +97,7 @@ class Manager
 
                 if ($results) {
                     $trending = $results;
-                    $this->cacher->set($this->getCacheKey('trending'), json_encode($trending), 60 * 15); // 15 minutes
+                    $this->cacher->set($this->getSharedCacheKey('trending'), json_encode($trending), 60 * 15); // 15 minutes
                 }
             }
         }
@@ -204,5 +204,13 @@ class Manager
     public function getCacheKey($extra = '')
     {
         return "user-selected-hashtags:{$this->user->getGuid()}" . ($extra ? ":{$extra}" : '');
+    }
+
+    /**
+     * @return string
+     */
+    public function getSharedCacheKey($key): string
+    {
+        return "hashtags-shared::$key";
     }
 }

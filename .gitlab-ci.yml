@@ -5,10 +5,8 @@ stages:
   - test
   - prepare
   - review
-  - deploy:staging
+  - deploy
   - qa
-  - deploy:canary
-  - deploy:production
 
 build:
   stage: build
@@ -152,7 +150,7 @@ review:stop:
 ################
 
 .deploy: &deploy
-  stage: deploy:staging
+  stage: deploy
   image: minds/ci:latest
   services:
     - docker:dind
@@ -173,7 +171,7 @@ review:stop:
 
 staging:fpm:
   <<: *deploy
-  stage: deploy:staging
+  stage: deploy
   variables:
     IMAGE_LABEL: "staging"
     ECS_SERVICE: $ECS_APP_STAGING_SERVICE
@@ -204,7 +202,8 @@ review:preprod:
 
 canary:fpm:
   <<: *deploy
-  stage: deploy:canary
+  stage: deploy
+  needs: staging:fpm
   variables:
     IMAGE_LABEL: "canary"
     ECS_SERVICE: $ECS_APP_CANARY_SERVICE
@@ -221,7 +220,8 @@ canary:fpm:
 
 production:fpm:
   <<: *deploy
-  stage: deploy:production
+  stage: deploy
+  needs: staging:fpm
   variables:
     IMAGE_LABEL: "production"
     ECS_SERVICE: $ECS_APP_PRODUCTION_SERVICE
@@ -237,7 +237,8 @@ production:fpm:
   start_in: 12 hours # reduce? can always be deployed manually earlier too
 
 production:runners:
-  stage: deploy:production
+  stage: deploy
+  needs: canary:fpm
   image: minds/ci:latest
   services:
     - docker:dind
