@@ -104,9 +104,6 @@ class Exported
 
             $exported['user'] = $user->export();
             $exported['user']['rewards'] = (bool) $user->getPhoneNumberHash();
-            $exported['wallet'] = [
-                'balance' => Counters::get($user->guid, 'points', false),
-            ];
 
             if ($user->isPlus()) {
                 $exported['max_video_length'] = $this->config->get('max_video_length_plus');
