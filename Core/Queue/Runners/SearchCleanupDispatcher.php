@@ -28,8 +28,6 @@ class SearchCleanupDispatcher implements QueueRunner
                 /** @var Core\Events\Dispatcher $dispatcher */
                 $dispatcher = Di::_()->get('EventsDispatcher');
 
-                var_dump($message);
-
                 $data = $message->getData();
                 $dispatcher->trigger('search:cleanup:dispatch', 'all', $data);
             });
