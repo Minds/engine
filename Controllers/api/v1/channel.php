@@ -89,23 +89,31 @@ class channel implements Interfaces\Api
         $response['channel']['gender'] = $response['channel']['gender'] ?: "";
 
         // if we are querying for our own user
+
+        $isAdmin = Core\Session::isAdmin();
+        $isLoggedIn = Core\Session::isLoggedin();
+        $isOwner = $isLoggedIn && ((string) Core\Session::getLoggedinUser()->guid === (string) $user->guid);
+        $isPublic = $isLoggedIn && $user->isPublicDateOfBirth();
+
         if (
             $user->getDateOfBirth() &&
             (
-                Core\Session::isAdmin() ||
-                ((string) Core\Session::getLoggedinUser()->guid === (string) $user->guid) ||
-                (Core\Session::isLoggedin() && $user->isPublicDateOfBirth())
+                $isAdmin ||
+                $isOwner ||
+                $isPublic
             )
         ) {
             $response['channel']['dob'] = $user->getDateOfBirth();
         }
 
         if (
-            Core\Session::isAdmin() ||
-            ((string) Core\Session::getLoggedinUser()->guid === (string) $user->guid)
+            $isAdmin ||
+            $isOwner
         ) {
             $response['channel']['public_dob'] = $user->isPublicDateOfBirth();
         }
+
+        //
 
         if (!$user->merchant || !$supporters_count) {
             $db = new Core\Data\Call('entities_by_time');
