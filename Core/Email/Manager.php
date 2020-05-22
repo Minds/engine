@@ -50,8 +50,12 @@ class Manager
             return $item->getUserGuid();
         }, $result['data']);
 
+        $users = array_filter(Entities::get(['guids' => $guids]), function ($user) {
+            return !$user->isBanned();
+        });
+
         return [
-            'users' => Entities::get(['guids' => $guids]),
+            'users' => $users,
             'token' => $result['token']
         ];
     }
