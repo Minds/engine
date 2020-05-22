@@ -128,7 +128,6 @@ class EmailSubscribersIterator implements \Iterator
 
         if (!$users) {
             return $this->getSubscribers();
-            return;
         }
 
         foreach ($users as $user) {
