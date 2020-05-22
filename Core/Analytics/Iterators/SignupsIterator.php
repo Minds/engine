@@ -5,6 +5,7 @@ use Minds\Core;
 use Minds\Core\Entities;
 use Minds\Core\Data;
 use Minds\Core\Analytics\Timestamps;
+use Minds\Entities\User;
 
 /**
  * Iterator that loops through all signups
@@ -46,7 +47,6 @@ class SignupsIterator implements \Iterator
 
     /**
      * Fetch all the users who signed up
-     * @return array
      */
     protected function getUsers()
     {
@@ -66,8 +66,11 @@ class SignupsIterator implements \Iterator
             return;
         }
         $this->valid = true;
-        $users = $this->entitiesBuilder->get(['guids' => $guids]);
+        $users = array_filter($this->entitiesBuilder->get(['guids' => $guids]), function ($user) {
+            return !$user->isBanned();
+        });
 
+        /** @var User $user */
         foreach ($users as $user) {
             array_push($this->data, $user);
         }

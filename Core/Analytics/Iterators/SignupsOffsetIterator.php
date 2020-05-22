@@ -82,7 +82,9 @@ class SignupsOffsetIterator implements \Iterator
         }
 
         $this->valid = true;
-        $users = $this->entitiesBuilder->get(['guids' => $guids]);
+        $users = array_filter($this->entitiesBuilder->get(['guids' => $guids]), function ($user) {
+            return !$user->isBanned();
+        });
 
         $pushed = 0;
         foreach ($users as $user) {

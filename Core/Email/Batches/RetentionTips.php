@@ -6,11 +6,15 @@ use Minds\Core\Di\Di;
 use Minds\Core\Analytics\Iterators\SignupsIterator;
 use Minds\Core\Email\Campaigns\GlobalTips;
 use Minds\Core\Email\EmailSubscription;
+use Minds\Core\Email\Manager;
 use Minds\Traits\MagicAttributes;
 
 class RetentionTips implements EmailBatchInterface
 {
     use MagicAttributes;
+
+    /** @var Manager */
+    protected $manager;
     protected $offset;
     protected $period;
 

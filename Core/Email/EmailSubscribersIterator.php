@@ -122,7 +122,9 @@ class EmailSubscribersIterator implements \Iterator
         }, $result['data']);
 
         $this->valid = true;
-        $users = $this->builder->get(['guids' => $guids]);
+        $users = array_filter($this->builder->get(['guids' => $guids]), function ($user) {
+            return !$user->isBanned();
+        });
 
         if (!$users) {
             return $this->getSubscribers();
