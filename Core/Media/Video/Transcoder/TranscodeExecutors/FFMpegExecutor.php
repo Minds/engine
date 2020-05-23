@@ -69,7 +69,12 @@ class FFMpegExecutor implements TranscodeExecutorInterface
             ->setProfile(new TranscodeProfiles\Source()); // Simply change the source
 
         // Download the source
-        $sourcePath = $this->transcodeStorage->downloadToTmp($source);
+        try {
+            $sourcePath = $this->transcodeStorage->downloadToTmp($source);
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            throw new FailedTranscodeException("Error downloading {$transcode->getGuid()} from storage");
+        }
 
         // Open the resource
         /** @var \FFMpeg\Media\Video; */
