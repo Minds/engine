@@ -87,6 +87,10 @@ class FFMpegExecutor implements TranscodeExecutorInterface
                 ->videos()
                 ->first();
 
+            if (!$videostream) {
+                throw new FailedTranscodeException("Video stream not found");
+            }
+
             // get video metadata
             $tags = $videostream->get('tags');
         } catch (\Exception $e) {
@@ -104,7 +108,7 @@ class FFMpegExecutor implements TranscodeExecutorInterface
 
         // Logic for rotated videos
         $rotated = isset($tags['rotate']) && in_array($tags['rotate'], [270, 90], false);
-        if ($rotated) {
+        if ($rotated && $videostream) {
             $ratio = $videostream->get('width') / $videostream->get('height');
             // Invert width and height
             $width = $height;
