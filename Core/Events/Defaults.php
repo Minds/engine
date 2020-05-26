@@ -68,13 +68,13 @@ class Defaults
         Dispatcher::register('export:extender', 'all', function ($event) {
             $params = $event->getParameters();
 
-            if ($params['entity'] instanceof Core\Blogs\Blog) {
-                return;
-            }
-
             $export = $event->response() ?: [];
 
-            if ($params['entity']->type != 'activity' && $params['entity']->type != 'group') {
+            if (!(
+                $params['entity']->type === 'object'
+                || $params['entity']->type === 'group'
+                || $params['entity']->type === 'activity'
+            )) {
                 return false;
             }
 
