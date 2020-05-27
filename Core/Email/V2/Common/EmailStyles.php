@@ -27,6 +27,7 @@ class EmailStyles
             'm-textColor--secondary' => 'color: #7d7d82 !important;',
             'm-textColor--white' => 'color: #FFFFFF !important;',
             'm-title' => 'font-size:26px; text-align:center;color: #4f4f50;margin-top: 0;',
+            'm-title--ltr' => 'font-size:26px; text-align:left;color: #4f4f50;margin-top: 0;',
             'm-subtitle' => 'font-size:22px; line-height:29px;',
             'm-signature' => 'margin: 0 0 4px 0;padding: 0 !important;',
 
@@ -49,6 +50,9 @@ class EmailStyles
 
             'm-header' => 'font-size: 24px; color: #000; margin-bottom: 10px;',
             'm-subtitle' => 'font-family:Roboto-Light; font-size: 14px; color: #4A4A4A !important; line-height: 30px;',
+        
+        // PARTIAL : YOUR ACTIVITY
+            'm-digest__yourActivity' => 'width: 100%; border: 1px solid #d4d4d4; padding: 20px;'
         ];
     }
 
