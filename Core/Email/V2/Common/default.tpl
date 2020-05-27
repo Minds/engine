@@ -269,12 +269,14 @@
                 <!------------------------------>
                 <!-- GREETING: Start -->
                 <!------------------------------>
-                  <tr>
-                    <td>
-                      <p <?php echo $emailStyles->getStyles('m-copy'); ?> > Hi @<?php echo $vars['username'] ?>,
-                      </p>
-                    </td>
-                  </tr>
+                  <?php if (!$vars['hideGreeting']) { ?>
+                    <tr>
+                      <td>
+                        <p <?php echo $emailStyles->getStyles('m-copy'); ?> > Hi @<?php echo $vars['username'] ?>,
+                        </p>
+                      </td>
+                    </tr>
+                  <?php } ?>
                 <!------------------------------>
                 <!-- GREETING: End -->
                 <!------------------------------>

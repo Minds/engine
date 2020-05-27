@@ -11,6 +11,7 @@ use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WeMissYou\WeMissYou;
+use Minds\Core\Email\V2\Campaigns\Recurring\Digest\Digest;
 use Minds\Core\Email\Campaigns\Recurring\WirePromotions;
 use Minds\Core\Email\V2\Delegates\ConfirmationSender;
 use Minds\Core\Reports;
@@ -454,6 +455,18 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         }
 
         $delegate->send($purchase);
+    }
+
+    public function testDigest()
+    {
+        $userGuid = $this->getOpt('userGuid');
+        $user = new User($userGuid);
+
+        $digest = new Digest();
+        $digest->setUser($user);
+        $digest->send();
+
+        $this->out('Sent');
     }
 
     public function sync_sendgrid_lists(): void
