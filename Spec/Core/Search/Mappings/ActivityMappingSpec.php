@@ -42,6 +42,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->getTags()->willReturn([ 'spaceiscool' ]);
         $activity->get('license')->willReturn('cc-test-lic');
         $activity->get('wire_threshold')->willReturn(null);
+        $activity->get('language')->willReturn('en');
 
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
@@ -68,6 +69,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'title' => 'PHPSpec Title',
                 'blurb' => 'PHPSpec Blurb',
                 'description' => 'PHPSpec Description',
+                'language' => 'en',
                 'paywall' => false,
                 'rating' => 1,
                 'custom_type' => 'video',
@@ -114,6 +116,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->getMature()->willReturn(false);
         $activity->getTags()->willReturn([ 'spaceiscool' ]);
         $activity->get('wire_threshold')->willReturn(null);
+        $activity->get('language')->willReturn('en');
 
         $this
             ->setEntity($activity)
@@ -137,6 +140,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'title' => 'PHPSpec Title',
                 'blurb' => 'PHPSpec Blurb',
                 'description' => 'PHPSpec Description',
+                'language' => 'en',
                 'paywall' => false,
                 'rating' => 1,
                 'custom_type' => 'video',
