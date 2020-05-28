@@ -621,39 +621,40 @@ class newsfeed implements Interfaces\Api
 
                 $entityGuid = $_POST['entity_guid'] ?? $_POST['attachment_guid'] ?? null;
                 $url = $_POST['url'] ?? null;
+                
+                try {
+                    if ($entityGuid && !$url) {
+                        // Attachment
 
-                if ($entityGuid && !$url) {
-                    // Attachment
+                        if ($_POST['title'] ?? null) {
+                            $activity->setTitle($_POST['title']);
+                        }
 
-                    if ($_POST['title'] ?? null) {
-                        $activity->setTitle($_POST['title']);
+                        // Sets the attachment
+                        $activity = (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
+                            ->setActor(Core\Session::getLoggedinUser())
+                            ->onCreate($activity, (string) $entityGuid);
+                    } elseif (!$entityGuid && $url) {
+                        // Set-up rich embed
+
+                        $activity
+                            ->setTitle(rawurldecode($_POST['title']))
+                            ->setBlurb(rawurldecode($_POST['description']))
+                            ->setURL(rawurldecode($_POST['url']))
+                            ->setThumbnail($_POST['thumbnail']);
+                    } else {
+                        // TODO: Handle immutable embeds (like blogs, which have an entity_guid and a URL)
+                        // These should not appear naturally when creating, but might be implemented in the future.
                     }
 
-                    // Sets the attachment
-                    $activity = (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
-                        ->setActor(Core\Session::getLoggedinUser())
-                        ->onCreate($activity, (string) $entityGuid);
-                } elseif (!$entityGuid && $url) {
-                    // Set-up rich embed
+                    // TODO: Move this to Core/Feeds/Activity/Manager
+  
+                    if ($_POST['video_poster'] ?? null) {
+                        $activity->setVideoPosterBase64Blob($_POST['video_poster']);
+                        $videoPosterDelegate = new Core\Feeds\Activity\Delegates\VideoPosterDelegate();
+                        $videoPosterDelegate->onAdd($activity);
+                    }
 
-                    $activity
-                        ->setTitle(rawurldecode($_POST['title']))
-                        ->setBlurb(rawurldecode($_POST['description']))
-                        ->setURL(rawurldecode($_POST['url']))
-                        ->setThumbnail($_POST['thumbnail']);
-                } else {
-                    // TODO: Handle immutable embeds (like blogs, which have an entity_guid and a URL)
-                    // These should not appear naturally when creating, but might be implemented in the future.
-                }
-
-                // TODO: Move this to Core/Feeds/Activity/Manager
-                if ($_POST['video_poster'] ?? null) {
-                    $activity->setVideoPosterBase64Blob($_POST['video_poster']);
-                    $videoPosterDelegate = new Core\Feeds\Activity\Delegates\VideoPosterDelegate();
-                    $videoPosterDelegate->onAdd($activity);
-                }
-
-                try {
                     $guid = $save->setEntity($activity)->save();
                 } catch (\Exception $e) {
                     return Factory::response([
