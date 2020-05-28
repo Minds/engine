@@ -606,6 +606,20 @@
                                             target="_blank"
                                             >Manage email settings</a
                                           >
+                                          </br>
+                                          <a
+                                            style="
+                                              font-size: 14px;
+                                              color: #1b85d6;
+                                              text-decoration: underline;
+                                              font-family: Roboto, Helvetica,
+                                                sans-serif;
+                                            "
+                                            href="https://www.minds.com/emails/unsubscribe/<?= $vars['guid']?>/<?= urlencode($vars['email'])?>/<?= $vars['campaign']?><?= '/' . $vars['topic']?>?__e_ct_guid=<?= $vars['guid']?>&campaign=<?= $vars['campaign'] ?>&topic=<?= $vars['topic'] ?>&state=<?= $vars['state']?>"
+                                            target="_blank"
+                                          >
+                                            Unsubscribe
+                                          </a>
                                         </td>
                                       </tr>
                                     </table>
