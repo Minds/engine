@@ -113,6 +113,7 @@ class EntityMappingSpec extends ObjectBehavior
                 'urn' => 'urn:support-tier:123456'
             ]
         ]));
+        $entity->get('language')->willReturn('en');
 
         $this
             ->setEntity($entity)
@@ -136,6 +137,7 @@ class EntityMappingSpec extends ObjectBehavior
                 'title' => 'PHPSpec Title',
                 'blurb' => 'PHPSpec Blurb',
                 'description' => 'PHPSpec Description',
+                'language' => 'en',
                 'paywall' => false,
                 'rating' => 1,
                 '@timestamp' => $now * 1000,

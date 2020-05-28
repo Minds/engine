@@ -10,7 +10,10 @@ namespace Minds\Core\Entities\Actions;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
+use Minds\Entities\Entity;
+use Minds\Entities\User;
 use Minds\Helpers\MagicAttributes;
+use Minds\Core\Log\Logger;
 
 /**
  * Save Action
@@ -23,15 +26,20 @@ class Save
     /** @var mixed */
     protected $entity;
 
+    /** @var Logger */
+    protected $logger;
+
     /**
      * Save constructor.
      *
      * @param null $eventsDispatcher
      */
     public function __construct(
-        $eventsDispatcher = null
+        $eventsDispatcher = null,
+        $logger = null
     ) {
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
+        $this->logger = $logger ?: Di::_()->get('Logger');
     }
 
     /**
@@ -48,6 +56,15 @@ class Save
         return $this;
     }
 
+    /**
+     * Gets the set entity.
+     *
+     * @return Entity
+     */
+    public function getEntity(): Entity
+    {
+        return $this->entity;
+    }
     /**
      * Saves the entity.
      *
@@ -86,6 +103,32 @@ class Save
     protected function beforeSave()
     {
         $this->tagNSFW();
+        $this->applyLanguage();
+    }
+
+    /**
+     * Applies language to entry by setting it to the owners language.
+     *
+     * @return void
+     */
+    public function applyLanguage(): void
+    {
+        try {
+            if (!$this->entity->language &&
+                method_exists($this->entity, 'getOwnerEntity')
+            ) {
+                $owner = $this->entity->getOwnerEntity();
+                if ($owner && $owner->language) {
+                    $this->entity->language = $owner->language;
+                }
+            }
+        } catch (\Exception $e) {
+            $this->logger->error(
+                "Error applying language to "
+                .$this->entity->type ?? "entity"." with guid "
+                .$this->entity->guid
+            );
+        }
     }
 
     protected function tagNSFW()
