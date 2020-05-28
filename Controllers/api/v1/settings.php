@@ -8,6 +8,7 @@
 namespace Minds\Controllers\api\v1;
 
 use Minds\Api\Factory;
+use Minds\Common\Cookie;
 use Minds\Core;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
@@ -139,7 +140,20 @@ class settings implements Interfaces\Api
         }
 
         if (isset($_POST['language']) && ctype_alnum($_POST['language'])) {
-            $user->setLanguage($_POST['language']);
+            $language = $_POST['language'];
+
+            $user->setLanguage($language);
+
+            $cookie = new Cookie();
+            $cookie
+                ->setName('hl')
+                ->setValue($language)
+                ->setExpire(strtotime('+1 year'))
+                ->setPath('/')
+                ->setHttpOnly(false)
+                ->create();
+
+            $_COOKIE['hl'] = $language;
         }
 
         if (isset($_POST['toaster_notifications'])) {
