@@ -2,6 +2,9 @@
   "mappings": {
     "activity:blog": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -135,6 +138,9 @@
     },
     "comment": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -280,6 +286,9 @@
     },
     "activity": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -465,6 +474,9 @@
     },
     "object:video": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -556,6 +568,9 @@
     },
     "object": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -671,6 +686,9 @@
     },
     "object:audio": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -1092,6 +1110,9 @@
     },
     "object:blog": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -1380,6 +1401,9 @@
     },
     "user": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -1754,6 +1778,9 @@
     },
     "object:image": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },

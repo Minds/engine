@@ -42,6 +42,7 @@ class ObjectImageMappingSpec extends ObjectBehavior
         $image->get('time_moderated')->willReturn($now);
         $image->getNsfw()->willReturn([ 1 ]);
         $image->get('wire_threshold')->willReturn(null);
+        $image->get('language')->willReturn(null);
 
         $this
             ->setEntity($image)

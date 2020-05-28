@@ -45,6 +45,7 @@ class ObjectVideoMappingSpec extends ObjectBehavior
         $video->get('youtube_id')->willReturn('youtube_id');
         $video->get('transcoding_status')->willReturn('queued');
         $video->get('wire_threshold')->willReturn(null);
+        $video->get('language')->willReturn(null);
 
         $this
             ->setEntity($video)

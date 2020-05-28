@@ -39,6 +39,7 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('rating')->willReturn(1);
         $user->get('moderator_guid')->willReturn('123');
         $user->get('time_moderated')->willReturn($now);
+        $user->get('language')->willReturn('en');
         $user->isBanned()->willReturn(false);
         $user->getEmailConfirmedAt()
             ->shouldBeCalled()
@@ -72,6 +73,7 @@ class UserMappingSpec extends ObjectBehavior
                 'title' => 'PHPSpec Title',
                 'blurb' => 'PHPSpec Blurb',
                 'description' => 'PHPSpec Description',
+                'language' => 'en',
                 'paywall' => false,
                 'rating' => 1,
                 'username' => 'phpspec',
@@ -122,6 +124,7 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('moderator_guid')->willReturn(null);
         $user->get('time_moderated')->willReturn(null);
         $user->get('wire_threshold')->willReturn(null);
+        $user->get('language')->willReturn('en');
 
         $this
             ->setEntity($user)
