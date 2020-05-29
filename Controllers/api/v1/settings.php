@@ -138,7 +138,10 @@ class settings implements Interfaces\Api
             \Minds\Core\Session::regenerate(true, $user);
         }
 
-        $allowedLanguages = ['en', 'es', 'fr', 'vi'];
+        /** @var Config $config */
+        $config = Di::_()->get('Config');
+
+        $allowedLanguages = array_keys($config->get('i18n')['languages']);
 
         if (isset($_POST['language']) && in_array($_POST['language'], $allowedLanguages, true)) {
             $user->setLanguage($_POST['language']);
