@@ -908,8 +908,8 @@ class User extends \ElggUser
             $export['name'] = $this->username;
         }
 
-        $export['name'] = htmlspecialchars_decode($export['name']);
-        $export['name'] = addslashes($export['name']);
+        // $export['name'] = htmlspecialchars_decode($export['name']);
+        // $export['name'] = addslashes($export['name']);
 
         if ($this->fullExport) {
             if (Core\Session::isLoggedIn()) {
