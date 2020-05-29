@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\I18n;
 
+use Locale;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
@@ -39,15 +40,13 @@ class I18n
     {
         $user = Session::getLoggedInUser();
 
-        if ($forcedLanguage = $this->getLanguageFromQueryString()) {
-            return $forcedLanguage;
-        }
-
         if (!$user) {
             return $this->getLanguageFromHeader() ?: static::DEFAULT_LANGUAGE;
         }
 
-        return $user->getLanguage() ?: $this->getLanguageFromHeader() ?: static::DEFAULT_LANGUAGE;
+        return $user->getLanguage()
+            ?? $this->getPrimaryLanguageFromHeader()
+            ?? static::DEFAULT_LANGUAGE;
     }
 
     /**
@@ -77,32 +76,19 @@ class I18n
      * Gets the language from the header, if valid
      * @return null|string
      */
-    public function getLanguageFromHeader()
+    public function getLanguageFromHeader(): string
     {
-        if (!isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-            return null;
-        }
+        return Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']);
+    }
 
-        $languages = [];
-
-        foreach (explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']) as $localeDef) {
-            list($locale, $weight) = explode(';', trim($localeDef), 2);
-            list($language, $variant) = explode('-', $locale, 2);
-
-            if (!isset($languages[$language]) && $this->isLanguage($language)) {
-                $languages[$language] = $weight ? (float) str_replace('q=', '', $weight) : 1.0;
-            }
-        }
-
-        arsort($languages);
-
-        if (!$languages) {
-            return null;
-        }
-
-        reset($languages);
-
-        return key($languages);
+    /**
+     * Gets primary language, e.g. en_GB becomes just en.
+     * @param {string} $language - en_GB etc.
+     * @return string - returns primary language.
+     */
+    public function getPrimaryLanguageFromHeader(): string
+    {
+        return Locale::getPrimaryLanguage($this->getLanguageFromHeader());
     }
 
     /**
