@@ -903,7 +903,7 @@ class User extends \ElggUser
     {
         $export = parent::export();
         $export['guid'] = (string) $this->guid;
-        $export['name'] = htmlspecialchars_decode($this->name);
+        //$export['name'] = htmlspecialchars_decode($this->name);
 
         if ($this->fullExport) {
             if (Core\Session::isLoggedIn()) {
