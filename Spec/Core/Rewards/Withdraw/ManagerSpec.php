@@ -742,6 +742,7 @@ class ManagerSpec extends ObjectBehavior
         $this->config->get('blockchain')
             ->shouldBeCalled()
             ->willReturn([
+                'server_gas_price' => 100,
                 'contracts' => [
                     'withdraw' => [
                         'wallet_pkey' => '',
