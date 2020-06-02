@@ -22,12 +22,14 @@ class I18n
      * Gets all set-up languages
      * @return array
      */
-    public function getLanguages()
+    public function getLanguages(): array
     {
-        $languages = $this->config->get('i18n')['languages'] ?: [
-            static::DEFAULT_LANGUAGE => static::DEFAULT_LANGUAGE_NAME
-        ];
-
+        $languages = [];
+        foreach (Locales::I18N_LOCALES as $isoCode) {
+            $enDisplay = \Locale::getDisplayLanguage($isoCode, 'en');
+            $display = \Locale::getDisplayLanguage($isoCode, $isoCode);
+            $languages[$isoCode] = "$display ($enDisplay)";
+        }
         return $languages;
     }
 
@@ -106,20 +108,9 @@ class I18n
     }
 
     /**
-     * Serves the corresponding index.php file
+     * TODO: remove from router
      */
-    public function serveIndex()
+    public function serveIndex(): void
     {
-        $dist = realpath(__MINDS_ROOT__ . '/../front/dist');
-        $language = $this->getLanguage();
-        $defaultLanguage = static::DEFAULT_LANGUAGE;
-
-        $file = "{$dist}/{$language}/index.php";
-        
-        if (!file_exists($file)) {
-            $file = "{$dist}/{$defaultLanguage}/index.php";
-        }
-
-        include($file);
     }
 }
