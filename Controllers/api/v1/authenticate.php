@@ -15,7 +15,6 @@ use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
-use Minds\Common\Cookie;
 use Minds\Core\I18n\I18n;
 use Minds\Exceptions\TwoFactorRequired;
 use Minds\Core\Queue;

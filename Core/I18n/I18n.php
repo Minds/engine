@@ -42,7 +42,7 @@ class I18n
         $user = Session::getLoggedInUser();
 
         if (!$user) {
-            return $this->getLanguageFromHeader() ?: static::DEFAULT_LANGUAGE;
+            return $this->getPrimaryLanguageFromHeader() ?: static::DEFAULT_LANGUAGE;
         }
 
         return $user->getLanguage()
