@@ -62,6 +62,7 @@ class Provider extends DiProvider
                 'topv2-algo',
                 'localization-2020',
                 'suggestions',
+                'plus-2020',
             ];
         });
 
