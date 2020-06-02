@@ -26,7 +26,9 @@ class I18n
     {
         $languages = [];
         foreach (Locales::I18N_LOCALES as $isoCode) {
-            $languages[$isoCode] = \Locale::getDisplayLanguage($isoCode, $isoCode);
+            $enDisplay = \Locale::getDisplayLanguage($isoCode, 'en');
+            $display = \Locale::getDisplayLanguage($isoCode, $isoCode);
+            $languages[$isoCode] = "$display ($enDisplay)";
         }
         return $languages;
     }
