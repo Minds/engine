@@ -271,7 +271,10 @@
                 <!------------------------------>
                   <tr>
                     <td>
-                      <p <?php echo $emailStyles->getStyles('m-copy'); ?> > Hi @<?php echo $vars['username'] ?>,
+                      <p
+                        <?php echo $emailStyles->getStyles('m-copy'); ?>
+                      >
+                        <?= $vars['translator']->trans('Hi') ?> @<?php echo $vars['username'] ?>,
                       </p>
                     </td>
                   </tr>
@@ -371,7 +374,7 @@
                           font-size: 22px;
                         "
                       >
-                        Download the Minds app today!
+                        <?= $vars['translator']->trans('Download the Minds app today!') ?>
                       </td>
                     </tr>
                     <tr>
@@ -553,7 +556,7 @@
                                         >
                                           <div>
                                             <div style="display: inline-block;">
-                                              Sent to you from
+                                              <?= $vars['translator']->trans('Sent to you from') ?>
                                             </div>
                                             <div style="display: inline-block;">
                                               Minds Inc
@@ -604,8 +607,9 @@
                                             "
                                             href="https://www.minds.com/settings/canary/account/email-notifications"
                                             target="_blank"
-                                            >Manage email settings</a
-                                          >
+                                            >
+                                            <?= $vars['translator']->trans('Manage email settings') ?>
+                                          </a>
                                           </br>
                                           <a
                                             style="
@@ -618,7 +622,7 @@
                                             href="https://www.minds.com/emails/unsubscribe/<?= $vars['guid']?>/<?= urlencode($vars['email'])?>/<?= $vars['campaign']?><?= '/' . $vars['topic']?>?__e_ct_guid=<?= $vars['guid']?>&campaign=<?= $vars['campaign'] ?>&topic=<?= $vars['topic'] ?>&state=<?= $vars['state']?>"
                                             target="_blank"
                                           >
-                                            Unsubscribe
+                                            <?= $vars['translator']->trans('Unsubscribe') ?>
                                           </a>
                                         </td>
                                       </tr>

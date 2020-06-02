@@ -32,7 +32,7 @@ class BoostProvider extends Provider
             return new Network\Iterator();
         }, ['useFactory' => false]);
         $this->di->bind('Boost\Network\Metrics', function ($di) {
-            return new Network\Metrics(Client::build('MongoDB'));
+            return new Network\Metrics();
         }, ['useFactory' => false]);
         $this->di->bind('Boost\Network\Review', function ($di) {
             return new Network\Review();

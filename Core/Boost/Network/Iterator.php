@@ -14,6 +14,7 @@ class Iterator implements \Iterator
     protected $elasticRepository;
     protected $entitiesBuilder;
     protected $expire;
+    /** @var Metrics */
     protected $metrics;
     protected $manager;
 

@@ -12,6 +12,11 @@ use Minds\Core\Email\V2\Partials\SuggestedChannels\SuggestedChannels;
 use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
 use Minds\Core\Di\Di;
 
+/**
+ * Class WeMissYou
+ * @package Minds\Core\Email\V2\Campaigns\Recurring\WeMissYou
+ * @method WeMissYou setSuggestions(string $value)
+ */
 class WeMissYou extends EmailCampaign
 {
     use MagicAttributes;
@@ -46,14 +51,17 @@ class WeMissYou extends EmailCampaign
             'state' => $this->state,
         ];
 
+        $this->template->setLocale($this->user->getLanguage());
+        $translator = $this->template->getTranslator();
+
         $trackingQuery = http_build_query($tracking);
-        $subject = 'We Miss You';
+        $subject = $translator->trans('We Miss You');
 
         $this->template->setTemplate('default.tpl');
         $this->template->setBody('./template.tpl');
         $this->template->set('title', $subject);
-        $this->template->set('signoff', 'We hope to see you again!');
-        $this->template->set('preheader', 'We want you back!');
+        $this->template->set('signoff', $translator->trans('We hope to see you again!'));
+        $this->template->set('preheader', $translator->trans('We want you back!'));
         $this->template->set('user', $this->user);
         $this->template->set('username', $this->user->username);
         $this->template->set('email', $this->user->getEmail());
@@ -65,7 +73,7 @@ class WeMissYou extends EmailCampaign
 
         $actionButton = (new ActionButton())
         ->setPath('newsfeed/subscribed?'. $trackingQuery)
-        ->setLabel('Check-in');
+        ->setLabel($translator->trans('Check-in'));
 
         $this->template->set('actionButton', $actionButton->build());
 
