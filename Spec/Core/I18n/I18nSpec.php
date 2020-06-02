@@ -16,9 +16,9 @@ class I18nSpec extends ObjectBehavior
     public function it_should_return_languages_list()
     {
         $languages = $this->getLanguages();
-        $languages['en']->shouldBe('English');
-        $languages['fr']->shouldBe('français');
-        $languages['es']->shouldBe('español');
-        $languages['th']->shouldBe('ไทย');
+        $languages['en']->shouldBe('English (English)');
+        $languages['fr']->shouldBe('français (French)');
+        $languages['es']->shouldBe('español (Spanish)');
+        $languages['th']->shouldBe('ไทย (Thai)');
     }
 }
