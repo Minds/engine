@@ -259,7 +259,9 @@ class membership implements Interfaces\Api
             ]);
         }
 
-        if (isset($pages[1])) {
+        if (isset($pages[1])
+            && ($group->isOwner($user) || $group->isModerator($user))
+        ) {
             //Admin approval
             try {
                 $joined = $membership->setActor($user)->join($pages[1]);
