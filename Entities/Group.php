@@ -878,7 +878,7 @@ class Group extends NormalizedEntity
         $export = parent::export($keys);
 
         foreach ($export as $key => $value) {
-            if (is_numeric($value)) {
+            if (is_numeric($value) && strlen($value) < 16) {
                 $export[$key] = (int) $value;
             }
         }
