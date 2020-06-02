@@ -7,6 +7,7 @@
 namespace Minds\Core\Translation;
 
 use Minds\Core;
+use Minds\Core\Translation\Services\TranslationServiceInterface;
 use Minds\Entities;
 use Minds\Core\Translation\Storage;
 use Minds\Helpers\MagicAttributes;
@@ -14,6 +15,7 @@ use Minds\Helpers\MagicAttributes;
 class Translations
 {
     protected $cache;
+    /** @var TranslationServiceInterface */
     protected $service;
 
     const MAX_CONTENT_LENGTH = 5000;
@@ -62,7 +64,7 @@ class Translations
             }
 
             $content = '';
-            
+
             switch ($field) {
                 case 'message':
                     if (method_exists($entity, 'getMessage')) {
@@ -79,7 +81,7 @@ class Translations
                         $content = $entity->body;
                     }
                     break;
-                
+
                 case 'description':
                     if (method_exists($entity, 'getDescription')) {
                         $content = $entity->getDescription();
@@ -107,7 +109,7 @@ class Translations
             if (strlen($content) > static::MAX_CONTENT_LENGTH) {
                 $content = substr($content, 0, static::MAX_CONTENT_LENGTH);
             }
-            
+
             $translation[$field] = $this->translateText($content, $target);
 
             if ($translation[$field]) {
