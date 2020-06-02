@@ -15,6 +15,8 @@ use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Common\Cookie;
+use Minds\Core\I18n\I18n;
 use Minds\Exceptions\TwoFactorRequired;
 use Minds\Core\Queue;
 use Minds\Core\Subscriptions;
@@ -92,6 +94,12 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
             $response['message'] = $e->getMessage();
             return Factory::response($response);
         }
+
+        // set language and language cookie
+        $i18n = new I18n();
+        $language = $i18n->getLanguage();
+        $user->setLanguage($language);
+        $i18n->setLanguageCookie($language);
 
         $sessions = Di::_()->get('Sessions\Manager');
         $sessions->setUser($user);

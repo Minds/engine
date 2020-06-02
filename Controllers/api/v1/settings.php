@@ -144,8 +144,11 @@ class settings implements Interfaces\Api
         if (isset($_POST['language']) && in_array($_POST['language'], $allowedLanguages, true)) {
             $user->setLanguage($_POST['language']);
         } else {
+            // set language and language cookie
             $i18n = new I18n();
-            $user->setLanguage($i18n->getLanguage());
+            $language = $i18n->getLanguage();
+            $user->setLanguage($language);
+            $i18n->setLanguageCookie($language);
         }
 
         if (isset($_POST['toaster_notifications'])) {

@@ -2,6 +2,7 @@
 namespace Minds\Core\I18n;
 
 use Locale;
+use Minds\Common\Cookie;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
@@ -107,5 +108,24 @@ class I18n
         }
 
         include($file);
+    }
+
+    /**
+     * Sets the language cookie.
+     * @param string $language - the value of the cookie.
+     * @return void
+     */
+    public function setLanguageCookie(string $language): void
+    {
+        $cookie = new Cookie();
+        $cookie
+            ->setName('hl')
+            ->setValue($language)
+            ->setExpire(strtotime('+1 year'))
+            ->setPath('/')
+            ->setHttpOnly(false)
+            ->create();
+
+        $_COOKIE['hl'] = $language;
     }
 }
