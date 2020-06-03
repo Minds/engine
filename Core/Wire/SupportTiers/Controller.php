@@ -44,15 +44,14 @@ class Controller
     {
         $urn = Urn::parse($request->getAttribute('parameters')['urn'], 'support-tier');
 
-        if (!$urn || count($urn) !== 3) {
+        if (!$urn || count($urn) !== 2) {
             throw new UserErrorException('Invalid URN', 400);
         }
 
         $supportTier = new SupportTier();
         $supportTier
             ->setEntityGuid($urn[0])
-            ->setCurrency($urn[1])
-            ->setGuid($urn[2]);
+            ->setGuid($urn[1]);
 
         return new JsonResponse([
             'status' => 'success',
@@ -96,14 +95,15 @@ class Controller
     {
         $currentUser = $request->getAttribute('_user');
         $body = $request->getParsedBody();
-        $currency = $body['currency'] ?? '';
-        $amount = round((float) $body['amount'], 6);
         $name = $body['name'] ?? '';
+        $description = $body['description'] ?? '';
+        $usd = round((float) ($body['usd'] ?? 0), 6);
+        $tokens = round((float) ($body['tokens'] ?? 0), 6);
 
-        if (!$currency) {
-            throw new UserErrorException('Invalid currency', 400);
-        } elseif (!$amount || $amount <= 0) {
-            throw new UserErrorException('Invalid amount', 400);
+        if ($usd < 0) {
+            throw new UserErrorException('Invalid USD amount', 400);
+        } elseif ($tokens < 0) {
+            throw new UserErrorException('Invalid tokens amount', 400);
         } elseif (!is_string($name) || strlen($name) === 0) {
             throw new UserErrorException('Invalid name', 400);
         }
@@ -111,10 +111,11 @@ class Controller
         $supportTier = new SupportTier();
         $supportTier
             ->setEntityGuid($currentUser->guid)
-            ->setCurrency($currency)
-            ->setAmount($amount)
+            ->setPublic(true)
             ->setName($name)
-            ->setDescription($body['description'] ?? '');
+            ->setDescription($description)
+            ->setUsd($usd)
+            ->setTokens($tokens);
 
         $this->manager
             ->setEntity($currentUser);
@@ -137,7 +138,7 @@ class Controller
         $currentUser = $request->getAttribute('_user');
         $urn = Urn::parse($request->getAttribute('parameters')['urn'], 'support-tier');
 
-        if (!$urn || count($urn) !== 3) {
+        if (!$urn || count($urn) !== 2) {
             throw new UserErrorException('Invalid URN', 400);
         } elseif ($urn[0] !== (string) $currentUser->guid) {
             throw new UserErrorException('You are not authorized', 403);
@@ -145,6 +146,7 @@ class Controller
 
         $body = $request->getParsedBody();
         $name = $body['name'] ?? '';
+        $description = $body['description'] ?? '';
 
         if (!is_string($name) || strlen($name) === 0) {
             throw new UserErrorException('Invalid name', 400);
@@ -153,8 +155,7 @@ class Controller
         $supportTier = $this->manager->get(
             (new SupportTier())
                 ->setEntityGuid($urn[0])
-                ->setCurrency($urn[1])
-                ->setGuid($urn[2])
+                ->setGuid($urn[1])
         );
 
         if (!$supportTier) {
@@ -163,7 +164,7 @@ class Controller
 
         $supportTier
             ->setName($name)
-            ->setDescription($body['description'] ?? '');
+            ->setDescription($description);
 
         $this->manager
             ->setEntity($currentUser);
@@ -185,7 +186,7 @@ class Controller
         $currentUser = $request->getAttribute('_user');
         $urn = Urn::parse($request->getAttribute('parameters')['urn'], 'support-tier');
 
-        if (!$urn || count($urn) !== 3) {
+        if (!$urn || count($urn) !== 2) {
             throw new UserErrorException('Invalid URN', 400);
         } elseif ($urn[0] !== (string) $currentUser->guid) {
             throw new UserErrorException('You are not authorized', 403);
@@ -194,8 +195,7 @@ class Controller
         $supportTier = new SupportTier();
         $supportTier
             ->setEntityGuid($urn[0])
-            ->setCurrency($urn[1])
-            ->setGuid($urn[2]);
+            ->setGuid($urn[1]);
 
         $this->manager
             ->setEntity($currentUser)

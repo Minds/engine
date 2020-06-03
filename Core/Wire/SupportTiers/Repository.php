@@ -34,18 +34,13 @@ class Repository
      */
     public function getList(RepositoryGetListOptions $opts): Response
     {
-        $cql = 'SELECT * FROM wire_support_tiers';
+        $cql = 'SELECT * FROM wire_support_tiers_2';
         $where = [];
         $values = [];
 
         if ($opts->getEntityGuid()) {
             $where[] = 'entity_guid = ?';
             $values[] = new Bigint((string) $opts->getEntityGuid());
-        }
-
-        if ($opts->getCurrency()) {
-            $where[] = 'currency = ?';
-            $values[] = (string) $opts->getCurrency();
         }
 
         if ($opts->getGuid()) {
@@ -74,11 +69,12 @@ class Repository
 
             $supportTier
                 ->setEntityGuid((string) $row['entity_guid']->value())
-                ->setCurrency($row['currency'])
                 ->setGuid((string) $row['guid']->value())
-                ->setAmount($row['amount']->toDouble())
+                ->setPublic($row['public'])
                 ->setName($row['name'])
-                ->setDescription($row['description']);
+                ->setDescription($row['description'])
+                ->setUsd($row['usd']->toDouble())
+                ->setTokens($row['tokens']->toDouble());
 
             $response[] = $supportTier;
         }
@@ -98,14 +94,15 @@ class Repository
      */
     public function add(SupportTier $supportTier): bool
     {
-        $cql = 'INSERT INTO wire_support_tiers (entity_guid, currency, guid, amount, name, description) VALUES (?, ?, ?, ?, ?, ?)';
+        $cql = 'INSERT INTO wire_support_tiers_2 (entity_guid, guid, public, name, description, usd, tokens) VALUES (?, ?, ?, ?, ?, ?, ?)';
         $values = [
             new Bigint($supportTier->getEntityGuid()),
-            (string) $supportTier->getCurrency(),
             new Bigint($supportTier->getGuid()),
-            new Decimal((string) $supportTier->getAmount()),
+            (bool) $supportTier->isPublic(),
             (string) $supportTier->getName(),
             (string) $supportTier->getDescription(),
+            new Decimal((string) $supportTier->getUsd()),
+            new Decimal((string) $supportTier->getTokens()),
         ];
 
         $prepared = new Custom();
@@ -131,10 +128,9 @@ class Repository
      */
     public function delete(SupportTier $supportTier): bool
     {
-        $cql = 'DELETE FROM wire_support_tiers WHERE entity_guid = ? AND currency = ? AND guid = ?';
+        $cql = 'DELETE FROM wire_support_tiers_2 WHERE entity_guid = ? AND guid = ?';
         $values = [
             new Bigint($supportTier->getEntityGuid()),
-            (string) $supportTier->getCurrency(),
             new Bigint($supportTier->getGuid()),
         ];
 
@@ -151,7 +147,7 @@ class Repository
      */
     public function deleteAll(SupportTier $supportTier): bool
     {
-        $cql = 'DELETE FROM wire_support_tiers WHERE entity_guid = ?';
+        $cql = 'DELETE FROM wire_support_tiers_2 WHERE entity_guid = ?';
         $values = [
             new Bigint($supportTier->getEntityGuid()),
         ];

@@ -5,6 +5,7 @@ use Exception;
 use Minds\Common\Repository\Response;
 use Minds\Core\GuidBuilder;
 use Minds\Entities\User;
+use Minds\Helpers\Log;
 
 /**
  * Wire Support Tiers Manager
@@ -18,9 +19,6 @@ class Manager
     /** @var GuidBuilder */
     protected $guidBuilder;
 
-    /** @var Delegates\UserWireRewardsMigrationDelegate */
-    protected $userWireRewardsMigrationDelegate;
-
     /** @var mixed */
     protected $entity;
 
@@ -28,16 +26,13 @@ class Manager
      * Manager constructor.
      * @param $repository
      * @param null $guidBuilder
-     * @param $userWireRewardsMigrationDelegate
      */
     public function __construct(
         $repository = null,
-        $guidBuilder = null,
-        $userWireRewardsMigrationDelegate = null
+        $guidBuilder = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->guidBuilder = $guidBuilder ?: new GuidBuilder();
-        $this->userWireRewardsMigrationDelegate = $userWireRewardsMigrationDelegate ?: new Delegates\UserWireRewardsMigrationDelegate();
     }
 
     /**
@@ -52,7 +47,7 @@ class Manager
     }
 
     /**
-     * Fetches all support tiers for an entity. Migrates existing Wire Rewards.
+     * Fetches all support tiers for an entity.
      * @return Response<SupportTier>
      * @throws Exception
      */
@@ -62,19 +57,20 @@ class Manager
             throw new Exception('Missing entity');
         }
 
-        $response = $this->repository->getList(
+        return $this->repository->getList(
             (new RepositoryGetListOptions())
                 ->setEntityGuid((string) $this->entity->guid)
                 ->setLimit(5000)
         );
 
-        if (!$response->count() && $this->entity instanceof User && $this->entity->getWireRewards()) {
-            // If no response, entity is User and there are Wire Rewards set, migrate from it
-            $response = $this->userWireRewardsMigrationDelegate
-                ->migrate($this->entity, true);
-        }
-
-        return $response;
+        // TODO: Remove if no longer needed
+        // if (!$response->count() && $this->entity instanceof User && $this->entity->getWireRewards()) {
+        //     // If no response, entity is User and there are Wire Rewards set, migrate from it
+        //     $response = $this->userWireRewardsMigrationDelegate
+        //         ->migrate($this->entity, true);
+        // }
+        //
+        // return $response;
     }
 
     /**
@@ -85,14 +81,13 @@ class Manager
      */
     public function get(SupportTier $supportTier): ?SupportTier
     {
-        if (!$supportTier->getEntityGuid() || !$supportTier->getCurrency() || !$supportTier->getGuid()) {
+        if (!$supportTier->getEntityGuid() || !$supportTier->getGuid()) {
             throw new Exception('Missing primary key');
         }
 
         return $this->repository->getList(
             (new RepositoryGetListOptions())
                 ->setEntityGuid($supportTier->getEntityGuid())
-                ->setCurrency($supportTier->getCurrency())
                 ->setGuid($supportTier->getGuid())
                 ->setLimit(1)
         )->first();
@@ -111,11 +106,12 @@ class Manager
 
         $success = $this->repository->add($supportTier);
 
-        if ($success && $this->entity instanceof User) {
-            // If entity is User, re-sync wire_rewards
-            $this->userWireRewardsMigrationDelegate
-                ->sync($this->entity);
-        }
+        // TODO: Remove if no longer needed
+        // if ($success && $this->entity instanceof User) {
+        //     // If entity is User, re-sync wire_rewards
+        //     $this->userWireRewardsMigrationDelegate
+        //         ->sync($this->entity);
+        // }
 
         return $success ? $supportTier : null;
     }
@@ -130,11 +126,12 @@ class Manager
     {
         $success = $this->repository->update($supportTier);
 
-        if ($success && $this->entity instanceof User) {
-            // If entity is User, re-sync wire_rewards
-            $this->userWireRewardsMigrationDelegate
-                ->sync($this->entity);
-        }
+        // TODO: Remove if no longer needed
+        // if ($success && $this->entity instanceof User) {
+        //     // If entity is User, re-sync wire_rewards
+        //     $this->userWireRewardsMigrationDelegate
+        //         ->sync($this->entity);
+        // }
 
         return $success ? $supportTier : null;
     }
@@ -147,28 +144,34 @@ class Manager
      */
     public function delete(SupportTier $supportTier): bool
     {
-        $success = $this->repository->delete($supportTier);
+        return $this->repository->delete($supportTier);
 
-        if ($success && $this->entity instanceof User) {
-            // If entity is User, re-sync wire_rewards
-            $this->userWireRewardsMigrationDelegate
-                ->sync($this->entity);
-        }
-
-        return $success;
+        // TODO: Remove if no longer needed
+        // $success = $this->repository->delete($supportTier);
+        //
+        // if ($success && $this->entity instanceof User) {
+        //     // If entity is User, re-sync wire_rewards
+        //     $this->userWireRewardsMigrationDelegate
+        //         ->sync($this->entity);
+        // }
+        //
+        // return $success;
     }
 
     /**
      * Migrates wire_reward field to Support Tier
      * @throws Exception
+     * @deprecated
+     * @todo Remove if no longer needed
      */
     public function migrate(): void
     {
-        if (!($this->entity instanceof User)) {
-            throw new Exception('Entity is not a User');
-        }
-
-        $this->userWireRewardsMigrationDelegate
-            ->migrate($this->entity, true);
+        Log::notice('Support Tier migration is deprecated');
+        // if (!($this->entity instanceof User)) {
+        //     throw new Exception('Entity is not a User');
+        // }
+        //
+        // $this->userWireRewardsMigrationDelegate
+        //     ->migrate($this->entity, true);
     }
 }

@@ -3,8 +3,6 @@
 namespace Spec\Minds\Entities;
 
 use Minds\Common\Repository\Response;
-use Minds\Core\Wire\SupportTiers\Manager;
-use Minds\Core\Wire\SupportTiers\Polyfill;
 use Minds\Entities\User;
 use Minds\Core\Di\Di;
 use PhpSpec\ObjectBehavior;
@@ -69,25 +67,8 @@ class UserSpec extends ObjectBehavior
         $this->getMode()->shouldEqual(ChannelMode::MODERATED);
     }
 
-    public function it_should_export_values(Manager $supportTiersManager, Polyfill $supportTiersPolyfill)
+    public function it_should_export_values()
     {
-        Di::_()->bind('Wire\SupportTiers\Manager', function ($di) use ($supportTiersManager) {
-            return $supportTiersManager->getWrappedObject();
-        });
-
-        Di::_()->bind('Wire\SupportTiers\Polyfill', function ($di) use ($supportTiersPolyfill) {
-            return $supportTiersPolyfill->getWrappedObject();
-        });
-
-        $supportTiersManager->setEntity(Argument::cetera())
-            ->willReturn($supportTiersManager);
-
-        $supportTiersManager->getAll()
-            ->willReturn(new Response());
-
-        $supportTiersPolyfill->process(Argument::cetera())
-            ->willReturn([]);
-
         $export = $this->export()->getWrappedObject();
         expect($export['mode'])->shouldEqual(ChannelMode::OPEN);
     }

@@ -4,6 +4,7 @@ namespace Minds\Core\Wire\SupportTiers;
 /**
  * Tier names helper
  * @package Minds\Core\Wire\SupportTiers
+ * @deprecated
  */
 class TierBuilder
 {

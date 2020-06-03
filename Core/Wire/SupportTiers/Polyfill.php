@@ -8,6 +8,8 @@ use Minds\Helpers\Log;
 /**
  * User wire_rewards polyfill manager for Support Tiers
  * @package Minds\Core\Wire\SupportTiers
+ * @deprecated
+ * @todo Remove if no longer needed
  */
 class Polyfill
 {
@@ -34,13 +36,16 @@ class Polyfill
      * Transforms a Support Tiers iterable into a wire_rewards compatible output.
      * @param SupportTier[] $supportTiers
      * @return array
+     * @deprecated
+     * @todo Remove if no longer needed
      */
     public function process(iterable $supportTiers): array
     {
-        if (!$supportTiers) {
-            return [];
-        }
-
-        return $this->userWireRewardsMigrationDelegate->polyfill($supportTiers);
+        Log::notice('Support Tier migration is deprecated');
+        // if (!$supportTiers) {
+        //     return [];
+        // }
+        //
+        // return $this->userWireRewardsMigrationDelegate->polyfill($supportTiers);
     }
 }

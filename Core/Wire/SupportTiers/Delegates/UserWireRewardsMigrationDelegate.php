@@ -14,6 +14,7 @@ use Minds\Helpers\Log;
 /**
  * Handle User entity Wire Rewards conversion (back and forth).
  * @package Minds\Core\Wire\SupportTiers\Delegates
+ * @deprecated
  */
 class UserWireRewardsMigrationDelegate
 {

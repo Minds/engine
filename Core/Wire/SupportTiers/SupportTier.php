@@ -10,16 +10,18 @@ use Minds\Traits\MagicAttributes;
  * @package Minds\Core\Wire\SupportTiers
  * @method string getEntityGuid()
  * @method SupportTier setEntityGuid(string $entityGuid)
- * @method string getCurrency()
- * @method SupportTier setCurrency(string $currency)
  * @method string getGuid()
  * @method SupportTier setGuid(string $guid)
- * @method float getAmount()
- * @method SupportTier setAmount(float $amount)
+ * @method bool isPublic()
+ * @method SupportTier setPublic(bool $public)
  * @method string getName()
  * @method SupportTier setName(string $name)
  * @method string getDescription()
  * @method SupportTier setDescription(string $description)
+ * @method float getUsd()
+ * @method SupportTier setUsd(float $usd)
+ * @method float getTokens()
+ * @method SupportTier setTokens(float $tokens)
  */
 class SupportTier implements JsonSerializable
 {
@@ -29,13 +31,10 @@ class SupportTier implements JsonSerializable
     protected $entityGuid;
 
     /** @var string */
-    protected $currency;
-
-    /** @var string */
     protected $guid;
 
-    /** @var float */
-    protected $amount;
+    /** @var bool */
+    protected $public;
 
     /** @var string */
     protected $name;
@@ -43,16 +42,21 @@ class SupportTier implements JsonSerializable
     /** @var string */
     protected $description;
 
+    /** @var float */
+    protected $usd;
+
+    /** @var float */
+    protected $tokens;
+
     /**
      * Builds URN
      * @return string|null
      */
     public function getUrn(): ?string
     {
-        if ($this->entityGuid && $this->currency && $this->guid) {
+        if ($this->entityGuid && $this->guid) {
             return Urn::build('support-tier', [
                 $this->entityGuid,
-                $this->currency,
                 $this->guid,
             ]);
         }
@@ -69,11 +73,12 @@ class SupportTier implements JsonSerializable
         return [
             'urn' => $this->getUrn(),
             'entity_guid' => $this->entityGuid,
-            'currency' => $this->currency,
             'guid' => $this->guid,
-            'amount' => (string) $this->amount,
+            'public' => $this->public,
             'name' => $this->name,
             'description' => $this->description,
+            'usd' => (string) $this->usd,
+            'tokens' => (string) $this->tokens,
         ];
     }
 
