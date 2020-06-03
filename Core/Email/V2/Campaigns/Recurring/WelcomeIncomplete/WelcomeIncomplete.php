@@ -44,12 +44,8 @@ class WelcomeIncomplete extends EmailCampaign
             'state' => $this->state,
         ];
 
-        $this->template->setLocale($this->user->getLanguage());
-
-        $translator = $this->template->getTranslator();
-
         $trackingQuery = http_build_query($tracking);
-        $subject = $translator->trans('Welcome to Minds');
+        $subject = 'Welcome to Minds';
 
         $this->template->set('title', $subject);
         $this->template->setTemplate('default.tpl');
@@ -61,12 +57,12 @@ class WelcomeIncomplete extends EmailCampaign
         $this->template->set('campaign', $this->campaign);
         $this->template->set('topic', $this->topic);
         $this->template->set('state', $this->state);
-        $this->template->set('preheader', $translator->trans('Enjoy all of the different features Minds has to offer when you finish setting up your channel'));
+        $this->template->set('preheader', 'Enjoy all of the different features Minds has to offer when you finish setting up your channel');
         $this->template->set('tracking', $trackingQuery);
 
         $actionButton = (new ActionButton())
         ->setPath('newsfeed/subscribed?'. $trackingQuery)
-        ->setLabel($translator->trans('Complete Setup'));
+        ->setLabel('Complete Setup');
 
         $this->template->set('actionButton', $actionButton->build());
 

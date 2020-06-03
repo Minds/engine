@@ -2,22 +2,22 @@
 
 namespace Spec\Minds\Core\Email\V2\Delegates;
 
-use Minds\Core\Di\Di;
-use Minds\Core\Email\Mailer;
+use Minds\Core\Email\V2\Delegates\WelcomeSender;
+use PhpSpec\ObjectBehavior;
+use Minds\Core\Suggestions\Manager as SuggestionsManager;
+use Minds\Core\Onboarding\Manager as OnboardingManager;
+use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Email\Manager;
+use Minds\Core\Email\Mailer;
+use Minds\Entities\User;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
-use Minds\Core\Email\V2\Common\Template;
-use Minds\Core\Email\V2\Delegates\WelcomeSender;
-use Minds\Core\I18n\Translator;
-use Minds\Core\Onboarding\Manager as OnboardingManager;
-use Minds\Core\Suggestions\Manager as SuggestionsManager;
-use Minds\Entities\User;
-use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
+use Minds\Core\Email\CampaignLogs\CampaignLog;
 
 class WelcomeSenderSpec extends ObjectBehavior
 {
+    /** @var Manager $manager */
+    private $manager;
     /** @var SuggestionsManager */
     private $suggestionsManager;
     /** @var OnboardingManager */
@@ -26,30 +26,21 @@ class WelcomeSenderSpec extends ObjectBehavior
     private $welcomeComplete;
     /** @var WelcomeIncomplete */
     private $welcomeIncomplete;
+    private $testGUID = 123;
+    private $testName = 'test_name';
+    private $testEmail = 'test@minds.com';
+    private $testUsername = 'testUsername';
+    private $testBriefDescription = 'test brief description';
 
     public function let(
         Manager $manager,
         SuggestionsManager $suggestionsManager,
         OnboardingManager $onboardingManager,
-        Mailer $mailer,
-        Template $template,
-        Translator $translator,
-        WelcomeComplete $welcomeComplete,
-        WelcomeIncomplete $welcomeIncomplete
+        Mailer $mailer
     ) {
-        $template->getTranslator()
-            ->willReturn($translator);
-
-        $template->setLocale(Argument::any())
-            ->willReturn($translator);
-
-        $translator->trans(Argument::any())
-            ->willReturn('');
-
-        Di::_()->bind('Translator', function () use ($translator) {
-            return $translator->getWrappedObject();
-        });
-
+        $welcomeComplete = new WelcomeComplete(null, $mailer->getWrappedObject(), $manager->getWrappedObject());
+        $welcomeIncomplete = new WelcomeIncomplete(null, $mailer->getWrappedObject(), $manager->getWrappedObject());
+        $this->manager = $manager;
         $this->suggestionsManager = $suggestionsManager;
         $this->onboardingManager = $onboardingManager;
         $this->welcomeComplete = $welcomeComplete;
@@ -64,21 +55,67 @@ class WelcomeSenderSpec extends ObjectBehavior
 
     public function it_should_send_a_welcome_complete(User $user)
     {
+        $user->getGUID()->shouldBeCalled()->willReturn($this->testGUID);
+        $user->get('enabled')->shouldBeCalled()->willReturn('yes');
+        $user->get('name')->shouldBeCalled()->willReturn($this->testName);
+        $user->get('guid')->shouldBeCalled()->willReturn($this->testGUID);
+        $user->getEmail()->shouldBeCalled()->willReturn($this->testEmail);
+        $user->get('username')->shouldBeCalled()->willReturn($this->testUsername);
+        $user->get('banned')->shouldBeCalled()->willReturn(false);
+
         $this->onboardingManager->setUser($user)->shouldBeCalled();
         $this->onboardingManager->isComplete()->shouldBeCalled()->willReturn(true);
         $this->suggestionsManager->setUser($user)->shouldBeCalled();
         $this->suggestionsManager->getList()->shouldBeCalled();
 
+        $emailSubscription = (new EmailSubscription())
+        ->setUserGuid(123)
+        ->setCampaign('global')
+        ->setTopic('minds_tips')
+        ->setValue(true);
+
+        $time = time();
+
+        $campaignLog = (new CampaignLog())
+        ->setReceiverGuid($this->testGUID)
+        ->setTimeSent($time)
+        ->setEmailCampaignId($this->welcomeComplete->getEmailCampaignId());
+
+        $this->manager->saveCampaignLog($campaignLog)->shouldBeCalled();
+        $this->manager->isSubscribed($emailSubscription)->shouldBeCalled()->willReturn(true);
         $this->send($user);
     }
 
     public function it_should_send_a_welcome_incomplete(User $user)
     {
+        $user->getGUID()->shouldBeCalled()->willReturn($this->testGUID);
+        $user->get('enabled')->shouldBeCalled()->willReturn('yes');
+        $user->get('name')->shouldBeCalled()->willReturn($this->testName);
+        $user->get('guid')->shouldBeCalled()->willReturn($this->testGUID);
+        $user->getEmail()->shouldBeCalled()->willReturn($this->testEmail);
+        $user->get('username')->shouldBeCalled()->willReturn($this->testUsername);
+        $user->get('banned')->shouldBeCalled()->willReturn(false);
+
         $this->onboardingManager->setUser($user)->shouldBeCalled();
         $this->onboardingManager->isComplete()->shouldBeCalled()->willReturn(false);
         $this->suggestionsManager->setUser($user)->shouldNotBeCalled();
         $this->suggestionsManager->getList()->shouldNotBeCalled();
 
+        $emailSubscription = (new EmailSubscription())
+        ->setUserGuid(123)
+        ->setCampaign('global')
+        ->setTopic('minds_tips')
+        ->setValue(true);
+
+        $time = time();
+
+        $campaignLog = (new CampaignLog())
+        ->setReceiverGuid($this->testGUID)
+        ->setTimeSent($time)
+        ->setEmailCampaignId($this->welcomeIncomplete->getEmailCampaignId());
+
+        $this->manager->saveCampaignLog($campaignLog)->shouldBeCalled();
+        $this->manager->isSubscribed($emailSubscription)->shouldBeCalled()->willReturn(true);
         $this->send($user);
     }
 }

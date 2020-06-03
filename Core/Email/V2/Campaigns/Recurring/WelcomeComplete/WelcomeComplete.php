@@ -12,11 +12,6 @@ use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
 use Minds\Traits\MagicAttributes;
 use Minds\Core\Di\Di;
 
-/**
- * Class WelcomeComplete
- * @package Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete
- * @method WelcomeComplete setSuggestions(array $value)
- */
 class WelcomeComplete extends EmailCampaign
 {
     use MagicAttributes;
@@ -62,9 +57,7 @@ class WelcomeComplete extends EmailCampaign
             'state' => $this->state,
         ];
         $trackingQuery = http_build_query($tracking);
-        $this->template->setLocale($this->user->getLanguage());
-        $translator = $this->template->getTranslator();
-        $subject = $translator->trans('Welcome to Minds');
+        $subject = 'Welcome to Minds';
 
         $this->template->set('title', $subject);
         $this->template->setTemplate('default.tpl');
@@ -76,12 +69,12 @@ class WelcomeComplete extends EmailCampaign
         $this->template->set('campaign', $this->campaign);
         $this->template->set('topic', $this->topic);
         $this->template->set('state', $this->state);
-        $this->template->set('preheader', $translator->trans("Here's a free token for your new channel."));
+        $this->template->set('preheader', 'Here\'s a free token for your new channel.');
         $this->template->set('tracking', $trackingQuery);
 
         $actionButton = (new ActionButton())
         ->setPath('newsfeed/subscribed?'. $trackingQuery)
-        ->setLabel($translator->trans('Make a Post'));
+        ->setLabel('Make a Post');
 
         $this->template->set('actionButton', $actionButton->build());
 

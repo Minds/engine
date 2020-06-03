@@ -98,9 +98,8 @@ class Custom
         $this->template->setTemplate('default.tpl');
         $this->template->setBody("./Templates/$this->templateKey.tpl");
         $this->template->toggleMarkdown(true);
-        $this->template->setLocale($this->user->getLanguage());
 
-        $validatorHash = sha1($this->campaign . $this->user->guid . Config::_()->get('emails_secret'));
+        $validatorHash = sha1($this->campaign . $user->guid . Config::_()->get('emails_secret'));
 
         $this->template->set('username', $this->user->username);
         $this->template->set('email', $this->user->getEmail());

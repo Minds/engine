@@ -3,7 +3,7 @@
     "description": "The core minds social engine",
     "require": {
         "php": "~7.1",
-        "ext-redis": "~5.1.1",
+        "ext-redis": "~4.3",
         "aws/aws-sdk-php": "^3.38",
         "datastax/php-driver": "^1.2.2",
         "elasticsearch/elasticsearch": "^6.1",
@@ -19,6 +19,7 @@
         "twilio/sdk": "^5.26",
         "vscn/cruftflake": "dev-master#cab1b9ee9869072e7a58a1eb593b602ec5bedcd3",
         "zircote/swagger-php": "2.*@dev",
+        "mongodb/mongodb": "^1.0.5",
         "abraham/twitteroauth": "^0.6.4",
         "google/apiclient": "^2.0",
         "aws/aws-php-sns-message-validator": "^1.4",
@@ -42,8 +43,7 @@
         "vlucas/phpdotenv": "^4.1",
         "sendgrid/sendgrid": "^7.4",
         "ocramius/package-versions": "1.5",
-        "pubsubhubbub/subscriber": "^1.1",
-        "symfony/translation": "^5.0"
+        "pubsubhubbub/subscriber": "^1.1"
     },
     "repositories": [
         {
@@ -82,8 +82,5 @@
         "friends-of-phpspec/phpspec-code-coverage": "^4.3",
         "phpspec/phpspec": "^5.0",
         "bossa/phpspec2-expect": "^3.1"
-    },
-    "provide": {
-        "symfony/translation-contracts": "2.0.1"
     }
 }

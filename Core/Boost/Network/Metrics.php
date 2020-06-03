@@ -10,7 +10,13 @@ use Minds\Helpers;
 
 class Metrics
 {
+    protected $mongo;
     protected $type;
+
+    public function __construct(Data\Interfaces\ClientInterface $mongo = null)
+    {
+        $this->mongo = $mongo ?: Data\Client::build('MongoDB');
+    }
 
     /**
      * @param string $type
@@ -46,21 +52,77 @@ class Metrics
 
     public function getBacklogCount($userGuid = null)
     {
-        return -1;
+        $query = [
+            'state' => 'approved',
+            'type' => $this->type,
+        ];
+        if ($userGuid) {
+            $match['owner_guid'] = $userGuid;
+        }
+        return (int) $this->mongo->count('boost', $query);
     }
 
     public function getPriorityBacklogCount()
     {
-        return -1;
+        return (int) $this->mongo->count('boost', [
+            'state' => 'approved',
+            'type' => $this->type,
+            'priority' => [
+                '$exists' => true,
+                '$gt' => 0
+            ],
+        ]);
     }
 
     public function getBacklogImpressionsSum()
     {
-        return -1;
+        $result = $this->mongo->aggregate('boost', [
+            [
+                '$match' => [
+                    'state' => 'approved',
+                    'type' => $this->type
+                ]
+            ],
+            [
+                '$group' => [
+                    '_id' => null,
+                    'total' => ['$sum' => '$impressions']
+                ]
+            ]
+        ]);
+
+        return reset($result)->total ?: 0;
     }
 
     public function getAvgApprovalTime()
     {
-        return -1;
+        $result = $this->mongo->aggregate('boost', [
+            [
+                '$match' => [
+                    'state' => 'approved',
+                    'type' => $this->type,
+                    'createdAt' => ['$ne' => null],
+                    'approvedAt' => ['$ne' => null]
+                ]
+            ],
+            [
+                '$project' => [
+                    'diff' => [
+                        '$subtract' => ['$approvedAt', '$createdAt']
+                    ]
+                ]
+            ],
+            [
+                '$group' => [
+                    '_id' => null,
+                    'count' => ['$sum' => 1],
+                    'diffSum' => ['$sum' => '$diff']
+                ]
+            ]
+        ]);
+
+        $totals = reset($result);
+
+        return ($totals->diffSum ?: 0) / ($totals->count ?: 1);
     }
 }
