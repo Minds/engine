@@ -79,6 +79,7 @@ class ObjectVideoMappingSpec extends ObjectBehavior
                 'taxonomy' => 'object:video',
                 'public' => true,
                 'wire_support_tier' => null,
+                '@wire_support_tier_expire' => null,
                 'tags' => ['spaceiscool', 'test', 'hashtag'],
                 'nsfw' => [1],
                 'moderator_guid' => '123',
