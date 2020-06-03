@@ -1,14 +1,14 @@
 <tr>
     <td>
         <p>
-            <?= $vars['translator']->trans('You have successfully completed our onboarding process and your channel has been rewarded with one Minds token!') ?>
+          You have successfully completed our onboarding process and your channel has been rewarded with one Minds token!
         </p>
     </td>
 </tr>
 <tr>
     <td>
         <p>
-            <?= $vars['translator']->trans('Try making a post and using your token to Boost the post for 1,000 extra views from the community.') ?>
+            Try making a post and using your token to Boost the post for 1,000 extra views from the community.
         </p>
     </td>
 </tr>
@@ -32,9 +32,7 @@
 
 <tr>
     <td>
-        <p>
-            <?= $vars['translator']->trans('Thank you for being a pioneer of the free and open Internet!') ?>
-        </p>
+        <p>Thank you for being a pioneer of the free and open internet.</p>
     </td>
 </tr>
 

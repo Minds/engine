@@ -19,6 +19,7 @@ class WireSent extends EmailCampaign
     protected $template;
     protected $mailer;
     protected $method;
+    protected $subject = 'Payment sent';
     /* @var Wire */
     protected $wire;
 
@@ -40,11 +41,6 @@ class WireSent extends EmailCampaign
             'topic' => $this->topic,
         ];
 
-        $this->template->setLocale($this->user->getLanguage());
-        $translator = $this->template->getTranslator();
-
-        $subject = $translator->trans('Payment sent');
-
         $timestamp = gettype($this->wire->getTimestamp()) === 'object' ? $this->wire->getTimestamp()->time() : $this->wire->getTimestamp();
 
         $contract = $this->wire->getMethod() === 'onchain' ? 'wire' : 'offchain:wire';
@@ -62,9 +58,9 @@ class WireSent extends EmailCampaign
         $this->template->set('contract', $contract);
         $this->template->set('campaign', $this->campaign);
         $this->template->set('topic', $this->topic);
-        $this->template->set('signoff', $translator->trans('Thank you,'));
-        $this->template->set('title', $subject);
-        $this->template->set('preheader', $translator->trans("You've sent a payment on Minds."));
+        $this->template->set('signoff', 'Thank you,');
+        $this->template->set('title', $this->subject);
+        $this->template->set('preheader', 'You\'ve sent a payment on Minds.');
         $this->template->set('tracking', http_build_query($tracking));
 
         $message = new Message();
@@ -73,7 +69,7 @@ class WireSent extends EmailCampaign
                 '-',
                 [$this->user->guid, sha1($this->user->getEmail()), sha1($this->campaign.$this->topic.time())]
             ))
-            ->setSubject($subject)
+            ->setSubject($this->subject)
             ->setHtml($this->template);
 
         return $message;
