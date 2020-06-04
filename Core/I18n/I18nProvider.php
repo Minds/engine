@@ -13,6 +13,10 @@ class I18nProvider extends Provider
     {
         $this->di->bind('I18n', function ($di) {
             return new I18n();
-        }, [ 'useFactory' => true ]);
+        }, ['useFactory' => true]);
+
+        $this->di->bind('Translator', function ($di) {
+            return new Translator();
+        }, ['useFactory' => true]);
     }
 }
