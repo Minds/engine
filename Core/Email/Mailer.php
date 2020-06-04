@@ -58,7 +58,7 @@ class Mailer
                 $message->getReplyTo()['name'] ?? 'Minds'
             );
         }
-        
+
         $this->mailer->setFrom(
             $message->from['email'],
             $message->from['name'] ?? 'Minds'
@@ -87,9 +87,39 @@ class Mailer
         return $this;
     }
 
+    public function getQueueUrl()
+    {
+        $awsConfig = Di::_()->get('Config')->get('aws');
+        $namespace = '';
+
+        $queueUrl = "https://sqs.{$awsConfig['region']}.amazonaws.com/{$awsConfig['account_id']}/";
+
+        if (isset($awsConfig['queue']['namespace']) && $awsConfig['queue']['namespace']) {
+            $namespace = $awsConfig['queue']['namespace'].'';
+        }
+
+        return $queueUrl.$namespace.'PriorityEmail';
+    }
+
     public function queue($message, $priority = false)
     {
         $queueName = $priority ? 'PriorityEmail' : 'Email';
+        $a = new Core\Queue\Message();
+        $a->setData([
+            "message" => serialize($message)
+        ]);
+
+        $body = [
+            'queueName' => 'PriorityMail',
+            'message' => $a->setData($message),
+        ];
+
+        $messageCommand = [
+            'QueueUrl' => $this->getQueueUrl(),
+            'MessageBody' => json_encode($body),
+        ];
+        var_dump('ok'); die();
+        die();
         try {
             $this->queue->setQueue($queueName)
                 ->send([
