@@ -34,7 +34,7 @@ class Repository
      */
     public function getList(RepositoryGetListOptions $opts): Response
     {
-        $cql = 'SELECT * FROM wire_support_tiers_2';
+        $cql = 'SELECT * FROM wire_support_tier';
         $where = [];
         $values = [];
 
@@ -94,7 +94,7 @@ class Repository
      */
     public function add(SupportTier $supportTier): bool
     {
-        $cql = 'INSERT INTO wire_support_tiers_2 (entity_guid, guid, public, name, description, usd, tokens) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        $cql = 'INSERT INTO wire_support_tier (entity_guid, guid, public, name, description, usd, tokens) VALUES (?, ?, ?, ?, ?, ?, ?)';
         $values = [
             new Bigint($supportTier->getEntityGuid()),
             new Bigint($supportTier->getGuid()),
@@ -128,7 +128,7 @@ class Repository
      */
     public function delete(SupportTier $supportTier): bool
     {
-        $cql = 'DELETE FROM wire_support_tiers_2 WHERE entity_guid = ? AND guid = ?';
+        $cql = 'DELETE FROM wire_support_tier WHERE entity_guid = ? AND guid = ?';
         $values = [
             new Bigint($supportTier->getEntityGuid()),
             new Bigint($supportTier->getGuid()),
@@ -147,7 +147,7 @@ class Repository
      */
     public function deleteAll(SupportTier $supportTier): bool
     {
-        $cql = 'DELETE FROM wire_support_tiers_2 WHERE entity_guid = ?';
+        $cql = 'DELETE FROM wire_support_tier WHERE entity_guid = ?';
         $values = [
             new Bigint($supportTier->getEntityGuid()),
         ];

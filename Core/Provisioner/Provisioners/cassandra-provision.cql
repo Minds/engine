@@ -1579,7 +1579,7 @@ CREATE TABLE minds.feature_toggles_cache_ns (
     PRIMARY KEY (environment, feature_name)
 );
 
-CREATE TABLE minds.wire_support_tiers_2 (
+CREATE TABLE minds.wire_support_tier (
     entity_guid bigint,
     guid bigint,
     public boolean,
