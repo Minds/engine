@@ -4,8 +4,6 @@ namespace Minds\Core\Wire\SupportTiers;
 use Exception;
 use Minds\Common\Repository\Response;
 use Minds\Core\GuidBuilder;
-use Minds\Entities\User;
-use Minds\Helpers\Log;
 
 /**
  * Wire Support Tiers Manager
