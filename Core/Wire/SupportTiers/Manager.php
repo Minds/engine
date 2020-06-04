@@ -62,15 +62,6 @@ class Manager
                 ->setEntityGuid((string) $this->entity->guid)
                 ->setLimit(5000)
         );
-
-        // TODO: Remove if no longer needed
-        // if (!$response->count() && $this->entity instanceof User && $this->entity->getWireRewards()) {
-        //     // If no response, entity is User and there are Wire Rewards set, migrate from it
-        //     $response = $this->userWireRewardsMigrationDelegate
-        //         ->migrate($this->entity, true);
-        // }
-        //
-        // return $response;
     }
 
     /**
@@ -106,13 +97,6 @@ class Manager
 
         $success = $this->repository->add($supportTier);
 
-        // TODO: Remove if no longer needed
-        // if ($success && $this->entity instanceof User) {
-        //     // If entity is User, re-sync wire_rewards
-        //     $this->userWireRewardsMigrationDelegate
-        //         ->sync($this->entity);
-        // }
-
         return $success ? $supportTier : null;
     }
 
@@ -126,13 +110,6 @@ class Manager
     {
         $success = $this->repository->update($supportTier);
 
-        // TODO: Remove if no longer needed
-        // if ($success && $this->entity instanceof User) {
-        //     // If entity is User, re-sync wire_rewards
-        //     $this->userWireRewardsMigrationDelegate
-        //         ->sync($this->entity);
-        // }
-
         return $success ? $supportTier : null;
     }
 
@@ -145,33 +122,5 @@ class Manager
     public function delete(SupportTier $supportTier): bool
     {
         return $this->repository->delete($supportTier);
-
-        // TODO: Remove if no longer needed
-        // $success = $this->repository->delete($supportTier);
-        //
-        // if ($success && $this->entity instanceof User) {
-        //     // If entity is User, re-sync wire_rewards
-        //     $this->userWireRewardsMigrationDelegate
-        //         ->sync($this->entity);
-        // }
-        //
-        // return $success;
-    }
-
-    /**
-     * Migrates wire_reward field to Support Tier
-     * @throws Exception
-     * @deprecated
-     * @todo Remove if no longer needed
-     */
-    public function migrate(): void
-    {
-        Log::notice('Support Tier migration is deprecated');
-        // if (!($this->entity instanceof User)) {
-        //     throw new Exception('Entity is not a User');
-        // }
-        //
-        // $this->userWireRewardsMigrationDelegate
-        //     ->migrate($this->entity, true);
     }
 }
