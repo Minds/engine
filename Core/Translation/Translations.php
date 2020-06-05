@@ -8,12 +8,14 @@
 namespace Minds\Core\Translation;
 
 use Minds\Core;
+use Minds\Core\Translation\Services\TranslationServiceInterface;
 use Minds\Entities;
 use Minds\Helpers\MagicAttributes;
 
 class Translations
 {
     protected $cache;
+    /** @var TranslationServiceInterface */
     protected $service;
 
     const MAX_CONTENT_LENGTH = 5000;
@@ -107,6 +109,7 @@ class Translations
             if (strlen($content) > static::MAX_CONTENT_LENGTH) {
                 $content = substr($content, 0, static::MAX_CONTENT_LENGTH);
             }
+
             $translation[$field] = $this->translateText($content, $target);
 
             $translation[$field]['content'] = strip_tags(static::brToNewLine($translation[$field]['content']));
