@@ -3,7 +3,6 @@
 namespace Minds\Core\Router\PrePsr7;
 
 use Minds\Core\Di\Di;
-use Minds\Core\I18n\I18n;
 use Minds\Core\Router\PrePsr7\Middleware\ProMiddleware;
 use Minds\Core\Router\PrePsr7\Middleware\RouterMiddleware;
 use Minds\Core\Router\PrePsr7\Middleware\SEOMiddleware;
@@ -158,7 +157,7 @@ class Router
         }
 
         if (!$this->legacyRoute($uri)) {
-            (new I18n())->serveIndex();
+            Di::_()->get('I18n\Manager')->serveIndex();
         }
 
         return null;
