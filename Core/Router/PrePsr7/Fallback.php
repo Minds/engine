@@ -8,7 +8,6 @@ namespace Minds\Core\Router\PrePsr7;
 
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
-use Minds\Core\I18n\I18n;
 use Minds\Core\SEO\Defaults as SEODefaults;
 use Psr\Http\Message\RequestInterface;
 use Zend\Diactoros\Response;
