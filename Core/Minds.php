@@ -43,6 +43,7 @@ class Minds extends base
         DismissibleWidgets\Module::class,
         Wire\SupportTiers\Module::class,
         Wire\Paywall\Module::class,
+        I18n\Module::class,
     ];
 
     /**
@@ -105,7 +106,6 @@ class Minds extends base
         (new Translation\TranslationProvider())->register();
         (new Categories\CategoriesProvider())->register();
         (new ThirdPartyNetworks\ThirdPartyNetworksProvider())->register();
-        (new I18n\I18nProvider())->register();
         (new Storage\StorageProvider())->register();
         (new Monetization\MonetizationProvider())->register();
         (new Programs\ProgramsProvider())->register();
