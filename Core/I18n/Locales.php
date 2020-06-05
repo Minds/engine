@@ -323,5 +323,5 @@ class Locales
         // "zh-SG",
         // "zh-TW",
         "zu"
-        ];
+    ];
 }
