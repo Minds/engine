@@ -1,5 +1,7 @@
 FROM php:7.3-fpm-alpine3.10
 
+RUN apk add --no-cache --update php-deps make
+
 RUN apk add --no-cache --virtual build-deps \
     libzip-dev \
     zlib-dev \
