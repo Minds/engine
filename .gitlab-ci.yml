@@ -16,12 +16,12 @@ l10n-sync:
   script:
     - >
       git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/minds/l10n.git
-      cp -f translations/messages.en.xliff l10n/engine/Default.xliff
+      cp translations/messages.en.xliff l10n/engine/Default.xliff
       cd l10n
       git commit -am '(feat): update default language for engine'
     - >
       cd .. # back to engine
-      cp -f l10n/engine/locale/ locale/
+      cp l10n/engine/locale/ locale/
 
 build:
   stage: build
