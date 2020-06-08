@@ -14,14 +14,12 @@ stages:
 l10n-sync:
   stage: l10n
   script:
-    - >
-      git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/minds/l10n.git
-      cp translations/messages.en.xliff l10n/engine/Default.xliff
-      cd l10n
-      git commit -am '(feat): update default language for engine'
-    - >
-      cd .. # back to engine
-      cp l10n/engine/locale/ locale/
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/minds/l10n.git
+    - cp translations/messages.en.xliff l10n/engine/Default.xliff
+    - cd l10n
+    - git commit -am 'update default language for engine' && git push --set-upstream origin master
+    - cd .. # back to engine
+      cp -r l10n/engine/locale/ locale/
 
 build:
   stage: build
