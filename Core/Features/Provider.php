@@ -63,6 +63,7 @@ class Provider extends DiProvider
                 'localization-2020',
                 'suggestions',
                 'plus-2020',
+                'language-prompts',
             ];
         });
 
