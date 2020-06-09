@@ -95,7 +95,7 @@ class UserWireRewardsMigrationDelegate
         // Sort
         ksort($entries, SORT_NUMERIC);
 
-        // Generate Support Tiers
+        // Set Support Tiers
 
         $i = 0;
         $urns = [];
@@ -107,6 +107,7 @@ class UserWireRewardsMigrationDelegate
             $supportTier = new SupportTier();
             $supportTier
                 ->setEntityGuid((string) $user->guid)
+                ->setPublic(true)
                 ->setName($this->tierBuilder->buildName($i))
                 ->setDescription(trim(implode(' - ', $entry['descriptions'])))
                 ->setHasUsd(isset($entry['money']))
@@ -128,7 +129,7 @@ class UserWireRewardsMigrationDelegate
             $i++;
         }
 
-        // Delete removed ones
+        // Delete removed Support Tiers
 
         if ($write) {
             $all = $this->repository->getList(

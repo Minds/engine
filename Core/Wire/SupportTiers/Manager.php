@@ -69,7 +69,7 @@ class Manager
         );
 
         if (!$response->count() && $this->entity instanceof User) {
-            $response = $this->userWireRewardsMigration->migrate($this->entity);
+            $response = $this->userWireRewardsMigration->migrate($this->entity, true);
         }
 
         return $response;
