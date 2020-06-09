@@ -4,6 +4,7 @@ namespace Minds\Core\Wire\SupportTiers;
 use Exception;
 use Minds\Common\Repository\Response;
 use Minds\Core\GuidBuilder;
+use Minds\Entities\User;
 
 /**
  * Wire Support Tiers Manager
@@ -17,20 +18,26 @@ class Manager
     /** @var GuidBuilder */
     protected $guidBuilder;
 
+    /** @var Delegates\UserWireRewardsMigrationDelegate */
+    protected $userWireRewardsMigration;
+
     /** @var mixed */
     protected $entity;
 
     /**
      * Manager constructor.
      * @param $repository
-     * @param null $guidBuilder
+     * @param $guidBuilder
+     * @param $userWireRewardsMigration
      */
     public function __construct(
         $repository = null,
-        $guidBuilder = null
+        $guidBuilder = null,
+        $userWireRewardsMigration = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->guidBuilder = $guidBuilder ?: new GuidBuilder();
+        $this->userWireRewardsMigration = $userWireRewardsMigration ?: new Delegates\UserWireRewardsMigrationDelegate();
     }
 
     /**
@@ -55,11 +62,17 @@ class Manager
             throw new Exception('Missing entity');
         }
 
-        return $this->repository->getList(
+        $response = $this->repository->getList(
             (new RepositoryGetListOptions())
                 ->setEntityGuid((string) $this->entity->guid)
                 ->setLimit(5000)
         );
+
+        if (!$response->count() && $this->entity instanceof User) {
+            $response = $this->userWireRewardsMigration->migrate($this->entity);
+        }
+
+        return $response;
     }
 
     /**
