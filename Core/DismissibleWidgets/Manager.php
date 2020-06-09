@@ -16,7 +16,8 @@ class Manager
     /** @var string[] */
     const WIDGET_IDS = [
         'test-widget-id',
-        'discovery-disclaimer-2020'
+        'discovery-disclaimer-2020',
+        'language-sidebar-2020',
     ];
 
     /** @var User */
