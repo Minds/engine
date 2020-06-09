@@ -116,8 +116,7 @@ class UserWireRewardsMigrationDelegate
                 ->setTokens($entry['tokens'] ?? 0);
 
             $supportTier->setGuid(
-                $this->tierBuilder
-                    ->buildGuid($supportTier)
+                (string) $this->tierBuilder->buildGuid($supportTier)
             );
 
             if ($write) {
