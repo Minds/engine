@@ -1585,7 +1585,9 @@ CREATE TABLE minds.wire_support_tier (
     public boolean,
     name text,
     description text,
+    has_usd boolean,
     usd decimal,
+    has_tokens boolean,
     tokens decimal,
     PRIMARY KEY (entity_guid, guid)
 );

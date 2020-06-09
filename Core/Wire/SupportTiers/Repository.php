@@ -73,7 +73,9 @@ class Repository
                 ->setPublic($row['public'])
                 ->setName($row['name'])
                 ->setDescription($row['description'])
+                ->setHasUsd($row['has_usd'])
                 ->setUsd($row['usd']->toDouble())
+                ->setHasTokens($row['has_tokens'])
                 ->setTokens($row['tokens']->toDouble());
 
             $response[] = $supportTier;
@@ -94,14 +96,16 @@ class Repository
      */
     public function add(SupportTier $supportTier): bool
     {
-        $cql = 'INSERT INTO wire_support_tier (entity_guid, guid, public, name, description, usd, tokens) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        $cql = 'INSERT INTO wire_support_tier (entity_guid, guid, public, name, description, has_usd, usd, has_tokens, tokens) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $values = [
             new Bigint($supportTier->getEntityGuid()),
             new Bigint($supportTier->getGuid()),
             (bool) $supportTier->isPublic(),
             (string) $supportTier->getName(),
             (string) $supportTier->getDescription(),
+            (bool) $supportTier->hasUsd(),
             new Decimal((string) $supportTier->getUsd()),
+            (bool) $supportTier->hasTokens(),
             new Decimal((string) $supportTier->getTokens()),
         ];
 

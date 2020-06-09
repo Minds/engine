@@ -18,10 +18,14 @@ use Minds\Traits\MagicAttributes;
  * @method SupportTier setName(string $name)
  * @method string getDescription()
  * @method SupportTier setDescription(string $description)
+ * @method bool hasUsd()
+ * @method SupportTier setHasUsd(bool $hasUsd)
  * @method float getUsd()
  * @method SupportTier setUsd(float $usd)
  * @method float getTokens()
  * @method SupportTier setTokens(float $tokens)
+ * @method bool hasTokens()
+ * @method SupportTier setHasTokens(bool $hasTokens)
  */
 class SupportTier implements JsonSerializable
 {
@@ -42,8 +46,14 @@ class SupportTier implements JsonSerializable
     /** @var string */
     protected $description;
 
+    /** @var bool */
+    protected $hasUsd;
+
     /** @var float */
     protected $usd;
+
+    /** @var bool */
+    protected $hasTokens;
 
     /** @var float */
     protected $tokens;
@@ -77,7 +87,9 @@ class SupportTier implements JsonSerializable
             'public' => $this->public,
             'name' => $this->name,
             'description' => $this->description,
+            'has_usd' => $this->hasUsd,
             'usd' => (string) $this->usd,
+            'has_tokens' => $this->hasTokens,
             'tokens' => (string) $this->tokens,
         ];
     }

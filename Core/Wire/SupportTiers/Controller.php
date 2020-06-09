@@ -86,12 +86,12 @@ class Controller
     }
 
     /**
-     * Creates a new Support Tier
+     * Creates a new public Support Tier
      * @param ServerRequest $request
      * @return JsonResponse
      * @throws UserErrorException
      */
-    public function create(ServerRequest $request): JsonResponse
+    public function createPublic(ServerRequest $request): JsonResponse
     {
         $currentUser = $request->getAttribute('_user');
         $body = $request->getParsedBody();
@@ -114,7 +114,48 @@ class Controller
             ->setPublic(true)
             ->setName($name)
             ->setDescription($description)
+            ->setHasUsd($usd > 0)
             ->setUsd($usd)
+            ->setHasTokens($tokens > 0)
+            ->setTokens($tokens);
+
+        $this->manager
+            ->setEntity($currentUser);
+
+        return new JsonResponse([
+            'status' => 'success',
+            'support_tier' => $this->manager->create($supportTier),
+        ]);
+    }
+
+    /**
+     * Creates a new private (custom) Support Tier
+     * @param ServerRequest $request
+     * @return JsonResponse
+     * @throws UserErrorException
+     */
+    public function createPrivate(ServerRequest $request): JsonResponse
+    {
+        $currentUser = $request->getAttribute('_user');
+        $body = $request->getParsedBody();
+        $usd = round((float) ($body['usd'] ?? 0), 6);
+        $tokens = round((float) ($body['tokens'] ?? 0), 6);
+
+        if ($usd < 0) {
+            throw new UserErrorException('Invalid USD amount', 400);
+        } elseif ($tokens < 0) {
+            throw new UserErrorException('Invalid tokens amount', 400);
+        }
+
+        $supportTier = new SupportTier();
+        $supportTier
+            ->setEntityGuid($currentUser->guid)
+            ->setPublic(false)
+            ->setName('Custom')
+            ->setDescription('')
+            ->setHasUsd($usd > 0)
+            ->setUsd($usd)
+            ->setHasTokens($tokens > 0)
             ->setTokens($tokens);
 
         $this->manager
