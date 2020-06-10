@@ -6,6 +6,7 @@ use Minds\Api\Factory;
 use Minds\Core\Di\Di;
 use Minds\Core\Helpdesk\Question\Manager;
 use Minds\Core\Helpdesk\Question\Repository;
+use Minds\Core\Session;
 use Minds\Interfaces\Api;
 
 class top implements Api
@@ -26,6 +27,7 @@ class top implements Api
 
         /** @var Manager $manager */
         $manager = Di::_()->get('Helpdesk\Question\Manager');
+        $manager->setUser(Session::getLoggedinUser());
 
         $questions = $manager->getTop([
             'limit' => $limit,
