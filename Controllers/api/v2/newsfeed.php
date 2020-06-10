@@ -261,7 +261,6 @@ class newsfeed implements Interfaces\Api
     {
         Factory::isLoggedIn();
         $save = new Save();
-
         //factory::authorize();
         switch ($pages[0]) {
             case 'remind':
@@ -522,6 +521,11 @@ class newsfeed implements Interfaces\Api
 
                     if (isset($_POST['video_poster'])) {
                         $activityMutation->setVideoPosterBase64Blob($_POST['video_poster']);
+                    }
+
+                    if (isset($_POST['access_id'])) {
+                        error_log("accessId is: ".$_POST['access_id']);
+                        $activityMutation->setAccessId($_POST['access_id']);
                     }
 
                     // Update the entity
