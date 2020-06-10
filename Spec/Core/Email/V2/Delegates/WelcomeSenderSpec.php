@@ -46,7 +46,7 @@ class WelcomeSenderSpec extends ObjectBehavior
         $translator->trans(Argument::any())
             ->willReturn('');
 
-        Di::_()->bind('Translator', function () use ($translator) {
+        Di::_()->bind('I18n\Translator', function () use ($translator) {
             return $translator->getWrappedObject();
         });
 
