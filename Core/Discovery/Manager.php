@@ -108,6 +108,11 @@ class Manager
 
         $excludeTags = array_merge(self::GLOBAL_EXCLUDED_TAGS, $excludeTags);
 
+        $languages = [ 'en' ];
+        if ($this->user->getLanguage() !== 'en') {
+            $languages = [ $this->user->getLanguage(), 'en' ];
+        }
+
         $query = [
             'index' => $this->config->get('elasticsearch')['index'],
             'type' => 'activity',
@@ -125,6 +130,11 @@ class Manager
                             [
                                 'terms' => [
                                     'tags' => $this->tagCloud,
+                                ]
+                            ],
+                            [
+                                'terms' => [
+                                    'language' => $languages,
                                 ]
                             ],
                         ],
@@ -271,6 +281,14 @@ class Manager
                                     ]
                                 ],
                                 'weight' => 10, // videos and blogs are worth 10x
+                            ],
+                            [
+                                'filter' => [
+                                    'terms' => [
+                                        'language' => [ $this->user->getLanguage() ],
+                                    ]
+                                ],
+                                'weight' => 50, // Multiply your own language by 50x
                             ],
                             [
                                 'field_value_factor' => [
