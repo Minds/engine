@@ -517,7 +517,7 @@ class newsfeed implements Interfaces\Api
                     if (isset($_POST['time_created']) && ($_POST['time_created'] != $activity->getTimeCreated())) {
                         try {
                             $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
-                            $timeCreatedDelegate->onUpdate($activity, $_POST['time_created'], time());
+                            $timeCreatedDelegate->onUpdate($activity, $_POST['time_created'], $activity->getTimeCreated());
                         } catch (\Exception $e) {
                             return Factory::response([
                                 'status' => 'error',
