@@ -194,7 +194,7 @@ class EntityMapping implements MappingInterface
             $fullText .= ' ' . $map['description'];
         }
 
-        $htRe = '/(^|\s||)#(\w*[a-zA-Z0-9_]+\w*)/';
+        $htRe = '/(^|\s||)#(\pL+)/u';
         $matches = [];
 
         preg_match_all($htRe, $fullText, $matches);
