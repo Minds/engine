@@ -57,8 +57,13 @@ class Manager
             'limit' => 10,
             'trending' => false,
             'defaults' => true,
-            'user_guid' => $this->user ? $this->user->getGuid() : null
+            'user_guid' => $this->user ? $this->user->getGuid() : null,
+            'languages' => [ 'en' ],
         ], $opts); // Merge in our defaults
+
+        if ($this->user && $this->user->getLanguage() !== 'en') {
+            $opts['languages'] = [ 'en', $this->user->getLanguage() ];
+        }
 
         // User hashtags
 
@@ -87,7 +92,7 @@ class Manager
         $trending = [];
 
         if ($opts['trending']) {
-            $cached = $this->cacher->get($this->getSharedCacheKey('trending'));
+            $cached = $this->cacher->get($this->getSharedCacheKey('trending', $opts));
             // $cached = false;
 
             if ($cached !== false) {
@@ -97,7 +102,7 @@ class Manager
 
                 if ($results) {
                     $trending = $results;
-                    $this->cacher->set($this->getSharedCacheKey('trending'), json_encode($trending), 60 * 15); // 15 minutes
+                    $this->cacher->set($this->getSharedCacheKey('trending', $opts), json_encode($trending), 60 * 15); // 15 minutes
                 }
             }
         }
@@ -209,8 +214,9 @@ class Manager
     /**
      * @return string
      */
-    public function getSharedCacheKey($key): string
+    public function getSharedCacheKey($key, $opts): string
     {
-        return "hashtags-shared::$key";
+        $languages = implode(':', $opts['languages']);
+        return "hashtags-shared::$key::$languages";
     }
 }
