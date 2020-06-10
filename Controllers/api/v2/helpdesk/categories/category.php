@@ -5,7 +5,6 @@ namespace Minds\Controllers\api\v2\helpdesk\categories;
 use Minds\Api\Factory;
 use Minds\Core\Di\Di;
 use Minds\Core\Helpdesk\Category\Manager;
-use Minds\Core\Session;
 use Minds\Interfaces\Api;
 
 class category implements Api
@@ -17,14 +16,8 @@ class category implements Api
         }
         $uuid = $pages[0];
 
-        $translate = $_GET['translate'] !== 'no';
-
         /** @var Manager $manager */
         $manager = Di::_()->get('Helpdesk\Category\Manager');
-
-        if ($translate) {
-            $manager->setUser(Session::getLoggedinUser());
-        }
 
         $result = $manager->getAll([
             'uuid' => $uuid
@@ -40,7 +33,6 @@ class category implements Api
         if ($category) {
             /** @var \Minds\Core\Helpdesk\Question\Manager $questionsManager */
             $questionsManager = Di::_()->get('Helpdesk\Question\Manager');
-            $questionsManager->setUser(Session::getLoggedinUser());
 
             $questions = $questionsManager->getAll([
                 'category_uuid' => $category->getUuid()

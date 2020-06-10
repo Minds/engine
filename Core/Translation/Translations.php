@@ -10,7 +10,6 @@ namespace Minds\Core\Translation;
 use Minds\Core;
 use Minds\Core\Translation\Services\TranslationServiceInterface;
 use Minds\Entities;
-use Minds\Core\Translation\Storage;
 use Minds\Helpers\MagicAttributes;
 
 class Translations
@@ -44,7 +43,7 @@ class Translations
         $entity = null; // Lazily-loaded if needed
         $translation = [];
 
-        foreach (['message', 'body', 'title', 'blurb', 'description', 'question', 'answer'] as $field) {
+        foreach (['message', 'body', 'title', 'blurb', 'description'] as $field) {
             $stored = $storage->get($guid, $field, $target);
 
             if ($stored !== false) {
@@ -67,16 +66,6 @@ class Translations
             $content = '';
 
             switch ($field) {
-                case 'question':
-                    if (MagicAttributes::getterExists($entity, 'getQuestion')) {
-                        $content = nl2br($this->parseMessage($entity->getQuestion()));
-                    }
-                    break;
-                case 'answer':
-                    if (MagicAttributes::getterExists($entity, 'getAnswer')) {
-                        $content = nl2br($this->parseMessage($entity->getAnswer()));
-                    }
-                    break;
                 case 'message':
                     if (method_exists($entity, 'getMessage')) {
                         $content = nl2br($this->parseMessage($entity->getMessage()));
@@ -102,11 +91,6 @@ class Translations
                     break;
 
                 case 'title':
-                    if (MagicAttributes::getterExists($entity, 'getTitle')) {
-                        $content = $entity->getTitle();
-                        break;
-                    }
-                    // no break
                 case 'blurb':
                     if (!$entity->custom_type) {
                         continue 2; // exit switch AND continue foreach
