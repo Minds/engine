@@ -5,6 +5,7 @@ namespace Minds\Controllers\api\v2\helpdesk;
 use Minds\Api\Factory;
 use Minds\Core\Di\Di;
 use Minds\Core\Helpdesk\Category\Manager;
+use Minds\Core\Session;
 use Minds\Interfaces\Api;
 
 class categories implements Api
@@ -29,8 +30,14 @@ class categories implements Api
             $recursive = boolval($_GET['recursive']);
         }
 
+        $translate = $_GET['translate'] !== 'no';
+
         /** @var Manager $manager */
         $manager = Di::_()->get('Helpdesk\Category\Manager');
+
+        if ($translate) {
+            $manager->setUser(Session::getLoggedinUser());
+        }
 
         $categories = $manager->getAll([
             'limit' => $limit,
@@ -40,7 +47,7 @@ class categories implements Api
 
         return Factory::response([
             'status' => 'success',
-            'categories' => Factory::exportable($categories)
+            'categories' => Factory::exportable($categories),
         ]);
     }
 
