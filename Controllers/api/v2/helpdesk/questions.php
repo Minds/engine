@@ -32,6 +32,7 @@ class questions implements Api
 
         /** @var \Minds\Core\Helpdesk\Question\Manager $manager */
         $manager = Di::_()->get('Helpdesk\Question\Manager');
+        $manager->setUser(Session::getLoggedinUser());
 
         $category = Di::_()->get('Helpdesk\Category');
         $category->setUuid($category_uuid);
