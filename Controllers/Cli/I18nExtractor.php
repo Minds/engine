@@ -40,7 +40,7 @@ class I18nExtractor extends Cli\Controller implements Interfaces\CliControllerIn
         // get translator
 
         /** @var Core\I18n\Translator $translator */
-        $translator = Core\Di\Di::_()->get('Translator');
+        $translator = Core\Di\Di::_()->get('I18n\Translator');
 
         $translator->setLocale($locale);
 
