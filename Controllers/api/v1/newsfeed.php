@@ -514,18 +514,6 @@ class newsfeed implements Interfaces\Api
                     $activity->indexes = ["activity:$activity->owner_guid:edits"]; //don't re-index on edit
                     (new Core\Translation\Storage())->purge($activity->guid);
 
-                    if (isset($_POST['time_created']) && ($_POST['time_created'] != $activity->getTimeCreated())) {
-                        try {
-                            $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
-                            $timeCreatedDelegate->onUpdate($activity, $_POST['time_created'], time());
-                        } catch (\Exception $e) {
-                            return Factory::response([
-                                'status' => 'error',
-                                'message' => $e->getMessage(),
-                            ]);
-                        }
-                    }
-
                     $save->setEntity($activity)
                         ->save();
 

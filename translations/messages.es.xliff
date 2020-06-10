@@ -297,6 +297,154 @@
                 <target>Pago recibido</target>
             </trans-unit>
 
+            <trans-unit id="bZ0gzc1" resname="comment.your.activity">
+                <source>%user% commented on your activity</source>
+                <target>%user% comentó en tu actividad</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc2" resname="comment.your.post">
+                <source>%user% commented on your post</source>
+                <target>%user% comentó en tu publicación</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc3" resname="comment.your.image">
+                <source>%user% commented on your image</source>
+                <target>%user% comentó en tu imágen</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc4" resname="comment.your.video">
+                <source>%user% commented on your video</source>
+                <target>%user% comentó en tu video</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc5" resname="comment.your.blog">
+                <source>%user% commented on your blog</source>
+                <target>%user% comentó en tu blog</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc6" resname="comment.user.activity">
+                <source>%user% commented on %user%'s activity</source>
+                <target>%user% comentó en la actividad de  %user%</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc7" resname="comment.user.post">
+                <source>%user% commented on %user%'s post</source>
+                <target>%user% comentó en la publicación de %user%</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc7" resname="comment.user.a.post">
+                <source>%user% commented on a post</source>
+                <target>%user% comentó en una publicación</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc8" resname="comment.user.image">
+                <source>%user% commented on %user%'s image</source>
+                <target>%user% comentó en la imágen de %user%</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc9" resname="comment.user.video">
+                <source>%user% commented on %user%'s video</source>
+                <target>%user% comentó en el video de %user%</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc10" resname="comment.user.blog">
+                <source>%user% commented on %user%'s blog</source>
+                <target>%user% comentó en el blog de %user%</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc11" resname="like.title">
+                <source>%user% voted up %title%</source>
+                <target>A %user% le gustó %title%</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc12" resname="like.activity">
+                <source>%user% voted up your activity</source>
+                <target>A %user% le gustó tu actividad</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc13" resname="like.comment">
+                <source>%user% voted up your comment</source>
+                <target>A %user% le gustó tu comentario</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc14" resname="like.image">
+                <source>%user% voted up your image</source>
+                <target>A %user% le gustó tu imágen</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc15" resname="like.video">
+                <source>%user% voted up your video</source>
+                <target>A %user% le gustó tu video</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc16" resname="like.blog">
+                <source>%user% voted up your blog</source>
+                <target>A %user% le gustó tu blog</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc16" resname="like.message">
+                <source>%user% voted up your message</source>
+                <target>A %user% le gustó tu mensaje</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc17" resname="tag.comment">
+                <source>%user% mentioned you in a comment</source>
+                <target>%user% te mencionó en un comentario</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc18" resname="tag.post">
+                <source>%user% mentioned you in a post</source>
+                <target>%user% te mencionó en un post</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc19" resname="user.subscribed">
+                <source>%user% subscribed to you</source>
+                <target>%user% se ha subscripto a tu canal</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc20" resname="remind.activity">
+                <source>%user% reminded your activity</source>
+                <target>%user% compartió tu actividad</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc21" resname="remind.image">
+                <source>%user% reminded your image</source>
+                <target>%user% compartió tu imágen</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc22" resname="remind.video">
+                <source>%user% reminded your video</source>
+                <target>%user% compartió tu video</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc23" resname="remind.blog">
+                <source>%user% reminded your blog</source>
+                <target>%user% compartió tu blog</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc24" resname="remind.post">
+                <source>%user% reminded your post</source>
+                <target>%user% compartió tu post</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc25" resname="boost.gift">
+                <source>%user% gifted you %views% views</source>
+                <target>%user% te regaló %views% vistas</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc26" resname="boost.request">
+                <source>%user% has requested a boost of %points% points</source>
+                <target>%user% ha solicitado un boost de %points% puntos</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc27" resname="boost.accepted">
+                <source>%impressions% views for %description% were accepted</source>
+                <target>%impressions% vistas para %description% fueron aceptadas</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc28" resname="booost.rejected">
+                <source>Your boost request for %description% was rejected</source>
+                <target>Tu solicitud de boost para %description% fue rechazada</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc29" resname="boost.revoked">
+                <source>You revoked the boost request for %description%</source>
+                <target>Has rechazado la solicitud de boost para %description%</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc30" resname="boost.completed">
+                <source>%impressions%/%totalImpressions% impressions were met for %description%</source>
+                <target>%impressions%/%totalImpressions% impresiones fueron completadas para %description%</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc31" resname="group.invite">
+                <source>%user% invited you to %group%</source>
+                <target>%user% te ha invitado a %group%</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc32" resname="messenger.invite">
+                <source>@%user% wants to chat with you!</source>
+                <target>¡@%user% quiere conversar contigo!</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc33" resname="referral.ping">
+                <source>Free tokens are waiting for you! Once you join the rewards program by setting up your Minds wallet, both you and @%user% will earn tokens for your referral</source>
+                <target>¡Tokens gratuitos te están esperando! Una vez que te unas al programa de recompenzas a través de configurar tu billetera de Minds, tanto tú como @%user% ganarán tokens por tu recomendación</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc34" resname="referral.pending">
+                <source>You have a pending referral! @%user% used your referral link when they signed up for Minds. You'll get tokens once they join the rewards program and set up their wallet</source>
+                <target>¡Tienes un referido pendiente! @%user% usó tu link de referido cuando creó su cuenta de Minds. Obtendrás tokens una vez que él se una al programa de recompensas y configure su billetera</target>
+            </trans-unit>
+            <trans-unit id="bZ0gzc35" resname="referral.complete">
+                <source>You've earned tokens for the completed referral of @%user%</source>
+                <target>Has ganado tokens por el referido completado de @%user%</target>
+            </trans-unit>
         </body>
     </file>
 </xliff>
