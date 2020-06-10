@@ -2,7 +2,6 @@
 /**
  * Helpdesk single questions endpoint
  */
-
 namespace Minds\Controllers\api\v2\helpdesk\questions;
 
 use Minds\Api\Factory;
@@ -22,20 +21,14 @@ class question implements Api
 
         $uuid = $pages[0];
 
-        $translate = $_GET['translate'] !== 'no';
-
         /** @var Manager $manager */
         $manager = Di::_()->get('Helpdesk\Question\Manager');
-
-        if ($translate) {
-            $manager->setUser(Session::getLoggedinUser());
-        }
 
         $question = $manager->get($uuid);
 
         return Factory::response([
             'status' => 'success',
-            'question' => $question->export(),
+            'question' => $question->export()
         ]);
     }
 
