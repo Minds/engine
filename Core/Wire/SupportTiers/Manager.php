@@ -52,7 +52,7 @@ class Manager
     }
 
     /**
-     * Fetches all support tiers for an entity.
+     * Fetches all public Support Tiers for an entity.
      * @return Response<SupportTier>
      * @throws Exception
      */
@@ -66,7 +66,11 @@ class Manager
             (new RepositoryGetListOptions())
                 ->setEntityGuid((string) $this->entity->guid)
                 ->setLimit(5000)
-        );
+        )->filter(function (SupportTier $supportTier) {
+            return $supportTier->isPublic();
+        })->sort(function (SupportTier $a, SupportTier $b) {
+            return $a->getUsd() <=> $b->getUsd();
+        });
 
         if (!$response->count() && $this->entity instanceof User) {
             $response = $this->userWireRewardsMigration->migrate($this->entity, true);
@@ -93,6 +97,29 @@ class Manager
                 ->setGuid($supportTier->getGuid())
                 ->setLimit(1)
         )->first();
+    }
+
+    /**
+     * Finds a matching Support Tier
+     * @param SupportTier $matchingSupportTier
+     * @return SupportTier|null
+     * @throws \Minds\Exceptions\StopEventException
+     */
+    public function match(SupportTier $matchingSupportTier): ?SupportTier
+    {
+        $supportTiers = $this->repository->getList(
+            (new RepositoryGetListOptions())
+                ->setEntityGuid((string) $matchingSupportTier->getEntityGuid())
+                ->setLimit(5000)
+        );
+
+        return $supportTiers->filter(function (SupportTier $supportTier) use ($matchingSupportTier) {
+            return
+                $supportTier->isPublic() === $matchingSupportTier->isPublic() &&
+                $supportTier->getUsd() === $matchingSupportTier->getUsd() &&
+                $supportTier->hasUsd() === $matchingSupportTier->hasUsd() &&
+                $supportTier->hasTokens() === $matchingSupportTier->hasTokens();
+        })->first();
     }
 
     /**

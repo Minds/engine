@@ -148,12 +148,22 @@ class Controller
             throw new UserErrorException('You need to enable at least one currency', 400);
         }
 
+        $name = ['Custom', $usd];
+
+        if ($hasUsd) {
+            $name[] = 'USD';
+        }
+
+        if ($hasTokens) {
+            $name[] = 'Tokens';
+        }
+
         $supportTier = new SupportTier();
         $supportTier
             ->setEntityGuid($currentUser->guid)
             ->setPublic(false)
-            ->setName('Custom')
-            ->setDescription("USD {$usd}")
+            ->setName(implode(' ', $name))
+            ->setDescription('')
             ->setUsd($usd)
             ->setHasUsd($hasUsd)
             ->setHasTokens($hasTokens);
@@ -161,9 +171,15 @@ class Controller
         $this->manager
             ->setEntity($currentUser);
 
+        $result = $this->manager->match($supportTier);
+
+        if (!$result) {
+            $result = $this->manager->create($supportTier);
+        }
+
         return new JsonResponse([
             'status' => 'success',
-            'support_tier' => $this->manager->create($supportTier),
+            'support_tier' => $result,
         ]);
     }
 
