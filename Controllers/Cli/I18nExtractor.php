@@ -2,16 +2,11 @@
 
 namespace Minds\Controllers\Cli;
 
-use Minds\Core;
-use Minds\Core\Analytics\EntityCentric\Manager;
 use Minds\Cli;
+use Minds\Core;
 use Minds\Interfaces;
-use Minds\Exceptions;
-use Minds\Entities;
-use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 use Symfony\Component\Translation\Catalogue\TargetOperation;
 use Symfony\Component\Translation\Dumper\XliffFileDumper;
-use Symfony\Component\Translation\Extractor\PhpExtractor;
 use Symfony\Component\Translation\MessageCatalogue;
 
 class I18nExtractor extends Cli\Controller implements Interfaces\CliControllerInterface
@@ -91,7 +86,7 @@ class I18nExtractor extends Cli\Controller implements Interfaces\CliControllerIn
 
         /** @var \SplFileInfo $file */
         foreach ($iterator as $file) {
-            $regex = '[' .implode('|', $ignores) . ']';
+            $regex = '[' . implode('|', $ignores) . ']';
             if (preg_match($regex, $file->getPathname())) {
                 continue;
             }
@@ -126,7 +121,8 @@ class I18nExtractor extends Cli\Controller implements Interfaces\CliControllerIn
         // merge new translations with the ones we already have in our xliff files
         $operation = new TargetOperation($sourceCatalogue, $targetCatalogue);
 
-        $newMessages = $operation->getMessages('messages');
+        $domain = 'messages';
+        $newMessages = array_merge($operation->getMessages($domain), $operation->getObsoleteMessages($domain));
 
         return ['messages' => $newMessages];
     }
