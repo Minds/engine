@@ -58,14 +58,14 @@ class UserWireRewardsMigrationDelegate
             $wireRewards = json_decode($wireRewards, true);
         }
 
-        // Conversion rate for merging, USD is "base"
+        // Conversion rate for merging with USD as base
 
         $types = [
             'money' => 1,
             'tokens' => $tokenExchangeRate,
         ];
 
-        // Merge entries based on its amount converted to a common base (USD)
+        // Merge entries based on its amount converted to USD
 
         $entries = [];
 
@@ -104,16 +104,17 @@ class UserWireRewardsMigrationDelegate
         $response->setLastPage(true);
 
         foreach ($entries as $entry) {
+            $usd = ($entry['money'] ?? 0) ?: ($entry['tokens'] * $tokenExchangeRate);
+
             $supportTier = new SupportTier();
             $supportTier
                 ->setEntityGuid((string) $user->guid)
                 ->setPublic(true)
                 ->setName($this->tierBuilder->buildName($i))
                 ->setDescription(trim(implode(' - ', $entry['descriptions'])))
+                ->setUsd($usd)
                 ->setHasUsd(isset($entry['money']))
-                ->setUsd($entry['money'] ?? 0)
-                ->setHasTokens(isset($entry['tokens']))
-                ->setTokens($entry['tokens'] ?? 0);
+                ->setHasTokens(isset($entry['tokens']));
 
             $supportTier->setGuid(
                 (string) $this->tierBuilder->buildGuid($supportTier)

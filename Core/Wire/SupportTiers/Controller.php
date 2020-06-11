@@ -98,12 +98,13 @@ class Controller
         $name = $body['name'] ?? '';
         $description = $body['description'] ?? '';
         $usd = round((float) ($body['usd'] ?? 0), 6);
-        $tokens = round((float) ($body['tokens'] ?? 0), 6);
+        $hasUsd = (bool) ($body['has_usd'] ?? false);
+        $hasTokens = (bool) ($body['has_tokens'] ?? false);
 
         if ($usd < 0) {
             throw new UserErrorException('Invalid USD amount', 400);
-        } elseif ($tokens < 0) {
-            throw new UserErrorException('Invalid tokens amount', 400);
+        } elseif (!$hasUsd && !$hasTokens) {
+            throw new UserErrorException('You need to enable at least one currency', 400);
         } elseif (!is_string($name) || strlen($name) === 0) {
             throw new UserErrorException('Invalid name', 400);
         }
@@ -114,10 +115,9 @@ class Controller
             ->setPublic(true)
             ->setName($name)
             ->setDescription($description)
-            ->setHasUsd($usd > 0)
             ->setUsd($usd)
-            ->setHasTokens($tokens > 0)
-            ->setTokens($tokens);
+            ->setHasUsd($hasUsd)
+            ->setHasTokens($hasTokens);
 
         $this->manager
             ->setEntity($currentUser);
@@ -139,12 +139,13 @@ class Controller
         $currentUser = $request->getAttribute('_user');
         $body = $request->getParsedBody();
         $usd = round((float) ($body['usd'] ?? 0), 6);
-        $tokens = round((float) ($body['tokens'] ?? 0), 6);
+        $hasUsd = (bool) ($body['has_usd'] ?? false);
+        $hasTokens = (bool) ($body['has_tokens'] ?? false);
 
         if ($usd < 0) {
             throw new UserErrorException('Invalid USD amount', 400);
-        } elseif ($tokens < 0) {
-            throw new UserErrorException('Invalid tokens amount', 400);
+        } elseif (!$hasUsd && !$hasTokens) {
+            throw new UserErrorException('You need to enable at least one currency', 400);
         }
 
         $supportTier = new SupportTier();
@@ -152,11 +153,10 @@ class Controller
             ->setEntityGuid($currentUser->guid)
             ->setPublic(false)
             ->setName('Custom')
-            ->setDescription('')
-            ->setHasUsd($usd > 0)
+            ->setDescription("USD {$usd}")
             ->setUsd($usd)
-            ->setHasTokens($tokens > 0)
-            ->setTokens($tokens);
+            ->setHasUsd($hasUsd)
+            ->setHasTokens($hasTokens);
 
         $this->manager
             ->setEntity($currentUser);

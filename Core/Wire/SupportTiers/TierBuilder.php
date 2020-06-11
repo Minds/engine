@@ -28,16 +28,15 @@ class TierBuilder
      */
     public function buildGuid(SupportTier $supportTier): int
     {
+        $usd = $supportTier->getUsd();
         $scale = pow(10, 16);
         $amountScale = pow(10, 6);
 
-        if ($supportTier->hasUsd()) {
-            return (1 * $scale) + floor($supportTier->getUsd() * $amountScale);
-        } elseif ($supportTier->hasTokens()) {
-            return (2 * $scale) + floor($supportTier->getTokens() * $amountScale);
-        } else {
-            throw new Exception('Invalid Support Tier');
+        if (!$usd) {
+            throw new Exception('Invalid USD value');
         }
+
+        return $scale + floor($usd * $amountScale);
     }
 
     /**

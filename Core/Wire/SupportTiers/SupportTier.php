@@ -18,12 +18,10 @@ use Minds\Traits\MagicAttributes;
  * @method SupportTier setName(string $name)
  * @method string getDescription()
  * @method SupportTier setDescription(string $description)
- * @method bool hasUsd()
- * @method SupportTier setHasUsd(bool $hasUsd)
  * @method float getUsd()
  * @method SupportTier setUsd(float $usd)
- * @method float getTokens()
- * @method SupportTier setTokens(float $tokens)
+ * @method bool hasUsd()
+ * @method SupportTier setHasUsd(bool $hasUsd)
  * @method bool hasTokens()
  * @method SupportTier setHasTokens(bool $hasTokens)
  */
@@ -46,17 +44,14 @@ class SupportTier implements JsonSerializable
     /** @var string */
     protected $description;
 
-    /** @var bool */
-    protected $hasUsd;
-
     /** @var float */
     protected $usd;
 
     /** @var bool */
-    protected $hasTokens;
+    protected $hasUsd;
 
-    /** @var float */
-    protected $tokens;
+    /** @var bool */
+    protected $hasTokens;
 
     /**
      * Builds URN
@@ -82,15 +77,14 @@ class SupportTier implements JsonSerializable
     {
         return [
             'urn' => $this->getUrn(),
-            'entity_guid' => $this->entityGuid,
-            'guid' => $this->guid,
-            'public' => $this->public,
-            'name' => $this->name,
-            'description' => $this->description,
-            'has_usd' => $this->hasUsd,
+            'entity_guid' => (string) $this->entityGuid,
+            'guid' => (string) $this->guid,
+            'public' => (bool) $this->public,
+            'name' => (string) $this->name,
+            'description' => (string) $this->description,
             'usd' => (string) $this->usd,
-            'has_tokens' => $this->hasTokens,
-            'tokens' => (string) $this->tokens,
+            'has_usd' => (bool) $this->hasUsd,
+            'has_tokens' => (bool) $this->hasTokens,
         ];
     }
 
