@@ -904,4 +904,24 @@ class Activity extends Entity implements MutatableEntityInterface
     {
         return $this->videoPosterBase64Blob;
     }
+
+    /**
+     * Sets `access_id`
+     * @param mixed $access_id
+     * @return Activity
+     */
+    public function setAccessId($access_id): Activity
+    {
+        $this->access_id = $access_id;
+        return $this;
+    }
+
+    /**
+     * Gets `access_id`
+     * @return mixed
+     */
+    public function getAccessId(): string
+    {
+        return $this->access_id;
+    }
 }
