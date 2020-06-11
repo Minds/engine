@@ -2,8 +2,11 @@
 namespace Minds\Core\Wire\SupportTiers;
 
 use Exception;
+use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Features\Manager as FeaturesManager;
+use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\Urn;
 use Zend\Diactoros\Response\JsonResponse;
@@ -15,23 +18,41 @@ use Zend\Diactoros\ServerRequest;
  */
 class Controller
 {
+    /** @var Config */
+    protected $config;
+
+    /** @var FeaturesManager */
+    protected $features;
+
     /** @var Manager */
     protected $manager;
 
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
+    /** @var Delegates\UserWireRewardsMigrationDelegate */
+    protected $userWireRewardsMigration;
+
     /**
      * Controller constructor.
+     * @param $config
+     * @param $features
      * @param $manager
      * @param $entitiesBuilder
+     * @param $userWireRewardsMigration
      */
     public function __construct(
+        $config = null,
+        $features = null,
         $manager = null,
-        $entitiesBuilder = null
+        $entitiesBuilder = null,
+        $userWireRewardsMigration = null
     ) {
+        $this->config = $config ?: Di::_()->get('Config');
+        $this->features = $features ?: Di::_()->get('Features\Manager');
         $this->manager = $manager ?: new Manager();
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
+        $this->userWireRewardsMigration = $userWireRewardsMigration ?: new Delegates\UserWireRewardsMigrationDelegate();
     }
 
     /**
@@ -77,11 +98,22 @@ class Controller
             throw new UserErrorException('No entity', 400);
         }
 
-        $this->manager->setEntity($entity);
+        if (!$this->features->has('support-tiers')) {
+            $supportTiers = [];
+
+            if ($entity instanceof User) {
+                $supportTiers = $this->userWireRewardsMigration
+                    ->migrate($entity, false);
+            }
+        } else {
+            $supportTiers = $this->manager
+                ->setEntity($entity)
+                ->getAll();
+        }
 
         return new JsonResponse([
             'status' => 'success',
-            'support_tiers' => $this->manager->getAll()
+            'support_tiers' => $supportTiers
         ]);
     }
 
