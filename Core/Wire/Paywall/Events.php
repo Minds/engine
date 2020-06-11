@@ -5,17 +5,30 @@ namespace Minds\Core\Wire\Paywall;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
+use Minds\Core\Features;
 use Minds\Core\Events\Dispatcher;
 use Minds\Entities\User;
 
 class Events
 {
+    /** @var Features\Managers */
+    private $featuresManager;
+
+    public function __construct($featuresManager = null)
+    {
+        $this->featuresManager = $featuresManager;
+    }
+
     public function register()
     {
         /**
          * Removes important export fields if marked as paywall
          */
         Dispatcher::register('export:extender', 'activity', function ($event) {
+            if (!$this->featuresManager) { // Can not use DI in constructor due to init races
+                $this->featuresManager = Di::_()->get('Features\Manager');
+            }
+
             $params = $event->getParameters();
             $activity = $params['entity'];
             if ($activity->type != 'activity') {
@@ -28,12 +41,15 @@ class Events
 
             if ($activity->isPaywall() && $activity->owner_guid != $currentUser) {
                 $export['message'] = null;
-                $export['custom_type'] = null;
-                $export['custom_data'] = null;
-                $export['thumbnail_src'] = null;
-                $export['perma_url'] = null;
                 $export['blurb'] = null;
-                $export['title'] = null;
+
+                if (!$this->featuresManager->has('paywall-2020')) {
+                    $export['custom_type'] = null;
+                    $export['custom_data'] = null;
+                    $export['thumbnail_src'] = null;
+                    $export['perma_url'] = null;
+                    $export['title'] = null;
+                }
 
                 $dirty = true;
             }
@@ -45,12 +61,15 @@ class Events
             ) {
                 $export['remind_object'] = $activity->remind_object;
                 $export['remind_object']['message'] = null;
-                $export['remind_object']['custom_type'] = null;
-                $export['remind_object']['custom_data'] = null;
-                $export['remind_object']['thumbnail_src'] = null;
-                $export['remind_object']['perma_url'] = null;
                 $export['remind_object']['blurb'] = null;
-                $export['remind_object']['title'] = null;
+                
+                if (!$this->featuresManager->has('paywall-2020')) {
+                    $export['remind_object']['custom_type'] = null;
+                    $export['remind_object']['custom_data'] = null;
+                    $export['remind_object']['thumbnail_src'] = null;
+                    $export['remind_object']['perma_url'] = null;
+                    $export['remind_object']['title'] = null;
+                }
 
                 $dirty = true;
             }
