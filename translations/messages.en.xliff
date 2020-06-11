@@ -257,153 +257,161 @@
         <source>Reset your password by clicking this link.</source>
         <target>Reset your password by clicking this link.</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc1" resname="comment.your.activity">
+      <trans-unit id="jQcNtdX" resname="tag.comment">
+        <source>tag.comment</source>
+        <target>%user% mentioned you in a comment</target>
+      </trans-unit>
+      <trans-unit id="9woTTNJ" resname="tag.post">
+        <source>tag.post</source>
+        <target>%user% mentioned you in a post</target>
+      </trans-unit>
+      <trans-unit id="kvpmg5." resname="user.subscribed">
+        <source>user.subscribed</source>
+        <target>%user% subscribed to you</target>
+      </trans-unit>
+      <trans-unit id="r2mrJQN" resname="boost.gift">
+        <source>boost.gift</source>
+        <target>%user% gifted you %views% views</target>
+      </trans-unit>
+      <trans-unit id="_GAI_5c" resname="boost.request">
+        <source>boost.request</source>
+        <target>%user% has requested a boost of %points% points</target>
+      </trans-unit>
+      <trans-unit id="QqHpvvC" resname="boost.accepted">
+        <source>boost.accepted</source>
+        <target>%impressions% views for %description% were accepted</target>
+      </trans-unit>
+      <trans-unit id="7JQqWts" resname="boost.revoked">
+        <source>boost.revoked</source>
+        <target>You revoked the boost request for %description%</target>
+      </trans-unit>
+      <trans-unit id="dmLSiij" resname="boost.completed">
+        <source>boost.completed</source>
+        <target>%impressions%/%totalImpressions% impressions were met for %description%</target>
+      </trans-unit>
+      <trans-unit id="lkIyQ8S" resname="group.invite">
+        <source>group.invite</source>
+        <target>%user% invited you to %group%</target>
+      </trans-unit>
+      <trans-unit id="1z5hrM7" resname="messenger.invite">
+        <source>messenger.invite</source>
+        <target>@%user% wants to chat with you!</target>
+      </trans-unit>
+      <trans-unit id="d4EDMiQ" resname="referral.ping">
+        <source>referral.ping</source>
+        <target>Free tokens are waiting for you! Once you join the rewards program by setting up your Minds wallet, both you and @%user% will earn tokens for your referral</target>
+      </trans-unit>
+      <trans-unit id="DP7ulEK" resname="referral.pending">
+        <source>referral.pending</source>
+        <target>You have a pending referral! @%user% used your referral link when they signed up for Minds. You'll get tokens once they join the rewards program and set up their wallet</target>
+      </trans-unit>
+      <trans-unit id="EX3lnXt" resname="referral.complete">
+        <source>referral.complete</source>
+        <target>You've earned tokens for the completed referral of @%user%</target>
+      </trans-unit>
+      <trans-unit id="PpLvt2Z" resname="Unsubscribe">
+        <source>Unsubscribe</source>
+        <target>Unsubscribe</target>
+      </trans-unit>
+      <trans-unit id="LwbTb0_" resname="remind.">
+        <source>remind.</source>
+        <target>remind.</target>
+      </trans-unit>
+      <trans-unit id="xp9elZL" resname="comment.your.activity">
         <source>%user% commented on your activity</source>
         <target>%user% commented on your activity</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc2" resname="comment.your.post">
+      <trans-unit id="Oji0R6v" resname="comment.your.post">
         <source>%user% commented on your post</source>
         <target>%user% commented on your post</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc3" resname="comment.your.image">
+      <trans-unit id="Df2GoON" resname="comment.your.image">
         <source>%user% commented on your image</source>
         <target>%user% commented on your image</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc4" resname="comment.your.video">
+      <trans-unit id="IAZDaB4" resname="comment.your.video">
         <source>%user% commented on your video</source>
         <target>%user% commented on your video</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc5" resname="comment.your.blog">
+      <trans-unit id="YCNdSac" resname="comment.your.blog">
         <source>%user% commented on your blog</source>
         <target>%user% commented on your blog</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc6" resname="comment.user.activity">
+      <trans-unit id="d967dHF" resname="comment.user.activity">
         <source>%user% commented on %user%'s activity</source>
         <target>%user% commented on %user%'s activity</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc7" resname="comment.user.post">
+      <trans-unit id="TpjzKYN" resname="comment.user.post">
         <source>%user% commented on %user%'s post</source>
         <target>%user% commented on %user%'s post</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc7" resname="comment.user.a.post">
+      <trans-unit id="W3NL.uf" resname="comment.user.a.post">
         <source>%user% commented on a post</source>
         <target>%user% commented on a post</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc8" resname="comment.user.image">
+      <trans-unit id="DQZgmV6" resname="comment.user.image">
         <source>%user% commented on %user%'s image</source>
         <target>%user% commented on %user%'s image</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc9" resname="comment.user.video">
+      <trans-unit id="jkmAbB9" resname="comment.user.video">
         <source>%user% commented on %user%'s video</source>
         <target>%user% commented on %user%'s video</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc10" resname="comment.user.blog">
+      <trans-unit id="I4QaMNE" resname="comment.user.blog">
         <source>%user% commented on %user%'s blog</source>
         <target>%user% commented on %user%'s blog</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc11" resname="like.title">
+      <trans-unit id="zxsCZQ4" resname="like.title">
         <source>%user% voted up %title%</source>
         <target>%user% voted up %title%</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc12" resname="like.activity">
+      <trans-unit id="JjATm1a" resname="like.activity">
         <source>%user% voted up your activity</source>
         <target>%user% voted up your activity</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc13" resname="like.comment">
+      <trans-unit id="x1ogtJN" resname="like.comment">
         <source>%user% voted up your comment</source>
         <target>%user% voted up your comment</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc14" resname="like.image">
+      <trans-unit id="tD50N5." resname="like.image">
         <source>%user% voted up your image</source>
         <target>%user% voted up your image</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc15" resname="like.video">
+      <trans-unit id="gynvgDx" resname="like.video">
         <source>%user% voted up your video</source>
         <target>%user% voted up your video</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc16" resname="like.blog">
+      <trans-unit id="AyolKqu" resname="like.blog">
         <source>%user% voted up your blog</source>
         <target>%user% voted up your blog</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc16" resname="like.message">
+      <trans-unit id="BxGyJ3l" resname="like.message">
         <source>%user% voted up your message</source>
         <target>%user% voted up your message</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc17" resname="tag.comment">
-        <source>%user% mentioned you in a comment</source>
-        <target>%user% mentioned you in a comment</target>
-      </trans-unit>
-      <trans-unit id="bZ0gzc18" resname="tag.post">
-        <source>%user% mentioned you in a post</source>
-        <target>%user% mentioned you in a post</target>
-      </trans-unit>
-      <trans-unit id="bZ0gzc19" resname="user.subscribed">
-        <source>%user% subscribed to you</source>
-        <target>%user% subscribed to you</target>
-      </trans-unit>
-      <trans-unit id="bZ0gzc20" resname="remind.activity">
+      <trans-unit id="c6PZzIa" resname="remind.activity">
         <source>%user% reminded your activity</source>
         <target>%user% reminded your activity</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc21" resname="remind.image">
+      <trans-unit id="oiW_nCL" resname="remind.image">
         <source>%user% reminded your image</source>
         <target>%user% reminded your image</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc22" resname="remind.video">
+      <trans-unit id="8vhRkN9" resname="remind.video">
         <source>%user% reminded your video</source>
         <target>%user% reminded your video</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc23" resname="remind.blog">
+      <trans-unit id="w_WP5rG" resname="remind.blog">
         <source>%user% reminded your blog</source>
         <target>%user% reminded your blog</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc24" resname="remind.post">
+      <trans-unit id="SbIULYt" resname="remind.post">
         <source>%user% reminded your post</source>
         <target>%user% reminded your post</target>
       </trans-unit>
-      <trans-unit id="bZ0gzc25" resname="boost.gift">
-        <source>%user% gifted you %views% views</source>
-        <target>%user% gifted you %views% views</target>
-      </trans-unit>
-      <trans-unit id="bZ0gzc26" resname="boost.request">
-        <source>%user% has requested a boost of %points% points</source>
-        <target>%user% has requested a boost of %points% points</target>
-      </trans-unit>
-      <trans-unit id="bZ0gzc27" resname="boost.accepted">
-        <source>%impressions% views for %description% were accepted</source>
-        <target>%impressions% views for %description% were accepted</target>
-      </trans-unit>
-      <trans-unit id="bZ0gzc28" resname="booost.rejected">
+      <trans-unit id="rvbTSiq" resname="boost.rejected">
         <source>Your boost request for %description% was rejected</source>
         <target>Your boost request for %description% was rejected</target>
-      </trans-unit>
-      <trans-unit id="bZ0gzc29" resname="boost.revoked">
-        <source>You revoked the boost request for %description%</source>
-        <target>You revoked the boost request for %description%</target>
-      </trans-unit>
-      <trans-unit id="bZ0gzc30" resname="boost.completed">
-        <source>%impressions%/%totalImpressions% impressions were met for %description%</source>
-        <target>%impressions%/%totalImpressions% impressions were met for %description%</target>
-      </trans-unit>
-      <trans-unit id="bZ0gzc31" resname="group.invite">
-        <source>%user% invited you to %group%</source>
-        <target>%user% invited you to %group%</target>
-      </trans-unit>
-      <trans-unit id="bZ0gzc32" resname="messenger.invite">
-        <source>@%user% wants to chat with you!</source>
-        <target>@%user% wants to chat with you!</target>
-      </trans-unit>
-      <trans-unit id="bZ0gzc33" resname="referral.ping">
-        <source>Free tokens are waiting for you! Once you join the rewards program by setting up your Minds wallet, both you and @%user% will earn tokens for your referral</source>
-        <target>Free tokens are waiting for you! Once you join the rewards program by setting up your Minds wallet, both you and @%user% will earn tokens for your referral</target>
-      </trans-unit>
-      <trans-unit id="bZ0gzc34" resname="referral.pending">
-        <source>You have a pending referral! @%user% used your referral link when they signed up for Minds. You'll get tokens once they join the rewards program and set up their wallet</source>
-        <target>You have a pending referral! @%user% used your referral link when they signed up for Minds. You'll get tokens once they join the rewards program and set up their wallet</target>
-      </trans-unit>
-      <trans-unit id="bZ0gzc35" resname="referral.complete">
-        <source>You've earned tokens for the completed referral of @%user%</source>
-        <target>You've earned tokens for the completed referral of @%user%</target>
       </trans-unit>
     </body>
   </file>
