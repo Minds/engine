@@ -16,8 +16,12 @@ use Symfony\Component\Translation\MessageCatalogue;
 
 class I18nExtractor extends Cli\Controller implements Interfaces\CliControllerInterface
 {
+    /** @var string */
+    private $rootDirectory;
+
     public function __construct()
     {
+        $this->rootDirectory = dirname(dirname(dirname(__FILE__)));
     }
 
     public function help($command = null)
@@ -40,7 +44,7 @@ class I18nExtractor extends Cli\Controller implements Interfaces\CliControllerIn
         // get translator
 
         /** @var Core\I18n\Translator $translator */
-        $translator = Core\Di\Di::_()->get('Translator');
+        $translator = Core\Di\Di::_()->get('I18n\Translator');
 
         $translator->setLocale($locale);
 
@@ -70,7 +74,7 @@ class I18nExtractor extends Cli\Controller implements Interfaces\CliControllerIn
     private function getFiles(): array
     {
         $files = [];
-        $directory = new \RecursiveDirectoryIterator(getcwd());
+        $directory = new \RecursiveDirectoryIterator($this->rootDirectory);
         $iterator = new \RecursiveIteratorIterator($directory);
 
         $ignores = [
@@ -150,6 +154,6 @@ class I18nExtractor extends Cli\Controller implements Interfaces\CliControllerIn
      */
     private function updateFile(string $template)
     {
-        file_put_contents(getcwd() . "/translations/messages.en.xliff", $template);
+        file_put_contents($this->rootDirectory . "/translations/messages.en.xliff", $template);
     }
 }
