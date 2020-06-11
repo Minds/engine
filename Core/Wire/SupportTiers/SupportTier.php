@@ -22,6 +22,8 @@ use Minds\Traits\MagicAttributes;
  * @method SupportTier setUsd(float $usd)
  * @method bool hasUsd()
  * @method SupportTier setHasUsd(bool $hasUsd)
+ * @method float getTokens()
+ * @method SupportTier setTokens(float $tokens)
  * @method bool hasTokens()
  * @method SupportTier setHasTokens(bool $hasTokens)
  */
@@ -49,6 +51,9 @@ class SupportTier implements JsonSerializable
 
     /** @var bool */
     protected $hasUsd;
+
+    /** @var float */
+    protected $tokens;
 
     /** @var bool */
     protected $hasTokens;
@@ -82,8 +87,9 @@ class SupportTier implements JsonSerializable
             'public' => (bool) $this->public,
             'name' => (string) $this->name,
             'description' => (string) $this->description,
-            'usd' => (string) $this->usd,
+            'usd' => (string) ($this->usd ?: 0),
             'has_usd' => (bool) $this->hasUsd,
+            'tokens' => (string) ($this->tokens ?: 0),
             'has_tokens' => (bool) $this->hasTokens,
         ];
     }

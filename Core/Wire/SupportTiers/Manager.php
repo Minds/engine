@@ -21,6 +21,9 @@ class Manager
     /** @var Delegates\UserWireRewardsMigrationDelegate */
     protected $userWireRewardsMigration;
 
+    /** @var Delegates\CurrenciesDelegate */
+    protected $currenciesDelegate;
+
     /** @var mixed */
     protected $entity;
 
@@ -28,16 +31,19 @@ class Manager
      * Manager constructor.
      * @param $repository
      * @param $guidBuilder
-     * @param $userWireRewardsMigration
+     * @param $userWireRewardsMigrationDelegate
+     * @param $currenciesDelegate
      */
     public function __construct(
         $repository = null,
         $guidBuilder = null,
-        $userWireRewardsMigration = null
+        $userWireRewardsMigrationDelegate = null,
+        $currenciesDelegate = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->guidBuilder = $guidBuilder ?: new GuidBuilder();
-        $this->userWireRewardsMigration = $userWireRewardsMigration ?: new Delegates\UserWireRewardsMigrationDelegate();
+        $this->userWireRewardsMigration = $userWireRewardsMigrationDelegate ?: new Delegates\UserWireRewardsMigrationDelegate();
+        $this->currenciesDelegate = $currenciesDelegate ?: new Delegates\CurrenciesDelegate();
     }
 
     /**
@@ -76,7 +82,9 @@ class Manager
             $response = $this->userWireRewardsMigration->migrate($this->entity, true);
         }
 
-        return $response;
+        return $response->map(function (SupportTier $supportTier) {
+            return $this->currenciesDelegate->hydrate($supportTier);
+        });
     }
 
     /**
@@ -91,12 +99,14 @@ class Manager
             throw new Exception('Missing primary key');
         }
 
-        return $this->repository->getList(
-            (new RepositoryGetListOptions())
-                ->setEntityGuid($supportTier->getEntityGuid())
-                ->setGuid($supportTier->getGuid())
-                ->setLimit(1)
-        )->first();
+        return $this->currenciesDelegate->hydrate(
+            $this->repository->getList(
+                (new RepositoryGetListOptions())
+                    ->setEntityGuid($supportTier->getEntityGuid())
+                    ->setGuid($supportTier->getGuid())
+                    ->setLimit(1)
+            )->first()
+        );
     }
 
     /**
@@ -113,13 +123,15 @@ class Manager
                 ->setLimit(5000)
         );
 
-        return $supportTiers->filter(function (SupportTier $supportTier) use ($matchingSupportTier) {
-            return
-                $supportTier->isPublic() === $matchingSupportTier->isPublic() &&
-                $supportTier->getUsd() === $matchingSupportTier->getUsd() &&
-                $supportTier->hasUsd() === $matchingSupportTier->hasUsd() &&
-                $supportTier->hasTokens() === $matchingSupportTier->hasTokens();
-        })->first();
+        return $this->currenciesDelegate->hydrate(
+            $supportTiers->filter(function (SupportTier $supportTier) use ($matchingSupportTier) {
+                return
+                    $supportTier->isPublic() === $matchingSupportTier->isPublic() &&
+                    $supportTier->getUsd() === $matchingSupportTier->getUsd() &&
+                    $supportTier->hasUsd() === $matchingSupportTier->hasUsd() &&
+                    $supportTier->hasTokens() === $matchingSupportTier->hasTokens();
+            })->first()
+        );
     }
 
     /**
@@ -135,7 +147,7 @@ class Manager
 
         $success = $this->repository->add($supportTier);
 
-        return $success ? $supportTier : null;
+        return $success ? $this->currenciesDelegate->hydrate($supportTier) : null;
     }
 
     /**
@@ -148,7 +160,7 @@ class Manager
     {
         $success = $this->repository->update($supportTier);
 
-        return $success ? $supportTier : null;
+        return $success ? $this->currenciesDelegate->hydrate($supportTier) : null;
     }
 
     /**

@@ -33,6 +33,9 @@ class Controller
     /** @var Delegates\UserWireRewardsMigrationDelegate */
     protected $userWireRewardsMigration;
 
+    /** @var Delegates\CurrenciesDelegate */
+    protected $currenciesDelegate;
+
     /**
      * Controller constructor.
      * @param $config
@@ -40,19 +43,22 @@ class Controller
      * @param $manager
      * @param $entitiesBuilder
      * @param $userWireRewardsMigration
+     * @param $currenciesDelegate
      */
     public function __construct(
         $config = null,
         $features = null,
         $manager = null,
         $entitiesBuilder = null,
-        $userWireRewardsMigration = null
+        $userWireRewardsMigration = null,
+        $currenciesDelegate = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->features = $features ?: Di::_()->get('Features\Manager');
         $this->manager = $manager ?: new Manager();
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->userWireRewardsMigration = $userWireRewardsMigration ?: new Delegates\UserWireRewardsMigrationDelegate();
+        $this->currenciesDelegate = $currenciesDelegate ?: new Delegates\CurrenciesDelegate();
     }
 
     /**
@@ -103,7 +109,10 @@ class Controller
 
             if ($entity instanceof User) {
                 $supportTiers = $this->userWireRewardsMigration
-                    ->migrate($entity, false);
+                    ->migrate($entity, false)
+                    ->map(function (SupportTier $supportTier) {
+                        return $this->currenciesDelegate->hydrate($supportTier);
+                    });
             }
         } else {
             $supportTiers = $this->manager
