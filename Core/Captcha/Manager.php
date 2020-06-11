@@ -129,12 +129,12 @@ class Manager
     protected function getRandomText(int $length): string
     {
         $chars = array_merge(
-            range(1, 9),
-            range('A', 'N'),
-            range('P', 'Z'), // We don't want O's or 0s
-            range('a', 'n'),
-            range('p', 'z')
+            range(1, 9), // We don't want 0's
+            range('A', 'Z'),
+            range('a', 'z')
         );
+        // We don't want O's, o's, I's or l's
+        $chars = array_diff($chars, ["O", "o", "I", "l"]);
         shuffle($chars);
 
         $text="";
