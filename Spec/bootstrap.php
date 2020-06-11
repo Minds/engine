@@ -30,6 +30,10 @@ $CONFIG->payments = [
     ],
 ];
 
+$CONFIG->cypress = [
+    'shared_key' => 'random-key',
+];
+
 class Mock
 {
     private $a;
