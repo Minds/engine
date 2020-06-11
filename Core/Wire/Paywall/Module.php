@@ -10,6 +10,8 @@ class Module implements ModuleInterface
      */
     public function onInit()
     {
+        $provider = new Provider();
+        $provider->register();
         $events = new Events();
         $events->register();
     }

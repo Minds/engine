@@ -56,8 +56,8 @@ class thumbnail extends Core\page implements Interfaces\page
         $mediaThumbnails = Di::_()->get('Media\Thumbnails');
 
 
-        $thumbnail = $mediaThumbnails->get($entity, $size);
-
+        $thumbnail = $mediaThumbnails->get($entity, $size, [ 'bypassPaywall' => true ]);
+ 
         if ($thumbnail instanceof \ElggFile) {
             $thumbnail->open('read');
             $contents = $thumbnail->read();
@@ -67,6 +67,25 @@ class thumbnail extends Core\page implements Interfaces\page
                 $thumbnail = $mediaThumbnails->get($pages[0], null);
                 $thumbnail->open('read');
                 $contents = $thumbnail->read();
+            }
+
+            // Blur the image if paywalled
+            // TODO: Consider moving this logic to a new controller
+
+            $paywallManager = Di::_()->get('Wire\Paywall\Manager');
+            
+            if ($paywallManager->isPaywalled($entity)) {
+                $allowed = $paywallManager
+                    ->setUser(Core\Session::getLoggedInUser())
+                    ->isAllowed($entity);
+                $unlock = $_GET['unlock_paywall'] ?? false;
+    
+                if (!($unlock && $allowed)) {
+                    $imagick = new \Imagick();
+                    $imagick->readImageBlob($contents);
+                    $imagick->blurImage(100, 500);
+                    $contents = $imagick->getImageBlob();
+                }
             }
 
             try {
