@@ -220,7 +220,7 @@ class ACL
         /**
          * If the user hasn't verified the email
          */
-        if (!$user->isTrusted()) {
+        if (!$this->isEmailVerified($user)) {
             throw new UnverifiedEmailException();
         }
 
@@ -314,7 +314,7 @@ class ACL
         /**
          * If the user hasn't verified the email
          */
-        if (!$user->isTrusted()) {
+        if (!$this->isEmailVerified($user)) {
             throw new UnverifiedEmailException();
         }
 
@@ -360,6 +360,22 @@ class ACL
         }
 
         return true;
+    }
+
+    /**
+     * @param User $user
+     * @return bool
+     */
+    protected function isEmailVerified(User $user): bool
+    {
+        $isMobile = isset($_SERVER['HTTP_APP_VERSION']);
+        if ($isMobile) {
+            return true;
+        }
+        if ($user->isTrusted()) {
+            return true;
+        }
+        return false;
     }
 
     public static function _()
