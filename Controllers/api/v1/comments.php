@@ -10,6 +10,7 @@ namespace Minds\Controllers\api\v1;
 use Minds\Api\Exportable;
 use Minds\Core;
 use Minds\Core\Data;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Entities;
 use Minds\Exceptions\BlockedUserException;
 use Minds\Interfaces;
@@ -222,6 +223,8 @@ class comments implements Interfaces\Api
                 } else {
                     throw new \Exception('The comment couldn\'t be saved');
                 }
+            } catch (UnverifiedEmailException $e) {
+                throw $e;
             } catch (BlockedUserException $e) {
                 $error = true;
 

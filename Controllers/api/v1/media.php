@@ -5,10 +5,12 @@
  * @version 1
  * @author Emi Balbuena
  */
+
 namespace Minds\Controllers\api\v1;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security;
 use Minds\Entities;
 use Minds\Helpers;
@@ -50,7 +52,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                     if (isset($pages[1]) && $pages[1] == 'play') {
                         http_response_code(302);
 
-                        $res = !empty($_GET['res']) && in_array($_GET['res'], ['360', '720', '1080'], true) ?$_GET['res'] : '360';
+                        $res = !empty($_GET['res']) && in_array($_GET['res'], ['360', '720', '1080'], true) ? $_GET['res'] : '360';
 
                         if ($entity->subtype == 'audio') {
                             \forward($entity->getSourceUrl('128.mp3'));
@@ -61,7 +63,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                         exit;
                     }
 
-                    $entities = Factory::exportable([ $entity ]);
+                    $entities = Factory::exportable([$entity]);
 
                     if ($entities) {
                         $response = $entities[0];
@@ -85,7 +87,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                         Security\ACL::$ignore = $ignore;
                     }
 
-                    /* no break */
+                /* no break */
                 default:
                     $entity->fullExport = true;
                     $response['entity'] = $entity->export();
@@ -104,7 +106,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                         $response['entity']['canEdit'] = $entity->canEdit();
                         Security\ACL::$ignore = $ignore;
                     }
-                }
+            }
         }
 
         return Factory::response($response);
@@ -127,6 +129,8 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                     'type' => $_FILES['file']['type'],
                     'file' => $_FILES['file']['tmp_name']
                 ]);
+            } catch (UnverifiedEmailException $e) {
+                throw $e;
             } catch (\Exception $e) {
                 return Factory::response([
                     'status' => 'error',
@@ -200,7 +204,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                 unlink("/tmp/{$image->guid}-master.jpg");
         }
 
-        return Factory::response([ 'guid' => $guid, 'location' => $loc ]);
+        return Factory::response(['guid' => $guid, 'location' => $loc]);
     }
 
     /**
@@ -226,7 +230,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
     /**
      * (Internal) Uploads media
      * @param mixed $guid
-     * @param array $data  - POST data
+     * @param array $data - POST data
      * @param array $media - Temporary [file] path and its [type]
      */
     private function _upload($clientType, array $data = [], array $media = [])
@@ -282,7 +286,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         // Save initial entity
 
-        $success =  $save
+        $success = $save
             ->setEntity($entity)
             ->save(true);
 

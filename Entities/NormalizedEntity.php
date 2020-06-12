@@ -193,4 +193,9 @@ class NormalizedEntity
         $export = Helpers\Export::sanitize($export);
         return $export;
     }
+
+    public function canEdit()
+    {
+        return Core\Security\ACL::_()->write($this);
+    }
 }
