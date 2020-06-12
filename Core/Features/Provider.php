@@ -65,6 +65,7 @@ class Provider extends DiProvider
                 'paywall-2020',
                 'plus-2020',
                 'language-prompts',
+                'discovery-carousel',
             ];
         });
 
