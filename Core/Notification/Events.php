@@ -199,6 +199,22 @@ class Events
 
                 $notification->setToGuid($to_user);
 
+                // Check rate limits on how many notifications this user has been sent by sender
+                if ($notification->getType() === 'tag') {
+                    $toUser = Entities\Factory::build($notification->getToGuid());
+
+                    $cache = Core\Di\Di::_()->get('Cache');
+                    $cacheKey = "{$notification->getFromGuid()}:recently-tagged:{$notification->getToGuid()}";
+                    if (
+                        !$toUser->isSubscribed($notification->getFromGuid()) &&
+                        $cache->get($cacheKey)
+                    ) {
+                        echo "\n Already tagged in 15 minute window. $cacheKey";
+                        continue;
+                    }
+                    $cache->set($cacheKey, true, 60 * 15); // 15 minutes
+                }
+
                 $manager->add($notification);
 
                 $counters->setUser($to_user)
