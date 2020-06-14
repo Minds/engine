@@ -106,14 +106,6 @@ class Controller
 
         if (!$this->features->has('support-tiers')) {
             $supportTiers = [];
-
-            if ($entity instanceof User) {
-                $supportTiers = $this->userWireRewardsMigration
-                    ->migrate($entity, false)
-                    ->map(function (SupportTier $supportTier) {
-                        return $this->currenciesDelegate->hydrate($supportTier);
-                    });
-            }
         } else {
             $supportTiers = $this->manager
                 ->setEntity($entity)
