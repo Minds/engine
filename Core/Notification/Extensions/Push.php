@@ -1,11 +1,12 @@
 <?php
+
 namespace Minds\Core\Notification\Extensions;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
-use Minds\Interfaces;
-use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Core\Queue\Client as QueueClient;
+use Minds\Entities\Factory as EntitiesFactory;
+use Minds\Interfaces;
 
 class Push implements Interfaces\NotificationExtensionInterface
 {
@@ -17,7 +18,7 @@ class Push implements Interfaces\NotificationExtensionInterface
 
     /**
      * Sends data to the Push queue
-     * @param  array  $notification
+     * @param array $notification
      * @return mixed
      */
     public function queue(array $notification = [])
@@ -27,14 +28,17 @@ class Push implements Interfaces\NotificationExtensionInterface
             'queue' => 'Push',
             'uri' => null,
             'to' => null,
+            'toObj' => null,
             'from' => null,
-            'params' => []
+            'params' => [],
         ], $notification);
 
         // TODO: [emi] should I throw an \Exception?
         if (!$notification['uri'] || !$notification['to']) {
             return false;
         }
+
+        $notification['toObj'] = Di::_()->get('EntitiesBuilder')->single($notification['to']);
 
         if ($notification['params']['notification_view'] == 'like' || $notification['params']['notification_view'] == 'downvote') {
             return false;
@@ -90,10 +94,10 @@ class Push implements Interfaces\NotificationExtensionInterface
             'parent_guid' => $parent_guid,
             'type' => $notification['params']['notification_view'],
             'uri' => $notification['uri'],
-            'badge' => $notification['count']
+            'badge' => $notification['count'],
         ];
 
-        $from_user = EntitiesFactory::build($notification['from'], [ 'cache' => true]) ?:
+        $from_user = EntitiesFactory::build($notification['from'], ['cache' => true]) ?:
             Core\Session::getLoggedInUser();
 
         if (!$from_user) {
@@ -104,7 +108,7 @@ class Push implements Interfaces\NotificationExtensionInterface
         $push['message'] = static::buildNotificationMessage($notification, $from_user, $entity);
         $push['large_icon'] = static::getNotificationLargeIcon($notification, $from_user);
         $push['big_picture'] = static::getNotificationBigPicture($notification, $from_user, $entity);
-        $push['group'] = static::getNotificaitonGroup($notification, $from_user, $entity);
+        $push['group'] = static::getNotificationGroup($notification, $from_user, $entity);
 
         return QueueClient::build()
             ->setExchange($notification['exchange'])
@@ -114,7 +118,7 @@ class Push implements Interfaces\NotificationExtensionInterface
 
     /**
      * [NOT USED]
-     * @param  array  $notification
+     * @param array $notification
      * @return boolean
      */
     public function send(array $notification = [])
@@ -133,21 +137,21 @@ class Push implements Interfaces\NotificationExtensionInterface
 
     /**
      * Get the group for the notification
-     * @param  array  $notification
-     * @param  mixed  $from_user
-     * @param  mixed  $entity
+     * @param array $notification
+     * @param mixed $from_user
+     * @param mixed $entity
      * @return string
      */
-    protected static function getNotificaitonGroup(array $notification = [], $from_user, $entity)
+    protected static function getNotificationGroup(array $notification = [], $from_user, $entity)
     {
         return $notification['uri'];
     }
 
     /**
      * Get the big picture for the notification
-     * @param  array  $notification
-     * @param  mixed  $from_user
-     * @param  mixed  $entity
+     * @param array $notification
+     * @param mixed $from_user
+     * @param mixed $entity
      * @return string
      */
     protected static function getNotificationBigPicture(array $notification = [], $from_user, $entity)
@@ -157,7 +161,7 @@ class Push implements Interfaces\NotificationExtensionInterface
                 if (!empty($entity->custom_data)) {
                     return $entity->custom_data[0]['src'];
                 }
-                // no break
+            // no break
             default:
                 return null;
 
@@ -166,8 +170,8 @@ class Push implements Interfaces\NotificationExtensionInterface
 
     /**
      * Get the large icon for the notification
-     * @param  array  $notification
-     * @param  mixed  $from_user
+     * @param array $notification
+     * @param mixed $from_user
      * @return string
      */
     protected static function getNotificationLargeIcon(array $notification = [], $from_user)
@@ -188,13 +192,17 @@ class Push implements Interfaces\NotificationExtensionInterface
 
     /**
      * Creates a human-readable notification message
-     * @param  array  $notification
-     * @param  mixed  $from_user
-     * @param  mixed  $entity
+     * @param array $notification
+     * @param mixed $from_user
+     * @param mixed $entity
      * @return string
      */
     public static function buildNotificationMessage(array $notification = [], $from_user, $entity)
     {
+        /** @var Core\I18n\Translator $translator */
+        $translator = Di::_()->get('I18n\Translator');
+        $translator->setLocale($notification['toObj']->getLanguage());
+
         $message = '';
 
         $data = $notification['notification']->getData();
@@ -209,14 +217,7 @@ class Push implements Interfaces\NotificationExtensionInterface
 
         $isOwner = $notification['to'] == $entity->owner_guid;
 
-        $prefix = '';
-        if ($isOwner) {
-            $prefix = 'your ';
-        } elseif (isset($entity->ownerObj['name'])) {
-            $prefix = $entity->ownerObj['name'].'\'s ';
-        }
-
-        $desc = 'a post';
+        $desc = 'a.post';
         if ($entity->type == 'activity') {
             $desc = 'activity';
         } elseif (isset($entity->subtype)) {
@@ -230,63 +231,85 @@ class Push implements Interfaces\NotificationExtensionInterface
         switch ($notification['params']['notification_view']) {
 
             case 'comment':
-                return sprintf('%s commented on %s', $name, $prefix.$desc);
+                $owner = $isOwner ? 'your' : 'user';
+
+                $params = [
+                    '%user%' => $name,
+                ];
+
+                if ($owner === 'user') {
+                    $params['%user2%'] = $entity->ownerObj['name'];
+                }
+
+                return $translator->trans("comment.{$owner}.{$desc}", $params);
 
             case 'like':
-                switch ($entity->type) {
-                    case 'comment':
-                        $like = 'your comment';
-                        break;
-                    case 'activity':
-                        $like = $title ?: 'your activity';
-                        break;
-                    case 'object':
-                        $like = $title ?: 'your '.$entity->subtype;
-                        break;
+                $type = static::getEntityType($entity);
+
+                $params = [
+                    '%user%' => $name,
+                ];
+
+                if ($title && static::getEntityType($entity) !== 'comment') {
+                    $params['%title%'] = $title;
+                    $type = 'title';
                 }
-                return sprintf('%s voted up %s', $name, $like);
+
+                return $translator->trans("like.{$type}", $params);
 
             case 'tag':
-                return sprintf('%s mentioned you in a %s', $name, ($entity->type == 'comment') ? 'comment' : 'post');
+                if ($entity->type === 'comment') {
+                    return $translator->trans('tag.comment', ['%user%' => $name]);
+                } else {
+                    return $translator->trans('tag.post', ['%user%' => $name]);
+                }
 
+            // no break
             case 'friends':
-                return sprintf('%s subscribed to you', $name);
+                return $translator->trans('user.subscribed', ['%user%' => $name]);
 
             case 'remind':
-                return sprintf('%s reminded your %s', $name, $desc);
+                return $translator->trans('remind.' . $desc, ['%user%' => $name]);
 
             case 'boost_gift':
-                return sprintf('%s gifted you %d views', $name, $data['impressions']);
+                return $translator->trans('boost.gift', ['%user%' => $name]);
 
             case 'boost_request':
-                return sprintf('%s has requested a boost of %d points', $name, $data['points']);
+                return $translator->trans('boost.request', ['%user%' => $name, '%points%' => $data['points']]);
 
             case 'boost_accepted':
-                return sprintf('%d views for %s were accepted', $data['impressions'], $boostDescription);
+                return $translator->trans('boost.accepted', [
+                    '%impressions%' => $data['impressions'],
+                    '%description%' => $boostDescription,
+                ]);
 
             case 'boost_rejected':
-                return sprintf('Your boost request for %s was rejected', $boostDescription);
+                return $translator->trans('boost.rejected', ['%description%' => $boostDescription]);
 
             case 'boost_revoked':
-                return sprintf('You revoked the boost request for %s', $boostDescription);
+                return $translator->trans('boost.revoked', ['%description%' => $boostDescription]);
 
             case 'boost_completed':
-                return sprintf('%d/%d impressions were met for %s', $data['impressions'], $data['impressions'], $boostDescription);
+                return $translator->trans('boost.completed', [
+                    '%impressions%' => $data['impressions'],
+                    '%totalImpressions%' => $data['impressions'],
+                    '%description%' => $boostDescription,
+                ]);
 
             case 'group_invite':
-                return sprintf('%s invited you to %s', $name, $data['group']['name']);
+                return $translator->trans('group.invite', ['%user%' => $name, '%group%' => $data['group']['name']]);
 
             case 'messenger_invite':
-                return sprintf('@%s wants to chat with you!', $name);
+                return $translator->trans('messenger.invite', ['%user%' => $name]);
 
             case 'referral_ping':
-                return sprintf('Free tokens are waiting for you! Once you join the rewards program by setting up your Minds wallet, both you and @%s will earn tokens for your referral', $name);
+                return $translator->trans('referral.ping', ['%user%' => $name]);
 
             case 'referral_pending':
-                return sprintf('You have a pending referral! @%s used your referral link when they signed up for Minds. You\'ll get tokens once they join the rewards program and set up their wallet', $name);
+                return $translator->trans('referral.pending', ['%user%' => $name]);
 
             case 'referral_complete':
-                return sprintf('You\'ve earned tokens for the completed referral of @%s', $name);
+                return $translator->trans('referral.complete', ['%user%' => $name]);
 
             default:
                 return "";
@@ -302,5 +325,10 @@ class Push implements Interfaces\NotificationExtensionInterface
             self::$_ = new self();
         }
         return self::$_;
+    }
+
+    private static function getEntityType($entity)
+    {
+        return $entity->type !== 'object' ? $entity->type : $entity->subtype;
     }
 }

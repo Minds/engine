@@ -338,28 +338,28 @@
         <target>%user% commented on your blog</target>
       </trans-unit>
       <trans-unit id="d967dHF" resname="comment.user.activity">
-        <source>%user% commented on %user%'s activity</source>
-        <target>%user% commented on %user%'s activity</target>
+        <source>%user% commented on %user2%'s activity</source>
+        <target>%user% commented on %user2%'s activity</target>
       </trans-unit>
       <trans-unit id="TpjzKYN" resname="comment.user.post">
-        <source>%user% commented on %user%'s post</source>
-        <target>%user% commented on %user%'s post</target>
+        <source>%user% commented on %user2%'s post</source>
+        <target>%user% commented on %user2%'s post</target>
       </trans-unit>
       <trans-unit id="W3NL.uf" resname="comment.user.a.post">
         <source>%user% commented on a post</source>
         <target>%user% commented on a post</target>
       </trans-unit>
       <trans-unit id="DQZgmV6" resname="comment.user.image">
-        <source>%user% commented on %user%'s image</source>
-        <target>%user% commented on %user%'s image</target>
+        <source>%user% commented on %user2%'s image</source>
+        <target>%user% commented on %user2%'s image</target>
       </trans-unit>
       <trans-unit id="jkmAbB9" resname="comment.user.video">
-        <source>%user% commented on %user%'s video</source>
-        <target>%user% commented on %user%'s video</target>
+        <source>%user% commented on %user2%'s video</source>
+        <target>%user% commented on %user2%'s video</target>
       </trans-unit>
       <trans-unit id="I4QaMNE" resname="comment.user.blog">
-        <source>%user% commented on %user%'s blog</source>
-        <target>%user% commented on %user%'s blog</target>
+        <source>%user% commented on %user2%'s blog</source>
+        <target>%user% commented on %user2%'s blog</target>
       </trans-unit>
       <trans-unit id="zxsCZQ4" resname="like.title">
         <source>%user% voted up %title%</source>
