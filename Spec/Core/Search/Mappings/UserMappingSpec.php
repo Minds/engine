@@ -83,6 +83,7 @@ class UserMappingSpec extends ObjectBehavior
                 'taxonomy' => 'user',
                 'public' => true,
                 'wire_support_tier' => null,
+                '@wire_support_tier_expire' => null,
                 'tags' => [ 'spaceiscool' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',

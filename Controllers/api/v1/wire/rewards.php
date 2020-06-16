@@ -99,12 +99,6 @@ class rewards implements Interfaces\Api
         $owner->setWireRewards($rewards ?: []);
         $update['wire_rewards'] = json_encode($rewards);
 
-        /** @var Core\Wire\SupportTiers\Manager $supportTiersManager */
-        $supportTiersManager = Core\Di\Di::_()->get('Wire\SupportTiers\Manager');
-        $supportTiersManager
-            ->setEntity($owner)
-            ->migrate();
-
         $db = new Core\Data\Call('entities');
         $db->insert($owner->guid, $update);
         
