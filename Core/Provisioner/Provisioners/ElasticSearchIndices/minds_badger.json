@@ -92,6 +92,9 @@
         "wire_support_tier": {
           "type": "keyword"
         },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -227,6 +230,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -371,6 +377,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -519,6 +528,9 @@
         "wire_support_tier": {
           "type": "keyword"
         },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -649,6 +661,9 @@
         "wire_support_tier": {
           "type": "keyword"
         },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -766,6 +781,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -928,6 +946,9 @@
         "wire_support_tier": {
           "type": "keyword"
         },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1061,6 +1082,9 @@
         "wire_support_tier": {
           "type": "keyword"
         },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1154,6 +1178,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -1270,6 +1297,9 @@
         "wire_support_tier": {
           "type": "keyword"
         },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1373,6 +1403,9 @@
         "wire_support_tier": {
           "type": "keyword"
         },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1448,6 +1481,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -1586,6 +1622,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -1732,6 +1771,9 @@
         "wire_support_tier": {
           "type": "keyword"
         },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1822,6 +1864,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -1940,6 +1985,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -2076,6 +2124,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"

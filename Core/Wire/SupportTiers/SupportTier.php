@@ -10,16 +10,22 @@ use Minds\Traits\MagicAttributes;
  * @package Minds\Core\Wire\SupportTiers
  * @method string getEntityGuid()
  * @method SupportTier setEntityGuid(string $entityGuid)
- * @method string getCurrency()
- * @method SupportTier setCurrency(string $currency)
  * @method string getGuid()
  * @method SupportTier setGuid(string $guid)
- * @method float getAmount()
- * @method SupportTier setAmount(float $amount)
+ * @method bool isPublic()
+ * @method SupportTier setPublic(bool $public)
  * @method string getName()
  * @method SupportTier setName(string $name)
  * @method string getDescription()
  * @method SupportTier setDescription(string $description)
+ * @method float getUsd()
+ * @method SupportTier setUsd(float $usd)
+ * @method bool hasUsd()
+ * @method SupportTier setHasUsd(bool $hasUsd)
+ * @method float getTokens()
+ * @method SupportTier setTokens(float $tokens)
+ * @method bool hasTokens()
+ * @method SupportTier setHasTokens(bool $hasTokens)
  */
 class SupportTier implements JsonSerializable
 {
@@ -29,13 +35,10 @@ class SupportTier implements JsonSerializable
     protected $entityGuid;
 
     /** @var string */
-    protected $currency;
-
-    /** @var string */
     protected $guid;
 
-    /** @var float */
-    protected $amount;
+    /** @var bool */
+    protected $public;
 
     /** @var string */
     protected $name;
@@ -43,16 +46,27 @@ class SupportTier implements JsonSerializable
     /** @var string */
     protected $description;
 
+    /** @var float */
+    protected $usd;
+
+    /** @var bool */
+    protected $hasUsd;
+
+    /** @var float */
+    protected $tokens;
+
+    /** @var bool */
+    protected $hasTokens;
+
     /**
      * Builds URN
      * @return string|null
      */
     public function getUrn(): ?string
     {
-        if ($this->entityGuid && $this->currency && $this->guid) {
+        if ($this->entityGuid && $this->guid) {
             return Urn::build('support-tier', [
                 $this->entityGuid,
-                $this->currency,
                 $this->guid,
             ]);
         }
@@ -68,12 +82,15 @@ class SupportTier implements JsonSerializable
     {
         return [
             'urn' => $this->getUrn(),
-            'entity_guid' => $this->entityGuid,
-            'currency' => $this->currency,
-            'guid' => $this->guid,
-            'amount' => (string) $this->amount,
-            'name' => $this->name,
-            'description' => $this->description,
+            'entity_guid' => (string) $this->entityGuid,
+            'guid' => (string) $this->guid,
+            'public' => (bool) $this->public,
+            'name' => (string) $this->name,
+            'description' => (string) $this->description,
+            'usd' => (string) ($this->usd ?: 0),
+            'has_usd' => (bool) $this->hasUsd,
+            'tokens' => (string) ($this->tokens ?: 0),
+            'has_tokens' => (bool) $this->hasTokens,
         ];
     }
 

@@ -384,6 +384,8 @@ $CONFIG->set('blockchain_override', [
     ],
 ]);
 
+$CONFIG->set('token_exchange_rate', 1.25);
+
 $CONFIG->set('plus', [
     'handler' => '',
     'tokens' => [

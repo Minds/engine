@@ -2,44 +2,43 @@
 namespace Minds\Core\Wire\SupportTiers\Delegates;
 
 use Minds\Common\Repository\Response;
-use Minds\Core\Entities\Actions\Save;
-use Minds\Core\Guid;
+use Minds\Core\Config;
+use Minds\Core\Di\Di;
 use Minds\Core\Wire\SupportTiers\Repository;
 use Minds\Core\Wire\SupportTiers\RepositoryGetListOptions;
 use Minds\Core\Wire\SupportTiers\SupportTier;
 use Minds\Core\Wire\SupportTiers\TierBuilder;
 use Minds\Entities\User;
-use Minds\Helpers\Log;
 
 /**
- * Handle User entity Wire Rewards conversion (back and forth).
+ * Handle User entity Wire Rewards conversion
  * @package Minds\Core\Wire\SupportTiers\Delegates
  */
 class UserWireRewardsMigrationDelegate
 {
-    /** @var Repository */
-    protected $repository;
-
-    /** @var Save */
-    protected $saveAction;
+    /** @var Config */
+    protected $config;
 
     /** @var TierBuilder */
     protected $tierBuilder;
 
+    /** @var Repository */
+    protected $repository;
+
     /**
      * UserWireRewardsMigrationDelegate constructor.
-     * @param $repository
-     * @param $saveAction
+     * @param $config
      * @param $tierBuilder
+     * @param $repository
      */
     public function __construct(
-        $repository = null,
-        $saveAction = null,
-        $tierBuilder = null
+        $config = null,
+        $tierBuilder = null,
+        $repository = null
     ) {
-        $this->repository = $repository ?: new Repository();
-        $this->saveAction = $saveAction ?: new Save();
+        $this->config = $config ?: Di::_()->get('Config');
         $this->tierBuilder = $tierBuilder ?: new TierBuilder();
+        $this->repository = $repository ?: new Repository();
     }
 
     /**
@@ -48,52 +47,89 @@ class UserWireRewardsMigrationDelegate
      * @param User $user
      * @param bool $write
      * @return Response<SupportTier>
+     * @throws \Exception
      */
     public function migrate(User $user, $write = false): Response
     {
         $wireRewards = $user->getWireRewards();
+        $tokenExchangeRate = $this->config->get('token_exchange_rate') ?: 1.25;
 
         if (is_string($wireRewards)) {
             $wireRewards = json_decode($wireRewards, true);
         }
 
-        $data = [
-            'tokens' => $wireRewards['rewards']['tokens'] ?: [],
-            'usd' => $wireRewards['rewards']['money'] ?: [],
+        // Conversion rate for merging with USD as base
+
+        $types = [
+            'money' => 1,
+            'tokens' => $tokenExchangeRate,
         ];
 
-        usort($data['tokens'], [$this->tierBuilder, 'sortRewards']);
-        usort($data['usd'], [$this->tierBuilder, 'sortRewards']);
+        // Merge entries based on its amount converted to USD
 
+        $entries = [];
+
+        foreach ($types as $type => $exchangeRate) {
+            foreach ($wireRewards['rewards'][$type] ?: [] as $reward) {
+                $amount = $reward['amount'] ?? 0;
+
+                if (!$amount || !is_numeric($amount)) {
+                    continue;
+                }
+
+                $index = $amount * $exchangeRate * pow(10, 4);
+
+                if (!isset($entries[$index])) {
+                    $entries[$index] = [];
+                }
+
+                if (!isset($entries[$index]['descriptions'])) {
+                    $entries[$index]['descriptions'] = [];
+                }
+
+                $entries[$index][$type] = $amount;
+                $entries[$index]['descriptions'][] = $reward['description'];
+            }
+        }
+
+        // Sort
+        ksort($entries, SORT_NUMERIC);
+
+        // Set Support Tiers
+
+        $i = 0;
         $urns = [];
 
         $response = new Response();
         $response->setLastPage(true);
 
-        foreach ($data as $currency => $rewards) {
-            $i = 0;
+        foreach ($entries as $entry) {
+            $usd = ($entry['money'] ?? 0) ?: ($entry['tokens'] * $tokenExchangeRate);
 
-            foreach ($rewards as $reward) {
-                $amount = (float) $reward['amount'];
+            $supportTier = new SupportTier();
+            $supportTier
+                ->setEntityGuid((string) $user->guid)
+                ->setPublic(true)
+                ->setName($this->tierBuilder->buildName($i))
+                ->setDescription(trim(implode(' - ', $entry['descriptions'])))
+                ->setUsd($usd)
+                ->setHasUsd(isset($entry['money']))
+                ->setHasTokens(isset($entry['tokens']));
 
-                $supportTier = new SupportTier();
-                $supportTier
-                    ->setEntityGuid((string) $user->guid)
-                    ->setCurrency($currency)
-                    ->setGuid(($reward['guid'] ?? '') ?: $this->tierBuilder->buildGuid($currency, $amount))
-                    ->setAmount($amount)
-                    ->setName(($reward['name'] ?? '') ?: $this->tierBuilder->buildName($i))
-                    ->setDescription($reward['description'] ?: '');
+            $supportTier->setGuid(
+                (string) $this->tierBuilder->buildGuid($supportTier)
+            );
 
-                if ($write) {
-                    $this->repository->add($supportTier);
-                }
-
-                $urns[] = $supportTier->getUrn();
-                $response[] = $supportTier;
-                $i++;
+            if ($write) {
+                $this->repository->add($supportTier);
             }
+
+            $urns[] = $supportTier->getUrn();
+            $response[] = $supportTier;
+            $i++;
         }
+
+        // Delete removed Support Tiers
 
         if ($write) {
             $all = $this->repository->getList(
@@ -110,60 +146,8 @@ class UserWireRewardsMigrationDelegate
             }
         }
 
+        // Response
+
         return $response;
-    }
-
-    /**
-     * Creates a wire_rewards compatible output based on a SupportTier iterable
-     * @param User $user
-     * @return void
-     * @throws \Minds\Exceptions\StopEventException
-     */
-    public function sync(User $user): void
-    {
-        $wireRewards = [
-            'description' => '',
-            'rewards' => [
-                'tokens' => [],
-                'money' => [],
-            ]
-        ];
-
-        /** @var SupportTier[] $supportTiers */
-        $supportTiers = $this->repository->getList(
-            (new RepositoryGetListOptions())
-                ->setEntityGuid((string) $user->guid)
-                ->setLimit(5000)
-        );
-
-        foreach ($supportTiers as $supportTier) {
-            $reward = [
-                'guid' => (string) $supportTier->getGuid(),
-                'amount' => (float) $supportTier->getAmount(),
-                'name' => (string) $supportTier->getName(),
-                'description' => (string) $supportTier->getDescription(),
-            ];
-
-            switch ($supportTier->getCurrency()) {
-                case 'tokens':
-                    $wireRewards['rewards']['tokens'][] = $reward;
-                    break;
-
-                case 'usd':
-                    $wireRewards['rewards']['money'][] = $reward;
-                    break;
-
-                default:
-                    Log::notice('Unknown support tier currency: ' . json_encode($supportTier));
-                    break;
-            }
-        }
-
-        $user
-            ->setWireRewards($wireRewards);
-
-        $this->saveAction
-            ->setEntity($user)
-            ->save();
     }
 }
