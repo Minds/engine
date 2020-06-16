@@ -250,6 +250,11 @@ $CONFIG->set('google', [
             'key_path' => __DIR__ . '/.auth/analytics.json',
         ],
         'ads' => '', // get it from https://ga-dev-tools.appspot.com/account-explorer/
+    ],
+
+    'youtube' => [
+        'api_key' => '{{yt-api-key}}',
+        'max_daily_imports' => 10
     ]
 ]);
 
@@ -378,6 +383,8 @@ $CONFIG->set('blockchain_override', [
         // ...
     ],
 ]);
+
+$CONFIG->set('token_exchange_rate', 1.25);
 
 $CONFIG->set('plus', [
     'handler' => '',

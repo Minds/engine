@@ -37,9 +37,12 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->get('paywall')->willReturn(false);
         $activity->get('custom_type')->willReturn('video');
         $activity->get('entity_guid')->willReturn(8000);
+        $activity->get('pending')->willReturn(false);
         $activity->getNsfw()->willReturn([ 1 ]);
         $activity->getTags()->willReturn([ 'spaceiscool' ]);
         $activity->get('license')->willReturn('cc-test-lic');
+        $activity->get('wire_threshold')->willReturn(null);
+        $activity->get('language')->willReturn('en');
 
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
@@ -66,16 +69,20 @@ class ActivityMappingSpec extends ObjectBehavior
                 'title' => 'PHPSpec Title',
                 'blurb' => 'PHPSpec Blurb',
                 'description' => 'PHPSpec Description',
+                'language' => 'en',
                 'paywall' => false,
                 'rating' => 1,
                 'custom_type' => 'video',
                 'entity_guid' => '8000',
+                'pending' => false,
                 'license' => 'cc-test-lic',
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'activity',
                 'public' => true,
+                'wire_support_tier' => null,
+                '@wire_support_tier_expire' => null,
                 'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
-                'nsfw' => [ 1 ]
+                'nsfw' => [ 1 ],
             ]);
     }
 
@@ -103,11 +110,14 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->get('paywall')->willReturn(false);
         $activity->get('custom_type')->willReturn('video');
         $activity->get('entity_guid')->willReturn(8000);
+        $activity->get('pending')->willReturn(true);
+        $activity->get('license')->willReturn('cc-test-lic');
         $activity->getNsfw()->willReturn([ 1 ]);
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
         $activity->getTags()->willReturn([ 'spaceiscool' ]);
-        $activity->get('license')->willReturn('cc-test-lic');
+        $activity->get('wire_threshold')->willReturn(null);
+        $activity->get('language')->willReturn('en');
 
         $this
             ->setEntity($activity)
@@ -131,14 +141,18 @@ class ActivityMappingSpec extends ObjectBehavior
                 'title' => 'PHPSpec Title',
                 'blurb' => 'PHPSpec Blurb',
                 'description' => 'PHPSpec Description',
+                'language' => 'en',
                 'paywall' => false,
                 'rating' => 1,
                 'custom_type' => 'video',
                 'entity_guid' => '8000',
+                'pending' => true,
                 'license' => 'cc-test-lic',
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'activity',
                 'public' => true,
+                'wire_support_tier' => null,
+                '@wire_support_tier_expire' => null,
                 'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',

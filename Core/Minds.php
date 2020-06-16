@@ -38,6 +38,12 @@ class Minds extends base
         SEO\Sitemaps\Module::class,
         Discovery\Module::class,
         Monetization\Partners\Module::class,
+        Channels\Groups\Module::class,
+        Media\YouTubeImporter\Module::class,
+        DismissibleWidgets\Module::class,
+        Wire\SupportTiers\Module::class,
+        Wire\Paywall\Module::class,
+        I18n\Module::class,
     ];
 
     /**
@@ -100,7 +106,6 @@ class Minds extends base
         (new Translation\TranslationProvider())->register();
         (new Categories\CategoriesProvider())->register();
         (new ThirdPartyNetworks\ThirdPartyNetworksProvider())->register();
-        (new I18n\I18nProvider())->register();
         (new Storage\StorageProvider())->register();
         (new Monetization\MonetizationProvider())->register();
         (new Programs\ProgramsProvider())->register();
@@ -130,8 +135,6 @@ class Minds extends base
      */
     public function start()
     {
-        $this->checkInstalled();
-
         $this->loadConfigs();
         $this->loadLegacy();
         $this->loadEvents();
@@ -253,24 +256,6 @@ class Minds extends base
         }
 
         return false;
-    }
-
-    /**
-     * Check if Minds is installed, if not redirect to install script.
-     */
-    public function checkInstalled()
-    {
-        /*
-         * If we are a multisite, we get the install status from the multisite settings
-         */
-        if ($this->detectMultisite()) {
-            //we do this on db load.. not here
-        } else {
-            if (!file_exists(__MINDS_ROOT__.'/settings.php') && !defined('__MINDS_INSTALLING__')) {
-                header('Location: install.php');
-                exit;
-            }
-        }
     }
 
     /**

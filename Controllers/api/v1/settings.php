@@ -15,6 +15,7 @@ use Minds\Core\Email\Confirmation\Manager as EmailConfirmation;
 use Minds\Core\Queue\Client as Queue;
 use Minds\Entities;
 use Minds\Interfaces;
+use Minds\Core\I18n\Manager;
 
 class settings implements Interfaces\Api
 {
@@ -138,10 +139,14 @@ class settings implements Interfaces\Api
             \Minds\Core\Session::regenerate(true, $user);
         }
 
-        $allowedLanguages = ['en', 'es', 'fr', 'vi'];
+        /** @var Core\I18n\Manager $i18n */
+        $i18n = Di::_()->get('I18n\Manager');
 
-        if (isset($_POST['language']) && in_array($_POST['language'], $allowedLanguages, true)) {
-            $user->setLanguage($_POST['language']);
+        $language = $_POST['language'] ?? '';
+
+        if ($language && $i18n->isLanguage($language)) {
+            $user->setLanguage($language);
+            $i18n->setLanguageCookie($language);
         }
 
         if (isset($_POST['toaster_notifications'])) {

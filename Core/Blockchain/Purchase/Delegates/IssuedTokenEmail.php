@@ -13,7 +13,7 @@ use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Util\BigNumber;
-use Minds\Core\Email\Campaigns\Custom;
+use Minds\Core\Email\V2\Campaigns\Custom\Custom;
 use Minds\Entities\User;
 
 class IssuedTokenEmail
@@ -34,14 +34,20 @@ class IssuedTokenEmail
     {
         $amount = (int) BigNumber::_($purchase->getRequestedAmount())->div(10 ** 18)->toString();
 
+
+        $subject = 'Thank you for your purchase';
+
         $this->campaign
             ->setUser(new User($purchase->getUserGuid()))
-            ->setSubject("Your purchase of $amount Tokens has now been issued.")
-            ->setTemplate('issued-token-purchase.md')
+            ->setSubject($subject)
+            ->setTemplate('token-purchase-issued')
             ->setTopic('billing')
             ->setCampaign('tokens')
+            ->setTitle($subject)
+            ->setSignoff('Thank you,')
+            ->setPreheader("Your purchase of $amount Tokens has now been issued.")
             ->setVars([
-                'date' => date('d-M-Y', time()),
+                'date' => date('l F jS Y', time()),
                 'amount' => $amount,
             ])
             ->send();

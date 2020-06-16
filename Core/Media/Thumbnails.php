@@ -22,10 +22,15 @@ class Thumbnails
     /**
      * @param $entity Entities\Entity|string
      * @param $size
+     * @param array $opts
      * @return bool|\ElggFile|mixed|string
      */
-    public function get($entity, $size)
+    public function get($entity, $size, $opts = [])
     {
+        $opts = array_merge([
+            'bypassPaywall' => false,
+        ], $opts);
+
         if (is_numeric($entity)) {
             $entity = $this->entitiesBuilder->single($entity);
         }
@@ -37,7 +42,7 @@ class Thumbnails
         $loggedInUser = Core\Session::getLoggedinUser();
 
         try {
-            if (!Di::_()->get('Wire\Thresholds')->isAllowed($loggedInUser, $entity)) {
+            if (!$opts['bypassPaywall'] && !Di::_()->get('Wire\Thresholds')->isAllowed($loggedInUser, $entity)) {
                 return false;
             }
         } catch (\Exception $e) {
@@ -82,7 +87,8 @@ class Thumbnails
 
             case 'video':
                 if (!$entity->thumbnail) {
-                    $thumbnail = $this->config->get('cinemr_url') . $entity->cinemr_guid . '/thumbnail-00001.png';
+                    $guid = $entity->cinemr_guid ?: $entity->guid;
+                    $thumbnail = $this->config->get('cinemr_url') . $guid . '/thumbnail-00001.png';
 
                     break;
                 }

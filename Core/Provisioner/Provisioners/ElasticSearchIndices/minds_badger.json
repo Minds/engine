@@ -2,6 +2,9 @@
   "mappings": {
     "activity:blog": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -85,6 +88,12 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -132,6 +141,9 @@
     },
     "comment": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -215,6 +227,12 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -274,6 +292,9 @@
     },
     "activity": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -353,6 +374,12 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -456,6 +483,9 @@
     },
     "object:video": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -495,6 +525,12 @@
         "paywall": {
           "type": "boolean"
         },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -530,11 +566,23 @@
         },
         "votes:up:12h:synced": {
           "type": "long"
+        },
+        "youtube_id": {
+          "type": "keyword"
+        },
+        "youtube_channel_id": {
+          "type": "keyword"
+        },
+        "transcoding_status": {
+          "type": "keyword"
         }
       }
     },
     "object": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -609,6 +657,12 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -647,6 +701,9 @@
     },
     "object:audio": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -721,6 +778,12 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -880,6 +943,12 @@
         "paywall": {
           "type": "boolean"
         },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1010,6 +1079,12 @@
         "paywall": {
           "type": "boolean"
         },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1059,6 +1134,9 @@
     },
     "object:blog": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -1097,6 +1175,12 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -1210,6 +1294,12 @@
         "paywall": {
           "type": "boolean"
         },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1310,6 +1400,12 @@
         "paywall": {
           "type": "boolean"
         },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1338,6 +1434,9 @@
     },
     "user": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -1379,6 +1478,12 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -1514,6 +1619,12 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -1657,6 +1768,12 @@
         "paywall": {
           "type": "boolean"
         },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1703,6 +1820,9 @@
     },
     "object:image": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -1741,6 +1861,12 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -1856,6 +1982,12 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -1989,6 +2121,12 @@
         },
         "paywall": {
           "type": "boolean"
+        },
+        "wire_support_tier": {
+          "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"

@@ -69,7 +69,12 @@ class FFMpegExecutor implements TranscodeExecutorInterface
             ->setProfile(new TranscodeProfiles\Source()); // Simply change the source
 
         // Download the source
-        $sourcePath = $this->transcodeStorage->downloadToTmp($source);
+        try {
+            $sourcePath = $this->transcodeStorage->downloadToTmp($source);
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            throw new FailedTranscodeException("Error downloading {$transcode->getGuid()} from storage");
+        }
 
         // Open the resource
         /** @var \FFMpeg\Media\Video; */
@@ -86,6 +91,10 @@ class FFMpegExecutor implements TranscodeExecutorInterface
                 ->streams($sourcePath)
                 ->videos()
                 ->first();
+
+            if (!$videostream) {
+                throw new FailedTranscodeException("Video stream not found");
+            }
 
             // get video metadata
             $tags = $videostream->get('tags');
@@ -104,7 +113,7 @@ class FFMpegExecutor implements TranscodeExecutorInterface
 
         // Logic for rotated videos
         $rotated = isset($tags['rotate']) && in_array($tags['rotate'], [270, 90], false);
-        if ($rotated) {
+        if ($rotated && $videostream) {
             $ratio = $videostream->get('width') / $videostream->get('height');
             // Invert width and height
             $width = $height;

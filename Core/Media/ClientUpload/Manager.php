@@ -71,6 +71,7 @@ class Manager
         $video->set('guid', $lease->getGuid());
         $video->set('cinemr_guid', $lease->getGuid());
         $video->set('access_id', 0); // Hide until published
+        $video->setFlag('full_hd', !!$lease->getUser()->isPro());
 
         // Save the video
         $this->save->setEntity($video)->save();

@@ -2,12 +2,14 @@
 
 namespace Spec\Minds\Core\Blockchain\Purchase;
 
+use Minds\Common\Repository\Response;
 use Minds\Core\Blockchain\Purchase\Purchase;
 use Minds\Core\Data\Call;
 use Minds\Core\Data\lookup;
 use Minds\Core\Di\Di;
 use Minds\Core\Util\BigNumber;
 use PhpSpec\ObjectBehavior;
+use Prophecy\Argument;
 
 class PurchaseSpec extends ObjectBehavior
 {

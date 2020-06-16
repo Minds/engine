@@ -35,16 +35,33 @@ class channel implements Interfaces\Api
         }
 
         $user = new Entities\User($pages[0]);
+
+        // Flush the cache when viewing a channel page
+        $channelsManager = Di::_()->get('Channels\Manager');
+        $channelsManager->flushCache($user);
+
         if (!$user->username || Helpers\Flags::shouldFail($user)) {
-            return Factory::response(['status'=>'error', 'message'=>'The user could not be found']);
+            return Factory::response([
+                'status'=>'error',
+                'message'=>'Sorry, this user could not be found',
+                'type'=>'ChannelNotFoundException',
+            ]);
         }
 
         if ($user->enabled != "yes") {
-            return Factory::response(['status'=>'error', 'message'=>'The user is disabled']);
+            return Factory::response([
+                'status'=>'error',
+                'message'=>'Sorry, this user is disabled',
+                'type'=>'ChannelDisabledException',
+            ]);
         }
 
         if ($user->banned == 'yes' && !Core\Session::isAdmin()) {
-            return Factory::response(['status'=>'error', 'message'=>'The user is banned']);
+            return Factory::response([
+                'status'=>'error',
+                'message'=>'This user has been banned',
+                'type'=>'ChannelBannedException',
+            ]);
         }
 
         Di::_()->get('Referrals\Cookie')
@@ -72,9 +89,31 @@ class channel implements Interfaces\Api
         $response['channel']['gender'] = $response['channel']['gender'] ?: "";
 
         // if we are querying for our own user
-        if (Core\Session::getLoggedinUser()->guid === $user->guid) {
+
+        $isAdmin = Core\Session::isAdmin();
+        $isLoggedIn = Core\Session::isLoggedin();
+        $isOwner = $isLoggedIn && ((string) Core\Session::getLoggedinUser()->guid === (string) $user->guid);
+        $isPublic = $isLoggedIn && $user->isPublicDateOfBirth();
+
+        if (
+            $user->getDateOfBirth() &&
+            (
+                $isAdmin ||
+                $isOwner ||
+                $isPublic
+            )
+        ) {
             $response['channel']['dob'] = $user->getDateOfBirth();
         }
+
+        if (
+            $isAdmin ||
+            $isOwner
+        ) {
+            $response['channel']['public_dob'] = $user->isPublicDateOfBirth();
+        }
+
+        //
 
         if (!$user->merchant || !$supporters_count) {
             $db = new Core\Data\Call('entities_by_time');
@@ -250,13 +289,20 @@ class channel implements Interfaces\Api
                     $owner->setDateOfBirth($_POST['dob']);
                 }
 
+                if (isset($_POST['public_dob'])) {
+                    $publicDob = (bool) $_POST['public_dob'];
+
+                    $update['public_dob'] = $publicDob;
+                    $owner->setPublicDateOfBirth($publicDob);
+                }
+
                 if (isset($_POST['nsfw']) && is_array($_POST['nsfw'])) {
                     $nsfw = array_unique(array_merge($_POST['nsfw'], $owner->getNsfwLock()));
                     $update['nsfw'] = json_encode($nsfw);
                     $owner->setNsfw($nsfw);
                 }
 
-                if (isset($_POST['tags']) && $_POST['tags']) {
+                if (isset($_POST['tags']) && is_array($_POST['tags'])) {
                     $update['tags'] = json_encode($_POST['tags']);
                     $owner->$field = $update['tags'];
                 }

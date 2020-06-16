@@ -19,8 +19,15 @@ class Transcode implements Interfaces\QueueRunner
 
                 echo "Received a transcode request \n";
 
+                // ACL override needed to update the state of the video
+                Core\Security\ACL::$ignore = true;
+
+                /** @var Core\Media\Video\Transcoder\Manager $transcoderManager */
                 $transcoderManager = Di::_()->get('Media\Video\Transcoder\Manager');
                 $transcoderManager->transcode($transcode);
+
+                // Return ACL state
+                Core\Security\ACL::$ignore = false;
             }, [ 'max_messages' => 1 ]);
     }
 }

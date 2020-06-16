@@ -71,7 +71,8 @@ class ControllersSpec extends ObjectBehavior
         $request->getQueryParams()
             ->willReturn([
                 'q' => 'hello world',
-                'algorithm' => 'top'
+                'algorithm' => 'top',
+                'type' => ''
             ]);
 
         $response = new Response([
@@ -81,7 +82,7 @@ class ControllersSpec extends ObjectBehavior
                 ->set('guid', '456'),
         ]);
 
-        $this->manager->getSearch('hello world', 'top')
+        $this->manager->getSearch('hello world', 'top', '')
             ->willReturn($response);
 
         $response = $this->getSearch($request);

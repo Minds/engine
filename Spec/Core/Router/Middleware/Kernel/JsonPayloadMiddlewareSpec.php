@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Router\Middleware\Kernel;
 
+use GuzzleHttp\Psr7\Stream;
 use Minds\Core\Router\Middleware\Kernel\JsonPayloadMiddleware;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -19,6 +20,7 @@ class JsonPayloadMiddlewareSpec extends ObjectBehavior
     public function it_should_process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler,
+        Stream $stream,
         ResponseInterface $response
     ) {
         $request->getHeader('Content-Type')
@@ -26,6 +28,10 @@ class JsonPayloadMiddlewareSpec extends ObjectBehavior
             ->willReturn(['text/json']);
 
         $request->getBody()
+            ->shouldBeCalled()
+            ->willReturn($stream);
+
+        $stream->getContents()
             ->shouldBeCalled()
             ->willReturn(json_encode(['phpspec' => 1]));
 

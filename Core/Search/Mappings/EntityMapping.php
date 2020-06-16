@@ -34,7 +34,10 @@ class EntityMapping implements MappingInterface
         'description' => [ 'type' => 'text', '$exportField' => 'description' ],
         'tags' => [ 'type' => 'text' ],
         'nsfw' => [ 'type' => 'integer' ],
+        'language' => [ 'type' => 'text', '$exportField' => 'language' ],
         'paywall' => [ 'type' => 'boolean', '$exportField' => 'paywall' ],
+        'wire_support_tier' => [ 'type' => 'text' ],
+        '@wire_support_tier_expire' => [ 'type' => 'date' ],
         'rating' => [ 'type' => 'integer', '$exportField' => 'rating' ],
         'moderator_guid' => [ 'type' => 'text'],
         '@moderated' => [ 'type' => 'date'],
@@ -156,6 +159,26 @@ class EntityMapping implements MappingInterface
 
         $map['paywall'] = $paywall;
 
+        // Support Tier
+
+        $supportTier = null;
+        $supportTierExpire = null;
+
+        if ($this->entity && ($this->entity->wire_threshold ?? null)) {
+            $wireThreshold = is_string($this->entity->wire_threshold) ?
+                json_decode($this->entity->wire_threshold, true) :
+                $this->entity->wire_threshold;
+
+            $supportTier = $wireThreshold['support_tier']['urn'] ?? null;
+
+            if ($wireThreshold['support_tier_expire']) {
+                $supportTierExpire = $wireThreshold['support_tier_expire'] * 1000;
+            }
+        }
+
+        $map['wire_support_tier'] = $supportTier;
+        $map['@wire_support_tier_expire'] = $supportTierExpire;
+
         // Text
 
         if (isset($map['description'])) {
@@ -178,7 +201,7 @@ class EntityMapping implements MappingInterface
             $fullText .= ' ' . $map['description'];
         }
 
-        $htRe = '/(^|\s||)#(\w*[a-zA-Z0-9_]+\w*)/';
+        $htRe = '/(^|\s||)#(\pL+)/u';
         $matches = [];
 
         preg_match_all($htRe, $fullText, $matches);

@@ -73,6 +73,7 @@ class Repository
             'pinned_guids' => null,
             'future' => false,
             'exclude' => null,
+            'pending' => false,
         ], $opts);
 
         if (!$opts['type']) {
@@ -99,6 +100,9 @@ class Repository
                 } else {
                     $algorithm = new SortingAlgorithms\Top();
                 }
+                if ($this->features->has('topv2-algo')) {
+                    $algorithm = new SortingAlgorithms\TopV2();
+                }
                 break;
             case "topV2":
                 $algorithm = new SortingAlgorithms\TopV2();
@@ -108,6 +112,9 @@ class Repository
                 break;
             case "hot":
                 $algorithm = new SortingAlgorithms\Hot();
+                if ($this->features->has('topv2-algo')) {
+                    $algorithm = new SortingAlgorithms\TopV2();
+                }
                 break;
             case "latest":
             default:
@@ -268,6 +275,14 @@ class Repository
             ];
         }
 
+        if ($opts['pending'] === false) {
+            $body['query']['function_score']['query']['bool']['must_not'][] = [
+                'term' => [
+                    'pending' => true,
+                ]
+            ];
+        }
+
         // Time bounds
 
         $timestampUpperBounds = []; // LTE
@@ -370,7 +385,7 @@ class Repository
         if ($opts['exclude_moderated']) {
             $body['query']['function_score']['query']['bool']['must_not'][] = ['exists' => ['field' => 'moderator_guid']];
         }
-       
+
         if ($opts['moderation_reservations']) {
             $body['query']['function_score']['query']['bool']['must_not'][] = [
                 'terms' => [
@@ -441,7 +456,7 @@ class Repository
 
         $response = $this->client->request($prepared);
 
-        if ($opts['pinned_guids']) { // Hack the response so we can have pinned posts
+        if ($opts['pinned_guids'] && !$opts['from_timestamp']) { // Hack the response so we can have pinned posts
             foreach ($opts['pinned_guids'] as $pinned_guid) {
                 array_unshift($response['hits']['hits'], [
                     '_type' => 'activity',

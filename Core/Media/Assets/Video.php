@@ -33,13 +33,18 @@ class Video implements AssetsInterface
     {
         $maxMins = 40;
 
-        $length = exec("ffmpeg -i {$media['file']} 2>&1 | grep 'Duration' | cut -d ' ' -f 4 | sed s/,//");
-        $timeSplit = explode(':', $length);
+        if ($media['length']) {
+            // length is already in minutes
+            $length = $media['length'];
+        } else {
+            $length = exec("ffmpeg -i {$media['file']} 2>&1 | grep 'Duration' | cut -d ' ' -f 4 | sed s/,//");
+            $timeSplit = explode(':', $length);
 
-        $hours = $timeSplit[0];
-        $mins = $timeSplit[1];
+            $hours = $timeSplit[0];
+            $mins = $timeSplit[1];
 
-        $length = ((int) $hours * 60) + (int) $mins;
+            $length = ((int) $hours * 60) + (int) $mins;
+        }
 
         if ($length >= $maxMins) {
             throw new \Exception("Sorry, the video is too long ({$length}m). It should be shorter than {$maxMins}m.");
@@ -60,9 +65,13 @@ class Video implements AssetsInterface
         $assets = [];
 
         if (isset($data['file'])) {
-            $thumb = str_replace('data:image/jpeg;base64,', '', $data['file']);
-            $thumb = str_replace(' ', '+', $thumb);
-            $data = base64_decode($thumb, true);
+            $img = preg_replace('#^data:image/[^;]+;base64,#', '', $data['file']);
+            $img = str_replace(' ', '+', $img);
+
+            $imagick = new \Imagick();
+            $imagick->readImageBlob(base64_decode($img, true));
+            $imagick->setImageFormat('jpeg');
+            $data = $imagick->getImageBlob();
 
             $filename = "archive/thumbnails/{$this->entity->guid}.jpg";
 

@@ -7,25 +7,35 @@ use Minds\Core\Blockchain\Purchase\Purchase;
 use Minds\Core\Config;
 use Minds\Core\Data\lookup;
 use Minds\Core\Di\Di;
-use Minds\Core\Email\Campaigns\Custom;
+use Minds\Core\Email\V2\Campaigns\Custom\Custom;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 class NewPurchaseEmailSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
-    {
-        $this->shouldHaveType(NewPurchaseEmail::class);
-    }
+    /** @var Custom */
+    protected $campaign;
 
-    public function it_should_send(Config $config, Custom $campaign, lookup $lookup, Purchase $purchase)
-    {
+    public function let(
+        Config $config,
+        Custom $campaign,
+        lookup $lookup
+    ) {
+        $this->campaign = $campaign;
         $this->beConstructedWith($config, $campaign);
 
         Di::_()->bind('Database\Cassandra\Data\Lookup', function ($di) use ($lookup) {
             return $lookup->getWrappedObject();
         });
+    }
 
+    public function it_is_initializable()
+    {
+        $this->shouldHaveType(NewPurchaseEmail::class);
+    }
+
+    public function it_should_send(Purchase $purchase)
+    {
         $purchase->getRequestedAmount()
             ->shouldBeCalled()
             ->willReturn(10000000000000000000);
@@ -34,28 +44,37 @@ class NewPurchaseEmailSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('123');
 
-        $campaign->setUser(Argument::type('Minds\Entities\User'))
+        $this->campaign->setUser(Argument::type('Minds\Entities\User'))
             ->shouldBeCalled()
-            ->willReturn($campaign);
-        $campaign->setSubject('Your purchase of 10 Tokens is being processed.')
+            ->willReturn($this->campaign);
+        $this->campaign->setSubject('Token purchase')
             ->shouldBeCalled()
-            ->willReturn($campaign);
-        $campaign->setTemplate('new-token-purchase.md')
+            ->willReturn($this->campaign);
+        $this->campaign->setTemplate('token-purchase-new')
             ->shouldBeCalled()
-            ->willReturn($campaign);
-        $campaign->setTopic('billing')
+            ->willReturn($this->campaign);
+        $this->campaign->setTopic('billing')
             ->shouldBeCalled()
-            ->willReturn($campaign);
-        $campaign->setCampaign('tokens')
+            ->willReturn($this->campaign);
+        $this->campaign->setTitle('Token purchase')
             ->shouldBeCalled()
-            ->willReturn($campaign);
-        $campaign->setVars([
-            'date' => date('d-M-Y', time()),
-            'amount' => 10
+            ->willReturn($this->campaign);
+        $this->campaign->setSignoff('Thank you,')
+            ->shouldBeCalled()
+            ->willReturn($this->campaign);
+        $this->campaign->setPreheader('Your purchase of 10 Tokens is being processed.')
+            ->shouldBeCalled()
+            ->willReturn($this->campaign);
+        $this->campaign->setCampaign('tokens')
+            ->shouldBeCalled()
+            ->willReturn($this->campaign);
+        $this->campaign->setVars([
+            'date' => date('l F jS Y', time()),
+            'amount' => 10,
         ])
             ->shouldBeCalled()
-            ->willReturn($campaign);
-        $campaign->send()
+            ->willReturn($this->campaign);
+        $this->campaign->send()
             ->shouldBeCalled();
 
         $this->send($purchase);

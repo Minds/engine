@@ -29,7 +29,7 @@ class Controllers
 
         $tagTrends = $this->manager->getTagTrends([ 'limit' => $tagLimit * 2 ]); //Return more tags than we need for posts to feed from
         $postTrends = $this->manager->getPostTrends(array_map(function ($trend) {
-            return $trend->getHashtag();
+            return "{$trend->getHashtag()}";
         }, $tagTrends), [ 'limit' => $postLimit ]);
 
         $hero = array_shift($postTrends);
@@ -57,8 +57,8 @@ class Controllers
         $queryParams = $request->getQueryParams();
         $query = $queryParams['q'] ?? null;
         $filter = $queryParams['algorithm'] ?? 'latest';
-
-        $entities = $this->manager->getSearch($query, $filter);
+        $type = $queryParams['type'] ?? '';
+        $entities = $this->manager->getSearch($query, $filter, $type);
 
         return new JsonResponse([
             'status' => 'success',

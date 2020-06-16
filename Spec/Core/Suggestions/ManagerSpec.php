@@ -9,6 +9,7 @@ use Minds\Core\Suggestions\Manager;
 use Minds\Core\Suggestions\Suggestion;
 use Minds\Core\Suggestions\Repository;
 use Minds\Core\Subscriptions\Manager as SubscriptionsManager;
+use Minds\Core\Features;
 use Minds\Core\EntitiesBuilder;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -21,18 +22,25 @@ class ManagerSpec extends ObjectBehavior
     private $entitiesBuilder;
     /** @var CheckRateLimit */
     private $checkRateLimit;
+    /** @var SubscriptionsManager */
+    private $subscriptionsManager;
 
     public function let(
         Repository $repository,
         EntitiesBuilder $entitiesBuilder,
         SubscriptionsManager $subscriptionsManager,
-        CheckRateLimit $checkRateLimit
+        CheckRateLimit $checkRateLimit,
+        Features\Manager $features
     ) {
         $this->repository = $repository;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->checkRateLimit = $checkRateLimit;
+        $this->subscriptionsManager = $subscriptionsManager;
 
-        $this->beConstructedWith($repository, $entitiesBuilder, null, $subscriptionsManager, $checkRateLimit);
+        $features->has('suggestions')
+            ->willReturn(true);
+
+        $this->beConstructedWith($repository, $entitiesBuilder, null, $subscriptionsManager, $checkRateLimit, $features);
     }
 
     public function it_is_initializable()
@@ -49,14 +57,21 @@ class ManagerSpec extends ObjectBehavior
         $response[] = (new Suggestion)
             ->setEntityGuid(789);
 
+        $this->subscriptionsManager->setSubscriber(Argument::any())
+            ->willReturn($this->subscriptionsManager);
+
+        $this->subscriptionsManager->getSubscriptionsCount()
+            ->willReturn(10);
+
         $this->checkRateLimit->check(123)
             ->shouldBeCalled()
             ->willReturn(true);
 
         $this->repository->getList([
-            'limit' => 24,
+            'limit' => 24 * 3,
             'paging-token' => '',
             'user_guid' => 123,
+            'type' => 'user',
         ])
             ->shouldBeCalled()
             ->willReturn($response);

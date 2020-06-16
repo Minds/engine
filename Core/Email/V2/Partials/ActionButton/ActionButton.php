@@ -2,7 +2,11 @@
 
 namespace Minds\Core\Email\V2\Partials\ActionButton;
 
+use Minds\Core\Config\Config;
+use Minds\Core\Email\V2\Common\EmailStyles;
 use Minds\Core\Email\V2\Common\Template;
+use Minds\Core\I18n\Translator;
+use Minds\Core\Markdown\Markdown;
 use Minds\Traits\MagicAttributes;
 
 class ActionButton extends Template
@@ -23,7 +27,16 @@ class ActionButton extends Template
     {
         $this->loadFromFile = false;
         $this->setTemplate('./template.tpl');
-        $this->set('path', $this->path);
+
+        $siteUrl = $this->data['site_url'];
+
+        if (strpos($this->path, 'http', 0) === 0) {
+            $href = $this->path;
+        } else {
+            $href = $siteUrl . $this->path;
+        }
+
+        $this->set('href', $href);
         $this->set('label', $this->label);
 
         return $this->render();

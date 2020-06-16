@@ -6,6 +6,7 @@ use Minds\Core\Media\Video\Transcoder\Repository;
 use Minds\Core\Media\Video\Transcoder\Transcode;
 use Minds\Core\Media\Video\Transcoder\TranscodeProfiles;
 use Minds\Core\Data\Cassandra\Client;
+use Minds\Entities\Video;
 use Spec\Minds\Mocks\Cassandra\Rows;
 use Cassandra\Bigint;
 use Cassandra\Timestamp;
@@ -37,7 +38,7 @@ class RepositorySpec extends ObjectBehavior
         $transcode->getProfile()
             ->shouldBeCalled()
             ->willReturn(new TranscodeProfiles\X264_360p());
-    
+
         $transcode->getStatus()
             ->shouldBeCalled()
             ->willReturn('created');
@@ -112,7 +113,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe("456");
     }
 
-    public function it_should_update(Transcode $transcode)
+    public function it_should_update(Transcode $transcode, Video $video)
     {
         $transcode->getGuid()
             ->shouldBeCalled()
@@ -133,7 +134,7 @@ class RepositorySpec extends ObjectBehavior
             return true;
         }))
             ->shouldBeCalled();
-    
+
         $this->update($transcode, [])
             ->shouldReturn(true);
     }
@@ -152,7 +153,7 @@ class RepositorySpec extends ObjectBehavior
             return true;
         }))
             ->shouldBeCalled();
-        
+
         $this->delete($transcode)
             ->shouldReturn(true);
     }

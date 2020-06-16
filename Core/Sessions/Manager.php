@@ -11,20 +11,24 @@ use Minds\Core\Di\Di;
 use Lcobucci\JWT;
 use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Rsa\Sha512;
+use Minds\Entities\User;
 
 class Manager
 {
     /** @var Repository $repository */
     private $repository;
 
-    /** @var Config $config */
+    /** @var Core\Config $config */
     private $config;
 
     /** @var Cookie $cookie */
     private $cookie;
 
-    /** @var SentryScopeDelegate $sentryScopeDelegate */
+    /** @var Delegates\SentryScopeDelegate $sentryScopeDelegate */
     private $sentryScopeDelegate;
+
+    /** @var Delegates\UserLanguageDelegate */
+    private $userLanguageDelegate;
 
     /** @var Session $session */
     private $session;
@@ -38,14 +42,16 @@ class Manager
         $cookie = null,
         $jwtBuilder = null,
         $jwtParser = null,
-        $sentryScopeDelegate = null
+        $sentryScopeDelegate = null,
+        $userLanguageDelegate = null
     ) {
         $this->repository = $repository ?: new Repository;
         $this->config = $config ?: Di::_()->get('Config');
         $this->cookie = $cookie ?: new Cookie;
         $this->jwtBuilder = $jwtBuilder ?: new JWT\Builder;
         $this->jwtParser = $jwtParser ?: new JWT\Parser;
-        $this->sentryScopeDelegate = $sentryScopeDelegate ?? new Delegates\SentryScopeDelegate;
+        $this->sentryScopeDelegate = $sentryScopeDelegate ?: new Delegates\SentryScopeDelegate;
+        $this->userLanguageDelegate = $userLanguageDelegate ?: new Delegates\UserLanguageDelegate();
     }
 
     /**
@@ -209,6 +215,8 @@ class Manager
             ->setToken($token)
             ->setUserGuid($this->user->getGuid())
             ->setExpires($expires);
+
+        $this->userLanguageDelegate->setCookie($this->user);
 
         return $this;
     }

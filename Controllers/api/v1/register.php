@@ -37,7 +37,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
     public function post($pages)
     {
         if (!isset($_POST['username']) || !isset($_POST['password']) || !isset($_POST['username']) || !isset($_POST['email'])) {
-            return Factory::response(['status' => 'error']);
+            return Factory::response(['status' => 'error', 'message' => 'Please fill out all the fields']);
         }
 
         if (!$_POST['username'] || !$_POST['password'] || !$_POST['username'] || !$_POST['email']) {
@@ -94,6 +94,16 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 $user->signupParentId = 'mobile-native';
                 $hasSignupTags = true;
             }
+
+            /** @var Core\I18n\Manager $i18n */
+            $i18n = Di::_()->get('I18n\Manager');
+            $language = $i18n->getLanguage();
+
+            if ($language !== 'en') {
+                $user->setLanguage($language);
+                $hasSignupTags = true;
+            }
+
             if ($hasSignupTags) {
                 $user->save();
             } else {
@@ -123,6 +133,12 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 'user' => $user->export(),
             ];
         } catch (\Exception $e) {
+            error_log(
+                "RegistrationError | username: ".$_POST['username']
+                .", email:".$_POST['email']
+                .", signupParentId".$user->signupParentId
+                .", exception: ".$e->getMessage()
+            );
             $response = ['status' => 'error', 'message' => $e->getMessage()];
         }
         return Factory::response($response);

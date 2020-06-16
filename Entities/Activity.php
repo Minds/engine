@@ -306,7 +306,9 @@ class Activity extends Entity implements MutatableEntityInterface
                 }
                 // go directly to cdn
                 $mediaManager = Di::_()->get('Media\Image\Manager');
-                $export['custom_data'][0]['src'] = $export['thumbnails']['xlarge'];
+                $src = $export['thumbnails']['xlarge'];
+                $export['custom_data'][0]['src'] = $src;
+                $export['thumbnail_src'] = $src;
                 break;
         }
 
@@ -901,5 +903,25 @@ class Activity extends Entity implements MutatableEntityInterface
     public function getVideoPosterBase64Blob(): ?string
     {
         return $this->videoPosterBase64Blob;
+    }
+
+    /**
+     * Sets `access_id`
+     * @param mixed $access_id
+     * @return Activity
+     */
+    public function setAccessId($access_id): Activity
+    {
+        $this->access_id = $access_id;
+        return $this;
+    }
+
+    /**
+     * Gets `access_id`
+     * @return mixed
+     */
+    public function getAccessId(): string
+    {
+        return $this->access_id;
     }
 }

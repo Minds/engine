@@ -5,9 +5,18 @@
 namespace Minds\Core\Security;
 
 use Minds\Core;
-use Minds\Entities;
+use Minds\Core\Di\Di;
+use Minds\Core\Log\Logger;
 use Minds\Core\Security\RateLimits\Manager as RateLimitsManager;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
+use Minds\Entities;
+use Minds\Entities\Entity;
+use Minds\Entities\RepositoryEntity;
+use Minds\Entities\User;
+use Minds\Exceptions\StopEventException;
 use Minds\Helpers\Flags;
+use Minds\Helpers\MagicAttributes;
 
 class ACL
 {
@@ -17,9 +26,19 @@ class ACL
     /** @var RateLimitsManager $rateLimits */
     private $rateLimits;
 
-    public function __construct($rateLimits = null)
+    /** @var EntitiesBuilder */
+    private $entitiesBuilder;
+
+    /** @var Logger */
+    private $logger;
+
+    public function __construct($rateLimits = null, $entitiesBuilder = null, $logger = null, $config = null)
     {
         $this->rateLimits = $rateLimits ?: new RateLimitsManager;
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->logger = $logger ?? Di::_()->get('Logger');
+        $config= $config ?? Di::_()->get('Config');
+        $this->normalizeEntities = $config->get('normalize_entities');
     }
 
     /**
@@ -44,7 +63,7 @@ class ACL
 
     /**
      * Checks access read rights to entity
-     * @param Entities\Entity $entity
+     * @param Entity $entity
      * @param $user optional
      * @param $strict optional. skips public access checks
      * @return boolean
@@ -61,6 +80,37 @@ class ACL
 
         if (Flags::shouldFail($entity)) {
             return false;
+        }
+
+        /**
+         * Below is a quick and hacky solution to ensuring that content has
+         * a valid owner.
+         *
+         * TODO: We want to move this to also be able to rehydrate the ownerObj
+         */
+        if ($entity->owner_guid && !$entity instanceof Entities\User && $this->normalizeEntities) {
+            $ownerEntity = $this->entitiesBuilder->single($entity->owner_guid, [
+                'cache' => true,
+                'cacheTtl' => 604800, // Cache for 7 days
+            ]);
+
+            // Owner not found
+            if (!$ownerEntity) {
+                $this->logger->info("$entity->guid was requested but owner $entity->owner_guid was not found");
+                return false;
+            }
+
+            // Owner is banned or disabled
+            if ($ownerEntity->isBanned() || !$ownerEntity->isEnabled()) {
+                $this->logger->info("$entity->guid was requested but owner $entity->owner_guid {$ownerEntity->username}) is banned or disabled");
+                return false;
+            }
+
+            // Owner passes other ACL rules (fallback)
+            if ($this->read($ownerEntity, $user) !== true) {
+                $this->logger->info("$entity->guid was requested but owner $entity->owner_guid failed to pass its own ACL READ event");
+                return false;
+            }
         }
 
         // If logged out and public and not container
@@ -141,9 +191,11 @@ class ACL
 
     /**
      * Checks access read rights to entity
-     * @param Entity|Entities\RepositoryEntity $entity
-     * @param $user (optional)
+     * @param Entity|RepositoryEntity $entity
+     * @param User $user (optional)
      * @return boolean
+     * @throws UnverifiedEmailException
+     * @throws StopEventException
      */
     public function write($entity, $user = null)
     {
@@ -167,6 +219,13 @@ class ACL
         }
 
         /**
+         * If the user hasn't verified the email
+         */
+        if (!$this->isEmailVerified($user)) {
+            throw new UnverifiedEmailException();
+        }
+
+        /**
          * Does the user own the entity, or is it the container?
          */
         if ($entity->owner_guid
@@ -182,7 +241,8 @@ class ACL
         /**
          * Check if its the same entity (is user)
          */
-        if ($entity->guid == $user->guid) {
+        if ((isset($entity->guid) && $entity->guid == $user->guid) ||
+            MagicAttributes::getterExists($entity, 'getGuid') && $entity->getGuid() == $user->guid) {
             return true;
         }
 
@@ -196,6 +256,7 @@ class ACL
         /**
          * Allow plugins to extend the ACL check
          */
+        $type = property_exists($entity, 'type') ? $entity->type : 'all';
         if (Core\Events\Dispatcher::trigger('acl:write', $entity->type, ['entity'=>$entity, 'user'=>$user], false) === true) {
             return true;
         }
@@ -229,7 +290,7 @@ class ACL
 
     /**
      * Check if a user can interact with the entity
-     * @param Entities\Entity $entity
+     * @param Entity $entity
      * @param (optional) $user
      * @return boolean
      */
@@ -251,6 +312,13 @@ class ACL
          */
         if ($user->isBanned() || !$user->isEnabled()) {
             return false;
+        }
+
+        /**
+         * If the user hasn't verified the email
+         */
+        if (!$this->isEmailVerified($user)) {
+            throw new UnverifiedEmailException();
         }
 
         /**
@@ -289,12 +357,28 @@ class ACL
                     'user'=>$user,
                     'interaction' => $interaction,
                 ], null);
-                
+
         if ($event === false) {
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * @param User $user
+     * @return bool
+     */
+    protected function isEmailVerified(User $user): bool
+    {
+        $isMobile = isset($_SERVER['HTTP_APP_VERSION']);
+        if ($isMobile) {
+            return true;
+        }
+        if ($user->isTrusted()) {
+            return true;
+        }
+        return false;
     }
 
     public static function _()

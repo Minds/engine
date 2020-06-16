@@ -26,6 +26,13 @@ class video implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         $video = $videoManager->get($pages[0]);
 
+        if (!$video) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Video not found',
+            ]);
+        }
+
         $sources = $videoManager->getSources($video);
         $status = $transcodeStates->getStatus($video); // Currently not efficient as no caching
 

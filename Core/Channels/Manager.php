@@ -10,6 +10,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Queue\Interfaces\QueueClient;
 use Minds\Entities\User;
 use Minds\Core\Channels\Delegates\Artifacts;
+use Psr\SimpleCache\CacheInterface;
 
 class Manager
 {
@@ -40,22 +41,28 @@ class Manager
     /** @var QueueClient */
     protected $queueClient;
 
+    /** @var CacheInterface */
+    protected $cache;
+
     /**
      * Manager constructor.
      * @param Delegates\Artifacts\Factory $artifactsDelegatesFactory
      * @param Delegates\Logout $logoutDelegate
      * @param QueueClient $queueClient
+     * @param CacheInterface $cache
      */
     public function __construct(
         $artifactsDelegatesFactory = null,
         $metricsDelegate = null,
         $logoutDelegate = null,
-        $queueClient = null
+        $queueClient = null,
+        $cache = null
     ) {
         $this->artifactsDelegatesFactory = $artifactsDelegatesFactory ?: new Delegates\Artifacts\Factory();
         $this->metricsDelegate = $metricsDelegate ?: new MetricsDelegate();
         $this->logoutDelegate = $logoutDelegate ?: new Delegates\Logout();
         $this->queueClient = $queueClient ?: Di::_()->get('Queue');
+        $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
     }
 
     /**
@@ -180,5 +187,15 @@ class Manager
         }
 
         return $success;
+    }
+
+    /**
+     * Flush the cache for a user entity
+     * @param User $user
+     * @return void
+     */
+    public function flushCache(User $user): void
+    {
+        $this->cache->delete("entity:{$user->getGuid()}");
     }
 }

@@ -12,6 +12,7 @@ use Minds\Api\Exportable;
 use Minds\Api\Factory;
 use Minds\Common\Access;
 use Minds\Core;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Helpers;
 use Minds\Interfaces;
 use Minds\Core\Blogs\Delegates\CreateActivity;
@@ -187,6 +188,22 @@ class blog implements Interfaces\Api
             }
         }
 
+        $captcha = Core\Di\Di::_()->get('Captcha\Manager');
+
+        if (!isset($_POST['captcha'])) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Please fill out the captcha field',
+            ]);
+        }
+
+        if (!$captcha->verifyFromClientJson($_POST['captcha'] ?? '')) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Please ensure that the captcha you entered is correct',
+            ]);
+        }
+
         if (isset($_POST['title'])) {
             $blog->setTitle($_POST['title']);
         }
@@ -356,6 +373,8 @@ class blog implements Interfaces\Api
             } else {
                 $saved = $manager->add($blog);
             }
+        } catch (UnverifiedEmailException $e) {
+            throw $e;
         } catch (\Exception $e) {
             return Factory::response([
                 'status' => 'error',

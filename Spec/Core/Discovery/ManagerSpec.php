@@ -56,7 +56,10 @@ class ManagerSpec extends ObjectBehavior
     {
         $this->hashtagManager
             ->get(Argument::any())
-            ->willReturn([]);
+            ->willReturn([
+                [ 'value' => 'music', ],
+                [ 'value' => 'beatles', ],
+            ]);
         $this->es->request(Argument::any())
             ->willReturn(
                 [
@@ -88,11 +91,28 @@ class ManagerSpec extends ObjectBehavior
                         ]
                     ]
                 ]
+            ],
+            // 3rd
+            [
+                'aggregations' => [
+                    'tags' => [
+                        'buckets' => [
+                            [
+                                'key' => 'animation',
+                                'doc_count' => 100
+                            ],
+                            [
+                                'key' => 'phpspec',
+                                'doc_count' => 100
+                            ],
+                        ]
+                    ]
+                ]
             ]
             );
 
         $tagTrends = $this->getTagTrends();
-        $tagTrends->shouldHaveCount(3);
+        $tagTrends->shouldHaveCount(5);
         $tagTrends[0]
             ->getHashtag()
             ->shouldBe('music');
@@ -168,69 +188,14 @@ class ManagerSpec extends ObjectBehavior
             ->getTitle('goodbye world');
     }
 
-    public function it_should_return_post_trends_with_one_per_owner()
+    public function it_should_throw_exception_if_no_tags()
     {
-        $this->es->request(Argument::any())
-            ->willReturn([
-                'hits' => [
-                    'hits' => [
-                        [
-                            '_id' => 123,
-                            '_source' => [
-                                'title' => 'hello world',
-                                'tags' => [ 'music', 'beatles' ],
-                                'comments:count' => 52,
-                                'owner_guid' => 1234,
-                            ]
-                        ],
-                        [
-                            '_id' => 456,
-                            '_source' => [
-                                'title' => 'goodbye world',
-                                'tags' => [ 'music', 'pinkfloyd' ],
-                                'comments:count' => 12,
-                                'owner_guid' => 5678,
-                            ]
-                            ],
-                            [
-                                '_id' => 789,
-                                '_source' => [
-                                    'title' => 'you cant see me',
-                                    'tags' => [ 'music', 'pinkfloyd' ],
-                                    'comments:count' => 12,
-                                    'owner_guid' => 1234,
-                                ]
-                            ]
-                    ]
-                ]
-            ]);
+        $this->hashtagManager
+            ->get(Argument::any())
+            ->willReturn([]);
 
-        $this->entitiesBuilder
-            ->single(123)
-            ->willReturn(
-                (new Activity())
-                    ->set('guid', '123')
-                    ->setThumbnail('test')
-            );
-
-        $this->entitiesBuilder
-            ->single(456)
-            ->willReturn(
-                (new Activity())
-                    ->set('guid', '456')
-                    ->setThumbnail('test')
-            );
-
-        $postTrends = $this->getPostTrends([ 'music' ], [ 'shuffle' => false ]);
-        $postTrends->shouldHaveCount(2);
-        $postTrends[0]
-            ->getId('123');
-        $postTrends[0]
-            ->getTitle('hello world');
-        $postTrends[1]
-            ->getId('456');
-        $postTrends[1]
-            ->getTitle('goodbye world');
+        $this->shouldThrow("Minds\Core\Discovery\NoTagsException")
+            ->duringGetTagTrends();
     }
 
     public function it_should_return_search()

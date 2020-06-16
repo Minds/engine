@@ -46,6 +46,7 @@ class Installer
             'twilio-auth-token' => '',
             'twilio-from' => '',
             'google-api-key' => '',
+            'yt-api-key' => '',
             'apple-sandbox-enabled' => 0,
             'apple-certificate' => '',
             'site-name' => 'Minds',
@@ -269,7 +270,7 @@ class Installer
             $this->options['username'],
             $this->options['password'],
             $this->options['username'],
-            $this->options['email']
+            $this->options['admin-email']
         );
 
         if (!$user) {

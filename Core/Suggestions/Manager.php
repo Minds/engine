@@ -5,6 +5,7 @@ namespace Minds\Core\Suggestions;
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Features;
 use Minds\Core\Suggestions\Delegates\CheckRateLimit;
 use Minds\Entities\User;
 
@@ -25,21 +26,26 @@ class Manager
     /** @var CheckRateLimit */
     private $checkRateLimit;
 
+    /** @var Features\Manager */
+    private $features;
+
     /** @var string $type */
-    private $type;
+    private $type = 'user';
 
     public function __construct(
         $repository = null,
         $entitiesBuilder = null,
         $suggestedFeedsManager = null,
         $subscriptionsManager = null,
-        $checkRateLimit = null
+        $checkRateLimit = null,
+        $features = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder();
         //$this->suggestedFeedsManager = $suggestedFeedsManager ?: Di::_()->get('Feeds\Suggested\Manager');
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Subscriptions\Manager');
         $this->checkRateLimit = $checkRateLimit ?: new CheckRateLimit();
+        $this->features = $features ?? new Features\Manager();
     }
 
     /**
@@ -77,11 +83,16 @@ class Manager
      *
      * @return Response
      */
-    public function getList($opts = [])
+    public function getList($opts = []): Response
     {
+        if (!$this->features->has('suggestions')) {
+            return new Response([]);
+        }
+
         $opts = array_merge([
             'limit' => 12,
             'paging-token' => '',
+            'type' => $this->type,
         ], $opts);
 
         if (!$this->checkRateLimit->check($this->user->guid)) {
@@ -90,39 +101,59 @@ class Manager
 
         $opts['user_guid'] = $this->user->getGuid();
 
-        $response = $this->repository->getList($opts);
+        $opts['limit'] = $opts['limit'] * 3; // To prevent removed channels or closed groups
 
-        if (!count($response)) {
+
+        if ($this->subscriptionsManager->setSubscriber($this->user)
+            ->getSubscriptionsCount() > 1) {
+            $response = $this->repository->getList($opts);
+        } else {
             $response = $this->getFallbackSuggested($opts);
         }
 
         // Hydrate the entities
         // TODO: make this a bulk request vs sequential
-        foreach ($response as $k => $suggestion) {
+        $response = $response->map(function ($suggestion) {
             $entity = $suggestion->getEntity() ?: $this->entitiesBuilder->single($suggestion->getEntityGuid());
             if (!$entity) {
                 error_log("{$suggestion->getEntityGuid()} suggested user not found");
-                unset($response[$k]);
-                continue;
+                return null;
             }
             if ($entity->getDeleted()) {
                 error_log("Deleted entity ".$entity->guid." has been omitted from suggestions t-".time());
-                unset($response[$k]);
-                continue;
+                return null;
+            }
+            if ($entity->getType() === 'group' && !$entity->isPublic()) {
+                return null;
+            }
+            if (
+                $entity->getType() === 'user' &&
+                ($entity->banned === 'yes' || $entity->enabled != 'yes')
+            ) {
+                return null;
+            }
+            if ($entity->getType() === 'user') {
+                $entity->exportCounts = true;
             }
             $suggestion->setEntity($entity);
-        }
+            return $suggestion;
+        });
+
+        // Remove missing entities
+        $response = $response->filter(function ($suggestion) {
+            return $suggestion && $suggestion->getEntity();
+        });
+
+        $response = $response->filter(function ($suggestion, $i) use ($opts) {
+            return $i < ($opts['limit'] / 3);
+        });
+
 
         return $response;
     }
 
     private function getFallbackSuggested($opts = [])
     {
-        $this->subscriptionsManager->setSubscriber($this->user);
-        if ($this->subscriptionsManager->getSubscriptionsCount() > 1) {
-            return new Response();
-        }
-
         $opts = array_merge([
             'user_guid' => $this->user->getGuid(),
             'type' => 'user',
@@ -130,28 +161,17 @@ class Manager
 
         $response = new Response();
 
-        $guids = [
-            626772382194872329,
-            100000000000065670,
-            100000000000081444,
-            732703596054847489,
-            884147802853089287,
-            100000000000000341,
-            823662468030013460,
-            942538426693984265,
-            607668752611287060,
-            602551056588615697,
-        ];
+        $users = $this->subscriptionsManager->getList([
+            'guid' => '100000000000000519',
+            'type' => 'subscriptions',
+            'hydrate' => false,
+            'limit' => 500,
+        ]);
 
-        foreach ($guids as $i => $guid) {
-            if ($i >= $opts['limit']) {
-                continue;
-            }
-            $suggestion = new Suggestion();
-            $suggestion->setEntityGuid($guid);
-            $response[] = $suggestion;
-        }
+        $opts['user_guids'] = array_map(function ($user) {
+            return $user;
+        }, $users->toArray());
 
-        return $response;
+        return $this->repository->getList($opts);
     }
 }

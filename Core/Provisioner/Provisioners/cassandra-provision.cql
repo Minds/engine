@@ -1578,3 +1578,15 @@ CREATE TABLE minds.feature_toggles_cache_ns (
     stale_at timestamp,
     PRIMARY KEY (environment, feature_name)
 );
+
+CREATE TABLE minds.wire_support_tier (
+    entity_guid bigint,
+    guid bigint,
+    public boolean,
+    name text,
+    description text,
+    usd decimal,
+    has_usd boolean,
+    has_tokens boolean,
+    PRIMARY KEY (entity_guid, guid)
+);

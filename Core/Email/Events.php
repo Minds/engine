@@ -9,8 +9,10 @@ use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Analytics\UserStates\UserActivityBuckets;
 
-use Minds\Core\Email\Campaigns\UserRetention\WelcomeComplete;
-use Minds\Core\Email\Campaigns\UserRetention\WelcomeIncomplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
+use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
+use Minds\Core\Email\V2\Delegates\ConfirmationSender;
+use Minds\Core\Email\V2\Delegates\WeMissYouSender;
 use Minds\Entities\User;
 use Minds\Core\Email\Manager;
 use Minds\Core\Suggestions\Manager as SuggestionManager;
@@ -38,7 +40,7 @@ class Events
 
         Dispatcher::register('user_state_change', UserActivityBuckets::STATE_NEW, function ($opts) {
             error_log('user_state_change new');
-            $this->sendCampaign(new Delegates\WelcomeSender(), $opts->getParameters());
+            // $this->sendCampaign(new Delegates\WelcomeSender(), $opts->getParameters());
         });
 
         Dispatcher::register('user_state_change', UserActivityBuckets::STATE_RESURRECTED, function ($opts) {
@@ -46,15 +48,15 @@ class Events
         });
 
         Dispatcher::register('user_state_change', UserActivityBuckets::STATE_COLD, function ($opts) {
-            $this->sendCampaign(new Delegates\GoneColdSender(), $opts->getParameters());
+            $this->sendCampaign(new WeMissYouSender(), $opts->getParameters());
         });
 
         Dispatcher::register('welcome_email', 'all', function ($opts) {
-            $this->sendCampaign(new Delegates\WelcomeSender(), $opts->getParameters());
+            // $this->sendCampaign(new Delegates\WelcomeSender(), $opts->getParameters());
         });
 
         Dispatcher::register('confirmation_email', 'all', function ($opts) {
-            $this->sendCampaign(new Delegates\ConfirmationSender(), $opts->getParameters());
+            $this->sendCampaign(new ConfirmationSender(), $opts->getParameters());
         });
     }
 

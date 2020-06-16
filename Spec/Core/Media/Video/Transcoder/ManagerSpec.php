@@ -115,18 +115,26 @@ class ManagerSpec extends ObjectBehavior
         $this->add($transcode);
     }
     
-    public function it_should_update()
+    public function it_should_update(Transcode $transcode, Video $video)
     {
-        $transcode = new Transcode();
-        $this->repository->update($transcode, [ 'myDirtyField' ])
+        $transcode->getProfile()
+            ->willReturn(new TranscodeProfiles\X264_360p());
+        $transcode->getVideo()
+            ->willReturn($video);
+        $transcode->getStatus()
+            ->willReturn('transcoding');
+
+        $this->repository->update($transcode, [ 'status' ])
             ->shouldBeCalled();
-        $this->update($transcode, [ 'myDirtyField' ]);
+
+        $this->update($transcode, [ 'status' ]);
     }
 
     public function it_should_execute_the_transcode()
     {
         $transcode = new Transcode();
         $transcode->setGuid('123');
+        $transcode->setProfile(new TranscodeProfiles\X264_720p());
     
         $this->repository->update(Argument::that(function ($transcode) {
             return $transcode->getStatus() === 'transcoding';
@@ -154,6 +162,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $transcode = new Transcode();
         $transcode->setGuid('123');
+        $transcode->setProfile(new TranscodeProfiles\X264_720p());
     
         $this->repository->update(Argument::that(function ($transcode) {
             return $transcode->getStatus() === 'transcoding';

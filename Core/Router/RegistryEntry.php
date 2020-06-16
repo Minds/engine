@@ -116,7 +116,7 @@ class RegistryEntry
                 continue;
             }
 
-            $parameters[$key] = $value;
+            $parameters[$key] = rawurldecode($value);
         }
 
         return $parameters;

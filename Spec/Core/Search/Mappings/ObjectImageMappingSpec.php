@@ -36,12 +36,13 @@ class ObjectImageMappingSpec extends ObjectBehavior
         $image->get('paywall')->willReturn(false);
         $image->get('license')->willReturn('cc-test-lic');
         $image->getTags()->willReturn([ 'spaceiscool' ]);
-
         $image->getFlag('mature')->willReturn(false);
         $image->getFlag('paywall')->willReturn(false);
         $image->get('moderator_guid')->willReturn('123');
         $image->get('time_moderated')->willReturn($now);
         $image->getNsfw()->willReturn([ 1 ]);
+        $image->get('wire_threshold')->willReturn(null);
+        $image->get('language')->willReturn(null);
 
         $this
             ->setEntity($image)
@@ -71,6 +72,8 @@ class ObjectImageMappingSpec extends ObjectBehavior
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'object:image',
                 'public' => true,
+                'wire_support_tier' => null,
+                '@wire_support_tier_expire' => null,
                 'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',

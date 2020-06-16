@@ -77,7 +77,7 @@ class Events
                 ->setEntityUrn(method_exists($entity, 'getUrn') ? $entity->getUrn() : "urn:entity:$entityGuid")
                 ->setType($params['notification_view'])
                 ->setData($data);
-            
+
             try {
                 Queue\Client::build()
                   ->setQueue('NotificationDispatcher')
@@ -171,7 +171,7 @@ class Events
             }
 
             $entity = Entities\Factory::build($notification->getEntityGuid());
-            
+
             if ($entity->parent_guid || method_exists($entity, 'getEntityGuid')) {
                 $parentGuid = method_exists($entity, 'getEntityGuid') ? $entity->getEntityGuid() : $entity->parent_guid;
                 $parent = Entities\Factory::build($parentGuid, [ 'cache' => false ]);
@@ -199,10 +199,24 @@ class Events
 
                 $notification->setToGuid($to_user);
 
-                $uuid = $manager->add($notification);
+                // Check rate limits on how many notifications this user has been sent by sender
+                if ($notification->getType() === 'tag') {
+                    $toUser = Entities\Factory::build($notification->getToGuid());
 
-                $notification->setUUID($uuid);
-                
+                    $cache = Core\Di\Di::_()->get('Cache');
+                    $cacheKey = "{$notification->getFromGuid()}:recently-tagged:{$notification->getToGuid()}";
+                    if (
+                        !$toUser->isSubscribed($notification->getFromGuid()) &&
+                        $cache->get($cacheKey)
+                    ) {
+                        echo "\n Already tagged in 15 minute window. $cacheKey";
+                        continue;
+                    }
+                    $cache->set($cacheKey, true, 60 * 15); // 15 minutes
+                }
+
+                $manager->add($notification);
+
                 $counters->setUser($to_user)
                   ->increaseCounter($to_user);
 
@@ -221,11 +235,11 @@ class Events
                 try {
                     (new Sockets\Events())
                     ->setUser($to_user)
-                    ->emit('notification', (string) $notification->getUUID());
+                    ->emit('notification', (string) $notification->getUuid());
                 } catch (\Exception $e) { /* TODO: To log or not to log */
                 }
 
-                echo "[notification][{$notification->getUUID()}]: Saved {$params['notification_view']} \n";
+                echo "[notification][{$notification->getUuid()}]: Saved {$params['notification_view']} \n";
             }
         });
 

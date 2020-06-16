@@ -4,6 +4,7 @@
  *
  * Handles basic communication with cinemr
  */
+
 namespace Minds\Entities;
 
 use Minds\Core;
@@ -12,6 +13,15 @@ use Minds\Core\Di\Di;
 use cinemr;
 use Minds\Helpers;
 
+/**
+ * Class Video
+ * @package Minds\Entities
+ * @property string $youtube_id
+ * @property string $youtube_channel_id
+ * @property string $transcoding_status
+ * @property string $chosen_format_url
+ * @property string $youtube_thumbnail
+ */
 class Video extends MindsObject
 {
     private $cinemr;
@@ -25,6 +35,10 @@ class Video extends MindsObject
         $this->attributes['boost_rejection_reason'] = -1;
         $this->attributes['rating'] = 2;
         $this->attributes['time_sent'] = null;
+        $this->attributes['youtube_id'] = null;
+        $this->attributes['youtube_channel_id'] = null;
+        $this->attributes['transcoding_status'] = null;
+        $this->attributes['youtube_thumbnail'] = null; // this is ephemeral
     }
 
 
@@ -55,9 +69,10 @@ class Video extends MindsObject
         $this->generateGuid();
 
         // Upload the source and start the transcoder pipeline
+        /** @var Core\Media\Video\Transcoder\Manager $transcoderManager */
         $transcoderManager = Di::_()->get('Media\Video\Transcoder\Manager');
-        $transcoderManager->uploadSource($this, $filepath)
-            ->createTranscodes($this);
+        $transcoderManager->uploadSource($this, $filepath);
+        $transcoderManager->createTranscodes($this);
 
         // Legacy support
         $this->cinemr_guid = $this->getGuid();
@@ -73,19 +88,24 @@ class Video extends MindsObject
 
         // return $domain . 'api/v1/media/thumbnails/' . $this->guid . '/' . $this->time_updated;
 
+        // if we didn't save this and it has a YouTube video ID, return YouTube's thumbnail
+        if (!$this->guid && $this->youtube_id) {
+            return $this->getYouTubeThumbnail();
+        }
+
         $mediaManager = Di::_()->get('Media\Image\Manager');
         return $mediaManager->getPublicAssetUri($this, 'medium');
     }
 
     public function getURL()
     {
-        return elgg_get_site_url() . 'media/'.$this->guid;
+        return elgg_get_site_url() . 'media/' . $this->guid;
     }
 
     protected function getIndexKeys($ia = false)
     {
         $indexes = [
-            "object:video:network:$this->owner_guid"
+            "object:video:network:$this->owner_guid",
         ];
         return array_merge(parent::getIndexKeys($ia), $indexes);
     }
@@ -121,13 +141,16 @@ class Video extends MindsObject
             'mature',
             'boost_rejection_reason',
             'time_sent',
+            'youtube_id',
+            'youtube_channel_id',
+            'transcoding_status',
         ]);
     }
 
     public function getAlbumChildrenGuids()
     {
         $db = new Core\Data\Call('entities_by_time');
-        $row= $db->getRow("object:container:$this->container_guid", ['limit'=>100]);
+        $row = $db->getRow("object:container:$this->container_guid", ['limit' => 100]);
         $guids = [];
         foreach ($row as $col => $val) {
             $guids[] = (string) $col;
@@ -144,7 +167,7 @@ class Video extends MindsObject
         $export['thumbnail_src'] = $this->getIconUrl();
         $export['src'] = [
             '360.mp4' => $this->getSourceUrl('360.mp4'),
-            '720.mp4' => $this->getSourceUrl('720.mp4')
+            '720.mp4' => $this->getSourceUrl('720.mp4'),
         ];
         $export['play:count'] = Helpers\Counters::get($this->guid, 'plays');
         $export['thumbs:up:count'] = Helpers\Counters::get($this->guid, 'thumbs:up');
@@ -162,6 +185,10 @@ class Video extends MindsObject
         }
 
         $export['boost_rejection_reason'] = $this->getBoostRejectionReason() ?: -1;
+
+        $export['youtube_id'] = $this->getYoutubeId();
+        $export['youtube_channel_id'] = $this->getYoutubeChannelId();
+        $export['transcoding_status'] = $this->getTranscodingStatus();
         return $export;
     }
 
@@ -195,8 +222,13 @@ class Video extends MindsObject
             'access_id' => null,
             'container_guid' => null,
             'rating' => 2, //open by default
+            'time_created' => time(),
             'time_sent' => time(),
             'full_hd' => false,
+            'youtube_id' => null,
+            'youtube_channel_id' => null,
+            'transcoding_status' => null,
+            'owner_guid' => null,
         ], $data);
 
         $allowed = [
@@ -210,8 +242,13 @@ class Video extends MindsObject
             'nsfw',
             'boost_rejection_reason',
             'rating',
+            'time_created',
             'time_sent',
             'full_hd',
+            'youtube_id',
+            'youtube_channel_id',
+            'transcoding_status',
+            'owner_guid',
         ];
 
         foreach ($allowed as $field) {
@@ -261,7 +298,7 @@ class Video extends MindsObject
                 'mature' => $this->getFlag('mature'),
                 'full_hd' => $this->getFlag('full_hd'),
                 'license' => $this->license ?? '',
-            ]
+            ],
         ];
     }
 
@@ -292,7 +329,8 @@ class Video extends MindsObject
 
     /**
      * Set time_sent
-     * @return Image
+     * @param $time_sent
+     * @return Video
      */
     public function setTimeSent($time_sent)
     {
@@ -326,7 +364,7 @@ class Video extends MindsObject
      */
     public function getDescription(): string
     {
-        return $this->description  ?: '';
+        return $this->description ?: '';
     }
 
     /**
@@ -349,5 +387,85 @@ class Video extends MindsObject
     public function setMessage($description): self
     {
         return $this->setDescription($description);
+    }
+
+    /**
+     * Returns YouTube video ID
+     * @return string
+     */
+    public function getYoutubeId(): string
+    {
+        return $this->youtube_id ?: '';
+    }
+
+    /**
+     * Sets YouTube video ID
+     * @param string $id
+     * @return Video
+     */
+    public function setYoutubeId($id): Video
+    {
+        $this->youtube_id = $id;
+        return $this;
+    }
+
+    /**
+     * Returns YouTube channel ID
+     * @return string
+     */
+    public function getYoutubeChannelId(): string
+    {
+        return $this->youtube_channel_id ?: '';
+    }
+
+    /**
+     * Sets YouTube channel ID
+     * @param string $id
+     * @return Video
+     */
+    public function setYoutubeChannelId($id): Video
+    {
+        $this->youtube_channel_id = $id;
+        return $this;
+    }
+
+    /**
+     * Returns transcoding status
+     * @return string
+     */
+    public function getTranscodingStatus(): string
+    {
+        return $this->transcoding_status ?: '';
+    }
+
+    /**
+     * Sets transcoding status
+     * @param string $status
+     * @return Video
+     */
+    public function setTranscodingStatus($status): Video
+    {
+        $this->transcoding_status = $status;
+        return $this;
+    }
+
+    /**
+     * Gets YouTube thumbnail
+     * @return string
+     */
+    public function getYouTubeThumbnail(): string
+    {
+        return $this->youtube_thumbnail ?: '';
+    }
+
+    /**
+     * Sets YouTube thumbnail
+     * @param string $url
+     * @return Video
+     */
+    public function setYouTubeThumbnail(string $url): Video
+    {
+        $this->youtube_thumbnail = $url;
+        return $this;
     }
 }

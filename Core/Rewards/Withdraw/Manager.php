@@ -333,7 +333,7 @@ class Manager
             'from' => $this->config->get('blockchain')['contracts']['withdraw']['wallet_address'],
             'to' => $this->config->get('blockchain')['contracts']['withdraw']['contract_address'],
             'gasLimit' => BigNumber::_(4612388)->toHex(true),
-            'gasPrice' => BigNumber::_(10000000000)->toHex(true),
+            'gasPrice' => BigNumber::_($this->config->get('blockchain')['server_gas_price'] * 1000000000)->toHex(true),
             'data' => $this->eth->encodeContractMethod('complete(address,uint256,uint256,uint256)', [
                 $request->getAddress(),
                 BigNumber::_($request->getUserGuid())->toHex(true),
