@@ -37,6 +37,7 @@ class EntityMapping implements MappingInterface
         'language' => [ 'type' => 'text', '$exportField' => 'language' ],
         'paywall' => [ 'type' => 'boolean', '$exportField' => 'paywall' ],
         'wire_support_tier' => [ 'type' => 'text' ],
+        '@wire_support_tier_expire' => [ 'type' => 'date' ],
         'rating' => [ 'type' => 'integer', '$exportField' => 'rating' ],
         'moderator_guid' => [ 'type' => 'text'],
         '@moderated' => [ 'type' => 'date'],
@@ -161,6 +162,7 @@ class EntityMapping implements MappingInterface
         // Support Tier
 
         $supportTier = null;
+        $supportTierExpire = null;
 
         if ($this->entity && ($this->entity->wire_threshold ?? null)) {
             $wireThreshold = is_string($this->entity->wire_threshold) ?
@@ -168,9 +170,14 @@ class EntityMapping implements MappingInterface
                 $this->entity->wire_threshold;
 
             $supportTier = $wireThreshold['support_tier']['urn'] ?? null;
+
+            if ($wireThreshold['support_tier_expire']) {
+                $supportTierExpire = $wireThreshold['support_tier_expire'] * 1000;
+            }
         }
 
         $map['wire_support_tier'] = $supportTier;
+        $map['@wire_support_tier_expire'] = $supportTierExpire;
 
         // Text
 

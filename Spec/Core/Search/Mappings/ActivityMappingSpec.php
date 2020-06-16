@@ -80,6 +80,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'taxonomy' => 'activity',
                 'public' => true,
                 'wire_support_tier' => null,
+                '@wire_support_tier_expire' => null,
                 'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ],
             ]);
@@ -151,6 +152,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'taxonomy' => 'activity',
                 'public' => true,
                 'wire_support_tier' => null,
+                '@wire_support_tier_expire' => null,
                 'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',

@@ -110,8 +110,9 @@ class EntityMappingSpec extends ObjectBehavior
             'type' => 'tokens',
             'min' => 5,
             'support_tier' => [
-                'urn' => 'urn:support-tier:123456'
-            ]
+                'urn' => 'urn:support-tier:123456',
+            ],
+            'support_tier_expire' => 1000,
         ]));
         $entity->get('language')->willReturn('en');
 
@@ -144,6 +145,7 @@ class EntityMappingSpec extends ObjectBehavior
                 'taxonomy' => 'entity',
                 'public' => true,
                 'wire_support_tier' => 'urn:support-tier:123456',
+                '@wire_support_tier_expire' => 1000000,
                 'tags' => [ 'hashtag', 'spaceiscool', 'test' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',

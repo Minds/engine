@@ -42,7 +42,7 @@ class Routes extends ModuleRoutes
 
                         $route->post(
                             '/',
-                            Ref::_('Wire\SupportTiers\Controller', 'create')
+                            Ref::_('Wire\SupportTiers\Controller', 'createPublic')
                         );
 
                         $route->post(
@@ -53,6 +53,11 @@ class Routes extends ModuleRoutes
                         $route->delete(
                             '/:urn',
                             Ref::_('Wire\SupportTiers\Controller', 'delete')
+                        );
+
+                        $route->post(
+                            '/custom',
+                            Ref::_('Wire\SupportTiers\Controller', 'createPrivate')
                         );
                     });
             });

@@ -1,6 +1,8 @@
 <?php
 namespace Minds\Core\Wire\SupportTiers;
 
+use Exception;
+
 /**
  * Tier names helper
  * @package Minds\Core\Wire\SupportTiers
@@ -18,41 +20,23 @@ class TierBuilder
     ];
 
     /**
-     * Sorts a reward array by amount, needed to correctly build tier name
-     * @param $a
-     * @param $b
-     * @return int
-     */
-    public function sortRewards($a, $b): int
-    {
-        return (($a['amount'] ?? 0) < ($b['amount'] ?? 0)) ? -1 : 1;
-    }
-
-    /**
      * Unique-for-entity legacy persistent GUID (from wire_rewards).
      * Should not be used outside URN!
-     * @param int $baseGuid
-     * @param string $currency
-     * @param float $amount
+     * @param SupportTier $supportTier
      * @return int
+     * @throws Exception
      */
-    public function buildGuid(string $currency, float $amount): int
+    public function buildGuid(SupportTier $supportTier): int
     {
-        $guid = 0;
+        $usd = $supportTier->getUsd();
+        $scale = pow(10, 16);
+        $amountScale = pow(10, 6);
 
-        switch ($currency) {
-            case 'tokens':
-                $guid += 1 * pow(10, 16);
-                break;
-
-            case 'usd':
-                $guid += 2 * pow(10, 16);
-                break;
+        if (!$usd) {
+            throw new Exception('Invalid USD value');
         }
 
-        $guid += floor($amount * pow(10, 6));
-
-        return $guid;
+        return $scale + floor($usd * $amountScale);
     }
 
     /**
