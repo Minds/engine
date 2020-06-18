@@ -66,7 +66,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
      * How to run? Eg:
      * php cli.php Email \
      *  --campaign="Marketing\\Languages2020_06_18\\Languages2020_06_18"
-     */ 
+     */
     public function exec()
     {
         error_reporting(E_ALL);
@@ -112,7 +112,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
     }
 
 
-    // 
+    //
 
     public function topPosts()
     {
