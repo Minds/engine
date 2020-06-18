@@ -21,7 +21,6 @@ class thumbnail extends Core\page implements Interfaces\page
             exit;
         }
 
-        Core\Security\ACL::$ignore = true;
         $guid = $pages[0] ?? null;
 
         if (!$guid) {
