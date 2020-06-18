@@ -76,5 +76,4 @@ class Languages2020_06_18 extends EmailCampaign
             $this->mailer->send($this->build());
         }
     }
-
 }
