@@ -22,7 +22,14 @@
 <tr>
     <td>
         <p>
-            Visit your <a href="https://www.minds.com/settings/canary/account/language<?php echo $vars['tracking']; ?>">language settings</a> to change your language preference and help us spread the word by referring friends. 
+            Visit your <a href="https://www.minds.com/settings/canary/account/language?<?php echo $vars['tracking']; ?>">language settings</a> to change your language preference and help us spread the word by referring friends. 
+        </p>
+    </td>
+</tr>
+<tr>
+    <td>
+        <p>
+            <?= $vars['translator']->trans('Thank you for being a pioneer of the free and open Internet!') ?>
         </p>
     </td>
 </tr>

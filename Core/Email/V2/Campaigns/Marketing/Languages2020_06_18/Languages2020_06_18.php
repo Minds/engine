@@ -53,8 +53,8 @@ class Languages2020_06_18 extends EmailCampaign
         $this->template->set('guid', $this->user->getGUID());
         $this->template->set('campaign', $this->campaign);
         $this->template->set('topic', $this->topic);
-        $this->template->set('signoff', 'Thank you for pioneering the free and open internet.');
-        $this->template->set('title', $subject);
+        // $this->template->set('signoff', '');
+        $this->template->set('title', "Languages");
         $this->template->set('preheader', "Minds is now available in dozens of global languages on both web and mobile apps.");
         $this->template->set('tracking', http_build_query($tracking));
 
