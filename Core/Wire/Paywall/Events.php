@@ -40,8 +40,8 @@ class Events
             $dirty = false;
 
             if ($activity->isPaywall() && $activity->owner_guid != $currentUser) {
-                $export['message'] = null;
-                $export['blurb'] = null;
+                $export['blurb'] = $this->extractTeaser($activity->blurb);
+                $export['message'] = $this->extractTeaser($activity->message);
 
                 if (!$this->featuresManager->has('paywall-2020')) {
                     $export['custom_type'] = null;
@@ -60,9 +60,10 @@ class Events
                 $activity->remind_object['owner_guid'] != $currentUser
             ) {
                 $export['remind_object'] = $activity->remind_object;
-                $export['remind_object']['message'] = null;
-                $export['remind_object']['blurb'] = null;
-                
+                $export['remind_object']['blurb'] = $this->extractTeaser($activity->remind_object['blurb']);
+                $export['remind_object']['message'] = $this->extractTeaser($activity->remind_object['message']);
+
+
                 if (!$this->featuresManager->has('paywall-2020')) {
                     $export['remind_object']['custom_type'] = null;
                     $export['remind_object']['custom_data'] = null;
@@ -142,5 +143,14 @@ class Events
                 return $event->setResponse($export);
             }
         });
+    }
+
+    private function extractTeaser($fullText)
+    {
+        if (!isset($fullText)) {
+            return null;
+        }
+        $teaserText = substr($fullText, 0, 350);
+        return $teaserText;
     }
 }
