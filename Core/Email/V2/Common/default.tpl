@@ -296,11 +296,11 @@
                   </tr>
                   <tr>
                     <td>
-                      <p <?php echo $emailStyles->getStyles('m-copy', 'm-signature'); ?>>
-                        <?php if ($vars['signoff']): ?>
+                      <?php if ($vars['signoff']): ?>
+                        <p <?php echo $emailStyles->getStyles('m-copy', 'm-signature'); ?>>
                           <?php echo $vars['signoff'] ?>
-                        <?php endif; ?>
-                      </p>
+                        </p>
+                      <?php endif; ?>
                       <p <?php echo $emailStyles->getStyles('m-copy', 'm-signature', 'm-textColor--secondary'); ?> > The Minds Team
                       </p>
                     </td>
