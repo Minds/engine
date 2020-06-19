@@ -177,6 +177,16 @@ class Manager
     }
 
     /**
+     * Deletes notification from datastore
+     * @param Notification $notification
+     * @return bool
+     */
+    public function delete($notification): bool
+    {
+        return $this->cassandraRepository->delete($notification);
+    }
+
+    /**
      * @param $type
      * @return string
      */

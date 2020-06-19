@@ -88,27 +88,27 @@ class ACL
          *
          * TODO: We want to move this to also be able to rehydrate the ownerObj
          */
-        if ($entity->owner_guid && !$entity instanceof Entities\User && $this->normalizeEntities) {
-            $ownerEntity = $this->entitiesBuilder->single($entity->owner_guid, [
+        if ($entity->getOwnerGuid() && !$entity instanceof Entities\User && $this->normalizeEntities) {
+            $ownerEntity = $this->entitiesBuilder->single($entity->getOwnerGuid(), [
                 'cache' => true,
                 'cacheTtl' => 604800, // Cache for 7 days
             ]);
 
             // Owner not found
             if (!$ownerEntity) {
-                $this->logger->info("$entity->guid was requested but owner $entity->owner_guid was not found");
+                $this->logger->info("$entity->guid was requested but owner {$entity->getOwnerGuid()} was not found");
                 return false;
             }
 
             // Owner is banned or disabled
             if ($ownerEntity->isBanned() || !$ownerEntity->isEnabled()) {
-                $this->logger->info("$entity->guid was requested but owner $entity->owner_guid {$ownerEntity->username}) is banned or disabled");
+                $this->logger->info("$entity->guid was requested but owner {$entity->getOwnerGuid()} {$ownerEntity->username}) is banned or disabled");
                 return false;
             }
 
             // Owner passes other ACL rules (fallback)
             if ($this->read($ownerEntity, $user) !== true) {
-                $this->logger->info("$entity->guid was requested but owner $entity->owner_guid failed to pass its own ACL READ event");
+                $this->logger->info("$entity->guid was requested but owner {$entity->getOwnerGuid()} failed to pass its own ACL READ event");
                 return false;
             }
         }
