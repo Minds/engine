@@ -1,6 +1,6 @@
 <?php
 /**
- * Default event listeners
+ * Default event listeners.
  */
 
 namespace Minds\Core\Events;
@@ -10,7 +10,6 @@ use Minds\Entities;
 use Minds\Helpers;
 use Minds\Core\Analytics\Metrics;
 use Minds\Core\Di\Di;
-use Minds\Core\Features\Manager;
 
 class Defaults
 {
@@ -26,7 +25,6 @@ class Defaults
 
     public function init()
     {
-
         //Channel object reserializer
         Dispatcher::register('export:extender', 'all', function ($event) {
             $params = $event->getParameters();
@@ -51,12 +49,12 @@ class Defaults
 
             $allowedTags = '';
             if ($this->features->has('code-highlight')) {
-                $allowedTags = "<pre><code>";
+                $allowedTags = '<pre><code>';
             }
 
             if ($export['message']) {
                 $export['message'] = strip_tags(
-                    htmlspecialchars_decode($params['entity']['message']),
+                    htmlspecialchars_decode($export['message']),
                     $allowedTags
                 );
             }
@@ -109,11 +107,11 @@ class Defaults
                 return;
             }
 
-            $event = new Metrics\Event;
+            $event = new Metrics\Event();
             $event->setType('action')
                 ->setProduct('platform')
                 ->setUserGuid((string) Core\Session::getLoggedInUserGuid())
-                ->setAction("delete")
+                ->setAction('delete')
                 ->setEntityGuid($entity->guid)
                 ->setEntityType($entity->type)
                 ->setEntitySubtype($entity->subtype)
@@ -129,7 +127,6 @@ class Defaults
         // Search events
         (new Core\Search\Events())->register();
 
-        //
         (new Core\Events\Hooks\Register())->init();
 
         // Third-Party Networks events
@@ -186,6 +183,7 @@ class Defaults
         if (!self::$_) {
             self::$_ = new Defaults();
         }
+
         return self::$_;
     }
 }
