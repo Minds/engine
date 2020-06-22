@@ -7,7 +7,6 @@ use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Core\Features;
 use Minds\Core\Events\Dispatcher;
-use Minds\Entities\User;
 
 class Events
 {
@@ -21,7 +20,7 @@ class Events
 
     public function register()
     {
-        /**
+        /*
          * Removes important export fields if marked as paywall
          */
         Dispatcher::register('export:extender', 'activity', function ($event) {
@@ -63,7 +62,6 @@ class Events
                 $export['remind_object']['blurb'] = $this->extractTeaser($activity->remind_object['blurb']);
                 $export['remind_object']['message'] = $this->extractTeaser($activity->remind_object['message']);
 
-
                 if (!$this->featuresManager->has('paywall-2020')) {
                     $export['remind_object']['custom_type'] = null;
                     $export['remind_object']['custom_data'] = null;
@@ -84,7 +82,7 @@ class Events
             }
         });
 
-        /**
+        /*
          * Wire paywall hooks. Allows access if sent wire or is plus
          */
         Dispatcher::register('acl:read', 'object', function ($event) {
@@ -150,7 +148,8 @@ class Events
         if (!isset($fullText)) {
             return null;
         }
-        $teaserText = substr($fullText, 0, 350);
+        $teaserText = substr($fullText, 0, 200);
+
         return $teaserText;
     }
 }
