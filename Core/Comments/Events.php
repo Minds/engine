@@ -106,11 +106,14 @@ class Events
         $this->eventsDispatcher->register('acl:read', 'comment', function (Event $event) {
             $params = $event->getParameters();
             $comment = $params['entity'];
+
             $entity = EntitiesFactory::build($comment->getAccessId());
             $user = $params['user'];
 
-            $canRead = ACL::_()->read($entity, $user);
-            $event->setResponse($canRead);
+            if ($entity) {
+                $canRead = ACL::_()->read($entity, $user);
+                $event->setResponse($canRead);
+            }
         });
 
         // If comment is container_guid then decide if we can allow access
