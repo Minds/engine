@@ -5,6 +5,7 @@ use Minds\Core;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Entities;
+use Minds\Entities\Image;
 
 class Events
 {
@@ -57,6 +58,25 @@ class Events
             $entity = $params['entity'];
 
             $event->setResponse($entity->delete());
+        });
+
+        /**
+         * ACL for when images have activity as container_guid
+         */
+        Dispatcher::register('acl:read', 'object', function (Event $event) {
+            $params = $event->getParameters();
+
+            $entity = $params['entity'];
+            $user = $params['user'];
+
+            if ($entity instanceof Image) {
+                $container = $entity->getContainerEntity();
+
+                if ($container) {
+                    $canReadContainer = Core\Security\ACL::_()->read($container, $user);
+                    $event->setResponse($canReadContainer);
+                }
+            }
         });
     }
 }
