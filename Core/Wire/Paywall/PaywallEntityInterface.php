@@ -21,7 +21,7 @@ interface PaywallEntityInterface
      * @param array $wireThreshold
      * @return self
      */
-    public function setWireThreshold(array $wireThreshold);
+    public function setWireThreshold($wireThreshold = []);
 
     /**
      * Returns the paywall threshold data
