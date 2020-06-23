@@ -6,6 +6,8 @@ use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Entities;
 use Minds\Entities\Image;
+use Minds\Entities\Video;
+use Minds\Entities\Activity;
 
 class Events
 {
@@ -72,7 +74,9 @@ class Events
             if ($entity instanceof Image) {
                 $container = $entity->getContainerEntity();
 
-                if ($container) {
+                if ($container
+                    && ($container instanceof Activity || $container instanceof Video || $container instanceof Image)
+                ) {
                     $canReadContainer = Core\Security\ACL::_()->read($container, $user);
                     $event->setResponse($canReadContainer);
                 }
