@@ -60,10 +60,6 @@ class EntityValidator
             echo "\n$entity->guid is not valid [banned: $entity->banned] [enabled: $entity->enabled]\n";
             return false;
         }
-        if (method_exists($entity, 'getFlag') && $entity->getFlag('paywall')) {
-            echo "\n $entity->guid has a paywall flag";
-            return false;
-        }
         if ($entity->type == 'object' && $entity->access_id != 2) {
             return false;
         }

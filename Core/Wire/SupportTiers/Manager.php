@@ -5,6 +5,8 @@ use Exception;
 use Minds\Common\Repository\Response;
 use Minds\Core\GuidBuilder;
 use Minds\Entities\User;
+use Minds\Exceptions\UserErrorException;
+use Minds\Helpers\Urn;
 
 /**
  * Wire Support Tiers Manager
@@ -99,14 +101,41 @@ class Manager
             throw new Exception('Missing primary key');
         }
 
+        $tier = $this->repository->getList(
+            (new RepositoryGetListOptions())
+                ->setEntityGuid($supportTier->getEntityGuid())
+                ->setGuid($supportTier->getGuid())
+                ->setLimit(1)
+        )->first();
+
+        if (!$tier) {
+            return null;
+        }
+
         return $this->currenciesDelegate->hydrate(
-            $this->repository->getList(
-                (new RepositoryGetListOptions())
-                    ->setEntityGuid($supportTier->getEntityGuid())
-                    ->setGuid($supportTier->getGuid())
-                    ->setLimit(1)
-            )->first()
+            $tier
         );
+    }
+
+    /**
+     * Get by a urn
+     * @param string $urn
+     * @return SupportTier|null
+     */
+    public function getByUrn(string $urn): ?SupportTier
+    {
+        $urn = Urn::parse($urn, 'support-tier');
+
+        if (!$urn || count($urn) !== 2) {
+            throw new UserErrorException('Invalid URN', 400);
+        }
+
+        $supportTier = new SupportTier();
+        $supportTier
+            ->setEntityGuid($urn[0])
+            ->setGuid($urn[1]);
+
+        return $this->get($supportTier);
     }
 
     /**

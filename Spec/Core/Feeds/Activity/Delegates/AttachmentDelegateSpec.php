@@ -124,7 +124,7 @@ class AttachmentDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($video);
 
-        $video->setFlag('paywall', true)
+        $video->setPayWall(true)
             ->shouldBeCalled()
             ->willReturn($video);
 

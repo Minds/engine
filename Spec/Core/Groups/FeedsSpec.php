@@ -260,7 +260,7 @@ class FeedsSpec extends ObjectBehavior
 
         $attachment->getWireThreshold()
             ->shouldBeCalled()
-            ->willReturn(false);
+            ->willReturn(null);
 
         $attachment->set('access_id', 2)
             ->shouldBeCalled()
@@ -417,7 +417,7 @@ class FeedsSpec extends ObjectBehavior
 
         $attachment_1->getWireThreshold()
             ->shouldBeCalled()
-            ->willReturn(false);
+            ->willReturn(null);
 
         $attachment_1->set('access_id', 2)
             ->shouldBeCalled()

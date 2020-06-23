@@ -106,14 +106,14 @@ class EntityMappingSpec extends ObjectBehavior
         $entity->get('time_moderated')->willReturn($now);
         $entity->getTags()->willReturn([ 'hashtag', 'spaceiscool' ]);
         $entity->getNsfw()->willReturn([ 1 ]);
-        $entity->get('wire_threshold')->willReturn(json_encode([
-            'type' => 'tokens',
-            'min' => 5,
-            'support_tier' => [
-                'urn' => 'urn:support-tier:123456',
-            ],
-            'support_tier_expire' => 1000,
-        ]));
+        // $entity->getWireThreshold()->willReturn(json_encode([
+        //     'type' => 'tokens',
+        //     'min' => 5,
+        //     'support_tier' => [
+        //         'urn' => 'urn:support-tier:123456',
+        //         'expires' => 1000,
+        //     ],
+        // ]));
         $entity->get('language')->willReturn('en');
 
         $this
@@ -144,8 +144,8 @@ class EntityMappingSpec extends ObjectBehavior
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'entity',
                 'public' => true,
-                'wire_support_tier' => 'urn:support-tier:123456',
-                '@wire_support_tier_expire' => 1000000,
+                // 'wire_support_tier' => 'urn:support-tier:123456',
+                // '@wire_support_tier_expire' => 1000000,
                 'tags' => [ 'hashtag', 'spaceiscool', 'test' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',

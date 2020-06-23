@@ -49,7 +49,6 @@ class UserMappingSpec extends ObjectBehavior
         $user->getGroupMembership()->willReturn([ 2000 ]);
         $user->getNsfw()->willReturn([ 1 ]);
         $user->getTags()->willReturn([ 'spaceiscool' ]);
-        $user->get('wire_threshold')->willReturn(null);
 
         $this
             ->setEntity($user)
@@ -82,8 +81,6 @@ class UserMappingSpec extends ObjectBehavior
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'user',
                 'public' => true,
-                'wire_support_tier' => null,
-                '@wire_support_tier_expire' => null,
                 'tags' => [ 'spaceiscool' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',

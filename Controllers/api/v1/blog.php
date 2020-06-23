@@ -12,6 +12,7 @@ use Minds\Api\Exportable;
 use Minds\Api\Factory;
 use Minds\Common\Access;
 use Minds\Core;
+use Minds\Core\Di\Di;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Helpers;
 use Minds\Interfaces;
@@ -242,11 +243,6 @@ class blog implements Interfaces\Api
             $blog->setNsfw($nsfw);
         }
 
-        if (isset($_POST['wire_threshold'])) {
-            $threshold = is_string($_POST['wire_threshold']) ? json_decode($_POST['wire_threshold']) : $_POST['wire_threshold'];
-            $blog->setWireThreshold($threshold);
-        }
-
         if (isset($_POST['published'])) {
             $published = is_string($_POST['published']) ? json_decode($_POST['published']) : $_POST['published'];
             $blog->setPublished($published);
@@ -275,38 +271,11 @@ class blog implements Interfaces\Api
         $blog->setLastSave(time());
 
         if (isset($_POST['wire_threshold'])) {
-            if (is_array($_POST['wire_threshold']) && ($_POST['wire_threshold']['min'] <= 0 || !$_POST['wire_threshold']['type'])) {
-                return Factory::response([
-                    'status' => 'error',
-                    'message' => 'Invalid Wire threshold'
-                ]);
-            }
-
-            $blog->setWireThreshold($_POST['wire_threshold']);
-            $blog->setPaywall(!!$_POST['wire_threshold']);
-        }
-
-        if (isset($_POST['paywall']) && (!$_POST['paywall'] || $_POST['paywall'] === 'false')) {
-            $blog->setWireThreshold(false);
-            $blog->setPaywall(false);
-        }
-
-        if ($blog->isMonetized()) {
-            if ($blog->getNsfw() || $blog->isMature()) {
-                return Factory::response([
-                    'status' => 'error',
-                    'message' => 'Cannot monetize an explicit blog'
-                ]);
-            } elseif (!Core\Session::isAdmin()) {
-                $merchant = Core\Session::getLoggedInUser()->getMerchant();
-
-                if (!$merchant || !isset($merchant['id'])) {
-                    return Factory::response([
-                        'status' => 'error',
-                        'message' => 'User is not a merchant'
-                    ]);
-                }
-            }
+            $threshold = is_string($_POST['wire_threshold']) ? json_decode($_POST['wire_threshold'], true) : $_POST['wire_threshold'];
+            $blog->setWireThreshold($threshold);
+            $blog->markAsDirty('wireThreshold');
+            $blog->markAsDirty('paywall');
+            Di::_()->get('Wire\Paywall\Manager')->validateEntity($blog, true);
         }
 
         if ((isset($_POST['nsfw']) && $_POST['nsfw'])
