@@ -78,8 +78,8 @@ class PropagateProperties extends Properties
             }
 
             if (method_exists($to, 'setFlag')) {
-                if ($this->valueHasChanged($to->getFlag('paywall'), (bool)$from->isPaywall())) {
-                    $to->setFlag('paywall', (bool)$from->isPaywall());
+                if ($this->valueHasChanged($to->isPayWall(), (bool)$from->isPaywall())) {
+                    $to->setFlag('paywall', (bool) $from->isPayWall());
                 }
             }
 

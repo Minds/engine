@@ -90,7 +90,7 @@ class Events
             $entity = $params['entity'];
             $user = $params['user'];
 
-            if (!method_exists($entity, 'getFlag') || !$entity->getFlag('paywall')) {
+            if (!$entity->isPayWall()) {
                 return;
             }
 

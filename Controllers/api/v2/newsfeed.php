@@ -483,6 +483,7 @@ class newsfeed implements Interfaces\Api
                         $activityMutation->setNsfw($_POST['nsfw']);
                     }
 
+                    // TODO: remove this when new paywall is released
                     if (isset($_POST['wire_threshold'])) {
                         if (is_array($_POST['wire_threshold']) && ($_POST['wire_threshold']['min'] <= 0 || !$_POST['wire_threshold']['type'])) {
                             return Factory::response([
@@ -582,15 +583,10 @@ class newsfeed implements Interfaces\Api
                 }
 
                 if (isset($_POST['wire_threshold']) && $_POST['wire_threshold']) {
-                    if (is_array($_POST['wire_threshold']) && ($_POST['wire_threshold']['min'] <= 0 || !$_POST['wire_threshold']['type'])) {
-                        return Factory::response([
-                            'status' => 'error',
-                            'message' => 'Invalid Wire threshold'
-                        ]);
-                    }
-
                     $activity->setWireThreshold($_POST['wire_threshold']);
-                    $activity->setPayWall(true);
+
+                    $paywallDelegate = new Core\Feeds\Activity\Delegates\PaywallDelegate();
+                    $paywallDelegate->onAdd($activity);
                 }
 
                 $container = null;

@@ -29,9 +29,7 @@ class Thresholds
 
         $isPaywall = false;
 
-        if ((MagicAttributes::getterExists($entity, 'isPaywall') || method_exists($entity, 'isPaywall')) && $entity->isPaywall()) {
-            $isPaywall = true;
-        } elseif (method_exists($entity, 'getFlag') && $entity->getFlag('paywall')) {
+        if ((MagicAttributes::getterExists($entity, 'isPayWall') || method_exists($entity, 'isPayWall')) && $entity->isPayWall()) {
             $isPaywall = true;
         }
 

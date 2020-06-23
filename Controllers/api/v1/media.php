@@ -77,7 +77,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                     }
 
                     if (method_exists($entity, 'getWireThreshold')) {
-                        $response['paywalled'] = $entity->getFlag('paywall') && $entity->getWireThreshold();
+                        $response['paywalled'] = $entity->isPayWall() && $entity->getWireThreshold();
                     }
 
                     if (method_exists($entity, 'canEdit')) {
@@ -97,7 +97,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                     }
 
                     if (method_exists($entity, 'getWireThreshold')) {
-                        $response['entity']['paywalled'] = $entity->getFlag('paywall') && $entity->getWireThreshold();
+                        $response['entity']['paywalled'] = $entity->isPayWall() && $entity->getWireThreshold();
                     }
 
                     if (method_exists($entity, 'canEdit')) {

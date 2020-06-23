@@ -80,12 +80,6 @@ class Video extends MindsObject
 
     public function getIconUrl($size = "medium")
     {
-        // $domain = elgg_get_site_url();
-        // global $CONFIG;
-        // if (isset($CONFIG->cdn_url) && !$this->getFlag('paywall') && !$this->getWireThreshold()) {
-        //     $domain = $CONFIG->cdn_url;
-        // }
-
         // return $domain . 'api/v1/media/thumbnails/' . $this->guid . '/' . $this->time_updated;
 
         // if we didn't save this and it has a YouTube video ID, return YouTube's thumbnail

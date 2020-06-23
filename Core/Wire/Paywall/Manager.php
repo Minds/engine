@@ -4,7 +4,9 @@ namespace Minds\Core\Wire\Paywall;
 use Minds\Core\Di\Di;
 use Minds\Core\Wire\Thresholds;
 use Minds\Entities\User;
+use Minds\Entities\Entity;
 use Minds\Helpers\MagicAttributes;
+use Minds\Core\Wire\SupportTiers;
 
 class Manager
 {
@@ -14,9 +16,13 @@ class Manager
     /** @var Thresholds */
     protected $wireThresholds;
 
-    public function __construct($wireThresholds = null)
+    /** @var SupportTiers\Manager */
+    protected $supportTiersManager;
+
+    public function __construct($wireThresholds = null, $supportTiersManager = null)
     {
         $this->wireThresholds = $wireTresholds ?? Di::_()->get('Wire\Thresholds');
+        $this->supportTiersManager = $supportTiersManager ?? Di::_()->get('Wire\SupportTiers\Manager');
     }
 
     /**
@@ -32,26 +38,69 @@ class Manager
 
     /**
      * Return if the entity is paywalled
-     * @param Entity $entity
+     * @param PaywallEntityInterface $entity
      * @return bool
      */
-    public function isPaywalled($entity): bool
+    public function isPaywalled(PaywallEntityInterface $entity): bool
     {
-        if ((MagicAttributes::getterExists($entity, 'isPaywall') || method_exists($entity, 'isPaywall'))
-            && $entity->isPaywall()
+        if ((MagicAttributes::getterExists($entity, 'isPayWall') || method_exists($entity, 'isPayWall'))
+            && $entity->isPayWall()
         ) {
-            return true;
-        } elseif (method_exists($entity, 'getFlag') && $entity->getFlag('paywall')) {
             return true;
         }
         return false;
     }
 
     /**
-     * @param Entity $entity
+     * Validate the entity and patch the wire threshold
+     * @param PaywallEntityInterface $entity
+     * @param bool $patch
+     * @return void
+     */
+    public function validateEntity(PaywallEntityInterface $entity, $patch = true): void
+    {
+        $wireThreshold = $entity->getWireThreshold();
+        
+        if (!is_array($wireThreshold)) {
+            throw new PaywallInvalidCreationInputException();
+        }
+
+        if ($wireThreshold['support_tier']) {
+            // V2 of Paywall
+            $urn = $wireThreshold['support_tier']['urn'] ?? null;
+            $expires = $wireThreshold['support_tier']['expires'] ?? 0;
+
+            if (!$urn) {
+                throw new PaywallInvalidCreationInputException();
+            }
+
+            $supportTier = $this->supportTiersManager->getByUrn($urn);
+            if (!$supportTier) {
+                throw new PaywallInvalidCreationInputException();
+            }
+
+            // Sanitize the the wireThreshold array
+            $entity->setWireThreshold([
+                'support_tier' => [
+                    'urn' => $urn,
+                    'expires' => $expires
+                ]
+            ]);
+        } elseif ($wireThreshold['min'] > 0 && $wireThreshold['type']) {
+            // Legacy version which will soon be removed
+            // Nothing to do here, as the data is already set
+        } else {
+            throw new PaywallInvalidCreationInputException();
+        }
+
+        $entity->setPayWall(true);
+    }
+
+    /**
+     * @param PaywallEntityInterface $entity
      * @return bool
      */
-    public function isAllowed($entity): bool
+    public function isAllowed(PaywallEntityInterface $entity): bool
     {
         if (!$this->user) {
             return false;

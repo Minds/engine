@@ -491,23 +491,6 @@ class newsfeed implements Interfaces\Api
                         $activity->setMature(true);
                     }
 
-                    if (isset($_POST['wire_threshold'])) {
-                        if (is_array($_POST['wire_threshold']) && ($_POST['wire_threshold']['min'] <= 0 || !$_POST['wire_threshold']['type'])) {
-                            return Factory::response([
-                                'status' => 'error',
-                                'message' => 'Invalid Wire threshold',
-                            ]);
-                        }
-
-                        $activity->setWireThreshold($_POST['wire_threshold']);
-                        $activity->setPaywall(!!$_POST['wire_threshold']);
-                    }
-
-                    if (isset($_POST['paywall']) && !$_POST['paywall']) {
-                        $activity->setWireThreshold(null);
-                        $activity->setPaywall(false);
-                    }
-
                     $activity->setEdited(true);
 
                     $activity->indexes = ["activity:$activity->owner_guid:edits"]; //don't re-index on edit
@@ -560,18 +543,6 @@ class newsfeed implements Interfaces\Api
                         ->setThumbnail($_POST['thumbnail']);
                 }
 
-                if (isset($_POST['wire_threshold']) && $_POST['wire_threshold']) {
-                    if (is_array($_POST['wire_threshold']) && ($_POST['wire_threshold']['min'] <= 0 || !$_POST['wire_threshold']['type'])) {
-                        return Factory::response([
-                            'status' => 'error',
-                            'message' => 'Invalid Wire threshold',
-                        ]);
-                    }
-
-                    $activity->setWireThreshold($_POST['wire_threshold']);
-                    $activity->setPayWall(true);
-                }
-
                 if (isset($_POST['attachment_guid']) && $_POST['attachment_guid']) {
                     $attachment = entities\Factory::build($_POST['attachment_guid']);
                     if (!$attachment) {
@@ -594,19 +565,6 @@ class newsfeed implements Interfaces\Api
 
                     if ($attachment instanceof Flaggable) {
                         $attachment->setFlag('mature', $activity->getMature());
-                    }
-
-                    if ($activity->isPaywall()) {
-                        $attachment->access_id = 0;
-                        $attachment->hidden = true;
-
-                        if (method_exists($attachment, 'setFlag')) {
-                            $attachment->setFlag('paywall', true);
-                        }
-
-                        if (method_exists($attachment, 'setWireThreshold')) {
-                            $attachment->setWireThreshold($activity->getWireThreshold());
-                        }
                     }
 
                     $attachment->setNsfw($activity->getNsfw());
