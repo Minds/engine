@@ -88,7 +88,8 @@ class SupportTier implements JsonSerializable
             'name' => (string) $this->name,
             'description' => (string) $this->description,
             'usd' => (string) ($this->usd ?: 0),
-            'has_usd' => (bool) $this->hasUsd,
+            // 'has_usd' => (bool) $this->hasUsd,
+            'has_usd' => true,
             'tokens' => (string) ($this->tokens ?: 0),
             'has_tokens' => (bool) $this->hasTokens,
         ];
