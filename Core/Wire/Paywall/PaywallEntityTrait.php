@@ -43,11 +43,12 @@ trait PaywallEntityTrait
      */
     public function getWireThreshold(): ?array
     {
-        if (is_string($this->wire_threshold)) {
-            return json_decode($this->wire_threshold, true);
+        $wireThreshold = $this->wire_threshold;
+        if (is_string($wireThreshold)) {
+            $wireThreshold = json_decode($wireThreshold, true);
         }
-        if (is_array($this->wire_threshold)) {
-            return $this->wire_threshold;
+        if (is_array($wireThreshold)) {
+            return $this->wireThreshold;
         }
         return null;
     }
