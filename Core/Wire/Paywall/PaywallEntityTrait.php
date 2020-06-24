@@ -48,7 +48,7 @@ trait PaywallEntityTrait
             $wireThreshold = json_decode($wireThreshold, true);
         }
         if (is_array($wireThreshold)) {
-            return $this->wireThreshold;
+            return $wireThreshold;
         }
         return null;
     }
