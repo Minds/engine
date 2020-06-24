@@ -13,9 +13,13 @@ class Events
     /** @var Features\Managers */
     private $featuresManager;
 
-    public function __construct($featuresManager = null)
+    /** @var SupportTier\Manager */
+    private $supportTiersManager;
+
+    public function __construct($featuresManager = null, $supportTiersManager = null)
     {
         $this->featuresManager = $featuresManager;
+        $this->supportTiersManager = $supportTiersManager;
     }
 
     public function register()
@@ -140,6 +144,47 @@ class Events
 
                 return $event->setResponse($export);
             }
+        });
+
+        /**
+         * Pair the support tier with the output
+         */
+        Dispatcher::register('export:extender', 'all', function ($event) {
+            if (!$this->supportTiersManager) { // Can not use DI in constructor due to init races
+                $this->supportTiersManager = Di::_()->get('Wire\SupportTiers\Manager');
+            }
+
+            $params = $event->getParameters();
+            $entity = $params['entity'];
+
+            if (!$entity instanceof PaywallEntityInterface) {
+                return; // Not paywallable
+            }
+
+            if (!$entity->isPayWall()) {
+                return; // Not paywalled
+            }
+
+            $export = $event->response() ?: [];
+            //$currentUser = Session::getLoggedInUserGuid();
+
+            $wireThreshold = $entity->getWireThreshold();
+            if (!$wireThreshold['support_tier']) {
+                return; // This is a legacy paywalled post
+            }
+
+            $supportTier = $this->supportTiersManager->getByUrn($wireThreshold['support_tier']['urn']);
+
+            if (!$supportTier) {
+                return; // Not found?
+            }
+
+            // Array Merge so we keep the expires
+            $wireThreshold['support_tier'] = array_merge($wireThreshold['support_tier'], $supportTier->export());
+
+            $export['wire_threshold'] = $wireThreshold;
+
+            return $event->setResponse($export);
         });
     }
 
