@@ -126,6 +126,8 @@ class Manager
     protected function filterResponse(Response $response): Response
     {
         $filtered = new Response();
+        $filtered->setPagingToken($response->getPagingToken());
+        $filtered->setLastPage($response->isLastPage());
         foreach ($response as $comment) {
             try {
                 $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
