@@ -30,6 +30,14 @@ class thumbnail extends Core\page implements Interfaces\page
             ]);
         }
 
+        $signedUri = new Core\Security\SignedUri();
+        $req = \Zend\Diactoros\ServerRequestFactory::fromGlobals();
+        if ($req->getQueryParams()['jwtsig'] ?? null) {
+            if ($signedUri->confirm((string) $req->getUri())) {
+                Core\Security\ACL::$ignore = true;
+            }
+        }
+
         $size = isset($pages[1]) ? $pages[1] : null;
 
         $entity = Entities\Factory::build($guid);
@@ -42,14 +50,6 @@ class thumbnail extends Core\page implements Interfaces\page
         }
 
         $featuresManager = new FeaturesManager;
-
-        if ($entity->access_id !== Common\Access::PUBLIC && $featuresManager->has('cdn-jwt')) {
-            $signedUri = new Core\Security\SignedUri();
-            $uri = (string) \Zend\Diactoros\ServerRequestFactory::fromGlobals()->getUri();
-            if (!$signedUri->confirm($uri)) {
-                exit;
-            }
-        }
 
         /** @var Core\Media\Thumbnails $mediaThumbnails */
         $mediaThumbnails = Di::_()->get('Media\Thumbnails');
