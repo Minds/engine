@@ -69,7 +69,7 @@ class Manager
         $path = 'fs/v1/thumbnail/' . $asset_guid . '/' . $size . '/' . $lastUpdated;
         $uri = $this->config->get('cdn_url') . $path;
 
-        if ($entity->access_id !== ACCESS_PUBLIC) {
+        if ($entity->access_id !== ACCESS_PUBLIC || $entity->owner_guid != $entity->container_guid) {
             $uri = $this->config->get('site_url') . $path;
             $uri = $this->signUri($uri);
         }
