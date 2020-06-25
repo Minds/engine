@@ -76,7 +76,7 @@ class Manager
 
             $supportTier = $this->supportTiersManager->getByUrn($urn);
             if (!$supportTier) {
-                throw new PaywallInvalidCreationInputException();
+                throw new PaywallSupportTierNotFoundException();
             }
 
             // Sanitize the the wireThreshold array
