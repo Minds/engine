@@ -10,6 +10,18 @@ use Minds\Helpers\MagicAttributes;
 
 class Thresholds
 {
+    /** @var SupportTiers\Manager */
+    protected $supportTiersManager;
+
+    /** @var Config */
+    protected $config;
+
+    public function __construct($supportTiersManager = null, $config = null)
+    {
+        $this->supportTiersManager = $supportTiersManager ?? new SupportTiers\Manager();
+        $this->config = $config ?? Di::_()->get('Config');
+    }
+
     /**
      * Check if the entity can be shown to the passed user
      * @param User $user
@@ -49,11 +61,29 @@ class Thresholds
         //make sure legacy posts can work
         if ($isPaywall) {
             $amount = 0;
+            $minThreshold = null;
 
-            if (MagicAttributes::getterExists($entity, 'getOwnerGuid')) {
-                $ownerGuid = $entity->getOwnerGuid();
+            if ($threshold['support_tier']) {
+                // A very inelegant way of matching a support tier to plus
+                if ($threshold['support_tier']['urn'] === $this->config->get('plus')['support_tier_urn']
+                    && $user->isPlus()
+                ) {
+                    return true;
+                }
+
+                $supportTier = $this->supportTiersManager->getByUrn($threshold['support_tier']['urn']);
+                $ownerGuid = $supportTier->getEntityGuid();
+                $minThreshold = $supportTier->getUsd();
             } else {
-                $ownerGuid = $entity->getOwnerGUID();
+                if (MagicAttributes::getterExists($entity, 'getOwnerGuid')) {
+                    $ownerGuid = $entity->getOwnerGuid();
+                } else {
+                    $ownerGuid = $entity->getOwnerGUID();
+                }
+                $minThreshold = $threshold['min'];
+                if ($threshold['type'] === 'tokens') {
+                    $minThreshold = BigNumber::toPlain($threshold['min'], 18);
+                }
             }
 
             /** @var Sums $sums */
@@ -62,21 +92,23 @@ class Thresholds
                 ->setSender($user->guid)
                 ->setFrom((new \DateTime('midnight'))->modify("-30 days")->getTimestamp());
 
-            $amount = $sums->getSent();
+            $tokensAmount = $sums->setMethod('tokens')->getSent();
+            $exRate = $this->config->get('token_exchange_rate') ?: 1.25; // TODO make this is a constant
+            $tokensUsdAmount = BigNumber::fromPlain($tokensAmount, 18)->toDouble() * $exRate;
+            $usdAmount = $sums->setMethod('usd')->getSent();
 
-            $minThreshold = $threshold['min'];
-
-            if ($threshold['type'] === 'tokens') {
-                $minThreshold = BigNumber::toPlain($threshold['min'], 18);
+            if (isset($threshold['type'])) {
+                $allowed = BigNumber::_($tokensAmount)->sub($minThreshold)->gte(0);
+            } else {
+                // new support tiers
+                $allowed = max($tokensUsdAmount, $usdAmount) >= $minThreshold;
             }
-
-            $allowed = BigNumber::_($amount)->sub($minThreshold)->gte(0);
 
             if ($allowed) {
                 return true;
             }
 
-            //Plus hack
+            //Plus hack (legacy posts)
             if ($entity->owner_guid == '730071191229833224') {
                 $plus = (new Core\Plus\Subscription())->setUser($user);
 
