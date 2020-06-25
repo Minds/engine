@@ -19,7 +19,7 @@ class Manager
     /** @var Repository */
     protected $repository;
 
-    /** @var Search\Serch */
+    /** @var Search\Search */
     private $search;
 
     /** @var Events\Dispatcher */
