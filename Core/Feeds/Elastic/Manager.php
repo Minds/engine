@@ -111,6 +111,7 @@ class Manager
             'as_activities' => false,
             'exclude' => null,
             'pending' => false,
+            'plus' => false,
         ], $opts);
 
         if (isset($opts['query']) && $opts['query']) {
@@ -277,8 +278,7 @@ class Manager
 
             foreach ($hydratedEntities as $entity) {
                 if (Flags::shouldFail($entity)) {
-                    $this->searchIndex->index($entity, true);
-                    $this->eventsDisprcher->trigger('search:index', 'all', [
+                    $this->eventsDispatcher->trigger('search:index', 'all', [
                         'entity' => $entity,
                         'immediate' => false
                     ]);
