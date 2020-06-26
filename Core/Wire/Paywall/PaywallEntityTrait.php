@@ -20,7 +20,7 @@ trait PaywallEntityTrait
      */
     public function isPayWall(): bool
     {
-        if (isset($this->attributes['flags']) && $this->attributes['flags']['paywall']) {
+        if (isset($this->attributes['flags']) && ($this->attributes['flags']['paywall'] ?? false)) {
             return $this->attributes['flags']['paywall'];
         }
         return (bool) $this->paywall;
