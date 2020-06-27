@@ -52,6 +52,7 @@ class ACLSpec extends ObjectBehavior
         $user->get('guid')->willReturn(123);
         $user->get('access_id')->willReturn(2);
         $user->get('owner_guid')->willReturn(0);
+        $user->getOwnerGUID()->willReturn(0);
         $user->get('container_guid')->willReturn(0);
         $user->getSpam()->willReturn(false);
         $user->getDeleted()->willReturn(false);
@@ -65,6 +66,7 @@ class ACLSpec extends ObjectBehavior
         $entity->get('access_id')->willReturn(2);
         $entity->get('container_guid')->willReturn(123);
         $entity->get('owner_guid')->willReturn(123);
+        $entity->getOwnerGUID()->wilLReturn(123);
         $entity->get('type')->willReturn('activity');
         $this->read($entity)->shouldReturn(true);
     }
@@ -75,6 +77,7 @@ class ACLSpec extends ObjectBehavior
         $user->get('guid')->willReturn(123);
         $user->get('access_id')->willReturn(2);
         $user->get('owner_guid')->willReturn(0);
+        $user->getOwnerGUID()->willReturn(0);
         $user->get('container_guid')->willReturn(0);
         $user->get('username')->willReturn('banneduser');
         $user->getSpam()->willReturn(false);
@@ -90,6 +93,7 @@ class ACLSpec extends ObjectBehavior
         $entity->get('access_id')->willReturn(2);
         $entity->get('container_guid')->willReturn(123);
         $entity->get('owner_guid')->willReturn(123);
+        $entity->getOwnerGUID()->wilLReturn(123);
         $entity->get('type')->willReturn('activity');
         $this->read($entity)->shouldReturn(false);
     }
@@ -100,6 +104,7 @@ class ACLSpec extends ObjectBehavior
         $user->get('guid')->willReturn(123);
         $user->get('access_id')->willReturn(2);
         $user->get('owner_guid')->willReturn(0);
+        $user->getOwnerGUID()->willReturn(0);
         $user->get('container_guid')->willReturn(0);
         $user->getSpam()->willReturn(false);
         $user->getDeleted()->willReturn(false);
@@ -113,6 +118,7 @@ class ACLSpec extends ObjectBehavior
         $entity->getType()->willReturn('specy');
         $entity->get('access_id')->willReturn(0);
         $entity->get('owner_guid')->willReturn(123);
+        $entity->getOwnerGUID()->wilLReturn(123);
         $entity->get('type')->willReturn('activity');
         $this->read($entity)->shouldReturn(false);
     }

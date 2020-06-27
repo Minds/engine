@@ -69,7 +69,6 @@ class Cleanup
             $result = (bool) $this->client->request($prepared);
         } catch (\Exception $e) {
             error_log('[Search/Cleanup] ' . get_class($e) . ": {$e->getMessage()}");
-            print_r($e);
         }
 
         return $result;

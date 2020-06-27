@@ -151,33 +151,30 @@ class EntityMapping implements MappingInterface
 
         $paywall = isset($map['paywall']) && $map['paywall'];
 
-        if (method_exists($this->entity, 'isPaywall')) {
-            $paywall = !!$this->entity->isPaywall();
-        } elseif (method_exists($this->entity, 'getFlag')) {
-            $paywall = !!$this->entity->getFlag('paywall');
+        if (method_exists($this->entity, 'isPayWall')) {
+            $paywall = !!$this->entity->isPayWall();
         }
 
         $map['paywall'] = $paywall;
 
         // Support Tier
 
-        $supportTier = null;
-        $supportTierExpire = null;
-
-        if ($this->entity && ($this->entity->wire_threshold ?? null)) {
-            $wireThreshold = is_string($this->entity->wire_threshold) ?
-                json_decode($this->entity->wire_threshold, true) :
-                $this->entity->wire_threshold;
-
+        if (method_exists($this->entity, 'getWireThreshold') && $this->entity->getWireThreshold()) {
+            $wireThreshold = $this->entity->getWireThreshold();
             $supportTier = $wireThreshold['support_tier']['urn'] ?? null;
 
-            if ($wireThreshold['support_tier_expire']) {
-                $supportTierExpire = $wireThreshold['support_tier_expire'] * 1000;
+            if ($wireThreshold['support_tier']['expires'] ?? null) {
+                $supportTierExpire = $wireThreshold['support_tier']['expires'] * 1000;
+            }
+
+            if ($supportTier) {
+                $map['wire_support_tier'] = $supportTier;
+
+                if ($supportTierExpire) {
+                    $map['@wire_support_tier_expire'] = $supportTierExpire;
+                }
             }
         }
-
-        $map['wire_support_tier'] = $supportTier;
-        $map['@wire_support_tier_expire'] = $supportTierExpire;
 
         // Text
 

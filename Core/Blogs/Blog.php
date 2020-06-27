@@ -22,6 +22,8 @@ use Minds\Entities\User;
 use Minds\Helpers\Flags;
 use Minds\Helpers\Text;
 use Minds\Traits\MagicAttributes;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
+use Minds\Core\Wire\Paywall\PaywallEntityTrait;
 
 /**
  * Blog Entity
@@ -70,10 +72,6 @@ use Minds\Traits\MagicAttributes;
  * @method int getDraftAccessId()
  * @method Blog setLastSave(int $value)
  * @method int getLastSave()
- * @method Blog setWireThreshold(mixed $value)
- * @method mixed getWireThreshold()
- * @method Blog setPaywall(mixed $value)
- * @method mixed isPaywall()
  * @method Blog setMature(bool $value)
  * @method bool isMature()
  * @method Blog setSpam(bool $value)
@@ -103,9 +101,10 @@ use Minds\Traits\MagicAttributes;
  * @method bool getEditorVersion()
  * @method bool setEditorVersion(int $editorVersion)
  */
-class Blog extends RepositoryEntity
+class Blog extends RepositoryEntity implements PaywallEntityInterface
 {
     use MagicAttributes;
+    use PaywallEntityTrait;
 
     /** @var string */
     protected $type = 'object';
@@ -186,7 +185,7 @@ class Blog extends RepositoryEntity
     protected $lastSave;
 
     /** @var mixed */
-    protected $wireThreshold;
+    protected $wire_threshold; // Different pattern to be compatible with trait
 
     /** @var mixed */
     protected $paywall;
@@ -589,7 +588,7 @@ class Blog extends RepositoryEntity
             'rating',
             'draftAccessId',
             'lastSave',
-            'wireThreshold',
+            'wire_threshold',
             'paywall',
             'mature',
             'spam',

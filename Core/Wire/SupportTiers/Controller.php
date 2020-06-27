@@ -69,20 +69,9 @@ class Controller
      */
     public function getSingle(ServerRequest $request): JsonResponse
     {
-        $urn = Urn::parse($request->getAttribute('parameters')['urn'], 'support-tier');
-
-        if (!$urn || count($urn) !== 2) {
-            throw new UserErrorException('Invalid URN', 400);
-        }
-
-        $supportTier = new SupportTier();
-        $supportTier
-            ->setEntityGuid($urn[0])
-            ->setGuid($urn[1]);
-
         return new JsonResponse([
             'status' => 'success',
-            'support_tier' => $this->manager->get($supportTier)
+            'support_tier' => $this->manager->getByUrn($request->getAttribute('parameters')['urn'])
         ]);
     }
 

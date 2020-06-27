@@ -6,21 +6,30 @@ use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Di\Di;
-use Minds\Core\Search\Search;
+use Minds\Core\Events\Dispatcher;
+use Minds\Core\Search;
 use Minds\Entities\Entity;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Trending\Aggregates;
+use Minds\Core\Security\ACL;
+use Minds\Helpers\Flags;
 
 class Manager
 {
     /** @var Repository */
     protected $repository;
 
-    /** @var Search */
+    /** @var Search\Search */
     private $search;
+
+    /** @var Events\Dispatcher */
+    private $eventsDispatcher;
 
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
+
+    /** @var ACL */
+    protected $acl;
 
     /** @var Entities */
     protected $entities;
@@ -37,12 +46,16 @@ class Manager
         $repository = null,
         $entitiesBuilder = null,
         $entities = null,
-        $search = null
+        $search = null,
+        $eventsDispatcher = null,
+        $acl = null
     ) {
         $this->repository = $repository ?: new Repository;
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder;
         $this->entities = $entities ?: new Entities;
         $this->search = $search ?: Di::_()->get('Search\Search');
+        $this->eventsDispatcher = $eventsDispatcher ?? Di::_()->get('EventsDispatcher');
+        $this->acl = $acl ?? Di::_()->get('Security\ACL');
 
         $this->from = strtotime('-7 days') * 1000;
         $this->to = time() * 1000;
@@ -98,6 +111,7 @@ class Manager
             'as_activities' => false,
             'exclude' => null,
             'pending' => false,
+            'plus' => false,
         ], $opts);
 
         if (isset($opts['query']) && $opts['query']) {
@@ -260,9 +274,19 @@ class Manager
         }, array_slice($feedSyncEntities, 0, 12)); // hydrate the first 12
 
         if ($hydrateGuids) {
-            $hydratedEntities = $this->entitiesBuilder->get(['guids' => $hydrateGuids]);
+            $hydratedEntities = $this->entitiesBuilder->get(['guids' => $hydrateGuids, 'acl' => false]);
 
             foreach ($hydratedEntities as $entity) {
+                if (Flags::shouldFail($entity)) {
+                    $this->eventsDispatcher->trigger('search:index', 'all', [
+                        'entity' => $entity,
+                        'immediate' => false
+                    ]);
+                    continue;
+                }
+                if (!$this->acl->read($entity)) {
+                    continue;
+                }
                 $entities[] = (new FeedSyncEntity)
                                  ->setGuid($entity->getGuid())
                                  ->setOwnerGuid($entity->getOwnerGuid())

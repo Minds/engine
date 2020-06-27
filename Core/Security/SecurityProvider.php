@@ -13,6 +13,10 @@ class SecurityProvider extends Provider
 {
     public function register()
     {
+        $this->di->bind('Security\ACL', function ($di) {
+            return ACL::_();
+        }, ['useFactory'=>true]);
+
         $this->di->bind('Security\ACL\Block', function ($di) {
             return new ACL\Block(
                 Di::_()->get('Database\Cassandra\Indexes'),

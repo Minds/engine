@@ -111,9 +111,7 @@ class AttachmentDelegate
             $attachment->access_id = 0;
             $attachment->hidden = true;
 
-            if (method_exists($attachment, 'setFlag')) {
-                $attachment->setFlag('paywall', true);
-            }
+            $attachment->setPayWall(true);
 
             if (method_exists($attachment, 'setWireThreshold')) {
                 $attachment->setWireThreshold($activity->getWireThreshold());

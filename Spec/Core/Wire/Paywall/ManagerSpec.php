@@ -35,20 +35,20 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_support_images_and_videos(Image $image, Video $video)
     {
-        $image->getFlag('paywall')
+        $image->isPayWall()
             ->willReturn(true);
         $this->isPaywalled($image)
             ->shouldBe(true);
-        $image->getFlag('paywall')
+        $image->isPayWall()
             ->willReturn(false);
         $this->isPaywalled($image)
             ->shouldBe(false);
 
-        $video->getFlag('paywall')
+        $video->isPayWall()
             ->willReturn(true);
         $this->isPaywalled($video)
             ->shouldBe(true);
-        $video->getFlag('paywall')
+        $video->isPayWall()
             ->willReturn(false);
         $this->isPaywalled($video)
             ->shouldBe(false);

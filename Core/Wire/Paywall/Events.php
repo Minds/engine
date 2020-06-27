@@ -7,21 +7,24 @@ use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Core\Features;
 use Minds\Core\Events\Dispatcher;
-use Minds\Entities\User;
 
 class Events
 {
     /** @var Features\Managers */
     private $featuresManager;
 
-    public function __construct($featuresManager = null)
+    /** @var SupportTier\Manager */
+    private $supportTiersManager;
+
+    public function __construct($featuresManager = null, $supportTiersManager = null)
     {
         $this->featuresManager = $featuresManager;
+        $this->supportTiersManager = $supportTiersManager;
     }
 
     public function register()
     {
-        /**
+        /*
          * Removes important export fields if marked as paywall
          */
         Dispatcher::register('export:extender', 'activity', function ($event) {
@@ -40,8 +43,8 @@ class Events
             $dirty = false;
 
             if ($activity->isPaywall() && $activity->owner_guid != $currentUser) {
-                $export['message'] = null;
-                $export['blurb'] = null;
+                $export['blurb'] = $this->extractTeaser($activity->blurb);
+                $export['message'] = $this->extractTeaser($activity->message);
 
                 if (!$this->featuresManager->has('paywall-2020')) {
                     $export['custom_type'] = null;
@@ -60,9 +63,9 @@ class Events
                 $activity->remind_object['owner_guid'] != $currentUser
             ) {
                 $export['remind_object'] = $activity->remind_object;
-                $export['remind_object']['message'] = null;
-                $export['remind_object']['blurb'] = null;
-                
+                $export['remind_object']['blurb'] = $this->extractTeaser($activity->remind_object['blurb']);
+                $export['remind_object']['message'] = $this->extractTeaser($activity->remind_object['message']);
+
                 if (!$this->featuresManager->has('paywall-2020')) {
                     $export['remind_object']['custom_type'] = null;
                     $export['remind_object']['custom_data'] = null;
@@ -83,7 +86,7 @@ class Events
             }
         });
 
-        /**
+        /*
          * Wire paywall hooks. Allows access if sent wire or is plus
          */
         Dispatcher::register('acl:read', 'object', function ($event) {
@@ -91,7 +94,7 @@ class Events
             $entity = $params['entity'];
             $user = $params['user'];
 
-            if (!method_exists($entity, 'getFlag') || !$entity->getFlag('paywall')) {
+            if (!$entity->isPayWall()) {
                 return;
             }
 
@@ -142,5 +145,56 @@ class Events
                 return $event->setResponse($export);
             }
         });
+
+        /**
+         * Pair the support tier with the output
+         */
+        Dispatcher::register('export:extender', 'all', function ($event) {
+            if (!$this->supportTiersManager) { // Can not use DI in constructor due to init races
+                $this->supportTiersManager = Di::_()->get('Wire\SupportTiers\Manager');
+            }
+
+            $params = $event->getParameters();
+            $entity = $params['entity'];
+
+            if (!$entity instanceof PaywallEntityInterface) {
+                return; // Not paywallable
+            }
+
+            if (!$entity->isPayWall()) {
+                return; // Not paywalled
+            }
+
+            $export = $event->response() ?: [];
+            //$currentUser = Session::getLoggedInUserGuid();
+
+            $wireThreshold = $entity->getWireThreshold();
+            if (!$wireThreshold['support_tier']) {
+                return; // This is a legacy paywalled post
+            }
+
+            $supportTier = $this->supportTiersManager->getByUrn($wireThreshold['support_tier']['urn']);
+
+            if (!$supportTier) {
+                return; // Not found?
+            }
+
+            // Array Merge so we keep the expires
+            $wireThreshold['support_tier'] = array_merge($wireThreshold['support_tier'], $supportTier->export());
+
+            $export['wire_threshold'] = $wireThreshold;
+
+            return $event->setResponse($export);
+        });
+    }
+
+    private function extractTeaser($fullText)
+    {
+        if (!isset($fullText)) {
+            return null;
+        }
+        $teaserText = substr($fullText, 0, 200);
+
+        return $teaserText;
     }
 }

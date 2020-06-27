@@ -35,12 +35,6 @@ class Image extends File
             $size = '';
         }
 
-        // if (isset($CONFIG->cdn_url) && !$this->getFlag('paywall') && !$this->getWireThreshold()) {
-        //     $base_url = $CONFIG->cdn_url;
-        // } else {
-        //     $base_url = \elgg_get_site_url();
-        // }
-
         // if ($this->access_id != 2) {
         //     $base_url = \elgg_get_site_url();
         // }

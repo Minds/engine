@@ -177,6 +177,8 @@ class notifications implements Interfaces\Api
      */
     protected function polyfillResponse($notifications) : array
     {
+        $manager = Di::_()->get('Notification\Manager');
+        $acl = Di::_()->get('Security\ACL');
         $return = [];
         // Formatting for legacy notification handling in frontend
         foreach ($notifications as $key => $entity) {
@@ -186,15 +188,23 @@ class notifications implements Interfaces\Api
             }
             $entityObj = Entities\Factory::build($entity->getEntityGuid());
             $fromObj = Entities\Factory::build($entity->getFromGuid());
+
             $toObj = Core\Session::getLoggedInUser();
             $data = $entity->getData();
 
-            if ($entity->getEntityGuid() && !$entityObj) {
-                unset($notifications[$key]);
-                continue;
-            }
-
-            if ($entity->getFromGuid() && !$fromObj) {
+            try {
+                if (
+                    ($entity->getEntityGuid() && !$entityObj)
+                    || ($entityObj && !$acl->read($entityObj, $toObj))
+                    || ($entity->getFromGuid() && !$fromObj)
+                    || !$acl->read($fromObj, $toObj)
+                    || !$acl->interact($toObj, $fromObj)
+                ) {
+                    $manager->delete($entity);
+                    unset($notifications[$key]);
+                    continue;
+                }
+            } catch (\Exception $e) {
                 unset($notifications[$key]);
                 continue;
             }

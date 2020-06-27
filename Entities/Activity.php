@@ -6,16 +6,23 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Queue;
 use Minds\Core\Analytics;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
+use Minds\Core\Wire\Paywall\PaywallEntityTrait;
 
 /**
  * Activity Entity
  */
-class Activity extends Entity implements MutatableEntityInterface
+class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface
 {
+    use PaywallEntityTrait;
+
+    /** @var array */
     public $indexes = null;
 
+    /** @var bool */
     protected $dirtyIndexes = false;
 
+    /** @var bool */
     protected $hide_impressions = false;
 
     /** @var string */
@@ -709,29 +716,10 @@ class Activity extends Entity implements MutatableEntityInterface
     }
 
     /**
-     * Sets if there is a paywall or not
-     * @param mixed $value
-     */
-    public function setPayWall($value)
-    {
-        $this->paywall = (bool) $value;
-        return $this;
-    }
-
-    /**
      * Return if there is a paywall or not
      * @return bool
      */
     public function getPayWall(): bool
-    {
-        return (bool) $this->paywall;
-    }
-
-    /**
-     * Checks if there is a paywall for this post
-     * @return boolean
-     */
-    public function isPayWall()
     {
         return (bool) $this->paywall;
     }
@@ -775,26 +763,6 @@ class Activity extends Entity implements MutatableEntityInterface
         $totals = [];
         $totals['tokens'] = Core\Wire\Counter::getSumByEntity($guid, 'tokens');
         return $totals;
-    }
-
-    /**
-     * Gets wire threshold
-     * @return mixed
-     */
-    public function getWireThreshold()
-    {
-        return $this->wire_threshold;
-    }
-
-    /**
-     * Sets wire threshold
-     * @param $wire_threshold
-     * @return $this
-     */
-    public function setWireThreshold($wire_threshold)
-    {
-        $this->wire_threshold = $wire_threshold;
-        return $this;
     }
 
     public function getBoostRejectionReason()

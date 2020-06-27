@@ -17,6 +17,9 @@ class TierBuilder
         'Silver',
         'Gold',
         'Platinum',
+        'Epic',
+        'Ultimate',
+        'Galactic',
     ];
 
     /**
