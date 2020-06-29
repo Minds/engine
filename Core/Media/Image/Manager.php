@@ -77,6 +77,12 @@ class Manager
         ) {
             $uri = $this->config->get('site_url') . $path;
             $uri = $this->signUri($uri);
+
+            // TODO: move this over to paywall manager via a hook (or something?)
+            $loggedInUser = Session::getLoggedInUser();
+            if ($entity instanceof PaywallEntityInterface && $entity->isPayWallUnlocked() || ($loggedInUser && $entity->owner_guid == $loggedInUser->getGuid())) {
+                $uri .= "&unlock_paywall=" . time();
+            }
         }
 
         return $uri;

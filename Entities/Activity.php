@@ -304,6 +304,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 if ($this->custom_data['guid']) {
                     $export['play:count'] = Helpers\Counters::get($this->custom_data['guid'], 'plays');
                 }
+                $export['thumbnail_src'] = $export['custom_data']['thumbnail_src'];
                 break;
             case 'batch':
                 // fix old images src

@@ -65,6 +65,7 @@ class ManagerSpec extends ObjectBehavior
         $entity = new Image();
         $entity->set('guid', 123);
         $entity->set('access_id', ACCESS_PRIVATE);
+        $entity->set('flags', []);
         $this->config->get('cdn_url')
             ->willReturn('https://minds.dev/');
         $this->config->get('site_url')

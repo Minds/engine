@@ -296,5 +296,6 @@ class ProhibitedDomains
         '/360mate.com',
         'rebrand.ly',
         'fiverr.com', // temporarily until better defence is built
+        'smmservicesbuy.com',
     ];
 }
