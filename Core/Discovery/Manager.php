@@ -42,6 +42,9 @@ class Manager
     /** @var User */
     protected $user;
 
+    /** @var string */
+    protected $plusSupportTierUrn;
+
     public function __construct(
         $es = null,
         $entitiesBuilder = null,
@@ -56,6 +59,7 @@ class Manager
         $this->hashtagManager = $hashtagManager ?? Di::_()->get('Hashtags\User\Manager');
         $this->elasticFeedsManager = $elasticFeedsManager ?? Di::_()->get('Feeds\Elastic\Manager');
         $this->user = $user ?? Session::getLoggedInUser();
+        $this->plusSupportTierUrn = $this->config->get('plus')['support_tier_urn'];
     }
 
     /**
@@ -67,18 +71,25 @@ class Manager
     {
         $opts = array_merge([
             'limit' => 10,
+            'plus' => false
         ], $opts);
 
         $this->tagCloud = $this->getTagCloud();
 
-        if (empty($this->tagCloud)) {
+        if (empty($this->tagCloud) && $opts['plus'] === false) {
             throw new NoTagsException();
         }
 
-        $tagTrends12 = $this->getTagTrendsForPeriod(12, [], [ 'limit' => ceil($opts['limit'] / 2) ]);
+        $tagTrends12 = $this->getTagTrendsForPeriod(12, [], [
+            'limit' => ceil($opts['limit'] / 2),
+            'plus' => $opts['plus'],
+        ]);
         $tagTrends24 = $this->getTagTrendsForPeriod(24, array_map(function ($trend) {
             return $trend->getHashtag();
-        }, $tagTrends12), [ 'limit' => floor($opts['limit'] / 2) ]);
+        }, $tagTrends12), [
+            'limit' => floor($opts['limit'] / 2),
+            'plus' => $opts['plus'],
+        ]);
 
         $results = array_merge($tagTrends12, $tagTrends24);
 
@@ -86,7 +97,7 @@ class Manager
             $missingCount = $opts['limit'] - count($results);
             $tagTrendsFallback = $this->getTagTrendsForPeriod(2160 /* 90d */, array_map(function ($trend) {
                 return $trend->getHashtag();
-            }, $results), [ 'limit' => $missingCount ]);
+            }, $results), [ 'limit' => $missingCount, 'plus' => $opts['plus'] ]);
 
             $results = array_merge($results, $tagTrendsFallback);
         }
@@ -104,6 +115,7 @@ class Manager
     {
         $opts = array_merge([
             'limit' => 10,
+            'plus' => false,
         ], $opts);
 
         $excludeTags = array_merge(self::GLOBAL_EXCLUDED_TAGS, $excludeTags);
@@ -113,38 +125,65 @@ class Manager
             $languages = [ $this->user->getLanguage(), 'en' ];
         }
 
+        $must = [];
+        $must_not = [];
+
+        // Date range
+
+        $must[] = [
+            'range' => [
+                '@timestamp' => [
+                    'gte' => strtotime("$hoursAgo hours ago") * 1000,
+                ]
+            ],
+        ];
+
+        // Tag cloud
+
+        if ($opts['plus'] === false) {
+            $must[] = [
+                'terms' => [
+                    'tags' => $this->tagCloud,
+                ]
+            ];
+        }
+
+        // Languages
+
+        if ($opts['plus'] === false) {
+            $must[] = [
+                'terms' => [
+                    'language' => $languages,
+                ]
+            ];
+        }
+
+        // Focus in on plus
+
+        if ($opts['plus'] === true) {
+            $must[] = [
+                'term' => [
+                    'wire_support_tier' => $this->plusSupportTierUrn,
+                ],
+            ];
+        }
+
+        // No NSFW
+
+        $must_not[] = [
+            'terms' => [
+                'nsfw' => [0,1,2,3,4,5,6]
+            ]
+        ];
+
         $query = [
             'index' => $this->config->get('elasticsearch')['index'],
             'type' => 'activity',
             'body' =>  [
                 'query' => [
                     'bool' => [
-                        'must' => [
-                            [
-                                'range' => [
-                                    '@timestamp' => [
-                                        'gte' => strtotime("$hoursAgo hours ago") * 1000,
-                                    ]
-                                ],
-                            ],
-                            [
-                                'terms' => [
-                                    'tags' => $this->tagCloud,
-                                ]
-                            ],
-                            [
-                                'terms' => [
-                                    'language' => $languages,
-                                ]
-                            ],
-                        ],
-                        'must_not' => [
-                            [
-                                'terms' => [
-                                    'nsfw' => [0,1,2,3,4,5,6]
-                                ]
-                            ],
-                        ]
+                        'must' => $must,
+                        'must_not' => $must_not,
                     ],
                 ],
                 'aggs' => [
@@ -152,7 +191,7 @@ class Manager
                         'terms' => [
                             'field' => 'tags.keyword',
                             'min_doc_count' => 10,
-                            'exclude' => $excludeTags,
+                            'exclude' => $opts['plus'] ? [] : $excludeTags,
                             'size' => $opts['limit'],
                             'order' => [
                                 'tags_per_owner' => 'desc',
@@ -203,7 +242,12 @@ class Manager
             'hoursAgo' => 72,
             'limit' => 5,
             'shuffle' => true,
+            'plus' => false,
         ], $opts);
+
+        if ($opts['plus'] === true) {
+            $opts['hoursAgo'] = 168; // 1 Week
+        }
 
         $algorithm = new SortingAlgorithms\TopV2();
 
@@ -211,6 +255,63 @@ class Manager
            'fragment_size' => 400,
            'number_of_fragments' => 1,
            'no_match_size' => 20
+        ];
+
+        $must = [];
+        $must_not = [];
+
+        // Date Range
+
+        $must[] = [
+            'range' => [
+                '@timestamp' => [
+                    'gte' => strtotime("{$opts['hoursAgo']} hours ago") * 1000,
+                ]
+            ],
+        ];
+
+        // Have interaction
+
+        if ($opts['plus'] === false) {
+            $must[] = [
+                'range' => [
+                    'comments:count' => [
+                        'gte' => 1,
+                    ]
+                ]
+            ];
+        }
+
+        // Match query
+
+        if ($opts['plus'] === false) {
+            $must[] = [
+                'multi_match' => [
+                    //'type' => 'cross_fields',
+                    'query' => implode(' ', $tags),
+                    'operator' => 'OR',
+                    'fields' => ['title', 'message', 'tags^2'],
+                    'boost' => 0,
+                ],
+            ];
+        }
+
+        // Only plus?
+
+        if ($opts['plus'] === true) {
+            $must[] = [
+                'term' => [
+                    'wire_support_tier' => $this->plusSupportTierUrn,
+                ],
+            ];
+        }
+
+        // Not NSFW
+
+        $must_not[] = [
+            'terms' => [
+                'nsfw' => [0,1,2,3,4,5,6],
+            ]
         ];
 
         $query = [
@@ -221,38 +322,8 @@ class Manager
                     'function_score' => [
                         'query' => [
                             'bool' => [
-                                'must' => [
-                                    [
-                                        'range' => [
-                                            '@timestamp' => [
-                                                'gte' => strtotime("{$opts['hoursAgo']} hours ago") * 1000,
-                                            ]
-                                        ],
-                                    ],
-                                    [
-                                        'range' => [
-                                            'comments:count' => [
-                                                'gte' => 1,
-                                            ]
-                                        ]
-                                    ],
-                                    [
-                                        'multi_match' => [
-                                            //'type' => 'cross_fields',
-                                            'query' => implode(' ', $tags),
-                                            'operator' => 'OR',
-                                            'fields' => ['title', 'message', 'tags^2'],
-                                            'boost' => 0,
-                                        ],
-                                    ]
-                                ],
-                                'must_not' => [
-                                    [
-                                        'terms' => [
-                                            'nsfw' => [0,1,2,3,4,5,6],
-                                        ]
-                                    ],
-                                ]
+                                'must' => $must,
+                                'must_not' => $must_not,
                             ]
                         ],
                         "score_mode" => 'multiply',
@@ -313,9 +384,9 @@ class Manager
                         ],
                     ]
                 ],
-                "collapse" => [
-                    "field" => "owner_guid.keyword"
-                ],
+//                "collapse" => [
+//                    "field" => "owner_guid.keyword"
+//                ],
                 "highlight" => [
                      "pre_tags" => [
                         "<span class='m-highlighted'>"
@@ -356,6 +427,10 @@ class Manager
 
             $entity = $this->entitiesBuilder->single($doc['_id']);
 
+            if ($opts['plus'] === true) {
+                $entity->setPayWallUnlocked(true);
+            }
+
             $exportedEntity = $entity->export();
             if (!$exportedEntity['thumbnail_src']) {
                 error_log("{$exportedEntity['guid']} has not thumbnail");
@@ -389,9 +464,10 @@ class Manager
      * Return entities for a search query and filter
      * @param string $query
      * @param string $filter
+     * @param array $opts
      * @return Response
      */
-    public function getSearch(string $query, string $filter, string $type = 'activity'): Response
+    public function getSearch(string $query, string $filter, string $type = 'activity', array $opts = []): Response
     {
         $algorithm = 'latest';
 
@@ -424,7 +500,7 @@ class Manager
 
         $elasticEntities = new Core\Feeds\Elastic\Entities();
         
-        $opts = [
+        $opts = array_merge([
             'cache_key' => $this->user->getGuid(),
             'access_id' => 2,
             'limit' => 5000,
@@ -434,7 +510,8 @@ class Manager
             'algorithm' => $algorithm,
             'period' => '1y',
             'query' => $query,
-        ];
+            'plus' => false,
+        ]);
 
         $rows = $this->elasticFeedsManager->getList($opts);
 

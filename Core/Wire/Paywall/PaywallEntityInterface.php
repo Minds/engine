@@ -17,6 +17,19 @@ interface PaywallEntityInterface
     public function isPayWall(): bool;
 
     /**
+     * Set the paywall to be unlocked
+     * @param bool $unlocked
+     * @return self
+     */
+    public function setPayWallUnlocked(bool $unlocked);
+
+    /**
+     * Return if the entity is unlocked
+     * @return bool
+     */
+    public function isPayWallUnlocked(): bool;
+
+    /**
      * Set the paywall threshold data (or support tier for v2)
      * @param array $wireThreshold
      * @return self
