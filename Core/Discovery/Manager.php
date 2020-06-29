@@ -470,6 +470,9 @@ class Manager
     public function getSearch(string $query, string $filter, string $type = 'activity', array $opts = []): Response
     {
         $algorithm = 'latest';
+        $opts = array_merge([
+            'plus' => false,
+        ], $opts);
 
         switch ($type) {
             case 'blogs':
@@ -510,7 +513,7 @@ class Manager
             'algorithm' => $algorithm,
             'period' => '1y',
             'query' => $query,
-            'plus' => false,
+            'plus' => $opts['plus'],
         ]);
 
         $rows = $this->elasticFeedsManager->getList($opts);
