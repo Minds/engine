@@ -42,6 +42,17 @@ class Events
 
             $dirty = false;
 
+            if (!$activity instanceof PaywallEntityInterface) {
+                return;
+            }
+
+            if ($activity->isPayWallUnlocked()) {
+                $export['paywall'] = false;
+                $export['paywall_unlocked'] = true;
+                $event->setResponse($export);
+                return;
+            }
+
             if ($activity->isPaywall() && $activity->owner_guid != $currentUser) {
                 $export['blurb'] = $this->extractTeaser($activity->blurb);
                 $export['message'] = $this->extractTeaser($activity->message);
@@ -183,6 +194,10 @@ class Events
             $wireThreshold['support_tier'] = array_merge($wireThreshold['support_tier'], $supportTier->export());
 
             $export['wire_threshold'] = $wireThreshold;
+
+            if ($entity->isPayWallUnlocked()) {
+                $export['paywall_unlocked'] = true;
+            }
 
             return $event->setResponse($export);
         });

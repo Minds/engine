@@ -3,6 +3,9 @@ namespace Minds\Core\Wire\Paywall;
 
 trait PaywallEntityTrait
 {
+    /** @var bool */
+    protected $paywallUnlocked = false;
+
     /**
      * Set the entity as being paywalled
      * @param bool $paywalled
@@ -24,6 +27,26 @@ trait PaywallEntityTrait
             return $this->attributes['flags']['paywall'];
         }
         return (bool) $this->paywall;
+    }
+
+    /**
+     * Set the paywall to be unlocked
+     * @param bool $unlocked
+     * @return self
+     */
+    public function setPayWallUnlocked(bool $unlocked): self
+    {
+        $this->paywallUnlocked = $unlocked;
+        return $this;
+    }
+
+    /**
+     * Return if the entity is unlocked
+     * @return bool
+     */
+    public function isPayWallUnlocked(): bool
+    {
+        return $this->paywallUnlocked;
     }
 
     /**

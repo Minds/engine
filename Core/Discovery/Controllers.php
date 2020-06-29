@@ -24,13 +24,20 @@ class Controllers
     {
         $queryParams = $request->getQueryParams();
         $shuffle = $queryParams['shuffle'] ?? true;
+        $plus = filter_var($queryParams['plus'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $tagLimit = 8;
         $postLimit = 5;
 
-        $tagTrends = $this->manager->getTagTrends([ 'limit' => $tagLimit * 2 ]); //Return more tags than we need for posts to feed from
+        $tagTrends = $this->manager->getTagTrends([
+            'limit' => $tagLimit * 2,  //Return more tags than we need for posts to feed from
+            'plus' => $plus
+        ]);
         $postTrends = $this->manager->getPostTrends(array_map(function ($trend) {
             return "{$trend->getHashtag()}";
-        }, $tagTrends), [ 'limit' => $postLimit ]);
+        }, $tagTrends), [
+            'limit' => $postLimit,
+            'plus' => $plus,
+        ]);
 
         $hero = array_shift($postTrends);
 
@@ -58,7 +65,8 @@ class Controllers
         $query = $queryParams['q'] ?? null;
         $filter = $queryParams['algorithm'] ?? 'latest';
         $type = $queryParams['type'] ?? '';
-        $entities = $this->manager->getSearch($query, $filter, $type);
+        $plus = filter_var($queryParams['plus'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $entities = $this->manager->getSearch($query, $filter, $type, [ 'plus' => $plus ]);
 
         return new JsonResponse([
             'status' => 'success',
