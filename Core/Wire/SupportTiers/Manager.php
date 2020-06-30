@@ -152,14 +152,20 @@ class Manager
                 ->setLimit(5000)
         );
 
-        return $this->currenciesDelegate->hydrate(
-            $supportTiers->filter(function (SupportTier $supportTier) use ($matchingSupportTier) {
-                return
+        $supportTier = $supportTiers->filter(function (SupportTier $supportTier) use ($matchingSupportTier) {
+            return
                     $supportTier->isPublic() === $matchingSupportTier->isPublic() &&
                     $supportTier->getUsd() === $matchingSupportTier->getUsd() &&
                     $supportTier->hasUsd() === $matchingSupportTier->hasUsd() &&
                     $supportTier->hasTokens() === $matchingSupportTier->hasTokens();
-            })->first()
+        })->first();
+
+        if (!$supportTier) {
+            return null;
+        }
+
+        return $this->currenciesDelegate->hydrate(
+            $supportTier
         );
     }
 
