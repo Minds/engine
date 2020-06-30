@@ -80,6 +80,10 @@ class LoggedInMiddlewareSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
+        $request->getAttribute('oauth_user_id')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $handler->handle($request)
             ->shouldNotBeCalled();
 
