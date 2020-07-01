@@ -506,7 +506,7 @@ class Manager
         $opts = array_merge([
             'cache_key' => $this->user->getGuid(),
             'access_id' => 2,
-            'limit' => 5000,
+            'limit' => 300,
             //'offset' => $offset,
             'nsfw' => [],
             'type' => $type,
