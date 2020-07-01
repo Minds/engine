@@ -277,7 +277,7 @@ class Manager
             $hydratedEntities = $this->entitiesBuilder->get(['guids' => $hydrateGuids, 'acl' => false]);
 
             foreach ($hydratedEntities as $entity) {
-                if (Flags::shouldFail($entity)) {
+                if (Flags::shouldFail($entity) && false) {
                     $this->eventsDispatcher->trigger('search:index', 'all', [
                         'entity' => $entity,
                         'immediate' => false
