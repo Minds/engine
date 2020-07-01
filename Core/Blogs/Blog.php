@@ -618,7 +618,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface
 
         // Sanitize body
         $output['body'] = (new XSS())
-            ->setAllowed(['<pre>', '<code>', '<figure>', '<figcaption>', '<table>', '<tbody>', '<tr>', '<td>'])
+            ->setAllowed(['<pre>', '<code>', '<figure>', '<figcaption>', '<table>', '<tbody>', '<tr>', '<td>', '<th>'])
             ->clean($export['body']);
 
         // Legacy
