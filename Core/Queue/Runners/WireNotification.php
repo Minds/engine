@@ -58,9 +58,9 @@ class WireNotification implements Interfaces\QueueRunner
                         'notification_view' => 'wire_happened',
                         'params' => [
                             'amount' => $this->getAmountString($wire),
-                            'from_guid' => $senderUser->guid,
+                            'from_guid' => (string) $senderUser->guid,
                             'from_username' => $senderUser->username,
-                            'to_guid' => $receiverUser->guid,
+                            'to_guid' => (string) $receiverUser->guid,
                             'to_username' => $receiverUser->username,
                             'subscribed' => $data['subscribed'],
                         ],
@@ -83,9 +83,9 @@ class WireNotification implements Interfaces\QueueRunner
                         'notification_view' => 'wire_happened',
                         'params' => [
                             'amount' => $this->getAmountString($wire),
-                            'from_guid' => $senderUser->guid,
+                            'from_guid' => (string) $senderUser->guid,
                             'from_username' => $senderUser->username,
-                            'to_guid' => $receiverUser->guid,
+                            'to_guid' => (string) $receiverUser->guid,
                             'to_username' => $receiverUser->username,
                             'subscribed' => $data['subscribed'],
                         ],
