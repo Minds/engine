@@ -132,6 +132,9 @@ class Manager
             ) {
                 return null;
             }
+            if (!empty($entity->getNsfw())) {
+                return null;
+            }
             if ($entity->getType() === 'user') {
                 $entity->exportCounts = true;
             }
