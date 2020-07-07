@@ -19,10 +19,18 @@ class Manager
     /** @var SupportTiers\Manager */
     protected $supportTiersManager;
 
-    public function __construct($wireThresholds = null, $supportTiersManager = null)
+    /** @var Delegates\MetricsDelegate */
+    protected $metricsDelegate;
+
+    public function __construct(
+        $wireThresholds = null,
+        $supportTiersManager = null,
+        $metricsDelegate = null
+    )
     {
         $this->wireThresholds = $wireTresholds ?? Di::_()->get('Wire\Thresholds');
         $this->supportTiersManager = $supportTiersManager ?? Di::_()->get('Wire\SupportTiers\Manager');
+        $this->metricsDelegate = $metricsDelegate ?? new Delegates\MetricsDelegate();
     }
 
     /**
@@ -106,5 +114,22 @@ class Manager
             return false;
         }
         return $this->wireThresholds->isAllowed($this->user, $entity);
+    }
+
+    /**
+     * Unlocks and entity
+     * @param PaywallEntityInterface $entity
+     */
+    public function unlock(PaywallEntityInterface $entity): PaywallEntityInterface
+    {
+        if ($this->isAllowed($entity) || $this->user->isAdmin()) {
+            $entity->setPayWallUnlocked(true);
+        } else {
+            throw new PaywallUserNotPaid();
+        }
+
+        $this->metricsDelegate->onUnlock($entity, $this->user);
+
+        return $entity;
     }
 }

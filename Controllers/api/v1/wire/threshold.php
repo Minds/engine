@@ -22,6 +22,8 @@ class threshold implements Interfaces\Api
             return Factory::response($response);
         }
 
+        $paywallManager = Di::_()->get('Wire\Paywall\Manager');
+
         // $entity = new Entities\Activity($pages[0]);
         $user = Session::getLoggedInUser();
         $entity = Entities\Factory::build($pages[0]);
@@ -30,18 +32,11 @@ class threshold implements Interfaces\Api
             return Factory::response(['status' => 'error', 'message' => 'Entity couldn\'t be found']);
         }
 
-        try {
-            $isAllowed = $user->isAdmin() || Di::_()->get('Wire\Thresholds')->isAllowed($user, $entity);
-        } catch (\Exception $e) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
-        }
-
         // if the user wires amounts to the threshold or more
-        if ($isAllowed) {
-            $entity->setPayWallUnlocked(true);
+        try {
+            $entity = $paywallManager
+                ->setUser($user)
+                ->unlock($entity, $user);
 
             if ($entity->type == 'activity') {
                 $response['activity'] = $entity->export();
@@ -49,6 +44,11 @@ class threshold implements Interfaces\Api
                 $response['entity'] = $entity->export();
                 $response['entity']['paywall_unlocked'] = true;
             }
+        } catch (\Exception $e) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
         }
 
         return Factory::response($response);
