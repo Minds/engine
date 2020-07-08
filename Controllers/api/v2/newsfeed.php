@@ -485,13 +485,6 @@ class newsfeed implements Interfaces\Api
 
                     // TODO: remove this when new paywall is released
                     if (isset($_POST['wire_threshold'])) {
-                        if (is_array($_POST['wire_threshold']) && ($_POST['wire_threshold']['min'] <= 0 || !$_POST['wire_threshold']['type'])) {
-                            return Factory::response([
-                                'status' => 'error',
-                                'message' => 'Invalid Wire threshold'
-                            ]);
-                        }
-
                         // Validation happend on Manager->onUpdate // PaywallDelegate->onUpdate
 
                         $activityMutation->setWireThreshold($_POST['wire_threshold']);
