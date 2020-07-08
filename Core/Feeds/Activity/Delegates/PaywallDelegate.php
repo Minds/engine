@@ -25,4 +25,14 @@ class PaywallDelegate
     {
         $this->paywallManager->validateEntity($activity);
     }
+
+    /**
+     * On updating the activity
+     * @param Activity $activity
+     * @return void
+     */
+    public function onUpdate(Activity $activity): void
+    {
+        $this->paywallManager->validateEntity($activity);
+    }
 }

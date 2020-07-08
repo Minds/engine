@@ -72,7 +72,7 @@ class Manager
             throw new PaywallInvalidCreationInputException();
         }
 
-        if ($wireThreshold['support_tier']) {
+        if ($wireThreshold['support_tier'] ?? null) {
             // V2 of Paywall
             $urn = $wireThreshold['support_tier']['urn'] ?? null;
             $expires = $wireThreshold['support_tier']['expires'] ?? 0;
@@ -93,7 +93,7 @@ class Manager
                     'expires' => $expires
                 ]
             ]);
-        } elseif ($wireThreshold['min'] > 0 && $wireThreshold['type']) {
+        } elseif (($wireThreshold['min'] ?? 0) > 0 && $wireThreshold['type'] ?? null) {
             // Legacy version which will soon be removed
             // Nothing to do here, as the data is already set
         } else {
