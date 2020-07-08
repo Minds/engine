@@ -221,7 +221,7 @@ class ACL
         /**
          * If the user hasn't verified the email
          */
-        if (!$this->isEmailVerified($user)) {
+        if (!$this->isEmailVerified($user) && $user->guid !== $entity->guid) {
             throw new UnverifiedEmailException();
         }
 
