@@ -29,6 +29,9 @@ class Manager
     /** @var Delegates\VideoPosterDelegate */
     private $videoPosterDelegate;
 
+    /** @var Delegates\PaywallDelegate */
+    private $paywallDelegate;
+
     /** @var Save */
     private $save;
 
@@ -42,7 +45,8 @@ class Manager
         $timeCreatedDelegate = null,
         $save = null,
         $propagateProperties = null,
-        $videoPosterDelegate = null
+        $videoPosterDelegate = null,
+        $paywallDelegate = null
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -51,6 +55,7 @@ class Manager
         $this->save = $save ?? new Save();
         $this->propagateProperties = $propagateProperties ?? new PropagateProperties();
         $this->videoPosterDelegate = $videoPosterDelegate ?? new Delegates\VideoPosterDelegate();
+        $this->paywallDelegate = $paywallDelegate ?? new Delegates\PaywallDelegate();
     }
 
     /**
@@ -107,6 +112,10 @@ class Manager
 
         if ($activityMutation->hasMutated('videoPosterBase64Blob')) {
             $this->videoPosterDelegate->onUpdate($activity);
+        }
+
+        if ($activityMutation->hasMutated('wireThreshold')) {
+            $this->paywallDelegate->onUpdate($activity);
         }
 
         $this->save
