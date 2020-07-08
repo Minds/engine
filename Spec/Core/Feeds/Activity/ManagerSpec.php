@@ -24,13 +24,21 @@ class ManagerSpec extends ObjectBehavior
     /** @var PropagateProperties */
     private $propagateProperties;
 
-    public function let(Delegates\ForeignEntityDelegate $foreignEntityDelegate, Save $save, PropagateProperties $propagateProperties)
-    {
-        $this->beConstructedWith($foreignEntityDelegate, null, null, null, $save, $propagateProperties);
+    /** @var Delegates\PaywallDelegate */
+    private $paywallDelegate;
+
+    public function let(
+        Delegates\ForeignEntityDelegate $foreignEntityDelegate,
+        Save $save,
+        PropagateProperties $propagateProperties,
+        Delegates\PaywallDelegate $paywallDelegate
+    ) {
+        $this->beConstructedWith($foreignEntityDelegate, null, null, null, $save, $propagateProperties, null, $paywallDelegate);
         $this->foreignEntityDelegate = $foreignEntityDelegate;
 
         $this->save = $save;
         $this->propagateProperties = $propagateProperties;
+        $this->paywallDelegate = $paywallDelegate;
 
         Session::setUser((new User())->set('guid', 123)->set('username', 'test'));
     }
@@ -68,7 +76,7 @@ class ManagerSpec extends ObjectBehavior
         $activityMutation->setTags([ 'music', 'technology' ]);
         $activityMutation->setNsfw([1]);
    
-        $activityMutation->setWireThreshold(['type' => 'tokens']);
+        $activityMutation->setWireThreshold(['type' => 'tokens', 'min' => 1]);
         $activityMutation->setPaywall(true);
     
         $activityMutation->setLicense('');
@@ -93,6 +101,39 @@ class ManagerSpec extends ObjectBehavior
         $activity->subtype = 'video';
 
         $activityMutation = new EntityMutation($activity);
+
+        $this->update($activityMutation);
+    }
+
+    public function it_should_update_an_activity_wire_threshold()
+    {
+        $this->paywallDelegate->onUpdate(Argument::any())
+            ->shouldBeCalled();
+
+        $this->save->setEntity(Argument::that(function ($activity) {
+            return $activity->getWireThreshold() === [
+                'support_tier' => [
+                    'urn' => 'urn:support-tier:spec-test/x'
+                ]
+            ];
+        }))
+            ->shouldBeCalled()
+            ->willReturn($this->save);
+
+        $this->save->save()
+            ->shouldBeCalled();
+
+        $activity = new Activity();
+        $activity->owner_guid = 123;
+
+        $activityMutation = new EntityMutation($activity);
+   
+        $activityMutation->setWireThreshold([
+            'support_tier' => [
+                'urn' => 'urn:support-tier:spec-test/x',
+            ]
+        ]);
+        $activityMutation->setPaywall(true);
 
         $this->update($activityMutation);
     }

@@ -10,6 +10,7 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Entities;
+use Minds\Entities\Video;
 use Minds\Interfaces;
 use Minds\Helpers\File;
 
@@ -73,7 +74,7 @@ class thumbnail extends Core\page implements Interfaces\page
 
             $paywallManager = Di::_()->get('Wire\Paywall\Manager');
             
-            if ($paywallManager->isPaywalled($entity)) {
+            if ($paywallManager->isPaywalled($entity) && !$entity instanceof Video) {
                 $allowed = $paywallManager
                     ->setUser(Core\Session::getLoggedInUser())
                     ->isAllowed($entity);
