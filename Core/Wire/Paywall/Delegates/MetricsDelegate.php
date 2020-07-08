@@ -7,7 +7,6 @@ use Minds\Core\Analytics\Metrics\Event;
 
 class MetricsDelegate
 {
-
     /**
      * On unlock, record in the metrics system
      */
@@ -32,5 +31,4 @@ class MetricsDelegate
 
         $event->push();
     }
-
 }

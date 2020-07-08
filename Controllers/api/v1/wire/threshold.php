@@ -38,16 +38,13 @@ class threshold implements Interfaces\Api
                 ->setUser($user)
                 ->unlock($entity, $user);
 
-            if ($entity->type == 'activity') {
-                $response['activity'] = $entity->export();
-            } else {
-                $response['entity'] = $entity->export();
-                $response['entity']['paywall_unlocked'] = true;
-            }
+            $response['entity'] = $entity->export();
+            $response['entity']['paywall_unlocked'] = true;
         } catch (\Exception $e) {
             return Factory::response([
                 'status' => 'error',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
+                'errorId' => str_replace('\\', '::', get_class($e)),
             ]);
         }
 
