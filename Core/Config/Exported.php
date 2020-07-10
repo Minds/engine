@@ -1,6 +1,7 @@
 <?php
 /**
- * Exported
+ * Exported.
+ *
  * @author edgebal
  */
 
@@ -15,7 +16,6 @@ use Minds\Core\Rewards\Contributions\ContributionValues;
 use Minds\Core\Session;
 use Minds\Core\ThirdPartyNetworks\Manager as ThirdPartyNetworksManager;
 use Minds\Entities\User;
-use Minds\Helpers\Counters;
 
 class Exported
 {
@@ -33,11 +33,12 @@ class Exported
 
     /**
      * Exported constructor.
-     * @param Config $config
+     *
+     * @param Config                    $config
      * @param ThirdPartyNetworksManager $thirdPartyNetworks
-     * @param I18nManager $i18n
-     * @param BlockchainManager $blockchain
-     * @param FeaturesManager $features
+     * @param I18nManager               $i18n
+     * @param BlockchainManager         $blockchain
+     * @param FeaturesManager           $features
      */
     public function __construct(
         $config = null,
@@ -96,6 +97,7 @@ class Exported
             'contribution_values' => ContributionValues::export(),
             'environment' => getenv('MINDS_ENV') ?: 'development',
             'boost_rotator_interval' => $this->config->get('boost_rotator_interval'),
+            'token_exchange_rate' => $this->config->get('token_exchange_rate'),
         ];
 
         if (Session::isLoggedIn()) {
