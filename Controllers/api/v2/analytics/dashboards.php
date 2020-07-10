@@ -16,13 +16,20 @@ class dashboards implements Interfaces\Api
 {
     public function get($pages)
     {
+        $user = Session::getLoggedInUser();
+        if (!$user) {
+            return ([
+                'error' => 'You must be logged in to view analytics dashboards'
+            ]);
+        }
+
         $dashboardsManager = Di::_()->get('Analytics\Dashboards\Manager');
 
         $id = $pages[0] ?? 'unknown';
 
         $dashboard = $dashboardsManager->getDashboardById($id);
 
-        $dashboard->setUser(Session::getLoggedInUser());
+        $dashboard->setUser($user);
 
         if (isset($_GET['timespan'])) {
             $dashboard->setTimespanId($_GET['timespan']);
