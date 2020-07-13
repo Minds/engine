@@ -525,7 +525,7 @@ class newsfeed implements Interfaces\Api
                     }
 
                     if (isset($_POST['access_id'])) {
-                        error_log("accessId is: ".$_POST['access_id']);
+                        error_log("accessId is: " . $_POST['access_id']);
                         $activityMutation->setAccessId($_POST['access_id']);
                     }
 
@@ -543,7 +543,7 @@ class newsfeed implements Interfaces\Api
                     }
 
                     $activity->setExportContext(true);
-                    
+
                     return Factory::response([
                         'guid' => $activity->guid,
                         'activity' => $activityMutation->getMutatedEntity()->export(),
@@ -621,7 +621,9 @@ class newsfeed implements Interfaces\Api
 
                 $entityGuid = $_POST['entity_guid'] ?? $_POST['attachment_guid'] ?? null;
                 $url = $_POST['url'] ?? null;
-                
+
+                $attachmentDelegate = null;
+
                 try {
                     if ($entityGuid && !$url) {
                         // Attachment
@@ -631,9 +633,11 @@ class newsfeed implements Interfaces\Api
                         }
 
                         // Sets the attachment
-                        $activity = (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
+                        $attachmentDelegate = new Core\Feeds\Activity\Delegates\AttachmentDelegate();
+                        $attachmentDelegate
                             ->setActor(Core\Session::getLoggedinUser())
-                            ->onCreate($activity, (string) $entityGuid);
+                            ->onPreCreate($activity, (string) $entityGuid);
+
                     } elseif (!$entityGuid && $url) {
                         // Set-up rich embed
 
@@ -648,7 +652,7 @@ class newsfeed implements Interfaces\Api
                     }
 
                     // TODO: Move this to Core/Feeds/Activity/Manager
-  
+
                     if ($_POST['video_poster'] ?? null) {
                         $activity->setVideoPosterBase64Blob($_POST['video_poster']);
                         $videoPosterDelegate = new Core\Feeds\Activity\Delegates\VideoPosterDelegate();
@@ -656,6 +660,10 @@ class newsfeed implements Interfaces\Api
                     }
 
                     $guid = $save->setEntity($activity)->save();
+
+                    // on post create
+                    $attachmentDelegate->onPostCreate($activity);
+
                 } catch (\Exception $e) {
                     return Factory::response([
                         'status' => 'error',

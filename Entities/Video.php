@@ -35,6 +35,7 @@ class Video extends MindsObject
         $this->attributes['boost_rejection_reason'] = -1;
         $this->attributes['rating'] = 2;
         $this->attributes['time_sent'] = null;
+        $this->attributes['activity_guid'] = null;
         $this->attributes['youtube_id'] = null;
         $this->attributes['youtube_channel_id'] = null;
         $this->attributes['transcoding_status'] = null;
@@ -128,6 +129,8 @@ class Video extends MindsObject
     public function getExportableValues()
     {
         return array_merge(parent::getExportableValues(), [
+            'width',
+            'height',
             'thumbnail',
             'cinemr_guid',
             'license',
@@ -183,6 +186,8 @@ class Video extends MindsObject
         $export['youtube_id'] = $this->getYoutubeId();
         $export['youtube_channel_id'] = $this->getYoutubeChannelId();
         $export['transcoding_status'] = $this->getTranscodingStatus();
+        $export['width'] = $this->width;
+        $export['height'] = $this->height;
         return $export;
     }
 
@@ -292,6 +297,8 @@ class Video extends MindsObject
                 'mature' => $this->getFlag('mature'),
                 'full_hd' => $this->getFlag('full_hd'),
                 'license' => $this->license ?? '',
+                'width' => $this->width,
+                'height' => $this->height
             ],
         ];
     }

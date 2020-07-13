@@ -17,6 +17,7 @@ use Minds\Core\Security\ACL;
 use Minds\Exceptions\StopEventException;
 use Minds\Helpers\MagicAttributes;
 use Minds\Core\Log\Logger;
+use Minds\Entities\Video;
 
 /**
  * Save Action
@@ -64,7 +65,7 @@ class Save
      *
      * @return Entity
      */
-    public function getEntity(): Entity
+    public function getEntity()
     {
         return $this->entity;
     }

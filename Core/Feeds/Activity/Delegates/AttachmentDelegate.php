@@ -78,7 +78,7 @@ class AttachmentDelegate
      * @return Activity
      * @throws Exception
      */
-    public function onCreate(Activity $activity, string $attachmentGuid): Activity
+    public function onPreCreate(Activity $activity, string $attachmentGuid): Activity
     {
         /** @var Image|Video $attachment */
         $attachment = $this->entitiesBuilder->single($attachmentGuid);
@@ -156,11 +156,24 @@ class AttachmentDelegate
         }
 
         $this->saveAction
-            ->setEntity($attachment)
-            ->save();
+            ->setEntity($attachment);
 
         return $activity;
     }
+
+    /**
+     * @param Activity $activity
+     * @param string $attachmentGuid
+     * @return Activity
+     * @throws Exception
+     */
+    public function onPostCreate(Activity $activity): Activity
+    {
+        $this->saveAction->getEntity()->activity_guid = $activity->getGuid();
+        $this->saveAction->save();
+        return $activity;
+    }
+
 
     /**
      * Edits the Activity attachment, if any changes. This methods just uses onDelete and onCreate.

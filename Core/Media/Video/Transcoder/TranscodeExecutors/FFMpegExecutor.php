@@ -131,7 +131,7 @@ class FFMpegExecutor implements TranscodeExecutorInterface
         $pfx = $transcodeProfiler->getStorageName();
         $path = $sourcePath.'-'.$pfx;
         $format = $transcodeProfiler->getFormat();
-    
+
         $formatMap = [
             'video/mp4' => (new \FFMpeg\Format\Video\X264())
                 ->setAudioCodec('aac'),
@@ -150,7 +150,7 @@ class FFMpegExecutor implements TranscodeExecutorInterface
             $formatMap[$format]
                 ->setKiloBitRate($transcodeProfiler->getBitrate())
                 ->setAudioKiloBitrate($transcodeProfiler->getAudioBitrate());
-         
+
             // Run the transcode
             $video->save($formatMap[$format], $path);
 
@@ -199,12 +199,20 @@ class FFMpegExecutor implements TranscodeExecutorInterface
                 $path = $thumbnailsDir.'/'."thumbnail-$pad.png";
                 $frame->save($path);
 
+                // get thumb resolution (only first one)
+                if ($sec === 0) {
+                    list($width, $height) = getimagesize($path);
+                    $transcode->getProfile()
+                        ->setWidth($width)
+                        ->setHeight($height);
+                }
+
                 // Hack the profile storage name, as there are multiple thumbnails
                 $transcode->getProfile()->setStorageName("thumbnail-$pad.png");
 
                 // Upload to filestore
                 $this->transcodeStorage->add($transcode, $path);
-    
+
                 // Cleanup tmp
                 @unlink($path);
             }
