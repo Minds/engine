@@ -19,10 +19,17 @@ class Manager
     /** @var SupportTiers\Manager */
     protected $supportTiersManager;
 
-    public function __construct($wireThresholds = null, $supportTiersManager = null)
-    {
+    /** @var Delegates\MetricsDelegate */
+    protected $metricsDelegate;
+
+    public function __construct(
+        $wireThresholds = null,
+        $supportTiersManager = null,
+        $metricsDelegate = null
+    ) {
         $this->wireThresholds = $wireTresholds ?? Di::_()->get('Wire\Thresholds');
         $this->supportTiersManager = $supportTiersManager ?? Di::_()->get('Wire\SupportTiers\Manager');
+        $this->metricsDelegate = $metricsDelegate ?? new Delegates\MetricsDelegate();
     }
 
     /**
@@ -65,7 +72,7 @@ class Manager
             throw new PaywallInvalidCreationInputException();
         }
 
-        if ($wireThreshold['support_tier']) {
+        if ($wireThreshold['support_tier'] ?? null) {
             // V2 of Paywall
             $urn = $wireThreshold['support_tier']['urn'] ?? null;
             $expires = $wireThreshold['support_tier']['expires'] ?? 0;
@@ -86,7 +93,7 @@ class Manager
                     'expires' => $expires
                 ]
             ]);
-        } elseif ($wireThreshold['min'] > 0 && $wireThreshold['type']) {
+        } elseif (($wireThreshold['min'] ?? 0) > 0 && $wireThreshold['type'] ?? null) {
             // Legacy version which will soon be removed
             // Nothing to do here, as the data is already set
         } else {
@@ -106,5 +113,22 @@ class Manager
             return false;
         }
         return $this->wireThresholds->isAllowed($this->user, $entity);
+    }
+
+    /**
+     * Unlocks and entity
+     * @param PaywallEntityInterface $entity
+     */
+    public function unlock(PaywallEntityInterface $entity): PaywallEntityInterface
+    {
+        if ($this->isAllowed($entity) || $this->user->isAdmin()) {
+            $entity->setPayWallUnlocked(true);
+        } else {
+            throw new PaywallUserNotPaid();
+        }
+
+        $this->metricsDelegate->onUnlock($entity, $this->user);
+
+        return $entity;
     }
 }

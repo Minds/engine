@@ -138,6 +138,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 .", email:".$_POST['email']
                 .", signupParentId".$user->signupParentId
                 .", exception: ".$e->getMessage()
+                .", addr: " . $_SERVER['HTTP_X_FORWARDED_FOR']
             );
             $response = ['status' => 'error', 'message' => $e->getMessage()];
         }
