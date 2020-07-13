@@ -44,8 +44,6 @@ class MetadataDelegate
             $custom['height'] = $video->height;
             $activity->custom_data = $custom;
             $activity->save();
-        } else {
-            echo "No ACTIVITY!!!";
         }
 
     }
