@@ -43,5 +43,9 @@ class PaymentsProvider extends Provider
         $this->di->bind('Stripe\Intents\Manager', function ($di) {
             return new Stripe\Intents\Manager();
         }, ['useFactory'=>true]);
+
+        $this->di->bind('Stripe\Transactions\Manager', function ($di) {
+            return new Stripe\Transactions\Manager();
+        }, ['useFactory'=>true]);
     }
 }
