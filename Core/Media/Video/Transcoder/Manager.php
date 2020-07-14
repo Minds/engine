@@ -6,6 +6,7 @@ namespace Minds\Core\Media\Video\Transcoder;
 
 use Minds\Core\Media\Video\Transcoder\Delegates\QueueDelegate;
 use Minds\Core\Media\Video\Transcoder\Delegates\NotificationDelegate;
+use Minds\Core\Media\Video\Transcoder\Delegates\MetadataDelegate;
 use Minds\Entities\Video;
 use Minds\Traits\MagicAttributes;
 use Minds\Common\Repository\Response;
@@ -42,13 +43,17 @@ class Manager
     /** @var NotificationDelegate */
     private $notificationDelegate;
 
-    public function __construct($repository = null, $queueDelegate = null, $transcodeStorage = null, $transcodeExecutor = null, $notificationDelegate = null)
+    /** @var MetadataDelegate */
+    private $metadataDelegate;
+
+    public function __construct($repository = null, $queueDelegate = null, $transcodeStorage = null, $transcodeExecutor = null, $notificationDelegate = null, $metadataDelegate = null)
     {
         $this->repository = $repository ?? new Repository();
         $this->queueDelegate = $queueDelegate ?? new QueueDelegate();
         $this->transcodeStorage = $transcodeStorage ?? new TranscodeStorage\S3Storage();
         $this->transcodeExecutor = $transcodeExecutor ?? new TranscodeExecutors\FFMpegExecutor();
         $this->notificationDelegate = $notificationDelegate ?? new NotificationDelegate();
+        $this->metadataDelegate = $metadataDelegate ?? new MetadataDelegate();
     }
 
     /**
@@ -216,6 +221,11 @@ class Manager
             if (!$success) { // This is actually unkown as an exception should have been thrown
                 throw new TranscodeExecutors\FailedTranscodeException();
             }
+
+            if ($transcode->getProfile() instanceof TranscodeProfiles\Thumbnails) {
+                $this->metadataDelegate->onThumbnailsCompleted($transcode);
+            }
+
             $transcode->setProgress(100); // If completed should be assumed 100%
             $transcode->setStatus(TranscodeStates::COMPLETED);
         } catch (TranscodeExecutors\FailedTranscodeException $e) {

@@ -176,6 +176,14 @@ class AttachmentDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(5000);
 
+        $video->get('width')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $video->get('height')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $video->getFlag('mature')
             ->shouldBeCalled()
             ->willReturn(false);
@@ -184,6 +192,8 @@ class AttachmentDelegateSpec extends ObjectBehavior
             'thumbnail_src' => 'phpspec://thumb',
             'guid' => 5000,
             'mature' => false,
+            'width' => null,
+            'height' => null
         ])
             ->shouldBeCalled()
             ->willReturn($activity);
@@ -202,7 +212,12 @@ class AttachmentDelegateSpec extends ObjectBehavior
 
         $this
             ->setActor($actor)
-            ->onCreate($activity, 5000)
+            ->onPreCreate($activity, 5000)
+            ->shouldReturn($activity);
+
+        $this
+            ->setActor($actor)
+            ->onPostCreate($activity)
             ->shouldReturn($activity);
     }
 
