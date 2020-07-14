@@ -3,14 +3,20 @@ namespace Minds\Core\Monetization\EarningsOverview;
 
 use Minds\Traits\MagicAttributes;
 
+/**
+ * @method OverviewModel setPayouts(array $payouts)
+ * @method array getPayouts()
+ * @method OverviewModel setEarnings(array $earnings)
+ * @method array getEarnings()
+ */
 class OverviewModel
 {
     use MagicAttributes;
 
-    /** @var  */
+    /** @var array */
     private $payouts = [];
 
-    /** @var */
+    /** @var array */
     private $earnings = [];
     
     /**
