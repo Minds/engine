@@ -146,6 +146,8 @@ class AttachmentDelegate
                     ->setCustom('video', [
                         'thumbnail_src' => $attachment->getIconUrl(),
                         'guid' => $attachment->guid,
+                        'width' => $attachment->width,
+                        'height' => $attachment->height,
                         'mature' => $attachment instanceof Flaggable ? $attachment->getFlag('mature') : false
                     ]);
                 break;
@@ -161,6 +163,23 @@ class AttachmentDelegate
 
         return $activity;
     }
+
+    /**
+     * @param Activity $activity
+     * @param string $attachmentGuid
+     * @return Activity
+     * @throws Exception
+     */
+    public function onPostCreate(Activity $activity): Activity
+    {
+        $attachment = $this->saveAction->getEntity();
+        if (is_object($attachment)) {
+            $attachment->activity_guid = $activity->getGuid();
+            $this->saveAction->save();
+        }
+        return $activity;
+    }
+
 
     /**
      * Edits the Activity attachment, if any changes. This methods just uses onDelete and onCreate.

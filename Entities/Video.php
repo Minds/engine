@@ -128,6 +128,8 @@ class Video extends MindsObject
     public function getExportableValues()
     {
         return array_merge(parent::getExportableValues(), [
+            'width',
+            'height',
             'thumbnail',
             'cinemr_guid',
             'license',
@@ -183,6 +185,8 @@ class Video extends MindsObject
         $export['youtube_id'] = $this->getYoutubeId();
         $export['youtube_channel_id'] = $this->getYoutubeChannelId();
         $export['transcoding_status'] = $this->getTranscodingStatus();
+        $export['width'] = $this->width;
+        $export['height'] = $this->height;
         return $export;
     }
 
@@ -292,6 +296,8 @@ class Video extends MindsObject
                 'mature' => $this->getFlag('mature'),
                 'full_hd' => $this->getFlag('full_hd'),
                 'license' => $this->license ?? '',
+                'width' => $this->width,
+                'height' => $this->height
             ],
         ];
     }
