@@ -5,7 +5,6 @@ use Minds\Core\Di\Di;
 use Minds\Core\Media\Video\Transcoder\Transcode;
 use Minds\Entities\Video;
 use Minds\Core\EntitiesBuilder;
-// use Minds\Core\Entities\Actions\Save;
 
 class MetadataDelegate
 {
@@ -29,8 +28,6 @@ class MetadataDelegate
             error_log("Video ({$transcode->getGuid()}not found");
             return; // TODO: Tell sentry?
         }
-
-        // $save = new Save();
 
         $video->width = $transcode->getProfile()->getWidth();
         $video->height = $transcode->getProfile()->getHeight();

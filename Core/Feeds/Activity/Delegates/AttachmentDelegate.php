@@ -146,6 +146,8 @@ class AttachmentDelegate
                     ->setCustom('video', [
                         'thumbnail_src' => $attachment->getIconUrl(),
                         'guid' => $attachment->guid,
+                        'width' => $attachment->width,
+                        'height' => $attachment->height,
                         'mature' => $attachment instanceof Flaggable ? $attachment->getFlag('mature') : false
                     ]);
                 break;

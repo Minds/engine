@@ -657,7 +657,9 @@ class newsfeed implements Interfaces\Api
                     $guid = $save->setEntity($activity)->save();
 
                     // on post create
-                    $attachmentDelegate->onPostCreate($activity);
+                    if ($attachmentDelegate) {
+                        $attachmentDelegate->onPostCreate($activity);
+                    }
 
                 } catch (\Exception $e) {
                     return Factory::response([
