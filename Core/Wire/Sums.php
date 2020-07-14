@@ -180,6 +180,8 @@ class Sums
             }
             if ($this->method == 'tokens') {
                 return (string) $result[0]['wei_sum'];
+            } elseif ($this->method === 'usd') {
+                return (int) $result[0]['wei_sum'];
             } else {
                 return (string) $result[0]['amount_sum'];
             }
