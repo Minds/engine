@@ -54,7 +54,7 @@ class Repository
             $values[] = new Timestamp($opts['to']);
         }
 
-        $statement .= " WHERE " . implode(' ', $where);
+        $statement .= " WHERE " . implode(' AND ', $where);
 
         if ($opts['allow_filtering']) {
             $statement .= " ALLOW FILTERING";
