@@ -632,7 +632,6 @@ class newsfeed implements Interfaces\Api
                         $attachmentDelegate
                             ->setActor(Core\Session::getLoggedinUser())
                             ->onPreCreate($activity, (string) $entityGuid);
-
                     } elseif (!$entityGuid && $url) {
                         // Set-up rich embed
 
@@ -660,7 +659,6 @@ class newsfeed implements Interfaces\Api
                     if ($attachmentDelegate) {
                         $attachmentDelegate->onPostCreate($activity);
                     }
-
                 } catch (\Exception $e) {
                     return Factory::response([
                         'status' => 'error',

@@ -42,6 +42,5 @@ class MetadataDelegate
             $activity->custom_data = $custom;
             $activity->save();
         }
-
     }
 }
