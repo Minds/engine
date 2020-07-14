@@ -3,6 +3,14 @@ namespace Minds\Core\Monetization\EarningsOverview;
 
 use Minds\Traits\MagicAttributes;
 
+/**
+ * @method EarningsGroupModel setId(string $id)
+ * @method getId(): string
+ * @method EarningsGroupModel setItems(array $items)
+ * @method array getItems()
+ * @method EarningsGroupModel setCurrency(string $currency)
+ * @method string getCurrency
+ */
 class EarningsGroupModel
 {
     use MagicAttributes;
