@@ -165,23 +165,6 @@ class AttachmentDelegate
     }
 
     /**
-     * @param Activity $activity
-     * @param string $attachmentGuid
-     * @return Activity
-     * @throws Exception
-     */
-    public function onPostCreate(Activity $activity): Activity
-    {
-        $attachment = $this->saveAction->getEntity();
-        if (is_object($attachment)) {
-            $attachment->activity_guid = $activity->getGuid();
-            $this->saveAction->save();
-        }
-        return $activity;
-    }
-
-
-    /**
      * Edits the Activity attachment, if any changes. This methods just uses onDelete and onCreate.
      * @param Activity $activity
      * @param string $attachmentGuid

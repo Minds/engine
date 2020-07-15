@@ -18,6 +18,7 @@ use Minds\Core\Media\Video\Transcoder\Transcode;
 use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Core\Media\Video\Transcoder\TranscodeStorage\TranscodeStorageInterface;
 use Minds\Core\Media\Video\Transcoder\TranscodeProfiles;
+use Minds\Helpers\Image;
 
 class FFMpegExecutor implements TranscodeExecutorInterface
 {
@@ -33,11 +34,15 @@ class FFMpegExecutor implements TranscodeExecutorInterface
     /** @var TranscodeStorageInterface */
     private $transcodeStorage;
 
+    /** @var Image */
+    private $imageHelper;
+
     public function __construct(
         $config = null,
         $ffmpeg = null,
         $ffprobe = null,
-        $transcodeStorage = null
+        $transcodeStorage = null,
+        $imageHelper = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->ffmpeg = $ffmpeg ?: FFMpegClient::create([
@@ -50,6 +55,7 @@ class FFMpegExecutor implements TranscodeExecutorInterface
             'ffprobe.binaries' => '/usr/bin/ffprobe',
         ]);
         $this->transcodeStorage = $transcodeStorage ?? Di::_()->get('Media\Video\Transcode\TranscodeStorage');
+        $this->imageHelper = $imageHelper ?: new Image();
     }
 
     /**
@@ -201,7 +207,7 @@ class FFMpegExecutor implements TranscodeExecutorInterface
 
                 // get thumb resolution (only first one)
                 if ($sec === 0) {
-                    list($width, $height) = getimagesize($path);
+                    list($width, $height) = $this->imageHelper->getimagesize($path);
                     $transcode->getProfile()
                         ->setWidth($width)
                         ->setHeight($height);
