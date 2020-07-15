@@ -212,7 +212,7 @@ class AttachmentDelegateSpec extends ObjectBehavior
 
         $this
             ->setActor($actor)
-            ->onPreCreate($activity, 5000)
+            ->onCreate($activity, 5000)
             ->shouldReturn($activity);
 
         $this
