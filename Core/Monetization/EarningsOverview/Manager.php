@@ -154,7 +154,7 @@ class Manager
         $earningsGroupModel->setId('wire');
 
         $wireEarnings = new EarningsItemModel();
-        $wireEarnings->setId('wire');
+        $wireEarnings->setId('wire-all');
         $wireEarnings->setAmountCents($sum);
         $wireEarnings->setCurrency($currency);
 
