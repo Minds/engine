@@ -33,23 +33,27 @@ class wallet implements Interfaces\Api
         $response = [];
 
         $query = isset($pages[0]) ? $pages[0] : 'address';
+        $user = Session::getLoggedinUser();
 
         switch ($query) {
             case 'address':
                 $response['wallet'] = [
-                    'address' => Session::getLoggedinUser()->getEthWallet()
+                    'address' => $user->getEthWallet()
                 ];
                 break;
             case 'balance':
                 $onChainBalance = Di::_()->get('Blockchain\Wallets\OnChain\Balance');
-                $onChainBalance->setUser(Session::getLoggedinUser());
+                $onChainBalance->setUser($user);
                 $onChainBalanceVal = BigNumber::_($onChainBalance->get());
 
                 $offChainBalance = Di::_()->get('Blockchain\Wallets\OffChain\Balance');
-                $offChainBalance->setUser(Session::getLoggedinUser());
+                $offChainBalance->setUser($user);
                 $offChainBalanceVal = BigNumber::_($offChainBalance->get());
                 $offchainAvailableVal = BigNumber::_($offChainBalance->getAvailable());
 
+                $etherBalance = Di::_()->get('Blockchain\Wallets\Ether\Balance');
+                $etherBalance->setUser($user);
+                $etherBalanceVal = $etherBalance->get();
                 
                 $balance = $onChainBalanceVal
                     ? $onChainBalanceVal->add($offChainBalanceVal)
@@ -68,9 +72,10 @@ class wallet implements Interfaces\Api
                 $response = [
                     'addresses' => [
                         [
-                            'address' => Session::getLoggedinUser()->getEthWallet(),
+                            'address' => $user->getEthWallet(),
                             'label' => 'Receiver',
                             'balance' => (string) $onChainBalanceVal,
+                            'ether_balance' => $etherBalanceVal
                         ],
                         [
                             'address' => 'offchain',
