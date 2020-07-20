@@ -12,9 +12,6 @@ use Minds\Core\Hashtags\HashtagEntity;
 use Minds\Common\Repository\Response;
 use Minds\Core\Feeds\Elastic\Manager as ElasticFeedsManager;
 use Minds\Core\Search\SortingAlgorithms;
-use Minds\Api\Exportable;
-use Zend\Diactoros\ServerRequest;
-use Zend\Diactoros\Response\JsonResponse;
 
 class Manager
 {
@@ -504,7 +501,7 @@ class Manager
         $elasticEntities = new Core\Feeds\Elastic\Entities();
         
         $opts = array_merge([
-            'cache_key' => $this->user->getGuid(),
+            'cache_key' => $this->user ? $this->user->getGuid() : null,
             'access_id' => 2,
             'limit' => 300,
             //'offset' => $offset,
