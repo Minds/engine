@@ -64,7 +64,7 @@ class Save
      *
      * @return Entity
      */
-    public function getEntity(): Entity
+    public function getEntity()
     {
         return $this->entity;
     }

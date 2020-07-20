@@ -10,6 +10,7 @@ use Minds\Core\Media\Video\Transcoder\TranscodeExecutors\FailedTranscodeExceptio
 use FFMpeg\FFMpeg as FFMpegClient;
 use FFMpeg\FFProbe as FFProbeClient;
 use FFMpeg\Filters\Video\ResizeFilter;
+use Minds\Helpers\Image;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -18,13 +19,15 @@ class FFMpegExecutorSpec extends ObjectBehavior
     private $ffmpeg;
     private $ffprobe;
     private $transcodeStorage;
+    private $imageHelper;
 
-    public function let(FFMpegClient $ffmpeg, FFProbeClient $ffprobe, TranscodeStorageInterface $transcodeStorage)
+    public function let(FFMpegClient $ffmpeg, FFProbeClient $ffprobe, TranscodeStorageInterface $transcodeStorage, Image $imageHelper)
     {
-        $this->beConstructedWith(null, $ffmpeg, $ffprobe, $transcodeStorage);
+        $this->beConstructedWith(null, $ffmpeg, $ffprobe, $transcodeStorage, $imageHelper);
         $this->ffmpeg = $ffmpeg;
         $this->ffprobe = $ffprobe;
         $this->transcodeStorage = $transcodeStorage;
+        $this->imageHelper = $imageHelper;
     }
 
     public function it_is_initializable()
@@ -38,6 +41,11 @@ class FFMpegExecutorSpec extends ObjectBehavior
         \FFMpeg\FFProbe\DataMapping\Format $ffprobeFormat,
         \FFMpeg\Media\Frame $ffmpegFrame
     ) {
+
+        // $this->imageHelper->getimagesize('/tmp/fake-path-for-source-thumbnails/thumbnail-00000.png')
+        //     ->shouldBeCalled()
+        //     ->willReturn([100,200]);
+
         $transcode->getGuid()
             ->shouldBeCalled()
             ->willReturn('123');
@@ -45,7 +53,7 @@ class FFMpegExecutorSpec extends ObjectBehavior
         $transcode->getProfile()
             ->shouldBeCalled()
             ->willReturn(new TranscodeProfiles\Thumbnails());
-       
+
         $this->transcodeStorage->downloadToTmp(Argument::type(Transcode::class))
             ->willReturn('/tmp/fake-path-for-source');
 
@@ -56,18 +64,18 @@ class FFMpegExecutorSpec extends ObjectBehavior
         $this->ffprobe->streams('/tmp/fake-path-for-source')
             ->shouldBeCalled()
             ->willReturn($this->ffprobe);
-        
+
         $this->ffprobe->format('/tmp/fake-path-for-source')
             ->shouldBeCalled()
             ->willReturn($ffprobeFormat);
-        
+
         $ffprobeFormat->get('duration')
             ->willReturn(120);
 
         $ffmpegVideo->frame(Argument::any())
             ->shouldBeCalled()
             ->willReturn($ffmpegFrame);
-        
+
         $ffmpegFrame->save(Argument::any())
             ->shouldBeCalled();
 
@@ -107,14 +115,14 @@ class FFMpegExecutorSpec extends ObjectBehavior
         $transcode->getProfile()
             ->shouldBeCalled()
             ->willReturn(new TranscodeProfiles\X264_360p());
-       
+
         $this->transcodeStorage->downloadToTmp(Argument::type(Transcode::class))
             ->willReturn('/tmp/fake-path-for-source');
 
         $this->ffmpeg->open('/tmp/fake-path-for-source')
             ->shouldBeCalled()
             ->willReturn($ffmpegVideo);
-        
+
         $this->ffprobe->streams('/tmp/fake-path-for-source')
             ->shouldBeCalled()
             ->willReturn($this->ffprobe);
@@ -160,14 +168,14 @@ class FFMpegExecutorSpec extends ObjectBehavior
         $transcode->getProfile()
             ->shouldBeCalled()
             ->willReturn(new TranscodeProfiles\X264_360p());
-       
+
         $this->transcodeStorage->downloadToTmp(Argument::type(Transcode::class))
             ->willReturn('/tmp/fake-path-for-source');
 
         $this->ffmpeg->open('/tmp/fake-path-for-source')
             ->shouldBeCalled()
             ->willReturn($ffmpegVideo);
-        
+
         $this->ffprobe->streams('/tmp/fake-path-for-source')
             ->shouldBeCalled()
             ->willReturn($this->ffprobe);
