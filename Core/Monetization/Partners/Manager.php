@@ -94,7 +94,7 @@ class Manager
         $revenueCents = round($revenueUsd * 100, 0);
 
         foreach ($this->plusManager->getUnlocks($opts['from']) as $unlock) {
-            $shareCents = $revenueCents / $unlock['share'];
+            $shareCents = $revenueCents * $unlock['sharePct'];
             $deposit = new EarningsDeposit();
             $deposit->setTimestamp($opts['from'])
                 ->setUserGuid($unlock['user_guid'])
