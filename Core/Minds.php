@@ -136,6 +136,7 @@ class Minds extends base
      */
     public function start()
     {
+        $this->checkInstalled();
         $this->loadConfigs();
         $this->loadLegacy();
         $this->loadEvents();
@@ -147,6 +148,27 @@ class Minds extends base
             new multisite();
         }
     }
+
+    /**
+     * Check if Minds is installed, if not redirect to install script.
+     */
+    public function checkInstalled()
+    {
+        /*
+         * If we are a multisite, we get the install status from the multisite settings
+         */
+        if ($this->detectMultisite()) {
+            //we do this on db load.. not here
+        } else {
+            if (!file_exists(__MINDS_ROOT__.'/settings.php') && !defined('__MINDS_INSTALLING__')) {
+                ob_end_clean();
+                header('Fatal error', true, 500);
+                error_log('settings.php file could not be found');
+                exit;
+            }
+        }
+    }
+
 
     /*
     * Load events
