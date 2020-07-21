@@ -8,7 +8,6 @@ namespace Minds\Core\Plus;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Config;
-use Minds\Core\Wire\Sums;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Data\Cassandra;
 
@@ -16,9 +15,6 @@ class Manager
 {
     /** @var Config */
     protected $config;
-
-    /** @var Sums */
-    protected $sums;
 
     /** @var ElasticSearch\Client */
     protected $es;
@@ -35,10 +31,9 @@ class Manager
     /** @var int */
     const REVENUE_SHARE_PCT = 25;
 
-    public function __construct($config = null, $sums = null)
+    public function __construct($config = null, $es = null, $db = null)
     {
         $this->config = $config ?? Di::_()->get('Config');
-        $this->sums = $sums ?? Di::_()->get('Wire\Sums');
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
         $this->db = $db ?? Di::_()->get('Database\Cassandra\Cql');
     }
@@ -119,6 +114,11 @@ class Manager
         return round($this->getActiveRevenue($asOfTs) / self::SUBSCRIPTION_PERIOD_MONTH, 2);
     }
 
+    /**
+     * @var int $from
+     * @var int $to
+     * @return int
+     */
     protected function getRevenue(int $from, int $to, int $amount): int
     {
         $query = new Cassandra\Prepared\Custom();
@@ -144,7 +144,7 @@ class Manager
         try {
             $result = $this->db->request($query);
         } catch (\Exception $e) {
-            //var_dump($e); exit;
+            error_log(print_r($e, true));
             return 0;
         }
         
@@ -215,7 +215,7 @@ class Manager
                 'user_guid' => $doc['key'],
                 'total' => $total,
                 'count' => $doc['doc_count'],
-                'share' => $total / $doc['doc_count'],
+                'sharePct' => $doc['doc_count'] / $total,
             ];
             yield $unlock;
         }
