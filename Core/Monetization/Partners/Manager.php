@@ -40,8 +40,7 @@ class Manager
         $entityCentricManager = null,
         $entitiesBuilder = null,
         $plusManager = null
-    )
-    {
+    ) {
         $this->repository = $repository ?? new Repository();
         $this->entityCentricManager = $entityCentricManager ?? new EntityCentricManager();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
@@ -190,4 +189,3 @@ class Manager
         return $this->repository->getBalance((string) $user->getGuid());
     }
 }
-

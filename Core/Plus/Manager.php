@@ -1,7 +1,7 @@
 <?php
 /**
  * Manager for Plus
- * 
+ *
  * !! Most of Plus is handled via Discovery or Wire\Paywall !!
  */
 namespace Minds\Core\Plus;
@@ -107,7 +107,7 @@ class Manager
      * Returns the daily revenue for Plus
      * - Assumptions:
      *   - Subscription is 30 days
-     *   - Amoritize the revenue by dividing the revenue 
+     *   - Amoritize the revenue by dividing the revenue
      *     for previous 30 days by 30
      *   - eg: ($300 per month) / 30 = $10 per day
      * Will return in USD
@@ -121,7 +121,7 @@ class Manager
 
     protected function getRevenue(int $from, int $to, int $amount): int
     {
-		$query = new Cassandra\Prepared\Custom();
+        $query = new Cassandra\Prepared\Custom();
 
         // ALLOW FILTERING is used to filter by amount. As subscription volume is small
         // and paritioned by receiver_guid, it should not be an issue
@@ -143,8 +143,8 @@ class Manager
 
         try {
             $result = $this->db->request($query);
-		} catch (\Exception $e) {
-			//var_dump($e); exit;
+        } catch (\Exception $e) {
+            //var_dump($e); exit;
             return 0;
         }
         
@@ -155,7 +155,7 @@ class Manager
      * Return unlocks
      * @param int $asOfTs
      * @return iterable
-     */ 
+     */
     public function getUnlocks(int $asOfTs): iterable
     {
         /** @var array */
