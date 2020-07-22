@@ -27,16 +27,14 @@ class Events
         /*
          * Removes important export fields if marked as paywall
          */
-        Dispatcher::register('export:extender', 'activity', function ($event) {
+        Dispatcher::register('export:extender', 'all', function ($event) {
             if (!$this->featuresManager) { // Can not use DI in constructor due to init races
                 $this->featuresManager = Di::_()->get('Features\Manager');
             }
 
             $params = $event->getParameters();
             $activity = $params['entity'];
-            if ($activity->type != 'activity') {
-                return;
-            }
+
             $export = $event->response() ?: [];
             $currentUser = Session::getLoggedInUserGuid();
 
