@@ -64,6 +64,7 @@ class User extends \ElggUser
         $this->attributes['email_confirmed_at'] = null;
         $this->attributes['surge_token'] = '';
         $this->attributes['hide_share_buttons'] = 0;
+        $this->attributes['allow_unsubscribed_contact'] = 0;
         $this->attributes['kite_ref_ts'] = 0;
         $this->attributes['kite_state'] = 'unknown';
         $this->attributes['disable_autoplay_videos'] = 0;
@@ -739,6 +740,24 @@ class User extends \ElggUser
     }
 
     /**
+     * @return bool
+     */
+    public function getAllowUnsubscribedContact(): bool
+    {
+        return (bool) $this->allow_unsubscribed_contact;
+    }
+
+    /**
+     * @param bool $value
+     * @return User
+     */
+    public function setAllowUnsubscribedContact(bool $value): User
+    {
+        $this->allow_unsubscribed_contact = $value;
+        return $this;
+    }
+
+    /**
      * It returns true if the user is verified or if the user is older than the new email confirmation feature
      * @return bool
      */
@@ -995,6 +1014,7 @@ class User extends \ElggUser
         $export['rating'] = $this->getRating();
 
         $export['hide_share_buttons'] = $this->getHideShareButtons();
+        $export['allow_unsubscribed_contact'] = $this->getAllowUnsubscribedContact();
         $export['disable_autoplay_videos'] = $this->getDisableAutoplayVideos();
         $export['dismissed_widgets'] = $this->getDismissedWidgets();
 
@@ -1306,6 +1326,7 @@ class User extends \ElggUser
             'btc_address',
             'surge_token',
             'hide_share_buttons',
+            'allow_unsubscribed_contact',
             'dismissed_widgets'
         ]);
     }
