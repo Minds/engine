@@ -190,6 +190,7 @@ class Image extends File
             'height',
             'gif',
             'time_sent',
+            'paywall',
         ]);
     }
 

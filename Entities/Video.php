@@ -140,6 +140,7 @@ class Video extends MindsObject
             'youtube_id',
             'youtube_channel_id',
             'transcoding_status',
+            'paywall',
         ]);
     }
 
