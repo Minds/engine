@@ -11,7 +11,7 @@ use Minds\Core\Analytics\Dashboards\Metrics\HistogramSegment;
 
 class UnlocksMetric extends AbstractEngagementMetric
 {
-	public function __construct($es = null)
+    public function __construct($es = null)
     {
         parent::__construct($es);
         $this->segments = [
