@@ -74,6 +74,14 @@ class Manager
           'tos_acceptance' => [
             'date' => time(),
             'ip' => $account->getIp(),
+          ],
+          'settings' => [
+            'payouts' => [
+              'schedule' => [
+                'interval' => 'monthly',
+                'monthly_anchor' => 28,
+              ],
+            ]
           ]
         ];
 
@@ -402,19 +410,15 @@ class Manager
         $startingAfter = null;
         while (true) {
             $opts = [
-                'limit' => 10,
+                'limit' => 20,
             ];
-
-            if ($startingAfter) {
-                $opts['starting_after'] = $startingAfter;
-            }
+    
             $accounts = $this->accountInstance->all($opts);
             if (!$accounts) {
                 return null;
             }
-            foreach ($accounts as $account) {
+            foreach ($accounts->autoPagingIterator() as $account) {
                 yield $account;
-                $startingAfter = $account->id;
             }
         }
     }
