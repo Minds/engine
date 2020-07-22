@@ -190,6 +190,7 @@ class Image extends File
             'height',
             'gif',
             'time_sent',
+            'paywall',
         ]);
     }
 
@@ -232,6 +233,7 @@ class Image extends File
         }
 
         $export['boost_rejection_reason'] = $this->getBoostRejectionReason() ?: -1;
+
         return $export;
     }
 

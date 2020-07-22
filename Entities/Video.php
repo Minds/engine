@@ -140,6 +140,7 @@ class Video extends MindsObject
             'youtube_id',
             'youtube_channel_id',
             'transcoding_status',
+            'paywall',
         ]);
     }
 
@@ -187,6 +188,7 @@ class Video extends MindsObject
         $export['transcoding_status'] = $this->getTranscodingStatus();
         $export['width'] = $this->width;
         $export['height'] = $this->height;
+
         return $export;
     }
 
