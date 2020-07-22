@@ -8,6 +8,7 @@ use Minds\Core\Payments\Stripe\Currencies;
 use Minds\Core\Payments\Stripe\Instances\AccountInstance;
 use Minds\Core\Payments\Stripe\Instances\BalanceInstance;
 use Minds\Core\Payments\Stripe\Instances\FileInstance;
+use Minds\Core\Payments\Stripe\Transactions;
 use Stripe;
 use Minds\Entities\User;
 
@@ -40,6 +41,7 @@ class Manager
         $this->accountInstance = $accountInstance ?: new AccountInstance();
         $this->balanceInstance = $balanceInstance ?: new BalanceInstance();
         $this->fileInstance = $fileInstance ?: new FileInstance();
+        $this->transactionsManager = new Transactions\Manager();
     }
 
     /**
@@ -338,8 +340,9 @@ class Manager
                 $account->setRequirement($result->requirements->currently_due[0]);
             }
 
-            $account->setTotalBalance($this->getBalanceById($result->id, 'available'));
+            $account->setTotalBalance($this->getBalanceById($result->id, 'total'));
             $account->setPendingBalance($this->getBalanceById($result->id, 'pending'));
+            $account->setTotalPaidOut($this->getTotalPaidOut($account));
 
             return $account;
         } catch (Stripe\Error\Permission $e) {
@@ -375,6 +378,16 @@ class Manager
         $balance->setAmount($stripeBalance->$type[0]->amount)
             ->setCurrency($stripeBalance->$type[0]->currency);
         return $balance;
+    }
+
+    protected function getTotalPaidOut(Account $account): Balance
+    {
+        $total = new Balance();
+        foreach ($this->transactionsManager->setAccount($account)->getPayouts() as $payout) {
+            $total->setCurrency($payout->getCurrency());
+            $total->setAmount($total->getAmount() + ($payout->getGross() * -1));
+        }
+        return $total;
     }
 
     /**
