@@ -30,6 +30,8 @@ use Minds\Traits\MagicAttributes;
  * @method Account setUrl(string $url)
  * @method array getMetadata()
  * @method Account setMetdata(array $metadata)
+ * @method Balance getTotalPaidOut()
+ * @method Account setTotalPaidOut(Balance $totalPaidOut)
  */
 class Account
 {
@@ -113,6 +115,9 @@ class Account
     /** @var Balance $pendingBalance */
     private $pendingBalance;
 
+    /** @var Balance $totalPaidOut */
+    private $totalPaidOut;
+
     /** @var string $payoutInterval */
     private $payoutInterval;
 
@@ -193,6 +198,10 @@ class Account
 
         if ($this->pendingBalance) {
             $export['pendingBalance'] = $this->pendingBalance->export();
+        }
+
+        if ($this->totalPaidOut) {
+            $export['totalPaidOut'] = $this->totalPaidOut->export();
         }
 
         return $export;
