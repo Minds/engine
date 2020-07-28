@@ -264,14 +264,14 @@ class conversations implements Interfaces\Api
                 $participant = new User($participants[$i]);
 
                 if (
-                        $messageCount < 1
-                        && !$participant->isSubscribed(Session::getLoggedInUserGuid())
-                        && !$participant->getAllowUnsubscribedContact()
-                    ) {
+                    $messageCount < 1
+                    && !$participant->isSubscribed(Session::getLoggedInUserGuid())
+                    && !$participant->getAllowUnsubscribedContact()
+                ) {
                     return Factory::response([
-                            'status' => 'error',
-                            'message' => 'This user only allows messages from users who they subscribe to'
-                        ]);
+                        'status' => 'error',
+                        'message' => 'This user only allows messages from users who they subscribe to'
+                    ]);
                 };
             }
         }
