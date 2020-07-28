@@ -41,14 +41,15 @@ class channel implements Interfaces\Api
             ]);
         }
 
-        if (!$channel->isPro() && $channel->getGuid() !== $currentUser->getGuid()) {
+        if (
+            !$channel->isPro() &&
+            $channel->getGuid() !== ($currentUser ? $currentUser->getGuid() : null)
+        ) {
             return Factory::response([
                 'status' => 'error',
                 'message' => 'E_NOT_PRO'
             ]);
         }
-
-        $currentUser = Session::getLoggedinUser();
 
         /** @var Manager $manager */
         $manager = Di::_()->get('Pro\Manager');
