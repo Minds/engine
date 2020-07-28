@@ -93,4 +93,37 @@ class Messages
 
         return $entities;
     }
+
+    /**
+     * Gets a count of messages
+     * @param int $limit - max to count to. Defaults to 12.
+     * @param string $offset - offset to count from.
+     * @param string $finish - finish to stop at.
+     * @param string $idFix - see comment in the getMessages function.
+     * @return int count of messages.
+     */
+    public function getMessageCount($limit = 12, $offset = "", $finish = "", $idFix = false): int
+    {
+        $this->conversation->setGuid(null); //legacy messages get confused here
+        $guid = $this->conversation->getGuid();
+
+        $cassandraOffset = $offset;
+        if ($cassandraOffset) {
+            $idFix = true;
+        }
+
+        if (!$idFix) {
+            $cassandraOffset = "1900076691505463296";
+        }
+
+        $opts = [
+          'limit' => $limit,
+          'offset'=> $cassandraOffset,
+          'finish'=> $finish,
+        ];
+
+        $count = $this->indexes->count("object:gathering:conversation:$guid", $opts) ?: 0;
+
+        return $count;
+    }
 }

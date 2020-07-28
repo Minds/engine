@@ -17,6 +17,7 @@ use Minds\Core\Messenger\Messages;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Sockets;
+use Minds\Entities\User;
 
 class conversations implements Interfaces\Api
 {
@@ -244,6 +245,35 @@ class conversations implements Interfaces\Api
             return Factory::response([
                 'invalid' => true
             ]);
+        }
+
+        // prevent messages from users that you do not subscribe to.
+        if (Core\Di\Di::_()->get('Features\Manager')->has('subscriber-conversations')) {
+            $messageCount = (new Messenger\Messages)
+                ->setConversation($conversation)
+                ->getMessageCount();
+            
+            $participants = $conversation->getParticipants();
+
+            for ($i = 0; $i > count($participants); $i++) {
+                // ignore if user matches logged in user.
+                if ($participants[$i] === (string) Session::getLoggedInUserGuid()) {
+                    return;
+                }
+
+                $participant = new User($participants[$i]);
+
+                if (
+                        $messageCount < 1
+                        && !$participant->isSubscribed(Session::getLoggedInUserGuid())
+                        && !$participant->getAllowUnsubscribedContact()
+                    ) {
+                    return Factory::response([
+                            'status' => 'error',
+                            'message' => 'This user only allows messages from users who they subscribe to'
+                        ]);
+                };
+            }
         }
 
         $message->save();
