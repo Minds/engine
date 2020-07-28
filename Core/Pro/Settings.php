@@ -1,6 +1,7 @@
 <?php
 /**
- * Settings
+ * Settings.
+ *
  * @author edgebal
  */
 
@@ -10,50 +11,52 @@ use JsonSerializable;
 use Minds\Traits\MagicAttributes;
 
 /**
- * Class Settings
- * @package Minds\Core\Pro
+ * Class Settings.
+ *
  * @method int|string getUserGuid()
- * @method Settings setUserGuid(int|string $userGuid)
- * @method string getDomain()
- * @method Settings setDomain(string $domain)
- * @method string getTitle()
- * @method Settings setTitle(string $title)
- * @method string getHeadline()
- * @method Settings setHeadline(string $headline)
- * @method string getTextColor()
- * @method Settings setTextColor(string $textColor)
- * @method string getPrimaryColor()
- * @method Settings setPrimaryColor(string $primaryColor)
- * @method string getPlainBackgroundColor()
- * @method Settings setPlainBackgroundColor(string $plainBackgroundColor)
- * @method string getTileRatio()
- * @method Settings setTileRatio(string $tileRatio)
- * @method string getFooterText()
- * @method Settings setFooterText(string $footerText)
- * @method array getFooterLinks()
- * @method Settings setFooterLinks(array $footerLinks)
- * @method array getTagList()
- * @method Settings setTagList(array $tagList)
- * @method string getScheme()
- * @method Settings setScheme(string $scheme)
- * @method string getBackgroundImage()
- * @method Settings setBackgroundImage(string $backgroundImage)
- * @method string getLogoImage()
- * @method Settings setLogoImage(string $logoImage)
- * @method array getFeaturedContent()
- * @method Settings setFeaturedContent(array $featuredContent)
- * @method string getCustomHead()
- * @method Settings setCustomHead(string $customHead)
- * @method bool isPublished()
- * @method Settings setPublished(bool $published)
- * @method bool hasCustomLogo()
- * @method Settings setHasCustomLogo(bool $customLogo)
- * @method bool hasCustomBackground()
- * @method Settings setHasCustomBackground(bool $customBackground)
- * @method int getTimeUpdated()
- * @method Settings setTimeUpdated(int $timeUpdated)
- * @method string getPayoutMethod()
- * @method Settings setPayoutMethod(string $method)
+ * @method Settings   setUserGuid(int|string $userGuid)
+ * @method string     getDomain()
+ * @method Settings   setDomain(string $domain)
+ * @method string     getTitle()
+ * @method Settings   setTitle(string $title)
+ * @method string     getHeadline()
+ * @method Settings   setHeadline(string $headline)
+ * @method string     getTextColor()
+ * @method Settings   setTextColor(string $textColor)
+ * @method string     getPrimaryColor()
+ * @method Settings   setPrimaryColor(string $primaryColor)
+ * @method string     getPlainBackgroundColor()
+ * @method Settings   setPlainBackgroundColor(string $plainBackgroundColor)
+ * @method string     getTileRatio()
+ * @method Settings   setTileRatio(string $tileRatio)
+ * @method string     getFooterText()
+ * @method Settings   setFooterText(string $footerText)
+ * @method array      getFooterLinks()
+ * @method Settings   setFooterLinks(array $footerLinks)
+ * @method array      getTagList()
+ * @method Settings   setTagList(array $tagList)
+ * @method string     getScheme()
+ * @method Settings   setScheme(string $scheme)
+ * @method string     getBackgroundImage()
+ * @method Settings   setBackgroundImage(string $backgroundImage)
+ * @method string     getLogoImage()
+ * @method Settings   setLogoImage(string $logoImage)
+ * @method array      getFeaturedContent()
+ * @method Settings   setFeaturedContent(array $featuredContent)
+ * @method string     getCustomHead()
+ * @method Settings   setCustomHead(string $customHead)
+ * @method bool       isPublished()
+ * @method Settings   setPublished(bool $published)
+ * @method bool       getSplash()
+ * @method Settings   setSplash(bool $splash)
+ * @method bool       hasCustomLogo()
+ * @method Settings   setHasCustomLogo(bool $customLogo)
+ * @method bool       hasCustomBackground()
+ * @method Settings   setHasCustomBackground(bool $customBackground)
+ * @method int        getTimeUpdated()
+ * @method Settings   setTimeUpdated(int $timeUpdated)
+ * @method string     getPayoutMethod()
+ * @method Settings   setPayoutMethod(string $method)
  */
 class Settings implements JsonSerializable
 {
@@ -134,6 +137,9 @@ class Settings implements JsonSerializable
     /** @var bool */
     protected $published;
 
+    /** @var bool */
+    protected $splash;
+
     /** @var int */
     protected $timeUpdated;
 
@@ -145,7 +151,7 @@ class Settings implements JsonSerializable
      */
     public function getOneLineHeadline(): string
     {
-        return preg_replace("/\\r?\\n+/", ' ', $this->headline);
+        return preg_replace('/\\r?\\n+/', ' ', $this->headline);
     }
 
     /**
@@ -180,6 +186,7 @@ class Settings implements JsonSerializable
             'one_line_headline' => $this->getOneLineHeadline(),
             'styles' => $this->buildStyles(),
             'published' => $this->published,
+            'splash' => $this->splash,
             'time_updated' => $this->timeUpdated,
             'payout_method' => $this->payoutMethod,
         ];
@@ -199,9 +206,9 @@ class Settings implements JsonSerializable
             'text_color' => $textColor,
             'primary_color' => $primaryColor,
             'plain_background_color' => $plainBackgroundColor,
-            'transparent_background_color' => sprintf("%sa0", $plainBackgroundColor),
-            'more_transparent_background_color' => sprintf("%s50", $plainBackgroundColor),
-            'tile_ratio' => sprintf("%s%%", $tileRatioPercentage),
+            'transparent_background_color' => sprintf('%sa0', $plainBackgroundColor),
+            'more_transparent_background_color' => sprintf('%s50', $plainBackgroundColor),
+            'tile_ratio' => sprintf('%s%%', $tileRatioPercentage),
         ];
     }
 
@@ -217,10 +224,13 @@ class Settings implements JsonSerializable
     }
 
     /**
-     * Specify data which should be serialized to JSON
-     * @link https://php.net/manual/en/jsonserializable.jsonserialize.php
+     * Specify data which should be serialized to JSON.
+     *
+     * @see https://php.net/manual/en/jsonserializable.jsonserialize.php
+     *
      * @return mixed data which can be serialized by <b>json_encode</b>,
-     * which is a value of any type other than a resource.
+     *               which is a value of any type other than a resource
+     *
      * @since 5.4.0
      */
     public function jsonSerialize(): array
