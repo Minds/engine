@@ -44,6 +44,7 @@ class Gift2020_07_30 extends EmailCampaign
             'campaign' => $this->campaign,
             'topic' => $this->topic,
             'validator' => $validatorHash,
+            'unixts' => time(),
         ];
 
         $subject = "You've received a gift";
@@ -83,7 +84,7 @@ class Gift2020_07_30 extends EmailCampaign
 
         $actionButton = (new ActionButton())
             ->setLabel('Claim Gift')
-            ->setPath('newsfeed/subscribed?'.http_build_query($tracking));
+            ->setPath('newsfeed/subscriptions?'.http_build_query($tracking));
 
         $this->template->set('actionButton', $actionButton->build());
 
