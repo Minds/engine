@@ -70,7 +70,7 @@ class Index
 
         if ($entity->guid == '100000000000000519') {
             error_log('tried to index minds channel, but temporary aborting');
-            return;
+            return true; // TRUE prevents retries
         }
 
         try {
