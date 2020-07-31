@@ -185,6 +185,10 @@ class Events
                 return;
             }
 
+            if ($entity->guid == '100000000000000519') {
+                error_log("Minds user was queued to be indexed with $hook and $type");
+            }
+
             $allowedTypes = [
                 'activity',
                 'user',
