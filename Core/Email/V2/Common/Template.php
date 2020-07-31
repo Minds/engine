@@ -225,6 +225,7 @@ class Template
 
     public function __wakeup()
     {
+        $this->markdown = new Markdown();
         $this->translator = Di::_()->get('I18n\Translator');
         $this->set('translator', $this->translator);
     }
