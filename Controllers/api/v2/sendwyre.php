@@ -1,6 +1,6 @@
 <?php
 /**
- * Minds SendWire Api endpoint.
+ * Minds SendWyre Api endpoint.
  * @author Ben Hayward
  */
 namespace Minds\Controllers\api\v2;

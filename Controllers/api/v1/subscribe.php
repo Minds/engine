@@ -30,9 +30,17 @@ class subscribe implements Interfaces\Api
         $response = [];
 
         $guid = $pages[1] ?? Core\Session::getLoggedInUser()->guid;
+        $publisher = Entities\Factory::build($guid);
         $type = $pages[0] ?? "subscribers";
         $limit = $_GET['limit'] ?? 12;
         $offset = $_GET['offset'] ?? "";
+
+        if ($type === 'subscribers' && $publisher->username === 'minds') {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Unable to load subscribers for this channel',
+            ]);
+        }
 
         $opts = [
             'guid'=>$guid,
