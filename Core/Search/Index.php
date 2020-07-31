@@ -68,6 +68,11 @@ class Index
             $entity = $this->entitiesBuilder->build($entity, false);
         }
 
+        if ($entity->guid == '100000000000000519') {
+            error_log('tried to index minds channel, but temporary aborting');
+            return;
+        }
+
         try {
             /** @var Mappings\MappingInterface $mapper */
             $mapper = Di::_()->get('Search\Mappings')->build($entity);
