@@ -18,7 +18,6 @@ use Minds\Api\Factory;
 use Minds\Helpers;
 use Minds\Core\Sockets;
 use Minds\Core\Security;
-use Minds\Core\Wire\Paywall\PaywallUserNotPaid;
 
 class comments implements Interfaces\Api
 {
@@ -238,13 +237,6 @@ class comments implements Interfaces\Api
                 $response = [
                     'status' => 'error',
                     'message' => "The comment couldn't be saved because {$parentOwnerUsername} has blocked you."
-                ];
-            } catch (PaywallUserNotPaid $e) {
-                $error = true;
-
-                $response = [
-                    'status' => 'error',
-                    'message' => "You do not meet the subscription tier requirements to comment on this activity."
                 ];
             } catch (\Exception $e) {
                 error_log($e);

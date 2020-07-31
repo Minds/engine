@@ -157,7 +157,6 @@ class Manager
      * @throws BlockedUserException
      * @throws \Minds\Exceptions\StopEventException
      * @throws \Minds\Core\Router\Exceptions\UnverifiedEmailException
-     * @throws \Minds\Core\Wire\Paywall\PaywallUserNotPaid
      */
     public function add(Comment $comment)
     {
