@@ -26,6 +26,8 @@ use Minds\Traits\MagicAttributes;
  * @method SupportTier setTokens(float $tokens)
  * @method bool hasTokens()
  * @method SupportTier setHasTokens(bool $hasTokens)
+ * @method string getSubscriptionUrn()
+ * @method SupportTier setSubscriptionUrn(string $urn)
  */
 class SupportTier implements JsonSerializable
 {
@@ -57,6 +59,9 @@ class SupportTier implements JsonSerializable
 
     /** @var bool */
     protected $hasTokens;
+
+    /** @var string */
+    protected $subscriptionUrn;
 
     /**
      * Builds URN
@@ -92,6 +97,7 @@ class SupportTier implements JsonSerializable
             'has_usd' => true,
             'tokens' => (string) ($this->tokens ?: 0),
             'has_tokens' => (bool) $this->hasTokens,
+            'subscription_urn' => $this->subscriptionUrn,
         ];
     }
 
