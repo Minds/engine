@@ -34,17 +34,18 @@ class ObjectVideoMappingSpec extends ObjectBehavior
         $video->get('blurb')->willReturn('PHPSpec Blurb');
         $video->get('description')->willReturn('PHPSpec Description');
         $video->get('paywall')->willReturn(false);
+        $video->isPayWall()->willReturn(false);
         $video->get('license')->willReturn('cc-test-lic');
         $video->getTags()->willReturn(['spaceiscool']);
         $video->getFlag('mature')->willReturn(false);
-        $video->getFlag('paywall')->willReturn(false);
         $video->get('moderator_guid')->willReturn('123');
         $video->get('time_moderated')->willReturn($now);
         $video->getNsfw()->willReturn([1]);
         $video->get('youtube_channel_id')->willReturn('channel_id');
         $video->get('youtube_id')->willReturn('youtube_id');
         $video->get('transcoding_status')->willReturn('queued');
-        $video->get('wire_threshold')->willReturn(null);
+        $video->getWireThreshold()->willReturn(null);
+        $video->get('language')->willReturn(null);
 
         $this
             ->setEntity($video)
@@ -77,7 +78,8 @@ class ObjectVideoMappingSpec extends ObjectBehavior
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'object:video',
                 'public' => true,
-                'wire_support_tier' => null,
+                // 'wire_support_tier' => null,
+                // '@wire_support_tier_expire' => null,
                 'tags' => ['spaceiscool', 'test', 'hashtag'],
                 'nsfw' => [1],
                 'moderator_guid' => '123',

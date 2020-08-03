@@ -65,9 +65,13 @@ class Video implements AssetsInterface
         $assets = [];
 
         if (isset($data['file'])) {
-            $thumb = str_replace('data:image/jpeg;base64,', '', $data['file']);
-            $thumb = str_replace(' ', '+', $thumb);
-            $data = base64_decode($thumb, true);
+            $img = preg_replace('#^data:image/[^;]+;base64,#', '', $data['file']);
+            $img = str_replace(' ', '+', $img);
+
+            $imagick = new \Imagick();
+            $imagick->readImageBlob(base64_decode($img, true));
+            $imagick->setImageFormat('jpeg');
+            $data = $imagick->getImageBlob();
 
             $filename = "archive/thumbnails/{$this->entity->guid}.jpg";
 

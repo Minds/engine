@@ -36,7 +36,9 @@ class PartnerEarnings extends Cli\Controller implements Interfaces\CliController
 
         $i = 0;
         foreach ($manager->issueDeposits([ 'from' => $from ]) as $record) {
-            $this->out(++$i);
+            ++$i;
+            $usd = round($record->getAmountCents() / 100, 2);
+            $this->out("[$i]: {$record->getItem()} $$usd");
         }
     }
 }

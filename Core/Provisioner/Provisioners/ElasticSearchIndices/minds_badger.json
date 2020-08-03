@@ -2,6 +2,9 @@
   "mappings": {
     "activity:blog": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -88,6 +91,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -135,6 +141,9 @@
     },
     "comment": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -221,6 +230,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -280,6 +292,9 @@
     },
     "activity": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -362,6 +377,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -465,6 +483,9 @@
     },
     "object:video": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -506,6 +527,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -556,6 +580,9 @@
     },
     "object": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -633,6 +660,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -671,6 +701,9 @@
     },
     "object:audio": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -748,6 +781,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -910,6 +946,9 @@
         "wire_support_tier": {
           "type": "keyword"
         },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1043,6 +1082,9 @@
         "wire_support_tier": {
           "type": "keyword"
         },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1092,6 +1134,9 @@
     },
     "object:blog": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -1133,6 +1178,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -1249,6 +1297,9 @@
         "wire_support_tier": {
           "type": "keyword"
         },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1352,6 +1403,9 @@
         "wire_support_tier": {
           "type": "keyword"
         },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1380,6 +1434,9 @@
     },
     "user": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -1424,6 +1481,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -1562,6 +1622,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -1708,6 +1771,9 @@
         "wire_support_tier": {
           "type": "keyword"
         },
+        "@wire_support_tier_expire": {
+          "type": "date"
+        },
         "public": {
           "type": "boolean"
         },
@@ -1754,6 +1820,9 @@
     },
     "object:image": {
       "properties": {
+        "language": {
+          "type": "keyword"
+        },
         "@timestamp": {
           "type": "date"
         },
@@ -1795,6 +1864,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -1913,6 +1985,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"
@@ -2049,6 +2124,9 @@
         },
         "wire_support_tier": {
           "type": "keyword"
+        },
+        "@wire_support_tier_expire": {
+          "type": "date"
         },
         "public": {
           "type": "boolean"

@@ -56,7 +56,8 @@ class Manager
         'sukkerpappa.com',
         'hoaup.com',
         'oeewc.com',
-        'us.yoshisad.com'
+        'us.yoshisad.com',
+        'deepbluez.com',
     ];
 
     public function __construct($service = null, $spamBlocksManager = null)

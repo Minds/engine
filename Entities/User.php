@@ -2,9 +2,9 @@
 
 namespace Minds\Entities;
 
+use Minds\Common\ChannelMode;
 use Minds\Core;
 use Minds\Helpers;
-use Minds\Common\ChannelMode;
 
 /**
  * User Entity.
@@ -64,6 +64,7 @@ class User extends \ElggUser
         $this->attributes['email_confirmed_at'] = null;
         $this->attributes['surge_token'] = '';
         $this->attributes['hide_share_buttons'] = 0;
+        $this->attributes['allow_unsubscribed_contact'] = 0;
         $this->attributes['kite_ref_ts'] = 0;
         $this->attributes['kite_state'] = 'unknown';
         $this->attributes['disable_autoplay_videos'] = 0;
@@ -535,7 +536,6 @@ class User extends \ElggUser
 
         $this->pinned_posts = array_slice($pinned, -$maxPinnedPosts, null, false);
 
-
         return $this;
     }
 
@@ -740,6 +740,35 @@ class User extends \ElggUser
     }
 
     /**
+     * @return bool
+     */
+    public function getAllowUnsubscribedContact(): bool
+    {
+        return (bool) $this->allow_unsubscribed_contact;
+    }
+
+    /**
+     * @param bool $value
+     * @return User
+     */
+    public function setAllowUnsubscribedContact(bool $value): User
+    {
+        $this->allow_unsubscribed_contact = $value;
+        return $this;
+    }
+
+    /**
+     * It returns true if the user is verified or if the user is older than the new email confirmation feature
+     * @return bool
+     */
+    public function isTrusted(): bool
+    {
+        return
+            (!$this->getEmailConfirmationToken() && !$this->getEmailConfirmedAt()) || // Old users poly-fill
+            $this->isEmailConfirmed();
+    }
+
+    /**
      * Subscribes user to another user.
      *
      * @param mixed $guid
@@ -903,7 +932,13 @@ class User extends \ElggUser
     {
         $export = parent::export();
         $export['guid'] = (string) $this->guid;
-        $export['name'] = htmlspecialchars_decode($this->name);
+
+        if (!isset($export['name']) || !$export['name']) {
+            $export['name'] = $this->username;
+        }
+
+        // $export['name'] = htmlspecialchars_decode($export['name']);
+        // $export['name'] = addslashes($export['name']);
 
         if ($this->fullExport) {
             if (Core\Session::isLoggedIn()) {
@@ -979,6 +1014,7 @@ class User extends \ElggUser
         $export['rating'] = $this->getRating();
 
         $export['hide_share_buttons'] = $this->getHideShareButtons();
+        $export['allow_unsubscribed_contact'] = $this->getAllowUnsubscribedContact();
         $export['disable_autoplay_videos'] = $this->getDisableAutoplayVideos();
         $export['dismissed_widgets'] = $this->getDismissedWidgets();
 
@@ -995,8 +1031,8 @@ class User extends \ElggUser
     public function getImpressions()
     {
         $app = Core\Analytics\App::_()
-                ->setMetric('impression')
-                ->setKey($this->guid);
+            ->setMetric('impression')
+            ->setKey($this->guid);
 
         return $app->total();
     }
@@ -1163,7 +1199,7 @@ class User extends \ElggUser
     {
         $join_date = $this->getTimeCreated();
 
-        return elgg_get_site_url()."icon/$this->guid/$size/$join_date/$this->icontime/".Core\Config::_()->lastcache;
+        return elgg_get_site_url() . "icon/$this->guid/$size/$join_date/$this->icontime/" . Core\Config::_()->lastcache;
     }
 
     /**
@@ -1290,6 +1326,7 @@ class User extends \ElggUser
             'btc_address',
             'surge_token',
             'hide_share_buttons',
+            'allow_unsubscribed_contact',
             'dismissed_widgets'
         ]);
     }
@@ -1316,13 +1353,13 @@ class User extends \ElggUser
     /**
      * Set the users canary status.
      *
-     * @var bool
-     *
      * @return $this
+     * @var bool
      */
     public function setCanary($enabled = true)
     {
         $this->canary = $enabled ? 1 : 0;
+        return $this;
     }
 
     /**

@@ -5,6 +5,8 @@ use Exception;
 use Minds\Common\Repository\Response;
 use Minds\Core\GuidBuilder;
 use Minds\Entities\User;
+use Minds\Exceptions\UserErrorException;
+use Minds\Helpers\Urn;
 
 /**
  * Wire Support Tiers Manager
@@ -19,7 +21,10 @@ class Manager
     protected $guidBuilder;
 
     /** @var Delegates\UserWireRewardsMigrationDelegate */
-    protected $userWireRewardsMigrationDelegate;
+    protected $userWireRewardsMigration;
+
+    /** @var Delegates\CurrenciesDelegate */
+    protected $currenciesDelegate;
 
     /** @var mixed */
     protected $entity;
@@ -27,17 +32,20 @@ class Manager
     /**
      * Manager constructor.
      * @param $repository
-     * @param null $guidBuilder
+     * @param $guidBuilder
      * @param $userWireRewardsMigrationDelegate
+     * @param $currenciesDelegate
      */
     public function __construct(
         $repository = null,
         $guidBuilder = null,
-        $userWireRewardsMigrationDelegate = null
+        $userWireRewardsMigrationDelegate = null,
+        $currenciesDelegate = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->guidBuilder = $guidBuilder ?: new GuidBuilder();
-        $this->userWireRewardsMigrationDelegate = $userWireRewardsMigrationDelegate ?: new Delegates\UserWireRewardsMigrationDelegate();
+        $this->userWireRewardsMigration = $userWireRewardsMigrationDelegate ?: new Delegates\UserWireRewardsMigrationDelegate();
+        $this->currenciesDelegate = $currenciesDelegate ?: new Delegates\CurrenciesDelegate();
     }
 
     /**
@@ -52,7 +60,7 @@ class Manager
     }
 
     /**
-     * Fetches all support tiers for an entity. Migrates existing Wire Rewards.
+     * Fetches all public Support Tiers for an entity.
      * @return Response<SupportTier>
      * @throws Exception
      */
@@ -66,15 +74,19 @@ class Manager
             (new RepositoryGetListOptions())
                 ->setEntityGuid((string) $this->entity->guid)
                 ->setLimit(5000)
-        );
+        )->filter(function (SupportTier $supportTier) {
+            return $supportTier->isPublic();
+        })->sort(function (SupportTier $a, SupportTier $b) {
+            return $a->getUsd() <=> $b->getUsd();
+        });
 
-        if (!$response->count() && $this->entity instanceof User && $this->entity->getWireRewards()) {
-            // If no response, entity is User and there are Wire Rewards set, migrate from it
-            $response = $this->userWireRewardsMigrationDelegate
-                ->migrate($this->entity, true);
+        if (!$response->count() && $this->entity instanceof User) {
+            $response = $this->userWireRewardsMigration->migrate($this->entity, true);
         }
 
-        return $response;
+        return $response->map(function (SupportTier $supportTier) {
+            return $this->currenciesDelegate->hydrate($supportTier);
+        });
     }
 
     /**
@@ -85,17 +97,76 @@ class Manager
      */
     public function get(SupportTier $supportTier): ?SupportTier
     {
-        if (!$supportTier->getEntityGuid() || !$supportTier->getCurrency() || !$supportTier->getGuid()) {
+        if (!$supportTier->getEntityGuid() || !$supportTier->getGuid()) {
             throw new Exception('Missing primary key');
         }
 
-        return $this->repository->getList(
+        $tier = $this->repository->getList(
             (new RepositoryGetListOptions())
                 ->setEntityGuid($supportTier->getEntityGuid())
-                ->setCurrency($supportTier->getCurrency())
                 ->setGuid($supportTier->getGuid())
                 ->setLimit(1)
         )->first();
+
+        if (!$tier) {
+            return null;
+        }
+
+        return $this->currenciesDelegate->hydrate(
+            $tier
+        );
+    }
+
+    /**
+     * Get by a urn
+     * @param string $urn
+     * @return SupportTier|null
+     */
+    public function getByUrn(string $urn): ?SupportTier
+    {
+        $urn = Urn::parse($urn, 'support-tier');
+
+        if (!$urn || count($urn) !== 2) {
+            throw new UserErrorException('Invalid URN', 400);
+        }
+
+        $supportTier = new SupportTier();
+        $supportTier
+            ->setEntityGuid($urn[0])
+            ->setGuid($urn[1]);
+
+        return $this->get($supportTier);
+    }
+
+    /**
+     * Finds a matching Support Tier
+     * @param SupportTier $matchingSupportTier
+     * @return SupportTier|null
+     * @throws \Minds\Exceptions\StopEventException
+     */
+    public function match(SupportTier $matchingSupportTier): ?SupportTier
+    {
+        $supportTiers = $this->repository->getList(
+            (new RepositoryGetListOptions())
+                ->setEntityGuid((string) $matchingSupportTier->getEntityGuid())
+                ->setLimit(5000)
+        );
+
+        $supportTier = $supportTiers->filter(function (SupportTier $supportTier) use ($matchingSupportTier) {
+            return
+                    $supportTier->isPublic() === $matchingSupportTier->isPublic() &&
+                    $supportTier->getUsd() === $matchingSupportTier->getUsd() &&
+                    $supportTier->hasUsd() === $matchingSupportTier->hasUsd() &&
+                    $supportTier->hasTokens() === $matchingSupportTier->hasTokens();
+        })->first();
+
+        if (!$supportTier) {
+            return null;
+        }
+
+        return $this->currenciesDelegate->hydrate(
+            $supportTier
+        );
     }
 
     /**
@@ -111,13 +182,7 @@ class Manager
 
         $success = $this->repository->add($supportTier);
 
-        if ($success && $this->entity instanceof User) {
-            // If entity is User, re-sync wire_rewards
-            $this->userWireRewardsMigrationDelegate
-                ->sync($this->entity);
-        }
-
-        return $success ? $supportTier : null;
+        return $success ? $this->currenciesDelegate->hydrate($supportTier) : null;
     }
 
     /**
@@ -130,13 +195,7 @@ class Manager
     {
         $success = $this->repository->update($supportTier);
 
-        if ($success && $this->entity instanceof User) {
-            // If entity is User, re-sync wire_rewards
-            $this->userWireRewardsMigrationDelegate
-                ->sync($this->entity);
-        }
-
-        return $success ? $supportTier : null;
+        return $success ? $this->currenciesDelegate->hydrate($supportTier) : null;
     }
 
     /**
@@ -147,28 +206,6 @@ class Manager
      */
     public function delete(SupportTier $supportTier): bool
     {
-        $success = $this->repository->delete($supportTier);
-
-        if ($success && $this->entity instanceof User) {
-            // If entity is User, re-sync wire_rewards
-            $this->userWireRewardsMigrationDelegate
-                ->sync($this->entity);
-        }
-
-        return $success;
-    }
-
-    /**
-     * Migrates wire_reward field to Support Tier
-     * @throws Exception
-     */
-    public function migrate(): void
-    {
-        if (!($this->entity instanceof User)) {
-            throw new Exception('Entity is not a User');
-        }
-
-        $this->userWireRewardsMigrationDelegate
-            ->migrate($this->entity, true);
+        return $this->repository->delete($supportTier);
     }
 }

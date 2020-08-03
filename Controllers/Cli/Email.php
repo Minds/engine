@@ -6,6 +6,8 @@ use Minds\Core;
 use Minds\Cli;
 use Minds\Interfaces;
 use Minds\Entities\User;
+use Minds\Core\Email\EmailSubscribersIterator;
+use Minds\Core\Email\V2\Campaigns;
 use Minds\Core\Email\V2\Campaigns\Recurring\BoostComplete\BoostComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
@@ -59,30 +61,58 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         }
     }
 
+    /**
+     * TODO: Move this to Core
+     * How to run? Eg:
+     * php cli.php Email \
+     *  --campaign="Marketing\\Languages2020_06_18\\Languages2020_06_18"
+     */
     public function exec()
     {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
 
-        $batch = $this->getOpt('batch');
         $dry = $this->getOpt('dry-run') ?: false;
-        $from = (strtotime('midnight', $this->getOpt('from')) ?: Timestamps::get(['day'])['day']);
 
         $offset = $this->getOpt('offset') ?: '';
-        $subject = $this->getOpt('subject') ?: '';
-        $template = $this->getOpt('template') ?: '';
+        $campaign = Campaigns\Factory::build($this->getOpt('campaign'));
 
-        $batchRunner = Core\Email\Batches\Factory::build($batch);
+        if ($dry) {
+            $iterator = [
+                (new User($dry))
+            ];
+        } else {
+            $iterator = new EmailSubscribersIterator();
+            $iterator->setCampaign($campaign->getCampaign())
+                ->setTopic($campaign->getTopic())
+                ->setValue(true)
+                ->setOffset($offset);
+        }
 
-        $batchRunner->setFrom($from)
-            ->setDryRun($dry)
-            ->setOffset($offset)
-            ->setSubject($subject)
-            ->setTemplateKey($template)
-            ->run();
+        $i = 0;
+        foreach ($iterator as $user) {
+            if (!$user instanceof User || !method_exists($user, 'getEmail')) {
+                continue;
+            }
+            if ($user->bounced && !$dry) {
+                $this->out("[$i]: $user->guid ($iterator->offset) bounced");
+                continue;
+            }
+
+            ++$i;
+
+            $campaign = clone $campaign;
+            $campaign->setUser($user);
+            $campaign->send();
+
+            $this->out("[$i]: $user->guid ($iterator->offset) sent");
+        }
 
         $this->out('Done.');
     }
+
+
+    //
 
     public function topPosts()
     {

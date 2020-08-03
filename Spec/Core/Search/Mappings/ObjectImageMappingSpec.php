@@ -34,14 +34,20 @@ class ObjectImageMappingSpec extends ObjectBehavior
         $image->get('blurb')->willReturn('PHPSpec Blurb');
         $image->get('description')->willReturn('PHPSpec Description');
         $image->get('paywall')->willReturn(false);
+        $image->isPayWall()->willReturn(false);
         $image->get('license')->willReturn('cc-test-lic');
         $image->getTags()->willReturn([ 'spaceiscool' ]);
         $image->getFlag('mature')->willReturn(false);
-        $image->getFlag('paywall')->willReturn(false);
         $image->get('moderator_guid')->willReturn('123');
         $image->get('time_moderated')->willReturn($now);
         $image->getNsfw()->willReturn([ 1 ]);
-        $image->get('wire_threshold')->willReturn(null);
+        $image->getWireThreshold()->willReturn([
+            'support_tier' => [
+                'urn' => 'urn:support-tier:123456',
+                'expires' => 1000,
+            ],
+        ]);
+        $image->get('language')->willReturn(null);
 
         $this
             ->setEntity($image)
@@ -71,7 +77,8 @@ class ObjectImageMappingSpec extends ObjectBehavior
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'object:image',
                 'public' => true,
-                'wire_support_tier' => null,
+                'wire_support_tier' => 'urn:support-tier:123456',
+                '@wire_support_tier_expire' => 1000000,
                 'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',

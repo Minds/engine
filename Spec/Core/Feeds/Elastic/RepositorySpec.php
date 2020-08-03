@@ -32,6 +32,10 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(['index' => 'minds']);
 
+        $config->get('plus')
+            ->shouldBeCalled()
+            ->willReturn(['support_tier_urn' => 'urn:support-tier:fake/plus']);
+
         $this->beConstructedWith($client, $config, $features);
     }
 

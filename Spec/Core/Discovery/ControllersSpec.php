@@ -82,7 +82,7 @@ class ControllersSpec extends ObjectBehavior
                 ->set('guid', '456'),
         ]);
 
-        $this->manager->getSearch('hello world', 'top', '')
+        $this->manager->getSearch('hello world', 'top', '', [ 'plus' => false ])
             ->willReturn($response);
 
         $response = $this->getSearch($request);

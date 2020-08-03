@@ -8,8 +8,6 @@ use Minds\Traits\MagicAttributes;
  * @package Minds\Core\Wire\SupportTiers
  * @method string getEntityGuid()
  * @method RepositoryGetListOptions setEntityGuid(string $entityGuid)
- * @method string getCurrency()
- * @method RepositoryGetListOptions setCurrency(string $currency)
  * @method string getGuid()
  * @method RepositoryGetListOptions setGuid(string $guid)
  * @method string getOffset()
@@ -23,9 +21,6 @@ class RepositoryGetListOptions
 
     /** @var string */
     protected $entityGuid;
-
-    /** @var string */
-    protected $currency;
 
     /** @var string */
     protected $guid;

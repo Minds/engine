@@ -60,7 +60,11 @@ class Confirmation extends EmailCampaign
             'state' => 'new',
         ];
 
-        $subject = 'Welcome to Minds. Time to verify.';
+        $this->template->setLocale($this->user->getLanguage());
+
+        $translator = $this->template->getTranslator();
+
+        $subject = $translator->trans('Welcome to Minds. Time to verify.');
         $trackingQuery = http_build_query($tracking);
 
         $this->template->setTemplate('default.tpl');
@@ -69,11 +73,11 @@ class Confirmation extends EmailCampaign
         $this->template->set('username', $this->user->username);
         $this->template->set('guid', $this->user->guid);
         $this->template->set('tracking', $trackingQuery);
-        $this->template->set('title', 'Welcome to Minds');
+        $this->template->set('title', $translator->trans('Welcome to Minds'));
         $this->template->set('preheader', $subject);
 
         $actionButton = (new ActionButton())
-        ->setLabel('Verify Address')
+        ->setLabel($translator->trans('Verify Address'))
         ->setPath($this->confirmationUrl
             ->setUser($this->user)
             ->generate($tracking));

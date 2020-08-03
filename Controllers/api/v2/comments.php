@@ -88,7 +88,7 @@ class comments implements Interfaces\Api
             $offset = count($comments) <= $limit ? '' : $comments[count($comments) - 1]->getGuid();
         } else {
             // if it's not the last page and it's NOT descending, return first comment guid
-            $offset = count($comments) >= 0 ? $comments[0]->getGuid() : '';
+            $offset = count($comments) > 0 ? $comments[0]->getGuid() : '';
         }
 
         $response['comments'] = Exportable::_($comments);

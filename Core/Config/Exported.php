@@ -1,6 +1,7 @@
 <?php
 /**
- * Exported
+ * Exported.
+ *
  * @author edgebal
  */
 
@@ -9,13 +10,12 @@ namespace Minds\Core\Config;
 use Minds\Core\Blockchain\Manager as BlockchainManager;
 use Minds\Core\Di\Di;
 use Minds\Core\Features\Manager as FeaturesManager;
-use Minds\Core\I18n\I18n;
+use Minds\Core\I18n\Manager as I18nManager;
 use Minds\Core\Navigation\Manager as NavigationManager;
 use Minds\Core\Rewards\Contributions\ContributionValues;
 use Minds\Core\Session;
 use Minds\Core\ThirdPartyNetworks\Manager as ThirdPartyNetworksManager;
 use Minds\Entities\User;
-use Minds\Helpers\Counters;
 
 class Exported
 {
@@ -25,7 +25,7 @@ class Exported
     /** @var ThirdPartyNetworksManager */
     protected $thirdPartyNetworks;
 
-    /** @var I18n */
+    /** @var I18nManager */
     protected $i18n;
 
     /** @var FeaturesManager */
@@ -33,11 +33,12 @@ class Exported
 
     /**
      * Exported constructor.
-     * @param Config $config
+     *
+     * @param Config                    $config
      * @param ThirdPartyNetworksManager $thirdPartyNetworks
-     * @param I18n $i18n
-     * @param BlockchainManager $blockchain
-     * @param FeaturesManager $features
+     * @param I18nManager               $i18n
+     * @param BlockchainManager         $blockchain
+     * @param FeaturesManager           $features
      */
     public function __construct(
         $config = null,
@@ -49,7 +50,7 @@ class Exported
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
-        $this->i18n = $i18n ?: Di::_()->get('I18n');
+        $this->i18n = $i18n ?: Di::_()->get('I18n\Manager');
         $this->blockchain = $blockchain ?: Di::_()->get('Blockchain\Manager');
         $this->proDomain = $proDomain ?: Di::_()->get('Pro\Domain');
         $this->features = $features ?: Di::_()->get('Features\Manager');
@@ -96,6 +97,7 @@ class Exported
             'contribution_values' => ContributionValues::export(),
             'environment' => getenv('MINDS_ENV') ?: 'development',
             'boost_rotator_interval' => $this->config->get('boost_rotator_interval'),
+            'token_exchange_rate' => $this->config->get('token_exchange_rate'),
         ];
 
         if (Session::isLoggedIn()) {

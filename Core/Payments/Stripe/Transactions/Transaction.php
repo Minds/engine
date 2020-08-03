@@ -50,6 +50,7 @@ class Transaction
             'type' => $this->type,
             'status' => $this->status,
             'timestamp' => $this->timestamp,
+            'timestamp_iso8601' => date('c', $this->timestamp),
             'gross' => $this->gross,
             'currency' => $this->currency,
             'fees' => $this->fees,

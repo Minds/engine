@@ -22,6 +22,8 @@ class threshold implements Interfaces\Api
             return Factory::response($response);
         }
 
+        $paywallManager = Di::_()->get('Wire\Paywall\Manager');
+
         // $entity = new Entities\Activity($pages[0]);
         $user = Session::getLoggedInUser();
         $entity = Entities\Factory::build($pages[0]);
@@ -30,32 +32,20 @@ class threshold implements Interfaces\Api
             return Factory::response(['status' => 'error', 'message' => 'Entity couldn\'t be found']);
         }
 
+        // if the user wires amounts to the threshold or more
         try {
-            $isAllowed = $user->isAdmin() || Di::_()->get('Wire\Thresholds')->isAllowed($user, $entity);
+            $entity = $paywallManager
+                ->setUser($user)
+                ->unlock($entity, $user);
+
+            $response['entity'] = $entity->export();
+            $response['entity']['paywall_unlocked'] = true;
         } catch (\Exception $e) {
             return Factory::response([
                 'status' => 'error',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
+                'errorId' => str_replace('\\', '::', get_class($e)),
             ]);
-        }
-
-        // if the user wires amounts to the threshold or more
-        if ($isAllowed) {
-            $entity->setPaywall(false);
-
-            if ($entity->type == 'activity') {
-                $response['activity'] = $entity->export();
-                $response['activity']['paywall_unlocked'] = true;
-                
-                if (isset($entity->custom_type) && $entity->custom_type === 'batch') {
-                    $signedUri = new SignedUri(); // Sign URI so that user can view it.
-                    $signed = $signedUri->sign($entity->custom_data[0]['src']);
-                    $response['activity']['custom_data'][0]['src'] = $signed;
-                }
-            } else {
-                $response['entity'] = $entity->export();
-                $response['entity']['paywall_unlocked'] = true;
-            }
         }
 
         return Factory::response($response);

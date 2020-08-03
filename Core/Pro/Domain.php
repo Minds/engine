@@ -65,6 +65,10 @@ class Domain
         }
 
         $user = $this->entitiesBuilder->single($settings->getUserGuid());
+
+        if (!$user) {
+            return null;
+        }
     
         return $this->proManager
             ->setUser($user)

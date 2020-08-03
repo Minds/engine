@@ -18,6 +18,7 @@ use Minds\Core\Media\Video\Transcoder\Transcode;
 use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Core\Media\Video\Transcoder\TranscodeStorage\TranscodeStorageInterface;
 use Minds\Core\Media\Video\Transcoder\TranscodeProfiles;
+use Minds\Helpers\Image;
 
 class FFMpegExecutor implements TranscodeExecutorInterface
 {
@@ -33,11 +34,15 @@ class FFMpegExecutor implements TranscodeExecutorInterface
     /** @var TranscodeStorageInterface */
     private $transcodeStorage;
 
+    /** @var Image */
+    private $imageHelper;
+
     public function __construct(
         $config = null,
         $ffmpeg = null,
         $ffprobe = null,
-        $transcodeStorage = null
+        $transcodeStorage = null,
+        $imageHelper = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->ffmpeg = $ffmpeg ?: FFMpegClient::create([
@@ -50,6 +55,7 @@ class FFMpegExecutor implements TranscodeExecutorInterface
             'ffprobe.binaries' => '/usr/bin/ffprobe',
         ]);
         $this->transcodeStorage = $transcodeStorage ?? Di::_()->get('Media\Video\Transcode\TranscodeStorage');
+        $this->imageHelper = $imageHelper ?: new Image();
     }
 
     /**
@@ -69,7 +75,12 @@ class FFMpegExecutor implements TranscodeExecutorInterface
             ->setProfile(new TranscodeProfiles\Source()); // Simply change the source
 
         // Download the source
-        $sourcePath = $this->transcodeStorage->downloadToTmp($source);
+        try {
+            $sourcePath = $this->transcodeStorage->downloadToTmp($source);
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            throw new FailedTranscodeException("Error downloading {$transcode->getGuid()} from storage");
+        }
 
         // Open the resource
         /** @var \FFMpeg\Media\Video; */
@@ -86,6 +97,10 @@ class FFMpegExecutor implements TranscodeExecutorInterface
                 ->streams($sourcePath)
                 ->videos()
                 ->first();
+
+            if (!$videostream) {
+                throw new FailedTranscodeException("Video stream not found");
+            }
 
             // get video metadata
             $tags = $videostream->get('tags');
@@ -104,7 +119,7 @@ class FFMpegExecutor implements TranscodeExecutorInterface
 
         // Logic for rotated videos
         $rotated = isset($tags['rotate']) && in_array($tags['rotate'], [270, 90], false);
-        if ($rotated) {
+        if ($rotated && $videostream) {
             $ratio = $videostream->get('width') / $videostream->get('height');
             // Invert width and height
             $width = $height;
@@ -122,7 +137,7 @@ class FFMpegExecutor implements TranscodeExecutorInterface
         $pfx = $transcodeProfiler->getStorageName();
         $path = $sourcePath.'-'.$pfx;
         $format = $transcodeProfiler->getFormat();
-    
+
         $formatMap = [
             'video/mp4' => (new \FFMpeg\Format\Video\X264())
                 ->setAudioCodec('aac'),
@@ -141,7 +156,7 @@ class FFMpegExecutor implements TranscodeExecutorInterface
             $formatMap[$format]
                 ->setKiloBitRate($transcodeProfiler->getBitrate())
                 ->setAudioKiloBitrate($transcodeProfiler->getAudioBitrate());
-         
+
             // Run the transcode
             $video->save($formatMap[$format], $path);
 
@@ -190,12 +205,20 @@ class FFMpegExecutor implements TranscodeExecutorInterface
                 $path = $thumbnailsDir.'/'."thumbnail-$pad.png";
                 $frame->save($path);
 
+                // get thumb resolution (only first one)
+                if ($sec === 0) {
+                    list($width, $height) = $this->imageHelper->getimagesize($path);
+                    $transcode->getProfile()
+                        ->setWidth($width)
+                        ->setHeight($height);
+                }
+
                 // Hack the profile storage name, as there are multiple thumbnails
                 $transcode->getProfile()->setStorageName("thumbnail-$pad.png");
 
                 // Upload to filestore
                 $this->transcodeStorage->add($transcode, $path);
-    
+
                 // Cleanup tmp
                 @unlink($path);
             }

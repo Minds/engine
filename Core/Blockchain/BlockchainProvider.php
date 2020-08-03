@@ -93,5 +93,9 @@ class BlockchainProvider extends Provider
         $this->di->bind('Blockchain\GasPrice', function () {
             return new GasPrice();
         });
+
+        $this->di->bind('Blockchain\Wallets\Ether\Balance', function () {
+            return new Wallets\Ether\Balance();
+        });
     }
 }

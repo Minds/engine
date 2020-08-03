@@ -8,6 +8,7 @@ use Minds\Core\Analytics\EntityCentric\Manager as EntityCentricManager;
 use Minds\Core\EntitiesBuilder;
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
+use Minds\Core\Plus;
 use Minds\Entities\User;
 use DateTime;
 
@@ -19,6 +20,9 @@ class Manager
     /** @var int */
     const REFERRAL_CENTS = 10; // $0.10
 
+    /** @var int */
+    const PLUS_SHARE_PCT = Plus\Manager::REVENUE_SHARE_PCT; // 25%
+
     /** @var Repository */
     private $repository;
 
@@ -28,11 +32,19 @@ class Manager
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
-    public function __construct($repository = null, $entityCentricManager = null, $entitiesBuilder = null)
-    {
+    /** @var Plus\Manager */
+    private $plusManager;
+
+    public function __construct(
+        $repository = null,
+        $entityCentricManager = null,
+        $entitiesBuilder = null,
+        $plusManager = null
+    ) {
         $this->repository = $repository ?? new Repository();
         $this->entityCentricManager = $entityCentricManager ?? new EntityCentricManager();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->plusManager = $plusManager ?? Di::_()->get('Plus\Manager');
     }
 
     /**
@@ -66,8 +78,33 @@ class Manager
             'from' => strtotime('midnight'),
         ], $opts);
 
+        yield from $this->issuePlusDeposits($opts);
         yield from $this->issuePageviewDeposits($opts);
         yield from $this->issueReferralDeposits($opts);
+    }
+
+    /**
+     * Issue deposits for plus
+     * @param array $opts
+     * @return iterable
+     */
+    protected function issuePlusDeposits(array $opts): iterable
+    {
+        $revenueUsd = $this->plusManager->getDailyRevenue($opts['from']) * (self::PLUS_SHARE_PCT / 100);
+        $revenueCents = round($revenueUsd * 100, 0);
+
+        foreach ($this->plusManager->getUnlocks($opts['from']) as $unlock) {
+            $shareCents = $revenueCents * $unlock['sharePct'];
+            $deposit = new EarningsDeposit();
+            $deposit->setTimestamp($opts['from'])
+                ->setUserGuid($unlock['user_guid'])
+                ->setAmountCents($shareCents)
+                ->setItem('plus');
+
+            $this->repository->add($deposit);
+
+            yield $deposit;
+        }
     }
 
     /**

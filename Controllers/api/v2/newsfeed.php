@@ -261,7 +261,6 @@ class newsfeed implements Interfaces\Api
     {
         Factory::isLoggedIn();
         $save = new Save();
-
         //factory::authorize();
         switch ($pages[0]) {
             case 'remind':
@@ -484,13 +483,9 @@ class newsfeed implements Interfaces\Api
                         $activityMutation->setNsfw($_POST['nsfw']);
                     }
 
+                    // TODO: remove this when new paywall is released
                     if (isset($_POST['wire_threshold'])) {
-                        if (is_array($_POST['wire_threshold']) && ($_POST['wire_threshold']['min'] <= 0 || !$_POST['wire_threshold']['type'])) {
-                            return Factory::response([
-                                'status' => 'error',
-                                'message' => 'Invalid Wire threshold'
-                            ]);
-                        }
+                        // Validation happend on Manager->onUpdate // PaywallDelegate->onUpdate
 
                         $activityMutation->setWireThreshold($_POST['wire_threshold']);
                         $activityMutation->setPaywall(!!$_POST['wire_threshold']);
@@ -524,6 +519,11 @@ class newsfeed implements Interfaces\Api
                         $activityMutation->setVideoPosterBase64Blob($_POST['video_poster']);
                     }
 
+                    if (isset($_POST['access_id'])) {
+                        error_log("accessId is: " . $_POST['access_id']);
+                        $activityMutation->setAccessId($_POST['access_id']);
+                    }
+
                     // Update the entity
 
                     $activityManager = Di::_()->get('Feeds\Activity\Manager');
@@ -538,7 +538,7 @@ class newsfeed implements Interfaces\Api
                     }
 
                     $activity->setExportContext(true);
-                    
+
                     return Factory::response([
                         'guid' => $activity->guid,
                         'activity' => $activityMutation->getMutatedEntity()->export(),
@@ -578,15 +578,10 @@ class newsfeed implements Interfaces\Api
                 }
 
                 if (isset($_POST['wire_threshold']) && $_POST['wire_threshold']) {
-                    if (is_array($_POST['wire_threshold']) && ($_POST['wire_threshold']['min'] <= 0 || !$_POST['wire_threshold']['type'])) {
-                        return Factory::response([
-                            'status' => 'error',
-                            'message' => 'Invalid Wire threshold'
-                        ]);
-                    }
-
                     $activity->setWireThreshold($_POST['wire_threshold']);
-                    $activity->setPayWall(true);
+
+                    $paywallDelegate = new Core\Feeds\Activity\Delegates\PaywallDelegate();
+                    $paywallDelegate->onAdd($activity);
                 }
 
                 $container = null;
@@ -622,38 +617,39 @@ class newsfeed implements Interfaces\Api
                 $entityGuid = $_POST['entity_guid'] ?? $_POST['attachment_guid'] ?? null;
                 $url = $_POST['url'] ?? null;
 
-                if ($entityGuid && !$url) {
-                    // Attachment
+                try {
+                    if ($entityGuid && !$url) {
+                        // Attachment
 
-                    if ($_POST['title'] ?? null) {
-                        $activity->setTitle($_POST['title']);
+                        if ($_POST['title'] ?? null) {
+                            $activity->setTitle($_POST['title']);
+                        }
+
+                        // Sets the attachment
+                        (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
+                            ->setActor(Core\Session::getLoggedinUser())
+                            ->onCreate($activity, (string) $entityGuid);
+                    } elseif (!$entityGuid && $url) {
+                        // Set-up rich embed
+
+                        $activity
+                            ->setTitle(rawurldecode($_POST['title']))
+                            ->setBlurb(rawurldecode($_POST['description']))
+                            ->setURL(rawurldecode($_POST['url']))
+                            ->setThumbnail($_POST['thumbnail']);
+                    } else {
+                        // TODO: Handle immutable embeds (like blogs, which have an entity_guid and a URL)
+                        // These should not appear naturally when creating, but might be implemented in the future.
                     }
 
-                    // Sets the attachment
-                    $activity = (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
-                        ->setActor(Core\Session::getLoggedinUser())
-                        ->onCreate($activity, (string) $entityGuid);
-                } elseif (!$entityGuid && $url) {
-                    // Set-up rich embed
+                    // TODO: Move this to Core/Feeds/Activity/Manager
 
-                    $activity
-                        ->setTitle(rawurldecode($_POST['title']))
-                        ->setBlurb(rawurldecode($_POST['description']))
-                        ->setURL(rawurldecode($_POST['url']))
-                        ->setThumbnail($_POST['thumbnail']);
-                } else {
-                    // TODO: Handle immutable embeds (like blogs, which have an entity_guid and a URL)
-                    // These should not appear naturally when creating, but might be implemented in the future.
-                }
+                    if ($_POST['video_poster'] ?? null) {
+                        $activity->setVideoPosterBase64Blob($_POST['video_poster']);
+                        $videoPosterDelegate = new Core\Feeds\Activity\Delegates\VideoPosterDelegate();
+                        $videoPosterDelegate->onAdd($activity);
+                    }
 
-                // TODO: Move this to Core/Feeds/Activity/Manager
-                if ($_POST['video_poster'] ?? null) {
-                    $activity->setVideoPosterBase64Blob($_POST['video_poster']);
-                    $videoPosterDelegate = new Core\Feeds\Activity\Delegates\VideoPosterDelegate();
-                    $videoPosterDelegate->onAdd($activity);
-                }
-
-                try {
                     $guid = $save->setEntity($activity)->save();
                 } catch (\Exception $e) {
                     return Factory::response([

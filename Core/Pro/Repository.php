@@ -1,6 +1,7 @@
 <?php
 /**
- * Repository
+ * Repository.
+ *
  * @author edgebal
  */
 
@@ -21,6 +22,7 @@ class Repository
 
     /**
      * Repository constructor.
+     *
      * @param Client $db
      */
     public function __construct(
@@ -31,6 +33,7 @@ class Repository
 
     /**
      * @param array $opts
+     *
      * @return Response
      */
     public function getList(array $opts = []): Response
@@ -42,7 +45,7 @@ class Repository
             'offset' => null,
         ], $opts);
 
-        $cql = "SELECT * FROM pro";
+        $cql = 'SELECT * FROM pro';
         $where = [];
         $values = [];
         $cqlOpts = [];
@@ -51,13 +54,13 @@ class Repository
             $where[] = 'user_guid = ?';
             $values[] = new Bigint($opts['user_guid']);
         } elseif ($opts['domain']) {
-            $cql = "SELECT * FROM pro_by_domain";
+            $cql = 'SELECT * FROM pro_by_domain';
             $where[] = 'domain = ?';
             $values[] = $opts['domain'];
         }
 
         if ($where) {
-            $cql .= sprintf(" WHERE %s", implode(' AND ', $where));
+            $cql .= sprintf(' WHERE %s', implode(' AND ', $where));
         }
 
         if ($opts['limit']) {
@@ -100,6 +103,7 @@ class Repository
                         ->setCustomHead($data['custom_head'] ?? '')
                         ->setHasCustomLogo($data['has_custom_logo'] ?? false)
                         ->setHasCustomBackground($data['has_custom_background'] ?? false)
+                        ->setSplash($data['splash'] ?? false)
                         ->setTimeUpdated($data['time_updated'] ?? 0)
                         ->setPayoutMethod($data['payout_method'] ?? 'usd')
                     ;
@@ -121,7 +125,9 @@ class Repository
 
     /**
      * @param Settings $settings
+     *
      * @return bool
+     *
      * @throws Exception
      */
     public function add(Settings $settings): bool
@@ -130,7 +136,7 @@ class Repository
             throw new Exception('Invalid user GUID');
         }
 
-        $cql = "INSERT INTO pro (user_guid, domain, json_data) VALUES (?, ?, ?)";
+        $cql = 'INSERT INTO pro (user_guid, domain, json_data) VALUES (?, ?, ?)';
         $settings = [
             new Bigint($settings->getUserGuid()),
             $settings->getDomain(),
@@ -150,6 +156,7 @@ class Repository
                 'custom_head' => $settings->getCustomHead(),
                 'has_custom_logo' => $settings->hasCustomLogo(),
                 'has_custom_background' => $settings->hasCustomBackground(),
+                'splash' => $settings->getSplash(),
                 'time_updated' => $settings->getTimeUpdated(),
                 'payout_method' => $settings->getPayoutMethod(),
             ]),
@@ -163,7 +170,9 @@ class Repository
 
     /**
      * @param Settings $settings
+     *
      * @return bool
+     *
      * @throws Exception
      */
     public function update(Settings $settings): bool
@@ -173,7 +182,9 @@ class Repository
 
     /**
      * @param Settings $settingsRef
+     *
      * @return bool
+     *
      * @throws Exception
      */
     public function delete(Settings $settingsRef): bool
@@ -182,7 +193,7 @@ class Repository
             throw new Exception('Invalid user GUID');
         }
 
-        $cql = "DELETE FROM pro WHERE user_guid = ?";
+        $cql = 'DELETE FROM pro WHERE user_guid = ?';
         $settingsRef = [
             new Bigint($settingsRef->getUserGuid()),
         ];

@@ -14,7 +14,8 @@ class PlusProvider extends Provider
      */
     public function register()
     {
-        //$this->di->bind('Plus', function ($di) {
-        //}, ['useFactory'=>true]);
+        $this->di->bind('Plus\Manager', function ($di) {
+            return new Manager();
+        }, ['useFactory'=>true]);
     }
 }

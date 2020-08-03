@@ -2,9 +2,6 @@
 
 namespace Spec\Minds\Entities;
 
-use Minds\Common\Repository\Response;
-use Minds\Core\Wire\SupportTiers\Manager;
-use Minds\Core\Wire\SupportTiers\Polyfill;
 use Minds\Entities\User;
 use Minds\Core\Di\Di;
 use PhpSpec\ObjectBehavior;
@@ -32,7 +29,7 @@ class UserSpec extends ObjectBehavior
     {
         //remove ip whitelist check
         $_SERVER['HTTP_X_FORWARDED_FOR'] = '10.56.0.1';
-        Di::_()->get('Config')->set('admin_ip_whitelist', [ '10.56.0.1' ]);
+        Di::_()->get('Config')->set('admin_ip_whitelist', ['10.56.0.1']);
 
         $this->admin = 'yes';
         $this->isAdmin()->shouldBe(true);
@@ -69,25 +66,29 @@ class UserSpec extends ObjectBehavior
         $this->getMode()->shouldEqual(ChannelMode::MODERATED);
     }
 
-    public function it_should_export_values(Manager $supportTiersManager, Polyfill $supportTiersPolyfill)
+    public function it_should_have_write_permissions_if_its_an_old_user()
     {
-        Di::_()->bind('Wire\SupportTiers\Manager', function ($di) use ($supportTiersManager) {
-            return $supportTiersManager->getWrappedObject();
-        });
+        $this->setEmailConfirmationToken('');
+        $this->setEmailConfirmedAt(null);
+        $this->isTrusted()->shouldReturn(true);
+    }
 
-        Di::_()->bind('Wire\SupportTiers\Polyfill', function ($di) use ($supportTiersPolyfill) {
-            return $supportTiersPolyfill->getWrappedObject();
-        });
+    public function it_should_have_write_permissions_if_email_is_verified()
+    {
+        $this->setEmailConfirmedAt(time());
+        $this->isTrusted()->shouldReturn(true);
+    }
 
-        $supportTiersManager->setEntity(Argument::cetera())
-            ->willReturn($supportTiersManager);
+    public function it_should_not_have_write_permissions_if_its_a_new_user_with_unverified_email()
+    {
+        $this->setEmailConfirmationToken('token');
+        $this->setEmailConfirmedAt(0);
 
-        $supportTiersManager->getAll()
-            ->willReturn(new Response());
+        $this->isTrusted()->shouldReturn(false);
+    }
 
-        $supportTiersPolyfill->process(Argument::cetera())
-            ->willReturn([]);
-
+    public function it_should_export_values()
+    {
         $export = $this->export()->getWrappedObject();
         expect($export['mode'])->shouldEqual(ChannelMode::OPEN);
     }

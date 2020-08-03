@@ -41,6 +41,7 @@ class Repository
         $opts = array_merge([
             'limit' => 12,
             'from' => strtotime('-12 hours', time()),
+            'languages' => [ 'en' ],
         ], $opts);
 
         $body = [
@@ -54,6 +55,11 @@ class Repository
                                 ],
                             ],
                         ],
+                        [
+                            'terms' => [
+                                'language' => $opts['languages'],
+                            ],
+                        ]
                     ],
                     'must_not' => [
                         'bool' => [

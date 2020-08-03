@@ -13,6 +13,7 @@ use Minds\Entities\Image;
 use Minds\Entities\Video;
 use Minds\Core\Comments\Comment;
 use Minds\Core\Security\SignedUri;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Lcobucci\JWT;
 use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
@@ -66,10 +67,22 @@ class Manager
                 break;
         }
 
-        $uri = $this->config->get('cdn_url') . 'fs/v1/thumbnail/' . $asset_guid . '/' . $size . '/' . $lastUpdated;
+        $path = 'fs/v1/thumbnail/' . $asset_guid . '/' . $size . '/' . $lastUpdated;
+        $uri = $this->config->get('cdn_url') . $path;
 
-        if ($entity->access_id !== ACCESS_PUBLIC) {
+        if (
+            $entity->access_id !== ACCESS_PUBLIC
+            || $entity->owner_guid != $entity->container_guid
+            || ($entity instanceof PaywallEntityInterface && $entity->isPayWall())
+        ) {
+            $uri = $this->config->get('site_url') . $path;
             $uri = $this->signUri($uri);
+
+            // TODO: move this over to paywall manager via a hook (or something?)
+            $loggedInUser = Session::getLoggedInUser();
+            if ($entity instanceof PaywallEntityInterface && $entity->isPayWallUnlocked() || ($loggedInUser && $entity->owner_guid == $loggedInUser->getGuid())) {
+                $uri .= "&unlock_paywall=" . time();
+            }
         }
 
         return $uri;

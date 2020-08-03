@@ -781,6 +781,7 @@ function elgg_get_entities(array $options = array()) {
         'attrs'             => array(),
 
         'callback'              => 'entity_row_to_elggstar',
+        'acl'                   => true,
     );
 
     $options = array_merge($defaults, $options);
@@ -879,9 +880,16 @@ function elgg_get_entities(array $options = array()) {
                     }
 
                     $entity = entity_row_to_elggstar($newrow);
-                    if ($entity && Minds\Core\Security\ACL::_()->read($entity)) {
-                        $entities[] = $entity;
+
+                    if (!$entity) {
+                        continue;
                     }
+
+                    if ($options['acl'] === true && !Minds\Core\Security\ACL::_()->read($entity)) {
+                        continue;
+                    }
+
+                    $entities[] = $entity;
                 }
             }
         } catch(Exception $e){

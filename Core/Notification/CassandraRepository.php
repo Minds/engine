@@ -175,8 +175,20 @@ class CassandraRepository
     {
     }
 
-    // TODO
-    public function delete($uuid)
+    /**
+     * Deletes a notification from list
+     * @param Notification $notification
+     * @return bool
+     */
+    public function delete($notification): bool
     {
+        $statement = 'DELETE FROM notifications where to_guid = ? and uuid = ?';
+        $values = [  new Bigint($notification->getToGuid()), new Timeuuid($notification->getUuid()) ];
+        $query = new Prepared\Custom();
+        $query->query($statement, $values);
+
+        $success = $this->cql->request($query);
+
+        return (bool) $success;
     }
 }

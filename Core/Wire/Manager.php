@@ -63,7 +63,7 @@ class Manager
 
     /** @var Core\Blockchain\Wallets\OffChain\Cap $cap */
     protected $cap;
-    
+
     /** @var Delegates\UpgradesDelegate */
     protected $upgradesDelegate;
 
@@ -82,6 +82,9 @@ class Manager
     /** @var StripeIntentsManager $stripeIntentsManager */
     protected $stripeIntentsManager;
 
+    /** @var Core\Security\ACL */
+    protected $acl;
+
     public function __construct(
         $repository = null,
         $txManager = null,
@@ -95,7 +98,8 @@ class Manager
         $notificationDelegate = null,
         $cacheDelegate = null,
         $offchainTxs = null,
-        $stripeIntentsManager = null
+        $stripeIntentsManager = null,
+        $acl = null
     ) {
         $this->repository = $repository ?: Di::_()->get('Wire\Repository');
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
@@ -105,12 +109,12 @@ class Manager
         $this->token = $token ?: Di::_()->get('Blockchain\Token');
         $this->cap = $cap ?: Di::_()->get('Blockchain\Wallets\OffChain\Cap');
         $this->upgradesDelegate = $upgradesDelegate ?? new Delegates\UpgradesDelegate();
-        ;
         $this->recurringDelegate = $recurringDelegate ?: new Delegates\RecurringDelegate();
         $this->notificationDelegate = $notificationDelegate ?: new Delegates\NotificationDelegate();
         $this->cacheDelegate = $cacheDelegate ?: new Delegates\CacheDelegate();
         $this->offchainTxs = $offchainTxs ?: new Core\Blockchain\Wallets\OffChain\Transactions();
         $this->stripeIntentsManager = $stripeIntentsManager ?? Di::_()->get('Stripe\Intents\Manager');
+        $this->acl = $acl ?: Core\Security\ACL::_();
     }
 
     /**
@@ -194,7 +198,7 @@ class Manager
      * @throws WalletNotSetupException
      * @throws \Exception
      */
-    public function create() : bool
+    public function create(): bool
     {
         if ($this->payload['method'] == 'onchain' && (!$this->receiver->getEthWallet() || $this->receiver->getEthWallet() != $this->payload['receiver'])) {
             throw new WalletNotSetupException();
@@ -208,6 +212,10 @@ class Manager
             ->setAmount($this->amount)
             ->setTimestamp(time())
             ->setRecurringInterval($this->recurringInterval);
+
+        if (!$this->acl->write($wire)) {
+            return false;
+        }
 
         switch ($this->payload['method']) {
             case 'onchain':
@@ -325,7 +333,7 @@ class Manager
     /**
      * Confirmationof wire from the blockchain.
      *
-     * @param Wire        $wire
+     * @param Wire $wire
      * @param Transaction $transaction - the transaction from the blockchain
      */
     public function confirm($wire, $transaction)

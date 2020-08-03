@@ -95,11 +95,19 @@ class Custom
 
     public function send()
     {
+        $tracking = [
+            '__e_ct_guid' => $this->user->getGUID(),
+            'campaign' => $this->campaign,
+            'topic' => $this->topic,
+        ];
+        $trackingQuery = http_build_query($tracking);
+
         $this->template->setTemplate('default.tpl');
         $this->template->setBody("./Templates/$this->templateKey.tpl");
         $this->template->toggleMarkdown(true);
+        $this->template->setLocale($this->user->getLanguage());
 
-        $validatorHash = sha1($this->campaign . $user->guid . Config::_()->get('emails_secret'));
+        $validatorHash = sha1($this->campaign . $this->user->guid . Config::_()->get('emails_secret'));
 
         $this->template->set('username', $this->user->username);
         $this->template->set('email', $this->user->getEmail());
@@ -108,6 +116,7 @@ class Custom
         $this->template->set('topic', $this->topic);
         $this->template->set('campaign', $this->campaign);
         $this->template->set('validator', $validatorHash);
+        $this->template->set('tracking', $trackingQuery);
 
         foreach ($this->vars as $key => $var) {
             $this->template->set($key, $var);
