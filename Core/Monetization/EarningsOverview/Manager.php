@@ -132,6 +132,10 @@ class Manager
     {
         $stripeAccount = $this->stripeConnectManager->getByUser($this->user);
 
+        if (!$stripeAccount) {
+            return new EarningsGroupModel();
+        }
+
         $wireTransfers = $this->stripeTransactionsManager
             ->setAccount($stripeAccount)
             ->getTransfers([

@@ -491,7 +491,8 @@ $CONFIG->set('features', [
     'top-feeds-by-age' => true,
     'ux-2020' => true,
     'modal-pager' => true,
-    'wallet-upgrade' => true
+    'wallet-upgrade' => true,
+    'subscriber-conversations' => true
 ]);
 
 $CONFIG->set('email', [
@@ -647,8 +648,11 @@ $CONFIG->set('cypress', [
 ]);
 
 $CONFIG->set('sendwyre', [
-    'baseUrl' => 'https://pay.sendwyre.com/',
+    'baseUrl' => 'https://api.sendwyre.com/',
     'accountId' => '',
+    'secretKey' => '',
+    'redirectUrl' => 'https://www.minds.com/token',
+    'failureRedirectUrl' => 'https://www.minds.com/token?failed=1'
 ]);
 
 $CONFIG->set('onboarding_modal_timestamp', 0);

@@ -93,7 +93,7 @@ class Controller
             throw new UserErrorException('No entity', 400);
         }
 
-        if (!$this->features->has('support-tiers')) {
+        if (!$this->features->has('paywall-2020')) {
             $supportTiers = [];
         } else {
             $supportTiers = $this->manager
