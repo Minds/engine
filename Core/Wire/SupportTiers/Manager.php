@@ -26,6 +26,9 @@ class Manager
     /** @var Delegates\CurrenciesDelegate */
     protected $currenciesDelegate;
 
+    /** @var Delegates\PaymentsDelegate */
+    protected $paymentsDelegate;
+
     /** @var mixed */
     protected $entity;
 
@@ -35,17 +38,20 @@ class Manager
      * @param $guidBuilder
      * @param $userWireRewardsMigrationDelegate
      * @param $currenciesDelegate
+     * @param $paymentsDelegate
      */
     public function __construct(
         $repository = null,
         $guidBuilder = null,
         $userWireRewardsMigrationDelegate = null,
-        $currenciesDelegate = null
+        $currenciesDelegate = null,
+        $paymentsDelegate = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->guidBuilder = $guidBuilder ?: new GuidBuilder();
         $this->userWireRewardsMigration = $userWireRewardsMigrationDelegate ?: new Delegates\UserWireRewardsMigrationDelegate();
         $this->currenciesDelegate = $currenciesDelegate ?: new Delegates\CurrenciesDelegate();
+        $this->paymentsDelegate = $paymentsDelegate ?: new Delegates\PaymentsDelegate();
     }
 
     /**
@@ -85,7 +91,7 @@ class Manager
         }
 
         return $response->map(function (SupportTier $supportTier) {
-            return $this->currenciesDelegate->hydrate($supportTier);
+            return $this->hydrate($supportTier);
         });
     }
 
@@ -112,7 +118,7 @@ class Manager
             return null;
         }
 
-        return $this->currenciesDelegate->hydrate(
+        return $this->hydrate(
             $tier
         );
     }
@@ -164,7 +170,7 @@ class Manager
             return null;
         }
 
-        return $this->currenciesDelegate->hydrate(
+        return $this->hydrate(
             $supportTier
         );
     }
@@ -182,7 +188,7 @@ class Manager
 
         $success = $this->repository->add($supportTier);
 
-        return $success ? $this->currenciesDelegate->hydrate($supportTier) : null;
+        return $success ? $this->hydrate($supportTier) : null;
     }
 
     /**
@@ -195,7 +201,7 @@ class Manager
     {
         $success = $this->repository->update($supportTier);
 
-        return $success ? $this->currenciesDelegate->hydrate($supportTier) : null;
+        return $success ? $this->hydrate($supportTier) : null;
     }
 
     /**
@@ -207,5 +213,22 @@ class Manager
     public function delete(SupportTier $supportTier): bool
     {
         return $this->repository->delete($supportTier);
+    }
+
+    /**
+     * Passes SupportTier to delegates
+     * @param SupportTier $supportTier
+     * @return SupportTier
+     */
+    protected function hydrate(SupportTier $supportTier): SupportTier
+    {
+        $delegates = [
+            $this->currenciesDelegate,
+            $this->paymentsDelegate,
+        ];
+        foreach ($delegates as $delegate) {
+            $supportTier = $delegate->hydrate($supportTier);
+        }
+        return $supportTier;
     }
 }
