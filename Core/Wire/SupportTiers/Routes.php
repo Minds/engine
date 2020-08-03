@@ -46,6 +46,11 @@ class Routes extends ModuleRoutes
                         );
 
                         $route->post(
+                            '/custom',
+                            Ref::_('Wire\SupportTiers\Controller', 'createPrivate')
+                        );
+
+                        $route->post(
                             '/:urn',
                             Ref::_('Wire\SupportTiers\Controller', 'update')
                         );
