@@ -4,6 +4,7 @@ namespace Minds\Core\Media\Video\Transcoder\Delegates;
 use Minds\Core\Di\Di;
 use Minds\Core\Media\Video\Transcoder\Transcode;
 use Minds\Entities\Video;
+use Minds\Entities\Activity;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Data\Call;
 use Minds\Core\Entities\Actions\Save;
@@ -55,6 +56,9 @@ class MetadataDelegate
         if (!empty($activities)) {
             foreach ($activities as $guid) {
                 $activity = $this->entitiesBuilder->single($guid);
+                if (!$activity || !$activity instanceof Activity) {
+                    continue;
+                }
                 $custom = $activity->custom_data;
                 $custom['width'] = $video->width;
                 $custom['height'] = $video->height;
