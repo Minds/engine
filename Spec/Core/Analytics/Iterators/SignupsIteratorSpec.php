@@ -36,6 +36,10 @@ class SignupsIteratorSpec extends ObjectBehavior
                 '1234' => time(),
                 '5678' => time()
             ]);
+        $user1->isBanned()->willReturn(false);
+        $user2->isBanned()->willReturn(false);
+        $user1->get('guid')->willReturn('1234');
+        $user2->get('guid')->willReturn('5678');
 
         $this->entitiesBuilder->get(['guids' => ['1234', '5678']])
             ->shouldBeCalled()

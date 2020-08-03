@@ -42,6 +42,13 @@ class SignupsOffsetIteratorSpec extends ObjectBehavior
                 ['column1' => '5678']
             ], ''));
 
+        $user1->isBanned()->willReturn(false);
+        $user2->isBanned()->willReturn(false);
+        $user1->get('guid')->willReturn('1234');
+        $user2->get('guid')->willReturn('5678');
+        $user1->get('time_created')->willReturn('5678');
+        $user2->get('time_created')->willReturn('5678');
+
         $this->entitiesBuilder->get(['guids' => ['1234', '5678']])
             ->shouldBeCalled()
             ->willReturn([$user1, $user2]);
