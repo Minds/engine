@@ -42,7 +42,7 @@ class MetadataDelegate
     {
         $video = $this->entitiesBuilder->single($transcode->getGuid());
         if (!$video || !$video instanceof Video) {
-            error_log("Video ({$transcode->getGuid()}not found");
+            error_log("Video ({$transcode->getGuid()}) not found or not a valid source");
             return; // TODO: Tell sentry?
         }
 
