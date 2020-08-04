@@ -55,24 +55,19 @@ class channel implements Interfaces\Api
             ]);
         }
 
+        if ($user->enabled != "yes") {
+            return Factory::response([
+                'status'=>'error',
+                'message'=>'Sorry, this user is disabled',
+                'type'=>'ChannelDisabledException',
+            ]);
+        }
+
         if ($user->banned == 'yes' && !Core\Session::isAdmin()) {
             return Factory::response([
                 'status'=>'error',
                 'message'=>'This user has been banned',
                 'type'=>'ChannelBannedException',
-            ]);
-        }
-
-        $block = Core\Security\ACL\Block::_();
-        $isBlocked = $block->isBlocked((string) $user->guid);
-
-        if ($user->enabled != "yes") {
-            return Factory::response([
-                'status' => 'error',
-                'message' => 'Sorry, this user is disabled',
-                'guid' => (string) $user->guid,
-                'blocked' => $block->isBlocked($user),
-                'type' => 'ChannelDisabledException',
             ]);
         }
 
@@ -139,7 +134,8 @@ class channel implements Interfaces\Api
             }
         }
 
-        $response['channel']['blocked'] = $isBlocked;
+        $block = Core\Security\ACL\Block::_();
+        $response['channel']['blocked'] = $block->isBlocked($user);
 
         if ($user->isPro()) {
             /** @var Core\Pro\Manager $manager */

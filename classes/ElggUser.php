@@ -737,7 +737,6 @@ class ElggUser extends ElggEntity
             'featured_id',
             'banned',
             'ban_reason',
-            'enabled',
 		));
 	}
 
