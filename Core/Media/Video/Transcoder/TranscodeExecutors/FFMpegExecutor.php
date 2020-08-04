@@ -87,6 +87,7 @@ class FFMpegExecutor implements TranscodeExecutorInterface
         $video = $this->ffmpeg->open($sourcePath);
 
         if (!$video || !$video instanceof FFMpegVideo) {
+            @unlink($sourcePath); // Cleanup our sourcefile
             throw new FailedTranscodeException("Source error");
         }
 
