@@ -25,5 +25,8 @@ class NotificationProvider extends Provider
         $this->di->bind('Notification\UpdateMarkers\Manager', function ($di) {
             return new UpdateMarkers\Manager();
         });
+        $this->di->bind('Notification\CachedRateLimiter', function ($di) {
+            return new NotificationCachedRateLimiter();
+        });
     }
 }
