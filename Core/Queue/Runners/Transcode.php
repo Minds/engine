@@ -17,7 +17,7 @@ class Transcode implements Interfaces\QueueRunner
                 $d = $data->getData();
                 $transcode = unserialize($d['transcode']);
 
-                echo "Received a transcode request \n";
+                echo "Received a transcode request {$transcode->getGuid()} ({{$transcode->getProfile()->getId()}) \n";
 
                 // ACL override needed to update the state of the video
                 Core\Security\ACL::$ignore = true;
