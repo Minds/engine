@@ -80,9 +80,9 @@ class PaymentsDelegate
     {
         $cacheKey = "support-tier-subscriptions:$entityGuid-$userGuid";
 
-        if ($cached = $this->cache->get($cacheKey)) {
-            return unserialize($cached);
-        }
+        // if ($cached = $this->cache->get($cacheKey)) {
+        //     return unserialize($cached);
+        // }
 
         $subscriptions = $this->subscriptionsManager
             ->getList([
