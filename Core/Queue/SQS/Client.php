@@ -147,7 +147,7 @@ class Client implements QueueClient
             }
 
             if (!$result || !$result->search('Messages[*].Body')) {
-                echo '.';
+                // echo '.';
                 continue;
             }
 
