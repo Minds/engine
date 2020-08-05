@@ -64,6 +64,16 @@ class Routes extends ModuleRoutes
                             '/custom',
                             Ref::_('Wire\SupportTiers\Controller', 'createPrivate')
                         );
+
+                        $route->get(
+                            '/members/:entityGuid',
+                            Ref::_('Wire\SupportTiers\Controller', 'getMembers')
+                        );
+
+                        $route->get(
+                            '/members/:entityGuid/:supportTierUrn',
+                            Ref::_('Wire\SupportTiers\Controller', 'getMembers')
+                        );
                     });
             });
     }
