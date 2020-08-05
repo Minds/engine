@@ -39,7 +39,7 @@ class TierBuilder
             throw new Exception('Invalid USD value');
         }
 
-        return $scale + floor($usd * $amountScale);
+        return (int) $scale + floor($usd * $amountScale);
     }
 
     /**
