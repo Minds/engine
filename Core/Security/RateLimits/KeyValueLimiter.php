@@ -10,12 +10,12 @@ use Minds\Core\Data\Redis\Client as RedisServer;
 use Minds\Core\Logger;
 
 /**
- * @method KeyValueLimitter setKey(string $key)
- * @method KeyValueLimitter setValue(string $value)
- * @method KeyValueLimitter setMax(int $max)
- * @method KeyValueLimitter setSeconds(int $seconds)
+ * @method KeyValueLimiter setKey(string $key)
+ * @method KeyValueLimiter setValue(string $value)
+ * @method KeyValueLimiter setMax(int $max)
+ * @method KeyValueLimiter setSeconds(int $seconds)
  */
-class KeyValueLimitter
+class KeyValueLimiter
 {
     use MagicAttributes;
 

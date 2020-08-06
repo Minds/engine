@@ -50,7 +50,7 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
         case "request":
 
           try {
-              $rateLimitCheck = Di::_()->get("Security\RateLimits\KeyValueLimitter")
+              $rateLimitCheck = Di::_()->get("Security\RateLimits\KeyValueLimiter")
                   ->setKey('forgot-password-ips')
                   ->setValue($_SERVER['HTTP_X_FORWARDED_FOR'])
                   ->setSeconds(86400) // Day
