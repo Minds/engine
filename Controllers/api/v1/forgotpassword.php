@@ -84,6 +84,13 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
             ->setSubject($subject)
             ->setHtml($template);
           $mailer->queue($message, true);
+
+          error_log(
+                "ForgotPasswordRequest " .
+                .", guid: {$user->guid}" . 
+                .", addr: " . $_SERVER['HTTP_X_FORWARDED_FOR']
+            );
+ 
           break;
         case "reset":
           $user = new Entities\User(strtolower($_POST['username']));
