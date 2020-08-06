@@ -86,10 +86,10 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
           $mailer->queue($message, true);
 
           error_log(
-                "ForgotPasswordRequest " .
-                .", guid: {$user->guid}" . 
-                .", addr: " . $_SERVER['HTTP_X_FORWARDED_FOR']
-            );
+              "ForgotPasswordRequest "
+              .", guid: {$user->guid}"
+              .", addr: " . $_SERVER['HTTP_X_FORWARDED_FOR']
+          );
  
           break;
         case "reset":
