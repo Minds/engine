@@ -56,5 +56,9 @@ class SecurityProvider extends Provider
         $this->di->bind('Security\SpamBlocks\IPHash', function ($di) {
             return new SpamBlocks\IPHash;
         }, ['useFactory' => true]);
+
+        $this->di->bind('Security\RateLimits\KeyValueLimitter', function ($di) {
+            return new RateLimits\KeyValueLimitter();
+        }, ['useFactory' => false]);
     }
 }
