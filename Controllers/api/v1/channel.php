@@ -36,11 +36,18 @@ class channel implements Interfaces\Api
 
         $user = new Entities\User($pages[0]);
 
+        $isAdmin = Core\Session::isAdmin();
+        $isLoggedIn = Core\Session::isLoggedin();
+        $isOwner = $isLoggedIn && ((string) Core\Session::getLoggedinUser()->guid === (string) $user->guid);
+        $isPublic = $isLoggedIn && $user->isPublicDateOfBirth();
+
         // Flush the cache when viewing a channel page
         $channelsManager = Di::_()->get('Channels\Manager');
         $channelsManager->flushCache($user);
 
-        if (!$user->username || Helpers\Flags::shouldFail($user)) {
+        if (!$user->username ||
+            (Helpers\Flags::shouldFail($user) && !$isAdmin)
+        ) {
             return Factory::response([
                 'status'=>'error',
                 'message'=>'Sorry, this user could not be found',
@@ -89,11 +96,6 @@ class channel implements Interfaces\Api
         $response['channel']['gender'] = $response['channel']['gender'] ?: "";
 
         // if we are querying for our own user
-
-        $isAdmin = Core\Session::isAdmin();
-        $isLoggedIn = Core\Session::isLoggedin();
-        $isOwner = $isLoggedIn && ((string) Core\Session::getLoggedinUser()->guid === (string) $user->guid);
-        $isPublic = $isLoggedIn && $user->isPublicDateOfBirth();
 
         if (
             $user->getDateOfBirth() &&

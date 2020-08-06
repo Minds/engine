@@ -53,6 +53,30 @@ class Controller
     }
 
     /**
+     * Connects account via backlink
+     * @param ServerRequest $request
+     * @return JsonResponse
+     */
+    public function connectAccount(ServerRequest $request): JsonResponse
+    {
+        /** @var User */
+        $user = $request->getAttribute('_user');
+
+        /** @var string */
+        $channelId = $request->getParsedBody()['channelId'];
+
+        /** @var bool */
+        $connected = $this->ytAuth->connectWithBacklink($user, $channelId);
+
+        return new JsonResponse([
+            'status' => 'success',
+            'connected' => $connected,
+            'yt_channel' => $connected ? $user->getYoutubeChannels()[0] : null,
+        ]);
+    }
+
+
+    /**
      * Disconnects a YouTube account from a user
      * Called by v3/media/youtube-importer/oauth
      * @param ServerRequest $request

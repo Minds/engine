@@ -284,7 +284,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         $export['mature'] = (bool) $export['mature'];
 
         $export['comments_enabled'] = (bool) $export['comments_enabled'];
-        $export['wire_totals'] = $this->getWireTotals();
+        // $export['wire_totals'] = $this->getWireTotals();
         $export['wire_threshold'] = $this->getWireThreshold();
         $export['boost_rejection_reason'] = $this->getBoostRejectionReason() ?: -1;
         $export['rating'] = $this->getRating();
