@@ -25,9 +25,9 @@ class Routes extends ModuleRoutes
             ])
             ->do(function (Route $route) {
                 // Requests OAuth token
-                $route->get(
-                    'account',
-                    Ref::_('Media\YouTubeImporter\Controller', 'getToken')
+                $route->post(
+                    'account/connect',
+                    Ref::_('Media\YouTubeImporter\Controller', 'connectAccount')
                 );
 
                 // Requests OAuth token

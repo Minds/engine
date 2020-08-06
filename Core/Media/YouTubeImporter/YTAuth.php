@@ -5,6 +5,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Data\Call;
 use Minds\Entities\User;
+use Minds\Core\Config;
 
 class YTAuth
 {
@@ -17,11 +18,56 @@ class YTAuth
     /** @var Call */
     protected $db;
 
-    public function __construct($ytClient = null, $save = null, $db = null)
+    /** @var Config */
+    protected $config;
+
+    public function __construct($ytClient = null, $save = null, $db = null, $config = null)
     {
         $this->ytClient = $ytClient ?? Di::_()->get('Media\YouTubeImporter\YTClient');
         $this->save = $save ?? new Save();
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Indexes');
+        $this->config = $config ?? Di::_()->get('Config');
+    }
+
+    /**
+     * Connects to a youtube account via a minds link in their description
+     * @param User $user
+     * @param string $channelId
+     * @return bool
+     */
+    public function connectWithBacklink(User $user, string $channelId): bool
+    {
+        $youtube = $this->ytClient->getService(true);
+
+        $channelsResponse = $youtube->channels->listChannels('id, snippet', [
+            'id' => $channelId
+        ]);
+
+        $description = strtolower($channelsResponse->items[0]->snippet->description);
+
+        $url = strtolower($this->config->get('site_url') . $user->username);
+
+        if (strpos($description, $url) === false) {
+            return false;
+        }
+
+        // save channel id into indexes
+        $this->db->insert("yt_channel:user:{$channelId}", [$user->getGUID()]);
+
+        $ytChannel = [
+            'id' => $channelId,
+            'title' => $channelsResponse->items[0]->snippet->title,
+            'connected' => time(),
+            'auto_import' => false,
+        ];
+
+        $user->setYouTubeChannels([ $ytChannel ]);
+
+        $this->save
+            ->setEntity($user)
+            ->save();
+
+        return true;
     }
 
     /**
