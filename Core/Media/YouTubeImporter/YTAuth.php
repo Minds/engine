@@ -58,7 +58,7 @@ class YTAuth
             'id' => $channelId,
             'title' => $channelsResponse->items[0]->snippet->title,
             'connected' => time(),
-            'auto_import' => false,
+            'auto_import' => true,
         ];
 
         $user->setYouTubeChannels([ $ytChannel ]);

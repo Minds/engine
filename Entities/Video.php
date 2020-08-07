@@ -249,6 +249,7 @@ class Video extends MindsObject
             'youtube_channel_id',
             'transcoding_status',
             'owner_guid',
+            'tags',
         ];
 
         foreach ($allowed as $field) {

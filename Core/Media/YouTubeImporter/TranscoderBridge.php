@@ -59,11 +59,29 @@ class TranscoderBridge
             $transcode->getProfile()->setStorageName("thumbnail-00001.png");
         }
 
+        // We send 360p videos to be retranscoded
         $this->transcoderManager->add($transcode, false);
 
         $tmpFile = tmpfile();
         $tmpPath = stream_get_meta_data($tmpFile)['uri'];
         file_put_contents($tmpPath, fopen($source->getUrl(), 'r'));
+
+        $reTranscode = $transcode->getProfile() instanceof TranscodeProfiles\X264_360p;
+        if ($reTranscode) {
+            // Create a source
+            $source = new Transcode();
+            $source
+                ->setVideo($video)
+                ->setProfile(new TranscodeProfiles\Source());
+
+            // Upload this source to s3
+            $this->transcodeStorage->add($source, $tmpPath);
+
+            // Submit to transcoder queues (cloned to avoid updateing the transcoder status)
+            $this->transcoderManager->add(clone $transcode, true);
+            
+            // Still proceed so that web can complete quickly
+        }
 
         $transcode->setStatus(TranscodeStates::COMPLETED)
             ->setProgress(100);
