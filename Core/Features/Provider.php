@@ -53,6 +53,7 @@ class Provider extends DiProvider
                 'onboarding-reminder',
                 'boost-rotator',
                 'yt-importer',
+                'yt-importer-transfer-all',
                 'settings-referrals',
                 'channels-shop',
                 'topv2-algo',
