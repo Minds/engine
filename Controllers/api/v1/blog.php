@@ -199,12 +199,12 @@ class blog implements Interfaces\Api
             ]);
         }
 
-        /*if (!$captcha->verifyFromClientJson($_POST['captcha'] ?? '')) {
+        if (!$captcha->verifyFromClientJson($_POST['captcha'] ?? '')) {
             return Factory::response([
                 'status' => 'error',
                 'message' => 'Please ensure that the captcha you entered is correct',
             ]);
-        }*/
+        }
 
         if (!$this->checkBalance(Core\Session::getLoggedInUser()) && preg_match('/(\b(https?|ftp|file):\/\/[^\s\]]+)/im', $_POST['description'] ?? '')) {
             return Factory::response([
