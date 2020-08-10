@@ -12,6 +12,9 @@ class YTAuth
     /** @var YTClient */
     protected $ytClient;
 
+    /** @var YTSubscription */
+    protected $ytSubscription;
+
     /** @var Save */
     protected $save;
 
@@ -21,9 +24,15 @@ class YTAuth
     /** @var Config */
     protected $config;
 
-    public function __construct($ytClient = null, $save = null, $db = null, $config = null)
-    {
+    public function __construct(
+        $ytClient = null,
+        $ytSubscription = null,
+        $save = null,
+        $db = null,
+        $config = null
+    ) {
         $this->ytClient = $ytClient ?? Di::_()->get('Media\YouTubeImporter\YTClient');
+        $this->ytSubscription = $ytSubscription ?? new YTSubscription();
         $this->save = $save ?? new Save();
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Indexes');
         $this->config = $config ?? Di::_()->get('Config');
@@ -58,7 +67,7 @@ class YTAuth
             'id' => $channelId,
             'title' => $channelsResponse->items[0]->snippet->title,
             'connected' => time(),
-            'auto_import' => true,
+            'auto_import' => false, // This is handled by YTSubscription
         ];
 
         $user->setYouTubeChannels([ $ytChannel ]);
@@ -66,6 +75,9 @@ class YTAuth
         $this->save
             ->setEntity($user)
             ->save();
+
+        // TODO: consider moving to a delegate
+        $this->ytSubscription->update($user, $channelId, true);
 
         return true;
     }

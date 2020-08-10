@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Media\YouTubeImporter;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Data\Call;
 use Minds\Core\Media\YouTubeImporter\YTAuth;
+use Minds\Core\Media\YouTubeImporter\YTSubscription;
 use Minds\Core\Media\YouTubeImporter\YTClient;
 use Minds\Entities\User;
 use Google_Client;
@@ -16,6 +17,9 @@ class YTAuthSpec extends ObjectBehavior
     /** @var YTClient */
     protected $ytClient;
 
+    /** @var YTSubscription */
+    protected $ytSubscription;
+
     /** @var Save */
     protected $save;
 
@@ -24,6 +28,7 @@ class YTAuthSpec extends ObjectBehavior
 
     public function let(
         YTClient $ytClient,
+        YTSubscription $ytSubscription,
         Save $save,
         Call $db
     ) {
@@ -33,6 +38,7 @@ class YTAuthSpec extends ObjectBehavior
        
         $this->beConstructedWith(
             $ytClient,
+            $ytSubscription,
             $save,
             $db
         );
