@@ -125,7 +125,7 @@ class YTSubscription
             }
 
             /** @var User $user */
-            $user = $this->entitiesBuilder->single($result[$ytVideo->getChannelId()]);
+            $user = $this->entitiesBuilder->single($result[0]);
 
             if ($user->isBanned() || $user->getDeleted()) {
                 return;
