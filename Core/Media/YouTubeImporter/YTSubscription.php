@@ -132,6 +132,7 @@ class YTSubscription
             }
 
             $ytVideo->setOwner($user);
+            $ytVideo->setOwnerGuid($user->getGuid());
 
             // Import the new video
             $this->manager->import($ytVideo);
