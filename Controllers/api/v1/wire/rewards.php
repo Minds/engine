@@ -22,6 +22,13 @@ class rewards implements Interfaces\Api
      */
     public function get($pages)
     {
+        if (!Core\Session::getLoggedinUser()) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'You must be logged in to access this endpoint',
+            ]);
+        }
+
         if ($pages[1] === 'entity') {
             $entity = Entities\Factory::build($pages[0]);
 
