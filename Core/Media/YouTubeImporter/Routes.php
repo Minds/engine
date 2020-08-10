@@ -20,9 +20,6 @@ class Routes extends ModuleRoutes
     {
         $this->route
             ->withPrefix('api/v3/media/youtube-importer')
-            ->withMiddleware([
-                LoggedInMiddleware::class,
-            ])
             ->do(function (Route $route) {
                 // YT webhook
                 $route->get(
