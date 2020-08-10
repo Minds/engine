@@ -1,4 +1,5 @@
 <?php
+
 $CONFIG = Minds\Core\Di\Di::_()->get('Config');
 
 $CONFIG->minds_debug = true;
@@ -7,23 +8,23 @@ $CONFIG->minds_debug = true;
  * Cassandra configuration
  */
 $CONFIG->cassandra = (object) [
-    'keyspace'    => '{{cassandra-keyspace}}',
-    'servers'     => [ '{{cassandra-server}}' ],
-    'cql_servers' => [ '{{cassandra-server}}' ],
+    'keyspace' => '{{cassandra-keyspace}}',
+    'servers' => ['{{cassandra-server}}'],
+    'cql_servers' => ['{{cassandra-server}}'],
     'username' => 'cassandra',
     'password' => 'cassandra',
 ];
 
 $CONFIG->redis = [
     'master' => 'redis',
-    'slave' => 'redis'
+    'slave' => 'redis',
 ];
 
 $CONFIG->rabbitmq = [
     'host' => 'rabbitmq',
     'port' => 5672,
-    'username' =>  'guest',
-    'password' =>  'guest'
+    'username' => 'guest',
+    'password' => 'guest',
 ];
 
 $CONFIG->disable_secure_cookies = true;
@@ -50,12 +51,12 @@ $CONFIG->set(
       'label' => 'Illegal',
       'hasMore' => true,
       'reasons' => [
-        [ 'value' => 1, 'label' => 'Terrorism' ],
-        [ 'value' => 2, 'label' => 'Paedophilia' ],
-        [ 'value' => 3, 'label' => 'Extortion' ],
-        [ 'value' => 4, 'label' => 'Fraud' ],
-        [ 'value' => 5, 'label' => 'Revenge Porn' ],
-        [ 'value' => 6, 'label' => 'Sex trafficking' ],
+        ['value' => 1, 'label' => 'Terrorism'],
+        ['value' => 2, 'label' => 'Paedophilia'],
+        ['value' => 3, 'label' => 'Extortion'],
+        ['value' => 4, 'label' => 'Fraud'],
+        ['value' => 5, 'label' => 'Revenge Porn'],
+        ['value' => 6, 'label' => 'Sex trafficking'],
       ],
     ],
     [
@@ -63,11 +64,11 @@ $CONFIG->set(
       'label' => 'NSFW (not safe for work)',
       'hasMore' => true,
       'reasons' => [ // Explicit reasons
-        [ 'value' => 1, 'label' => 'Nudity' ],
-        [ 'value' => 2, 'label' => 'Pornography' ],
-        [ 'value' => 3, 'label' => 'Profanity' ],
-        [ 'value' => 4, 'label' => 'Violance and Gore' ],
-        [ 'value' => 5, 'label' => 'Race, Religion, Gender' ],
+        ['value' => 1, 'label' => 'Nudity'],
+        ['value' => 2, 'label' => 'Pornography'],
+        ['value' => 3, 'label' => 'Profanity'],
+        ['value' => 4, 'label' => 'Violance and Gore'],
+        ['value' => 5, 'label' => 'Race, Religion, Gender'],
       ],
     ],
     [
@@ -120,14 +121,14 @@ $CONFIG->set(
       'label' => 'Token manipulation',
       'hasMore' => false,
     ],
-    [ 'value' => 11,
+    ['value' => 11,
      'label' => 'Another reason',
      'hasMore' => true,
     ],
   ]
 );
 
-/**
+/*
  * Other Elgg Settings
  */
 $CONFIG->installed = true;
@@ -146,7 +147,7 @@ $CONFIG->cdn_assets_url = 'http://{{domain}}/';
 $CONFIG->zmq_server = 'localhost';
 $CONFIG->checkout_url = 'http://{{checkout_domain}}/';
 
-/**
+/*
  * Overrides default system cache path from inside data root to custom location.
  *
  * @global string $CONFIG->system_cache_path
@@ -154,7 +155,7 @@ $CONFIG->checkout_url = 'http://{{checkout_domain}}/';
  */
 $CONFIG->system_cache_path = '{{cache-path}}';
 
-/**
+/*
  * Elasticsearch Settings
  */
 //server for elasticsearch
@@ -169,7 +170,7 @@ $CONFIG->elasticsearch = [
     'tags_index' => 'minds-trending-hashtags',
 ];
 
-/**
+/*
  * Memcache setup (optional)
  * This is where you may optionally set up memcache.
  *
@@ -188,14 +189,14 @@ $CONFIG->memcache_servers = array (
     array('server2', 11211)
 );*/
 
-/**
+/*
  * Queue Settings
  */
 $CONFIG->queue = [
-    'exchange' => '{{ queue-exchange }}'
+    'exchange' => '{{ queue-exchange }}',
 ];
 
-/**
+/*
  * Use non-standard headers for broken MTAs.
  *
  * The default header EOL for headers is \r\n.  This causes problems
@@ -206,7 +207,7 @@ $CONFIG->queue = [
  */
 $CONFIG->broken_mta = false;
 
-/**
+/*
  * Minimum password length
  *
  * This value is used when validating a user's password during registration.
@@ -227,18 +228,18 @@ $CONFIG->set('sockets-server-uri', '{{socket-server-uri}}');
 
 $CONFIG->set('facebook', [
     'app_id' => '{{facebook-app-id}}',
-    'app_secret' => '{{facebook-app-secret}}'
+    'app_secret' => '{{facebook-app-secret}}',
 ]);
 
 $CONFIG->set('twitter', [
     'api_key' => '{{twitter-app-id}}',
-    'api_secret' => '{{twitter-app-id}}'
+    'api_secret' => '{{twitter-app-id}}',
 ]);
 
 $CONFIG->set('twilio', [
     'account_sid' => '{{twilio-account-sid}}',
     'auth_token' => '{{twilio-auth-token}}',
-    'from' => '{{twilio-from}}'
+    'from' => '{{twilio-from}}',
 ]);
 
 $CONFIG->set('google', [
@@ -247,20 +248,20 @@ $CONFIG->set('google', [
     'push' => '{{google-api-key}}',
     'analytics' => [
         'service_account' => [
-            'key_path' => __DIR__ . '/.auth/analytics.json',
+            'key_path' => __DIR__.'/.auth/analytics.json',
         ],
         'ads' => '', // get it from https://ga-dev-tools.appspot.com/account-explorer/
     ],
 
     'youtube' => [
         'api_key' => '{{yt-api-key}}',
-        'max_daily_imports' => 10
-    ]
+        'max_daily_imports' => 10,
+    ],
 ]);
 
 $CONFIG->set('apple', [
     'sandbox' => '{{apple-sandbox-enabled}}',
-    'cert' => '{{apple-certificate}}'
+    'cert' => '{{apple-certificate}}',
 ]);
 
 $CONFIG->set('boost', [
@@ -270,7 +271,7 @@ $CONFIG->set('boost', [
     ],
     'peer' => [
         'min' => 100,
-        'max' => 5000000
+        'max' => 5000000,
     ],
 ]);
 
@@ -280,28 +281,28 @@ $CONFIG->set('max_daily_boost_views', 10000);
 $CONFIG->set('encryptionKeys', [
     'email' => [
         'private' => '{{email-private-key}}',
-        'public' => '{{email-public-key}}'
+        'public' => '{{email-public-key}}',
     ],
     'phone_number' => [
         'private' => '{{phone-number-private-key}}',
-        'public' => '{{phone-number-public-key}}'
-    ]
+        'public' => '{{phone-number-public-key}}',
+    ],
 ]);
 
 $CONFIG->set('payouts', [
     'initialDate' => '2016-11-01',
     'retentionDays' => 40,
     'minimumAmount' => 100,
-    'userPercentage' => 0.8
+    'userPercentage' => 0.8,
  ]);
 
 $CONFIG->set('payments', [
     'stripe' => [
         'api_key' => '',
         'transfers' => [
-            'source_type' => 'bank_account'
-        ]
-    ]
+            'source_type' => 'bank_account',
+        ],
+    ],
 ]);
 
 $CONFIG->set('sandbox', [
@@ -340,7 +341,7 @@ $CONFIG->set('blockchain', [
             'wallet_address' => '0x1820fFAD63fD64d7077Da4355e9641dfFf4DAD0d',
             'wallet_pkey' => '',
             'eth_rate' => 2000, //1 ETH = 2,000 TOKENS
-            'auto_issue_cap' => "120000000000000000000000", //60ETH (120,000 tokens) $30,000 USD
+            'auto_issue_cap' => '120000000000000000000000', //60ETH (120,000 tokens) $30,000 USD
         ],
         'withdraw' => [
             'contract_address' => '0xdd10ccb3100980ecfdcbb1175033f0c8fa40548c',
@@ -372,10 +373,10 @@ $CONFIG->set('blockchain', [
     'disable_creditcards' => true,
 
     'offchain' => [
-        'cap' => 1000
+        'cap' => 1000,
     ],
 
-    'mw3' => '/usr/bin/env node ' . __MINDS_ROOT__ . '/../mw3/index.js'
+    'mw3' => '/usr/bin/env node '.__MINDS_ROOT__.'/../mw3/index.js',
 ]);
 
 $CONFIG->set('blockchain_override', [
@@ -390,83 +391,82 @@ $CONFIG->set('plus', [
     'handler' => '',
     'tokens' => [
         'month' => 5,
-        'year' => 50
-    ]
+        'year' => 50,
+    ],
 ]);
 
 $CONFIG->set('iframely', [
     'key' => 'f4da1791510e9dd6ad63bc',
-    'origin' => 'minds'
+    'origin' => 'minds',
 ]);
 
 $CONFIG->set('default_email_subscriptions', [
     [
         'campaign' => 'when',
         'topic' => 'unread_notifications',
-        'value' => true
+        'value' => true,
     ],
     [
         'campaign' => 'when',
         'topic' => 'wire_received',
-        'value' => true
+        'value' => true,
     ],
     [
         'campaign' => 'when',
         'topic' => 'boost_completed',
-        'value' => true
+        'value' => true,
     ],
 
     [
         'campaign' => 'with',
         'topic' => 'top_posts',
-        'value' => 'periodically'
+        'value' => 'periodically',
     ],
     [
         'campaign' => 'with',
         'topic' => 'channel_improvement_tips',
-        'value' => true
+        'value' => true,
     ],
     [
         'campaign' => 'with',
         'topic' => 'posts_missed_since_login',
-        'value' => true
+        'value' => true,
     ],
     [
         'campaign' => 'with',
         'topic' => 'new_channels',
-        'value' => true
+        'value' => true,
     ],
 
     [
         'campaign' => 'global',
         'topic' => 'minds_news',
-        'value' => false
+        'value' => false,
     ],
     [
         'campaign' => 'global',
         'topic' => 'minds_tips',
-        'value' => true
+        'value' => true,
     ],
     [
         'campaign' => 'global',
         'topic' => 'exclusive_promotions',
-        'value' => false
+        'value' => false,
     ],
 ]);
-
 
 $CONFIG->set('i18n', [
     'languages' => [
         'en' => 'English',
         'es' => 'Español',
-    ]
+    ],
 ]);
 
 // blacklist of internal IPs / URLs to block from curl requests
 $CONFIG->set('internal_blacklist', []);
 
 $CONFIG->set('tags', [
-    'art', 'music', 'journalism', 'blockchain', 'freespeech', 'news', 'gaming', 'myphoto', 'nature', 'photography', 'politics', 'top', 'bitcoin', 'technology', 'food', 'animals', 'health', 'science', 'philosophy', 'comedy', 'film', 'minds'
+    'art', 'music', 'journalism', 'blockchain', 'freespeech', 'news', 'gaming', 'myphoto', 'nature', 'photography', 'politics', 'top', 'bitcoin', 'technology', 'food', 'animals', 'health', 'science', 'philosophy', 'comedy', 'film', 'minds',
 ]);
 
 $CONFIG->set('steward_guid', '');
@@ -491,7 +491,8 @@ $CONFIG->set('features', [
     'top-feeds-by-age' => true,
     'ux-2020' => true,
     'modal-pager' => true,
-    'wallet-upgrade' => true
+    'wallet-upgrade' => true,
+    'activity-modal' => false,
 ]);
 
 $CONFIG->set('email', [
@@ -499,8 +500,8 @@ $CONFIG->set('email', [
         'host' => '',
         'username' => '',
         'password' => '',
-        'port' => 465
-    ]
+        'port' => 465,
+    ],
 ]);
 
 /* Maximum video length for non-plus users */
@@ -523,17 +524,17 @@ $CONFIG->set('aws', [
     'elastic_transcoder' => [
         'pipeline_id' => '1401290942976-efm3xj',
         'presets' => [
-            "360.mp4" => "1351620000001-000040",
-            "720.mp4" => "1351620000001-000010",
-            "360.webm" => "1404848610623-0blc5v",
-            "720.webm" => "1404852762051-zzvwfq"
+            '360.mp4' => '1351620000001-000040',
+            '720.mp4' => '1351620000001-000010',
+            '360.webm' => '1404848610623-0blc5v',
+            '720.webm' => '1404852762051-zzvwfq',
         ],
-        'dir' => 'cinemr_dev'
+        'dir' => 'cinemr_dev',
     ],
     'queue' => [
         'namespace' => 'EmiDev',
         'wait_seconds' => 3,
-    ]
+    ],
 ]);
 
 $CONFIG->set('transcode', [
@@ -552,7 +553,7 @@ $CONFIG->set('transcoder', [
             'height' => 360,
             'bitrate' => 500,
             'audio_bitrate' => 80,
-            'formats' => [ 'mp4', 'webm' ],
+            'formats' => ['mp4', 'webm'],
             'pro' => false,
         ],
         [
@@ -560,7 +561,7 @@ $CONFIG->set('transcoder', [
             'height' => 720,
             'bitrate' => 2000,
             'audio_bitrate' => 128,
-            'formats' => [ 'mp4', 'webm' ],
+            'formats' => ['mp4', 'webm'],
             'pro' => false,
         ],
         [
@@ -568,10 +569,10 @@ $CONFIG->set('transcoder', [
             'height' => 1080,
             'bitrate' => 2000,
             'audio_bitrate' => 128,
-            'formats' => [ 'mp4', 'webm' ],
+            'formats' => ['mp4', 'webm'],
             'pro' => true,
         ],
-    ]
+    ],
 ]);
 
 $CONFIG->cinemr_url = 'https://cinemr.s3.amazonaws.com/cinemr_dev/';
@@ -585,7 +586,7 @@ $CONFIG->set('gitlab', [
         'mobile' => '10171280', // project id mobile
         'front' => '10152778', // project id front
     ],
-    'private_key' => ''
+    'private_key' => '',
 ]);
 
 $CONFIG->set('pro', [
@@ -609,7 +610,7 @@ $CONFIG->set('upgrades', [
         'yearly' => [
             'tokens' => 2400,
             'usd' => 600,
-        ]
+        ],
     ],
     'plus' => [
         'monthly' => [
@@ -619,7 +620,7 @@ $CONFIG->set('upgrades', [
         'yearly' => [
             'tokens' => 240,
             'usd' => 60,
-        ]
+        ],
     ],
 ]);
 
@@ -633,9 +634,8 @@ $CONFIG->set('unleash', [
     'instanceId' => '',
     'applicationName' => '',
     'pollingIntervalSeconds' => 300,
-    'metricsIntervalSeconds' => 15
+    'metricsIntervalSeconds' => 15,
 ]);
-
 
 $CONFIG->set('captcha', [
     'jwt_secret' => '{{site-secret}}',

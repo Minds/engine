@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Minds Features Provider
+ * Minds Features Provider.
  *
  * @author emi
  */
@@ -11,8 +11,7 @@ namespace Minds\Core\Features;
 use Minds\Core\Di\Provider as DiProvider;
 
 /**
- * Features provider
- * @package Minds\Core\Features
+ * Features provider.
  */
 class Provider extends DiProvider
 {
@@ -67,15 +66,16 @@ class Provider extends DiProvider
                 'support-tiers',
                 'language-prompts',
                 'discovery-carousel',
+                'activity-modal',
             ];
         });
 
         $this->di->bind('Features\Manager', function ($di) {
             return new Manager();
-        }, [ 'useFactory' => true ]);
+        }, ['useFactory' => true]);
 
         $this->di->bind('Features\Canary', function ($di) {
             return new Canary();
-        }, [ 'useFactory' => true ]);
+        }, ['useFactory' => true]);
     }
 }
