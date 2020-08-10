@@ -26,6 +26,10 @@ class Routes extends ModuleRoutes
                     'hook',
                     Ref::_('Media\YouTubeImporter\Controller', 'callback')
                 );
+                $route->post(
+                    'hook',
+                    Ref::_('Media\YouTubeImporter\Controller', 'callback')
+                );
 
                 // Logged in endpoints
                 $route
