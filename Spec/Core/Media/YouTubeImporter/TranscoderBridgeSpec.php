@@ -49,6 +49,10 @@ class TranscoderBridgeSpec extends ObjectBehavior
             return true;
         }), false);
 
+        $this->transcoderManager->add(Argument::that(function ($transcode) {
+            return $transcode->getProfile()->getId() === 'X264_360p';
+        }), true);
+
         $this->transcodeStorage->add(Argument::that(function ($transcode) {
             return true;
         }), Argument::type('string'))

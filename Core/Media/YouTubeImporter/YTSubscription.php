@@ -8,6 +8,7 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Media\YouTubeImporter\Exceptions\UnregisteredChannelException;
 use Minds\Entities\User;
+use Minds\Core\Security\ACL;
 use Pubsubhubbub\Subscriber\Subscriber;
 
 class YTSubscription
@@ -33,6 +34,9 @@ class YTSubscription
     /** @var Call */
     protected $db;
 
+    /** @var ACL */
+    protected $acl;
+
     public function __construct(
         $ytClient = null,
         $manager = null,
@@ -41,7 +45,8 @@ class YTSubscription
         $config = null,
         $entitiesBuilder = null,
         $save = null,
-        $db = null
+        $db = null,
+        $acl = null
     ) {
         $config = $config ?? Di::_()->get('Config');
         $this->ytClient = $ytClient ?? Di::_()->get('Media\YouTubeImporter\YTClient');
@@ -51,6 +56,7 @@ class YTSubscription
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->save = $save ?? new Save();
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Indexes');
+        $this->acl = $acl ?? Di::_()->get('Security\ACL');
     }
 
     /**
@@ -125,16 +131,23 @@ class YTSubscription
             }
 
             /** @var User $user */
-            $user = $this->entitiesBuilder->single($result[$ytVideo->getChannelId()]);
+            $user = $this->entitiesBuilder->single($result[0]);
 
             if ($user->isBanned() || $user->getDeleted()) {
                 return;
             }
 
             $ytVideo->setOwner($user);
+            $ytVideo->setOwnerGuid($user->getGuid());
+
+            // Bypass ACL as we are saving as another user
+            $ia = $this->acl->setIgnore(true);
 
             // Import the new video
             $this->manager->import($ytVideo);
+
+            // Re-impose previous ignore access setting
+            $this->acl->setIgnore($ia);
         }
     }
 }

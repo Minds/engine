@@ -140,9 +140,11 @@ class Manager
         $activity->owner_guid = $entity->owner_guid;
         $activity->container_guid = $entity->container_guid;
         $activity->access_id = $entity->access_id;
+        $activity->setTags($entity->tags);
 
         if ($entity->type === 'object' && in_array($entity->subtype, ['image', 'video'], true)) {
             $activity->setCustom(...$entity->getActivityParameters());
+            $activity->setPayWall($entity->getFlag('paywall'));
         }
 
         return $activity;
