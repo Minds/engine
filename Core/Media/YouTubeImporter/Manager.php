@@ -152,7 +152,10 @@ class Manager
             }
         }
 
-        $videos = $videos->filter(function ($ytVideo) {
+        $videos = $videos->filter(function ($ytVideo) use ($opts) {
+            if (isset($opts['youtube_id'])) {
+                return true; // This allows completed status for status checks
+            }
             return $ytVideo->getStatus() !== TranscodeStates::COMPLETED;
         });
 
