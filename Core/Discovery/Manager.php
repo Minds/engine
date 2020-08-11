@@ -118,7 +118,7 @@ class Manager
         $excludeTags = array_merge(self::GLOBAL_EXCLUDED_TAGS, $excludeTags);
 
         $languages = [ 'en' ];
-        if ($this->user->getLanguage() !== 'en') {
+        if ($this->user && $this->user->getLanguage() !== 'en') {
             $languages = [ $this->user->getLanguage(), 'en' ];
         }
 
@@ -311,6 +311,64 @@ class Manager
             ]
         ];
 
+        // Scoring functions
+        
+        $functions = [];
+
+        $functions[] = [
+            'filter' => [
+                'multi_match' => [
+                    'query' => implode(' ', $this->tagCloud),
+                    'operator' => 'OR',
+                    'fields' => ['title', 'message', 'tags'],
+                    'boost' => 0,
+                ],
+            ],
+            'weight' => 2,
+        ];
+
+        $functions[] = [
+            'filter' => [
+                'terms' => [
+                    'subtype' => [ 'video', 'blog' ],
+                ]
+            ],
+            'weight' => 10, // videos and blogs are worth 10x
+        ];
+
+        if ($this->user) {
+            $functions[] = [
+                'filter' => [
+                    'terms' => [
+                        'language' => [ $this->user->getLanguage() ],
+                    ]
+                ],
+                'weight' => 50, // Multiply your own language by 50x
+            ];
+        }
+
+        $functions[] = [
+            'field_value_factor' => [
+                'field' => 'comments:count',
+                'factor' => 10,
+                'modifier' => 'sqrt',
+                'missing' => 0,
+            ],
+        ];
+
+        $functions[] = [
+            'gauss' => [
+                '@timestamp' => [
+                    'offset' => '6h', // Do not decay until we reach this bound
+                    //'offset' => $opts['hoursAgo'] . 'h',
+                    'scale' => '24h', // Peak decay will be here
+                    //'scale' => '12h',
+                    //'decay' => rand(1, 9) / 10
+                ],
+            ],
+            'weight' => 10,
+        ];
+
         $query = [
             'index' => $this->config->get('elasticsearch')['index'],
             'type' => 'activity',
@@ -324,61 +382,7 @@ class Manager
                             ]
                         ],
                         "score_mode" => 'multiply',
-                        'functions' => [
-                            /*[
-                            	'filter' => [
-                                	'match_all' => (object) [],
-                            	],
-                            	'weight' => 1,
-                        	],*/
-                            [
-                                'filter' => [
-                                    'multi_match' => [
-                                        'query' => implode(' ', $this->tagCloud),
-                                        'operator' => 'OR',
-                                        'fields' => ['title', 'message', 'tags'],
-                                        'boost' => 0,
-                                    ],
-                                ],
-                                'weight' => 2,
-                            ],
-                            [
-                                'filter' => [
-                                    'terms' => [
-                                        'subtype' => [ 'video', 'blog' ],
-                                    ]
-                                ],
-                                'weight' => 10, // videos and blogs are worth 10x
-                            ],
-                            [
-                                'filter' => [
-                                    'terms' => [
-                                        'language' => [ $this->user->getLanguage() ],
-                                    ]
-                                ],
-                                'weight' => 50, // Multiply your own language by 50x
-                            ],
-                            [
-                                'field_value_factor' => [
-                                    'field' => 'comments:count',
-                                    'factor' => 10,
-                                    'modifier' => 'sqrt',
-                                    'missing' => 0,
-                                ],
-                            ],
-                            [
-                                'gauss' => [
-                                    '@timestamp' => [
-                                        'offset' => '6h', // Do not decay until we reach this bound
-                                        //'offset' => $opts['hoursAgo'] . 'h',
-                                        'scale' => '24h', // Peak decay will be here
-                                        //'scale' => '12h',
-                                        //'decay' => rand(1, 9) / 10
-                                    ],
-                                ],
-                                'weight' => 10,
-                            ]
-                        ],
+                        'functions' => $functions,
                     ]
                 ],
 //                "collapse" => [
