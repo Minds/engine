@@ -101,10 +101,12 @@ class comments implements Interfaces\Api
           case "update":
             $comment = $manager->getByLuid($pages[1]);
 
-            $canEdit = $comment->canEdit();
+            if ($comment) {
+                $canEdit = $comment->canEdit();
 
-            if ($canEdit && $comment->getOwnerGuid() != Core\Session::getLoggedInUserGuid()) {
-                $canEdit = false;
+                if ($canEdit && $comment->getOwnerGuid() != Core\Session::getLoggedInUserGuid()) {
+                    $canEdit = false;
+                }
             }
 
             if (!$comment || !$canEdit) {
