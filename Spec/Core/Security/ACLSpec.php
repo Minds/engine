@@ -203,7 +203,7 @@ class ACLSpec extends ObjectBehavior
         $this->mock_session(false);
     }
 
-    public function it_should_return_false_on_acl_interact_event(MindsObject $entity)
+    public function it_should_return_false_on_acl_interact_event(Entity $entity)
     {
         $this->mock_session(true);
 

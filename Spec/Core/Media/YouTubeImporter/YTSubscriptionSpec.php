@@ -129,7 +129,7 @@ class YTSubscriptionSpec extends ObjectBehavior
 
         $this->db->getRow('yt_channel:user:channel_id')
             ->shouldBeCalled()
-            ->willReturn(['channel_id' => '1']);
+            ->willReturn([0 => '1']);
 
         $this->entitiesBuilder->single('1')
             ->shouldBeCalled()
@@ -158,7 +158,7 @@ class YTSubscriptionSpec extends ObjectBehavior
 
         $this->db->getRow('yt_channel:user:channel_id')
             ->shouldBeCalled()
-            ->willReturn(['channel_id' => '1']);
+            ->willReturn([0 => '1']);
 
         $this->entitiesBuilder->single('1')
             ->shouldBeCalled()
