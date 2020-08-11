@@ -61,7 +61,11 @@ class SignedUri
         parse_str($providedUri->getQuery(), $queryParams);
         $providedSig = $queryParams['jwtsig'];
 
-        $token = $this->jwtParser->parse($providedSig);
+        try {
+            $token = $this->jwtParser->parse($providedSig);
+        } catch (\Exception $e) {
+            return false;
+        }
 
         if (!$token->verify(new Sha256, $this->config->get('sessions')['private_key'])) {
             return false;
