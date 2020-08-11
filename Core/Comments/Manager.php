@@ -133,8 +133,8 @@ class Manager
                 $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
                 $commentOwner = $this->entitiesBuilder->single($comment->getOwnerGuid());
                 if (!$this->acl->interact($entity, $commentOwner)) {
-                    error_log("{$opts['entity_guid']} found comment that entity owner can not interact with. Deleting");
-                    $this->delete($comment, [ 'force' => true ]);
+                    error_log("{$opts['entity_guid']} found comment that entity owner can not interact with. Consider deleting.");
+                    // $this->delete($comment, [ 'force' => true ]);
                     continue;
                 }
 
