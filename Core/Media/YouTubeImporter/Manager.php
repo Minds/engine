@@ -152,7 +152,10 @@ class Manager
             }
         }
 
-        $videos = $videos->filter(function ($ytVideo) {
+        $videos = $videos->filter(function ($ytVideo) use ($opts) {
+            if (isset($opts['youtube_id'])) {
+                return true; // This allows completed status for status checks
+            }
             return $ytVideo->getStatus() !== TranscodeStates::COMPLETED;
         });
 
@@ -513,9 +516,13 @@ class Manager
         // create the video
         $video = new Video();
 
+        $tags = array_map(function ($keyword) {
+            return str_replace(' ', '', $keyword);
+        }, $data['details']['keywords'] ?? []);
+
         $video->patch([
             'title' => isset($data['details']['title']) ? $data['details']['title'] : '',
-            'description' => isset($data['details']['description']) ? $data['details']['description'] : '',
+            'description' => isset($data['details']['shortDescription']) ? $data['details']['shortDescription'] : '',
             'batch_guid' => 0,
             'access_id' => 0,
             'owner_guid' => $ytVideo->getOwnerGuid(),
@@ -524,7 +531,9 @@ class Manager
             'youtube_id' => $ytVideo->getVideoId(),
             'youtube_channel_id' => $ytVideo->getChannelId(),
             'transcoding_status' => TranscodeStates::QUEUED,
-            'time_created' => $ytVideo->getYoutubeCreationDate()
+            'time_created' => $ytVideo->getYoutubeCreationDate(),
+            'time_sent' => $ytVideo->getYoutubeCreationDate(),
+            'tags' => $tags,
         ]);
 
         $this->saveVideo($video);

@@ -18,6 +18,7 @@ use Minds\Api\Factory;
 use Minds\Helpers;
 use Minds\Core\Sockets;
 use Minds\Core\Security;
+use Minds\Core\Wire\Paywall\PaywallUserNotPaid;
 
 class comments implements Interfaces\Api
 {
@@ -101,10 +102,12 @@ class comments implements Interfaces\Api
           case "update":
             $comment = $manager->getByLuid($pages[1]);
 
-            $canEdit = $comment->canEdit();
+            if ($comment) {
+                $canEdit = $comment->canEdit();
 
-            if ($canEdit && $comment->getOwnerGuid() != Core\Session::getLoggedInUserGuid()) {
-                $canEdit = false;
+                if ($canEdit && $comment->getOwnerGuid() != Core\Session::getLoggedInUserGuid()) {
+                    $canEdit = false;
+                }
             }
 
             if (!$comment || !$canEdit) {
@@ -237,6 +240,13 @@ class comments implements Interfaces\Api
                 $response = [
                     'status' => 'error',
                     'message' => "The comment couldn't be saved because {$parentOwnerUsername} has blocked you."
+                ];
+            } catch (PaywallUserNotPaid $e) {
+                $error = true;
+
+                $response = [
+                    'status' => 'error',
+                    'message' => "You do not meet the subscription tier requirements to comment on this activity."
                 ];
             } catch (\Exception $e) {
                 error_log($e);

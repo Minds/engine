@@ -36,6 +36,10 @@ class PropagatePropertiesSpec extends ObjectBehavior
         $this->activity->getMessage()->shouldBeCalled()->willReturn('');
         $this->activity->setMessage('new message')->shouldBeCalled();
 
+        $this->entity->get('tags')->shouldBeCalled()->willReturn(['music']);
+        $this->activity->getTags()->shouldBeCalled()->willReturn([]);
+        $this->activity->setTags(['music'])->shouldBeCalled();
+
         $activityParameters = [
             'batch',
             [
