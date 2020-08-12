@@ -140,22 +140,24 @@
                 <tr>
                 <td align="center" valign="top" width="600">
                 <![endif]-->
-            <table
-              border="0"
-              cellpadding="0"
-              cellspacing="0"
-              width="100%"
-              class="m-wrapper"
-              <?php echo $emailStyles->getStyles('m-maxWidth'); ?> >
-              <tr>
-                <td align="center" valign="top" style="padding: 65px 0 38px 0;">
-                    <a href="<?php echo $vars['site_url']; ?>?__e_ct_guid=<?= $vars['guid']?>"  target="_blank">
-                    <img src="<?php echo $vars['cdn_assets_url']; ?>assets/logos/logo-email.png" alt="Logo" style="display: block; width: 168px;max-height:80px;" border="0"
-                    />
-                  </a>
-                </td>
-              </tr>
-            </table>
+            <?php if (isset($vars['custom_header'])) { echo $vars['custom_header']; } else { ?>
+              <table
+                border="0"
+                cellpadding="0"
+                cellspacing="0"
+                width="100%"
+                class="m-wrapper"
+                <?php echo $emailStyles->getStyles('m-maxWidth'); ?> >
+                <tr>
+                  <td align="center" valign="top" style="padding: 65px 0 38px 0;">
+                      <a href="<?php echo $vars['site_url']; ?>?__e_ct_guid=<?= $vars['guid']?>"  target="_blank">
+                      <img src="<?php echo $vars['cdn_assets_url']; ?>assets/logos/logo-email.png" alt="Logo" style="display: block; width: 168px;max-height:80px;" border="0"
+                      />
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            <?php } ?>
 
             <!--[if (gte mso 9)|(IE)]>
                 </td>
@@ -296,7 +298,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <?php if ($vars['signoff']): ?>
+                      <?php if ($vars['signoff'] ?? null): ?>
                         <p <?php echo $emailStyles->getStyles('m-copy', 'm-signature'); ?>>
                           <?php echo $vars['signoff'] ?>
                         </p>
@@ -611,19 +613,21 @@
                                             <?= $vars['translator']->trans('Manage email settings') ?>
                                           </a>
                                           </br>
-                                          <a
-                                            style="
-                                              font-size: 14px;
-                                              color: #1b85d6;
-                                              text-decoration: underline;
-                                              font-family: Roboto, Helvetica,
-                                                sans-serif;
-                                            "
-                                            href="https://www.minds.com/emails/unsubscribe/<?= $vars['guid']?>/<?= urlencode($vars['email'])?>/<?= $vars['campaign']?><?= '/' . $vars['topic']?>?__e_ct_guid=<?= $vars['guid']?>&campaign=<?= $vars['campaign'] ?>&topic=<?= $vars['topic'] ?>&state=<?= $vars['state']?>"
-                                            target="_blank"
-                                          >
-                                            <?= $vars['translator']->trans('Unsubscribe') ?>
-                                          </a>
+                                          <?php if (isset($vars['campaign'])): ?>
+                                            <a
+                                              style="
+                                                font-size: 14px;
+                                                color: #1b85d6;
+                                                text-decoration: underline;
+                                                font-family: Roboto, Helvetica,
+                                                  sans-serif;
+                                              "
+                                              href="https://www.minds.com/emails/unsubscribe/<?= $vars['guid']?>/<?= urlencode($vars['email'])?>/<?= $vars['campaign']?><?= '/' . $vars['topic']?>?__e_ct_guid=<?= $vars['guid']?>&campaign=<?= $vars['campaign'] ?>&topic=<?= $vars['topic'] ?>&state=<?= $vars['state']?>"
+                                              target="_blank"
+                                            >
+                                              <?= $vars['translator']->trans('Unsubscribe') ?>
+                                            </a>
+                                          <?php endif; ?>
                                         </td>
                                       </tr>
                                     </table>
