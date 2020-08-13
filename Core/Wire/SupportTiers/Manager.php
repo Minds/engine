@@ -20,9 +20,6 @@ class Manager
     /** @var GuidBuilder */
     protected $guidBuilder;
 
-    /** @var Delegates\UserWireRewardsMigrationDelegate */
-    protected $userWireRewardsMigration;
-
     /** @var Delegates\CurrenciesDelegate */
     protected $currenciesDelegate;
 
@@ -36,20 +33,17 @@ class Manager
      * Manager constructor.
      * @param $repository
      * @param $guidBuilder
-     * @param $userWireRewardsMigrationDelegate
      * @param $currenciesDelegate
      * @param $paymentsDelegate
      */
     public function __construct(
         $repository = null,
         $guidBuilder = null,
-        $userWireRewardsMigrationDelegate = null,
         $currenciesDelegate = null,
         $paymentsDelegate = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->guidBuilder = $guidBuilder ?: new GuidBuilder();
-        $this->userWireRewardsMigration = $userWireRewardsMigrationDelegate ?: new Delegates\UserWireRewardsMigrationDelegate();
         $this->currenciesDelegate = $currenciesDelegate ?: new Delegates\CurrenciesDelegate();
         $this->paymentsDelegate = $paymentsDelegate ?: new Delegates\PaymentsDelegate();
     }
@@ -85,10 +79,6 @@ class Manager
         })->sort(function (SupportTier $a, SupportTier $b) {
             return $a->getUsd() <=> $b->getUsd();
         });
-
-        if (!$response->count() && $this->entity instanceof User) {
-            $response = $this->userWireRewardsMigration->migrate($this->entity, true);
-        }
 
         return $response->map(function (SupportTier $supportTier) {
             return $this->hydrate($supportTier);
