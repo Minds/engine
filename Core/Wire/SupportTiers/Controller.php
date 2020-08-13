@@ -32,9 +32,6 @@ class Controller
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    /** @var Delegates\UserWireRewardsMigrationDelegate */
-    protected $userWireRewardsMigration;
-
     /** @var Delegates\CurrenciesDelegate */
     protected $currenciesDelegate;
 
@@ -47,7 +44,6 @@ class Controller
      * @param $features
      * @param $manager
      * @param $entitiesBuilder
-     * @param $userWireRewardsMigration
      * @param $currenciesDelegate
      * @param $members
      */
@@ -56,7 +52,6 @@ class Controller
         $features = null,
         $manager = null,
         $entitiesBuilder = null,
-        $userWireRewardsMigration = null,
         $currenciesDelegate = null,
         $members = null
     ) {
@@ -64,7 +59,6 @@ class Controller
         $this->features = $features ?: Di::_()->get('Features\Manager');
         $this->manager = $manager ?: new Manager();
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
-        $this->userWireRewardsMigration = $userWireRewardsMigration ?: new Delegates\UserWireRewardsMigrationDelegate();
         $this->currenciesDelegate = $currenciesDelegate ?: new Delegates\CurrenciesDelegate();
         $this->members = $members ?? new Members();
     }
