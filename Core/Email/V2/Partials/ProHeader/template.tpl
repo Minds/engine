@@ -11,7 +11,7 @@
                 <img 
                     src="<?php echo $vars['logo_uri'] ?: $vars['cdn_assets_url'] . 'assets/logos/logo-email.png'; ?>"
                     alt="Logo"
-                    style="display: block; width: 168px;max-height:80px;"
+                    style="display: block; width: 168px;"
                     border="0"
                 />
             </a>

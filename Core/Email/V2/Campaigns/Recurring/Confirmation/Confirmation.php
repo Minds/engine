@@ -88,6 +88,7 @@ class Confirmation extends EmailCampaign
         $this->template->set('tracking', $trackingQuery);
         $this->template->set('title', $proSettings ? 'Welcome to ' . $proSettings->getTitle() : $translator->trans('Welcome to Minds'));
         $this->template->set('preheader', $subject);
+        $this->template->set('isPro', !!$proSettings);
 
         if ($proSettings) {
             $proHeader = (new ProHeader())
