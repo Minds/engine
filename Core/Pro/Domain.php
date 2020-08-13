@@ -50,6 +50,10 @@ class Domain
      */
     public function lookup(string $domain): ?Settings
     {
+        if (!$domain) {
+            return null;
+        }
+
         $rootDomains = $this->config->get('pro')['root_domains'] ?? [];
 
         if (in_array(strtolower($domain), $rootDomains, true)) {
