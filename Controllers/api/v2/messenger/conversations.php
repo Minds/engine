@@ -255,16 +255,15 @@ class conversations implements Interfaces\Api
             
             $participants = $conversation->getParticipants();
 
-            for ($i = 0; $i > count($participants); $i++) {
-                // ignore if user matches logged in user.
-                if ($participants[$i] === (string) Session::getLoggedInUserGuid()) {
-                    return;
+            foreach (array_keys($participants) as $guid) {
+                if ($guid === Session::getLoggedInUserGuid()) {
+                    continue;
                 }
 
-                $participant = new User($participants[$i]);
+                $participant = new User($guid);
 
                 if (
-                    $messageCount < 1
+                    $messageCount === 0
                     && !$participant->isSubscribed(Session::getLoggedInUserGuid())
                     && !$participant->getAllowUnsubscribedContact()
                 ) {
