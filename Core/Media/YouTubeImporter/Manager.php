@@ -19,6 +19,7 @@ use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Entities\EntitiesFactory;
 use Minds\Entities\User;
 use Minds\Entities\Video;
+use Minds\Core\Data\Cache\PsrWrapper;
 use Zend\Diactoros\Response\JsonResponse;
 
 /**
@@ -65,6 +66,9 @@ class Manager
     /** @var TranscoderBridge */
     protected $transcoderBridge;
 
+    /** @var PsrWrapper */
+    protected $cache;
+
     public function __construct(
         $repository = null,
         $mediaRepository = null,
@@ -77,7 +81,8 @@ class Manager
         $videoAssets = null,
         $entitiesBuilder = null,
         $logger = null,
-        $transcoderBridge = null
+        $transcoderBridge = null,
+        $cache = null
     ) {
         $this->repository = $repository ?: Di::_()->get('Media\YouTubeImporter\Repository');
         $this->mediaRepository = $mediaRepository ?: Di::_()->get('Media\Repository');
@@ -91,6 +96,7 @@ class Manager
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->logger = $logger ?: Di::_()->get('Logger');
         $this->transcoderBridge = $transcoderBridge ?? new TranscoderBridge();
+        $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
     }
 
     /**
@@ -361,7 +367,15 @@ class Manager
             $parts .= ',statistics';
         }
 
-        $response = $youtube->videos->listVideos($parts, ['id' => $id]);
+        /** @var string */
+        $cacheKey = "ytimporter:videolist-id:$id";
+
+        if ($cached = $this->cache->get($cacheKey)) {
+            $response = unserialize($cached);
+        } else {
+            $response = $youtube->videos->listVideos($parts, ['id' => $id]);
+            $this->cache->set($cacheKey, serialize($response), 3600); // 1 hour cache
+        }
 
         foreach ($response['items'] as $item) {
             $values = [
