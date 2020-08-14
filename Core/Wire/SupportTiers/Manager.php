@@ -167,7 +167,7 @@ class Manager
                 (
                     // $supportTier->hasUsd() &&
                     $wire->getMethod() === 'usd' &&
-                    $wire->getAmount() === $supportTier->getUsd() * 100
+                    $wire->getAmount() == (string) $supportTier->getUsd() * 100
                 )
             ) {
                 return $supportTier;
