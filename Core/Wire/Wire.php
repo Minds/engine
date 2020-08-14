@@ -22,6 +22,7 @@ use Minds\Traits\MagicAttributes;
  * @method string getAmount()
  * @method Wire setAmount(string $value)
  * @method bool getRecurring()
+ * @method bool isRecurring()
  * @method Wire setRecurring(bool $value)
  * @method string getRecurringInterval()
  * @method Wire setRecurringInterval(string $value)
