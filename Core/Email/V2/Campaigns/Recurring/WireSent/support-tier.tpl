@@ -1,19 +1,32 @@
 <?php
     $wireDate = date('l F jS Y', ($vars['timestamp']));
     $amount = $vars['amount'];
-    $receiverName = $vars['receiver']->get('name');
     $receiverUsername = $vars['receiver']->get('username');
+    $receiverName = $vars['receiver']->get('name');
+    $tierName = $vars['supportTier']->getName();
+    $tierDescription = $vars['supportTier']->getDescription();
 ?>
 <tr>
     <td>
-        <p>You made a payment to
+        <p>Thank you for becoming a member of
             <a
                 href="<?php echo $vars['site_url']?><?php echo $receiverUsername ?>"
                 <?php echo $emailStyles->getStyles('m-link'); ?>>
-                 <?php echo $receiverName; ?></a>.
+                 <?php echo $receiverName; ?>'s</a> <b><?php echo $tierName ?></b> membership.
         </p>
     </td>
 </tr>
+
+<?php if ($tierDescription): ?>
+<tr style="margin-bottom: 20px; display: block">
+  <td style="border-left: 5px solid #dce2e4; padding-left: 20px;">
+    <p>
+      <?php echo $tierDescription; ?>
+    </p>
+  </td>
+</tr>
+<?php endif; ?>
+
 <tr>
     <td>
         <p>
@@ -28,12 +41,11 @@
         </p>
     </td>
 </tr>
+
 <tr>
     <td>
         <p>
-            <?= $vars['translator']->trans('For any issues, including the recipient not receiving any payment, please contact us at') ?>
-            <a href="mailto:info@minds.com" <?php echo $emailStyles->getStyles('m-link'); ?>>
-                info@minds.com</a>.
+            If you have any questions please visit <a href="<?php echo $vars['site_url']?>help" <?php echo $emailStyles->getStyles('m-link'); ?>>here</a>. You can cancel your subscription any time in your <a href="<?php echo $vars['site_url']?>settings/billing/recurring-payments" <?php echo $emailStyles->getStyles('m-link'); ?>>billing settings</a>.
         </p>
     </td>
 </tr>

@@ -10,6 +10,7 @@ use Minds\Core\Email\EmailSubscribersIterator;
 use Minds\Core\Email\V2\Campaigns;
 use Minds\Core\Email\V2\Campaigns\Recurring\BoostComplete\BoostComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
+use Minds\Core\Email\V2\Campaigns\Recurring\WireSent\WireSent;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WeMissYou\WeMissYou;
@@ -48,8 +49,8 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             case 'testWelcomeIncomplete':
                 $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testWelcomeIncomplete.txt'));
                 break;
-            case 'testWireReceived':
-                $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testWireReceived.txt'));
+            case 'testWire':
+                $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testWire.txt'));
                 break;
             case 'testWirePromotion':
                 $this->out(file_get_contents(dirname(__FILE__).'/Help/Email/testWirePromotion.txt'));
@@ -296,12 +297,13 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         }
     }
 
-    public function testWireReceived()
+    public function testWire()
     {
         $output = $this->getOpt('output');
         $entityGuid = $this->getOpt('guid');
         $senderGuid = $this->getOpt('sender');
         $timestamp = $this->getOpt('timestamp');
+        $variant = $this->getOpt('variant');
 
         $send = $this->getOpt('send');
 
@@ -336,7 +338,16 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             exit;
         }
         $wire = $wireResults['wires'][0];
-        $campaign = (new WireReceived())
+
+        if ($variant === 'sent') {
+            $campaign = (new WireSent());
+        } elseif ($variant === 'received') {
+            $campaign = (new WireReceived());
+        } else {
+            $this->out('--variant must be sent or received');
+        }
+
+        $campaign
             ->setUser($wire->getReceiver())
             ->setWire($wire);
 
@@ -344,6 +355,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 
         if ($send) {
             $campaign->send();
+            $this->out('sent');
         }
 
         if ($output) {
