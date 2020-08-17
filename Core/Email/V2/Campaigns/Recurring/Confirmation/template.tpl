@@ -1,3 +1,4 @@
+<?php if (!$vars['isPro']): ?>
 <tr>
     <td>
         <p>
@@ -5,6 +6,7 @@
         </p>
     </td>
 </tr>
+<?php endif; ?>
 <tr>
     <td>
         <p>

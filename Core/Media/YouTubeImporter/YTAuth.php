@@ -6,6 +6,7 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Data\Call;
 use Minds\Entities\User;
 use Minds\Core\Config;
+use Google_Service_Exception;
 
 class YTAuth
 {
@@ -46,11 +47,15 @@ class YTAuth
      */
     public function connectWithBacklink(User $user, string $channelId): bool
     {
-        $youtube = $this->ytClient->getService(true);
+        try {
+            $youtube = $this->ytClient->getService(true);
 
-        $channelsResponse = $youtube->channels->listChannels('id, snippet', [
-            'id' => $channelId
-        ]);
+            $channelsResponse = $youtube->channels->listChannels('id, snippet', [
+                'id' => $channelId
+            ]);
+        } catch (Google_Service_Exception $e) {
+            throw new QuotaExceededException();
+        }
 
         $description = strtolower($channelsResponse->items[0]->snippet->description);
 
