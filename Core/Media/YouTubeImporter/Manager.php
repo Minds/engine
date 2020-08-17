@@ -253,6 +253,10 @@ class Manager
 
         $data = $this->fetchVideoData($ytVideo);
 
+        if (!$data) {
+            return;
+        }
+
         /** @var YTVideoSource[] */
         $videoSources = $data['sources'];
 
@@ -492,6 +496,10 @@ class Manager
     {
         $videoData = $this->ytApi->getVideoInfo($ytVideo->getVideoId());
 
+        if (!$videoData) {
+            return [];
+        }
+
         // get video details
         $videoDetails = $videoData['videoDetails'];
 
@@ -527,6 +535,9 @@ class Manager
     {
         $data = $this->fetchVideoData($ytVideo);
 
+        if (!$data) {
+            return;
+        }
         // create the video
         $video = new Video();
 

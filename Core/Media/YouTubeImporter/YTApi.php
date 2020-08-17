@@ -14,6 +14,6 @@ class YTApi
         // get and decode the data
         parse_str(file_get_contents("https://youtube.com/get_video_info?video_id=" . $ytVideoId), $info);
 
-        return json_decode($info['player_response'], true);
+        return json_decode($info['player_response'], true) ?: [];
     }
 }
