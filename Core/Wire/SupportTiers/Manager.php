@@ -6,7 +6,9 @@ use Minds\Common\Repository\Response;
 use Minds\Core\GuidBuilder;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
+use Minds\Core\Wire\Wire;
 use Minds\Helpers\Urn;
+use Minds\Core\Util\BigNumber;
 
 /**
  * Wire Support Tiers Manager
@@ -19,9 +21,6 @@ class Manager
 
     /** @var GuidBuilder */
     protected $guidBuilder;
-
-    /** @var Delegates\UserWireRewardsMigrationDelegate */
-    protected $userWireRewardsMigration;
 
     /** @var Delegates\CurrenciesDelegate */
     protected $currenciesDelegate;
@@ -36,20 +35,17 @@ class Manager
      * Manager constructor.
      * @param $repository
      * @param $guidBuilder
-     * @param $userWireRewardsMigrationDelegate
      * @param $currenciesDelegate
      * @param $paymentsDelegate
      */
     public function __construct(
         $repository = null,
         $guidBuilder = null,
-        $userWireRewardsMigrationDelegate = null,
         $currenciesDelegate = null,
         $paymentsDelegate = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->guidBuilder = $guidBuilder ?: new GuidBuilder();
-        $this->userWireRewardsMigration = $userWireRewardsMigrationDelegate ?: new Delegates\UserWireRewardsMigrationDelegate();
         $this->currenciesDelegate = $currenciesDelegate ?: new Delegates\CurrenciesDelegate();
         $this->paymentsDelegate = $paymentsDelegate ?: new Delegates\PaymentsDelegate();
     }
@@ -85,10 +81,6 @@ class Manager
         })->sort(function (SupportTier $a, SupportTier $b) {
             return $a->getUsd() <=> $b->getUsd();
         });
-
-        if (!$response->count() && $this->entity instanceof User) {
-            $response = $this->userWireRewardsMigration->migrate($this->entity, true);
-        }
 
         return $response->map(function (SupportTier $supportTier) {
             return $this->hydrate($supportTier);
@@ -142,6 +134,47 @@ class Manager
             ->setGuid($urn[1]);
 
         return $this->get($supportTier);
+    }
+
+    /**
+     * Returns the matching support tier from a provided Wire
+     * @param Wire $wire
+     * @return SupportTier
+     */
+    public function getByWire(Wire $wire): ?SupportTier
+    {
+        // if (!$wire->isRecurring()) {
+        //     return null; // Must be a recurring wire to have a support tier
+        // }
+        $manager = clone $this;
+        $manager->setEntity($wire->getReceiver());
+
+        /** @var SupportTier[] */
+        $supportTiers = $manager->getAll();
+
+        if (!$supportTiers->count()) {
+            return null;
+        }
+
+        foreach ($supportTiers as $supportTier) {
+            if (
+                (
+                    $supportTier->hasTokens() &&
+                    $wire->getMethod() === 'tokens' &&
+                    $wire->getAmount() == (string) BigNumber::toPlain($supportTier->getTokens(), 18)
+                )
+                ||
+                (
+                    // $supportTier->hasUsd() &&
+                    $wire->getMethod() === 'usd' &&
+                    $wire->getAmount() == (string) $supportTier->getUsd() * 100
+                )
+            ) {
+                return $supportTier;
+            }
+        }
+
+        return null;
     }
 
     /**

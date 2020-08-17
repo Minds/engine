@@ -34,7 +34,7 @@ class Events
         Dispatcher::register('wire:email', 'wire', function (Core\Events\Event $event) {
             $params = $event->getParameters();
             $wire = $params['wire'];
-            $campaign = (new Core\Email\Campaigns\WireReceived())
+            $campaign = (new Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived())
                 ->setUser($wire->getReceiver())
                 ->setWire($wire)
                 ->send();
@@ -46,7 +46,7 @@ class Events
         Dispatcher::register('wire-receipt:email', 'wire', function (Core\Events\Event $event) {
             $params = $event->getParameters();
             $wire = $params['wire'];
-            $campaign = (new Core\Email\Campaigns\WireSent())
+            $campaign = (new Core\Email\V2\Campaigns\Recurring\WireSent\WireSent())
                 ->setUser($wire->getSender())
                 ->setWire($wire)
                 ->send();
