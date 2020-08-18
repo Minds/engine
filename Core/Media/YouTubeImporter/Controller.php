@@ -243,6 +243,8 @@ class Controller
 
         try {
             $this->manager->import($video);
+        } catch (ImportsExceededException $e) {
+            throw $e;
         } catch (\Exception $e) {
             error_log($e);
             return new JsonResponse([
