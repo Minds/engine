@@ -15,6 +15,7 @@ use Minds\Core\Session;
 use Minds\Core\Util\BigNumber;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Entities\Actions\Save;
 
 class wallet implements Interfaces\Api
 {
@@ -141,11 +142,28 @@ class wallet implements Interfaces\Api
 
     /**
      * Equivalent to HTTP DELETE method
+     * Deletes an Ethereum address from user object.
      * @param  array $pages
-     * @return mixed|null
+     * @return mixed
      */
     public function delete($pages)
     {
-        return Factory::response([]);
+        $user = Session::getLoggedinUser();
+        if (!$user) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'You must be logged in to delete your wallet information'
+            ]);
+        }
+
+        $user->setEthWallet('');
+
+        $save = new Save();
+        $save->setEntity($user)
+            ->save();
+
+        return Factory::response([
+            'status' => 'success',
+        ]);
     }
 }
