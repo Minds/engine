@@ -144,7 +144,7 @@ class YTSubscription
             $ia = $this->acl->setIgnore(true);
 
             // Import the new video
-            $this->manager->import($ytVideo);
+            $this->manager->import($ytVideo, false);
 
             // Re-impose previous ignore access setting
             $this->acl->setIgnore($ia);
