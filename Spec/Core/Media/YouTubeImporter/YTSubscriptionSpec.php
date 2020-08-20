@@ -15,6 +15,7 @@ use Minds\Common\Repository\Response;
 use Minds\Entities\User;
 use Minds\Entities\Video;
 use Pubsubhubbub\Subscriber\Subscriber;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -44,6 +45,9 @@ class YTSubscriptionSpec extends ObjectBehavior
     /** @var Call */
     protected $db;
 
+    /** @var KeyValueLimiter */
+    protected $kvLimiter;
+
     public function let(
         YTClient $ytClient,
         Manager $manager,
@@ -52,7 +56,8 @@ class YTSubscriptionSpec extends ObjectBehavior
         Config $config,
         EntitiesBuilder $entitiesBuilder,
         Save $save,
-        Call $db
+        Call $db,
+        KeyValueLimiter $kvLimiter
     ) {
         $this->ytClient = $ytClient;
         $this->manager = $manager;
@@ -62,6 +67,7 @@ class YTSubscriptionSpec extends ObjectBehavior
         $this->entitiesBuilder = $entitiesBuilder;
         $this->save = $save;
         $this->db = $db;
+        $this->kvLimiter = $kvLimiter;
         $this->beConstructedWith(
             $ytClient,
             $manager,
@@ -70,7 +76,9 @@ class YTSubscriptionSpec extends ObjectBehavior
             $config,
             $entitiesBuilder,
             $save,
-            $db
+            $db,
+            null,
+            $kvLimiter
         );
     }
 
@@ -89,6 +97,8 @@ class YTSubscriptionSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(new Response([$video2]));
 
+        $this->kvLimiterMock();
+
         $this->onNewVideo($video);
     }
 
@@ -101,6 +111,8 @@ class YTSubscriptionSpec extends ObjectBehavior
         $this->repository->getList(['youtube_id' => 'id'])
             ->shouldBeCalled()
             ->willReturn(new Response());
+
+        $this->kvLimiterMock();
 
         $video->getChannelId()
             ->shouldBeCalled()
@@ -122,6 +134,8 @@ class YTSubscriptionSpec extends ObjectBehavior
         $this->repository->getList(['youtube_id' => 'id'])
             ->shouldBeCalled()
             ->willReturn(new Response());
+
+        $this->kvLimiterMock();
 
         $video->getChannelId()
             ->shouldBeCalled()
@@ -152,6 +166,8 @@ class YTSubscriptionSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(new Response());
 
+        $this->kvLimiterMock();
+
         $video->getChannelId()
             ->shouldBeCalled()
             ->willReturn('channel_id');
@@ -173,5 +189,14 @@ class YTSubscriptionSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->onNewVideo($video);
+    }
+
+    private function kvLimiterMock()
+    {
+        $this->kvLimiter->setKey(Argument::any())->willReturn($this->kvLimiter);
+        $this->kvLimiter->setValue(Argument::any())->willReturn($this->kvLimiter);
+        $this->kvLimiter->setSeconds(Argument::any())->willReturn($this->kvLimiter);
+        $this->kvLimiter->setMax(Argument::any())->willReturn($this->kvLimiter);
+        $this->kvLimiter->checkAndIncrement()->willReturn(true);
     }
 }
