@@ -37,8 +37,7 @@ class EntityCreatorDelegate
         $postsSubscriptionManager = null,
         $logger = null,
         $db = null
-    )
-    {
+    ) {
         $this->save = $save ?: new Save();
         $this->activityManager = $activityManager ?: new Manager();
         $this->postsSubscriptionsManager = $postsSubscriptionManager ?: new PostSubscriptionsManager();
