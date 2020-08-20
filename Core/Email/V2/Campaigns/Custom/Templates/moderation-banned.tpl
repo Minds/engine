@@ -1,7 +1,11 @@
 <tr>
     <td>
         <p>
-            <?= $vars['translator']->trans('Unfortunately, your channel has been banned for violating our Content Policy.') ?>
+            <?= $vars['translator']->trans('Unfortunately, your channel has been banned for violating our ') ?>
+            <a href="https://minds.com/content-policy"<?php echo $emailStyles->getStyles('m-link'); ?>>
+                <?= $vars['translator']->trans('Content Policy') ?>
+            </a>
+            <?= $vars['translator']->trans('. The specific reason is: ') ?><?= $vars['translator']->trans($vars['reason']) ?>.
         </p>
     </td>
 </tr>

@@ -1,12 +1,12 @@
 <?php
 /**
- * Email Notification delegate for Verdicts
+ * Email Notification delegate for Verdicts.
  */
+
 namespace Minds\Core\Reports\Verdict\Delegates;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Reports\Report;
-use Minds\Core\Events\EventsDispatcher;
 use Minds\Common\Urn;
 use Minds\Core\Email\V2\Campaigns\Custom\Custom;
 
@@ -19,18 +19,17 @@ class EmailDelegate
     protected $entitiesBuilder;
 
     /** @var Urn $urn */
-
     public function __construct($campaign = null, $entitiesBuilder = null, $urn = null)
     {
-        $this->campaign = $campaign ?: new Custom;
+        $this->campaign = $campaign ?: new Custom();
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
-        $this->urn = $urn ?: new Urn;
+        $this->urn = $urn ?: new Urn();
     }
 
     /**
-     * On Action
+     * On Action.
+     *
      * @param Report $report
-     * @return void
      */
     public function onBan(Report $report)
     {
@@ -46,6 +45,7 @@ class EmailDelegate
         }
 
         $template = 'moderation-banned';
+        $reason = $report->getReason();
 
         $action = 'removed';
         switch ($report->getReasonCode()) {
@@ -65,10 +65,11 @@ class EmailDelegate
         $this->campaign->setSubject($subject);
         $this->campaign->setTitle($title);
         $this->campaign->setPreheader('You have been banned');
+        $this->campaign->setHideFooter(true);
         $this->campaign->setVars([
             'type' => $type,
             'action' => $action,
-            //'reason' => $reason,
+            'reason' => $reason,
         ]);
 
         $this->campaign->send();
