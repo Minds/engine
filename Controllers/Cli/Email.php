@@ -14,15 +14,12 @@ use Minds\Core\Email\V2\Campaigns\Recurring\WireSent\WireSent;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WeMissYou\WeMissYou;
-use Minds\Core\Email\Campaigns\Recurring\WirePromotions;
 use Minds\Core\Email\V2\Delegates\ConfirmationSender;
 use Minds\Core\Reports;
 use Minds\Core\Blockchain\Purchase\Delegates\IssuedTokenEmail;
 use Minds\Core\Blockchain\Purchase\Delegates\NewPurchaseEmail;
 use Minds\Core\Blockchain\Purchase\Purchase;
-
 use Minds\Core\Suggestions\Manager;
-use Minds\Core\Analytics\Timestamps;
 use Minds\Core\Di\Di;
 
 class Email extends Cli\Controller implements Interfaces\CliControllerInterface
@@ -66,7 +63,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
      * TODO: Move this to Core
      * How to run? Eg:
      * php cli.php Email \
-     *  --campaign="Marketing\\Languages2020_06_18\\Languages2020_06_18"
+     *  --campaign="Marketing\\Languages2020_06_18\\Languages2020_06_18".
      */
     public function exec()
     {
@@ -80,7 +77,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 
         if ($dry) {
             $iterator = [
-                (new User($dry))
+                (new User($dry)),
             ];
         } else {
             $iterator = new EmailSubscribersIterator();
@@ -111,9 +108,6 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 
         $this->out('Done.');
     }
-
-
-    //
 
     public function topPosts()
     {
@@ -185,7 +179,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $message = $campaign->build();
 
         if ($send) {
-            Core\Events\Dispatcher::trigger('user_state_change', 'cold', [ 'user_guid' => $userguid ]);
+            Core\Events\Dispatcher::trigger('user_state_change', 'cold', ['user_guid' => $userguid]);
         }
 
         if ($output) {
@@ -206,9 +200,9 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             $this->out('User not found');
             exit;
         }
-    
+
         if ($send) {
-            Core\Events\Dispatcher::trigger('welcome_email', 'all', [ 'user_guid' => $userguid ]);
+            Core\Events\Dispatcher::trigger('welcome_email', 'all', ['user_guid' => $userguid]);
         }
     }
 
@@ -384,7 +378,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             exit;
         }
 
-        $boost = $manager->get("urn:boost:{$boostType}:{$entityGuid}", [ 'hydrate' => true ]);
+        $boost = $manager->get("urn:boost:{$boostType}:{$entityGuid}", ['hydrate' => true]);
 
         if (!$boost) {
             $this->out('Boost not found');
@@ -429,13 +423,6 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             return $this->out('entityUrn must be supplied');
         }
 
-        $userGuid = $this->getOpt('guid');
-        $user = new User($userGuid);
-
-        if (!$userGuid) {
-            return $this->out('userGuid must be supplied');
-        }
-
         // Use 8 for strike
         $reasonCode = $this->getOpt('reasonCode');
 
@@ -466,7 +453,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $reasonCode = $this->getOpt('reasonCode');
 
         $strikeDelegate = new Reports\Strikes\Delegates\EmailDelegate();
-        
+
         $report = new Reports\Report();
         $report->setEntityUrn($entityUrn);
         $report->setReasonCode($reasonCode);
@@ -480,7 +467,6 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
     {
         $issued = $this->getOpt('issued');
         $amount = $this->getOpt('amount') ?: 10 ** 18;
-       
 
         $userGuid = $this->getOpt('userGuid');
         $user = new User($userGuid);

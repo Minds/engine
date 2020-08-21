@@ -5,7 +5,9 @@
             <a href="https://minds.com/content-policy"<?php echo $emailStyles->getStyles('m-link'); ?>>
                 <?= $vars['translator']->trans('Content Policy') ?>
             </a>
-            <?= $vars['translator']->trans('. The specific reason is: ') ?><?= $vars['translator']->trans($vars['reason']) ?>.
+            <?php if($vars['reason']): ?>
+                <?= $vars['translator']->trans('. The specific reason is: ') ?><?= $vars['translator']->trans($vars['reason']) ?>.
+            <?php endif; ?>
         </p>
     </td>
 </tr>
