@@ -5,11 +5,30 @@ namespace Spec\Minds\Core\Analytics\Metrics;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
+use Minds\Core\Analytics\Snowplow;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Data\ElasticSearch\Prepared\Index;
 
 class EventSpec extends ObjectBehavior
 {
+    /** @var Client */
+    protected $es;
+
+    /** @var Snowplow\Manager */
+    protected $snowplowManager;
+
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
+    public function let(Client $es, EntitiesBuilder $entitiesBuilder, Snowplow\Manager $snowplowManager)
+    {
+        $this->beConstructedWith($es, $snowplowManager, $entitiesBuilder);
+        $this->es = $es;
+        $this->snowplowManager = $snowplowManager;
+        $this->entitiesBuilder = $entitiesBuilder;
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Analytics\Metrics\Event');
@@ -35,9 +54,8 @@ class EventSpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_push(Client $es, Index $prepared)
+    public function it_should_push(Index $prepared)
     {
-        $this->beConstructedWith($es);
 
         /*$prepared->query([
             'body' => $this->getData(),
@@ -50,12 +68,35 @@ class EventSpec extends ObjectBehavior
         ])->shouldBeCalled();
         $prepared->build()->shouldBeCalled();*/
 
-        $es->request(Argument::type('Minds\Core\Data\ElasticSearch\Prepared\Index'))
+        $this->es->request(Argument::type('Minds\Core\Data\ElasticSearch\Prepared\Index'))
             ->shouldBeCalled()
             ->willReturn(true);
 
         $this->setType('action');
         $this->push()->shouldBe(true);
         $this->getData()->shouldHaveKey('@timestamp');
+    }
+
+    public function it_should_post_action_to_snowplow()
+    {
+        $this->snowplowManager->setSubject(Argument::that(function ($user) {
+            return true;
+        }))
+            ->willReturn($this->snowplowManager);
+    
+        $this->snowplowManager->emit(Argument::that(function ($event) {
+            return true;
+        }))
+            ->shouldBeCalled();
+
+        $this->es->request(Argument::type('Minds\Core\Data\ElasticSearch\Prepared\Index'))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->setType('action');
+        $this->setAction('vote:up');
+        $this->setUserGuid('123');
+
+        $this->push()->shouldBe(true);
     }
 }

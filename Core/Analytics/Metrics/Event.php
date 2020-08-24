@@ -3,6 +3,10 @@
 namespace Minds\Core\Analytics\Metrics;
 
 use Minds\Core;
+use Minds\Core\Analytics\Snowplow;
+use Minds\Core\Data\ElasticSearch;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Di\Di;
 
 /**
  * Class Event.
@@ -31,14 +35,27 @@ use Minds\Core;
  */
 class Event
 {
+    /** @var ElasticSearch\Client */
     private $elastic;
+
+    /** @var string */
     private $index = 'minds-metrics-';
+
+    /** @var Snowplow\Manager */
+    private $snowplowManager;
+
+    /** @var EntitiesBuilder */
+    private $entitiesBuilder;
+
+    /** @var array */
     protected $data;
 
-    public function __construct($elastic = null)
+    public function __construct($elastic = null, $snowplowManager = null, $entitiesBuilder = null)
     {
         $this->elastic = $elastic ?: Core\Di\Di::_()->get('Database\ElasticSearch');
         $this->index = 'minds-metrics-'.date('m-Y', time());
+        $this->snowplowManager = $snowplowManager ?? Di::_()->get('Analytics\Snowplow\Manager');
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
 
     public function setUserGuid($guid)
@@ -67,6 +84,12 @@ class Event
             }
             $this->data['platform'] = $platform;
         }
+
+        // Submit to snowplow
+
+        $this->emitToSnowplow();
+
+        // Submit to ES
 
         $prepared = new Core\Data\ElasticSearch\Prepared\Index();
         $prepared->query([
@@ -139,5 +162,75 @@ class Event
         }
 
         return '';
+    }
+
+    /**
+     * Emit the event to snowplow
+     * @return void
+     */
+    protected function emitToSnowplow(): void
+    {
+        if (
+            !isset($this->data['action']) ||
+            !isset($this->data['user_guid']) ||
+            $this->data['type'] !== 'action' ||
+            $this->data['action'] === 'pageview'
+        ) {
+            return; // We only want to submit actions and not legacy pageviews
+        }
+
+        $entityContext = new Snowplow\Contexts\SnowplowEntityContext();
+        $sessionContext = new Snowplow\Contexts\SnowplowSessionContext();
+
+        $event = new Snowplow\Events\SnowplowActionEvent();
+        $event->setContext([$entityContext, $sessionContext]);
+
+        $event->setAction($this->data['action']);
+
+        if ($this->data['entity_guid'] ?? null) {
+            $entityContext->setEntityGuid($this->data['entity_guid']);
+        }
+        
+        if ($this->data['entity_type'] ?? null) {
+            $entityContext->setEntityType($this->data['entity_type']);
+        }
+
+        if ($this->data['entity_subtype'] ?? null) {
+            $entityContext->setEntitySubtype($this->data['entity_subtype']);
+        }
+
+        if ($this->data['entity_owner_guid'] ?? null) {
+            $entityContext->setEntityOwnerGuid($this->data['entity_owner_guid']);
+        }
+
+        if ($this->data['entity_access_id'] ?? null) {
+            $entityContext->setEntityAccessId($this->data['entity_access_id']);
+        }
+
+        if ($this->data['entity_container_guid'] ?? null) {
+            $entityContext->setEntityContainerGuid($this->data['entity_container_guid']);
+        }
+
+        if ($this->data['comment_guid'] ?? null) {
+            $event->setCommentGuid($this->data['comment_guid']);
+        }
+
+        if ($this->data['boost_rating'] ?? null) {
+            $event->setBoostRating($this->data['boost_rating']);
+        }
+
+        if ($this->data['boost_reject_reason'] ?? null) {
+            $event->setBoostRejectReason($this->data['boost_reject_reason']);
+        }
+
+        if ($this->data['user_phone_number_hash'] ?? null) {
+            $sessionContext->setUserPhoneNumberHash($this->data['user_phone_number_hash']);
+        }
+
+        // Rebuild the user, as we need the full entity
+        $user = $this->entitiesBuilder->single($this->data['user_guid']);
+
+        // Emit the event
+        $this->snowplowManager->setSubject($user)->emit($event);
     }
 }
