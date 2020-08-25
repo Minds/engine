@@ -55,7 +55,7 @@ class channel implements Interfaces\Api
             ]);
         }
 
-        if ($user->enabled != "yes") {
+        if ($user->enabled != "yes" && !Core\Session::isAdmin()) {
             return Factory::response([
                 'status'=>'error',
                 'message'=>'Sorry, this user is disabled',
