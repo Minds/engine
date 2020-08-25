@@ -21,7 +21,7 @@ class Manager
     public function __construct($emitter = null, $config = null)
     {
         $config = $config ?? Di::_()->get('Config');
-        $this->emitter = new CurlEmitter($config->get('snowplow')['collector_uri'], $config->get('snowplow')['proto'] ?? 'https', "POST", 2, true);
+        $this->emitter = new CurlEmitter($config->get('snowplow')['collector_uri'], $config->get('snowplow')['proto'] ?? 'https', "POST", 2, false);
     }
 
     /**
@@ -78,7 +78,7 @@ class Manager
                         ];
                     }, $event->getContext() ?: [])
                 )
-            ),
+            )
         );
        
         $this->tracker->flushEmitters();
