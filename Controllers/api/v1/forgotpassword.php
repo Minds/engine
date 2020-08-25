@@ -13,6 +13,7 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
+use Minds\Core\Security\RateLimits\RateLimitExceededException;
 
 class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
@@ -47,6 +48,20 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         switch ($pages[0]) {
         case "request":
+
+          try {
+              $rateLimitCheck = Di::_()->get("Security\RateLimits\KeyValueLimiter")
+                  ->setKey('forgot-password-ips')
+                  ->setValue($_SERVER['HTTP_X_FORWARDED_FOR'])
+                  ->setSeconds(86400) // Day
+                  ->setMax(5)
+                  ->checkAndIncrement();
+          } catch (RateLimitExceededException $e) {
+              $response['status'] = "error";
+              $response['message'] = $e->getMessage();
+              break;
+          }
+
           $user = new Entities\User(strtolower($_POST['username']));
           if (!$user->guid) {
               $response['status'] = "error";
@@ -84,6 +99,13 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
             ->setSubject($subject)
             ->setHtml($template);
           $mailer->queue($message, true);
+
+          error_log(
+              "ForgotPasswordRequest "
+              .", guid: {$user->guid}"
+              .", addr: " . $_SERVER['HTTP_X_FORWARDED_FOR']
+          );
+ 
           break;
         case "reset":
           $user = new Entities\User(strtolower($_POST['username']));

@@ -1,11 +1,11 @@
 <?php
 /**
- * Minds media page controller
+ * Minds media page controller.
  */
+
 namespace Minds\Controllers\fs\v1;
 
 use Minds\Api\Factory;
-use Minds\Common;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Features\Manager as FeaturesManager;
@@ -27,7 +27,7 @@ class thumbnail extends Core\page implements Interfaces\page
         if (!$guid) {
             return Factory::response([
                 'status' => 'error',
-                'message' => 'guid must be provided'
+                'message' => 'guid must be provided',
             ]);
         }
 
@@ -46,18 +46,17 @@ class thumbnail extends Core\page implements Interfaces\page
         if (!$entity) {
             return Factory::response([
                 'status' => 'error',
-                'message' => 'Entity not found'
+                'message' => 'Entity not found',
             ]);
         }
 
-        $featuresManager = new FeaturesManager;
+        $featuresManager = new FeaturesManager();
 
         /** @var Core\Media\Thumbnails $mediaThumbnails */
         $mediaThumbnails = Di::_()->get('Media\Thumbnails');
 
+        $thumbnail = $mediaThumbnails->get($entity, $size, ['bypassPaywall' => true]);
 
-        $thumbnail = $mediaThumbnails->get($entity, $size, [ 'bypassPaywall' => true ]);
- 
         if ($thumbnail instanceof \ElggFile) {
             $thumbnail->open('read');
             $contents = $thumbnail->read();
@@ -73,16 +72,17 @@ class thumbnail extends Core\page implements Interfaces\page
             // TODO: Consider moving this logic to a new controller
 
             $paywallManager = Di::_()->get('Wire\Paywall\Manager');
-            
+
             if ($paywallManager->isPaywalled($entity) && !$entity instanceof Video) {
                 $allowed = $paywallManager
                     ->setUser(Core\Session::getLoggedInUser())
                     ->isAllowed($entity);
                 $unlock = $_GET['unlock_paywall'] ?? false;
-    
+
                 if (!($unlock && $allowed)) {
                     $imagick = new \Imagick();
                     $imagick->readImageBlob($contents);
+                    $imagick->setType('jpeg');
                     $imagick->blurImage(100, 500);
                     $contents = $imagick->getImageBlob();
                 }
@@ -95,11 +95,11 @@ class thumbnail extends Core\page implements Interfaces\page
                 $contentType = 'image/jpeg';
             }
 
-            header('Content-type: ' . $contentType);
-            header('Expires: ' . date('r', strtotime('today + 6 months')), true);
+            header('Content-type: '.$contentType);
+            header('Expires: '.date('r', strtotime('today + 6 months')), true);
             header('Pragma: public');
             header('Cache-Control: public');
-            header('Content-Length: ' . strlen($contents));
+            header('Content-Length: '.strlen($contents));
 
             $chunks = str_split($contents, 1024);
             foreach ($chunks as $chunk) {

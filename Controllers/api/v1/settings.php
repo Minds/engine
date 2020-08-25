@@ -161,6 +161,10 @@ class settings implements Interfaces\Api
             $user->setHideShareButtons((bool) $_POST['hide_share_buttons']);
         }
 
+        if (isset($_POST['allow_unsubscribed_contact'])) {
+            $user->setAllowUnsubscribedContact((bool) $_POST['allow_unsubscribed_contact']);
+        }
+
         $response = [];
         if (!$user->save()) {
             $response['status'] = 'error';

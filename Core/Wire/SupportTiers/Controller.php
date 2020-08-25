@@ -9,6 +9,8 @@ use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\Urn;
+use Minds\Api\Exportable;
+use Minds\Common\Repositoy\Response;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 
@@ -30,11 +32,11 @@ class Controller
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    /** @var Delegates\UserWireRewardsMigrationDelegate */
-    protected $userWireRewardsMigration;
-
     /** @var Delegates\CurrenciesDelegate */
     protected $currenciesDelegate;
+
+    /** @var Members */
+    protected $members;
 
     /**
      * Controller constructor.
@@ -42,23 +44,23 @@ class Controller
      * @param $features
      * @param $manager
      * @param $entitiesBuilder
-     * @param $userWireRewardsMigration
      * @param $currenciesDelegate
+     * @param $members
      */
     public function __construct(
         $config = null,
         $features = null,
         $manager = null,
         $entitiesBuilder = null,
-        $userWireRewardsMigration = null,
-        $currenciesDelegate = null
+        $currenciesDelegate = null,
+        $members = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->features = $features ?: Di::_()->get('Features\Manager');
         $this->manager = $manager ?: new Manager();
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
-        $this->userWireRewardsMigration = $userWireRewardsMigration ?: new Delegates\UserWireRewardsMigrationDelegate();
         $this->currenciesDelegate = $currenciesDelegate ?: new Delegates\CurrenciesDelegate();
+        $this->members = $members ?? new Members();
     }
 
     /**
@@ -93,7 +95,7 @@ class Controller
             throw new UserErrorException('No entity', 400);
         }
 
-        if (!$this->features->has('support-tiers')) {
+        if (!$this->features->has('paywall-2020')) {
             $supportTiers = [];
         } else {
             $supportTiers = $this->manager
@@ -282,6 +284,37 @@ class Controller
 
         return new JsonResponse([
             'status' => 'success',
+        ]);
+    }
+
+    /**
+     * @param ServerRequest $request
+     * @return JsonResponse
+     */
+    public function getMembers(ServerRequest $request): JsonResponse
+    {
+        /** @var string */
+        $entityGuid = $request->getAttribute('parameters')['entityGuid'];
+
+        /** @var string */
+        $supportTierUrn = $request->getAttribute('parameters')['supportTierUrn'] ?? null;
+
+        /** @var Members */
+        $members = $this->members->setEntityGuid($entityGuid);
+
+        /** @var SupportTier */
+        $supportTier = $supportTierUrn ? $this->manager->getByUrn($supportTierUrn) : null;
+
+        if ($supportTier) {
+            $members = $members->setSupportTier($supportTier);
+        }
+
+        /** @var Response */
+        $list = $members->getList();
+
+        return new JsonResponse([
+            'status' => 'success',
+            'members' => Exportable::_($list),
         ]);
     }
 }

@@ -72,6 +72,15 @@ class Manager
         return $result;
     }
 
+    /**
+     * Return a list of subscriptions
+     * @param array $opts
+     * @return array
+     */
+    public function getList(array $opts = [])
+    {
+        return $this->repository->getList($opts);
+    }
 
     /////
     /// BELOW NEEDS REFACTORING TO MATCH MANAGER STYLE /MH
@@ -108,7 +117,7 @@ class Manager
     {
         $this->subscription->isValid();
 
-        $result = $this->repository->update($this->subscription);
+        $result = $this->repository->add($this->subscription);
 
         return (bool) $result;
     }

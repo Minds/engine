@@ -93,6 +93,10 @@ class Push implements Interfaces\NotificationExtensionInterface
             'badge' => $notification['count']
         ];
 
+        if ($notification['params']['focusedCommentUrn']) {
+            $push['focusedCommentUrn'] = $notification['params']['focusedCommentUrn'];
+        }
+
         $from_user = EntitiesFactory::build($notification['from'], [ 'cache' => true]) ?:
             Core\Session::getLoggedInUser();
 

@@ -9,6 +9,8 @@ use Minds\Core\Payments\Stripe\Connect\Delegates\NotificationDelegate;
 use Minds\Core\Payments\Stripe\Instances\AccountInstance;
 use Minds\Core\Payments\Stripe\Instances\BalanceInstance;
 use Minds\Core\Payments\Stripe\Instances\FileInstance;
+use Minds\Core\Payments\Stripe\Transactions;
+use Minds\Common\Repository\Response;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -21,14 +23,24 @@ class ManagerSpec extends ObjectBehavior
     private $balanceInstance;
     private $fileInstance;
 
-    public function let(Save $save, NotificationDelegate $notificationDelegate, AccountInstance $accountInstance, BalanceInstance $balanceInstance, FileInstance $fileInstance)
-    {
-        $this->beConstructedWith($save, $notificationDelegate, $accountInstance, $balanceInstance, $fileInstance);
+    /** @var Transactions\Manager */
+    private $transactionsManager;
+
+    public function let(
+        Save $save,
+        NotificationDelegate $notificationDelegate,
+        AccountInstance $accountInstance,
+        BalanceInstance $balanceInstance,
+        FileInstance $fileInstance,
+        Transactions\Manager $transactionsManager
+    ) {
+        $this->beConstructedWith($save, $notificationDelegate, $accountInstance, $balanceInstance, $fileInstance, $transactionsManager);
         $this->save = $save;
         $this->notificationDelegate = $notificationDelegate;
         $this->accountInstance = $accountInstance;
         $this->balanceInstance = $balanceInstance;
         $this->fileInstance = $fileInstance;
+        $this->transactionsManager = $transactionsManager;
     }
 
     public function it_is_initializable()
@@ -168,6 +180,12 @@ class ManagerSpec extends ObjectBehavior
                 ],
             ]);
 
+        $this->transactionsManager->setAccount(Argument::any())
+            ->willReturn($this->transactionsManager);
+
+        $this->transactionsManager->getPayouts()
+            ->willReturn(new Response());
+
         $account = $this->getByAccountId('acc_123');
         $account->getId()
             ->shouldBe('acc_123');
@@ -248,6 +266,12 @@ class ManagerSpec extends ObjectBehavior
                     ],
                 ],
             ]);
+
+        $this->transactionsManager->setAccount(Argument::any())
+            ->willReturn($this->transactionsManager);
+
+        $this->transactionsManager->getPayouts()
+            ->willReturn(new Response());
 
         $user = new User();
         $user->setMerchant([

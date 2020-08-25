@@ -133,8 +133,8 @@ class Manager
                 $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
                 $commentOwner = $this->entitiesBuilder->single($comment->getOwnerGuid());
                 if (!$this->acl->interact($entity, $commentOwner)) {
-                    error_log("{$opts['entity_guid']} found comment that entity owner can not interact with. Deleting");
-                    $this->delete($comment, [ 'force' => true ]);
+                    error_log("{$opts['entity_guid']} found comment that entity owner can not interact with. Consider deleting.");
+                    // $this->delete($comment, [ 'force' => true ]);
                     continue;
                 }
 
@@ -157,6 +157,7 @@ class Manager
      * @throws BlockedUserException
      * @throws \Minds\Exceptions\StopEventException
      * @throws \Minds\Core\Router\Exceptions\UnverifiedEmailException
+     * @throws \Minds\Core\Wire\Paywall\PaywallUserNotPaid
      */
     public function add(Comment $comment)
     {

@@ -26,7 +26,7 @@ class Controllers
         $shuffle = $queryParams['shuffle'] ?? true;
         $plus = filter_var($queryParams['plus'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $tagLimit = 8;
-        $postLimit = 5;
+        $postLimit = 10;
 
         $tagTrends = $this->manager->getTagTrends([
             'limit' => $tagLimit * 2,  //Return more tags than we need for posts to feed from
@@ -41,7 +41,8 @@ class Controllers
 
         $hero = array_shift($postTrends);
 
-        $trends =  array_merge(array_slice($tagTrends, 0, $tagLimit), $postTrends);
+        // $trends =  array_merge(array_slice($tagTrends, 0, $tagLimit), $postTrends);
+        $trends = $postTrends;
         
         if ($shuffle) {
             shuffle($trends);
@@ -82,10 +83,17 @@ class Controllers
     public function getTags(ServerRequest $request): JsonResponse
     {
         $tags = $this->manager->getTags();
+        try {
+            $forYou = $this->manager->getTagTrends([ 'limit' => 12, 'plus' => false, ]);
+        } catch (\Exception $e) {
+            $forYou = null;
+        }
         return new JsonResponse([
             'status' => 'success',
             'tags' => $tags['tags'],
             'trending' => $tags['trending'],
+            'default' => $tags['default'],
+            'for_you' => $forYou ? Exportable::_($forYou) : null,
         ]);
     }
 

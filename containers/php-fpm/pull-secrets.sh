@@ -1,8 +1,10 @@
 #!/bin/sh
 
+set -e
+
 echo "PULLING SECRETS" 
 
-mkdir /var/secure;
+mkdir -p /var/secure;
 
 aws s3 cp $S3_BUCKET/settings.php /var/www/Minds/engine/settings.php
 aws s3 cp $S3_BUCKET/var/secure/email-public.key /var/secure/email-public.key

@@ -217,7 +217,7 @@ canary:fpm:
     name: canary
     url: https://www.minds.com/?canary=1 # requires canary cookie
   when: manual
-  allow_failure: false # prevents auto deploy to full production
+  allow_failure: true
 
 production:fpm:
   <<: *deploy
@@ -233,8 +233,7 @@ production:fpm:
   environment:
     name: production
     url: https://www.minds.com/
-  when: delayed
-  start_in: 12 hours # reduce? can always be deployed manually earlier too
+  when: manual
 
 production:runners:
   stage: deploy:production

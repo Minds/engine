@@ -126,7 +126,11 @@ class ControllersSpec extends ObjectBehavior
                         'type' => "trending"
                     ]
                 ],
+                'default' => [],
             ]);
+
+        $this->manager->getTagTrends(Argument::any())
+            ->willReturn([]);
 
         $response = $this->getTags($request);
         $json = $response->getBody()->getContents();
@@ -153,7 +157,9 @@ class ControllersSpec extends ObjectBehavior
                     'votes_count' => 45,
                     'type' => "trending"
                 ]
-            ]
+            ],
+            'default' => [],
+            'for_you' => null,
         ]));
     }
 }

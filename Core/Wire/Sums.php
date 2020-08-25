@@ -28,6 +28,9 @@ class Sums
     /** @var int $from */
     private $from;
 
+    /** @var int */
+    private $to;
+
     /** @var string $entity_guid **/
     private $entity_guid;
 
@@ -96,6 +99,17 @@ class Sums
     }
 
     /**
+     * Timestamp to search until
+     * @param int $to
+     * @return self
+     */
+    public function setTo($to): self
+    {
+        $this->to = $to;
+        return $this;
+    }
+
+    /**
      * Returns how much money or points a user has sent through wire in a given time
      * @param $sender_guid
      * @param $method
@@ -109,6 +123,10 @@ class Sums
             $this->from = mktime(0, 0, 0, 1, 1, 2000);
         }
 
+        if (!$this->to) {
+            $this->to = time(); // now
+        }
+
         $query = new Core\Data\Cassandra\Prepared\Custom();
 
         if ($this->receiver_guid) {
@@ -116,11 +134,13 @@ class Sums
                 WHERE sender_guid=?
                 AND receiver_guid=?
                 AND method=?
-                AND timestamp >= ?", [
+                AND timestamp >= ?
+                AND timestamp < ?", [
                     new \Cassandra\Varint($this->sender_guid),
                     new \Cassandra\Varint($this->receiver_guid),
                     $this->method,
-                    new \Cassandra\Timestamp($this->from)
+                    new \Cassandra\Timestamp($this->from),
+                    new \Cassandra\Timestamp($this->to)
                 ]);
         } else {
             $query->query("SELECT SUM(amount) as amount_sum FROM wire_by_sender
@@ -162,15 +182,21 @@ class Sums
             $this->from = mktime(0, 0, 0, 1, 1, 2000);
         }
 
+        if (!$this->to) {
+            $this->to = time(); // now
+        }
+
         $query = new Core\Data\Cassandra\Prepared\Custom();
 
         $query->query("SELECT SUM(amount) as amount_sum, SUM(wei) as wei_sum FROM wire
           WHERE receiver_guid=?
           AND method=?
-          AND timestamp >= ?", [
+          AND timestamp >= ?
+          AND timestamp < ?", [
             new \Cassandra\Varint($this->receiver_guid),
             $this->method,
-            new \Cassandra\Timestamp($this->from)
+            new \Cassandra\Timestamp($this->from),
+            new \Cassandra\Timestamp($this->to)
         ]);
 
         try {
@@ -180,6 +206,8 @@ class Sums
             }
             if ($this->method == 'tokens') {
                 return (string) $result[0]['wei_sum'];
+            } elseif ($this->method === 'usd') {
+                return (int) $result[0]['wei_sum'];
             } else {
                 return (string) $result[0]['amount_sum'];
             }
