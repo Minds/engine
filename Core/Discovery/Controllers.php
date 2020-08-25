@@ -83,7 +83,11 @@ class Controllers
     public function getTags(ServerRequest $request): JsonResponse
     {
         $tags = $this->manager->getTags();
-        $forYou = $this->manager->getTagTrends([ 'limit' => 12, 'plus' => false, ]);
+        try {
+            $forYou = $this->manager->getTagTrends([ 'limit' => 12, 'plus' => false, ]);
+        } catch (\Exception $e) {
+            $forYou = null;
+        }
         return new JsonResponse([
             'status' => 'success',
             'tags' => $tags['tags'],
