@@ -92,7 +92,8 @@ class Controllers
             'status' => 'success',
             'tags' => $tags['tags'],
             'trending' => $tags['trending'],
-            'for_you' => Exportable::_($forYou),
+            'default' => $tags['default'],
+            'for_you' => $forYou ? Exportable::_($forYou) : null,
         ]);
     }
 

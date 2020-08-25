@@ -126,6 +126,7 @@ class ControllersSpec extends ObjectBehavior
                         'type' => "trending"
                     ]
                 ],
+                'default' => [],
             ]);
 
         $this->manager->getTagTrends(Argument::any())
@@ -157,7 +158,8 @@ class ControllersSpec extends ObjectBehavior
                     'type' => "trending"
                 ]
             ],
-            'for_you' => []
+            'default' => [],
+            'for_you' => null,
         ]));
     }
 }
