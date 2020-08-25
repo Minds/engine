@@ -60,6 +60,7 @@ class Provider extends DiProvider
                 'suggestions',
                 'paywall-2020',
                 'plus-2020',
+                'nav-plus-2020',
                 'support-tiers',
                 'language-prompts',
                 'discovery-carousel',
