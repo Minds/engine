@@ -57,7 +57,14 @@ class YTSubscription
         $this->ytClient = $ytClient ?? Di::_()->get('Media\YouTubeImporter\YTClient');
         $this->manager = $manager ?? Di::_()->get('Media\YouTubeImporter\Manager');
         $this->repository = $repository ?? Di::_()->get('Media\YouTubeImporter\Repository');
-        $this->subscriber = $subscriber ?: new Subscriber('https://pubsubhubbub.appspot.com/subscribe', $config->get('site_url') . 'api/v3/media/youtube-importer/hook');
+        $this->subscriber = $subscriber ?: new Subscriber(
+            'https://pubsubhubbub.appspot.com/subscribe',
+            $config->get('site_url') . 'api/v3/media/youtube-importer/hook',
+            false,
+            [
+                'lease_seconds' => 315569520, // 10 year lease
+            ]
+        );
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->save = $save ?? new Save();
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Indexes');

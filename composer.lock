@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "01f25809e9c03c3699686da25c1a2999",
+    "content-hash": "d6fef7b54ce6a0aa98a0ad8412577aa0",
     "packages": [
         {
             "name": "Minds/Surge",
@@ -3503,16 +3503,16 @@
         },
         {
             "name": "pubsubhubbub/subscriber",
-            "version": "1.1.0",
+            "version": "dev-feat/add-lease-seconds",
             "source": {
                 "type": "git",
-                "url": "https://github.com/pubsubhubbub/php-subscriber.git",
-                "reference": "a5b623fa322861a08d5e42d73b4332993c294a18"
+                "url": "https://github.com/Minds/pubsubhubbub-php-subscriber.git",
+                "reference": "8b62ad83e4f9deaf6e39db944f5881e2d274253a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pubsubhubbub/php-subscriber/zipball/a5b623fa322861a08d5e42d73b4332993c294a18",
-                "reference": "a5b623fa322861a08d5e42d73b4332993c294a18",
+                "url": "https://api.github.com/repos/Minds/pubsubhubbub-php-subscriber/zipball/8b62ad83e4f9deaf6e39db944f5881e2d274253a",
+                "reference": "8b62ad83e4f9deaf6e39db944f5881e2d274253a",
                 "shasum": ""
             },
             "require": {
@@ -3524,7 +3524,6 @@
                     "Pubsubhubbub\\Subscriber\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "Apache-2.0"
             ],
@@ -3542,7 +3541,10 @@
                 "pubsubhubbub",
                 "subscribers"
             ],
-            "time": "2015-11-04T13:36:53+00:00"
+            "support": {
+                "source": "https://github.com/Minds/pubsubhubbub-php-subscriber/tree/feat/add-lease-seconds"
+            },
+            "time": "2020-08-26T08:40:33+00:00"
         },
         {
             "name": "ralouphie/getallheaders",
@@ -6269,6 +6271,7 @@
             "keywords": [
                 "tokenizer"
             ],
+            "abandoned": true,
             "time": "2019-09-17T06:23:10+00:00"
         },
         {
@@ -7287,7 +7290,8 @@
         "thobbs/phpcassa": 20,
         "tijsverkoyen/twitteroauth": 20,
         "vscn/cruftflake": 20,
-        "zircote/swagger-php": 20
+        "zircote/swagger-php": 20,
+        "pubsubhubbub/subscriber": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

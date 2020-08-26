@@ -1,90 +1,94 @@
 {
-    "name": "minds/minds",
-    "description": "The core minds social engine",
-    "require": {
-        "php": "~7.1",
-        "ext-redis": "~5.1.1",
-        "aws/aws-sdk-php": "^3.38",
-        "datastax/php-driver": "^1.2.2",
-        "elasticsearch/elasticsearch": "^6.1",
-        "firebase/php-jwt": "^3.0",
-        "kramnorth/cinemr-php-sdk": "dev-master@dev",
-        "kickbox/kickbox": "*",
-        "minds/surge": "dev-master@dev",
-        "minds/mw3": "dev-master@dev",
-        "phpmailer/phpmailer": "~5.2",
-        "stripe/stripe-php": "^7.27",
-        "thobbs/phpcassa": "dev-minds-legacy",
-        "tijsverkoyen/twitteroauth": "dev-master@dev",
-        "twilio/sdk": "^5.26",
-        "vscn/cruftflake": "dev-master#cab1b9ee9869072e7a58a1eb593b602ec5bedcd3",
-        "zircote/swagger-php": "2.*@dev",
-        "abraham/twitteroauth": "^0.6.4",
-        "google/apiclient": "^2.0",
-        "aws/aws-php-sns-message-validator": "^1.4",
-        "giggsey/libphonenumber-for-php": "^8.8",
-        "php-ffmpeg/php-ffmpeg": "^0.11.1",
-        "erusev/parsedown": "^1.7",
-        "zendframework/zend-diactoros": "^1.8.6",
-        "league/oauth2-server": "7.2.0",
-        "lcobucci/jwt": "^3.2.4",
-        "zendframework/zend-permissions-rbac": "^3.0",
-        "php-amqplib/php-amqplib": "^2.10",
-        "facebook/graph-sdk": "^5.7",
-        "psr/http-message": "1.0.1",
-        "psr/http-server-handler": "1.0.1",
-        "psr/http-server-middleware": "1.0.1",
-        "monolog/monolog": "1.25.2",
-        "psr/simple-cache": "1.0.1",
-        "minds/unleash-client-php": "0.1.2",
-        "icamys/php-sitemap-generator": "^2.0",
-        "sentry/sdk": "^2.1",
-        "vlucas/phpdotenv": "^4.1",
-        "sendgrid/sendgrid": "^7.4",
-        "ocramius/package-versions": "1.5",
-        "pubsubhubbub/subscriber": "^1.1",
-        "symfony/translation": "^5.0",
-        "snowplow/snowplow-tracker": "^0.3.0"
+  "name": "minds/minds",
+  "description": "The core minds social engine",
+  "require": {
+    "php": "~7.1",
+    "ext-redis": "~5.1.1",
+    "aws/aws-sdk-php": "^3.38",
+    "datastax/php-driver": "^1.2.2",
+    "elasticsearch/elasticsearch": "^6.1",
+    "firebase/php-jwt": "^3.0",
+    "kramnorth/cinemr-php-sdk": "dev-master@dev",
+    "kickbox/kickbox": "*",
+    "minds/surge": "dev-master@dev",
+    "minds/mw3": "dev-master@dev",
+    "phpmailer/phpmailer": "~5.2",
+    "stripe/stripe-php": "^7.27",
+    "thobbs/phpcassa": "dev-minds-legacy",
+    "tijsverkoyen/twitteroauth": "dev-master@dev",
+    "twilio/sdk": "^5.26",
+    "vscn/cruftflake": "dev-master#cab1b9ee9869072e7a58a1eb593b602ec5bedcd3",
+    "zircote/swagger-php": "2.*@dev",
+    "abraham/twitteroauth": "^0.6.4",
+    "google/apiclient": "^2.0",
+    "aws/aws-php-sns-message-validator": "^1.4",
+    "giggsey/libphonenumber-for-php": "^8.8",
+    "php-ffmpeg/php-ffmpeg": "^0.11.1",
+    "erusev/parsedown": "^1.7",
+    "zendframework/zend-diactoros": "^1.8.6",
+    "league/oauth2-server": "7.2.0",
+    "lcobucci/jwt": "^3.2.4",
+    "zendframework/zend-permissions-rbac": "^3.0",
+    "php-amqplib/php-amqplib": "^2.10",
+    "facebook/graph-sdk": "^5.7",
+    "psr/http-message": "1.0.1",
+    "psr/http-server-handler": "1.0.1",
+    "psr/http-server-middleware": "1.0.1",
+    "monolog/monolog": "1.25.2",
+    "psr/simple-cache": "1.0.1",
+    "minds/unleash-client-php": "0.1.2",
+    "icamys/php-sitemap-generator": "^2.0",
+    "sentry/sdk": "^2.1",
+    "vlucas/phpdotenv": "^4.1",
+    "sendgrid/sendgrid": "^7.4",
+    "ocramius/package-versions": "1.5",
+    "pubsubhubbub/subscriber": "dev-feat/add-lease-seconds",
+    "symfony/translation": "^5.0",
+    "snowplow/snowplow-tracker": "^0.3.0"
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://bc220f12a84437201d2bc003c3afe0b543040b36@github.com/minds/surge.git"
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://bc220f12a84437201d2bc003c3afe0b543040b36@github.com/minds/surge.git"
-        },
-        {
-            "type": "vcs",
-            "url": "https://0544aedfc74db62dcd39301588cd672b2b91e060@github.com/minds/mw3.git"
-        },
-	    {
-            "type": "vcs",
-            "url": "https://github.com/minds/phpcassa"
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/davegardnerisme/cruftflake.git"
-        },
-        {
-            "type": "vcs",
-            "url": "https://gitlab.com/minds/unleash-client-php.git"
-        }
-    ],
-    "autoload": {
-        "psr-4": {
-            "Minds\\": ".",
-            "": "classes/",
-            "Spec\\Minds\\": "Spec/"
-        }
+    {
+      "type": "vcs",
+      "url": "https://0544aedfc74db62dcd39301588cd672b2b91e060@github.com/minds/mw3.git"
     },
-    "config": {
-        "bin-dir": "bin"
+    {
+      "type": "vcs",
+      "url": "https://github.com/minds/phpcassa"
     },
-    "require-dev": {
-        "friendsofphp/php-cs-fixer": "^2.15",
-        "friends-of-phpspec/phpspec-code-coverage": "^4.3",
-        "phpspec/phpspec": "^5.0",
-        "bossa/phpspec2-expect": "^3.1"
+    {
+      "type": "vcs",
+      "url": "https://github.com/davegardnerisme/cruftflake.git"
     },
-    "provide": {
-        "symfony/translation-contracts": "2.0.1"
+    {
+      "type": "vcs",
+      "url": "https://gitlab.com/minds/unleash-client-php.git"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/Minds/pubsubhubbub-php-subscriber.git"
     }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Minds\\": ".",
+      "": "classes/",
+      "Spec\\Minds\\": "Spec/"
+    }
+  },
+  "config": {
+    "bin-dir": "bin"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^2.15",
+    "friends-of-phpspec/phpspec-code-coverage": "^4.3",
+    "phpspec/phpspec": "^5.0",
+    "bossa/phpspec2-expect": "^3.1"
+  },
+  "provide": {
+    "symfony/translation-contracts": "2.0.1"
+  }
 }
