@@ -80,7 +80,7 @@ class YTSubscription
             throw new UnregisteredChannelException();
         }
 
-        $topicUrl = "https://www.youtube.com/xml/feeds/videos.xml?channel_id={$channelId}";
+        $topicUrl = $this->getTopicUrl($channelId);
 
         // update the channel if the value changed
         $channels = $user->getYouTubeChannels();
@@ -89,10 +89,6 @@ class YTSubscription
         foreach ($channels as $channel) {
             if ($channel['id'] !== $channelId) {
                 continue;
-            }
-
-            if ($channel['auto_import'] === $subscribe) {
-                return true;
             }
 
             $updated = $subscribe ? $this->subscriber->subscribe($topicUrl) !== false : $this->subscriber->unsubscribe($topicUrl) !== false;
@@ -112,6 +108,17 @@ class YTSubscription
         }
 
         return $updated;
+    }
+
+    /**
+     * Renew the lease for the subscription
+     * @param string $channelId
+     * @return bool
+     */
+    public function renewLease(string $channelId): bool
+    {
+        $topicUrl = $this->getTopicUrl($channelId);
+        return $this->subscriber->subscribe($topicUrl) !== false;
     }
 
     /**
@@ -164,5 +171,15 @@ class YTSubscription
             // Re-impose previous ignore access setting
             $this->acl->setIgnore($ia);
         }
+    }
+
+    /**
+     * Builds topic url from channel id
+     * @param string $channelId
+     * @return string
+     */
+    private function getTopicUrl(string $channelId): string
+    {
+        return "https://www.youtube.com/xml/feeds/videos.xml?channel_id={$channelId}";
     }
 }
