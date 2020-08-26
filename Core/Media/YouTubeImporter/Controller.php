@@ -9,6 +9,7 @@ use Minds\Api\Exportable;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
+use Minds\Core\Log\Logger;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 
@@ -26,16 +27,21 @@ class Controller
     /** @var Config */
     protected $config;
 
+    /** @var Logger */
+    protected $logger;
+
     public function __construct(
         $manager = null,
         $ytAuth = null,
         $ytSubscription = null,
-        $config = null
+        $config = null,
+        $logger = null
     ) {
         $this->manager = $manager ?: Di::_()->get('Media\YouTubeImporter\Manager');
         $this->ytAuth = $ytAuth ?? new YTAuth();
         $this->ytSubscription = $ytSubscription ?? new YTSubscription();
         $this->config = $config ?: Di::_()->get('Config');
+        $this->logger = $logger ?? Di::_()->get('Logger');
     }
 
     /**
@@ -361,8 +367,11 @@ class Controller
      */
     public function callback(ServerRequest $request): JsonResponse
     {
+        $this->logger->info('[YouTubeImporter][PubSub]: Callback endpoint hit');
+
         $params = $request->getQueryParams();
         if (isset($params['hub_challenge'])) {
+            $this->logger->info('[YouTubeImporter][PubSub]: Hub channel responded to');
             echo $params['hub_challenge'];
             exit;
         }
@@ -376,6 +385,9 @@ class Controller
             ->setChannelId($channelId);
 
         $this->ytSubscription->onNewVideo($video);
+
+        // Renew lease
+        $this->ytSubscription->renewLease($channelId);
 
         return new JsonResponse([
             'status' => 'success',

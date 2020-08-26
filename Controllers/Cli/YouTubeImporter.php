@@ -5,6 +5,8 @@ namespace Minds\Controllers\Cli;
 use Minds\Core;
 use Minds\Cli;
 use Minds\Core\Di\Di;
+use Minds\Core\Media\YouTubeImporter\YTSubscription;
+use Minds\Core\Media\YouTubeImporter\YTVideo;
 use Minds\Entities\Video;
 use Minds\Interfaces;
 use Minds\Exceptions;
@@ -22,49 +24,72 @@ class YouTubeImporter extends Cli\Controller implements Interfaces\CliController
         $this->out('TBD');
     }
 
+    public function import()
+    {
+        $channelId = $this->getOpt('channel_id');
+        $videoId = $this->getOpt('video_id');
+
+        $ytSubscription = new YTSubscription();
+
+        $video = (new YTVideo())
+            ->setVideoId($videoId)
+            ->setChannelId($channelId);
+
+        $ytSubscription->onNewVideo($video);
+    }
+
+    public function renewSubscription()
+    {
+        $channelId = $this->getOpt('channel_id');
+        
+        $ytSubscription = new YTSubscription();
+        $success = $ytSubscription->renewLease($channelId);
+
+        if ($success) {
+            $this->out('Renewed');
+        } else {
+            $this->out('There was an error');
+        }
+    }
+
+    public function renewSubscriptions()
+    {
+        $ytSubscription = new YTSubscription();
+        $entitiesBuilder = Di::_()->get('EntitiesBuilder');
+        $db = Di::_()->get('Database\Cassandra\Indexes');
+        $rows = $db->getRow("yt_channel:connected-users");
+
+        foreach ($rows as $userGuid => $channelId) {
+            $user = $entitiesBuilder->single($userGuid);
+
+            $ytChannel = $user->getYouTubeChannels()[0];
+
+            if ($ytChannel['auto_import']) {
+                $ytSubscription->renewLease($channelId);
+                $this->out("$user->guid renewed lease");
+            } else {
+                $this->out("$user->guid has disable auto import");
+            }
+        }
+    }
+
+    public function patchIndex()
+    {
+        $file = fopen("ids.csv", "r");
+
+        while (($data = fgetcsv($file)) !== false) {
+            if ($data[0]) {
+                $db = Di::_()->get('Database\Cassandra\Indexes');
+                $row = $db->getRow("yt_channel:user:{$data[0]}");
+                $userGuid = $row[0];
+                $db->insert("yt_channel:connected-users", [ $userGuid => $data[0] ]);
+
+                $this->out("$userGuid: {$data[0]}");
+            }
+        }
+    }
+
     public function exec()
     {
-        $this->out("[Cli/YouTubeImporter] Checking for videos to download");
-
-        /** @var Core\Media\YouTubeImporter\Manager $manager */
-        $manager = Di::_()->get('Media\YouTubeImporter\Manager');
-
-        // get videos
-
-        $videos = $manager->getVideos([
-            'cli' => true,
-            'status' => 'queued',
-            'limit' => 1000,
-        ]);
-
-        $this->out("[Cli/YouTubeImporter] Found {$videos->count()} videos");
-
-        // gather their owner guids
-
-        $ownerGuids = [];
-
-        foreach ($videos as $video) {
-            if (!in_array($video->getOwnerGUID(), $ownerGuids, true)) {
-                $ownerGuids[] = $video->getOwnerGUID();
-            }
-        }
-
-        // check which owners are eligible for importing a YouTube a video today
-        $ownerGuids = $manager->getOwnersEligibility($ownerGuids);
-
-        // for all eligible owners, transcode their videos, keeping count so we don't surpass the threshold
-        /** @var Video $video */
-        foreach ($videos as $video) {
-            if (array_key_exists($video->getOwnerGUID(), $ownerGuids)
-                && $ownerGuids[$video->getOwnerGUID()] < $manager->getThreshold()) {
-                $this->out("[Cli/Importer] Sending video to transcode (guid: {$video->guid} / owner: {$video->getOwnerGUID()})");
-
-                // transcode
-                $manager->queue($video);
-
-                // add 1 to the count of imported videos so we don't surpass the daily threshold
-                $ownerGuids[$video->getOwnerGUID()] += 1;
-            }
-        }
     }
 }
