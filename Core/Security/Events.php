@@ -63,7 +63,8 @@ class Events
 
             error_log('2fa - sending SMS to ' . $user->guid);
 
-            $this->sms->send($user->telno, $twofactor->getCode($secret));
+            $message = 'Minds verification code: '.$twofactor->getCode($secret);
+            $this->sms->send($user->telno, $message);
 
             // create a lookup of a random key. The user can then use this key along side their twofactor code
             // to login. This temporary code should be removed within 2 minutes.

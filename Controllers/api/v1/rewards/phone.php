@@ -85,7 +85,7 @@ class phone implements Interfaces\Api
             ]);
         }
 
-        $message = 'From Minds.com: Your code is ' . $code;
+        $message = 'Minds verification code: ' . $code;
         $sms->send($phone, $message);
 
         return Factory::response(['status' => 'success', 'secret' => $secret]);
