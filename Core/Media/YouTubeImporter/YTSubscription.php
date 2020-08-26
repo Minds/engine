@@ -80,7 +80,7 @@ class YTSubscription
             throw new UnregisteredChannelException();
         }
 
-        $topicUrl =$this->buildTopicUlr($channelId);
+        $topicUrl = $this->getTopicUrl($channelId);
 
         // update the channel if the value changed
         $channels = $user->getYouTubeChannels();
@@ -117,8 +117,8 @@ class YTSubscription
      */
     public function renewLease(string $channelId): bool
     {
-        $topicUrl = $this->buildTopicUlr($channelId);
-        return $this->subscriber->subscribe($topicUrl);
+        $topicUrl = $this->getTopicUrl($channelId);
+        return $this->subscriber->subscribe($topicUrl) !== false;
     }
 
     /**
