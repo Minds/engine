@@ -75,7 +75,7 @@ class EmailRewards
               $validator = $_GET['validator'];
               //$key = '.md';
               //return;
-              $className = "Minds\Core\Email\V2\Campaigns\Marketing\Gift2020_07_30\Gift2020_07_30";
+              $className = "Minds\Core\Email\V2\Campaigns\Marketing\Gift2020_08_27\Gift2020_08_27";
               if ($validator == sha1($className . $user->guid . Config::_()->get('emails_secret'))) {
                   $tokens = 1 * (10 ** 18);
                   $campaign = $validator; //hack
