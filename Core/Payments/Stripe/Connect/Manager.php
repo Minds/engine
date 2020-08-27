@@ -8,6 +8,7 @@ use Minds\Core\Payments\Stripe\Currencies;
 use Minds\Core\Payments\Stripe\Instances\AccountInstance;
 use Minds\Core\Payments\Stripe\Instances\BalanceInstance;
 use Minds\Core\Payments\Stripe\Instances\FileInstance;
+use Minds\Core\Payments\Stripe\Transactions;
 use Stripe;
 use Minds\Entities\User;
 
@@ -27,19 +28,24 @@ class Manager
 
     /** @var FileInstance $fileInstance */
     private $fileInstance;
+    
+    /** @var Transactions\Manager */
+    private $transactionsManager;
 
     public function __construct(
         Save $save = null,
         NotificationDelegate $notificationDelegate = null,
         AccountInstance $accountInstance = null,
         BalanceInstance $balanceInstance = null,
-        FileInstance $fileInstance = null
+        FileInstance $fileInstance = null,
+        Transactions\Manager $transactionsManager = null
     ) {
         $this->save = $save ?: new Save();
         $this->notificationDelegate = $notificationDelegate ?: new NotificationDelegate();
         $this->accountInstance = $accountInstance ?: new AccountInstance();
         $this->balanceInstance = $balanceInstance ?: new BalanceInstance();
         $this->fileInstance = $fileInstance ?: new FileInstance();
+        $this->transactionsManager = $transactionsManager ?? new Transactions\Manager();
     }
 
     /**
@@ -74,6 +80,14 @@ class Manager
           'tos_acceptance' => [
             'date' => time(),
             'ip' => $account->getIp(),
+          ],
+          'settings' => [
+            'payouts' => [
+              'schedule' => [
+                'interval' => 'monthly',
+                'monthly_anchor' => 28,
+              ],
+            ]
           ]
         ];
 
@@ -332,6 +346,7 @@ class Manager
 
             $account->setTotalBalance($this->getBalanceById($result->id, 'available'));
             $account->setPendingBalance($this->getBalanceById($result->id, 'pending'));
+            $account->setTotalPaidOut($this->getTotalPaidOut($account));
 
             return $account;
         } catch (Stripe\Error\Permission $e) {
@@ -369,6 +384,16 @@ class Manager
         return $balance;
     }
 
+    protected function getTotalPaidOut(Account $account): Balance
+    {
+        $total = new Balance();
+        foreach ($this->transactionsManager->setAccount($account)->getPayouts() as $payout) {
+            $total->setCurrency($payout->getCurrency());
+            $total->setAmount($total->getAmount() + ($payout->getGross() * -1));
+        }
+        return $total;
+    }
+
     /**
      * Delete a merchant accont
      * @param Account $account
@@ -402,19 +427,15 @@ class Manager
         $startingAfter = null;
         while (true) {
             $opts = [
-                'limit' => 10,
+                'limit' => 20,
             ];
-
-            if ($startingAfter) {
-                $opts['starting_after'] = $startingAfter;
-            }
+    
             $accounts = $this->accountInstance->all($opts);
             if (!$accounts) {
                 return null;
             }
-            foreach ($accounts as $account) {
+            foreach ($accounts->autoPagingIterator() as $account) {
                 yield $account;
-                $startingAfter = $account->id;
             }
         }
     }

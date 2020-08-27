@@ -51,6 +51,17 @@ class Token
     }
 
     /**
+     * Gets an account's Ether balance
+     * @param $account - address
+     * @return string - balance cast as string.
+     */
+    public function etherBalanceOf(string $account): string
+    {
+        $result = $this->client->request('eth_getBalance', [$account, "latest"]);
+        return (string) BigNumber::fromHex($result);
+    }
+
+    /**
      * Gets the total supply of token
      * @return double
      */

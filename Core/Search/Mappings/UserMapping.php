@@ -9,6 +9,7 @@
 namespace Minds\Core\Search\Mappings;
 
 use Minds\Exceptions\BannedException;
+use Minds\Helpers\Flags;
 
 class UserMapping extends EntityMapping implements MappingInterface
 {
@@ -38,7 +39,7 @@ class UserMapping extends EntityMapping implements MappingInterface
         //    unset($map['tags']);
         //}
 
-        if ($this->entity->isBanned() == 'yes') {
+        if (Flags::shouldFail($this->entity)) {
             throw new BannedException('User is banned');
         }
 
@@ -89,6 +90,12 @@ class UserMapping extends EntityMapping implements MappingInterface
             'weight' => count(array_values($inputs)) == 1 ? 4 : 2
         ]);
 
+        $map['weight'] += $this->entity->getSubscribersCount();
+
+        if ($this->entity->isPro()) {
+            $map['weight'] += 50;
+        }
+
         if ($this->entity->featured_id) {
             $map['weight'] += 50;
         }
@@ -99,6 +106,10 @@ class UserMapping extends EntityMapping implements MappingInterface
 
         if (strlen($username) > 30) {
             $map['weight'] = 1; //spammy username
+        }
+
+        if ($this->entity->icontime == $this->entity->time_created) {
+            $map['weight'] = 0; //no avatar
         }
 
         return $map;

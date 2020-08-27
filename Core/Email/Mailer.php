@@ -96,8 +96,7 @@ class Mailer
                     "message" => serialize($message)
                 ]);
         } catch (\Exception $e) {
-            var_dump($e);
-            exit;
+            error_log(print_r($e, true));
         }
     }
 

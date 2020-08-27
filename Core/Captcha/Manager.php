@@ -4,6 +4,9 @@ namespace Minds\Core\Captcha;
 use Minds\Common\Jwt;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Log;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
+use Minds\Core\Security\RateLimits\RateLimitExceededException;
 
 class Manager
 {
@@ -19,13 +22,26 @@ class Manager
     /** @var Config */
     private $config;
 
-    public function __construct($imageGenerator = null, $jwt = null, $config = null)
-    {
+    /** @var Log\Logger */
+    private $logger;
+
+    /** @var KeyValueLimiter */
+    private $keyValueLimiter;
+
+    public function __construct(
+        $imageGenerator = null,
+        $jwt = null,
+        $config = null,
+        $logger = null,
+        $keyValueLimiter = null
+    ) {
         $this->imageGenerator = $imageGenerator ?? new ImageGenerator;
         $this->jwt = $jwt ?? new Jwt();
         $this->config = $config ?? Di::_()->get('Config');
         $this->secret = $this->config->get('captcha') ? $this->config->get('captcha')['jwt_secret'] : 'todo';
         $this->jwt->setKey($this->secret);
+        $this->logger = $logger ?? Di::_()->get('Logger');
+        $this->keyValueLimiter = $keyValueLimiter ?? Di::_()->get('Security\RateLimits\KeyValueLimiter');
     }
 
     /**
@@ -54,6 +70,18 @@ class Manager
         }
 
         $jwtToken = $captcha->getJwtToken();
+
+        try {
+            $this->keyValueLimiter
+                ->setKey('captcha-jwt')
+                ->setValue($jwtToken)
+                ->setMax(1)
+                ->setSeconds(300) // 5 minutes
+                ->checkAndIncrement();
+        } catch (RateLimitExceededException $e) {
+            return false;
+        }
+
         $decodedJwtToken = $this->jwt->decode($jwtToken);
         $salt = $decodedJwtToken['salt'];
         $hash = $decodedJwtToken['public_hash'] ;
@@ -86,6 +114,8 @@ class Manager
             ->decode($_COOKIE['captcha_bypass']);
 
         $inputted = (int) $decoded['data'];
+
+        $this->logger->warn('[Captcha]: Bypass cookie was used');
 
         return $inputted == $captcha->getClientText();
     }
@@ -129,12 +159,12 @@ class Manager
     protected function getRandomText(int $length): string
     {
         $chars = array_merge(
-            range(1, 9),
-            range('A', 'N'),
-            range('P', 'Z'), // We don't want O's or 0s
-            range('a', 'n'),
-            range('p', 'z')
+            range(1, 9), // We don't want 0's
+            range('A', 'Z'),
+            range('a', 'z')
         );
+        // We don't want O's, o's, I's or l's
+        $chars = array_diff($chars, ["O", "o", "I", "l"]);
         shuffle($chars);
 
         $text="";

@@ -22,6 +22,13 @@ class rewards implements Interfaces\Api
      */
     public function get($pages)
     {
+        if (!Core\Session::getLoggedinUser()) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'You must be logged in to access this endpoint',
+            ]);
+        }
+
         if ($pages[1] === 'entity') {
             $entity = Entities\Factory::build($pages[0]);
 
@@ -98,12 +105,6 @@ class rewards implements Interfaces\Api
 
         $owner->setWireRewards($rewards ?: []);
         $update['wire_rewards'] = json_encode($rewards);
-
-        /** @var Core\Wire\SupportTiers\Manager $supportTiersManager */
-        $supportTiersManager = Core\Di\Di::_()->get('Wire\SupportTiers\Manager');
-        $supportTiersManager
-            ->setEntity($owner)
-            ->migrate();
 
         $db = new Core\Data\Call('entities');
         $db->insert($owner->guid, $update);

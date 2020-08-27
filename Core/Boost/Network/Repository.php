@@ -38,7 +38,10 @@ class Repository
 
         $template = "SELECT * FROM boosts WHERE type = ?";
         $values = [ (string) $opts['type'] ];
-
+        
+        // ensure we don't have null guids.
+        $opts['guids'] = array_filter($opts['guids']);
+    
         if ($opts['guids']) {
             $collection = Cassandra\Type::collection(Cassandra\Type::varint())->create(...array_values(array_map(function ($guid) {
                 return new Cassandra\Varint($guid);

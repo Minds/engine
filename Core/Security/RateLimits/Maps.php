@@ -57,7 +57,7 @@ class Maps
         'interaction:votedown' => [
             'interaction' => 'votedown',
             'period' => 300, //5 minutes
-            'threshold' => 10, //150 per 5 minutes, 10 per minute
+            'threshold' => 1, //150 per 5 minutes, 10 per minute
             'aggregates' => [
                 VotesDown::class,
             ],
@@ -65,7 +65,7 @@ class Maps
         'interactions:votedownday' => [
             'interaction' => 'votedown',
             'period' => 86400, //1 day
-            'threshold' => 100,
+            'threshold' => 5,
             'aggregates' => [
                 VotesDown::class,
             ],

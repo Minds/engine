@@ -39,7 +39,10 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('rating')->willReturn(1);
         $user->get('moderator_guid')->willReturn('123');
         $user->get('time_moderated')->willReturn($now);
+        $user->get('language')->willReturn('en');
         $user->isBanned()->willReturn(false);
+        $user->getSpam()->willReturn(false);
+        $user->getDeleted()->willReturn(false);
         $user->getEmailConfirmedAt()
             ->shouldBeCalled()
             ->willReturn($now);
@@ -48,7 +51,6 @@ class UserMappingSpec extends ObjectBehavior
         $user->getGroupMembership()->willReturn([ 2000 ]);
         $user->getNsfw()->willReturn([ 1 ]);
         $user->getTags()->willReturn([ 'spaceiscool' ]);
-        $user->get('wire_threshold')->willReturn(null);
 
         $this
             ->setEntity($user)
@@ -72,6 +74,7 @@ class UserMappingSpec extends ObjectBehavior
                 'title' => 'PHPSpec Title',
                 'blurb' => 'PHPSpec Blurb',
                 'description' => 'PHPSpec Description',
+                'language' => 'en',
                 'paywall' => false,
                 'rating' => 1,
                 'username' => 'phpspec',
@@ -80,7 +83,6 @@ class UserMappingSpec extends ObjectBehavior
                 '@timestamp' => $now * 1000,
                 'taxonomy' => 'user',
                 'public' => true,
-                'wire_support_tier' => null,
                 'tags' => [ 'spaceiscool' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',
@@ -115,6 +117,8 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('rating')->willReturn(1);
         $user->getTags()->willReturn([ 'spaceiscool' ]);
         $user->isBanned()->willReturn(true);
+        $user->getSpam()->willReturn(false);
+        $user->getDeleted()->willReturn(false);
         $user->getNsfw()->willReturn([ 1 ]);
         $user->isMature()->willReturn(true);
         $user->getMatureContent()->willReturn(false);
@@ -122,6 +126,7 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('moderator_guid')->willReturn(null);
         $user->get('time_moderated')->willReturn(null);
         $user->get('wire_threshold')->willReturn(null);
+        $user->get('language')->willReturn('en');
 
         $this
             ->setEntity($user)
@@ -138,6 +143,10 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('username')->willReturn('phpspec');
         $user->get('name')->willReturn('testing framework');
         $user->get('featured_id')->willReturn(12000);
+        $user->get('icontime')->willReturn(5000);
+        $user->get('time_created')->willReturn(4000);
+        $user->getSubscribersCount()->willReturn(10);
+        $user->isPro()->willReturn(false);
         $user->isAdmin()->willReturn(true);
 
         $this
@@ -152,7 +161,7 @@ class UserMappingSpec extends ObjectBehavior
                     'phpspec',
                     'testing framework'
                 ],
-                'weight' => 152
+                'weight' => 162
             ]);
     }
     public function it_should_suggest_map_permutating_camelcase_name(
@@ -161,6 +170,10 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('username')->willReturn('phpspec');
         $user->get('name')->willReturn('TestingFramework');
         $user->get('featured_id')->willReturn(12000);
+        $user->get('icontime')->willReturn(5000);
+        $user->get('time_created')->willReturn(4000);
+        $user->getSubscribersCount()->willReturn(10);
+        $user->isPro()->willReturn(false);
         $user->isAdmin()->willReturn(true);
 
         $this
@@ -177,7 +190,7 @@ class UserMappingSpec extends ObjectBehavior
                     'Testing Framework',
                     'Framework Testing',
                 ],
-                'weight' => 152
+                'weight' => 162
             ]);
     }
 }

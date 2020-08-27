@@ -12,6 +12,7 @@ use Minds\Core\Log\Logger;
 use Minds\Core\Notification\PostSubscriptions\Manager as PostSubscriptionsManager;
 use Minds\Entities\Activity;
 use Minds\Entities\Video;
+use Minds\Core\Data\Call;
 
 class EntityCreatorDelegate
 {
@@ -27,12 +28,21 @@ class EntityCreatorDelegate
     /** @var Logger */
     protected $logger;
 
-    public function __construct($save = null, $activityManager = null, $postsSubscriptionManager = null, $logger = null)
-    {
+    /** @var Call */
+    protected $db;
+
+    public function __construct(
+        $save = null,
+        $activityManager = null,
+        $postsSubscriptionManager = null,
+        $logger = null,
+        $db = null
+    ) {
         $this->save = $save ?: new Save();
         $this->activityManager = $activityManager ?: new Manager();
         $this->postsSubscriptionsManager = $postsSubscriptionManager ?: new PostSubscriptionsManager();
         $this->logger = $logger ?: Di::_()->get('Logger');
+        $this->db = $db ?? new Call('entities_by_time');
     }
 
     /**
@@ -42,6 +52,11 @@ class EntityCreatorDelegate
      */
     public function createActivity(Video $video): void
     {
+        // Check if activity exists first
+        if (!empty($this->db->getRow("activity:entitylink:{$video->getGuid()}"))) {
+            return;
+        }
+
         $activity = $this->activityManager->createFromEntity($video);
         $guid = $this->save->setEntity($activity)->save();
 

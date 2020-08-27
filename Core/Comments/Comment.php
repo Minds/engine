@@ -317,6 +317,24 @@ class Comment extends RepositoryEntity
     }
 
     /**
+     * Return the entity guid
+     * @return string
+     */
+    public function getAccessId(): string
+    {
+        return $this->getEntityGuid();
+    }
+
+    /**
+     * Comments don't have containers
+     * @return null
+     */
+    public function getContainerEntity()
+    {
+        return null;
+    }
+
+    /**
      * Defines the exportable members
      * @return array
      */

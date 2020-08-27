@@ -20,5 +20,9 @@ class AnalyticsProvider extends Provider
         $this->di->bind('Analytics\Dashboards\Manager', function ($di) {
             return new Dashboards\Manager();
         }, ['useFactory' => true]);
+
+        $this->di->bind('Analytics\Snowplow\Manager', function ($di) {
+            return new Snowplow\Manager();
+        }, ['useFactory' => true]);
     }
 }

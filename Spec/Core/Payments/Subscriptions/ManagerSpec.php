@@ -122,7 +122,7 @@ class ManagerSpec extends ObjectBehavior
             ->setPaymentMethod('spec')
             ->setUser($user);
 
-        $this->repository->update($subscription)
+        $this->repository->add($subscription)
             ->shouldBeCalled()
             ->willReturn(true);
 

@@ -21,9 +21,5 @@ class Provider extends DiProvider
         $this->di->bind('Wire\SupportTiers\Manager', function ($di) {
             return new Manager();
         });
-
-        $this->di->bind('Wire\SupportTiers\Polyfill', function ($di) {
-            return new Polyfill();
-        });
     }
 }

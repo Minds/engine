@@ -71,7 +71,7 @@ class twofactor implements Interfaces\Api
                     ]);
                 }
 
-                $message = 'From Minds.com: Your code is '. $twofactor->getCode($secret);
+                $message = 'Minds verification code: '. $twofactor->getCode($secret);
                 if ($sms->send($_POST['tel'], $message)) {
                     $response['secret'] = $secret;
                 } else {

@@ -12,6 +12,7 @@ use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Exceptions\UserErrorException;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -48,10 +49,15 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
     {
         $message = 'Internal Server Error';
         $status = 500;
+        $data = [];
 
         try {
             return $handler
                 ->handle($request);
+        } catch (UnverifiedEmailException $e) {
+            $message = $e->getMessage();
+            $status = 403;
+            $data = [ 'must_verify' => true ];
         } catch (UnauthorizedException $e) {
             $message = 'Unauthorized';
             $status = 401;
@@ -72,11 +78,11 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
 
             case 'json':
             default:
-                return new JsonResponse([
+                return new JsonResponse(array_merge($data, [
                     'status' => 'error',
                     'message' => $message,
                     'errorId' => str_replace('\\', '::', get_class($e)),
-                ], $status);
+                ]), $status);
         }
     }
 }
