@@ -553,9 +553,17 @@ class Manager
             return $tag['type'] === 'trending' || $tag['type'] === 'default';
         });
 
+        $default = $this->hashtagManager
+            ->setUser($this->user)
+            ->get([
+                'defaults' => true,
+                'limit' => 20,
+            ]);
+
         return [
             'tags' => array_values($tags),
             'trending' => array_values($trending),
+            'default' => array_values($default),
         ];
     }
 

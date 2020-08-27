@@ -19,6 +19,8 @@ use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Entities\EntitiesFactory;
 use Minds\Entities\User;
 use Minds\Entities\Video;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
+use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Minds\Core\Data\Cache\PsrWrapper;
 use Zend\Diactoros\Response\JsonResponse;
 
@@ -69,6 +71,9 @@ class Manager
     /** @var PsrWrapper */
     protected $cache;
 
+    /** @var KeyValueLimiter */
+    protected $kvLimiter;
+
     public function __construct(
         $repository = null,
         $mediaRepository = null,
@@ -82,7 +87,8 @@ class Manager
         $entitiesBuilder = null,
         $logger = null,
         $transcoderBridge = null,
-        $cache = null
+        $cache = null,
+        $kvLimiter = null
     ) {
         $this->repository = $repository ?: Di::_()->get('Media\YouTubeImporter\Repository');
         $this->mediaRepository = $mediaRepository ?: Di::_()->get('Media\Repository');
@@ -97,6 +103,7 @@ class Manager
         $this->logger = $logger ?: Di::_()->get('Logger');
         $this->transcoderBridge = $transcoderBridge ?? new TranscoderBridge();
         $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
+        $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
     }
 
     /**
@@ -194,12 +201,26 @@ class Manager
      * Initiates video import (uses Repository - queues for transcoding)
      * @param YTVideo $ytVideo
      * @throws UnregisteredChannelException
+     * @throws ImportsExceededException
      * @throws \Exception
      */
-    public function import(YTVideo $ytVideo): void
+    public function import(YTVideo $ytVideo, bool $rateLimit = true): void
     {
         if (!$this->validateChannel($ytVideo->getOwner(), $ytVideo->getChannelId())) {
             throw new UnregisteredChannelException();
+        }
+
+        if ($rateLimit) {
+            try {
+                $this->kvLimiter
+                  ->setKey('yt-importer')
+                  ->setValue($ytVideo->getChannelId())
+                  ->setSeconds(86400) // Day
+                  ->setMax(1) // 1 per day
+                  ->checkAndIncrement(); // Will throw exception
+            } catch (RateLimitExceededException $e) {
+                throw new ImportsExceededException();
+            }
         }
 
         $ytVideos = [$ytVideo];

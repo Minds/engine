@@ -9,6 +9,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Media\YouTubeImporter\Exceptions\UnregisteredChannelException;
 use Minds\Entities\User;
 use Minds\Core\Security\ACL;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Pubsubhubbub\Subscriber\Subscriber;
 
 class YTSubscription
@@ -37,6 +38,9 @@ class YTSubscription
     /** @var ACL */
     protected $acl;
 
+    /** @var KeyValueLimiter */
+    protected $kvLimiter;
+
     public function __construct(
         $ytClient = null,
         $manager = null,
@@ -46,7 +50,8 @@ class YTSubscription
         $entitiesBuilder = null,
         $save = null,
         $db = null,
-        $acl = null
+        $acl = null,
+        $kvLimiter = null
     ) {
         $config = $config ?? Di::_()->get('Config');
         $this->ytClient = $ytClient ?? Di::_()->get('Media\YouTubeImporter\YTClient');
@@ -57,6 +62,7 @@ class YTSubscription
         $this->save = $save ?? new Save();
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Indexes');
         $this->acl = $acl ?? Di::_()->get('Security\ACL');
+        $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
     }
 
     /**
@@ -74,7 +80,7 @@ class YTSubscription
             throw new UnregisteredChannelException();
         }
 
-        $topicUrl = "https://www.youtube.com/xml/feeds/videos.xml?channel_id={$channelId}";
+        $topicUrl = $this->getTopicUrl($channelId);
 
         // update the channel if the value changed
         $channels = $user->getYouTubeChannels();
@@ -83,10 +89,6 @@ class YTSubscription
         foreach ($channels as $channel) {
             if ($channel['id'] !== $channelId) {
                 continue;
-            }
-
-            if ($channel['auto_import'] === $subscribe) {
-                return true;
             }
 
             $updated = $subscribe ? $this->subscriber->subscribe($topicUrl) !== false : $this->subscriber->unsubscribe($topicUrl) !== false;
@@ -109,12 +111,32 @@ class YTSubscription
     }
 
     /**
+     * Renew the lease for the subscription
+     * @param string $channelId
+     * @return bool
+     */
+    public function renewLease(string $channelId): bool
+    {
+        $topicUrl = $this->getTopicUrl($channelId);
+        return $this->subscriber->subscribe($topicUrl) !== false;
+    }
+
+    /**
      * Imports a newly added YT video. This is called when the hook receives a new update.
      * @param YTVideo $ytVideo
      * @throws Exceptions\UnregisteredChannelException
      */
     public function onNewVideo(YTVideo $ytVideo): void
     {
+        // Only allow one request per video pub per day
+        // This is because duplicate can happen and elasticsearch can be delayed
+        $this->kvLimiter
+            ->setKey('yt-importer-pubsub')
+            ->setValue($ytVideo->getVideoId())
+            ->setSeconds(86400) // Day
+            ->setMax(1) // 1 per day
+            ->checkAndIncrement(); // Will throw exception
+
         // see if we have a video like this already saved
         $response = $this->repository->getList([
             'youtube_id' => $ytVideo->getVideoId(),
@@ -144,10 +166,20 @@ class YTSubscription
             $ia = $this->acl->setIgnore(true);
 
             // Import the new video
-            $this->manager->import($ytVideo);
+            $this->manager->import($ytVideo, false);
 
             // Re-impose previous ignore access setting
             $this->acl->setIgnore($ia);
         }
+    }
+
+    /**
+     * Builds topic url from channel id
+     * @param string $channelId
+     * @return string
+     */
+    private function getTopicUrl(string $channelId): string
+    {
+        return "https://www.youtube.com/xml/feeds/videos.xml?channel_id={$channelId}";
     }
 }
