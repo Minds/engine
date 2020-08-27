@@ -58,15 +58,20 @@ abstract class AbstractEntitiesResolver
         $prepared->query([
             "index" => "minds_badger",
             "type" => $this->type,
-            "size" => 5000,
+            "size" => 100,
             "body" => [
                 "query" => $this->query,
                 'sort' => $this->sort,
             ],
+            'scroll' => '60s',
         ]);
 
+        $i = 0;
         foreach ($this->scroll->request($prepared) as $entity) {
             yield $entity['_source'];
+            if (++$i > 500000) {
+                break;
+            }
         }
     }
 

@@ -60,7 +60,10 @@ class Manager
 
         foreach ($this->resolvers as $resolver) {
             $resolver = is_object($resolver) ? $resolver : new $resolver;
+            $i = 0;
             foreach ($resolver->getUrls() as $sitemapUrl) {
+                ++$i;
+                error_log("$i Adding {$sitemapUrl->getLoc()} to sitemap");
                 $this->generator->addURL(
                     $sitemapUrl->getLoc(),
                     $sitemapUrl->getLastModified(),

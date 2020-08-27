@@ -6,6 +6,7 @@ namespace Minds\Core\SEO\Sitemaps\Resolvers;
 use Minds\Core\Blogs\Legacy;
 use Minds\Core\SEO\Sitemaps\SitemapUrl;
 use Minds\Core\SEO\Manager;
+use Minds\Core\Security\ACL;
 
 class BlogsResolver extends AbstractEntitiesResolver
 {
@@ -52,7 +53,7 @@ class BlogsResolver extends AbstractEntitiesResolver
         $i = 0;
         foreach ($this->getRawData() as $raw) {
             $entity = $this->entitiesBuilder->single($raw['guid']);
-            if (!$entity) {
+            if (!$entity || !ACL::_()->read($entity)) {
                 continue;
             }
             ++$i;

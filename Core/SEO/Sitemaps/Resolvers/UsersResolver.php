@@ -6,6 +6,7 @@ namespace Minds\Core\SEO\Sitemaps\Resolvers;
 use Minds\Entities\User;
 use Minds\Core\SEO\Sitemaps\SitemapUrl;
 use Minds\Core\SEO\Manager;
+use Minds\Core\Security\ACL;
 
 class UsersResolver extends AbstractEntitiesResolver
 {
@@ -51,9 +52,9 @@ class UsersResolver extends AbstractEntitiesResolver
     {
         $i = 0;
         foreach ($this->getRawData() as $raw) {
-            $entity = new User($raw);
+            $entity = $this->entitiesBuilder->single($raw['guid']);
 
-            if (!$entity->username) {
+            if (!$entity->username || !ACL::_()->read($entity)) {
                 continue;
             }
 
@@ -61,10 +62,18 @@ class UsersResolver extends AbstractEntitiesResolver
                 continue;
             }
 
-            ++$i;
+            if (!$entity->isEnabled()) {
+                continue;
+            }
+
+            if (++$i > 20000) {
+                break;
+            }
+
             $lastModified = (new \DateTime)->setTimestamp($entity->last_login ?: $entity->time_created);
+            $username = strtolower($entity->username);
             $sitemapUrl = new SitemapUrl();
-            $sitemapUrl->setLoc("/$entity->username")
+            $sitemapUrl->setLoc("/$username")
                 ->setChangeFreq('daily')
                 ->setLastModified($lastModified);
             $this->logger->info("$i: @$entity->username");
