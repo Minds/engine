@@ -271,7 +271,7 @@
                 <!------------------------------>
                 <!-- GREETING: Start -->
                 <!------------------------------>
-                  <?php if (!$vars['hideGreeting']) { ?>
+                  <?php if (!($vars['hideGreeting'] ?? false)) { ?>
                     <tr>
                       <td>
                         <p <?php echo $emailStyles->getStyles('m-copy'); ?> >
