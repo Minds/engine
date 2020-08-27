@@ -19,6 +19,9 @@ use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Entities\EntitiesFactory;
 use Minds\Entities\User;
 use Minds\Entities\Video;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
+use Minds\Core\Security\RateLimits\RateLimitExceededException;
+use Minds\Core\Data\Cache\PsrWrapper;
 use Zend\Diactoros\Response\JsonResponse;
 
 /**
@@ -65,6 +68,12 @@ class Manager
     /** @var TranscoderBridge */
     protected $transcoderBridge;
 
+    /** @var PsrWrapper */
+    protected $cache;
+
+    /** @var KeyValueLimiter */
+    protected $kvLimiter;
+
     public function __construct(
         $repository = null,
         $mediaRepository = null,
@@ -77,7 +86,9 @@ class Manager
         $videoAssets = null,
         $entitiesBuilder = null,
         $logger = null,
-        $transcoderBridge = null
+        $transcoderBridge = null,
+        $cache = null,
+        $kvLimiter = null
     ) {
         $this->repository = $repository ?: Di::_()->get('Media\YouTubeImporter\Repository');
         $this->mediaRepository = $mediaRepository ?: Di::_()->get('Media\Repository');
@@ -91,6 +102,8 @@ class Manager
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->logger = $logger ?: Di::_()->get('Logger');
         $this->transcoderBridge = $transcoderBridge ?? new TranscoderBridge();
+        $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
+        $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
     }
 
     /**
@@ -152,7 +165,10 @@ class Manager
             }
         }
 
-        $videos = $videos->filter(function ($ytVideo) {
+        $videos = $videos->filter(function ($ytVideo) use ($opts) {
+            if (isset($opts['youtube_id'])) {
+                return true; // This allows completed status for status checks
+            }
             return $ytVideo->getStatus() !== TranscodeStates::COMPLETED;
         });
 
@@ -185,12 +201,26 @@ class Manager
      * Initiates video import (uses Repository - queues for transcoding)
      * @param YTVideo $ytVideo
      * @throws UnregisteredChannelException
+     * @throws ImportsExceededException
      * @throws \Exception
      */
-    public function import(YTVideo $ytVideo): void
+    public function import(YTVideo $ytVideo, bool $rateLimit = true): void
     {
         if (!$this->validateChannel($ytVideo->getOwner(), $ytVideo->getChannelId())) {
             throw new UnregisteredChannelException();
+        }
+
+        if ($rateLimit) {
+            try {
+                $this->kvLimiter
+                  ->setKey('yt-importer')
+                  ->setValue($ytVideo->getChannelId())
+                  ->setSeconds(86400) // Day
+                  ->setMax(1) // 1 per day
+                  ->checkAndIncrement(); // Will throw exception
+            } catch (RateLimitExceededException $e) {
+                throw new ImportsExceededException();
+            }
         }
 
         $ytVideos = [$ytVideo];
@@ -358,7 +388,15 @@ class Manager
             $parts .= ',statistics';
         }
 
-        $response = $youtube->videos->listVideos($parts, ['id' => $id]);
+        /** @var string */
+        $cacheKey = "ytimporter:videolist-id:$id";
+
+        if ($cached = $this->cache->get($cacheKey)) {
+            $response = unserialize($cached);
+        } else {
+            $response = $youtube->videos->listVideos($parts, ['id' => $id]);
+            $this->cache->set($cacheKey, serialize($response), 3600); // 1 hour cache
+        }
 
         foreach ($response['items'] as $item) {
             $values = [
@@ -513,9 +551,13 @@ class Manager
         // create the video
         $video = new Video();
 
+        $tags = array_map(function ($keyword) {
+            return str_replace(' ', '', $keyword);
+        }, $data['details']['keywords'] ?? []);
+
         $video->patch([
             'title' => isset($data['details']['title']) ? $data['details']['title'] : '',
-            'description' => isset($data['details']['description']) ? $data['details']['description'] : '',
+            'description' => isset($data['details']['shortDescription']) ? $data['details']['shortDescription'] : '',
             'batch_guid' => 0,
             'access_id' => 0,
             'owner_guid' => $ytVideo->getOwnerGuid(),
@@ -524,7 +566,9 @@ class Manager
             'youtube_id' => $ytVideo->getVideoId(),
             'youtube_channel_id' => $ytVideo->getChannelId(),
             'transcoding_status' => TranscodeStates::QUEUED,
-            'time_created' => $ytVideo->getYoutubeCreationDate()
+            'time_created' => $ytVideo->getYoutubeCreationDate(),
+            'time_sent' => $ytVideo->getYoutubeCreationDate(),
+            'tags' => $tags,
         ]);
 
         $this->saveVideo($video);

@@ -111,9 +111,7 @@ class AttachmentDelegate
             $attachment->access_id = 0;
             $attachment->hidden = true;
 
-            if (method_exists($attachment, 'setFlag')) {
-                $attachment->setFlag('paywall', true);
-            }
+            $attachment->setPayWall(true);
 
             if (method_exists($attachment, 'setWireThreshold')) {
                 $attachment->setWireThreshold($activity->getWireThreshold());
@@ -148,6 +146,8 @@ class AttachmentDelegate
                     ->setCustom('video', [
                         'thumbnail_src' => $attachment->getIconUrl(),
                         'guid' => $attachment->guid,
+                        'width' => $attachment->width,
+                        'height' => $attachment->height,
                         'mature' => $attachment instanceof Flaggable ? $attachment->getFlag('mature') : false
                     ]);
                 break;

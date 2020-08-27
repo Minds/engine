@@ -33,6 +33,9 @@ class Repository
     /** @var array $pendingBulkInserts * */
     private $pendingBulkInserts = [];
 
+    /** @var string */
+    private $plusSupportTierUrn;
+
     public function __construct($client = null, $config = null, $features = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
@@ -42,6 +45,8 @@ class Repository
         $this->features = $features ?: Di::_()->get('Features\Manager');
 
         $this->index = $config->get('elasticsearch')['index'];
+
+        $this->plusSupportTierUrn = $config->get('plus')['support_tier_urn'];
     }
 
     /**
@@ -74,6 +79,7 @@ class Repository
             'future' => false,
             'exclude' => null,
             'pending' => false,
+            'plus' => false,
         ], $opts);
 
         if (!$opts['type']) {
@@ -280,6 +286,15 @@ class Repository
                 'term' => [
                     'pending' => true,
                 ]
+            ];
+        }
+
+        // Plus?
+        if ($opts['plus'] === true) {
+            $body['query']['function_score']['query']['bool']['must'][] = [
+                'term' => [
+                    'wire_support_tier' => $this->plusSupportTierUrn,
+                ],
             ];
         }
 

@@ -6,16 +6,23 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Queue;
 use Minds\Core\Analytics;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
+use Minds\Core\Wire\Paywall\PaywallEntityTrait;
 
 /**
  * Activity Entity
  */
-class Activity extends Entity implements MutatableEntityInterface
+class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface
 {
+    use PaywallEntityTrait;
+
+    /** @var array */
     public $indexes = null;
 
+    /** @var bool */
     protected $dirtyIndexes = false;
 
+    /** @var bool */
     protected $hide_impressions = false;
 
     /** @var string */
@@ -277,7 +284,7 @@ class Activity extends Entity implements MutatableEntityInterface
         $export['mature'] = (bool) $export['mature'];
 
         $export['comments_enabled'] = (bool) $export['comments_enabled'];
-        $export['wire_totals'] = $this->getWireTotals();
+        // $export['wire_totals'] = $this->getWireTotals();
         $export['wire_threshold'] = $this->getWireThreshold();
         $export['boost_rejection_reason'] = $this->getBoostRejectionReason() ?: -1;
         $export['rating'] = $this->getRating();
@@ -297,6 +304,7 @@ class Activity extends Entity implements MutatableEntityInterface
                 if ($this->custom_data['guid']) {
                     $export['play:count'] = Helpers\Counters::get($this->custom_data['guid'], 'plays');
                 }
+                $export['thumbnail_src'] = $export['custom_data']['thumbnail_src'];
                 break;
             case 'batch':
                 // fix old images src
@@ -709,29 +717,10 @@ class Activity extends Entity implements MutatableEntityInterface
     }
 
     /**
-     * Sets if there is a paywall or not
-     * @param mixed $value
-     */
-    public function setPayWall($value)
-    {
-        $this->paywall = (bool) $value;
-        return $this;
-    }
-
-    /**
      * Return if there is a paywall or not
      * @return bool
      */
     public function getPayWall(): bool
-    {
-        return (bool) $this->paywall;
-    }
-
-    /**
-     * Checks if there is a paywall for this post
-     * @return boolean
-     */
-    public function isPayWall()
     {
         return (bool) $this->paywall;
     }
@@ -775,26 +764,6 @@ class Activity extends Entity implements MutatableEntityInterface
         $totals = [];
         $totals['tokens'] = Core\Wire\Counter::getSumByEntity($guid, 'tokens');
         return $totals;
-    }
-
-    /**
-     * Gets wire threshold
-     * @return mixed
-     */
-    public function getWireThreshold()
-    {
-        return $this->wire_threshold;
-    }
-
-    /**
-     * Sets wire threshold
-     * @param $wire_threshold
-     * @return $this
-     */
-    public function setWireThreshold($wire_threshold)
-    {
-        $this->wire_threshold = $wire_threshold;
-        return $this;
     }
 
     public function getBoostRejectionReason()
@@ -903,5 +872,25 @@ class Activity extends Entity implements MutatableEntityInterface
     public function getVideoPosterBase64Blob(): ?string
     {
         return $this->videoPosterBase64Blob;
+    }
+
+    /**
+     * Sets `access_id`
+     * @param mixed $access_id
+     * @return Activity
+     */
+    public function setAccessId($access_id): Activity
+    {
+        $this->access_id = $access_id;
+        return $this;
+    }
+
+    /**
+     * Gets `access_id`
+     * @return mixed
+     */
+    public function getAccessId(): string
+    {
+        return $this->access_id;
     }
 }

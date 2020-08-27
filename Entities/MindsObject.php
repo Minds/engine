@@ -3,13 +3,18 @@ namespace Minds\Entities;
 
 use Minds\Interfaces\Flaggable;
 use Minds\Core;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
+use Minds\Core\Wire\Paywall\PaywallEntityTrait;
 
 /**
  * Object Entity
  * @todo Do not inherit from ElggObject
  */
-class MindsObject extends \ElggObject implements Flaggable
+class MindsObject extends \ElggObject implements Flaggable, PaywallEntityInterface
 {
+    use PaywallEntityTrait;
+
+    /** @var bool */
     protected $dirtyIndexes;
 
     /**
@@ -129,29 +134,5 @@ class MindsObject extends \ElggObject implements Flaggable
         $totals = [];
         // $totals['bitcoin'] = \Minds\Core\Wire\Counter::getSumByEntity($this->guid, 'bitcoin');
         return $totals;
-    }
-
-    /**
-     * Gets wire threshold
-     * @return mixed
-     */
-    public function getWireThreshold()
-    {
-        if (is_string($this->wire_threshold)) {
-            return json_decode($this->wire_threshold, true);
-        }
-
-        return $this->wire_threshold;
-    }
-
-    /**
-     * Sets wire threshold
-     * @param $wire_threshold
-     * @return $this
-     */
-    public function setWireThreshold($wire_threshold)
-    {
-        $this->wire_threshold = $wire_threshold;
-        return $this;
     }
 }

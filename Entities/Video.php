@@ -80,12 +80,6 @@ class Video extends MindsObject
 
     public function getIconUrl($size = "medium")
     {
-        // $domain = elgg_get_site_url();
-        // global $CONFIG;
-        // if (isset($CONFIG->cdn_url) && !$this->getFlag('paywall') && !$this->getWireThreshold()) {
-        //     $domain = $CONFIG->cdn_url;
-        // }
-
         // return $domain . 'api/v1/media/thumbnails/' . $this->guid . '/' . $this->time_updated;
 
         // if we didn't save this and it has a YouTube video ID, return YouTube's thumbnail
@@ -134,6 +128,8 @@ class Video extends MindsObject
     public function getExportableValues()
     {
         return array_merge(parent::getExportableValues(), [
+            'width',
+            'height',
             'thumbnail',
             'cinemr_guid',
             'license',
@@ -144,6 +140,7 @@ class Video extends MindsObject
             'youtube_id',
             'youtube_channel_id',
             'transcoding_status',
+            'paywall',
         ]);
     }
 
@@ -189,6 +186,9 @@ class Video extends MindsObject
         $export['youtube_id'] = $this->getYoutubeId();
         $export['youtube_channel_id'] = $this->getYoutubeChannelId();
         $export['transcoding_status'] = $this->getTranscodingStatus();
+        $export['width'] = $this->width;
+        $export['height'] = $this->height;
+
         return $export;
     }
 
@@ -229,6 +229,7 @@ class Video extends MindsObject
             'youtube_channel_id' => null,
             'transcoding_status' => null,
             'owner_guid' => null,
+            'tags' => null,
         ], $data);
 
         $allowed = [
@@ -249,6 +250,7 @@ class Video extends MindsObject
             'youtube_channel_id',
             'transcoding_status',
             'owner_guid',
+            'tags',
         ];
 
         foreach ($allowed as $field) {
@@ -298,6 +300,8 @@ class Video extends MindsObject
                 'mature' => $this->getFlag('mature'),
                 'full_hd' => $this->getFlag('full_hd'),
                 'license' => $this->license ?? '',
+                'width' => $this->width,
+                'height' => $this->height
             ],
         ];
     }

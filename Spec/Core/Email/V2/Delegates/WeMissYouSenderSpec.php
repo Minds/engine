@@ -2,39 +2,21 @@
 
 namespace Spec\Minds\Core\Email\V2\Delegates;
 
-use Minds\Core\Email\V2\Delegates\WeMissYouSender;
-use PhpSpec\ObjectBehavior;
-use Minds\Core\Suggestions\Manager as SuggestionsManager;
-use Minds\Core\Email\EmailSubscription;
-use Minds\Core\Email\Manager;
-use Minds\Core\Email\Mailer;
-use Minds\Entities\User;
+use Minds\Common\Repository\Response;
 use Minds\Core\Email\V2\Campaigns\Recurring\WeMissYou\WeMissYou;
-use Minds\Core\Email\CampaignLogs\CampaignLog;
+use Minds\Core\Email\V2\Delegates\WeMissYouSender;
+use Minds\Core\Suggestions\Manager as SuggestionsManager;
+use Minds\Entities\User;
+use PhpSpec\ObjectBehavior;
 
 class WeMissYouSenderSpec extends ObjectBehavior
 {
-    /** @var Manager $manager */
-    private $manager;
     /** @var SuggestionsManager $manager */
     private $suggestionsManager;
-    /** @var Mailer $mailer */
-    private $mailer;
-    /** @var WeMissYou $campaign */
-    private $campaign;
-    private $testGUID = 123;
-    private $testName = 'test_name';
-    private $testEmail = 'test@minds.com';
-    private $testUsername = 'testUsername';
-    private $testBriefDescription = 'test brief description';
 
-    public function let(Manager $manager, SuggestionsManager $suggestionsManager, Mailer $mailer)
+    public function let(SuggestionsManager $suggestionsManager, WeMissYou $campaign)
     {
-        $this->manager = $manager;
         $this->suggestionsManager = $suggestionsManager;
-        $this->mailer = $mailer;
-        $campaign = new WeMissYou(null, $mailer->getWrappedObject(), $manager->getWrappedObject());
-        $this->campaign = $campaign;
         $this->beConstructedWith($suggestionsManager, $campaign);
     }
 
@@ -45,32 +27,12 @@ class WeMissYouSenderSpec extends ObjectBehavior
 
     public function it_should_send(User $user)
     {
-        $user->getGUID()->shouldBeCalled()->willReturn($this->testGUID);
-        $user->get('enabled')->shouldBeCalled()->willReturn('yes');
-        $user->get('name')->shouldBeCalled()->willReturn($this->testName);
-        $user->get('guid')->shouldBeCalled()->willReturn($this->testGUID);
-        $user->getEmail()->shouldBeCalled()->willReturn($this->testEmail);
-        $user->get('username')->shouldBeCalled()->willReturn($this->testUsername);
-        $user->get('banned')->shouldBeCalled()->willReturn(false);
+        $this->suggestionsManager->setUser($user)
+            ->shouldBeCalled();
+        $this->suggestionsManager->getList()
+            ->shouldBeCalled()
+            ->willReturn(new Response());
 
-        $this->suggestionsManager->setUser($user)->shouldBeCalled();
-        $this->suggestionsManager->getList()->shouldBeCalled();
-
-        $emailSubscription = (new EmailSubscription())
-            ->setUserGuid(123)
-            ->setCampaign('global')
-            ->setTopic('minds_tips')
-            ->setValue(true);
-
-        $time = time();
-
-        $campaignLog = (new CampaignLog())
-            ->setReceiverGuid($this->testGUID)
-            ->setTimeSent($time)
-            ->setEmailCampaignId($this->campaign->getEmailCampaignId());
-
-        $this->manager->saveCampaignLog($campaignLog)->shouldBeCalled();
-        $this->manager->isSubscribed($emailSubscription)->shouldBeCalled()->willReturn(true);
         $this->send($user);
     }
 }

@@ -6,6 +6,8 @@ use Minds\Core\Blogs\Blog;
 use Minds\Core\Blogs\Delegates;
 use Minds\Core\Blogs\Repository;
 use Minds\Core\Entities\PropagateProperties;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
+use Minds\Core\Security\ACL;
 use Minds\Core\Security\Spam;
 
 use PhpSpec\ObjectBehavior;
@@ -31,6 +33,7 @@ class ManagerSpec extends ObjectBehavior
     /** @var Delegates\Search */
     protected $search;
 
+    /** @var PropagateProperties */
     protected $propagateProperties;
 
     public function let(
@@ -107,7 +110,7 @@ class ManagerSpec extends ObjectBehavior
             'reversed' => false,
         ])
             ->shouldBeCalled()
-            ->willReturn([ $nextBlog ]);
+            ->willReturn([$nextBlog]);
 
         $this
             ->getNext($blog, 'owner')
@@ -277,22 +280,13 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_check_for_spam(Blog $blog, Spam $spam)
     {
-        $this->beConstructedWith(
-            $this->repository,
-            $this->paywallReview,
-            $this->slug,
-            $this->feeds,
-            $this->spam,
-            $this->search
-        );
-
         $spamUrl = 'movieblog.tumblr.com';
 
         $blog->getType()
-                ->willReturn('object');
+            ->willReturn('object');
 
         $blog->getSubtype()
-                ->willReturn('blog');
+            ->willReturn('blog');
 
         $this->spam->check(Argument::any())->shouldBeCalled()->willReturn(true);
         $this->add($blog);

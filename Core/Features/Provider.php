@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Minds Features Provider
+ * Minds Features Provider.
  *
  * @author emi
  */
@@ -11,8 +11,7 @@ namespace Minds\Core\Features;
 use Minds\Core\Di\Provider as DiProvider;
 
 /**
- * Features provider
- * @package Minds\Core\Features
+ * Features provider.
  */
 class Provider extends DiProvider
 {
@@ -25,7 +24,6 @@ class Provider extends DiProvider
                 'helpdesk',
                 'top-feeds',
                 'cassandra-notifications',
-                'dark-mode',
                 'allow-comments-toggle',
                 'permissions',
                 'pro',
@@ -34,18 +32,15 @@ class Provider extends DiProvider
                 'top-feeds-by-age',
                 'modal-pager',
                 'blockchain_creditcard',
-                'channel-filter-feeds',
                 'suggested-users',
                 'top-feeds-filter',
                 'media-modal',
                 'wire-multi-currency',
                 'cdn-jwt',
                 'post-scheduler',
-                'activity-composer',
                 'ckeditor5',
                 'navigation',
                 'wallet-upgrade',
-                'activity-v2--single-page',
                 'activity-v2--feeds',
                 'activity-v2--boosts',
                 'settings',
@@ -57,20 +52,29 @@ class Provider extends DiProvider
                 'onboarding-reminder',
                 'boost-rotator',
                 'yt-importer',
+                'yt-importer-transfer-all',
                 'settings-referrals',
                 'channels-shop',
                 'topv2-algo',
                 'localization-2020',
                 'suggestions',
+                'paywall-2020',
+                'plus-2020',
+                'nav-plus-2020',
+                'support-tiers',
+                'language-prompts',
+                'discovery-carousel',
+                'subscriber-conversations',
+                'activity-modal',
             ];
         });
 
         $this->di->bind('Features\Manager', function ($di) {
             return new Manager();
-        }, [ 'useFactory' => true ]);
+        }, ['useFactory' => true]);
 
         $this->di->bind('Features\Canary', function ($di) {
             return new Canary();
-        }, [ 'useFactory' => true ]);
+        }, ['useFactory' => true]);
     }
 }

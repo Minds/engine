@@ -28,6 +28,9 @@ class Index
     /** @var Core\Search\Hashtags\Manager */
     protected $hashtagsManager;
 
+    /** @var Cleanup */
+    protected $cleanup;
+
     /**
      * Index constructor.
      * @param null $client
@@ -35,12 +38,18 @@ class Index
      * @param null $entitiesBuilder
      * @param null $hashtagsManager
      */
-    public function __construct($client = null, $index = null, $entitiesBuilder = null, $hashtagsManager = null)
-    {
+    public function __construct(
+        $client = null,
+        $index = null,
+        $entitiesBuilder = null,
+        $hashtagsManager = null,
+        $cleanup = null
+    ) {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
         $this->esIndex = $index ?: Di::_()->get('Config')->elasticsearch['index'];
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->hashtagsManager = $hashtagsManager ?: Di::_()->get('Search\Hashtags\Manager');
+        $this->cleanup = $cleanup ?? new Cleanup();
     }
 
     /**
@@ -57,6 +66,11 @@ class Index
 
         if (!is_object($entity)) {
             $entity = $this->entitiesBuilder->build($entity, false);
+        }
+
+        if ($entity->guid == '100000000000000519') {
+            error_log('tried to index minds channel, but temporary aborting');
+            return true; // TRUE prevents retries
         }
 
         try {
@@ -95,8 +109,10 @@ class Index
                     }
                 }
             }
+            error_log("Indexed {$mapper->getId()}");
         } catch (BannedException $e) {
             $result = true; // Null was resolving as 'false' so setting to true
+            $this->cleanup->prune($entity);
         } catch (\Exception $e) {
             error_log('[Search/Index] ' . get_class($e) . ": {$e->getMessage()}");
             $result = false;

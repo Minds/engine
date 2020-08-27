@@ -1,5 +1,7 @@
 FROM php:7.3-fpm-alpine3.10
 
+RUN apk add --no-cache --update php-deps make
+
 RUN apk add --no-cache --virtual build-deps \
     libzip-dev \
     zlib-dev \
@@ -14,12 +16,14 @@ RUN apk add --no-cache --virtual build-deps \
     nodejs \
     npm \
     ffmpeg \
+    icu-dev \
     && docker-php-ext-install -j$(nproc) bcmath \
     && docker-php-ext-install -j$(nproc) zip \
     && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-install -j$(nproc) exif \
     && docker-php-ext-install -j$(nproc) sockets \
+    && docker-php-ext-install -j$(nproc) intl \
     && apk del build-deps
 
 # PECL Extensions
@@ -60,6 +64,7 @@ RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && apk add --no-cache libuv gmp \
     && git clone https://github.com/datastax/php-driver.git $INSTALL_DIR \
     && cd $INSTALL_DIR \
+    && git reset --hard f73debf39e395817dd2ced76acfc64249d4d3a0a \
     && git submodule update --init \
     && cd ext && bash $INSTALL_DIR/ext/install.sh \
     && docker-php-ext-enable cassandra \

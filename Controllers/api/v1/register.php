@@ -94,6 +94,16 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 $user->signupParentId = 'mobile-native';
                 $hasSignupTags = true;
             }
+
+            /** @var Core\I18n\Manager $i18n */
+            $i18n = Di::_()->get('I18n\Manager');
+            $language = $i18n->getLanguage();
+
+            if ($language !== 'en') {
+                $user->setLanguage($language);
+                $hasSignupTags = true;
+            }
+
             if ($hasSignupTags) {
                 $user->save();
             } else {
@@ -128,6 +138,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 .", email:".$_POST['email']
                 .", signupParentId".$user->signupParentId
                 .", exception: ".$e->getMessage()
+                .", addr: " . $_SERVER['HTTP_X_FORWARDED_FOR']
             );
             $response = ['status' => 'error', 'message' => $e->getMessage()];
         }

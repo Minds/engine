@@ -24,17 +24,25 @@ class Controllers
     {
         $queryParams = $request->getQueryParams();
         $shuffle = $queryParams['shuffle'] ?? true;
+        $plus = filter_var($queryParams['plus'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $tagLimit = 8;
-        $postLimit = 5;
+        $postLimit = 10;
 
-        $tagTrends = $this->manager->getTagTrends([ 'limit' => $tagLimit * 2 ]); //Return more tags than we need for posts to feed from
+        $tagTrends = $this->manager->getTagTrends([
+            'limit' => $tagLimit * 2,  //Return more tags than we need for posts to feed from
+            'plus' => $plus
+        ]);
         $postTrends = $this->manager->getPostTrends(array_map(function ($trend) {
             return "{$trend->getHashtag()}";
-        }, $tagTrends), [ 'limit' => $postLimit ]);
+        }, $tagTrends), [
+            'limit' => $postLimit,
+            'plus' => $plus,
+        ]);
 
         $hero = array_shift($postTrends);
 
-        $trends =  array_merge(array_slice($tagTrends, 0, $tagLimit), $postTrends);
+        // $trends =  array_merge(array_slice($tagTrends, 0, $tagLimit), $postTrends);
+        $trends = $postTrends;
         
         if ($shuffle) {
             shuffle($trends);
@@ -58,7 +66,8 @@ class Controllers
         $query = $queryParams['q'] ?? null;
         $filter = $queryParams['algorithm'] ?? 'latest';
         $type = $queryParams['type'] ?? '';
-        $entities = $this->manager->getSearch($query, $filter, $type);
+        $plus = filter_var($queryParams['plus'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $entities = $this->manager->getSearch($query, $filter, $type, [ 'plus' => $plus ]);
 
         return new JsonResponse([
             'status' => 'success',
@@ -74,10 +83,17 @@ class Controllers
     public function getTags(ServerRequest $request): JsonResponse
     {
         $tags = $this->manager->getTags();
+        try {
+            $forYou = $this->manager->getTagTrends([ 'limit' => 12, 'plus' => false, ]);
+        } catch (\Exception $e) {
+            $forYou = null;
+        }
         return new JsonResponse([
             'status' => 'success',
             'tags' => $tags['tags'],
             'trending' => $tags['trending'],
+            'default' => $tags['default'],
+            'for_you' => $forYou ? Exportable::_($forYou) : null,
         ]);
     }
 

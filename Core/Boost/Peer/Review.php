@@ -12,13 +12,10 @@ class Review implements BoostReviewInterface
 {
     /** @var  Entities\Boost\Peer $boost */
     protected $boost;
-    protected $mongo;
+
+    /** @var string */
     protected $type;
 
-    public function __construct(Data\Interfaces\ClientInterface $mongo = null)
-    {
-        $this->mongo = $mongo ?: Data\Client::build('MongoDB');
-    }
 
     /**
      * @param string $type

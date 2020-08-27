@@ -18,7 +18,7 @@ class Flags
             return false;
         }
 
-        return static::isSpam($entity) || static::isDeleted($entity);
+        return static::isSpam($entity) || static::isDeleted($entity) || static::isBanned($entity);
     }
 
     public static function shouldDiscloseStatus($entity)
@@ -58,6 +58,15 @@ class Flags
             return !!$entity->getDeleted();
         } elseif (method_exists($entity, 'getFlag')) {
             return !!$entity->getFlag('deleted');
+        }
+
+        return false;
+    }
+
+    public static function isBanned($entity): bool
+    {
+        if (MagicAttributes::getterExists($entity, 'isBanned')) {
+            return !!$entity->isBanned();
         }
 
         return false;

@@ -30,6 +30,10 @@ class PropagateProperties extends Properties
             $to->setMessage($from->description);
         }
 
+        if ($this->valueHasChanged($from->tags, $to->getTags())) {
+            $to->setTags($from->tags);
+        }
+
         $fromData = $from->getActivityParameters();
         $toData = $to->getCustom();
         if ((!isset($toData[1])) || (isset($toData[1]) && $this->valueHasChanged($fromData[1], $toData[1]))) {

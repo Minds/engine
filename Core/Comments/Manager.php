@@ -17,6 +17,7 @@ use Minds\Core\Session;
 use Minds\Entities\User;
 use Minds\Exceptions\BlockedUserException;
 use Minds\Exceptions\InvalidLuidException;
+use Minds\Common\Repository\Response;
 
 class Manager
 {
@@ -95,6 +96,7 @@ class Manager
         }
 
         $response = $this->repository->getList($opts);
+        $response = $this->filterResponse($response);
 
         if ($opts['is_focused'] === true && $opts['offset']) {
             $count = count($response);
@@ -107,10 +109,12 @@ class Manager
                 'descending' => true,
                 'include_offset' => false,
             ]));
-            $newResponse = $earlier->reverse();
+            
+            $newResponse = $this->filterResponse($earlier->reverse());
             foreach ($response as $comment) {
                 $newResponse[] = $comment;
             }
+            
             $newResponse->setPagingToken($response->getPagingToken());
             $newResponse->setLastPage($response->isLastPage());
             return $newResponse;
@@ -119,12 +123,41 @@ class Manager
         return $response;
     }
 
+    protected function filterResponse(Response $response): Response
+    {
+        $filtered = new Response();
+        $filtered->setPagingToken($response->getPagingToken());
+        $filtered->setLastPage($response->isLastPage());
+        foreach ($response as $comment) {
+            try {
+                $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
+                $commentOwner = $this->entitiesBuilder->single($comment->getOwnerGuid());
+                if (!$this->acl->interact($entity, $commentOwner)) {
+                    error_log("{$opts['entity_guid']} found comment that entity owner can not interact with. Consider deleting.");
+                    // $this->delete($comment, [ 'force' => true ]);
+                    continue;
+                }
+
+                if (!$this->acl->read($comment)) {
+                    error_log("{$opts['entity_guid']} found comment we can't read");
+                    continue;
+                }
+                $filtered[] = $comment;
+            } catch (\Exception $e) {
+                error_log("{$opts['entity_guid']} exception reading comment {$e->getMessage()}");
+            }
+        }
+        return $filtered;
+    }
+
     /**
      * Adds a comment and triggers creation events
      * @param Comment $comment
      * @return bool
      * @throws BlockedUserException
      * @throws \Minds\Exceptions\StopEventException
+     * @throws \Minds\Core\Router\Exceptions\UnverifiedEmailException
+     * @throws \Minds\Core\Wire\Paywall\PaywallUserNotPaid
      */
     public function add(Comment $comment)
     {

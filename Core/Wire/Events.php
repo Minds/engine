@@ -34,7 +34,7 @@ class Events
         Dispatcher::register('wire:email', 'wire', function (Core\Events\Event $event) {
             $params = $event->getParameters();
             $wire = $params['wire'];
-            $campaign = (new Core\Email\Campaigns\WireReceived())
+            $campaign = (new Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived())
                 ->setUser($wire->getReceiver())
                 ->setWire($wire)
                 ->send();
@@ -42,16 +42,28 @@ class Events
             return $event->setResponse(true);
         });
 
-        // Wire ermails
+        // Wire emails
         Dispatcher::register('wire-receipt:email', 'wire', function (Core\Events\Event $event) {
             $params = $event->getParameters();
             $wire = $params['wire'];
-            $campaign = (new Core\Email\Campaigns\WireSent())
+            $campaign = (new Core\Email\V2\Campaigns\Recurring\WireSent\WireSent())
                 ->setUser($wire->getSender())
                 ->setWire($wire)
                 ->send();
 
             return $event->setResponse(true);
+        });
+
+        Dispatcher::register('acl:write', 'all', function (Core\Events\Event $event) {
+            $params = $event->getParameters();
+            $entity = $params['entity'];
+            $user = $params['user'];
+
+            if (!$entity instanceof Wire) {
+                return;
+            }
+
+            $event->setResponse($entity->getSender()->guid === $user->guid);
         });
     }
 }

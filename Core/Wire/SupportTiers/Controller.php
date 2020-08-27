@@ -2,10 +2,15 @@
 namespace Minds\Core\Wire\SupportTiers;
 
 use Exception;
+use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Features\Manager as FeaturesManager;
+use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\Urn;
+use Minds\Api\Exportable;
+use Minds\Common\Repositoy\Response;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 
@@ -15,23 +20,47 @@ use Zend\Diactoros\ServerRequest;
  */
 class Controller
 {
+    /** @var Config */
+    protected $config;
+
+    /** @var FeaturesManager */
+    protected $features;
+
     /** @var Manager */
     protected $manager;
 
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
+    /** @var Delegates\CurrenciesDelegate */
+    protected $currenciesDelegate;
+
+    /** @var Members */
+    protected $members;
+
     /**
      * Controller constructor.
+     * @param $config
+     * @param $features
      * @param $manager
      * @param $entitiesBuilder
+     * @param $currenciesDelegate
+     * @param $members
      */
     public function __construct(
+        $config = null,
+        $features = null,
         $manager = null,
-        $entitiesBuilder = null
+        $entitiesBuilder = null,
+        $currenciesDelegate = null,
+        $members = null
     ) {
+        $this->config = $config ?: Di::_()->get('Config');
+        $this->features = $features ?: Di::_()->get('Features\Manager');
         $this->manager = $manager ?: new Manager();
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
+        $this->currenciesDelegate = $currenciesDelegate ?: new Delegates\CurrenciesDelegate();
+        $this->members = $members ?? new Members();
     }
 
     /**
@@ -42,21 +71,9 @@ class Controller
      */
     public function getSingle(ServerRequest $request): JsonResponse
     {
-        $urn = Urn::parse($request->getAttribute('parameters')['urn'], 'support-tier');
-
-        if (!$urn || count($urn) !== 3) {
-            throw new UserErrorException('Invalid URN', 400);
-        }
-
-        $supportTier = new SupportTier();
-        $supportTier
-            ->setEntityGuid($urn[0])
-            ->setCurrency($urn[1])
-            ->setGuid($urn[2]);
-
         return new JsonResponse([
             'status' => 'success',
-            'support_tier' => $this->manager->get($supportTier)
+            'support_tier' => $this->manager->getByUrn($request->getAttribute('parameters')['urn'])
         ]);
     }
 
@@ -78,32 +95,40 @@ class Controller
             throw new UserErrorException('No entity', 400);
         }
 
-        $this->manager->setEntity($entity);
+        if (!$this->features->has('paywall-2020')) {
+            $supportTiers = [];
+        } else {
+            $supportTiers = $this->manager
+                ->setEntity($entity)
+                ->getAll();
+        }
 
         return new JsonResponse([
             'status' => 'success',
-            'support_tiers' => $this->manager->getAll()
+            'support_tiers' => $supportTiers
         ]);
     }
 
     /**
-     * Creates a new Support Tier
+     * Creates a new public Support Tier
      * @param ServerRequest $request
      * @return JsonResponse
      * @throws UserErrorException
      */
-    public function create(ServerRequest $request): JsonResponse
+    public function createPublic(ServerRequest $request): JsonResponse
     {
         $currentUser = $request->getAttribute('_user');
         $body = $request->getParsedBody();
-        $currency = $body['currency'] ?? '';
-        $amount = round((float) $body['amount'], 6);
         $name = $body['name'] ?? '';
+        $description = $body['description'] ?? '';
+        $usd = round((float) ($body['usd'] ?? 0), 6);
+        $hasUsd = (bool) ($body['has_usd'] ?? false);
+        $hasTokens = (bool) ($body['has_tokens'] ?? false);
 
-        if (!$currency) {
-            throw new UserErrorException('Invalid currency', 400);
-        } elseif (!$amount || $amount <= 0) {
-            throw new UserErrorException('Invalid amount', 400);
+        if ($usd < 0) {
+            throw new UserErrorException('Invalid USD amount', 400);
+        } elseif (!$hasUsd && !$hasTokens) {
+            throw new UserErrorException('You need to enable at least one currency', 400);
         } elseif (!is_string($name) || strlen($name) === 0) {
             throw new UserErrorException('Invalid name', 400);
         }
@@ -111,10 +136,12 @@ class Controller
         $supportTier = new SupportTier();
         $supportTier
             ->setEntityGuid($currentUser->guid)
-            ->setCurrency($currency)
-            ->setAmount($amount)
+            ->setPublic(true)
             ->setName($name)
-            ->setDescription($body['description'] ?? '');
+            ->setDescription($description)
+            ->setUsd($usd)
+            ->setHasUsd($hasUsd)
+            ->setHasTokens($hasTokens);
 
         $this->manager
             ->setEntity($currentUser);
@@ -122,6 +149,61 @@ class Controller
         return new JsonResponse([
             'status' => 'success',
             'support_tier' => $this->manager->create($supportTier),
+        ]);
+    }
+
+    /**
+     * Creates a new private (custom) Support Tier
+     * @param ServerRequest $request
+     * @return JsonResponse
+     * @throws UserErrorException
+     */
+    public function createPrivate(ServerRequest $request): JsonResponse
+    {
+        $currentUser = $request->getAttribute('_user');
+        $body = $request->getParsedBody();
+        $usd = round((float) ($body['usd'] ?? 0), 6);
+        $hasUsd = (bool) ($body['has_usd'] ?? false);
+        $hasTokens = (bool) ($body['has_tokens'] ?? false);
+
+        if ($usd < 0) {
+            throw new UserErrorException('Invalid USD amount', 400);
+        } elseif (!$hasUsd && !$hasTokens) {
+            throw new UserErrorException('You need to enable at least one currency', 400);
+        }
+
+        $name = ['Custom', $usd];
+
+        if ($hasUsd) {
+            $name[] = 'USD';
+        }
+
+        if ($hasTokens) {
+            $name[] = 'Tokens';
+        }
+
+        $supportTier = new SupportTier();
+        $supportTier
+            ->setEntityGuid($currentUser->guid)
+            ->setPublic(false)
+            ->setName(implode(' ', $name))
+            ->setDescription('')
+            ->setUsd($usd)
+            ->setHasUsd($hasUsd)
+            ->setHasTokens($hasTokens);
+
+        $this->manager
+            ->setEntity($currentUser);
+
+        $result = $this->manager->match($supportTier);
+
+        if (!$result) {
+            $result = $this->manager->create($supportTier);
+        }
+
+        return new JsonResponse([
+            'status' => 'success',
+            'support_tier' => $result,
         ]);
     }
 
@@ -137,7 +219,7 @@ class Controller
         $currentUser = $request->getAttribute('_user');
         $urn = Urn::parse($request->getAttribute('parameters')['urn'], 'support-tier');
 
-        if (!$urn || count($urn) !== 3) {
+        if (!$urn || count($urn) !== 2) {
             throw new UserErrorException('Invalid URN', 400);
         } elseif ($urn[0] !== (string) $currentUser->guid) {
             throw new UserErrorException('You are not authorized', 403);
@@ -145,6 +227,7 @@ class Controller
 
         $body = $request->getParsedBody();
         $name = $body['name'] ?? '';
+        $description = $body['description'] ?? '';
 
         if (!is_string($name) || strlen($name) === 0) {
             throw new UserErrorException('Invalid name', 400);
@@ -153,8 +236,7 @@ class Controller
         $supportTier = $this->manager->get(
             (new SupportTier())
                 ->setEntityGuid($urn[0])
-                ->setCurrency($urn[1])
-                ->setGuid($urn[2])
+                ->setGuid($urn[1])
         );
 
         if (!$supportTier) {
@@ -163,7 +245,7 @@ class Controller
 
         $supportTier
             ->setName($name)
-            ->setDescription($body['description'] ?? '');
+            ->setDescription($description);
 
         $this->manager
             ->setEntity($currentUser);
@@ -185,7 +267,7 @@ class Controller
         $currentUser = $request->getAttribute('_user');
         $urn = Urn::parse($request->getAttribute('parameters')['urn'], 'support-tier');
 
-        if (!$urn || count($urn) !== 3) {
+        if (!$urn || count($urn) !== 2) {
             throw new UserErrorException('Invalid URN', 400);
         } elseif ($urn[0] !== (string) $currentUser->guid) {
             throw new UserErrorException('You are not authorized', 403);
@@ -194,8 +276,7 @@ class Controller
         $supportTier = new SupportTier();
         $supportTier
             ->setEntityGuid($urn[0])
-            ->setCurrency($urn[1])
-            ->setGuid($urn[2]);
+            ->setGuid($urn[1]);
 
         $this->manager
             ->setEntity($currentUser)
@@ -203,6 +284,37 @@ class Controller
 
         return new JsonResponse([
             'status' => 'success',
+        ]);
+    }
+
+    /**
+     * @param ServerRequest $request
+     * @return JsonResponse
+     */
+    public function getMembers(ServerRequest $request): JsonResponse
+    {
+        /** @var string */
+        $entityGuid = $request->getAttribute('parameters')['entityGuid'];
+
+        /** @var string */
+        $supportTierUrn = $request->getAttribute('parameters')['supportTierUrn'] ?? null;
+
+        /** @var Members */
+        $members = $this->members->setEntityGuid($entityGuid);
+
+        /** @var SupportTier */
+        $supportTier = $supportTierUrn ? $this->manager->getByUrn($supportTierUrn) : null;
+
+        if ($supportTier) {
+            $members = $members->setSupportTier($supportTier);
+        }
+
+        /** @var Response */
+        $list = $members->getList();
+
+        return new JsonResponse([
+            'status' => 'success',
+            'members' => Exportable::_($list),
         ]);
     }
 }

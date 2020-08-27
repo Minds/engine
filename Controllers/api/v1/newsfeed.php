@@ -10,16 +10,15 @@ namespace Minds\Controllers\api\v1;
 
 use Minds\Api\Factory;
 use Minds\Core;
+use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Security;
 use Minds\Entities;
 use Minds\Entities\Activity;
 use Minds\Helpers;
-use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Helpers\Counters;
 use Minds\Interfaces;
 use Minds\Interfaces\Flaggable;
-use Minds\Core\Di\Di;
-use Minds\Core\Entities\Actions\Save;
 
 class newsfeed implements Interfaces\Api
 {
@@ -46,7 +45,7 @@ class newsfeed implements Interfaces\Api
                 if (!Security\ACL::_()->read($activity)) {
                     return Factory::response([
                         'status' => 'error',
-                        'message' => 'You do not have permission to view this post'
+                        'message' => 'You do not have permission to view this post',
                     ]);
                 }
 
@@ -58,20 +57,20 @@ class newsfeed implements Interfaces\Api
             default:
             case 'personal':
                 $options = [
-                    'owner_guid' => isset($pages[1]) ? $pages[1] : elgg_get_logged_in_user_guid()
+                    'owner_guid' => isset($pages[1]) ? $pages[1] : elgg_get_logged_in_user_guid(),
                 ];
                 if (isset($_GET['pinned']) && count($_GET['pinned']) > 0) {
                     $pinned_guids = [];
                     $p = explode(',', $_GET['pinned']);
                     foreach ($p as $guid) {
-                        $pinned_guids[] = (string)$guid;
+                        $pinned_guids[] = (string) $guid;
                     }
                 }
 
                 break;
             case 'network':
                 $options = [
-                    'network' => isset($pages[1]) ? $pages[1] : core\Session::getLoggedInUserGuid()
+                    'network' => isset($pages[1]) ? $pages[1] : core\Session::getLoggedInUserGuid(),
                 ];
                 break;
             case 'top':
@@ -81,8 +80,8 @@ class newsfeed implements Interfaces\Api
                         'type' => 'newsfeed',
                         'rating' => isset($_GET['rating']) ? (int) $_GET['rating'] : 1,
                         'limit' => 12,
-                        'offset' => $offset
-                      ]);
+                        'offset' => $offset,
+                    ]);
                 ksort($result['guids']);
                 $options['guids'] = $result['guids'];
                 if (!$options['guids']) {
@@ -102,7 +101,7 @@ class newsfeed implements Interfaces\Api
                 break;
             case 'container':
                 $options = [
-                    'container_guid' => isset($pages[1]) ? $pages[1] : elgg_get_logged_in_user_guid()
+                    'container_guid' => isset($pages[1]) ? $pages[1] : elgg_get_logged_in_user_guid(),
                 ];
 
                 if (isset($_GET['pinned']) && count($_GET['pinned']) > 0) {
@@ -121,19 +120,19 @@ class newsfeed implements Interfaces\Api
             if (!$offset) {
                 return Factory::response([
                     'count' => 0,
-                    'load-previous' => ''
+                    'load-previous' => '',
                 ]);
             }
 
             $namespace = Core\Entities::buildNamespace(array_merge([
-                'type' => 'activity'
+                'type' => 'activity',
             ], $options));
 
             $db = Core\Di\Di::_()->get('Database\Cassandra\Indexes');
             $guids = $db->get($namespace, [
                 'limit' => 5000,
                 'offset' => $offset,
-                'reversed' => false
+                'reversed' => false,
             ]);
 
             if (isset($guids[$offset])) {
@@ -143,13 +142,13 @@ class newsfeed implements Interfaces\Api
             if (!$guids) {
                 return Factory::response([
                     'count' => 0,
-                    'load-previous' => $offset
+                    'load-previous' => $offset,
                 ]);
             }
 
             return Factory::response([
                 'count' => count($guids),
-                'load-previous' => (string)end(array_values($guids)) ?: $offset
+                'load-previous' => (string) end(array_values($guids)) ?: $offset,
             ]);
         }
 
@@ -161,7 +160,7 @@ class newsfeed implements Interfaces\Api
         $activity = Core\Entities::get(array_merge([
             'type' => 'activity',
             'limit' => get_input('limit', 5),
-            'offset' => get_input('offset', '')
+            'offset' => get_input('offset', ''),
         ], $options));
         if (get_input('offset') && !get_input('prepend') && $activity) { // don't shift if we're prepending to newsfeed
             array_shift($activity);
@@ -176,7 +175,7 @@ class newsfeed implements Interfaces\Api
                 $limit = isset($_GET['access_token']) && $_GET['offset'] ? 2 : 1;
                 //$limit = 2;
                 $cacher = Core\Data\cache\factory::build('Redis');
-                $offset =  $cacher->get(Core\Session::getLoggedinUser()->guid . ':boost-offset:newsfeed');
+                $offset = $cacher->get(Core\Session::getLoggedinUser()->guid . ':boost-offset:newsfeed');
 
                 /** @var Core\Boost\Network\Iterator $iterator */
                 $iterator = Core\Di\Di::_()->get('Boost\Network\Iterator');
@@ -187,7 +186,6 @@ class newsfeed implements Interfaces\Api
                     //->setRating(0)
                     ->setQuality(0)
                     ->setIncrement(false);
-
 
                 foreach ($iterator as $guid => $boost) {
                     $boost->boosted = true;
@@ -262,6 +260,7 @@ class newsfeed implements Interfaces\Api
     public function post($pages)
     {
         Factory::isLoggedIn();
+
         $save = new Save();
 
         //factory::authorize();
@@ -274,7 +273,7 @@ class newsfeed implements Interfaces\Api
                 if (!Security\ACL::_()->interact($embeded, Core\Session::getLoggedinUser(), 'remind')) {
                     return Factory::response([
                         'status' => 'error',
-                        'message' => 'Actor cannot interact with the entity'
+                        'message' => 'Actor cannot interact with the entity',
                     ]);
                 }
 
@@ -285,7 +284,7 @@ class newsfeed implements Interfaces\Api
                         'to' => [$embeded->owner_guid],
                         'notification_view' => 'remind',
                         'params' => ['title' => $embeded->title ?: $embeded->message],
-                        'entity' => $embeded
+                        'entity' => $embeded,
                     ]);
                 }
 
@@ -372,7 +371,7 @@ class newsfeed implements Interfaces\Api
                                             ->setCustom('video', [
                                                 'thumbnail_src' => $embeded->getIconUrl(),
                                                 'guid' => $embeded->guid,
-                                                'mature' => $embeded instanceof Flaggable ? $embeded->getFlag('mature') : false
+                                                'mature' => $embeded instanceof Flaggable ? $embeded->getFlag('mature') : false,
                                             ])
                                             ->setMature($embeded instanceof Flaggable ? $embeded->getFlag('mature') : false)
                                             ->setTitle($embeded->title)
@@ -492,39 +491,10 @@ class newsfeed implements Interfaces\Api
                         $activity->setMature(true);
                     }
 
-                    if (isset($_POST['wire_threshold'])) {
-                        if (is_array($_POST['wire_threshold']) && ($_POST['wire_threshold']['min'] <= 0 || !$_POST['wire_threshold']['type'])) {
-                            return Factory::response([
-                                'status' => 'error',
-                                'message' => 'Invalid Wire threshold'
-                            ]);
-                        }
-
-                        $activity->setWireThreshold($_POST['wire_threshold']);
-                        $activity->setPaywall(!!$_POST['wire_threshold']);
-                    }
-
-                    if (isset($_POST['paywall']) && !$_POST['paywall']) {
-                        $activity->setWireThreshold(null);
-                        $activity->setPaywall(false);
-                    }
-
                     $activity->setEdited(true);
 
                     $activity->indexes = ["activity:$activity->owner_guid:edits"]; //don't re-index on edit
                     (new Core\Translation\Storage())->purge($activity->guid);
-
-                    if (isset($_POST['time_created']) && ($_POST['time_created'] != $activity->getTimeCreated())) {
-                        try {
-                            $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
-                            $timeCreatedDelegate->onUpdate($activity, $_POST['time_created'], time());
-                        } catch (\Exception $e) {
-                            return Factory::response([
-                                'status' => 'error',
-                                'message' => $e->getMessage(),
-                            ]);
-                        }
-                    }
 
                     $save->setEntity($activity)
                         ->save();
@@ -573,18 +543,6 @@ class newsfeed implements Interfaces\Api
                         ->setThumbnail($_POST['thumbnail']);
                 }
 
-                if (isset($_POST['wire_threshold']) && $_POST['wire_threshold']) {
-                    if (is_array($_POST['wire_threshold']) && ($_POST['wire_threshold']['min'] <= 0 || !$_POST['wire_threshold']['type'])) {
-                        return Factory::response([
-                            'status' => 'error',
-                            'message' => 'Invalid Wire threshold'
-                        ]);
-                    }
-
-                    $activity->setWireThreshold($_POST['wire_threshold']);
-                    $activity->setPayWall(true);
-                }
-
                 if (isset($_POST['attachment_guid']) && $_POST['attachment_guid']) {
                     $attachment = entities\Factory::build($_POST['attachment_guid']);
                     if (!$attachment) {
@@ -594,7 +552,7 @@ class newsfeed implements Interfaces\Api
                     if ((string) $attachment->owner_guid !== (string) Core\Session::getLoggedinUser()->guid) {
                         return Factory::response([
                             'status' => 'error',
-                            'message' => 'You are not the owner of this attachment'
+                            'message' => 'You are not the owner of this attachment',
                         ]);
                     }
 
@@ -607,19 +565,6 @@ class newsfeed implements Interfaces\Api
 
                     if ($attachment instanceof Flaggable) {
                         $attachment->setFlag('mature', $activity->getMature());
-                    }
-
-                    if ($activity->isPaywall()) {
-                        $attachment->access_id = 0;
-                        $attachment->hidden = true;
-
-                        if (method_exists($attachment, 'setFlag')) {
-                            $attachment->setFlag('paywall', true);
-                        }
-
-                        if (method_exists($attachment, 'setWireThreshold')) {
-                            $attachment->setWireThreshold($activity->getWireThreshold());
-                        }
                     }
 
                     $attachment->setNsfw($activity->getNsfw());
@@ -661,7 +606,7 @@ class newsfeed implements Interfaces\Api
                     }
                     $activity->indexes = [
                         "activity:container:$activity->container_guid",
-                        "activity:network:$activity->owner_guid"
+                        "activity:network:$activity->owner_guid",
                     ];
 
                     $cache = Di::_()->get('Cache');
@@ -687,10 +632,12 @@ class newsfeed implements Interfaces\Api
 
                 try {
                     $guid = $save->setEntity($activity)->save();
+                } catch (Core\Router\Exceptions\UnverifiedEmailException $e) {
+                    throw $e;
                 } catch (\Exception $e) {
                     return Factory::response([
                         'status' => 'error',
-                        'message' => $e->getMessage()
+                        'message' => $e->getMessage(),
                     ]);
                 }
 
@@ -705,14 +652,14 @@ class newsfeed implements Interfaces\Api
                         'entity' => $activity,
                         'services' => [
                             'facebook' => isset($_POST['facebook']) && $_POST['facebook'] ? $_POST['facebook'] : false,
-                            'twitter' => isset($_POST['twitter']) && $_POST['twitter'] ? $_POST['twitter'] : false
+                            'twitter' => isset($_POST['twitter']) && $_POST['twitter'] ? $_POST['twitter'] : false,
                         ],
                         'data' => [
                             'message' => rawurldecode($_POST['message']),
                             'perma_url' => isset($_POST['url']) ? rawurldecode($_POST['url']) : $activity->getURL(),
                             'thumbnail_src' => isset($_POST['thumbnail']) ? rawurldecode($_POST['thumbnail']) : null,
-                            'description' => isset($_POST['description']) ? rawurldecode($_POST['description']) : null
-                        ]
+                            'description' => isset($_POST['description']) ? rawurldecode($_POST['description']) : null,
+                        ],
                     ]);
 
                     // Follow activity

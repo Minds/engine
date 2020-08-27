@@ -1,6 +1,7 @@
 <?php
 /**
- * Manager
+ * Manager.
+ *
  * @author edgebal
  */
 
@@ -32,7 +33,7 @@ class Manager
 
     /** @var Delegates\SetupRoutingDelegate */
     protected $setupRoutingDelegate;
-    
+
     /** @var Delegates\SubscriptionDelegate */
     protected $subscriptionDelegate;
 
@@ -44,13 +45,14 @@ class Manager
 
     /**
      * Manager constructor.
-     * @param Repository $repository
-     * @param Save $saveAction
-     * @param EntitiesBuilder $entitiesBuilder
+     *
+     * @param Repository                           $repository
+     * @param Save                                 $saveAction
+     * @param EntitiesBuilder                      $entitiesBuilder
      * @param Delegates\InitializeSettingsDelegate $initializeSettingsDelegate
-     * @param Delegates\HydrateSettingsDelegate $hydrateSettingsDelegate
-     * @param Delegates\SetupRoutingDelegate $setupRoutingDelegate
-     * @param Delegates\SubscriptionDelegate $subscriptionDelegate
+     * @param Delegates\HydrateSettingsDelegate    $hydrateSettingsDelegate
+     * @param Delegates\SetupRoutingDelegate       $setupRoutingDelegate
+     * @param Delegates\SubscriptionDelegate       $subscriptionDelegate
      */
     public function __construct(
         $repository = null,
@@ -72,26 +74,31 @@ class Manager
 
     /**
      * @param User $user
+     *
      * @return Manager
      */
     public function setUser(User $user): Manager
     {
         $this->user = $user;
+
         return $this;
     }
 
     /**
      * @param User $actor
+     *
      * @return Manager
      */
     public function setActor(User $actor): Manager
     {
         $this->actor = $actor;
+
         return $this;
     }
 
     /**
      * @return bool
+     *
      * @throws Exception
      */
     public function isActive(): bool
@@ -105,7 +112,9 @@ class Manager
 
     /**
      * @param $until
+     *
      * @return bool
+     *
      * @throws Exception
      */
     public function enable($until): bool
@@ -129,6 +138,7 @@ class Manager
 
     /**
      * @return bool
+     *
      * @throws Exception
      */
     public function disable(): bool
@@ -152,6 +162,7 @@ class Manager
 
     /**
      * @return Settings|null
+     *
      * @throws Exception
      */
     public function get(): ?Settings
@@ -180,6 +191,7 @@ class Manager
 
     /**
      * @param Settings $settings
+     *
      * @return Settings
      */
     public function hydrate(Settings $settings): Settings
@@ -190,7 +202,9 @@ class Manager
 
     /**
      * @param array $values
+     *
      * @return bool
+     *
      * @throws Exception
      */
     public function set(array $values = []): bool
@@ -339,6 +353,10 @@ class Manager
             $this->saveAction
                 ->setEntity($this->user)
                 ->save();
+        }
+
+        if (isset($values['splash'])) {
+            $settings->setSplash($values['splash']);
         }
 
         if (isset($values['payout_method'])) {
