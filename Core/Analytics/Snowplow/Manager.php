@@ -21,7 +21,7 @@ class Manager
     public function __construct($emitter = null, $config = null)
     {
         $config = $config ?? Di::_()->get('Config');
-        $this->emitter = new CurlEmitter($config->get('snowplow')['collector_uri'], $config->get('snowplow')['proto'] ?? 'https', "POST", 2, false);
+        $this->emitter = $emitter ?? new CurlEmitter($config->get('snowplow')['collector_uri'], $config->get('snowplow')['proto'] ?? 'https', "POST", 2, false);
     }
 
     /**
