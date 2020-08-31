@@ -67,6 +67,7 @@ class YTAuth
 
         // save channel id into indexes
         $this->db->insert("yt_channel:user:{$channelId}", [$user->getGUID()]);
+        $this->db->insert("yt_channel:connected-users", [$user->getGUID() => $channelId]);
 
         $ytChannel = [
             'id' => $channelId,

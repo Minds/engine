@@ -229,6 +229,14 @@ class ManagerSpec extends ObjectBehavior
                     'tag' => 'beatles',
                 ]
             ]);
+
+        $this->hashtagManager
+            ->get([
+                'defaults' => true,
+                'limit' => 20,
+            ])
+            ->willReturn([]);
+
         $tags = $this->getTags();
         $tags['tags']->shouldHaveCount(1);
         $tags['tags'][0]->shouldBe([

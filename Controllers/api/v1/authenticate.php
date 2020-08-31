@@ -18,6 +18,7 @@ use Minds\Api\Factory;
 use Minds\Exceptions\TwoFactorRequired;
 use Minds\Core\Queue;
 use Minds\Core\Subscriptions;
+use Minds\Core\Analytics;
 
 class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
@@ -106,6 +107,13 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         // Set the canary cookie
         Di::_()->get('Features\Canary')
             ->setCookie($user->isCanary());
+
+        // Record login events
+        $event = new Analytics\Metrics\Event();
+        $event->setUserGuid($user->getGuid())
+            ->setType('action')
+            ->setAction('login')
+            ->push();
 
         $response['status'] = 'success';
         $response['user'] = $user->export();
