@@ -11,8 +11,10 @@ use Minds\Traits\MagicAttributes;
 use Minds\Core\Email\V2\Partials\SuggestedChannels\SuggestedChannels;
 use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
 use Minds\Core\Di\Di;
-use Minds\Core\Discovery;
+use Minds\Core\Feeds;
 use Minds\Core\Notification;
+use Minds\Common\Repository\Response;
+use Minds\Core\Search\SortingAlgorithms;
 
 class Digest extends EmailCampaign
 {
@@ -27,8 +29,8 @@ class Digest extends EmailCampaign
     /** @var Manager */
     protected $manager;
 
-    /** @var Discovery\Manager */
-    protected $discoveryManager;
+    /** @var Feeds\Elastic\Manager */
+    protected $feedsManager;
 
     /** @var Notification\Manager */
     protected $notificationManager;
@@ -37,13 +39,13 @@ class Digest extends EmailCampaign
         Template $template = null,
         Mailer $mailer = null,
         Manager $manager = null,
-        Discovery\Manager $discoveryManager = null,
+        Feeds\Elastic\Manager $feedsManager = null,
         Notification\Manager $notificationManager = null
     ) {
         $this->template = $template ?: new Template();
         $this->mailer = $mailer ?: new Mailer();
         $this->manager = $manager ?: Di::_()->get('Email\Manager');
-        $this->discoveryManager = $discoveryManager ?? Di::_()->get('Discovery\Manager');
+        $this->feedsManager = $feedsManager ?? Di::_()->get('Feeds\Elastic\Manager');
         $this->notificationManager = $notificationManager ?? Di::_()->get('Notification\Manager');
 
         $this->campaign = 'with';
@@ -75,20 +77,32 @@ class Digest extends EmailCampaign
         $this->template->set('topic', $this->topic);
         $this->template->set('tracking', $trackingQuery);
 
+        // Get the campaign logs for this user
+        /** @var Response */
+        $campaigns = $this->manager
+            ->getCampaignLogs($this->user)
+            ->filter(function ($campaignLog) {
+                return $campaignLog->getEmailCampaignId() === 'digest';
+            })
+            ->sort(function ($a, $b) {
+                return $a->getTimeSent() <=> $b->getTimeSent();
+            });
+
+        // Get the timestamp of the last sent campaign
+        $refUnixTimestamp = min(isset($campaigns[0]) ? $campaigns[0]->getTimeSent() : time(), strtotime('7 days ago'));
+
         // Get trends (highlights) from discovery
         try {
-            $tagTrends = $this->discoveryManager->getTagTrends([ 'limit' => 12 ]);
-            $trends = $this->discoveryManager->getPostTrends(array_map(function ($trend) {
-                return "{$trend->getHashtag()}";
-            }, $tagTrends), [ 'limit' => 6 ]);
+            $activities = $this->feedsManager->getList([
+                'subscriptions' => $this->user->getGuid(),
+                'limit' => 12,
+                'from_timestamp' => $refUnixTimestamp,
+                'algorithm' => new SortingAlgorithms\TopV2,
+            ]);
         } catch (Discovery\NoTagsException $e) {
-            $trends = [
-                [],
-                [],
-                [],
-            ];
+            $activities = new Response();
         } finally {
-            $this->template->set('trends', $trends);
+            $this->template->set('activities', $activities);
         }
 
         //
@@ -104,7 +118,7 @@ class Digest extends EmailCampaign
         $hasDigestActivity = $unreadNotificationsCount > 0;
         $this->template->set('hasDigestActivity', $hasDigestActivity);
 
-        if (!$hasDigestActivity || !count($trends)) {
+        if (!$hasDigestActivity || !count($activities)) {
             return null;
         }
 
@@ -114,7 +128,7 @@ class Digest extends EmailCampaign
         $message->setTo($this->user)
             ->setMessageId(implode(
                 '-',
-                [$this->user->guid, sha1($this->user->getEmail()), sha1($this->campaign.$this->topic.time())]
+                [$this->user->getGuid(), sha1($this->user->getEmail()), sha1($this->campaign.$this->topic.time())]
             ))
             ->setSubject($subject)
             ->setHtml($this->template);
