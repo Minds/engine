@@ -106,6 +106,7 @@ class subscribed implements Interfaces\Api
             'query' => $query ?? null,
             'nsfw' => null,
             'single_owner_threshold' => 0,
+            'portrait' => isset($_GET['portrait'])
         ];
 
         try {

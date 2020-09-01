@@ -20,4 +20,16 @@ class ObjectImageMapping extends EntityMapping implements MappingInterface
             'rating' => [ 'type' => 'integer', '$exportField' => 'rating' ],
         ]);
     }
+
+    /**
+     * Map
+     */
+    public function map(array $defaultValues = [])
+    {
+        $map = parent::map($defaultValues);
+
+        $map['is_portrait'] = $this->entity->height > $this->entity->width;
+
+        return $map;
+    }
 }

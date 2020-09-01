@@ -80,6 +80,7 @@ class Repository
             'exclude' => null,
             'pending' => false,
             'plus' => false,
+            'portrait' => false,
         ], $opts);
 
         if (!$opts['type']) {
@@ -294,6 +295,15 @@ class Repository
             $body['query']['function_score']['query']['bool']['must'][] = [
                 'term' => [
                     'wire_support_tier' => $this->plusSupportTierUrn,
+                ],
+            ];
+        }
+
+        // Portrait only?
+        if ($opts['portrait'] === true) {
+            $body['query']['function_score']['query']['bool']['must'][] = [
+                'term' => [
+                    'is_portrait' => true,
                 ],
             ];
         }
