@@ -21,6 +21,8 @@ class ObjectImageMappingSpec extends ObjectBehavior
         $image->get('rating')->willReturn(1);
         $image->get('interactions')->willReturn(42);
         $image->get('guid')->willReturn(5000);
+        $image->get('height')->willReturn(200);
+        $image->get('width')->willReturn(300);
         $image->get('type')->willReturn('object');
         $image->get('subtype')->willReturn('image');
         $image->get('time_created')->willReturn($now);
@@ -82,7 +84,8 @@ class ObjectImageMappingSpec extends ObjectBehavior
                 'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',
-                '@moderated' => $now * 1000
+                '@moderated' => $now * 1000,
+                'is_portrait' => false
             ]);
     }
 }

@@ -19,6 +19,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $now = time();
         $activity->get('moderator_guid')->willReturn(null);
         $activity->get('time_moderated')->willReturn(null);
+        $activity->get('custom_data')->willReturn(['height' => 200, 'width' => 300]);
         $activity->get('rating')->willReturn(1);
         $activity->get('interactions')->willReturn(42);
         $activity->get('guid')->willReturn(5000);
@@ -83,6 +84,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 // '@wire_support_tier_expire' => null,
                 'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ],
+                'is_portrait' => false,
             ]);
     }
 
@@ -94,6 +96,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->get('time_moderated')->willReturn(123);
         $activity->get('rating')->willReturn(1);
         $activity->get('interactions')->willReturn(42);
+        $activity->get('custom_data')->willReturn(['height' => 200, 'width' => 300]);
         $activity->get('guid')->willReturn(5000);
         $activity->get('type')->willReturn('activity');
         $activity->get('subtype')->willReturn('');
@@ -156,7 +159,8 @@ class ActivityMappingSpec extends ObjectBehavior
                 'tags' => [ 'spaceiscool', 'test', 'hashtag' ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',
-                '@moderated' => $now * 1000
+                '@moderated' => $now * 1000,
+                'is_portrait' => false
             ]);
     }
 }
