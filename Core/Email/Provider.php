@@ -42,6 +42,10 @@ class Provider extends DiProvider
             return new V2\Common\EmailStyles();
         }, ['useFactory' => false]);
 
+        $this->di->bind('Email\CampaignLogs\Manager', function ($di) {
+            return new CampaignLogs\Manager();
+        }, ['useFactory' => true]);
+
         $this->di->bind('Email\CampaignLogs\Repository', function ($di) {
             return new CampaignLogs\Repository();
         }, ['useFactory' => true]);

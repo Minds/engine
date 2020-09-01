@@ -4,7 +4,7 @@
             <p
                 <?php echo $emailStyles->getStyles('m-title--ltr', 'm-fonts'); ?>
             >
-                Some highlights from today
+                Some highlights for you
             </p>
         </td>
     </tr>
@@ -18,9 +18,9 @@
                 class="m-responsiveTable"
                 <?php echo $emailStyles->getStyles('m-maxWidth'); ?>>
 
-                <?php foreach ($vars['trends'] as $trend) { ?>
+                <?php foreach ($vars['activities'] as $activity) { ?>
                     <tr>
-                        <td>This is a trend</td>
+                        <td>This is a a post</td>
                     </tr> 
                 <?php } ?>
             </table

@@ -7,10 +7,12 @@ use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Manager;
-use Minds\Core\Discovery;
+use Minds\Core\Feeds;
 use Minds\Core\Discovery\Trend;
 use Minds\Core\Notification;
 use Minds\Entities\User;
+use Minds\Entities\Activity;
+use Minds\Common\Repository\Response;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -25,8 +27,8 @@ class DigestSpec extends ObjectBehavior
     /** @var Manager */
     protected $manager;
 
-    /** @var Discovery\Manager */
-    protected $discoveryManager;
+    /** @var Feeds\Elastic\Manager */
+    protected $feedsManager;
 
     /** @var Notification\Manager */
     protected $notificationManager;
@@ -35,11 +37,12 @@ class DigestSpec extends ObjectBehavior
         Template $template,
         Mailer $mailer,
         Manager $manager,
-        Discovery\Manager $discoveryManager,
+        Feeds\Elastic\Manager $feedsManager,
         Notification\Manager $notificationManager
     ) {
-        $this->beConstructedWith($template, $mailer, $manager, $discoveryManager, $notificationManager);
-        $this->discoveryManager = $discoveryManager;
+        $this->beConstructedWith($template, $mailer, $manager, $feedsManager, $notificationManager);
+        $this->manager = $manager;
+        $this->feedsManager = $feedsManager;
         $this->notificationManager = $notificationManager;
     }
 
@@ -53,17 +56,28 @@ class DigestSpec extends ObjectBehavior
     {
         $this->setUser($user);
 
+        $user->getGuid()->willReturn('123');
+        $user->getEmail()->willReturn('mark@minds.com');
+        $user->get('username')->willReturn('mark');
+        $user->get('name')->willReturn('mark');
+
         //
 
-        $this->discoveryManager->getTagTrends(Argument::any())
-            ->willReturn([
-                (new Trend)->setHashtag('music'),
-                (new Trend)->setHashtag('beatles'),
-                (new Trend)->setHashtag('60smusic'),
-            ]);
+        $this->manager->getCampaignLogs($user)
+            ->shouldBeCalled()
+            ->willReturn(new Response());
 
-        $this->discoveryManager->getPostTrends([ 'music', 'beatles', '60smusic' ], Argument::any())
-            ->willReturn([]);
+        //
+
+        $this->feedsManager->getList([
+            'subscriptions' => '123',
+            'limit' => 12,
+            'from_timestamp' => strtotime('7 days ago'),
+            'algorithm' => new \Minds\Core\Search\SortingAlgorithms\TopV2,
+        ])
+            ->willReturn(new Response([
+                new Activity()
+            ]));
 
         //
 
