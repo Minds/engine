@@ -11,11 +11,14 @@ use Minds\Core\Hashtags\User\Manager as HashtagManager;
 use Minds\Core\Feeds\Elastic\Manager as ElasticFeedsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Common\Repository\Response;
+use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Discovery\Manager;
+use Minds\Core\Security\ACL\Block;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+
 
 class ManagerSpec extends ObjectBehavior
 {

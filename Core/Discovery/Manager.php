@@ -42,13 +42,17 @@ class Manager
     /** @var string */
     protected $plusSupportTierUrn;
 
+    /** @var Security\ACL\Block */
+    protected $block;
+
     public function __construct(
         $es = null,
         $entitiesBuilder = null,
         $config = null,
         $hashtagManager = null,
         $elasticFeedsManager = null,
-        $user = null
+        $user = null,
+        $block = null
     ) {
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
@@ -57,6 +61,7 @@ class Manager
         $this->elasticFeedsManager = $elasticFeedsManager ?? Di::_()->get('Feeds\Elastic\Manager');
         $this->user = $user ?? Session::getLoggedInUser();
         $this->plusSupportTierUrn = $this->config->get('plus')['support_tier_urn'];
+        $this->block = $block ??  Di::_()->get('Security\ACL\Block');
     }
 
     /**
@@ -435,6 +440,11 @@ class Manager
             $exportedEntity = $entity->export();
             if (!$exportedEntity['thumbnail_src']) {
                 error_log("{$exportedEntity['guid']} has not thumbnail");
+                continue;
+            }
+         
+            // If user is blocked skip over this loop iteration.
+            if ($this->block->isBlocked($entity->getOwnerGuid())) {
                 continue;
             }
 

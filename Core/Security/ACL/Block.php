@@ -101,6 +101,11 @@ class Block
 
         $list = [];
         $result = $this->cql->request($prepared);
+
+        if (!is_iterable($result)) {
+            return false;
+        }
+
         foreach ($result as $item) {
             $list[] = $item['column1'];
         }
