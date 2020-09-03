@@ -81,7 +81,7 @@ class Repository
             foreach ($result as $row) {
                 $campaignLog = (new CampaignLog())
                     ->setReceiverGuid($row['receiver_guid']->value())
-                    ->setTimeSent($row['time_sent'])
+                    ->setTimeSent($row['time_sent']->time())
                     ->setEmailCampaignId($row['email_campaign_id']);
                 $response[] = $campaignLog;
             }

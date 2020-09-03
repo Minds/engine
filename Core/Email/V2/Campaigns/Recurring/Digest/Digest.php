@@ -82,25 +82,43 @@ class Digest extends EmailCampaign
         $campaigns = $this->manager
             ->getCampaignLogs($this->user)
             ->filter(function ($campaignLog) {
-                return $campaignLog->getEmailCampaignId() === 'digest';
+                return $campaignLog->getEmailCampaignId() === $this->getEmailCampaignId() . uniqid();
             })
             ->sort(function ($a, $b) {
                 return $a->getTimeSent() <=> $b->getTimeSent();
             });
 
         // Get the timestamp of the last sent campaign
-        $refUnixTimestamp = min(isset($campaigns[0]) ? $campaigns[0]->getTimeSent() : time(), strtotime('7 days ago'));
-
+        $refUnixTimestamp = max(isset($campaigns[0]) ? $campaigns[0]->getTimeSent() : 0, strtotime('7 days ago'));
+        
         // Get trends (highlights) from discovery
         try {
             $activities = $this->feedsManager->getList([
                 'subscriptions' => $this->user->getGuid(),
+                'hide_own_posts' => true,
                 'limit' => 12,
-                'from_timestamp' => $refUnixTimestamp,
-                'algorithm' => new SortingAlgorithms\TopV2,
-            ]);
+                'to_timestamp' => $refUnixTimestamp * 1000,
+                'algorithm' => SortingAlgorithms\DigestFeed::class,
+                'period' => 'all',
+                'type' => 'activity',
+            ])
+            ->map(function ($feedItem) {
+                return $feedItem->getEntity();
+            })
+            ->toArray();
+
+            if (count($activities)) {
+                $names = array_unique(
+                    array_map(function ($activity) {
+                        return $activity->ownerObj['name'];
+                    }, $activities)
+                );
+                $namesString = implode(', ', array_slice($names, 0, min(3, count($names) - 1))) . " and others";
+
+                $subject = "New posts from " . $namesString;
+            }
         } catch (Discovery\NoTagsException $e) {
-            $activities = new Response();
+            $activities = [];
         } finally {
             $this->template->set('activities', $activities);
         }
@@ -118,7 +136,7 @@ class Digest extends EmailCampaign
         $hasDigestActivity = $unreadNotificationsCount > 0;
         $this->template->set('hasDigestActivity', $hasDigestActivity);
 
-        if (!$hasDigestActivity || !count($activities)) {
+        if (!$hasDigestActivity && !count($activities)) {
             return null;
         }
 
@@ -143,6 +161,7 @@ class Digest extends EmailCampaign
         if ($this->canSend()) {
             $message = $this->build();
             if ($message) {
+                $this->saveCampaignLog();
                 $this->mailer->send($message);
             }
         }

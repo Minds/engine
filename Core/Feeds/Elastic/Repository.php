@@ -62,6 +62,7 @@ class Repository
             'container_guid' => null,
             'owner_guid' => null,
             'subscriptions' => null,
+            'hide_own_posts' => false,
             'access_id' => null,
             'custom_type' => null,
             'hashtags' => [],
@@ -72,6 +73,7 @@ class Repository
             'query' => null,
             'nsfw' => null,
             'from_timestamp' => null,
+            'to_timestamp' => null,
             'reverse_sort' => null,
             'exclude_moderated' => false,
             'moderation_reservations' => null,
@@ -121,6 +123,9 @@ class Repository
                 if ($this->features->has('topv2-algo')) {
                     $algorithm = new SortingAlgorithms\TopV2();
                 }
+                break;
+            case SortingAlgorithms\DigestFeed::class:
+                $algorithm = new SortingAlgorithms\DigestFeed();
                 break;
             case "latest":
             default:
@@ -195,25 +200,41 @@ class Repository
                 $body['query']['function_score']['query']['bool']['must'] = [];
             }
 
+            $should = [];
+
+            // Subquery to get the subscription content
+            $should[] = [
+                'terms' => [
+                    'owner_guid' => [
+                        'index' => 'minds-graph',
+                        'type' => 'subscriptions',
+                        'id' => (string) $opts['subscriptions'],
+                        'path' => 'guids',
+                    ],
+                ],
+            ];
+
+            // Will return own posts if requested
+            if ($opts['hide_own_posts']) {
+                if (!isset($body['query']['function_score']['query']['bool']['must_not'])) {
+                    $body['query']['function_score']['query']['bool']['must_not'] = [];
+                }
+                $body['query']['function_score']['query']['bool']['must_not'][] = [
+                    'term' => [
+                        'owner_guid' => (string) $opts['subscriptions'],
+                    ],
+                ];
+            } else {
+                $should[] = [
+                    'term' => [
+                        'owner_guid' => (string) $opts['subscriptions'],
+                    ],
+                ];
+            }
+
             $body['query']['function_score']['query']['bool']['must'][] = [
                 'bool' => [
-                    'should' => [
-                        [
-                            'terms' => [
-                                'owner_guid' => [
-                                    'index' => 'minds-graph',
-                                    'type' => 'subscriptions',
-                                    'id' => (string) $opts['subscriptions'],
-                                    'path' => 'guids',
-                                ],
-                            ],
-                        ],
-                        [
-                            'term' => [
-                                'owner_guid' => (string) $opts['subscriptions'],
-                            ],
-                        ],
-                    ],
+                    'should' => $should,
                 ],
             ];
         }
@@ -307,6 +328,7 @@ class Repository
             $timestampLowerBounds[] = (time() - static::PERIODS[$opts['period']]) * 1000;
         }
 
+        // Will start the feed after this timestamp (used for pagination)
         if ($opts['from_timestamp']) {
             if (!$opts['reverse_sort']) {
                 $timestampUpperBounds[] = (int) $opts['from_timestamp'];
@@ -315,6 +337,12 @@ class Repository
             }
         }
 
+        // Will load the feed until this timestamp is reached
+        if ($opts['to_timestamp']) {
+            $timestampLowerBounds[] = (int) $opts['to_timestamp'];
+        }
+
+        // Used to scenario such as loading scheduled posts
         if ($opts['future']) {
             $timestampLowerBounds[] = time() * 1000;
         } else {
@@ -335,7 +363,7 @@ class Repository
             if ($timestampLowerBounds) {
                 $range['gt'] = max($timestampLowerBounds);
             }
-
+            
             $body['query']['function_score']['query']['bool']['must'][] = [
                 'range' => [
                     '@timestamp' => $range,
