@@ -119,6 +119,8 @@ class Digest extends EmailCampaign
             }
         } catch (Discovery\NoTagsException $e) {
             $activities = [];
+        } catch (\Exception $e) {
+            return false;
         } finally {
             $this->template->set('activities', $activities);
         }
