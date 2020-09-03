@@ -8,6 +8,7 @@ use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Manager;
 use Minds\Core\Feeds;
+use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Discovery\Trend;
 use Minds\Core\Notification;
 use Minds\Entities\User;
@@ -71,12 +72,16 @@ class DigestSpec extends ObjectBehavior
 
         $this->feedsManager->getList([
             'subscriptions' => '123',
+            'hide_own_posts' => true,
             'limit' => 12,
-            'from_timestamp' => strtotime('7 days ago'),
-            'algorithm' => new \Minds\Core\Search\SortingAlgorithms\TopV2,
+            'to_timestamp' => strtotime('7 days ago') * 1000,
+            'algorithm' => \Minds\Core\Search\SortingAlgorithms\DigestFeed::class,
+            'period' => 'all',
+            'type' => 'activity',
         ])
             ->willReturn(new Response([
-                new Activity()
+                (new FeedSyncEntity())
+                    ->setEntity(new Activity())
             ]));
 
         //
