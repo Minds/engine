@@ -34,6 +34,7 @@ class EmailStyles
         // SPACING & LAYOUT ///////////////////////////
             'm-maxWidth' => 'max-width:600px;',
             'm-maxWidth--copy' => 'width:80%;max-width:500px',
+            'm-spacer--tiny' => 'padding: 10px 0;',
             'm-spacer--small' => 'padding: 22px 0;',
             'm-spacer--medium' => 'padding: 40px 0;',
             'm-spacer--large' => 'padding: 56px 0;',
@@ -51,8 +52,12 @@ class EmailStyles
             'm-header' => 'font-size: 24px; color: #000; margin-bottom: 10px;',
             'm-subtitle' => 'font-family:Roboto-Light; font-size: 14px; color: #4A4A4A !important; line-height: 30px;',
         
-        // PARTIAL : YOUR ACTIVITY
-            'm-digest__yourActivity' => 'width: 100%; border: 1px solid #d4d4d4; padding: 20px;'
+            // PARTIAL : Digest
+            'm-digest__avatar' => 'text-decoration: none;',
+            'm-digest__avatarImg' => 'border-radius: 30px; vertical-align: middle;',
+            'm-digest__username' => 'padding-left: 10px; text-decoration: none;',
+            'm-digest__yourActivity' => 'width: 100%; border: 1px solid #d4d4d4; padding: 20px;',
+            'm-digestYourActivity__col' => 'padding: 10px;',
         ];
     }
 
