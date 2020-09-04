@@ -10,6 +10,9 @@ class apcu extends abstractCacher
     private $installed = false;
     private $local = [];
 
+    /** @var int */
+    const MAX_LOCAL_CACHE = 1000;
+
     public function __construct()
     {
         if (function_exists('apcu_add')) {
@@ -35,7 +38,11 @@ class apcu extends abstractCacher
 
     public function set($key, $value, $ttl = 0)
     {
+        if (count($this->local) > static::MAX_LOCAL_CACHE) {
+            $this->local[$key] = []; // Clear cache if we meet the max
+        }
         $this->local[$key] = $value;
+    
         if (!$this->installed) {
             return $this;
         }
