@@ -49,7 +49,7 @@ class Digest extends EmailCampaign
         $this->notificationManager = $notificationManager ?? Di::_()->get('Notification\Manager');
 
         $this->campaign = 'with';
-        $this->topic = 'posts_missed_since_login';
+        $this->topic = 'top_posts';
     }
 
     public function build(): ?Message
