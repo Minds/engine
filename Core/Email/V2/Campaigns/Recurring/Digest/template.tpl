@@ -18,7 +18,6 @@
                 border="0"
                 cellpadding="0"
                 cellspacing="0"
-                class="m-responsiveTable"
                 <?php echo $emailStyles->getStyles('m-maxWidth'); ?>>
 
                 <?php foreach ($vars['activities'] as $activityEntity) { 
@@ -30,7 +29,6 @@
                                 border="0"
                                 cellpadding="0"
                                 cellspacing="0"
-                                class="m-responsiveTable"
                                 <?php echo $emailStyles->getStyles('m-maxWidth'); ?>>
                                 <tr>
                                     <td <?php echo $emailStyles->getStyles('m-fonts', 'm-clear'); ?> >
@@ -65,7 +63,6 @@
                                 border="0"
                                 cellpadding="0"
                                 cellspacing="0"
-                                class="m-responsiveTable"
                                 <?php echo $emailStyles->getStyles('m-maxWidth'); ?>>
                                 <tr>
                                     <td <?php echo $emailStyles->getStyles('m-clear'); ?> >
@@ -142,7 +139,6 @@
                 border="0"
                 cellpadding="0"
                 cellspacing="0"
-                class="m-responsiveTable"
                 <?php echo $emailStyles->getStyles('m-digest__yourActivity'); ?>>
 
                 <tr>
