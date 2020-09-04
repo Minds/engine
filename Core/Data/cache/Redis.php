@@ -17,7 +17,11 @@ class Redis extends abstractCacher
     private $redisMaster;
     private $redisSlave;
 
+    /** @var array */
     private $local = []; //a local cache before we check the remote
+
+    /** @var int */
+    const MAX_LOCAL_CACHE = 1000;
 
     public function __construct($config = null)
     {
@@ -50,6 +54,9 @@ class Redis extends abstractCacher
     {
         if (isset($this->local[$key])) {
             return $this->local[$key];
+        }
+        if (count($this->local) > static::MAX_LOCAL_CACHE) {
+            $this->local[$key] = []; // Clear cache if we meet the max
         }
         try {
             $redis = $this->getSlave();
