@@ -8,6 +8,7 @@ use Minds\Core\Notification\Manager;
 use Minds\Core\Notification\Notification;
 use Minds\Core\Notification\Repository;
 use Minds\Core\Notification\CassandraRepository;
+use Minds\Core\Notification\Counters;
 use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -31,14 +32,15 @@ class ManagerSpec extends ObjectBehavior
         Config $config,
         Repository $repository,
         CassandraRepository $cassandraRepository,
-        FeaturesManager $features
+        FeaturesManager $features,
+        Counters $counters
     ) {
         $this->config = $config;
         $this->repository = $repository;
         $this->cassandraRepository = $cassandraRepository;
         $this->features = $features;
 
-        $this->beConstructedWith($config, $repository, $cassandraRepository, $features);
+        $this->beConstructedWith($config, $repository, $cassandraRepository, $features, $counters);
     }
 
     public function it_is_initializable()

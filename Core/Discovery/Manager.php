@@ -60,6 +60,17 @@ class Manager
     }
 
     /**
+     * Set the user
+     * @param User $user
+     * @return self
+     */
+    public function setUser(User $user): self
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    /**
      * Return the overview for discovery
      * @param array $opts (optional)
      * @return Trend[]

@@ -9,7 +9,7 @@ use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 use Minds\Core\Email\Repository;
-use Minds\Core\Email\CampaignLogs\Repository as CampaignLogsRepository;
+use Minds\Core\Email\CampaignLogs\Manager as CampaignLogsManager;
 use Minds\Entities\User;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Email\CampaignLogs\CampaignLog;
@@ -18,13 +18,15 @@ use Spec\Minds\Mocks\Cassandra\FutureRow;
 class ManagerSpec extends ObjectBehavior
 {
     private $repository;
-    private $campaignLogsRepository;
 
-    public function let(Repository $repository, CampaignLogsRepository $campaignLogsRepository)
+    /** @var CampaignLogsManager */
+    private $campaignLogsManager;
+
+    public function let(Repository $repository, CampaignLogsManager $campaignLogsManager)
     {
         $this->repository = $repository;
-        $this->campaignLogsRepository = $campaignLogsRepository;
-        $this->beConstructedWith($this->repository, $this->campaignLogsRepository);
+        $this->campaignLogsManager = $campaignLogsManager;
+        $this->beConstructedWith($this->repository, $this->campaignLogsManager);
     }
 
     public function it_is_initializable()
@@ -127,7 +129,7 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_save_a_campaign_log()
     {
         $campaignLog = new CampaignLog();
-        $this->campaignLogsRepository->add($campaignLog)->shouldBeCalled();
+        $this->campaignLogsManager->add($campaignLog)->shouldBeCalled();
         $this->saveCampaignLog($campaignLog);
     }
 
@@ -138,7 +140,7 @@ class ManagerSpec extends ObjectBehavior
         $options = [
             'receiver_guid' => $user->guid
         ];
-        $this->campaignLogsRepository->getList($options)->shouldBeCalled();
+        $this->campaignLogsManager->getList($options)->shouldBeCalled();
         $this->getCampaignLogs($user);
     }
 }

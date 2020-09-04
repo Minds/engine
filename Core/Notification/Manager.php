@@ -25,6 +25,9 @@ class Manager
     /** @var FeaturesManager $features */
     private $features;
 
+    /** @var Counters $counters */
+    private $counters;
+
     /** @var User $user */
     private $user;
 
@@ -32,11 +35,13 @@ class Manager
         $config = null,
         $repository = null,
         $cassandraRepository = null,
-        $features = null
+        $features = null,
+        $counters = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->cassandraRepository = $cassandraRepository ?: new CassandraRepository;
         $this->features = $features ?: new FeaturesManager;
+        $this->counters = $counters ?? new Counters;
 
         if (!$this->features->has('cassandra-notifications')) {
             $this->repository = $repository ?: new Repository;
@@ -236,5 +241,15 @@ class Manager
                 break;
         }
         return 'unknown';
+    }
+
+    /**
+     * @return int
+     */
+    public function getCount(): int
+    {
+        return $this->counters
+            ->setUser($this->user)
+            ->getCount();
     }
 }

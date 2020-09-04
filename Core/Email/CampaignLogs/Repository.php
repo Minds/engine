@@ -11,6 +11,7 @@ use Cassandra\Varint;
 use Cassandra\Timestamp;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Email\CampaignLogs\CampaignLog;
+use Minds\Common\Repository\Response;
 
 class Repository
 {
@@ -37,9 +38,9 @@ class Repository
      * receiver_guid the user guid
      * limit 10
      *
-     * @return CampaignLog[]
+     * @return Response
      */
-    public function getList(array $options = [])
+    public function getList(array $options = []): Response
     {
         $options = array_merge([
             'limit' => 10,
@@ -74,23 +75,20 @@ class Repository
             error_log($e);
         }
 
-        $campaignLog = [];
-        $token = '';
+        $response = new Response();
+
         if ($result) {
             foreach ($result as $row) {
                 $campaignLog = (new CampaignLog())
                     ->setReceiverGuid($row['receiver_guid']->value())
-                    ->setTimeSent($row['time_sent'])
+                    ->setTimeSent($row['time_sent']->time())
                     ->setEmailCampaignId($row['email_campaign_id']);
-                $campaignLogs[] = $campaignLog;
+                $response[] = $campaignLog;
             }
-            $token = base64_encode($result->pagingStateToken());
+            $response->setPagingToken(base64_encode($result->pagingStateToken()));
         }
 
-        return [
-            'data' => $campaignLogs,
-            'next' => $token,
-        ];
+        return $response;
     }
 
     /**
