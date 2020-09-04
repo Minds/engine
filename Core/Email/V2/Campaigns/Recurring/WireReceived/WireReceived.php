@@ -41,7 +41,7 @@ class WireReceived extends EmailCampaign
         ];
 
 
-        $this->template->setLocale($this->user->getLanguage());
+        $this->template->setLocale($this->user->getLanguage() ?: 'en');
         $translator = $this->template->getTranslator();
 
         $subject = $translator->trans('Payment received');
