@@ -258,5 +258,5 @@ production:runners:
       - production
       - test/gitlab-ci
   environment:
-    name: production
+    name: runners
     url: https://www.minds.com/
