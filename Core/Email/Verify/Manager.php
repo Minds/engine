@@ -58,6 +58,7 @@ class Manager
         'oeewc.com',
         'us.yoshisad.com',
         'deepbluez.com',
+        'murakamibooks.com',
     ];
 
     public function __construct($service = null, $spamBlocksManager = null)
