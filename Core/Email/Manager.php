@@ -8,22 +8,23 @@ use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Entities;
 use Minds\Entities\User;
 use Minds\Core\Email\Repository;
-use Minds\Core\Email\CampaignLogs\Repository as CampaignLogsRepository;
+use Minds\Core\Email\CampaignLogs\Manager as CampaignLogsManager;
 use Minds\Core\Email\CampaignLogs\CampaignLog;
+use Minds\Common\Repository\Response;
 
 class Manager
 {
     /** @var Repository */
     protected $repository;
 
-    /** @var CampaignLogsRepository */
-    protected $campaignLogsRepository;
+    /** @var CampaignLogsManager */
+    protected $campaignLogsManager;
 
 
-    public function __construct(Repository $repository = null, CampaignLogsRepository $campaignLogsRepository = null)
+    public function __construct(Repository $repository = null, CampaignLogsManager $campaignLogsManager = null)
     {
         $this->repository = $repository ?: Di::_()->get('Email\Repository');
-        $this->campaignLogsRepository = $campaignLogsRepository ?: Di::_()->get('Email\CampaignLogs\Repository');
+        $this->campaignLogsManager = $campaignLogsManager ?? Di::_()->get('Email\CampaignLogs\Manager');
     }
 
     public function getSubscribers($options = [])
@@ -128,14 +129,14 @@ class Manager
      */
     public function saveCampaignLog(CampaignLog $campaignLog)
     {
-        $this->campaignLogsRepository->add($campaignLog);
+        $this->campaignLogsManager->add($campaignLog);
     }
 
-    public function getCampaignLogs(User $receiver)
+    public function getCampaignLogs(User $receiver): Response
     {
         $options = [
-            'receiver_guid' => $receiver->guid
+            'receiver_guid' => $receiver->getGuid()
         ];
-        return $this->campaignLogsRepository->getList($options);
+        return $this->campaignLogsManager->getList($options);
     }
 }
