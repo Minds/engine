@@ -58,6 +58,8 @@ class Digest extends EmailCampaign
             '__e_ct_guid' => $this->user->getGUID(),
             'campaign' => $this->campaign,
             'topic' => $this->topic,
+            'utm_campaign' => 'digest',
+            'utm_medium' => 'email',
         ];
 
         $trackingQuery = http_build_query($tracking);
@@ -82,7 +84,7 @@ class Digest extends EmailCampaign
         $campaigns = $this->manager
             ->getCampaignLogs($this->user)
             ->filter(function ($campaignLog) {
-                return $campaignLog->getEmailCampaignId() === $this->getEmailCampaignId() . uniqid();
+                return $campaignLog->getEmailCampaignId() === $this->getEmailCampaignId();
             })
             ->sort(function ($a, $b) {
                 return $a->getTimeSent() <=> $b->getTimeSent();
@@ -164,7 +166,7 @@ class Digest extends EmailCampaign
             $message = $this->build();
             if ($message) {
                 $this->saveCampaignLog();
-                $this->mailer->send($message);
+                $this->mailer->queue($message);
             }
         }
     }
