@@ -275,7 +275,7 @@
                     <tr>
                       <td>
                         <p <?php echo $emailStyles->getStyles('m-copy'); ?> >
-                          <?= $vars['translator']->trans('Hi') ?> Hi @<?php echo $vars['username'] ?>,
+                          <?= $vars['translator']->trans('Hi') ?> @<?php echo $vars['username'] ?>,
                         </p>
                       </td>
                     </tr>
