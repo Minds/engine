@@ -354,6 +354,9 @@
         "interactions": {
           "type": "integer"
         },
+        "is_portrait": {
+          "type": "boolean"
+        },
         "mature": {
           "type": "boolean"
         },
@@ -506,6 +509,9 @@
         },
         "interactions": {
           "type": "integer"
+        },
+        "is_portrait": {
+          "type": "boolean"
         },
         "license": {
           "type": "text"
@@ -1843,6 +1849,9 @@
         },
         "interactions": {
           "type": "integer"
+        },
+        "is_portrait": {
+          "type": "boolean"
         },
         "license": {
           "type": "text"
