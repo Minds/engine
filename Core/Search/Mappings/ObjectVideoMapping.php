@@ -23,4 +23,16 @@ class ObjectVideoMapping extends EntityMapping implements MappingInterface
             'transcoding_status' => ['type' => 'text', '$exportField' => 'transcoding_status'],
         ]);
     }
+
+    /**
+     * Map
+     */
+    public function map(array $defaultValues = [])
+    {
+        $map = parent::map($defaultValues);
+
+        $map['is_portrait'] = $this->entity->height > $this->entity->width;
+
+        return $map;
+    }
 }

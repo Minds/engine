@@ -20,6 +20,8 @@ class ObjectVideoMappingSpec extends ObjectBehavior
 
         $video->get('rating')->willReturn(1);
         $video->get('interactions')->willReturn(42);
+        $video->get('height')->willReturn(200);
+        $video->get('width')->willReturn(300);
         $video->get('guid')->willReturn(5000);
         $video->get('type')->willReturn('object');
         $video->get('subtype')->willReturn('video');
@@ -84,6 +86,7 @@ class ObjectVideoMappingSpec extends ObjectBehavior
                 'nsfw' => [1],
                 'moderator_guid' => '123',
                 '@moderated' => $now * 1000,
+                'is_portrait' => false
             ]);
     }
 }
