@@ -109,6 +109,10 @@ class subscribed implements Interfaces\Api
             'portrait' => isset($_GET['portrait'])
         ];
 
+        if ($_GET['to_timestamp']) {
+            $opts['to_timestamp'] = (int) $_GET['to_timestamp'] * 1000;
+        }
+
         try {
             $result = $manager->getList($opts);
 
