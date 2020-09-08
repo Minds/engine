@@ -92,7 +92,7 @@ class Digest extends EmailCampaign
 
         // Get the timestamp of the last sent campaign
         $refUnixTimestamp = max(isset($campaigns[0]) ? $campaigns[0]->getTimeSent() : 0, strtotime('7 days ago'));
-        
+
         // Get trends (highlights) from discovery
         try {
             $activities = $this->feedsManager->getList([
@@ -107,6 +107,9 @@ class Digest extends EmailCampaign
             ->map(function ($feedItem) {
                 return $feedItem->getEntity();
             })
+            ->filter(function ($activity) {
+                return !$activity->remind_object;
+            })
             ->toArray();
 
             if (count($activities)) {
@@ -115,7 +118,12 @@ class Digest extends EmailCampaign
                         return $activity->ownerObj['name'];
                     }, $activities)
                 );
-                $namesString = implode(', ', array_slice($names, 0, min(3, count($names) - 1))) . " and others";
+
+                if (count($names) > 1) {
+                    $namesString = implode(', ', array_slice($names, 0, min(3, count($names) - 1))) . " and others";
+                } else {
+                    $namesString = $names[0];
+                }
 
                 $subject = "New posts from " . $namesString;
             }
