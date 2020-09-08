@@ -47,7 +47,7 @@
                                         >
                                             <?php echo $activity['ownerObj']['name']; ?>
                                         </a>
-                                        - <?php echo date("F j, Y", $activity['time_created']); ?>
+                                        - <?php echo date("jS M", $activity['time_created']); ?>
                                     </td>
                                 </tr>
                             </table>
