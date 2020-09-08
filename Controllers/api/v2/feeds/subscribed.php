@@ -106,7 +106,8 @@ class subscribed implements Interfaces\Api
             'query' => $query ?? null,
             'nsfw' => null,
             'single_owner_threshold' => 0,
-            'portrait' => isset($_GET['portrait'])
+            'portrait' => isset($_GET['portrait']),
+            'hide_own_posts' => isset($_GET['hide_own_posts'])
         ];
 
         if ($_GET['to_timestamp']) {
