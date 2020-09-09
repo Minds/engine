@@ -254,7 +254,7 @@ class Manager
         ], $opts);
 
         if ($opts['plus'] === true) {
-            $opts['hoursAgo'] = 168; // 1 Week
+            $opts['hoursAgo'] = 1680; // 10 Weeks
         }
 
         $algorithm = new SortingAlgorithms\TopV2();
