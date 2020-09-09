@@ -110,7 +110,7 @@ class subscribed implements Interfaces\Api
             'hide_own_posts' => isset($_GET['hide_own_posts'])
         ];
 
-        if ($_GET['to_timestamp']) {
+        if ($_GET['to_timestamp'] ?? null) {
             $opts['to_timestamp'] = (int) $_GET['to_timestamp'] * 1000;
         }
 
