@@ -94,7 +94,7 @@ class Push implements Interfaces\NotificationExtensionInterface
         ];
 
         if ($notification['params']['focusedCommentUrn']) {
-            $push['focusedCommentUrn'] = $notification['params']['focusedCommentUrn'];
+            $push['json']['focusedCommentUrn'] = $notification['params']['focusedCommentUrn'];
         }
 
         $from_user = EntitiesFactory::build($notification['from'], [ 'cache' => true]) ?:
