@@ -668,7 +668,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface
             unset($output['deleted']);
         }
 
-        if (!$output['perma_url']) {
+        if (!($output['perma_url'] ?? null)) {
             $output['perma_url'] = $this->getUrl();
         }
 
