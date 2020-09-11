@@ -13,6 +13,7 @@ use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
 use Minds\Core\Email\V2\Delegates\ConfirmationSender;
 use Minds\Core\Email\V2\Delegates\WeMissYouSender;
+use Minds\Core\Email\V2\Delegates\DigestSender;
 use Minds\Entities\User;
 use Minds\Core\Email\Manager;
 use Minds\Core\Suggestions\Manager as SuggestionManager;
@@ -48,7 +49,7 @@ class Events
         });
 
         Dispatcher::register('user_state_change', UserActivityBuckets::STATE_COLD, function ($opts) {
-            $this->sendCampaign(new WeMissYouSender(), $opts->getParameters());
+            $this->sendCampaign(new DigestSender(), $opts->getParameters());
         });
 
         Dispatcher::register('welcome_email', 'all', function ($opts) {

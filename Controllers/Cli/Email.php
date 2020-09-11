@@ -17,6 +17,7 @@ use Minds\Core\Email\V2\Campaigns\Recurring\WeMissYou\WeMissYou;
 use Minds\Core\Email\V2\Campaigns\Recurring\Digest\Digest;
 use Minds\Core\Email\Campaigns\Recurring\WirePromotions;
 use Minds\Core\Email\V2\Delegates\ConfirmationSender;
+use Minds\Core\Email\V2\Delegates\DigestSender;
 use Minds\Core\Reports;
 use Minds\Core\Blockchain\Purchase\Delegates\IssuedTokenEmail;
 use Minds\Core\Blockchain\Purchase\Delegates\NewPurchaseEmail;
@@ -519,9 +520,8 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $userGuid = $this->getOpt('userGuid');
         $user = new User($userGuid);
 
-        $digest = new Digest();
-        $digest->setUser($user);
-        $digest->send();
+        $digest = new DigestSender();
+        $digest->send($user);
 
         $this->out('Sent');
     }
