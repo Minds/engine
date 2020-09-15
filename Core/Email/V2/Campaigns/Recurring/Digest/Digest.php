@@ -137,6 +137,12 @@ class Digest extends EmailCampaign
 
         //
 
+        if (!count($activities)) {
+            return null; // Require activies to be set in order for this email to send
+        }
+
+        //
+
         $unreadNotificationsCount = $this->notificationManager
             ->setUser($this->user)
             ->getCount();
