@@ -74,7 +74,7 @@ class DigestSpec extends ObjectBehavior
             'subscriptions' => '123',
             'hide_own_posts' => true,
             'limit' => 12,
-            'to_timestamp' => strtotime('7 days ago') * 1000,
+            'to_timestamp' => strtotime('30 days ago') * 1000,
             'algorithm' => \Minds\Core\Search\SortingAlgorithms\DigestFeed::class,
             'period' => 'all',
             'type' => 'activity',

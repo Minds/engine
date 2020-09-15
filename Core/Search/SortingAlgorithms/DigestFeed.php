@@ -38,7 +38,7 @@ class DigestFeed implements SortingAlgorithm
                     [
                         'range' => [
                             "votes:up:synced" => [
-                                'gte' => strtotime("midnight 7 days ago", time()),
+                                'gte' => strtotime("midnight 30 days ago", time()),
                             ],
                         ],
                     ],
