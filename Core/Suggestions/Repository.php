@@ -96,15 +96,15 @@ class Repository
             $must_not[]['term'] = [
                 'entity_guid.keyword' => $opts['user_guid'],
             ];
-        }
 
-        // Range
-        $must[]['range'] = [
-            '@timestamp' => [
-                'gte' => strtotime('midnight -30 days', time()) * 1000,
-                'lt' => strtotime('midnight', time()) * 1000,
-            ],
-        ];
+            // Range
+            $must[]['range'] = [
+                '@timestamp' => [
+                    'gte' => strtotime('midnight -30 days', time()) * 1000,
+                    'lt' => strtotime('midnight', time()) * 1000,
+                ],
+            ];
+        }
 
         // Remove everyone we have passed
         $must_not[]['terms'] = [
