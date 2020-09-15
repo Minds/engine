@@ -36,7 +36,7 @@ class TopV2 implements SortingAlgorithm
                     [
                         'range' => [
                             "votes:up:synced" => [
-                                'gte' => strtotime("midnight 7 days ago", time()),
+                                'gte' => strtotime("midnight 90 days ago", time()),
                             ],
                         ],
                     ],
