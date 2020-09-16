@@ -18,7 +18,7 @@ class CheckRateLimit
 
     public function __construct($cacher = null, $maps = null)
     {
-        $this->cacher = $cacher ?: Di::_()->get('Cache');
+        $this->cacher = $cacher ?: Di::_()->get('Cache\Redis');
         $this->maps = $maps ?: Maps::$maps;
     }
 
