@@ -131,6 +131,10 @@ class account implements Interfaces\Api
                 'user_guid' => $user->guid
             ]);
 
+        if ($vars['country'] === 'IN') {
+            $account->setPayoutInterval('daily');
+        }
+
         try {
             $stripeConnectManager = Core\Di\Di::_()->get('Stripe\Connect\Manager');
             $account = $stripeConnectManager->add($account);
