@@ -20,6 +20,7 @@ class Currencies
             'SG' => 'SGD',
             'US' => 'USD',
             'NZ' => 'NZD',
+            'IN' => 'INR',
         ];
 
         if (!isset($countryToCurrency[$country])) {

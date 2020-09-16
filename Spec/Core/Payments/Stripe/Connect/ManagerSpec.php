@@ -76,6 +76,8 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(null);
         $account->getPersonalIdNumber()
             ->willReturn(null);
+        $account->getPayoutInterval()
+            ->willReturn('monthly');
         $account->getEmail()
             ->willReturn('test@minds.com');
         $account->getUrl()
