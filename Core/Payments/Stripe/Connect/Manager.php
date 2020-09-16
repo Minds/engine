@@ -84,12 +84,21 @@ class Manager
           'settings' => [
             'payouts' => [
               'schedule' => [
-                'interval' => 'monthly',
-                'monthly_anchor' => 28,
+                'interval' => null,
+                'monthly_anchor' => null,
               ],
             ]
           ]
         ];
+
+        $payoutInterval = $account->getPayoutInterval();
+
+        if ($payoutInterval && $payoutInterval !== 'monthly') {
+            $data['settings']['payouts']['schedule']['interval'] = $payoutInterval;
+        } else {
+            $data['settings']['payouts']['schedule']['interval'] = 'monthly';
+            $data['settings']['payouts']['schedule']['monthly_anchor'] = 28;
+        }
 
         // Required for JP only
 
