@@ -24,6 +24,7 @@ use Minds\Traits\MagicAttributes;
  * @method Account getSSN(): string
  * @method Account getPersonalIdNumber(): string
  * @method Account getUser(): User
+ * @method Account getPayoutInterval(): string
  * @method string getEmail()
  * @method Account setEmail(string $email)
  * @method string getUrl()
