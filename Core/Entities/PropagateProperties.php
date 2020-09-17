@@ -125,11 +125,10 @@ class PropagateProperties
     {
         $activities = $this->getActivitiesForEntity($entity->getGuid());
 
-        if (!$activities) {
-            return;
-        }
-
         foreach ($activities as $activity) {
+            if (!$activity) {
+                continue;
+            }
             $this->propagateToActivity($entity, $activity);
             if ($this->changed) {
                 $this->save->setEntity($activity)->save();
