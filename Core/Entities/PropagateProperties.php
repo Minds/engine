@@ -124,6 +124,11 @@ class PropagateProperties
     protected function toActivities($entity): void
     {
         $activities = $this->getActivitiesForEntity($entity->getGuid());
+
+        if (!$activities) {
+            return;
+        }
+
         foreach ($activities as $activity) {
             $this->propagateToActivity($entity, $activity);
             if ($this->changed) {
