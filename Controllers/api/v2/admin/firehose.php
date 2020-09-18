@@ -78,7 +78,8 @@ class firehose implements Interfaces\Api, Interfaces\ApiAdminPam
             'single_owner_threshold' => 0,
             'nsfw' => [],
             'moderation_user' => Session::getLoggedinUser(),
-            'exclude_moderated' => true
+            'exclude_moderated' => true,
+            'plus' => filter_var($_GET['plus'] ?? false, FILTER_VALIDATE_BOOLEAN),
         ];
 
         if ($hashtag) {
@@ -89,7 +90,7 @@ class firehose implements Interfaces\Api, Interfaces\ApiAdminPam
             $opts['filter_hashtags'] = true;
         } elseif (!$all) {
             /** @var Core\Hashtags\User\Manager $hashtagsManager */
-            $hashtagsManager = Di::_()->get('Hashtags\User\Manager');
+            /*$hashtagsManager = Di::_()->get('Hashtags\User\Manager');
             $hashtagsManager->setUser(Session::getLoggedInUser());
 
             $result = $hashtagsManager->get([
@@ -99,7 +100,7 @@ class firehose implements Interfaces\Api, Interfaces\ApiAdminPam
             ]);
 
             $opts['hashtags'] = array_column($result ?: [], 'value');
-            $opts['filter_hashtags'] = false;
+            $opts['filter_hashtags'] = false;*/
         }
 
         try {
