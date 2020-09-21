@@ -55,6 +55,10 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
                 Counters::increment($boost->getEntity()->owner_guid, "impression");
 
                 try {
+                    if (!$boost->getEntity()) {
+                        return;
+                    }
+
                     // TODO: Ensure client_meta campaign matches this boost
 
                     $viewsManager->record(
