@@ -72,6 +72,13 @@ class keys implements Interfaces\Api
 
     public function post($pages)
     {
+        if (!$_POST['password']) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'You must provide a password.'
+            ]);
+        }
+
         $openssl = new Messenger\Encryption\OpenSSL();
         $keystore = (new Messenger\Keystore($openssl))
           ->setUser(Core\Session::getLoggedInUser());
