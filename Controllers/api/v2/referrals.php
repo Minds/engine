@@ -27,6 +27,13 @@ class referrals implements Interfaces\Api
         $limit = isset($_GET['limit']) ? $_GET['limit'] : 12;
         $offset = isset($_GET['offset']) ? $_GET['offset'] : "";
 
+        if (!$referrer_guid) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Referrer guid must be supplied.'
+            ]);
+        }
+
         $manager = Di::_()->get('Referrals\Manager');
         $opts = [
             'referrer_guid'=>$referrer_guid,
