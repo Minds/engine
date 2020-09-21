@@ -18,6 +18,13 @@ class connect implements Interfaces\Api
     {
         $user = Session::getLoggedInUser();
 
+        if (!$user) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'You must be logged in.',
+            ]);
+        }
+
         $connectManager = new Stripe\Connect\Manager();
 
         try {
