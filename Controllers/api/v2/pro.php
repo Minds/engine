@@ -23,10 +23,18 @@ class pro implements Interfaces\Api
      */
     public function get($pages)
     {
+        $user = Session::getLoggedinUser();
+
+        if (!$user) {
+            return Factory::response([
+                'isActive' => false,
+            ]);
+        }
+
         /** @var Manager $manager */
         $manager = Di::_()->get('Pro\Manager');
         $manager
-            ->setUser(Session::getLoggedinUser());
+            ->setUser($user);
 
         return Factory::response([
             'isActive' => $manager->isActive(),
