@@ -85,6 +85,9 @@ class Manager
     /** @var Core\Security\ACL */
     protected $acl;
 
+    /** @var int */
+    const WIRE_SERVICE_FEE = 0.05;
+
     public function __construct(
         $repository = null,
         $txManager = null,
@@ -304,7 +307,8 @@ class Manager
                     ->setPaymentMethod($this->payload['paymentMethodId'])
                     ->setOffSession(true)
                     ->setConfirm(true)
-                    ->setStripeAccountId($this->receiver->getMerchant()['id']);
+                    ->setStripeAccountId($this->receiver->getMerchant()['id'])
+                    ->setServiceFee(round($this->amount * static::WIRE_SERVICE_FEE));
 
                 // Charge stripe
                 $this->stripeIntentsManager->add($intent);
