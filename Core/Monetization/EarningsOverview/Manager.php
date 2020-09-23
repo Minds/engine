@@ -113,11 +113,16 @@ class Manager
         // Plus earnings
         $plusEarnings = $partnerEarningsItems['plus'] ?? new EarningsItemModel();
         $plusEarnings->setId('plus');
+
+        // Wire referrals
+        $wireReferrals = $partnerEarningsItems['wire_referral'] ?? new EarningsItemModel();
+        $wireReferrals->setId('wire_referral');
         
         $earnings->setItems([
             $pageViewEarnings,
             $referralEarnings,
             $plusEarnings,
+            $wireReferrals,
         ]);
 
         return $earnings;
