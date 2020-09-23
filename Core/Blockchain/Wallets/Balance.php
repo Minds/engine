@@ -52,4 +52,14 @@ class Balance
         //     : $offChainBalanceVal;
         return $offChainBalanceVal;
     }
+
+    /**
+     * Return a count of transactions
+     * @return int
+     */
+    public function count(): int
+    {
+        $this->offchainBalance->setUser($this->user);
+        return $this->offchainBalance->count();
+    }
 }

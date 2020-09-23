@@ -13,6 +13,8 @@ use Minds\Common\Urn;
 use Minds\Core\Entities\Resolver;
 use Minds\Core\Session;
 use Minds\Interfaces;
+use Minds\Entities\User;
+use Minds\Core\Di\Di;
 
 class entities implements Interfaces\Api
 {
@@ -46,6 +48,7 @@ class entities implements Interfaces\Api
         // Return
         return Factory::response([
             'entities' => Exportable::_(array_values($entities)),
+            'require_login' => $this->shouldRequireLogin(array_values($entities)),
         ]);
     }
 
@@ -77,5 +80,23 @@ class entities implements Interfaces\Api
     public function delete($pages)
     {
         return Factory::response([]);
+    }
+
+    /**
+     * Require login
+     * @return bool
+     */
+    public function shouldRequireLogin(array $entities): bool
+    {
+        $user = $entities[0] instanceof User ? $entities[0] : Di::_()->get('EntitiesBuilder')->single($entities[0]->owner_guid);
+
+        if (!$user) {
+            return false;
+        }
+
+        return !Session::isLoggedin() &&
+            Di::_()->get('Blockchain\Wallets\Balance')
+                ->setUser($user)
+                ->count() === 0;
     }
 }

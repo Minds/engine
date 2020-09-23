@@ -150,6 +150,10 @@ class channel implements Interfaces\Api
             }
         }
 
+        $response['require_login'] = !$isLoggedIn && Di::_()->get('Blockchain\Wallets\Balance')
+            ->setUser($user)
+            ->count() === 0;
+
         return Factory::response($response);
     }
 

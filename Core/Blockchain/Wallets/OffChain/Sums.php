@@ -119,4 +119,43 @@ class Sums
 
         return (string) BigNumber::_($rows[0]['balance']);
     }
+
+    /**
+     * Return a count of the transactions
+     * @return int
+     */
+    public function getCount(): int
+    {
+        $query = new Custom();
+
+        if ($this->user) {
+            $query->query(
+                "SELECT COUNT(*) as count
+                FROM blockchain_transactions_mainnet_by_address
+                WHERE user_guid = ?
+                AND wallet_address = 'offchain'",
+                [
+                    new Varint((int) $this->user->guid)
+                ]
+            );
+            $query->setOpts([
+                'consistency' => \Cassandra::CONSISTENCY_ALL
+            ]);
+        } else {
+            return 0;
+        }
+
+        try {
+            $rows = $this->db->request($query);
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            return 0;
+        }
+
+        if (!$rows) {
+            return 0;
+        }
+        
+        return (string) BigNumber::_($rows[0]['count']);
+    }
 }

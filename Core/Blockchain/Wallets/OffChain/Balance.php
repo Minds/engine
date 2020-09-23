@@ -45,6 +45,17 @@ class Balance
     }
 
     /**
+     * Return a count of transactions
+     * @return int
+     */
+    public function count()
+    {
+        return $this->sums
+            ->setUser($this->user)
+            ->getCount();
+    }
+
+    /**
      * @return string
      * @throws \Exception
      */
