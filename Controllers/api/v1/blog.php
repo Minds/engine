@@ -435,7 +435,7 @@ class blog implements Interfaces\Api
     }
 
     /**
-     * Checks the balance
+     * Checks if there has been any transactions
      * @param User $user
      * @return bool
      */
@@ -443,8 +443,6 @@ class blog implements Interfaces\Api
     {
         return Di::_()->get('Blockchain\Wallets\Balance')
             ->setUser($user)
-            ->get()
-            ->div(10 ** 18)
-            ->toDouble() > 0;
+            ->count() === 0;
     }
 }
