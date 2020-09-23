@@ -443,6 +443,6 @@ class blog implements Interfaces\Api
     {
         return Di::_()->get('Blockchain\Wallets\Balance')
             ->setUser($user)
-            ->count() === 0;
+            ->count() !== 0;
     }
 }
