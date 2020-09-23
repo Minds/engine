@@ -86,7 +86,7 @@ class Manager
     protected $acl;
 
     /** @var int */
-    const WIRE_SERVICE_FEE = 0.05;
+    const WIRE_SERVICE_FEE_PCT = 5;
 
     public function __construct(
         $repository = null,
@@ -308,7 +308,7 @@ class Manager
                     ->setOffSession(true)
                     ->setConfirm(true)
                     ->setStripeAccountId($this->receiver->getMerchant()['id'])
-                    ->setServiceFee(round($this->amount * static::WIRE_SERVICE_FEE));
+                    ->setServiceFeePct(static::WIRE_SERVICE_FEE_PCT);
 
                 // Charge stripe
                 $this->stripeIntentsManager->add($intent);
