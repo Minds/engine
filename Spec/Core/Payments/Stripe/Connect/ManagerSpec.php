@@ -295,4 +295,9 @@ class ManagerSpec extends ObjectBehavior
         $account = $this->getByUser($user);
         $account->shouldBe(null);
     }
+
+    public function it_should_get_application_fees()
+    {
+        $this->getApplicationFees([ 'from' => time() ]);
+    }
 }
