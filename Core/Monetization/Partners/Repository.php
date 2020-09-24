@@ -135,14 +135,16 @@ class Repository
      * @param string $guid
      * @return EarningsBalance
      */
-    public function getBalance($guid): EarningsBalance
+    public function getBalance($guid, $asOfTs = null): EarningsBalance
     {
         $statement = "SELECT SUM(amount_cents) as cents, SUM(amount_tokens) as tokens
-			FROM partner_earnings_ledger
-			WHERE user_guid = ?
-		";
+            FROM partner_earnings_ledger
+            WHERE user_guid = ?
+            AND timestamp <= ?
+        ";
         $values = [
-             new Bigint($guid)
+            new Bigint($guid),
+            new Timestamp($asOfTs ?? time()),
         ];
 
         $prepared = new Prepared();
