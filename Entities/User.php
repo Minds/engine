@@ -29,6 +29,7 @@ class User extends \ElggUser
         $this->attributes['monetization_settings'] = [];
         $this->attributes['group_membership'] = [];
         $this->attributes['tags'] = [];
+        $this->attributes['partner_rpm'] = 0;
         $this->attributes['plus'] = 0; //TODO: REMOVE
         $this->attributes['plus_expires'] = 0;
         $this->attributes['pro_expires'] = 0;
@@ -1644,5 +1645,24 @@ class User extends \ElggUser
     public function isBanned(): bool
     {
         return $this->banned === 'yes';
+    }
+
+    /**
+     * Sets the rpm for pageviews
+     * @param int $rpm
+     * @return self
+     */
+    public function setPartnerRpm(int $rpm): self
+    {
+        $this->partner_rpm = $rpm;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPartnerRpm(): int
+    {
+        return $this->partner_rpm;
     }
 }
