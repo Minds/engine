@@ -9,6 +9,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
 use Minds\Core\Plus;
+use Minds\Core\Payments\Stripe;
 use Minds\Entities\User;
 use DateTime;
 
@@ -23,6 +24,9 @@ class Manager
     /** @var int */
     const PLUS_SHARE_PCT = Plus\Manager::REVENUE_SHARE_PCT; // 25%
 
+    /** @var int */
+    const WIRE_REFERRAL_SHARE_PCT = 100; // 100%
+
     /** @var Repository */
     private $repository;
 
@@ -35,16 +39,21 @@ class Manager
     /** @var Plus\Manager */
     private $plusManager;
 
+    /** @var Stripe\Connect\Manager */
+    private $connectManager;
+
     public function __construct(
         $repository = null,
         $entityCentricManager = null,
         $entitiesBuilder = null,
-        $plusManager = null
+        $plusManager = null,
+        $connectManager = null
     ) {
         $this->repository = $repository ?? new Repository();
         $this->entityCentricManager = $entityCentricManager ?? new EntityCentricManager();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->plusManager = $plusManager ?? Di::_()->get('Plus\Manager');
+        $this->connectManager = $connectManager ?? Di::_()->get('Stripe\Connect\Manager');
     }
 
     /**
@@ -78,9 +87,62 @@ class Manager
             'from' => strtotime('midnight'),
         ], $opts);
 
+        yield from $this->issueWireReferralDeposits($opts);
         yield from $this->issuePlusDeposits($opts);
         yield from $this->issuePageviewDeposits($opts);
         yield from $this->issueReferralDeposits($opts);
+    }
+
+    /**
+     * Issue deposits for wire share deposits (pay referrals)
+     * @param array $opts
+     * @return iterable
+     */
+    protected function issueWireReferralDeposits(array $opts): iterable
+    {
+        /** @var array */
+        $feesToUserGuid = [];
+
+        /** @var iterable */
+        $applicationFees = $this->connectManager->getApplicationFees([
+            'from' => $opts['from']
+        ]);
+
+        foreach ($applicationFees as $fee) {
+            $accountId = $fee->account;
+            // Get the Stripe Connect account
+            $account = $this->connectManager->getByAccountId($accountId);
+            if (!$account) {
+                continue; // Account not found
+            }
+            $userGuid = $account->getMetadata()['guid'];
+            // Get the User
+            $user = $this->entitiesBuilder->single($userGuid);
+            if (!$user) {
+                continue; // User may have been deleted
+            }
+            // Get their referrer
+            $referrerGuid = $user->referrer;
+            if (!$referrerGuid) {
+                continue; // if no referrer to skip
+            }
+            if (!isset($feesToUser[$referrerGuid])) {
+                $feesToUserGuid[$referrerGuid] = (float) 0;
+            }
+            $feesToUserGuid[$referrerGuid] += (float) $fee->amount;
+        }
+
+        foreach ($feesToUserGuid as $userGuid => $cents) {
+            $deposit = new EarningsDeposit();
+            $deposit->setTimestamp($opts['from'])
+                ->setUserGuid($userGuid)
+                ->setAmountCents($cents)
+                ->setItem('wire_referral');
+
+            $this->repository->add($deposit);
+
+            yield $deposit;
+        }
     }
 
     /**
