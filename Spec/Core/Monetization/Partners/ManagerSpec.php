@@ -6,6 +6,7 @@ use Minds\Core\Monetization\Partners\Manager;
 use Minds\Core\Monetization\Partners\Repository;
 use Minds\Core\Monetization\Partners\EarningsDeposit;
 use Minds\Core\Monetization\Partners\EarningsBalance;
+use Minds\Core\Monetization\Partners\Delegates;
 use Minds\Core\Plus;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -19,11 +20,14 @@ class ManagerSpec extends ObjectBehavior
     /** @var Plus\Manager */
     protected $plusManager;
 
-    public function let(Repository $repository, Plus\Manager $plusManager)
-    {
+    public function let(
+        Repository $repository,
+        Plus\Manager $plusManager,
+        Delegates\EmailDelegate $emailDelegate
+    ) {
         $this->repository = $repository;
         $this->plusManager = $plusManager;
-        $this->beConstructedWith($repository, null, null, $plusManager);
+        $this->beConstructedWith($repository, null, null, $plusManager, null, null, null, $emailDelegate);
     }
 
     public function it_is_initializable()
@@ -111,7 +115,7 @@ class ManagerSpec extends ObjectBehavior
         $user->getGuid()
             ->willReturn(123);
         
-        $this->repository->getBalance("123")
+        $this->repository->getBalance("123", null)
             ->willReturn((new EarningsBalance)->setAmountCents(100));
 
         $balance = $this->getBalance($user);
