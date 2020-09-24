@@ -59,7 +59,9 @@ class Manager
         $entitiesBuilder = null,
         $plusManager = null,
         $sums = null,
-        $proManager = null
+        $proManager = null,
+        $payoutsDelegate = null,
+        $emailDelegate = null
     ) {
         $this->repository = $repository ?? new Repository();
         $this->entityCentricManager = $entityCentricManager ?? new EntityCentricManager();
@@ -67,8 +69,8 @@ class Manager
         $this->plusManager = $plusManager ?? Di::_()->get('Plus\Manager');
         $this->sums = $sums ?? new Sums();
         $this->proManager = $proManager ?? Di::_()->get('Pro\Manager');
-        $this->payoutsDelegate = new Delegates\PayoutsDelegate();
-        $this->emailDelegate = new Delegates\EmailDelegate();
+        $this->payoutsDelegate = $payoutsDelegate ?? new Delegates\PayoutsDelegate();
+        $this->emailDelegate = $emailDelegate ?? new Delegates\EmailDelegate();
     }
 
     /**
