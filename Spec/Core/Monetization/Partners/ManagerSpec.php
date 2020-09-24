@@ -6,7 +6,10 @@ use Minds\Core\Monetization\Partners\Manager;
 use Minds\Core\Monetization\Partners\Repository;
 use Minds\Core\Monetization\Partners\EarningsDeposit;
 use Minds\Core\Monetization\Partners\EarningsBalance;
+use Minds\Core\Monetization\Partners\Delegates;
 use Minds\Core\Plus;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Payments\Stripe;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -16,14 +19,27 @@ class ManagerSpec extends ObjectBehavior
     /** @var Repository */
     protected $repository;
 
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
     /** @var Plus\Manager */
     protected $plusManager;
 
-    public function let(Repository $repository, Plus\Manager $plusManager)
-    {
+    /** @var Stripe\Connect\Manager */
+    protected $connectManager;
+
+    public function let(
+        Repository $repository,
+        EntitiesBuilder $entitiesBuilder,
+        Plus\Manager $plusManager,
+        Stripe\Connect\Manager $connectManager,
+        Delegates\EmailDelegate $emailDelegate
+    ) {
         $this->repository = $repository;
+        $this->entitiesBuilder = $entitiesBuilder;
         $this->plusManager = $plusManager;
-        $this->beConstructedWith($repository, null, null, $plusManager);
+        $this->connectManager = $connectManager;
+        $this->beConstructedWith($repository, null, $entitiesBuilder, $plusManager, $connectManager, null, null, null, $emailDelegate);
     }
 
     public function it_is_initializable()
@@ -65,6 +81,31 @@ class ManagerSpec extends ObjectBehavior
                 ],
             ]);
 
+        // Wire referrals
+        $this->connectManager->getApplicationFees([
+            'from' => $asOfTs
+        ])
+            ->willReturn($this->getMockApplicationFees());
+        // Return a mock Stripe\Connect\Account instance
+        $this->connectManager->getByAccountId('acct_t1')
+            ->willReturn(
+                (new Stripe\Connect\Account)
+                ->setMetadata([
+                    'guid' => 123
+                ])
+            );
+        // Return a mock User for our account
+        $mockUser1 = new User();
+        $mockUser1->referrer = 456;
+        $this->entitiesBuilder->single(123)
+            ->willReturn($mockUser1);
+
+        $this->repository->add(Argument::that(function ($deposit) {
+            return $deposit->getAmountCents() === (float) 1000;
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->repository->add(Argument::that(function ($deposit) {
             return $deposit->getAmountCents() === (float) 125;
         }))
@@ -93,6 +134,11 @@ class ManagerSpec extends ObjectBehavior
 
         $response->current()
             ->getAmountCents()
+            ->shouldBe((float) 1000);
+        //
+        $response->next();
+        $response->current()
+            ->getAmountCents()
             ->shouldBe((float) 125);
         //
         $response->next();
@@ -111,10 +157,24 @@ class ManagerSpec extends ObjectBehavior
         $user->getGuid()
             ->willReturn(123);
         
-        $this->repository->getBalance("123")
+        $this->repository->getBalance("123", null)
             ->willReturn((new EarningsBalance)->setAmountCents(100));
 
         $balance = $this->getBalance($user);
         $balance->getAmountCents()->shouldBe(100);
+    }
+
+    /**
+     * @return \Stripe\ApplicationFee[]
+     */
+    private function getMockApplicationFees(): array
+    {
+        $fee1 = (new \Stripe\ApplicationFee);
+        $fee1->account = 'acct_t1';
+        $fee1->amount = 1000;
+
+        return [
+            $fee1,
+        ];
     }
 }

@@ -8,6 +8,7 @@ use Minds\Core\Payments\Stripe\Currencies;
 use Minds\Core\Payments\Stripe\Instances\AccountInstance;
 use Minds\Core\Payments\Stripe\Instances\BalanceInstance;
 use Minds\Core\Payments\Stripe\Instances\FileInstance;
+use Minds\Core\Payments\Stripe\Instances\ApplicationFeeInstance;
 use Minds\Core\Payments\Stripe\Transactions;
 use Stripe;
 use Minds\Entities\User;
@@ -32,13 +33,17 @@ class Manager
     /** @var Transactions\Manager */
     private $transactionsManager;
 
+    /** @var ApplicationFeeInstance */
+    private $applicationFeeInstance;
+
     public function __construct(
         Save $save = null,
         NotificationDelegate $notificationDelegate = null,
         AccountInstance $accountInstance = null,
         BalanceInstance $balanceInstance = null,
         FileInstance $fileInstance = null,
-        Transactions\Manager $transactionsManager = null
+        Transactions\Manager $transactionsManager = null,
+        ApplicationFeeInstance $applicationFeeInstance = null
     ) {
         $this->save = $save ?: new Save();
         $this->notificationDelegate = $notificationDelegate ?: new NotificationDelegate();
@@ -46,6 +51,7 @@ class Manager
         $this->balanceInstance = $balanceInstance ?: new BalanceInstance();
         $this->fileInstance = $fileInstance ?: new FileInstance();
         $this->transactionsManager = $transactionsManager ?? new Transactions\Manager();
+        $this->applicationFeeInstance = $applicationFeeInstance ?? new ApplicationFeeInstance();
     }
 
     /**
@@ -446,6 +452,44 @@ class Manager
             foreach ($accounts->autoPagingIterator() as $account) {
                 yield $account;
             }
+        }
+    }
+
+    /**
+     * Return the application fees for a query
+     * @param array $opts
+     * @return iterable
+     */
+    public function getApplicationFees(array $opts): iterable
+    {
+        $opts = array_merge([
+            'from' => null,
+            'to' => null,
+            'limit' => 20,
+        ], $opts);
+
+        $instanceOpts = [
+            'limit' => $opts['limit']
+        ];
+
+        if ($opts['from'] || $opts['to']) {
+            $instanceOpts['created'] = [];
+        }
+
+        if ($opts['from']) {
+            $instanceOpts['created']['gte'] = $opts['from'];
+        }
+
+        if ($opts['from']) {
+            $instanceOpts['created']['lt'] = $opts['to'];
+        }
+        
+        $fees = $this->applicationFeeInstance->all($instanceOpts);
+        if (!$fees) {
+            return null;
+        }
+        foreach ($fees->autoPagingIterator() as $fee) {
+            yield $fee;
         }
     }
 }
