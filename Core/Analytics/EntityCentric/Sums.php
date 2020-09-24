@@ -47,6 +47,15 @@ class Sums
             ],
         ];
 
+        if ($opts['owner_guid']) {
+            $must[] = [
+                'term' => [
+                    'owner_guid' => $opts['owner_guid']
+                ]
+            ];
+        }
+
+
         $termsAgg = [];
 
         foreach ($opts['fields'] as $field) {
@@ -62,9 +71,13 @@ class Sums
             ];
         }
 
-        $partition = 0;
+        $partition = -1;
         $partitions = 100;
         $partitionSize = 5000; // Allows for 500,000 users
+
+        if ($opts['owner_guid']) {
+            $partitions = 1;
+        }
 
         while (++$partition < $partitions) {
             // Do the query
@@ -98,7 +111,7 @@ class Sums
             $prepared = new ElasticSearch\Prepared\Search();
             $prepared->query($query);
             $response = $this->es->request($prepared);
-
+            
             foreach ($response['aggregations']['1']['buckets'] as $bucket) {
                 yield $bucket;
             }

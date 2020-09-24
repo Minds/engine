@@ -48,14 +48,14 @@ class Manager
 
     private function addPayment(PaymentIntent $intent) : PaymentIntent
     {
-        $customer = $this->customersManager->getFromUserGuid($intent->getUserGuid());
+        $customerId = $intent->getCustomerId() ?: $this->customersManager->getFromUserGuid($intent->getUserGuid())->getId();
         $params = [
             'amount' => $intent->getAmount(),
             'currency' => $intent->getCurrency(),
             'payment_method_types' => [
                 'card',
             ],
-            'customer' => $customer->getId(),
+            'customer' => $customerId,
             'payment_method' => $intent->getPaymentMethod(),
             'off_session' => $intent->isOffSession(),
             'confirm' => $intent->isConfirm(),
