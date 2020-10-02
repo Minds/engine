@@ -104,10 +104,6 @@ class Push implements Interfaces\NotificationExtensionInterface
             return;
         }
 
-        if ($from_user->guid) {
-            $push['json']['sender_guid'] = $from_user->guid;
-        }
-
         $push['title'] = 'Minds';
         $push['message'] = static::buildNotificationMessage($notification, $from_user, $entity);
         $push['large_icon'] = static::getNotificationLargeIcon($notification, $from_user);
