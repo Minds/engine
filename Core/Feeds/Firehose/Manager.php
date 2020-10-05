@@ -65,7 +65,9 @@ class Manager
         }
 
         return $response->filter(function ($entity) {
-            return (!$entity->getModeratorGuid());
+            return !$entity->getModeratorGuid() &&
+                empty($entity->getOwnerEntity()->getNsfw()) &&
+                empty($entity->getOwnerEntity()->getNsfwLock());
         });
     }
 
