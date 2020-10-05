@@ -189,7 +189,7 @@ class Factory
         static::setCORSHeader();
 
         header('Content-type: application/json');
-        echo json_encode($data);
+        echo json_encode($data, JSON_INVALID_UTF8_SUBSTITUTE);
     }
 
     /**
