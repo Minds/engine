@@ -273,7 +273,8 @@ class conversations implements Interfaces\Api
                                             "user_guid"=>$participant,
                                             "message"=>"You have a new message.",
                                             "uri" => 'chat',
-                                            'type' => 'message'
+                                            'type' => 'message',
+                                            "sender_guid" => Session::getLoggedInUserGuid()
                                         ]);
         }
 
