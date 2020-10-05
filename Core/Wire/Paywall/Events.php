@@ -57,7 +57,13 @@ class Events
 
             if ($activity->isPaywall() && $activity->owner_guid != $currentUser) {
                 $export['blurb'] = $this->extractTeaser($activity->blurb);
-                $export['message'] = $this->extractTeaser($activity->message);
+
+                // don't export teaser for status posts
+                if (!$this->isStatusPost($activity)) {
+                    $export['message'] = $this->extractTeaser($activity->message);
+                } else {
+                    $export['message'] = null;
+                }
 
                 if (!$this->featuresManager->has('paywall-2020')) {
                     $export['custom_type'] = null;
@@ -76,8 +82,16 @@ class Events
                 $activity->remind_object['owner_guid'] != $currentUser
             ) {
                 $export['remind_object'] = $activity->remind_object;
+
                 $export['remind_object']['blurb'] = $this->extractTeaser($activity->remind_object['blurb']);
-                $export['remind_object']['message'] = $this->extractTeaser($activity->remind_object['message']);
+
+                if (!$this->isStatusPost($activity->remind_object)) {
+                    $export['remind_object']['message'] = $this->extractTeaser($activity->remind_object['message']);
+                } else {
+                    $export['remind_object']['message'] = null;
+                }
+
+
 
                 if (!$this->featuresManager->has('paywall-2020')) {
                     $export['remind_object']['custom_type'] = null;
@@ -138,7 +152,7 @@ class Events
         });
 
         /*
-         * Legcacy compatability for exclusive content
+         * Legacy compatability for exclusive content
          */
         Dispatcher::register('export:extender', 'activity', function ($event) {
             $params = $event->getParameters();
@@ -151,8 +165,8 @@ class Events
 
             if ($activity->isPaywall() && !$activity->getWireThreshold()) {
                 $export['wire_threshold'] = [
-                  'type' => 'money',
-                  'min' => $activity->getOwnerEntity()->getMerchant()['exclusive']['amount'],
+                    'type' => 'money',
+                    'min' => $activity->getOwnerEntity()->getMerchant()['exclusive']['amount'],
                 ];
 
                 return $event->setResponse($export);
@@ -231,8 +245,14 @@ class Events
         if (!isset($fullText)) {
             return null;
         }
+
         $teaserText = substr($fullText, 0, 200);
 
         return $teaserText;
+    }
+
+    private function isStatusPost($activity)
+    {
+        return !$activity->custom_type && !$activity->perma_url && !$activity->remind_object;
     }
 }
