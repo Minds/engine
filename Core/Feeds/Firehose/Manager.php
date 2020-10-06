@@ -7,7 +7,6 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Elastic\Manager as TopFeedsManager;
 use Minds\Core\Entities\PropagateProperties;
-use Minds\Entities\Factory as EntitiesFactory;
 
 class Manager
 {
@@ -66,8 +65,8 @@ class Manager
         }
 
         return $response->filter(function ($entity) {
-            // build current user
-            $owner = EntitiesFactory::build($entity->getOwnerGuid());
+            // build entity owner
+            $owner = new User($entity->getOwnerGuid());
 
             // filter already moderated
             return !$entity->getModeratorGuid() &&
