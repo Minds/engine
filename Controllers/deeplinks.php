@@ -49,6 +49,8 @@ class deeplinks implements Interfaces\Api, Interfaces\ApiIgnorePam
     {
         ob_end_clean();
 
+        error_log("universal-headers\n".print_r(getallheaders(), true));
+
         header('Content-type: application/json');
         header("Access-Control-Allow-Origin: *");
         echo json_encode($this->applinks);
