@@ -36,6 +36,7 @@ class Router
         //  "/app" => "minds\\pages\\app",
         '/emails/unsubscribe' => 'Minds\\Controllers\\emails\\unsubscribe',
         '/apple-app-site-association' => '\\Minds\\Controllers\\deeplinks',
+        '/.well-known/apple-app-site-association' => '\\Minds\\Controllers\\deeplinks',
         '/checkout' => '\\Minds\\Controllers\\checkout',
     ];
 
