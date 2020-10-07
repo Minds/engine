@@ -546,6 +546,7 @@ class newsfeed implements Interfaces\Api
                     ]);
                 }
 
+                // New activity
                 $activity = new Activity();
 
                 $activity->setMature(isset($_POST['mature']) && !!$_POST['mature']);
@@ -643,14 +644,42 @@ class newsfeed implements Interfaces\Api
                     }
 
                     // TODO: Move this to Core/Feeds/Activity/Manager
-
                     if ($_POST['video_poster'] ?? null) {
                         $activity->setVideoPosterBase64Blob($_POST['video_poster']);
                         $videoPosterDelegate = new Core\Feeds\Activity\Delegates\VideoPosterDelegate();
                         $videoPosterDelegate->onAdd($activity);
                     }
 
+                    // save entity
                     $guid = $save->setEntity($activity)->save();
+
+                    // if posting to permaweb
+                    try {
+                        if (
+                            Di::_()->get('Features\Manager')->has('permaweb')
+                            && $_POST['post_to_permaweb']
+                            && $user->isPlus()
+                        ) {
+                            // get guid for linkback
+                            $newsfeedGuid = $activity->custom_type === 'video' || $activity->custom_type === 'batch'
+                                ? $activity->entity_guid
+                                : $guid;
+
+                            // dry run to generate id and save it to this activity, but not commit it to the arweave network.
+                            Di::_()->get('Permaweb\Delegates\GenerateIdDelegate')
+                                ->setActivity($activity)
+                                ->setNewsfeedGuid($newsfeedGuid)
+                                ->dispatch();
+                            
+                            // Save to permaweb.
+                            Di::_()->get('Permaweb\Delegates\DispatchDelegate')
+                                ->setActivity($activity)
+                                ->setNewsfeedGuid($newsfeedGuid)
+                                ->dispatch();
+                        }
+                    } catch (\Exception $e) {
+                        Di::_()->get('Logger')->error($e);
+                    }
                 } catch (\Exception $e) {
                     return Factory::response([
                         'status' => 'error',

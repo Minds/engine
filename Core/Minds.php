@@ -45,6 +45,7 @@ class Minds extends base
         Wire\SupportTiers\Module::class,
         Wire\Paywall\Module::class,
         I18n\Module::class,
+        Permaweb\Module::class,
     ];
 
     /**
@@ -129,6 +130,7 @@ class Minds extends base
         (new Analytics\AnalyticsProvider())->register();
         (new Channels\ChannelsProvider())->register();
         (new Blogs\BlogsProvider())->register();
+        (new Permaweb\PermawebProvider())->register();
     }
 
     /**

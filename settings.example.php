@@ -477,6 +477,7 @@ $CONFIG->set('max_video_length', 900);
 
 $CONFIG->set('max_video_length_plus', 1860);
 
+// You can find a list of all in use feature flags at Core/Features/Provider.php
 $CONFIG->set('features', [
     'psr7-router' => true,
     'es-feeds' => false,
@@ -662,4 +663,9 @@ $CONFIG->set('onboarding_v2_timestamp', 0);
 $CONFIG->set('snowplow', [
     'collector_uri' => 'host.docker.internal:8090',
     'proto' => 'http',
+]);
+
+$CONFIG->set('arweave', [
+    'host' => 'host.docker.internal',
+    'port' => 5000,
 ]);
