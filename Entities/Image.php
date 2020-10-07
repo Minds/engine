@@ -191,6 +191,7 @@ class Image extends File
             'gif',
             'time_sent',
             'paywall',
+            'permaweb_id',
         ]);
     }
 
@@ -224,6 +225,7 @@ class Image extends File
         $export['urn'] = $this->getUrn();
         $export['time_sent'] = $this->getTimeSent();
 
+        $export['permaweb_id'] = $this->getPermawebId();
         if (!Helpers\Flags::shouldDiscloseStatus($this) && isset($export['flags']['spam'])) {
             unset($export['flags']['spam']);
         }
@@ -436,5 +438,25 @@ class Image extends File
     public function setMessage($description): self
     {
         return $this->setDescription($description);
+    }
+
+    /**
+     * Sets `permaweb_id`
+     * @param string $permaweb_id
+     * @return Activity
+     */
+    public function setPermawebId(string $permaweb_id): Image
+    {
+        $this->permaweb_id = $permaweb_id;
+        return $this;
+    }
+
+    /**
+     * Gets `permaweb_id`
+     * @return string
+     */
+    public function getPermawebId(): string
+    {
+        return $this->permaweb_id;
     }
 }
