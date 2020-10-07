@@ -141,6 +141,7 @@ class Video extends MindsObject
             'youtube_channel_id',
             'transcoding_status',
             'paywall',
+            'permaweb_id',
         ]);
     }
 
@@ -188,6 +189,7 @@ class Video extends MindsObject
         $export['transcoding_status'] = $this->getTranscodingStatus();
         $export['width'] = $this->width;
         $export['height'] = $this->height;
+        $export['permaweb_id'] = $this->getPermawebId();
 
         return $export;
     }
@@ -471,5 +473,25 @@ class Video extends MindsObject
     {
         $this->youtube_thumbnail = $url;
         return $this;
+    }
+
+    /**
+     * Sets `permaweb_id`
+     * @param string $permaweb_id
+     * @return Activity
+     */
+    public function setPermawebId(string $permaweb_id): Video
+    {
+        $this->permaweb_id = $permaweb_id;
+        return $this;
+    }
+
+    /**
+     * Gets `permaweb_id`
+     * @return string
+     */
+    public function getPermawebId(): string
+    {
+        return $this->permaweb_id;
     }
 }

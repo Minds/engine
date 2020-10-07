@@ -52,6 +52,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             'ephemeral' => false,
             'time_sent' => null,
             'license' => '',
+            'permaweb_id' => '',
             //	'node' => elgg_get_site_url()
         ]);
     }
@@ -233,6 +234,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'hide_impressions',
                 'pinned',
                 'time_sent',
+                'permaweb_id'
             ]
         );
     }
@@ -298,6 +300,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         }
 
         $export['thumbnails'] = $this->getThumbnails();
+
+        $export['permaweb_id'] = $this->getPermawebId();
 
         switch ($this->custom_type) {
             case 'video':
@@ -892,5 +896,25 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function getAccessId(): string
     {
         return $this->access_id;
+    }
+
+    /**
+     * Sets `permaweb_id`
+     * @param string $permaweb_id
+     * @return Activity
+     */
+    public function setPermawebId(string $permaweb_id): Activity
+    {
+        $this->permaweb_id = $permaweb_id;
+        return $this;
+    }
+
+    /**
+     * Gets `permaweb_id`
+     * @return string
+     */
+    public function getPermawebId(): string
+    {
+        return $this->permaweb_id;
     }
 }
