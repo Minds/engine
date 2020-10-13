@@ -287,6 +287,9 @@ class Manager
                 if (!$this->acl->read($entity)) {
                     continue;
                 }
+                if (array_diff($entity->getNsfw(), $opts['nsfw'])) {
+                    continue; // User not viewing NSFW
+                }
                 $entities[] = (new FeedSyncEntity)
                                  ->setGuid($entity->getGuid())
                                  ->setOwnerGuid($entity->getOwnerGuid())
