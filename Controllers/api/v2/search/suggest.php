@@ -32,7 +32,8 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 12;
-        $hydrate = isset($_GET['hydrate']) && $_GET['hydrate'];
+        //$hydrate = isset($_GET['hydrate']) && $_GET['hydrate'];
+        $hydrate = true;
 
         $query = str_replace('#', '', $_GET['q']);
 
@@ -41,7 +42,7 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
         try {
             $entities = $search->suggest('user', $query, $limit);
             $entities = array_values(array_filter($entities, function ($entity) {
-                return isset($entity['guid']);
+                return isset($entity['guid']) && !$entity['nsfw'];
             }));
 
             if ($entities && $hydrate) {
@@ -52,7 +53,13 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
                 }
                 
                 if ($guids) {
-                    $entities = Factory::exportable(Di::_()->get('Entities')->get([ 'guids' => $guids ]));
+                    $entities = array_filter(Di::_()->get('Entities')->get([ 'guids' => $guids ]), function ($entity) {
+                        if (count($entity->getNsfw())) {
+                            return false;
+                        }
+                        return true;
+                    });
+                    $entities = Factory::exportable(array_values($entities));
                 }
             }
 
