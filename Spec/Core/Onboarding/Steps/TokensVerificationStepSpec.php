@@ -1,24 +1,24 @@
 <?php
 
-namespace Spec\Minds\Core\Onboarding\Delegates;
+namespace Spec\Minds\Core\Onboarding\Steps;
 
-use Minds\Core\Onboarding\Delegates\SuggestedGroupsDelegate;
+use Minds\Core\Onboarding\Steps\TokensVerificationStep;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-class SuggestedGroupsDelegateSpec extends ObjectBehavior
+class TokensVerificationStepSpec extends ObjectBehavior
 {
     public function it_is_initializable()
     {
-        $this->shouldHaveType(SuggestedGroupsDelegate::class);
+        $this->shouldHaveType(TokensVerificationStep::class);
     }
 
     public function it_should_check_if_completed(User $user)
     {
-        $user->getGroupMembership()
+        $user->getPhoneNumberHash()
             ->shouldBeCalled()
-            ->willReturn([2000, 2001]);
+            ->willReturn('0303456');
 
         $this
             ->isCompleted($user)
@@ -27,9 +27,9 @@ class SuggestedGroupsDelegateSpec extends ObjectBehavior
 
     public function it_should_check_if_not_completed(User $user)
     {
-        $user->getGroupMembership()
+        $user->getPhoneNumberHash()
             ->shouldBeCalled()
-            ->willReturn([]);
+            ->willReturn(null);
 
         $this
             ->isCompleted($user)

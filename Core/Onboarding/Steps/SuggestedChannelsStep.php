@@ -5,11 +5,11 @@
  * @author emi
  */
 
-namespace Minds\Core\Onboarding\Delegates;
+namespace Minds\Core\Onboarding\Steps;
 
 use Minds\Entities\User;
 
-class SuggestedChannelsDelegate implements OnboardingDelegate
+class SuggestedChannelsStep implements OnboardingStepInterface
 {
     /**
      * @param User $user
