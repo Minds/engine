@@ -4,7 +4,8 @@ namespace Spec\Minds\Core\Onboarding;
 
 use Minds\Core\Config;
 use Minds\Core\Features\Manager as FeaturesManager;
-use Minds\Core\Onboarding\Delegates\OnboardingDelegate;
+use Minds\Core\Onboarding\Steps\OnboardingStepInterface;
+use Minds\Core\Onboarding\OnboardingGroups;
 use Minds\Core\Onboarding\Manager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -21,9 +22,9 @@ class ManagerSpec extends ObjectBehavior
     protected $config;
 
     public function let(
-        OnboardingDelegate $onboardingDelegate1,
-        OnboardingDelegate $onboardingDelegate2,
-        OnboardingDelegate $onboardingDelegate3,
+        OnboardingStepInterface $onboardingDelegate1,
+        OnboardingStepInterface $onboardingDelegate2,
+        OnboardingStepInterface $onboardingDelegate3,
         FeaturesManager $features,
         Config $config
     ) {
@@ -111,6 +112,84 @@ class ManagerSpec extends ObjectBehavior
             ->getCreatorFrequency()
             ->shouldReturn('rarely');
     }
+
+    public function it_should_return_initial_onboarding(OnboardingGroups\InitialOnboardingGroup $initialOnboardingGroup)
+    {
+        $this->beConstructedWith(null, null, null, $initialOnboardingGroup);
+
+        $user = new User();
+
+        $initialOnboardingGroup->setUser($user)
+            ->willReturn($initialOnboardingGroup);
+
+        $initialOnboardingGroup->isCompleted()
+            ->willReturn(false);
+
+        $initialOnboardingGroup->getCompletedPct()
+            ->willReturn(0.2);
+
+        //
+
+        $this->setUser($user);
+        $this->getOnboardingGroup()
+            ->shouldBe($initialOnboardingGroup);
+    }
+
+    public function it_should_return_ongoing_onboarding(OnboardingGroups\InitialOnboardingGroup $initialOnboardingGroup, OnboardingGroups\OngoingOnboardingGroup $ongoingOnboardingGroup)
+    {
+        $this->beConstructedWith(null, null, null, $initialOnboardingGroup, $ongoingOnboardingGroup);
+    
+        $user = new User();
+
+        $initialOnboardingGroup->setUser($user)
+            ->willReturn($initialOnboardingGroup);
+
+        $initialOnboardingGroup->isCompleted()
+            ->willReturn(true);
+
+        $ongoingOnboardingGroup->setUser($user)
+            ->willReturn($ongoingOnboardingGroup);
+
+        //
+
+        $this->setUser($user);
+        $this->getOnboardingGroup()
+            ->shouldBe($ongoingOnboardingGroup);
+    }
+
+    public function it_should_set_initial_onboarding_as_complete(
+        User $user,
+        OnboardingGroups\InitialOnboardingGroup $initialOnboardingGroup,
+        OnboardingGroups\OngoingOnboardingGroup $ongoingOnboardingGroup
+    ) {
+        $this->beConstructedWith(null, null, null, $initialOnboardingGroup, $ongoingOnboardingGroup);
+
+        $user->setInitialOnboardingCompleted(time())
+            ->willReturn($user);
+
+        $user->save()
+            ->shouldBeCalled();
+
+        $initialOnboardingGroup->setUser($user)
+            ->willReturn($initialOnboardingGroup);
+
+        $initialOnboardingGroup->isCompleted()
+            ->willReturn(false);
+
+        $initialOnboardingGroup->getCompletedPct()
+            ->willReturn(1);
+
+        $ongoingOnboardingGroup->setUser($user)
+            ->willReturn($ongoingOnboardingGroup);
+
+        //
+
+        $this->setUser($user);
+        $this->getOnboardingGroup()
+            ->shouldBe($ongoingOnboardingGroup);
+    }
+
+    // Legacy steps (will be removed soon --- OCT 2020 - MH)
 
     public function it_should_set_creator_frequency(User $user)
     {

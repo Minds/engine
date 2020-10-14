@@ -67,6 +67,7 @@ class Provider extends DiProvider
                 'permaweb',
                 'subscriber-conversations',
                 'activity-modal',
+                'onboarding-october-2020',
             ];
         });
 

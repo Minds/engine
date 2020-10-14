@@ -55,6 +55,7 @@ class User extends \ElggUser
         $this->attributes['opted_in_hashtags'] = 0;
         $this->attributes['last_accepted_tos'] = Core\Config::_()->get('last_tos_update');
         $this->attributes['onboarding_shown'] = 0;
+        $this->attributes['initial_onboarding_completed'] = 0;
         $this->attributes['creator_frequency'] = null;
         $this->attributes['last_avatar_upload'] = 0;
         $this->attributes['canary'] = 0;
@@ -152,6 +153,26 @@ class User extends \ElggUser
         $this->onboarding_shown = $onboardingShown ? 1 : 0;
 
         return $this;
+    }
+
+    /**
+     * Sets `initial_onboarding_completed`.
+     * @param int $ts - timestamp in seconds
+     * @return $this
+     */
+    public function setInitialOnboardingCompleted(int $ts): self
+    {
+        $this->initial_onboarding_completed = $ts;
+        return $this;
+    }
+
+    /**
+     * Return the time initial onboarding was completed
+     * @return int
+     */
+    public function getInitialOnboardingCompleted(): int
+    {
+        return $this->initial_onboarding_completed;
     }
 
     /**
