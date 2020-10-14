@@ -67,6 +67,7 @@ class Provider extends DiProvider
                 'permaweb',
                 'subscriber-conversations',
                 'activity-modal',
+                'channel-grid',
             ];
         });
 
