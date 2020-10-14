@@ -25,6 +25,16 @@ abstract class AbstractOnboardingGroup implements OnboardingGroupInterface
     }
 
     /**
+     * Returns a shortId
+     * @return string
+     */
+    public function getId(): string
+    {
+        $reflect = new \ReflectionClass($this);
+        return $reflect->getShortName();
+    }
+
+    /**
      * Returns the steps for the onboarding groups
      * @return OnboardingStepInterface[]
      */
@@ -67,6 +77,7 @@ abstract class AbstractOnboardingGroup implements OnboardingGroupInterface
     public function export(array $extras = []): array
     {
         return [
+            'id' => $this->getId(),
             'completed_pct' => $this->getCompletedPct(),
             'is_completed' => $this->isCompleted(),
             'steps' => array_map(function ($step) {
@@ -74,7 +85,7 @@ abstract class AbstractOnboardingGroup implements OnboardingGroupInterface
                 // return $step->export();
 
                 return [
-                    'id' => get_class($step),
+                    'id' => (new \ReflectionClass($step))->getShortName(),
                     'is_completed' => $step->isCompleted($this->user)
                 ];
             }, $this->getSteps()),
