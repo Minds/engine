@@ -1,15 +1,15 @@
 <?php
 /**
- * Briefdescription.
+ * CreatorFrequency.
  *
  * @author emi
  */
 
-namespace Minds\Core\Onboarding\Delegates;
+namespace Minds\Core\Onboarding\Steps;
 
 use Minds\Entities\User;
 
-class BriefdescriptionDelegate implements OnboardingDelegate
+class CreatorFrequencyStep implements OnboardingStepInterface
 {
     /**
      * @param User $user
@@ -17,6 +17,6 @@ class BriefdescriptionDelegate implements OnboardingDelegate
      */
     public function isCompleted(User $user)
     {
-        return (bool) $user->briefdescription;
+        return (bool) $user->getCreatorFrequency();
     }
 }

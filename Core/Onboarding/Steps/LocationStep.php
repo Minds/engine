@@ -3,11 +3,11 @@
  * @author: eiennohi.
  */
 
-namespace Minds\Core\Onboarding\Delegates;
+namespace Minds\Core\Onboarding\Steps;
 
 use Minds\Entities\User;
 
-class DateOfBirthDelegate implements OnboardingDelegate
+class LocationStep implements OnboardingStepInterface
 {
     /**
      * @param User $user
@@ -15,6 +15,6 @@ class DateOfBirthDelegate implements OnboardingDelegate
      */
     public function isCompleted(User $user)
     {
-        return (bool) $user->getDateOfBirth();
+        return (bool) $user->city;
     }
 }

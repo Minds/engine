@@ -1,24 +1,24 @@
 <?php
 
-namespace Spec\Minds\Core\Onboarding\Delegates;
+namespace Spec\Minds\Core\Onboarding\Steps;
 
-use Minds\Core\Onboarding\Delegates\DisplayNameDelegate;
+use Minds\Core\Onboarding\Steps\VerifyUniquenessStep;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-class DisplayNameDelegateSpec extends ObjectBehavior
+class VerifyUniquenessStepSpec extends ObjectBehavior
 {
     public function it_is_initializable()
     {
-        $this->shouldHaveType(DisplayNameDelegate::class);
+        $this->shouldHaveType(VerifyUniquenessStep::class);
     }
 
     public function it_should_check_if_completed(User $user)
     {
-        $user->get('name')
+        $user->getPhoneNumberHash()
             ->shouldBeCalled()
-            ->willReturn('phpspec');
+            ->willReturn('0303456');
 
         $this
             ->isCompleted($user)
@@ -27,9 +27,9 @@ class DisplayNameDelegateSpec extends ObjectBehavior
 
     public function it_should_check_if_not_completed(User $user)
     {
-        $user->get('name')
+        $user->getPhoneNumberHash()
             ->shouldBeCalled()
-            ->willReturn('');
+            ->willReturn(null);
 
         $this
             ->isCompleted($user)

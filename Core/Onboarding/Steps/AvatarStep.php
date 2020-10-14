@@ -5,13 +5,13 @@
  * @author emi
  */
 
-namespace Minds\Core\Onboarding\Delegates;
+namespace Minds\Core\Onboarding\Steps;
 
 use Minds\Entities\User;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 
-class AvatarDelegate implements OnboardingDelegate
+class AvatarStep implements OnboardingStepInterface
 {
     /** @var Config $config */
     private $config;

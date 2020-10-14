@@ -1,15 +1,15 @@
 <?php
 /**
- * DisplayName.
+ * Briefdescription.
  *
  * @author emi
  */
 
-namespace Minds\Core\Onboarding\Delegates;
+namespace Minds\Core\Onboarding\Steps;
 
 use Minds\Entities\User;
 
-class DisplayNameDelegate implements OnboardingDelegate
+class BriefdescriptionStep implements OnboardingStepInterface
 {
     /**
      * @param User $user
@@ -17,6 +17,6 @@ class DisplayNameDelegate implements OnboardingDelegate
      */
     public function isCompleted(User $user)
     {
-        return (bool) $user->name;
+        return (bool) $user->briefdescription;
     }
 }

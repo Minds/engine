@@ -1,24 +1,23 @@
 <?php
 
-namespace Spec\Minds\Core\Onboarding\Delegates;
+namespace Spec\Minds\Core\Onboarding\Steps;
 
-use Minds\Core\Onboarding\Delegates\BriefdescriptionDelegate;
+use Minds\Core\Onboarding\Steps\VerifyEmailStep;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-class BriefdescriptionDelegateSpec extends ObjectBehavior
+class VerifyEmailStepSpec extends ObjectBehavior
 {
     public function it_is_initializable()
     {
-        $this->shouldHaveType(BriefdescriptionDelegate::class);
+        $this->shouldHaveType(VerifyEmailStep::class);
     }
 
     public function it_should_check_if_completed(User $user)
     {
-        $user->get('briefdescription')
-            ->shouldBeCalled()
-            ->willReturn('phpspec');
+        $user->isEmailConfirmed()
+            ->willReturn(true);
 
         $this
             ->isCompleted($user)
@@ -27,9 +26,8 @@ class BriefdescriptionDelegateSpec extends ObjectBehavior
 
     public function it_should_check_if_not_completed(User $user)
     {
-        $user->get('briefdescription')
-            ->shouldBeCalled()
-            ->willReturn('');
+        $user->isEmailConfirmed()
+            ->willReturn(false);
 
         $this
             ->isCompleted($user)
