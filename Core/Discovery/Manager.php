@@ -257,6 +257,8 @@ class Manager
             $opts['hoursAgo'] = 1680; // 10 Weeks
         }
 
+        $type = 'activity';
+
         $algorithm = new SortingAlgorithms\TopV2();
 
         $highlightTemplate = [
@@ -312,6 +314,9 @@ class Manager
                     'wire_support_tier' => $this->plusSupportTierUrn,
                 ],
             ];
+            // Only blogs and videos show in top half of discovery
+            // as we don't want blury thumbnails
+            $type = 'object:video,object:blog';
         }
 
         // Not NSFW
@@ -382,7 +387,7 @@ class Manager
 
         $query = [
             'index' => $this->config->get('elasticsearch')['index'],
-            'type' => 'activity',
+            'type' => $type,
             'body' =>  [
                 'query' => [
                     'function_score' => [
