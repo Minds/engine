@@ -48,7 +48,7 @@ class Events
 
             $dirty = false;
 
-            if ($blog->isPaywall() && $blog->owner_guid != $currentUser) {
+            if ($blog->isPaywall() && $blog->owner_guid != $currentUser && !$blog->isPayWallUnlocked()) {
                 $export['description'] = '';
                 $export['body'] = '';
                 $dirty = true;
