@@ -128,6 +128,10 @@ class Repository
             case SortingAlgorithms\DigestFeed::class:
                 $algorithm = new SortingAlgorithms\DigestFeed();
                 break;
+            case SortingAlgorithms\PlusFeed::class:
+            case "plusFeed":
+                $algorithm = new SortingAlgorithms\PlusFeed();
+                break;
             case "latest":
             default:
                 $algorithm = new SortingAlgorithms\Chronological();
