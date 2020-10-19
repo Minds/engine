@@ -12,6 +12,7 @@ use Minds\Core\Hashtags\HashtagEntity;
 use Minds\Common\Repository\Response;
 use Minds\Core\Feeds\Elastic\Manager as ElasticFeedsManager;
 use Minds\Core\Search\SortingAlgorithms;
+use Minds\Entities\Video;
 
 class Manager
 {
@@ -452,6 +453,10 @@ class Manager
             if (!$exportedEntity['thumbnail_src']) {
                 error_log("{$exportedEntity['guid']} has not thumbnail");
                 continue;
+            }
+
+            if (!$title && $entity instanceof Entities\Video) {
+                $title = strlen($entity->description) > 60 ? substr($entity->description, 0, 60) . '...' : $entity->description;
             }
 
             $trend = new Trend();
