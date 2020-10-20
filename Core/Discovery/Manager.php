@@ -12,7 +12,7 @@ use Minds\Core\Hashtags\HashtagEntity;
 use Minds\Common\Repository\Response;
 use Minds\Core\Feeds\Elastic\Manager as ElasticFeedsManager;
 use Minds\Core\Search\SortingAlgorithms;
-use Minds\Entities\Video;
+use Minds\Entities;
 
 class Manager
 {
