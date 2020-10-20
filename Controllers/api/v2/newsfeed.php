@@ -658,7 +658,6 @@ class newsfeed implements Interfaces\Api
                         if (
                             Di::_()->get('Features\Manager')->has('permaweb')
                             && $_POST['post_to_permaweb']
-                            && $user->isPlus()
                         ) {
                             // get guid for linkback
                             $newsfeedGuid = $activity->custom_type === 'video' || $activity->custom_type === 'batch'
