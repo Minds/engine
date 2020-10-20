@@ -270,7 +270,8 @@ class Subscription
             }
         }
 
-        $export['entity'] = Factory::build($this->getEntity()->guid)->export();
+        $entity = Factory::build($this->getEntity()->guid);
+        $export['entity'] = $entity ? $entity->export() : null;
         $export['entity_guid'] = $this->getEntity() ? $this->getEntity()->guid : null;
         $export['user_guid'] = $this->getUser() ? $this->getUser()->guid : null;
 
