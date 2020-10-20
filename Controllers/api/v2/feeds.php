@@ -29,7 +29,7 @@ class feeds implements Interfaces\Api
      */
     public function get($pages)
     {
-        Factory::isLoggedIn();
+        // Factory::isLoggedIn();
 
         $now = time();
         $periodsInSecs = Core\Feeds\Elastic\Repository::PERIODS;
