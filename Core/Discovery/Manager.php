@@ -12,6 +12,7 @@ use Minds\Core\Hashtags\HashtagEntity;
 use Minds\Common\Repository\Response;
 use Minds\Core\Feeds\Elastic\Manager as ElasticFeedsManager;
 use Minds\Core\Search\SortingAlgorithms;
+use Minds\Entities;
 
 class Manager
 {
@@ -257,6 +258,8 @@ class Manager
             $opts['hoursAgo'] = 1680; // 10 Weeks
         }
 
+        $type = 'activity';
+
         $algorithm = new SortingAlgorithms\TopV2();
 
         $highlightTemplate = [
@@ -312,6 +315,9 @@ class Manager
                     'wire_support_tier' => $this->plusSupportTierUrn,
                 ],
             ];
+            // Only blogs and videos show in top half of discovery
+            // as we don't want blury thumbnails
+            $type = 'object:video,object:blog';
         }
 
         // Not NSFW
@@ -382,7 +388,7 @@ class Manager
 
         $query = [
             'index' => $this->config->get('elasticsearch')['index'],
-            'type' => 'activity',
+            'type' => $type,
             'body' =>  [
                 'query' => [
                     'function_score' => [
@@ -447,6 +453,13 @@ class Manager
             if (!$exportedEntity['thumbnail_src']) {
                 error_log("{$exportedEntity['guid']} has not thumbnail");
                 continue;
+            }
+
+            if (!$title && $entity instanceof Entities\Video) {
+                if (!$entity->description) {
+                    continue; // We have nothing to create title or description here, so skip it
+                }
+                $title = strlen($entity->description) > 60 ? substr($entity->description, 0, 60) . '...' : $entity->description;
             }
 
             $trend = new Trend();

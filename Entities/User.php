@@ -1686,4 +1686,16 @@ class User extends \ElggUser
     {
         return $this->partner_rpm;
     }
+
+    /**
+     * @return array
+     */
+    public function getNsfw(): array
+    {
+        $nsfw = parent::getNsfw();
+        if ($this->is_mature) {
+            $nsfw[] = 6; // other
+        }
+        return $nsfw;
+    }
 }
