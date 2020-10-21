@@ -28,7 +28,10 @@ class CreatePostStep implements OnboardingStepInterface
     public function isCompleted(User $user)
     {
         return count($this->elasticFeedManager->getList([
+            'type' => 'activity',
             'owner_guid' => $user->getGuid(),
+            'algorithm' => 'latest',
+            'period' => 'relevant',
             'limit' => 1,
         ])) === 1;
     }

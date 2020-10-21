@@ -30,7 +30,10 @@ class CreatePostStepSpec extends ObjectBehavior
             ->willReturn(123);
 
         $this->elasticFeedManager->getList([
+            'type' => 'activity',
             'owner_guid' => 123,
+            'algorithm' => 'latest',
+            'period' => 'relevant',
             'limit' => 1,
         ])
             ->willReturn([
@@ -48,7 +51,10 @@ class CreatePostStepSpec extends ObjectBehavior
             ->willReturn(123);
 
         $this->elasticFeedManager->getList([
+            'type' => 'activity',
             'owner_guid' => 123,
+            'algorithm' => 'latest',
+            'period' => 'relevant',
             'limit' => 1,
         ])
             ->willReturn([]);
