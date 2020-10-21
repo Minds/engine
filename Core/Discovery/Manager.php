@@ -456,6 +456,9 @@ class Manager
             }
 
             if (!$title && $entity instanceof Entities\Video) {
+                if (!$entity->description) {
+                    continue; // We have nothing to create title or description here, so skip it
+                }
                 $title = strlen($entity->description) > 60 ? substr($entity->description, 0, 60) . '...' : $entity->description;
             }
 
