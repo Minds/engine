@@ -94,7 +94,7 @@ class PlusDigest extends EmailCampaign
                 'to_timestamp' => $refUnixTimestamp * 1000,
                 'algorithm' => SortingAlgorithms\PlusFeed::class,
                 'period' => 'all',
-                'type' => 'activity',
+                'type' => 'object:video,object:blog',
             ])
             ->map(function ($feedItem) {
                 return $feedItem->getEntity();
