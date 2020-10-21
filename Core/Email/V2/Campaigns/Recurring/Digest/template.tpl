@@ -17,7 +17,7 @@
             </td>
         </tr>
 
-    <?php } else {
+    <?php } else { ?>
 
         <tr>
             <td>
