@@ -16,7 +16,7 @@ use Minds\Core\Notification;
 use Minds\Common\Repository\Response;
 use Minds\Core\Search\SortingAlgorithms;
 
-class Digest extends EmailCampaign
+class PlusDigest extends EmailCampaign
 {
     use MagicAttributes;
 
@@ -58,19 +58,19 @@ class Digest extends EmailCampaign
             '__e_ct_guid' => $this->user->getGUID(),
             'campaign' => $this->campaign,
             'topic' => $this->topic,
-            'utm_campaign' => 'digest',
+            'utm_campaign' => 'digest_plus',
             'utm_medium' => 'email',
         ];
 
         $trackingQuery = http_build_query($tracking);
-        $subject = 'Your Minds Digest';
+        $subject = 'Top Minds+ posts of the week';
 
         $this->template->setTemplate('default.tpl');
         $this->template->setBody('./template.tpl');
         $this->template->set('title', "Hi @{$this->user->username}");
         $this->template->set('hideGreeting', true);
         $this->template->set('signoff', 'Thank you,');
-        $this->template->set('preheader', 'Some highlights from today');
+        $this->template->set('preheader', 'Some highlights of Minds+ from the past week');
         $this->template->set('user', $this->user);
         $this->template->set('username', $this->user->username);
         $this->template->set('email', $this->user->getEmail());
@@ -78,30 +78,21 @@ class Digest extends EmailCampaign
         $this->template->set('campaign', $this->campaign);
         $this->template->set('topic', $this->topic);
         $this->template->set('tracking', $trackingQuery);
-        $this->template->set('digestVariant', 'digest');
+        $this->template->set('digestVariant', 'plus');
 
         // Get the campaign logs for this user
-        /** @var Response */
-        $campaigns = $this->manager
-            ->getCampaignLogs($this->user)
-            ->filter(function ($campaignLog) {
-                return $campaignLog->getEmailCampaignId() === $this->getEmailCampaignId();
-            })
-            ->sort(function ($a, $b) {
-                return $a->getTimeSent() <=> $b->getTimeSent();
-            });
 
         // Get the timestamp of the last sent campaign
-        $refUnixTimestamp = max(isset($campaigns[0]) ? $campaigns[0]->getTimeSent() : 0, strtotime('30 days ago'));
+        $refUnixTimestamp = strtotime('7 days ago');
 
         // Get trends (highlights) from discovery
         try {
             $activities = $this->feedsManager->getList([
-                'subscriptions' => $this->user->getGuid(),
+                'plus' => true,
                 'hide_own_posts' => true,
                 'limit' => 12,
                 'to_timestamp' => $refUnixTimestamp * 1000,
-                'algorithm' => SortingAlgorithms\DigestFeed::class,
+                'algorithm' => SortingAlgorithms\PlusFeed::class,
                 'period' => 'all',
                 'type' => 'activity',
             ])
@@ -112,22 +103,6 @@ class Digest extends EmailCampaign
                 return !$activity->remind_object;
             })
             ->toArray();
-
-            if (count($activities)) {
-                $names = array_unique(
-                    array_map(function ($activity) {
-                        return $activity->ownerObj['name'];
-                    }, $activities)
-                );
-
-                if (count($names) > 1) {
-                    $namesString = implode(', ', array_slice($names, 0, min(3, count($names) - 1))) . " and others";
-                } else {
-                    $namesString = $names[0];
-                }
-
-                $subject = "New posts from " . $namesString;
-            }
         } catch (Discovery\NoTagsException $e) {
             $activities = [];
         } catch (\Exception $e) {
@@ -144,18 +119,9 @@ class Digest extends EmailCampaign
 
         //
 
-        $unreadNotificationsCount = $this->notificationManager
-            ->setUser($this->user)
-            ->getCount();
+        $this->template->set('hasDigestActivity', false);
 
-        $this->template->set('unreadNotificationsCount', $unreadNotificationsCount);
-
-        //
-
-        $hasDigestActivity = $unreadNotificationsCount > 0;
-        $this->template->set('hasDigestActivity', $hasDigestActivity);
-
-        if (!$hasDigestActivity && !count($activities)) {
+        if (!count($activities)) {
             return null;
         }
 

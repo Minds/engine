@@ -1,13 +1,36 @@
 <?php if (count($vars['activities']) > 0) { ?>
-    <tr>
-        <td>
-            <p
-                <?php echo $emailStyles->getStyles('m-title--ltr', 'm-fonts'); ?>
-            >
-                Some highlights for you
-            </p>
-        </td>
-    </tr>
+
+    <?php if ($vars['digestVariant'] === 'plus') { ?>
+
+        <tr>
+            <td>
+                <p>
+                    You can submit content to Minds+ to start earning a share of our revenue based on how well it performs.
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <p>
+                    Here are some of the top earning Minds+ posts of the week!
+                </p>
+            </td>
+        </tr>
+
+    <?php } else {
+
+        <tr>
+            <td>
+                <p
+                    <?php echo $emailStyles->getStyles('m-title--ltr', 'm-fonts'); ?>
+                >
+                    Some highlights for you
+                </p>
+            </td>
+        </tr>
+
+    <?php } ?>
+
     <tr>
         <td <?php echo $emailStyles->getStyles('m-spacer--tiny'); ?> >
         </td>

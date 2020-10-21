@@ -526,6 +526,17 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->out('Sent');
     }
 
+    public function testPlusDigest()
+    {
+        $userGuid = $this->getOpt('userGuid');
+        $user = new User($userGuid);
+
+        $digest = new DigestSender();
+        $digest->setVariant('plus')->send($user);
+
+        $this->out('Sent');
+    }
+
     public function sync_sendgrid_lists(): void
     {
         $sendGridManager = Di::_()->get('SendGrid\Manager');
