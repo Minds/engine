@@ -142,8 +142,12 @@ class container implements Interfaces\Api
         ];
 
         if (isset($_GET['nsfw'])) {
-            $nsfw = $_GET['nsfw'] ?? '';
-            $opts['nsfw'] = explode(',', $nsfw);
+            if (is_array($_GET['nsfw'])) {
+                $opts['nsfw'] = $_GET['nsfw'];
+            } else {
+                $nsfw = $_GET['nsfw'] ?? '';
+                $opts['nsfw'] = explode(',', $nsfw);
+            }
         }
 
         try {
