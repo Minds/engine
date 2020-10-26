@@ -1,15 +1,15 @@
 <?php
 /**
- * TokensVerification.
+ * SuggestedGroups.
  *
  * @author emi
  */
 
-namespace Minds\Core\Onboarding\Delegates;
+namespace Minds\Core\Onboarding\Steps;
 
 use Minds\Entities\User;
 
-class TokensVerificationDelegate implements OnboardingDelegate
+class SuggestedGroupsStep implements OnboardingStepInterface
 {
     /**
      * @param User $user
@@ -17,6 +17,6 @@ class TokensVerificationDelegate implements OnboardingDelegate
      */
     public function isCompleted(User $user)
     {
-        return (bool) $user->getPhoneNumberHash();
+        return count($user->getGroupMembership() ?: []) > 0;
     }
 }

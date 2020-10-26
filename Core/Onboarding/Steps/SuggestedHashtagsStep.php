@@ -5,12 +5,12 @@
  * @author emi
  */
 
-namespace Minds\Core\Onboarding\Delegates;
+namespace Minds\Core\Onboarding\Steps;
 
 use Minds\Core\Hashtags\User\Manager;
 use Minds\Entities\User;
 
-class SuggestedHashtagsDelegate implements OnboardingDelegate
+class SuggestedHashtagsStep implements OnboardingStepInterface
 {
     /** @var Manager */
     protected $userHashtagsManager;

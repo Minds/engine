@@ -1,14 +1,14 @@
 <?php
 
-namespace Spec\Minds\Core\Onboarding\Delegates;
+namespace Spec\Minds\Core\Onboarding\Steps;
 
 use Minds\Core\Hashtags\User\Manager;
-use Minds\Core\Onboarding\Delegates\SuggestedHashtagsDelegate;
+use Minds\Core\Onboarding\Steps\SuggestedHashtagsStep;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-class SuggestedHashtagsDelegateSpec extends ObjectBehavior
+class SuggestedHashtagsStepSpec extends ObjectBehavior
 {
     protected $userHashtagsManager;
 
@@ -21,7 +21,7 @@ class SuggestedHashtagsDelegateSpec extends ObjectBehavior
 
     public function it_is_initializable()
     {
-        $this->shouldHaveType(SuggestedHashtagsDelegate::class);
+        $this->shouldHaveType(SuggestedHashtagsStep::class);
     }
 
     public function it_should_check_if_completed(User $user)

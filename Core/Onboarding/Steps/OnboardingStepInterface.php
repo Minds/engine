@@ -1,6 +1,6 @@
 <?php
 
-namespace Minds\Core\Onboarding\Delegates;
+namespace Minds\Core\Onboarding\Steps;
 
 use Minds\Entities\User;
 
@@ -10,7 +10,7 @@ use Minds\Entities\User;
  * @author edgebal
  */
 
-interface OnboardingDelegate
+interface OnboardingStepInterface
 {
     /**
      * @param User $user

@@ -1,15 +1,15 @@
 <?php
 /**
- * CreatorFrequency.
+ * TokensVerification.
  *
  * @author emi
  */
 
-namespace Minds\Core\Onboarding\Delegates;
+namespace Minds\Core\Onboarding\Steps;
 
 use Minds\Entities\User;
 
-class CreatorFrequencyDelegate implements OnboardingDelegate
+class TokensVerificationStep implements OnboardingStepInterface
 {
     /**
      * @param User $user
@@ -17,6 +17,6 @@ class CreatorFrequencyDelegate implements OnboardingDelegate
      */
     public function isCompleted(User $user)
     {
-        return (bool) $user->getCreatorFrequency();
+        return (bool) $user->getPhoneNumberHash();
     }
 }

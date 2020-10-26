@@ -1,24 +1,24 @@
 <?php
 
-namespace Spec\Minds\Core\Onboarding\Delegates;
+namespace Spec\Minds\Core\Onboarding\Steps;
 
-use Minds\Core\Onboarding\Delegates\CreatorFrequencyDelegate;
+use Minds\Core\Onboarding\Steps\SuggestedChannelsStep;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-class CreatorFrequencyDelegateSpec extends ObjectBehavior
+class SuggestedChannelsStepSpec extends ObjectBehavior
 {
     public function it_is_initializable()
     {
-        $this->shouldHaveType(CreatorFrequencyDelegate::class);
+        $this->shouldHaveType(SuggestedChannelsStep::class);
     }
 
     public function it_should_check_if_completed(User $user)
     {
-        $user->getCreatorFrequency()
+        $user->getSubscriptonsCount()
             ->shouldBeCalled()
-            ->willReturn('rarely');
+            ->willReturn(500);
 
         $this
             ->isCompleted($user)
@@ -27,9 +27,9 @@ class CreatorFrequencyDelegateSpec extends ObjectBehavior
 
     public function it_should_check_if_not_completed(User $user)
     {
-        $user->getCreatorFrequency()
+        $user->getSubscriptonsCount()
             ->shouldBeCalled()
-            ->willReturn(null);
+            ->willReturn(1);
 
         $this
             ->isCompleted($user)
