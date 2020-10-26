@@ -10,6 +10,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Config;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Data\Cassandra;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 
 class Manager
 {
@@ -45,6 +46,15 @@ class Manager
     public function getPlusGuid(): string
     {
         return $this->config->get('plus')['handler'];
+    }
+
+    /**
+     * Returns the plus support tier urn
+     * @return string
+     */
+    public function getPlusSupportTierUrn(): string
+    {
+        return $this->config->get('plus')['support_tier_urn'];
     }
 
     /**
@@ -219,5 +229,19 @@ class Manager
             ];
             yield $unlock;
         }
+    }
+
+    /**
+     * Returns if a post is Minds+ paywalled or not
+     * @param PaywallEntityInterface $entity
+     * @return bool
+     */
+    public function isPlusEntity(PaywallEntityInterface $entity): bool
+    {
+        if (!$entity->isPayWall()) {
+            return false;
+        }
+        $threshold = $entity->getWireThreshold();
+        return $threshold['support_tier']['urn'] === $this->getPlusSupportTierUrn();
     }
 }

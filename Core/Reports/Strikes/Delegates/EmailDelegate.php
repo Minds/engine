@@ -9,22 +9,29 @@ use Minds\Core\Reports\Strikes\Strike;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Common\Urn;
 use Minds\Core\Email\V2\Campaigns\Custom\Custom;
+use Minds\Core\Plus;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 
 class EmailDelegate
 {
-    /** @var Custom $campaign */
+    /** @var Custom */
     protected $campaign;
 
-    /** @var EntitiesBuilder $entitiesBuilder */
+    /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    /** @var Urn $urn */
+    /** @var Urn */
+    protected $urn;
 
-    public function __construct($campaign = null, $entitiesBuilder = null, $urn = null)
+    /** @var Plus\Manager */
+    protected $plusManager;
+
+    public function __construct($campaign = null, $entitiesBuilder = null, $urn = null, $plusManager = null)
     {
         $this->campaign = $campaign ?: new Custom;
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->urn = $urn ?: new Urn;
+        $this->plusManager = $plusManager ?? Di::_()->get('Plus\Manager');
     }
 
     /**
@@ -55,7 +62,7 @@ class EmailDelegate
         $subject = 'Strike received';
 
         $this->campaign->setUser($owner);
-        $this->campaign->setTemplate('moderation-strike');
+        $this->campaign->setTemplate($entity instanceof PaywallEntityInterface && $this->plusManager->isPlusEntity($entity) ? 'moderation-strike-plus' : 'moderation-strike');
         $this->campaign->setSubject($subject);
         $this->campaign->setTitle($subject);
         $this->campaign->setPreheader('You have received a strike');

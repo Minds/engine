@@ -34,6 +34,10 @@ $CONFIG->cypress = [
     'shared_key' => 'random-key',
 ];
 
+$CONFIG->plus = [
+    'support_tier_urn' => 'plus_support_tier_urn',
+];
+
 class Mock
 {
     private $a;

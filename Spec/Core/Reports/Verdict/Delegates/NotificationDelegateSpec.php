@@ -10,6 +10,7 @@ use Minds\Core\Reports\Report;
 use Minds\Core\Reports\Verdict\Delegates\NotificationDelegate;
 use Minds\Core\Reports\Verdict\Verdict;
 use Minds\Entities\Entity;
+use Minds\Entities\Activity;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -235,6 +236,59 @@ class NotificationDelegateSpec extends ObjectBehavior
 
         $this->dispatcher->trigger('notification', 'all')
             ->shouldNotBeCalled();
+
+        $this->onAction($verdict);
+    }
+
+    public function it_should_notify_that_minds_plus_is_marked_nsfw(Verdict $verdict, Report $report, Activity $entity)
+    {
+        $report->getEntityUrn()
+            ->shouldBeCalled()
+            ->willReturn('urn:activity:123');
+
+        $this->urn->setUrn('urn:activity:123')
+            ->shouldBeCalled()
+            ->willReturn($this->urn);
+
+        $this->entitiesResolver->single($this->urn)
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->urn->getNss()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $report->getReasonCode()
+            ->shouldBeCalled()
+            ->willReturn(2);
+
+        $report->isAppeal()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $verdict->getReport()
+            ->willReturn($report);
+
+        $verdict->isUpheld()
+            ->willReturn(true);
+
+        $this->entitiesBuilder->single(123)
+            ->willReturn($entity);
+
+        $entity->isPayWall()->willReturn(true);
+
+        $entity->getWireThreshold()->willReturn([
+            'support_tier' => [
+                'urn' => 'plus_support_tier_urn'
+            ]
+        ]);
+
+        $entity->getOwnerGUID()->willReturn(456);
+
+        $this->dispatcher->trigger('notification', 'all', Argument::that(function ($opts) {
+            return $opts['params']['action'] === 'removed. You can appeal this decision';
+        }))
+            ->shouldBeCalled();
 
         $this->onAction($verdict);
     }
