@@ -11,6 +11,8 @@ use Minds\Core\Entities\Resolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Reports\Verdict\Verdict;
+use Minds\Core\Plus;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 
 class NotificationDelegate
 {
@@ -26,12 +28,16 @@ class NotificationDelegate
     /** @var Resolver */
     protected $entitiesResolver;
 
-    public function __construct($dispatcher = null, $entitiesBuilder = null, $urn = null, $entitiesResolver = null)
+    /** @var Plus\Manager */
+    protected $plusManager;
+
+    public function __construct($dispatcher = null, $entitiesBuilder = null, $urn = null, $entitiesResolver = null, $plusManager = null)
     {
         $this->dispatcher = $dispatcher ?: Di::_()->get('EventsDispatcher');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->urn = $urn ?: new Urn;
         $this->entitiesResolver = $entitiesResolver ?: new Resolver();
+        $this->plusManager = $plusManager ?? Di::_()->get('Plus\Manager');
     }
 
     /**
@@ -57,7 +63,9 @@ class NotificationDelegate
 
             switch ($verdict->getReport()->getReasonCode()) {
                 case 2:
-                    $readableAction = 'marked as nsfw';
+                    if (!($entity instanceof PaywallEntityInterface && $this->plusManager->isPlusEntity($entity))) { // We remove if its a paywalled post
+                        $readableAction = 'marked as nsfw';
+                    }
                     break;
             }
         } else {

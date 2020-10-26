@@ -11,6 +11,8 @@ use Minds\Common\Urn;
 use Minds\Core\Reports\Report;
 use Minds\Core\Reports\Strikes\Strike;
 use Minds\Core\Entities\Actions\Save as SaveAction;
+use Minds\Core\Plus;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 
 class ActionDelegate
 {
@@ -35,6 +37,9 @@ class ActionDelegate
     /** @var Core\Channels\Ban $channelsBanManager */
     private $channelsBanManager;
 
+    /** @var Plus\Manager */
+    protected $plusManager;
+
     public function __construct(
         $entitiesBuilder = null,
         $actions = null,
@@ -42,7 +47,8 @@ class ActionDelegate
         $strikesManager = null,
         $saveAction = null,
         $emailDelegate = null,
-        $channelsBanManager = null
+        $channelsBanManager = null,
+        $plusManager = null
     ) {
         $this->entitiesBuilder = $entitiesBuilder  ?: Di::_()->get('EntitiesBuilder');
         $this->actions = $actions ?: Di::_()->get('Reports\Actions');
@@ -51,6 +57,7 @@ class ActionDelegate
         $this->saveAction = $saveAction ?: new SaveAction;
         $this->emailDelegate = $emailDelegate ?: new EmailDelegate;
         $this->channelsBanManager = $channelsBanManager ?: Di::_()->get('Channels\Ban');
+        $this->plusManager = $plusManager ?? Di::_()->get('Plus\Manager');
     }
 
     public function onAction(Verdict $verdict)
@@ -85,6 +92,14 @@ class ActionDelegate
                 $this->saveAction->setEntity($entity)->save();
                 // Apply a strike to the owner
                 $this->applyStrike($report);
+
+                // Was this post Minds+, if so we need to remove it from Minds+
+                // We also removed
+                if ($entity instanceof PaywallEntityInterface && $this->plusManager->isPlusEntity($entity)) {
+                    $this->actions->setDeletedFlag($entity, true);
+                    $this->saveAction->setEntity($entity)->save();
+                }
+
                 break;
             case 3: // Incites violence
                 if ($entity->type !== 'user') {
