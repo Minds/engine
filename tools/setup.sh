@@ -19,7 +19,7 @@ php composer-setup.php
 php -r "unlink('composer-setup.php');"
 
 # Optimise for package install speed
-php composer.phar -n global require -n "hirak/prestissimo"
+# php composer.phar -n global require -n "hirak/prestissimo"
 
 # Grab dependencies
 php composer.phar install $INSTALLOPTS --ignore-platform-reqs
