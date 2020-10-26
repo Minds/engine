@@ -10,6 +10,10 @@ use Minds\Entities\Factory;
 use Minds\Core\Guid;
 use Minds\Traits\MagicAttributes;
 
+/**
+ * @method Subscription setTrialDays(int $days)
+ * @method int getTrialDays
+ */
 class Subscription
 {
     use MagicAttributes;
@@ -34,6 +38,9 @@ class Subscription
     private $trial_period;
     private $addOns;
     private $coupon;
+
+    /** @var int */
+    private $trialDays;
 
     public function __construct()
     {
