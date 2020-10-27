@@ -36,6 +36,12 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('spec');
 
+        $subscription->getTrialDays()
+            ->willReturn(null);
+
+        $subscription->setTrialDays(0)
+            ->willReturn($subscription);
+
         $this->repository->add($subscription)
             ->shouldBeCalled();
 
@@ -72,6 +78,31 @@ class ManagerSpec extends ObjectBehavior
             ->setUser($user);
 
         $this->repository->add($subscription)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->setSubscription($subscription);
+        $this->create()
+            ->shouldReturn(true);
+    }
+
+    public function it_should_create_with_trial_context()
+    {
+        $user = new User;
+        $user->guid = 123;
+
+        $subscription = new Subscription;
+        $subscription->setId('sub_test')
+            ->setPlanId('spec')
+            ->setPaymentMethod('spec')
+            ->setUser($user)
+            ->setLastBilling(1)
+            ->setTrialDays(7);
+
+        // Will bill next in 7 days, as expected
+        $this->repository->add(Argument::that(function ($subscription) {
+            return $subscription->getNextBilling() === (86400 * 7) + 1;
+        }))
             ->shouldBeCalled()
             ->willReturn(true);
 
