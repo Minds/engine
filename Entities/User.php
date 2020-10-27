@@ -1071,6 +1071,16 @@ class User extends \ElggUser
     }
 
     /**
+     * Get plus expires.
+     *
+     * @var int
+     */
+    public function getPlusExpires(): int
+    {
+        return $this->plus_expires;
+    }
+
+    /**
      * @param int $proExpires
      * @return User
      */

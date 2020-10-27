@@ -81,18 +81,22 @@ class UpgradesDelegate
         switch ($wire->getMethod()) {
             case 'tokens':
                 if ($monthly['tokens'] == $wire->getAmount() / (10 ** 18)) {
-                    $days = 30;
+                    $days = 32;
                 } elseif ($yearly['tokens'] == $wire->getAmount() / (10 ** 18)) {
-                    $days = 365;
+                    $days = 368;
                 } else {
                     return $wire;
                 }
                 break;
             case 'usd':
-                if ($monthly['usd'] == $wire->getAmount() / 100) {
-                    $days = 30;
+                // Users who have never had Minds+ before get a 7 day trial
+                // we still create the subscription, but do no charge for 7 days
+                if ($wire->isTrial()) {
+                    $days = 9; // We charge on day 7, allow a buffer in case subscripton charge is late
+                } elseif ($monthly['usd'] == $wire->getAmount() / 100) {
+                    $days = 32;
                 } elseif ($yearly['usd'] == $wire->getAmount() / 100) {
-                    $days = 365;
+                    $days = 368;
                 } else {
                     return $wire;
                 }
@@ -133,18 +137,18 @@ class UpgradesDelegate
             case 'tokens':
                 error_log($wire->getAmount());
                   if ($monthly['tokens'] == $wire->getAmount() / (10 ** 18)) {
-                      $days = 30;
+                      $days = 32;
                   } elseif ($yearly['tokens'] == $wire->getAmount() / (10 ** 18)) {
-                      $days = 365;
+                      $days = 367;
                   } else {
                       return $wire;
                   }
                 break;
             case 'usd':
                 if ($monthly['usd'] == $wire->getAmount() / 100) {
-                    $days = 30;
+                    $days = 32;
                 } elseif ($yearly['usd'] == $wire->getAmount() / 100) {
-                    $days = 365;
+                    $days = 367;
                 } else {
                     return $wire;
                 }

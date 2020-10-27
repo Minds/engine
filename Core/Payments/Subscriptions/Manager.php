@@ -62,6 +62,8 @@ class Manager
 
             $this->subscription->setLastBilling(time());
             $this->subscription->setNextBilling($this->getNextBilling());
+            // Cancel trial after subsequent charge
+            $this->subscription->setTrialDays(0);
         } catch (\Exception $e) {
             error_log("Payment failed: " . $e->getMessage());
             $this->subscription->setStatus('failed');
@@ -145,6 +147,11 @@ class Manager
         }
 
         $date = new \DateTime("@{$this->subscription->getLastBilling()}");
+
+        if ($this->subscription->getTrialDays() > 0) {
+            $date->modify("+{$this->subscription->getTrialDays()} days");
+            return $date->getTimestamp();
+        }
 
         switch ($this->subscription->getInterval()) {
             case 'daily':
