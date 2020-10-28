@@ -48,8 +48,8 @@ class SnowplowWireSubscriptionEvent implements SnowplowEventInterface
             'id' => $this->subscription->getId(),
             'amount' => $amount,
             'interval' => $this->subscription->getInterval(),
-            'last_billing' => $this->subscription->getLastBilling(),
-            'next_billing' => $this->subscription->getNextBilling(),
+            'last_billing' => date('c', $this->subscription->getLastBilling()),
+            'next_billing' => date('c', $this->subscription->getNextBilling()),
             'status' => $this->subscription->getStatus(),
             'is_trial' => $this->subscription->getTrialDays() > 0,
         ]);
