@@ -28,15 +28,19 @@ class Manager
     /** @var Repository $repository */
     protected $repository;
 
+    /** @var Delegates\SnowplowDelegate */
+    protected $snowplowDelegate;
+
     /** @var Subscription $subscription */
     protected $subscription;
 
     /** @var User */
     protected $user;
 
-    public function __construct($repository = null)
+    public function __construct($repository = null, $snowplowDelegate = null)
     {
         $this->repository = $repository ?: Di::_()->get('Payments\Subscriptions\Repository');
+        $this->snowplowDelegate = $snowplowDelegate ?? new Delegates\SnowplowDelegate;
     }
 
     /**
@@ -70,6 +74,10 @@ class Manager
         }
 
         $this->repository->add($this->subscription);
+
+        //
+
+        $this->snowplowDelegate->onCharge($this->subscription);
 
         return $result;
     }
@@ -108,7 +116,13 @@ class Manager
 
         $this->subscription->setNextBilling($this->getNextBilling());
 
-        return (bool) $this->repository->add($this->subscription);
+        $success = (bool) $this->repository->add($this->subscription);
+
+        //
+
+        $this->snowplowDelegate->onCreate($this->subscription);
+
+        return $success;
     }
 
     /**
@@ -131,6 +145,12 @@ class Manager
     public function cancel()
     {
         $this->subscription->isValid();
+
+        $this->subscription->setStatus('cancelled');
+
+        //
+
+        $this->snowplowDelegate->onCancel($this->subscription);
 
         return (bool) $this->repository->delete($this->subscription);
     }
