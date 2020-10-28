@@ -6,6 +6,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Payments\Manager;
 use Minds\Core\Payments\Subscriptions\Repository;
 use Minds\Core\Payments\Subscriptions\Subscription;
+use Minds\Core\Payments\Subscriptions\Delegates;
 use Minds\Core\Events\Dispatcher;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -13,14 +14,20 @@ use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
+    /** @var Repository */
     protected $repository;
 
+    /** @var Delegates\SnowplowDelegate */
+    protected $snowplowDelegate;
+
     public function let(
-        Repository $repository
+        Repository $repository,
+        Delegates\SnowplowDelegate $snowplowDelegate
     ) {
         $this->repository = $repository;
+        $this->snowplowDelegate = $snowplowDelegate;
 
-        $this->beConstructedWith($repository);
+        $this->beConstructedWith($repository, $snowplowDelegate);
     }
 
     public function it_is_initializable()
@@ -63,6 +70,9 @@ class ManagerSpec extends ObjectBehavior
         $subscription->setNextBilling(strtotime('+1 month', time()))
             ->shouldBeCalled();
 
+        $this->snowplowDelegate->onCharge($subscription)
+            ->shouldBeCalled();
+
         $this->charge()->shouldReturn(true);
     }
 
@@ -80,6 +90,9 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->add($subscription)
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->snowplowDelegate->onCreate($subscription)
+            ->shouldBeCalled();
 
         $this->setSubscription($subscription);
         $this->create()
@@ -105,6 +118,9 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->snowplowDelegate->onCreate($subscription)
+            ->shouldBeCalled();
 
         $this->setSubscription($subscription);
         $this->create()
