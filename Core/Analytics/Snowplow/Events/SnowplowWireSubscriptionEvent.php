@@ -43,8 +43,8 @@ class SnowplowWireSubscriptionEvent implements SnowplowEventInterface
         return array_filter([
             'plan_id' => $this->subscription->getPlanId(),
             'payment_method' => $this->subscription->getPaymentMethod(),
-            'entity_guid' => $this->subscription->getEntity() ? $this->subscription->getEntity()->getGuid() : null,
-            'user_guid' => $this->subscription->getUser() ? $this->subscription->getUser()->getGuid() : null,
+            'entity_guid' => $this->subscription->getEntity() ? (string) $this->subscription->getEntity()->getGuid() : null,
+            'user_guid' => $this->subscription->getUser() ? (string) $this->subscription->getUser()->getGuid() : null,
             'id' => $this->subscription->getId(),
             'amount' => $amount,
             'interval' => $this->subscription->getInterval(),
