@@ -9,6 +9,8 @@ use Minds\Core\Session;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Core\Notification\Extensions\Push;
+use Minds\Core\Di\Di;
+use Minds\Core\Security\ACL\Block\BlockEntry;
 
 use Minds\Helpers;
 use Minds\Core\Sockets;
@@ -132,7 +134,7 @@ class Events
 
                     $user = new Entities\User(strtolower($username));
 
-                    if ($user->guid && !Core\Security\ACL\Block::_()->isBlocked(Core\Session::getLoggedinUser(), $user)) {
+                    if ($user->guid && !Core\Security\ACL::_()->interact($user, Core\Session::getLoggedinUser())) {
                         $to[] = $user->guid;
                     }
 
@@ -190,9 +192,13 @@ class Events
             $manager = Core\Di\Di::_()->get('Notification\Manager');
 
             foreach ($params['to'] as $to_user) {
+                /** @var BlockEntry */
+                $blockEntry = (new BlockEntry())
+                    ->setActorGuid($notification->getFromGuid())
+                    ->setSubjectGuid($to_user);
                 if (
                     $notification->getFromGuid() &&
-                    Core\Security\ACL\Block::_()->isBlocked($notification->getFromGuid(), $to_user)
+                    Di::_()->get('Security\Block\Manager')->isBlocked($blockEntry)
                 ) {
                     continue;
                 }

@@ -15,6 +15,8 @@ use Minds\Helpers;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Security\Block\Manager;
+use Minds\Core\Security\Block\BlockEntry;
 
 class block extends Controller implements Interfaces\Api
 {
@@ -53,8 +55,16 @@ class block extends Controller implements Interfaces\Api
                 }
                 break;
             case is_numeric($pages[0]):
-                $block = $this->di->get('Security\ACL\Block');
-                $response['blocked'] = $block->isBlocked($pages[0]);
+                /** @var Manager */
+                $blockManager = $this->di->get('Security\Block\Manager');
+        
+                $blockEntry = (new BlockEntry())
+                    ->setActorGuid(Core\Session::getLoggedinUserGuid())
+                    ->setSubject($pages[0]);
+
+                /** @var bool */
+                $hasBlocked = $blockManager->hasBlocked($blockEntry);
+                $response['blocked'] = $hasBlocked;
                 break;
         }
 

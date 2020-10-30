@@ -19,6 +19,7 @@ class Minds extends base
     private $modules = [
         Log\Module::class,
         Events\Module::class,
+        Security\Module::class,
         Features\Module::class,
         SSO\Module::class,
         Email\Module::class,
@@ -53,8 +54,8 @@ class Minds extends base
      */
     public function init()
     {
-        $this->initModules();
         $this->initProviders();
+        $this->initModules();
     }
 
     /**
@@ -64,12 +65,12 @@ class Minds extends base
     {
         $modules = [];
         foreach ($this->modules as $module) {
-            $modules[] = new $module();
+            $modules[] = $hydratedModule = new $module();
 
             // Submodules han be registered with the ->submodules[] property
             if (property_exists($module, 'submodules')) {
-                foreach ($modules->submodules as $submodule) {
-                    $modules[] = $submodule;
+                foreach ($hydratedModule->submodules as $submodule) {
+                    $modules[] = new $submodule();
                 }
             }
         }
@@ -103,7 +104,6 @@ class Minds extends base
         (new Pages\PagesProvider())->register();
         (new Payments\PaymentsProvider())->register();
         (new Queue\QueueProvider())->register();
-        (new Security\SecurityProvider())->register();
         (new Http\HttpProvider())->register();
         (new Translation\TranslationProvider())->register();
         (new Categories\CategoriesProvider())->register();

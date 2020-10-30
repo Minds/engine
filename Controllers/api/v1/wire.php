@@ -35,72 +35,7 @@ class wire implements Interfaces\Api
      */
     public function post($pages)
     {
-        Factory::isLoggedIn();
-        $response = [];
-
-        if (!isset($pages[0])) {
-            return Factory::response(['status' => 'error', 'message' => ':guid must be passed in uri']);
-        }
-
-        $entity = Entities\Factory::build($pages[0]);
-
-        if (!$entity) {
-            return Factory::response(['status' => 'error', 'message' => 'Entity not found']);
-        }
-
-        $user = $entity->type == 'user' ? $entity : $entity->getOwnerEntity();
-        if (Core\Session::getLoggedInUserGuid() === $user->guid) {
-            return Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to yourself!']);
-        }
-
-        if (Core\Security\ACL\Block::_()->isBlocked(Core\Session::getLoggedInUserGuid(), $user->guid)) {
-            return Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to a user who has blocked you.']);
-        }
-
-        $amount = BigNumber::_($_POST['amount']);
-
-        $recurring = isset($_POST['recurring']) ? $_POST['recurring'] : false;
-
-        if (!$amount) {
-            return Factory::response(['status' => 'error', 'message' => 'you must send an amount']);
-        }
-
-        if ($amount->lt(0)) {
-            return Factory::response(['status' => 'error', 'message' => 'amount must be a positive number']);
-        }
-
-        $manager = Core\Di\Di::_()->get('Wire\Manager');
-
-        try {
-            $manager
-                ->setAmount((string) BigNumber::toPlain($amount, 18))
-                ->setRecurring($recurring)
-                ->setSender(Core\Session::getLoggedInUser())
-                ->setEntity($entity)
-                ->setPayload((array) $_POST['payload']);
-            $result = $manager->create();
-
-            if (!$result) {
-                throw new \Exception('Something failed');
-            }
-        } catch (WalletNotSetupException $e) {
-            $wireQueue = (Queue\Client::Build())
-                ->setQueue('WireNotification')
-                ->send([
-                    'entity' => serialize($entity),
-                    'walletNotSetupException' => true,
-                ]);
-
-            $response['status'] = 'error';
-            $response['message'] = $e->getMessage();
-        } catch (UnverifiedEmailException $e) {
-            throw $e;
-        } catch (\Exception $e) {
-            $response['status'] = 'error';
-            $response['message'] = $e->getMessage();
-        }
-
-        return Factory::response($response);
+        return Factory::response([]);
     }
 
     public function put($pages)

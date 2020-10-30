@@ -159,9 +159,6 @@ class Defaults
         // Messenger Events
         (new Core\Messenger\Events())->setup();
 
-        // Security Events
-        (new Core\Security\Events())->register();
-
         // Blockchain events
         (new Core\Blockchain\Events())->register();
 

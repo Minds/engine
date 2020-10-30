@@ -5,33 +5,65 @@ namespace Minds\Core\Boost\Network;
 use Minds\Core;
 use Minds\Core\Data;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Security\Block;
 use MongoDB\BSON\ObjectID;
 use Minds\Entities\Boost;
 
 class Iterator implements \Iterator
 {
-    protected $mongo;
+    /** @var ElasticRepository */
     protected $elasticRepository;
+
+    /** @var EntitiesBuilder */
     protected $entitiesBuilder;
+
+    /** @var Expire */
     protected $expire;
+
     /** @var Metrics */
     protected $metrics;
+
+    /** @var Manager */
     protected $manager;
 
+    /** @var Block\Manager */
+    protected $blockManager;
+
+    /** @var int */
     protected $rating = 1;
+    
+    /** @var int */
     protected $quality = 0;
+    
+    /** @var string */
     protected $offset = null;
+    
+    /** @var int */
     protected $limit = 1;
+    
+    /** @var string */
     protected $type = 'newsfeed'; // newsfeed, content
+    
+    /** @var bool */
     protected $priority = false;
+    
+    /** @var string[] */
     protected $categories = null;
+
+    /** @var bool */
     protected $increment = false;
+    
+    /** @var bool */
     protected $hydrate = true;
 
+    /** @var int */
     protected $tries = 0;
 
+    /** @var array */
     public $list = null;
 
+    /** @var int */
     const MONGO_LIMIT = 50;
 
     public function __construct(
@@ -39,13 +71,15 @@ class Iterator implements \Iterator
         $entitiesBuilder = null,
         $expire = null,
         $metrics = null,
-        $manager = null
+        $manager = null,
+        $blockManager = null
     ) {
         $this->elasticRepository = $elasticRepository ?: new ElasticRepository;
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->expire = $expire ?: Di::_()->get('Boost\Network\Expire');
         $this->metrics = $metrics ?: Di::_()->get('Boost\Network\Metrics');
         $this->manager = $manager ?: new Manager;
+        $this->blockManager - $blockManager ?? Di::_()->get('Security\Block\Manager');
     }
 
     public function setRating($rating)
@@ -238,20 +272,19 @@ class Iterator implements \Iterator
         return $boosts;
     }
 
+    /**
+     * Filters boosts of channels that user has blocked
+     * @param array $boosts
+     * @return array
+     */
     private function filterBlocked($boosts)
     {
-        //owner_guids
-        $owner_guids = [];
-        foreach ($boosts as $boost) {
-            $owner_guids[] = $boost->owner_guid;
-        }
-        $blocked = array_flip(Core\Security\ACL\Block::_()->isBlocked(
-            $owner_guids,
-            Core\Session::getLoggedInUserGuid()
-        ));
-
         foreach ($boosts as $i => $boost) {
-            if (isset($blocked[$boost->owner_guid])) {
+            $blockEntry = (new Block\BlockEntry())
+                ->setActorGuid(Core\Session::getLoggedInUserGuid())
+                ->setSubjectGuid($boost->owner_guid);
+
+            if ($this->blockManager->hasBlocked($blockEntry)) {
                 unset($boosts[$i]);
             }
         }

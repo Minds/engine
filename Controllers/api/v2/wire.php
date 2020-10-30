@@ -53,8 +53,8 @@ class wire implements Interfaces\Api
             return Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to yourself!']);
         }
 
-        if (Core\Security\ACL\Block::_()->isBlocked(Core\Session::getLoggedInUserGuid(), $user->guid)) {
-            return Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to a user who has blocked you.']);
+        if (Core\Security\ACL::_()->interact($user, Core\Session::getLoggedInUserGuid())) {
+            return Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to a user as you are unable to interact with them.']);
         }
 
         $amount = BigNumber::_($_POST['amount']);
