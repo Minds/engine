@@ -46,7 +46,7 @@ class ACL
      */
     private function init()
     {
-        ACL\Block::_()->listen();
+        // ACL\Block::_()->listen();
     }
 
     /**

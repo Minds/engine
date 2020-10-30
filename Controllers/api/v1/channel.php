@@ -134,8 +134,15 @@ class channel implements Interfaces\Api
             }
         }
 
-        $block = Core\Security\ACL\Block::_();
-        $response['channel']['blocked'] = $block->isBlocked($user);
+
+        // The 'blocked' exported field tells the current logged in user that they have BLOCKED
+        // said user, not that they are blocked. We use 'hasBlocked' vs 'isBlocked' to get
+        // the inversion
+        $blockEntry = (new BlockEntry)
+            ->setActor(Core\Session::getLoggedInUser())
+            ->setSubject($user);
+        $hasBlocked = Di::_()->get('Security\Block\Manager')->hasBlocked($blockEntry);
+        $response['channel']['blocked'] = $hasBlocked;
 
         if ($user->isPro()) {
             /** @var Core\Pro\Manager $manager */
