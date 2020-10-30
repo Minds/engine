@@ -112,6 +112,10 @@ class Digest extends EmailCampaign
             })
             ->toArray();
 
+            if (count($activities) === 1 && $activities[0]->owner_guid == 100000000000000519) {
+                return null; // Bypass if Minds is the only channel
+            }
+
             if (count($activities)) {
                 $names = array_unique(
                     array_map(function ($activity) {
