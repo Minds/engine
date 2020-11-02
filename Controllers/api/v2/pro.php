@@ -9,6 +9,7 @@ namespace Minds\Controllers\api\v2;
 use Exception;
 use Minds\Core\Di\Di;
 use Minds\Core\Pro\Manager;
+use Minds\Core\Pro\Delegates\SubscriptionDelegate;
 use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Api\Factory;
@@ -36,8 +37,12 @@ class pro implements Interfaces\Api
         $manager
             ->setUser($user);
 
+        $subscriptionDelegate = new SubscriptionDelegate();
+
         return Factory::response([
             'isActive' => $manager->isActive(),
+            'has_subscription' => $subscriptionDelegate->hasSubscriptions($user),
+            'expires' => $user->pro_expires,
         ]);
     }
 

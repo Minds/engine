@@ -33,9 +33,6 @@ class ManagerSpec extends ObjectBehavior
         $this->subscriptionDelegate
              ->onDisable($user)
              ->shouldBeCalled();
-            
-        $user->setProExpires(0)
-            ->shouldBeCalled();
 
         $this->saveAction
             ->setEntity($user)
