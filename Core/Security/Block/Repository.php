@@ -26,8 +26,8 @@ class Repository
         $statement = "INSERT INTO entities_by_time (key, column1, value) VALUES (?,?,?)";
         $values = [
             "acl:blocked:{$block->getActorGuid()}",
-            $block->getSubjectGuid(),
-            time()
+            (string) $block->getSubjectGuid(),
+            (string) time()
         ];
 
         $prepared = new Prepared\Custom();
@@ -46,7 +46,7 @@ class Repository
         $statement = "DELETE FROM entities_by_time WHERE key= ? and column1 = ?";
         $values = [
             "acl:blocked:{$block->getActorGuid()}",
-            $block->getSubjectGuid(),
+            (string) $block->getSubjectGuid(),
         ];
 
         $prepared = new Prepared\Custom();
@@ -68,6 +68,7 @@ class Repository
         $prepared->query($statement, $values);
         $prepared->setOpts([
             'page_size' => $opts->getLimit(),
+            'paging_state_token' => base64_decode($opts->getPagingToken(), true),
         ]);
 
         $response = new Response();
@@ -83,6 +84,8 @@ class Repository
                 ->setSubjectGuid((string) $row['column1'])
                 ->setActorGuid((string) $opts->getUserGuid());
         }
+
+        $response->setPagingToken(base64_encode($result->pagingStateToken()));
 
         return $response;
     }

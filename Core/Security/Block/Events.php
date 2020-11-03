@@ -38,5 +38,23 @@ class Events
                 return $e->setResponse(false);
             }
         });
+
+        /**
+         * Returning true below will prohibit the entity from being read
+         */
+        Dispatcher::register('acl:read:blacklist', 'all', function ($e) {
+            $params = $e->getParameters();
+            $entity = $params['entity'];
+            $user = $params['user'];
+
+            $blockEntry = (new BlockEntry())
+                ->setActor($user)
+                ->setSubject($entity);
+
+            // If user has blocked, don't allow it to be read
+            if ($this->manager->hasBlocked($blockEntry)) {
+                return $e->setResponse(true);
+            }
+        });
     }
 }

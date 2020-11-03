@@ -11,9 +11,19 @@ use Minds\Entities\User;
 use Minds\Entities;
 use Minds\Helpers;
 use Minds\Core\Messenger;
+use Minds\Core\Di\Di;
+use Minds\Core\Security\Block;
 
 class Events
 {
+    /** @var Block\Manager */
+    protected $blockManager;
+
+    public function __construct($blockManager = null)
+    {
+        $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
+    }
+
     public function setup()
     {
         /**
@@ -83,6 +93,16 @@ class Events
             }
             if ($entity instanceof Entities\Conversation) {
                 if (in_array($user->guid, $entity->getParticipants(), false)) {
+                    foreach ($entity->getParticipants() as $participantGuid) {
+                        $blockEntry = (new Block\BlockEntry())
+                            ->setActorGuid($user->getGuid())
+                            ->setSubjectGuid($participantGuid);
+                    
+                        if ($this->blockManager->hasBlocked($blockEntry)) {
+                            return $event->setResponse(false);
+                        }
+                    }
+
                     $event->setResponse(true);
                 } else {
                     $event->setResponse(false);

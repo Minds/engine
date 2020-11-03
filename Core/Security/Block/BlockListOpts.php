@@ -16,4 +16,7 @@ class BlockListOpts extends AbstractRepositoryOpts
 
     /** @var bool */
     protected $useCache = true;
+
+    /** @var string */
+    protected $pagingToken = '';
 }

@@ -83,6 +83,13 @@ class ACL
         }
 
         /**
+         * Blacklist will not not allow entity to be read
+         */
+        if (Core\Events\Dispatcher::trigger('acl:read:blacklist', $entity->getType(), ['entity'=>$entity, 'user'=>$user], false) === true) {
+            return false;
+        }
+
+        /**
          * Below is a quick and hacky solution to ensuring that content has
          * a valid owner.
          *

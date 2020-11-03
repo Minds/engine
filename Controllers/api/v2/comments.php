@@ -238,9 +238,16 @@ class comments implements Interfaces\Api
                     $parentOwnerUsername = "@{$entity->ownerObj['username']}";
                 }
 
+                $reason = "The comment couldn't be saved because you can't interact with the post.";
+
+                if ($comment->isReply()) {
+                    $reason = "The comment couldn't be saved because you can't interact with the comment and/or post.";
+                }
+
                 $response = [
                     'status' => 'error',
-                    'message' => "The comment couldn't be saved because {$parentOwnerUsername} has blocked you."
+                    // 'message' => "The comment couldn't be saved because {$parentOwnerUsername} has blocked you."
+                    'message' => $reason,
                 ];
             } catch (\Exception $e) {
                 error_log($e);

@@ -165,9 +165,9 @@ class Manager
 
         $owner = $comment->getOwnerEntity(false);
 
-        if (!$this->acl->interact($entity, $owner, "comment")) {
-            throw new \Exception();
-        }
+        //if (!$this->acl->interact($entity, $owner, "comment")) {
+        //    throw new \Exception();
+        //}
 
         $this->spam->check($comment);
 
@@ -175,6 +175,10 @@ class Manager
             !$comment->getOwnerGuid() ||
             !$this->acl->interact($entity, $owner)
         ) {
+            throw new BlockedUserException();
+        }
+
+        if (!$this->canInteractWithParentTree($comment)) {
             throw new BlockedUserException();
         }
 
@@ -352,5 +356,33 @@ class Manager
         }
 
         return $count;
+    }
+
+    /**
+     * True/False if the comment creator can interact with the parent tree
+     * @param Comment $comment
+     * @return bool
+     */
+    private function canInteractWithParentTree(Comment $comment): bool
+    {
+        $owner = $comment->getOwnerEntity(false);
+
+        if ($comment->getParentGuidL2()) {
+            $parent = $this->get($comment->getEntityGuid(), $comment->getParentPath(), $comment->getParentGuidL2());
+            if ($this->acl->interact($parent, $owner)) {
+                return $this->canInteractWithParentTree($parent);
+            } else {
+                return false;
+            }
+        }
+
+        if ($comment->getParentGuidL1()) {
+            $parent = $this->get($comment->getEntityGuid(), $comment->getParentPath(), $comment->getParentGuidL1());
+            if (!$this->acl->interact($parent, $owner)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
