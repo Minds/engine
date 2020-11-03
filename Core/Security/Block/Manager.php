@@ -32,20 +32,22 @@ class Manager
         if ($opts->isUseCache() && $cached = $this->cache->get($this->getCacheKey($opts->getUserGuid()))) {
             /** @var Response */
             $guids = unserialize($cached);
+
+            $response = new Response();
+            foreach ($guids as $subjectGuid) {
+                $response[] = (new BlockEntry())
+                    ->setActorGuid($opts->getUserGuid())
+                    ->setSubjectGuid($subjectGuid);
+            }
         } else {
             /** @var Response */
-            $guids = $this->repository->getList($opts);
+            $response = $this->repository->getList($opts);
 
             if ($opts->isUseCache()) {
-                $this->cache->set($this->getCacheKey($opts->getUserGuid()), serialize($guids), static::CACHE_TTL);
+                $this->cache->set($this->getCacheKey($opts->getUserGuid()), serialize($response->map(function ($blockEntry) {
+                    return $blockEntry->getSubjectGuid();
+                })), static::CACHE_TTL);
             }
-        }
-
-        $response = new Response();
-        foreach ($guids as $guid) {
-            $response[] = (new BlockEntry())
-                ->setActorGuid($opts->getUserGuid())
-                ->setSubjectGuid($guid);
         }
 
         return $response;

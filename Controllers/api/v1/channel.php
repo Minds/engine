@@ -14,6 +14,7 @@ use Minds\Entities;
 use Minds\Api\Factory;
 use Minds\Common\ChannelMode;
 use Minds\Core\Di\Di;
+use Minds\Core\Security\Block\BlockEntry;
 use ElggFile;
 
 class channel implements Interfaces\Api
@@ -138,11 +139,15 @@ class channel implements Interfaces\Api
         // The 'blocked' exported field tells the current logged in user that they have BLOCKED
         // said user, not that they are blocked. We use 'hasBlocked' vs 'isBlocked' to get
         // the inversion
-        $blockEntry = (new BlockEntry)
-            ->setActor(Core\Session::getLoggedInUser())
-            ->setSubject($user);
-        $hasBlocked = Di::_()->get('Security\Block\Manager')->hasBlocked($blockEntry);
-        $response['channel']['blocked'] = $hasBlocked;
+        if (Core\Session::getLoggedInUser()) {
+            $blockEntry = (new BlockEntry)
+                ->setActor(Core\Session::getLoggedInUser())
+                ->setSubject($user);
+            $hasBlocked = Di::_()->get('Security\Block\Manager')->hasBlocked($blockEntry);
+            $isBlocked = Di::_()->get('Security\Block\Manager')->isBlocked($blockEntry);
+            $response['channel']['blocked'] = $hasBlocked;
+            $response['channel']['blocked_by'] = $isBlocked;
+        }
 
         if ($user->isPro()) {
             /** @var Core\Pro\Manager $manager */

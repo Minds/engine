@@ -12,6 +12,7 @@ use Minds\Core\Hashtags\HashtagEntity;
 use Minds\Common\Repository\Response;
 use Minds\Core\Feeds\Elastic\Manager as ElasticFeedsManager;
 use Minds\Core\Search\SortingAlgorithms;
+use Minds\Core\Security\ACL;
 use Minds\Entities;
 
 class Manager
@@ -43,13 +44,17 @@ class Manager
     /** @var string */
     protected $plusSupportTierUrn;
 
+    /** @var ACL */
+    protected $acl;
+
     public function __construct(
         $es = null,
         $entitiesBuilder = null,
         $config = null,
         $hashtagManager = null,
         $elasticFeedsManager = null,
-        $user = null
+        $user = null,
+        $acl = null
     ) {
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
@@ -58,6 +63,7 @@ class Manager
         $this->elasticFeedsManager = $elasticFeedsManager ?? Di::_()->get('Feeds\Elastic\Manager');
         $this->user = $user ?? Session::getLoggedInUser();
         $this->plusSupportTierUrn = $this->config->get('plus')['support_tier_urn'];
+        $this->acl = $acl ?? Di::_()->get('Security\ACL');
     }
 
     /**
@@ -446,6 +452,10 @@ class Manager
             $hashtag = $doc['_source']['tags'][0];
 
             $entity = $this->entitiesBuilder->single($doc['_id']);
+            
+            if (!$this->acl->read($entity)) {
+                continue;
+            }
 
             if ($opts['plus'] === true) {
                 $entity->setPayWallUnlocked(true);

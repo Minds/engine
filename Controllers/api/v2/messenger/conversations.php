@@ -17,6 +17,7 @@ use Minds\Core\Messenger\Messages;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Sockets;
+use Minds\Core\Di\Di;
 
 class conversations implements Interfaces\Api
 {
@@ -155,12 +156,21 @@ class conversations implements Interfaces\Api
         $response = [];
 
         $conversations = (new Messenger\Conversations)->getList(12, $_GET['offset']);
+        $rawCount = count($conversations);
+
+        foreach ($conversations as $k => $conversation) {
+            if (!Security\ACL::_()->read($conversation)) {
+                unset($conversations[$k]);
+            }
+        }
+
+        $conversations = array_values($conversations);
 
         if ($conversations) {
             $response['conversations'] = Factory::exportable($conversations);
 
-            //mobile polyfill
             foreach ($response['conversations'] as $k => $v) {
+                // Mobile polyfill
                 $response['conversations'][$k]['subscribed'] = true;
                 $response['conversations'][$k]['subscriber'] = true;
 
@@ -174,8 +184,8 @@ class conversations implements Interfaces\Api
             $response['conversations'] = array_values($response['conversations']);
 
             end($conversations);
-            $response['load-next'] = (int) $_GET['offset'] + count($conversations);
-            $response['load-previous'] = (int) $_GET['offset'] - count($conversations);
+            $response['load-next'] = (int) $_GET['offset'] + $rawCount;
+            $response['load-previous'] = (int) $_GET['offset'] - $rawCount;
         }
         return $response;
     }
@@ -211,8 +221,9 @@ class conversations implements Interfaces\Api
             if (Session::getLoggedInUserGuid() == $guid) {
                 continue;
             }
-            
-            if (!Security\ACL::_()->interact($guid, Session::getLoggedInUserGuid())) {
+
+            $user =  Di::_()->get('EntitiesBuilder')->single($guid);
+            if (!Security\ACL::_()->interact($user, Session::getLoggedInUserGuid())) {
                 // At least one people blocked on this conversation
                 // Means that we cannot chat here
                 return Factory::response([

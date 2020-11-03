@@ -99,8 +99,7 @@ class subscribe implements Interfaces\Api
 
         $publisher = Entities\Factory::build($pages[0]);
 
-        $canSubscribe = Security\ACL::_()->interact(Core\Session::getLoggedinUser(), $pages[0]) &&
-            Security\ACL::_()->interact($pages[0], Core\Session::getLoggedinUser(), 'subscribe');
+        $canSubscribe = Security\ACL::_()->interact($publisher, Core\Session::getLoggedinUser(), 'subscribe');
 
         if (!$canSubscribe) {
             return Factory::response([
