@@ -37,7 +37,11 @@ class ManagerSpec extends ObjectBehavior
         $opts->setUserGuid(123);
 
         $this->repository->getList($opts)
-            ->willReturn(new Response([ 456 ]));
+            ->willReturn(new Response([
+                (new BlockEntry())
+                    ->setActorGuid(456)
+                    ->setSubjectGuid(123)
+             ]));
 
         $this->getList($opts);
     }
@@ -51,7 +55,11 @@ class ManagerSpec extends ObjectBehavior
             ->shouldNotBeCalled();
 
         $this->cache->get('acl:block:list:123')
-            ->willReturn(serialize(new Response([ 456 ])));
+            ->willReturn(serialize(new Response([
+                (new BlockEntry())
+                    ->setActorGuid(456)
+                    ->setSubjectGuid(123)
+             ])));
 
         //
 
@@ -67,7 +75,11 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getList(Argument::that(function ($opts) {
             return $opts->getUserGuid() === 456;
         }))
-            ->willReturn(new Response([ 123 ]));
+            ->willReturn(new Response([
+                (new BlockEntry())
+                    ->setActorGuid(456)
+                    ->setSubjectGuid(123)
+             ]));
 
         //
 
@@ -84,7 +96,11 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getList(Argument::that(function ($opts) {
             return $opts->getUserGuid() === 456;
         }))
-            ->willReturn(new Response([ 789 ]));
+            ->willReturn(new Response([
+                (new BlockEntry())
+                    ->setActorGuid(456)
+                    ->setSubjectGuid(789)
+             ]));
 
         //
 
@@ -101,7 +117,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getList(Argument::that(function ($opts) {
             return $opts->getUserGuid() === 123;
         }))
-            ->willReturn(new Response([ 456 ]));
+            ->willReturn(new Response([ $blockEntry ]));
 
         //
 
@@ -118,7 +134,11 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getList(Argument::that(function ($opts) {
             return $opts->getUserGuid() === 123;
         }))
-            ->willReturn(new Response([ 789 ]));
+            ->willReturn(new Response([
+                (new BlockEntry())
+                    ->setActorGuid(123)
+                    ->setSubjectGuid(789)
+             ]));
 
         //
 

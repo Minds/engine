@@ -48,6 +48,7 @@ class ACLSpec extends ObjectBehavior
 
     public function it_should_allow_read_of_public_entities(Entity $entity, User $user)
     {
+        $user->getType()->willReturn('user');
         $user->get('type')->willReturn('user');
         $user->get('guid')->willReturn(123);
         $user->get('access_id')->willReturn(2);
@@ -63,6 +64,7 @@ class ACLSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
+        $entity->getType()->willReturn('object');
         $entity->get('access_id')->willReturn(2);
         $entity->get('container_guid')->willReturn(123);
         $entity->get('owner_guid')->willReturn(123);
@@ -89,6 +91,7 @@ class ACLSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
+        $entity->getType()->willReturn('object');
         $entity->get('guid')->willReturn(1);
         $entity->get('access_id')->willReturn(2);
         $entity->get('container_guid')->willReturn(123);
@@ -100,6 +103,7 @@ class ACLSpec extends ObjectBehavior
 
     public function it_should_not_allow_read_of_private_entities(Entity $entity, User $user)
     {
+        $user->getType()->willReturn('user');
         $user->get('type')->willReturn('user');
         $user->get('guid')->willReturn(123);
         $user->get('access_id')->willReturn(2);
