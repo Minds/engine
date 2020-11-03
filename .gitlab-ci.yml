@@ -113,6 +113,7 @@ review:start:
   except:
     refs:
       - master
+      - feat/1732-block-refactor
       - production
       - test/gitlab-ci
 
@@ -132,6 +133,7 @@ review:stop:
   except:
     refs:
       - master
+      - feat/1732-block-refactor
       - production
       - test/gitlab-ci
 
@@ -183,6 +185,7 @@ staging:fpm:
   only:
     refs:
       - master
+      - feat/1732-block-refactor
       - production
       - test/gitlab-ci
 
@@ -211,6 +214,7 @@ canary:fpm:
   only:
     refs:
       - master
+      - feat/1732-block-refactor
       - production
       - test/gitlab-ci
   environment:
@@ -228,6 +232,7 @@ production:fpm:
   only:
     refs:
       - master
+      - feat/1732-block-refactor
       - production
       - test/gitlab-ci
   environment:
