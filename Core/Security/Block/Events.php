@@ -47,6 +47,10 @@ class Events
             $entity = $params['entity'];
             $user = $params['user'];
 
+            if (!$user) {
+                return;
+            }
+
             $blockEntry = (new BlockEntry())
                 ->setActor($user)
                 ->setSubject($entity);

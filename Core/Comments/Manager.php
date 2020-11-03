@@ -173,7 +173,7 @@ class Manager
 
         if (
             !$comment->getOwnerGuid() ||
-            !$this->acl->interact($entity, $owner)
+            !$this->acl->interact($entity, $owner, 'comment')
         ) {
             throw new BlockedUserException();
         }

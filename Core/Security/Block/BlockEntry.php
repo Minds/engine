@@ -25,7 +25,7 @@ class BlockEntry
             $this->actorGuid = (string) $actor->getGuid();
         } else {
             // If this isn't a user, then assume its a standard entity
-            $this->actorGuid = (string) $entity->owner_guid;
+            $this->actorGuid = (string) $actor->owner_guid;
         }
 
         return $this;
