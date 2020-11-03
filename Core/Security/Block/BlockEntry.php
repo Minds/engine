@@ -15,7 +15,7 @@ class BlockEntry
     protected $subjectGuid;
 
     /**
-     * Helper function to set the subjectGuid from an entity
+     * Helper function to set the actorGuid from an entity
      * @param mixed $actor
      * @return self
      */
