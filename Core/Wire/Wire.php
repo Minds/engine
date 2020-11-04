@@ -32,6 +32,8 @@ use Minds\Traits\MagicAttributes;
  * @method Wire setAddress(string $value)
  * @method int getTimestamp()
  * @method Wire setTimestamp(int $value)
+ * @method int getTrialDays()
+ * @method Wire setTrialDays(int $value)
  */
 class Wire
 {
@@ -66,6 +68,9 @@ class Wire
 
     /** @var int $timestamp */
     private $timestamp;
+
+    /** @var int $trialDays */
+    private $trialDays;
 
     public function getGuid()
     {

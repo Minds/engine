@@ -6,6 +6,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Payments\Manager;
 use Minds\Core\Payments\Subscriptions\Repository;
 use Minds\Core\Payments\Subscriptions\Subscription;
+use Minds\Core\Payments\Subscriptions\Delegates;
 use Minds\Core\Events\Dispatcher;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -13,14 +14,20 @@ use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
+    /** @var Repository */
     protected $repository;
 
+    /** @var Delegates\SnowplowDelegate */
+    protected $snowplowDelegate;
+
     public function let(
-        Repository $repository
+        Repository $repository,
+        Delegates\SnowplowDelegate $snowplowDelegate
     ) {
         $this->repository = $repository;
+        $this->snowplowDelegate = $snowplowDelegate;
 
-        $this->beConstructedWith($repository);
+        $this->beConstructedWith($repository, $snowplowDelegate);
     }
 
     public function it_is_initializable()
@@ -35,6 +42,12 @@ class ManagerSpec extends ObjectBehavior
         $subscription->getPlanId()
             ->shouldBeCalled()
             ->willReturn('spec');
+
+        $subscription->getTrialDays()
+            ->willReturn(null);
+
+        $subscription->setTrialDays(0)
+            ->willReturn($subscription);
 
         $this->repository->add($subscription)
             ->shouldBeCalled();
@@ -57,6 +70,9 @@ class ManagerSpec extends ObjectBehavior
         $subscription->setNextBilling(strtotime('+1 month', time()))
             ->shouldBeCalled();
 
+        $this->snowplowDelegate->onCharge($subscription)
+            ->shouldBeCalled();
+
         $this->charge()->shouldReturn(true);
     }
 
@@ -74,6 +90,37 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->add($subscription)
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->snowplowDelegate->onCreate($subscription)
+            ->shouldBeCalled();
+
+        $this->setSubscription($subscription);
+        $this->create()
+            ->shouldReturn(true);
+    }
+
+    public function it_should_create_with_trial_context()
+    {
+        $user = new User;
+        $user->guid = 123;
+
+        $subscription = new Subscription;
+        $subscription->setId('sub_test')
+            ->setPlanId('spec')
+            ->setPaymentMethod('spec')
+            ->setUser($user)
+            ->setLastBilling(1)
+            ->setTrialDays(7);
+
+        // Will bill next in 7 days, as expected
+        $this->repository->add(Argument::that(function ($subscription) {
+            return $subscription->getNextBilling() === (86400 * 7) + 1;
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->snowplowDelegate->onCreate($subscription)
+            ->shouldBeCalled();
 
         $this->setSubscription($subscription);
         $this->create()

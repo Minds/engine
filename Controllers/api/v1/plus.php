@@ -38,8 +38,10 @@ class plus implements Interfaces\Api
         $plus->setUser($user);
 
         return Factory::response([
+            'has_subscription' => $plus->hasSubscriptions(),
             'active' => $plus->isActive(),
-            'can_be_cancelled' => $plus->canBeCancelled()
+            'can_be_cancelled' => $plus->canBeCancelled(),
+            'expires' => $user->plus_expires,
         ]);
     }
 
@@ -170,20 +172,7 @@ class plus implements Interfaces\Api
 
         switch ($pages[0]) {
             case "subscription":
-                $subscription = $plus->getSubscription();
-
-                if ($user->referrer) {
-                    $referrer = new User($user->referrer);
-                    $subscription->setMerchant($referrer->getMerchant());
-                }
-
-                if ($subscription) {
-                    $subscription = $stripe->cancelSubscription($subscription);
-                    $plus->cancel();
-                }
-
-                $user->plus_expires = 0;
-                $user->save();
+                $plus->cancel();
                 break;
             case "boost":
                 $user->disabled_boost = false;

@@ -225,14 +225,16 @@ class Manager
         $response = $this->es->request($prepared);
 
         $trends = [];
-        
+
         foreach ($response['aggregations']['tags']['buckets'] as $bucket) {
             $tag = $bucket['key'];
             $trend = new Trend();
             $trend->setId("tag_{$tag}_{$hoursAgo}h")
                 ->setHashtag($tag)
                 ->setVolume($bucket['doc_count'])
-                ->setPeriod($hoursAgo);
+                ->setPeriod($hoursAgo)
+                ->setSelected(in_array(strtolower($tag), array_map('strtolower', $this->tagCloud), true));
+
             $trends[] = $trend;
         }
 
@@ -329,7 +331,7 @@ class Manager
         ];
 
         // Scoring functions
-        
+
         $functions = [];
 
         $functions[] = [
@@ -433,11 +435,11 @@ class Manager
         $prepared->query($query);
 
         $response = $this->es->request($prepared);
- 
+
         $trends = [];
         foreach ($response['hits']['hits'] as $doc) {
             $ownerGuid = $doc['_source']['owner_guid'];
-            
+
             $title = $doc['_source']['title'] ?: $doc['_source']['message'];
 
             shuffle($doc['_source']['tags']);
@@ -527,7 +529,7 @@ class Manager
         }
 
         $elasticEntities = new Core\Feeds\Elastic\Entities();
-        
+
         $opts = array_merge([
             'cache_key' => $this->user ? $this->user->getGuid() : null,
             'access_id' => 2,
@@ -609,7 +611,7 @@ class Manager
     /**
      * Set the tags a user wants to subscribe to
      * @param array $selected
-     * @param array $deslected
+     * @param array $deselected
      * @return bool
      */
     public function setTags(array $selected, array $deselected): bool

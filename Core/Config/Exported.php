@@ -110,6 +110,10 @@ class Exported
             if ($user->isPlus()) {
                 $exported['max_video_length'] = $this->config->get('max_video_length_plus');
             }
+
+            $canHavePlusTrial = !$user->plus_expires;
+            $exported['upgrades']['plus']['monthly']['can_have_trial'] = $canHavePlusTrial;
+            $exported['upgrades']['plus']['yearly']['can_have_trial'] = $canHavePlusTrial;
         }
 
         if ($context === 'embed') {
