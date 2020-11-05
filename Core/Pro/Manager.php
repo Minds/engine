@@ -150,9 +150,6 @@ class Manager
         $this->subscriptionDelegate
             ->onDisable($this->user);
 
-        $this->user
-            ->setProExpires(0);
-
         $saved = $this->saveAction
             ->setEntity($this->user)
             ->save();
