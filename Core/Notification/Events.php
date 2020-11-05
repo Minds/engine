@@ -10,7 +10,7 @@ use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Core\Notification\Extensions\Push;
 use Minds\Core\Di\Di;
-use Minds\Core\Security\ACL\Block\BlockEntry;
+use Minds\Core\Security\Block\BlockEntry;
 
 use Minds\Helpers;
 use Minds\Core\Sockets;
