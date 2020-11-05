@@ -11,6 +11,8 @@ use Minds\Core\Payments\Subscriptions\Repository;
 
 class Subscription
 {
+    /** @var Config */
+    private $config;
     private $stripe;
     private $repo;
     /** @var User */
@@ -21,10 +23,12 @@ class Subscription
     protected $subscriptionsRepository;
 
     public function __construct(
+        $config = null,
         $stripe = null,
         $subscriptionsManager = null,
         $subscriptionsRepository = null
     ) {
+        $this->config = $config ?: Di::_()->get('Config');
         $this->stripe = $stripe ?: Di::_()->get('StripePayments');
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Payments\Subscriptions\Manager');
         $this->subscriptionsRepository = $subscriptionsRepository ?: Di::_()->get('Payments\Subscriptions\Repository');
@@ -75,18 +79,8 @@ class Subscription
 
     public function cancel()
     {
-        $subscription = $this->getSubscription();
-
-        if ($this->user->referrer) {
-            $referrer = new User($this->user->referrer);
-            $subscription->setMerchant($referrer->getMerchant());
-        }
-
         try {
-            $this->stripe->cancelSubscription($subscription);
-            $this->subscriptionsManager
-                ->setSubscription($subscription)
-                ->cancel();
+            $this->subscriptionsManager->cancelSubscriptions($this->user->guid, $this->config->get('plus')['handler']);
         } catch (\Exception $e) {
         }
 
@@ -94,16 +88,15 @@ class Subscription
     }
 
     /**
-     * @return array
+     * @return bool
      */
-    public function getSubscription()
+    public function hasSubscriptions(): bool
     {
-        $subscriptions = $this->subscriptionsRepository->getList([
-            'plan_id' => 'plus',
-            'payment_method' => 'money',
-            'user_guid' => $this->user->guid
+        $subscriptions = $this->subscriptionsManager->getList([
+            'user_guid' => $this->user->guid,
+            'entity_guid' => $this->config->get('plus')['handler']
         ]);
 
-        return $subscriptions[0];
+        return count($subscriptions) > 0;
     }
 }
