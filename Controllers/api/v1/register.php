@@ -67,6 +67,10 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 ]);
             }
 
+            if (Di::_()->get('Email\SpamFilter')->isSpam($_POST['email'])) {
+                return Factory::response(['status' => 'error', 'message' => "This email provider is blocked due to spam. Please use another address."]);
+            }
+
             if (!(isset($_POST['parentId']) || isset($_POST['previousUrl']) || isset($_SERVER['HTTP_APP_VERSION']))) {
                 return Factory::response(['status'=>'error', 'message' => "Please refresh your browser or update you app. We don't recognise your platform."]);
             }
