@@ -41,11 +41,11 @@ class proxy implements Interfaces\Api, Interfaces\ApiIgnorePam
         // exit if src was a media proxy url
         $siteUrl = Di::_()->get('Config')->get('site_url');
         $cdnUrl = Di::_()->get('Config')->get('cdn_url');
-        $mediaUrlRoute = "api/v2/media/proxy";
+        $mediaProxyRoute = "api/v2/media/proxy";
 
-        if ($siteUrl && strpos($src, $siteUrl . $mediaUrlRoute) === 0) {
+        if ($siteUrl && strpos($src, $siteUrl . $mediaProxyRoute) === 0) {
             exit;
-        } elseif ($cdnUrl && strpos($src, $cdnUrl . $mediaUrlRoute) === 0) {
+        } elseif ($cdnUrl && strpos($src, $cdnUrl . $mediaProxyRoute) === 0) {
             exit;
         }
 
