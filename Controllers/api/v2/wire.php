@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Minds Wire Api endpoint.
  *
@@ -53,7 +54,8 @@ class wire implements Interfaces\Api
             return Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to yourself!']);
         }
 
-        if (!Core\Security\ACL::_()->interact($user, Core\Session::getLoggedInUser())) {
+        $isPlus = (string) $user->getGuid() === (string) Core\Di\Di::_()->get('Config')->get('plus')['handler'];
+        if (!$isPlus && !Core\Security\ACL::_()->interact($user, Core\Session::getLoggedInUser())) {
             return Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to a user as you are unable to interact with them.']);
         }
 
