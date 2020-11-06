@@ -225,9 +225,10 @@ class Manager
 
         // If Minds+ is the reciever, bypass the ACL
         $bypassAcl = false;
-        if ((string) $this->receiver->getGuid() !== (string) $this->config->get('plus')['handler']) {
+        if ((string) $this->receiver->getGuid() === (string) $this->config->get('plus')['handler']) {
             $bypassAcl = true;
         }
+
         if (!$bypassAcl && !$this->acl->write($wire)) {
             return false;
         }
