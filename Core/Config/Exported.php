@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Exported.
  *
@@ -16,6 +17,7 @@ use Minds\Core\Rewards\Contributions\ContributionValues;
 use Minds\Core\Session;
 use Minds\Core\ThirdPartyNetworks\Manager as ThirdPartyNetworksManager;
 use Minds\Entities\User;
+use Minds\Core\Wire;
 
 class Exported
 {
@@ -111,7 +113,7 @@ class Exported
                 $exported['max_video_length'] = $this->config->get('max_video_length_plus');
             }
 
-            $canHavePlusTrial = !$user->plus_expires;
+            $canHavePlusTrial = !$user->plus_expires || $user->plus_expires <= strtotime(Wire\Manager::TRIAL_THRESHOLD_DAYS . ' days ago');
             $exported['upgrades']['plus']['monthly']['can_have_trial'] = $canHavePlusTrial;
             $exported['upgrades']['plus']['yearly']['can_have_trial'] = $canHavePlusTrial;
         }
