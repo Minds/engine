@@ -24,22 +24,28 @@ class proxy implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function get($pages)
     {
-        $src = isset($_GET['src']) ? $_GET['src'] : null;
-
-        // thumbProxy polyfill
-        $width = isset($_GET['size']) ? (int) $_GET['size'] : null;
-
-        if ($width && is_numeric($width)) {
-            $size = $width;
-        } else {
-            $size = isset($_GET['size']) ? (int) $_GET['size'] : 1024;
+        if (!isset($_GET['src'])) {
+            exit;
         }
 
-        if ($src && strpos($src, '//') === 0) {
+        $src = $_GET['src'];
+        if (strpos($src, '//') === 0) {
             $src = 'https:' . $src;
         }
 
+        $size = isset($_GET['size']) ? (int) $_GET['size'] : 1024;
         if ($size < 0) {
+            exit;
+        }
+
+        // exit if src was a media proxy url
+        $siteUrl = Di::_()->get('Config')->get('site_url');
+        $cdnUrl = Di::_()->get('Config')->get('cdn_url');
+        $mediaUrlRoute = "api/v2/media/proxy";
+
+        if ($siteUrl && strpos($src, $siteUrl . $mediaUrlRoute) === 0) {
+            exit;
+        } elseif ($cdnUrl && strpos($src, $cdnUrl . $mediaUrlRoute) === 0) {
             exit;
         }
 
