@@ -35,19 +35,8 @@ class proxy implements Interfaces\Api, Interfaces\ApiIgnorePam
             $size = isset($_GET['size']) ? (int) $_GET['size'] : 1024;
         }
 
-        if ($src) {
-            $siteUrl = Di::_()->get('Config')->get('site_url');
-            $cdnUrl = Di::_()->get('Config')->get('cdn_url');
-
-            if ($siteUrl && strpos($src, $siteUrl) === 0) {
-                \forward($src);
-                exit;
-            } elseif ($cdnUrl && strpos($src, $cdnUrl) === 0) {
-                \forward($src);
-                exit;
-            } elseif (strpos($src, '//') === 0) {
-                $src = 'https:' . $src;
-            }
+        if ($src && strpos($src, '//') === 0) {
+            $src = 'https:' . $src;
         }
 
         if ($size < 0) {
