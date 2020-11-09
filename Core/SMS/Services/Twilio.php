@@ -93,4 +93,3 @@ class Twilio implements SMSServiceInterface
         return $this->config->get('twilio');
     }
 }
-
