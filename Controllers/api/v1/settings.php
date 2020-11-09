@@ -46,7 +46,7 @@ class settings implements Interfaces\Api
         $response['channel']['boost_rating'] = $user->getBoostRating();
         $response['channel']['disabled_emails'] = $user->disabled_emails;
         $response['channel']['toaster_notifications'] = $user->getToasterNotifications();
-
+        $response['channel']['has2fa'] = !!$user->telno;
 
         $sessionsManager = Di::_()->get('Sessions\Manager');
         $sessionsManager->setUser($user);
