@@ -134,7 +134,7 @@ class Manager
         }
 
         $urn = new Urn($id);
-        list($address,,,) = explode('-', $urn->getNss());
+        list($address, , , ) = explode('-', $urn->getNss());
 
         switch ($address) {
             case "offchain":
