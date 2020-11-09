@@ -251,7 +251,7 @@ class membership implements Interfaces\Api
         $membership = (new Core\Groups\Membership)->setGroup($group);
         $invitations = (new Core\Groups\Invitations)->setGroup($group)->setActor($user);
 
-        if (Core\Security\ACL::_()->interact($group, $user)) {
+        if (!Core\Security\ACL::_()->interact($group, $user)) {
             return Factory::response([
                 'status' => 'error',
                 'stage' => 'initial',
