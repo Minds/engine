@@ -9,7 +9,7 @@ class BlockListOpts extends AbstractRepositoryOpts
     protected $userGuid;
 
     /** @var int */
-    protected $limit = 500;
+    protected $limit = 1000;
 
     /** @var bool */
     protected $hydrate = false;
