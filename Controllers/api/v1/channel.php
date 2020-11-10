@@ -166,6 +166,8 @@ class channel implements Interfaces\Api
             ->setUser($user)
             ->count() === 0;
 
+        $response['foo'] = 'bar';
+        
         return Factory::response($response);
     }
 
