@@ -100,6 +100,7 @@ class Exported
             'environment' => getenv('MINDS_ENV') ?: 'development',
             'boost_rotator_interval' => $this->config->get('boost_rotator_interval'),
             'token_exchange_rate' => $this->config->get('token_exchange_rate'),
+            'foo' => 'bar'
         ];
 
         if (Session::isLoggedIn()) {
