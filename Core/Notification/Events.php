@@ -134,7 +134,7 @@ class Events
 
                     $user = new Entities\User(strtolower($username));
 
-                    if ($user->guid && !Core\Security\ACL::_()->interact($user, Core\Session::getLoggedinUser())) {
+                    if ($user->guid && Core\Security\ACL::_()->interact($user, Core\Session::getLoggedinUser())) {
                         $to[] = $user->guid;
                     }
 
