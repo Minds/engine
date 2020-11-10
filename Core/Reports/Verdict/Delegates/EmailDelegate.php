@@ -11,6 +11,7 @@ use Minds\Core\Reports\Report;
 use Minds\Common\Urn;
 use Minds\Core\Email\V2\Campaigns\Custom\Custom;
 use Minds\Core\Config;
+use Minds\Entities\User;
 
 class EmailDelegate
 {
@@ -54,7 +55,11 @@ class EmailDelegate
                 break;
             case 4:
             case 8:
-                $template = 'moderation-3-strikes';
+                // Direct reports/bans on User are automatic.
+                // Reports/bans on entities are because of 3 strikes.
+                if (!$entity instanceof User) {
+                    $template = 'moderation-3-strikes';
+                }
                 break;
         }
 
