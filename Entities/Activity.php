@@ -980,4 +980,24 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     {
         return $this->remind_object['guid'] && !$this->isRemind();
     }
+
+    /**
+     * Reconstructs our dependencies when we unserialized
+     */
+    public function __wakeup()
+    {
+        $this->__construct();
+    }
+
+    /**
+     * Removes entitiesBuilder and activityManager from object
+     * when serializing
+     */
+    public function __sleep()
+    {
+        return array_diff(array_keys(get_object_vars($this)), [
+            'entitiesBuilder',
+            'activityManager',
+        ]);
+    }
 }
