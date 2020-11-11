@@ -98,7 +98,6 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_apply_remind_delegates_and_nsfw(Activity $activity)
     {
-
         $this->save->setEntity(Argument::that(function ($activity) {
             return $activity->getGuid() === 123;
         }))

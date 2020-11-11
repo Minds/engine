@@ -17,7 +17,7 @@ class ActivitySpec extends ObjectBehavior
     /** @var Activity\Manager */
     private $activityManager;
 
-    function let(EntitiesBuilder $entitiesBuilder, Activity\Manager $activityManager)
+    public function let(EntitiesBuilder $entitiesBuilder, Activity\Manager $activityManager)
     {
         $this->beConstructedWith(null, null, $entitiesBuilder, $activityManager);
         $this->entitiesBuilder = $entitiesBuilder;
