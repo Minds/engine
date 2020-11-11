@@ -968,7 +968,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     {
         return !$this->message
             && $this->remind_object['guid']
-            && !$this->remind_object['quoted_post'];
+            && !($this->remind_object['quoted_post'] ?? true);
     }
 
     /**
