@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Default event listeners.
  */
@@ -68,11 +69,9 @@ class Defaults
 
             $export = $event->response() ?: [];
 
-            if (!(
-                $params['entity']->type === 'object'
+            if (!($params['entity']->type === 'object'
                 || $params['entity']->type === 'group'
-                || $params['entity']->type === 'activity'
-            )) {
+                || $params['entity']->type === 'activity')) {
                 return false;
             }
 
@@ -128,9 +127,6 @@ class Defaults
         (new Core\Search\Events())->register();
 
         (new Core\Events\Hooks\Register())->init();
-
-        // Third-Party Networks events
-        (new Core\ThirdPartyNetworks\Events())->register();
 
         // Subscription Queue events
         Helpers\Subscriptions::registerEvents();

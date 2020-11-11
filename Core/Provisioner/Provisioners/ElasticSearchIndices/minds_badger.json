@@ -292,6 +292,15 @@
     },
     "activity": {
       "properties": {
+        "is_remind": {
+          "type": "boolean"
+        },
+        "remind_guid": {
+          "type": "keyword"
+        },
+        "is_quoted_post": {
+          "type": "boolean"
+        },
         "language": {
           "type": "keyword"
         },

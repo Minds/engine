@@ -4,11 +4,26 @@ namespace Spec\Minds\Entities;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Wire\Sums;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Feeds\Activity;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 class ActivitySpec extends ObjectBehavior
 {
+    /** @var EntitiesBuilder */
+    private $entitiesBuilder;
+
+    /** @var Activity\Manager */
+    private $activityManager;
+
+    function let(EntitiesBuilder $entitiesBuilder, Activity\Manager $activityManager)
+    {
+        $this->beConstructedWith(null, null, $entitiesBuilder, $activityManager);
+        $this->entitiesBuilder = $entitiesBuilder;
+        $this->activityManager = $activityManager;
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Entities\Activity');
@@ -37,5 +52,40 @@ class ActivitySpec extends ObjectBehavior
         $this->getAllowComments()->shouldBe(true);
         $this->setAllowComments(false);
         $this->getAllowComments()->shouldBe(false);
+    }
+
+    public function it_should_convert_reminded_blog_to_activity(\Minds\Core\Blogs\Blog $blog)
+    {
+        $this->remind_object = [
+            'guid' => 456
+        ];
+
+        $this->entitiesBuilder->single(456)
+            ->willReturn($blog);
+
+        $this->activityManager->createFromEntity($blog)
+            ->willReturn(new \Minds\Entities\Activity());
+
+        //
+
+        $remind = $this->getRemind();
+    }
+
+    public function it_should_return_true_if_remind()
+    {
+        $this->remind_object = [
+            'guid' => 456,
+            'quoted_post' => false,
+        ];
+        $this->isRemind()->shouldBe(true);
+    }
+
+    public function it_should_return_true_if_quoted_post()
+    {
+        $this->remind_object = [
+            'guid' => 456,
+            'quoted_post' => true,
+        ];
+        $this->isQuotedPost()->shouldBe(true);
     }
 }

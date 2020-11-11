@@ -159,10 +159,6 @@ class comments implements Interfaces\Api
           default:
             $entity = new \Minds\Entities\Entity($pages[0]);
 
-            if ($entity instanceof Entities\Activity && $entity->remind_object) {
-                $entity = (object) $entity->remind_object;
-            }
-
             if (!$pages[0] || !$entity || $entity->type == 'comment') {
                 return Factory::response([
                   'status' => 'error',

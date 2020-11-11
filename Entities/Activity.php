@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Entities;
 
 use Minds\Helpers;
@@ -8,6 +9,7 @@ use Minds\Core\Queue;
 use Minds\Core\Analytics;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Core\Wire\Paywall\PaywallEntityTrait;
+use Minds\Core\Feeds\Activity\RemindIntent;
 
 /**
  * Activity Entity
@@ -27,6 +29,12 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
 
     /** @var string */
     protected $videoPosterBase64Blob; // Never saves
+
+    /** @var Core\EntitiesBuilder */
+    protected $entitiesBuilder;
+
+    /** @var Core\Feeds\Activity\Manager */
+    protected $activityManager;
 
     /**
      * Initialize entity attributes
@@ -57,9 +65,11 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         ]);
     }
 
-    public function __construct($guid = null)
+    public function __construct($guid = null, $cache = null, $entitiesBuilder = null, $activityManager = null)
     {
         parent::__construct($guid);
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->activityManager = $activityManager ?? Di::_()->get('Feeds\Activity\Manager');
     }
 
     /**
@@ -107,8 +117,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
 
         if ($this->isPayWall()) {
             (new Core\Payments\Plans\PaywallReview())
-              ->setEntityGuid($guid)
-              ->add();
+                ->setEntityGuid($guid)
+                ->add();
         }
 
         return $guid;
@@ -140,13 +150,13 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         (new Core\Translation\Storage())->purge($this->guid);
 
         Queue\Client::build()->setQueue("FeedCleanup")
-                            ->send([
-                                "guid" => $this->guid,
-                                "owner_guid" => $this->owner_guid,
-                                "type" => "activity"
-                            ]);
+            ->send([
+                "guid" => $this->guid,
+                "owner_guid" => $this->owner_guid,
+                "type" => "activity"
+            ]);
 
-        Core\Events\Dispatcher::trigger('delete', 'activity', [ 'entity' => $this ]);
+        Core\Events\Dispatcher::trigger('delete', 'activity', ['entity' => $this]);
 
         return true;
     }
@@ -246,90 +256,97 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function export()
     {
         $export = parent::export();
-        if ($this->entity_guid) {
-            $export['entity_guid'] = (string) $this->entity_guid;
-        }
 
-        if ($this->urn) {
-            $export['urn'] = $this->urn;
-        }
-
-        if ($this->boosted_guid) {
-            $export['boosted'] = (bool) $this->boosted;
-            $export['boosted_guid'] = (string) $this->boosted_guid;
-            $export['boosted_onchain'] = $this->boosted_onchain;
-        }
-
-        $export['impressions'] = $this->getImpressions();
-        $export['reminds'] = $this->getRemindCount();
-
-        if ($this->entity_guid && !$this->remind_object) {
-            $export['thumbs:up:count'] = Helpers\Counters::get($this->entity_guid, 'thumbs:up');
-            $export['thumbs:down:count'] = Helpers\Counters::get($this->entity_guid, 'thumbs:down');
-        } elseif ($this->remind_object) {
-            $export['remind_object']['nsfw'] = array_map(function ($reason) {
-                return (int) $reason;
-            }, $export['remind_object']['nsfw'] ?? []);
-            if ($this->remind_object['entity_guid']) {
-                $export['thumbs:up:count'] = Helpers\Counters::get($this->remind_object['entity_guid'], 'thumbs:up');
-                $export['thumbs:down:count'] = Helpers\Counters::get($this->remind_object['entity_guid'], 'thumbs:down');
-            } else {
-                $export['thumbs:up:count'] = Helpers\Counters::get($this->remind_object['guid'], 'thumbs:up');
-                $export['thumbs:down:count'] = Helpers\Counters::get($this->remind_object['guid'], 'thumbs:down');
-            }
+        if ($this->isRemind()) {
+            // If this is a remind (not a quoted post), then we export the remind and not this post
+            $remind = $this->getRemind();
+            $export = $remind->export();
+            $export['subtype'] = 'remind';
+            // TODO: when we support collapsing of reminds, add the other ownerObj's
+            $export['remind_users'] = [$this->ownerObj];
+            $export['urn'] = $this->getUrn();
+            return $export;
         } else {
-            $export['thumbs:up:count'] = Helpers\Counters::get($this, 'thumbs:up');
-            $export['thumbs:down:count'] = Helpers\Counters::get($this, 'thumbs:down');
-        }
-        $export['thumbs:up:user_guids'] = $export['thumbs:up:user_guids'] ? (array) array_values($export['thumbs:up:user_guids']) : [];
+            if ($this->isQuotedPost()) {
+                $remind = $this->getRemind();
 
-        $export['mature'] = (bool) $export['mature'];
-
-        $export['comments_enabled'] = (bool) $export['comments_enabled'];
-        // $export['wire_totals'] = $this->getWireTotals();
-        $export['wire_threshold'] = $this->getWireThreshold();
-        $export['boost_rejection_reason'] = $this->getBoostRejectionReason() ?: -1;
-        $export['rating'] = $this->getRating();
-        $export['ephemeral'] = $this->getEphemeral();
-        $export['ownerObj'] = $this->getOwnerObj();
-        $export['time_sent'] = $this->getTimeSent();
-        $export['license'] = $this->license;
-
-        if ($this->hide_impressions) {
-            $export['hide_impressions'] = $this->hide_impressions;
-        }
-
-        $export['thumbnails'] = $this->getThumbnails();
-
-        $export['permaweb_id'] = $this->getPermawebId();
-
-        switch ($this->custom_type) {
-            case 'video':
-                if ($this->custom_data['guid']) {
-                    $export['play:count'] = Helpers\Counters::get($this->custom_data['guid'], 'plays');
+                // Only one quoted post can be included. Present a link if on 3rd layer down
+                if ($remind->isQuotedPost()) {
+                    $url = Di::_()->get('Config')->get('site_url') . 'newsfeed/' . $remind->remind_object['guid'];
+                    $remind->setMessage($remind->getMessage() . ' ' . $url);
+                    $remind->setRemind(null); // Remove the remind so we don't get recursion
                 }
-                $export['thumbnail_src'] = $export['custom_data']['thumbnail_src'];
-                break;
-            case 'batch':
-                // fix old images src
-                if (is_array($export['custom_data']) && strpos($export['custom_data'][0]['src'], '/wall/attachment') !== false) {
-                    $export['custom_data'][0]['src'] = Core\Config::_()->cdn_url . 'fs/v1/thumbnail/' . $this->entity_guid;
-                    $this->custom_data[0]['src'] = $export['custom_data'][0]['src'];
-                }
-                // go directly to cdn
-                $mediaManager = Di::_()->get('Media\Image\Manager');
-                $src = $export['thumbnails']['xlarge'];
-                $export['custom_data'][0]['src'] = $src;
-                $export['thumbnail_src'] = $src;
-                break;
+
+                $export['remind_object'] = $remind->export();
+            }
+
+            if ($this->entity_guid) {
+                $export['entity_guid'] = (string) $this->entity_guid;
+            }
+
+            if ($this->urn) {
+                $export['urn'] = $this->urn;
+            }
+
+            if ($this->boosted_guid) {
+                $export['boosted'] = (bool) $this->boosted;
+                $export['boosted_guid'] = (string) $this->boosted_guid;
+                $export['boosted_onchain'] = $this->boosted_onchain;
+            }
+
+            $export['impressions'] = $this->getImpressions();
+            $export['reminds'] = $this->getRemindCount();
+
+            // Thumbs:up exports moved to Core/Votes/Events
+
+            $export['mature'] = (bool) $export['mature'];
+
+            $export['comments_enabled'] = (bool) $export['comments_enabled'];
+            // $export['wire_totals'] = $this->getWireTotals();
+            $export['wire_threshold'] = $this->getWireThreshold();
+            $export['boost_rejection_reason'] = $this->getBoostRejectionReason() ?: -1;
+            $export['rating'] = $this->getRating();
+            $export['ephemeral'] = $this->getEphemeral();
+            $export['ownerObj'] = $this->getOwnerObj();
+            $export['time_sent'] = $this->getTimeSent();
+            $export['license'] = $this->license;
+
+            if ($this->hide_impressions) {
+                $export['hide_impressions'] = $this->hide_impressions;
+            }
+
+            $export['thumbnails'] = $this->getThumbnails();
+
+            $export['permaweb_id'] = $this->getPermawebId();
+
+            switch ($this->custom_type) {
+                case 'video':
+                    if ($this->custom_data['guid']) {
+                        $export['play:count'] = Helpers\Counters::get($this->custom_data['guid'], 'plays');
+                    }
+                    $export['thumbnail_src'] = $export['custom_data']['thumbnail_src'];
+                    break;
+                case 'batch':
+                    // fix old images src
+                    if (is_array($export['custom_data']) && strpos($export['custom_data'][0]['src'], '/wall/attachment') !== false) {
+                        $export['custom_data'][0]['src'] = Core\Config::_()->cdn_url . 'fs/v1/thumbnail/' . $this->entity_guid;
+                        $this->custom_data[0]['src'] = $export['custom_data'][0]['src'];
+                    }
+                    // go directly to cdn
+                    $mediaManager = Di::_()->get('Media\Image\Manager');
+                    $src = $export['thumbnails']['xlarge'];
+                    $export['custom_data'][0]['src'] = $src;
+                    $export['thumbnail_src'] = $src;
+                    break;
+            }
+
+            if (Helpers\Flags::shouldDiscloseStatus($this)) {
+                $export['spam'] = (bool) $this->getSpam();
+                $export['deleted'] = (bool) $this->getDeleted();
+            }
         }
 
-        if (Helpers\Flags::shouldDiscloseStatus($this)) {
-            $export['spam'] = (bool) $this->getSpam();
-            $export['deleted'] = (bool) $this->getDeleted();
-        }
-
-        $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'activity', ['entity'=>$this], []));
+        $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'activity', ['entity' => $this], []));
 
 
         return $export;
@@ -341,7 +358,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
      */
     public function getURL()
     {
-        return elgg_get_site_url() . 'newsfeed/'.$this->guid;
+        return elgg_get_site_url() . 'newsfeed/' . $this->guid;
     }
 
     /**
@@ -358,7 +375,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
      * @param string $message
      * @return $this
      */
-    public function setMessage($message)
+    public function setMessage($message): self
     {
         $this->message = $message;
         return $this;
@@ -513,17 +530,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     }
 
     /**
-     * Set the reminded object
-     * @param array $array - the exported array
-     * @return $this
-     */
-    public function setRemind($array)
-    {
-        $this->remind_object = $array;
-        return $this;
-    }
-
-    /**
      * Set a custom, arbitrary set. For example a custom video view, or maybe a set of images. I envisage
      * certain service could extend this.
      * @param string|null $type
@@ -674,7 +680,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
      */
     public function getEdited()
     {
-        return (boolean) $this->edited;
+        return (bool) $this->edited;
     }
 
     /**
@@ -736,8 +742,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function getImpressions()
     {
         $app = Analytics\App::_()
-                ->setMetric('impression')
-                ->setKey($this->guid);
+            ->setMetric('impression')
+            ->setKey($this->guid);
         return $app->total();
     }
 
@@ -821,7 +827,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 break;
             case 'batch':
                 $mediaManager = Di::_()->get('Media\Image\Manager');
-                $sizes = [ 'xlarge', 'large' ];
+                $sizes = ['xlarge', 'large'];
                 foreach ($sizes as $size) {
                     $thumbnails[$size] = $mediaManager->getPublicAssetUri($this, $size);
                 }
@@ -840,9 +846,9 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     }
 
     /**
-    * Return time_sent
-    * @return int
-    */
+     * Return time_sent
+     * @return int
+     */
     public function getTimeSent()
     {
         return $this->time_sent;
@@ -916,5 +922,62 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function getPermawebId(): string
     {
         return $this->permaweb_id;
+    }
+
+    //
+
+
+    /**
+     * Set the reminded object
+     * @param RemindIntent $remindIntent
+     * @return $this
+     */
+    public function setRemind(?RemindIntent $remindIntent): self
+    {
+        $this->remind_object = $remindIntent ? $remindIntent->export() : null;
+        return $this;
+    }
+
+    /**
+     * @return Activity
+     */
+    public function getRemind(): ?Activity
+    {
+        if (!$this->remind_object || !$this->remind_object['guid']) {
+            return null;
+        }
+
+        $entity = $this->entitiesBuilder->single($this->remind_object['guid']);
+        if (!$entity) {
+            return null;
+        }
+
+        if (!$entity instanceof Activity) {
+            $guid = $entity->getGuid();
+            $entity = $this->activityManager->createFromEntity($entity);
+            $entity->guid = $guid; // Not ideal hack here
+        }
+
+        return $entity;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isRemind(): bool
+    {
+        return !$this->message
+            && $this->remind_object['guid']
+            && !$this->remind_object['quoted_post'];
+    }
+
+    /**
+     * A quoted post is like a remind, but it usually has a message
+     * Reminds prior to November 2020 are always quoted posts
+     * @return bool
+     */
+    public function isQuotedPost(): bool
+    {
+        return $this->remind_object['guid'] && !$this->isRemind();
     }
 }
