@@ -1001,7 +1001,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
      */
     public function __wakeup()
     {
-        $this->__construct();
+        $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
+        $this->activityManager = Di::_()->get('Feeds\Activity\Manager');
     }
 
     /**
@@ -1010,9 +1011,15 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
      */
     public function __sleep()
     {
-        return array_diff(array_keys(get_object_vars($this)), [
-            'entitiesBuilder',
-            'activityManager',
-        ]);
+        $diff = array_diff(
+            array_merge(array_keys(
+                get_object_vars($this)
+            ), ['attributes']),
+            [
+                'entitiesBuilder',
+                'activityManager',
+            ]
+        );
+        return $diff;
     }
 }
