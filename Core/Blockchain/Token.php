@@ -45,9 +45,13 @@ class Token
      */
     public function balanceOf($account)
     {
-        $result = $this->client->call($this->tokenAddress, 'balanceOf(address)', [ $account ]);
+        try {
+            $result = $this->client->call($this->tokenAddress, 'balanceOf(address)', [$account]);
 
-        return (string) BigNumber::fromHex($result);
+            return (string) BigNumber::fromHex($result);
+        } catch (\Exception $e) {
+            return "0";
+        }
     }
 
     /**
@@ -57,8 +61,12 @@ class Token
      */
     public function etherBalanceOf(string $account): string
     {
-        $result = $this->client->request('eth_getBalance', [$account, "latest"]);
-        return (string) BigNumber::fromHex($result);
+        try {
+            $result = $this->client->request('eth_getBalance', [$account, "latest"]);
+            return (string) BigNumber::fromHex($result);
+        } catch (\Exception $e) {
+            return "0";
+        }
     }
 
     /**
