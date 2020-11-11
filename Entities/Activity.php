@@ -257,22 +257,20 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     {
         $export = parent::export();
 
-        if ($this->isRemind()) {
+        if ($this->isRemind() && $remind = $this->getRemind()) {
             // If this is a remind (not a quoted post), then we export the remind and not this post
-            $remind = $this->getRemind();
             $export = $remind->export();
             $export['subtype'] = 'remind';
+
             // TODO: when we support collapsing of reminds, add the other ownerObj's
             $export['remind_users'] = [$this->ownerObj];
             $export['urn'] = $this->getUrn();
             return $export;
         } else {
-            if ($this->isQuotedPost()) {
-                $remind = $this->getRemind();
-
+            if ($this->isQuotedPost() && $remind = $this->getRemind()) {
                 // Only one quoted post can be included. Present a link if on 3rd layer down
                 if ($remind->isQuotedPost()) {
-                    $url = Di::_()->get('Config')->get('site_url') . 'newsfeed/' . $remind->remind_object['guid'];
+                    $url = $remind->getRemindUrl();
                     $remind->setMessage($remind->getMessage() . ' ' . $url);
                     $remind->setRemind(null); // Remove the remind so we don't get recursion
                 }
@@ -343,6 +341,14 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             if (Helpers\Flags::shouldDiscloseStatus($this)) {
                 $export['spam'] = (bool) $this->getSpam();
                 $export['deleted'] = (bool) $this->getDeleted();
+            }
+        }
+
+        // If remind deleted or remind invalid, remove from export
+        if ($export['remind_object'] && !$export['remind_object']['type']) {
+            $export['remind_object'] = null;
+            if ($this->remind_object['guid']) {
+                $export['message'] .= ' ' . $this->getRemindUrl();
             }
         }
 
@@ -979,6 +985,15 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function isQuotedPost(): bool
     {
         return $this->remind_object['guid'] && !$this->isRemind();
+    }
+
+    /**
+     * Return remind link
+     * @return string
+     */
+    private function getRemindUrl(): string
+    {
+        return Di::_()->get('Config')->get('site_url') . 'newsfeed/' . $this->remind_object['guid'];
     }
 
     /**
