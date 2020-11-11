@@ -329,6 +329,14 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             $export['deleted'] = (bool) $this->getDeleted();
         }
 
+        // If remind deleted or remind invalid, remove from export
+        if ($export['remind_object'] && !$export['remind_object']['type']) {
+            $export['remind_object'] = null;
+            if ($this->remind_object['guid']) {
+                $export['message'] = Di::_()->get('Config')->get('site_url') . 'newsfeed/' . $this->remind_object['guid'];
+            }
+        }
+
         $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'activity', ['entity'=>$this], []));
 
 
