@@ -257,7 +257,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     {
         $export = parent::export();
 
-        if ($this->isRemind() && $remind = clone $this->getRemind()) {
+        if ($this->isRemind() && $remind = $this->getRemind(true)) {
             // If this is a remind (not a quoted post), then we export the remind and not this post
             $export = $remind->export();
             $export['subtype'] = 'remind';
@@ -267,7 +267,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             $export['urn'] = $this->getUrn();
             return $export;
         } else {
-            if ($this->isQuotedPost() && $remind = clone $this->getRemind()) {
+            if ($this->isQuotedPost() && $remind = $this->getRemind(true)) {
                 // Only one quoted post can be included. Present a link if on 3rd layer down
                 if ($remind->isQuotedPost()) {
                     $url = $remind->getRemindUrl();
@@ -945,9 +945,10 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     }
 
     /**
+     * @param bool $clone - if true it will return a new instance
      * @return Activity
      */
-    public function getRemind(): ?Activity
+    public function getRemind($clone = false): ?Activity
     {
         if (!$this->remind_object || !$this->remind_object['guid']) {
             return null;
@@ -964,7 +965,11 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             $entity->guid = $guid; // Not ideal hack here
         }
 
-        return $entity;
+        if ($clone === true) {
+            return clone $entity;
+        } else {
+            return $entity;
+        }
     }
 
     /**
