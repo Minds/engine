@@ -80,7 +80,7 @@ class ThreadNotifications
 
                     // Exclude current comment creator
                     return $userGuid != $comment->getOwnerGuid()
-                        || !$this->blockManager->hasBlocked($blockEntry);
+                        && !$this->blockManager->hasBlocked($blockEntry);
                 }, false)
                 ->toArray();
 
