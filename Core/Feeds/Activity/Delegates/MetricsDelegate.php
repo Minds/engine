@@ -33,7 +33,9 @@ class MetricsDelegate
                 ->setEntitySubtype((string) $remind->getSubtype())
                 ->setEntityOwnerGuid((string) $remind->getOwnerGuid())
                 ->push();
+        }
 
+        if ($activity->isRemind()) {
             // Update remind counters (legacy support)
             Counters::increment($remind->getGuid(), 'remind');
         }
