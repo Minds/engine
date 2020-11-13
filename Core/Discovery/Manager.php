@@ -474,6 +474,11 @@ class Manager
                 $title = strlen($entity->description) > 60 ? substr($entity->description, 0, 60) . '...' : $entity->description;
             }
 
+            // If still no title, then skip
+            if (!$title) {
+                continue;
+            }
+
             $trend = new Trend();
             $trend->setGuid($doc['_id'])
                 ->setTitle($title)
