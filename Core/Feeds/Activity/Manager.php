@@ -42,6 +42,9 @@ class Manager
     /** @var Delegates\MetricsDelegate */
     private $metricsDelegate;
 
+    /** @var Delegates\NotificationsDelegate */
+    private $notificationsDelegate;
+
     /** @var Save */
     private $save;
 
@@ -65,6 +68,7 @@ class Manager
         $videoPosterDelegate = null,
         $paywallDelegate = null,
         $metricsDelegate = null,
+        $notificationsDelegate = null,
         $entitiesBulder = null
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
@@ -77,6 +81,7 @@ class Manager
         $this->videoPosterDelegate = $videoPosterDelegate ?? new Delegates\VideoPosterDelegate();
         $this->paywallDelegate = $paywallDelegate ?? new Delegates\PaywallDelegate();
         $this->metricsDelegate = $metricsDelegate ?? new Delegates\MetricsDelegate();
+        $this->notificationsDelegate = $notificationsDelegate ?? new Delegates\NotificationsDelegate();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
 
@@ -101,6 +106,7 @@ class Manager
 
         if ($success) {
             $this->metricsDelegate->onAdd($activity);
+            $this->notificationsDelegate->onAdd($activity);
         }
 
         return $success;

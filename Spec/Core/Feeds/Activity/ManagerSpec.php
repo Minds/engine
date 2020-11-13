@@ -40,6 +40,7 @@ class ManagerSpec extends ObjectBehavior
         PropagateProperties $propagateProperties,
         Delegates\PaywallDelegate $paywallDelegate,
         Delegates\MetricsDelegate $metricsDelegate,
+        Delegates\NotificationsDelegate $notificationsDelegate,
         EntitiesBuilder $entitiesBuilder
     ) {
         $this->beConstructedWith(
@@ -53,6 +54,7 @@ class ManagerSpec extends ObjectBehavior
             null,
             $paywallDelegate,
             $metricsDelegate,
+            $notificationsDelegate,
             $entitiesBuilder
         );
         $this->foreignEntityDelegate = $foreignEntityDelegate;
