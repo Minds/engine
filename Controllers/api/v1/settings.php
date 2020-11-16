@@ -52,8 +52,6 @@ class settings implements Interfaces\Api
         $sessionsManager->setUser($user);
         $response['channel']['open_sessions'] = $sessionsManager->getActiveCount();
 
-        $response['thirdpartynetworks'] = Core\Di\Di::_()->get('ThirdPartyNetworks\Manager')->status();
-
         return Factory::response($response);
     }
 
