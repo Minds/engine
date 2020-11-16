@@ -110,70 +110,7 @@ class Channel implements Interfaces\BoostHandlerInterface
      */
     public function accept($entity, $points)
     {
-        /*if (is_object($entity)) {
-            $guid = $entity->guid;
-        } else {
-            $guid = $entity;
-        }
-
-        $db = new Data\Call('entities_by_time');
-
-
-        $embeded = new Entities\Entity($guid);
-        $embeded = core\Entities::build($embeded); //more accurate, as entity doesn't do this @todo maybe it should in the future
-        \Minds\Helpers\Counters::increment($guid, 'remind');
-
-        $activity = new Entities\Activity();
-        $activity->p2p_boosted = true;
-        switch ($embeded->type) {
-            case 'activity':
-                if ($embeded->remind_object) {
-                    $activity->setRemind($embeded->remind_object)->save();
-                } else {
-                    $activity->setRemind($embeded->export())->save();
-                }
-            break;
-            case 'object':
-
-
-
-            break;
-            default:
-
-                   switch ($embeded->subtype) {
-                       case 'blog':
-                           $message = false;
-                            if ($embeded->owner_guid != elgg_get_logged_in_user_guid()) {
-                                $message = 'via <a href="'.$embeded->getOwnerEntity()->getURL() . '">'. $embeded->getOwnerEntity()->name . '</a>';
-                            }
-                                $activity->p2p_boosted = true;
-                $activity->setTitle($embeded->title)
-                                ->setBlurb(elgg_get_excerpt($embeded->description))
-                                ->setURL($embeded->getURL())
-                                ->setThumbnail($embeded->getIconUrl())
-                                ->setMessage($message)
-                                ->setFromEntity($embeded)
-                                ->save();
-                            break;
-                    }
-        }
-
-        //remove from review
-        error_log('user_guid is ' . $this->guid);
-        $db->removeAttributes("boost:channel:$this->guid:review", array($guid));
-        $db->removeAttributes("boost:channel:all:review", array("$this->guid:$guid"));
-
-        $entity = new \Minds\Entities\Activity($guid);
-        Core\Events\Dispatcher::trigger('notification', 'boost', array(
-            'to'=>array($entity->owner_guid),
-            'entity' => $guid,
-            'title' => $entity->title,
-            'notification_view' => 'boost_accepted',
-            'params' => array('points'=>$points),
-            'points' => $points
-            ));
-        return true;
-        */
+        // Removed
     }
 
     /**

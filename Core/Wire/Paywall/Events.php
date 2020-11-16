@@ -76,34 +76,6 @@ class Events
                 $dirty = true;
             }
 
-            if (
-                $activity->remind_object &&
-                (int) $activity->remind_object['paywall'] &&
-                $activity->remind_object['owner_guid'] != $currentUser
-            ) {
-                $export['remind_object'] = $activity->remind_object;
-
-                $export['remind_object']['blurb'] = $this->extractTeaser($activity->remind_object['blurb']);
-
-                if (!$this->isStatusPost($activity->remind_object)) {
-                    $export['remind_object']['message'] = $this->extractTeaser($activity->remind_object['message']);
-                } else {
-                    $export['remind_object']['message'] = null;
-                }
-
-
-
-                if (!$this->featuresManager->has('paywall-2020')) {
-                    $export['remind_object']['custom_type'] = null;
-                    $export['remind_object']['custom_data'] = null;
-                    $export['remind_object']['thumbnail_src'] = null;
-                    $export['remind_object']['perma_url'] = null;
-                    $export['remind_object']['title'] = null;
-                }
-
-                $dirty = true;
-            }
-
             if ($dirty) {
                 return $event->setResponse($export);
             }

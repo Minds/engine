@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Helpers;
 
 use Minds\Core;
@@ -60,7 +61,7 @@ class Counters
         $value = $value * -1; //force negative
         try {
             if (!$client) {
-                $client =Core\Data\Client::build('Cassandra');
+                $client = Core\Data\Client::build('Cassandra');
             }
             $query = new Core\Data\Cassandra\Prepared\Counters();
             $client->request($query->update($guid, $metric, $value));
@@ -68,42 +69,6 @@ class Counters
             $cacher = Core\Data\cache\factory::build();
             //$cacher->destroy("counter:$guid:$metric");
         } catch (\Exception $e) {
-        }
-    }
-
-    /**
-     * Increment metric count on several entities
-     * BUT DON'T ACTUALLY BATCH BECAUSE CASSANDRA MOANS
-     * @param  array         $entities
-     * @param  string        $metric
-     * @param  int           $value  - Value to increment. Defaults to 1.
-     * @param  Data\Client   $client - Database. Defaults to Cassandra.
-     * @return void
-     */
-    public static function incrementBatch($entities, $metric, $value = 1, $client = null)
-    {
-        if (!$client) {
-            $client = Core\Data\Client::build('Cassandra');
-        }
-        $query = new Core\Data\Cassandra\Prepared\Counters();
-        foreach ($entities as $entity) {
-            if (is_numeric($entity) || is_string($entity)) {
-                $client->request($query->update($entity, $metric, $value), true);
-            } elseif ($entity->guid) {
-                $client->request($query->update($entity->guid, $metric, $value), true);
-                if ($entity->remind_object && isset($entity->remind_object['guid'])) {
-                    $client->request($query->update($entity->remind_object['guid'], $metric, $value), true);
-                }
-
-                if ($entity->owner_guid) {
-                    $client->request($query->update($entity->owner_guid, $metric, $value), true);
-                }
-            }
-        }
-        try {
-            //$client->request($prepared);
-        } catch (\Exception $e) {
-            error_log("exception in batch increment " . $e->getMessage());
         }
     }
 
@@ -166,7 +131,7 @@ class Counters
             }
         }
         if (!$client) {
-            $client =Core\Data\Client::build('Cassandra');
+            $client = Core\Data\Client::build('Cassandra');
         }
         $query = new Core\Data\Cassandra\Prepared\Counters();
         //$client->request($query->clear($guid, $metric));

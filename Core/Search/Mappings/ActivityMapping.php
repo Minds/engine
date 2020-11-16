@@ -47,6 +47,15 @@ class ActivityMapping extends EntityMapping implements MappingInterface
 
         $map['is_portrait'] = $isPortrait;
 
+        // Reminds
+
+        $map['is_remind'] = $this->entity->isRemind();
+        $map['is_quoted_post'] = $this->entity->isQuotedPost();
+
+        if ($map['is_remind'] || $map['is_quoted_post']) {
+            $map['remind_guid'] = (string) $this->entity->get('remind_object')['guid'];
+        }
+
         return $map;
     }
 }

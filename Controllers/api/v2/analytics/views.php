@@ -95,18 +95,6 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
                         ->setKey($entity->guid)
                         ->increment();
 
-                        if ($entity->remind_object) {
-                            Core\Analytics\App::_()
-                            ->setMetric('impression')
-                            ->setKey($entity->remind_object['guid'])
-                            ->increment();
-
-                            Core\Analytics\App::_()
-                            ->setMetric('impression')
-                            ->setKey($entity->remind_object['owner_guid'])
-                            ->increment();
-                        }
-
                         Core\Analytics\User::_()
                         ->setMetric('impression')
                         ->setKey($entity->owner_guid)

@@ -11,55 +11,12 @@ namespace Minds\Core\Votes;
 use Minds\Core;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
-use Minds\Helpers\Wallet;
+use Minds\Helpers;
 
 class Events
 {
     public function register()
     {
-        // Wallet events
-
-        Dispatcher::register('vote', 'all', function (Event $event) {
-            $params = $event->getParameters();
-            $direction = $event->getNamespace();
-
-            $vote = $params['vote'];
-            $entity = $vote->getEntity();
-            $actor = $vote->getActor();
-
-            if ($entity->owner_guid != $actor->guid && $direction == 'up') {
-                Wallet::createTransaction($entity->owner_guid, 5, $entity->guid, 'Vote');
-            }
-            if (
-                $entity->remind_object && $entity->remind_object['ownerObj']['guid'] &&
-                $entity->owner_guid != $entity->remind_object['ownerObj']['guid'] &&
-                $entity->remind_object['ownerObj']['guid'] != $actor->guid &&
-                $direction == 'up'
-            ) {
-                Wallet::createTransaction($entity->remind_object['ownerObj']['guid'], 5, $entity->guid, 'Vote');
-            }
-        });
-
-        Dispatcher::register('vote:cancel', 'all', function (Event $event) {
-            $params = $event->getParameters();
-            $direction = $event->getNamespace();
-
-            $vote = $params['vote'];
-            $entity = $vote->getEntity();
-            $actor = $vote->getActor();
-
-            if ($entity->owner_guid != $actor->guid && $direction == 'up') {
-                Wallet::createTransaction($entity->owner_guid, -5, $entity->guid, 'Vote Removed');
-            } elseif (
-                $entity->remind_object && $entity->remind_object['ownerObj']['guid'] &&
-                $entity->owner_guid != $entity->remind_object['ownerObj']['guid'] &&
-                $entity->remind_object['ownerObj']['guid'] != $actor->guid &&
-                $direction == 'up'
-            ) {
-                Wallet::createTransaction($entity->remind_object['ownerObj']['guid'], -5, $entity->guid, 'Vote Removed');
-            }
-        });
-
         // Notification events
 
         Dispatcher::register('vote', 'all', function (Event $event) {
@@ -83,7 +40,7 @@ class Events
             }
 
             Dispatcher::trigger('notification', 'thumbs', [
-                'to' => [ $entity->owner_guid ],
+                'to' => [$entity->owner_guid],
                 'notification_view' => $direction == 'up' ? 'like' : 'downvote',
                 'entity' => $entity,
                 'params' => $params,
@@ -177,6 +134,39 @@ class Events
                 ->setEntityOwnerGuid((string) $entity->owner_guid)
                 ->setAction("vote:{$direction}:cancel")
                 ->push();
+        });
+
+        /**
+         * Exports the counter column for the votes
+         */
+        Dispatcher::register('export:extender', 'all', function (Event $event) {
+            $export = $event->response() ?: [];
+            $params = $event->getParameters();
+            $entity = $params['entity'];
+
+            $guid = $entity->getGuid();
+
+            switch (get_class($entity)) {
+                case Activity::class:
+                    // Is there an attachment?
+                    if ($entity->entity_guid) {
+                        $guid = $entity->entity_guid;
+                    }
+                    break;
+            }
+
+            $upCount = Helpers\Counters::get($guid, 'thumbs:up');
+            $downCount = Helpers\Counters::get($guid, 'thumbs:down');
+
+
+            $export['thumbs:up:count'] = $upCount;
+            $export['thumbs:down:count'] = $downCount;
+
+            // Make sure our export of voters is an array and not an object
+            $export['thumbs:up:user_guids'] = $entity->{'thumbs:up:user_guids'} ? (array) array_values($entity->{'thumbs:up:user_guids'}) : [];
+            $export['thumbs:down:user_guids'] = $entity->{'thumbs:down:user_guids'} ? (array) array_values($entity->{'thumbs:down:user_guids'}) : [];
+
+            $event->setResponse($export);
         });
     }
 }

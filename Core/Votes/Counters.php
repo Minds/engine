@@ -16,7 +16,7 @@ use Minds\Helpers;
 
 class Counters
 {
-    public static $validDirections = [ 'up', 'down' ];
+    public static $validDirections = ['up', 'down'];
 
     /** @var Client $cql */
     protected $cql;
@@ -47,11 +47,6 @@ class Counters
 
         // Modify entity counters
         $this->updateCounter($entity->guid, $direction, $value);
-
-        // If there's a remind, modify its counters
-        if ($entity->remind_object) {
-            $this->updateRemind($entity->remind_object, $direction, $value);
-        }
 
         // If entity is an activity and there's an attached entity, modify its counters
         if ($entity->type == 'activity') {
@@ -108,20 +103,5 @@ class Counters
     {
         Helpers\Counters::increment($guid, "thumbs:{$direction}", $value);
         $this->cacher->destroy("counter:{$guid}:thumbs:{$direction}");
-    }
-
-    /**
-     * @param array $remind
-     * @param string $direction
-     * @param int $value
-     */
-    protected function updateRemind(array $remind, $direction, $value = 1)
-    {
-        if ($remind['guid']) {
-            $this->updateCounter($remind['guid'], $direction, $value);
-        }
-        if ($remind['entity_guid']) {
-            $this->updateCounter($remind['entity_guid'], $direction, $value);
-        }
     }
 }
