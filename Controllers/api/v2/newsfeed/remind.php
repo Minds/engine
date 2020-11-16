@@ -50,6 +50,7 @@ class remind implements Interfaces\Api
 
         $remindIntent = new Activity\RemindIntent();
         $remindIntent->setGuid($remind->getGuid())
+            ->setOwnerGuid($remind->getOwnerGuid())
             ->setQuotedPost(true); // All posts from this endpoint are quoted posts
 
         $activity = new Entities\Activity();

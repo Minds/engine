@@ -11,6 +11,9 @@ class RemindIntent
     /** @var string */
     protected $guid;
 
+    /** @var string */
+    protected $ownerGuid;
+
     /** @var bool */
     protected $quotedPost;
 
@@ -23,6 +26,7 @@ class RemindIntent
     {
         return [
             'guid' => (string) $this->guid,
+            'owner_guid' => (string) $this->ownerGuid,
             'quoted_post' => (bool) $this->quotedPost,
         ];
     }
