@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Minds Feeds Events Listeners
  *
@@ -35,10 +36,17 @@ class Events
     public function register()
     {
         // delete an activity
+        // This needs to be refactored to use new 'entity:delete'
         $this->eventsDispatcher->register('activity:delete', 'all', function (Event $event) {
             $params = $event->getParameters();
             $activity = $params['activity'];
             $activity->delete();
+        });
+
+        $this->eventsDispatcher->register('entity:delete', 'activity', function (Event $event) {
+            $params = $event->getParameters();
+            $activity = $params['entity'];
+            $event->setResponse($activity->delete());
         });
 
         /**

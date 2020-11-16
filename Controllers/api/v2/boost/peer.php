@@ -296,6 +296,8 @@ class peer implements Interfaces\Api
         $activity->ownerObj = Core\Session::getLoggedInUser()->export();
         $activity->p2p_boosted = true;
 
+        // TODO: How do we handle P2P boosts with remind refactor
+        // MH
         if ($embedded->remind_object) {
             $activity->setRemind($embedded->remind_object)->save();
         } else {
