@@ -56,6 +56,7 @@ class Metrics
             ->setEntitySubtype((string) $entity->subtype)
             ->setEntityOwnerGuid((string) $entity->owner_guid)
             ->setCommentGuid((string) $comment->getLuid())
+            ->setIsRemind($entity->type == 'activity' && $entity->remind_object)
             ->push();
     }
 }
