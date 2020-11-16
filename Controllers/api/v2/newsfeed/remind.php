@@ -61,7 +61,7 @@ class remind implements Interfaces\Api
         }
 
         if ($manager->add($activity)) {
-            Factory::response([
+            return Factory::response([
                 'guid' => $activity->getGuid(),
             ]);
         }
