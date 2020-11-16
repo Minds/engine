@@ -41,6 +41,11 @@ class remind implements Interfaces\Api
             ]);
         }
 
+        // Mobile users expect remind to remind the original post still
+        if ($remind->isRemind() || $remind->isQuotedPost()) {
+            $remind = $remind->getRemind();
+        }
+
         if (!Di::_()->get('Security\ACL')->interact($remind, $user)) {
             return Factory::response([
                 'status' => 'error',
