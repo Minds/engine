@@ -347,6 +347,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         // If remind deleted or remind invalid, remove from export
         if ($export['remind_object'] && !$export['remind_object']['type']) {
             $export['remind_object'] = null;
+            $export['remind_deleted'] = true;
             if ($this->remind_object['guid']) {
                 $export['message'] .= ' ' . $this->getRemindUrl();
             }
