@@ -760,7 +760,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
      */
     public function getRemindCount()
     {
-        if ($this->remind_object) {
+        if ($this->isRemind()) {
+            // Only return count of parent if remind, not quoted post
             return \Minds\Helpers\Counters::get($this->remind_object['guid'], 'remind');
         }
 
