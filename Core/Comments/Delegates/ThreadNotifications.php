@@ -14,6 +14,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Notification\PostSubscriptions\Manager;
 use Minds\Core\Security\Block;
+use Minds\Core\Comments\Repository;
 
 class ThreadNotifications
 {
@@ -29,16 +30,21 @@ class ThreadNotifications
     /** @var Block\Manager */
     private $blockManager;
 
+    /** @var Repository */
+    protected $repository;
+
     /**
      * ThreadNotifications constructor.
      * @param null $indexes
      */
-    public function __construct($postSubscriptionsManager = null, $entitiesBuilder = null, $eventsDispatcher = null, $blockManager = null)
+    public function __construct($postSubscriptionsManager = null, $entitiesBuilder = null, $eventsDispatcher = null, $blockManager = null, $logger = null, $repository = null)
     {
         $this->postSubscriptionsManager = $postSubscriptionsManager ?: new Manager();
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->blockManager = $blockManager ?: Di::_()->get('Security\Block\Manager');
+        $this->logger = $logger ?: Di::_()->get('Logger');
+        $this->repository = $repository ?: new Repository();
     }
 
     /**
@@ -50,7 +56,7 @@ class ThreadNotifications
         $this->postSubscriptionsManager
             ->setEntityGuid($comment->getEntityGuid())
             ->setUserGuid($comment->getOwnerGuid())
-            ->follow(false);
+            ->follow(true);
     }
 
     /**
@@ -105,6 +111,14 @@ class ThreadNotifications
             if ($parent && $parent->getOwnerGuid() != $comment->getOwnerGuid()) {
                 $subscribers = [ $parent->getOwnerGuid() ];
             }
+
+            // merge with all sibling ids
+            $subscribers = array_unique(
+                array_merge(
+                    $subscribers,
+                    $this->getChildOwnerGuids($parent),
+                )
+            );
         }
 
         $this->eventsDispatcher->trigger('notification', 'all', [
@@ -119,5 +133,57 @@ class ThreadNotifications
             ],
             'notification_view' => 'comment'
         ]);
+    }
+
+    /**
+     * Gets array of owner_guids of children of a given parent.
+     * @param $parent - Parent comment.
+     * @return array - array of owner_guids or empty array.
+     */
+    public function getChildOwnerGuids($parent): array
+    {
+        try {
+
+            // get unique guids.
+            $children = array_unique(
+                array_map(function ($child) {
+                    return $child->getOwnerGuid();
+                }, $this->getChildren($parent))
+            );
+
+            // set entity guid of PostSubscriptionsManager.
+            $this->postSubscriptionsManager->setEntityGuid(
+                $parent->getEntityGuid()
+            );
+
+            // filter out users who have unsubscribed.
+            $children = array_filter($children, function ($childGuid) {
+                $postSubscription = $this->postSubscriptionsManager
+                    ->setUserGuid($childGuid)->get();
+                return $postSubscription->getFollowing();
+            });
+
+            return $children ?: [];
+        } catch (\Exception $e) {
+            $this->logger->error(
+                $e->getMessage() ?:
+                'An unknown error has occurred getting comment child GUIDs.'
+            );
+            return [];
+        }
+    }
+
+    /**
+     * Gets all child comments from repository (unfiltered)
+     * @param $parent - paternal comment.
+     * @return array - array of comments or empty array.
+     */
+    private function getChildren($parent): array
+    {
+        $response = $this->repository->getList([
+            'entity_guid' => $parent->getEntityGuid(),
+            'parent_guid' => $parent->getOwnerGuid(),
+        ]);
+        return $response->toArray() ?: [];
     }
 }

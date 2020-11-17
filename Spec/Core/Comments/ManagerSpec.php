@@ -138,9 +138,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        //$this->threadNotifications->subscribeOwner($comment)
-        //    ->shouldBeCalled()
-        //    ->willReturn(true);
+        $this->threadNotifications->subscribeOwner($comment)
+           ->shouldBeCalled()
+           ->willReturn(true);
 
         $this->metrics->push($comment)
             ->shouldBeCalled()
