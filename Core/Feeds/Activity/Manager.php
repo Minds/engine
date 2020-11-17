@@ -119,7 +119,13 @@ class Manager
      */
     public function delete(Activity $activity): bool
     {
-        return $this->delete->setEntity($activity)->delete();
+        $success = $this->delete->setEntity($activity)->delete();
+
+        if ($success) {
+            $this->metricsDelegate->onDelete($activity);
+        }
+
+        return $success;
     }
 
     /**

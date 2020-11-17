@@ -40,4 +40,21 @@ class MetricsDelegate
             Counters::increment($remind->getGuid(), 'remind');
         }
     }
+
+    /**
+     * On activity deleted
+     * @param Activity $activity
+     * @return void
+     */
+    public function onDelete(Activity $activity): void
+    {
+        if ($activity->isRemind()) {
+            $remind = $activity->getRemind();
+            if (!$remind) {
+                return; // Original post may have been deleted too
+            }
+            // Update remind counters (legacy support)
+            Counters::decrement($remind->getGuid(), 'remind');
+        }
+    }
 }
