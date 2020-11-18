@@ -11,6 +11,7 @@ namespace Minds\Core\Votes;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
+use Minds\Entities;
 
 class Indexes
 {
@@ -31,7 +32,9 @@ class Indexes
         $userGuids = $entity->{"thumbs:{$direction}:user_guids"} ?: [];
         $userGuids[] = (string) $actor->guid;
 
-        $this->setEntityList($entity->guid, $direction, array_values(array_unique($userGuids)));
+        $userGuids = array_values(array_unique($userGuids));
+
+        $this->setEntityList($entity->guid, $direction, $userGuids);
 
         // Add to entity based indexes
 
@@ -39,6 +42,7 @@ class Indexes
 
         if ($entity->entity_guid) {
             $this->addIndex("thumbs:{$direction}:entity:{$entity->entity_guid}", $actor->guid);
+            $this->setEntityList($entity->entity_guid, $direction, $userGuids);
         } elseif (isset($entity->custom_data['guid'])) {
             $this->addIndex("thumbs:{$direction}:entity:{$entity->custom_data['guid']}", $actor->guid);
         }
@@ -60,7 +64,9 @@ class Indexes
         $userGuids = $entity->{"thumbs:{$direction}:user_guids"} ?: [];
         $userGuids = array_diff($userGuids, [ (string) $actor->guid ]);
 
-        $this->setEntityList($entity->guid, $direction, array_values($userGuids));
+        $userGuids = array_values($userGuids);
+
+        $this->setEntityList($entity->guid, $direction, $userGuids);
 
         // Remove from entity based indexes
 
@@ -68,6 +74,7 @@ class Indexes
 
         if ($entity->entity_guid) {
             $this->removeIndex("thumbs:{$direction}:entity:{$entity->entity_guid}", $actor->guid);
+            $this->setEntityList($entity->entity_guid, $direction, $userGuids);
         } elseif (isset($entity->custom_data['guid'])) {
             $this->removeIndex("thumbs:{$direction}:entity:{$entity->custom_data['guid']}", $actor->guid);
         }
@@ -93,6 +100,10 @@ class Indexes
         $entity = $vote->getEntity();
         $actor = $vote->getActor();
         $direction = $vote->getDirection();
+
+        if ($entity instanceof Entities\Activity && $canonicalEntity = $entity->getEntity()) {
+            $entity = $canonicalEntity;
+        }
 
         $guids = $entity->{"thumbs:{$direction}:user_guids"} ?: [];
  

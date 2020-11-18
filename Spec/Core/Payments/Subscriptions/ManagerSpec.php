@@ -20,14 +20,19 @@ class ManagerSpec extends ObjectBehavior
     /** @var Delegates\SnowplowDelegate */
     protected $snowplowDelegate;
 
+    /** @var Delegates\EmailDelegate */
+    protected $emailDelegate;
+
     public function let(
         Repository $repository,
-        Delegates\SnowplowDelegate $snowplowDelegate
+        Delegates\SnowplowDelegate $snowplowDelegate,
+        Delegates\EmailDelegate $emailDelegate
     ) {
         $this->repository = $repository;
         $this->snowplowDelegate = $snowplowDelegate;
+        $this->emailDelegate = $emailDelegate;
 
-        $this->beConstructedWith($repository, $snowplowDelegate);
+        $this->beConstructedWith($repository, $snowplowDelegate, $emailDelegate);
     }
 
     public function it_is_initializable()
@@ -92,6 +97,9 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->snowplowDelegate->onCreate($subscription)
+            ->shouldBeCalled();
+
+        $this->emailDelegate->onCreate($subscription)
             ->shouldBeCalled();
 
         $this->setSubscription($subscription);
