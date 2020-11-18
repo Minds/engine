@@ -15,6 +15,7 @@ use Minds\Core\Events\Dispatcher;
 use Minds\Core\Notification\PostSubscriptions\Manager;
 use Minds\Core\Security\Block;
 use Minds\Core\Comments\Repository;
+use Minds\Core\Session;
 
 class ThreadNotifications
 {
@@ -136,34 +137,39 @@ class ThreadNotifications
     }
 
     /**
-     * Gets array of owner_guids of children of a given parent.
+     * Gets array of owner_guids of children of a given parent excluding current user.
      * @param $parent - Parent comment.
      * @return array - array of owner_guids or empty array.
      */
-    public function getChildOwnerGuids($parent): array
+    private function getChildOwnerGuids($parent): array
     {
         try {
-
             // get unique guids.
-            $children = array_unique(
+            $childrenOwnerGuids = array_unique(
                 array_map(function ($child) {
                     return $child->getOwnerGuid();
                 }, $this->getChildren($parent))
             );
 
-            // set entity guid of PostSubscriptionsManager.
             $this->postSubscriptionsManager->setEntityGuid(
                 $parent->getEntityGuid()
             );
 
-            // filter out users who have unsubscribed.
-            $children = array_filter($children, function ($childGuid) {
-                $postSubscription = $this->postSubscriptionsManager
-                    ->setUserGuid($childGuid)->get();
-                return $postSubscription->getFollowing();
-            });
+            $currentUserGuid = Session::getLoggedinUserGuid();
 
-            return $children ?: [];
+            // filter out users who have unsubscribed and self.
+            $childrenOwnerGuids = array_filter(
+                $childrenOwnerGuids,
+                function ($childOwnerGuid) use ($currentUserGuid) {
+                    $postSubscription = $this->postSubscriptionsManager
+                        ->setUserGuid($childOwnerGuid)->get();
+
+                    return strval($currentUserGuid) !== strval($childOwnerGuid) &&
+                        $postSubscription->getFollowing();
+                }
+            );
+
+            return $childrenOwnerGuids ?: [];
         } catch (\Exception $e) {
             $this->logger->error(
                 $e->getMessage() ?:
@@ -182,7 +188,8 @@ class ThreadNotifications
     {
         $response = $this->repository->getList([
             'entity_guid' => $parent->getEntityGuid(),
-            'parent_guid' => $parent->getOwnerGuid(),
+            'parent_path' => $parent->getChildPath(),
+            'limit' => 100,
         ]);
         return $response->toArray() ?: [];
     }
