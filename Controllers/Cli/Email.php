@@ -526,6 +526,24 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->out('Sent');
     }
 
+    public function testPlusTrial()
+    {
+        $userGuid = $this->getOpt('userGuid');
+        $user = new User($userGuid);
+
+        $subscription = new Core\Payments\Subscriptions\Subscription();
+        $subscription
+            ->setTrialDays(7)
+            ->setUser($user)
+            ->setEntity(new User(730071191229833224))
+            ->setNextBilling(strtotime('+7 days'));
+
+        $emailDelegate = new Core\Payments\Subscriptions\Delegates\EmailDelegate();
+        $emailDelegate->onCreate($subscription);
+
+        $this->out('End.');
+    }
+
     public function sync_sendgrid_lists(): void
     {
         $sendGridManager = Di::_()->get('SendGrid\Manager');
