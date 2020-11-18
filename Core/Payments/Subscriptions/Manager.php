@@ -37,10 +37,11 @@ class Manager
     /** @var User */
     protected $user;
 
-    public function __construct($repository = null, $snowplowDelegate = null)
+    public function __construct($repository = null, $snowplowDelegate = null, $emailDelegate = null)
     {
         $this->repository = $repository ?: Di::_()->get('Payments\Subscriptions\Repository');
         $this->snowplowDelegate = $snowplowDelegate ?? new Delegates\SnowplowDelegate;
+        $this->emailDelegate = $emailDelegate ?? new Delegates\EmailDelegate();
     }
 
     /**
@@ -121,6 +122,8 @@ class Manager
         //
 
         $this->snowplowDelegate->onCreate($this->subscription);
+
+        $this->emailDelegate->onCreate($this->subscription);
 
         return $success;
     }
