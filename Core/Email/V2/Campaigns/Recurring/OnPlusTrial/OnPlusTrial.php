@@ -89,7 +89,7 @@ class OnPlusTrial extends EmailCampaign
         $this->template->set('guid', $this->user->guid);
         $this->template->set('tracking', $trackingQuery);
         $this->template->set('preheader', $subject);
-        $this->template->set('next_payment_formatted', date('d-m-Y', $this->subscription->getNextBilling()));
+        $this->template->set('next_payment_formatted', date('jS F Y', $this->subscription->getNextBilling()));
 
         $message = new Message();
         $message
@@ -112,7 +112,7 @@ class OnPlusTrial extends EmailCampaign
         if ($this->user && $this->user->getEmail()) {
             // User is still not enabled
 
-            $this->mailer->queue(
+            $this->mailer->send(
                 $this->build(),
                 true
             );

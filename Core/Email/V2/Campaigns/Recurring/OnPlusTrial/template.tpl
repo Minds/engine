@@ -9,7 +9,7 @@
 <tr>
     <td>
         <p>
-            Your 7-day free trial has now started, and your credit card is scheduled to be charged on <?php echo $vars['next_payment_formated']; ?>. Your monthly payment helps keep Minds independent and is shared directly with the top creators on the site.
+            Your 7-day free trial has now started, and your credit card is scheduled to be charged on <?php echo $vars['next_payment_formatted']; ?>. Your monthly payment helps keep Minds independent and is shared directly with the top creators on the site.
         </p>
     </td>
 </tr>

@@ -34,10 +34,10 @@ class EmailDelegate
      */
     public function onCreate(Subscription $subscription): void
     {
-        if ($subscription->getEntity()->getGuid() == $this->plusManager->getPlusGuid()) {
+        if ($subscription->getEntity()->getGuid() == $this->plusManager->getPlusGuid() && $subscription->getTrialDays() > 0) {
             $this->onPlusTrialEmail
                 ->setSubscription($subscription)
-                ->build()
+                ->setUser($subscription->getUser())
                 ->send();
         }
     }
