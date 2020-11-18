@@ -526,6 +526,19 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     }
 
     /**
+     * Returns an entity object if it exists
+     * !! Can be ineffecient as it will cause anothor database call !!
+     * @return mixed
+     */
+    public function getEntity()
+    {
+        if (!$this->getEntityGuid()) {
+            return null;
+        }
+        return $this->entitiesBuilder->single($this->getEntityGuid());
+    }
+
+    /**
      * Set from a local minds object
      * @return $this
      */

@@ -12,6 +12,7 @@ use Minds\Core;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Helpers;
+use Minds\Entities;
 
 class Events
 {
@@ -147,11 +148,19 @@ class Events
             $guid = $entity->getGuid();
 
             switch (get_class($entity)) {
-                case Activity::class:
+                case Entities\Activity::class:
                     // Is there an attachment?
                     if ($entity->entity_guid) {
                         $guid = $entity->entity_guid;
+
+                        // The below isn't the most efficient, but it attempts to avoid duplicate votes
+                        // when entity_guid (attachment) activity posts exist
+                        if ($canonicalEntity = $entity->getEntity()) {
+                            $entity = $canonicalEntity;
+                        }
                     }
+                    break;
+                case Entities\User::class:
                     break;
             }
 
