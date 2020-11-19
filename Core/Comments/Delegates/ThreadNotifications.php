@@ -113,11 +113,13 @@ class ThreadNotifications
                 $subscribers = [ $parent->getOwnerGuid() ];
             }
 
+            $otherChildren = $this->getChildOwnerGuids($parent, $comment->getOwnerGuid());
+
             // merge with all sibling ids
             $subscribers = array_unique(
                 array_merge(
                     $subscribers,
-                    $this->getChildOwnerGuids($parent),
+                    $otherChildren,
                 )
             );
         }
@@ -138,38 +140,45 @@ class ThreadNotifications
 
     /**
      * Gets array of owner_guids of children of a given parent excluding current user.
-     * @param $parent - Parent comment.
+     * @param $parent - parent comment.
+     * @param $commentAuthorGuid - original comment author.
      * @return array - array of owner_guids or empty array.
      */
-    private function getChildOwnerGuids($parent): array
+    private function getChildOwnerGuids($parent, $commentAuthorGuid): array
     {
         try {
-            // get unique guids.
-            $childrenOwnerGuids = array_unique(
-                array_map(function ($child) {
-                    return $child->getOwnerGuid();
-                }, $this->getChildren($parent))
-            );
+            $opts = [
+                'entity_guid' => $parent->getEntityGuid(),
+                'parent_path' => $parent->getChildPath(),
+                'fields' => 'owner_guid',
+                'scroll' => true,
+            ];
+
+            $scrollable = $this->repository->getList($opts);
 
             $this->postSubscriptionsManager->setEntityGuid(
                 $parent->getEntityGuid()
             );
 
-            $currentUserGuid = Session::getLoggedinUserGuid();
+            $ownerGuids = [];
 
-            // filter out users who have unsubscribed and self.
-            $childrenOwnerGuids = array_filter(
-                $childrenOwnerGuids,
-                function ($childOwnerGuid) use ($currentUserGuid) {
-                    $postSubscription = $this->postSubscriptionsManager
-                        ->setUserGuid($childOwnerGuid)->get();
-
-                    return strval($currentUserGuid) !== strval($childOwnerGuid) &&
-                        $postSubscription->getFollowing();
+            foreach ($scrollable as $row) {
+                if (
+                    strval($commentAuthorGuid) === strval($row['owner_guid']) ||
+                    in_array(strval($row['owner_guid']), $ownerGuids, true)
+                ) {
+                    continue;
                 }
-            );
 
-            return $childrenOwnerGuids ?: [];
+                $postSubscription = $this->postSubscriptionsManager
+                    ->setUserGuid($row['owner_guid'])->get();
+
+                if ($postSubscription->getFollowing()) {
+                    array_push($ownerGuids, strval($row['owner_guid']));
+                }
+            }
+
+            return $ownerGuids ?: [];
         } catch (\Exception $e) {
             $this->logger->error(
                 $e->getMessage() ?:
@@ -177,20 +186,5 @@ class ThreadNotifications
             );
             return [];
         }
-    }
-
-    /**
-     * Gets all child comments from repository (unfiltered)
-     * @param $parent - paternal comment.
-     * @return array - array of comments or empty array.
-     */
-    private function getChildren($parent): array
-    {
-        $response = $this->repository->getList([
-            'entity_guid' => $parent->getEntityGuid(),
-            'parent_path' => $parent->getChildPath(),
-            'limit' => 100,
-        ]);
-        return $response->toArray() ?: [];
     }
 }

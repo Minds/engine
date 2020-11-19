@@ -59,12 +59,14 @@ class Repository
     {
         $this->cql = $cql ?: Di::_()->get('Database\Cassandra\Cql');
         $this->legacyRepository = $legacyRepository ?: new Legacy\Repository();
+        $this->scroll = $scroll ?? Di::_()->get('Database\Cassandra\Cql\Scroll');
+        $this->logger = $logger ?? Di::_()->get('Logger');
     }
 
     /**
      * Returns a list of Comment entities
      * @param array $opts
-     * @return Response
+     * @return Response or Scroll
      */
     public function getList(array $opts = [])
     {
@@ -80,14 +82,20 @@ class Repository
             'include_offset' => false,
             'token' => null,
             'descending' => true,
+            'fields' => '*',
+            'scroll' => false,
         ], $opts);
+
+        if ($opts['scroll'] && $opts['limit']) {
+            $this->logger->warn('Providing both limit and scroll parameters will override scroll.');
+        }
 
         $parent_guids = explode(':', $opts['parent_path']);
         $opts['parent_guid_l1'] = $parent_guids[0] ?? 0;
         $opts['parent_guid_l2'] = $parent_guids[1] ?? 0;
         $opts['parent_guid_l3'] = 0; //do not support l3 yet
 
-        $cql = "SELECT * from comments";
+        $cql = "SELECT {$opts['fields']} from comments";
         $values = [];
         $cqlOpts = [];
 
@@ -172,43 +180,47 @@ class Repository
         $comments = new Response();
 
         try {
-            /** @var Rows $rows */
-            $rows = $this->cql->request($query);
+            if (!$opts['scroll']) {
+                /** @var Rows $rows */
+                $rows = $this->cql->request($query);
 
-            foreach ($rows as $row) {
-                $row = Cql::toPrimitiveType($row);
+                foreach ($rows as $row) {
+                    $row = Cql::toPrimitiveType($row);
 
-                $flags = $row['flags'] ?: [];
+                    $flags = $row['flags'] ?: [];
 
-                $comment = new Comment();
-                $comment
-                    ->setEntityGuid($row['entity_guid'])
-                    ->setParentGuidL1($row['parent_guid_l1'] ?? 0)
-                    ->setParentGuidL2($row['parent_guid_l2'] ?? 0)
-                    ->setGuid($row['guid'])
-                    ->setOwnerGuid($row['owner_guid'])
-                    ->setTimeCreated($row['time_created'])
-                    ->setTimeUpdated($row['time_updated'])
-                    ->setBody($row['body'])
-                    ->setAttachments($row['attachments'] ?: [])
-                    ->setMature(isset($flags['mature']) && $flags['mature'])
-                    ->setEdited(isset($flags['edited']) && $flags['edited'])
-                    ->setSpam(isset($flags['spam']) && $flags['spam'])
-                    ->setDeleted(isset($flags['deleted']) && $flags['deleted'])
-                    ->setOwnerObj($row['owner_obj'])
-                    ->setVotesUp($row['votes_up'] ?: [])
-                    ->setVotesDown($row['votes_down'] ?: [])
-                    ->setEphemeral(false)
-                    ->markAllAsPristine();
+                    $comment = new Comment();
+                    $comment
+                        ->setEntityGuid($row['entity_guid'])
+                        ->setParentGuidL1($row['parent_guid_l1'] ?? 0)
+                        ->setParentGuidL2($row['parent_guid_l2'] ?? 0)
+                        ->setGuid($row['guid'])
+                        ->setOwnerGuid($row['owner_guid'])
+                        ->setTimeCreated($row['time_created'])
+                        ->setTimeUpdated($row['time_updated'])
+                        ->setBody($row['body'])
+                        ->setAttachments($row['attachments'] ?: [])
+                        ->setMature(isset($flags['mature']) && $flags['mature'])
+                        ->setEdited(isset($flags['edited']) && $flags['edited'])
+                        ->setSpam(isset($flags['spam']) && $flags['spam'])
+                        ->setDeleted(isset($flags['deleted']) && $flags['deleted'])
+                        ->setOwnerObj($row['owner_obj'])
+                        ->setVotesUp($row['votes_up'] ?: [])
+                        ->setVotesDown($row['votes_down'] ?: [])
+                        ->setEphemeral(false)
+                        ->markAllAsPristine();
 
-                $comment->setRepliesCount($this->countReplies($comment));
+                    $comment->setRepliesCount($this->countReplies($comment));
 
-                $comments[] = $comment;
-            }
+                    $comments[] = $comment;
+                }
 
-            if ($rows) {
-                $comments->setPagingToken(base64_encode($rows->pagingStateToken()));
-                $comments->setLastPage($rows->isLastPage());
+                if ($rows) {
+                    $comments->setPagingToken(base64_encode($rows->pagingStateToken()));
+                    $comments->setLastPage($rows->isLastPage());
+                }
+            } else {
+                return $this->scroll->request($query);
             }
         } catch (\Exception $e) {
             error_log($e);
