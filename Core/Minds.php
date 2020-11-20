@@ -47,6 +47,7 @@ class Minds extends base
         Wire\Paywall\Module::class,
         I18n\Module::class,
         Permaweb\Module::class,
+        Media\Proxy\Module::class,
     ];
 
     /**

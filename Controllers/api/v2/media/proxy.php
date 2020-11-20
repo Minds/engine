@@ -24,28 +24,33 @@ class proxy implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function get($pages)
     {
-        if (!isset($_GET['src'])) {
-            exit;
+        $src = isset($_GET['src']) ? $_GET['src'] : null;
+
+        // thumbProxy polyfill
+        $width = isset($_GET['size']) ? (int) $_GET['size'] : null;
+
+        if ($width && is_numeric($width)) {
+            $size = $width;
+        } else {
+            $size = isset($_GET['size']) ? (int) $_GET['size'] : 1024;
         }
 
-        $src = $_GET['src'];
-        if (strpos($src, '//') === 0) {
-            $src = 'https:' . $src;
+        if ($src) {
+            $siteUrl = Di::_()->get('Config')->get('site_url');
+            $cdnUrl = Di::_()->get('Config')->get('cdn_url');
+
+            if ($siteUrl && strpos($src, $siteUrl) === 0) {
+                \forward($src);
+                exit;
+            } elseif ($cdnUrl && strpos($src, $cdnUrl) === 0) {
+                \forward($src);
+                exit;
+            } elseif (strpos($src, '//') === 0) {
+                $src = 'https:' . $src;
+            }
         }
 
-        $size = isset($_GET['size']) ? (int) $_GET['size'] : 1024;
         if ($size < 0) {
-            exit;
-        }
-
-        // exit if src was a media proxy url
-        $siteUrl = Di::_()->get('Config')->get('site_url');
-        $cdnUrl = Di::_()->get('Config')->get('cdn_url');
-        $mediaProxyRoute = "api/v2/media/proxy";
-
-        if ($siteUrl && strpos($src, $siteUrl . $mediaProxyRoute) === 0) {
-            exit;
-        } elseif ($cdnUrl && strpos($src, $cdnUrl . $mediaProxyRoute) === 0) {
             exit;
         }
 
