@@ -467,11 +467,16 @@ class Manager
                 continue;
             }
 
-            if (!$title && $entity instanceof Entities\Video) {
+            if (!$title && ($entity instanceof Entities\Video || $entity instanceof Entities\Image)) {
                 if (!$entity->description) {
                     continue; // We have nothing to create title or description here, so skip it
                 }
                 $title = strlen($entity->description) > 60 ? substr($entity->description, 0, 60) . '...' : $entity->description;
+            }
+
+            // If still no title, then skip
+            if (!$title) {
+                continue;
             }
 
             $trend = new Trend();

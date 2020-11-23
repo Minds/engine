@@ -2,17 +2,26 @@
 namespace Minds\Core\Analytics\UserStates\Delegates;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Data\Cassandra\Client;
-use Minds\Core\Data\Cassandra\Prepared;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Entities\Actions;
+use Minds\Core\Security\ACL;
 
 class EntityDelegate
 {
-    /** @var Client */
-    protected $db;
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
 
-    public function __construct($db = null)
+    /** @var Actions\Save */
+    protected $save;
+
+    /** @var ACL */
+    protected $acl;
+
+    public function __construct($entitiesBuilder = null, $save = null, $acl = null)
     {
-        $this->db = $db ?? Di::_()->get('Database\Cassandra\Cql');
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->save = $save ?? new Actions\Save();
+        $this->acl = $acl ?? Di::_()->get('Security\ACL');
     }
 
     /**
@@ -29,26 +38,33 @@ class EntityDelegate
             $userGuid = $pendingInsert['doc']['user_guid'];
             $kiteState = $pendingInsert['doc']['state'];
             $kiteRefTs = $pendingInsert['doc']['reference_date'] / 1000;
-            $this->saveToDb($userGuid, [ 'kite_state' => $kiteState, 'kite_ref_ts' => $kiteRefTs ]);
+            $this->save($userGuid, [ 'kite_state' => $kiteState, 'kite_ref_ts' => $kiteRefTs ]);
         }
     }
 
     /**
      * @param string
      * @param array
-     * @return void
+     * @return bool
      */
-    protected function saveToDb($userGuid, $columns): bool
+    protected function save($userGuid, $columns): bool
     {
-        foreach ($columns as $column1 => $value) {
-            $statement = "UPDATE entities set value = ?
-                WHERE column1 = ?
-                AND key = ?";
-            $values = [ (string) $value, (string) $column1, (string) $userGuid ];
-            $prepared = new Prepared\Custom;
-            $prepared->query($statement, $values);
-            $this->db->request($prepared, true);
+        $entity = $this->entitiesBuilder->single($userGuid);
+
+        if (!$entity) {
+            return false;
         }
-        return true;
+    
+        foreach ($columns as $column1 => $value) {
+            $entity->{$column1} = $value;
+        }
+    
+        $ia = $this->acl->setIgnore(true);
+        $success = $this->save
+            ->setEntity($entity)
+            ->save();
+        $this->acl->setIgnore($ia);
+
+        return $success;
     }
 }

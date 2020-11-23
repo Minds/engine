@@ -32,28 +32,28 @@ class Iterator implements \Iterator
 
     /** @var int */
     protected $rating = 1;
-    
+
     /** @var int */
     protected $quality = 0;
-    
+
     /** @var string */
     protected $offset = null;
-    
+
     /** @var int */
     protected $limit = 1;
-    
+
     /** @var string */
     protected $type = 'newsfeed'; // newsfeed, content
-    
+
     /** @var bool */
     protected $priority = false;
-    
+
     /** @var string[] */
     protected $categories = null;
 
     /** @var bool */
     protected $increment = false;
-    
+
     /** @var bool */
     protected $hydrate = true;
 
@@ -79,7 +79,7 @@ class Iterator implements \Iterator
         $this->expire = $expire ?: Di::_()->get('Boost\Network\Expire');
         $this->metrics = $metrics ?: Di::_()->get('Boost\Network\Metrics');
         $this->manager = $manager ?: new Manager;
-        $this->blockManager - $blockManager ?? Di::_()->get('Security\Block\Manager');
+        $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
     }
 
     public function setRating($rating)

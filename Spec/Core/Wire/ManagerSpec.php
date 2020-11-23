@@ -237,7 +237,45 @@ class ManagerSpec extends ObjectBehavior
         $receiver->merchant = [
             'id' => 'mock_id'
         ];
-        
+
+        $this->config->get('plus')
+            ->willReturn([
+                'handler' => 456
+            ]);
+
+        $payload = [
+            'method' => 'usd',
+            'paymentMethodId' => 'mockPaymentId',
+        ];
+
+        $this->repo->add(Argument::that(function ($wire) {
+            return $wire->getTrialDays() === 7;
+        }))
+            ->shouldBeCalled();
+
+        $this->stripeIntentsManager->add(Argument::any())
+            ->shouldNotBeCalled();
+
+        $this->setSender($sender)
+            ->setEntity($receiver)
+            ->setPayload($payload)
+            ->setAmount(100001)
+            ->create()
+            ->shouldReturn(true);
+    }
+
+    public function it_should_award_trial_to_plus_wire_older_than_90_days()
+    {
+        $sender = new User();
+        $sender->guid = 123;
+        $sender->plus_expires = strtotime('91 days ago'); // We had plus 91 days ago, so we are allowed to have it again
+
+        $receiver = new User();
+        $receiver->guid = 456;
+        $receiver->merchant = [
+            'id' => 'mock_id'
+        ];
+
         $this->config->get('plus')
             ->willReturn([
                 'handler' => 456
@@ -268,14 +306,14 @@ class ManagerSpec extends ObjectBehavior
     {
         $sender = new User();
         $sender->guid = 123;
-        $sender->plus_expires = 1; // Even though in the past, this tell us plus has been given before
+        $sender->plus_expires = strtotime('30 days ago'); // We had plus 30 days ago, so we cant have it again
 
         $receiver = new User();
         $receiver->guid = 456;
         $receiver->merchant = [
             'id' => 'mock_id'
         ];
-        
+
         $this->config->get('plus')
             ->willReturn([
                 'handler' => 456

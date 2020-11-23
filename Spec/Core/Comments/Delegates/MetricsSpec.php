@@ -135,6 +135,9 @@ class MetricsSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->metricsEvent);
 
+        $this->metricsEvent->setIsRemind(false)
+            ->willReturn($this->metricsEvent);
+
         $this->metricsEvent->push()
             ->shouldBeCalled()
             ->willReturn(true);
