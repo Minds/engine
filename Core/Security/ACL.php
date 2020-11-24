@@ -46,7 +46,7 @@ class ACL
      */
     private function init()
     {
-        ACL\Block::_()->listen();
+        // ACL\Block::_()->listen();
     }
 
     /**
@@ -79,6 +79,13 @@ class ACL
         }
 
         if (Flags::shouldFail($entity)) {
+            return false;
+        }
+
+        /**
+         * Blacklist will not not allow entity to be read
+         */
+        if (Core\Events\Dispatcher::trigger('acl:read:blacklist', $entity->getType(), ['entity'=>$entity, 'user'=>$user], false) === true) {
             return false;
         }
 

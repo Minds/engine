@@ -5,6 +5,7 @@ namespace Minds\Core\Wire\Subscriptions;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Wire\Exceptions\WalletNotSetupException;
+use Minds\Common\Urn;
 use Minds\Entities;
 use Minds\Entities\User;
 
@@ -22,12 +23,15 @@ class Manager
     /** @var Config */
     protected $config;
 
+    /** @var Core\Payments\Stripe\PaymentMethods\Manager */
+    protected $stripePaymentMethodsManager;
+
     /** @var int $amount */
     protected $amount;
 
     /** @var User $sender */
     protected $sender;
-    
+
     /** @var User $receiver */
     protected $receiver;
 
@@ -41,39 +45,41 @@ class Manager
         $wireManager = null,
         $subscriptionsManager = null,
         $subscriptionsRepository = null,
-        $config = null
+        $config = null,
+        $stripePaymentMethodsManager = null
     ) {
         $this->wireManager = $wireManager ?: Di::_()->get('Wire\Manager');
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Payments\Subscriptions\Manager');
         $this->subscriptionsRepository = $subscriptionsRepository ?: Di::_()->get('Payments\Subscriptions\Repository');
         $this->config = $config ?: Di::_()->get('Config');
+        $this->stripePaymentMethodsManager = $stripePaymentMethodsManager ?? Di::_()->get('Stripe\PaymentMethods\Manager');
     }
 
-    public function setAmount($amount) : Manager
+    public function setAmount($amount): Manager
     {
         $this->amount = $amount;
         return $this;
     }
 
-    public function setSender(User $sender) : Manager
+    public function setSender(User $sender): Manager
     {
         $this->sender = $sender;
         return $this;
     }
 
-    public function setReceiver(User $receiver) : Manager
+    public function setReceiver(User $receiver): Manager
     {
         $this->receiver = $receiver;
         return $this;
     }
 
-    public function setAddress(string $address) : Manager
+    public function setAddress(string $address): Manager
     {
         $this->address = $address;
         return $this;
     }
 
-    public function setMethod(string $method) : Manager
+    public function setMethod(string $method): Manager
     {
         $this->method = $method;
         return $this;
@@ -85,7 +91,7 @@ class Manager
      * @throws \Exception
      * @return string
      */
-    public function create() : string
+    public function create(): string
     {
         $this->cancelSubscription();
 
@@ -115,9 +121,9 @@ class Manager
      * @param Core\Payments\Subscriptions\Subscription $subscription
      * @return bool
      */
-    public function onRecurring($subscription) : bool
+    public function onRecurring($subscription): bool
     {
-        $sender = $subscription->getUser();
+        $sender = new User($subscription->getUser()->guid);
         $receiver = new User($subscription->getEntity()->guid);
         $amount = $subscription->getAmount();
 
@@ -132,35 +138,41 @@ class Manager
 
         switch ($address) {
             case "offchain":
-                $this->setPayload([
+                $this->wireManager->setPayload([
                     'method' => 'offchain',
                 ]);
                 break;
-            case "money":
-                $this->setPayload([
-                    'method' => 'money',
+            case "stripe":
+                $paymentMethods = $this->stripePaymentMethodsManager->getList(['user_guid' => $sender->getGuid()]);
+                $paymentMethod = $paymentMethods[0]; // Todo: Remember the exact card
+                if (!$paymentMethod) {
+                    return false;
+                }
+                $this->wireManager->setPayload([
+                    'method' => 'usd',
+                    'paymentMethodId' => $paymentMethod->getId(),
                 ]);
                 break;
             default:
-                $txHash = $this->client->sendRawTransaction(
-                    $this->config->get('blockchain')['contracts']['wire']['wallet_pkey'],
-                    [
-                        'from' => $this->config->get('blockchain')['contracts']['wire']['wallet_address'],
-                        'to' => $this->config->get('blockchain')['contracts']['wire']['contract_address'],
-                        'gasLimit' => BigNumber::_(200000)->toHex(true),
-                        'data' => $this->client->encodeContractMethod('wireFromDelegate(address,address,uint256)', [
-                            $address,
-                            $receiver->getEthWallet(),
-                            BigNumber::_($this->token->toTokenUnit($amount))->toHex(true),
-                        ]),
-                    ]
-                );
-                $this->setPayload([
-                    'method' => 'onchain',
-                    'address' => $address, //sender address
-                    'receiver' => $receiver->getEthWallet(),
-                    'txHash' => $txHash,
-                ]);
+                // $txHash = $this->client->sendRawTransaction(
+                //     $this->config->get('blockchain')['contracts']['wire']['wallet_pkey'],
+                //     [
+                //         'from' => $this->config->get('blockchain')['contracts']['wire']['wallet_address'],
+                //         'to' => $this->config->get('blockchain')['contracts']['wire']['contract_address'],
+                //         'gasLimit' => BigNumber::_(200000)->toHex(true),
+                //         'data' => $this->client->encodeContractMethod('wireFromDelegate(address,address,uint256)', [
+                //             $address,
+                //             $receiver->getEthWallet(),
+                //             BigNumber::_($this->token->toTokenUnit($amount))->toHex(true),
+                //         ]),
+                //     ]
+                // );
+                // $this->wireManager->setPayload([
+                //     'method' => 'onchain',
+                //     'address' => $address, //sender address
+                //     'receiver' => $receiver->getEthWallet(),
+                //     'txHash' => $txHash,
+                // ]);
         }
 
         // Manager acts as factory
@@ -179,7 +191,7 @@ class Manager
      * Cancel a subscription
      * @return bool
      */
-    protected function cancelSubscription() : bool
+    protected function cancelSubscription(): bool
     {
         $subscriptions = $this->subscriptionsRepository->getList([
             'plan_id' => 'wire',

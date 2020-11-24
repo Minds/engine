@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by Marcelo.
  * Date: 03/07/2017.
@@ -87,6 +88,12 @@ class Manager
 
     /** @var int */
     const WIRE_SERVICE_FEE_PCT = 5;
+
+    /** @var int */
+    const TRIAL_DAYS = 7;
+
+    /** @var int */
+    const TRIAL_THRESHOLD_DAYS = 90;
 
     public function __construct(
         $repository = null,
@@ -216,7 +223,13 @@ class Manager
             ->setTimestamp(time())
             ->setRecurringInterval($this->recurringInterval);
 
-        if (!$this->acl->write($wire)) {
+        // If Minds+ is the reciever, bypass the ACL
+        $bypassAcl = false;
+        if ((string) $this->receiver->getGuid() === (string) $this->config->get('plus')['handler']) {
+            $bypassAcl = true;
+        }
+
+        if (!$bypassAcl && !$this->acl->write($wire)) {
             return false;
         }
 
@@ -299,19 +312,33 @@ class Manager
                 if (!empty($this->receiver->getNsfw())) {
                     throw new \Exception("This channel cannot receive USD due to being flagged as NSFW");
                 }
+                if (!$this->payload['paymentMethodId']) {
+                    throw new \Exception("You must select a payment method");
+                }
 
-                $intent = new PaymentIntent();
-                $intent
-                    ->setUserGuid($this->sender->getGuid())
-                    ->setAmount($this->amount)
-                    ->setPaymentMethod($this->payload['paymentMethodId'])
-                    ->setOffSession(true)
-                    ->setConfirm(true)
-                    ->setStripeAccountId($this->receiver->getMerchant()['id'])
-                    ->setServiceFeePct(static::WIRE_SERVICE_FEE_PCT);
+                // Determine if a trial is eligible
+                // If the reciever is Minds+ channel and the sender has never has plus (no plus_expires field)
+                // or they haven't had plus in 90 days then they will have a trial.
+                $canHavePlusTrial = !$this->sender->plus_expires || $this->sender->plus_expires <= strtotime(self::TRIAL_THRESHOLD_DAYS . ' days ago');
+                if ($this->receiver->getGuid() == $this->config->get('plus')['handler'] && $canHavePlusTrial) {
+                    $wire->setTrialDays(self::TRIAL_DAYS);
+                }
 
-                // Charge stripe
-                $this->stripeIntentsManager->add($intent);
+                // If this is a trial, we still create the subscription but do not charge
+                if (!$wire->getTrialDays()) {
+                    $intent = new PaymentIntent();
+                    $intent
+                        ->setUserGuid($this->sender->getGuid())
+                        ->setAmount($this->amount)
+                        ->setPaymentMethod($this->payload['paymentMethodId'])
+                        ->setOffSession(true)
+                        ->setConfirm(true)
+                        ->setStripeAccountId($this->receiver->getMerchant()['id'])
+                        ->setServiceFeePct(static::WIRE_SERVICE_FEE_PCT);
+
+                    // Charge stripe
+                    $this->stripeIntentsManager->add($intent);
+                }
 
                 $wire->setAddress('stripe')
                     ->setMethod('usd');

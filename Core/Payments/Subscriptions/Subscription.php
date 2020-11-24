@@ -10,6 +10,10 @@ use Minds\Entities\Factory;
 use Minds\Core\Guid;
 use Minds\Traits\MagicAttributes;
 
+/**
+ * @method Subscription setTrialDays(int $days)
+ * @method int getTrialDays
+ */
 class Subscription
 {
     use MagicAttributes;
@@ -34,6 +38,9 @@ class Subscription
     private $trial_period;
     private $addOns;
     private $coupon;
+
+    /** @var int */
+    private $trialDays;
 
     public function __construct()
     {
@@ -270,7 +277,8 @@ class Subscription
             }
         }
 
-        $export['entity'] = Factory::build($this->getEntity()->guid)->export();
+        $entity = Factory::build($this->getEntity()->guid);
+        $export['entity'] = $entity ? $entity->export() : null;
         $export['entity_guid'] = $this->getEntity() ? $this->getEntity()->guid : null;
         $export['user_guid'] = $this->getUser() ? $this->getUser()->guid : null;
 

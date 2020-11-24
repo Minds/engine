@@ -36,7 +36,8 @@ class RecurringDelegate
             ->setAmount($wire->getAmount())
             ->setUser($wire->getSender())
             ->setEntity($wire->getReceiver())
-            ->setInterval($wire->getRecurringInterval());
+            ->setInterval($wire->getRecurringInterval())
+            ->setTrialDays($wire->getTrialDays());
 
         $this->subscriptionsManager->setSubscription($subscription);
         $this->subscriptionsManager->create();

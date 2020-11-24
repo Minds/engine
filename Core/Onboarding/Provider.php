@@ -14,5 +14,9 @@ class Provider extends DiProvider
         $this->di->bind('Onboarding\Manager', function ($di) {
             return new Manager();
         }, ['useFactory' => false]);
+
+        $this->di->bind('Onboarding\Controller', function ($di) {
+            return new Controller();
+        }, ['useFactory' => false]);
     }
 }

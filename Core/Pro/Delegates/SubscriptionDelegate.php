@@ -36,4 +36,17 @@ class SubscriptionDelegate
         $this->subscriptionsManager
             ->cancelSubscriptions($user->getGuid(), $proUserGuid);
     }
+
+    /**
+     * @return bool
+     */
+    public function hasSubscriptions(User $user): bool
+    {
+        $subscriptions = $this->subscriptionsManager->getList([
+            'user_guid' => $user->guid,
+            'entity_guid' => $this->config->get('pro')['handler']
+        ]);
+
+        return count($subscriptions) > 0;
+    }
 }

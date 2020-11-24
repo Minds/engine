@@ -124,7 +124,7 @@ class peer implements Interfaces\Api
             return Factory::response(['status' => 'error', 'message' => 'can not boost to self']);
         }
 
-        if (Core\Security\ACL\Block::_()->isBlocked(Core\Session::getLoggedinUser(), $destination)) {
+        if (Core\Security\ACL::_()->interact($destination, Core\Session::getLoggedinUser())) {
             return Factory::response([
                 'status' => 'error',
                 'stage' => 'initial',
@@ -296,6 +296,8 @@ class peer implements Interfaces\Api
         $activity->ownerObj = Core\Session::getLoggedInUser()->export();
         $activity->p2p_boosted = true;
 
+        // TODO: How do we handle P2P boosts with remind refactor
+        // MH
         if ($embedded->remind_object) {
             $activity->setRemind($embedded->remind_object)->save();
         } else {

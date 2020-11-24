@@ -1,4 +1,5 @@
 <?php
+
 /**
  * A minds archive video entity
  *
@@ -141,6 +142,7 @@ class Video extends MindsObject
             'youtube_channel_id',
             'transcoding_status',
             'paywall',
+            'permaweb_id',
         ]);
     }
 
@@ -167,8 +169,6 @@ class Video extends MindsObject
             '720.mp4' => $this->getSourceUrl('720.mp4'),
         ];
         $export['play:count'] = Helpers\Counters::get($this->guid, 'plays');
-        $export['thumbs:up:count'] = Helpers\Counters::get($this->guid, 'thumbs:up');
-        $export['thumbs:down:count'] = Helpers\Counters::get($this->guid, 'thumbs:down');
         $export['description'] = (new Core\Security\XSS())->clean($this->description); //videos need to be able to export html.. sanitize soon!
         $export['rating'] = $this->getRating();
         $export['time_sent'] = $this->getTimeSent();
@@ -188,6 +188,7 @@ class Video extends MindsObject
         $export['transcoding_status'] = $this->getTranscodingStatus();
         $export['width'] = $this->width;
         $export['height'] = $this->height;
+        $export['permaweb_id'] = $this->getPermawebId();
 
         return $export;
     }
@@ -372,11 +373,11 @@ class Video extends MindsObject
     }
 
     /**
-    * Set description
-    *
-    * @param string $description - description to be set.
-    * @return Video
-    */
+     * Set description
+     *
+     * @param string $description - description to be set.
+     * @return Video
+     */
     public function setDescription($description): self
     {
         $this->description = $description;
@@ -471,5 +472,25 @@ class Video extends MindsObject
     {
         $this->youtube_thumbnail = $url;
         return $this;
+    }
+
+    /**
+     * Sets `permaweb_id`
+     * @param string $permaweb_id
+     * @return Activity
+     */
+    public function setPermawebId(string $permaweb_id): Video
+    {
+        $this->permaweb_id = $permaweb_id;
+        return $this;
+    }
+
+    /**
+     * Gets `permaweb_id`
+     * @return string
+     */
+    public function getPermawebId(): string
+    {
+        return $this->permaweb_id;
     }
 }

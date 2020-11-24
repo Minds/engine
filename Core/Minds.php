@@ -19,6 +19,7 @@ class Minds extends base
     private $modules = [
         Log\Module::class,
         Events\Module::class,
+        Security\Module::class,
         Features\Module::class,
         SSO\Module::class,
         Email\Module::class,
@@ -45,6 +46,7 @@ class Minds extends base
         Wire\SupportTiers\Module::class,
         Wire\Paywall\Module::class,
         I18n\Module::class,
+        Permaweb\Module::class,
     ];
 
     /**
@@ -52,8 +54,8 @@ class Minds extends base
      */
     public function init()
     {
-        $this->initModules();
         $this->initProviders();
+        $this->initModules();
     }
 
     /**
@@ -63,12 +65,12 @@ class Minds extends base
     {
         $modules = [];
         foreach ($this->modules as $module) {
-            $modules[] = new $module();
+            $modules[] = $hydratedModule = new $module();
 
             // Submodules han be registered with the ->submodules[] property
             if (property_exists($module, 'submodules')) {
-                foreach ($modules->submodules as $submodule) {
-                    $modules[] = $submodule;
+                foreach ($hydratedModule->submodules as $submodule) {
+                    $modules[] = new $submodule();
                 }
             }
         }
@@ -102,11 +104,9 @@ class Minds extends base
         (new Pages\PagesProvider())->register();
         (new Payments\PaymentsProvider())->register();
         (new Queue\QueueProvider())->register();
-        (new Security\SecurityProvider())->register();
         (new Http\HttpProvider())->register();
         (new Translation\TranslationProvider())->register();
         (new Categories\CategoriesProvider())->register();
-        (new ThirdPartyNetworks\ThirdPartyNetworksProvider())->register();
         (new Storage\StorageProvider())->register();
         (new Monetization\MonetizationProvider())->register();
         (new Programs\ProgramsProvider())->register();
@@ -129,6 +129,7 @@ class Minds extends base
         (new Analytics\AnalyticsProvider())->register();
         (new Channels\ChannelsProvider())->register();
         (new Blogs\BlogsProvider())->register();
+        (new Permaweb\PermawebProvider())->register();
     }
 
     /**
@@ -160,7 +161,7 @@ class Minds extends base
         if ($this->detectMultisite()) {
             //we do this on db load.. not here
         } else {
-            if (!file_exists(__MINDS_ROOT__.'/settings.php') && !defined('__MINDS_INSTALLING__')) {
+            if (!file_exists(__MINDS_ROOT__ . '/settings.php') && !defined('__MINDS_INSTALLING__')) {
                 ob_end_clean();
                 header('Fatal error', true, 500);
                 error_log('settings.php file could not be found');
@@ -208,14 +209,14 @@ class Minds extends base
         }
 
         // Load the system settings
-        if (file_exists(__MINDS_ROOT__.'/settings.php')) {
-            include_once __MINDS_ROOT__.'/settings.php';
+        if (file_exists(__MINDS_ROOT__ . '/settings.php')) {
+            include_once __MINDS_ROOT__ . '/settings.php';
         }
 
         // Load mulit globals if set
-        if (file_exists(__MINDS_ROOT__.'/multi.settings.php')) {
+        if (file_exists(__MINDS_ROOT__ . '/multi.settings.php')) {
             define('multisite', true);
-            require_once __MINDS_ROOT__.'/multi.settings.php';
+            require_once __MINDS_ROOT__ . '/multi.settings.php';
         }
         // Load environment values
         $env = Helpers\Env::getMindsEnv();
@@ -259,7 +260,7 @@ class Minds extends base
         ];
 
         foreach ($lib_files as $file) {
-            $file = __MINDS_ROOT__.$this->legacy_lib_dir.$file;
+            $file = __MINDS_ROOT__ . $this->legacy_lib_dir . $file;
             if (!include_once($file)) {
                 $msg = "Could not load $file";
                 throw new \InstallationException($msg);
@@ -274,7 +275,7 @@ class Minds extends base
      */
     public function detectMultisite()
     {
-        if (file_exists(__MINDS_ROOT__.'/multi.settings.php')) {
+        if (file_exists(__MINDS_ROOT__ . '/multi.settings.php')) {
             return true;
         }
 

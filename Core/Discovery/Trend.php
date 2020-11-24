@@ -31,6 +31,9 @@ class Trend
     /** @var bool */
     protected $deleted = false;
 
+    /** @var bool */
+    protected $selected;
+
     /**
      * Export
      * @param array $extras
@@ -46,6 +49,7 @@ class Trend
             'title' => $this->title,
             'volume' => $this->volume,
             'period' => $this->period,
+            'selected' => $this->selected,
         ];
     }
 }

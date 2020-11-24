@@ -12,8 +12,6 @@ use Redis as RedisServer;
 
 class Redis extends abstractCacher
 {
-    private $master = '127.0.0.1';
-    private $slave = '127.0.0.1';
     private $redisMaster;
     private $redisSlave;
 
@@ -25,16 +23,14 @@ class Redis extends abstractCacher
 
     public function __construct($config = null)
     {
-        $this->config = Di::_()->get('Config');
-        $this->master = $this->config->redis['master'];
-        $this->slave = $this->config->redis['slave'];
+        $this->config = $config ?? Di::_()->get('Config');
     }
 
     private function getMaster()
     {
         if (!$this->redisMaster) {
             $this->redisMaster = new RedisServer();
-            $this->redisMaster->connect($this->master);
+            $this->redisMaster->connect($this->config->get('redis')['master']);
         }
 
         return $this->redisMaster;
@@ -44,7 +40,7 @@ class Redis extends abstractCacher
     {
         if (!$this->redisSlave) {
             $this->redisSlave = new RedisServer();
-            $this->redisSlave->connect($this->slave);
+            $this->redisSlave->connect($this->config->get('redis')['slave']);
         }
 
         return $this->redisSlave;

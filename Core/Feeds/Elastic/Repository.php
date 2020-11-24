@@ -18,7 +18,7 @@ class Repository
         '30d' => 2592000,
         '1y' => 31536000,
         'all' => -1,
-        'relevant'=> -1,
+        'relevant' => -1,
     ];
 
     /** @var ElasticsearchClient */
@@ -83,6 +83,7 @@ class Repository
             'pending' => false,
             'plus' => false,
             'portrait' => false,
+            'hide_reminds' => false,
         ], $opts);
 
         if (!$opts['type']) {
@@ -127,6 +128,10 @@ class Repository
                 break;
             case SortingAlgorithms\DigestFeed::class:
                 $algorithm = new SortingAlgorithms\DigestFeed();
+                break;
+            case SortingAlgorithms\PlusFeed::class:
+            case "plusFeed":
+                $algorithm = new SortingAlgorithms\PlusFeed();
                 break;
             case "latest":
             default:
@@ -285,6 +290,15 @@ class Repository
             }
         }
 
+        // Hide reminds (note, this will not hide quoted posts)
+        if ($opts['hide_reminds'] === true) {
+            $body['query']['function_score']['query']['bool']['must_not'][] = [
+                'term' => [
+                    'is_remind' => true,
+                ],
+            ];
+        }
+
         if ($type !== 'group' && $opts['access_id'] !== null) {
             $body['query']['function_score']['query']['bool']['must'][] = [
                 'terms' => [
@@ -373,7 +387,7 @@ class Repository
             if ($timestampLowerBounds) {
                 $range['gt'] = max($timestampLowerBounds);
             }
-            
+
             $body['query']['function_score']['query']['bool']['must'][] = [
                 'range' => [
                     '@timestamp' => $range,
@@ -409,8 +423,8 @@ class Repository
 
             $body['query']['function_score']['query']['bool']['should'][] = [
                 'terms' => [
-                     'tags' => $opts['hashtags'],
-                     'boost' => 1, // hashtags are 10x more valuable then non-hashtags
+                    'tags' => $opts['hashtags'],
+                    'boost' => 1, // hashtags are 10x more valuable then non-hashtags
                 ],
             ];
             $body['query']['function_score']['query']['bool']['should'][] = [

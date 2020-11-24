@@ -12,6 +12,8 @@ use Minds\Core\Hashtags\HashtagEntity;
 use Minds\Common\Repository\Response;
 use Minds\Core\Feeds\Elastic\Manager as ElasticFeedsManager;
 use Minds\Core\Search\SortingAlgorithms;
+use Minds\Core\Security\ACL;
+use Minds\Entities;
 
 class Manager
 {
@@ -42,13 +44,17 @@ class Manager
     /** @var string */
     protected $plusSupportTierUrn;
 
+    /** @var ACL */
+    protected $acl;
+
     public function __construct(
         $es = null,
         $entitiesBuilder = null,
         $config = null,
         $hashtagManager = null,
         $elasticFeedsManager = null,
-        $user = null
+        $user = null,
+        $acl = null
     ) {
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
@@ -57,6 +63,7 @@ class Manager
         $this->elasticFeedsManager = $elasticFeedsManager ?? Di::_()->get('Feeds\Elastic\Manager');
         $this->user = $user ?? Session::getLoggedInUser();
         $this->plusSupportTierUrn = $this->config->get('plus')['support_tier_urn'];
+        $this->acl = $acl ?? Di::_()->get('Security\ACL');
     }
 
     /**
@@ -224,14 +231,16 @@ class Manager
         $response = $this->es->request($prepared);
 
         $trends = [];
-        
+
         foreach ($response['aggregations']['tags']['buckets'] as $bucket) {
             $tag = $bucket['key'];
             $trend = new Trend();
             $trend->setId("tag_{$tag}_{$hoursAgo}h")
                 ->setHashtag($tag)
                 ->setVolume($bucket['doc_count'])
-                ->setPeriod($hoursAgo);
+                ->setPeriod($hoursAgo)
+                ->setSelected(in_array(strtolower($tag), array_map('strtolower', $this->tagCloud), true));
+
             $trends[] = $trend;
         }
 
@@ -256,6 +265,8 @@ class Manager
         if ($opts['plus'] === true) {
             $opts['hoursAgo'] = 1680; // 10 Weeks
         }
+
+        $type = 'activity';
 
         $algorithm = new SortingAlgorithms\TopV2();
 
@@ -312,6 +323,9 @@ class Manager
                     'wire_support_tier' => $this->plusSupportTierUrn,
                 ],
             ];
+            // Only blogs and videos show in top half of discovery
+            // as we don't want blury thumbnails
+            $type = 'object:video,object:blog';
         }
 
         // Not NSFW
@@ -323,7 +337,7 @@ class Manager
         ];
 
         // Scoring functions
-        
+
         $functions = [];
 
         $functions[] = [
@@ -382,7 +396,7 @@ class Manager
 
         $query = [
             'index' => $this->config->get('elasticsearch')['index'],
-            'type' => 'activity',
+            'type' => $type,
             'body' =>  [
                 'query' => [
                     'function_score' => [
@@ -427,17 +441,21 @@ class Manager
         $prepared->query($query);
 
         $response = $this->es->request($prepared);
- 
+
         $trends = [];
         foreach ($response['hits']['hits'] as $doc) {
             $ownerGuid = $doc['_source']['owner_guid'];
-            
+
             $title = $doc['_source']['title'] ?: $doc['_source']['message'];
 
             shuffle($doc['_source']['tags']);
             $hashtag = $doc['_source']['tags'][0];
 
             $entity = $this->entitiesBuilder->single($doc['_id']);
+            
+            if (!$this->acl->read($entity)) {
+                continue;
+            }
 
             if ($opts['plus'] === true) {
                 $entity->setPayWallUnlocked(true);
@@ -446,6 +464,18 @@ class Manager
             $exportedEntity = $entity->export();
             if (!$exportedEntity['thumbnail_src']) {
                 error_log("{$exportedEntity['guid']} has not thumbnail");
+                continue;
+            }
+
+            if (!$title && ($entity instanceof Entities\Video || $entity instanceof Entities\Image)) {
+                if (!$entity->description) {
+                    continue; // We have nothing to create title or description here, so skip it
+                }
+                $title = strlen($entity->description) > 60 ? substr($entity->description, 0, 60) . '...' : $entity->description;
+            }
+
+            // If still no title, then skip
+            if (!$title) {
                 continue;
             }
 
@@ -514,7 +544,7 @@ class Manager
         }
 
         $elasticEntities = new Core\Feeds\Elastic\Entities();
-        
+
         $opts = array_merge([
             'cache_key' => $this->user ? $this->user->getGuid() : null,
             'access_id' => 2,
@@ -596,7 +626,7 @@ class Manager
     /**
      * Set the tags a user wants to subscribe to
      * @param array $selected
-     * @param array $deslected
+     * @param array $deselected
      * @return bool
      */
     public function setTags(array $selected, array $deselected): bool

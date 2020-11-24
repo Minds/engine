@@ -812,6 +812,9 @@ class Group extends NormalizedEntity
     public function getNsfw()
     {
         $array = [];
+        if ($this->mature) {
+            $array[] = 6; // Other
+        }
         if (!$this->nsfw) {
             return $array;
         }
