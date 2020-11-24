@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core;
 
 use Minds\Core;
@@ -91,10 +92,10 @@ class Session extends base
 
     /**
      * Construct the user manually
-     * @param $user
+     * @param User $user
      * @return void
      */
-    public static function setUser($user)
+    public static function setUser(?User $user): void
     {
         static::$user = $user;
 
@@ -108,7 +109,8 @@ class Session extends base
             });
         }
 
-        if (!$user
+        if (
+            !$user
             || !static::$user->username
             || static::$user->isBanned()
             || !static::$user->isEnabled()
@@ -120,8 +122,9 @@ class Session extends base
 
     /**
      * Check if there's an user logged in
+     * @return bool
      */
-    public static function isLoggedin()
+    public static function isLoggedin(): bool
     {
         $user = self::getLoggedinUser();
 
@@ -134,8 +137,9 @@ class Session extends base
 
     /**
      * Check if the current user is an administrator
+     * @return bool
      */
-    public static function isAdmin()
+    public static function isAdmin(): bool
     {
         if (!self::isLoggedin()) {
             return false;
@@ -151,14 +155,16 @@ class Session extends base
 
     /**
      * Get the logged in user's entity
+     * @return User
      */
-    public static function getLoggedinUser()
+    public static function getLoggedinUser(): ?User
     {
         return static::$user;
     }
 
     /**
      * Get the logged in user's entity GUID
+     * @return string
      */
     public static function getLoggedInUserGuid()
     {

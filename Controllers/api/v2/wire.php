@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Minds Wire Api endpoint.
  *
@@ -53,8 +54,9 @@ class wire implements Interfaces\Api
             return Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to yourself!']);
         }
 
-        if (Core\Security\ACL\Block::_()->isBlocked(Core\Session::getLoggedInUserGuid(), $user->guid)) {
-            return Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to a user who has blocked you.']);
+        $isPlus = (string) $user->getGuid() === (string) Core\Di\Di::_()->get('Config')->get('plus')['handler'];
+        if (!$isPlus && !Core\Security\ACL::_()->interact($user, Core\Session::getLoggedInUser())) {
+            return Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to a user as you are unable to interact with them.']);
         }
 
         $amount = BigNumber::_($_POST['amount']);

@@ -64,8 +64,11 @@ class Provider extends DiProvider
                 'support-tiers',
                 'language-prompts',
                 'discovery-carousel',
+                'permaweb',
                 'subscriber-conversations',
                 'activity-modal',
+                'channel-grid',
+                'onboarding-october-2020',
             ];
         });
 

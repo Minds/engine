@@ -15,6 +15,9 @@ use Minds\Helpers;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Security\Block\Manager;
+use Minds\Core\Security\Block\BlockEntry;
+use Minds\Core\Security\Block\BlockListOpts;
 
 class block extends Controller implements Interfaces\Api
 {
@@ -42,19 +45,45 @@ class block extends Controller implements Interfaces\Api
 
                 $offset = $_GET['offset'] ?? '';
 
-                $block = $this->di->get('Security\ACL\Block');
-                $guids = $block->getBlockList(Core\Session::getLoggedinUser(), $limit, $offset);
+                /** @var Manager */
+                $blockManager = $this->di->get('Security\Block\Manager');
 
+                $opts = new BlockListOpts();
+                $opts->setUserGuid(Core\Session::getLoggedinUserGuid());
+                $opts->setUseCache(false);
+                $opts->setLimit($limit);
+                $opts->setPagingToken($offset);
+
+                $list = $blockManager->getList($opts);
+                $guids = $list->map(function ($blockEntry) {
+                    return $blockEntry->getSubjectGuid();
+                })->toArray();
+                
                 if ($sync) {
+                    $guids = $list->map(function ($blockEntry) {
+                        return $blockEntry->getSubjectGuid();
+                    })->toArray();
                     $response['guids'] = Helpers\Text::buildArray($guids);
                 } elseif ($guids) {
+                    // ACL read needs to be bypassed so we can see who we have blocked
+                    $ia = Core\Security\ACL::setIgnore(true);
                     $entities = Core\Entities::get(['guids' => $guids]);
+                    Core\Security\ACL::setIgnore($ia);
                     $response['entities'] = Exportable::_($entities);
+                    $response['load-next'] = $list->getPagingToken();
                 }
                 break;
             case is_numeric($pages[0]):
-                $block = $this->di->get('Security\ACL\Block');
-                $response['blocked'] = $block->isBlocked($pages[0]);
+                /** @var Manager */
+                $blockManager = $this->di->get('Security\Block\Manager');
+        
+                $blockEntry = (new BlockEntry())
+                    ->setActorGuid(Core\Session::getLoggedinUserGuid())
+                    ->setSubject($pages[0]);
+
+                /** @var bool */
+                $hasBlocked = $blockManager->hasBlocked($blockEntry);
+                $response['blocked'] = $hasBlocked;
                 break;
         }
 

@@ -22,6 +22,9 @@ class NotificationDelegate
      */
     public function onAdd(Wire $wire) : void
     {
+        if ($wire->getTrialDays()) {
+            return; // Do not send notification if trial
+        }
         $this->queue->setQueue('WireNotification')
             ->send(
                 [

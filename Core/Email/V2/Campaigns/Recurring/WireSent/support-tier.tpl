@@ -20,9 +20,7 @@
 <?php if ($tierDescription): ?>
 <tr style="margin-bottom: 20px; display: block">
   <td style="border-left: 5px solid #dce2e4; padding-left: 20px;">
-    <p>
-      <?php echo $tierDescription; ?>
-    </p>
+    <p style="white-space: pre-line;"><?php echo $tierDescription; ?></p>
   </td>
 </tr>
 <?php endif; ?>

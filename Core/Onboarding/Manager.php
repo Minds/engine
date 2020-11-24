@@ -17,8 +17,8 @@ class Manager
         'frequently',
     ];
 
-    /** @var Delegates\OnboardingDelegate[] */
-    protected $items;
+    /** @var Steps\OnboardingStepInterface[] */
+    protected $steps;
 
     /** @var FeaturesManager */
     protected $features;
@@ -29,37 +29,43 @@ class Manager
     /** @var User */
     protected $user;
 
+    /** @var OnboardingGroups\InitialOnboardingGroup */
+    protected $initialOnboarding;
+
+    /** @var OnboardingGroups\OnogingOnboardingGroup */
+    protected $ongoingOnboarding;
+
     /**
      * Manager constructor.
      *
-     * @param array $items
+     * @param Steps\OnboardingStepInterface[] $steps
      * @param FeaturesManager $features
      * @param Config $config
      * @throws FeatureNotImplementedException
      */
-    public function __construct($items = null, $features = null, $config = null)
-    {
+    public function __construct(
+        $steps = null,
+        $features = null,
+        $config = null,
+        $initialOnboarding = null,
+        $ongoingOnboarding = null
+    ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->features = $features ?: Di::_()->get('Features\Manager');
+        $this->initialOnboarding = $initialOnboarding ?? new OnboardingGroups\InitialOnboardingGroup();
+        $this->ongoingOnboarding = $ongoingOnboarding ?? new OnboardingGroups\OngoingOnboardingGroup();
 
-        if ($items) {
-            $this->items = $items;
-        } elseif ($this->features->has('ux-2020')) {
-            $this->items = [
-                'suggested_hashtags' => new Delegates\SuggestedHashtagsDelegate(),
-                'tokens_verification' => new Delegates\TokensVerificationDelegate(),
-                'location' => new Delegates\LocationDelegate(),
-                'dob' => new Delegates\DateOfBirthDelegate(),
-                'avatar' => new Delegates\AvatarDelegate(),
-            ];
+        if ($steps) {
+            $this->steps = $steps;
+        //} elseif ($this->features->has('onboarding-october-2020')) {
+            // October 2020 - see getOnboardingGroup
         } else {
-            $this->items = [
-                'suggested_hashtags' => new Delegates\SuggestedHashtagsDelegate(),
-                'suggested_channels' => new Delegates\SuggestedChannelsDelegate(),
-                'avatar' => new Delegates\AvatarDelegate(),
-                'display_name' => new Delegates\DisplayNameDelegate(),
-                'briefdescription' => new Delegates\BriefdescriptionDelegate(),
-                'tokens_verification' => new Delegates\TokensVerificationDelegate(),
+            $this->steps = [
+                'suggested_hashtags' => new Steps\SuggestedHashtagsStep(),
+                'tokens_verification' => new Steps\TokensVerificationStep(),
+                'location' => new Steps\LocationStep(),
+                'dob' => new Steps\DateOfBirthStep(),
+                'avatar' => new Steps\AvatarStep(),
             ];
         }
     }
@@ -113,6 +119,64 @@ class Manager
     }
 
     /**
+     * @param int $ts
+     *
+     * @return bool
+     *
+     * @throws \Exception
+     */
+    public function setInitialOnboardingComplete($ts)
+    {
+        if (!$this->user) {
+            throw new \Exception('User not set');
+        }
+
+        $saved = $this->user
+            ->setInitialOnboardingCompleted(time())
+            ->save();
+
+        return (bool) $saved;
+    }
+
+    /**
+     * Returns the currently valid onboarding group
+     * @return OnboardingGroups\OnboardingGroupInterface
+     */
+    public function getOnboardingGroup(): OnboardingGroups\OnboardingGroupInterface
+    {
+        // MH TODO: For existing users, do we now just skip the initial onboarding?
+
+        $initialOnboarding = $this->initialOnboarding
+            ->setUser($this->user);
+
+        if (!$initialOnboarding->isCompleted()) {
+            // Initial onboarding is slightly different to other onboarding groups
+            // Here, the onboarding is completed when the user has a getInitialOnboardingComplete()
+            // value returned. We set this at the time $initialOnboarding->getCompletedPct() returns 100%
+            // - this allows us to change the initial onboarding and not disrupt existing users progress
+
+            if ($initialOnboarding->getCompletedPct() < 1) {
+                return $initialOnboarding;
+            }
+
+            // Onboarding is actually completed, so lets now apply this tag to the user
+            // so we don't ask them to do initial onboarding again
+            
+            $this->setInitialOnboardingComplete(time());
+
+            // TODO: Implement a delegate to notify user of reward to claim
+        }
+
+        // Everybody else get the ongoing onboarding
+
+        $ongoingOnboarding = $this->ongoingOnboarding
+            ->setUser($this->user);
+        return $ongoingOnboarding;
+    }
+
+    // LEGACY ONBOARDING... REMOVE ONCE FEATURE FLAG IS OUT (OCT 2020 - MH)
+
+    /**
      * @return string
      *
      * @throws \Exception
@@ -155,7 +219,7 @@ class Manager
      */
     public function getAllItems()
     {
-        return array_keys($this->items);
+        return array_keys($this->steps);
     }
 
     /**
@@ -169,16 +233,16 @@ class Manager
             throw new \Exception('User not set');
         }
 
-        $completedItems = [];
+        $completedSteps = [];
 
-        foreach ($this->items as $item => $delegate) {
-            /** @var Delegates\OnboardingDelegate $delegate */
-            if ($delegate->isCompleted($this->user)) {
-                $completedItems[] = $item;
+        foreach ($this->steps as $k => $step) {
+            /** @var Steps\OnboardingDelegate $delegate */
+            if ($step->isCompleted($this->user)) {
+                $completedSteps[] = $k;
             }
         }
 
-        return $completedItems;
+        return $completedSteps;
     }
 
     /**

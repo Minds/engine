@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Routes
  * @author edgebal
@@ -24,19 +25,9 @@ class Routes extends ModuleRoutes
                 LoggedInMiddleware::class,
             ])
             ->do(function (Route $route) {
-                $route->post(
-                    '',
-                    Ref::_('Feeds\Activity\Manager', 'add')
-                );
-
-                $route->post(
-                    ':guid',
-                    Ref::_('Feeds\Activity\Manager', 'update')
-                );
-
                 $route->delete(
-                    ':guid',
-                    Ref::_('Feeds\Activity\Manager', 'delete')
+                    ':urn',
+                    Ref::_('Feeds\Activity\Controller', 'delete')
                 );
             });
     }

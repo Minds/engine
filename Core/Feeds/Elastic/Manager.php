@@ -88,6 +88,9 @@ class Manager
      */
     public function getList(array $opts = [])
     {
+        // Mobile will temporarily disable new style reminds from being displayed (default true for mobile)
+        $hide_reminds = filter_var($_GET['hide_reminds'] ?? isset($_SERVER['HTTP_APP_VERSION']), FILTER_VALIDATE_BOOLEAN);
+
         $opts = array_merge([
             'algorithm' => null,
             'cache_key' => null,
@@ -112,6 +115,7 @@ class Manager
             'exclude' => null,
             'pending' => false,
             'plus' => false,
+            'hide_reminds' => $hide_reminds,
         ], $opts);
 
         if (isset($opts['query']) && $opts['query']) {
@@ -137,10 +141,11 @@ class Manager
 
             $ownerGuid = $scoredGuid->getOwnerGuid() ?: $scoredGuid->getGuid();
 
-            if ($i < $opts['single_owner_threshold']
+            if (
+                $i < $opts['single_owner_threshold']
                 && isset($owners[$ownerGuid])
                 && !$opts['filter_hashtags']
-                && !in_array($opts['type'], [ 'user', 'group' ], true)
+                && !in_array($opts['type'], ['user', 'group'], true)
             ) {
                 continue;
             }
@@ -153,7 +158,7 @@ class Manager
                 $entityType = str_replace('object:', '', $entityType);
             }
 
-            if ($opts['as_activities'] && !in_array($opts['type'], [ 'user', 'group' ], true)) {
+            if ($opts['as_activities'] && !in_array($opts['type'], ['user', 'group'], true)) {
                 $entityType = 'activity';
             }
 
@@ -194,10 +199,10 @@ class Manager
                     $entity = $this->entities->cast($entity);
                 }
                 $entities[] = (new FeedSyncEntity)
-                                ->setGuid($entity->getGuid())
-                                ->setOwnerGuid($entity->getOwnerGuid())
-                                ->setUrn($entity->getUrn())
-                                ->setEntity($entity);
+                    ->setGuid($entity->getGuid())
+                    ->setOwnerGuid($entity->getOwnerGuid())
+                    ->setUrn($entity->getUrn())
+                    ->setEntity($entity);
             }
 
             // TODO: Optimize this
@@ -206,9 +211,9 @@ class Manager
             }
 
             // TODO: confirm if the following is actually necessary
-           // especially after the first 12
+            // especially after the first 12
 
-           /*usort($entities, function ($a, $b) use ($scores) {
+            /*usort($entities, function ($a, $b) use ($scores) {
                $aGuid = $a instanceof FeedSyncEntity ? $a->getGuid() : $a->guid;
                $bGuid = $b instanceof FeedSyncEntity ? $b->getGuid() : $b->guid;
 
@@ -241,7 +246,7 @@ class Manager
         // Replace #
         $opts['query'] = str_replace('#', '', $opts['query']);
 
-        if (!in_array($opts['type'], [ 'user', 'group' ], true)) {
+        if (!in_array($opts['type'], ['user', 'group'], true)) {
             return [];
         }
 
@@ -287,11 +292,14 @@ class Manager
                 if (!$this->acl->read($entity)) {
                     continue;
                 }
+                if (array_diff($entity->getNsfw(), $opts['nsfw'])) {
+                    continue; // User not viewing NSFW
+                }
                 $entities[] = (new FeedSyncEntity)
-                                 ->setGuid($entity->getGuid())
-                                 ->setOwnerGuid($entity->getOwnerGuid())
-                                 ->setUrn($entity->getUrn())
-                                 ->setEntity($entity);
+                    ->setGuid($entity->getGuid())
+                    ->setOwnerGuid($entity->getOwnerGuid())
+                    ->setUrn($entity->getUrn())
+                    ->setEntity($entity);
             }
         }
 

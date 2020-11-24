@@ -159,10 +159,6 @@ class comments implements Interfaces\Api
           default:
             $entity = new \Minds\Entities\Entity($pages[0]);
 
-            if ($entity instanceof Entities\Activity && $entity->remind_object) {
-                $entity = (object) $entity->remind_object;
-            }
-
             if (!$pages[0] || !$entity || $entity->type == 'comment') {
                 return Factory::response([
                   'status' => 'error',
@@ -238,9 +234,16 @@ class comments implements Interfaces\Api
                     $parentOwnerUsername = "@{$entity->ownerObj['username']}";
                 }
 
+                $reason = "The comment couldn't be saved because you can't interact with the post.";
+
+                if ($comment->isReply()) {
+                    $reason = "The comment couldn't be saved because you can't interact with the comment and/or post.";
+                }
+
                 $response = [
                     'status' => 'error',
-                    'message' => "The comment couldn't be saved because {$parentOwnerUsername} has blocked you."
+                    // 'message' => "The comment couldn't be saved because {$parentOwnerUsername} has blocked you."
+                    'message' => $reason,
                 ];
             } catch (\Exception $e) {
                 error_log($e);

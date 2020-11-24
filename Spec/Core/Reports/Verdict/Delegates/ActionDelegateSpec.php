@@ -10,8 +10,10 @@ use Minds\Core\Reports\Report;
 use Minds\Core\Reports\Actions;
 use Minds\Core\Reports\Strikes\Manager as StrikesManager;
 use Minds\Entities\Entity;
+use Minds\Entities\Activity;
 use Minds\Core\Entities\Actions\Save as SaveAction;
 use Minds\Core\Channels\Ban;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -153,6 +155,55 @@ class ActionDelegateSpec extends ObjectBehavior
             ->willReturn($entity);
 
         $this->actions->setDeletedFlag(Argument::type(Entity::class), true)
+            ->shouldBeCalled();
+
+        $this->saveAction->setEntity($entity)
+            ->willReturn($this->saveAction);
+        
+        $this->saveAction->save()
+            ->shouldBeCalled();
+
+        $this->onAction($verdict);
+    }
+
+    public function it_should_remove_if_minds_plus_and_nsfw(Activity $entity, Entity $user)
+    {
+        $report = new Report;
+        $report->setEntityUrn('urn:activity:123')
+            ->setEntityOwnerGuid(456)
+            ->setReasonCode(2)
+            ->setSubReasonCode(1);
+
+        $verdict = new Verdict;
+        $verdict->setReport($report)
+            ->setUphold(true);
+
+        $this->entitiesBuilder->single(123)
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $entity->getNsfw()
+            ->willReturn([]);
+
+        $entity->getNsfwLock()
+            ->willReturn([]);
+
+        $entity->isPayWall()
+            ->willReturn(true);
+
+        $entity->getWireThreshold()
+            ->willReturn([
+                'support_tier' => [
+                    'urn' => 'plus_support_tier_urn'
+                ]
+            ]);
+
+        $entity->setNsfw([1])
+            ->willReturn($entity);
+        $entity->setNsfwLock([1])
+            ->willReturn($entity);
+
+        $this->actions->setDeletedFlag($entity, true)
             ->shouldBeCalled();
 
         $this->saveAction->setEntity($entity)

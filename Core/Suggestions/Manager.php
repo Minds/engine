@@ -8,6 +8,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Features;
 use Minds\Core\Suggestions\Delegates\CheckRateLimit;
 use Minds\Entities\User;
+use Minds\Core\Security\Block;
 
 class Manager
 {
@@ -29,6 +30,9 @@ class Manager
     /** @var Features\Manager */
     private $features;
 
+    /** @var Block\Manager */
+    private $blockManager;
+
     /** @var string $type */
     private $type = 'user';
 
@@ -46,6 +50,7 @@ class Manager
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Subscriptions\Manager');
         $this->checkRateLimit = $checkRateLimit ?: new CheckRateLimit();
         $this->features = $features ?? new Features\Manager();
+        $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
     }
 
     /**
@@ -135,6 +140,14 @@ class Manager
             if (!empty($entity->getNsfw())) {
                 return null;
             }
+
+            $blockEntry = (new Block\BlockEntry())
+                ->setActor($this->user)
+                ->setSubject($entity);
+            if ($this->blockManager->hasBlocked($blockEntry)) {
+                return null;
+            }
+
             if ($entity->getType() === 'user') {
                 $entity->exportCounts = true;
             }

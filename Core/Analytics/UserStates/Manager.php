@@ -38,7 +38,7 @@ class Manager
         $this->queue = $queue ?: Queue\Client::build();
         $this->activeUsersIterator = $activeUsersIterator ?: new ActiveUsersIterator();
         $this->userStateIterator = $userStateIterator ?: new UserStateIterator();
-        $this->entityDelegate = $entityDelegate = new Delegates\EntityDelegate;
+        $this->entityDelegate = $entityDelegate ?? new Delegates\EntityDelegate;
     }
 
     public function setReferenceDate($referenceDate)

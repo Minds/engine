@@ -29,6 +29,14 @@ class ActionsHistogram extends Aggregate
             ]
         ];
 
+        $must_not = [
+            [
+                'term' => [
+                    'is_remind' => true,
+                ]
+            ]
+        ];
+
         if ($this->type) {
             $must[]['match'] = [
                 'entity_type' => $this->type

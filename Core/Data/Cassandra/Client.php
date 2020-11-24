@@ -8,39 +8,35 @@ use Cassandra as Driver;
 use Minds\Core;
 use Minds\Core\Data\Interfaces;
 use Minds\Core\Config;
+use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 
 class Client implements Interfaces\ClientInterface
 {
+    /** @var Config */
+    private $config;
+
+    /** @var array */
+    private $options;
+
+    /** @var Driver\Cluster */
     private $cluster;
+    
+    /** @var Driver\Session */
     private $session;
-    private $prepared;
-    protected $debug;
 
-    public function __construct(array $options = [])
+    public function __construct(array $options = [], $config = null)
     {
-        $options = array_merge((array) Config::_()->cassandra, $options);
-        $retry_policy = new Driver\RetryPolicy\DowngradingConsistency();
-
-        $this->cluster = Driver::cluster()
-           ->withContactPoints(... $options['cql_servers'])
-           ->withCredentials($options['username'], $options['password'])
-           ->withLatencyAwareRouting(true)
-           ->withDefaultConsistency(Driver::CONSISTENCY_QUORUM)
-           ->withRetryPolicy(new Driver\RetryPolicy\Logging($retry_policy))
-           ->withPort(9042)
-           ->build();
-        $this->session = $this->cluster->connect($options['keyspace']);
-
-        $this->debug = (bool) Core\Di\Di::_()->get('Config')->get('minds_debug');
+        $this->config = $config ?? Di::_()->get('Config');
+        $this->options = $options;
     }
 
     public function request(Interfaces\PreparedInterface $request, $silent = false)
     {
         $cql = $request->build();
         try {
-            $statement = $this->session->prepare($cql['string']);
-            $future = $this->session->executeAsync(
+            $statement = $this->getSession()->prepare($cql['string']);
+            $future = $this->getSession()->executeAsync(
                 $statement,
                 @new Driver\ExecutionOptions(array_merge(
                     [
@@ -55,7 +51,7 @@ class Client implements Interfaces\ClientInterface
                 return $response = $future->get();
             }
         } catch (\Exception $e) {
-            if ($this->debug) {
+            if ($this->isDebug()) {
                 error_log('[CQL Error: ' . get_class($e) . '] ' . $e->getMessage());
                 error_log(json_encode($cql));
             }
@@ -72,7 +68,7 @@ class Client implements Interfaces\ClientInterface
      */
     public function execute($statement)
     {
-        return $this->session->execute($statement);
+        return $this->getSession()->execute($statement);
     }
 
     public function batchRequest($requests = [], $batchType = Driver::BATCH_COUNTER, $silent = false)
@@ -81,19 +77,50 @@ class Client implements Interfaces\ClientInterface
 
         foreach ($requests as $request) {
             $cql = $request;
-            $statement = $this->session->prepare($cql['string']);
+            $statement = $this->getSession()->prepare($cql['string']);
             $batch->add($statement, $cql['values']);
         }
 
         if ($silent) {
-            return $this->session->executeAsync($batch);
+            return $this->getSession()->executeAsync($batch);
         }
 
-        return $this->session->execute($batch);
+        return $this->getSession()->execute($batch);
     }
 
     public function getPrefix()
     {
         return Config::_()->get('multi')['prefix'];
+    }
+
+    /**
+     * Returns the session for the cassandra connection
+     * @return Driver
+     */
+    private function getSession(): Driver\Session
+    {
+        if (!$this->session) {
+            $options = array_merge((array) $this->config->get('cassandra'), $this->options);
+            $retry_policy = new Driver\RetryPolicy\DowngradingConsistency();
+
+            $this->cluster = Driver::cluster()
+                ->withContactPoints(... $options['cql_servers'])
+                ->withCredentials($options['username'], $options['password'])
+                ->withLatencyAwareRouting(true)
+                ->withDefaultConsistency(Driver::CONSISTENCY_QUORUM)
+                ->withRetryPolicy(new Driver\RetryPolicy\Logging($retry_policy))
+                ->withPort(9042)
+                ->build();
+
+            $this->session = $this->cluster->connect($options['keyspace']);
+        }
+
+        return $this->session;
+    }
+
+    /** @return bool */
+    private function isDebug(): bool
+    {
+        return (bool) $this->config->get('minds_debug');
     }
 }

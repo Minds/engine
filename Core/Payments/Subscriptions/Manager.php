@@ -28,15 +28,20 @@ class Manager
     /** @var Repository $repository */
     protected $repository;
 
+    /** @var Delegates\SnowplowDelegate */
+    protected $snowplowDelegate;
+
     /** @var Subscription $subscription */
     protected $subscription;
 
     /** @var User */
     protected $user;
 
-    public function __construct($repository = null)
+    public function __construct($repository = null, $snowplowDelegate = null, $emailDelegate = null)
     {
         $this->repository = $repository ?: Di::_()->get('Payments\Subscriptions\Repository');
+        $this->snowplowDelegate = $snowplowDelegate ?? new Delegates\SnowplowDelegate;
+        $this->emailDelegate = $emailDelegate ?? new Delegates\EmailDelegate();
     }
 
     /**
@@ -62,12 +67,18 @@ class Manager
 
             $this->subscription->setLastBilling(time());
             $this->subscription->setNextBilling($this->getNextBilling());
+            // Cancel trial after subsequent charge
+            $this->subscription->setTrialDays(0);
         } catch (\Exception $e) {
             error_log("Payment failed: " . $e->getMessage());
             $this->subscription->setStatus('failed');
         }
 
         $this->repository->add($this->subscription);
+
+        //
+
+        $this->snowplowDelegate->onCharge($this->subscription);
 
         return $result;
     }
@@ -106,7 +117,15 @@ class Manager
 
         $this->subscription->setNextBilling($this->getNextBilling());
 
-        return (bool) $this->repository->add($this->subscription);
+        $success = (bool) $this->repository->add($this->subscription);
+
+        //
+
+        $this->snowplowDelegate->onCreate($this->subscription);
+
+        $this->emailDelegate->onCreate($this->subscription);
+
+        return $success;
     }
 
     /**
@@ -130,6 +149,12 @@ class Manager
     {
         $this->subscription->isValid();
 
+        $this->subscription->setStatus('cancelled');
+
+        //
+
+        $this->snowplowDelegate->onCancel($this->subscription);
+
         return (bool) $this->repository->delete($this->subscription);
     }
 
@@ -145,6 +170,11 @@ class Manager
         }
 
         $date = new \DateTime("@{$this->subscription->getLastBilling()}");
+
+        if ($this->subscription->getTrialDays() > 0) {
+            $date->modify("+{$this->subscription->getTrialDays()} days");
+            return $date->getTimestamp();
+        }
 
         switch ($this->subscription->getInterval()) {
             case 'daily':
