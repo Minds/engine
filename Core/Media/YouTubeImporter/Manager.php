@@ -548,6 +548,16 @@ class Manager
     {
         $data = $this->fetchVideoData($ytVideo);
 
+        // If the video is a livestream then we can not import
+        if ($data['details']['isLiveContent'] === true) {
+            return;
+        }
+
+        // If the video is a premmier then we can not import
+        if ($data['details']['isUpcoming'] === true) {
+            return;
+        }
+
         // create the video
         $video = new Video();
 
