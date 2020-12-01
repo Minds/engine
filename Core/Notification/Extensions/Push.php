@@ -292,6 +292,9 @@ class Push implements Interfaces\NotificationExtensionInterface
             case 'referral_complete':
                 return sprintf('You\'ve earned tokens for the completed referral of @%s', $name);
 
+            case 'rewards_summary':
+                return $notification['params']['message'];
+
             default:
                 return "";
         }
