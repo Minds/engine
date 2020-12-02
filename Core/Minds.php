@@ -48,6 +48,7 @@ class Minds extends base
         I18n\Module::class,
         Permaweb\Module::class,
         Media\Proxy\Module::class,
+        Blockchain\LiquidityPositions\Module::class,
     ];
 
     /**
