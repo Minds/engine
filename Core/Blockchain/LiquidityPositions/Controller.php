@@ -9,7 +9,7 @@ use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 
 /**
- * Onboarding Controller
+ * LiquidityPostions Controller
  * @package Minds\Core\Blockchain\LiquidityPostions
  */
 class Controller

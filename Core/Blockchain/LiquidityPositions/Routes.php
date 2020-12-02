@@ -9,7 +9,7 @@ use Minds\Exceptions\UserErrorException;
 
 /**
  * LiquidityPositions Routes
- * @package Minds\Core\Onboarding
+ * @package Minds\Core\Blockchain\LiquidityPositions
  */
 class Routes extends ModuleRoutes
 {
