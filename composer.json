@@ -44,7 +44,8 @@
         "ocramius/package-versions": "1.5",
         "pubsubhubbub/subscriber": "^1.1",
         "symfony/translation": "^5.0",
-        "snowplow/snowplow-tracker": "^0.3.0"
+        "snowplow/snowplow-tracker": "^0.3.0",
+        "brick/math": "^0.9.1"
     },
     "repositories": [
         {

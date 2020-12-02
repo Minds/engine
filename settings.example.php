@@ -376,6 +376,13 @@ $CONFIG->set('blockchain', [
         'cap' => 1000,
     ],
 
+    'liquidity_positions' => [
+        'approved_pairs' => [
+            "0x8ff2fd6f94cdce7c56bb11328eb9928c9483aa66",
+            "0x9f9c34109bd5fa460fad4c14fb51df99339cb46c"
+        ]
+    ],
+
     'mw3' => '/usr/bin/env node '.__MINDS_ROOT__.'/../mw3/index.js',
 ]);
 
