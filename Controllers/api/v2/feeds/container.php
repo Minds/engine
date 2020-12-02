@@ -137,6 +137,7 @@ class container implements Interfaces\Api
             'from_timestamp' => $fromTimestamp,
             'reverse_sort' => $reverseSort,
             'query' => $query,
+            'portrait' => isset($_GET['portrait']),
             'single_owner_threshold' => 0,
             'pinned_guids' => $type === 'activity' ? array_reverse($container->getPinnedPosts()) : null,
         ];
