@@ -35,6 +35,9 @@ class Client
                         pair {
                             id
                             totalSupply
+                            reserve0
+                            reserve1
+                            reserveUSD
                         }
                     }
                     usdSwapped
@@ -48,6 +51,9 @@ class Client
                     pair {
                       id
                       totalSupply
+                      reserve0
+                      reserve1
+                      reserveUSD
                     }
                 }
                 burns(where: { to: $id}) {
@@ -59,6 +65,9 @@ class Client
                     pair {
                       id
                       totalSupply
+                      reserve0
+                      reserve1
+                      reserveUSD
                     }
                 }
             }
@@ -106,6 +115,9 @@ class Client
                 pairs(where: { id_in: $ids }) {
                     id
                     totalSupply
+                    reserve0
+                    reserve1
+                    reserveUSD
                 }
             }
         ';
