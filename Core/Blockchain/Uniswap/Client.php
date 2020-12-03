@@ -39,6 +39,28 @@ class Client
                     }
                     usdSwapped
                 }
+                mints(where: { to: $id}) {
+                    id
+                    amount0
+                    amount1
+                    amountUSD
+                    liquidity
+                    pair {
+                      id
+                      totalSupply
+                    }
+                }
+                burns(where: { to: $id}) {
+                    id
+                    amount0
+                    amount1
+                    amountUSD
+                    liquidity
+                    pair {
+                      id
+                      totalSupply
+                    }
+                }
             }
         ';
         $variables = [
@@ -51,22 +73,24 @@ class Client
         $uniswapUser->setId($response['user']['id'])
             ->setUsdSwaped($response['user']['usdSwaped']);
 
-        $liquidityPositions = [];
+        // Liquidity Positions
 
-        foreach (($response['user']['liquidityPositions'] ?? []) as $liquidityPosition) {
-            $uniswapPair = new UniswapPairEntity();
-            $uniswapPair->setId($liquidityPosition['pair']['id'])
-                ->setTotalSupply(BigDecimal::of($liquidityPosition['pair']['totalSupply']));
-                
-            $uniswapLiquidityPostition = new UniswapLiquidityPositionEntity();
-            $uniswapLiquidityPostition->setId($liquidityPosition['id'])
-                ->setLiquidityTokenBalance(BigDecimal::of($liquidityPosition['liquidityTokenBalance']))
-                ->setPair($uniswapPair);
-            $liquidityPositions[] = $uniswapLiquidityPostition;
-        }
+        $uniswapUser->setLiquidityPositions(array_map(function ($liquidityPosition) {
+            return UniswapLiquidityPositionEntity::build($liquidityPosition);
+        }, $response['user']['liquidityPositions'] ?? []));
 
-        $uniswapUser->setLiquidityPositions($liquidityPositions);
+        // Mints
 
+        $uniswapUser->setMints(array_map(function ($mint) {
+            return UniswapMintEntity::build($mint);
+        }, $response['mints']));
+
+        // Burns
+
+        $uniswapUser->setBurns(array_map(function ($mint) {
+            return UniswapBurnEntity::build($mint);
+        }, $response['burns']));
+        
         return $uniswapUser;
     }
 
@@ -96,10 +120,7 @@ class Client
         $pairs = [];
 
         foreach ($response['pairs'] as $pair) {
-            $uniswapPair = new UniswapPairEntity();
-            $uniswapPair->setId($pair['id'])
-                ->setTotalSupply(BigDecimal::of($pair['totalSupply']));
-            $pairs[] = $uniswapPair;
+            $pairs[] = UniswapPairEntity::build($pair);
         }
 
         return $pairs;

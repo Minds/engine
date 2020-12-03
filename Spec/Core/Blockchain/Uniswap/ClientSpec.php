@@ -50,7 +50,9 @@ class ClientSpec extends ObjectBehavior
                             ]
                         ]
                     ]
-                ]
+                ],
+                'mints' => [],
+                'burns' => [],
             ],
         ]);
         
