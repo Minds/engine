@@ -13,4 +13,16 @@ class UniswapPairEntity extends UniswapBaseEntity
 {
     /** @var BigDecimal */
     protected $totalSupply;
+
+    /**
+     * Builds from an array
+     * @param array $data
+     */
+    public static function build(array $data): UniswapEntityInterface
+    {
+        $instance = parent::build($data);
+        $instance->setTotalSupply(BigDecimal::of($data['totalSupply']));
+       
+        return $instance;
+    }
 }

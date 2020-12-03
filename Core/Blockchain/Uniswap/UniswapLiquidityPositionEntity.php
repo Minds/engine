@@ -11,7 +11,7 @@ use Brick\Math\BigDecimal;
  * @method UniswapPairEntity getPair()
  * @method self setPair(UniswapPairEntity $pair)
  */
-class UniswapLiquidityPositionEntity extends UniswapBaseEntity
+class UniswapLiquidityPositionEntity extends UniswapBaseEntity implements UniswapEntityHasPairInterface
 {
     /** @var BigDecimal */
     protected $liquidityTokenBalance;
@@ -30,5 +30,20 @@ class UniswapLiquidityPositionEntity extends UniswapBaseEntity
         }
 
         return $this->liquidityTokenBalance->dividedBy($this->pair->getTotalSupply())->toFloat();
+    }
+
+    /**
+     * Builds from an array
+     * @param array $data
+     * @return UniswapLiquidityPositionEntity
+     */
+    public static function build(array $data): UniswapEntityInterface
+    {
+        $instance = parent::build($data);
+        $instance
+            ->setLiquidityTokenBalance(BigDecimal::of($data['liquidityTokenBalance']))
+            ->setPair(UniswapPairEntity::build($data['pair']));
+
+        return $instance;
     }
 }
