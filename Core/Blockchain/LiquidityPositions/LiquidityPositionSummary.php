@@ -11,10 +11,16 @@ use Brick\Math\BigDecimal;
  * @method BigDecimal getTotalLiquidityTokens()
  * @method self setUserLiquidityTokens(BigDecimal $userLiquidityTokens)
  * @method BigDecimal getUserLiquidityTokens()
- * @method self setLiquidityUSD(BigDecimal $liquidityUSD)
- * @method BigDecimal getLiquidityUSD()
- * @method self setLiquidityMINDS(BigDecimal $liquidityMINDS)
- * @method BigDecimal getLiquidityMINDS()
+ * @method self setProvidedLiquidity(LiquidityCurrencyValues $liquidity)
+ * @method LiquidityCurrencyValues getProvidedLiquidity()
+ * @method self setCurrentLiquidity(LiquidityCurrencyValues $liquidity)
+ * @method LiquidityCurrencyValues getCurrentLiquidity()
+ * @method self setYieldLiquidity(LiquidityCurrencyValues $liquidity)
+ * @method LiquidityCurrencyValues getYieldLiquidity()
+ * @method self setTotalLiquidity(LiquidityCurrencyValues $liquidity)
+ * @method LiquidityCurrencyValues getTotalLiquidity()
+ * @method self setShareOfLiquidity(LiquidityCurrencyValues $liquidity)
+ * @method LiquidityCurrencyValues getShareOfLiquidity()
  */
 class LiquidityPositionSummary
 {
@@ -29,11 +35,20 @@ class LiquidityPositionSummary
     /** @var BigDecimal */
     protected $userLiquidityTokens;
 
-    /** @var BigDecimal */
-    protected $liquidityUSD;
+    /** @var LiquidityCurrencyValues */
+    protected $providedLiquidity;
 
-    /** @var BigDecimal */
-    protected $liquidityMINDS;
+    /** @var LiquidityCurrencyValues */
+    protected $currentLiquidity;
+
+    /** @var LiquidityCurrencyValues */
+    protected $yieldLiquidity;
+
+    /** @var LiquidityCurrencyValues */
+    protected $totalLiquidity;
+
+    /** @var LiquidityCurrencyValues */
+    protected $shareOfLiquidity;
 
     /**
      * Public export
@@ -46,10 +61,11 @@ class LiquidityPositionSummary
             'token_share_pct' => $this->tokenSharePct,
             'total_liquidity_tokens' => $this->totalLiquidityTokens,
             'user_liquidity_tokens' => $this->userLiquidityTokens,
-            'liquidity' => [
-                'USD' => $this->liquidityUSD,
-                'MINDS' => $this->liquidityMINDS,
-            ]
+            'provided_liquidity' => $this->providedLiquidity->export(),
+            'current_liquidity' => $this->currentLiquidity->export(),
+            'yield_liquidity' => $this->yieldLiquidity->export(),
+            'total_liquidity' => $this->totalLiquidity->export(),
+            'shareOf_liquidity' => $this->shareOfLiquidity->export(),
         ];
     }
 }

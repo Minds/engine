@@ -67,15 +67,27 @@ class Manager
             $totalLiquidityTokens = BigDecimal::of(0);
         }
 
+        $approvedUserLiquidityPositions = array_filter($uniswapUser->getLiquidityPositions(), [$this, 'uniswapApprovedPairsFilterFn']);
+
         try {
             $userLiquidityTokens = BigDecimal::sum(
                 ...array_map(function ($uniswapLiquidityPosition) {
                     return $uniswapLiquidityPosition->getLiquidityTokenBalance();
-                }, array_filter($uniswapUser->getLiquidityPositions(), [$this, 'uniswapApprovedPairsFilterFn']))
+                }, $approvedUserLiquidityPositions)
+            );
+            $userLiquidityTokensTotalSupply = BigDecimal::sum(
+                ...array_map(function ($uniswapLiquidityPosition) {
+                    return $uniswapLiquidityPosition->getPair()->getTotalSupply();
+                }, $approvedUserLiquidityPositions)
             );
         } catch (\InvalidArgumentException $e) {
             $userLiquidityTokens = BigDecimal::of(0);
+            $userLiquidityTokensTotalSupply = BigDecimal::of(0);
         }
+
+        //
+        // Provided liquidity
+        //
 
         // Filter out mints to be only approved pairs
         $approvedMints = array_filter($uniswapUser->getMints() ?? [], [$this, 'uniswapApprovedPairsFilterFn']);
@@ -88,15 +100,83 @@ class Manager
         $approvedBurnsMINDS =  BigDecimal::sum(...(array_map([$this, 'uniswapMintsToMINDS'], $approvedBurns) ?: [0]));
 
         // Deduct burns from mints
-        $liquidityUSD = $approvedMintsUSD->minus($approvedBurnsUSD);
-        $liquidityMINDS = $approvedMintsMINDS->minus($approvedBurnsMINDS);
+        $providedLiquidityUSD = $approvedMintsUSD->minus($approvedBurnsUSD);
+        $providedLiquidityMINDS = $approvedMintsMINDS->minus($approvedBurnsMINDS);
+
+        //
+        // Current liquidity
+        //
+
+        $tokenSharePct = $userLiquidityTokens->dividedBy($totalLiquidityTokens, null, RoundingMode::FLOOR);
+        $userRelativeSharePct = $userLiquidityTokens->dividedBy($userLiquidityTokensTotalSupply, null, RoundingMode::FLOOR);
+
+        // Multiply our liquidity position pairs reserve0 (we assume this is MINDS tokens... see note on uniswapMintsToMINDS below)
+        // by our tokenSharePct
+        // NOTE: we don't use our global share as LP tokens differ between pool
+
+        $currentLiquidityMINDS = $approvedUserLiquidityPositions ? BigDecimal::sum(...array_map(function ($liquidityPosition) {
+            return $liquidityPosition->getPair()->getReserve0();
+        }, $approvedUserLiquidityPositions))->multipliedBy($userRelativeSharePct) : BigDecimal::of(0);
+
+        $currentLiquidityUSD = $approvedUserLiquidityPositions ? BigDecimal::sum(...array_map(function ($liquidityPosition) {
+            return $liquidityPosition->getPair()->getReserveUSD();
+        }, $approvedUserLiquidityPositions))->multipliedBy($userRelativeSharePct) : BigDecimal::of(0);
+
+        //
+        // Yield liquidity (gains/loss account)
+        //
+        $yieldLiquidityMINDS = $currentLiquidityMINDS->minus($providedLiquidityMINDS);
+        $yieldLiquidityUSD = $currentLiquidityUSD->minus($providedLiquidityUSD);
+
+        
+        //
+        // Total liquidity
+        //
+
+        $totalLiquidityMINDS = BigDecimal::sum(...array_map(function ($uniswapPair) {
+            return $uniswapPair->getReserve0();
+        }, $pairs));
+        
+        $totalLiquidityUSD = BigDecimal::sum(...array_map(function ($uniswapPair) {
+            return $uniswapPair->getReserveUSD();
+        }, $pairs));
+
+        //
+        // Share of liquidity
+        //
+
+        $shareOfLiquidityMINDS = $currentLiquidityMINDS->dividedBy($totalLiquidityMINDS, null, RoundingMode::FLOOR);
+        $shareOfLiquidityUSD = $currentLiquidityUSD->dividedBy($totalLiquidityUSD, null, RoundingMode::FLOOR);
 
         $summary = new LiquidityPositionSummary();
-        $summary->setTokenSharePct($userLiquidityTokens->dividedBy($totalLiquidityTokens, 4, RoundingMode::FLOOR)->toFloat())
+        $summary->setTokenSharePct($tokenSharePct->toFloat())
             ->setTotalLiquidityTokens($totalLiquidityTokens)
             ->setUserLiquidityTokens($userLiquidityTokens)
-            ->setLiquidityUSD($liquidityUSD)
-            ->setLiquidityMINDS($liquidityMINDS);
+            ->setProvidedLiquidity(
+                (new LiquidityCurrencyValues())
+                    ->setUsd($providedLiquidityUSD)
+                    ->setMinds($providedLiquidityMINDS)
+            )
+            ->setCurrentLiquidity(
+                (new LiquidityCurrencyValues())
+                    ->setUsd($currentLiquidityUSD)
+                    ->setMinds($currentLiquidityMINDS)
+            )
+            ->setYieldLiquidity(
+                (new LiquidityCurrencyValues())
+                    ->setUsd($yieldLiquidityUSD)
+                    ->setMinds($yieldLiquidityMINDS)
+            )
+            ->setTotalLiquidity(
+                (new LiquidityCurrencyValues())
+                    ->setUsd($totalLiquidityUSD)
+                    ->setMinds($totalLiquidityMINDS)
+            )
+            ->setShareOfLiquidity(
+                (new LiquidityCurrencyValues())
+                    ->setUsd($shareOfLiquidityUSD)
+                    ->setMinds($shareOfLiquidityMINDS)
+            );
 
         return $summary;
     }

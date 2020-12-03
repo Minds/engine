@@ -47,6 +47,9 @@ class ClientSpec extends ObjectBehavior
                             'pair' => [
                                 'id' => '0xpair',
                                 'totalSupply' => '12.50',
+                                'reserve0' => '100.12',
+                                'reserve1' => '50.6',
+                                'reserveUSD' => '50.6',
                             ]
                         ]
                     ]
@@ -97,10 +100,16 @@ class ClientSpec extends ObjectBehavior
                     [
                         'id' => '0xpair1',
                         'totalSupply' => '12.50',
+                        'reserve0' => '100.12',
+                        'reserve1' => '50.6',
+                        'reserveUSD' => '50.6',
                     ],
                     [
                         'id' => '0xpair2',
                         'totalSupply' => '24.102',
+                        'reserve0' => '100.12',
+                        'reserve1' => '50.6',
+                        'reserveUSD' => '50.6',
                     ]
                 ]
             ],
