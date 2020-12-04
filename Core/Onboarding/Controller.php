@@ -2,6 +2,8 @@
 namespace Minds\Core\Onboarding;
 
 use Minds\Entities\User;
+use Minds\Core\Di\Di;
+use Minds\Core\Features;
 use Exception;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
@@ -15,14 +17,19 @@ class Controller
     /** @var Manager */
     protected $manager;
 
+    /** @var Features\Manager */
+    protected $featuresManager;
+
     /**
      * Controller constructor.
      * @param null $manager
      */
     public function __construct(
-        $manager = null
+        $manager = null,
+        $featuresManager = null
     ) {
         $this->manager = $manager ?? new Manager();
+        $this->featuresManager = $featuresManager ?? Di::_()->get('Features\Manager');
     }
 
     /**
@@ -33,6 +40,13 @@ class Controller
      */
     public function getProgress(ServerRequest $request): JsonResponse
     {
+        if (!$this->featuresManager->has('onboarding-october-2020')) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'You need to enable the onboarding-october-2020 feature flag',
+            ]);
+        }
+
         /** @var User */
         $user = $request->getAttribute('_user');
 

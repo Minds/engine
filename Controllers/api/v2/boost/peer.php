@@ -124,7 +124,7 @@ class peer implements Interfaces\Api
             return Factory::response(['status' => 'error', 'message' => 'can not boost to self']);
         }
 
-        if (Core\Security\ACL::_()->interact($destination, Core\Session::getLoggedinUser())) {
+        if (!Core\Security\ACL::_()->interact($destination, Core\Session::getLoggedinUser())) {
             return Factory::response([
                 'status' => 'error',
                 'stage' => 'initial',

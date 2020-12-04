@@ -33,13 +33,13 @@ class TopV2 implements SortingAlgorithm
         return [
             'bool' => [
                 'must' => [
-                    [
-                        'range' => [
-                            "votes:up:synced" => [
-                                'gte' => strtotime("midnight 90 days ago", time()),
-                            ],
-                        ],
-                    ],
+                    // [
+                    //     'range' => [
+                    //         "votes:up:synced" => [
+                    //             'gte' => strtotime("midnight 90 days ago", time()),
+                    //         ],
+                    //     ],
+                    // ],
                     [
                         'range' => [
                             'votes:up' => [

@@ -30,6 +30,8 @@ class PushSettings
       'referral_ping' => true,
       'referral_pending' => true,
       'referral_complete' => true,
+      'rewards_summary' => true,
+      'custom_message' => true,
     ];
     protected $userGuid;
     protected $toBeSaved = [];
