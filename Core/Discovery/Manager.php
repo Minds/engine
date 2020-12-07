@@ -299,6 +299,14 @@ class Manager
                     ]
                 ]
             ];
+        } else {
+            $must[] = [
+                'range' => [
+                    'votes:up' => [
+                        'gte' => 2,
+                    ]
+                ]
+            ];
         }
 
         // Match query
