@@ -262,9 +262,9 @@ class Manager
             'plus' => false,
         ], $opts);
 
-        if ($opts['plus'] === true) {
-            $opts['hoursAgo'] = 1680; // 10 Weeks
-        }
+        // if ($opts['plus'] === true) {
+        //     $opts['hoursAgo'] = 1680; // 10 Weeks
+        // }
 
         $type = 'activity';
 
