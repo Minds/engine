@@ -16,6 +16,7 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Payments;
+use Minds\Core\Feeds\Activity;
 
 class peer implements Interfaces\Api
 {
@@ -296,13 +297,12 @@ class peer implements Interfaces\Api
         $activity->ownerObj = Core\Session::getLoggedInUser()->export();
         $activity->p2p_boosted = true;
 
-        // TODO: How do we handle P2P boosts with remind refactor
-        // MH
-        if ($embedded->remind_object) {
-            $activity->setRemind($embedded->remind_object)->save();
-        } else {
-            $activity->setRemind($embedded->export())->save();
-        }
+
+        $remindIntent = new Activity\RemindIntent();
+        $remindIntent->setGuid($embedded->guid)
+            ->setOwnerGuid($embedded->owner_guid)
+            ->setQuotedPost(false);
+        $activity->setRemind($remindIntent)->save();
 
         // Notify
 
