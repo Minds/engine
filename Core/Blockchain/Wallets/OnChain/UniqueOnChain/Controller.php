@@ -5,7 +5,7 @@ use Minds\Entities\User;
 use Minds\Core\Di\Di;
 use Minds\Core\Features;
 use Exception;
-use Minds\Core\Blockchain\Wallets\Onchain\UniqueOnChain\UniqueOnChainAddress;
+use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain\UniqueOnChainAddress;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
