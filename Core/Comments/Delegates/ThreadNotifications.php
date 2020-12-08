@@ -34,6 +34,9 @@ class ThreadNotifications
     /** @var Repository */
     protected $repository;
 
+    /** @var  Logger **/
+    private $logger;
+
     /**
      * ThreadNotifications constructor.
      * @param null $indexes

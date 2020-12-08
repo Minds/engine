@@ -27,6 +27,12 @@ class Repository
     /** @var Legacy\Repository */
     protected $legacyRepository;
 
+    /** @var Database\Cassandra\Cql\Scroll */
+    private $scroll;
+
+    /** @var Logger */
+    private $logger;
+
     /** @var array */
     public static $allowedEntityAttributes = [
         'entityGuid',
