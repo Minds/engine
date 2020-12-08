@@ -1,5 +1,5 @@
 <?php
-namespace Minds\Core\Blockchain\Wallets\Onchain\UniqueOnChain;
+namespace Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain;
 
 use Minds\Traits\MagicAttributes;
 
