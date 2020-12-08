@@ -1590,3 +1590,8 @@ CREATE TABLE minds.wire_support_tier (
     has_tokens boolean,
     PRIMARY KEY (entity_guid, guid)
 );
+
+CREATE TABLE minds.onchain_unique_addresses (
+    address text PRIMARY KEY,
+    user_guid bigint
+);
