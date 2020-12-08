@@ -69,6 +69,7 @@ class Provider extends DiProvider
                 'activity-modal',
                 'channel-grid',
                 'onboarding-october-2020',
+                'unique-onchain',
             ];
         });
 

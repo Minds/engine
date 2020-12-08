@@ -1976,7 +1976,7 @@
             "source": {
                 "type": "git",
                 "url": "https://0544aedfc74db62dcd39301588cd672b2b91e060@github.com/minds/mw3.git",
-                "reference": "2f97f01f0a679ab5b2437dab24df113428c488ad"
+                "reference": "7d7b0893fbb907cc874c3c2ba2dd59e60948bfce"
             },
             "require": {
                 "composer-plugin-api": "^1.0"
@@ -1994,7 +1994,7 @@
                 }
             },
             "description": "Minds PHP Web3",
-            "time": "2018-05-10T20:47:33+00:00"
+            "time": "2020-12-08T11:35:00+00:00"
         },
         {
             "name": "minds/unleash-client-php",
