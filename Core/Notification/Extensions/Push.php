@@ -36,9 +36,9 @@ class Push implements Interfaces\NotificationExtensionInterface
             return false;
         }
 
-        if ($notification['params']['notification_view'] == 'like' || $notification['params']['notification_view'] == 'downvote') {
+        /*if ($notification['params']['notification_view'] == 'like' || $notification['params']['notification_view'] == 'downvote') {
             return false;
-        }
+        }*/
 
         $entity_guid = $notification['notification']->getEntityGuid();
         $entity = EntitiesFactory::build($entity_guid);
@@ -291,6 +291,10 @@ class Push implements Interfaces\NotificationExtensionInterface
 
             case 'referral_complete':
                 return sprintf('You\'ve earned tokens for the completed referral of @%s', $name);
+
+            case 'rewards_summary':
+            case 'custom_message':
+                return $notification['params']['message'];
 
             default:
                 return "";

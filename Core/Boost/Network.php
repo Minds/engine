@@ -213,19 +213,7 @@ class Network implements BoostHandlerInterface
 
     private function filterBlocked($boosts)
     {
-        //owner_guids
-        $owner_guids = [];
-        foreach ($boosts as $boost) {
-            $owner_guids[] = $boost->owner_guid;
-        }
-        $blocked = array_flip(Core\Security\ACL\Block::_()->isBlocked($owner_guids, Core\Session::getLoggedInUserGuid()));
-
-        foreach ($boosts as $i => $boost) {
-            if (isset($blocked[$boost->owner_guid])) {
-                unset($boosts[$i]);
-            }
-        }
-
+        // Use Network/Iterator. This should not be used by any functions
         return $boosts;
     }
 

@@ -33,6 +33,7 @@ class Fallback
         '/wall',
         '/not-supported',
         '/apple-app-site-association',
+        '/.well-known/apple-app-site-association',
     ];
 
     /** @var Config */

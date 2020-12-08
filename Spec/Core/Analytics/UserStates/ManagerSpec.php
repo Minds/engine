@@ -6,6 +6,7 @@ use Minds\Core\Analytics\UserStates\Manager;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Analytics\UserStates\ActiveUsersIterator;
 use Minds\Core\Analytics\UserStates\UserStateIterator;
+use Minds\Core\Analytics\UserStates\Delegates;
 use Minds\Core\Queue;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\Data\ElasticSearch\Prepared;
@@ -20,11 +21,11 @@ class ManagerSpec extends ObjectBehavior
     protected $userStateIterator;
     protected $queue;
 
-    public function let(Client $client, Queue\RabbitMQ\Client $queue)
+    public function let(Client $client, Queue\RabbitMQ\Client $queue, Delegates\EntityDelegate $entityDelegate)
     {
         $activeUsersIterator = new ActiveUsersIterator($client->getWrappedObject());
         $userStateIterator = new UserStateIterator($client->getWrappedObject());
-        $this->beConstructedWith($client, 'minds-metrics-*', $queue, $activeUsersIterator, $userStateIterator);
+        $this->beConstructedWith($client, 'minds-metrics-*', $queue, $activeUsersIterator, $userStateIterator, $entityDelegate);
         $this->client = $client;
         $this->queue = $queue;
     }

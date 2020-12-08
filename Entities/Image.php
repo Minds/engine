@@ -1,7 +1,9 @@
 <?php
+
 /**
  * Image entity
  */
+
 namespace Minds\Entities;
 
 use Minds\Core;
@@ -98,7 +100,7 @@ class Image extends File
             throw new \Exception("Upload failed. The image may be too large");
         }
 
-        $this->filename = "image/$this->batch_guid/$this->guid/".$file['name'];
+        $this->filename = "image/$this->batch_guid/$this->guid/" . $file['name'];
 
         $filename = $this->getFilenameOnFilestore();
         $result = move_uploaded_file($file['tmp_name'], $filename);
@@ -110,10 +112,10 @@ class Image extends File
         return $result;
     }
 
-    public function createThumbnails($sizes = ['small', 'medium','large', 'xlarge'], $filepath = null)
+    public function createThumbnails($sizes = ['small', 'medium', 'large', 'xlarge'], $filepath = null)
     {
         if (!$sizes) {
-            $sizes = ['small', 'medium','large', 'xlarge'];
+            $sizes = ['small', 'medium', 'large', 'xlarge'];
         }
         $master = $filepath ?: $this->getFilenameOnFilestore();
         foreach ($sizes as $size) {
@@ -198,7 +200,7 @@ class Image extends File
     public function getAlbumChildrenGuids()
     {
         $db = new Core\Data\Call('entities_by_time');
-        $row = $db->getRow("object:container:$this->container_guid", ['limit'=>100]);
+        $row = $db->getRow("object:container:$this->container_guid", ['limit' => 100]);
         $guids = [];
         foreach ($row as $col => $val) {
             $guids[] = (string) $col;
@@ -214,8 +216,6 @@ class Image extends File
         $export = parent::export();
         $export['thumbnail_src'] = $this->getIconUrl('xlarge');
         $export['thumbnail'] = $export['thumbnail_src'];
-        $export['thumbs:up:count'] = Helpers\Counters::get($this->guid, 'thumbs:up');
-        $export['thumbs:down:count'] = Helpers\Counters::get($this->guid, 'thumbs:down');
         $export['description'] = $this->description; //videos need to be able to export html.. sanitize soon!
         $export['mature'] = $this->mature ?: $this->getFlag('mature');
         $export['rating'] = $this->getRating();
@@ -419,11 +419,11 @@ class Image extends File
     }
 
     /**
-    * Set description
-    *
-    * @param string $description - description to be set.
-    * @return Image
-    */
+     * Set description
+     *
+     * @param string $description - description to be set.
+     * @return Image
+     */
     public function setDescription($description): Image
     {
         $this->description = $description;

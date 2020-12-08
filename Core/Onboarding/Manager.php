@@ -57,7 +57,7 @@ class Manager
 
         if ($steps) {
             $this->steps = $steps;
-        } elseif ($this->features->has('onboarding-october-2020')) {
+        //} elseif ($this->features->has('onboarding-october-2020')) {
             // October 2020 - see getOnboardingGroup
         } else {
             $this->steps = [

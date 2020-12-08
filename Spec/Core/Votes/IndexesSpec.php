@@ -7,6 +7,7 @@ use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Helpdesk\Question\Repository;
 use Minds\Core\Votes\Vote;
 use Minds\Entities\Activity;
+use Minds\Entities\Image;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -121,6 +122,13 @@ class IndexesSpec extends ObjectBehavior
         $this->cql->request(Argument::that(function (Custom $prepared) {
             $query = $prepared->build();
             return $query['values'] == ['5000', 'thumbs:up:user_guids', json_encode([ "1000" ])];
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->cql->request(Argument::that(function (Custom $prepared) {
+            $query = $prepared->build();
+            return $query['values'] == ['6000', 'thumbs:up:user_guids', json_encode([ "1000" ])];
         }))
             ->shouldBeCalled()
             ->willReturn(true);
@@ -267,6 +275,13 @@ class IndexesSpec extends ObjectBehavior
 
         $this->cql->request(Argument::that(function (Custom $prepared) {
             $query = $prepared->build();
+            return $query['values'] == ['6000', 'thumbs:up:user_guids', json_encode([ ])];
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->cql->request(Argument::that(function (Custom $prepared) {
+            $query = $prepared->build();
             return stripos($query['string'], 'DELETE FROM entities_by_time') === 0;
         }))
             ->shouldBeCalledTimes(4)
@@ -317,6 +332,7 @@ class IndexesSpec extends ObjectBehavior
         User $user
     ) {
         $entity->get('thumbs:up:user_guids')->willReturn([ 50 ]);
+        $entity->getEntity()->willReturn(null);
         $user->get('guid')->willReturn(50);
 
         $vote->getEntity()->willReturn($entity);
@@ -332,6 +348,7 @@ class IndexesSpec extends ObjectBehavior
         User $user
     ) {
         $entity->get('thumbs:up:user_guids')->willReturn([ 50 ]);
+        $entity->getEntity()->willReturn(null);
         $user->get('guid')->willReturn(70);
 
         $vote->getEntity()->willReturn($entity);
@@ -339,5 +356,25 @@ class IndexesSpec extends ObjectBehavior
         $vote->getDirection()->willReturn('up');
 
         $this->exists($vote)->shouldReturn(false);
+    }
+
+    public function it_should_return_if_exists_on_canincal(
+        Vote $vote,
+        Activity $entity,
+        Image $canonical,
+        User $user
+    ) {
+        $entity->get('thumbs:up:user_guids')->willReturn([ 50 ]);
+        $entity->getEntity()->willReturn($canonical);
+
+        $canonical->get('thumbs:up:user_guids')->willReturn([ 50 ]);
+
+        $user->get('guid')->willReturn(50);
+
+        $vote->getEntity()->willReturn($entity);
+        $vote->getActor()->willReturn($user);
+        $vote->getDirection()->willReturn('up');
+
+        $this->exists($vote)->shouldReturn(true);
     }
 }

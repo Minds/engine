@@ -101,5 +101,9 @@ class BlockchainProvider extends Provider
         $this->di->bind('Blockchain\Wallets\Ether\Balance', function () {
             return new Wallets\Ether\Balance();
         });
+
+        $this->di->bind('Blockchain\Uniswap\Client', function () {
+            return new Uniswap\Client();
+        });
     }
 }

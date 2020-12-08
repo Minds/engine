@@ -7,9 +7,10 @@ use Minds\Core\Data\Cassandra\Thrift\Indexes;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Prophecy\Prophet;
-use Minds\Core\Data\Call as Call;
-use Minds\Core\Data\Call as DataPool;
+use Minds\Core\Security\Block;
+use Minds\Common\Repository\Response;
 use Minds\Entities\Entity;
+use Minds\Entities\User;
 
 class BlockSpec extends ObjectBehavior
 {
@@ -18,38 +19,50 @@ class BlockSpec extends ObjectBehavior
         $this->shouldHaveType('Minds\Core\Security\ACL\Block');
     }
 
-    //function it_should_listen_to_interact_acl_event(Entity $entity){
-    //$this->
-    //}
-
-    public function it_should_return_if_blocked(Call $db, Indexes $indexes, Client $cql)
+    public function it_should_return_legacy_block_list(Block\Manager $blockManager)
     {
-        //$db->beConstructedWith($indexes, $db);
-        $db->getRow("acl:blocked:foo", Argument::any())->willReturn([
-        "bar" => time()
-      ]);
-        $cql->request(Argument::any())->willReturn([['column1' => 'bar'], ['column1' => 'foo']]);
+        $this->beConstructedWith($blockManager);
 
-        $this->beConstructedWith($indexes, $cql);
-        $this->isBlocked("bar", "foo")->shouldReturn(true);
-        $this->isBlocked("boo", "foo")->shouldReturn(false);
+        $blockManager->getList(Argument::any())
+            ->willReturn(new Response([
+                (new Block\BlockEntry())
+                    ->setSubjectGuid('bar'),
+                (new Block\BlockEntry())
+                    ->setSubjectGuid('boo')
+            ]));
+
+        $actor = new User();
+        $actor->guid = 123;
+        $userGuids = $this->getBlockList($actor);
+        $userGuids[0]->shouldBe('bar');
+        $userGuids[1]->shouldBe('boo');
     }
 
-    public function it_should_add_a_user_to_the_list(Indexes $indexes, Client $cql)
+    public function it_should_add_a_user_to_the_list(Block\Manager $blockManager)
     {
-        //$indexes->beConstructedWith(['entities_by_time']);
-        $indexes->insert("acl:blocked:foo", Argument::type('array'))->willReturn("bar");
+        $this->beConstructedWith($blockManager);
+        
+        $blockManager->add(Argument::that(function (Block\BlockEntry $blockEntry) {
+            return $blockEntry->getActorGuid() === 'foo'
+                && $blockEntry->getSubjectGuid() === 'bar';
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
 
-        $this->beConstructedWith($indexes, $cql);
-        $this->block("bar", "foo")->shouldReturn("bar");
+        $this->block("bar", "foo")->shouldReturn(true);
     }
 
-    public function it_should_remove_a_user_from_the_list(Indexes $indexes, Client $cql)
+    public function it_should_remove_a_user_from_the_list(Block\Manager $blockManager)
     {
-        $indexes->remove("acl:blocked:foo", ["bar"])->willReturn(true);
+        $this->beConstructedWith($blockManager);
 
-
-        $this->beConstructedWith($indexes, $cql);
+        $blockManager->delete(Argument::that(function (Block\BlockEntry $blockEntry) {
+            return $blockEntry->getActorGuid() === 'foo'
+                && $blockEntry->getSubjectGuid() === 'bar';
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+        
         $this->unBlock("bar", "foo")->shouldReturn(true);
     }
 }

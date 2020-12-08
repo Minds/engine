@@ -32,6 +32,7 @@ use Minds\Core\Di\Di;
  * @method Event setLoggedIn(bool $loggedIn)
  * @method Event setReferrerGuid($referrerGuid)
  * @method Event setProReferrer(bool $proReferrer)
+ * @method Event setIsRemind(bool $isRemind)
  */
 class Event
 {

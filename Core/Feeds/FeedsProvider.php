@@ -19,5 +19,11 @@ class FeedsProvider extends Provider
         $this->di->bind('Feeds\Firehose\Manager', function ($di) {
             return new Firehose\Manager();
         });
+
+        //
+
+        $this->di->bind('Feeds\Activity\Controller', function ($di) {
+            return new Activity\Controller();
+        });
     }
 }

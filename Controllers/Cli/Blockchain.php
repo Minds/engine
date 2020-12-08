@@ -11,7 +11,7 @@ namespace Minds\Controllers\Cli;
 
 use Minds\Cli;
 use Minds\Core\Blockchain\EthPrice;
-use Minds\Core\Blockchain\Services\Ethereum;
+use Minds\Core\Blockchain\Uniswap;
 use Minds\Core\Blockchain\Purchase\Delegates\EthRate;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
@@ -202,5 +202,28 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
         $offChainBalance->setUser($user);
         $offChainBalanceVal = BigNumber::_($offChainBalance->get());
         $this->out((string) $offChainBalanceVal);
+    }
+
+    public function uniswap_user()
+    {
+        $username = $this->getOpt('username');
+        $user = new \Minds\Entities\User($username);
+        $address = '0x177fd9efd24535e73b81e99e7f838cdef265e6cb';
+
+        $uniswap = Di::_()->get('Blockchain\Uniswap\Client');
+        $response = $uniswap->getUser($address);
+
+        var_dump($response);
+    }
+
+    public function liquidity_share()
+    {
+        $username = $this->getOpt('username');
+        $user = new \Minds\Entities\User($username);
+
+        $liquidityManager = Di::_()->get('Blockchain\LiquidityPositions\Manager')
+            ->setUser($user);
+
+        var_dump($liquidityManager->getLiquidityTokenShare());
     }
 }
