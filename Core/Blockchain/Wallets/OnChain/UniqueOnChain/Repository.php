@@ -22,7 +22,7 @@ class Repository
     public function get(string $address): ?UniqueOnChainAddress
     {
         $statement = "SELECT * from onchain_unique_addresses WHERE address = ?";
-        $values = [$address];
+        $values = [ strtolower($address) ];
 
         $prepared = new Cassandra\Prepared\Custom();
         $prepared->query($statement, $values);
@@ -78,7 +78,7 @@ class Repository
     {
         $statement = "INSERT INTO onchain_unique_addresses (address, user_guid) VALUES (?,?)";
         $values = [
-            $address->getAddress(),
+            strtolower($address->getAddress()),
             new \Cassandra\Bigint($address->getUserGuid()),
         ];
 
@@ -105,7 +105,7 @@ class Repository
     {
         $statement = "DELETE FROM onchain_unique_addresses WHERE address = ?";
         $values = [
-            $address->getAddress()
+            strtolower($address->getAddress())
         ];
 
         $prepared = new Cassandra\Prepared\Custom();
