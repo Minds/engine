@@ -71,7 +71,7 @@ class RepositorySpec extends ObjectBehavior
     {
         $this->db->request(Argument::that(function ($prepared) {
             $query = $prepared->build();
-            return $query['values'][0] === '0xADDR';
+            return $query['values'][0] === '0xaddr';
         }))
             ->willReturn(true);
 
@@ -88,7 +88,7 @@ class RepositorySpec extends ObjectBehavior
     {
         $this->db->request(Argument::that(function ($prepared) {
             $query = $prepared->build();
-            return $query['values'][0] === '0xADDR';
+            return $query['values'][0] === '0xaddr';
         }))
             ->willReturn(true);
 
