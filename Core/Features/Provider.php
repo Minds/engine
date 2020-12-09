@@ -70,6 +70,7 @@ class Provider extends DiProvider
                 'onboarding-october-2020',
                 'channel-grid',
                 'onboarding-october-2020',
+                'unique-onchain',
             ];
         });
 
