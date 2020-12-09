@@ -49,6 +49,7 @@ class Minds extends base
         Permaweb\Module::class,
         Media\Proxy\Module::class,
         Blockchain\Module::class,
+        Boost\Module::class,
     ];
 
     /**
@@ -100,7 +101,6 @@ class Minds extends base
         (new Router\RouterProvider())->register();
         (new OAuth\OAuthProvider())->register();
         (new Sessions\SessionsProvider())->register();
-        (new Boost\BoostProvider())->register();
         (new Data\DataProvider())->register();
         //(new Core\Notification\NotificationProvider())->register();
         (new Pages\PagesProvider())->register();

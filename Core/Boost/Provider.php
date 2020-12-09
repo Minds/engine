@@ -5,12 +5,12 @@ namespace Minds\Core\Boost;
 use Minds\Core\Boost\Network;
 use Minds\Core\Data;
 use Minds\Core\Data\Client;
-use Minds\Core\Di\Provider;
+use Minds\Core\Di;
 
 /**
  * Boost Providers
  */
-class BoostProvider extends Provider
+class Provider extends Di\Provider
 {
     /**
      * Registers providers onto DI
@@ -59,5 +59,14 @@ class BoostProvider extends Provider
         $this->di->bind('Boost\Payment', function ($di) {
             return new Payment();
         }, ['useFactory' => true]);
+
+        //
+        $this->di->bind('Boost\LiquiditySpot\Manager', function ($di) {
+            return new LiquiditySpot\Manager();
+        });
+
+        $this->di->bind('Boost\LiquiditySpot\Controller', function ($di) {
+            return new LiquiditySpot\Controller();
+        });
     }
 }
