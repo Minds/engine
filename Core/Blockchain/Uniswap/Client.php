@@ -44,6 +44,7 @@ class Client
                 }
                 mints(where: { to: $id}) {
                     id
+                    to
                     amount0
                     amount1
                     amountUSD
@@ -58,6 +59,7 @@ class Client
                 }
                 burns(where: { to: $id}) {
                     id
+                    to
                     amount0
                     amount1
                     amountUSD
@@ -80,7 +82,7 @@ class Client
 
         $uniswapUser = new UniswapUserEntity();
         $uniswapUser->setId($response['user']['id'])
-            ->setUsdSwaped($response['user']['usdSwaped']);
+            ->setUsdSwapped($response['user']['usdSwaped']);
 
         // Liquidity Positions
 
@@ -136,6 +138,47 @@ class Client
         }
 
         return $pairs;
+    }
+
+    /**
+     *
+     */
+    public function getMintsByPairIds(array $pairIds = []): array
+    {
+        $query = '
+            query($ids: [String!]) {
+                mints(where: { pair_in: $ids }) {
+                    id
+                    to
+                    amount0
+                    amount1
+                    amountUSD
+                    liquidity
+                    pair {
+                        id
+                        totalSupply
+                        reserve0
+                        reserve1
+                        reserveUSD
+                    }
+                } 
+            }
+        ';
+        $variables = [
+            'ids' => array_map(function ($id) {
+                return strtolower($id);
+            }, $pairIds),
+        ];
+
+        $response = $this->request($query, $variables);
+
+        $mints = [];
+
+        foreach ($response['mints'] as $mint) {
+            $mints[] = UniswapMintEntity::build($mint);
+        }
+
+        return $mints;
     }
 
     /**

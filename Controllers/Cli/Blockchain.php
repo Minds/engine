@@ -13,6 +13,7 @@ use Minds\Cli;
 use Minds\Core\Blockchain\EthPrice;
 use Minds\Core\Blockchain\Uniswap;
 use Minds\Core\Blockchain\Purchase\Delegates\EthRate;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Interfaces;
@@ -216,6 +217,16 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
         var_dump($response);
     }
 
+    public function uniswap_mints()
+    {
+        $pairIds = Di::_()->get('Config')->get('blockchain')['liquidity_positions']['approved_pairs'];
+
+        $uniswap = Di::_()->get('Blockchain\Uniswap\Client');
+        $response = $uniswap->getMintsByPairIds($pairIds);
+    
+        var_dump($response);
+    }
+
     public function liquidity_share()
     {
         $username = $this->getOpt('username');
@@ -225,5 +236,12 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
             ->setUser($user);
 
         var_dump($liquidityManager->getLiquidityTokenShare());
+    }
+
+    public function liquidity_providers_summaries()
+    {
+        $liquidityManager = Di::_()->get('Blockchain\LiquidityPositions\Manager');
+        $summaries = $liquidityManager->getAllProvidersSummaries();
+        var_dump($summaries);
     }
 }
