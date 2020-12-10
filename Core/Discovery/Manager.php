@@ -131,6 +131,7 @@ class Manager
         $opts = array_merge([
             'limit' => 10,
             'plus' => false,
+            'tags_override' => [],
         ], $opts);
 
         $excludeTags = array_merge(self::GLOBAL_EXCLUDED_TAGS, $excludeTags);
@@ -158,7 +159,7 @@ class Manager
         if ($opts['plus'] === false) {
             $must[] = [
                 'terms' => [
-                    'tags' => $this->tagCloud,
+                    'tags' => $opts['tags_override'] ?: $this->tagCloud,
                 ]
             ];
         }
