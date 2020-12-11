@@ -11,6 +11,7 @@ namespace Minds\Core\Votes;
 use Minds\Core;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Helpers;
 use Minds\Entities;
 
@@ -84,8 +85,16 @@ class Events
                     ->setEntityType('object')
                     ->setEntitySubtype($subtype)
                     ->setEntityOwnerGuid((string) $entity->owner_guid)
-                    ->setAction("vote:{$direction}")
-                    ->push();
+                    ->setAction("vote:{$direction}");
+
+                if ($entity instanceof PaywallEntityInterface) {
+                    $wireThreshold = $entity->getWireThreshold();
+                    if ($wireThreshold['support_tier'] ?? null) {
+                        $event->setSupportTierUrn($wireThreshold['support_tier']['urn']);
+                    }
+                }
+
+                $event->push();
 
                 // Do not record to activity too
                 // Core/Search/MetricsSync handles this
@@ -107,6 +116,13 @@ class Events
 
             if ($entity->type == 'activity' && $entity->remind_object) {
                 $event->setIsRemind(true);
+            }
+
+            if ($entity instanceof PaywallEntityInterface) {
+                $wireThreshold = $entity->getWireThreshold();
+                if ($wireThreshold['support_tier'] ?? null) {
+                    $event->setSupportTierUrn($wireThreshold['support_tier']['urn']);
+                }
             }
 
             $event->push();
@@ -133,8 +149,16 @@ class Events
                 ->setEntityType($entity->type)
                 ->setEntitySubtype((string) $entity->subtype)
                 ->setEntityOwnerGuid((string) $entity->owner_guid)
-                ->setAction("vote:{$direction}:cancel")
-                ->push();
+                ->setAction("vote:{$direction}:cancel");
+
+            if ($entity instanceof PaywallEntityInterface) {
+                $wireThreshold = $entity->getWireThreshold();
+                if ($wireThreshold['support_tier'] ?? null) {
+                    $event->setSupportTierUrn($wireThreshold['support_tier']['urn']);
+                }
+            }
+
+            $event->push();
         });
 
         /**

@@ -12,6 +12,7 @@ use Minds\Core\Analytics\Metrics\Event;
 use Minds\Core\Comments\Comment;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 
 class Metrics
 {
@@ -43,7 +44,8 @@ class Metrics
         $entityGuid = $comment->getEntityGuid();
         $entity = $this->entitiesBuilder->single($entityGuid);
 
-        $this->metricsEvent
+        $event = clone $this->metricsEvent;
+        $event
             ->setType('action')
             ->setAction('comment')
             ->setProduct('platform')
@@ -56,7 +58,15 @@ class Metrics
             ->setEntitySubtype((string) $entity->subtype)
             ->setEntityOwnerGuid((string) $entity->owner_guid)
             ->setCommentGuid((string) $comment->getLuid())
-            ->setIsRemind($entity->type == 'activity' && $entity->remind_object)
-            ->push();
+            ->setIsRemind($entity->type == 'activity' && $entity->remind_object);
+
+        if ($entity instanceof PaywallEntityInterface) {
+            $wireThreshold = $entity->getWireThreshold();
+            if ($wireThreshold['support_tier'] ?? null) {
+                $event->setSupportTierUrn($wireThreshold['support_tier']['urn']);
+            }
+        }
+        
+        $event->push();
     }
 }

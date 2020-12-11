@@ -4,6 +4,7 @@ namespace Minds\Core\Feeds\Activity\Delegates;
 
 use Minds\Core;
 use Minds\Core\Analytics\Metrics\Event;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Entities\Activity;
 use Minds\Helpers\Counters;
 
@@ -31,8 +32,16 @@ class MetricsDelegate
                 ->setEntityContainerGuid((string) $remind->getContainerGuid())
                 ->setEntityType($remind->getType())
                 ->setEntitySubtype((string) $remind->getSubtype())
-                ->setEntityOwnerGuid((string) $remind->getOwnerGuid())
-                ->push();
+                ->setEntityOwnerGuid((string) $remind->getOwnerGuid());
+
+            if ($remind instanceof PaywallEntityInterface) {
+                $wireThreshold = $remind->getWireThreshold();
+                if ($wireThreshold['support_tier'] ?? null) {
+                    $event->setSupportTierUrn($wireThreshold['support_tier']['urn']);
+                }
+            }
+
+            $event->push();
         }
 
         if ($activity->isRemind()) {
