@@ -479,7 +479,7 @@ class Manager
                 if (!$entity->description) {
                     continue; // We have nothing to create title or description here, so skip it
                 }
-                $title = strlen($entity->description) > 60 ? substr($entity->description, 0, 60) . '...' : $entity->description;
+                $title = strlen($entity->description) > 60 ? mb_substr($entity->description, 0, 60) . '...' : $entity->description;
             }
 
             // If still no title, then skip
