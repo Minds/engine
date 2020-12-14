@@ -8,6 +8,7 @@ use Minds\Entities;
 use Minds\Entities\Image;
 use Minds\Entities\Video;
 use Minds\Entities\Activity;
+use Minds\Helpers;
 
 class Events
 {
@@ -82,5 +83,36 @@ class Events
                 }
             }
         });
+
+        Dispatcher::register('export:extender', 'activity', function (Event $event) {
+            $params = $event->getParameters();
+            /** @var Activity */
+            $entity = $params['entity'];
+            $export = $event->response() ?: [];
+
+            $export['thumbnails'] = $entity->getThumbnails();
+
+            switch ($entity->custom_type) {
+                case 'video':
+                    if ($entity->custom_data['guid']) {
+                        $export['play:count'] = Helpers\Counters::get($entity->custom_data['guid'], 'plays');
+                    }
+                    $export['thumbnail_src'] = $export['custom_data']['thumbnail_src'];
+                    break;
+                case 'batch':
+                    // fix old images src
+                    if (is_array($export['custom_data']) && strpos($export['custom_data'][0]['src'], '/wall/attachment') !== false) {
+                        $export['custom_data'][0]['src'] = Core\Config::_()->cdn_url . 'fs/v1/thumbnail/' . $entity->entity_guid;
+                        $entity->custom_data[0]['src'] = $export['custom_data'][0]['src'];
+                    }
+                    // go directly to cdn
+                    $src = $export['thumbnails']['xlarge'];
+                    $export['custom_data'][0]['src'] = $src;
+                    $export['thumbnail_src'] = $src;
+                    break;
+            }
+
+            $event->setResponse($export);
+        }, 501);
     }
 }

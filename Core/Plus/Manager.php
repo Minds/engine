@@ -11,6 +11,7 @@ use Minds\Core\Config;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Data\Cassandra;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
+use Minds\Core\Rewards\Contributions\ContributionValues;
 
 class Manager
 {
@@ -162,24 +163,28 @@ class Manager
     }
 
     /**
-     * Return unlocks
+     * Return unlocks (deprecated)
      * @param int $asOfTs
      * @return iterable
      */
-    public function getUnlocks(int $asOfTs): iterable
+    public function getUnlocks(int $asOfTs): array
+    {
+        return [];
+    }
+
+    /**
+     * Return the scores of users
+     * @param int $asOfTs
+     * @return iterable
+     */
+    public function getScores(int $asOfTs): iterable
     {
         /** @var array */
         $must = [];
 
         $must[] = [
             'term' => [
-                'action.keyword' => 'unlock',
-            ],
-        ];
-
-        $must[] = [
-            'term' => [
-                'support_tier_urn' => 'urn:support-tier:730071191229833224/10000000025000000',
+                'support_tier_urn' => $this->getPlusSupportTierUrn(),
             ],
         ];
 
@@ -199,11 +204,26 @@ class Manager
                 ],
             ],
             'aggs' => [
-                'unlocks_by_owner' => [
+                'owners' => [
                     'terms' => [
                         'field' => 'entity_owner_guid.keyword',
-                        'size' => 2000,
+                        'size' => 5000,
                     ],
+                    'aggs' => [
+                        'actions' => [
+                            'terms' => [
+                                'field' => 'action.keyword',
+                                'size' => 5000,
+                            ],
+                            'aggs' => [
+                                'unique_user_actions' => [
+                                    'cardinality' => [
+                                        'field' => 'user_guid.keyword',
+                                    ],
+                                ]
+                            ]
+                        ]
+                    ]
                 ],
             ]
         ];
@@ -219,15 +239,21 @@ class Manager
 
         $response = $this->es->request($prepared);
 
-        $total = $response['hits']['total'];
-        foreach ($response['aggregations']['unlocks_by_owner']['buckets'] as $doc) {
-            $unlock = [
-                'user_guid' => $doc['key'],
+        $total = array_sum(array_map(function ($bucket) {
+            return $this->sumInteractionScores($bucket);
+        }, $response['aggregations']['owners']['buckets']));
+        foreach ($response['aggregations']['owners']['buckets'] as $bucket) {
+            $count = $this->sumInteractionScores($bucket);
+            if (!$count) {
+                continue;
+            }
+            $score = [
+                'user_guid' => $bucket['key'],
                 'total' => $total,
-                'count' => $doc['doc_count'],
-                'sharePct' => $doc['doc_count'] / $total,
+                'count' => $count,
+                'sharePct' => $count / $total,
             ];
-            yield $unlock;
+            yield $score;
         }
     }
 
@@ -243,5 +269,17 @@ class Manager
         }
         $threshold = $entity->getWireThreshold();
         return $threshold['support_tier']['urn'] === $this->getPlusSupportTierUrn();
+    }
+
+    /**
+     * Returns the score of owner bucket interactions
+     * @param array $bucket
+     * @return int
+     */
+    private function sumInteractionScores(array $bucket): int
+    {
+        return array_sum(array_map(function ($bucket) {
+            return $bucket['unique_user_actions']['value'] * ContributionValues::metricKeyToMultiplier($bucket['key']);
+        }, $bucket['actions']['buckets']));
     }
 }

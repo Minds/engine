@@ -70,6 +70,9 @@ class Provider extends DiProvider
                 'channel-grid',
                 'onboarding-october-2020',
                 'unique-onchain',
+                'liquidity-spot',
+                'earn-modal',
+                'buy-tokens-uniswap-transak',
             ];
         });
 

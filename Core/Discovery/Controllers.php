@@ -78,7 +78,7 @@ class Controllers
         return new JsonResponse([
             'status' => 'success',
             'entities' => Exportable::_($entities),
-        ]);
+        ], 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
     }
 
     /**

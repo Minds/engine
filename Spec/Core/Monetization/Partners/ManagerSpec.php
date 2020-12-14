@@ -65,7 +65,7 @@ class ManagerSpec extends ObjectBehavior
         $this->plusManager->getDailyRevenue($asOfTs)
             ->willReturn(10); // $10 USD
 
-        $this->plusManager->getUnlocks($asOfTs)
+        $this->plusManager->getScores($asOfTs)
             ->willReturn([
                 [
                     'user_guid' => 123,

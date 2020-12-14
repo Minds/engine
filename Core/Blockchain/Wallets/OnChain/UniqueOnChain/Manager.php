@@ -35,7 +35,7 @@ class Manager
 
         $signedAddress =  $this->ethereum->verifyMessage($address->getPayload(), $address->getSignature());
 
-        if ($signedAddress !== $address->getAddress()) {
+        if (strtolower($signedAddress) !== strtolower($address->getAddress())) {
             throw new UserErrorException("Signature could not be verified");
         }
 

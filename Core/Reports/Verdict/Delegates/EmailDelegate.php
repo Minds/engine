@@ -65,7 +65,7 @@ class EmailDelegate
 
         $subject = 'Account banned';
 
-        $reasonCode = $owner->ban_reason ?: implode('.', [$report->getReasonCode(), $report->getSubReasonCode()]);
+        $reasonCode = implode('.', [$report->getReasonCode(), $report->getSubReasonCode()]);
 
         $reason = $this->getBanReasons($reasonCode);
 

@@ -12,7 +12,7 @@ use Minds\Traits\MagicAttributes;
  * @method Boost setGuid(long $guid)
  * @method long getGuid()
  * @method string getEntityGuid()
- * @method Boost setEntiyGuid()
+ * @method Boost setEntityGuid(string $guid)
  * @method Boost setEntity()
  * @method Entity getEntity()
  * @method Boost setBid()

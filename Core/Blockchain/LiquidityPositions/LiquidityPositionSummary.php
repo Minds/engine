@@ -5,6 +5,8 @@ use Minds\Traits\MagicAttributes;
 use Brick\Math\BigDecimal;
 
 /**
+ * @method self setUserGuid(string $userGuid)
+ * @method string getUserGuid()
  * @method self setTokenSharePct(float $tokenSharePct)
  * @method float getTokenSharePct()
  * @method self setTotalLiquidityTokens(BigDecimal $totalLiquidityTokens)
@@ -25,6 +27,9 @@ use Brick\Math\BigDecimal;
 class LiquidityPositionSummary
 {
     use MagicAttributes;
+
+    /** @var string */
+    protected $userGuid;
 
     /** @var float */
     protected $tokenSharePct;
@@ -58,6 +63,7 @@ class LiquidityPositionSummary
     public function export($extras = []): array
     {
         return [
+            'user_guid' => (string) $this->userGuid,
             'token_share_pct' => $this->tokenSharePct,
             'total_liquidity_tokens' => $this->totalLiquidityTokens,
             'user_liquidity_tokens' => $this->userLiquidityTokens,
