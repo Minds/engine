@@ -16,6 +16,27 @@ class ContributionValues
     ];
 
     /**
+     * Returns the multiplier based on metricKey
+     * @param string $metricKey
+     * @return int
+     */
+    public static function metricKeyToMultiplier(string $metricKey): int
+    {
+        switch ($metricKey) {
+            case 'comment':
+                return static::$multipliers['comments'];
+            case 'remind':
+                return static::$multipliers['reminds'];
+            case 'vote:up':
+                return static::$multipliers['votes'];
+            case 'subscribers':
+                return static::$multipliers['subscribe'];
+            default:
+                return 0;
+        }
+    }
+
+    /**
      * Public export of values
      * @return array
      */
