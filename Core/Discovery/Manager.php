@@ -86,24 +86,27 @@ class Manager
     {
         $opts = array_merge([
             'limit' => 10,
-            'plus' => false
+            'plus' => false,
+            'tag_cloud_override' => null
         ], $opts);
 
         $this->tagCloud = $this->getTagCloud();
 
-        if (empty($this->tagCloud) && $opts['plus'] === false) {
+        if (empty($this->tagCloud) && $opts['plus'] === false && !$opts['tag_cloud_override']) {
             throw new NoTagsException();
         }
 
         $tagTrends12 = $this->getTagTrendsForPeriod(12, [], [
             'limit' => ceil($opts['limit'] / 2),
             'plus' => $opts['plus'],
+            'tag_cloud_override' => $opts['tag_cloud_override']
         ]);
         $tagTrends24 = $this->getTagTrendsForPeriod(24, array_map(function ($trend) {
             return $trend->getHashtag();
         }, $tagTrends12), [
             'limit' => floor($opts['limit'] / 2),
             'plus' => $opts['plus'],
+            'tag_cloud_override' => $opts['tag_cloud_override']
         ]);
 
         $results = array_merge($tagTrends12, $tagTrends24);
@@ -131,6 +134,7 @@ class Manager
         $opts = array_merge([
             'limit' => 10,
             'plus' => false,
+            'tag_cloud_override' => null
         ], $opts);
 
         $excludeTags = array_merge(self::GLOBAL_EXCLUDED_TAGS, $excludeTags);
@@ -139,6 +143,8 @@ class Manager
         if ($this->user && $this->user->getLanguage() !== 'en') {
             $languages = [ $this->user->getLanguage(), 'en' ];
         }
+
+        $tagCloud = $opts['tag_cloud_override'] ?: $this->tagCloud;
 
         $must = [];
         $must_not = [];
@@ -158,7 +164,7 @@ class Manager
         if ($opts['plus'] === false) {
             $must[] = [
                 'terms' => [
-                    'tags' => $this->tagCloud,
+                    'tags' => $tagCloud,
                 ]
             ];
         }
@@ -460,7 +466,7 @@ class Manager
             $hashtag = $doc['_source']['tags'][0];
 
             $entity = $this->entitiesBuilder->single($doc['_id']);
-            
+
             if (!$this->acl->read($entity)) {
                 continue;
             }
@@ -617,7 +623,7 @@ class Manager
     }
 
     /**
-     * Return tagcloud
+     * Return tagcloud (trending tags + user's selected tags)
      * @return array
      */
     protected function getTagCloud(): array

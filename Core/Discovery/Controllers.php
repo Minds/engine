@@ -4,15 +4,21 @@ namespace Minds\Core\Discovery;
 use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\Response\JsonResponse;
 use Minds\Api\Exportable;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Di\Di;
 
 class Controllers
 {
     /** @var Manager */
     protected $manager;
 
-    public function __construct($manager = null)
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
+    public function __construct($manager = null, $entitiesBuilder = null)
     {
         $this->manager = $manager ?? new Manager();
+        $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -43,7 +49,7 @@ class Controllers
 
         // $trends =  array_merge(array_slice($tagTrends, 0, $tagLimit), $postTrends);
         $trends = $postTrends;
-        
+
         if ($shuffle) {
             shuffle($trends);
         }
@@ -83,17 +89,37 @@ class Controllers
     public function getTags(ServerRequest $request): JsonResponse
     {
         $tags = $this->manager->getTags();
+
+        $entityGuid = $request->getAttribute('parameters')['entity_guid'];
+        $entity = $entityGuid ? $this->entitiesBuilder->single($entityGuid) : null;
+        $entityTags = $entity ? $entity->getTags() : null;
+        $activityRelated = [];
+
+        if ($entityTags) {
+            try {
+                $activityRelated = $this->manager->getTagTrends([ 'limit' => 12, 'plus' => false, 'tag_cloud_override' => $entityTags]);
+            } catch (\Exception $e) {
+                $activityRelated = [];
+            }
+        }
+
+
+
         try {
             $forYou = $this->manager->getTagTrends([ 'limit' => 12, 'plus' => false, ]);
         } catch (\Exception $e) {
             $forYou = null;
         }
+
+
+
         return new JsonResponse([
             'status' => 'success',
             'tags' => $tags['tags'],
             'trending' => $tags['trending'],
             'default' => $tags['default'],
             'for_you' => $forYou ? Exportable::_($forYou) : null,
+            'activity_related' => (!empty($activityRelated)) ? Exportable::_($activityRelated) : null
         ]);
     }
 
