@@ -41,11 +41,20 @@ class Events
 
             $export = $event->response() ?: [];
             $currentUser = Session::getLoggedInUserGuid();
+            $currentUserEntity = Session::getLoggedInUser();
 
             $dirty = false;
 
             if (!$activity instanceof PaywallEntityInterface) {
                 return;
+            }
+
+            if ($activity->isPaywall() &&
+                $activity->getWireThreshold()['support_tier']['urn'] === Di::_()->get('Config')->plus['support_tier_urn'] &&
+                $currentUserEntity &&
+                $currentUserEntity->isPlus()
+            ) {
+                $activity->setPayWallUnlocked(true);
             }
 
             if ($activity->isPayWallUnlocked()) {

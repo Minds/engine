@@ -313,30 +313,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 $export['hide_impressions'] = $this->hide_impressions;
             }
 
-            $export['thumbnails'] = $this->getThumbnails();
-
             $export['permaweb_id'] = $this->getPermawebId();
-
-            switch ($this->custom_type) {
-                case 'video':
-                    if ($this->custom_data['guid']) {
-                        $export['play:count'] = Helpers\Counters::get($this->custom_data['guid'], 'plays');
-                    }
-                    $export['thumbnail_src'] = $export['custom_data']['thumbnail_src'];
-                    break;
-                case 'batch':
-                    // fix old images src
-                    if (is_array($export['custom_data']) && strpos($export['custom_data'][0]['src'], '/wall/attachment') !== false) {
-                        $export['custom_data'][0]['src'] = Core\Config::_()->cdn_url . 'fs/v1/thumbnail/' . $this->entity_guid;
-                        $this->custom_data[0]['src'] = $export['custom_data'][0]['src'];
-                    }
-                    // go directly to cdn
-                    $mediaManager = Di::_()->get('Media\Image\Manager');
-                    $src = $export['thumbnails']['xlarge'];
-                    $export['custom_data'][0]['src'] = $src;
-                    $export['thumbnail_src'] = $src;
-                    break;
-            }
 
             if (Helpers\Flags::shouldDiscloseStatus($this)) {
                 $export['spam'] = (bool) $this->getSpam();
