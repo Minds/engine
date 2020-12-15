@@ -12,13 +12,9 @@ class Controllers
     /** @var Manager */
     protected $manager;
 
-    /** @var EntitiesBuilder */
-    protected $entitiesBuilder;
-
     public function __construct($manager = null, $entitiesBuilder = null)
     {
         $this->manager = $manager ?? new Manager();
-        $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -88,25 +84,32 @@ class Controllers
      */
     public function getTags(ServerRequest $request): JsonResponse
     {
+        $activityRelated = [];
         $tags = $this->manager->getTags();
 
-        $entityGuid = $request->getAttribute('parameters')['entity_guid'];
-        $entity = $entityGuid ? $this->entitiesBuilder->single($entityGuid) : null;
-        $entityTags = $entity ? $entity->getTags() : null;
-        $activityRelated = [];
+        $entityGuid = $request->getQueryParams()['entity_guid'];
 
-        if ($entityTags) {
-            try {
-                $activityRelated = $this->manager->getTagTrends([ 'limit' => 12, 'plus' => false, 'tag_cloud_override' => $entityTags]);
-            } catch (\Exception $e) {
-                $activityRelated = [];
+        if ($entityGuid) {
+            /** @var EntitiesBuilder $entitiesBuilder */
+            $entitiesBuilder = Di::_()->get('EntitiesBuilder');
+
+            $entity = $entitiesBuilder->single($entityGuid);
+
+            $entityTags = $entity ? $entity->getTags() : null;
+
+            if ($entityTags) {
+                try {
+                    $activityRelated = $this->manager->getTagTrends([ 'limit' => 6, 'plus' => false, 'tag_cloud_override' => $entityTags]);
+                } catch (\Exception $e) {
+                    $activityRelated = [];
+                }
             }
         }
 
 
 
         try {
-            $forYou = $this->manager->getTagTrends([ 'limit' => 12, 'plus' => false, ]);
+            $forYou = $this->manager->getTagTrends([ 'limit' => 12, 'plus' => false]);
         } catch (\Exception $e) {
             $forYou = null;
         }

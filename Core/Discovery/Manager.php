@@ -92,7 +92,9 @@ class Manager
 
         $this->tagCloud = $this->getTagCloud();
 
-        if (empty($this->tagCloud) && $opts['plus'] === false && !$opts['tag_cloud_override']) {
+        if ($opts['tag_cloud_override']) {
+            $this->tagCloud = $opts['tag_cloud_override'];
+        } elseif (empty($this->tagCloud) && $opts['plus'] === false) {
             throw new NoTagsException();
         }
 
@@ -623,7 +625,7 @@ class Manager
     }
 
     /**
-     * Return tagcloud (trending tags + user's selected tags)
+     * Return tagcloud
      * @return array
      */
     protected function getTagCloud(): array

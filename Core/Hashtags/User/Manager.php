@@ -124,7 +124,7 @@ class Manager
                 'type' => 'user',
             ];
         }
-        
+
         foreach ($trending as $tag) {
             $posts = $tag['posts'];
             $votes = $tag['votes'];
