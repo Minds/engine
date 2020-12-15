@@ -1,27 +1,3 @@
-<?php if (!$vars['user']->plus_expires) { ?>
-<tr>
-    <td>
-        <p>
-            The best way Minds can continue to grow and remain independent is through a sustainable revenue model that incentivizes both the company and its community.
-        </p>
-</td>
-</tr>
-<tr>
-    <td>
-        <p>
-            A major reason that big tech platforms like Facebook, Google and Twitter have amped up their censorship, surveillance and demonetization efforts is largely because their business models depend on advertising dollars.
-        </p>
-    </td>
-</tr>
-<tr>
-    <td>
-        <p>
-            Membership revenue, however, is powered by the people.
-        </p>
-    </td>
-</tr>
-<?php } ?>
-
 <tr>
     <td>
         <p>
@@ -35,7 +11,6 @@
     </td>
 </tr>
 
-<?php if (!$vars['user']->plus_expires) { ?>
 <tr>
     <td>
         <p>
@@ -43,6 +18,5 @@
         </p>
     </td>
 </tr>
-<?php } ?>
 
 <?php echo $vars['actionButton']; ?>
