@@ -100,6 +100,7 @@ class Events
                     $export['thumbnail_src'] = $export['custom_data']['thumbnail_src'];
                     break;
                 case 'batch':
+                    $export['custom_data'] = $entity->getCustom()[1];
                     // fix old images src
                     if (is_array($export['custom_data']) && strpos($export['custom_data'][0]['src'], '/wall/attachment') !== false) {
                         $export['custom_data'][0]['src'] = Core\Config::_()->cdn_url . 'fs/v1/thumbnail/' . $entity->entity_guid;
