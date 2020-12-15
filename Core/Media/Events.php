@@ -97,6 +97,7 @@ class Events
                     if ($entity->custom_data['guid']) {
                         $export['play:count'] = Helpers\Counters::get($entity->custom_data['guid'], 'plays');
                     }
+                    $export['custom_data'] = $entity->getCustom()[1];
                     $export['thumbnail_src'] = $export['custom_data']['thumbnail_src'];
                     break;
                 case 'batch':
