@@ -49,11 +49,7 @@ class Plus2020_10_28 extends EmailCampaign
             'utm_medium' => 'email',
         ];
 
-        $subject = "Fight big tech by upgrading to Minds+";
-
-        if ($this->user->plus_expires) {
-            $subject = "New revenue-share program for Minds+";
-        }
+        $subject = "You have a free trial to Minds+";
 
         $this->template->setTemplate('default.tpl');
         $this->template->setBody('./template.tpl');
@@ -67,31 +63,22 @@ class Plus2020_10_28 extends EmailCampaign
         // $this->template->set('signoff', '');
         $this->template->set('preheader', "");
         $this->template->set('tracking', http_build_query($tracking));
-
-        if (!$this->user->plus_expires) {
-            // Send a push
-            $title = "Start your free trial today";
-            $message = "Minds+ now has revenue-sharing. Start your free trial today.💡";
-            QueueClient::build()
-                    ->setQueue('Push')
-                    ->send([
-                    'user_guid' => $this->user->getGuid(),
-                    'uri' => 'notification',
-                    'title' => $title,
-                    'message' => $message,
-                ]);
-        }
         
-        if ($this->user->plus_expires) {
-            $url = 'https://www.minds.com/minds/blog/minds-the-first-ever-community-powered-streaming-service-whe-1165749640228003840';
-            $actionButton = (new ActionButton())
-                ->setLabel('Read our blog to learn more.')
-                ->setPath($url);
-        } else {
-            $actionButton = (new ActionButton())
-                ->setLabel('Start your free trial today.')
-                ->setPath('plus?'.http_build_query($tracking));
-        }
+        // Send a push
+        $title = "Start your free trial today";
+        $message = "Minds+ now has revenue-sharing. Start your free trial today.💡";
+        QueueClient::build()
+                ->setQueue('Push')
+                ->send([
+                'user_guid' => $this->user->getGuid(),
+                'uri' => 'notification',
+                'title' => $title,
+                'message' => $message,
+            ]);
+   
+        $actionButton = (new ActionButton())
+            ->setLabel('Start your free trial today.')
+            ->setPath('plus?'.http_build_query($tracking));
 
         $this->template->set('actionButton', $actionButton->build());
 
@@ -109,6 +96,9 @@ class Plus2020_10_28 extends EmailCampaign
 
     public function send(): void
     {
+        if ($this->user->isPlus()) {
+            return;
+        }
         if ($this->canSend()) {
             $this->mailer->send($this->build());
         }
