@@ -59,7 +59,11 @@ class Manager
      */
     public function get($guid): ?Video
     {
-        return $this->entitiesBuilder->single($guid);
+        $entity = $this->entitiesBuilder->single($guid);
+        if (!$entity instanceof Video) {
+            return null;
+        }
+        return $entity;
     }
 
     /**
