@@ -77,7 +77,7 @@ class Plus2020_10_28 extends EmailCampaign
             ]);
    
         $actionButton = (new ActionButton())
-            ->setLabel('Start your free trial today.')
+            ->setLabel('Start your free trial today')
             ->setPath('plus?'.http_build_query($tracking));
 
         $this->template->set('actionButton', $actionButton->build());
