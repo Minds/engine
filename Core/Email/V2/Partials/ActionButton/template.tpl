@@ -19,6 +19,7 @@
               <td
                 align="center"
                 style="border-radius: 25px; padding: 0;"
+                bgcolor="#F0F3F7"
               >
                 <a href="<?php echo "{$vars['href']}"?>"
                   target="_blank"
