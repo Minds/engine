@@ -11,6 +11,9 @@ use Minds\Helpers\Text;
 
 class Repository
 {
+    /* Change to true to output ES query in logs */
+    const DEBUG = false;
+
     const PERIODS = [
         '12h' => 43200,
         '24h' => 86400,
@@ -84,6 +87,7 @@ class Repository
             'plus' => false,
             'portrait' => false,
             'hide_reminds' => false,
+            'wire_support_tier_only' => false,
         ], $opts);
 
         if (!$opts['type']) {
@@ -296,6 +300,13 @@ class Repository
                 'term' => [
                     'is_remind' => true,
                 ],
+            ];
+        }
+
+        if ($opts['wire_support_tier_only']) {
+            error_log("memberships only");
+            $body['query']['function_score']['query']['bool']['must'][] = [
+                'exists' => ['field' => 'wire_support_tier']
             ];
         }
 
@@ -520,6 +531,10 @@ class Repository
 
         $prepared = new Prepared\Search();
         $prepared->query($query);
+
+        if (static::DEBUG) {
+            error_log("Querying ES with: \n".json_encode($query));
+        }
 
         $response = $this->client->request($prepared);
 
