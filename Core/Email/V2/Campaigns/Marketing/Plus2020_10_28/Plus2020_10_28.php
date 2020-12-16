@@ -65,7 +65,7 @@ class Plus2020_10_28 extends EmailCampaign
         $this->template->set('tracking', http_build_query($tracking));
         
         // Send a push
-        $title = "Start your free trial today";
+        $title = "The new Minds+ is here";
         $message = "Minds+ now has revenue-sharing. Start your free trial today.💡";
         QueueClient::build()
                 ->setQueue('Push')
