@@ -1412,7 +1412,11 @@ abstract class ElggEntity extends ElggData implements
     /**
      * @return array
      */
-	public function getTags() {
+    public function getTags() {
+        // There is a bug on mobile that is sending the hashtags with the hash, this shouldnt happen
+        $this->tags = array_map(function ($tag) {
+            return str_replace('#', '', $tag);
+        }, $this->tags ?: []);
 		return $this->tags ?: [];
 	}
 

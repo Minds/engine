@@ -101,7 +101,7 @@ class ControllersSpec extends ObjectBehavior
         ]));
     }
 
-    public function it_should_get_tagsd_response(ServerRequest $request)
+    public function it_should_get_tags_response(ServerRequest $request)
     {
         $this->manager->getTags()
             ->willReturn([
@@ -160,6 +160,78 @@ class ControllersSpec extends ObjectBehavior
             ],
             'default' => [],
             'for_you' => null,
+            'activity_related' => null,
+        ]));
+    }
+
+    public function it_should_get_related_tags_response(ServerRequest $request)
+    {
+        $this->manager->getTags()
+            ->willReturn([
+                'tags' => [
+                ],
+                'trending' => [
+                ],
+                'default' => [],
+            ]);
+
+        $this->manager->getTagTrends(Argument::any())
+            ->willReturn([]);
+
+        $request->getQueryParams()
+                ->willReturn([
+                    'entity_guid' => '123',
+                ]);
+
+        $this->manager->getActivityRelatedTags('123')
+                    ->willReturn([
+                        (new Trend())
+                            ->setId('id')
+                            ->setHashtag('music')
+                            ->setVolume(10)
+                            ->setPeriod(12)
+                            ->setSelected(true),
+                        (new Trend())
+                            ->setId('id2')
+                            ->setHashtag('art')
+                            ->setVolume(5)
+                            ->setPeriod(24)
+                            ->setSelected(false)
+                    ]);
+
+        $response = $this->getTags($request);
+        $json = $response->getBody()->getContents();
+
+        $json->shouldBe(json_encode([
+            'status' => 'success',
+            'tags' => [
+            ],
+            'trending' => [
+            ],
+            'default' => [],
+            'for_you' => null,
+            'activity_related' => [
+                [
+                    'id' => 'id',
+                    'entity' => null,
+                    'guid' => null,
+                    'hashtag' => 'music',
+                    'title' => null,
+                    'volume' => 10,
+                    'period' => 12,
+                    'selected' => true,
+                ],
+                [
+                    'id' => 'id2',
+                    'entity' => null,
+                    'guid' => null,
+                    'hashtag' => 'art',
+                    'title' => null,
+                    'volume' => 5,
+                    'period' => 24,
+                    'selected' => false,
+                ]
+            ],
         ]));
     }
 }
