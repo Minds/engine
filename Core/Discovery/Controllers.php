@@ -84,37 +84,17 @@ class Controllers
      */
     public function getTags(ServerRequest $request): JsonResponse
     {
-        $activityRelated = [];
         $tags = $this->manager->getTags();
 
-        $entityGuid = $request->getQueryParams()['entity_guid'];
+        $entityGuid = $request->getQueryParams()['entity_guid'] ?? null;
 
-        if ($entityGuid) {
-            /** @var EntitiesBuilder $entitiesBuilder */
-            $entitiesBuilder = Di::_()->get('EntitiesBuilder');
-
-            $entity = $entitiesBuilder->single($entityGuid);
-
-            $entityTags = $entity ? $entity->getTags() : null;
-
-            if ($entityTags) {
-                try {
-                    $activityRelated = $this->manager->getTagTrends([ 'limit' => 6, 'plus' => false, 'tag_cloud_override' => $entityTags]);
-                } catch (\Exception $e) {
-                    $activityRelated = [];
-                }
-            }
-        }
-
-
-
+        $activityRelated = $entityGuid ? $this->manager->getActivityRelatedTags($entityGuid) : null;
+    
         try {
             $forYou = $this->manager->getTagTrends([ 'limit' => 12, 'plus' => false]);
         } catch (\Exception $e) {
             $forYou = null;
         }
-
-
 
         return new JsonResponse([
             'status' => 'success',
@@ -122,7 +102,7 @@ class Controllers
             'trending' => $tags['trending'],
             'default' => $tags['default'],
             'for_you' => $forYou ? Exportable::_($forYou) : null,
-            'activity_related' => (!empty($activityRelated)) ? Exportable::_($activityRelated) : null
+            'activity_related' => $activityRelated ? Exportable::_($activityRelated) : null
         ]);
     }
 

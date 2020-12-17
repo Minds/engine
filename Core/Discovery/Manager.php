@@ -71,7 +71,7 @@ class Manager
      * @param User $user
      * @return self
      */
-    public function setUser(User $user): self
+    public function setUser(Entities\User $user): self
     {
         $this->user = $user;
         return $this;
@@ -662,5 +662,31 @@ class Manager
         return $this->hashtagManager
            ->setUser($this->user)
           ->batch($add, $remove);
+    }
+
+    /**
+     * Returns related tags to an entity
+     * @param string $entityGuid
+     * @return Trend[]
+     */
+    public function getActivityRelatedTags(string $entityGuid): ?array
+    {
+        $entity = $this->entitiesBuilder->single($entityGuid);
+
+        $entityTags = $entity ? $entity->getTags() : null;
+
+        if (!$entityTags) {
+            return null;
+        }
+
+        try {
+            return $this->manager->getTagTrends([
+                        'limit' => 6,
+                        'plus' => false,
+                        'tag_cloud_override' => $entityTags
+                    ]);
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }
