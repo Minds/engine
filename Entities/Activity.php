@@ -924,6 +924,16 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
 
     //
 
+    public function getTags(): array
+    {
+        $tags = parent::getTags() ?: [];
+        $messageTags = Helpers\Text::getHashtags($this->message);
+        return array_unique(array_merge($tags, $messageTags));
+    }
+
+
+    //
+
 
     /**
      * Set the reminded object

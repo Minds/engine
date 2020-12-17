@@ -112,4 +112,19 @@ class Text
         }
         return false;
     }
+
+    /**
+     * Extracts hashtags from a string and returns in array
+     * @param string $fullText
+     * @return string[]
+     */
+    public static function getHashtags($fullText): array
+    {
+        $htRe = '/(^|\s||)#(\pL+)/u';
+        $matches = [];
+
+        preg_match_all($htRe, $fullText, $matches);
+
+        return $matches[2] ?? [];
+    }
 }
