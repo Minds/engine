@@ -572,6 +572,7 @@ class Manager
             'period' => '1y',
             'query' => $query,
             'plus' => $opts['plus'],
+            'single_owner_threshold' => $filter === 'latest' ? 0 : 24
         ]);
 
         $rows = $this->elasticFeedsManager->getList($opts);
