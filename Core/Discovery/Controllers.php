@@ -4,13 +4,15 @@ namespace Minds\Core\Discovery;
 use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\Response\JsonResponse;
 use Minds\Api\Exportable;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Di\Di;
 
 class Controllers
 {
     /** @var Manager */
     protected $manager;
 
-    public function __construct($manager = null)
+    public function __construct($manager = null, $entitiesBuilder = null)
     {
         $this->manager = $manager ?? new Manager();
     }
@@ -43,7 +45,7 @@ class Controllers
 
         // $trends =  array_merge(array_slice($tagTrends, 0, $tagLimit), $postTrends);
         $trends = $postTrends;
-        
+
         if ($shuffle) {
             shuffle($trends);
         }
@@ -83,17 +85,24 @@ class Controllers
     public function getTags(ServerRequest $request): JsonResponse
     {
         $tags = $this->manager->getTags();
+
+        $entityGuid = $request->getQueryParams()['entity_guid'] ?? null;
+
+        $activityRelated = $entityGuid ? $this->manager->getActivityRelatedTags($entityGuid) : null;
+    
         try {
-            $forYou = $this->manager->getTagTrends([ 'limit' => 12, 'plus' => false, ]);
+            $forYou = $this->manager->getTagTrends([ 'limit' => 12, 'plus' => false]);
         } catch (\Exception $e) {
             $forYou = null;
         }
+
         return new JsonResponse([
             'status' => 'success',
             'tags' => $tags['tags'],
             'trending' => $tags['trending'],
             'default' => $tags['default'],
             'for_you' => $forYou ? Exportable::_($forYou) : null,
+            'activity_related' => $activityRelated ? Exportable::_($activityRelated) : null
         ]);
     }
 
