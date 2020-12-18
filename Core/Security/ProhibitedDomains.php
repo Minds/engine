@@ -298,5 +298,7 @@ class ProhibitedDomains
         'fiverr.com', // temporarily until better defence is built
         'smmservicesbuy.com',
         '/psce.pw',
+        '//cutt.ly',
+        '//b.link'
     ];
 }
