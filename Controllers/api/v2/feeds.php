@@ -37,6 +37,19 @@ class feeds implements Interfaces\Api
         /** @var User $currentUser */
         $currentUser = Core\Session::getLoggedinUser();
 
+        /** @var \Minds\Core\Features\Manager $manager */
+        $features = Di::_()->get('Features\Manager');
+
+        $guestMode = false;
+
+        if ($features->has('guest-mode')) {
+            $guestMode = $_GET['guest_mode'] ?? false;
+            if (!$currentUser && $guestMode) {
+                // Make the guest user's feed look like the Minds channel feed
+                $currentUser =  new User('minds');
+            }
+        }
+
         $filter = $pages[0] ?? null;
 
         if (!$filter) {
@@ -93,7 +106,7 @@ class feeds implements Interfaces\Api
 
         $hardLimit = 600;
 
-        if ($currentUser && $currentUser->isAdmin()) {
+        if ($currentUser && Core\Session::getLoggedinUser()->isAdmin()) {
             $hardLimit = 5000;
         }
 
