@@ -97,6 +97,10 @@ class settings implements Interfaces\Api
             $user->setBoostAutorotate((bool) $_POST['boost_autorotate']);
         }
 
+        if (isset($_POST['liquidity_spot_opt_out'])) {
+            $user->setLiquiditySpotOptOut((int) $_POST['liquidity_spot_opt_out']);
+        }
+
         if (isset($_POST['mature'])) {
             $user->setViewMature(isset($_POST['mature']) && (int) $_POST['mature']);
         }

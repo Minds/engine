@@ -23,6 +23,9 @@ use Brick\Math\BigDecimal;
  * @method LiquidityCurrencyValues getTotalLiquidity()
  * @method self setShareOfLiquidity(LiquidityCurrencyValues $liquidity)
  * @method LiquidityCurrencyValues getShareOfLiquidity()
+ * @method self setLiquiditySpotOptOut(bool $optOut)
+ * @method bool getLiquiditySpotOptOut()
+ * @method bool isLiquiditySpotOptOut()
  */
 class LiquidityPositionSummary
 {
@@ -55,6 +58,9 @@ class LiquidityPositionSummary
     /** @var LiquidityCurrencyValues */
     protected $shareOfLiquidity;
 
+    /** @var bool */
+    protected $liquiditySpotOptOut = false;
+
     /**
      * Public export
      * @param array $extras
@@ -72,6 +78,7 @@ class LiquidityPositionSummary
             'yield_liquidity' => $this->yieldLiquidity->export(),
             'total_liquidity' => $this->totalLiquidity->export(),
             'shareOf_liquidity' => $this->shareOfLiquidity->export(),
+            'liquidity_spot_opt_out' => $this->liquiditySpotOptOut,
         ];
     }
 }

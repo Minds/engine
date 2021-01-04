@@ -62,6 +62,8 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('123');
         $user->getEthWallet()
             ->willReturn('0xSpec');
+        $user->isLiquiditySpotOptOut()
+            ->willReturn(false);
 
         $this->config->get('blockchain')
             ->willReturn([

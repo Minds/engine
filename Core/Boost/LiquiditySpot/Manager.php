@@ -98,9 +98,11 @@ class Manager
     public function sync(): void
     {
         /** @var LiquidityPositionSummary[] */
-        $liquidityPositions  = $this->liquidityPositionsManager->getAllProvidersSummaries();
+        $liquidityPositions  = array_filter($this->liquidityPositionsManager->getAllProvidersSummaries(), function ($liquidityPosition) {
+            return !$liquidityPosition->isLiquiditySpotOptOut();
+        });
 
-        // What share of liquidityProviders have unique address (TODO: and have not opted out of liquditiy spot)
+        // What share of liquidityProviders have unique address
         $liquidityPositionsCumulativePct = BigDecimal::sum(...array_map(function ($liquidityPosition) {
             return $liquidityPosition->getShareOfLiquidity()
                 ->getUsd();
