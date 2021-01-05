@@ -20,10 +20,22 @@ class subscribed implements Interfaces\Api
      */
     public function get($pages)
     {
-        Factory::isLoggedIn();
+        // Factory::isLoggedIn();
 
         /** @var User $currentUser */
         $currentUser = Core\Session::getLoggedinUser();
+
+
+        /** @var \Minds\Core\Features\Manager $manager */
+        $features = Di::_()->get('Features\Manager');
+
+        if ($features->has('guest-mode')) {
+            $guestMode = $_GET['guest_mode'] ?? false;
+            if (!$currentUser && $guestMode) {
+                // Make the guest user's feed look like the Minds channel feed
+                $currentUser =  new User('minds');
+            }
+        }
 
         $type = '';
         switch ($pages[0]) {
