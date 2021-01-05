@@ -77,7 +77,6 @@ class EarningsDashboard implements DashboardInterface
                 new Metrics\Earnings\TotalEarningsMetric(),
                 new Metrics\Earnings\ViewsEarningsMetric(),
                 new Metrics\Earnings\ReferralsEarningsMetric(),
-                new Metrics\Earnings\SalesEarningsMetric(),
                 new Metrics\Earnings\PlusEarningsMetric()
             )
             ->build();
