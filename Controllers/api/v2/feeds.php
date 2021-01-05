@@ -37,6 +37,7 @@ class feeds implements Interfaces\Api
         /** @var User $currentUser */
         $currentUser = Core\Session::getLoggedinUser();
 
+        if ($features->has('guest-mode')) {
 
         $filter = $pages[0] ?? null;
 
@@ -94,7 +95,7 @@ class feeds implements Interfaces\Api
 
         $hardLimit = 600;
 
-        if ($currentUser && $currentUser->isAdmin()) {
+        if ($currentUser && Core\Session::getLoggedinUser()->isAdmin()) {
             $hardLimit = 5000;
         }
 
