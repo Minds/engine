@@ -65,4 +65,14 @@ class ManagerSpec extends ObjectBehavior
             ->isAllowed($activity)
             ->shouldBe(true);
     }
+
+    public function it_should_allow_users_to_set_paywall_to_null(Activity $activity)
+    {
+        $activity->getWireThreshold()
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $activity->setPaywall(false)->shouldBeCalled();
+        $this->validateEntity($activity);
+    }
 }
