@@ -10,6 +10,8 @@ use Brick\Math\RoundingMode;
 use Minds\Core\Blockchain\Uniswap\UniswapEntityHasPairInterface;
 use Minds\Core\Blockchain\Uniswap\UniswapEntityInterface;
 use Minds\Core\Blockchain\Uniswap\UniswapMintEntity;
+use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain;
+use Minds\Core\EntitiesBuilder;
 
 class Manager
 {
@@ -19,13 +21,25 @@ class Manager
     /** @var Config */
     protected $config;
 
+    /** @var UniqueOnChain\Manager */
+    protected $uniqueOnchain;
+
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
     /** @var User */
     protected $user;
 
-    public function __construct(Uniswap\Client $uniswapClient = null, Config $config = null)
-    {
+    public function __construct(
+        Uniswap\Client $uniswapClient = null,
+        Config $config = null,
+        UniqueOnChain\Manager $uniqueOnchain = null,
+        EntitiesBuilder $entitiesBuilder = null
+    ) {
         $this->uniswapClient = $uniswapClient ?? Di::_()->get('Blockchain\Uniswap\Client');
         $this->config = $config ?? Di::_()->get('Config');
+        $this->uniqueOnchain = $uniqueOnchain ?? Di::_()->get('Blockchain\UniqueOnChain\Manager');
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -149,7 +163,8 @@ class Manager
         $shareOfLiquidityUSD = $currentLiquidityUSD->dividedBy($totalLiquidityUSD, null, RoundingMode::FLOOR);
 
         $summary = new LiquidityPositionSummary();
-        $summary->setTokenSharePct($tokenSharePct->toFloat())
+        $summary->setUserGuid((string) $this->user->getGuid())
+            ->setTokenSharePct($tokenSharePct->toFloat())
             ->setTotalLiquidityTokens($totalLiquidityTokens)
             ->setUserLiquidityTokens($userLiquidityTokens)
             ->setProvidedLiquidity(
@@ -176,9 +191,49 @@ class Manager
                 (new LiquidityCurrencyValues())
                     ->setUsd($shareOfLiquidityUSD)
                     ->setMinds($shareOfLiquidityMINDS)
-            );
+            )
+            ->setLiquiditySpotOptOut($this->user->isLiquiditySpotOptOut());
+
+        // How to calculate a multiplier
+        // Mint time * volume
 
         return $summary;
+    }
+
+    /**
+     * Returns all the provoiders that have unique addresses
+     * @return LiquidityPositionSummary[]
+     */
+    public function getAllProvidersSummaries(): array
+    {
+        $uniswapMints = $this->uniswapClient->getMintsByPairIds($this->getApprorvedLiquidityPairIds());
+
+        // Map to 'to' and reduce to unique
+        $liquidityProviderIds = array_unique(array_map(function ($uniswapMint) {
+            return $uniswapMint->getTo();
+        }, $uniswapMints));
+
+        $summaries = [];
+
+        foreach ($liquidityProviderIds as $liquidityProviderId) {
+            $uniqueOnChainAddress = $this->uniqueOnchain->getByAddress($liquidityProviderId);
+
+            if (!$uniqueOnChainAddress) {
+                continue;
+            }
+
+            $userGuid = $uniqueOnChainAddress->getUserGuid();
+            /** @var User */
+            $user = $this->entitiesBuilder->single($userGuid, [ 'cache' => false ]); // This may loop in the CLI so we don't want to cache
+            try {
+                $summaries[] = $this->setUser($user)->getSummary();
+            } catch (\Exception $e) {
+                var_dump($e);
+                exit;
+            }
+        }
+
+        return $summaries;
     }
 
     /**

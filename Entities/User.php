@@ -74,6 +74,7 @@ class User extends \ElggUser
         $this->attributes['yt_channels'] = [];
         $this->attributes['public_dob'] = 0;
         $this->attributes['dismissed_widgets'] = [];
+        $this->attributes['liquidity_spot_opt_out'] = 0;
 
         parent::initializeAttributes();
     }
@@ -1042,6 +1043,8 @@ class User extends \ElggUser
 
         $export['yt_channels'] = $this->getYouTubeChannels();
 
+        $export['liquidity_spot_opt_out'] = $this->getLiquiditySpotOptOut();
+
         return $export;
     }
 
@@ -1359,7 +1362,8 @@ class User extends \ElggUser
             'surge_token',
             'hide_share_buttons',
             'allow_unsubscribed_contact',
-            'dismissed_widgets'
+            'dismissed_widgets',
+            'liquidity_spot_opt_out'
         ]);
     }
 
@@ -1707,5 +1711,34 @@ class User extends \ElggUser
             $nsfw[] = 6; // other
         }
         return $nsfw;
+    }
+
+    /**
+     * Set Liquidity spot opt out
+     * @param int $value
+     * @return self
+     */
+    public function setLiquiditySpotOptOut($value): self
+    {
+        $this->liquidity_spot_opt_out = (int) $value;
+        return $this;
+    }
+
+    /**
+     * Return Liquidity spot opt out
+     * @return int
+     */
+    public function getLiquiditySpotOptOut(): int
+    {
+        return $this->liquidity_spot_opt_out;
+    }
+
+    /**
+     * Is Liquidity spot opt out
+     * @return bool
+     */
+    public function isLiquiditySpotOptOut(): bool
+    {
+        return $this->getLiquiditySpotOptOut() === 1;
     }
 }

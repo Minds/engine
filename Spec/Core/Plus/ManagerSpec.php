@@ -138,6 +138,10 @@ class ManagerSpec extends ObjectBehavior
     {
         $asOfTs = strtotime('midnight 1st June 2020');
 
+        $this->config->get('plus')->willReturn([
+            'support_tier_urn' => 'support_tier',
+        ]);
+
         $this->es->request(Argument::that(function ($prepared) {
             return true;
         }))
@@ -146,22 +150,54 @@ class ManagerSpec extends ObjectBehavior
                     'total' => 100,
                 ],
                 'aggregations' => [
-                    'unlocks_by_owner' => [
+                    'owners' => [
                         'buckets' => [
                             [
                                 'key' => "123",
                                 'doc_count' => 75,
+                                'actions' => [
+                                    'buckets' => [
+                                        [
+                                            'key' => 'vote:up',
+                                            'unique_user_actions' => [
+                                                'value' => 55,
+                                            ]
+                                        ],
+                                        [
+                                            'key' => 'comment',
+                                            'unique_user_actions' => [
+                                                'value' => 10,
+                                            ]
+                                        ]
+                                    ]
+                                ]
                             ],
                             [
                                 'key' => "456",
                                 'doc_count' => 25,
+                                'actions' => [
+                                    'buckets' => [
+                                        [
+                                            'key' => 'vote:up',
+                                            'unique_user_actions' => [
+                                                'value' => 5,
+                                            ]
+                                        ],
+                                        [
+                                            'key' => 'remind',
+                                            'unique_user_actions' => [
+                                                'value' => 5,
+                                            ]
+                                        ]
+                                    ]
+                                ]
                             ]
                         ]
                     ]
                 ]
             ]);
 
-        $response = $this->getUnlocks($asOfTs);
+        $response = $this->getScores($asOfTs);
         $response->current()->shouldBe([
             'user_guid' => "123",
             'total' => 100,

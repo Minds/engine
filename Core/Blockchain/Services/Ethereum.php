@@ -161,6 +161,24 @@ class Ethereum
     }
 
     /**
+     * @return string
+     */
+    public function recoverAddress($message, $signature): string
+    {
+        return $this->sign->recoverAddress($message, $signature);
+    }
+
+    /**
+     * @param string $message
+     * @param string $signature
+     * @return string
+     */
+    public function verifyMessage(string $message, string $signature): string
+    {
+        return $this->sign->verifyMessage($message, $signature);
+    }
+
+    /**
      * Sends a raw transaction
      * @param string $privateKey
      * @param array $transaction

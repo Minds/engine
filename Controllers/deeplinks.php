@@ -24,7 +24,7 @@ class deeplinks implements Interfaces\Api, Interfaces\ApiIgnorePam
                 [
                     'appID' => "35U3998VRZ.com.minds.mobile",
                     'paths' => [
-                        '/email-confirmation'
+                        // '/email-confirmation'
                         // '/groups/profile/*',
                         // '/groups/*',
                         // '/media/*',
@@ -32,7 +32,7 @@ class deeplinks implements Interfaces\Api, Interfaces\ApiIgnorePam
                         // '/blog/view/*',
                         // '/blog/*',
                         // '/channels/*',
-                        // '/*'
+                        '/*'
                     ]
                 ]
             ]

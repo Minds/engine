@@ -12,6 +12,9 @@ use Minds\Core\Blockchain\Uniswap\UniswapPairEntity;
 use Minds\Core\Blockchain\Uniswap\UniswapUserEntity;
 use Minds\Core\Config\Config;
 use Minds\Entities\User;
+use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain;
+use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain\UniqueOnChainAddress;
+use Minds\Core\EntitiesBuilder;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -23,11 +26,23 @@ class ManagerSpec extends ObjectBehavior
     /** @var Config */
     protected $config;
 
-    public function let(Uniswap\Client $uniswapClient, Config $config)
-    {
-        $this->beConstructedWith($uniswapClient, $config);
+    /** @var UniqueOnChain\Manager */
+    protected $uniqueOnchain;
+
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
+    public function let(
+        Uniswap\Client $uniswapClient,
+        Config $config,
+        UniqueOnChain\Manager $uniqueOnchain = null,
+        EntitiesBuilder $entitiesBuilder = null
+    ) {
+        $this->beConstructedWith($uniswapClient, $config, $uniqueOnchain, $entitiesBuilder);
         $this->config = $config;
         $this->uniswapClient = $uniswapClient;
+        $this->uniqueOnchain = $uniqueOnchain;
+        $this->entitiesBuilder = $entitiesBuilder;
     }
 
     public function it_is_initializable()
@@ -43,8 +58,12 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_liquidity_share(User $user)
     {
+        $user->getGuid()
+            ->willReturn('123');
         $user->getEthWallet()
             ->willReturn('0xSpec');
+        $user->isLiquiditySpotOptOut()
+            ->willReturn(false);
 
         $this->config->get('blockchain')
             ->willReturn([
@@ -56,20 +75,7 @@ class ManagerSpec extends ObjectBehavior
                 ]
             ]);
 
-        $pairs = [
-            (new UniswapPairEntity())
-                ->setTotalSupply(BigDecimal::of(1))
-                ->setReserve0(BigDecimal::of(1))
-                ->setReserve1(BigDecimal::of(2))
-                ->setReserveUSD(BigDecimal::of(2))
-                ->setId('0xPAIR1'),
-            (new UniswapPairEntity())
-                ->setTotalSupply(BigDecimal::of(0.5))
-                ->setReserve0(BigDecimal::of(0.5))
-                ->setReserve1(BigDecimal::of(1))
-                ->setReserveUSD(BigDecimal::of(1))
-                ->setId('0xPAIR2'),
-        ];
+        $pairs = $this->getPairMocks();
         $this->uniswapClient->getPairs(['0xPAIR1', '0xPAIR2'])
             ->willReturn($pairs);
 
@@ -109,6 +115,9 @@ class ManagerSpec extends ObjectBehavior
 
         $summary = $this->setUser($user)
             ->getSummary();
+
+        $summary->getUserGuid()
+            ->shouldBe('123');
 
         $summary->getTokenSharePct()
             ->shouldBe(0.5); // 50pc
@@ -172,5 +181,84 @@ class ManagerSpec extends ObjectBehavior
             ->getUsd()
             ->toFloat()
             ->shouldBe((float) 0.5);
+    }
+
+    public function it_should_return_all_liquidity_providers_summaries()
+    {
+        $this->config->get('blockchain')
+            ->willReturn([
+                'liquidity_positions' => [
+                    'approved_pairs' => [
+                        '0xPAIR1',
+                        '0xPAIR2'
+                    ]
+                ]
+            ]);
+
+        $this->uniswapClient->getMintsByPairIds(['0xPAIR1', '0xPAIR2'])
+            ->willReturn([
+                (new UniswapMintEntity())
+                    ->setId('0xMINTID')
+                    ->setTo('0xHOLDER_1'),
+                (new UniswapMintEntity())
+                    ->setId('0xMINTID')
+                    ->setTo('0xHOLDER_2'),
+            ]);
+
+        $this->uniqueOnchain->getByAddress('0xHOLDER_1')
+                ->willReturn(
+                    (new UniqueOnChainAddress())
+                        ->setAddress('0xholder_1')
+                        ->setUserGuid('123')
+                );
+
+        $this->uniqueOnchain->getByAddress('0xHOLDER_2')
+            ->willReturn(
+                (new UniqueOnChainAddress())
+                    ->setAddress('0xholder_2')
+                    ->setUserGuid('123')
+            );
+
+        $holder1 = (new User())
+                ->setEthWallet('0xholder_1');
+        $this->entitiesBuilder->single('123', [ 'cache' => false ])
+            ->willReturn(
+                $holder1
+            );
+
+        $uniswapUser = new UniswapUserEntity();
+        $pairs = $this->getPairMocks();
+        $this->uniswapClient->getPairs(Argument::any())
+            ->willReturn($pairs);
+
+        $liquidityPosition = new UniswapLiquidityPositionEntity();
+        $liquidityPosition->setPair($pairs[0])
+            ->setLiquidityTokenBalance(BigDecimal::of(0.75)); // 50% of total (pairs totalSupply added up)
+        $uniswapUser->setLiquidityPositions([$liquidityPosition]);
+
+        $this->uniswapClient->getUser('0xholder_1')
+           ->willReturn($uniswapUser);
+        
+
+        $summaries = $this->getAllProvidersSummaries();
+        $summaries->shouldHaveCount(2);
+    }
+
+    private function getPairMocks()
+    {
+        return [
+            (new UniswapPairEntity())
+                ->setTotalSupply(BigDecimal::of(1))
+                ->setReserve0(BigDecimal::of(1))
+                ->setReserve1(BigDecimal::of(2))
+                ->setReserveUSD(BigDecimal::of(2))
+                ->setId('0xPAIR1'),
+            (new UniswapPairEntity())
+                ->setTotalSupply(BigDecimal::of(0.5))
+                ->setReserve0(BigDecimal::of(0.5))
+                ->setReserve1(BigDecimal::of(1))
+                ->setReserveUSD(BigDecimal::of(1))
+                ->setId('0xPAIR2'),
+        ];
     }
 }

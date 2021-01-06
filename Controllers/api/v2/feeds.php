@@ -37,6 +37,7 @@ class feeds implements Interfaces\Api
         /** @var User $currentUser */
         $currentUser = Core\Session::getLoggedinUser();
 
+
         $filter = $pages[0] ?? null;
 
         if (!$filter) {
@@ -90,8 +91,6 @@ class feeds implements Interfaces\Api
         if (isset($_GET['export_user_counts'])) {
             $exportCounts = true;
         }
-
-        //
 
         $hardLimit = 600;
 
@@ -180,6 +179,7 @@ class feeds implements Interfaces\Api
             'query' => $query ?? null,
             'single_owner_threshold' => 36,
             'as_activities' => $asActivities,
+            'wire_support_tier_only' => filter_var($_GET['wire_support_tier_only'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'plus' => filter_var($_GET['plus'] ?? false, FILTER_VALIDATE_BOOLEAN),
         ];
 

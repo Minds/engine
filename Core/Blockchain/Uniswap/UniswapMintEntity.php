@@ -6,6 +6,8 @@ use Brick\Math\BigDecimal;
 /**
  * @method string getId()
  * @method self setId(string $id)
+ * @method string getTo()
+ * @method self setTo(string $to)
  * @method BigDecimal getLiquidity()
  * @method self setLiquidity(BigDecimal $liquidity)
  * @method BigDecimal getAmount0()
@@ -21,6 +23,9 @@ class UniswapMintEntity extends UniswapBaseEntity implements UniswapEntityHasPai
 {
     /** @var BigDecimal */
     protected $liquidity;
+
+    /** @var string */
+    protected $to;
 
     /** @var BigDecimal */
     protected $amount0;
@@ -38,6 +43,7 @@ class UniswapMintEntity extends UniswapBaseEntity implements UniswapEntityHasPai
     {
         $instance = parent::build($data);
         $instance
+            ->setTo($data['to'])
             ->setAmount0(BigDecimal::of($data['amount0']))
             ->setAmount1(BigDecimal::of($data['amount1']))
             ->setAmountUSD(BigDecimal::of($data['amountUSD']))

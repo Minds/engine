@@ -181,7 +181,7 @@ class Manager
         $revenueUsd = $this->plusManager->getDailyRevenue($opts['from']) * (self::PLUS_SHARE_PCT / 100);
         $revenueCents = round($revenueUsd * 100, 0);
 
-        foreach ($this->plusManager->getUnlocks($opts['from']) as $unlock) {
+        foreach ($this->plusManager->getScores($opts['from']) as $unlock) {
             $shareCents = $revenueCents * $unlock['sharePct'];
             $deposit = new EarningsDeposit();
             $deposit->setTimestamp($opts['from'])

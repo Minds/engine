@@ -383,6 +383,11 @@ $CONFIG->set('blockchain', [
         ]
     ],
 
+    'transak' => [
+        'api_key' => '',
+        'environment' => 'staging',
+    ],
+
     'mw3' => '/usr/bin/env node '.__MINDS_ROOT__.'/../mw3/index.js',
 ]);
 
