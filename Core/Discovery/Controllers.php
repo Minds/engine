@@ -69,7 +69,12 @@ class Controllers
         $filter = $queryParams['algorithm'] ?? 'latest';
         $type = $queryParams['type'] ?? '';
         $plus = filter_var($queryParams['plus'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $entities = $this->manager->getSearch($query, $filter, $type, [ 'plus' => $plus ]);
+        $nsfw = array_filter(explode(',', $queryParams['nsfw'] ?? '') ?: [], 'strlen');
+
+        $entities = $this->manager->getSearch($query, $filter, $type, [
+            'plus' => $plus,
+            'nsfw' => $nsfw,
+        ]);
 
         return new JsonResponse([
             'status' => 'success',
