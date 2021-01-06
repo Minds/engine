@@ -530,6 +530,7 @@ class Manager
         $algorithm = 'latest';
         $opts = array_merge([
             'plus' => false,
+            'nsfw' => [],
         ], $opts);
 
         switch ($type) {
@@ -566,7 +567,7 @@ class Manager
             'access_id' => 2,
             'limit' => 300,
             //'offset' => $offset,
-            'nsfw' => [],
+            'nsfw' => $opts['nsfw'],
             'type' => $type,
             'algorithm' => $algorithm,
             'period' => '1y',
