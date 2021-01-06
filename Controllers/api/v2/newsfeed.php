@@ -478,7 +478,7 @@ class newsfeed implements Interfaces\Api
                     }
 
                     // save entity
-                    $guid = $manager->add($activity);
+                    $success = $manager->add($activity);
 
                     // if posting to permaweb
                     try {
@@ -489,7 +489,7 @@ class newsfeed implements Interfaces\Api
                             // get guid for linkback
                             $newsfeedGuid = $activity->custom_type === 'video' || $activity->custom_type === 'batch'
                                 ? $activity->entity_guid
-                                : $guid;
+                                : $activity->guid;
 
                             // dry run to generate id and save it to this activity, but not commit it to the arweave network.
                             Di::_()->get('Permaweb\Delegates\GenerateIdDelegate')
@@ -513,7 +513,7 @@ class newsfeed implements Interfaces\Api
                     ]);
                 }
 
-                if ($guid) {
+                if ($success) {
                     // Follow activity
                     (new Core\Notification\PostSubscriptions\Manager())
                         ->setEntityGuid($activity->guid)
@@ -536,7 +536,7 @@ class newsfeed implements Interfaces\Api
                     }
 
                     $activity->setExportContext(true);
-                    return Factory::response(['guid' => $guid, 'activity' => $activity->export()]);
+                    return Factory::response(['guid' => $activity->guid, 'activity' => $activity->export()]);
                 } else {
                     return Factory::response(['status' => 'failed', 'message' => 'could not save']);
                 }
