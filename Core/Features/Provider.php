@@ -73,6 +73,7 @@ class Provider extends DiProvider
                 'liquidity-spot',
                 'earn-modal',
                 'buy-tokens-uniswap-transak',
+                'guest-mode',
             ];
         });
 
