@@ -68,6 +68,12 @@ class Manager
     {
         $wireThreshold = $entity->getWireThreshold();
         
+        // a removed paywall entity is a valid edit.
+        if (!$wireThreshold) {
+            $entity->setPayWall(false);
+            return;
+        }
+
         if (!is_array($wireThreshold)) {
             throw new PaywallInvalidCreationInputException();
         }
