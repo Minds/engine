@@ -37,6 +37,7 @@ class feeds implements Interfaces\Api
         /** @var User $currentUser */
         $currentUser = Core\Session::getLoggedinUser();
 
+
         $filter = $pages[0] ?? null;
 
         if (!$filter) {
