@@ -15,7 +15,7 @@ use Minds\Interfaces;
 use Minds\Helpers;
 use Minds\Api\Factory;
 use Minds\Entities;
-use Minds\Entities\Notification as NotificationEntity;
+use Minds\Core\Queue\Client as QueueClient;
 
 /**
  *
@@ -149,7 +149,17 @@ class notifications implements Interfaces\Api
 
                 (new Core\Data\Call('entities'))
                     ->insert(static::getCurrentUserGuid(), [ 'surge_token' => $token ]);
-            break;
+                break;
+            case "test":
+                QueueClient::build()
+                    ->setQueue('Push')
+                    ->send([
+                        'user_guid' => Core\Session::getLoggedinUser()->guid,
+                        'uri' => $_POST['uri'] ?? 'https://www.minds.com/' . Core\Session::getLoggedinUser()->username,
+                        'title' => $_POST['title'] ?? 'Hello there',
+                        'message' => $_POST['message'] ?? 'This is a test',
+                    ]);
+                break;
         }
 
         return Factory::response([]);
