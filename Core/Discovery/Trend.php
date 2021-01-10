@@ -46,7 +46,7 @@ class Trend
             'entity' => $this->entity ? $this->entity->export() : null,
             'guid' => $this->guid,
             'hashtag' => $this->hashtag,
-            'title' => $this->title,
+            'title' => (string) $this->title,
             'volume' => $this->volume,
             'period' => $this->period,
             'selected' => $this->selected,
