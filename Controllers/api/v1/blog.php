@@ -17,7 +17,6 @@ use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Helpers;
 use Minds\Interfaces;
 use Minds\Core\Blogs\Delegates\CreateActivity;
-use Minds\Entities\Entity;
 use Minds\Entities\User;
 use Minds\Core\Blogs\Blog as BlogEntity;
 
@@ -450,15 +449,15 @@ class blog implements Interfaces\Api
     }
 
     /**
-     * Checks a given blogs visibility to determine whether the user 
-     * initiating communications with the server is authorized. 
+     * Checks a given blogs visibility to determine whether the user
+     * initiating communications with the server is authorized.
      *
      * @param bool $blog - blog entity to be checked.
      * @return boolean true if blog should be visible to user.
      */
-    private function shouldBeVisible(BlogEntity $blog): bool 
+    private function shouldBeVisible(BlogEntity $blog): bool
     {
-        switch($blog->getAccessId()) {
+        switch ($blog->getAccessId()) {
             case 0: // private
                 return $blog->getOwnerGuid() === Core\Session::getLoggedInUserGuid();
                 break;
