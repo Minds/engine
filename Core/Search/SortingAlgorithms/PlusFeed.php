@@ -6,6 +6,8 @@
  */
 namespace Minds\Core\Search\SortingAlgorithms;
 
+use Minds\Core\Session;
+
 class PlusFeed implements SortingAlgorithm
 {
     /**
@@ -30,7 +32,23 @@ class PlusFeed implements SortingAlgorithm
      */
     public function getQuery()
     {
-        return [ ];
+        $user = Session::getLoggedInUser();
+        if (!$user) {
+            return [];
+        } else {
+            $languages = array_unique([ 'en', $user->getLanguage() ]);
+        }
+        return [
+            'bool' => [
+                'must' => [
+                    [
+                        'terms' => [
+                            'language' => $languages
+                        ]
+                    ]
+                ]
+            ]
+        ];
     }
 
     /**
