@@ -165,7 +165,7 @@ class Call
              'multi' => false,
              'offset' => "",
              'finish' => "",
-             'limit' => 500,
+             'limit' => 5000,
              'reversed' => true
             ],
             $options
