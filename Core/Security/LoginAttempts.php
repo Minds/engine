@@ -69,6 +69,9 @@ class LoginAttempts
                     $f = $this->user->getPrivateSetting("login_failure_$n");
                     if ($f > $time - (60)) {
                         $cnt++;
+                    } else {
+                        // Cleanup as we go as this has expired
+                        $this->user->removePrivateSetting("login_failure_$n");
                     }
 
                     if ($cnt == $limit) {
