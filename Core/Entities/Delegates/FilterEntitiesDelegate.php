@@ -48,6 +48,7 @@ class FilterEntitiesDelegate
     private function shouldFilterScheduled($type)
     {
         return $type == 'activity'
+            || $type == 'object'
             || $type == 'blog'
             || $type == 'video'
             || $type == 'image';
