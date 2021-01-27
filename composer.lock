@@ -7,7 +7,7 @@
     "content-hash": "41871b8f61530a70b889988e804e2882",
     "packages": [
         {
-            "name": "Minds/Surge",
+            "name": "minds/surge",
             "version": "dev-master",
             "source": {
                 "type": "git",
