@@ -300,51 +300,55 @@ class Manager
             ],
         ];
 
-        // Have interaction
-
-        if ($opts['plus'] === false) {
-            $must[] = [
-                'range' => [
-                    'comments:count' => [
-                        'gte' => 1,
+        switch ($opts['plus']) {
+            case false:
+                // return NO plus posts.
+                $must_not[] = [
+                    'match' => [
+                        'wire_support_tier' => $this->plusSupportTierUrn,
+                    ],
+                ];
+                $must[] = [
+                    'range' => [
+                        'comments:count' => [
+                            'gte' => 1,
+                        ]
+                    ],
+                    'multi_match' => [
+                        //'type' => 'cross_fields',
+                        'query' => implode(' ', $tags),
+                        'operator' => 'OR',
+                        'fields' => ['title', 'message', 'tags^2'],
+                        'boost' => 0,
+                    ],
+                ];
+                break;
+            case true:
+                // return only plus posts.
+                $must[] = [
+                    'term' => [
+                        'wire_support_tier' => $this->plusSupportTierUrn,
+                    ],
+                    'range' => [
+                        'votes:up' => [
+                            'gte' => 2,
+                        ]
                     ]
-                ]
-            ];
-        } else {
-            $must[] = [
-                'range' => [
-                    'votes:up' => [
-                        'gte' => 2,
+                ];
+                // Only blogs and videos show in top half of discovery
+                // as we don't want blury thumbnails
+                $type = 'object:video,object:blog';
+                break;
+            default:
+                // return mix of plus and non plus posts.
+                $must[] = [
+                    'range' => [
+                        'votes:up' => [
+                            'gte' => 2,
+                        ]
                     ]
-                ]
-            ];
-        }
-
-        // Match query
-
-        if ($opts['plus'] === false) {
-            $must[] = [
-                'multi_match' => [
-                    //'type' => 'cross_fields',
-                    'query' => implode(' ', $tags),
-                    'operator' => 'OR',
-                    'fields' => ['title', 'message', 'tags^2'],
-                    'boost' => 0,
-                ],
-            ];
-        }
-
-        // Only plus?
-
-        if ($opts['plus'] === true) {
-            $must[] = [
-                'term' => [
-                    'wire_support_tier' => $this->plusSupportTierUrn,
-                ],
-            ];
-            // Only blogs and videos show in top half of discovery
-            // as we don't want blury thumbnails
-            $type = 'object:video,object:blog';
+                ];
+                break;
         }
 
         // Not NSFW
@@ -461,6 +465,8 @@ class Manager
             ],
             'size' => $opts['limit'] * 3, // * 3 because not all have thumbnails (improve our indexing!)
         ];
+
+        error_log(var_export(json_encode($query['body']), true));
 
         $prepared = new ElasticSearch\Prepared\Search();
         $prepared->query($query);
