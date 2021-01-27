@@ -466,7 +466,7 @@ class Manager
             'size' => $opts['limit'] * 3, // * 3 because not all have thumbnails (improve our indexing!)
         ];
 
-        error_log(var_export(json_encode($query['body']), true));
+        // error_log(var_export(json_encode($query['body']), true));
 
         $prepared = new ElasticSearch\Prepared\Search();
         $prepared->query($query);
