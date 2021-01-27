@@ -2,6 +2,7 @@
 
 namespace Minds\Controllers\Cli;
 
+use Brick\Math\BigDecimal;
 use DateTime;
 use Elasticsearch\ClientBuilder;
 use Minds\Cli;
@@ -128,5 +129,53 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
             ->create();
 
         $this->out('Issued');
+    }
+
+    public function add_reward()
+    {
+        $daysAgo = $this->getOpt('daysAgo') ?: 0;
+        $dateTs = strtotime("midnight $daysAgo days ago");
+
+        $userGuid = $this->getOpt('user_guid');
+        $rewardType = $this->getOpt('reward_type') ?: 'engagement';
+        $score = $this->getOpt('score') ?: 0;
+
+        $rewardEntry = new Core\Rewards\RewardEntry();
+        $rewardEntry->setUserGuid($userGuid)
+            ->setRewardType($rewardType)
+            ->setDateTs($dateTs)
+            ->setScore($score)
+            ->setMultiplier(1);
+
+        $manager = new Core\Rewards\Manager();
+        $manager->add($rewardEntry);
+    }
+
+    public function get_list()
+    {
+        $userGuid = $this->getOpt('user_guid');
+
+        $opts = new Core\Rewards\RewardsQueryOpts();
+        $opts->setUserGuid($userGuid)
+            ->setDateTs(time());
+
+        $repository = new Core\Rewards\Repository();
+        foreach ($repository->getList($opts) as $rewardEntry) {
+            var_dump($rewardEntry->export());
+        }
+    }
+
+    public function calculate()
+    {
+        Di::_()->get('Config')
+            ->set('min_log_level', 'INFO');
+        
+        $dateTs = $this->getOpt('date') ? strtotime($this->getOpt('date')) : time();
+
+        $opts = new Core\Rewards\RewardsQueryOpts();
+        $opts->setDateTs($dateTs);
+
+        $manager = new Core\Rewards\Manager();
+        $manager->calculate($opts);
     }
 }

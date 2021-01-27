@@ -48,7 +48,7 @@ class Scroll
                 yield $row;
             }
 
-            if ($rows->isLastPage()) {
+            if (!$rows || $rows->isLastPage()) {
                 break;
             }
 

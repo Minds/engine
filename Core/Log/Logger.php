@@ -53,7 +53,7 @@ class Logger extends MonologLogger
 
         $errorLogHandler
             ->setFormatter(new LineFormatter(
-                "%channel%.%level_name%: %message% %context% %extra%\n",
+                "%channel%.%level_name%: %message% \t%context% %extra%",
                 'c',
                 !$isProduction, // Allow newlines on dev mode
                 true
@@ -78,7 +78,7 @@ class Logger extends MonologLogger
 
                 case 'phpconsole':
                     try {
-                        $handlers[] = new PHPConsoleHandler(null, null, $level);
+                        $handlers[] = new PHPConsoleHandler([], null, $level);
                     } catch (Exception $exception) {
                         // If the server-side vendor package is not installed, ignore any warnings.
                     }

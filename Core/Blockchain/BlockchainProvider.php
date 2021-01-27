@@ -46,6 +46,10 @@ class BlockchainProvider extends Provider
             return new Services\Ethereum();
         }, [ 'useFactory' => true ]);
 
+        $this->di->bind('Blockchain\Services\BlockFinder', function () {
+            return new Services\BlockFinder();
+        }, [ 'useFactory' => true ]);
+
         $this->di->bind('Blockchain\Wallets\Balance', function () {
             return new Wallets\Balance();
         });
@@ -76,6 +80,10 @@ class BlockchainProvider extends Provider
 
         $this->di->bind('Blockchain\Wallets\OnChain\Balance', function () {
             return new Wallets\OnChain\Balance();
+        });
+
+        $this->di->bind('Blockchain\Wallets\OnChain\UniqueOnChain\Manager', function () {
+            return new Wallets\OnChain\UniqueOnChain\Manager();
         });
 
         $this->di->bind('Blockchain\Rates', function () {

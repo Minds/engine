@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use Brick\Math\Exception\DivisionByZeroException;
 use Minds\Core\Blockchain\Uniswap\UniswapEntityHasPairInterface;
 use Minds\Core\Blockchain\Uniswap\UniswapEntityInterface;
 use Minds\Core\Blockchain\Uniswap\UniswapMintEntity;
@@ -29,6 +30,9 @@ class Manager
 
     /** @var User */
     protected $user;
+
+    /** @var int */
+    protected $dateTs;
 
     public function __construct(
         Uniswap\Client $uniswapClient = null,
@@ -55,6 +59,18 @@ class Manager
     }
 
     /**
+     * Set the reference date
+     * @param int $dateTs
+     * @return Manager
+     */
+    public function setDateTs(int $dateTs): Manager
+    {
+        $manager = clone $this;
+        $manager->dateTs = $dateTs;
+        return $manager;
+    }
+
+    /**
      * Returns the summary of a users liquidity position (includes share)
      * @return LiquidityPositionSummary
      * @throws \Exception
@@ -69,7 +85,7 @@ class Manager
             throw new \Exception("User must have an ETH wallet setup");
         }
 
-        $uniswapUser = $this->uniswapClient->getUser($address);
+        $uniswapUser = $this->uniswapClient->getUser($address, $this->dateTs);
 
         $pairs = $this->uniswapClient->getPairs($this->getApprorvedLiquidityPairIds());
 
@@ -122,7 +138,11 @@ class Manager
         //
 
         $tokenSharePct = $userLiquidityTokens->dividedBy($totalLiquidityTokens, null, RoundingMode::FLOOR);
-        $userRelativeSharePct = $userLiquidityTokens->dividedBy($userLiquidityTokensTotalSupply, null, RoundingMode::FLOOR);
+        try {
+            $userRelativeSharePct = $userLiquidityTokens->dividedBy($userLiquidityTokensTotalSupply, null, RoundingMode::FLOOR);
+        } catch (DivisionByZeroException $e) {
+            $userRelativeSharePct = BigDecimal::of(0);
+        }
 
         // Multiply our liquidity position pairs reserve0 (we assume this is MINDS tokens... see note on uniswapMintsToMINDS below)
         // by our tokenSharePct
