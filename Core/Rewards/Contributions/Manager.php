@@ -161,4 +161,13 @@ class Manager
         $tokens = BigNumber::_($this->getUserContributionScore())->mul($tokensPerScore);
         return (string) $tokens;
     }
+
+    /**
+     * Returns contributions summaries for users
+     * @return ContributionSummary[]
+     */
+    public function getSummaries(ContributionQueryOpts $opts): iterable
+    {
+        return $this->repository->getSummaries($opts);
+    }
 }

@@ -136,12 +136,12 @@ class Ethereum
      * @return mixed
      * @throws \Exception
      */
-    public function call($contract, $contractMethodDeclaration, array $params)
+    public function call($contract, $contractMethodDeclaration, array $params, int $blockNumber = null)
     {
         return $this->request('eth_call', [[
             'to' => $contract,
             'data' =>  $this->encodeContractMethod($contractMethodDeclaration, $params)
-        ], 'latest']);
+        ],  $blockNumber ? '0x' . dechex($blockNumber) : 'latest' ]);
     }
 
     /**

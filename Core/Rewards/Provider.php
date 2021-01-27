@@ -1,9 +1,9 @@
 <?php
 namespace Minds\Core\Rewards;
 
-use Minds\Core\Di\Provider;
+use Minds\Core\Di;
 
-class RewardsProvider extends Provider
+class Provider extends Di\Provider
 {
     public function register()
     {
@@ -38,5 +38,9 @@ class RewardsProvider extends Provider
         $this->di->bind('Rewards\OfacBlacklist', function ($di) {
             return new OfacBlacklist();
         }, [ 'useFactory'=> true ]);
+
+        $this->di->bind('Rewards\Controller', function ($di) {
+            return new Controller();
+        }, [ 'useFactory' => false]);
     }
 }
