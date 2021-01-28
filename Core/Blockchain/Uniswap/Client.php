@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Blockchain\Uniswap;
 
+use Brick\Math\BigDecimal;
 use Minds\Core\Di\Di;
 use Minds\Core\Http;
 use Minds\Core\Blockchain\Services\BlockFinder;
@@ -189,6 +190,40 @@ class Client
         }
 
         return $mints;
+    }
+
+    /**
+     * Get token prices in USD
+     * @param string $tokenAddress
+     * @return array
+     */
+    public function getTokenUsdPrices(string $tokenAddress): array
+    {
+        $query = '
+            query($tokenAddress: String!) {
+                bundle(id: "1") {
+                    ethPrice
+                } 
+                token(id: $tokenAddress) {
+                    derivedETH
+                } 
+            }
+        ';
+
+        $variables = [
+            'tokenAddress' => strtolower($tokenAddress),
+        ];
+
+        $response = $this->request($query, $variables);
+
+        $ethUsd = BigDecimal::of($response['bundle']['ethPrice']);
+        $ethToken = BigDecimal::of($response['token']['derivedETH']);
+        $tokenUsd = $ethUsd->multipliedBy($ethToken);
+
+        return [
+            'eth' => $ethUsd,
+            'token' => $tokenUsd,
+        ];
     }
 
     /**

@@ -15,6 +15,7 @@ class Module implements ModuleInterface
     public $submodules = [
         LiquidityPositions\Module::class,
         Wallets\OnChain\UniqueOnChain\Module::class,
+        TokenPrices\Module::class,
     ];
 
     /**
