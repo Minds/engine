@@ -58,8 +58,8 @@ class Update2021_01_28 extends EmailCampaign
         $this->template->set('tracking', http_build_query($tracking));
 
         $actionButton = (new ActionButton())
-            ->setLabel('Start your free trial today')
-            ->setPath('plus?'.http_build_query($tracking));
+            ->setLabel('Read our blog')
+            ->setPath('minds/blog/a-commitment-to-our-principles-1201316516397621248?'.http_build_query($tracking));
 
         $this->template->set('actionButton', $actionButton->build());
 
