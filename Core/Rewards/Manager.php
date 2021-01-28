@@ -150,6 +150,23 @@ class Manager
     }
 
     /**
+     * @param RewardsQueryOpts $opts (optional)
+     * @return RewardsSummary
+     */
+    public function getSummary(RewardsQueryOpts $opts = null): RewardsSummary
+    {
+        $rewardEntries = $this->getList($opts);
+
+        $rewardsSummary = new RewardsSummary();
+        $rewardsSummary->setUserGuid($opts->getUserGuid())
+            ->setDateTs($opts->getDateTs())
+            ->setRewardEntries($rewardEntries->toArray());
+
+        return $rewardsSummary;
+    }
+
+
+    /**
      * @return void
      */
     public function calculate(RewardsQueryOpts $opts = null): void

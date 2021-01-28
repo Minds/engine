@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Rewards;
 
+use Brick\Math\BigDecimal;
 use Minds\Entities\User;
 use Minds\Core\Di\Di;
 use Minds\Core\Features;
@@ -47,17 +48,14 @@ class Controller
         /** @var string */
         $date = $request->getQueryParams()['date'] ?? date('Y-m-d');
 
-        $this->manager->setUser($user);
-
         $opts = (new RewardsQueryOpts())
             ->setUserGuid($user->getGuid())
             ->setDateTs(strtotime($date));
 
-        $rewardEntries = $this->manager->getList($opts);
+        $rewardsSummary = $this->manager->getSummary($opts);
          
         return new JsonResponse(array_merge([
             'status' => 'success',
-            'items' => Exportable::_($rewardEntries->toArray())
-        ], ));
+        ], $rewardsSummary->export()));
     }
 }
