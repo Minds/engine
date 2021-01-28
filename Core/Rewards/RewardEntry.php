@@ -37,19 +37,25 @@ class RewardEntry
     private $score;
 
     /** @var float */
-    private $multiplier;
+    private $multiplier = 0;
 
     /** @var BigDecimal */
     private $tokenAmount;
 
     /** @var float */
-    private $sharePct;
+    private $sharePct = 0;
 
     /** @var RewardEntry */
     private $allTimeSummary;
 
     /** @var int */
     private $tokenomicsVersion = 2;
+
+    public function __construct()
+    {
+        $this->tokenAmount = BigDecimal::of(0);
+        $this->score = BigDecimal::of(0);
+    }
 
     /**
      * @return array
@@ -59,11 +65,12 @@ class RewardEntry
         return [
             'user_guid' => (string) $this->userGuid,
             'date' => date('Y-m-d', $this->dateTs),
-            'data_iso8601' => date('c', $this->dateTs),
+            'date_iso8601' => date('c', $this->dateTs),
+            'date_unixts' => $this->dateTs,
             'reward_type' => $this->rewardType,
             'score' => (string) $this->score,
             'share_pct' => $this->sharePct,
-            'multiplier' => (string) $this->multiplier,
+            'multiplier' => $this->multiplier,
             'token_amount' => (string) $this->tokenAmount,
             'tokenomics_version' => $this->tokenomicsVersion,
             'alltime_summary' => [

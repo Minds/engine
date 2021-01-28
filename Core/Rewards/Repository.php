@@ -43,11 +43,30 @@ class Repository
         array_push($daily, ...$this->getDailyAggs($opts));
         $dailyGlobal = $this->getDailyGlobalAggs($opts);
 
+        /**
+         * Are there any daily RewardEntries mising?
+         * This could happen if you didn't get a score for an item
+         */
+        $rewardTypes = array_map(function ($rewardEntry) {
+            return $rewardEntry->getRewardType();
+        }, $daily);
+        $missingRewardTypes = array_diff(Manager::REWARD_TYPES, $rewardTypes);
+        foreach ($missingRewardTypes as $rewardType) {
+            $daily[] = (new RewardEntry)
+                ->setUserGuid((string) ($opts->getUserGuid()))
+                ->setDateTs($opts->getDateTs())
+                ->setRewardType($rewardType);
+        }
+
         foreach ($daily as $rewardEntry) {
             $allTimeSummary = $allTime[$rewardEntry->getRewardType()] ?? new RewardEntry();
             $dailyGlobalSummary = $dailyGlobal[$rewardEntry->getRewardType()] ?? new RewardEntry();
-            $sharePct = $rewardEntry->getScore()->dividedBy($dailyGlobalSummary->getScore(), 4, RoundingMode::FLOOR);
-            $rewardEntry->setSharePct($sharePct->toFloat());
+            try {
+                $sharePct = $rewardEntry->getScore()->dividedBy($dailyGlobalSummary->getScore(), 4, RoundingMode::FLOOR);
+                $rewardEntry->setSharePct($sharePct->toFloat());
+            } catch (DivisionByZeroException $e) {
+            }
+
             $rewardEntry->setAllTimeSummary($allTimeSummary);
         }
 
@@ -69,7 +88,6 @@ class Repository
                 $sharePct = $rewardEntry->getScore()->dividedBy($dailyGlobalSummary->getScore(), 4, RoundingMode::FLOOR);
                 $rewardEntry->setSharePct($sharePct->toFloat());
             } catch (DivisionByZeroException $e) {
-                $rewardEntry->setSharePct(0);
             }
             yield $rewardEntry;
         }
