@@ -4,30 +4,77 @@
  */
 namespace Minds\Core\Rewards;
 
-use Minds\Core\Blockchain\Transactions\Repository;
+use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
+use Minds\Common\Repository\Response;
+use Minds\Core\Analytics\UserStates\UserActivityBuckets;
+use Minds\Core\Blockchain\Transactions\Repository as TxRepository;
 use Minds\Core\Blockchain\Wallets\OffChain\Transactions;
 use Minds\Core\Blockchain\Transactions\Transaction;
+use Minds\Core\Blockchain\LiquidityPositions;
+use Minds\Core\Blockchain\Services\BlockFinder;
+use Minds\Core\Blockchain\Token;
+use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Core\Guid;
+use Minds\Core\Rewards\Contributions\ContributionQueryOpts;
 use Minds\Core\Util\BigNumber;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Rewards\TokenomicsManifests\TokenomicsManifestInterface;
+use Minds\Core\Rewards\TokenomicsManifests\TokenomicsManifestV2;
+use Minds\Core\Log\Logger;
 
 class Manager
 {
-    /** @var Contributions\Manager $contributions */
+    /** @var string[] */
+    const REWARD_TYPES = [
+        self::REWARD_TYPE_ENGAGEMENT,
+        self::REWARD_TYPE_LIQUIDITY,
+        self::REWARD_TYPE_HOLDING,
+    ];
+
+    /** @var string */
+    const REWARD_TYPE_ENGAGEMENT = 'engagement';
+
+    /** @var string */
+    const REWARD_TYPE_LIQUIDITY = 'liquidity';
+
+    /** @var string */
+    const REWARD_TYPE_HOLDING = 'holding';
+
+    /** @var Contributions\Manager */
     protected $contributions;
 
-    /** @var Transactions $transactions */
+    /** @var Transactions */
     protected $transactions;
 
-    /** @var Repository $txTransactions */
+    /** @var TxRepository */
     protected $txRepository;
 
-    /** @var Ethereum $eth */
+    /** @var Ethereum */
     protected $eth;
 
-    /** @var Config $config */
+    /** @var Config */
     protected $config;
+
+    /** @var Repository */
+    protected $repository;
+
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
+    /** @var LiquidityPositions\Manager */
+    protected $liquidityPositionsManager;
+
+    /** @var UniqueOnChain\Manager */
+    protected $uniqueOnChainManager;
+
+    /** @var Token */
+    protected $token;
+
+    /** @var Logger */
+    protected $logger;
 
     /** @var User $user */
     protected $user;
@@ -46,22 +93,251 @@ class Manager
         $transactions = null,
         $txRepository = null,
         $eth = null,
-        $config = null
+        $config = null,
+        $repository = null,
+        $entitiesBuilder = null,
+        $liquidityPositionManager = null,
+        $uniqueOnChainManager = null,
+        $blockFinder = null,
+        $token = null,
+        $logger = null
     ) {
         $this->contributions = $contributions ?: new Contributions\Manager;
         $this->transactions = $transactions ?: Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
         $this->txRepository = $txRepository ?: Di::_()->get('Blockchain\Transactions\Repository');
         $this->eth = $eth ?: Di::_()->get('Blockchain\Services\Ethereum');
         $this->config = $config ?: Di::_()->get('Config');
+        $this->repository = $repository ?? new Repository();
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->liquidityPositionsManager = $liquidityPositionManager ?? Di::_()->get('Blockchain\LiquidityPositions\Manager');
+        $this->uniqueOnChainManager = $uniqueOnChainManager ?? Di::_()->get('Blockchain\Wallets\OnChain\UniqueOnChain\Manager');
+        $this->blockFinder = $blockFinder ?? Di::_()->get('Blockchain\Services\BlockFinder');
+        $this->token = $token ?? Di::_()->get('Blockchain\Token');
+        $this->logger = $logger ?? Di::_()->get('Logger');
         $this->from = strtotime('-7 days') * 1000;
         $this->to = time() * 1000;
     }
 
-    public function setUser($user)
+    /**
+     * @param User $user
+     * @return Manager
+     */
+    public function setUser($user): Manager
     {
-        $this->user = $user;
-        return $this;
+        $manager = clone $this;
+        $manager->user = $user;
+        return $manager;
     }
+
+    /**
+     * Does not issue tokens!
+     * @param RewardEntry $rewardEntry
+     * @return bool
+     */
+    public function add(RewardEntry $rewardEntry): bool
+    {
+        //
+        return $this->repository->add($rewardEntry);
+    }
+
+    /**
+     * @param RewardsQueryOpts $opts (optional)
+     * @return Response
+     */
+    public function getList(RewardsQueryOpts $opts = null): Response
+    {
+        return $this->repository->getList($opts);
+    }
+
+    /**
+     * @param RewardsQueryOpts $opts (optional)
+     * @return RewardsSummary
+     */
+    public function getSummary(RewardsQueryOpts $opts = null): RewardsSummary
+    {
+        $rewardEntries = $this->getList($opts);
+
+        $rewardsSummary = new RewardsSummary();
+        $rewardsSummary->setUserGuid($opts->getUserGuid())
+            ->setDateTs($opts->getDateTs())
+            ->setRewardEntries($rewardEntries->toArray());
+
+        return $rewardsSummary;
+    }
+
+
+    /**
+     * @return void
+     */
+    public function calculate(RewardsQueryOpts $opts = null): void
+    {
+        $opts = $opts ?? (new RewardsQueryOpts())
+            ->setDateTs(time());
+
+        ////
+        // First, work out our scores
+        ////
+
+        // Engagement rewards
+
+        $opts = (new ContributionQueryOpts())
+            ->setDateTs($opts->getDateTs());
+
+        foreach ($this->contributions->getSummaries($opts) as $i => $contributionSummary) {
+
+            /** @var User */
+            $user = $this->entitiesBuilder->single($contributionSummary->getUserGuid());
+            if (!$user) {
+                continue;
+            }
+
+            // TODO: use a getKiteState function instead...
+            switch ($user->kite_state) {
+                case UserActivityBuckets::STATE_CORE:
+                    $multiplier = 3;
+                    break;
+                case UserActivityBuckets::STATE_CASUAL:
+                    $multiplier = 2;
+                    break;
+                case UserActivityBuckets::STATE_CURIOUS:
+                    $multiplier = 1;
+                    break;
+                default:
+                    $multiplier = 1;
+            }
+
+            $score = BigDecimal::of($contributionSummary->getScore())->multipliedBy($multiplier);
+
+            $rewardEntry = new RewardEntry();
+            $rewardEntry->setUserGuid($contributionSummary->getUserGuid())
+                ->setDateTs($contributionSummary->getDateTs())
+                ->setRewardType(static::REWARD_TYPE_ENGAGEMENT)
+                ->setScore($score)
+                ->setMultiplier($multiplier);
+
+            //
+
+            $this->add($rewardEntry);
+
+            $this->logger->info("[$i]: Engagement score calculated as $score", [
+                'userGuid' => $rewardEntry->getUserGuid(),
+                'reward_type' => $rewardEntry->getRewardType(),
+            ]);
+        }
+
+
+        // Liquidity rewards
+
+        foreach ($this->liquidityPositionsManager->setDateTs($opts->getDateTs())->getAllProvidersSummaries() as $i => $liquiditySummary) {
+            $multiplier = 1; // TODO: check if we had a score yesterday and then increment the multiplier respectfully
+
+            $score = $liquiditySummary->getUserLiquidityTokens()->multipliedBy($multiplier);
+
+            $rewardEntry = new RewardEntry();
+            $rewardEntry->setUserGuid($liquiditySummary->getUserGuid())
+                ->setDateTs($opts->getDateTs())
+                ->setRewardType(static::REWARD_TYPE_LIQUIDITY)
+                ->setScore($score)
+                ->setMultiplier($multiplier);
+
+            $this->add($rewardEntry);
+
+            $this->logger->info("[$i]: Liquidity score calculated as $score", [
+                'userGuid' => $rewardEntry->getUserGuid(),
+                'reward_type' => $rewardEntry->getRewardType(),
+            ]);
+        }
+
+        // Holding rewards
+        $blockNumber = $this->blockFinder->getBlockByTimestamp($opts->getDateTs());
+        foreach ($this->uniqueOnChainManager->getAll() as $i => $uniqueOnChain) {
+
+             /** @var User */
+            $user = $this->entitiesBuilder->single($uniqueOnChain->getUserGuid());
+            if (!$user) {
+                continue;
+            }
+
+            $tokenBalance = $this->token->fromTokenUnit(
+                $this->token->balanceOf($uniqueOnChain->getAddress(), $blockNumber)
+            );
+
+            $multiplier = 1;
+            $score = BigDecimal::of($tokenBalance)->multipliedBy($multiplier);
+
+            $rewardEntry = new RewardEntry();
+            $rewardEntry->setUserGuid($user->getGuid())
+                ->setDateTs($opts->getDateTs())
+                ->setRewardType(static::REWARD_TYPE_HOLDING)
+                ->setScore($score)
+                ->setMultiplier($multiplier);
+
+            $this->add($rewardEntry);
+
+            $this->logger->info("[$i]: Holding score calculated as $score", [
+                'userGuid' => $rewardEntry->getUserGuid(),
+                'reward_type' => $rewardEntry->getRewardType(),
+                'blockNumber' => $blockNumber,
+                'tokenBalance' => $tokenBalance,
+            ]);
+        }
+
+        //
+
+        ////
+        // Then, work out the tokens based off our score / globalScore
+        ////
+
+        foreach ($this->repository->getIterator($opts) as $i => $rewardEntry) {
+            if ($rewardEntry->getSharePct() === (float) 0) {
+                continue;
+            }
+
+            // Get the pool
+            $tokenomicsManifest = $this->getTokenomicsManifest($rewardEntry->getTokenomicsVersion());
+            $tokenPool = BigDecimal::of($tokenomicsManifest->getDailyPools()[$rewardEntry->getRewardType()]);
+
+            $tokenAmount = $tokenPool->multipliedBy($rewardEntry->getSharePct(), 18, RoundingMode::FLOOR);
+
+            $rewardEntry->setTokenAmount($tokenAmount);
+            $this->add($rewardEntry);
+        
+            $sharePct = $rewardEntry->getSharePct() * 100;
+
+            $this->logger->info("[$i]: Issued $tokenAmount tokens ($sharePct%)", [
+                'userGuid' => $rewardEntry->getUserGuid(),
+                'reward_type' => $rewardEntry->getRewardType(),
+            ]);
+        }
+    }
+
+    /**
+     * Issue tokens based on alreay calculated RewardEntry's
+     * @return void
+     */
+    public function issueTokens(): void
+    {
+        // TODO
+    }
+
+    /**
+     * @param int $tokenomicsVersion
+     * @return TokenomicsManifestInterface
+     */
+    private function getTokenomicsManifest($tokenomicsVersion = 1): TokenomicsManifestInterface
+    {
+        switch ($tokenomicsVersion) {
+            case 2:
+                return new TokenomicsManifestV2();
+                break;
+            default:
+                throw new \Exception("Invalid tokenomics version");
+        }
+    }
+
+    ////
+    // Legacy
+    ////
 
     /**
      * Sets if to dry run or not. A dry run will return the data but will save

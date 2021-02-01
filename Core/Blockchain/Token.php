@@ -13,10 +13,16 @@ use Minds\Core\Util\BigNumber;
 
 class Token
 {
+    /** @var Manager */
     protected $manager;
+
+    /** @var Services\Ethereum */
     protected $client;
 
+    /** @var string */
     protected $tokenAddress;
+
+    /** @var int */
     protected $tokenDecimals;
 
     /**
@@ -39,14 +45,15 @@ class Token
 
     /**
      * Gets an account's balance of token
-     * @param $account
+     * @param string $account
+     * @param int $blockNumber
      * @return string
      * @throws \Exception
      */
-    public function balanceOf($account)
+    public function balanceOf(string $account, int $blockNumber = null)
     {
         try {
-            $result = $this->client->call($this->tokenAddress, 'balanceOf(address)', [$account]);
+            $result = $this->client->call($this->tokenAddress, 'balanceOf(address)', [$account], $blockNumber);
 
             return (string) BigNumber::fromHex($result);
         } catch (\Exception $e) {

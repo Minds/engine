@@ -74,6 +74,7 @@ class Provider extends DiProvider
                 'earn-modal',
                 'buy-tokens-uniswap-transak',
                 'guest-mode',
+                'wallet-v3',
             ];
         });
 

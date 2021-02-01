@@ -1595,3 +1595,23 @@ CREATE TABLE minds.onchain_unique_addresses (
     address text PRIMARY KEY,
     user_guid bigint
 );
+
+CREATE TABLE minds.token_rewards (
+    user_guid bigint,
+    reward_type text,
+    date date,
+    multiplier decimal,
+    score decimal,
+    token_amount decimal,
+    tokenomics_version int,
+    PRIMARY KEY (user_guid, reward_type, date)
+) WITH CLUSTERING ORDER BY (reward_type ASC, date DESC);
+
+CREATE MATERIALIZED VIEW minds.token_rewards_by_date AS
+    SELECT *
+    FROM minds.token_rewards
+    WHERE user_guid IS NOT NULL 
+        AND reward_type IS NOT NULL
+        AND date IS NOT NULL
+    PRIMARY KEY (date, reward_type, user_guid)
+    WITH CLUSTERING ORDER BY (reward_type ASC, user_guid ASC);
