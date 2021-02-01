@@ -484,6 +484,7 @@ $CONFIG->set('tags', [
 $CONFIG->set('steward_guid', '');
 $CONFIG->set('steward_autoconfirm', false);
 $CONFIG->set('development_mode', '{{development_mode}}');
+$CONFIG->set('discovery_development_mode', true);
 
 $CONFIG->set('max_video_length', 900);
 

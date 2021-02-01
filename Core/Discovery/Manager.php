@@ -268,6 +268,8 @@ class Manager
             'plus' => false,
         ], $opts);
 
+        $developmentMode = $this->config->get('discovery_development_mode');
+
         // if ($opts['plus'] === true) {
         //     $opts['hoursAgo'] = 1680; // 10 Weeks
         // }
@@ -291,11 +293,14 @@ class Manager
         $must_not = [];
 
         // Date Range
+        $timestamp = $developmentMode ?
+            strtotime("730 hours ago") * 1000 :
+            strtotime("{$opts['hoursAgo']} hours ago") * 1000;
 
         $must[] = [
             'range' => [
                 '@timestamp' => [
-                    'gte' => strtotime("{$opts['hoursAgo']} hours ago") * 1000,
+                    'gte' => $timestamp,
                 ]
             ],
         ];
@@ -314,6 +319,8 @@ class Manager
                             'gte' => 1,
                         ]
                     ],
+                ];
+                $must[] = [
                     'multi_match' => [
                         //'type' => 'cross_fields',
                         'query' => implode(' ', $tags),
@@ -328,10 +335,15 @@ class Manager
                 $must[] = [
                     'term' => [
                         'wire_support_tier' => $this->plusSupportTierUrn,
-                    ],
+                    ]
+                ];
+
+                $minimumVotes = $developmentMode ? 1 : 2;
+
+                $must[] = [
                     'range' => [
                         'votes:up' => [
-                            'gte' => 2,
+                            'gte' => $minimumVotes,
                         ]
                     ]
                 ];
@@ -340,11 +352,12 @@ class Manager
                 $type = 'object:video,object:blog';
                 break;
             default:
+                $minimumVotes = $developmentMode ? 1 : 2;
                 // return mix of plus and non plus posts.
                 $must[] = [
                     'range' => [
                         'votes:up' => [
-                            'gte' => 2,
+                            'gte' => $minimumVotes,
                         ]
                     ]
                 ];
@@ -466,7 +479,7 @@ class Manager
             'size' => $opts['limit'] * 3, // * 3 because not all have thumbnails (improve our indexing!)
         ];
 
-        // error_log(var_export(json_encode($query['body']), true));
+        error_log(var_export(json_encode($query['body']), true));
 
         $prepared = new ElasticSearch\Prepared\Search();
         $prepared->query($query);
