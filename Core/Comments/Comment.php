@@ -197,8 +197,8 @@ class Comment extends RepositoryEntity
      */
     public function getBody()
     {
-        if (strlen($this->body) > 1500) {
-            return substr($this->body, 0, 1500) . '...';
+        if (mb_strlen($this->body) > 1500) {
+            return mb_substr($this->body, 0, 1500) . '...';
         }
         return $this->body;
     }
