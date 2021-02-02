@@ -48,6 +48,9 @@ class RewardEntry
     /** @var RewardEntry */
     private $allTimeSummary;
 
+    /** @var RewardEntry */
+    private $globalSummary;
+
     /** @var int */
     private $tokenomicsVersion = 2;
 
@@ -76,6 +79,10 @@ class RewardEntry
             'alltime_summary' => [
                 'score' => $this->allTimeSummary ? (string) $this->allTimeSummary->getScore() : 0,
                 'token_amount' => $this->allTimeSummary ? (string) $this->allTimeSummary->getTokenAmount() : 0,
+            ],
+            'global_summary' => [
+                'score' => $this->globalSummary ? (string) $this->globalSummary->getScore() : 0,
+                'token_amount' => $this->globalSummary ? (string) $this->globalSummary->getTokenAmount() : 0,
             ],
         ];
     }
