@@ -62,12 +62,13 @@ class Repository
             $allTimeSummary = $allTime[$rewardEntry->getRewardType()] ?? new RewardEntry();
             $dailyGlobalSummary = $dailyGlobal[$rewardEntry->getRewardType()] ?? new RewardEntry();
             try {
-                $sharePct = $rewardEntry->getScore()->dividedBy($dailyGlobalSummary->getScore(), 4, RoundingMode::FLOOR);
+                $sharePct = $rewardEntry->getScore()->dividedBy($dailyGlobalSummary->getScore(), 8, RoundingMode::FLOOR);
                 $rewardEntry->setSharePct($sharePct->toFloat());
             } catch (DivisionByZeroException $e) {
             }
 
             $rewardEntry->setAllTimeSummary($allTimeSummary);
+            $rewardEntry->setGlobalSummary($dailyGlobalSummary);
         }
 
         return new Response($daily);
@@ -85,7 +86,7 @@ class Repository
         foreach ($daily as $rewardEntry) {
             $dailyGlobalSummary = $dailyGlobal[$rewardEntry->getRewardType()] ?? new RewardEntry();
             try {
-                $sharePct = $rewardEntry->getScore()->dividedBy($dailyGlobalSummary->getScore(), 4, RoundingMode::FLOOR);
+                $sharePct = $rewardEntry->getScore()->dividedBy($dailyGlobalSummary->getScore(), 8, RoundingMode::FLOOR);
                 $rewardEntry->setSharePct($sharePct->toFloat());
             } catch (DivisionByZeroException $e) {
             }
