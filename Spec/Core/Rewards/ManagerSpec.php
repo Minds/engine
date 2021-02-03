@@ -203,7 +203,7 @@ class ManagerSpec extends ObjectBehavior
         $rewardEntry->setMultiplier(BigDecimal::of('1'));
 
         $i = 0;
-        while ($i < 365) {
+        while ($i < 730) {
             ++$i;
             $multiplier = $this->calculateMultiplier($rewardEntry);
             $rewardEntry->setMultiplier($multiplier->getWrappedObject());
