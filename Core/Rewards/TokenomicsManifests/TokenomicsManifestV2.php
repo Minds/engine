@@ -29,6 +29,14 @@ class TokenomicsManifestV2 implements TokenomicsManifestInterface
     /**
      * @return int
      */
+    public function getMinMultiplier(): int
+    {
+        return 1;
+    }
+
+    /**
+     * @return int
+     */
     public function getMaxMultiplierDays(): int
     {
         return 365; // 1 year

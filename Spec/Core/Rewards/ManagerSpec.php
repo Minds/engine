@@ -136,9 +136,23 @@ class ManagerSpec extends ObjectBehavior
                         ->setUserGuid('123')
                         ->setUserLiquidityTokens(BigDecimal::of(10)),
                 ]);
+        // We request yesterdays RewardEntry
+        $this->repository->getList(Argument::that(function ($opts) {
+            return $opts->getUserGuid() === '123'
+                && $opts->getDateTs()  === time() - 86400;
+        }))
+            ->willReturn(new Response([
+                (new RewardEntry())
+                    ->setRewardType('liquidity')
+                    ->setMultiplier(BigDecimal::of(1)),
+                (new RewardEntry())
+                    ->setRewardType('holding')
+                    ->setMultiplier(BigDecimal::of('1.0054794520540')),
+            ]));
+        // Add to the repository
         $this->repository->add(Argument::that(function ($rewardEntry) {
             return $rewardEntry->getUserGuid() === '123'
-                && $rewardEntry->getScore()->toFloat() === (float) 10
+                && (string) $rewardEntry->getScore() === '10.054794520550'
                 && $rewardEntry->getRewardType() === 'liquidity';
         }))->shouldBeCalled();
 
@@ -160,7 +174,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->add(Argument::that(function ($rewardEntry) {
             return $rewardEntry->getUserGuid() === '123'
-                && $rewardEntry->getScore()->toFloat() === (float) 10
+                && (string) $rewardEntry->getScore() === "10.1095890410900"
                 && $rewardEntry->getRewardType() === 'holding';
         }))->shouldBeCalled();
 
@@ -181,6 +195,21 @@ class ManagerSpec extends ObjectBehavior
         }))->shouldBeCalled();
 
         $this->calculate();
+    }
+
+    public function it_should_allow_max_multiplier_of_3_in_365_days()
+    {
+        $rewardEntry = new RewardEntry();
+        $rewardEntry->setMultiplier(BigDecimal::of('1'));
+
+        $i = 0;
+        while ($i < 365) {
+            ++$i;
+            $multiplier = $this->calculateMultiplier($rewardEntry);
+            $rewardEntry->setMultiplier($multiplier->getWrappedObject());
+        }
+
+        $multiplier->toFloat()->shouldBe((float) 3);
     }
 
     ////
