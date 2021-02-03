@@ -305,5 +305,7 @@ class ProhibitedDomains
         '//buyserviceusa.com/',
         '//www.localreviewshop.com/',
         '//localreviewshop.com/',
+        '//prem.li',
+        '//shr.link',
     ];
 }
