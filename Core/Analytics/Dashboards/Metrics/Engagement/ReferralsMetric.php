@@ -32,7 +32,7 @@ class ReferralsMetric extends AbstractEngagementMetric
     protected $label = 'Referrals';
 
     /** @var string */
-    protected $description = "Number of comments you have received on your content";
+    protected $description = "Earnings from content posted by users you referred to Minds";
 
     /** @var array */
     protected $permissions = [ 'user', 'admin' ];
