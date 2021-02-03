@@ -17,5 +17,10 @@ interface TokenomicsManifestInterface
     /**
      * @return int
      */
+    public function getMinMultiplier(): int;
+
+    /**
+     * @return int
+     */
     public function getMaxMultiplierDays(): int;
 }

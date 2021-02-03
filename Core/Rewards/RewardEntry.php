@@ -13,8 +13,8 @@ use Brick\Math\BigDecimal;
  * @method int getDateTs()
  * @method self setScore(BigDecimal $score)
  * @method BigDecimal getScore()
- * @method self setMultiplier(float $multiplier)
- * @method float getMultiplier()
+ * @method self setMultiplier(BigDecimal $multiplier)
+ * @method BigDecimal getMultiplier()
  * @method self setTokenAmount(BigDecimal $tokenAmount)
  * @method BigDecimal getTokenAmount()
  * @method self setTokenomicVersion(int $tokenomicsVersion)
@@ -36,8 +36,8 @@ class RewardEntry
     /** @var BigDecimal */
     private $score;
 
-    /** @var float */
-    private $multiplier = 0;
+    /** @var BigDecimal */
+    private $multiplier;
 
     /** @var BigDecimal */
     private $tokenAmount;
@@ -58,6 +58,7 @@ class RewardEntry
     {
         $this->tokenAmount = BigDecimal::of(0);
         $this->score = BigDecimal::of(0);
+        $this->multiplier = BigDecimal::of(1);
     }
 
     /**

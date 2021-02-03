@@ -106,7 +106,7 @@ class Repository
             new Date($rewardEntry->getDateTs()),
             $rewardEntry->getRewardType(),
             new Decimal((string) $rewardEntry->getScore()),
-            new Decimal($rewardEntry->getMultiplier()),
+            new Decimal((string) $rewardEntry->getMultiplier()),
             new Decimal((string) $rewardEntry->getTokenAmount() ?: 0),
             $rewardEntry->getTokenomicsVersion(),
         ];
@@ -222,7 +222,7 @@ class Repository
             }
 
             if (isset($row['multiplier'])) {
-                $rewardEntry->setMultiplier((float) $row['multiplier']);
+                $rewardEntry->setMultiplier(BigDecimal::of($row['multiplier']));
             }
 
             yield $rewardEntry;
