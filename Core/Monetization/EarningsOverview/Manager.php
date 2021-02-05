@@ -5,6 +5,7 @@ use Minds\Entities\User;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments\Stripe;
 use Minds\Core\Monetization\Partners;
+use Minds\Core\Wire;
 
 class Manager
 {
@@ -20,15 +21,20 @@ class Manager
     /** @var Partners\Manager */
     protected $partnerEarningsManager;
 
+    /** @var Wire\Sums */
+    protected $wireSums;
+
     public function __construct(
         $stripeConnectManager = null,
         $stripeTransactionsManager = null,
         $partnerEarningsManager = null,
+        $wireSums = null,
         $config = null
     ) {
         $this->stripeConnectManager = $stripeConnectManager ?? Di::_()->get('Stripe\Connect\Manager');
         $this->stripeTransactionsManager = $stripeTransactionsManager ?? Di::_()->get('Stripe\Transactions\Manager');
         $this->partnerEarningsManager = $partnerEarningsManager ?? Di::_()->get('Monetization\Partners\Manager');
+        $this->wireSums = $wireSums ?? Di::_()->get('Wire\Sums');
         $this->config = $config ?? Di::_()->get('Config');
     }
 
@@ -135,37 +141,43 @@ class Manager
      */
     protected function getWireEarnings($from, $to): EarningsGroupModel
     {
+        $sumCents = 0;
+        $currency = 'usd';
+
         $stripeAccount = $this->stripeConnectManager->getByUser($this->user);
 
-        if (!$stripeAccount) {
-            return new EarningsGroupModel();
-        }
+        if ($stripeAccount) {
+            $wireTransfers = $this->stripeTransactionsManager
+                ->setAccount($stripeAccount)
+                ->getTransfers([
+                    'from' => $from,
+                    'to' => $to,
+                ]);
 
-        $wireTransfers = $this->stripeTransactionsManager
-            ->setAccount($stripeAccount)
-            ->getTransfers([
-                'from' => $from,
-                'to' => $to,
-            ]);
-
-        $sum = 0;
-        $currency = 'usd';
-        foreach ($wireTransfers as $transfer) {
-            if ($transfer->getType() === 'wire'
-                //&& $transfer->getCustomerUserGuid() != $this->config->get('pro')['handler']
-            ) {
-                $sum += $transfer->getNet();
-                $currency = $transfer->getCurrency();
+            foreach ($wireTransfers as $transfer) {
+                if ($transfer->getType() === 'wire'
+                    //&& $transfer->getCustomerUserGuid() != $this->config->get('pro')['handler']
+                ) {
+                    $sumCents += $transfer->getNet();
+                    $currency = $transfer->getCurrency();
+                }
             }
         }
+
+        $tokensSum = $this->wireSums
+            ->setReceiver($this->user->getGuid())
+            ->setFrom($from)
+            ->setTo($to)
+            ->getReceived();
 
         $earningsGroupModel =  new EarningsGroupModel();
         $earningsGroupModel->setId('wire');
 
         $wireEarnings = new EarningsItemModel();
         $wireEarnings->setId('wire-all');
-        $wireEarnings->setAmountCents($sum);
+        $wireEarnings->setAmountCents($sumCents);
         $wireEarnings->setCurrency($currency);
+        $wireEarnings->setAmountTokens($tokensSum);
 
         $earningsGroupModel->setItems([ $wireEarnings ]);
         $earningsGroupModel->setCurrency($currency);
@@ -183,6 +195,7 @@ class Manager
         foreach ($earningsDeposits as $earningsDeposit) {
             $earningsDepositItem = $groups[$earningsDeposit->getItem()] ?? new EarningsItemModel();
             $earningsDepositItem->setAmountCents($earningsDepositItem->getAmountCents() + $earningsDeposit->getAmountCents());
+            $earningsDepositItem->setAmountTokens($earningsDepositItem->getAmountTokens() + $earningsDeposit->getAmountTokens());
             $earningsDepositItem->setCurrency('usd');
             $groups[$earningsDeposit->getItem()] = $earningsDepositItem;
         }
