@@ -2,6 +2,7 @@
 namespace Minds\Core\Monetization\EarningsOverview;
 
 use Minds\Traits\MagicAttributes;
+use Brick\Math\BigDecimal;
 
 /**
  * @method EarningsGroupModel setId(string $id)
@@ -24,7 +25,10 @@ class EarningsGroupModel
     /** @var string */
     private $currency = 'usd';
 
-    public function getSum(): int
+    /**
+     * @return int
+     */
+    public function getSumCents(): int
     {
         return array_reduce(
             array_map(function ($item) {
@@ -37,6 +41,16 @@ class EarningsGroupModel
             0
         );
     }
+
+    /**
+     * @return string
+     */
+    public function getSumTokens(): string
+    {
+        return BigDecimal::sum(...array_map(function ($item) {
+            return $item->getAmountTokens();
+        }, $this->items));
+    }
     
     /**
      * Export the overview
@@ -44,11 +58,13 @@ class EarningsGroupModel
      */
     public function export(): array
     {
-        $amountCents = $this->getSum();
+        $amountCents = $this->getSumCents();
+        $amountTokens = $this->getSumTokens();
         return [
             'id' => $this->id,
             'amount_cents' => $amountCents,
             'amount_usd' => $amountCents / 100,
+            'amount_tokens' => $amountTokens,
             'currency' => $this->currency,
             'items' => array_map(function ($item) {
                 return $item->export();

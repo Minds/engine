@@ -10,6 +10,8 @@ use Minds\Traits\MagicAttributes;
  * @method int getAmountCents()
  * @method EarningsItemModel setCurrency(string $currency)
  * @method string getCurrency
+ * @method EarningsItemModel setAmoountTokens(string $tokens)
+ * @method string getAmountTokens()
  */
 class EarningsItemModel
 {
@@ -20,6 +22,9 @@ class EarningsItemModel
 
     /** @var int */
     private $amountCents = 0;
+
+    /** @var string */
+    private $amountTokens = "0";
 
     /** @var string */
     private $currency;
@@ -34,6 +39,7 @@ class EarningsItemModel
             'id' => $this->id,
             'amount_cents' => $this->amountCents,
             'amount_usd' => $this->amountCents / 100,
+            'amount_tokens' => $this->amountTokens,
             'currency' => $this->currency,
         ];
     }
