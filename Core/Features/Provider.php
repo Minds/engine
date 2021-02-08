@@ -75,7 +75,7 @@ class Provider extends DiProvider
                 'buy-tokens-uniswap-transak',
                 'guest-mode',
                 'wallet-v3',
-                'token-marketing-2020',
+                'token-marketing-2021',
             ];
         });
 
