@@ -50,6 +50,7 @@ class Minds extends base
         Media\Proxy\Module::class,
         Blockchain\Module::class,
         Boost\Module::class,
+        Rewards\Module::class,
     ];
 
     /**
@@ -124,7 +125,6 @@ class Minds extends base
         (new Issues\IssuesProvider())->register();
         (new Payments\Subscriptions\SubscriptionsProvider())->register();
         (new Faq\FaqProvider())->register();
-        (new Rewards\RewardsProvider())->register();
         (new Plus\PlusProvider())->register();
         (new Pro\ProProvider())->register();
         (new Hashtags\HashtagsProvider())->register();

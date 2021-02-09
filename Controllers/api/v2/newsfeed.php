@@ -382,7 +382,13 @@ class newsfeed implements Interfaces\Api
                             'message' => 'Remind not found',
                         ]);
                     }
-                    if (!Di::_()->get('Security\ACL')->interact($remind, $user)) {
+                    
+                    // throw and error return response if acl interaction check fails.
+                    try {
+                        if (!Di::_()->get('Security\ACL')->interact($remind, $user)) {
+                            throw new \Exception(null);
+                        }
+                    } catch (\Exception $e) {
                         return Factory::response([
                             'status' => 'error',
                             'message' => 'You can not interact with this post',

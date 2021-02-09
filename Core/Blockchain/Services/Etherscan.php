@@ -9,6 +9,7 @@
 namespace Minds\Core\Blockchain\Services;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Config;
 use Minds\Core\Http\Curl\Json\Client;
 
 class Etherscan
@@ -25,8 +26,9 @@ class Etherscan
     /**
      * Etherscan constructor.
      * @param Http\Json $http
+     * @param Config $config
      */
-    public function __construct($http = null)
+    public function __construct($http = null, $config = null)
     {
         $this->http = $http ?: Di::_()->get('Http\Json');
         $config = $config ?: Di::_()->get('Config');
@@ -218,6 +220,17 @@ class Etherscan
     public function getBlock($number)
     {
         $result = $this->request("module=block&action=getblockreward&blockno={$number}&apikey={$this->apiKey}");
+        return $result['result'];
+    }
+
+    /**
+     * Return the block number from a unix timestamp
+     * @param int $unixTimestamp
+     * @return int
+     */
+    public function getBlockNumberByTimestamp(int $unixTimestamp): int
+    {
+        $result = $this->request("module=block&action=getblocknobytime&timestamp=$unixTimestamp&closest=before&apikey={$this->apiKey}");
         return $result['result'];
     }
 

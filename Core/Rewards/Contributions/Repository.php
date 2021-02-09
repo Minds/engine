@@ -5,6 +5,7 @@ use Cassandra;
 use Cassandra\Varint;
 use Cassandra\Timestamp;
 use Minds\Core\Data\Cassandra\Client;
+use Minds\Core\Data\Cassandra\Scroll;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
 use Minds\Core\Util\BigNumber;
@@ -14,9 +15,13 @@ class Repository
     /** @var Client */
     private $db;
 
-    public function __construct($db = null)
+    /** @var Scroll */
+    private $scroll;
+
+    public function __construct($db = null, $scroll = null)
     {
         $this->db = $db ? $db : Di::_()->get('Database\Cassandra\Cql');
+        $this->scroll = $scroll ? $scroll : Di::_()->get('Database\Cassandra\Cql\Scroll');
     }
 
     public function add($contributions)
@@ -38,7 +43,7 @@ class Repository
             $requests[] = [
                 'string' => $template,
                 'values' => [
-                    new Timestamp($contribution->getTimestamp() / 1000),
+                    new Timestamp($contribution->getTimestamp() / 1000, 0),
                     new Varint($contribution->getUser()->guid),
                     $contribution->getMetric(),
                     new Varint($contribution->getAmount()),
@@ -75,12 +80,12 @@ class Repository
 
         if ($options['from']) {
             $where[] = 'timestamp >= ?';
-            $values[] = new Timestamp($options['from']);
+            $values[] = new Timestamp($options['from'], 0);
         }
 
         if ($options['to']) {
             $where[] = 'timestamp <= ?';
-            $values[] = new Timestamp($options['to']);
+            $values[] = new Timestamp($options['to'], 0);
         }
 
         if ($options['type']) {
@@ -137,5 +142,37 @@ class Repository
 
     public function sum($options)
     {
+    }
+
+    /**
+     * @param ContributionQueryOpts $opts
+     * @return ContributionSummary[]
+     */
+    public function getSummaries(ContributionQueryOpts $opts): iterable
+    {
+        $statement = "SELECT timestamp, user_guid, SUM(score) as score, SUM(amount) as amount
+            FROM contributions_by_timestamp
+            WHERE timestamp=?";
+
+        $values = [ new Timestamp($opts->getDateTs(), 0) ];
+
+        if ($opts->getUserGuid()) {
+            $statement .= " AND user_guid = ?";
+            $values[] = new Varint($opts->getUserGuid());
+        }
+
+        $statement .= "GROUP BY user_guid";
+
+        $prepared = new Custom();
+        $prepared->query($statement, $values);
+
+        foreach ($this->scroll->request($prepared) as $row) {
+            $summary = new ContributionSummary();
+            $summary->setUserGuid((string) $row['user_guid'])
+                ->setDateTs($row['timestamp']->time())
+                ->setScore($row['score'])
+                ->setAmount($row['amount']);
+            yield $summary;
+        }
     }
 }

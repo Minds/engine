@@ -7,6 +7,7 @@ class Mock
     const BATCH_UNLOGGED = 1;
     const CONSISTENCY_ALL = 1;
     const CONSISTENCY_QUORUM = 2;
+    const CONSISTENCY_LOCAL_QUORUM = 3;
 
     public function __construct($a = null)
     {

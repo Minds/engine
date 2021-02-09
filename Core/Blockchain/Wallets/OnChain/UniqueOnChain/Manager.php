@@ -29,7 +29,7 @@ class Manager
      * @param UniqueOnChainAddress $address
      * @return bool
      */
-    public function add(UniqueOnChainAddress $address): bool
+    public function add(UniqueOnChainAddress $address, User $user = null, bool $addAddress = false): bool
     {
         // Confirm the signature is correct
 
@@ -49,21 +49,37 @@ class Manager
             throw new UserErrorException("Signed message user id does match your current user");
         }
 
-        return $this->repository->add($address);
+        $added = $this->repository->add($address);
+
+        if ($added && $user && $addAddress) {
+            $user->setEthWallet($address->getAddress());
+            $user->save();
+        }
+
+        return $added;
     }
 
     /**
      * Adds an address. Will overwrite is another exists
      * @param UniqueOnChainAddress $address
+     * @param bool $removeAddress
      * @return bool
      */
-    public function delete(UniqueOnChainAddress $address): bool
+    public function delete(UniqueOnChainAddress $address, User $user = null, $removeAddress = false): bool
     {
         $found = $this->getByAddress($address->getAddress());
         if (!$found || $found->getUserGuid() !== $address->getUserGuid()) {
             return false;
         }
-        return $this->repository->delete($address);
+
+        $removed = $this->repository->delete($address);
+        
+        if ($removeAddress && $user && $removed) {
+            $user->setEthWallet('');
+            $user->save();
+        }
+
+        return $removed;
     }
 
     /**

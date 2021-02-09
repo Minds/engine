@@ -95,7 +95,7 @@ class Controller
             ->setPayload($payload)
             ->setSignature($signature);
 
-        $success = $this->manager->add($uniqueAddress);
+        $success = $this->manager->add($uniqueAddress, $user, true);
 
         if (!$success) {
             throw new UserErrorException("Could not verify your signature");
@@ -123,7 +123,7 @@ class Controller
         $uniqueAddress->setAddress($address)
             ->setUserGuid((string) $user->getGuid());
 
-        $success = $this->manager->delete($uniqueAddress);
+        $success = $this->manager->delete($uniqueAddress, $user, true);
 
         if (!$success) {
             throw new UserErrorException("Unkown error");

@@ -43,7 +43,12 @@ class Controller
         /** @var User */
         $user = $request->getAttribute('_user');
 
-        $summary = $this->manager->setUser($user)
+        /** @var int */
+        $timestamp = $request->getQueryParams()['timestamp'] ?? time() - 300;
+
+        $summary = $this->manager
+            ->setDateTs($timestamp)
+            ->setUser($user)
             ->getSummary();
          
         return new JsonResponse(array_merge([

@@ -107,7 +107,7 @@ class Client implements Interfaces\ClientInterface
                 ->withContactPoints(... $options['cql_servers'])
                 ->withCredentials($options['username'], $options['password'])
                 ->withLatencyAwareRouting(true)
-                ->withDefaultConsistency(Driver::CONSISTENCY_QUORUM)
+                ->withDefaultConsistency(Driver::CONSISTENCY_LOCAL_QUORUM)
                 ->withRetryPolicy(new Driver\RetryPolicy\Logging($retry_policy))
                 ->withPort(9042)
                 ->build();
