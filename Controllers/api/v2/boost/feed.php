@@ -33,7 +33,10 @@ class feed implements Interfaces\Api
         /** @var Entities\User $currentUser */
         $currentUser = Core\Session::getLoggedinUser();
 
-        if ($currentUser->disabled_boost && $currentUser->isPlus()) {
+        // manually force
+        $forceBoostEnabled = $_GET['force_boost_enabled'] ?? null;
+
+        if (!$forceBoostEnabled && $currentUser->disabled_boost && $currentUser->isPlus()) {
             return Factory::response([
                 'boosts' => [],
             ]);
