@@ -1615,3 +1615,12 @@ CREATE MATERIALIZED VIEW minds.token_rewards_by_date AS
         AND date IS NOT NULL
     PRIMARY KEY (date, reward_type, user_guid)
     WITH CLUSTERING ORDER BY (reward_type ASC, user_guid ASC);
+
+CREATE TABLE minds.token_metrics (
+    metric text,
+    date date,
+    hour int,
+    offchain decimal,
+    onchain decimal,
+    PRIMARY KEY (metric, date, hour)
+) WITH CLUSTERING ORDER BY (date DESC, hour DESC)

@@ -121,16 +121,24 @@ class Client
      * @param string[] $ids
      * @return UniswapPairEntity[]
      */
-    public function getPairs(array $ids = []): array
+    public function getPairs(array $ids = [], int $asOf = null): array
     {
+        if (!$asOf) {
+            $asOf = time() - 300; // 5 minutes (give blocks time to settle)
+        }
+
         $query = '
-            query($ids: [String!]) {
-                pairs(where: { id_in: $ids }) {
+            query($ids: [String!], $blockNumber: Int!) {
+                pairs(where: { id_in: $ids }, block: { number: $blockNumber }) {
                     id
                     totalSupply
                     reserve0
                     reserve1
                     reserveUSD
+                    volumeToken0
+                    volumeToken1
+                    volumeUSD
+                    untrackedVolumeUSD
                 }
             }
         ';
@@ -138,6 +146,7 @@ class Client
             'ids' => array_map(function ($id) {
                 return strtolower($id);
             }, $ids),
+            'blockNumber' => $this->blockFinder->getBlockByTimestamp($asOf),
         ];
 
         $response = $this->request($query, $variables);
@@ -152,13 +161,16 @@ class Client
     }
 
     /**
-     *
+     * Returns mints in descending order
+     * TODO: add time params
+     * @param array $paidIds
+     * @return UniswapMintEntity[]
      */
     public function getMintsByPairIds(array $pairIds = []): array
     {
         $query = '
             query($ids: [String!]) {
-                mints(where: { pair_in: $ids }) {
+                mints(where: { pair_in: $ids }, orderBy: timestamp, orderDirection: desc) {
                     id
                     to
                     amount0
