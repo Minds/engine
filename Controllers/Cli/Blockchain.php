@@ -244,4 +244,19 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
         $summaries = $liquidityManager->getAllProvidersSummaries();
         var_dump($summaries);
     }
+
+    public function syncMetrics()
+    {
+        Di::_()->get('Config')
+            ->set('min_log_level', 'INFO');
+
+        $hoursAgo = $this->getOpt('hoursAgo') ?? "0";
+        $from = strtotime('24 hours ago');
+        $to = strtotime("$hoursAgo hours ago", time());
+
+        $metricManager = Di::_()->get('Blockchain\Metrics\Manager');
+        $metricManager
+            ->setTimeBoundary($from, $to)
+            ->sync();
+    }
 }
