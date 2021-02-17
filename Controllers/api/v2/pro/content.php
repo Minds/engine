@@ -43,7 +43,7 @@ class content implements Interfaces\Api
         }
 
         $type = '';
-        $algorithm = strtolower($_GET['algorithm'] ?? 'top');
+        $algorithm = strtolower($_GET['algorithm'] ?? 'latest');
 
         switch ($pages[1]) {
             case 'activities':
