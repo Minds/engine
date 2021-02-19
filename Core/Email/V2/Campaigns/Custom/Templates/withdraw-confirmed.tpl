@@ -1,7 +1,7 @@
 <tr>
     <td>
         <p>
-            <?= $vars['translator']->trans('Your on-chain transfer request of <?php echo $vars['amount']; ?> token(s) was confirmed by the blockchain and has been placed onto the review queue.') ?>
+            Your on-chain transfer request of <?php echo $vars['amount']; ?> token(s) was confirmed by the blockchain and has been placed onto the review queue.
         </p>
     </td>
 </tr>
