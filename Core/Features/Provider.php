@@ -76,6 +76,7 @@ class Provider extends DiProvider
                 'guest-mode',
                 'wallet-v3',
                 'new-posts',
+                'token-marketing-2021',
             ];
         });
 
