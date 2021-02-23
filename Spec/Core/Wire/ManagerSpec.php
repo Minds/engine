@@ -7,6 +7,7 @@ use Minds\Core\Blockchain\Transactions\Manager as BlockchainManager;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Config;
 use Minds\Core\Data\cache\Redis;
+use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
 use Minds\Core\Queue\SQS\Client;
 use Minds\Core\Wire\Repository;
 use Minds\Core\Wire\Subscriptions\Manager as SubscriptionsManager;
@@ -329,8 +330,12 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->shouldBeCalled();
 
+        $intent = new PaymentIntent();
+        $intent->setId('123');
+
         $this->stripeIntentsManager->add(Argument::any())
-            ->shouldBeCalled();
+            ->shouldBeCalled()
+            ->willReturn($intent);
 
         $this->setSender($sender)
             ->setEntity($receiver)

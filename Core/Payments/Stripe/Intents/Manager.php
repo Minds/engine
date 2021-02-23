@@ -30,7 +30,7 @@ class Manager
     /**
      * Add a payment intent to stripe
      * @param Intent $intent
-     * @return string
+     * @return Intent
      */
     public function add(Intent $intent): Intent
     {
