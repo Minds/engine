@@ -91,7 +91,7 @@ class UpgradesDelegate
                 }
                 // Users who have never had Minds+ before get a 7 day trial
                 // we still create the subscription, but do no charge for 7 days
-                if ($wire->isTrial()) {
+                if ($wire->getTrialDays()) {
                     $days = 9; // We charge on day 7, allow a buffer in case subscripton charge is late
                 } elseif ($monthly['usd'] == $wire->getAmount() / 100) {
                     $days = 32;
