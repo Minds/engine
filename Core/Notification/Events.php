@@ -197,6 +197,9 @@ class Events
                 // Check rate limits on how many notifications this user has been sent by sender
                 if ($notification->getType() === 'tag') {
                     $toUser = Entities\Factory::build($notification->getToGuid());
+                    if (!$toUser) {
+                        continue;
+                    }
 
                     $cache = Core\Di\Di::_()->get('Cache');
                     $cacheKey = "{$notification->getFromGuid()}:recently-tagged:{$notification->getToGuid()}";
