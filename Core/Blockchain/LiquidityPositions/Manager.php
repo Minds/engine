@@ -257,6 +257,16 @@ class Manager
     }
 
     /**
+     * Get the pairs
+     * @return array
+     */
+    public function getPairs(): array
+    {
+        $uniswapSwaps = $this->uniswapClient->getPairs($this->getApprorvedLiquidityPairIds(), $this->dateTs);
+        return $uniswapSwaps;
+    }
+
+    /**
      * Returns approved liquidity pools
      * @return string[]
      */

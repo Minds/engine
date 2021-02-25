@@ -337,7 +337,11 @@ class Manager
                         ->setServiceFeePct(static::WIRE_SERVICE_FEE_PCT);
 
                     // Charge stripe
-                    $this->stripeIntentsManager->add($intent);
+                    $intent = $this->stripeIntentsManager->add($intent);
+
+                    if (!$intent->getId()) {
+                        throw new \Exception("Payment failed");
+                    }
                 }
 
                 $wire->setAddress('stripe')

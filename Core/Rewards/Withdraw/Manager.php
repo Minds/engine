@@ -40,6 +40,9 @@ class Manager
     /** @var Delegates\NotificationsDelegate */
     protected $notificationsDelegate;
 
+    /** @var Delegates\EmailDelegate */
+    protected $emailDelegate;
+
     /** @var Delegates\RequestHydrationDelegate */
     protected $requestHydrationDelegate;
 
@@ -51,6 +54,7 @@ class Manager
         $repository = null,
         $offChainBalance = null,
         $notificationsDelegate = null,
+        $emailDelegate = null,
         $requestHydrationDelegate = null
     ) {
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
@@ -60,6 +64,7 @@ class Manager
         $this->repository = $repository ?: new Repository();
         $this->offChainBalance = $offChainBalance ?: Di::_()->get('Blockchain\Wallets\OffChain\Balance');
         $this->notificationsDelegate = $notificationsDelegate ?: new Delegates\NotificationsDelegate();
+        $this->emailDelegate = $emailDelegate ?: new Delegates\EmailDelegate();
         $this->requestHydrationDelegate = $requestHydrationDelegate ?: new Delegates\RequestHydrationDelegate();
     }
 
@@ -213,6 +218,10 @@ class Manager
 
         $this->notificationsDelegate->onRequest($request);
 
+        // Email
+
+        $this->emailDelegate->onRequest($request);
+
         //
 
         return true;
@@ -279,6 +288,10 @@ class Manager
 
         $this->notificationsDelegate->onConfirm($request);
 
+        // Email
+
+        $this->emailDelegate->onConfirm($request);
+
         //
 
         return true;
@@ -311,6 +324,10 @@ class Manager
 
         $this->notificationsDelegate->onFail($request);
 
+        // Email
+
+        $this->emailDelegate->onFail($request);
+
         //
 
         return true;
@@ -332,7 +349,7 @@ class Manager
         $txHash = $this->eth->sendRawTransaction($this->config->get('blockchain')['contracts']['withdraw']['wallet_pkey'], [
             'from' => $this->config->get('blockchain')['contracts']['withdraw']['wallet_address'],
             'to' => $this->config->get('blockchain')['contracts']['withdraw']['contract_address'],
-            'gasLimit' => BigNumber::_(4612388)->toHex(true),
+            'gasLimit' => BigNumber::_(87204)->toHex(true),
             'gasPrice' => BigNumber::_($this->config->get('blockchain')['server_gas_price'] * 1000000000)->toHex(true),
             'data' => $this->eth->encodeContractMethod('complete(address,uint256,uint256,uint256)', [
                 $request->getAddress(),
@@ -356,6 +373,10 @@ class Manager
         // Notify
 
         $this->notificationsDelegate->onApprove($request);
+
+        // Email
+
+        $this->emailDelegate->onApprove($request);
 
         //
 
@@ -400,6 +421,10 @@ class Manager
         // Notify
 
         $this->notificationsDelegate->onReject($request);
+
+        // Email
+
+        $this->emailDelegate->onReject($request);
 
         //
 

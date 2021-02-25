@@ -1,5 +1,5 @@
 <?php
-
+//ojm add emailDelegate
 namespace Spec\Minds\Core\Rewards\Withdraw;
 
 use Exception;
@@ -43,6 +43,9 @@ class ManagerSpec extends ObjectBehavior
     /** @var Delegates\NotificationsDelegate */
     protected $notificationsDelegate;
 
+    /** @var Delegates\EmailDelegate */
+    protected $emailDelegate;
+
     /** @var Delegates\RequestHydrationDelegate */
     protected $requestHydrationDelegate;
 
@@ -54,6 +57,7 @@ class ManagerSpec extends ObjectBehavior
         Repository $repository,
         OffchainBalance $offChainBalance,
         Delegates\NotificationsDelegate $notificationsDelegate,
+        Delegates\EmailDelegate $emailDelegate,
         Delegates\RequestHydrationDelegate $requestHydrationDelegate
     ) {
         $this->beConstructedWith(
@@ -64,6 +68,7 @@ class ManagerSpec extends ObjectBehavior
             $repository,
             $offChainBalance,
             $notificationsDelegate,
+            $emailDelegate,
             $requestHydrationDelegate
         );
 
@@ -74,6 +79,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository = $repository;
         $this->offChainBalance = $offChainBalance;
         $this->notificationsDelegate = $notificationsDelegate;
+        $this->emailDelegate = $emailDelegate;
         $this->requestHydrationDelegate = $requestHydrationDelegate;
     }
 
@@ -291,6 +297,9 @@ class ManagerSpec extends ObjectBehavior
         $this->notificationsDelegate->onRequest($request)
             ->shouldBeCalled();
 
+        $this->emailDelegate->onRequest($request)
+            ->shouldBeCalled();
+
         $this
             ->request($request)
             ->shouldReturn(true);
@@ -436,6 +445,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->notificationsDelegate->onConfirm($request)
+            ->shouldBeCalled();
+
+        $this->emailDelegate->onConfirm($request)
             ->shouldBeCalled();
 
         $this
@@ -716,6 +728,9 @@ class ManagerSpec extends ObjectBehavior
         $this->notificationsDelegate->onFail($request)
             ->shouldBeCalled();
 
+        $this->emailDelegate->onFail($request)
+            ->shouldBeCalled();
+
         $this
             ->fail($request)
             ->shouldReturn(true);
@@ -798,6 +813,9 @@ class ManagerSpec extends ObjectBehavior
         $this->notificationsDelegate->onApprove($request)
             ->shouldBeCalled();
 
+        $this->emailDelegate->onApprove($request)
+            ->shouldBeCalled();
+
         $this
             ->approve($request)
             ->shouldReturn(true);
@@ -861,6 +879,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->notificationsDelegate->onReject($request)
+            ->shouldBeCalled();
+
+        $this->emailDelegate->onReject($request)
             ->shouldBeCalled();
 
         $this

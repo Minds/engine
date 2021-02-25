@@ -32,7 +32,7 @@ class NotificationsDelegate
      */
     public function onRequest(Request $request): void
     {
-        $message = 'Your token withdrawal request was submitted successfully.';
+        $message = 'Your on-chain transfer request was submitted successfully.';
 
         $this->dispatcher->trigger('notification', 'all', [
             'to' => [ $request->getUserGuid() ],
@@ -48,7 +48,7 @@ class NotificationsDelegate
      */
     public function onConfirm(Request $request): void
     {
-        $message = 'Your token withdrawal request transaction was confirmed by the blockchain and has been placed onto the review queue.';
+        $message = 'Your on-chain transfer request was confirmed by the blockchain and has been placed onto the review queue.';
 
         $this->dispatcher->trigger('notification', 'all', [
             'to' => [ $request->getUserGuid() ],
@@ -64,7 +64,7 @@ class NotificationsDelegate
      */
     public function onFail(Request $request): void
     {
-        $message = 'Your token withdrawal request transaction failed. Please contact an administrator.';
+        $message = 'Your on-chain transfer request failed. Please contact an administrator.';
 
         $this->dispatcher->trigger('notification', 'all', [
             'to' => [ $request->getUserGuid() ],
@@ -82,7 +82,7 @@ class NotificationsDelegate
     public function onApprove(Request $request): void
     {
         $message = sprintf(
-            "Your withdrawal request has been approved and %g OnChain token(s) were issued.",
+            "Your on-chain transfer request has been approved and %g on-chain token(s) were issued.",
             BigNumber::fromPlain($request->getAmount(), 18)->toDouble()
         );
 
@@ -102,7 +102,7 @@ class NotificationsDelegate
     public function onReject(Request $request): void
     {
         $message = sprintf(
-            "Your withdrawal request has been rejected. Your %g OffChain token(s) were refunded.",
+            "Your on-chain transfer request has been rejected. Your %g off-chain token(s) were refunded.",
             BigNumber::fromPlain($request->getAmount(), 18)->toDouble()
         );
 
