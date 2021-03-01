@@ -349,6 +349,7 @@ $CONFIG->set('blockchain', [
             'wallet_pkey' => '',
             'limit_exemptions' => [
             ],
+            'limit' => 25000,
         ],
         'bonus' => [
             'wallet_address' => '0x461f1C5768cDB7E567A84E22b19db0eABa069BaD',
