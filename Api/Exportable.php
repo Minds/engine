@@ -8,6 +8,8 @@
 
 namespace Minds\Api;
 
+use Composer\Semver\Comparator;
+
 class Exportable implements \JsonSerializable
 {
     /** @var array */
@@ -106,7 +108,8 @@ class Exportable implements \JsonSerializable
             if (
                 $isSequential &&
                 (method_exists($item, '_magicAttributes') || method_exists($item, 'isDeleted')) &&
-                $item->isDeleted()) {
+                $item->isDeleted()
+            ) {
                 continue;
             }
 
@@ -118,9 +121,13 @@ class Exportable implements \JsonSerializable
                 $exported['ownerObj']['guid'] = (string) $exported['ownerObj']['guid'];
             }
 
-            // if (isset($exported['urn']) && isset($_SERVER['HTTP_APP_VERSION'])) {
-            //     $exported['urn'] = "urn:entity:{$exported['guid']}";
-            // }
+            if (
+                isset($exported['urn']) &&
+                isset($_SERVER['HTTP_APP_VERSION']) &&
+                Comparator::lessThan($_SERVER['HTTP_APP_VERSION'], '4.9.0')
+            ) {
+                $exported['urn'] = "urn:entity:{$exported['guid']}";
+            }
 
             foreach ($this->exceptions as $exception) {
                 $exported[$exception] = $item->{$exception};
