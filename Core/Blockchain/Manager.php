@@ -74,6 +74,7 @@ class Manager
                 'environment' => 'STAGING',
             ],
             'overrides' => $this->getOverrides(),
+            'withdraw_limit' => $blockchainConfig['contracts']['withdraw']['limit'],
         ], $this->contracts);
     }
 

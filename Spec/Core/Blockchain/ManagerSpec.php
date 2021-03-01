@@ -27,7 +27,7 @@ class ManagerSpec extends ObjectBehavior
                         'plus_address' => '0xPLUS',
                         'plus_guid' => 123,
                     ],
-                    'withdraw' => ['contract_address' => '0x789'],
+                    'withdraw' => ['contract_address' => '0x789', 'limit' => 1],
                     'token_sale_event' => ['contract_address' => '0x987'],
                     'boost' => ['contract_address' => '0x002', 'wallet_address' => '0x003']
                 ],
@@ -39,7 +39,7 @@ class ManagerSpec extends ObjectBehavior
                 'wallet_address' => '0x132',
                 'boost_wallet_address' => '0x213',
                 'eth_rate' => 1,
-                'default_gas_price' => 1,
+                'default_gas_price' => 1
             ]);
 
         $this->beConstructedWith($config);
