@@ -73,6 +73,7 @@ class RewardEntry
             'date_unixts' => $this->dateTs,
             'reward_type' => $this->rewardType,
             'score' => (string) $this->score,
+            'raw_score' => $this->score->dividedBy($this->multiplier),
             'share_pct' => $this->sharePct,
             'multiplier' => $this->multiplier,
             'token_amount' => (string) $this->tokenAmount,
