@@ -61,7 +61,8 @@ class fetch implements Interfaces\Api
             ->setQuality($quality)
             ->setOffset($_GET['offset'])
             ->setType($pages[0])
-            ->setPriority(true);
+            ->setPriority(true)
+            ->setHydrate(true);
 
         if (isset($_GET['rating']) && $pages[0] == 'newsfeed') {
             $cacher = Core\Data\cache\factory::build('Redis');
