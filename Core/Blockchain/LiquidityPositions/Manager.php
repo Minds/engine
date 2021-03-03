@@ -86,7 +86,7 @@ class Manager
         }
 
         // The latest possible time
-        $asOf = min(time(), strtotime('tomorrow', $this->dateTs) - 1);
+        $asOf = min(time() - 300, strtotime('tomorrow', $this->dateTs) - 1);
         $uniswapUser = $this->uniswapClient->getUser($address, $asOf);
 
         $pairs = $this->uniswapClient->getPairs($this->getApprorvedLiquidityPairIds());
