@@ -85,7 +85,9 @@ class Manager
             throw new \Exception("User must have an ETH wallet setup");
         }
 
-        $uniswapUser = $this->uniswapClient->getUser($address, $this->dateTs);
+        // The latest possible time
+        $asOf = min(time(), strtotime('tomorrow', $this->dateTs) - 1);
+        $uniswapUser = $this->uniswapClient->getUser($address, $asOf);
 
         $pairs = $this->uniswapClient->getPairs($this->getApprorvedLiquidityPairIds());
 
@@ -248,8 +250,8 @@ class Manager
             try {
                 $summaries[] = $this->setUser($user)->getSummary();
             } catch (\Exception $e) {
-                var_dump($e);
-                exit;
+                //var_dump($e);
+                //exit;
             }
         }
 
