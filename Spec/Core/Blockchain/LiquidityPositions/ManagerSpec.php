@@ -110,7 +110,7 @@ class ManagerSpec extends ObjectBehavior
                 ->setPair($pairs[1])
         ]);
 
-        $this->uniswapClient->getUser('0xSpec', null)
+        $this->uniswapClient->getUser('0xSpec', Argument::any())
             ->willReturn($uniswapUser);
 
         $summary = $this->setUser($user)
@@ -236,7 +236,7 @@ class ManagerSpec extends ObjectBehavior
             ->setLiquidityTokenBalance(BigDecimal::of(0.75)); // 50% of total (pairs totalSupply added up)
         $uniswapUser->setLiquidityPositions([$liquidityPosition]);
 
-        $this->uniswapClient->getUser('0xholder_1', null)
+        $this->uniswapClient->getUser('0xholder_1', Argument::any())
            ->willReturn($uniswapUser);
         
 
