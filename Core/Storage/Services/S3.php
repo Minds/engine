@@ -65,7 +65,7 @@ class S3 implements ServiceInterface
     {
         $mimeType = File::getMimeType($data);
 
-        $write =  $this->s3->putObject([
+        $this->s3->putObjectAsync([
           // 'ACL' => 'public-read',
           'Bucket' => Config::_()->aws['bucket'],
           'Key' => $this->filepath,
