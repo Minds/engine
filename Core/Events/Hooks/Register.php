@@ -10,6 +10,14 @@ use Minds\Core\Di\Di;
 
 class Register
 {
+    /** @var Logger */
+    protected $logger;
+
+    public function __construct($logger = null)
+    {
+        $this->logger = $logger ?? Di::_()->get('Logger');
+    }
+
     public function init()
     {
         Dispatcher::register('register', 'user', function ($event) {
@@ -32,20 +40,24 @@ class Register
 
             //@todo again, maybe in a background task?
             if ($params['referrer']) {
-                $user = new Entities\User(strtolower(ltrim($params['referrer'], '@')));
-                if ($user->guid) {
-                    $params['user']->referrer = (string) $user->guid;
-                    $params['user']->save();
-                    $params['user']->subscribe($user->guid);
-                }
-     
-                $referral = new Referral();
-                $referral->setProspectGuid($params['user']->getGuid())
-                    ->setReferrerGuid((string) $user->guid)
-                    ->setRegisterTimestamp(time());
+                try {
+                    $user = new Entities\User(strtolower(ltrim($params['referrer'], '@')));
+                    if ($user->guid) {
+                        $params['user']->referrer = (string) $user->guid;
+                        $params['user']->save();
+                        $params['user']->subscribe($user->guid);
+                    }
 
-                $manager = Di::_()->get('Referrals\Manager');
-                $manager->add($referral);
+                    $referral = new Referral();
+                    $referral->setProspectGuid($params['user']->getGuid())
+                        ->setReferrerGuid((string) $user->guid)
+                        ->setRegisterTimestamp(time());
+
+                    $manager = Di::_()->get('Referrals\Manager');
+                    $manager->add($referral);
+                } catch (\Exception $e) {
+                    $this->logger->error($e);
+                }
             }
         });
 

@@ -52,7 +52,11 @@ class Referral
     public function getState()
     {
         // Referral goes from pending to complete when the prospect joins rewards
+        // Invalid state is given when the referral has been invalidated (set to equal -1).
         if ($this->joinTimestamp) {
+            if ($this->joinTimestamp === -1) {
+                return 'invalid';
+            }
             return 'complete';
         }
         return 'pending';

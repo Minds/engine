@@ -193,6 +193,8 @@ class Join
                         ->push();
 
                     $this->referralDelegate->onReferral($this->user);
+                } else {
+                    $this->referralDelegate->onReject($this->user->guid, $this->user->referrer);
                 }
             }
         } else {
