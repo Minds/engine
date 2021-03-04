@@ -1623,4 +1623,11 @@ CREATE TABLE minds.token_metrics (
     offchain decimal,
     onchain decimal,
     PRIMARY KEY (metric, date, hour)
-) WITH CLUSTERING ORDER BY (date DESC, hour DESC)
+) WITH CLUSTERING ORDER BY (date DESC, hour DESC);
+
+CREATE TABLE minds.eth_blocks (
+    date date,
+    timestamp timestamp,
+    block_number int,
+    PRIMARY KEY (date, timestamp)
+) WITH CLUSTERING ORDER BY (timestamp DESC);
