@@ -190,7 +190,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->add(Argument::that(function ($rewardEntry) {
             return $rewardEntry->getUserGuid() === '123'
                 && $rewardEntry->getTokenAmount()
-                && $rewardEntry->getTokenAmount()->toFloat() === (float) 10000 // 50% of all available rewards in pool
+                && $rewardEntry->getTokenAmount()->toFloat() === (float) 2000 // 50% of all available rewards in pool
                 && $rewardEntry->getRewardType() === 'engagement';
         }))->shouldBeCalled();
 
