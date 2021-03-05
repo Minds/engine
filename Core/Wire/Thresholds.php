@@ -72,6 +72,11 @@ class Thresholds
                 }
 
                 $supportTier = $this->supportTiersManager->getByUrn($threshold['support_tier']['urn']);
+
+                if (!$supportTier) {
+                    return false;
+                }
+
                 $ownerGuid = $supportTier->getEntityGuid();
                 $minThreshold = $supportTier->getUsd();
             } else {
