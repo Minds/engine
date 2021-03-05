@@ -1,7 +1,7 @@
 <tr>
     <td>
         <p>
-            Your on-chain transfer request of <?php echo $vars['amount']; ?> token(s) was submitted successfully.
+            Your on-chain transfer request of <?php echo $vars['amount']; ?> token(s) was submitted successfully. Assuming your channel has not violated the terms, you should receive confirmation within 24 hours.
         </p>
     </td>
 </tr>
