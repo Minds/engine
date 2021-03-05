@@ -19,8 +19,14 @@ class KeyValueLimiter
 {
     use MagicAttributes;
 
+    /** @var Config */
+    private $config;
+
     /** @var RedisServer */
     private $redis;
+
+    /** @var bool */
+    private $redisIsConnected = false;
 
     /** @var Logger\Log */
     private $logger;
@@ -43,9 +49,8 @@ class KeyValueLimiter
      */
     public function __construct($redis = null, $config = null, $logger = null)
     {
-        $config = $config ?? Di::_()->get('Config');
+        $this->config = $config ?? Di::_()->get('Config');
         $this->redis = $redis ?: new RedisServer();
-        $this->redis->connect($config->redis['master']);
         $this->logger = $logger ?? Di::_()->get('Logger');
     }
 
@@ -56,18 +61,31 @@ class KeyValueLimiter
     public function checkAndIncrement(): bool
     {
         $recordKey = "ratelimit:$this->key-$this->value:$this->seconds";
-        $count = (int) $this->redis->get("$recordKey");
+        $count = (int) $this->getRedis()->get("$recordKey");
         
         if ($count >= $this->max) {
             $this->logger->warn("[RateLimit]: $recordKey was hit with $this->max");
             throw new RateLimitExceededException();
         }
 
-        $this->redis->multi()
+        $this->getRedis()->multi()
             ->incr($recordKey)
             ->expire($recordKey, $this->seconds)
             ->exec();
 
         return true;
+    }
+
+    /**
+     * Get our redis connection
+     * @return RedisServer
+     */
+    private function getRedis(): RedisServer
+    {
+        if (!$this->redisIsConnected) {
+            $this->redis->connect($this->config->redis['master']);
+            $this->redisIsConnected = true;
+        }
+        return $this->redis;
     }
 }
