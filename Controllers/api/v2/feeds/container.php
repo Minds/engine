@@ -43,6 +43,13 @@ class container implements Interfaces\Api
             ]);
         }
 
+        if (!$container instanceof User) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Bad request. The container does not appear to be a user',
+            ]);
+        }
+
         $type = '';
         switch ($pages[1]) {
             case 'activities':
