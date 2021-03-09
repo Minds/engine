@@ -71,13 +71,12 @@ class UpgradesDelegate
         $days = 30;
         $monthly = $this->config->get('upgrades')['plus']['monthly'];
         $yearly = $this->config->get('upgrades')['plus']['yearly'];
+        $lifetime = $this->config->get('upgrades')['plus']['lifetime'];
 
         switch ($wire->getMethod()) {
             case 'tokens':
-                if ($monthly['tokens'] == $wire->getAmount() / (10 ** 18)) {
-                    $days = 32;
-                } elseif ($yearly['tokens'] == $wire->getAmount() / (10 ** 18)) {
-                    $days = 368;
+                if ($lifetime['tokens'] == $wire->getAmount() / (10 ** 18)) {
+                    $days = 36500; // 100 years
                 } else {
                     return $wire;
                 }
@@ -130,15 +129,14 @@ class UpgradesDelegate
         $days = 30;
         $monthly = $this->config->get('upgrades')['pro']['monthly'];
         $yearly = $this->config->get('upgrades')['pro']['yearly'];
+        $lifetime = $this->config->get('upgrades')['pro']['lifetime'];
 
         error_log($wire->getMethod());
         switch ($wire->getMethod()) {
             case 'tokens':
                 error_log($wire->getAmount());
-                if ($monthly['tokens'] == $wire->getAmount() / (10 ** 18)) {
-                    $days = 32;
-                } elseif ($yearly['tokens'] == $wire->getAmount() / (10 ** 18)) {
-                    $days = 367;
+                if ($lifetime['tokens'] == $wire->getAmount() / (10 ** 18)) {
+                    $days = 36500; // 100 years
                 } else {
                     return $wire;
                 }
