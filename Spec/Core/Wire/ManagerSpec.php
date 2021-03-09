@@ -134,6 +134,15 @@ class ManagerSpec extends ObjectBehavior
             'txHash' => '0xTX',
             'method' => 'onchain',
         ];
+        $this->config->get('plus')
+            ->willReturn([
+                'handler' => 456
+            ]);
+
+        $this->config->get('pro')
+            ->willReturn([
+                'handler' => 789
+            ]);
 
         $this->setSender($sender)
             ->setEntity($receiver)
@@ -220,6 +229,16 @@ class ManagerSpec extends ObjectBehavior
             'method' => 'onchain',
         ];
 
+        $this->config->get('plus')
+            ->willReturn([
+                'handler' => 456
+            ]);
+
+        $this->config->get('pro')
+            ->willReturn([
+                'handler' => 789
+            ]);
+
         $this->setSender($sender)
             ->setEntity($receiver)
             ->setPayload($payload)
@@ -242,6 +261,11 @@ class ManagerSpec extends ObjectBehavior
         $this->config->get('plus')
             ->willReturn([
                 'handler' => 456
+            ]);
+
+        $this->config->get('pro')
+            ->willReturn([
+                'handler' => 789
             ]);
 
         $payload = [
@@ -282,6 +306,11 @@ class ManagerSpec extends ObjectBehavior
                 'handler' => 456
             ]);
 
+        $this->config->get('pro')
+            ->willReturn([
+                'handler' => 789
+            ]);
+
         $payload = [
             'method' => 'usd',
             'paymentMethodId' => 'mockPaymentId',
@@ -318,6 +347,11 @@ class ManagerSpec extends ObjectBehavior
         $this->config->get('plus')
             ->willReturn([
                 'handler' => 456
+            ]);
+
+        $this->config->get('pro')
+            ->willReturn([
+                'handler' => 789
             ]);
 
         $payload = [
