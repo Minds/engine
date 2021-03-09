@@ -94,7 +94,6 @@ class EmailDelegate
             ->send();
     }
 
-    //ojm trigger emaildelegatez
     /**
      * @param Request $request
      * @throws Exception
