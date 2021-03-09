@@ -223,9 +223,13 @@ class Manager
             ->setTimestamp(time())
             ->setRecurringInterval($this->recurringInterval);
 
-        // If Minds+ is the reciever, bypass the ACL
+        // If receiver is handler for Minds+/Pro, bypass the ACL
         $bypassAcl = false;
         if ((string) $this->receiver->getGuid() === (string) $this->config->get('plus')['handler']) {
+            $bypassAcl = true;
+        }
+
+        if ((string) $this->receiver->getGuid() === (string) $this->config->get('pro')['handler']) {
             $bypassAcl = true;
         }
 
@@ -264,7 +268,7 @@ class Manager
                     ->setUser($this->sender)
                     ->setContract('wire');
 
-                if (!$this->cap->isAllowed($this->amount)) {
+                if (!$this->cap->isAllowed($this->amount) && !$bypassAcl) {
                     throw new \Exception('You are not allowed to spend that amount of coins.');
                 }
 
