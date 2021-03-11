@@ -8,6 +8,7 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Entities\User;
+use Minds\Entities\Group;
 use Minds\Interfaces;
 
 class container implements Interfaces\Api
@@ -40,6 +41,13 @@ class container implements Interfaces\Api
             return Factory::response([
                 'status' => 'error',
                 'message' => 'Forbidden',
+            ]);
+        }
+
+        if (!($container instanceof User || $container instanceof Group)) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Bad request. The container does not appear to be a user or group',
             ]);
         }
 

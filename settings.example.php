@@ -619,22 +619,24 @@ $CONFIG->set('contact_details', [
 $CONFIG->set('upgrades', [
     'pro' => [
         'monthly' => [
-            'tokens' => 240,
             'usd' => 60,
         ],
         'yearly' => [
-            'tokens' => 2400,
             'usd' => 600,
+        ],
+        'lifetime' => [
+            'tokens' => 20000
         ],
     ],
     'plus' => [
         'monthly' => [
-            'tokens' => 28,
             'usd' => 7,
         ],
         'yearly' => [
-            'tokens' => 240,
             'usd' => 60,
+        ],
+        'lifetime' => [
+            'tokens' => 2500
         ],
     ],
 ]);

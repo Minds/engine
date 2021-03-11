@@ -1631,3 +1631,10 @@ CREATE TABLE minds.totp_secrets (
     secret text,
     PRIMARY KEY (user_guid, device_id, secret)
  ) WITH CLUSTERING ORDER BY (device_id DESC, secret DESC);
+
+CREATE TABLE minds.eth_blocks (
+    date date,
+    timestamp timestamp,
+    block_number int,
+    PRIMARY KEY (date, timestamp)
+) WITH CLUSTERING ORDER BY (timestamp DESC);

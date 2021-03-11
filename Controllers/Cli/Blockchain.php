@@ -11,7 +11,7 @@ namespace Minds\Controllers\Cli;
 
 use Minds\Cli;
 use Minds\Core\Blockchain\EthPrice;
-use Minds\Core\Blockchain\Uniswap;
+use Minds\Core\Blockchain\Services;
 use Minds\Core\Blockchain\Purchase\Delegates\EthRate;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
@@ -258,5 +258,25 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
         $metricManager
             ->setTimeBoundary($from, $to)
             ->sync();
+    }
+
+    /**
+     * Will sync blocks from etherscan to our cassandra table
+     */
+    public function syncBlocks()
+    {
+        /** @var Services\BlockFinder */
+        $blockFinder = Di::_()->get('Blockchain\Services\BlockFinder');
+        
+        /** @var int */
+        $interval = $this->getOpt('interval') ?: 10;
+        
+        while (true) {
+            $unixTimestamp = time();
+            $blockNumber = $blockFinder->getBlockByTimestamp($unixTimestamp, false);
+            $date = date('c', $unixTimestamp);
+            $this->out("[$date]: Block Number: $blockNumber");
+            sleep($interval);
+        }
     }
 }
