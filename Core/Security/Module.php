@@ -12,6 +12,8 @@ class Module implements ModuleInterface
     /** @var array $submodules */
     public $submodules = [
         Block\Module::class,
+        TOTP\Module::class,
+        TwoFactor\Module::class,
     ];
 
     /**

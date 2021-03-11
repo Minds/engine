@@ -48,7 +48,7 @@ class ControllerSpec extends ObjectBehavior
         $opts = new TOTPSecretQueryOpts();
         $opts->setUserGuid($user->getGuid);
 
-        $this->manager->isRegistered($opts)
+        $this->manager->isRegistered($user)
             ->willReturn(false);
 
         $this->twoFactor->createSecret()

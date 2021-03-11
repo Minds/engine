@@ -32,7 +32,7 @@ class OAuthProvider extends Provider
                 $clientRepository, // instance of ClientRepositoryInterface
                 $accessTokenRepository, // instance of AccessTokenRepositoryInterface
                 $scopeRepository, // instance of ScopeRepositoryInterface
-                '/var/secure/oauth-priv.key',    // path to private key
+                'file:///.dev/minds.pem',    // path to private key
                 $config->oauth['encryption_key'] // encryption key
             );
 
@@ -63,7 +63,7 @@ class OAuthProvider extends Provider
             $accessTokenRepository = $di->get('OAuth\Repositories\AccessToken');
 
             // Path to authorization server's public key
-            $publicKeyPath = '/var/secure/oauth-pub.key';
+            $publicKeyPath = 'file:///.dev/minds.pub';
 
             // Setup the authorization server
             $server = new ResourceServer(

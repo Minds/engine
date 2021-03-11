@@ -48,10 +48,7 @@ class Controller
         /** @var User */
         $user = $request->getAttribute('_user');
 
-        $opts = new TOTPSecretQueryOpts();
-        $opts->setUserGuid($user->getGuid());
-
-        $isRegistered = $this->manager->isRegistered($opts);
+        $isRegistered = $this->manager->isRegistered($user);
 
         if ($isRegistered) {
             throw new Exception("Secret already exists for this user");
@@ -79,9 +76,9 @@ class Controller
 
         $body = $request->getParsedBody();
         $secret = $body['secret'];
-        $code = $body['code'];
+        $code = (string) $body['code'];
 
-        $codeIsValid = $this->twoFactor->verifyCode($secret, $code, 1);
+        $codeIsValid = $this->twoFactor->verifyCode($secret, $code, 3);
 
         if (!$codeIsValid) {
             throw new UserErrorException("Invalid code");

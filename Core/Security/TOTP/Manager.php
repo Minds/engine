@@ -44,14 +44,13 @@ class Manager
 
     /**
      * Checks if user already has a secret registered to their channel
-     * @param TOTPSecretQueryOpts $opts
+     * @param User $user
      * @return bool
      */
-    public function isRegistered(TOTPSecretQueryOpts $opts): bool
+    public function isRegistered(User $user): bool
     {
-        if (!$opts->getUserGuid) {
-            throw new \Exception('User guid must be provided');
-        }
+        $opts = new TOTPSecretQueryOpts();
+        $opts->setUserGuid($user->getGuid());
 
         $response = $this->repository->get($opts);
 
