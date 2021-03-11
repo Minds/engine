@@ -1,5 +1,4 @@
 <?php
-//ojm add emailDelegate
 namespace Spec\Minds\Core\Rewards\Withdraw;
 
 use Exception;
