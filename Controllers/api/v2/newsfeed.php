@@ -297,7 +297,8 @@ class newsfeed implements Interfaces\Api
                         $activityMutation->setLicense($license);
                     }
 
-                    if (isset($_POST['time_created'])) {
+                    // NOTE: Only update time created (schedule) if greater than current time)
+                    if (isset($_POST['time_created']) && $activity->getTimeCreated() > time()) {
                         $activityMutation->setTimeCreated($_POST['time_created']);
                     }
 
