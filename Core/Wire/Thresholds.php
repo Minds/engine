@@ -100,7 +100,7 @@ class Thresholds
             $tokensAmount = $sums->setMethod('tokens')->getSent() ?: 0;
             $exRate = $this->config->get('token_exchange_rate') ?: 1.25; // TODO make this is a constant
             $tokensUsdAmount = BigNumber::fromPlain($tokensAmount, 18)->toDouble() * $exRate;
-            $usdAmount = $sums->setMethod('usd')->getSent();
+            $usdAmount = $sums->setMethod('usd')->getSent('wei');
 
             if (isset($threshold['type'])) {
                 $allowed = BigNumber::_($tokensAmount)->sub($minThreshold)->gte(0);
