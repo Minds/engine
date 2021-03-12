@@ -63,7 +63,7 @@ class SMSDelegate implements TwoFactorDelegateInterface
         ]), 300); // Expire after 5 mins
 
         // Set a header with the 2fa request id
-        header("X-MINDS-SMS-2FA-KEY: $key", true);
+        @header("X-MINDS-SMS-2FA-KEY: $key", true);
 
         //forward to the twofactor page
         throw new TwoFactorRequiredException();
