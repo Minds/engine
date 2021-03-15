@@ -19,6 +19,8 @@ use Brick\Math\BigDecimal;
  * @method BigDecimal getTokenAmount()
  * @method self setTokenomicVersion(int $tokenomicsVersion)
  * @method int getTokenomicsVersion()
+ * @method self setPayoutTx(string $tx)
+ * @method string getPayoutTx()
  */
 class RewardEntry
 {
@@ -41,6 +43,9 @@ class RewardEntry
 
     /** @var BigDecimal */
     private $tokenAmount;
+
+    /** @var string */
+    private $payoutTx;
 
     /** @var float */
     private $sharePct = 0;
