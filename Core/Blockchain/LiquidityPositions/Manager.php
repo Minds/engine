@@ -214,7 +214,7 @@ class Manager
                     ->setUsd($shareOfLiquidityUSD)
                     ->setMinds($shareOfLiquidityMINDS)
             )
-            ->setLiquiditySpotOptOut($this->user->isLiquiditySpotOptOut());
+            ->setLiquiditySpotOptOut($this->user->isLiquiditySpotOptOut() || count($this->user->getNsfw()));
 
         // How to calculate a multiplier
         // Mint time * volume
