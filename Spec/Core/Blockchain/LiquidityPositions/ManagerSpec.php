@@ -64,6 +64,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('0xSpec');
         $user->isLiquiditySpotOptOut()
             ->willReturn(false);
+        $user->getNsfw()->willReturn([]);
 
         $this->config->get('blockchain')
             ->willReturn([
