@@ -8,7 +8,7 @@ class ContributionValues
         'reminds' => 4,
         'votes' => 1,
         'subscribers' => 4,
-        'referrals' => 1,
+        'referrals' => 10,
         'referrals_welcome' => 1,
         'checkin' => 2,
         'jury_duty' => 25,
