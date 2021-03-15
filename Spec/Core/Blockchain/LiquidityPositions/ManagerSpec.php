@@ -64,7 +64,10 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('0xSpec');
         $user->isLiquiditySpotOptOut()
             ->willReturn(false);
-        $user->getNsfw()->willReturn([]);
+        $user->getNsfw()
+            ->willReturn([]);
+        $user->getPhoneNumberHash()
+            ->willReturn('phone_hash');
 
         $this->config->get('blockchain')
             ->willReturn([
@@ -221,7 +224,8 @@ class ManagerSpec extends ObjectBehavior
             );
 
         $holder1 = (new User())
-                ->setEthWallet('0xholder_1');
+                ->setEthWallet('0xholder_1')
+                ->setPhoneNumberHash('phone_hash');
         $this->entitiesBuilder->single('123', [ 'cache' => false ])
             ->willReturn(
                 $holder1

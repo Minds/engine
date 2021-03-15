@@ -257,9 +257,14 @@ class Manager
         $blockNumber = $this->blockFinder->getBlockByTimestamp($opts->getDateTs());
         foreach ($this->uniqueOnChainManager->getAll() as $i => $uniqueOnChain) {
 
-             /** @var User */
+            /** @var User */
             $user = $this->entitiesBuilder->single($uniqueOnChain->getUserGuid());
             if (!$user) {
+                continue;
+            }
+
+            // Require phone number to be setup for uniqueness
+            if (!$user->getPhoneNumberHash()) {
                 continue;
             }
 
