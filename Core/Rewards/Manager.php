@@ -191,6 +191,11 @@ class Manager
                 continue;
             }
 
+            // Require phone number to be setup for uniqueness
+            if (!$user->getPhoneNumberHash()) {
+                continue;
+            }
+
             // TODO: use a getKiteState function instead...
             switch ($user->kite_state) {
                 case UserActivityBuckets::STATE_CORE:
