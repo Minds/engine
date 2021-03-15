@@ -248,7 +248,9 @@ class Manager
             /** @var User */
             $user = $this->entitiesBuilder->single($userGuid, [ 'cache' => false ]); // This may loop in the CLI so we don't want to cache
             try {
-                $summaries[] = $this->setUser($user)->getSummary();
+                if ($user->getPhoneNumberHash()) { // Must have phone number to have summary
+                    $summaries[] = $this->setUser($user)->getSummary();
+                }
             } catch (\Exception $e) {
                 //var_dump($e);
                 //exit;
