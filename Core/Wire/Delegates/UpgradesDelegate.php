@@ -10,6 +10,7 @@ use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Wire\Wire;
 use Minds\Core\Pro\Manager as ProManager;
+use Minds\Entities\User;
 
 class UpgradesDelegate
 {
@@ -60,6 +61,7 @@ class UpgradesDelegate
         $user = $wire->getSender();
 
         // rebuild the user as we can't trust upstream
+        /** @var User */
         $user = $this->entitiesBuilder->single($user->getGuid(), [
             'cache' => false,
         ]);
@@ -75,6 +77,7 @@ class UpgradesDelegate
 
         switch ($wire->getMethod()) {
             case 'tokens':
+                $user->setPlusMethod('tokens');
                 if ($lifetime['tokens'] == $wire->getAmount() / (10 ** 18)) {
                     $days = 36500; // 100 years
                 } else {
@@ -82,6 +85,7 @@ class UpgradesDelegate
                 }
                 break;
             case 'usd':
+                $user->setPlusMethod('usd');
                 if ($user->plus_expires > strtotime('40 days ago') && $wire->getAmount() == 500 && php_sapi_name() === 'cli') {
                     // If user has had Minds+ before, in the last billing period, and we are running via the CLI
                     // treat as legacy subscription customer
@@ -118,6 +122,7 @@ class UpgradesDelegate
         $user = $wire->getSender();
 
         // rebuild the user as we can't trust upstream
+        /** @var User */
         $user = $this->entitiesBuilder->single($user->getGuid(), [
             'cache' => false,
         ]);
@@ -134,7 +139,7 @@ class UpgradesDelegate
         error_log($wire->getMethod());
         switch ($wire->getMethod()) {
             case 'tokens':
-                error_log($wire->getAmount());
+                $user->setProMethod('tokens');
                 if ($lifetime['tokens'] == $wire->getAmount() / (10 ** 18)) {
                     $days = 36500; // 100 years
                 } else {
@@ -142,6 +147,7 @@ class UpgradesDelegate
                 }
                 break;
             case 'usd':
+                $user->setProMethod('usd');
                 if ($monthly['usd'] == $wire->getAmount() / 100) {
                     $days = 32;
                 } elseif ($yearly['usd'] == $wire->getAmount() / 100) {

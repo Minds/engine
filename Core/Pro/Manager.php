@@ -357,6 +357,20 @@ class Manager
         }
 
         if (isset($values['payout_method'])) {
+            if ($this->user->isPro()) {
+                if (
+                    $this->user->getProMethod() === 'tokens' &&
+                    $values['payout_method'] !== 'tokens'
+                ) {
+                    throw new \Exception('Pro token customers can only receive token payouts');
+                }
+            } elseif (
+                $this->user->isPlus() &&
+                $this->user->getPlusMethod() === 'tokens' &&
+                $values['payout_method'] !== 'tokens'
+            ) {
+                throw new \Exception('Plus token customers can only receive token payouts');
+            }
             $settings->setPayoutMethod($values['payout_method']);
         }
 

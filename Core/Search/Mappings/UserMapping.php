@@ -59,6 +59,14 @@ class UserMapping extends EntityMapping implements MappingInterface
             $map['email_confirmed_at'] = $this->entity->getEmailConfirmedAt() * 1000;
         }
 
+        if ($this->entity->getProExpires()) {
+            $map['pro_expires'] = $this->entity->getProExpires() * 1000;
+        }
+
+        if ($this->entity->getPlusExpires()) {
+            $map['plus_expires'] = $this->entity->getPlusExpires() * 1000;
+        }
+
         $map['tags'] = array_values(array_unique($this->entity->getTags()));
 
         return $map;
