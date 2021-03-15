@@ -362,7 +362,7 @@ class Manager
                 continue;
             }
 
-            $tokenAmount = $rewardEntry->getTokenAmount();
+            $tokenAmount = BigNumber::toPlain($rewardEntry->getTokenAmount(), 18);
 
             $transaction = new Transaction();
             $transaction
