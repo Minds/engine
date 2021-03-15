@@ -16,6 +16,11 @@ class User extends \ElggUser
     public $fullExport = true;
     public $exportCounts = false;
 
+    const PLUS_PRO_VALID_METHODS = [
+        'tokens',
+        'usd',
+    ];
+
     protected function initializeAttributes()
     {
         $this->attributes['boost_rating'] = 1;
@@ -32,7 +37,9 @@ class User extends \ElggUser
         $this->attributes['partner_rpm'] = 0;
         $this->attributes['plus'] = 0; //TODO: REMOVE
         $this->attributes['plus_expires'] = 0;
+        $this->attributes['plus_method'] = 'tokens';
         $this->attributes['pro_expires'] = 0;
+        $this->attributes['pro_method'] = 'tokens';
         $this->attributes['pro_published'] = 0;
         $this->attributes['verified'] = 0;
         $this->attributes['founder'] = 0;
@@ -1095,6 +1102,30 @@ class User extends \ElggUser
     }
 
     /**
+     * Set plus payment method.
+     *
+     * @param string $paymentMethod
+     * @return self
+     */
+    public function setPlusMethod(string $paymentMethod): self
+    {
+        if (!in_array($paymentMethod, self::PLUS_PRO_VALID_METHODS, false)) {
+            throw new \Exception("Invalid payment method '$paymentMethod' on User->setPlusMethod");
+        }
+        $this->plus_method = $paymentMethod;
+        return $this;
+    }
+
+    /**
+     * Get plus payment method
+     * @return string
+     */
+    public function getPlusMethod(): string
+    {
+        return $this->plus_method ?: 'tokens';
+    }
+
+    /**
      * Get plus expires.
      *
      * @var int
@@ -1120,6 +1151,30 @@ class User extends \ElggUser
     public function getProExpires()
     {
         return $this->pro_expires ?: 0;
+    }
+
+    /**
+     * Set pro payment method
+     *
+     * @param string $paymentMethod
+     * @return self
+     */
+    public function setProMethod(string $paymentMethod): self
+    {
+        if (!in_array($paymentMethod, self::PLUS_PRO_VALID_METHODS, false)) {
+            throw new \Exception("Invalid payment method '$paymentMethod' on User->setProMethod");
+        }
+        $this->pro_method = $paymentMethod;
+        return $this;
+    }
+
+    /**
+     * Get plus payment method
+     * @return string
+     */
+    public function getProMethod(): string
+    {
+        return $this->pro_method ?: 'tokens';
     }
 
     /**

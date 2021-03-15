@@ -51,6 +51,8 @@ class UserMappingSpec extends ObjectBehavior
         $user->getGroupMembership()->willReturn([ 2000 ]);
         $user->getNsfw()->willReturn([ 1 ]);
         $user->getTags()->willReturn([ 'spaceiscool' ]);
+        $user->getPlusExpires()->willReturn(0);
+        $user->getProExpires()->willReturn(0);
 
         $this
             ->setEntity($user)
