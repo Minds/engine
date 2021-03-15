@@ -180,10 +180,10 @@ class Manager
 
         // Engagement rewards
 
-        $opts = (new ContributionQueryOpts())
-            ->setDateTs($opts->getDateTs());
+        $contributionsOpts = (new ContributionQueryOpts())
+           ->setDateTs(strtotime('midnight', $opts->getDateTs()));
 
-        foreach ($this->contributions->getSummaries($opts) as $i => $contributionSummary) {
+        foreach ($this->contributions->getSummaries($contributionsOpts) as $i => $contributionSummary) {
 
             /** @var User */
             $user = $this->entitiesBuilder->single($contributionSummary->getUserGuid());
@@ -349,11 +349,45 @@ class Manager
 
     /**
      * Issue tokens based on alreay calculated RewardEntry's
+     * @param bool $dryRun
      * @return void
      */
-    public function issueTokens(): void
+    public function issueTokens(RewardsQueryOpts $opts = null, $dryRun = true): void
     {
-        // TODO
+        $opts = $opts ?? (new RewardsQueryOpts())
+            ->setDateTs(strtotime('yesterday'));
+
+        foreach ($this->repository->getIterator($opts) as $i => $rewardEntry) {
+            if ($rewardEntry->getTokenAmount()->toFloat() === (float) 0) {
+                continue;
+            }
+
+            $tokenAmount = $rewardEntry->getTokenAmount();
+
+            $transaction = new Transaction();
+            $transaction
+                ->setUserGuid($rewardEntry->getUserGuid())
+                ->setWalletAddress('offchain')
+                ->setTimestamp(strtotime("+24 hours - 1 second", $rewardEntry->getDateTs()))
+                ->setTx('oc:' . Guid::build())
+                ->setAmount($tokenAmount)
+                ->setContract('offchain:reward')
+                ->setCompleted(true);
+
+            if (!$dryRun) {
+                $this->txRepository->add($transaction);
+
+                // Add in the TX to the database for auditing
+                $rewardEntry->setPayoutTx($transaction->getTx());
+                $this->add($rewardEntry);
+            }
+
+            $this->logger->info("[$i]: Issued $tokenAmount tokens", [
+                'userGuid' => $rewardEntry->getUserGuid(),
+                'reward_type' => $rewardEntry->getRewardType(),
+                'tx' => $transaction->getTx(),
+            ]);
+        }
     }
 
     /**

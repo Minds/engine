@@ -1603,6 +1603,7 @@ CREATE TABLE minds.token_rewards (
     multiplier decimal,
     score decimal,
     token_amount decimal,
+    payout_tx text,
     tokenomics_version int,
     PRIMARY KEY (user_guid, reward_type, date)
 ) WITH CLUSTERING ORDER BY (reward_type ASC, date DESC);

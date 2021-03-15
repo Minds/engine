@@ -100,7 +100,16 @@ class Repository
      */
     public function add(RewardEntry $rewardEntry): bool
     {
-        $statement = "INSERT INTO token_rewards (user_guid, date, reward_type, score, multiplier, token_amount, tokenomics_version) VALUES (?,?,?,?,?,?,?)";
+        $statement = "INSERT INTO token_rewards (
+            user_guid,
+            date,
+            reward_type,
+            score,
+            multiplier,
+            token_amount,
+            payout_tx,
+            tokenomics_version
+            ) VALUES (?,?,?,?,?,?,?,?)";
         $values = [
             new Bigint($rewardEntry->getUserGuid()),
             new Date($rewardEntry->getDateTs()),
@@ -108,6 +117,7 @@ class Repository
             new Decimal((string) $rewardEntry->getScore()),
             new Decimal((string) $rewardEntry->getMultiplier()),
             new Decimal((string) $rewardEntry->getTokenAmount() ?: 0),
+            $rewardEntry->getPayoutTx(),
             $rewardEntry->getTokenomicsVersion(),
         ];
 
