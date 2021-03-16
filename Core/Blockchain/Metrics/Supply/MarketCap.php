@@ -29,7 +29,10 @@ class MarketCap extends Metrics\AbstractBlockchainMetric implements Metrics\Bloc
     public function fetchOffchain(): BigDecimal
     {
         $tokenPrice = $this->tokenPricesManager->getPrices()['minds'];
-        return $this->circulatingSupply->getOffchain()->multipliedBy($tokenPrice);
+        return $this->circulatingSupply
+            ->setTo($this->to)
+            ->setFrom($this->from)
+            ->fetchOffchain()->multipliedBy($tokenPrice);
     }
 
     /**
@@ -38,6 +41,9 @@ class MarketCap extends Metrics\AbstractBlockchainMetric implements Metrics\Bloc
     public function fetchOnchain(): BigDecimal
     {
         $tokenPrice = $this->tokenPricesManager->getPrices()['minds'];
-        return $this->circulatingSupply->getOnchain()->multipliedBy($tokenPrice);
+        return $this->circulatingSupply
+            ->setTo($this->to)
+            ->setFrom($this->from)
+            ->fetchOnchain()->multipliedBy($tokenPrice);
     }
 }
