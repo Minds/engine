@@ -251,8 +251,8 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
             ->set('min_log_level', 'INFO');
 
         $hoursAgo = $this->getOpt('hoursAgo') ?? "0";
-        $from = strtotime('24 hours ago');
         $to = strtotime("$hoursAgo hours ago", time());
+        $from = strtotime('24 hours ago', $to);
 
         $metricManager = Di::_()->get('Blockchain\Metrics\Manager');
         $metricManager
