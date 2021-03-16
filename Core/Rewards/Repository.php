@@ -106,7 +106,6 @@ class Repository
             reward_type,
             score,
             multiplier,
-            token_amount,
             payout_tx,
             tokenomics_version
             ) VALUES (?,?,?,?,?,?,?,?)";
@@ -116,7 +115,6 @@ class Repository
             $rewardEntry->getRewardType(),
             new Decimal((string) $rewardEntry->getScore()),
             new Decimal((string) $rewardEntry->getMultiplier()),
-            new Decimal((string) $rewardEntry->getTokenAmount() ?: 0),
             $rewardEntry->getPayoutTx(),
             $rewardEntry->getTokenomicsVersion(),
         ];
