@@ -123,6 +123,10 @@ class Repository
 
         $prepared = new Prepared\Custom();
         $prepared->query($statement, $values);
+        $prepared->setOpts([
+            // Ensure we write to all the entire cluster and not just local
+            'consistency' => \Cassandra::CONSISTENCY_QUORUM,
+        ]);
 
         return (bool) $this->cql->request($prepared);
     }
