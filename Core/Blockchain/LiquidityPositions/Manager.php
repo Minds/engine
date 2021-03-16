@@ -13,6 +13,7 @@ use Minds\Core\Blockchain\Uniswap\UniswapEntityInterface;
 use Minds\Core\Blockchain\Uniswap\UniswapMintEntity;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain;
 use Minds\Core\EntitiesBuilder;
+use Minds\Exceptions\UserErrorException;
 
 class Manager
 {
@@ -82,7 +83,7 @@ class Manager
         }
 
         if (!$address = $this->user->getEthWallet()) {
-            throw new \Exception("User must have an ETH wallet setup");
+            throw new UserErrorException("User must have an ETH wallet setup");
         }
 
         // The latest possible time
