@@ -181,6 +181,16 @@ class Events
             $manager = Core\Di\Di::_()->get('Notification\Manager');
 
             foreach ($params['to'] as $to_user) {
+                if (!$notification->getFromGuid()) {
+                    error_log('[NotificationDispatcher]: tried to send notification to ' . $to_user . ' but fromGruid is null');
+                    continue;
+                }
+
+                if (!$to_user) {
+                    error_log('[NotificationDispatcher]: ' . $notification->getFromGuid() . 'tried to send notification to send a notification but the to_user is null');
+                    continue;
+                }
+
                 /** @var BlockEntry */
                 $blockEntry = (new BlockEntry())
                     ->setActorGuid($notification->getFromGuid())
