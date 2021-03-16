@@ -322,7 +322,7 @@ class Manager
             $tokenAmount = $tokenPool->multipliedBy($rewardEntry->getSharePct(), 18, RoundingMode::FLOOR);
 
             $rewardEntry->setTokenAmount($tokenAmount);
-            $this->add($rewardEntry);
+            $this->repository->update($rewardEntry, [ 'token_amount' ]);
 
             $sharePct = $rewardEntry->getSharePct() * 100;
 

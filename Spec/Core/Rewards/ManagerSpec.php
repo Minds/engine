@@ -188,12 +188,13 @@ class ManagerSpec extends ObjectBehavior
                         ->setScore(BigDecimal::of(25))
                         ->setSharePct(0.5),
                 ]);
-        $this->repository->add(Argument::that(function ($rewardEntry) {
+        $this->repository->update(Argument::that(function ($rewardEntry) {
             return $rewardEntry->getUserGuid() === '123'
                 && $rewardEntry->getTokenAmount()
                 && $rewardEntry->getTokenAmount()->toFloat() === (float) 2000 // 50% of all available rewards in pool
                 && $rewardEntry->getRewardType() === 'engagement';
-        }))->shouldBeCalled();
+        }), ['token_amount'])->shouldBeCalled()
+            ->willReturn(true);
 
         $this->calculate();
     }

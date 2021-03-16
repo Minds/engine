@@ -131,6 +131,56 @@ class Repository
         return (bool) $this->cql->request($prepared);
     }
 
+    /**
+     * @param RewardEntry $rewardEntry
+     * @param array $fields
+     * @return bool
+     */
+    public function update(RewardEntry $rewardEntry, array $fields = []): bool
+    {
+        $statement = "UPDATE token_rewards";
+        $values = [];
+
+        /**
+         * Set statement
+         */
+        $set = [];
+
+        foreach ($fields as $field) {
+            switch ($field) {
+                case "token_amount":
+                    $set["token_amount"] = new Decimal((string) $rewardEntry->getTokenAmount() ?: 0);
+                    break;
+            }
+        }
+
+        foreach ($set as $field => $value) {
+            $statement .= " SET $field = ?";
+            $values[] = $value;
+        }
+
+        /**
+         * Where statement
+         */
+        $where = [
+            "user_guid = ?" => new Bigint($rewardEntry->getUserGuid()),
+            "date = ?" =>  new Date($rewardEntry->getDateTs()),
+            "reward_type = ?" => $rewardEntry->getRewardType()
+        ];
+
+        $statement .= " WHERE " . implode(' AND ', array_keys($where));
+        array_push($values, ...array_values($where));
+
+        $prepared = new Prepared\Custom();
+        $prepared->query($statement, $values);
+        $prepared->setOpts([
+            // Ensure we write to all the entire cluster and not just local
+            'consistency' => \Cassandra::CONSISTENCY_QUORUM,
+        ]);
+
+        return (bool) $this->cql->request($prepared);
+    }
+
     //
 
     /**
