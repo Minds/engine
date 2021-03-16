@@ -24,7 +24,8 @@ class TokensReclaimed extends Metrics\AbstractBlockchainMetric implements Metric
      */
     public function fetchOffchain(): BigDecimal
     {
-        return $this->tokensReclaimedForBoost->getOffchain()->plus($this->tokensReclaimedForUpgrades->getOffchain());
+        $this->tokensReclaimedForBoost->setTo($this->to)->setFrom($this->from);
+        return $this->tokensReclaimedForBoost->fetchOffchain()->plus($this->tokensReclaimedForUpgrades->fetchOffchain());
     }
 
     /**
@@ -32,6 +33,7 @@ class TokensReclaimed extends Metrics\AbstractBlockchainMetric implements Metric
      */
     public function fetchOnchain(): BigDecimal
     {
-        return $this->tokensReclaimedForBoost->getOnchain()->plus($this->tokensReclaimedForUpgrades->getOnchain());
+        $this->tokensReclaimedForBoost->setTo($this->to)->setFrom($this->from);
+        return $this->tokensReclaimedForBoost->fetchOnchain()->plus($this->tokensReclaimedForUpgrades->fetchOnchain());
     }
 }
