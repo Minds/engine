@@ -108,7 +108,7 @@ class Repository
             multiplier,
             payout_tx,
             tokenomics_version
-            ) VALUES (?,?,?,?,?,?,?,?)";
+            ) VALUES (?,?,?,?,?,?,?)";
         $values = [
             new Bigint($rewardEntry->getUserGuid()),
             new Date($rewardEntry->getDateTs()),
