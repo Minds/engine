@@ -101,6 +101,11 @@ class thumbnail extends Core\page implements Interfaces\page
             header('Cache-Control: public');
             header('Content-Length: '.strlen($contents));
 
+            if (isset($_GET['download']) && $_GET['download']) {
+                $filename = date('\m\i\n\d\s\_Ymd\_His');
+                header('Content-Disposition: attachment; filename='.$filename);
+            }
+
             $chunks = str_split($contents, 1024);
             foreach ($chunks as $chunk) {
                 echo $chunk;
