@@ -100,8 +100,9 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
     {
         Di::_()->get('Config')
             ->set('min_log_level', 'INFO');
-        
-        $dateTs = $this->getOpt('date') ? strtotime($this->getOpt('date')) : time();
+
+        $daysAgo = $this->getOpt('daysAgo') ?: 0;
+        $dateTs = strtotime("midnight $daysAgo days ago");
 
         $opts = new Core\Rewards\RewardsQueryOpts();
         $opts->setDateTs($dateTs);
