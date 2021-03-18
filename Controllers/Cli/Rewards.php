@@ -36,12 +36,21 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
             ->set('min_log_level', 'INFO');
 
         $timestamp = $this->getOpt('timestamp') ?: (strtotime('midnight -24 hours'));
-        $dryRun = $this->getOpt('dry-run') ?: true;
+        $dryRun = $this->getOpt('dry-run') ?: false;
+        $recalculate = $this->getOpt('recalculate') ?: false;
 
         $opts = new RewardsQueryOpts();
         $opts->setDateTs($timestamp);
 
         $manager = Di::_()->get('Rewards\Manager');
+
+        if ($recalculate) {
+            $this->out('-- Recalculating the rewards --');
+            $manager->calculate($opts);
+            sleep(30); // Sleeping for 30 seconds
+        }
+
+        $this->out('-- Issuing the tokens --');
         $manager->issueTokens($opts, $dryRun);
     }
 
