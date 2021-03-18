@@ -16,9 +16,6 @@ class Manager
     /** @var Config $config */
     private $config;
 
-    /** @var Repository $repository */
-    private $repository;
-
     /** @var CassandraRepository $cassandraRepository */
     private $cassandraRepository;
 
@@ -33,7 +30,6 @@ class Manager
 
     public function __construct(
         $config = null,
-        $repository = null,
         $cassandraRepository = null,
         $features = null,
         $counters = null

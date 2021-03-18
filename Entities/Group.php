@@ -220,6 +220,14 @@ class Group extends NormalizedEntity
     }
 
     /**
+     * @return string
+     */
+    public function getSubtype()
+    {
+        return '';
+    }
+
+    /**
      * Sets `ownerObj`
      * @param Entity $ownerObj
      * @return Group

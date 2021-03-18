@@ -254,7 +254,7 @@ class Call
         }
 
         foreach ($requests as $key => $future) {
-            if ($result = $future->get()) {
+            if ($future && $result = $future->get()) {
                 $object = [];
                 foreach ($result as $row) {
                     $row = array_values($row);

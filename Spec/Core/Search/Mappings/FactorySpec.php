@@ -63,6 +63,10 @@ class FactorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('group');
 
+        $group->getSubtype()
+            ->shouldBeCalled()
+            ->willReturn('');
+
         $this->build($group)
             ->shouldBeAnInstanceOf(Mappings\GroupMapping::class);
     }

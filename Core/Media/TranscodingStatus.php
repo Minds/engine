@@ -2,7 +2,7 @@
 
 namespace Minds\Core\Media;
 
-use AWS\ResultInterface;
+use Aws\ResultInterface;
 use Minds\Entities\Video;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
