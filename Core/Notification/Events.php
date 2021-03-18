@@ -206,6 +206,7 @@ class Events
 
                 // Check rate limits on how many notifications this user has been sent by sender
                 if ($notification->getType() === 'tag') {
+                    /** @var Entities\User */
                     $toUser = Entities\Factory::build($notification->getToGuid());
                     if (!$toUser) {
                         continue;

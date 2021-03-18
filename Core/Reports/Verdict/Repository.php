@@ -73,7 +73,7 @@ class Repository
         $state = $verdict->isAppeal() ? 'appeal_jury_decided' : 'initial_jury_decided';
             
         $stateChangesMap = new Map(Type::text(), Type::timestamp());
-        $stateChangesMap->set($state, new Timestamp(microtime(true)));
+        $stateChangesMap->set($state, new Timestamp(microtime(true), 0));
 
         $values = [
             $state,
@@ -82,7 +82,7 @@ class Repository
             $verdict->getReport()->getEntityUrn(),
             new Tinyint($verdict->getReport()->getReasonCode()),
             new Decimal($verdict->getReport()->getSubReasonCode()),
-            new Timestamp($verdict->getReport()->getTimestamp()),
+            new Timestamp($verdict->getReport()->getTimestamp(), 0),
         ];
 
         $prepared = new Prepared;

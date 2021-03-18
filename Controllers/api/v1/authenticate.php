@@ -70,7 +70,8 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         try {
-            if (!Core\Security\Password::check($user, $_POST['password'])) {
+            $password = new Core\Security\Password();
+            if (!$password->check($user, $_POST['password'])) {
                 $attempts->logFailure();
                 header('HTTP/1.1 401 Unauthorized', true, 401);
                 return Factory::response(['status' => 'failed']);

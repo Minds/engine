@@ -118,12 +118,6 @@ class channel implements Interfaces\Api
 
         //
 
-        if (!$user->merchant || !$supporters_count) {
-            $db = new Core\Data\Call('entities_by_time');
-            //$feed_count = $db->countRow("activity:user:" . $user->guid);
-            $response['channel']['activity_count'] = $feed_count;
-        }
-
         $carousels = Core\Entities::get(['subtype'=>'carousel', 'owner_guid'=>$user->guid]);
         if ($carousels) {
             foreach ($carousels as $carousel) {

@@ -5,6 +5,9 @@ class ReCaptcha
 {
     private $config;
 
+    /** @var string */
+    private $answer;
+
     public function __construct($config)
     {
         $this->config = $config;

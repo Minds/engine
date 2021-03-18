@@ -72,7 +72,7 @@ class Install extends Cli\Controller implements Interfaces\CliControllerInterfac
                     $provisioner->reloadStorage();
                     $this->out('OK');
                 }
-            } catch (Exception $ex) {
+            } catch (\Exception $ex) {
                 $this->out('Something BAD happened while provisioning Cassandra' . $ex->getMessage());
             }
 

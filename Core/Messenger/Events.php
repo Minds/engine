@@ -69,10 +69,6 @@ class Events
 
             if ($params['row']->subtype == 'message') {
                 $event->setResponse(new Entities\Message($params['row']));
-            } elseif ($params['row']->subtype == 'call_missed') {
-                $event->setResponse(new Entities\CallMissed($params['row']));
-            } elseif ($params['row']->subtype == 'call_ended') {
-                $event->setResponse(new Entities\CallEnded($params['row']));
             }
         });
 

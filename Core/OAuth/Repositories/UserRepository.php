@@ -9,19 +9,20 @@ use League\OAuth2\Server\Repositories\UserRepositoryInterface;
 use Minds\Core\OAuth\Entities\UserEntity;
 use Minds\Entities\User;
 use Minds\Core\Di\Di;
+use Minds\Core\Security\Password;
 
 class UserRepository implements UserRepositoryInterface
 {
-    /** @var Password $password */
+    /** @var Password */
     private $password;
 
-    /** @var SentryScopeDelegate $sentryScopeDelegate */
+    /** @var Delegates\SentryScopeDelegate */
     private $sentryScopeDelegate;
 
-    /** @var User $mock */
+    /** @var User */
     public $mockUser = false;
 
-    public function __construct(Password $password = null, SentryScopeDelegate $sentryScopeDelegate = null)
+    public function __construct(Password $password = null, Delegates\SentryScopeDelegate $sentryScopeDelegate = null)
     {
         $this->password = $password ?: Di::_()->get('Security\Password');
         $this->sentryScopeDelegate = $sentryScopeDelegate ?? new Delegates\SentryScopeDelegate;

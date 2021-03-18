@@ -12,6 +12,9 @@ class Payouts
     protected $config;
     protected $stripe;
 
+    /** @var Entities\User */
+    protected $user;
+
     // Instance-only cache
     protected $lastPayoutCache = null;
 

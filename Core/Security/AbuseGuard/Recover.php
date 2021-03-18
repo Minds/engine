@@ -13,6 +13,9 @@ class Recover
 {
     private $accused;
 
+    /** @var Core\Data\ElasticSearch\Client */
+    protected $client;
+
     public function __construct($client = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
@@ -35,6 +38,7 @@ class Recover
 
                 //and remove any attachments also
                 if ($comment->attachment_guid) {
+                    /** @var Entities\Image|Entities\Video */
                     $attachment = Entities\Factory::build($comment->attachment_guid);
                     $attachment->setFlag('deleted', true);
                     $attachment->save();
@@ -80,9 +84,7 @@ class Recover
                         'should' => [
                             [
                                 'term' => [
-                                    'entity_type.keyword' => 'comment'
-                                ],
-                                'term' => [
+                                    'entity_type.keyword' => 'comment',
                                     'user_guid.keyword' => $this->accused->getUser()->guid
                                 ]
                             ]

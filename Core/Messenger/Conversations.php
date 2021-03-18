@@ -18,6 +18,8 @@ class Conversations
     private $redis;
     private $user;
     private $toUpgrade = [];
+    private $config;
+    private $cache;
 
     public function __construct($db = null, $indexDb = null, $redis = null, $cache = null, $config = null)
     {

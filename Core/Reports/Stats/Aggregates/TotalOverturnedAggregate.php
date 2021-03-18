@@ -25,7 +25,7 @@ class TotalOverturnedAggregate implements ModerationStatsAggregateInterface
               AND timestamp > ?
               AND uphold = false
               ALLOW FILTERING";
-        $values = [ new Timestamp(strtotime('-30 days', time())) ];
+        $values = [ new Timestamp(strtotime('-30 days', time()), 0) ];
 
         $prepared = new Prepared\Custom();
         $prepared->query($statement, $values);

@@ -48,7 +48,7 @@ class Repository
                     new Varint($wire->getReceiver()->guid),
                     new Varint($wire->getSender()->guid),
                     $wire->getMethod(),
-                    new Timestamp($wire->getTimestamp()),
+                    new Timestamp($wire->getTimestamp(), 0),
                     new Varint($wire->getEntity()->guid ?: $wire->getReceiver()->guid),
                     new Varint($wire->getGuid()),
                     new Cassandra\Varint($wire->getAmount()),
@@ -101,12 +101,12 @@ class Repository
 
         if ($options['timestamp']['gte']) {
             $where[] = 'timestamp >= ?';
-            $values[] = new Timestamp($options['timestamp']['gte']);
+            $values[] = new Timestamp($options['timestamp']['gte'], 0);
         }
 
         if ($options['timestamp']['lte']) {
             $where[] = 'timestamp <= ?';
-            $values[] = new Timestamp($options['timestamp']['lte']);
+            $values[] = new Timestamp($options['timestamp']['lte'], 0);
         }
 
         $cql = "SELECT * from $table";

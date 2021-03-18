@@ -4,6 +4,7 @@ namespace Minds\Core\Boost;
 
 use Minds\Core;
 use Minds\Core\Blockchain\Services\RatesInterface;
+use Minds\Core\Blockchain\Services;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments;
@@ -31,6 +32,9 @@ class Payment
 
     /** @var Lock */
     protected $locks;
+
+    /** @var Services\Ethereum */
+    protected $eth;
 
     public function __construct(
         $stripePayments = null,

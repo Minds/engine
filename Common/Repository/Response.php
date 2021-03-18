@@ -296,7 +296,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      */
     public function reverse($preserveKeys = false)
     {
-        return new static(array_reverse($this->data, $preserveKeys), $this->pagingToken);
+        return new self(array_reverse($this->data, $preserveKeys), $this->pagingToken);
     }
 
     /**
@@ -315,7 +315,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
             $filtered = array_values($filtered);
         }
 
-        return new static($filtered, $this->pagingToken);
+        return new self($filtered, $this->pagingToken);
     }
 
     /**
@@ -325,7 +325,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      */
     public function map($callback)
     {
-        return new static(array_map($callback, $this->data), $this->pagingToken);
+        return new self(array_map($callback, $this->data), $this->pagingToken);
     }
 
     /**
@@ -348,7 +348,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
         $data = $this->data;
         usort($data, $callback);
 
-        return new static($data, $this->pagingToken);
+        return new self($data, $this->pagingToken);
     }
 
     /**

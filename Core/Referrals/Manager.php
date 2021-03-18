@@ -19,6 +19,8 @@ class Manager
     /** @var Delegates\NotificationDelegate $notificationDelegate */
     private $notificationDelegate;
 
+    /** @var EntitiesBuilder */
+    private $entitiesBuilder;
 
     public function __construct(
         $repository = null,

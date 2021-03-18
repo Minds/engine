@@ -3,6 +3,7 @@
 namespace Minds\Core\Events;
 
 use Minds\Exceptions;
+use Minds\Exceptions\StopEventException;
 
 class Dispatcher
 {
@@ -16,8 +17,6 @@ class Dispatcher
      */
     public static function init()
     {
-        Listeners\Channel::init();
-        Listeners\Comments::init();
     }
 
     /**
@@ -146,7 +145,7 @@ class Dispatcher
                     }
                 }
             }
-        } catch (\Minds\Core\exceptions\StopEventException $ex) {
+        } catch (StopEventException $ex) {
             // Stop execution when we get this exception, all other exceptions bubble up.
             return false;
         }

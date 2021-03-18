@@ -31,6 +31,9 @@ class Manager
     /** @var Delegates\SnowplowDelegate */
     protected $snowplowDelegate;
 
+    /** @var Delegates\EmailDelegate */
+    protected $emailDelegate;
+
     /** @var Subscription $subscription */
     protected $subscription;
 

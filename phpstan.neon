@@ -1,0 +1,18 @@
+parameters:
+    level: 0
+    bootstrapFiles:
+        - start.php
+    paths:
+        - %currentWorkingDirectory%
+    excludes_analyse:
+        - %currentWorkingDirectory%/vendor
+        - %currentWorkingDirectory%/Spec
+        - %currentWorkingDirectory%/lib
+        - %currentWorkingDirectory%/classes
+        - %currentWorkingDirectory%/Core/Torrent
+    ignoreErrors:
+        ## If you are running into Cassandra errors, ensure you are using the minds/php-tests docker container
+        -
+            message: '#Result of static method Surge\\Messages\\Factory::build\(\) \(void\) is used.#'
+            path: %currentWorkingDirectory%
+

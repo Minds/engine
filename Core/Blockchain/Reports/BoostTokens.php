@@ -67,7 +67,7 @@ class BoostTokens extends AbstractReport
             ->getRange($this->from, $this->to);
 
         // format output
-        return array_map(function ($row) use ($ethPrice) {
+        return array_map(function ($row) {
             $minds = BigNumber::fromPlain($row['value'], 18);
 
             return [

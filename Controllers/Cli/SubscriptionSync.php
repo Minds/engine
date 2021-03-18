@@ -77,7 +77,7 @@ class SubscriptionSync extends Cli\Controller implements Interfaces\CliControlle
                             new \Cassandra\Varint($plan['entity_guid']),
                             new \Cassandra\Varint($plan['user_guid']),
                             'money',
-                            new \Cassandra\Timestamp($result->created),
+                            new \Cassandra\Timestamp($result->created, 0),
                             new \Cassandra\Varint($plan['entity_guid']),
                             new \Cassandra\Varint($plan['user_guid']),
                             new \Cassandra\Decimal($amount),

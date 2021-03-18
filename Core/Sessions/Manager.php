@@ -24,6 +24,12 @@ class Manager
     /** @var Cookie $cookie */
     private $cookie;
 
+    /** @var JWT\Builder */
+    private $jwtBuilder;
+
+    /** @var JWT\Parser */
+    private $jwtParser;
+
     /** @var Delegates\SentryScopeDelegate $sentryScopeDelegate */
     private $sentryScopeDelegate;
 

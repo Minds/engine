@@ -6,6 +6,7 @@ namespace Minds\Core\OAuth\Repositories;
 
 use League\OAuth2\Server\Entities\AuthCodeEntityInterface;
 use League\OAuth2\Server\Repositories\AuthCodeRepositoryInterface;
+use Minds\Core\Di\Di;
 use Minds\Core\OAuth\Entities\AuthCodeEntity;
 
 class AuthCodeRepository implements AuthCodeRepositoryInterface

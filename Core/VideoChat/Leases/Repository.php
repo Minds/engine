@@ -38,7 +38,7 @@ class Repository
             $lease->getKey(),
             $lease->getSecret(),
             new Varint($lease->getHolderGuid()),
-            new Timestamp($lease->getLastRefreshed()),
+            new Timestamp($lease->getLastRefreshed(), 0),
         ];
 
         $query = new Prepared();

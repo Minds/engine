@@ -820,7 +820,7 @@ class User extends \ElggUser
      */
     public function unSubscribe($guid)
     {
-        return \Minds\Helpers\Subscriptions::unSubscribe($this->guid, $guid, $data);
+        return \Minds\Helpers\Subscriptions::unSubscribe($this->guid, $guid);
     }
 
     /**
@@ -972,8 +972,8 @@ class User extends \ElggUser
 
         if ($this->fullExport) {
             if (Core\Session::isLoggedIn()) {
-                $export['subscribed'] = elgg_get_logged_in_user_entity()->isSubscribed($this->guid);
-                $export['subscriber'] = elgg_get_logged_in_user_entity()->isSubscriber($this->guid);
+                $export['subscribed'] = Core\Session::getLoggedinUser()->isSubscribed($this->guid);
+                $export['subscriber'] = Core\Session::getLoggedinUser()->isSubscriber($this->guid);
             }
         }
         if ($this->exportCounts) {

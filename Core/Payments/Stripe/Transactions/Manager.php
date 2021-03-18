@@ -19,6 +19,9 @@ class Manager
     /** @var ChargeInstance $chargeInstance */
     private $chargeInstance;
 
+    /** @var PayoutInstance */
+    private $payoutInstance;
+
     /** @var Account $account */
     private $account;
 

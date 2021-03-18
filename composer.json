@@ -46,7 +46,9 @@
         "symfony/translation": "^5.0",
         "snowplow/snowplow-tracker": "^0.3.0",
         "brick/math": "^0.9.1",
-        "composer/semver": "^3.0"
+        "composer/semver": "^3.2",
+        "friendsofphp/php-cs-fixer": "^2.18",
+        "phpstan/phpstan": "^0.12.81"
     },
     "repositories": [
         {
@@ -81,7 +83,6 @@
         "bin-dir": "bin"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^2.15",
         "friends-of-phpspec/phpspec-code-coverage": "^4.3",
         "phpspec/phpspec": "^5.0",
         "bossa/phpspec2-expect": "^3.1"

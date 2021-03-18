@@ -15,6 +15,9 @@ class Poloniex
 {
     const VALID_RESOLUTIONS = [300, 900, 1800, 7200, 14400, 86400];
 
+    /** @var Client */
+    protected $http;
+
     /**
      * Poloniex constructor.
      * @param Http\Json $http

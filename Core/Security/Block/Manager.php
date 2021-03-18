@@ -104,6 +104,10 @@ class Manager
      */
     public function isBlocked(BlockEntry $blockEntry): bool
     {
+        if (!$blockEntry->getSubjectGuid()) {
+            return false;
+        }
+
         $opts = new BlockListOpts();
         $opts->setUserGuid($blockEntry->getSubjectGuid());
 

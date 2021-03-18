@@ -2,6 +2,7 @@
 
 namespace Minds\Controllers\oauth2;
 
+use League\OAuth2\Server\Exception\OAuthServerException;
 use Minds\Core;
 use Minds\Interfaces;
 use Minds\Core\Di\Di;

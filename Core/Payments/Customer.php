@@ -16,6 +16,8 @@ class Customer
 
     private $payment_methods;
 
+    private $token;
+
     public function __construct($lu = null)
     {
         $this->lu = Di::_()->get('Database\Cassandra\Lookup');

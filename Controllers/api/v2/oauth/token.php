@@ -4,6 +4,7 @@
  */
 namespace Minds\Controllers\api\v2\oauth;
 
+use League\OAuth2\Server\Exception\OAuthServerException;
 use Minds\Api\Factory;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Notification\PostSubscriptions\Manager;

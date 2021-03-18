@@ -77,7 +77,7 @@ class User extends Cli\Controller implements Interfaces\CliControllerInterface
             $user->save();
 
             $this->out("Password changed successfuly for user ".$username);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->out("An error has occured");
             $this->out($e);
         }

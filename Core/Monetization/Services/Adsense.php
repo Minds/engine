@@ -8,6 +8,12 @@ class Adsense
     protected $analytics;
     protected $client;
 
+    /** @var Core\Config */
+    protected $config;
+
+    /** @var Core\Monetization\ServiceCache */
+    protected $cache;
+
     public function __construct($config = null, $cache = null)
     {
         $this->config = $config ?: Core\Di\Di::_()->get('Config');

@@ -21,6 +21,9 @@ class CassandraRepository
     /** @var Client $cql */
     private $cql;
 
+    /** @var Urn */
+    protected $urn;
+
     public function __construct($cql = null, $urn = null)
     {
         $this->cql = $cql ?: Di::_()->get('Database\Cassandra\Cql');
@@ -127,7 +130,7 @@ class CassandraRepository
     public function add($notification)
     {
         if (!$notification->getUuid()) {
-            $notification->setUuid((new Timeuuid())->uuid());
+            $notification->setUuid((new Timeuuid(time()))->uuid());
         }
 
         $statement = 'INSERT INTO notifications (
@@ -152,8 +155,8 @@ class CassandraRepository
             new Bigint($notification->getFromGuid()),
             (string) $notification->getEntityGuid(), // REMOVE ONCE FULLY ON CASSANDRA
             (string) $notification->getEntityUrn(),
-            new Timestamp($notification->getCreatedTimestamp() ?: time()),
-            $notification->getReadTimestamp() ? new Timestamp($notification->getReadTimestamp()) : null,
+            new Timestamp($notification->getCreatedTimestamp() ?: time(), 0),
+            $notification->getReadTimestamp() ? new Timestamp($notification->getReadTimestamp(), 0) : null,
             json_encode($notification->getData()),
             static::NOTIFICATION_TTL,
         ];

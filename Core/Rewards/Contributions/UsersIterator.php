@@ -12,6 +12,12 @@ use Minds\Core\Analytics\Timestamps;
  */
 class UsersIterator implements \Iterator
 {
+    /** @var ElasticSearch\Client */
+    protected $client;
+
+    /** @var int */
+    protected $position;
+
     private $cursor = -1;
     private $period = 0;
 

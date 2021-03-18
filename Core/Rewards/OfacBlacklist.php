@@ -9,7 +9,11 @@ use Minds\Core\Di\Di;
  */
 class OfacBlacklist
 {
+    /** @var array */
     protected $blacklist;
+
+    /** @var \libphonenumber\PhoneNumberUtil */
+    protected $libphonenumber;
 
     public function __construct($blacklist = null, $libphonenumber = null)
     {

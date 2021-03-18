@@ -6,7 +6,11 @@ namespace Minds\Core\Faq;
 
 class Question implements \JsonSerializable
 {
+    /** @var string */
     protected $question = '';
+
+    /** @var Answer */
+    protected $answer;
 
     public function setQuestion(string $question)
     {

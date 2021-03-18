@@ -70,6 +70,9 @@ class Manager
     /** @var UniqueOnChain\Manager */
     protected $uniqueOnChainManager;
 
+    /** @var BlockFinder */
+    protected $blockFinder;
+
     /** @var Token */
     protected $token;
 

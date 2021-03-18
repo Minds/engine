@@ -12,7 +12,7 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Helpers\File;
 
-class avatars implements Interfaces\FS
+class avatars implements Interfaces\Fs
 {
     public function get($pages)
     {

@@ -115,7 +115,8 @@ class settings implements Interfaces\Api
 
         if (isset($_POST['password']) && $_POST['password']) {
             try {
-                if (!Core\Security\Password::check($user, $_POST['password'])) {
+                $password = new Core\Security\Password();
+                if (!$password->check($user, $_POST['password'])) {
                     return Factory::response([
                         'status' => 'error',
                         'message' => 'You current password is incorrect'

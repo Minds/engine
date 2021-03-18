@@ -40,7 +40,6 @@ class Repository
             'user_guid' => null,
             'limit' => null,
             'offset' => null,
-            'plan_id' => null,
             'entity_guid' => null,
         ], $options);
 
@@ -86,7 +85,7 @@ class Repository
             }
 
             $where[] = 'next_billing <= ?';
-            $values[] = new Timestamp((int) $options['next_billing']);
+            $values[] = new Timestamp((int) $options['next_billing'], 0);
             $allowFiltering = true;
         }
 
@@ -207,8 +206,8 @@ class Repository
             new Varint($subscription->getUser()->guid),
             $subscription->getInterval(),
             $subscription->getStatus(),
-            new Timestamp($subscription->getLastBilling()),
-            new Timestamp($subscription->getNextBilling())
+            new Timestamp($subscription->getLastBilling(), 0),
+            new Timestamp($subscription->getNextBilling(), 0)
         ]
         );
 

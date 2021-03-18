@@ -91,7 +91,7 @@ class Sums
 
         if ($this->timestamp) {
             $cql .= " AND timestamp >= ?";
-            $values[] = new Timestamp($this->timestamp);
+            $values[] = new Timestamp($this->timestamp, 0);
         }
 
         if ($contract) {

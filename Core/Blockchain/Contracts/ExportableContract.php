@@ -28,6 +28,7 @@ abstract class ExportableContract implements \JsonSerializable, BlockchainContra
      */
     public static function at($address)
     {
+        /** @phpstan-ignore-next-line */
         return new static($address);
     }
 

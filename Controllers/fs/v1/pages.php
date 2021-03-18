@@ -13,7 +13,7 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 
-class pages implements Interfaces\FS
+class pages implements Interfaces\Fs
 {
     public function get($pages)
     {

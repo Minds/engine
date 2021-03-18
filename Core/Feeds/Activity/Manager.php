@@ -257,5 +257,6 @@ class Manager
      */
     public function getByGuid(string $guid): ?Activity
     {
+        return null;
     }
 }

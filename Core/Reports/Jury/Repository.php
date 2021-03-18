@@ -138,7 +138,7 @@ class Repository
             $decision->getReport()->getEntityUrn(),
             new Tinyint($decision->getReport()->getReasonCode()),
             new Decimal($decision->getReport()->getSubReasonCode()),
-            new Timestamp($decision->getReport()->getTimestamp()),
+            new Timestamp($decision->getReport()->getTimestamp(), 0),
         ];
 
         $prepared = new Prepared();

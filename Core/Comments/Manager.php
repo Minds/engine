@@ -133,18 +133,18 @@ class Manager
                 $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
                 $commentOwner = $this->entitiesBuilder->single($comment->getOwnerGuid());
                 if (!$this->acl->interact($entity, $commentOwner)) {
-                    error_log("{$opts['entity_guid']} found comment that entity owner can not interact with. Consider deleting.");
+                    error_log("{$comment->getEntityGuid()} found comment that entity owner can not interact with. Consider deleting.");
                     // $this->delete($comment, [ 'force' => true ]);
                     continue;
                 }
 
                 if (!$this->acl->read($comment)) {
-                    error_log("{$opts['entity_guid']} found comment we can't read");
+                    error_log("{$comment->getEntityGuid()} found comment we can't read");
                     continue;
                 }
                 $filtered[] = $comment;
             } catch (\Exception $e) {
-                error_log("{$opts['entity_guid']} exception reading comment {$e->getMessage()}");
+                error_log("{$comment->getEntityGuid()} exception reading comment {$e->getMessage()}");
             }
         }
         return $filtered;

@@ -51,14 +51,14 @@ class Sums
                 AND timestamp = ?",
                 [
                     new Varint((int) $this->user->guid),
-                    new Timestamp($this->timestamp / 1000)
+                    new Timestamp($this->timestamp / 1000, 0)
                 ]
             );
         } else {
             $query->query(
                 "SELECT SUM(amount) as amount from contributions_by_timestamp WHERE timestamp = ?",
                 [
-                    new Timestamp($this->timestamp / 1000)
+                    new Timestamp($this->timestamp / 1000, 0)
                 ]
             );
         }
@@ -85,14 +85,14 @@ class Sums
                 AND timestamp = ?",
                 [
                     new Varint((int) $this->user->guid),
-                    new Timestamp($this->timestamp / 1000)
+                    new Timestamp($this->timestamp / 1000, 0)
                 ]
             );
         } else {
             $query->query(
                 "SELECT SUM(score) as score from contributions_by_timestamp WHERE timestamp = ?",
                 [
-                    new Timestamp($this->timestamp / 1000)
+                    new Timestamp($this->timestamp / 1000, 0)
                 ]
             );
         }

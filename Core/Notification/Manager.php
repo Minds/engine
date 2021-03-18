@@ -42,10 +42,6 @@ class Manager
         $this->cassandraRepository = $cassandraRepository ?: new CassandraRepository;
         $this->features = $features ?: new FeaturesManager;
         $this->counters = $counters ?? new Counters;
-
-        if (!$this->features->has('cassandra-notifications')) {
-            $this->repository = $repository ?: new Repository;
-        }
     }
 
     /**
@@ -150,11 +146,7 @@ class Manager
                 break;
         }
 
-        if ($this->features->has('cassandra-notifications')) {
-            return $this->cassandraRepository->getList($opts);
-        }
-
-        return $this->repository->getList($opts);
+        return $this->cassandraRepository->getList($opts);
     }
 
     /**
@@ -166,12 +158,6 @@ class Manager
     {
         try {
             $this->cassandraRepository->add($notification);
-
-            if (!$this->features->has('cassandra-notifications')) {
-                $uuid = $this->repository->add($notification);
-                $notification->setUuid($uuid);
-            }
-
             return $notification->getUuid();
         } catch (\Exception $e) {
             error_log($e);

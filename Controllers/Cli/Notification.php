@@ -34,7 +34,7 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
     {
         $namespace = $this->getOpt('namespace');
         $to = $this->getOpt('to');
-        $from = $this->getOpt('from') ?? \Minds\Core\Notification\Notification::SYSTEM_ENTITY;
+        $from = $this->getOpt('from');
         $view = $this->getOpt('view');
         $params = $this->getOpt('params') ?? '{}';
 

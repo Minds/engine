@@ -9,6 +9,9 @@ class Manager
 {
     protected $timeline;
 
+    /** @var Entities\User */
+    protected $user;
+
     protected static $defaultSettings = [
         'ads' => [
             'blogs' => 0,

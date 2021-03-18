@@ -15,6 +15,8 @@ abstract class EmailCampaign
     protected $campaign;
     protected $topic;
 
+    protected $state;
+
     /**
      * @var Manager
      */

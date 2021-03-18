@@ -145,9 +145,8 @@ class Webhooks
 
         $subscription = (new Payments\Subscriptions\Subscription())
             ->setCustomer($customer)
-            ->setId($subscripionObj->id)
-            ->setPlanId($subscripionObj->plan->id)
-            ->setPrice($charge->amount / 100);
+            ->setId($subscriptionObj->id)
+            ->setPlanId($subscriptionObj->plan->id);
         $this->hooks->onCanceled($subscription);
     }
 

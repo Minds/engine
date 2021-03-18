@@ -31,6 +31,7 @@ class EventsIterator implements \Iterator
     private $elastic;
     private $index;
     private $position;
+    private $period;
 
     public function __construct($elastic = null, $index = null)
     {

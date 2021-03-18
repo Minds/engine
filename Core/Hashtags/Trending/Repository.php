@@ -165,7 +165,7 @@ class Repository
         $cql = "INSERT INTO hidden_hashtags (hashtag, hidden_since, admin_guid) VALUES (?, ?, ?)";
         $values = [
             $tag,
-            new Timestamp(time()),
+            new Timestamp(time(), 0),
             new Bigint($admin_guid),
         ];
 

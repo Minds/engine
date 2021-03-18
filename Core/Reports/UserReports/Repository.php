@@ -74,7 +74,7 @@ class Repository
         $values[] = $report->getReport()->getEntityUrn();
         $values[] = new Tinyint($report->getReport()->getReasonCode());
         $values[] = new Decimal($report->getReport()->getSubReasonCode() ?? 0);
-        $values[] = new Timestamp($report->getReport()->getTimestamp());
+        $values[] = new Timestamp($report->getReport()->getTimestamp(), 0);
         
         $prepared = new Prepared;
         $prepared->query($statement, $values);

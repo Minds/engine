@@ -17,10 +17,6 @@ class OAuthProvider extends Provider
 {
     public function register()
     {
-        $this->di->bind('OAuth\Manager', function ($di) {
-            return new Manager();
-        }, ['useFactory' => false]);
-
         // Authorization Server
         $this->di->bind('OAuth\Server\Authorization', function ($di) {
             $config = $di->get('Config');

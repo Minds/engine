@@ -13,13 +13,11 @@ class StorageProvider extends Provider
     public function register()
     {
         $this->di->bind('Storage\Disk', function ($di) {
-            $config = $di->get('Config');
-            return new Services\Disk($config);
+            return new Services\Disk();
         }, ['useFactory'=>false]);
 
         $this->di->bind('Storage\S3', function ($di) {
-            $config = $di->get('Config');
-            return new Services\S3($config);
+            return new Services\S3();
         }, ['useFactory'=>false]);
 
         $this->di->bind('Storage', function ($di) {

@@ -7,8 +7,6 @@
 namespace Minds\Core\Data;
 
 use phpcassa\Connection\ConnectionPool;
-use Minds\Core;
-use Minds\Core\config;
 
 class Pool
 {

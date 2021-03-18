@@ -2,7 +2,7 @@
 namespace Minds\Core\Media\YouTubeImporter;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Data\Cache\PsrWrapper;
+use Minds\Core\Data\cache\PsrWrapper;
 
 class YTApi
 {

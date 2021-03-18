@@ -7,6 +7,7 @@ namespace Minds\Core\Rewards\Delegates;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Core\Referrals\Referral;
+use Minds\Core\Rewards\Contributions;
 use Minds\Core\Rewards\Contributions\Contribution;
 use Minds\Core\Rewards\Contributions\ContributionValues;
 
@@ -14,6 +15,9 @@ class ReferralDelegate
 {
     /** @var Manager $manager */
     private $manager;
+
+    /** @var Contributions\Manager */
+    protected $contributionsManager;
 
     public function __construct($manager = null, $contributionsManager = null)
     {

@@ -21,7 +21,7 @@ class UniswapBaseEntity implements UniswapEntityInterface
      */
     public static function build(array $data): UniswapEntityInterface
     {
-        $instance = new static();
+        $instance = new self();
         $instance->setId($data['id']);
 
         return $instance;

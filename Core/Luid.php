@@ -198,7 +198,7 @@ class Luid implements \JsonSerializable
     public static function isValid($luid)
     {
         try {
-            new static($luid);
+            new Luid($luid);
         } catch (InvalidLuidException $e) {
             return false;
         }

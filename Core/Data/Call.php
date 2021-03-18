@@ -16,7 +16,7 @@ use phpcassa\Index\IndexExpression;
 use phpcassa\Schema\DataType\LongType;
 use phpcassa\UUID;
 use Minds\Core;
-use Minds\Core\config;
+use Minds\Core\Config;
 
 class Call
 {
@@ -28,6 +28,9 @@ class Call
     private $pool;
     private $cf;
     private $client;
+    private $servers;
+    private $keyspace;
+    private $cf_name;
 
     public function __construct(
         $cf = null,
@@ -287,7 +290,7 @@ class Call
 
             $result = $this->client->request($query);
             return (int) $result[0]['count'];
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return 0;
         }
     }

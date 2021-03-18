@@ -25,6 +25,7 @@ class Custom
     protected $templateKey = "";
     protected $topic = "";
     protected $campaign = "";
+    protected $vars = [];
 
     public function __construct(Call $db = null, Template $template = null, Mailer $mailer = null)
     {
@@ -75,7 +76,7 @@ class Custom
         $this->template->setBody("./Templates/$this->templateKey.tpl");
         $this->template->toggleMarkdown(true);
 
-        $validatorHash = sha1($this->campaign . $user->guid . Config::_()->get('emails_secret'));
+        $validatorHash = sha1($this->campaign . $this->user->guid . Config::_()->get('emails_secret'));
 
         $this->template->set('username', $this->user->username);
         $this->template->set('email', $this->user->getEmail());

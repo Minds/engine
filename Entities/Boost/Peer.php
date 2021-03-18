@@ -29,11 +29,6 @@ class Peer implements BoostEntityInterface
     private $handler = 'peer';
     private $method = '';
 
-    public function __construct($db = null)
-    {
-        $this->db = null;
-    }
-
     /**
      * Loads from database using a GUID
      * @param  $guid

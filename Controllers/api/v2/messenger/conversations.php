@@ -329,24 +329,8 @@ class conversations implements Interfaces\Api
                                                 ]);
                 break;
             case 'no-answer':
-              //leave a notification
-              $conversation = new entities\conversation(elgg_get_logged_in_user_guid(), $pages[1]);
-              $message = new entities\CallMissed($conversation);
-              $message->save();
-              $conversation->update();
-              Core\Queue\Client::build()->setExchange("mindsqueue")
-                                        ->setQueue("Push")
-                                        ->send([
-                                              "user_guid"=>$pages[1],
-                                              "message"=> \Minds\Core\Session::getLoggedInUser()->name . " tried to call you.",
-                                              "uri" => 'chat',
-
-                                             ]);
               break;
             case 'ended':
-              $conversation = new entities\conversation(elgg_get_logged_in_user_guid(), $pages[1]);
-              $message = new entities\CallEnded($conversation);
-              $message->save();
               break;
         }
 

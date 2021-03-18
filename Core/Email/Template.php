@@ -4,6 +4,7 @@ namespace Minds\Core\Email;
 
 use Minds\Core\Markdown\Markdown;
 use Minds\Core\Di\Di;
+use Minds\Core\Config;
 
 class Template
 {
@@ -14,6 +15,9 @@ class Template
     protected $body;
     protected $loadFromFile = true;
     protected $useMarkdown = false;
+
+    /** @var Config */
+    protected $config;
 
     /** @var Markdown */
     protected $markdown;

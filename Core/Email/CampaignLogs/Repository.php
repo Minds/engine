@@ -105,7 +105,7 @@ class Repository
         $template = 'INSERT INTO email_campaign_logs (receiver_guid, time_sent, email_campaign_id) VALUES (?, ?, ?)';
         $values = [
             new Varint($campaignLog->getReceiverGuid()),
-            new Timestamp($campaignLog->getTimeSent()),
+            new Timestamp($campaignLog->getTimeSent(), 0),
             (string) $campaignLog->getEmailCampaignId(),
         ];
         $query = new Custom();

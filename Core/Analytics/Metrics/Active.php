@@ -58,11 +58,11 @@ class Active implements AnalyticsMetric
      */
     public function increment()
     {
-        if ($this->cacher->get("{$this->namespace}active:$p:$ts:$this->key") == true) {
-            return;
-        }
-        $this->db->insert("{$this->namespace}active:$p:$ts", [$this->key => time()]);
-        $this->cacher->set("{$this->namespace}active:$p:$ts:$this->key", time());
+        // if ($this->cacher->get("{$this->namespace}active:$p:$ts:$this->key") == true) {
+        //     return;
+        // }
+        // $this->db->insert("{$this->namespace}active:$p:$ts", [$this->key => time()]);
+        // $this->cacher->set("{$this->namespace}active:$p:$ts:$this->key", time());
     }
 
     /**

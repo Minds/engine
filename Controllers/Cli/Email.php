@@ -26,6 +26,8 @@ use Minds\Core\Blockchain\Purchase\Purchase;
 use Minds\Core\Suggestions\Manager;
 use Minds\Core\Analytics\Timestamps;
 use Minds\Core\Di\Di;
+use Minds\Core\Email\Campaigns\WirePromotions as CampaignsWirePromotions;
+use Minds\Exceptions\CliException;
 
 class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -261,7 +263,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             exit;
         }
 
-        $campaign = (new WirePromotion())
+        $campaign = (new CampaignsWirePromotions())
             ->setUser($user);
 
         $message = $campaign->build();

@@ -4,7 +4,7 @@
  */
 namespace Minds\Core\Reports\UserReports;
 
-use Minds\Entities\Report;
+use Minds\Core\Reports\Report;
 use Minds\Traits\MagicAttributes;
 
 /**

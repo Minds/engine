@@ -155,7 +155,7 @@ class Repository
         $values = [
             new Cassandra\Bigint($referral->getReferrerGuid()),
             new Cassandra\Bigint($referral->getProspectGuid()),
-            new Cassandra\Timestamp($referral->getRegisterTimestamp()),
+            new Cassandra\Timestamp($referral->getRegisterTimestamp(), 0),
         ];
 
         $query = new Prepared\Custom();
@@ -193,7 +193,7 @@ class Repository
         $template = "UPDATE referrals SET join_timestamp = ? WHERE referrer_guid = ? AND prospect_guid = ?";
 
         $values = [
-            new Cassandra\Timestamp($referral->getJoinTimestamp()),
+            new Cassandra\Timestamp($referral->getJoinTimestamp(), 0),
             new Cassandra\Bigint($referral->getReferrerGuid()),
             new Cassandra\Bigint($referral->getProspectGuid()),
         ];
@@ -233,7 +233,7 @@ class Repository
         $template = "UPDATE referrals SET ping_timestamp = ? WHERE referrer_guid = ? AND prospect_guid = ?";
 
         $values = [
-            new Cassandra\Timestamp($referral->getPingTimestamp()),
+            new Cassandra\Timestamp($referral->getPingTimestamp(), 0),
             new Cassandra\Bigint($referral->getReferrerGuid()),
             new Cassandra\Bigint($referral->getProspectGuid()),
         ];

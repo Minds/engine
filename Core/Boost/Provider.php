@@ -47,9 +47,6 @@ class Provider extends Di\Provider
             return new Content([], Client::build('MongoDB'), new Data\Call('entities_by_time'));
         }, ['useFactory' => true]);
 
-        $this->di->bind('Boost\Peer', function ($di) {
-            return new Peer();
-        }, ['useFactory' => true]);
         $this->di->bind('Boost\Peer\Metrics', function ($di) {
             return new Peer\Metrics(Client::build('MongoDB'));
         }, ['useFactory' => false]);

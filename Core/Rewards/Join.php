@@ -53,6 +53,9 @@ class Join
     /** @var ReferralDelegate $eventsDelegate */
     private $referralDelegate;
 
+    /** @var JoinedValidator */
+    private $joinedValidator;
+
     public function __construct(
         $twofactor = null,
         $sms = null,

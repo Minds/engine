@@ -82,13 +82,13 @@ class notifications implements Interfaces\Api
             default:
                 Factory::isLoggedIn();
 
-                if (!$offset) {
-                    $counters->resetCounter();
-                }
-
                 $limit = (int) static::getQueryValue('limit') ?: 12;
                 $offset = (string) static::getQueryValue('offset') ?: '';
                 $filter = $pages[0];
+
+                if (!$offset) {
+                    $counters->resetCounter();
+                }
 
                 if ($filter === 'list' || $filter === 'all') {
                     $filter = '';
@@ -228,7 +228,6 @@ class notifications implements Interfaces\Api
                 'fromObj' => $fromObj ? $fromObj->export() : null,
                 'from_guid' => $entity->getFromGuid(),
                 'to' => $toObj ? $toObj->export() : null,
-                'guid' => $entity->getUuid(),
                 'notification_view' => $entity->getType(),
                 'params' => $data, // possibly some deeper polyfilling needed here,
                 'time_created' => $entity->getCreatedTimestamp(),

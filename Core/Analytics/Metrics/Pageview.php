@@ -17,6 +17,8 @@ class Pageview implements AnalyticsMetric
     protected $elastic;
     protected $index;
 
+    protected $namespace = '';
+
     public function __construct($elastic = null)
     {
         $this->elastic = $elastic ?: Di::_()->get('Database\ElasticSearch');

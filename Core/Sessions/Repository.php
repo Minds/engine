@@ -65,7 +65,7 @@ class Repository
             (?,?,?)", [
                 new Varint($session->getUserGuid()),
                 $session->getId(),
-                new Timestamp($session->getExpires()),
+                new Timestamp($session->getExpires(), 0),
             ]);
         $this->client->request($prepared);
     }

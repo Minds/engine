@@ -15,6 +15,9 @@ class Documents
     /** @var Core\Data\ElasticSearch\Client $client */
     protected $client;
 
+    /** @var string */
+    protected $index;
+
     public function __construct($client = null, $index = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');

@@ -2,7 +2,7 @@
 namespace Minds\Core\Analytics\Dashboards\Metrics;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Data\Elasticsearch;
+use Minds\Core\Data\ElasticSearch;
 
 class SignupsMetric extends AbstractMetric
 {

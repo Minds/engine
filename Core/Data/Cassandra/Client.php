@@ -35,13 +35,13 @@ class Client implements Interfaces\ClientInterface
     {
         $cql = $request->build();
         try {
-            $statement = $this->getSession()->prepare($cql['string']);
+            $statement = $this->getSession()->prepare($cql['string'], null);
             $future = $this->getSession()->executeAsync(
                 $statement,
                 @new Driver\ExecutionOptions(array_merge(
                     [
-                    'arguments' => $cql['values']
-                  ],
+                        'arguments' => $cql['values']
+                    ],
                     $request->getOpts()
                 ))
             );
@@ -108,6 +108,7 @@ class Client implements Interfaces\ClientInterface
                 ->withCredentials($options['username'], $options['password'])
                 ->withLatencyAwareRouting(true)
                 ->withDefaultConsistency(Driver::CONSISTENCY_LOCAL_QUORUM)
+                ->with
                 ->withRetryPolicy(new Driver\RetryPolicy\Logging($retry_policy))
                 ->withPort(9042)
                 ->build();

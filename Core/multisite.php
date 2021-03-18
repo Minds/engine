@@ -7,6 +7,7 @@ namespace Minds\Core;
 class multisite extends base
 {
     protected $domain;
+    protected $host;
 
     public function __construct($domain = null)
     {

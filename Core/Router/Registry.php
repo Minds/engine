@@ -20,7 +20,7 @@ class Registry
     public static function _(): Registry
     {
         if (!static::$instance) {
-            static::$instance = new static();
+            static::$instance = new Registry();
         }
 
         return static::$instance;
