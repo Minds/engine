@@ -36,9 +36,6 @@ class Call
         $cf = null,
         $keyspace = null,
         $servers = null,
-        $sendTimeout = 800,
-        $receiveTimeout = 2000,
-        $pool = null,
         $cql = null
     ) {
         global $CONFIG;
@@ -148,7 +145,7 @@ class Call
         foreach ($expressions as $column => $value) {
             $index_exps[] = new IndexExpression($column, $value);
         }
-        $index_clause = new IndexClause($index_exps, $offset, $limit);
+        $index_clause = new IndexClause($index_exps ?? [], $offset, $limit);
         return $this->cf->get_indexed_slices($index_clause);
     }
 
@@ -331,7 +328,7 @@ class Call
         foreach ($keys as $key) {
             $return[$key] = $this->removeRow($key);
         }
-        return $return;
+        return $return ?? null;
     }
 
     /**

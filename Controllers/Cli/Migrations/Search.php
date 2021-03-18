@@ -128,7 +128,6 @@ class Search extends Cli\Controller implements Interfaces\CliControllerInterface
 
                     $this->out($result ? 'OK!' : 'Failed');
                 } catch (\Exception $e) {
-                    var_dump($query);
                     var_dump([get_class($e), $e->getMessage()]);
                 }
             }

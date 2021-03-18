@@ -118,7 +118,7 @@ class Repository
             error_log($e);
         }
 
-        if ($result) {
+        if (isset($result)) {
             foreach ($result as $row) {
                 $subscription = new EmailSubscription();
                 $subscription->setCampaign($row['campaign'])

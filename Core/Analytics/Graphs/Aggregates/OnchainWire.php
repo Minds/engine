@@ -48,6 +48,7 @@ class OnchainWire implements AggregateInterface
     public function fetchAll($opts = [])
     {
         $result = [];
+        $span = null;
         foreach (['day', 'month'] as $unit) {
             switch ($unit) {
                 case 'day':

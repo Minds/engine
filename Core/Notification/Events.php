@@ -103,6 +103,8 @@ class Events
             if ($type != 'activity' && $type != 'comment') {
                 return;
             }
+            
+            $message = "";
 
             if ($entity->message) {
                 $message = $entity->message;

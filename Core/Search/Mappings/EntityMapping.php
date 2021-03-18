@@ -162,6 +162,7 @@ class EntityMapping implements MappingInterface
         if (method_exists($this->entity, 'getWireThreshold') && $this->entity->getWireThreshold()) {
             $wireThreshold = $this->entity->getWireThreshold();
             $supportTier = $wireThreshold['support_tier']['urn'] ?? null;
+            $supportTierExpire = null;
 
             if ($wireThreshold['support_tier']['expires'] ?? null) {
                 $supportTierExpire = $wireThreshold['support_tier']['expires'] * 1000;

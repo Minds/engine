@@ -118,7 +118,7 @@ class twofactor implements Interfaces\Api
                     $response['message'] = 'LoginException::InvalidToken';
                 }
 
-                if ($twofactor->verifyCode($secret, $_POST['code'], 1)) {
+                if (isset($secret) && $twofactor->verifyCode($secret, $_POST['code'], 1)) {
                     global $TWOFACTOR_SUCCESS;
                     $TWOFACTOR_SUCCESS = true;
 

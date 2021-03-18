@@ -44,7 +44,7 @@ class MetricsDelegate
             $event->push();
         }
 
-        if ($activity->isRemind()) {
+        if ($activity->isRemind() && isset($remind)) {
             // Update remind counters (legacy support)
             Counters::increment($remind->getGuid(), 'remind');
         }

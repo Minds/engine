@@ -20,6 +20,8 @@ use Minds\Core\Di\Di;
  * @method int getParentGuidL1()
  * @method Comment setParentGuidL2(int $value)
  * @method int getParentGuidL2()
+ * @method Comment setParentGuidL3(int $value)
+ * @method int getParentGuidL3()
  * @method Comment setGuid(int $value)
  * @method Comment setRepliesCount(int $value)
  * @method int getRepliesCount())

@@ -54,6 +54,10 @@ class conversations implements Interfaces\Api
             $split_guid = explode($delimiter, $pages[0]);
             sort($split_guid);
             $guids = join($delimiter, $split_guid);
+        } else {
+            return Factory::response([
+                'status' => 'error',
+            ]);
         }
 
         $conversation = (new Entities\Conversation())

@@ -83,7 +83,7 @@ class Manager
 
         $this->snowplowDelegate->onCharge($this->subscription);
 
-        return $result;
+        return $result ?? false;
     }
 
     /**

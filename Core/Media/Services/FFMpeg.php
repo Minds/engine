@@ -230,7 +230,7 @@ class FFMpeg implements ServiceInterface
                 continue;
             }
 
-            if ($rotated) {
+            if ($rotated && isset($videostream)) {
                 $ratio = $videostream->get('width') / $videostream->get('height');
                 $width = round($opts['height'] * $ratio);
                 $opts['width'] = $opts['height'];

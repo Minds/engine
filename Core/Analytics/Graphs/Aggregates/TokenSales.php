@@ -47,6 +47,7 @@ class TokenSales implements AggregateInterface
     public function fetchAll($opts = [])
     {
         $result = [];
+        $span = null;
         foreach ([
                      'monthly_rate',
                      null,

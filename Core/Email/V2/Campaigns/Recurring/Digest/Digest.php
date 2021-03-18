@@ -137,7 +137,7 @@ class Digest extends EmailCampaign
         } catch (\Exception $e) {
             return false;
         } finally {
-            $this->template->set('activities', $activities);
+            $this->template->set('activities', $activities ?? []);
         }
 
         //

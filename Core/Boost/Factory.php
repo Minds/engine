@@ -33,7 +33,7 @@ class Factory
         $handler = ucfirst($handler);
         $handler = "Minds\\Core\\Boost\\$handler";
         if (class_exists($handler)) {
-            $class = new $handler($options, $db);
+            $class = new $handler($db);
             if ($class instanceof Interfaces\BoostHandlerInterface) {
                 return $class;
             }

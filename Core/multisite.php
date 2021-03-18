@@ -9,6 +9,7 @@ class multisite extends base
     protected $domain;
     protected $host;
 
+    // @phpstan-ignore-next-line
     public function __construct($domain = null)
     {
         global $DOMAIN;

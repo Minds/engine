@@ -27,7 +27,7 @@ class Active implements AnalyticsMetric
     {
         $this->db = $db ?: new Core\Data\Call('entities_by_time');
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
-        $this->cacher = Core\Data\cache\factory::build('apcu');
+        $this->cacher = $cacher ?? Core\Data\cache\factory::build('apcu');
 
         if (Core\Session::getLoggedinUser()) {
             $this->key = Core\Session::getLoggedinUser()->guid;

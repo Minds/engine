@@ -13,6 +13,8 @@ use Minds\Traits\MagicAttributes;
 /**
  * @method self setOffchain(BigDecimal $offchain)
  * @method BigDecimal getOffchain()
+ * @method self setOnchain(BigDecimal $onchain)
+ * @method BigDecimal getOnchain()
  * @method self setComparative(AbstractBlockchainMetric $comparative)
  * @method AbstractBlockchainMetric getComparative()
  */

@@ -116,7 +116,7 @@ class banners implements Interfaces\Fs
         //    exit;
         //}
 
-        if (!$content && $f) {
+        if (!$content && isset($f)) {
             $content = $f->read();
             if (!$content) {
                 exit;

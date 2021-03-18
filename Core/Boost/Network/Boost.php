@@ -34,6 +34,7 @@ use Minds\Traits\MagicAttributes;
  * @method array getTags()
  * @method Boost setTags(array $value)
  * @method string getType()
+ * @method string getTransactionId()
  */
 class Boost
 {

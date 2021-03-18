@@ -247,6 +247,8 @@ class Push implements Interfaces\NotificationExtensionInterface
                     case 'object':
                         $like = $title ?: 'your '.$entity->subtype;
                         break;
+                    default:
+                        $like = 'your post';
                 }
                 return sprintf('%s voted up %s', $name, $like);
 

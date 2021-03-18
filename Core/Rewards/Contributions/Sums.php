@@ -66,6 +66,7 @@ class Sums
         try {
             $rows = $this->db->request($query);
         } catch (\Exception $e) {
+            return "0";
             error_log($e->getMessage());
         }
         
@@ -101,6 +102,7 @@ class Sums
             $rows = $this->db->request($query);
         } catch (\Exception $e) {
             error_log($e->getMessage());
+            return "0";
         }
         
         return (int) $rows[0]['score'];

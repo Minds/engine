@@ -243,7 +243,7 @@ class Manager
 
             // Get yesterday RewardEntry
             $yesterdayRewardEntry = $this->getPreviousRewardEntry($rewardEntry, 1);
-            $multiplier = $yesterdayRewardEntry ? $this->calculateMultiplier($yesterdayRewardEntry, static::REWARD_TYPE_LIQUIDITY) : BigDecimal::of(1);
+            $multiplier = $yesterdayRewardEntry ? $this->calculateMultiplier($yesterdayRewardEntry) : BigDecimal::of(1);
             
             $score = $liquiditySummary->getUserLiquidityTokens()->multipliedBy($multiplier);
             
@@ -287,7 +287,7 @@ class Manager
 
             // Get yesterday RewardEntry
             $yesterdayRewardEntry = $this->getPreviousRewardEntry($rewardEntry, 1);
-            $multiplier = $yesterdayRewardEntry ? $this->calculateMultiplier($yesterdayRewardEntry, static::REWARD_TYPE_HOLDING) : BigDecimal::of(1);
+            $multiplier = $yesterdayRewardEntry ? $this->calculateMultiplier($yesterdayRewardEntry) : BigDecimal::of(1);
 
             $score = BigDecimal::of($tokenBalance)->multipliedBy($multiplier);
 

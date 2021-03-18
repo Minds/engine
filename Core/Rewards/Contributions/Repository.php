@@ -110,6 +110,7 @@ class Repository
             $rows = $this->db->request($query);
         } catch (\Exception $e) {
             error_log($e->getMessage());
+            return $contributions;
         }
 
         foreach ($rows as $row) {

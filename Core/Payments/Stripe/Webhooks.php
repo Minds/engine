@@ -22,7 +22,7 @@ class Webhooks
     ];
     protected $hooks;
 
-    public function __construct($hooks = null, $stripe)
+    public function __construct($hooks = null)
     {
         $this->hooks = $hooks ?: new Payments\Hooks();
     }

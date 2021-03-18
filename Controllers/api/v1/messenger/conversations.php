@@ -153,6 +153,8 @@ class conversations implements Interfaces\Api
             }
         }
 
+        $messages = [];
+
         foreach ($conversation->getParticipants() as $guid) {
             $key = "message:$guid";
             $messages[$guid] = base64_encode(base64_decode(rawurldecode($_POST[$key]), true)); //odd bug sometimes with device base64..

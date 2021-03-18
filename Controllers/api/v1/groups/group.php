@@ -220,7 +220,7 @@ class group implements Interfaces\Api
             }
         }
 
-        if (!$creation && $moderationChange && !$group->getModerated()) {
+        if (!$creation && ($moderationChange ?? false) && !$group->getModerated()) {
             Core\Di\Di::_()->get('Groups\Feeds')
                 ->setGroup($group)
                 ->approveAll();

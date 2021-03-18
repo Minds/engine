@@ -16,7 +16,7 @@ class NotificationDelegate
     /** @var EntitiesBuilder $entitiesBuilder */
     protected $entitiesBuilder;
 
-    public function __construct($dispatcher = null, $entitiesBuilder = null, $urn = null)
+    public function __construct($dispatcher = null, $entitiesBuilder = null)
     {
         $this->dispatcher = $dispatcher ?: Di::_()->get('EventsDispatcher');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');

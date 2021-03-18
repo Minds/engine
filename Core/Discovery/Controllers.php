@@ -12,7 +12,7 @@ class Controllers
     /** @var Manager */
     protected $manager;
 
-    public function __construct($manager = null, $entitiesBuilder = null)
+    public function __construct($manager = null)
     {
         $this->manager = $manager ?? new Manager();
     }

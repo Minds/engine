@@ -15,6 +15,7 @@ use Minds\Traits\MagicAttributes;
  * @method MetricSummary getSummary()
  * @method array getPermissions()
  * @method AbstractMetric setUser(User $user)
+ * @method User getUser()
  */
 abstract class AbstractMetric
 {

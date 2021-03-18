@@ -12,7 +12,7 @@ class Cluster implements Interfaces\QueueRunner
 {
     public function run()
     {
-        $client = Queue\Client::Build("RabbitMQ", ['exchange'=>"exchange_topic"]);
+        $client = Queue\Client::Build("RabbitMQ");
         $client->setExchange("topic_demo", "topic")
             ->setQueue("", "ping.*")
             ->receive(function ($data) {

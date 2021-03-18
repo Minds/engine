@@ -147,7 +147,7 @@ class Repository
         }
 
         return [
-            'purchases' => $purchases,
+            'purchases' => $purchases ?? [],
             'token' => $rows->pagingStateToken()
         ];
     }

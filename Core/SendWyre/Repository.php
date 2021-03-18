@@ -49,6 +49,10 @@ class Repository
             error_log($e);
         }
 
+        if (!isset($result)) {
+            return null;
+        }
+
         if ($result && $result->count() > 0) {
             $row = $result->current();
 

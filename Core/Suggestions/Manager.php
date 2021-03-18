@@ -36,7 +36,7 @@ class Manager
     /** @var string $type */
     private $type = 'user';
 
-    public function __construct(
+    public function __construct(// @phpstan-ignore-line
         $repository = null,
         $entitiesBuilder = null,
         $suggestedFeedsManager = null,

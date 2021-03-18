@@ -21,7 +21,7 @@ class Session extends base
     /** @var Config $config */
     private $config;
 
-    public function __construct($force = null, $config = null)
+    public function __construct($config = null)
     {
         $this->config = $config ?: Di::_()->get('Config');
         header('X-Powered-By: Minds', true);

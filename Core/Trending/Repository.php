@@ -64,6 +64,10 @@ class Repository
             error_log($e->getMessage());
         }
 
+        if (!isset($rows)) {
+            return [];
+        }
+
         foreach ($rows as $row) {
             $result[] = (string) $row['guid'];
         }

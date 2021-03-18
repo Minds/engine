@@ -210,4 +210,8 @@ class NormalizedEntity
     {
         return Core\Security\ACL::_()->write($this);
     }
+
+    public function save()
+    {
+    }
 }

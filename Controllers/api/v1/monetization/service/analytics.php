@@ -88,6 +88,10 @@ class analytics extends Controller implements Interfaces\Api
                     ]);
                 }
 
+                if (!isset($results)) {
+                    return Factory::response([]);
+                }
+
                 $transactions = [];
                 foreach ($results as $i => $record) {
                     $transactions[$i] = [

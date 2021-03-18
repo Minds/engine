@@ -10,6 +10,20 @@ use Minds\Core\Wire\Paywall\PaywallEntityTrait;
  * File Entity
  * @todo Do not inherit from ElggFile
  * @package Minds\Entities\File
+ * @method array getExportableValues()
+ * @method mixed|null getFlag(string $flag)
+ * @method File setFlag(string $flag, mixed $value)
+ * @method void save(bool $index)
+ * @method array getWireTotals()
+ * @method mixed getWireThreshold()
+ * @method File setWireThreshold(int $wire_threshold)
+ * @method int getModeratorGUID()
+ * @property string $super_subtype
+ * @property int $hidden
+ * @property int $time_moderated
+ * @property array $wire_threshold
+ * @property int $deleted
+ * @property int $paywall
  */
 class File extends \ElggFile implements Flaggable, PaywallEntityInterface
 {

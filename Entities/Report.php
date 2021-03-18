@@ -6,8 +6,6 @@ use Minds\Entities;
 
 class Report extends DenormalizedEntity
 {
-    protected $db;
-
     protected $guid;
     protected $entity_guid;
     protected $time_created;
@@ -33,11 +31,6 @@ class Report extends DenormalizedEntity
         'reason_note',
         'appeal_note',
     ];
-
-    public function __construct($db = null)
-    {
-        $this->db = null;
-    }
 
     public function loadFromGuid($guid)
     {

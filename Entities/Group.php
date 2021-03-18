@@ -14,6 +14,12 @@ use Minds\Core\Groups\Invitations;
 use Minds\Core\Groups\Delegates\ElasticSearchDelegate;
 use Minds\Traits\MagicAttributes;
 
+/**
+ * @method Group getOwnerObj() : array
+ * @method Group getMembership() : int
+ * @property int $time_created
+ * @property array $nsfwLock
+ */
 class Group extends NormalizedEntity
 {
     use MagicAttributes;

@@ -27,7 +27,7 @@ class Manager
         $supportTiersManager = null,
         $metricsDelegate = null
     ) {
-        $this->wireThresholds = $wireTresholds ?? Di::_()->get('Wire\Thresholds');
+        $this->wireThresholds = $wireThresholds ?? Di::_()->get('Wire\Thresholds');
         $this->supportTiersManager = $supportTiersManager ?? Di::_()->get('Wire\SupportTiers\Manager');
         $this->metricsDelegate = $metricsDelegate ?? new Delegates\MetricsDelegate();
     }

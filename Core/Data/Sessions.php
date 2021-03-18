@@ -19,10 +19,6 @@ class Sessions implements \SessionHandlerInterface
 
     private $session;
 
-    public function __construct($db = null, $cacher = null)
-    {
-    }
-
     public function open($save_path, $name)
     {
         error_log('DEPRECATED: Sessions->open called');

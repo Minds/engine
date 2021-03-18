@@ -349,6 +349,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             $campaign = (new WireReceived());
         } else {
             $this->out('--variant must be sent or received');
+            return;
         }
 
         $campaign

@@ -20,7 +20,7 @@ class Network implements BoostHandlerInterface
     protected $mongo;
 
 
-    public function __construct($options = [], Data\Interfaces\ClientInterface $mongo = null, Data\Call $db = null)
+    public function __construct(Data\Interfaces\ClientInterface $mongo = null)
     {
         $this->mongo = $mongo ?: Data\Client::build('MongoDB');
     }

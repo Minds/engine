@@ -254,6 +254,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface
 
     /** @var int */
     protected $editorVersion = 1;
+
     /**
      * Blog constructor.
      * @param null $eventsDispatcher

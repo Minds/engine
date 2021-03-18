@@ -20,7 +20,7 @@ class NewsfeedSpec extends ObjectBehavior
 
         //$db->getRow(Argument::type(''))->will
 
-        $this->beConstructedWith([], $mongo, $db);
+        $this->beConstructedWith($mongo);
     }
 
     public function it_is_initializable()

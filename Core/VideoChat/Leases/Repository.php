@@ -96,6 +96,10 @@ class Repository
             error_log($e->getMessage());
         }
 
+        if (!isset($rows)) {
+            return $leases;
+        }
+
         foreach ($rows as $row) {
             $lease = new VideoChatLease();
             $lease

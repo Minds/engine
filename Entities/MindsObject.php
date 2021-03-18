@@ -9,6 +9,11 @@ use Minds\Core\Wire\Paywall\PaywallEntityTrait;
 /**
  * Object Entity
  * @todo Do not inherit from ElggObject
+ * @property int $hidden
+ * @property string $super_subtype
+ * @property int $wire_threshold
+ * @property int $deleted
+ * @property int $paywall
  */
 class MindsObject extends \ElggObject implements Flaggable, PaywallEntityInterface
 {

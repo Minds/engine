@@ -20,7 +20,7 @@ class Customer
 
     public function __construct($lu = null)
     {
-        $this->lu = Di::_()->get('Database\Cassandra\Lookup');
+        $this->lu = $lu ?? Di::_()->get('Database\Cassandra\Lookup');
     }
 
     public function setUser($user)

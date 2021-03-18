@@ -53,7 +53,7 @@ class avatars implements Interfaces\Fs
                 break;
         }
 
-        $contents = $f ? $f->read() : null;
+        $contents = isset($f) ? $f->read() : null;
         if (empty($contents)) {
             $filepath = Core\Config::build()->path . "engine/Assets/avatars/default-$size.png";
             $contents = file_get_contents($filepath);

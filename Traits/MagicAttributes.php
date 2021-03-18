@@ -11,7 +11,7 @@ trait MagicAttributes
     /**
      * Magic attributes getter and setter.
      * NOTE: Separate method to allow detection by Exportable trait.
-     * @param $name
+     * @param string $name
      * @param array $args
      * @return $this|bool
      */

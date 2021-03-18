@@ -119,7 +119,7 @@ class top implements Interfaces\Api, Interfaces\ApiIgnorePam
                         ], $topLimit);
                     }
 
-                    if ($guids) {
+                    if (isset($guids)) {
                         $entities = Di::_()->get('Entities')->get([ 'guids' => $guids ]);
                     }
                 }

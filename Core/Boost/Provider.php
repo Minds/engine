@@ -23,7 +23,7 @@ class Provider extends Di\Provider
         }, ['useFactory' => true]);
 
         $this->di->bind('Boost\Network', function ($di) {
-            return new Network([], Client::build('MongoDB'), new Data\Call('entities_by_time'));
+            return new Network(Client::build('MongoDB'));
         }, ['useFactory' => true]);
         $this->di->bind('Boost\Network\Manager', function ($di) {
             return new Network\Manager;
@@ -41,10 +41,10 @@ class Provider extends Di\Provider
             return new Network\Expire();
         }, ['useFactory' => false]);
         $this->di->bind('Boost\Newsfeed', function ($di) {
-            return new Newsfeed([], Client::build('MongoDB'), new Data\Call('entities_by_time'));
+            return new Newsfeed(Client::build('MongoDB'));
         }, ['useFactory' => true]);
         $this->di->bind('Boost\Content', function ($di) {
-            return new Content([], Client::build('MongoDB'), new Data\Call('entities_by_time'));
+            return new Content(Client::build('MongoDB'));
         }, ['useFactory' => true]);
 
         $this->di->bind('Boost\Peer\Metrics', function ($di) {

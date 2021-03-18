@@ -57,7 +57,9 @@ class Events
                     $export = [ 'chat' => true ];
                 }
 
-                $event->setResponse($export);
+                if (isset($export)) {
+                    $event->setResponse($export);
+                }
             }
         });
 
