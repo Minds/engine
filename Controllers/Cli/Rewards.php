@@ -119,4 +119,12 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
         $manager = new Core\Rewards\Manager();
         $manager->calculate($opts);
     }
+
+    public function notify()
+    {
+        Di::_()->get('Config')
+            ->set('min_log_level', 'INFO');
+        $notify = Di::_()->get('Rewards\Notify');
+        $notify->run();
+    }
 }
