@@ -86,6 +86,9 @@ class Transaction
             $receiver = EntityFactory::build($this->data['receiver_guid']) ?: Unknown::user();
             $export['receiver'] = $receiver->export();
         }
+        if ($this->data['reward_type'] ?? null) {
+            $export['reward_type'] = $this->data['reward_type'];
+        }
         return $export;
     }
 }

@@ -377,6 +377,9 @@ class Manager
                 ->setTx('oc:' . Guid::build())
                 ->setAmount($tokenAmount)
                 ->setContract('offchain:reward')
+                ->setData([
+                    'reward_type' => $rewardEntry->getRewardType(),
+                ])
                 ->setCompleted(true);
 
             if (!$dryRun) {
