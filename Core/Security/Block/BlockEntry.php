@@ -11,7 +11,7 @@ class BlockEntry
     /** @var string */
     protected $actorGuid;
 
-    /** @var */
+    /** @var string */
     protected $subjectGuid;
 
     /**
