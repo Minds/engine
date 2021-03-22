@@ -47,16 +47,11 @@ class settings implements Interfaces\Api
         $response['channel']['disabled_emails'] = $user->disabled_emails;
         $response['channel']['toaster_notifications'] = $user->getToasterNotifications();
         
-        $features = Di::_()->get('Features\Manager');
-        if ($features->has('totp-2021')) {
-            $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
-            $response['channel']['has2fa'] = [
-                'totp' => $twoFactorManager->isTwoFactorEnabled($user) && !$user->telno,
-                'sms' => !!$user->telno,
-            ];
-        } else {
-            $response['channel']['has2fa'] = !!$user->telno;
-        }
+        $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
+        $response['channel']['has2fa'] = [
+            'totp' => $twoFactorManager->isTwoFactorEnabled($user) && !$user->telno,
+            'sms' => !!$user->telno,
+        ];
 
         $sessionsManager = Di::_()->get('Sessions\Manager');
         $sessionsManager->setUser($user);
