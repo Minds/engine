@@ -106,16 +106,14 @@ class Repository
             reward_type,
             score,
             multiplier,
-            payout_tx,
             tokenomics_version
-            ) VALUES (?,?,?,?,?,?,?)";
+            ) VALUES (?,?,?,?,?,?)";
         $values = [
             new Bigint($rewardEntry->getUserGuid()),
             new Date($rewardEntry->getDateTs()),
             $rewardEntry->getRewardType(),
             new Decimal((string) $rewardEntry->getScore()),
             new Decimal((string) $rewardEntry->getMultiplier()),
-            $rewardEntry->getPayoutTx(),
             $rewardEntry->getTokenomicsVersion(),
         ];
 
@@ -148,6 +146,9 @@ class Repository
             switch ($field) {
                 case "token_amount":
                     $set["token_amount"] = new Decimal((string) $rewardEntry->getTokenAmount() ?: 0);
+                    break;
+                case "payout_tx":
+                    $set["payout_tx"] = $rewardEntry->getPayoutTx();
                     break;
             }
         }

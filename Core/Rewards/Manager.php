@@ -370,7 +370,7 @@ class Manager
                 continue;
             }
 
-            $tokenAmount = BigNumber::toPlain($rewardEntry->getTokenAmount(), 18);
+            $tokenAmount = (string) BigNumber::toPlain($rewardEntry->getTokenAmount(), 18);
 
             $transaction = new Transaction();
             $transaction
@@ -380,6 +380,9 @@ class Manager
                 ->setTx('oc:' . Guid::build())
                 ->setAmount($tokenAmount)
                 ->setContract('offchain:reward')
+                ->setData([
+                    'reward_type' => $rewardEntry->getRewardType(),
+                ])
                 ->setCompleted(true);
 
             if (!$dryRun) {
@@ -387,7 +390,7 @@ class Manager
 
                 // Add in the TX to the database for auditing
                 $rewardEntry->setPayoutTx($transaction->getTx());
-                $this->add($rewardEntry);
+                $this->repository->update($rewardEntry, [ 'payout_tx' ]);
             }
 
             $this->logger->info("[$i]: Issued $tokenAmount tokens", [

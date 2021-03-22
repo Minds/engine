@@ -183,19 +183,6 @@ class boost implements Interfaces\Api
             return Factory::response(['status' => 'error', 'message' => 'entity not found']);
         }
 
-        if (count($entity->ownerObj['nsfw']) || count($entity->ownerObj['nsfw_lock'])) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => "You cannot boost from an NSFW channel."
-            ]);
-        }
-        if (count($entity->nsfw) || count($entity->nsfw_lock)) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => "You cannot boost NSFW content."
-            ]);
-        }
-
         if ($pages[0] == "object" || $pages[0] == "user" || $pages[0] == "suggested" || $pages[0] == 'group') {
             $pages[0] = "content";
         }
