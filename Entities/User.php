@@ -1796,4 +1796,13 @@ class User extends \ElggUser
     {
         return $this->getLiquiditySpotOptOut() === 1;
     }
+
+    /**
+     * Returns the twofactor value of a user
+     * @return bool
+     */
+    public function getTwoFactor(): bool
+    {
+        return $this->twofactor;
+    }
 }
