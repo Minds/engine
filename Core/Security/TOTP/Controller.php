@@ -94,7 +94,7 @@ class Controller
         /**
          * Create a random recovery code return it to the user and store its hash
          */
-        $recoveryCode = $this->password->salt();
+        $recoveryCode = hash('sha512', openssl_random_pseudo_bytes(128));
         $recoveryHash = password_hash($recoveryCode, PASSWORD_BCRYPT);
 
         $totpSecret = new TOTPSecret();
