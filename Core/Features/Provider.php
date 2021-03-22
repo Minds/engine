@@ -78,7 +78,6 @@ class Provider extends DiProvider
                 'boost-modal-v2',
                 'new-posts',
                 'token-marketing-2021',
-                'totp-2021',
             ];
         });
 
