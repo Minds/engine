@@ -229,25 +229,9 @@ class Manager
      */
     public function getAllProvidersSummaries(): array
     {
-        $uniswapMints = $this->uniswapClient->getMintsByPairIds($this->getApprorvedLiquidityPairIds());
-
-        // Map to 'to' and reduce to unique
-        $liquidityProviderIds = array_unique(array_map(function ($uniswapMint) {
-            return $uniswapMint->getTo();
-        }, $uniswapMints));
-
         $summaries = [];
 
-        foreach ($liquidityProviderIds as $liquidityProviderId) {
-            $uniqueOnChainAddress = $this->uniqueOnchain->getByAddress($liquidityProviderId);
-
-            if (!$uniqueOnChainAddress) {
-                continue;
-            }
-
-            $userGuid = $uniqueOnChainAddress->getUserGuid();
-            /** @var User */
-            $user = $this->entitiesBuilder->single($userGuid, [ 'cache' => false ]); // This may loop in the CLI so we don't want to cache
+        foreach ($this->getProviderUsers() as $user) {
             try {
                 if ($user->getPhoneNumberHash()) { // Must have phone number to have summary
                     $summaries[] = $this->setUser($user)->getSummary();
@@ -259,6 +243,36 @@ class Manager
         }
 
         return $summaries;
+    }
+
+    /**
+     * Iterates out user entities that are providing uniswap liquidity
+     * @return iterable
+     */
+    public function getProviderUsers(): iterable
+    {
+        $uniswapMints = $this->uniswapClient->getMintsByPairIds($this->getApprorvedLiquidityPairIds());
+
+        // Map to 'to' and reduce to unique
+        $liquidityProviderIds = array_unique(array_map(function ($uniswapMint) {
+            return $uniswapMint->getTo();
+        }, $uniswapMints));
+
+        foreach ($liquidityProviderIds as $liquidityProviderId) {
+            $uniqueOnChainAddress = $this->uniqueOnchain->getByAddress($liquidityProviderId);
+
+            if (!$uniqueOnChainAddress) {
+                continue;
+            }
+
+            $userGuid = $uniqueOnChainAddress->getUserGuid();
+            /** @var User */
+            $user = $this->entitiesBuilder->single($userGuid, [ 'cache' => false ]); // This may loop in the CLI so we don't want to cache
+
+            if ($user) {
+                yield $user;
+            }
+        }
     }
 
     /**

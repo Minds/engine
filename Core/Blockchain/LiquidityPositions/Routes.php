@@ -28,6 +28,10 @@ class Routes extends ModuleRoutes
                     '',
                     Ref::_('Blockchain\LiquidityPositions\Controller', 'get')
                 );
+                $route->get(
+                    'users',
+                    Ref::_('Blockchain\LiquidityPositions\Controller', 'getAllUsers')
+                );
             });
     }
 }
