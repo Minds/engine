@@ -35,15 +35,15 @@ class Client implements Interfaces\ClientInterface
     {
         $cql = $request->build();
         try {
-            $statement = $this->getSession()->prepare($cql['string'], null);
+            $statement = $this->getSession()->prepare($cql['string'], []);
             $future = $this->getSession()->executeAsync(
                 $statement,
-                @new Driver\ExecutionOptions(array_merge(
+                array_merge(
                     [
                         'arguments' => $cql['values']
                     ],
                     $request->getOpts()
-                ))
+                )
             );
             if ($silent) {
                 return $future;
