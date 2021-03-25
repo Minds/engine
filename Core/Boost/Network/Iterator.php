@@ -282,7 +282,7 @@ class Iterator implements \Iterator
         foreach ($boosts as $i => $boost) {
             $blockEntry = (new Block\BlockEntry())
                 ->setActorGuid(Core\Session::getLoggedInUserGuid())
-                ->setSubjectGuid($boost->owner_guid);
+                ->setSubjectGuid((string) $boost->getOwnerGuid());
 
             if ($this->blockManager->hasBlocked($blockEntry)) {
                 unset($boosts[$i]);
