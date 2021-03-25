@@ -44,6 +44,7 @@ class token implements Interfaces\Api, Interfaces\ApiIgnorePam
                 'status' => 'error',
                 'error' => $exception->getMessage(),
                 'message' => $exception->getMessage(),
+                'errorId' => str_replace('\\', '::', get_class($exception)),
             ];
             $response = new JsonResponse($body);
         }

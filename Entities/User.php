@@ -66,6 +66,7 @@ use Minds\Helpers;
  * @property string $dob
  * @property string $surge_token
  * @property int $disable_autoplay_videos
+ * @property string $twofactor
  */
 class User extends \ElggUser
 {
@@ -1843,5 +1844,14 @@ class User extends \ElggUser
     public function isLiquiditySpotOptOut(): bool
     {
         return $this->getLiquiditySpotOptOut() === 1;
+    }
+
+    /**
+     * Returns the twofactor value of a user
+     * @return bool
+     */
+    public function getTwoFactor(): bool
+    {
+        return $this->twofactor;
     }
 }

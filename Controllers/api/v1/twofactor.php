@@ -48,7 +48,7 @@ class twofactor implements Interfaces\Api
         $response = [];
 
         if (!isset($pages[0])) {
-            $pages[0] = 'authenticate';
+            $pages[0] = '';
         }
 
 
@@ -101,41 +101,6 @@ class twofactor implements Interfaces\Api
                     $user->twofactor = false;
                 }
                 $user->save();
-                break;
-            case "authenticate":
-                //get our one user twofactor token
-                $lookup = new Core\Data\lookup('twofactor');
-                $return = $lookup->get($_POST['token']);
-                $lookup->remove($pages[0]);
-
-                //we allow for 120 seconds (2 mins) after we send a code
-                if ($return['_guid'] && $return['ts'] > time() - 120) {
-                    $user = new Entities\User($return['_guid']);
-                    $secret = $return['secret'];
-                } else {
-                    header('HTTP/1.1 401 Unauthorized', true, 401);
-                    $response['status'] = 'error';
-                    $response['message'] = 'LoginException::InvalidToken';
-                }
-
-                if (isset($secret) && $twofactor->verifyCode($secret, $_POST['code'], 1)) {
-                    global $TWOFACTOR_SUCCESS;
-                    $TWOFACTOR_SUCCESS = true;
-
-                    $sessions = Core\Di\Di::_()->get('Sessions\Manager');
-                    $sessions->setUser($user);
-                    $sessions->createSession();
-                    $sessions->save(); // save to db and cookie
-
-                    //\login($user, true);
-
-                    $response['status'] = 'success';
-                    $response['user'] = $user->export();
-                } else {
-                    header('HTTP/1.1 401 Unauthorized', true, 401);
-                    $response['status'] = 'error';
-                    $response['message'] = 'LoginException::CodeVerificationFailed';
-                }
                 break;
             case "remove":
                 $validator = Di::_()->get('Security\Password');

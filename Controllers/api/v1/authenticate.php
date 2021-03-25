@@ -19,6 +19,7 @@ use Minds\Exceptions\TwoFactorRequired;
 use Minds\Core\Queue;
 use Minds\Core\Subscriptions;
 use Minds\Core\Analytics;
+use Zend\Diactoros\ServerRequestFactory;
 
 class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
@@ -85,13 +86,14 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         $attempts->resetFailuresCount(); // Reset any previous failed login attempts
 
         try {
-            Di::_()->get('Security\Events')
-                ->onLogin($user);
-        } catch (TwoFactorRequired $e) {
+            $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
+            $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
+        } catch (\Exception $e) {
             header('HTTP/1.1 ' + $e->getCode(), true, $e->getCode());
             $response['status'] = "error";
             $response['code'] = $e->getCode();
             $response['message'] = $e->getMessage();
+            $response['errorId'] = str_replace('\\', '::', get_class($e));
             return Factory::response($response);
         }
 

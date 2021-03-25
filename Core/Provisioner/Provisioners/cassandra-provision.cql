@@ -1611,7 +1611,7 @@ CREATE TABLE minds.token_rewards (
 CREATE MATERIALIZED VIEW minds.token_rewards_by_date AS
     SELECT *
     FROM minds.token_rewards
-    WHERE user_guid IS NOT NULL 
+    WHERE user_guid IS NOT NULL
         AND reward_type IS NOT NULL
         AND date IS NOT NULL
     PRIMARY KEY (date, reward_type, user_guid)
@@ -1625,6 +1625,14 @@ CREATE TABLE minds.token_metrics (
     onchain decimal,
     PRIMARY KEY (metric, date, hour)
 ) WITH CLUSTERING ORDER BY (date DESC, hour DESC);
+
+CREATE TABLE minds.totp_secrets (
+    user_guid bigint,
+    device_id text,
+    secret text,
+    recovery_hash text,
+    PRIMARY KEY (user_guid, device_id, secret)
+ ) WITH CLUSTERING ORDER BY (device_id DESC, secret DESC);
 
 CREATE TABLE minds.eth_blocks (
     date date,
