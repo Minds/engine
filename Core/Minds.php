@@ -51,6 +51,7 @@ class Minds extends base
         Blockchain\Module::class,
         Boost\Module::class,
         Rewards\Module::class,
+        Matrix\Module::class,
     ];
 
     /**
