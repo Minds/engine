@@ -4,9 +4,20 @@
 namespace Minds\Core;
 
 use Minds\Entities\Factory;
+use Minds\Entities\User;
+use Minds\Core\Data;
+use Minds\Core\Di\Di;
 
 class EntitiesBuilder
 {
+    /** @var Data\lookup */
+    protected $lookup;
+
+    public function __construct($lookup = null)
+    {
+        $this->lookup = $lookup ?? Di::_()->get('Database\Cassandra\Data\Lookup');
+    }
+
     /**
      * Build by a single guid
      * @param $guid int|string
@@ -16,6 +27,25 @@ class EntitiesBuilder
     public function single($guid, $opts = [])
     {
         return Factory::build($guid, $opts);
+    }
+
+    /**
+     * Returns a user from a lookup key, (eg. a username)
+     * @param string $key
+     * @return User
+     */
+    public function getByUserByIndex(string $key): ?User
+    {
+        $values = $this->lookup->get($key);
+
+        $userGuid = key($values);
+        $user = $this->single($userGuid);
+
+        if ($user && $user instanceof User) {
+            return $user;
+        }
+
+        return null;
     }
 
     /**

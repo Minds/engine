@@ -6,7 +6,6 @@ use Minds\Core\Di\Di;
 use Exception;
 use Minds\Exceptions\UserErrorException;
 use Minds\Core\Security\TwoFactor;
-use Minds\Core\Security\Password;
 use Minds\Core\Security\TOTP\TOTPSecret;
 use Minds\Core\Security\TOTP\Manager;
 use Zend\Diactoros\Response\JsonResponse;
@@ -24,23 +23,17 @@ class Controller
     /** @var TwoFactor */
     protected $twoFactor;
 
-    /** @var Password */
-    protected $password;
-
     /**
      * Controller constructor.
      * @param null $manager
      * @param null $twoFactor
-     * @param null $password
      */
     public function __construct(
         $manager = null,
-        $twoFactor = null,
-        $password = null
+        $twoFactor = null
     ) {
         $this->manager = $manager ?? new Manager();
         $this->twoFactor = $twoFactor ?? Di::_()->get('Security\TwoFactor');
-        $this->password = $password ?? Di::_()->get('Security\Password');
     }
 
     /**
@@ -76,14 +69,14 @@ class Controller
      * @throws Exception
      * @throws UserErrorException
      */
-    public function authenticate(ServerRequest $request): JsonResponse
+    public function authenticateDevice(ServerRequest $request): JsonResponse
     {
         /** @var User */
         $user = $request->getAttribute('_user');
 
         $body = $request->getParsedBody();
-        $secret = $body['secret'];
-        $code = (string) $body['code'];
+        $secret = $body['secret'] ?? '';
+        $code = (string) $body['code'] ?? '';
 
         $codeIsValid = $this->twoFactor->verifyCode($secret, $code, 3);
 
@@ -92,7 +85,7 @@ class Controller
         }
 
         /**
-         * Create a random recovery code return it to the user and store its hash
+         * Create a random recovery code, return it to the user and store its hash
          */
         $recoveryCode = hash('sha512', openssl_random_pseudo_bytes(128));
         $recoveryHash = password_hash($recoveryCode, PASSWORD_BCRYPT);
@@ -115,6 +108,32 @@ class Controller
     }
 
     /**
+     * Checks that the recovery code is correct
+     * @return JsonResponse
+     * @throws Exception
+     *
+     */
+    public function verifyAndRecover(ServerRequest $request): JsonResponse
+    {
+        $body = $request->getParsedBody();
+
+        $username = $body['username'] ?? null;
+        $password = $body['password'] ?? null;
+        $recoveryCode = $body['recovery_code'] ?? null;
+
+        if (!$username || !$password || !$recoveryCode) {
+            throw new UserErrorException('Invalid parameter');
+        }
+
+        $matches = $this->manager->recover($username, $password, $recoveryCode);
+
+        return new JsonResponse([
+            'status' => 'success',
+            'matches' => $matches
+        ]);
+    }
+
+    /**
      * Remove secret if user has provided a valid code
      * @param ServerRequest $request
      * @return JsonResponse
@@ -127,7 +146,7 @@ class Controller
         $user = $request->getAttribute('_user');
 
         $body = $request->getParsedBody();
-        $code = $body['code'];
+        $code = $body['code'] ?? '';
 
         if (!$code) {
             throw new Exception("Code must be provided");
