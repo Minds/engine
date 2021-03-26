@@ -8,7 +8,6 @@ use Minds\Core\Security\TOTP\Manager;
 use Minds\Core\Security\TOTP\TOTPSecret;
 use Minds\Core\Security\TOTP\TOTPSecretQueryOpts;
 use Minds\Core\Security\TwoFactor;
-use Minds\Core\Security\Password;
 use Exception;
 use Minds\Exceptions\UserErrorException;
 use Minds\Entities\User;
@@ -25,15 +24,11 @@ class ControllerSpec extends ObjectBehavior
     /** @var TwoFactor */
     protected $twoFactor;
 
-    /** @var Password */
-    protected $password;
-
-    public function let(Manager $manager, TwoFactor $twoFactor, Password $password)
+    public function let(Manager $manager, TwoFactor $twoFactor)
     {
         $this->beConstructedWith($manager, $twoFactor);
         $this->manager = $manager;
         $this->twoFactor = $twoFactor;
-        $this->password = $password;
     }
 
     public function it_is_initializable()
@@ -51,7 +46,7 @@ class ControllerSpec extends ObjectBehavior
             ->willReturn($user);
 
         $opts = new TOTPSecretQueryOpts();
-        $opts->setUserGuid($user->getGuid);
+        $opts->setUserGuid($user->getGuid());
 
         $this->manager->isRegistered($user)
             ->willReturn(false);
@@ -65,6 +60,30 @@ class ControllerSpec extends ObjectBehavior
         $json->shouldBe(json_encode([
             'status' => 'success',
             'secret' => 'abcdefgh01234567'
+        ]));
+    }
+
+    public function it_should_recover(
+        ServerRequest $request
+    ) {
+        $body = [
+            'username' => 'myusername',
+            'password' => 'testpassword',
+            'recovery_code' => '67899876'
+        ];
+
+        $request->getParsedBody()
+            ->willReturn($body);
+
+        $this->manager->recover('myusername', 'testpassword', '67899876')
+            ->willReturn(true);
+
+        $response = $this->verifyAndRecover($request);
+        $json = $response->getBody()->getContents();
+
+        $json->shouldBe(json_encode([
+            'status' => 'success',
+            'matches' => true
         ]));
     }
 }
