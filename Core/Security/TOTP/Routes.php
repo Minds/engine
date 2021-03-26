@@ -22,7 +22,7 @@ class Routes extends ModuleRoutes
             ->do(function (Route $route) {
                 $route->post(
                     'recovery',
-                    Ref::_('Security\TOTP\Controller', 'verifyRecoveryCode')
+                    Ref::_('Security\TOTP\Controller', 'verifyAndRecover')
                 );
 
                 // Logged in endpoints
