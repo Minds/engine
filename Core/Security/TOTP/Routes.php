@@ -19,22 +19,31 @@ class Routes extends ModuleRoutes
     {
         $this->route
             ->withPrefix('api/v3/security/totp')
-            ->withMiddleware([
-                LoggedInMiddleware::class,
-            ])
             ->do(function (Route $route) {
-                $route->get(
-                    'new',
-                    Ref::_('Security\TOTP\Controller', 'createNewSecret')
-                );
                 $route->post(
-                    'new',
-                    Ref::_('Security\TOTP\Controller', 'authenticate')
+                    'recovery',
+                    Ref::_('Security\TOTP\Controller', 'verifyRecoveryCode')
                 );
-                $route->delete(
-                    '',
-                    Ref::_('Security\TOTP\Controller', 'deleteSecret')
-                );
+
+                // Logged in endpoints
+                $route
+                    ->withMiddlware([
+                        LoggedInMiddleware::class,
+                    ])
+                    ->do(function (Route $route) {
+                        $route->get(
+                            'new',
+                            Ref::_('Security\TOTP\Controller', 'createNewSecret')
+                        );
+                        $route->post(
+                            'new',
+                            Ref::_('Security\TOTP\Controller', 'authenticateDevice')
+                        );
+                        $route->delete(
+                            '',
+                            Ref::_('Security\TOTP\Controller', 'deleteSecret')
+                        );
+                    });
             });
     }
 }
