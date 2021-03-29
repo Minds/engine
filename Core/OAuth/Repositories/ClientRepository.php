@@ -48,7 +48,7 @@ class ClientRepository implements ClientRepositoryInterface
             $clients['matrix'] = [
                 'secret' => $this->config->get('oauth')['clients']['matrix']['secret'],
                 'redirect_uri' =>  $this->config->get('oauth')['clients']['matrix']['redirect_uri'],
-                'is_confidential' => true,
+                'is_confidential' => false,
                 'scopes' => [ 'openid' ],
             ];
         }
