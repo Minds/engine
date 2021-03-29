@@ -33,7 +33,7 @@ class RefreshTokenRepository implements RefreshTokenRepositoryInterface
             ", [
                 $refreshTokenEntity->getIdentifier(),
                 $refreshTokenEntity->getAccessToken()->getIdentifier(),
-                new Timestamp($refreshTokenEntity->getExpiryDateTime()->getTimestamp()),
+                new Timestamp($refreshTokenEntity->getExpiryDateTime()->getTimestamp(), 0),
             ]);
         $this->client->request($prepared);
     }

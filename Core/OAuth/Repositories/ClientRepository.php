@@ -26,6 +26,7 @@ class ClientRepository implements ClientRepositoryInterface
     /**
      * {@inheritdoc}
      * TODO: Implement clients for 3rd party apps.
+     * TODO: Move this to a database table vs hardcoding configurations
      */
     public function getClientEntity($clientIdentifier, $grantType = null, $clientSecret = null, $mustValidateSecret = true)
     {
@@ -39,7 +40,18 @@ class ClientRepository implements ClientRepositoryInterface
             'checkout' => [
                 'redirect_uri' => $this->config->get('checkout_url'),
             ],
+            
         ];
+
+        $clientsConfig = (array) $this->config->get('oauth')['clients'];
+        if (isset($clientsConfig['matrix']['secret'])) {
+            $clients['matrix'] = [
+                'secret' => $this->config->get('oauth')['clients']['matrix']['secret'],
+                'redirect_uri' =>  $this->config->get('oauth')['clients']['matrix']['redirect_uri'],
+                'is_confidential' => true,
+                'scopes' => [ 'openid' ],
+            ];
+        }
 
         // Check if client is registered
         if (array_key_exists($clientIdentifier, $clients) === false) {
@@ -58,6 +70,10 @@ class ClientRepository implements ClientRepositoryInterface
         $client->setIdentifier($clientIdentifier);
         $client->setName($clients[$clientIdentifier]['name']);
         $client->setRedirectUri($clients[$clientIdentifier]['redirect_uri']);
+        
+        if (isset($clients[$clientIdentifier]['scopes'])) {
+            $client->setScopes($clients[$clientIdentifier]['scopes']);
+        }
 
         return $client;
     }
