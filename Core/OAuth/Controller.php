@@ -1,8 +1,6 @@
 <?php
 namespace Minds\Core\OAuth;
 
-use Lcobucci\JWT\Builder;
-use Lcobucci\JWT\Signer\Key;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use Minds\Core\Config\Config;
@@ -88,6 +86,7 @@ class Controller
             $body['status'] = 'success';
             $response = new JsonResponse($body);
         } catch (OAuthServerException $e) {
+            \Sentry\captureException($e);
             $response = $e->generateHttpResponse($response);
         } catch (\Exception $exception) {
             $body = [
