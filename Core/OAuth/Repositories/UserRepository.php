@@ -62,11 +62,7 @@ class UserRepository implements UserRepositoryInterface
             return false;
         }
 
-        if (Semver\Comparator::lessThan($_SERVER['HTTP_APP_VERSION'], '4.10.0')) {
-            // TODO: Remove the semver comparitor once 4.10 mobile build is widely used
-        } else {
-            $this->twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
-        }
+        $this->twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
 
         $entity = new UserEntity();
         $entity->setIdentifier($user->getGuid());
