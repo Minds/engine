@@ -5,20 +5,24 @@
 
 namespace Minds\Core\OAuth;
 
-use Minds\Core\Di\Provider;
+use Minds\Core\Di;
 use League\OAuth2\Server\ResourceServer;
 use League\OAuth2\Server\AuthorizationServer;
+use League\OAuth2\Server\Grant\AuthCodeGrant;
 use League\OAuth2\Server\Middleware\ResourceServerMiddleware;
 use League\OAuth2\Server\Grant\PasswordGrant;
 use League\OAuth2\Server\Grant\RefreshTokenGrant;
 use League\OAuth2\Server\Grant\ImplicitGrant;
+use OpenIDConnectServer\ClaimExtractor;
+use OpenIDConnectServer\Entities\ClaimSetEntity;
+use OpenIDConnectServer\IdTokenResponse;
 
-class OAuthProvider extends Provider
+class Provider extends Di\Provider
 {
     public function register()
     {
-        $this->di->bind('OAuth\Manager', function ($di) {
-            return new Manager();
+        $this->di->bind('OAuth\Controller', function ($di) {
+            return new Controller();
         }, ['useFactory' => false]);
 
         // Authorization Server
@@ -28,12 +32,19 @@ class OAuthProvider extends Provider
             $accessTokenRepository = $di->get('OAuth\Repositories\AccessToken');
             $scopeRepository = $di->get('OAuth\Repositories\Scope');
 
+            $openIDClaimSets = [
+                new ClaimSetEntity('openid', [ 'name', 'username' ]),
+            ];
+
+            $responseType = new IdTokenResponse(new Repositories\IdentityRepository(), new ClaimExtractor($openIDClaimSets));
+
             $server = new AuthorizationServer(
                 $clientRepository, // instance of ClientRepositoryInterface
                 $accessTokenRepository, // instance of AccessTokenRepositoryInterface
                 $scopeRepository, // instance of ScopeRepositoryInterface
-                '/var/secure/oauth-priv.key',    // path to private key
-                $config->oauth['encryption_key'] // encryption key
+                $config->get('oauth')['private_key'] ?: '/var/secure/oauth-priv.key',    // path to private key
+                $config->oauth['encryption_key'], // encryption key
+                $responseType
             );
 
             // Password grant
@@ -51,6 +62,12 @@ class OAuthProvider extends Provider
             // Implicit grant
             $server->enableGrantType(
                 $di->get('OAuth\Grants\Implicit'),
+                new \DateInterval('PT1H') // expire access token after 1 hour
+            );
+
+            // Auth code grant
+            $server->enableGrantType(
+                $di->get('OAuth\Grants\AuthCode'),
                 new \DateInterval('PT1H') // expire access token after 1 hour
             );
 
@@ -106,6 +123,20 @@ class OAuthProvider extends Provider
             return $grant;
         }, ['useFactory' => false]);
 
+        // Auth code grant
+        $this->di->bind('OAuth\Grants\AuthCode', function ($di) {
+            $authCodeRepository = $di->get('OAuth\Repositories\AuthCode');
+            $refreshTokenRepository = $di->get('OAuth\Repositories\RefreshToken');
+
+            $grant = new AuthCodeGrant(
+                $authCodeRepository,
+                $refreshTokenRepository,
+                new \DateInterval('PT10M')
+            );
+
+            return $grant;
+        }, ['useFactory' => false]);
+
         // Repositories
         $this->di->bind('OAuth\Repositories\RefreshToken', function ($di) {
             return new Repositories\RefreshTokenRepository();
@@ -113,6 +144,10 @@ class OAuthProvider extends Provider
 
         $this->di->bind('OAuth\Repositories\AccessToken', function ($di) {
             return new Repositories\AccessTokenRepository();
+        }, ['useFactory' => true]);
+
+        $this->di->bind('OAuth\Repositories\AuthCode', function ($di) {
+            return new Repositories\AuthCodeRepository();
         }, ['useFactory' => true]);
 
         $this->di->bind('OAuth\Repositories\User', function ($di) {

@@ -744,6 +744,13 @@ CREATE TABLE minds.oauth_access_tokens (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99PERCENTILE';
 
+CREATE TABLE minds.oauth_auth_codes (
+    code_id text PRIMARY KEY,
+    client_id text,
+    user_id bigint,
+    expires timestamp
+);
+
 CREATE TABLE minds.plans (
     entity_guid text,
     plan text,
