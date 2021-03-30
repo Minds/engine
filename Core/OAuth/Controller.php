@@ -98,12 +98,15 @@ class Controller
                 $payload['client_id'] = $client->getIdentifier();
             }
             $request = $request->withParsedBody($payload);
+
+            error_log(print_r($payload, true));
         }
 
         try {
             $response = $this->authorizationServer->respondToAccessTokenRequest($request, $response);
             $body = json_decode($response->getBody(), true);
             $body['status'] = 'success';
+            error_log(print_r($body, true));
             $response = new JsonResponse($body);
         } catch (OAuthServerException $e) {
             \Sentry\captureException($e);
