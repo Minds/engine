@@ -10,6 +10,7 @@ use League\OAuth2\Server\Entities\AuthCodeEntityInterface;
 use League\OAuth2\Server\Repositories\AuthCodeRepositoryInterface;
 use Minds\Core\Di\Di;
 use Minds\Core\OAuth\Entities\AuthCodeEntity;
+use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
 
 class AuthCodeRepository implements AuthCodeRepositoryInterface

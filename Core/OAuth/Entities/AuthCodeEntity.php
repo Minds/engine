@@ -1,7 +1,6 @@
 <?php
 /**
  * Minds OAuth Auth Code
- * TODO: Implement
  */
 namespace Minds\Core\OAuth\Entities;
 

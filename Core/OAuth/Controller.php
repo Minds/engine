@@ -59,6 +59,7 @@ class Controller
             $userEntity->setIdentifier($user->getGuid());
 
             $authRequest->setUser($userEntity);
+            $authRequest->setRedirectUri($authRequest->getClient()->getRedirectUri());
 
             // If client is matrix, auto approve without asking user consent.
             if ($authRequest->getClient()->getIdentifier() === 'matrix') {
