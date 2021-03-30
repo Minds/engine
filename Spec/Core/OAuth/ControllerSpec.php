@@ -92,6 +92,13 @@ class ControllerSpec extends ObjectBehavior
     {
         $this->authorizationServer->respondToAccessTokenRequest($request, Argument::any())
             ->willReturn(new JsonResponse([]));
+
+        $request->getParsedBody()
+            ->willReturn([
+                'client_id' => 'phpspec',
+                'code' => '123',
+                'redirect_uri' => 'redirect_uri'
+            ]);
         
         $response = $this->token($request);
 

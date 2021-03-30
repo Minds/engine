@@ -8,6 +8,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\OAuth\Entities\UserEntity;
 use Minds\Core\OAuth\Repositories\AccessTokenRepository;
+use Minds\Core\OAuth\Repositories\ClientRepository;
 use Minds\Core\OAuth\Repositories\RefreshTokenRepository;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\JsonResponse;
@@ -31,16 +32,21 @@ class Controller
     /** @var RefreshTokenRepository */
     protected $refreshTokenRepository;
 
+    /** @var ClientRepository */
+    protected $clientRepository;
+
     public function __construct(
         Config $config = null,
         AuthorizationServer $authorizationServer = null,
         AccessTokenRepository $accessTokenRepository = null,
-        RefreshTokenRepository $refreshTokenRepository = null
+        RefreshTokenRepository $refreshTokenRepository = null,
+        ClientRepository $clientRepository = null
     ) {
         $this->config = $config ?? Di::_()->get('Config');
         $this->authorizationServer = $authorizationServer ?? Di::_()->get('OAuth\Server\Authorization');
         $this->accessTokenRepository = $accessTokenRepository ?? Di::_()->get('OAuth\Repositories\AccessToken');
         $this->refreshTokenRepository = $refreshTokenRepository ?? Di::_()->get('OAuth\Repositories\RefreshToken');
+        $this->clientRepository = $clientRepository ?? Di::_()->get('OAuth\Repositories\Client');
     }
 
     /**
@@ -80,6 +86,19 @@ class Controller
     public function token(ServerRequest $request): JsonResponse
     {
         $response = new JsonResponse([]);
+
+        /**
+         * Hack as some matrix is not sending client_id
+         **/
+        $payload = $request->getParsedBody();
+        if (!isset($payload['client_id'])) {
+            $client = $this->clientRepository->getClientEntity('matrix');
+
+            if ($client->getRedirectUri() === $payload['redirect_uri']) {
+                $payload['client_id'] = $client->getIdentifier();
+            }
+            $request = $request->withParsedBody($payload);
+        }
 
         try {
             $response = $this->authorizationServer->respondToAccessTokenRequest($request, $response);
