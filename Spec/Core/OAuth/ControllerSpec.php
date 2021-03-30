@@ -60,6 +60,9 @@ class ControllerSpec extends ObjectBehavior
         $request->getAttribute('_user')
             ->willReturn($user);
 
+        $request->getQueryParams()
+            ->willReturn([]);
+
         $this->authorizationServer->validateAuthorizationRequest($request)
             ->willReturn($authorizationRequest);
 

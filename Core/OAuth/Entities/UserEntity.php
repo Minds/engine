@@ -16,6 +16,9 @@ class UserEntity implements UserEntityInterface, ClaimSetInterface
     /** @var User */
     protected $user;
 
+    /** @var array */
+    protected $attributes = [];
+
     /**
      * Sets the Minds user
      * @param User $user
@@ -35,5 +38,15 @@ class UserEntity implements UserEntityInterface, ClaimSetInterface
             'name' => $this->user->getName(),
             'username' => $this->user->getUsername(),
         ];
+    }
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     * @return void
+     */
+    public function setAttribute(string $key, $value): void
+    {
+        $this->attributes[$key] = $value;
     }
 }
