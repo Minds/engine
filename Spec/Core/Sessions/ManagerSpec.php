@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Sessions;
 
+use DateTimeImmutable;
 use Minds\Core\Sessions\Manager;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -15,6 +16,7 @@ use Zend\Diactoros\ServerRequest;
 use Lcobucci\JWT\Builder;
 use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Signer\Key;
+use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Signer\Rsa\Sha512;
 
 class ManagerSpec extends ObjectBehavior
@@ -54,10 +56,11 @@ wwIDAQAB
         $token = (new Builder)
                     //->issuedBy('spec.tests')
                     //->canOnlyBeUsedBy('spec.tests')
-                    ->setId('mock_session_id', true)
-                    ->setExpiration(time() + 3600) // 1 hour
+                    ->setId('mock_session_id')
+                    ->setHeader('jti', 'mock_session_id')
+                    ->setExpiration((new DateTimeImmutable())->setTimestamp(time() + 3600)) // 1 hour
                     ->set('user_guid', 'user_1')
-                    ->sign(new Sha512, new Key("-----BEGIN RSA PRIVATE KEY-----
+                    ->getToken(new Sha512, new InMemory("-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEApvnChiEHxXmpMNaPTwdctkTDo9enXhHArO77yfLHZoB1J98B
 7GZ7GF+W19yM+kJKgJudEmLw22YW8Ycr5Aenhl1JMhmGBpiY+XyMaPc4vWufrEfP
 UVpjOAVqx+OpRGOogJx29K0MkqUESITj4gVn7BxKCOE7qNbXcYYAiTWot2ODIBZe
@@ -83,8 +86,7 @@ wlpbWTVcZqpwQZ1+CqXqvWJzAUFsoii455uFYz2C4ujwclCOun3NOW4CCAtOMnEQ
 NwgbAoGBALPXHBmbxlZuMdwfPBMbZIbLnUeksXkFjIwxb6yestZe5vyAjobjMC9/
 hLom+msoew3BaAjwWGpOuSs3U96U+THoVIFyG+LF7tCck8PKpY3n4vKb7908WDUX
 aTpdB3sjEe8ov+al2kJYBSJcqbUmUMVCY7v0Zig2VlYMPjzn/icP
------END RSA PRIVATE KEY-----"))
-                    ->getToken();
+-----END RSA PRIVATE KEY-----"));
 
         $request = new ServerRequest();
 
@@ -140,10 +142,11 @@ wwIDAQAB
         $token = (new Builder)
                     //->issuedBy('spec.tests')
                     //->canOnlyBeUsedBy('spec.tests')
-                    ->setId('mock_session_id', true)
-                    ->setExpiration(time() + 3600) // 1 hour
+                    ->setId('mock_session_id')
+                    ->setHeader('jti', 'mock_session_id')
+                    ->setExpiration((new DateTimeImmutable())->setTimestamp(time() + 3600)) // 1 hour
                     ->set('user_guid', 'user_1')
-                    ->sign(new Sha512, new Key("-----BEGIN RSA PRIVATE KEY-----
+                    ->getToken(new Sha512, new InMemory("-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEApvnChiEHxXmpMNaPTwdctkTDo9enXhHArO77yfLHZoB1J98B
 7GZ7GF+W19yM+kJKgJudEmLw22YW8Ycr5Aenhl1JMhmGBpiY+XyMaPc4vWufrEfP
 UVpjOAVqx+OpRGOogJx29K0MkqUESITj4gVn7BxKCOE7qNbXcYYAiTWot2ODIBZe
@@ -169,8 +172,7 @@ wlpbWTVcZqpwQZ1+CqXqvWJzAUFsoii455uFYz2C4ujwclCOun3NOW4CCAtOMnEQ
 NwgbAoGBALPXHBmbxlZuMdwfPBMbZIbLnUeksXkFjIwxb6yestZe5vyAjobjMC9/
 hLom+msoew3BaAjwWGpOuSs3U96U+THoVIFyG+LF7tCck8PKpY3n4vKb7908WDUX
 aTpdB3sjEe8ov+al2kJYBSJcqbUmUMVCY7v0Zig2VlYMPjzn/icP
------END RSA PRIVATE KEY-----"))
-                    ->getToken();
+-----END RSA PRIVATE KEY-----"));
 
         $request = new ServerRequest();
 
@@ -227,10 +229,11 @@ wwIDAQAB
         $token = (new Builder)
                     //->issuedBy('spec.tests')
                     //->canOnlyBeUsedBy('spec.tests')
-                    ->setId('mock_session_id', true)
-                    ->setExpiration(time() + 3600) // 1 hour
+                    ->setId('mock_session_id')
+                    ->setHeader('jti', 'mock_session_id')
+                    ->setExpiration((new DateTimeImmutable())->setTimestamp(time() + 3600)) // 1 hour
                     ->set('user_guid', 'user_1')
-                    ->sign(new Sha512, new Key("-----BEGIN RSA PRIVATE KEY-----
+                    ->getToken(new Sha512, new InMemory("-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEA4Q2RymeNni7hxITMC5kU/YWhV5KiTFPJB6wUGIXljE3t7aRh
 hVmU9x12+DEd0C+/UG2GVhWQclj/A3ZMqd4GJI3ZUu94kmVXAThRVaJSw+bgAhg5
 TVrp3JN54M7tb4Q2JINhE3Oc1yr+qBUBr8YlRnx2pvxo+v31i5dP3dABgtoJ27z2
@@ -256,8 +259,7 @@ VIYIASIUMPxP1dd1C4IEAvsEHGEjXMaQ+/tmdxkgmyJNcWxQTqcwaAn3iVuWjE/B
 GkzyvQKBgCKt/L78CQfcD7C/s3AqT5TvcQOKhXaSx9kdoETJ+U3CYQmfOhk65VVH
 04pG6UqzqHxC+4yQ8IDt3/op+eplbfDFHKWuePNaGT8Kcoivzb9FG0ZBVCPVs1tm
 YSoKTsWFlvr9YG4o6R2ktgzKJ5ofiGTz5e2wLzP3a0ma8vGNke4Q
------END RSA PRIVATE KEY-----"))
-                    ->getToken();
+-----END RSA PRIVATE KEY-----"));
 
         $request = new ServerRequest();
 

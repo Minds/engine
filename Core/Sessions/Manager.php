@@ -9,7 +9,7 @@ use Minds\Common\Cookie;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Lcobucci\JWT;
-use Lcobucci\JWT\Signer\Key;
+use Lcobucci\JWT\Signer\Key\LocalFileReference;
 use Lcobucci\JWT\Signer\Rsa\Sha512;
 use Minds\Entities\User;
 
@@ -35,6 +35,9 @@ class Manager
 
     /** @var User $user */
     private $user;
+
+    /** @var JWT\Builder */
+    private $jwtBuilder;
 
     public function __construct(
         $repository = null,
@@ -116,7 +119,7 @@ class Manager
 
         $key = $this->config->get('sessions')['public_key'];
 
-        if (!$token->verify(new Sha512, $key)) {
+        if (!$token->verify(new Sha512, new LocalFileReference($key))) {
             return $this;
         }
 
@@ -203,11 +206,11 @@ class Manager
         $token = $this->jwtBuilder
             //->issuedBy($this->config->get('site_url'))
             //->canOnlyBeUsedBy($this->config->get('site_url'))
-            ->setId($id, true)
+            ->setId($id)
+            ->setHeader('jti', $id)
             ->setExpiration($expires)
             ->set('user_guid', (string) $this->user->getGuid())
-            ->sign(new Sha512, $this->config->get('sessions')['private_key'])
-            ->getToken();
+            ->getToken(new Sha512, new LocalFileReference($this->config->get('sessions')['private_key']));
 
         $this->session = new Session();
         $this->session

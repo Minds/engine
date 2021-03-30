@@ -134,6 +134,9 @@ class Provider extends Di\Provider
                 new \DateInterval('PT10M')
             );
 
+            // OpenID Connect has issues
+            $grant->disableRequireCodeChallengeForPublicClients();
+
             return $grant;
         }, ['useFactory' => false]);
 

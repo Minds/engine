@@ -32,6 +32,14 @@ class ClientEntity implements ClientEntityInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function setConfidential()
+    {
+        $this->isConfidential = true;
+    }
+
+    /**
      * Sets the scopes that a client can user
      * @param array $scopes
      * @return void

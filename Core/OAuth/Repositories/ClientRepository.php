@@ -23,24 +23,19 @@ class ClientRepository implements ClientRepositoryInterface
         $this->config = $config ?: Di::_()->get('Config');
     }
 
-    /**
-     * {@inheritdoc}
-     * TODO: Implement clients for 3rd party apps.
-     * TODO: Move this to a database table vs hardcoding configurations
-     */
-    public function getClientEntity($clientIdentifier, $grantType = null, $clientSecret = null, $mustValidateSecret = true)
+    private function getClients()
     {
         $clients = [
             'mobile' => [
                 'secret' => $this->config->get('oauth')['clients']['mobile']['secret'],
                 'name' => 'Mobile',
                 'redirect_uri' => '',
-                'is_confidential' => $grantType === 'password' || $grantType === 'refresh_token' ? false : true,
+                'is_confidential' => true,
             ],
             'checkout' => [
                 'redirect_uri' => $this->config->get('checkout_url'),
+                'is_confidential' => false,
             ],
-            
         ];
 
         $clientsConfig = (array) $this->config->get('oauth')['clients'];
@@ -53,16 +48,20 @@ class ClientRepository implements ClientRepositoryInterface
             ];
         }
 
+        return $clients;
+    }
+
+    /**
+     * {@inheritdoc}
+     * TODO: Implement clients for 3rd party apps.
+     * TODO: Move this to a database table vs hardcoding configurations
+     */
+    public function getClientEntity($clientIdentifier)
+    {
+        $clients = $this->getClients();
+
         // Check if client is registered
         if (array_key_exists($clientIdentifier, $clients) === false) {
-            return;
-        }
-
-        if (
-            $mustValidateSecret === true
-            && $clients[$clientIdentifier]['is_confidential'] === true
-            && $clients[$clientIdentifier]['secret'] !== $clientSecret
-        ) {
             return;
         }
 
@@ -70,11 +69,44 @@ class ClientRepository implements ClientRepositoryInterface
         $client->setIdentifier($clientIdentifier);
         $client->setName($clients[$clientIdentifier]['name']);
         $client->setRedirectUri($clients[$clientIdentifier]['redirect_uri']);
+
+        if ($clients[$clientIdentifier]['is_confidential']) {
+            $client->setConfidential();
+        }
         
         if (isset($clients[$clientIdentifier]['scopes'])) {
             $client->setScopes($clients[$clientIdentifier]['scopes']);
         }
 
         return $client;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validateClient($clientIdentifier, $clientSecret, $grantType)
+    {
+        $clients = $this->getClients();
+
+        // Check if client is registered
+        if (\array_key_exists($clientIdentifier, $clients) === false) {
+            return false;
+        }
+
+        // Mobile can bypass secret check as its 1st party app
+        if ($clientIdentifier === 'mobile' &&
+            ($grantType === 'password' || $grantType === 'refresh_token')) {
+            return true;
+        }
+
+        // Confidential MUST verify secrets
+        if (
+            $clients[$clientIdentifier]['is_confidential'] === true
+            && $clients[$clientIdentifier]['secret'] !== $clientSecret
+        ) {
+            return false;
+        }
+
+        return true;
     }
 }
