@@ -69,11 +69,18 @@ class ControllerSpec extends ObjectBehavior
         $authorizationRequest->getClient()
             ->willReturn($clientEntity);
 
+        $authorizationRequest->setRedirectUri('redirect-uri-set-by-client')
+            ->shouldBeCalled();
+        ;
+
         $authorizationRequest->setAuthorizationApproved(true)
             ->shouldBeCalled();
 
         $clientEntity
             ->getIdentifier()->willReturn('matrix');
+
+        $clientEntity->getRedirectUri()
+            ->willReturn('redirect-uri-set-by-client');
 
         $this->authorizationServer->completeAuthorizationRequest($authorizationRequest, Argument::any())
             ->willReturn(new JsonResponse([]));
