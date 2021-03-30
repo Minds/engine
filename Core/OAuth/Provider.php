@@ -38,6 +38,11 @@ class Provider extends Di\Provider
 
             $responseType = new IdTokenResponse(new Repositories\IdentityRepository(), new ClaimExtractor($openIDClaimSets));
 
+            // Hack until OAuth2 library will support tapping into the
+            if ($nonce = NonceHelper::getNonce()) {
+                $responseType->setNonce($nonce);
+            }
+
             $server = new AuthorizationServer(
                 $clientRepository, // instance of ClientRepositoryInterface
                 $accessTokenRepository, // instance of AccessTokenRepositoryInterface

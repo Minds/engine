@@ -64,6 +64,15 @@ class Controller
             $userEntity = new UserEntity();
             $userEntity->setIdentifier($user->getGuid());
 
+            /**
+             * This is not ideal, but we are doing it because the OAuth library
+             * does not support accessing the auth code entity on response
+             */
+            $queryParams = $request->getQueryParams();
+            if (isset($queryParams['nonce'])) {
+                NonceHelper::setNonce($queryParams['nonce']);
+            }
+
             $authRequest->setUser($userEntity);
             $authRequest->setRedirectUri($authRequest->getClient()->getRedirectUri());
 
@@ -98,15 +107,12 @@ class Controller
                 $payload['client_id'] = $client->getIdentifier();
             }
             $request = $request->withParsedBody($payload);
-
-            error_log(print_r($payload, true));
         }
 
         try {
             $response = $this->authorizationServer->respondToAccessTokenRequest($request, $response);
             $body = json_decode($response->getBody(), true);
             $body['status'] = 'success';
-            error_log(print_r($body, true));
             $response = new JsonResponse($body);
         } catch (OAuthServerException $e) {
             \Sentry\captureException($e);
