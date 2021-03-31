@@ -40,12 +40,52 @@ class Video extends MindsObject
         $this->attributes['youtube_channel_id'] = null;
         $this->attributes['transcoding_status'] = null;
         $this->attributes['youtube_thumbnail'] = null; // this is ephemeral
+        $this->attributes['transcoder'] = null;
+        $this->attributes['cloudflare_id'] = null;
     }
 
 
     public function __construct($guid = null)
     {
         parent::__construct($guid);
+    }
+
+    /**
+     * @param string $transcoder
+     * @return self
+     */
+    public function setTranscoder(string $transcoder): self
+    {
+        $this->attributes['transcoder'] = $transcoder;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTranscoder(): string
+    {
+        return $this->attributes['transcoder'] ?: 'minds_ffmpeg';
+    }
+
+    /**
+     * Sets the cloudflare id
+     * @param string $id
+     * @return self
+     */
+    public function setCloudflareId($id): self
+    {
+        $this->attributes['cloudflare_id'] = $id;
+        return $this;
+    }
+
+    /**
+     * Returns the cloudflare id
+     * @return string
+     */
+    public function getCloudflareId(): ?string
+    {
+        return $this->attributes['cloudflare_id'] ?: null;
     }
 
     /**
@@ -358,7 +398,7 @@ class Video extends MindsObject
      * Get Title
      * @return string
      */
-    public function getTitle(): string
+    public function getTitle(): ?string
     {
         return $this->title;
     }

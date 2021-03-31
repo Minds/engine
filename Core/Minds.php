@@ -52,6 +52,7 @@ class Minds extends base
         Blockchain\Module::class,
         Boost\Module::class,
         Rewards\Module::class,
+        Media\Video\CloudflareStreams\Module::class,
         Matrix\Module::class,
     ];
 
