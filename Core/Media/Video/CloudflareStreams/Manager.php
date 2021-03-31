@@ -43,7 +43,7 @@ class Manager
             'meta' => [
                 'guid' => $video->getGuid(),
                 // "name" => $video->getTitle() ?: '',
-                'owner_guid' => $video->getOwnerGUID(),
+                'owner_guid' => (string) $video->getOwnerGUID(),
             ],
             'thumbnailTimestampPct' => 0.5,
             'requireSignedURLs' => true,
