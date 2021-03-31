@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Media\Video\CloudflareStreams;
 
+use DateTimeImmutable;
 use Minds\Core\Config;
 use Minds\Entities\Video;
 use Minds\Core\Di\Di;
@@ -81,8 +82,8 @@ class Manager
 
         $jwtBuilder = new JWT\Builder;
         $jwtBuilder->withClaim('kid', $signingKey->getId());
-        $jwtBuilder->withClaim('sub', $videoId);
-        $jwtBuilder->expiresAt(strtotime('+1 hour'), true);
+        $jwtBuilder->relatedTo($videoId);
+        $jwtBuilder->expiresAt(new DateTimeImmutable('+1 hour'));
     
         $token = (string) $jwtBuilder->getToken(new Sha256, new Key(base64_decode($signingKey->getPem(), true)));
 

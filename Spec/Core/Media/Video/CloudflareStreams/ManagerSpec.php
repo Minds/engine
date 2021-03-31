@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Media\Video\CloudflareStreams;
 
+use DateTimeImmutable;
 use Minds\Core\Media\Video\CloudflareStreams\Manager;
 use Minds\Core\Media\Video\CloudflareStreams\Client;
 use PhpSpec\ObjectBehavior;
@@ -69,8 +70,8 @@ class ManagerSpec extends ObjectBehavior
 
         $jwtBuilder = new JWT\Builder;
         $jwtBuilder->withClaim('kid', 'key-id');
-        $jwtBuilder->withClaim('sub', 'cloudflare-id');
-        $jwtBuilder->expiresAt(strtotime('+1 hour'), true);
+        $jwtBuilder->relatedTo('cloudflare-id');
+        $jwtBuilder->expiresAt(new DateTimeImmutable('+1 hour'));
 
         $expectedToken = (string) $jwtBuilder->getToken(new Sha256, new Key(base64_decode($pem, true)));
         $expectedSrc = "https://videodelivery.net/$expectedToken/manifest/video.m3u8";
