@@ -6,7 +6,7 @@ use Minds\Core\Media\ClientUpload\Manager;
 use Minds\Core\Media\ClientUpload\ClientUploadLease;
 use Minds\Core\Media\Video\Transcoder;
 use Minds\Core\GuidBuilder;
-use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Media\Video\Manager as VideoManager;
 use Minds\Entities\User;
 use Minds\Entities\Video;
 
@@ -15,16 +15,21 @@ use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
+    /** @var Transcoder\Manager */
     private $transcoderManager;
-    private $guid;
-    private $save;
+ 
+    /** @var VideoManager */
+    private $videoManager;
 
-    public function let(Transcoder\Manager $transcoderManager, GuidBuilder $guid, Save $save)
+    /** @var GuidBuilder */
+    private $guid;
+
+    public function let(Transcoder\Manager $transcoderManager, VideoManager $videoManager, GuidBuilder $guid)
     {
-        $this->beConstructedWith($transcoderManager, $guid, $save);
+        $this->beConstructedWith($transcoderManager, $videoManager, $guid);
         $this->transcoderManager = $transcoderManager;
+        $this->videoManager = $videoManager;
         $this->guid = $guid;
-        $this->save = $save;
     }
 
     public function it_is_initializable()
@@ -65,17 +70,13 @@ class ManagerSpec extends ObjectBehavior
         $user->isPro()
             ->willReturn(true);
 
-        $this->save->setEntity(Argument::that(function ($video) {
+        $user->getGuid()
+            ->willReturn('123');
+
+        $this->videoManager->add(Argument::that(function ($video) {
             return $video->guid == 456
                 && $video->access_id == 0;
         }))
-            ->shouldBeCalled()
-            ->willReturn($this->save);
-
-        $this->save->save()
-            ->shouldBeCalled();
-
-        $this->transcoderManager->createTranscodes(Argument::type(Video::class))
             ->shouldBeCalled();
 
         $this->complete($lease)

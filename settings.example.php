@@ -27,6 +27,12 @@ $CONFIG->rabbitmq = [
     'password' => 'guest',
 ];
 
+$CONFIG->set('cloudflare', [
+    'api_key' => '',
+    'email' => '',
+    'account_id' => '',
+]);
+
 $CONFIG->disable_secure_cookies = true;
 
 $CONFIG->set('sessions', [
