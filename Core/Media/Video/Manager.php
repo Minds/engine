@@ -13,9 +13,22 @@ use Minds\Entities\Entity;
 use Minds\Entities\Video;
 use Minds\Core\EntitiesBuilder;
 use Minds\Common\Repository\Response;
+use Minds\Core\Entities\Actions\Save;
 
 class Manager
 {
+    /** @var string */
+    const TRANSCODER_MINDS = 'minds';
+
+    /** @var string */
+    const TRANSCODER_CLOUDFLARE = 'cloudflare';
+
+    /** @var string[] */
+    const VALID_TRANSCODERS = [
+        Manager::TRANSCODER_MINDS,
+        Manager::TRANSCODER_CLOUDFLARE
+    ];
+
     /** @var Config */
     private $config;
 
@@ -28,11 +41,19 @@ class Manager
     /** @var Transcoder\Manager */
     private $transcoderManager;
 
+    /** @var Save */
+    private $save;
+
+    /** @var CloudflareStreams\Manager */
+    private $cloudflareStreamsManager;
+
     public function __construct(
         $config = null,
         $s3 = null,
         $entitiesBuilder = null,
-        $transcoderManager = null
+        $transcoderManager = null,
+        $save = null,
+        $cloudflareStreamsManager = null
     ) {
         $this->config = $config ?? Di::_()->get('Config');
 
@@ -50,6 +71,8 @@ class Manager
         $this->s3 = $s3 ?: new S3Client(array_merge(['version' => '2006-03-01'], $opts));
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->transcoderManager = $transcoderManager ?? Di::_()->get('Media\Video\Transcoder\Manager');
+        $this->save = $save ?? new Save();
+        $this->cloudflareStreamsManager = $cloudflareStreamsManager ?? new CloudflareStreams\Manager();
     }
 
     /**
@@ -67,6 +90,29 @@ class Manager
     }
 
     /**
+     * Adds a video and creates its transcodes
+     */
+    public function add(Video $video): bool
+    {
+        if ($video->getTranscoder() === self::TRANSCODER_CLOUDFLARE) {
+            $this->cloudflareStreamsManager->copy($video, $this->getPublicAssetUri($video, 'source'));
+        }
+
+        // Save the video
+        $success = $this->save->setEntity($video)->save();
+
+        if ($success) {
+            // Kick off the transcoder
+            // (we are still transcoding for redundancy reasons until cloudflare streams is safe)
+            $this->transcoderManager->createTranscodes($video);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Return transcodes
      * @param Video $video
      * @return Source[]
@@ -78,6 +124,21 @@ class Manager
             $guid = $legacyGuid;
         }
 
+        switch ($video->getTranscoder()) {
+            case self::TRANSCODER_CLOUDFLARE:
+                return $this->getCloudflareSources($guid);
+            case self::TRANSCODER_MINDS:
+            default:
+                 return $this->getMindsTranscoderSources($guid);
+        }
+    }
+
+    /**
+     * @param string $guid
+     * @return Source[]
+     */
+    private function getMindsTranscoderSources(string $guid): array
+    {
         $transcodes = $this->transcoderManager->getList([
             'guid' => $guid,
             'legacyPolyfill' => true,
@@ -115,6 +176,17 @@ class Manager
         });
 
         return $sources;
+    }
+
+    /**
+     * @param string $guid
+     * @return Source[]
+     */
+    public function getCloudflareSources($guid): array
+    {
+        $video = $this->get($guid);
+
+        return $this->cloudflareStreamsManager->getSources($video);
     }
 
     /**
