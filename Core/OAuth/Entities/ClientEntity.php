@@ -12,13 +12,49 @@ class ClientEntity implements ClientEntityInterface
 {
     use EntityTrait, ClientTrait;
 
+    /** @var array */
+    protected $scopes = [];
+
+    /**
+     * @inheritDoc
+     */
     public function setName($name)
     {
         $this->name = $name;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function setRedirectUri($uri)
     {
         $this->redirectUri = $uri;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setConfidential()
+    {
+        $this->isConfidential = true;
+    }
+
+    /**
+     * Sets the scopes that a client can user
+     * @param array $scopes
+     * @return void
+     */
+    public function setScopes(array $scopes)
+    {
+        $this->scopes = $scopes;
+    }
+
+    /**
+     * Returns the scopes that a client can use
+     * @return array
+     */
+    public function getScopes()
+    {
+        return $this->scopes;
     }
 }

@@ -43,8 +43,8 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
                 $accessTokenEntity->getIdentifier(),
                 $accessTokenEntity->getClient()->getIdentifier(),
                 new Varint($accessTokenEntity->getUserIdentifier()),
-                new Timestamp($accessTokenEntity->getExpiryDateTime()->getTimestamp()),
-                new Timestamp(time()), //now
+                new Timestamp($accessTokenEntity->getExpiryDateTime()->getTimestamp(), 0),
+                new Timestamp(time(), 0), //now
                 $scopes,
             ]);
 

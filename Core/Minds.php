@@ -20,6 +20,7 @@ class Minds extends base
         Log\Module::class,
         Events\Module::class,
         Security\Module::class,
+        OAuth\Module::class,
         Features\Module::class,
         SSO\Module::class,
         Email\Module::class,
@@ -52,6 +53,7 @@ class Minds extends base
         Boost\Module::class,
         Rewards\Module::class,
         Media\Video\CloudflareStreams\Module::class,
+        Matrix\Module::class,
     ];
 
     /**
@@ -101,7 +103,6 @@ class Minds extends base
         (new \Minds\Entities\EntitiesProvider())->register();
         (new Config\ConfigProvider())->register();
         (new Router\RouterProvider())->register();
-        (new OAuth\OAuthProvider())->register();
         (new Sessions\SessionsProvider())->register();
         (new Data\DataProvider())->register();
         //(new Core\Notification\NotificationProvider())->register();

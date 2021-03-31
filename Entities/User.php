@@ -87,6 +87,24 @@ class User extends \ElggUser
     }
 
     /**
+     * Returns the username
+     * @return string
+     */
+    public function getUsername(): string
+    {
+        return $this->username;
+    }
+
+    /**
+     * Returns the display name
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    /**
      * Gets `tags`.
      *
      * @return mixed

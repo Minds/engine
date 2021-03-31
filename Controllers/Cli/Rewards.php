@@ -35,6 +35,8 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
         Di::_()->get('Config')
             ->set('min_log_level', 'INFO');
 
+        ini_set('memory_limit', '1G'); // Temporary hack as the caches grow too big
+ 
         $timestamp = $this->getOpt('timestamp') ?: (strtotime('midnight -24 hours'));
         $dryRun = $this->getOpt('dry-run') ?: false;
         $recalculate = $this->getOpt('recalculate') ?: false;
@@ -109,6 +111,8 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
     {
         Di::_()->get('Config')
             ->set('min_log_level', 'INFO');
+
+        ini_set('memory_limit', '1G'); // Temporary hack as the caches grow too big
 
         $daysAgo = $this->getOpt('daysAgo') ?: 0;
         $dateTs = strtotime("midnight $daysAgo days ago");
