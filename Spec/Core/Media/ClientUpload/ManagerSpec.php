@@ -70,6 +70,9 @@ class ManagerSpec extends ObjectBehavior
         $user->isPro()
             ->willReturn(true);
 
+        $user->getGuid()
+            ->willReturn('123');
+
         $this->videoManager->add(Argument::that(function ($video) {
             return $video->guid == 456
                 && $video->access_id == 0;

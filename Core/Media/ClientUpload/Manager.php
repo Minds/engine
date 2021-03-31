@@ -68,6 +68,7 @@ class Manager
 
         $video = new Video();
         $video->set('guid', $lease->getGuid());
+        $video->set('owner_guid', $lease->getUser()->getGuid());
         $video->set('cinemr_guid', $lease->getGuid());
         $video->set('access_id', 0); // Hide until published
         $video->setFlag('full_hd', !!$lease->getUser()->isPro());
