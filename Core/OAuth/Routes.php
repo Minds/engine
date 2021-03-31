@@ -33,7 +33,7 @@ class Routes extends ModuleRoutes
                             'userinfo',
                             Ref::_('OAuth\Controller', 'userinfo')
                         );
-                        $route->get(
+                        $route->post(
                             'revoke',
                             Ref::_('OAuth\Controller', 'revoke')
                         );
