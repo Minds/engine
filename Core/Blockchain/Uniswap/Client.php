@@ -170,7 +170,7 @@ class Client
     {
         $query = '
             query($ids: [String!]) {
-                mints(where: { pair_in: $ids }, orderBy: timestamp, orderDirection: desc) {
+                mints(where: { pair_in: $ids }, orderBy: timestamp, orderDirection: desc, first: 1000) {
                     id
                     to
                     amount0
