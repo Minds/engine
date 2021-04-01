@@ -200,7 +200,7 @@ class Controller
         $options = [
             'use' => 'sig',
             'alg' => 'RS256',
-            'kid' => hash('sha512', $pem),
+            //'kid' => hash('sha512', $pem),
         ];
 
         $keyFactory = new \Strobotti\JWK\KeyFactory();
