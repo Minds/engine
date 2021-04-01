@@ -1,8 +1,10 @@
 <?php
 namespace Minds\Core\OAuth;
 
+use Minds\Core\Di\Di;
 use Minds\Common\Cookie;
 use Zend\Diactoros\ServerRequestFactory;
+use League\OAuth2\Server\CryptTrait;
 
 /**
  * Why does this helper exists?
@@ -13,33 +15,48 @@ use Zend\Diactoros\ServerRequestFactory;
  */
 class NonceHelper
 {
+    use CryptTrait;
+
     /** @var string */
-    const COOKIE_NAME = 'oauth_nonce';
+    const CACHE_PREFIX = 'oauth_nonce::';
+
+    /** @var PsrWrapper */
+    protected $cache;
+
+    public function __construct($cache = null)
+    {
+        $this->cache = $cache ?? Di::_()->get('Cache');
+        $this->encryptionKey = Di::_()->get('Config')->get('oauth')['encryption_key'];
+    }
 
     /**
-     * Sets the nonce cookie
+     * @param string $userGuid
      * @param string $nonce
-     * @return void
      */
-    public static function setNonce(string $nonce)
+    public function setNonce(string $userGuid, string $nonce)
     {
-        // Upon there being a nonce, set this in a temporary cookie
-        $cookie = new Cookie();
-        $cookie->setName(self::COOKIE_NAME);
-        $cookie->setValue($nonce);
-        $cookie->setExpire(time() + 300); // Expire in 5 mins
-        $cookie->create();
+        $this->cache->set(self::CACHE_PREFIX . $userGuid, $nonce);
     }
 
     /**
      * Will return a nonce from global request vars
      * @return string
      */
-    public static function getNonce(): ?string
+    public function getNonce(): ?string
     {
         $serverRequest = ServerRequestFactory::fromGlobals();
-        if ($nonce = $serverRequest->getCookieParams()['oauth_nonce']) {
-            return $nonce;
+
+        $body = $serverRequest->getParsedBody();
+
+        if ($body) {
+            $code = $body['code'];
+            $payload = json_decode($this->decrypt($code), true);
+
+            $nonce = $this->cache->get(self::CACHE_PREFIX . $payload['user_id']);
+
+            if ($nonce) {
+                return $nonce;
+            }
         }
         return null;
     }

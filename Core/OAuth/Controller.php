@@ -35,18 +35,23 @@ class Controller
     /** @var ClientRepository */
     protected $clientRepository;
 
+    /** @var NonceHelper */
+    protected $nonceHelper;
+
     public function __construct(
         Config $config = null,
         AuthorizationServer $authorizationServer = null,
         AccessTokenRepository $accessTokenRepository = null,
         RefreshTokenRepository $refreshTokenRepository = null,
-        ClientRepository $clientRepository = null
+        ClientRepository $clientRepository = null,
+        NonceHelper $nonceHelper = null
     ) {
         $this->config = $config ?? Di::_()->get('Config');
         $this->authorizationServer = $authorizationServer ?? Di::_()->get('OAuth\Server\Authorization');
         $this->accessTokenRepository = $accessTokenRepository ?? Di::_()->get('OAuth\Repositories\AccessToken');
         $this->refreshTokenRepository = $refreshTokenRepository ?? Di::_()->get('OAuth\Repositories\RefreshToken');
         $this->clientRepository = $clientRepository ?? Di::_()->get('OAuth\Repositories\Client');
+        $this->nonceHeper = $nonceHelper ?? Di::_()->get('OAuth\NonceHelper');
     }
 
     /**
@@ -70,7 +75,7 @@ class Controller
              */
             $queryParams = $request->getQueryParams();
             if (isset($queryParams['nonce'])) {
-                NonceHelper::setNonce($queryParams['nonce']);
+                $this->nonceHelper->setNonce($user->getGuid(), $queryParams['nonce']);
             }
 
             $authRequest->setUser($userEntity);
@@ -254,6 +259,7 @@ class Controller
                 'sub',
                 'name',
                 'username',
+                'nonce',
             ]
         ];
 

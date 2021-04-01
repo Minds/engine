@@ -38,8 +38,9 @@ class Provider extends Di\Provider
 
             $responseType = new IdTokenResponse(new Repositories\IdentityRepository(), new ClaimExtractor($openIDClaimSets));
 
+            $responseType->setIssuer($config->get('site_url'));
             // Hack until OAuth2 library will support tapping into the
-            if ($nonce = NonceHelper::getNonce()) {
+            if ($nonce = $di->get('OAuth\NonceHelper')->getNonce()) {
                 $responseType->setNonce($nonce);
             }
 
@@ -169,5 +170,9 @@ class Provider extends Di\Provider
         $this->di->bind('OAuth\Repositories\Scope', function ($di) {
             return new Repositories\ScopeRepository();
         }, ['useFactory' => true]);
+
+        $this->di->bind('OAuth\NonceHelper', function ($di) {
+            return new NonceHelper();
+        }, ['useFactory' => false]);
     }
 }

@@ -2221,12 +2221,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Minds/oauth2-openid-connect-server.git",
-                "reference": "ea76f401548ad09baacadbab7271d668acacdeaa"
+                "reference": "9f97ac2331826d9ce17326ab818639f777c23b9f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Minds/oauth2-openid-connect-server/zipball/ea76f401548ad09baacadbab7271d668acacdeaa",
-                "reference": "ea76f401548ad09baacadbab7271d668acacdeaa",
+                "url": "https://api.github.com/repos/Minds/oauth2-openid-connect-server/zipball/9f97ac2331826d9ce17326ab818639f777c23b9f",
+                "reference": "9f97ac2331826d9ce17326ab818639f777c23b9f",
                 "shasum": ""
             },
             "require": {
@@ -2266,7 +2266,7 @@
             "support": {
                 "source": "https://github.com/Minds/oauth2-openid-connect-server/tree/master"
             },
-            "time": "2021-03-30T12:58:14+00:00"
+            "time": "2021-04-01T15:43:43+00:00"
         },
         {
             "name": "minds/unleash-client-php",
