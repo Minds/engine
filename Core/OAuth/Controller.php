@@ -51,7 +51,7 @@ class Controller
         $this->accessTokenRepository = $accessTokenRepository ?? Di::_()->get('OAuth\Repositories\AccessToken');
         $this->refreshTokenRepository = $refreshTokenRepository ?? Di::_()->get('OAuth\Repositories\RefreshToken');
         $this->clientRepository = $clientRepository ?? Di::_()->get('OAuth\Repositories\Client');
-        $this->nonceHeper = $nonceHelper ?? Di::_()->get('OAuth\NonceHelper');
+        $this->nonceHelper = $nonceHelper ?? Di::_()->get('OAuth\NonceHelper');
     }
 
     /**
