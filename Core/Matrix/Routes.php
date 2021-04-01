@@ -30,5 +30,19 @@ class Routes extends ModuleRoutes
                     Ref::_('Matrix\WellKnownController', 'getClient')
                 );
             });
+        $this->route
+            ->withPrefix('api/v3/matrix')
+            ->withMiddleware([
+            ])
+            ->do(function (Route $route) {
+                $route->get(
+                    'account',
+                    Ref::_('Matrix\Controller', 'getAccount')
+                );
+                $route->get(
+                    'rooms',
+                    Ref::_('Matrix\Controller', 'getRooms')
+                );
+            });
     }
 }
