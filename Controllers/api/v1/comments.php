@@ -131,6 +131,10 @@ class comments implements Interfaces\Api
 
             $comment->setBody($content);
 
+            if (!$_POST['attachment_guid']) {
+                $comment->removeAttachments();
+            }
+
             if (isset($_POST['mature'])) {
                 $comment->setMature(!!$_POST['mature']);
             }
