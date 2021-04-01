@@ -222,6 +222,18 @@ class Comment extends RepositoryEntity
     }
 
     /**
+     * Remove all attachments
+     * @return Comment
+     */
+    public function removeAttachments(): self
+    {
+        $this->attachments = [];
+        $this->markAsDirty('attachments');
+
+        return $this;
+    }
+
+    /**
      * Gets an individual attachment's value
      * @param $attachment
      * @return bool
