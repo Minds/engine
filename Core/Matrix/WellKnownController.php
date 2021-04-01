@@ -1,11 +1,6 @@
 <?php
 namespace Minds\Core\Matrix;
 
-use Minds\Entities\User;
-use Minds\Core\Di\Di;
-use Minds\Core\Features;
-use Exception;
-use Minds\Api\Exportable;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 
@@ -15,6 +10,13 @@ use Zend\Diactoros\ServerRequest;
  */
 class WellKnownController
 {
+    /** @var MatrixConfig */
+    protected $matrixConfig;
+
+    public function __construct(MatrixConfig $matrixConfig = null)
+    {
+        $this->matrixConfig = $matrixConfig ?? new MatrixConfig();
+    }
     /**
      * Returns the .well-known/matrix/service links
      * @param ServerRequest $request
@@ -23,7 +25,7 @@ class WellKnownController
     public function getServer(ServerRequest $request): JsonResponse
     {
         return new JsonResponse([
-            "m.server" => "minds-com.ems.host:443"
+            "m.server" => "{$this->matrixConfig->getHomeserverApiDomain()}:443"
         ]);
     }
 
@@ -36,7 +38,7 @@ class WellKnownController
     {
         return new JsonResponse([
             "m.homeserver" => [
-                "base_url" => "https://minds-com.ems.host"
+                "base_url" => "https://{$this->matrixConfig->getHomeserverApiDomain()}"
             ],
             "m.identity_server" => [
                 "base_url" => "https://vector.im"
