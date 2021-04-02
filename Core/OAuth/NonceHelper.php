@@ -49,7 +49,12 @@ class NonceHelper
         $body = $serverRequest->getParsedBody();
 
         if ($body) {
-            $code = $body['code'];
+            $code = $body['code'] ?? null;
+            
+            if (!$code) {
+                return null;
+            }
+
             $payload = json_decode($this->decrypt($code), true);
 
             $nonce = $this->cache->get(self::CACHE_PREFIX . $payload['user_id']);
