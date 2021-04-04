@@ -3,6 +3,7 @@ namespace Minds\Core\Rewards;
 
 use Brick\Math\BigDecimal;
 use Brick\Math\Exception\DivisionByZeroException;
+use Brick\Math\Exception\NumberFormatException;
 use Brick\Math\RoundingMode;
 use Cassandra\Bigint;
 use Cassandra\Decimal;
@@ -89,6 +90,7 @@ class Repository
                 $sharePct = $rewardEntry->getScore()->dividedBy($dailyGlobalSummary->getScore(), 8, RoundingMode::FLOOR);
                 $rewardEntry->setSharePct($sharePct->toFloat());
             } catch (DivisionByZeroException $e) {
+            } catch (NumberFormatException $e) {
             }
             yield $rewardEntry;
         }
@@ -272,23 +274,26 @@ class Repository
     private function getRewardsSummaries(Prepared\Custom $prepared): iterable
     {
         foreach ($this->scroll->request($prepared) as $k => $row) {
-            $rewardType = $row['reward_type'];
-            $rewardEntry = (new RewardEntry())
+            try {
+                $rewardType = $row['reward_type'];
+                $rewardEntry = (new RewardEntry())
                 ->setUserGuid((string) ($row['user_guid'] ?? null))
                 ->setDateTs(isset($row['date']) ? $row['date']->seconds() : null)
                 ->setRewardType($rewardType)
                 ->setScore(BigDecimal::of((string) $row['score']))
                 ->setTokenAmount(BigDecimal::of((string) $row['token_amount'] ?: 0));
 
-            if (isset($row['data'])) {
-                $rewardEntry->setDateTs($row['date']->seconds());
-            }
+                if (isset($row['data'])) {
+                    $rewardEntry->setDateTs($row['date']->seconds());
+                }
 
-            if (isset($row['multiplier'])) {
-                $rewardEntry->setMultiplier(BigDecimal::of($row['multiplier']));
-            }
+                if (isset($row['multiplier'])) {
+                    $rewardEntry->setMultiplier(BigDecimal::of($row['multiplier']));
+                }
 
-            yield $rewardEntry;
+                yield $rewardEntry;
+            } catch (NumberFormatException $e) {
+            }
         }
     }
 }
