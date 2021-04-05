@@ -51,7 +51,8 @@
         "phpstan/phpstan": "^0.12.81",
         "minds/oauth2-openid-connect-server": "@dev",
         "strobotti/php-jwk": "^1.3",
-        "steverhoades/oauth2-openid-connect-server": "@dev"
+        "steverhoades/oauth2-openid-connect-server": "@dev",
+        "kornrunner/keccak": "^1.1"
     },
     "repositories": [
         {
