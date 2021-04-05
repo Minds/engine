@@ -126,8 +126,8 @@ class Manager
 
         switch ($video->getTranscoder()) {
             case self::TRANSCODER_CLOUDFLARE:
-            //     return $this->getCloudflareSources($guid);
-            // case self::TRANSCODER_MINDS:
+                return $this->getCloudflareSources($guid);
+            case self::TRANSCODER_MINDS:
             default:
                  return $this->getMindsTranscoderSources($guid);
         }
