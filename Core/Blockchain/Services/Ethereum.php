@@ -8,6 +8,7 @@
 
 namespace Minds\Core\Blockchain\Services;
 
+use kornrunner\Keccak;
 use Minds\Core\Blockchain\Config;
 use Minds\Core\Blockchain\GasPrice;
 use Minds\Core\Di\Di;
@@ -97,8 +98,7 @@ class Ethereum
      */
     public function sha3($string)
     {
-        return $this->sha3->setString($string)
-            ->hash();
+        return Keccak::hash($string, 256);
     }
 
     /**
