@@ -72,7 +72,7 @@ class Manager
         $video->set('cinemr_guid', $lease->getGuid());
         $video->set('access_id', 0); // Hide until published
         $video->setFlag('full_hd', !!$lease->getUser()->isPro());
-        //video->setTranscoder('cloudflare');
+        $video->setTranscoder('cloudflare');
 
         $this->videoManager->add($video);
 
