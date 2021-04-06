@@ -16,6 +16,9 @@ class Manager
     /** @var MatrixConfig */
     protected $matrixConfig;
 
+    /** @var array */
+    protected $state = [];
+
     public function __construct(Client $client = null, MatrixConfig $matrixConfig = null)
     {
         $this->client = $client ?? new Client();
@@ -23,7 +26,7 @@ class Manager
     }
 
     /**
-     * Returns the matrix account of a user entity. If not found then one is created.
+     * Returns the matrix account of a user entity.
      * @param User $user
      * @return MatrixAccount
      */
@@ -35,9 +38,9 @@ class Manager
             $response = $this->client->request('GET', '_synapse/admin/v2/users/' . $matrixId);
         } catch (RequestException $e) {
             // if 404 then create new account
-            if ($e->getResponse()->getStatusCode() === 404) {
-                return $this->createAccount($user);
-            }
+            // if ($e->getResponse()->getStatusCode() === 404) {
+            //     return $this->createAccount($user);
+            // }
 
             throw $e; // Rethrow
         }
@@ -55,21 +58,29 @@ class Manager
     }
 
     /**
-     * Creates an account on matrix
+     * Syncs a minds account to Matrix
      * @param User $user
      * @return MatrixAccount
      */
-    public function createAccount(User $user): MatrixAccount
+    public function syncAccount(User $user): MatrixAccount
     {
         $matrixId = $this->getMatrixId($user);
-    
+
+        // First fetch the current account
+        $account = $this->getAccountByUser($user);
+
         $payload = [
-            "password" => base64_encode(openssl_random_pseudo_bytes(128)),
             "displayname" => $user->getName(),
-            "avatar_url" => $user->getIconURL('master'),
             "admin" => false,
             "deactivated" => false
         ];
+
+        /**
+         * Copy an avatar, if we need to
+         */
+        if ($avatarUrl = $this->copyAvatar($user)) {
+            $payload['avatar_url'] = $avatarUrl;
+        }
 
         $response = $this->client->request('PUT', '_synapse/admin/v2/users/' . $matrixId, [
             'json' => $payload,
@@ -87,12 +98,264 @@ class Manager
     }
 
     /**
+     * Will create a room between two users
+     * @param User $user
+     * @param User $reveiver
+     * @return MatrixRoom
+     */
+    public function createDirectRoom(User $sender, User $receiver): MatrixRoom
+    {
+        $receiverMatrixId = $this->getMatrixId($receiver);
+        // First, check to see that we don't already have a direct room
+
+        $rooms = array_filter($this->getJoinedRooms($sender), function ($room) use ($receiverMatrixId) {
+            return $room->isDirectMessage() && in_array($receiverMatrixId, $room->getMembers(), false);
+        });
+
+        if (count($rooms)) {
+            return $rooms[0];
+        }
+
+        $endpoint = '_matrix/client/r0/createRoom';
+
+        $response = $this->client
+            ->setAccessToken($this->getServerAccessToken($sender))
+            ->request('POST', $endpoint, [
+                'json' => [
+                    'is_direct' => true,
+                    'visibility' => 'private',
+                    'invite' => [ $receiverMatrixId ],
+                ]
+            ]);
+
+        $decodedResponse = json_decode($response->getBody(), true);
+
+        $matrixRoom = new MatrixRoom();
+        $matrixRoom->setName($receiver->getName())
+                ->setId($decodedResponse['room_id'])
+                ->setLastEvent(time())
+                ->setDirectMessage(true);
+
+        return $matrixRoom;
+    }
+
+    /**
+     * Return a list of joined room
+     * @param User $user
+     * @return MatrixRoom[]
+     */
+    public function getJoinedRooms(User $user)
+    {
+        $matrixId = $this->getMatrixId($user);
+       
+        $data = $this->getState($user);
+    
+        /** @var MatrixRoom[] */
+        $rooms = [];
+
+        foreach ($data['rooms']['join'] as $roomId => $roomData) {
+            $matrixRoom = new MatrixRoom();
+            $matrixRoom->setId($roomId);
+            $matrixRoom->setInvite(false);
+
+            $this->getRoomFromStateEvents($roomData['state']['events'], $matrixRoom, $matrixId);
+
+            $matrixRoom->setUnreadCount($roomData['unread_notifications']['notification_count']);
+
+            if (count($roomData['timeline']['events'])) {
+                $matrixRoom->setLastEvent(round($roomData['timeline']['events'][0]['origin_server_ts'] / 1000));
+            }
+
+            $rooms[] = $matrixRoom;
+        }
+        
+        foreach ($data['rooms']['invite'] as $roomId => $roomData) {
+            $matrixRoom = new MatrixRoom();
+            $matrixRoom->setId($roomId);
+            $matrixRoom->setInvite(true);
+            
+            $this->getRoomFromStateEvents($roomData['invite_state']['events'], $matrixRoom, $matrixId);
+            
+            $rooms[] = $matrixRoom;
+        }
+
+        usort($rooms, function ($a, $b) {
+            return $a->getLastEvent() < $b->getLastEvent();
+        });
+
+        return $rooms;
+    }
+
+    /**
+     * @param User $user
+     * @return array
+     */
+    public function getState(User $user, $refresh = false): array
+    {
+        if ($this->state && !$refresh) {
+            return $this->state;
+        }
+
+        $filters = json_encode([
+            'room' => [
+                'timeline' => [
+                    'limit' => 1,
+                    'types' => ['m.room.message', 'm.room.encrypted']
+                ],
+                'account_data' => [
+                    'not_types' => ['*']
+                ],
+                'ephemeral' => [
+                    'not_types' => ['*']
+                ],
+                'state' => [
+                    'lazy_load_members' => true,
+                ]
+            ],
+            'presence' => [
+                'not_types' => ['m.presence']
+            ],
+            'account_data' => [
+                'types' => ['im.vector.setting.breadcrumbs']
+            ],
+        ]);
+
+        $accessToken = $this->getServerAccessToken($user);
+        $response = $this->client
+            ->setAccessToken($accessToken)
+            ->request('GET', '_matrix/client/r0/sync?filter=' . $filters);
+
+        return $this->state = json_decode($response->getBody()->getContents(), true);
+    }
+
+    /**
+     * Builds a room based on historic state events
+     * @param array $events
+     * @param MatrixRoom $matrixRoom
+     * @param string $matrixId - the id of the matrix user
+     * @return MatrixRoom
+     */
+    protected function getRoomFromStateEvents(array $events, MatrixRoom $matrixRoom, string $matrixId): MatrixRoom
+    {
+        foreach (array_reverse($events) as $event) {
+            if ($event['type'] === 'm.room.member' &&
+                $event['content']['is_direct'] === true
+            ) {
+                $matrixRoom->setDirectMessage(true);
+            }
+
+            // For DM's
+            if ($event['type'] === 'm.room.member' &&
+                $event['state_key'] !== $matrixId
+            ) {
+                $matrixRoom->setName($event['content']['displayname']);
+                $matrixRoom->setAvatarUrl($event['content']['avatar_url']);
+                $matrixRoom->setMembers([$event['state_key']]);
+            }
+
+            // For multi party rooms
+            if ($event['type'] === 'm.room.name') {
+                $matrixRoom->setName($event['content']['name']);
+            }
+
+            if ($events['type'] === 'm.room.canonical_alias') {
+                $matrixRoom->setName($event['content']['alias']);
+            }
+
+            if ($event['type'] === 'm.room.avatar') {
+                $matrixRoom->setAvatarUrl($event['content']['url']);
+            }
+
+            if ($event['origin_server_ts']) {
+                $matrixRoom->setLastEvent(round($event['origin_server_ts'] / 1000));
+            }
+        }
+
+        return $matrixRoom;
+    }
+
+    /**
+     * Copies the minds avatae to matrix and returns the path
+     * If we have a newer avatar on matrix we will not copy
+     * @param User $user
+     * @return string
+     */
+    protected function copyAvatar(User $user): ?string
+    {
+        $filename = $user->getGuid() . '-avatar.jpeg';
+        $iconTime = $user->icontime;
+
+        foreach ($this->getUserMediaList($user) as $media) {
+            if ($media['upload_name'] === $filename &&
+                $media['created_ts'] > $iconTime * 1000) {
+                return null; // We will not copy a new avatar as a new one is already uploaded
+            }
+        }
+
+        $userGuid = $user->getGuid();
+
+        // Legacy users have short guids
+        if ($user->legacy_guid) {
+            $userGuid = $user->legacy_guid;
+        }
+
+        $file = new \ElggFile();
+        $file->owner_guid = $userGuid;
+        $file->setFilename("profile/{$userGuid}master.jpg");
+        $file->open("read");
+
+        $contents = $file->read();
+
+        $accessToken = $this->getServerAccessToken($user);
+        
+        $endpoint = "_matrix/media/r0/upload?filename=$filename";
+
+        try {
+            $response = $this->client
+            ->setAccessToken($accessToken)
+            ->request('POST', $endpoint, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Content-Type' => 'image/jpeg'
+                ],
+                'body' => $contents,
+            ]);
+
+            $data = json_decode($response->getBody()->getContents(), true);
+
+
+            return $data['content_uri'];
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a list of all the users media
+     * TODO: make this paginate
+     * @param User $user
+     * @return iterable
+     */
+    protected function getUserMediaList(User $user): iterable
+    {
+        $matrixId = $this->getMatrixId($user);
+
+        $endpoint = "_synapse/admin/v1/users/$matrixId/media";
+
+        $response = $this->client->request('GET', $endpoint);
+        $contents = json_decode($response->getBody()->getContents(), true);
+        foreach ($contents['media'] as $media) {
+            yield $media;
+        }
+    }
+
+    /**
      * Creates a temporary access token that allows the server to act on behalf
      * of the matrix account
      * @param User $user
      * @return string
      */
-    public function getServerAccessToken(User $user): string
+    protected function getServerAccessToken(User $user): string
     {
         $matrixId = $this->getMatrixId($user);
         $response = $this->client->request('POST', "_synapse/admin/v1/users/$matrixId/login", [
@@ -102,23 +365,6 @@ class Manager
         $decodedResponse = json_decode($response->getBody(), true);
 
         return $decodedResponse['access_token'];
-    }
-
-    /**
-     * Return the SSO steps
-     */
-    public function completeSSO(User $user)
-    {
-    }
-
-    public function getJoinedRooms(User $user)
-    {
-        $accessToken = $this->getServerAccessToken($user);
-        $response = $this->client
-            ->setAccessToken($accessToken)
-            ->request('GET', '_matrix/client/r0/sync');
-        echo (string) $response->getBody();
-        exit;
     }
 
     /**
