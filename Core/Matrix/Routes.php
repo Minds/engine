@@ -2,6 +2,7 @@
 namespace Minds\Core\Matrix;
 
 use Minds\Core\Di\Ref;
+use Minds\Core\Router\Middleware\LoggedInMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 
@@ -33,6 +34,7 @@ class Routes extends ModuleRoutes
         $this->route
             ->withPrefix('api/v3/matrix')
             ->withMiddleware([
+                LoggedInMiddleware::class,
             ])
             ->do(function (Route $route) {
                 $route->get(
@@ -42,6 +44,14 @@ class Routes extends ModuleRoutes
                 $route->get(
                     'rooms',
                     Ref::_('Matrix\Controller', 'getRooms')
+                );
+                $route->put(
+                    'room/:receiverGuid',
+                    Ref::_('Matrix\Controller', 'createDirectRoom')
+                );
+                $route->get(
+                    'raw-state',
+                    Ref::_('Matrix\Controller', 'getRawState')
                 );
             });
     }

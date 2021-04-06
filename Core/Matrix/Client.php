@@ -44,16 +44,17 @@ class Client
      * @param array $body
      * @return ResponseInterface
      */
-    public function request(string $method, string $endpoint, array $body = []): ResponseInterface
+    public function request(string $method, string $endpoint, array $options = []): ResponseInterface
     {
         $endpoint = "{$this->getUriPrefix()}/$endpoint";
 
-        $json = $this->httpClient->request($method, $endpoint, [
-                    'headers' => [
-                        'Authorization' =>  'Bearer ' . $this->accessToken,
-                    ],
-                    'json' => $body
-                ]);
+        $options = array_merge([
+            'headers' => [
+                'Authorization' =>  'Bearer ' . $this->accessToken,
+            ],
+        ], $options);
+    
+        $json = $this->httpClient->request($method, $endpoint, $options);
 
         return $json;
     }

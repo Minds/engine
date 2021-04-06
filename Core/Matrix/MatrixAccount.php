@@ -43,7 +43,9 @@ class MatrixAccount
     {
         return [
             'id' => $this->id,
-            'userGuid' => (string) $this->userGuid,
+            'user_guid' => (string) $this->userGuid,
+            'display_name' => $this->displayName,
+            'avatar_url' => $this->avatarUrl,
         ];
     }
 }
