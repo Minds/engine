@@ -11,6 +11,9 @@ class Provider extends DiProvider
 {
     public function register()
     {
+        $this->di->bind('Matrix\Manager', function ($di) {
+            return new Manager();
+        }, ['useFactory' => false]);
         $this->di->bind('Matrix\WellKnownController', function ($di) {
             return new WellKnownController();
         }, ['useFactory' => false]);
