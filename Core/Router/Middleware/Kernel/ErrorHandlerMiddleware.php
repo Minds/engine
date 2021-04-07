@@ -8,6 +8,7 @@ namespace Minds\Core\Router\Middleware\Kernel;
 
 use Exception;
 use Minds\Core\Di\Di;
+use Minds\Core\Config;
 use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
@@ -19,11 +20,15 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Diactoros\Response\JsonResponse;
+use Zend\Diactoros\Uri;
 
 class ErrorHandlerMiddleware implements MiddlewareInterface
 {
     /** @var Logger */
     protected $logger;
+
+    /** @var Config */
+    protected $config;
 
     /**
      * ErrorHandlerMiddleware constructor.
@@ -33,6 +38,7 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
         $logger = null
     ) {
         $this->logger = $logger ?: Di::_()->get('Logger');
+        $this->config = $config ?? Di::_()->get('Config');
     }
 
     /**
@@ -74,6 +80,10 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
 
         switch ($request->getAttribute('accept')) {
             case 'html':
+                if ($status === 401) {
+                    return $this->redirectToLogin($request);
+                }
+
                 return new HtmlResponse(sprintf('<h1>%s</h1>', $message), $status);
 
             case 'json':
@@ -84,5 +94,23 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
                     'errorId' => str_replace('\\', '::', get_class($e)),
                 ]), $status);
         }
+    }
+
+    /**
+     * Perform a browser redirect if html content type
+     * @param ServerRequestInterface $request
+     * @return HtmlResponse
+     */
+    protected function redirectToLogin(ServerRequestInterface $request): HtmlResponse
+    {
+        $redirectUrl = rtrim($this->config->get('site_url'), '/')
+                        . $request->getUri()->getPath()
+                        . '?'
+                        . http_build_query($request->getQueryParams());
+
+        $authUrl = $this->config->get('site_url') . 'login?redirectUrl=' . urlencode($redirectUrl);
+        $indexHtml = "<script>window.location.href = \"$authUrl\";</script>";
+
+        return new HtmlResponse($indexHtml, 401);
     }
 }
