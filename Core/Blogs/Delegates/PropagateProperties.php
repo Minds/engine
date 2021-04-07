@@ -38,6 +38,10 @@ class PropagateProperties extends Properties
             $to->set('thumbnail_src', $from->getIconUrl());
         }
 
+        if ($this->valueHasChanged($from->getAccessId(), $to->getAccessId())) {
+            $to->setAccessId($from->getAccessId());
+        }
+
         return $to;
     }
 
@@ -49,6 +53,10 @@ class PropagateProperties extends Properties
      */
     public function fromActivity(Activity $from, $to)
     {
+        if ($this->valueHasChanged($from->getAccessId(), $to->getAccessId())) {
+            $to->setAccessId($from->getAccessId());
+        }
+
         return $to;
     }
 }
