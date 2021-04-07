@@ -41,9 +41,6 @@ class Controller
      */
     public function get(ServerRequest $request): JsonResponse
     {
-        /** @var User */
-        $user = $request->getAttribute('_user');
-
         /** @var int */
         $endTs = $request->getQueryParams()['endTs'] ?? time();
 
@@ -60,5 +57,17 @@ class Controller
             'status' => 'success',
             'metrics' => $metrics,
         ]));
+    }
+
+    /**
+     * Returns a single value
+     * @param ServerRequest $request
+     * @return JsonResponse
+     */
+    public function getOnChainSupply(ServerRequest $request): JsonResponse
+    {
+        $circulatingSupply = $this->manager->getMetric(Supply\CirculatingSupply::class, time());
+
+        return new JsonResponse($circulatingSupply->getOnchain());
     }
 }
