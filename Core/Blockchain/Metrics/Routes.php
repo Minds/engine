@@ -25,6 +25,10 @@ class Routes extends ModuleRoutes
                     '',
                     Ref::_('Blockchain\Metrics\Controller', 'get')
                 );
+                $route->get(
+                    'onchain-supply',
+                    Ref::_('Blockchain\Metrics\Controller', 'getOnChainSupply')
+                );
             });
     }
 }
