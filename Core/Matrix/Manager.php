@@ -5,6 +5,8 @@
 namespace Minds\Core\Matrix;
 
 use GuzzleHttp\Exception\RequestException;
+use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Matrix\MatrixAccount;
 use Minds\Entities\User;
 
@@ -16,13 +18,17 @@ class Manager
     /** @var MatrixConfig */
     protected $matrixConfig;
 
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
     /** @var array */
     protected $state = [];
 
-    public function __construct(Client $client = null, MatrixConfig $matrixConfig = null)
+    public function __construct(Client $client = null, MatrixConfig $matrixConfig = null, EntitiesBuilder $entitiesBuilder = null)
     {
         $this->client = $client ?? new Client();
         $this->matrixConfig = $matrixConfig ?? new MatrixConfig();
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -226,6 +232,48 @@ class Manager
             ->request('GET', '_matrix/client/r0/sync?filter=' . $filters);
 
         return $this->state = json_decode($response->getBody()->getContents(), true);
+    }
+
+    /**
+     * Returns an iterator of all accounts on the synapse server
+     * @return iterable
+     */
+    public function getAccounts(): iterable
+    {
+        $from = 0;
+        $limit = 100;
+
+        while (true) {
+            $endpoint = '_synapse/admin/v2/users';
+            $params = http_build_query([ 'from' => $from, 'limit' => $limit, 'guests' => 'false' ]);
+        
+            $response = $this->client->request('GET', "$endpoint?$params");
+            $decodedResponse = json_decode($response->getBody()->getContents(), true);
+
+            foreach ($decodedResponse['users'] as $user) {
+                $account = new MatrixAccount();
+                $account->setId($user['name'])
+                    ->setDeactivated((bool) $user['deactivated'])
+                    ->setDisplayName($user['displayname'])
+                    ->setAvatarUrl($user['avatar_url']);
+
+                $username = ltrim(explode(':', $user['name'])[0], '@');
+                $user = $this->entitiesBuilder->getByUserByIndex($username);
+
+                if (!$user) {
+                    continue;
+                }
+
+                $account->setUserGuid($user->getGuid());
+                
+                yield $account;
+            }
+
+            $from = $decodedResponse['next_token'];
+            if (!$from) {
+                break;
+            }
+        }
     }
 
     /**
