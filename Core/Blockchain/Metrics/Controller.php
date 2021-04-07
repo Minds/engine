@@ -68,6 +68,6 @@ class Controller
     {
         $circulatingSupply = $this->manager->getMetric(Supply\CirculatingSupply::class, time());
 
-        return new JsonResponse($circulatingSupply->getOnchain());
+        return new JsonResponse((int) (string) $circulatingSupply->getOnchain());
     }
 }
