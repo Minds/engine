@@ -63,7 +63,8 @@ class CreateActivity
             ->setNsfw($blog->getNsfw())
             ->setOwner($owner->export())
             ->setWireThreshold($blog->getWireThreshold())
-            ->setPaywall($blog->isPaywall());
+            ->setPaywall($blog->isPaywall())
+            ->setAccessId($blog->getAccessId());
 
         $activity->container_guid = $owner->guid;
         $activity->owner_guid = $owner->guid;
