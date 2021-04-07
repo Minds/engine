@@ -39,6 +39,9 @@ class PropagatePropertiesSpec extends ObjectBehavior
         $this->blog->getUrl()->shouldBeCalled()->willReturn('some url');
         $this->activity->getURL()->shouldBeCalled()->willReturn('some url');
 
+        $this->blog->getAccessId()->shouldBeCalled()->willReturn('2');
+        $this->activity->getAccessId()->shouldBeCalled()->willReturn('2');
+
         $this->blog->getIconUrl()->shouldBeCalled()->willReturn('some icon url');
         $this->activity->get('thumbnail_src')->shouldBeCalled()->willReturn('some other url');
         $this->activity->set('thumbnail_src', 'some icon url')->shouldBeCalled();
