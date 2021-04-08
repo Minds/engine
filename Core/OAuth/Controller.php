@@ -145,20 +145,14 @@ class Controller
 
         try {
             /** @var string */
-            $token = $request->getParsedBody()['token'];
+            $tokenId = $request->getAttribute('oauth_access_token_id');
 
-            /** @var string */
-            $currentToken = $request->getAttribute('oauth_access_token_id');
-
-            if ($currentToken !== $token) {
-                throw new UserErrorException("Invalid token");
-            }
-
-            $this->accessTokenRepository->revokeAccessToken($token);
-            $this->refreshTokenRepository->revokeRefreshToken($token);
+            $this->accessTokenRepository->revokeAccessToken($tokenId);
+            $this->refreshTokenRepository->revokeRefreshToken($tokenId);
 
             // remove surge token for push notifications.
             $user = $request->getAttribute('_user');
+            $user->setSurgeToken('');
             
             $save = new Save();
             $save->setEntity($user)
