@@ -79,6 +79,7 @@ class Provider extends DiProvider
                 'new-posts',
                 'token-marketing-2021',
                 'matrix',
+                'cloudflare-streams',
             ];
         });
 

@@ -7,6 +7,7 @@ namespace Minds\Core\Media\ClientUpload;
 use Minds\Core\Media\Video\Transcoder;
 use Minds\Core\Media\Video\Manager as VideoManager;
 use Minds\Core\GuidBuilder;
+use Minds\Core\Features;
 use Minds\Core\Di\Di;
 use Minds\Entities\Video;
 
@@ -21,6 +22,9 @@ class Manager
     /** @var Guid $guid */
     private $guid;
 
+    /** @var Features\Manager */
+    private $featuresManager;
+
     public function __construct(
         Transcoder\Manager $transcoderManager = null,
         VideoManager $videoManager = null,
@@ -29,6 +33,7 @@ class Manager
         $this->transcoderManager = $transcoderManager ?? Di::_()->get('Media\Video\Transcoder\Manager');
         $this->videoManager = $videoManager ?: Di::_()->get('Media\Video\Manager');
         $this->guid = $guid ?: new GuidBuilder();
+        $this->featuresManager = $featuresManager ?? Di::_()->get('Features\Manager');
     }
 
     /**
@@ -72,7 +77,10 @@ class Manager
         $video->set('cinemr_guid', $lease->getGuid());
         $video->set('access_id', 0); // Hide until published
         $video->setFlag('full_hd', !!$lease->getUser()->isPro());
-        $video->setTranscoder('cloudflare');
+
+        if ($this->featuresManager->has('cloudflare-streams')) {
+            $video->setTranscoder('cloudflare');
+        }
 
         $this->videoManager->add($video);
 
