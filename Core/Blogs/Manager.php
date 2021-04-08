@@ -12,8 +12,6 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities\PropagateProperties;
 use Minds\Core\Security\ACL;
 use Minds\Core\Security\Spam;
-use Minds\Core\Security\SignedUri;
-use Minds\Core\Config;
 
 class Manager
 {
@@ -38,12 +36,6 @@ class Manager
     /** @var PropagateProperties */
     protected $propagateProperties;
 
-    /** @var SignedUri $signedUri */
-    private $signedUri;
-
-    /** @var Config $config */
-    private $config;
-
     /**
      * Manager constructor.
      * @param null $repository
@@ -62,9 +54,7 @@ class Manager
         $feeds = null,
         $spam = null,
         $search = null,
-        PropagateProperties $propagateProperties = null,
-        $signedUri = null,
-        $config = null
+        PropagateProperties $propagateProperties = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->paywallReview = $paywallReview ?: new Delegates\PaywallReview();
@@ -73,8 +63,6 @@ class Manager
         $this->spam = $spam ?: Di::_()->get('Security\Spam');
         $this->search = $search ?: new Delegates\Search();
         $this->propagateProperties = $propagateProperties ?? Di::_()->get('PropagateProperties');
-        $this->signedUri = $signedUri ?? new SignedUri;
-        $this->config = $config ?? Di::_()->get('Config');
     }
 
     /**
@@ -213,45 +201,5 @@ class Manager
         }
 
         return $deleted;
-    }
-
-    /**
-     * Add signed uri to blog image srcs
-     * so they can be viewed when logged out
-     *
-     * @param string $desc
-     * @return string
-     */
-    public function signImages(string $desc): string
-    {
-        $cdnUrl = $this->config->get('cdn_url');
-        $siteUrl = $this->config->get('site_url');
-
-        $dom = new \DOMDocument();
-
-        // Add a fake root element for HTML parser
-        $dom->loadHTML('<div>' . $desc . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-        $images = $dom->getElementsByTagName('img');
-
-        foreach ($images as $image) {
-            $oldSrc = $image->getAttribute('src');
-
-            $srcIsMinds = strpos($oldSrc, $siteUrl) === 0 || strpos($oldSrc, $cdnUrl) === 0 ;
-
-            if ($srcIsMinds) {
-                $newSrc = $this->signedUri->sign($oldSrc);
-
-                $image->setAttribute('src', $newSrc);
-            }
-        }
-
-        // Don't export fake root element
-        $root = $dom->documentElement;
-        $result = '';
-        foreach ($root->childNodes as $childNode) {
-            $result .= $dom->saveHTML($childNode);
-        }
-
-        return $result;
     }
 }
