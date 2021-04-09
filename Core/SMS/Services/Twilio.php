@@ -60,11 +60,6 @@ class Twilio implements SMSServiceInterface
     {
         $result = null;
 
-        // append + char if not present
-        if ($number[0] !== '+') {
-            $number = '+'.$number;
-        }
-
         // Only allow 10 messages sent to a number per day
         // To prevent malicious users flooding the system
         $phoneNumberHash = hash('sha256', $number . $this->config->get('phone_number_hash_salt'));
