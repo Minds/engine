@@ -103,8 +103,9 @@ class Manager
 
         if ($success) {
             // Kick off the transcoder
-            // (we are still transcoding for redundancy reasons until cloudflare streams is safe)
-            $this->transcoderManager->createTranscodes($video);
+            if ($video->getTranscoder() !== self::TRANSCODER_CLOUDFLARE) {
+                $this->transcoderManager->createTranscodes($video);
+            }
 
             return true;
         }
