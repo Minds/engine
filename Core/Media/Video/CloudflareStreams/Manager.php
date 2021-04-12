@@ -73,6 +73,17 @@ class Manager
     }
 
     /**
+     * @param Video $video
+     * @return string
+     */
+    public function getThumbnailUrl(Video $video): string
+    {
+        $signedToken = $this->getSigningToken($video->getCloudflareId());
+
+        return "https://videodelivery.net/$signedToken/thumbnails/thumbnail.jpg?width=1280";
+    }
+
+    /**
      * @param string $videoId
      * @return string
      */
