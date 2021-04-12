@@ -54,6 +54,7 @@ class Minds extends base
         Rewards\Module::class,
         Media\Video\CloudflareStreams\Module::class,
         Matrix\Module::class,
+        Channel\Module::class,
     ];
 
     /**
