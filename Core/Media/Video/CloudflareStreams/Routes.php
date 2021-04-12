@@ -24,6 +24,10 @@ class Routes extends ModuleRoutes
                     'sources/:guid',
                     Ref::_('Media\Video\CloudflareStreams\Controllers', 'sources')
                 );
+                $route->post(
+                    'webhooks',
+                    Ref::_('Media\Video\CloudflareStreams\Webhooks', 'onWebhook')
+                );
             });
     }
 }

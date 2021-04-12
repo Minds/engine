@@ -14,5 +14,8 @@ class Provider extends Di\Provider
         $this->di->bind('Media\Video\CloudflareStreams\Controllers', function ($di) {
             return new Controllers();
         });
+        $this->di->bind('Media\Video\CloudflareStreams\Webhooks', function ($di) {
+            return new Webhooks();
+        });
     }
 }
