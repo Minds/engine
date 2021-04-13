@@ -43,6 +43,16 @@ class scheduled implements Interfaces\Api
             ]);
         }
 
+        if (!$currentUser || (
+            !$currentUser->isAdmin() &&
+            $container->getOwnerGuid() !== $currentUser->getGuid()
+        )) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'You cannot view this users scheduled posts',
+            ]);
+        }
+
         $type = '';
         switch ($pages[1]) {
             case 'activities':
