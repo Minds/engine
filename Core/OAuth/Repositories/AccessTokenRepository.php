@@ -15,6 +15,7 @@ use Cassandra\Set;
 use Cassandra\Type;
 use Cassandra\Timestamp;
 use Cassandra\Varint;
+use DateTimeImmutable;
 use Minds\Common\IpAddress;
 use Zend\Diactoros\ServerRequestFactory;
 use Minds\Common\Repository\Response;
@@ -136,6 +137,7 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
             $accessToken->setIdentifier($row['token_id']);
             $client = new ClientEntity();
             $client->setIdentifier($row['client_id']);
+            $accessToken->setExpiryDateTime((new DateTimeImmutable)->setTimestamp($row['expires']->time()));
             $accessToken->setClient($client);
             $accessToken->setLastActive((int) $row['last_active']->time());
             $accessToken->setUserIdentifier((string) $row['user_id']);
