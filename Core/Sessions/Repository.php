@@ -7,8 +7,11 @@ namespace Minds\Core\Sessions;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
+use Minds\Common\Repository\Response;
 use Cassandra\Varint;
 use Cassandra\Timestamp;
+use Exception;
+use Zend\Diactoros\ServerRequestFactory;
 
 class Repository
 {
@@ -26,7 +29,7 @@ class Repository
     public function get($user_guid, $id)
     {
         $prepared = new Prepared;
-        $prepared->query("SELECT * FROM jwt_sessions 
+        $prepared->query("SELECT * FROM jwt_sessions
             WHERE user_guid = ?
             AND id = ?", [
             new Varint($user_guid),
@@ -46,39 +49,120 @@ class Repository
         $session = new Session();
         $session->setId((string) $result[0]['id'])
             ->setUserGuid((int) $result[0]['user_guid']->value())
-            ->setExpires((int) $result[0]['expires']->time());
+            ->setExpires((int) $result[0]['expires']->time())
+            ->setIp($result[0]['ip'])
+            ->setLastActive((int) $result[0]['last_active'] ? $result[0]['last_active']->time() : 0);
 
         return $session;
     }
 
-    public function getAll($opts = [])
+    /**
+     * Gets a list of a user's jwt sessions
+     *
+     * @param userGuid $userGuid
+     * @return array
+     */
+    public function getList(int $userGuid): array
     {
-        // TODO:
+        $prepared = new Prepared();
+        $prepared->query("SELECT * FROM jwt_sessions WHERE user_guid = ?", [
+            new Varint($userGuid),
+        ]);
+
+        $rows = $this->client->request($prepared);
+
+        if (!$rows) {
+            return [];
+        }
+
+        foreach ($rows as $row) {
+            $session = new Session();
+            $session
+                ->setUserGuid((string) $row['user_guid']->value())
+                ->setExpires((int) $row['expires'] ? $row['expires']->time() : null)
+                ->setId($row['id'])
+                ->setIp($row['ip'])
+                ->setLastActive((int) $row['last_active'] ? $row['last_active']->time() : 0);
+
+            $sessions[] = $session;
+        }
+
+        return $sessions;
     }
 
-    public function add($session)
+    public function add(Session $session)
     {
         $prepared = new Prepared;
-        $prepared->query("INSERT INTO jwt_sessions 
-            (user_guid, id, expires)
+        $prepared->query("INSERT INTO jwt_sessions
+            (user_guid, id, expires, last_active, ip)
             VALUES
-            (?,?,?)", [
+            (?,?,?,?,?)", [
                 new Varint($session->getUserGuid()),
                 $session->getId(),
-                new Timestamp($session->getExpires()),
+                new Timestamp($session->getExpires(), 0),
+                new Timestamp($session->getLastActive(), 0),
+                $session->getIp(),
             ]);
         $this->client->request($prepared);
     }
 
-    public function update($session, $fields = [])
+    /**
+     * @param Session $session
+     * @param array $fields
+     * @return bool
+     */
+    public function update(Session $session, array $fields = []):bool
     {
-        // TODO
+        if (!$session) {
+            throw new Exception("Session required");
+        }
+
+        $statement = "UPDATE jwt_sessions";
+        $values = [];
+
+        /**
+         * Set statement
+         */
+        $set = [];
+
+        foreach ($fields as $field) {
+            switch ($field) {
+                case "ip":
+                    $set["ip"] = $session->getIp();
+                    break;
+                case "last_active":
+                    $set["last_active"] = new Timestamp($session->getLastActive(), 0);
+                    break;
+            }
+        }
+
+        foreach ($set as $field => $value) {
+            $statement .= " SET $field = ?";
+            $values[] = $value;
+        }
+
+        /**
+         * Where statement
+         */
+        $where = [
+            "user_guid = ?" => new Varint($session->getUserGuid()),
+            "id = ?" =>  $session->getId(),
+        ];
+
+        $statement .= " WHERE " . implode(' AND ', array_keys($where));
+        array_push($values, ...array_values($where));
+
+        $prepared = new Prepared();
+        $prepared->query($statement, $values);
+
+        return (bool) $this->client->request($prepared);
     }
 
     /**
-     * Destory session
+     * Destroy session
      * @param Session $session
-     * @param bool $all - destory all for user
+     * @param bool $all - destroy all open sessions
+     * @return bool
      */
     public function delete($session, $all = false)
     {
@@ -95,7 +179,7 @@ class Repository
             ]);
         }
 
-        $this->client->request($prepared);
+        return (bool) $this->client->request($prepared);
     }
 
     /**
