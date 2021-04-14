@@ -136,10 +136,12 @@ class Repository
             }
         }
 
+        $statement .= " SET ";
         foreach ($set as $field => $value) {
-            $statement .= " SET $field = ?";
+            $statement .= "$field = ?,";
             $values[] = $value;
         }
+        $statement = rtrim($statement, ',');
 
         /**
          * Where statement
