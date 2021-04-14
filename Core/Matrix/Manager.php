@@ -114,9 +114,9 @@ class Manager
         $receiverMatrixId = $this->getMatrixId($receiver);
         // First, check to see that we don't already have a direct room
 
-        $rooms = array_filter($this->getJoinedRooms($sender), function ($room) use ($receiverMatrixId) {
+        $rooms = array_values(array_filter($this->getJoinedRooms($sender), function ($room) use ($receiverMatrixId) {
             return $room->isDirectMessage() && in_array($receiverMatrixId, $room->getMembers(), false);
-        });
+        }));
 
         if (count($rooms)) {
             return $rooms[0];
