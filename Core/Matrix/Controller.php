@@ -66,7 +66,7 @@ class Controller
     {
         $user = $request->getAttribute('_user');
 
-        $receiverGuid = $request->getAttribute('receiverGuid');
+        $receiverGuid = $request->getAttribute('parameters')['receiverGuid'] ?? null;
 
         $receiver = $this->entitiesBuilder->single($receiverGuid);
 
