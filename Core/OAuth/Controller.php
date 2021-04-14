@@ -148,7 +148,11 @@ class Controller
             $tokenId = $request->getAttribute('oauth_access_token_id');
 
             $this->accessTokenRepository->revokeAccessToken($tokenId);
-            $this->refreshTokenRepository->revokeRefreshToken($tokenId);
+
+            $refreshToken = $this->refreshTokenRepository->getRefreshTokenFromAccessTokenId($tokenId);
+            if ($refreshToken) {
+                $this->refreshTokenRepository->revokeRefreshToken($refreshToken->getIdentifier());
+            }
 
             // remove surge token for push notifications.
             $user = $request->getAttribute('_user');
