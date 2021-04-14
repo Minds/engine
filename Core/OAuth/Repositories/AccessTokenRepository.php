@@ -138,7 +138,7 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
             $client->setIdentifier($row['client_id']);
             $accessToken->setClient($client);
             $accessToken->setLastActive((int) $row['last_active']->time());
-            $accessToken->setUserIdentifier($row['user_id']);
+            $accessToken->setUserIdentifier((string) $row['user_id']);
 
             $accessTokens[] = $accessToken;
         }
