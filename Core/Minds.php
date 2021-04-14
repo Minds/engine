@@ -54,6 +54,7 @@ class Minds extends base
         Rewards\Module::class,
         Media\Video\CloudflareStreams\Module::class,
         Matrix\Module::class,
+        Sessions\Module::class,
     ];
 
     /**
@@ -103,7 +104,6 @@ class Minds extends base
         (new \Minds\Entities\EntitiesProvider())->register();
         (new Config\ConfigProvider())->register();
         (new Router\RouterProvider())->register();
-        (new Sessions\SessionsProvider())->register();
         (new Data\DataProvider())->register();
         //(new Core\Notification\NotificationProvider())->register();
         (new Pages\PagesProvider())->register();
