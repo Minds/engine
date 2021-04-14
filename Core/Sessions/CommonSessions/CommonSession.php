@@ -11,17 +11,17 @@ use Minds\Traits\MagicAttributes;
  * Class CommonSession
  * @package Minds\Core\Sessions\CommonSessions
  * @method string getId()
- * @method Session setId(string $id)
+ * @method CommonSession setId(string $id)
  * @method int|string getUserGuid()
- * @method Session setUserGuid(int|string $userGuid)
+ * @method CommonSession setUserGuid(int|string $userGuid)
  * @method int getExpires()
- * @method Session setExpires(int $expires)
+ * @method CommonSession setExpires(int $expires)
  * @method string getIp()
- * @method Session setIp(string $ip)
+ * @method CommonSession setIp(string $ip)
  * @method string getPlatform()
- * @method Session setPlatform(string $platform)
+ * @method CommonSession setPlatform(string $platform)
  * @method int getLastActive()
- * @method Session setLastActive(int $expires)
+ * @method CommonSession setLastActive(int $expires)
  */
 class CommonSession
 {
@@ -42,6 +42,9 @@ class CommonSession
     /** @var int */
     private $lastActive;
 
+    /** @var int */
+    private $expires;
+
     /**
      * Public export for common session
      * @param array $extras
@@ -55,6 +58,7 @@ class CommonSession
             'ip' => $this->ip,
             'platform' => $this->platform,
             'last_active' => $this->lastActive,
+            'expires' => $this->expires,
         ];
     }
 }
