@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Sessions\CommonSessions;
 
+use DateTimeImmutable;
 use Minds\Core\OAuth\Entities\AccessTokenEntity;
 use Minds\Core\Sessions\Manager as SessionsManager;
 use Minds\Core\OAuth\Managers\AccessTokenManager as OAuthManager;
@@ -42,16 +43,19 @@ class ManagerSpec extends ObjectBehavior
                     ->setId('id-1')
                     ->setUserGuid('123')
                     ->setIp('127.0.0.2')
+                    ->setExpires(time())
                     ->setLastActive(strtotime('16th March 2021')),
                 (new Session())
                     ->setId('id-2')
                     ->setUserGuid('123')
                     ->setIp('127.0.0.2')
+                    ->setExpires(time())
                     ->setLastActive(strtotime('16th April 2021')),
                 (new Session())
                     ->setId('id-3')
                     ->setUserGuid('123')
                     ->setIp('127.0.0.2')
+                    ->setExpires(time())
                     ->setLastActive(strtotime('16th February 2021')),
             ]);
 
@@ -59,6 +63,7 @@ class ManagerSpec extends ObjectBehavior
         $accessToken1->setIdentifier('token-1');
         $accessToken1->setUserIdentifier('123');
         $accessToken1->setIp('128.0.0.5');
+        $accessToken1->setExpiryDateTime(new DateTimeImmutable());
         $accessToken1->setLastActive(strtotime('25th February 2021'));
 
         $this->oauthManager->getList($user)

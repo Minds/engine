@@ -53,6 +53,7 @@ class Manager
             $commonSession
                 ->setId($jwtSession->getId())
                 ->setUserGuid($jwtSession->getUserGuid())
+                ->setExpires($jwtSession->getExpires())
                 ->setIp($jwtSession->getIp())
                 ->setLastActive($jwtSession->getLastActive())
                 ->setPlatform(self::PLATFORM_BROWSER);
@@ -71,6 +72,7 @@ class Manager
             $commonSession
                 ->setId($oauthSession->getIdentifier())
                 ->setUserGuid($oauthSession->getUserIdentifier())
+                ->setExpires($oauthSession->getExpiryDateTime()->getTimestamp())
                 ->setIp($oauthSession->getIp())
                 ->setLastActive($oauthSession->getLastActive())
                 ->setPlatform(self::PLATFORM_APP);
@@ -78,8 +80,10 @@ class Manager
             return $commonSession;
         }, $oauthSessions);
 
-        // Combine arrays
-        $sessions = array_merge($jwtSessions, $oauthSessions);
+        // Combine arrays and remove expired
+        $sessions = array_filter(array_merge($jwtSessions, $oauthSessions), function (CommonSession $session) {
+            return $session->getExpires() > time() - (86400 * 30); // Show also expired within last 30 days
+        });
         
         // Sort by last active
         usort($sessions, function (CommonSession $a, CommonSession $b) {
