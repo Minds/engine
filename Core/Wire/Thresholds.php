@@ -103,10 +103,24 @@ class Thresholds
             $usdAmount = $sums->setMethod('usd')->getSent('wei');
 
             if (isset($threshold['type'])) {
+                // legacy support
                 $allowed = BigNumber::_($tokensAmount)->sub($minThreshold)->gte(0);
             } else {
                 // new support tiers
-                $allowed = max($tokensUsdAmount, $usdAmount) >= $minThreshold;
+
+                // if tier has usd or tokens, but not both
+                if ($supportTier->hasUsd() xor $supportTier->hasTokens()) {
+                    if ($supportTier->hasUsd()) {
+                        // if usd
+                        $allowed = $usdAmount >= $supportTier->getUsd();
+                    } else {
+                        // else tokens
+                        $allowed = BigNumber::_($tokensAmount)->sub($supportTier->getTokens())->gte(0);
+                    }
+                } else {
+                    // check whether user has sent enough tokens or usd.
+                    $allowed = max($tokensUsdAmount, $usdAmount) >= $minThreshold;
+                }
             }
 
             if ($allowed) {
