@@ -433,6 +433,9 @@ CREATE TABLE minds.jwt_sessions (
     user_guid varint,
     id text,
     expires timestamp,
+    last_active timestamp,
+    user_agent text
+    ip text,
     PRIMARY KEY (user_guid, id)
 ) WITH CLUSTERING ORDER BY (id ASC)
     AND bloom_filter_fp_chance = 0.01
@@ -728,7 +731,8 @@ CREATE TABLE minds.oauth_access_tokens (
     expires timestamp,
     last_active timestamp,
     scopes set<text>,
-    user_id varint
+    user_id varint,
+    ip text,
 ) WITH bloom_filter_fp_chance = 0.01
     AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
     AND comment = ''
@@ -1647,3 +1651,7 @@ CREATE TABLE minds.eth_blocks (
     block_number int,
     PRIMARY KEY (date, timestamp)
 ) WITH CLUSTERING ORDER BY (timestamp DESC);
+
+
+-- ALTER TABLE minds.jwt_sessions ADD (last_active timestamp, user_agent text, ip text);
+-- ALTER TABLE minds.oauth_access_tokens ADD ip text;

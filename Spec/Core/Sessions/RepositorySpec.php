@@ -43,13 +43,17 @@ class RepositorySpec extends ObjectBehavior
                 [
                     'id' => 'sess_id',
                     'user_guid' => new Varint(1001),
-                    'expires' => new Timestamp(time())
+                    'expires' => new Timestamp(time()),
+                    'ip' => '182.168.192.5',
+                    'last_active' => null
                 ]
             ]);
-        
+
         $session = $this->get(123, 'sess_id');
         $session->getId()
             ->shouldReturn('sess_id');
+        $session->getIp()
+            ->shouldBe('182.168.192.5');
     }
 
     public function it_should_not_return_a_session_from_id()
@@ -66,31 +70,37 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([
             ]);
-        
+
         $session = $this->get(123, 'sess_id');
         $session->shouldReturn(null);
     }
-    
+
     public function it_should_save_session_to_database()
     {
         $time = time();
+
         $this->client->request(Argument::that(function ($prepared) use ($time) {
             $query = $prepared->build();
+            $ip = 'local';
 
             $template = $query['string'];
             $values = $query['values'];
 
             return $values[0] == new Varint(123)
                 && $values[1] == 'sess_id'
-                && $values[2] == new Timestamp($time);
+                && $values[2] == new Timestamp($time)
+                && $values[3] == new Timestamp($time)
+                && $values[4] == $ip;
         }))
             ->shouldBeCalled();
 
         $session = new Session();
         $session->setId('sess_id')
             ->setUserGuid(123)
-            ->setExpires($time);
-        
+            ->setExpires($time)
+            ->setLastActive($time)
+            ->setIp('local');
+
         $this->add($session);
     }
 
@@ -113,7 +123,7 @@ class RepositorySpec extends ObjectBehavior
         $session->setId('sess_id')
             ->setUserGuid(123)
             ->setExpires($time);
-        
+
         $this->delete($session);
     }
 }
