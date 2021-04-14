@@ -131,7 +131,7 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
 
         foreach ($rows as $row) {
             $accessToken = new AccessTokenEntity();
-            $accessToken->setIp($row['ip']);
+            $accessToken->setIp($row['ip'] ?? '');
             $accessToken->setIdentifier($row['token_id']);
             $accessToken->setClient($row['client_id']);
             $accessToken->setLastActive((int) $row['last_active']->time());

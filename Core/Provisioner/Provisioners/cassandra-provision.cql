@@ -1652,6 +1652,6 @@ CREATE TABLE minds.eth_blocks (
     PRIMARY KEY (date, timestamp)
 ) WITH CLUSTERING ORDER BY (timestamp DESC);
 
-
+-- CREATE INDEX IF NOT EXISTS user_id_idx ON minds.oauth_access_tokens (user_id);
 -- ALTER TABLE minds.jwt_sessions ADD (last_active timestamp, user_agent text, ip text);
 -- ALTER TABLE minds.oauth_access_tokens ADD ip text;
