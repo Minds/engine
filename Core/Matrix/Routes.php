@@ -45,10 +45,6 @@ class Routes extends ModuleRoutes
                     'rooms',
                     Ref::_('Matrix\Controller', 'getRooms')
                 );
-                $route->get(
-                    'total-unread',
-                    Ref::_('Matrix\Controller', 'getTotalUnread')
-                );
                 $route->put(
                     'room/:receiverGuid',
                     Ref::_('Matrix\Controller', 'createDirectRoom')
