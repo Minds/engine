@@ -18,6 +18,7 @@ use Cassandra\Varint;
 use Minds\Common\IpAddress;
 use Zend\Diactoros\ServerRequestFactory;
 use Minds\Common\Repository\Response;
+use Minds\Core\OAuth\Entities\ClientEntity;
 use Minds\Core\Sessions\CommonSessions\CommonSession;
 use Minds\Entities\User;
 
@@ -133,7 +134,9 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
             $accessToken = new AccessTokenEntity();
             $accessToken->setIp($row['ip'] ?? '');
             $accessToken->setIdentifier($row['token_id']);
-            $accessToken->setClient($row['client_id']);
+            $client = new ClientEntity();
+            $client->setIdentifier($row['client_id']);
+            $accessToken->setClient($client);
             $accessToken->setLastActive((int) $row['last_active']->time());
             $accessToken->setUserIdentifier($row['user_id']);
 
