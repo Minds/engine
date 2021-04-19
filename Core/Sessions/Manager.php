@@ -1,16 +1,19 @@
 <?php
 /**
- * Minds Session Manager
+ * Minds JWT Session Manager
  */
 
 namespace Minds\Core\Sessions;
 
+use Exception;
 use Minds\Common\Cookie;
+use Minds\Common\IpAddress;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Lcobucci\JWT;
 use Lcobucci\JWT\Signer\Key\LocalFileReference;
 use Lcobucci\JWT\Signer\Rsa\Sha512;
+use Minds\Common\Repository\Response;
 use Minds\Entities\User;
 
 class Manager
@@ -23,6 +26,9 @@ class Manager
 
     /** @var Cookie $cookie */
     private $cookie;
+
+    /** @var IpAddress */
+    protected $ipAddress;
 
     /** @var Delegates\SentryScopeDelegate $sentryScopeDelegate */
     private $sentryScopeDelegate;
@@ -45,6 +51,7 @@ class Manager
         $cookie = null,
         $jwtBuilder = null,
         $jwtParser = null,
+        $ipAddress = null,
         $sentryScopeDelegate = null,
         $userLanguageDelegate = null
     ) {
@@ -53,6 +60,7 @@ class Manager
         $this->cookie = $cookie ?: new Cookie;
         $this->jwtBuilder = $jwtBuilder ?: new JWT\Builder;
         $this->jwtParser = $jwtParser ?: new JWT\Parser;
+        $this->ipAddress = $ipAddress ?? new IpAddress();
         $this->sentryScopeDelegate = $sentryScopeDelegate ?: new Delegates\SentryScopeDelegate;
         $this->userLanguageDelegate = $userLanguageDelegate ?: new Delegates\UserLanguageDelegate();
     }
@@ -191,6 +199,13 @@ class Manager
             return false;
         }
 
+        // Update the last active and timestamp, if validated past 15 mins
+        if ($validated->getLastActive() < time() - 1500) {
+            $session->setLastActive(time());
+            $session->setIp($this->ipAddress->get());
+            $this->repository->update($session, [ 'last_active', 'ip' ]);
+        }
+
         return true;
     }
 
@@ -217,7 +232,9 @@ class Manager
             ->setId($id)
             ->setToken($token)
             ->setUserGuid($this->user->getGuid())
-            ->setExpires($expires);
+            ->setExpires($expires)
+            ->setLastActive(time())
+            ->setIp($this->ipAddress->get());
 
         $this->userLanguageDelegate->setCookie($this->user);
 
@@ -251,16 +268,23 @@ class Manager
     }
 
     /**
-     * Remove the session from the database and client
-     * @return $this
+     * Remove the session from the database
+     * If deleting current session, remove from client too
+     * @param Session $session
+     * @return bool
      */
-    public function destroy($all = false)
+    public function delete($all = false, $session = null)
     {
-        if ($this->session) {
-            $this->repository->delete($this->session, $all);
+        $sessionToDelete = $session ?: $this->session;
+
+        $response = $this->repository->delete($sessionToDelete, $all);
+
+        if (!$response) {
+            throw new Exception("Could not delete session");
         }
 
-        $this->cookie
+        if (!$session || $session === $this->session) {
+            $this->cookie
             ->setName('minds_sess')
             ->setValue('')
             ->setExpire(time() - 3600)
@@ -268,6 +292,21 @@ class Manager
             ->setHttpOnly(true) //never by browser
             ->setPath('/')
             ->create();
+        }
+
+        return $response;
+    }
+
+    /**
+     * Return all jwt sessions
+     * @param User $user
+     * @return array
+     */
+    public function getList(User $user): array
+    {
+        $response = $this->repository->getList($user->getGuid());
+
+        return $response;
     }
 
     /**

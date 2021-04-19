@@ -18,6 +18,7 @@ use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Signer\Rsa\Sha512;
+use Minds\Common\IpAddress;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -29,14 +30,15 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_build_a_session_with_request(
         Repository $repository,
         Config $config,
-        Parser $jwtParser
+        IpAddress $ipAddress
     ) {
         $this->beConstructedWith(
             $repository,
             $config,
             null,
             null,
-            null
+            null,
+            $ipAddress
         );
 
         $config->get('sessions')
@@ -104,6 +106,16 @@ aTpdB3sjEe8ov+al2kJYBSJcqbUmUMVCY7v0Zig2VlYMPjzn/icP
         $repository->get('user_1', 'mock_session_id')
             ->shouldBeCalled()
             ->willReturn($session);
+
+        // Confirm the ip is being set
+
+        $ipAddress->get()
+            ->willReturn('10.0.50.1');
+
+        $repository->update(Argument::that(function ($session) {
+            return $session->getIp() === '10.0.50.1';
+        }), [ 'last_active', 'ip'])
+            ->willReturn(true);
 
         $this->withRouterRequest($request);
 
@@ -289,7 +301,7 @@ YSoKTsWFlvr9YG4o6R2ktgzKJ5ofiGTz5e2wLzP3a0ma8vGNke4Q
             ->setUserGuid('user_1')
             ->setToken('token')
             ->setExpires(time() + 3600);
-        
+
         $this->setSession($session);
 
         $repository->add($session);
@@ -305,7 +317,7 @@ YSoKTsWFlvr9YG4o6R2ktgzKJ5ofiGTz5e2wLzP3a0ma8vGNke4Q
         $cookie->setExpire(time() + 3600)
             ->shouldBeCalled()
             ->willReturn($cookie);
-        
+
         $cookie->setSecure(true)
             ->shouldBeCalled()
             ->willReturn($cookie);
@@ -324,7 +336,7 @@ YSoKTsWFlvr9YG4o6R2ktgzKJ5ofiGTz5e2wLzP3a0ma8vGNke4Q
         $this->save();
     }
 
-    public function it_should_destroy_session_on_client_and_server(
+    public function it_should_delete_session_on_client_and_server(
         Repository $repository,
         Cookie $cookie
     ) {
@@ -334,16 +346,19 @@ YSoKTsWFlvr9YG4o6R2ktgzKJ5ofiGTz5e2wLzP3a0ma8vGNke4Q
             $cookie
         );
 
+        $all = false;
+
         $session = new Session();
         $session
             ->setId('mock_session_id')
             ->setUserGuid('user_1')
             ->setToken('token')
             ->setExpires(time() + 3600);
-        
+
         $this->setSession($session);
 
-        $repository->delete('mock_session_id');
+        $repository->delete($session, $all)
+        ->willReturn(true);
 
         $cookie->setName('minds_sess')
             ->shouldBeCalled()
@@ -356,7 +371,7 @@ YSoKTsWFlvr9YG4o6R2ktgzKJ5ofiGTz5e2wLzP3a0ma8vGNke4Q
         $cookie->setExpire(time() - 3600)
             ->shouldBeCalled()
             ->willReturn($cookie);
-        
+
         $cookie->setSecure(true)
             ->shouldBeCalled()
             ->willReturn($cookie);
@@ -372,6 +387,6 @@ YSoKTsWFlvr9YG4o6R2ktgzKJ5ofiGTz5e2wLzP3a0ma8vGNke4Q
         $cookie->create()
             ->shouldBeCalled();
 
-        $this->destroy();
+        $this->delete(false);
     }
 }

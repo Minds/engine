@@ -15,15 +15,26 @@ use Cassandra\Set;
 use Cassandra\Type;
 use Cassandra\Timestamp;
 use Cassandra\Varint;
+use DateTimeImmutable;
+use Minds\Common\IpAddress;
+use Zend\Diactoros\ServerRequestFactory;
+use Minds\Common\Repository\Response;
+use Minds\Core\OAuth\Entities\ClientEntity;
+use Minds\Core\Sessions\CommonSessions\CommonSession;
+use Minds\Entities\User;
 
 class AccessTokenRepository implements AccessTokenRepositoryInterface
 {
     /** @var Client $client */
     private $client;
 
-    public function __construct($client = null)
+    /** @var IpAddress */
+    protected $ipAddress;
+
+    public function __construct($client = null, $ipAddress = null)
     {
         $this->client = $client ?: Di::_()->get('Database\Cassandra\Cql');
+        $this->ipAddress = $ipAddress ?? new IpAddress();
     }
 
     /**
@@ -31,14 +42,16 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
      */
     public function persistNewAccessToken(AccessTokenEntityInterface $accessTokenEntity)
     {
+        $ip = $this->ipAddress->get();
+
         $scopes = new Set(Type::text());
         foreach ($accessTokenEntity->getScopes() as $scope) {
             $scopes->add($scope->getIdentifier());
         }
         $prepared = new Prepared();
         $prepared->query('
-            INSERT INTO oauth_access_tokens (token_id, client_id, user_id, expires, last_active, scopes)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO oauth_access_tokens (token_id, client_id, user_id, expires, last_active, scopes, ip)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             ', [
                 $accessTokenEntity->getIdentifier(),
                 $accessTokenEntity->getClient()->getIdentifier(),
@@ -46,6 +59,7 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
                 new Timestamp($accessTokenEntity->getExpiryDateTime()->getTimestamp(), 0),
                 new Timestamp(time(), 0), //now
                 $scopes,
+                $ip
             ]);
 
         $this->client->request($prepared);
@@ -61,6 +75,8 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
             $tokenId,
         ]);
         $this->client->request($prepared);
+
+        return true;
     }
 
     /**
@@ -95,5 +111,40 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
         $accessToken->setUserIdentifier($userIdentifier);
 
         return $accessToken;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @param string $userId
+     * @return AccessTokenEntity[]
+     */
+    public function getList(string $userId): array
+    {
+        $prepared = new Prepared();
+        $prepared->query("SELECT * FROM oauth_access_tokens WHERE user_id = ?", [
+            new Varint($userId),
+        ]);
+
+        $rows = $this->client->request($prepared);
+
+        if (!$rows) {
+            return [];
+        }
+
+        foreach ($rows as $row) {
+            $accessToken = new AccessTokenEntity();
+            $accessToken->setIp($row['ip'] ?? '');
+            $accessToken->setIdentifier($row['token_id']);
+            $client = new ClientEntity();
+            $client->setIdentifier($row['client_id']);
+            $accessToken->setExpiryDateTime((new DateTimeImmutable)->setTimestamp($row['expires']->time()));
+            $accessToken->setClient($client);
+            $accessToken->setLastActive((int) $row['last_active']->time());
+            $accessToken->setUserIdentifier((string) $row['user_id']);
+
+            $accessTokens[] = $accessToken;
+        }
+
+        return $accessTokens;
     }
 }

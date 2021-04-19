@@ -411,6 +411,14 @@ class Comment extends RepositoryEntity
                 $output['attachments'][$key] = $this->getAttachment($key);
                 $output[$key] = $output['attachments'][$key];
             }
+
+            // This is not a great fix. Comments need to be fully constructed at manager/repository level
+            // This is not DRY or spec tested...
+            if (isset($output['custom_data'])) {
+                $siteUrl = Di::_()->get('Config')->get('site_url');
+                $cdnUrl = Di::_()->get('Config')->get('cdn_url');
+                $output['custom_data']['src'] = $output['attachments']['custom_data']['src'] = str_replace($siteUrl, $cdnUrl, $output['attachments']['custom_data']['src']);
+            }
         }
 
         if (isset($output['custom_type']) && $output['custom_type'] === 'image') {

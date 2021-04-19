@@ -62,11 +62,32 @@ class Controller
      * @param ServerRequest $request
      * @return JsonResponse
      */
+    public function getTotalUnread(ServerRequest $request): JsonResponse
+    {
+        $user = $request->getAttribute('_user');
+        $joinedRooms = $this->manager->getJoinedRooms($user);
+
+        $sum = 0;
+
+        foreach ($joinedRooms as $room) {
+            $sum += $room->getUnreadCount();
+        }
+
+        return new JsonResponse([
+           'status' => 'success',
+           'total_unread' => $sum,
+        ]);
+    }
+
+    /**
+     * @param ServerRequest $request
+     * @return JsonResponse
+     */
     public function createDirectRoom(ServerRequest $request): JsonResponse
     {
         $user = $request->getAttribute('_user');
 
-        $receiverGuid = $request->getAttribute('receiverGuid');
+        $receiverGuid = $request->getAttribute('parameters')['receiverGuid'] ?? null;
 
         $receiver = $this->entitiesBuilder->single($receiverGuid);
 

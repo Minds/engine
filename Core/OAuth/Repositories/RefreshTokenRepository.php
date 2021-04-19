@@ -10,6 +10,7 @@ use Minds\Core\OAuth\Entities\RefreshTokenEntity;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
 use Cassandra\Timestamp;
+use Minds\Core\OAuth\Entities\AccessTokenEntity;
 
 class RefreshTokenRepository implements RefreshTokenRepositoryInterface
 {
@@ -59,7 +60,7 @@ class RefreshTokenRepository implements RefreshTokenRepositoryInterface
         $prepared->query("SELECT * FROM oauth_refresh_tokens where token_id = ?", [
             $tokenId
         ]);
-        $this->client->request($prepared);
+
         $response = $this->client->request($prepared);
 
         if (!$response) {
@@ -67,6 +68,33 @@ class RefreshTokenRepository implements RefreshTokenRepositoryInterface
         }
 
         return false; // Refresh token still exists
+    }
+
+    /**
+     * @param string $accessTokenId
+     * @return RefreshTokenEntity
+     */
+    public function getRefreshTokenFromAccessTokenId(string $accessTokenId): ?RefreshTokenEntity
+    {
+        $prepared = new Prepared;
+        $prepared->query("SELECT * FROM oauth_refresh_tokens where access_token_id = ?", [
+            $accessTokenId
+        ]);
+    
+        $response = $this->client->request($prepared);
+
+        if (!$response) {
+            return null;
+        }
+
+        $refreshTokenEntity = new RefreshTokenEntity();
+        $refreshTokenEntity->setIdentifier($response[0]['token_id']);
+
+        $accessToken = new AccessTokenEntity();
+        $accessToken->setIdentifier($accessTokenId);
+        $refreshTokenEntity->setAccessToken($accessToken);
+
+        return $refreshTokenEntity;
     }
 
     /**

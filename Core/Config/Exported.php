@@ -99,6 +99,9 @@ class Exported
             'environment' => getenv('MINDS_ENV') ?: 'development',
             'boost_rotator_interval' => $this->config->get('boost_rotator_interval'),
             'token_exchange_rate' => $this->config->get('token_exchange_rate'),
+            'matrix' => [
+                'chat_url' => $this->config->get('matrix')['chat_url'],
+            ]
         ];
 
         if (Session::isLoggedIn()) {
