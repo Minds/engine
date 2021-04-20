@@ -40,7 +40,7 @@ class AccessTokenManager
 
     /**
      * Delete OAuth access token
-     * @param Access $tokenId
+     * @param AccessTokenEntity $accessToken
      * @return bool
      */
     public function delete(AccessTokenEntity $accessToken): bool
