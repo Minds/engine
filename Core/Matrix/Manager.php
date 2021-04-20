@@ -172,6 +172,16 @@ class Manager
                 $matrixRoom->setLastEvent(round($roomData['timeline']['events'][0]['origin_server_ts'] / 1000));
             }
 
+            foreach ($data['account_data']['events'] as $event) {
+                if ($event['type'] === 'm.direct') {
+                    foreach ($event['content'] as $roomIds) {
+                        if (in_array($roomId, $roomIds, true)) {
+                            $matrixRoom->setDirectMessage(true);
+                        }
+                    }
+                }
+            }
+
             $rooms[] = $matrixRoom;
         }
         
@@ -222,7 +232,7 @@ class Manager
                 'not_types' => ['m.presence']
             ],
             'account_data' => [
-                'types' => ['im.vector.setting.breadcrumbs']
+                'types' => ['im.vector.setting.breadcrumbs', 'm.direct']
             ],
         ]);
 
@@ -421,6 +431,7 @@ class Manager
      */
     protected function getMatrixId(User $user): string
     {
-        return "@{$user->getUsername()}:{$this->matrixConfig->getHomeserverDomain()}";
+        $username = strtolower($user->getUsername());
+        return "@{$username}:{$this->matrixConfig->getHomeserverDomain()}";
     }
 }
