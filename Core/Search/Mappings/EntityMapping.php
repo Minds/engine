@@ -197,11 +197,11 @@ class EntityMapping implements MappingInterface
         if (isset($map['description'])) {
             $fullText .= ' ' . $map['description'];
         }
-
-        $htRe = '/(^|\s||)#(\pL+)/u';
+        
+        // parse #hashtags and $cryptotags from body into matches$.
+        $tagRegex = '/([^&]|\b|^)[#|\$]([\wÀ-ÿ\u0E00-\u0E7F\u2460-\u9FBB]+)/uim';
         $matches = [];
-
-        preg_match_all($htRe, $fullText, $matches);
+        preg_match_all($tagRegex, $fullText, $matches);
 
         $messageTags = ($matches[2] ?? null) ?: [];
         $entityTags = method_exists($this->entity, 'getTags') ? ($this->entity->getTags() ?: []) : [];
