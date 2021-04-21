@@ -1010,6 +1010,12 @@ class User extends \ElggUser
         $export['programs'] = $this->getPrograms();
         $export['plus'] = (bool) $this->isPlus();
         $export['pro'] = (bool) $this->isPro();
+        if ($this->isPlus()) {
+            $export['plus_method'] = $this->getPlusMethod();
+        }
+        if ($this->isPro()) {
+            $export['pro_method'] = $this->getProMethod();
+        }
         $export['pro_published'] = $this->isPro() && $this->isProPublished();
         $export['verified'] = (bool) $this->verified;
         $export['founder'] = (bool) $this->founder;
