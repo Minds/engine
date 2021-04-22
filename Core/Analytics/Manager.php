@@ -17,6 +17,7 @@ class Manager
     private $term = 'user_guid';
     private $uniques = true;
     private $metric;
+    private $onlyPlus = false;
 
     private $actions = [
         'subscribers' => 'subscribe',
@@ -74,6 +75,17 @@ class Manager
     }
 
     /**
+     * ONLY WORKS WITH ActionsHistorgram
+     * @param bool $onlyPlus
+     * @return self
+     */
+    public function setOnlyPlus(bool $onlyPlus): self
+    {
+        $this->onlyPlus = $onlyPlus;
+        return $this;
+    }
+
+    /**
      * Return a batch result of a series of analytic metrics
      * @return array
      */
@@ -86,7 +98,8 @@ class Manager
                 ->setAction($action)
                 ->setTo($this->to)
                 ->setFrom($this->from)
-                ->setInterval($this->interval);
+                ->setInterval($this->interval)
+                ->setOnlyPlus($this->onlyPlus);
 
             if ($this->user) {
                 $aggregate->setUser($this->user);
