@@ -7,6 +7,7 @@ use Minds\Core\Analytics\Snowplow;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Di\Di;
+use Minds\Entities\User;
 
 /**
  * Class Event.
@@ -51,6 +52,9 @@ class Event
     /** @var array */
     protected $data;
 
+    /** @var User */
+    protected $user;
+
     public function __construct($elastic = null, $snowplowManager = null, $entitiesBuilder = null)
     {
         $this->elastic = $elastic ?: Core\Di\Di::_()->get('Database\ElasticSearch');
@@ -59,16 +63,43 @@ class Event
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
 
+    /**
+     * Set the user guid (and will build a new user entity)
+     * @param string $guid
+     * @return self
+     */
     public function setUserGuid($guid)
     {
         $this->data['user_guid'] = (string) $guid;
 
+        // Rebuild the user, as we need the full entity
+        $user = $this->entitiesBuilder->single($this->data['user_guid']);
+        if ($user instanceof User) {
+            $this->user = $user;
+        }
+
+        return $this;
+    }
+    
+    /**
+     * Set the user entity and applies their guid to the data
+     * @param User $user
+     * @return self
+     */
+    public function setUser(User $user): self
+    {
+        $this->user = $user;
+        $this->data['user_guid'] = (string) $user->getGuid();
         return $this;
     }
 
     public function push()
     {
         $this->data['@timestamp'] = (int) microtime(true) * 1000;
+
+        if ($this->user) {
+            $this->data['user_is_plus'] = (bool) $this->user->isPlus();
+        }
 
         $this->data['user_agent'] = $this->getUserAgent();
         $this->data['ip_hash'] = $this->getIpHash();
