@@ -42,7 +42,7 @@ class TOTPDelegate implements TwoFactorDelegateInterface
      * @param int $code
      * @return void
      */
-    public function onAuthenticateTwoFactor(User $user, int $code): void
+    public function onAuthenticateTwoFactor(User $user, string $code): void
     {
         $opts = new TOTP\TOTPSecretQueryOpts();
         $opts->setUserGuid($user->getGuid());
