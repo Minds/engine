@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Notification;
 
+use Minds\Common\Regex;
 use Minds\Entities;
 use Minds\Core;
 use Minds\Core\Data;
@@ -116,7 +117,7 @@ class Events
                 $message .= $entity->title;
             }
 
-            if (preg_match_all('!@(.+)(?:\s|$)!U', $message, $matches)) {
+            if (preg_match_all(Regex::AT, $message, $matches)) {
                 $usernames = $matches[1];
                 $to = [];
 
