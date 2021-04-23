@@ -22,5 +22,5 @@ interface TwoFactorDelegateInterface
      * @param int $code
      * @return void
      */
-    public function onAuthenticateTwoFactor(User $user, int $code): void;
+    public function onAuthenticateTwoFactor(User $user, string $code): void;
 }
