@@ -61,7 +61,7 @@ class Manager
         }
 
         // Does a two factor header code exist?
-        if (!$code = (int) $request->getHeader('X-MINDS-2FA-CODE')[0]) {
+        if (!$code = (string) $request->getHeader('X-MINDS-2FA-CODE')[0]) {
             // No code exists, so we trigger requireTwoFactor
             $this->requireTwoFactor($user);
         }
@@ -91,7 +91,7 @@ class Manager
      * @param int $code
      * @return void
      */
-    public function authenticateTwoFactor(User $user, int $code): void
+    public function authenticateTwoFactor(User $user, string $code): void
     {
         if ($this->totpManager->isRegistered($user)) {
             $this->totpDelegate->onAuthenticateTwoFactor($user, $code);
