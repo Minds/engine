@@ -123,6 +123,12 @@ class UsersIterator implements \Iterator
             $field = 'user_guid.keyword';
         }
 
+        $bool['must'][] = [
+            'term' => [
+                'user_is_plus' => true
+            ]
+        ];
+
         $query = [
             'index' => 'minds-metrics-*',
             'type' => 'action',

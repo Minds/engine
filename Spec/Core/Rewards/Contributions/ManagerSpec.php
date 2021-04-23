@@ -32,6 +32,7 @@ class ManagerSpec extends ObjectBehavior
         $analytics->setFrom(strtotime('-7 days') * 1000)->shouldBeCalled()->willReturn($analytics);
         $analytics->setTo(time() * 1000)->shouldBeCalled()->willReturn($analytics);
         $analytics->setInterval('day')->shouldBeCalled()->willReturn($analytics);
+        $analytics->setOnlyPlus(true)->willReturn($analytics);
 
         $dayAgo = (strtotime('-1 day') * 1000);
         $twoDaysAgo = (strtotime('-2 days') * 1000);
