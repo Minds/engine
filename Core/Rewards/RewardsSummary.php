@@ -25,6 +25,9 @@ class RewardsSummary
     /** @var RewardEntry[] */
     private $rewardEntries;
 
+    /** @var boolean */
+    private $hasPending;
+
     /**
      * Returns the totals
      * @return array
@@ -51,6 +54,7 @@ class RewardsSummary
             'date' => date('Y-m-d', $this->dateTs),
             'date_iso8601' => date('c', $this->dateTs),
             'date_unixts' => $this->dateTs,
+            'has_pending' => $this->hasPending,
             'total' => $this->getTotals(),
         ];
 

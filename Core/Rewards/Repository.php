@@ -296,4 +296,20 @@ class Repository
             }
         }
     }
+
+    /**
+     * Returns whether user has any pending rewards.
+     * @return bool - true if user has pending rewards.
+     */
+    public function hasPendingRewards(): bool
+    {
+        $statement = "SELECT COUNT(*) as count FROM minds.token_rewards where date >= ? AND payoutTx >= '';";
+        $values = [ date('Y-m-d') ];
+
+        $prepared = new Prepared\Custom();
+        $prepared = $prepared->query($statement, $values);
+
+        $result = $this->cql->request($prepared);
+        return (bool) $result[0]['count'] > 0;
+    }
 }
