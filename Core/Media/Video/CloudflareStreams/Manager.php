@@ -67,7 +67,7 @@ class Manager
 
         return [
             (new Source())
-                ->setType('video/hls')
+                ->setType('application/vnd.apple.mpegURL')
                 ->setSrc("https://videodelivery.net/$signedToken/manifest/video.m3u8")
         ];
     }
