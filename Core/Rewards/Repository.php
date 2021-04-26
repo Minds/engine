@@ -299,17 +299,36 @@ class Repository
 
     /**
      * Returns whether user has any pending rewards.
+     * @param RewardsQueryOpts $opts - reward query opts.
      * @return bool - true if user has pending rewards.
      */
-    public function hasPendingRewards(): bool
+    public function hasPendingRewards(RewardsQueryOpts $opts): bool
     {
-        $statement = "SELECT COUNT(*) as count FROM minds.token_rewards where date >= ? AND payoutTx >= '';";
-        $values = [ date('Y-m-d') ];
+        $statement = "SELECT * FROM token_rewards";
 
+        $where = [
+            "user_guid = ?" => new Bigint($opts->getUserGuid()),
+            "reward_type IN ?" => Type::collection(Type::text())->create(...Manager::REWARD_TYPES),
+            "date = ?" => new Date($opts->getDateTs() - 86400), // -1 day
+        ];
+
+        $statement .= " WHERE " . implode(' AND ', array_keys($where));
+        $values = array_values($where);
+        
         $prepared = new Prepared\Custom();
-        $prepared = $prepared->query($statement, $values);
+        $prepared->query($statement, $values);
 
-        $result = $this->cql->request($prepared);
-        return (bool) $result[0]['count'] > 0;
+        $hasPending = false;
+
+        // iterate through results.
+        foreach ($this->scroll->request($prepared) as $k => $row) {
+            // if no payout_tx or token_amount - there are pending rewards.
+            if (!$row['payout_tx'] || !$row['token_amount']) {
+                $hasPending = true;
+                break;
+            }
+        }
+
+        return $hasPending;
     }
 }

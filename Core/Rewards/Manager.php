@@ -160,7 +160,7 @@ class Manager
         $rewardsSummary = new RewardsSummary();
         $rewardsSummary->setUserGuid($opts->getUserGuid())
             ->setDateTs($opts->getDateTs())
-            ->setHasPending($this->hasPendingRewards())
+            ->setHasPending($this->hasPendingRewards($opts))
             ->setRewardEntries($rewardEntries->toArray());
 
         return $rewardsSummary;
@@ -565,8 +565,8 @@ class Manager
      * Returns whether user has any pending rewards.
      * @return bool - true if user has pending rewards.
      */
-    public function hasPendingRewards(): bool
+    public function hasPendingRewards(RewardsQueryOpts $opts): bool
     {
-        return $this->repository->hasPendingRewards();
+        return $this->repository->hasPendingRewards($opts);
     }
 }
