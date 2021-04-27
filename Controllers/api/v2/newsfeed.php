@@ -369,7 +369,7 @@ class newsfeed implements Interfaces\Api
                 }
 
                 if (isset($_POST['message'])) {
-                    $activity->setMessage(rawurldecode($_POST['message']));
+                    $activity->setMessage($_POST['message']);
                 }
 
                 // Remind
