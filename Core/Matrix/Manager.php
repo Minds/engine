@@ -131,6 +131,7 @@ class Manager
                     'is_direct' => true,
                     'visibility' => 'private',
                     'invite' => [ $receiverMatrixId ],
+                    'preset' => 'trusted_private_chat',
                 ]
             ]);
 
