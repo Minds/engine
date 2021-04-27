@@ -40,9 +40,9 @@ class WellKnownController
             "m.homeserver" => [
                 "base_url" => "https://{$this->matrixConfig->getHomeserverApiDomain()}"
             ],
-            "m.identity_server" => [
-                "base_url" => "https://vector.im"
-            ]
+            // "m.identity_server" => [
+            //     "base_url" => "https://vector.im"
+            // ]
         ]);
     }
 }
