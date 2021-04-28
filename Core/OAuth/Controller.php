@@ -6,6 +6,7 @@ use League\OAuth2\Server\Exception\OAuthServerException;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\OAuth\Delegates\EventsDelegate;
 use Minds\Core\OAuth\Entities\UserEntity;
 use Minds\Core\OAuth\Repositories\AccessTokenRepository;
 use Minds\Core\OAuth\Repositories\ClientRepository;
@@ -38,13 +39,17 @@ class Controller
     /** @var NonceHelper */
     protected $nonceHelper;
 
+    /** @var EventsDelegates */
+    protected $eventsDelegate;
+
     public function __construct(
         Config $config = null,
         AuthorizationServer $authorizationServer = null,
         AccessTokenRepository $accessTokenRepository = null,
         RefreshTokenRepository $refreshTokenRepository = null,
         ClientRepository $clientRepository = null,
-        NonceHelper $nonceHelper = null
+        NonceHelper $nonceHelper = null,
+        EventsDelegate $eventsDelegate = null
     ) {
         $this->config = $config ?? Di::_()->get('Config');
         $this->authorizationServer = $authorizationServer ?? Di::_()->get('OAuth\Server\Authorization');
@@ -52,6 +57,7 @@ class Controller
         $this->refreshTokenRepository = $refreshTokenRepository ?? Di::_()->get('OAuth\Repositories\RefreshToken');
         $this->clientRepository = $clientRepository ?? Di::_()->get('OAuth\Repositories\Client');
         $this->nonceHelper = $nonceHelper ?? Di::_()->get('OAuth\NonceHelper');
+        $this->eventsDelegate = $eventsDelegate ?? new EventsDelegate;
     }
 
     /**
@@ -87,7 +93,12 @@ class Controller
             }
             
             // Return the HTTP redirect response
-            return $this->authorizationServer->completeAuthorizationRequest($authRequest, new JsonResponse([]));
+            $response = $this->authorizationServer->completeAuthorizationRequest($authRequest, new JsonResponse([]));
+
+            // Trigger the events delegate
+            $this->eventsDelegate->onAuthorizeSuccess($authRequest);
+
+            return $response;
         } catch (OAuthServerException $e) {
             return $e->generateHttpResponse(new JsonResponse([]));
         }

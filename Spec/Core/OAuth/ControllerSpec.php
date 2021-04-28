@@ -12,6 +12,7 @@ use League\OAuth2\Server\RequestTypes\AuthorizationRequest;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\OAuth\Delegates\EventsDelegate;
 use Minds\Core\OAuth\Entities\ClientEntity;
 use Minds\Core\OAuth\Entities\UserEntity;
 use Minds\Core\OAuth\Repositories\AccessTokenRepository;
@@ -33,17 +34,22 @@ class ControllerSpec extends ObjectBehavior
     /** @var RefreshTokenRepository */
     protected $refreshTokenRepository;
 
+    /** @var EventsDelegate */
+    protected $eventsDelegate;
+
     public function let(
         Config $config,
         AuthorizationServer $authorizationServer,
         AccessTokenRepository $accessTokenRepository,
-        RefreshTokenRepository $refreshTokenRepository
+        RefreshTokenRepository $refreshTokenRepository,
+        EventsDelegate $eventsDelegate
     ) {
-        $this->beConstructedWith($config, $authorizationServer, $accessTokenRepository, $refreshTokenRepository);
+        $this->beConstructedWith($config, $authorizationServer, $accessTokenRepository, $refreshTokenRepository, null, null, $eventsDelegate);
         $this->config = $config;
         $this->authorizationServer = $authorizationServer;
         $this->accessTokenRepository = $accessTokenRepository;
         $this->refreshTokenRepository = $refreshTokenRepository;
+        $this->eventsDelegate = $eventsDelegate;
     }
 
     public function it_is_initializable()
@@ -87,6 +93,9 @@ class ControllerSpec extends ObjectBehavior
 
         $this->authorizationServer->completeAuthorizationRequest($authorizationRequest, Argument::any())
             ->willReturn(new JsonResponse([]));
+
+        $this->eventsDelegate->onAuthorizeSuccess($authorizationRequest)
+            ->shouldBeCalled();
 
         $this->authorize($request);
     }
