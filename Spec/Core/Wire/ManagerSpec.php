@@ -278,8 +278,11 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->shouldBeCalled();
 
-        $this->stripeIntentsManager->add(Argument::any())
-            ->shouldNotBeCalled();
+
+        $this->stripeIntentsManager->add(Argument::that(function ($intent) {
+            return $intent->getCaptureMethod() === 'manual';
+        }))
+            ->willReturn((new PaymentIntent())->setId('trial-id'));
 
         $this->setSender($sender)
             ->setEntity($receiver)
@@ -321,8 +324,10 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->shouldBeCalled();
 
-        $this->stripeIntentsManager->add(Argument::any())
-            ->shouldNotBeCalled();
+        $this->stripeIntentsManager->add(Argument::that(function ($intent) {
+            return $intent->getCaptureMethod() === 'manual';
+        }))
+            ->willReturn((new PaymentIntent())->setId('trial-id'));
 
         $this->setSender($sender)
             ->setEntity($receiver)
