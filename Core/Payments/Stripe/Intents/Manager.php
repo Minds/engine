@@ -5,6 +5,7 @@ namespace Minds\Core\Payments\Stripe\Intents;
 use Minds\Core\Payments\Stripe\Customers\Manager as CustomersManager;
 use Minds\Core\Payments\Stripe\Instances\PaymentIntentInstance;
 use Minds\Core\Payments\Stripe\Instances\SetupIntentInstance;
+use Minds\Exceptions\UserErrorException;
 
 class Manager
 {
@@ -48,7 +49,14 @@ class Manager
 
     private function addPayment(PaymentIntent $intent) : PaymentIntent
     {
-        $customerId = $intent->getCustomerId() ?: $this->customersManager->getFromUserGuid($intent->getUserGuid())->getId();
+        $customerId = $intent->getCustomerId();
+        if (!$customerId) {
+            $customer = $this->customersManager->getFromUserGuid($intent->getUserGuid());
+            if (!$customer) {
+                throw new UserErrorException('Customer was not found');
+            }
+            $customerId = $customer->getId();
+        }
         $params = [
             'amount' => $intent->getAmount(),
             'currency' => $intent->getCurrency(),
