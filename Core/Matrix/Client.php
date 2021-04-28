@@ -23,7 +23,6 @@ class Client
     {
         $this->httpClient = $httpClient ?? new GuzzleHttp\Client();
         $this->matrixConfig = $matrixConfig ?? new MatrixConfig();
-        $this->accessToken = $this->matrixConfig->getAdminAccessToken();
     }
 
     /**
@@ -46,6 +45,10 @@ class Client
      */
     public function request(string $method, string $endpoint, array $options = []): ResponseInterface
     {
+        if (!$this->accessToken) {
+            $this->accessToken = $this->matrixConfig->getAdminAccessToken();
+        }
+
         $endpoint = "{$this->getUriPrefix()}/$endpoint";
 
         $options = array_merge([
