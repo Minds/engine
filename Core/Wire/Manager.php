@@ -335,7 +335,7 @@ class Manager
                     ->setAmount(!$wire->getTrialDays() ? $this->amount : 100) // $1 hold on card during trial
                     ->setPaymentMethod($this->payload['paymentMethodId'])
                     ->setOffSession(true)
-                    ->setConfirm(!$wire->getTrialDays()) // Do not charge
+                    ->setConfirm(true)
                     ->setCaptureMethod(!$wire->getTrialDays() ? 'automatic' : 'manual') // Do not charge card
                     ->setStripeAccountId($this->receiver->getMerchant()['id'])
                     ->setServiceFeePct(static::WIRE_SERVICE_FEE_PCT);
