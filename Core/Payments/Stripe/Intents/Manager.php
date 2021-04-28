@@ -59,6 +59,7 @@ class Manager
             'payment_method' => $intent->getPaymentMethod(),
             'off_session' => $intent->isOffSession(),
             'confirm' => $intent->isConfirm(),
+            'capture_method' => $intent->getCaptureMethod(),
             'on_behalf_of' => $intent->getStripeAccountId(),
             'transfer_data' => [
                 'destination' => $intent->getStripeAccountId(),
