@@ -186,9 +186,9 @@ class Manager
 
         /** @var MatrixRoom[] */
         $rooms = [];
-        foreach ($decodedResponse as $memberId => $roomId) {
+        foreach ($decodedResponse as $memberId => $roomIds) {
             $matrixRoom = new MatrixRoom();
-            $matrixRoom->setId($roomId)
+            $matrixRoom->setId($roomIds[0])
                 ->setInvite(false)
                 ->setMembers([$memberId])
                 ->setDirectMessage(true);
