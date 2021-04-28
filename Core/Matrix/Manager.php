@@ -177,25 +177,33 @@ class Manager
      */
     protected function getDirectRooms(User $user)
     {
-        $matrixId = $this->getMatrixId($user);
-        $response = $this->client
+        try {
+            $matrixId = $this->getMatrixId($user);
+            $response = $this->client
             ->setAccessToken($this->getServerAccessToken($user))
             ->request('GET', "_matrix/client/r0/user/$matrixId/account_data/m.direct");
 
-        $decodedResponse = json_decode($response->getBody(), true);
+            $decodedResponse = json_decode($response->getBody(), true);
 
-        /** @var MatrixRoom[] */
-        $rooms = [];
-        foreach ($decodedResponse as $memberId => $roomIds) {
-            $matrixRoom = new MatrixRoom();
-            $matrixRoom->setId($roomIds[0])
+            /** @var MatrixRoom[] */
+            $rooms = [];
+            foreach ($decodedResponse as $memberId => $roomIds) {
+                $matrixRoom = new MatrixRoom();
+                $matrixRoom->setId($roomIds[0])
                 ->setInvite(false)
                 ->setMembers([$memberId])
                 ->setDirectMessage(true);
-            $rooms[] = $matrixRoom;
-        }
+                $rooms[] = $matrixRoom;
+            }
+        
 
-        return $rooms;
+            return $rooms;
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            if ($e->getResponse()->getStatusCode() === 404) {
+                return [];
+            }
+            throw $e;
+        }
     }
 
     /**
