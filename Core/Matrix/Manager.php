@@ -111,10 +111,14 @@ class Manager
      */
     public function createDirectRoom(User $sender, User $receiver): MatrixRoom
     {
+        $senderMatrixId = $this->getMatrixId($sender);
         $receiverMatrixId = $this->getMatrixId($receiver);
         // First, check to see that we don't already have a direct room
 
-        $rooms = array_values(array_filter($this->getJoinedRooms($sender), function ($room) use ($receiverMatrixId) {
+        $directRooms = $this->getDirectRooms($sender);
+
+        /** @var MatrixRoom[] */
+        $rooms = array_values(array_filter($directRooms, function ($room) use ($receiverMatrixId) {
             return $room->isDirectMessage() && in_array($receiverMatrixId, $room->getMembers(), false);
         }));
 
@@ -141,9 +145,57 @@ class Manager
         $matrixRoom->setName($receiver->getName())
                 ->setId($decodedResponse['room_id'])
                 ->setLastEvent(time())
+                ->setMembers([$receiverMatrixId])
                 ->setDirectMessage(true);
 
+        /**
+         * Patch for synapse - create a DM doesn't add to the 'people' section
+         */
+
+        $directRooms[] = $matrixRoom;
+        $patchedDirectRooms = [];
+    
+        foreach ($directRooms as $room) {
+            $member = $room->getMembers()[0];
+            $patchedDirectRooms[$member] = [ $room->getId() ];
+        }
+
+        // Send PUT request to tag as a direct room
+        $this->client
+            ->setAccessToken($this->getServerAccessToken($sender))
+            ->request('PUT', "_matrix/client/r0/user/$senderMatrixId/account_data/m.direct", [
+                'json' => $patchedDirectRooms
+            ]);
+
         return $matrixRoom;
+    }
+
+    /**
+     * Return a list of direct rooms (does not include last timestamps)
+     * @param User $user
+     * @return MatrixRoom[]
+     */
+    protected function getDirectRooms(User $user)
+    {
+        $matrixId = $this->getMatrixId($user);
+        $response = $this->client
+            ->setAccessToken($this->getServerAccessToken($user))
+            ->request('GET', "_matrix/client/r0/user/$matrixId/account_data/m.direct");
+
+        $decodedResponse = json_decode($response->getBody(), true);
+
+        /** @var MatrixRoom[] */
+        $rooms = [];
+        foreach ($decodedResponse as $memberId => $roomId) {
+            $matrixRoom = new MatrixRoom();
+            $matrixRoom->setId($roomId)
+                ->setInvite(false)
+                ->setMembers([$memberId])
+                ->setDirectMessage(true);
+            $rooms[] = $matrixRoom;
+        }
+
+        return $rooms;
     }
 
     /**
