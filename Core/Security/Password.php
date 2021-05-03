@@ -82,4 +82,20 @@ class Password
         $user->save();
         return $code;
     }
+
+    /**
+     * Reset password to a random string
+     * @param entities\User $user
+     * @return boolean
+     */
+    public function randomReset($user): bool
+    {
+        $randomPassword = hash('sha512', openssl_random_pseudo_bytes(128));
+
+        $user->password = self::generate($user, $randomPassword);
+        $user->override_password = true;
+        $user->save();
+
+        return true;
+    }
 }

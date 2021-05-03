@@ -12,6 +12,7 @@ use Exception;
 use Minds\Core\OAuth\Entities\AccessTokenEntity;
 use Minds\Core\Sessions\Session;
 use Minds\Exceptions\UserErrorException;
+use Minds\Core;
 
 class Manager
 {
@@ -62,7 +63,7 @@ class Manager
         }, $jwtSessions);
 
         // Get the OAuth sessions
-    
+
         $oauthSessions = $this->oauthManager->getList($user);
 
         $oauthSessions = array_map(function (AccessTokenEntity $oauthSession) {
@@ -84,7 +85,7 @@ class Manager
         $sessions = array_filter(array_merge($jwtSessions, $oauthSessions), function (CommonSession $session) {
             return $session->getExpires() > time() - (86400 * 30); // Show also expired within last 30 days
         });
-        
+
         // Sort by last active
         usort($sessions, function (CommonSession $a, CommonSession $b) {
             return $a->getLastActive() < $b->getLastActive();
@@ -92,7 +93,6 @@ class Manager
 
         return $sessions;
     }
-
 
     /**
      * Delete a session
@@ -109,7 +109,7 @@ class Manager
                 ->setUserGuid($commonSession->getUserGuid())
                 ->setId($commonSession->getId());
 
-            $response = $this->sessionsManager->delete(false, $session);
+            $response = $this->sessionsManager->delete($session);
         } elseif ($platform === self::PLATFORM_APP) {
             $token = new AccessTokenEntity();
             $token->setIdentifier($commonSession->getId());
@@ -124,5 +124,23 @@ class Manager
         }
 
         return $response;
+    }
+
+    /**
+     * Delete all sessions
+     * @param User $user
+     * @return bool
+     */
+    public function deleteAll(User $user)
+    {
+        if (!$user) {
+            $user = Core\Session::getLoggedInUser();
+        }
+
+        $sessionsResponse = $this->sessionsManager->deleteAll($user);
+
+        $oauthResponse = $this->oauthManager->deleteAll($user);
+
+        return $sessionsResponse && $oauthResponse;
     }
 }

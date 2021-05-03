@@ -268,33 +268,66 @@ class Manager
     }
 
     /**
-     * Remove the session from the database
-     * If deleting current session, remove from client too
-     * @param Session $session
+     * Delete all jwt sessions for a given user
+     * @param User $user
      * @return bool
      */
-    public function delete($all = false, $session = null)
+    public function deleteAll(User $user = null)
+    {
+        if (!$user) {
+            $user = Core\Session::getLoggedInUser();
+        }
+
+        $response = $this->repository->deleteAll($user);
+
+        if ($user->getGuid() === Core\Session::getLoggedInUserGuid()) {
+            $this->removeFromClient();
+        }
+
+        return $response;
+    }
+
+    /**
+     * Remove the session from the database
+     * If deleting current session, remove from client too
+     * @param Sessions\Session $session
+     * @return bool
+     */
+    public function delete($session = null)
     {
         $sessionToDelete = $session ?: $this->session;
 
-        $response = $this->repository->delete($sessionToDelete, $all);
+        if (!$sessionToDelete) {
+            throw new Exception("Session required");
+        }
+
+        $response = $this->repository->delete($sessionToDelete);
 
         if (!$response) {
             throw new Exception("Could not delete session");
         }
 
         if (!$session || $session === $this->session) {
-            $this->cookie
-            ->setName('minds_sess')
-            ->setValue('')
-            ->setExpire(time() - 3600)
-            ->setSecure(true) //only via ssl
-            ->setHttpOnly(true) //never by browser
-            ->setPath('/')
-            ->create();
+            $this->removeFromClient();
         }
 
         return $response;
+    }
+
+    /**
+     * Remove current session from client
+     * @return void
+     */
+    public function removeFromClient()
+    {
+        $this->cookie
+        ->setName('minds_sess')
+        ->setValue('')
+        ->setExpire(time() - 3600)
+        ->setSecure(true) //only via ssl
+        ->setHttpOnly(true) //never by browser
+        ->setPath('/')
+        ->create();
     }
 
     /**
