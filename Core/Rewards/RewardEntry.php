@@ -91,6 +91,7 @@ class RewardEntry
                 'score' => $this->globalSummary ? (string) $this->globalSummary->getScore() : 0,
                 'token_amount' => $this->globalSummary ? (string) $this->globalSummary->getTokenAmount() : 0,
             ],
+            'payout_tx' => $this->payoutTx,
         ];
     }
 }
