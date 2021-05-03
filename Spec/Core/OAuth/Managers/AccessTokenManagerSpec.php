@@ -66,10 +66,65 @@ class AccessTokenManagerSpec extends ObjectBehavior
         $refreshToken->setIdentifier('refresh-1');
         $this->refreshTokenRepository->getRefreshTokenFromAccessTokenId('token-1')
                 ->willReturn($refreshToken);
-        
+
         $this->refreshTokenRepository->revokeRefreshToken('refresh-1')
                 ->shouldBeCalled();
 
         $this->delete($accessToken)->shouldBe(true);
+    }
+
+    public function it_should_delete_all_access_tokens()
+    {
+        $userId = 'user-1';
+
+        $user = new User();
+        $user->guid = $userId;
+
+        $accessToken1 = new AccessTokenEntity();
+        $accessToken1->setIdentifier('token-1');
+        $accessToken1->setUserIdentifier($userId);
+
+        $refreshToken1 = new RefreshTokenEntity();
+        $refreshToken1->setIdentifier('refresh-1');
+
+        $accessToken2 = new AccessTokenEntity();
+        $accessToken2->setIdentifier('token-2');
+        $accessToken2->setUserIdentifier($userId);
+
+        $refreshToken2 = new RefreshTokenEntity();
+        $refreshToken2->setIdentifier('refresh-2');
+
+        $accessTokens = [$accessToken1, $accessToken2];
+
+        $this->repository->getList($userId)
+            ->willReturn(
+                $accessTokens
+            );
+
+        // Confirm the access tokens get revoked
+
+        $this->repository->revokeAccessToken('token-1')
+            ->willReturn(true);
+
+        $this->repository->revokeAccessToken('token-2')
+            ->willReturn(true);
+
+
+        // Confirm the related refresh tokens get revoked
+
+        $this->refreshTokenRepository->getRefreshTokenFromAccessTokenId('token-1')
+            ->willReturn($refreshToken1);
+
+        $this->refreshTokenRepository->revokeRefreshToken('refresh-1')
+                ->shouldBeCalled();
+
+        $this->refreshTokenRepository->getRefreshTokenFromAccessTokenId('token-2')
+            ->willReturn($refreshToken2);
+
+        $this->refreshTokenRepository->revokeRefreshToken('refresh-2')
+                ->shouldBeCalled();
+
+
+        $this->deleteAll($user)->shouldBe(true);
     }
 }
