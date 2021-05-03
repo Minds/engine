@@ -68,4 +68,15 @@ class PasswordSpec extends ObjectBehavior
         $user->get('salt')->willReturn("");
         $this::check($user, "foofoo")->shouldReturn(false);
     }
+
+    public function it_should_reset_to_a_random_password(User $user)
+    {
+        $user->set('password', Argument::type('string'))
+            ->shouldBeCalled();
+
+        $user->save()
+            ->shouldBeCalled();
+
+        $this::randomReset($user)->shouldReturn(true);
+    }
 }
