@@ -107,9 +107,10 @@ class Manager
      * Will create a room between two users
      * @param User $user
      * @param User $reveiver
+     * @param bool $autoAcceptInvite
      * @return MatrixRoom
      */
-    public function createDirectRoom(User $sender, User $receiver): MatrixRoom
+    public function createDirectRoom(User $sender, User $receiver, bool $autoAcceptInvite = false): MatrixRoom
     {
         $senderMatrixId = $this->getMatrixId($sender);
         $receiverMatrixId = $this->getMatrixId($receiver);
@@ -148,6 +149,10 @@ class Manager
                 ->setMembers([$receiverMatrixId])
                 ->setDirectMessage(true);
 
+        if ($autoAcceptInvite) {
+            $this->acceptInvite($receiver, $matrixRoom);
+        }
+
         /**
          * Patch for synapse - create a DM doesn't add to the 'people' section
          */
@@ -168,6 +173,34 @@ class Manager
             ]);
 
         return $matrixRoom;
+    }
+
+    /**
+     * Accept an invite to a room
+     * @param User $user
+     * @param MatrixRoom $matrixRoom
+     * @return bool
+     */
+    public function acceptInvite(User $user, MatrixRoom $room): bool
+    {
+        $endpoint = "_matrix/client/r0/rooms/{$room->getId()}/join";
+
+        try {
+            $this->client
+                ->setAccessToken($this->getServerAccessToken($user))
+                ->request('POST', $endpoint, [
+                    'json' => [ ]
+                ]);
+
+            return true;
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            if ($e->getResponse()->getStatusCode() === 404) {
+                return [];
+            }
+            throw $e;
+        }
+        
+        return false;
     }
 
     /**
