@@ -281,7 +281,8 @@ class Repository
                 ->setDateTs(isset($row['date']) ? $row['date']->seconds() : null)
                 ->setRewardType($rewardType)
                 ->setScore(BigDecimal::of((string) $row['score']))
-                ->setTokenAmount(BigDecimal::of((string) $row['token_amount'] ?: 0));
+                ->setTokenAmount(BigDecimal::of((string) $row['token_amount'] ?: 0))
+                ->setPayoutTx((string) ($row['payout_tx'] ?? null));
 
                 if (isset($row['data'])) {
                     $rewardEntry->setDateTs($row['date']->seconds());
