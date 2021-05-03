@@ -19,9 +19,9 @@ class Routes extends ModuleRoutes
         $this->route
             ->withPrefix('api/v3/security/password')
             ->do(function (Route $route) {
-                $route->get(
+                $route->post(
                     'risk',
-                    Ref::_('Security\Password\Controller', 'getRisk')
+                    Ref::_('Security\Password\Controller', 'assessRisk')
                 );
             });
     }
