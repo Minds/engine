@@ -14,6 +14,7 @@ class Module implements ModuleInterface
         Block\Module::class,
         TOTP\Module::class,
         TwoFactor\Module::class,
+        Password\Module::class,
     ];
 
     /**
