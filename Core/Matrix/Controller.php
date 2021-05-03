@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Matrix;
 
+use GuzzleHttp\Exception\ClientException;
 use Minds\Api\Exportable;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
@@ -65,12 +66,17 @@ class Controller
     public function getTotalUnread(ServerRequest $request): JsonResponse
     {
         $user = $request->getAttribute('_user');
-        $joinedRooms = $this->manager->getJoinedRooms($user);
 
-        $sum = 0;
+        try {
+            $joinedRooms = $this->manager->getJoinedRooms($user);
 
-        foreach ($joinedRooms as $room) {
-            $sum += $room->getUnreadCount();
+            $sum = 0;
+
+            foreach ($joinedRooms as $room) {
+                $sum += $room->getUnreadCount();
+            }
+        } catch (ClientException $e) {
+            $sum = 0;
         }
 
         return new JsonResponse([
