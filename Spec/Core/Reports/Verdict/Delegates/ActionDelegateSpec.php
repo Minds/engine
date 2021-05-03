@@ -13,7 +13,10 @@ use Minds\Entities\Entity;
 use Minds\Entities\Activity;
 use Minds\Core\Entities\Actions\Save as SaveAction;
 use Minds\Core\Channels\Ban;
+use Minds\Core\Security\Password;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
+use Minds\Core\Sessions;
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -26,13 +29,21 @@ class ActionDelegateSpec extends ObjectBehavior
     private $emailDelegate;
     private $channelsBanManager;
 
+    /** @var Sessions\CommonSessions\Manager */
+    protected $commonSessionsManager;
+
+    /** @var Password */
+    protected $password;
+
     public function let(
         EntitiesBuilder $entitiesBuilder,
         Actions $actions,
         StrikesManager $strikesManager,
         SaveAction $saveAction,
         EmailDelegate $emailDelegate,
-        Ban $channelsBanManager
+        Ban $channelsBanManager,
+        Sessions\CommonSessions\Manager $commonSessionsManager,
+        Password $password
     ) {
         $this->beConstructedWith(
             $entitiesBuilder,
@@ -41,7 +52,10 @@ class ActionDelegateSpec extends ObjectBehavior
             $strikesManager,
             $saveAction,
             $emailDelegate,
-            $channelsBanManager
+            $channelsBanManager,
+            null,
+            $commonSessionsManager,
+            $password
         );
         $this->entitiesBuilder = $entitiesBuilder;
         $this->actions = $actions;
@@ -49,6 +63,8 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->saveAction = $saveAction;
         $this->emailDelegate = $emailDelegate;
         $this->channelsBanManager = $channelsBanManager;
+        $this->commonSessionsManager = $commonSessionsManager;
+        $this->password = $password;
     }
 
     public function it_is_initializable()
@@ -210,6 +226,39 @@ class ActionDelegateSpec extends ObjectBehavior
             ->willReturn($this->saveAction);
         
         $this->saveAction->save()
+            ->shouldBeCalled();
+
+        $this->onAction($verdict);
+    }
+
+    public function it_should_disable_reset_password_and_email_on_hack(User $user)
+    {
+        $report = new Report;
+        $report->setEntityUrn('urn:user:123')
+            ->setEntityOwnerGuid(123)
+            ->setReasonCode(17)
+            ->setSubReasonCode(1);
+
+        $verdict = new Verdict;
+        $verdict->setReport($report)
+            ->setUphold(true);
+
+        $this->entitiesBuilder->single(123)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $user->set('enabled', 'no')
+            ->shouldBeCalled();
+
+        $user->save()
+            ->shouldBeCalled();
+
+        $this->password->randomReset($user)
+            ->shouldBeCalled();
+
+        $this->commonSessionsManager->deleteAll($user);
+
+        $this->emailDelegate->onHack($report)
             ->shouldBeCalled();
 
         $this->onAction($verdict);

@@ -12,7 +12,9 @@ use Minds\Core\Reports\Report;
 use Minds\Core\Reports\Strikes\Strike;
 use Minds\Core\Entities\Actions\Save as SaveAction;
 use Minds\Core\Plus;
+use Minds\Core\Sessions;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
+use Minds\Core\Security\Password;
 
 class ActionDelegate
 {
@@ -40,6 +42,12 @@ class ActionDelegate
     /** @var Plus\Manager */
     protected $plusManager;
 
+    /** @var Sessions\CommonSessions\Manager */
+    protected $commonSessionsManager;
+
+    /** @var Password */
+    protected $password;
+
     public function __construct(
         $entitiesBuilder = null,
         $actions = null,
@@ -48,7 +56,9 @@ class ActionDelegate
         $saveAction = null,
         $emailDelegate = null,
         $channelsBanManager = null,
-        $plusManager = null
+        $plusManager = null,
+        $commonSessionsManager = null,
+        $password = null
     ) {
         $this->entitiesBuilder = $entitiesBuilder  ?: Di::_()->get('EntitiesBuilder');
         $this->actions = $actions ?: Di::_()->get('Reports\Actions');
@@ -58,6 +68,8 @@ class ActionDelegate
         $this->emailDelegate = $emailDelegate ?: new EmailDelegate;
         $this->channelsBanManager = $channelsBanManager ?: Di::_()->get('Channels\Ban');
         $this->plusManager = $plusManager ?? Di::_()->get('Plus\Manager');
+        $this->commonSessionsManager = $commonSessionsManager ?? Di::_()->get('Sessions\CommonSessions\Manager');
+        $this->password = $password ?? Di::_()->get('Security\Password');
     }
 
     public function onAction(Verdict $verdict)
@@ -177,10 +189,36 @@ class ActionDelegate
                 // Strike
                 $this->applyBan($report);
                 break;
+            case 17: // Security
+                $this->applyHackDefense($report);
+                break;
         }
 
         // Enable ACL again
         ACL::$ignore = false;
+    }
+
+
+    /**
+     * Apply hacked account defense mechanism
+     * @param Report $report
+     * @return void
+     */
+    private function applyHackDefense(Report $report)
+    {
+        // Deactivate account
+        $user = $this->entitiesBuilder->single($report->getEntityOwnerGuid());
+        $user->enabled = 'no';
+        $user->save();
+
+        // Force change to random password
+        $this->password->randomReset($user);
+
+        // Destroy all sessions
+        $this->commonSessionsManager->deleteAll($user);
+
+        // Email user with reactivation instructions
+        $this->emailDelegate->onHack($report);
     }
 
     /**
@@ -217,7 +255,6 @@ class ActionDelegate
             }
         }
     }
-
 
     /**
      * Apply an NSFW lock to the user
