@@ -2,7 +2,7 @@
 /**
  * Notifications handler for entities
  */
-namespace Minds\Core\Notification;
+namespace Minds\Core\Notifications;
 
 use Minds\Core\Data\Relationships;
 

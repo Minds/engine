@@ -16,6 +16,7 @@ use Minds\Behaviors\Actorable;
 
 use Minds\Exceptions\GroupOperationException;
 
+// ojm pin
 class Notifications
 {
     use Actorable;
@@ -293,7 +294,7 @@ class Notifications
 
         $this->notificationBatches->setUser((int) $user_guid);
         $this->notificationBatches->setBatchId($this->group->getGuid());
-        
+
         $done = $this->notificationBatches->subscribe();
 
         $updateMarker = new UpdateMarker();

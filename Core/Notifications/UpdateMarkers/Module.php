@@ -1,25 +1,18 @@
 <?php
 /**
- * Notifications module.
+ * Update markers module.
  */
 
-namespace Minds\Core\Notifications;
+namespace Minds\Core\Notifications\UpdateMarkers;
 
 use Minds\Interfaces\ModuleInterface;
 
 /**
- * Notifications Module
- * @package Minds\Core\Notifications
+ * Update markers module
+ * @package Minds\Core\Notifications\UpdateMarkers
  */
 class Module implements ModuleInterface
 {
-    /** @var array $submodules */
-    public $submodules = [
-        PostSubscriptions\Module::class,
-        UpdateMarkers\Module::class,
-    ];
-
-
     /**
      * OnInit.
      */

@@ -1,5 +1,5 @@
 <?php
-namespace Minds\Core\Notification\Extensions;
+namespace Minds\Core\Notifications\Extensions;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
@@ -7,6 +7,7 @@ use Minds\Interfaces;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Core\Queue\Client as QueueClient;
 
+// ojm we should be pushing notifs through to a PushNotification class. but leave here for now
 class Push implements Interfaces\NotificationExtensionInterface
 {
     /**

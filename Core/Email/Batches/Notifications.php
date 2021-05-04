@@ -6,7 +6,7 @@ use Minds\Core\Analytics\Timestamps;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Campaigns\WhenNotifications;
 use Minds\Core\Email\EmailSubscribersIterator;
-use Minds\Core\Notification\Counters;
+use Minds\Core\Notifications\Delegates\CounterDelegate;
 use Minds\Core\Notification\Repository;
 use Minds\Traits\MagicAttributes;
 
@@ -31,7 +31,7 @@ class Notifications implements EmailBatchInterface
         $counters = null
     ) {
         $this->repository = $notificationRepository ?: Di::_()->get('Notification\Repository');
-        $this->counters = $counters ?: new Counters();
+        $this->counters = $counters ?: new CounterDelegate();
         $this->from = Timestamps::get(['day'])['day'];
     }
 

@@ -1,148 +1,264 @@
 <?php
-namespace Minds\Core\Security\TOTP;
+namespace Minds\Core\Notifications;
 
+use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Common\Repository\Response;
-use Minds\Core\Security\TOTP\Repository;
-use Minds\Core\Security\TOTP\TOTPSecret;
-use Minds\Core\Security\Password;
+use Minds\Core\Notifications\Repository;
+use Minds\Core\Notifications\Delegates\PushSettingsDelegate;
+use Minds\Core\Notifications\Delegates\CounterDelegate;
+use Minds\Core\Notifications\Notification;
 use Minds\Exceptions\UserErrorException;
 use Exception;
-use Minds\Core\EntitiesBuilder;
+use Minds\Core\Config;
 
 /**
- * TOTP Manager
- * @package Minds\Core\Security\TOTP
+ * Notifications Manager
+ * @package Minds\Core\Notifications
  */
 class Manager
 {
-    /** Future proofing */
-    /** @var string */
-    public const DEFAULT_DEVICE_ID = 'app';
+    /** @var Config $config */
+    private $config;
 
     /** @var Repository $repository */
-    protected $repository;
+    private $repository;
 
-    /** @var Password */
-    protected $password;
+    /** @var CounterDelegate $counters */
+    private $counters;
 
-    /** @var EntitiesBuilder */
-    protected $entitiesBuilder;
+    /** @var User $user */
+    private $user;
 
-    /** @var Delegates\EmailDelegate */
-    private $emailDelegate;
+    /** @var PushSettingsDelegate $settings */
+    protected $settings;
 
     public function __construct(
-        Repository $repository = null,
-        Password $password = null,
-        EntitiesBuilder $entitiesBuilder = null,
-        Delegates\EmailDelegate $emailDelegate = null
+        $config = null,
+        $repository = null,
+        $counters = null,
+        $settings = null
     ) {
-        $this->repository = $repository ?? new Repository();
-        $this->password = $password ?? Di::_()->get('Security\Password');
-        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
-        $this->emailDelegate = $emailDelegate ?: new Delegates\EmailDelegate();
+        $this->config = $config ?: Di::_()->get('Config');
+        $this->repository = $repository ?: new Repository;
+        $this->counters = $counters ?? new CounterDelegate;
+        $this->settings = $settings ?? new PushSettingsDelegate;
     }
 
     /**
-     * Get the secret associated with this user
-     * @param TOTPSecretQueryOpts $opts
-     * @return TOTPSecret
-     */
-    public function get(TOTPSecretQueryOpts $opts): ?TOTPSecret
-    {
-        if (!$opts->getUserGuid()) {
-            throw new Exception("User guid must be provided");
-        }
-
-        return $this->repository->get($opts);
-    }
-
-    /**
-     * Checks if user already has a secret registered to their channel
+     * Set the user to return notifications for
      * @param User $user
-     * @return bool
+     * @return $this
      */
-    public function isRegistered(User $user): bool
+    public function setUser($user)
     {
-        $opts = new TOTPSecretQueryOpts();
-        $opts->setUserGuid($user->getGuid());
+        $this->user = $user;
+        return $this;
+    }
 
-        $response = $this->repository->get($opts);
 
-        if (!$response) {
-            return false;
+    /**
+     * Get push notification settings for user
+     * @param string $userGuid
+     * @return number
+     */
+    public function getSettings(string $userGuid)
+    {
+        if (!$userGuid) {
+            $userGuid = Core\Session::getLoggedinUserGuid();
         }
-        return true;
+
+        $this->settings->setUserGuid($userGuid);
+
+        return $this->settings->getToggles();
+    }
+
+
+    /**
+     * Return unread count
+     * @return int
+     */
+    public function getCount(): int
+    {
+        return $this->counters
+            ->setUser($this->user)
+            ->getCount();
     }
 
     /**
-     * Checks that the recovery code is correct, user credentials match and then resets
-     * @param string $username
-     * @param string $password
-     * @param string $recoveryCode
-     * @return bool
+     * Return a single notification
+     * @param $urn
+     * @return Notification
      */
-    public function recover(string $username, string $password, string $recoveryCode): bool
+    public function getSingle($urn)
     {
-        /** @var User */
-        $user = $this->entitiesBuilder->getByUserByIndex($username);
+        if (strpos($urn, 'urn:') === false) {
+            $urn = "urn:notification:" . implode('-', [
+                    $this->user->getGuid(),
+                    $urn
+                ]);
+        }
+        return $this->repository->get($urn);
+    }
 
-        if (!$user) {
-            throw new UserErrorException("User not found");
+    /**
+     * Return a list of notifications
+     * @param $opts
+     * @return Response
+     */
+    public function getList($opts = [])
+    {
+        $opts = array_merge([
+            'to_guid' => $this->user ? $this->user->getGuid() : null,
+            'type' => null,
+            'types' => null,
+            'limit' => 12,
+            'offset' => '',
+        ], $opts);
+
+        $opts['type_group'] = $opts['type'];
+
+        switch ($opts['type']) {
+            case "tags":
+                $opts['types'] = [
+                    'tag',
+                ];
+                break;
+            case "subscriptions":
+                $opts['types'] = [
+                    'friends',
+                    'welcome_chat',
+                    'welcome_discover',
+                    'referral_ping',
+                    'referral_pending',
+                    'referral_complete',
+                ];
+                break;
+            case "groups":
+                $opts['types'] = [
+                    'group_invite',
+                    'group_kick',
+                    'group_activity',
+                ];
+                break;
+            case "comments":
+                $opts['types'] = [
+                    'comment',
+                ];
+                break;
+            case "votes":
+                $opts['types'] = [
+                    'like',
+                    'downvote',
+                ];
+                break;
+            case "reminds":
+                $opts['types'] = [
+                    'remind',
+                ];
+                break;
+            case "boosts":
+                $opts['types'] = [
+                    'boost_gift',
+                    'boost_submitted',
+                    'boost_submitted_p2p',
+                    'boost_request',
+                    'boost_rejected',
+                    'boost_revoked',
+                    'boost_accepted',
+                    'boost_completed',
+                    'boost_peer_request',
+                    'boost_peer_accepted',
+                    'boost_peer_rejected',
+                    'welcome_points',
+                    'welcome_boost',
+                ];
+                break;
         }
 
-        if (!$this->password->check($user, $password)) {
-            throw new UserErrorException("Incorrect username password combination");
-        }
+        return $this->repository->getList($opts);
+    }
 
-        $opts = new TOTPSecretQueryOpts();
-        $opts->setUserGuid($user->getGuid());
 
-        $totpSecret = $this->repository->get($opts);
+    /**
+     * Add notification to datastores
+     * @param Notification $notification
+     * @return string|false
+     */
+    public function add($notification)
+    {
+        try {
+            $this->repository->add($notification);
 
-        if (!$totpSecret) {
-            throw new Exception("User not registered for 2FA");
-        }
-
-        $recoveryHash = $totpSecret->getRecoveryHash();
-
-        /**
-         * Disable 2FA when the user uses the recovery code
-         */
-        if (password_verify($recoveryCode, $recoveryHash)) {
-            $success = $this->repository->delete($opts);
-            if ($success) {
-                $this->emailDelegate->onRecover($user);
+            return $notification->getUuid();
+        } catch (\Exception $e) {
+            error_log($e);
+            if (php_sapi_name() === 'cli') {
+                //exit;
             }
-            return $success;
         }
-
-        return false;
     }
 
     /**
-     * Adds a user's secret
-     * @param TOTPSecret $totpSecret
+     * Deletes notification from datastore
+     * @param Notification $notification
      * @return bool
      */
-    public function add(TOTPSecret $totpSecret): bool
+    public function delete($notification): bool
     {
-        $added = $this->repository->add($totpSecret);
-
-        return $added;
+        return $this->repository->delete($notification);
     }
 
     /**
-     * Deletes a user's secret
-     * @param TOTPSecretQueryOpts $opts
-     * @return bool
+     * @param $type
+     * @return string
      */
-    public function delete(TOTPSecretQueryOpts $opts): bool
+    public static function getGroupFromType($type)
     {
-        $deleted = $this->repository->delete($opts);
-
-        return $deleted;
+        switch ($type) {
+            case 'tag':
+                return 'tags';
+                break;
+            case 'friends':
+            case 'welcome_chat':
+            case 'welcome_discover':
+            case 'referral_ping':
+            case 'referral_pending':
+            case 'referral_complete':
+                return 'subscriptions';
+                break;
+            case 'group_invite':
+            case 'group_kick':
+            case 'group_activity':
+                return 'groups';
+                break;
+            case 'comment':
+                return 'comments';
+                break;
+            case 'like':
+            case 'downvote':
+                return 'votes';
+                break;
+            case 'remind':
+                return 'reminds';
+                break;
+            case 'boost_gift':
+            case 'boost_submitted':
+            case 'boost_submitted_p2p':
+            case 'boost_request':
+            case 'boost_rejected':
+            case 'boost_revoked':
+            case 'boost_accepted':
+            case 'boost_completed':
+            case 'boost_peer_request':
+            case 'boost_peer_accepted':
+            case 'boost_peer_rejected':
+            case 'welcome_points':
+            case 'welcome_boost':
+                return 'boosts';
+                break;
+        }
+        return 'unknown';
     }
 }

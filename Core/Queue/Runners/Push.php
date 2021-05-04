@@ -5,7 +5,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Data;
 use Minds\Core\Queue\Interfaces;
 use Minds\Core\Queue;
-use Minds\Core\Notification\Settings;
+use Minds\Core\Notifications;
 use Minds\Entities\User;
 use Surge;
 
@@ -47,9 +47,8 @@ class Push implements Interfaces\QueueRunner
                        $type = $data['type'];
 
                        //get notification settings for this user
-                       $toggles = (new Settings\PushSettings())
-                        ->setUserGuid($data['user_guid'])
-                        ->getToggles();
+                       $toggles = (new Notifications\Manager())
+                        ->getSettings($data['user_guid']);
                        if ($type && !isset($toggles[$type]) || $toggles[$type] === false) {
                            echo "[push]: {$data['user_guid']} has disabled $type notifications \n";
                            return false;

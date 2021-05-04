@@ -24,22 +24,103 @@ class Controller
      * @param null $manager
      */
     public function __construct(
-        $manager = null,
+        $manager = null
     ) {
         $this->manager = $manager ?? new Manager();
     }
 
-    //ojm from routes
+    /**
+     * Returns count of unread notifications
+     * @return JsonResponse
+     * @throws Exception
+     *
+     */
+    public function getCount(ServerRequest $request): JsonResponse
+    {
+        /** @var User */
+        $user = $request->getAttribute('_user');
 
-    // getSingle() {
-    //                                 //.get(`api/v1/notifications/single/${guid}`)
-    // }
+        $count = $this->manager
+            ->setUser($user)
+            ->getCount();
 
-    // getAll(){
-        // this filter is 'all'
-    //   .get(`api/v1/notifications/${this._filter}`, {
-    //     limit: this.limit,
-    //     offset: this.offset,
-    //   })
-    // }
+        return new JsonResponse([
+            'status' => 'success',
+            'count' => $count,
+        ]);
+    }
+
+    /**
+     * Returns a user's push notification settings
+     * @return JsonResponse
+     * @throws Exception
+     *
+     */
+    public function getSettings(ServerRequest $request): JsonResponse
+    {
+        /** @var User */
+        $user = $request->getAttribute('_user');
+
+        $toggles = $this->manager->getSettings($user->getGuid());
+
+        return new JsonResponse([
+            'status' => 'success',
+            'toggles' => $toggles,
+        ]);
+    }
+
+    /**
+    * Returns single notification
+    * @return JsonResponse
+    * @throws Exception
+    *
+    */
+    public function getSingle(ServerRequest $request): JsonResponse
+    {
+        $guid = $request->getAttribute('guid');
+        // $notification = ;
+
+        return new JsonResponse([
+            'status' => 'success',
+            'notification' => $notification,
+        ]);
+    }
+
+    /**
+     * Returns a list of notifications
+     * Based on filter preference
+     * @return JsonResponse
+     * @throws Exception
+     *
+     */
+    public function getList(ServerRequest $request): JsonResponse
+    {
+        /** @var User */
+        $user = $request->getAttribute('_user');
+
+        // ojm $filter isn't going to work, its a urlSegment
+        $filter = $request->getAttribute('filter');
+        $offset = $request->getAttribute('offset');
+        $limit = $request->getAttribute('limit');
+
+        // $notifications = $this->manager->getList();
+        // $loadNext
+
+        return new JsonResponse([
+            'status' => 'success',
+            'notification' => $notifications,
+            'load-next' => $loadNnext
+        ]);
+    }
 }
+
+// GET
+// count. response['count']
+// settings. (mobile) response['toggles']
+// single. response['notification']
+// list/all/default. $limit $offset $filter response['notifications', 'load-next']
+
+// POST
+// settings. $id, $toggle
+// token.
+// test.
