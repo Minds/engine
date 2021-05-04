@@ -40,7 +40,7 @@ class AccessTokenManager
 
     /**
      * Delete OAuth access token
-     * @param Access $tokenId
+     * @param AccessTokenEntity $accessToken
      * @return bool
      */
     public function delete(AccessTokenEntity $accessToken): bool
@@ -62,5 +62,21 @@ class AccessTokenManager
         }
 
         return $this->repository->revokeAccessToken($accessToken->getIdentifier());
+    }
+
+    /**
+     * Delete all OAuth access tokens
+     * @param User $user
+     * @return bool
+     */
+    public function deleteAll(User $user): bool
+    {
+        $accessTokens = $this->repository->getList($user->guid);
+
+        foreach ($accessTokens as $accessToken) {
+            $this->delete($accessToken);
+        }
+
+        return true;
     }
 }

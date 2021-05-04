@@ -62,6 +62,12 @@ class ActionsHistogram extends Aggregate
             }
         }
 
+        if ($this->onlyPlus) {
+            $must[]['term'] = [
+                'user_is_plus' => true,
+            ];
+        }
+
         $query = [
             'index' => 'minds-metrics-*',
             'type' => 'action',

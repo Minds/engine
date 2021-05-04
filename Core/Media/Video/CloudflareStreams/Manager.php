@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Media\Video\CloudflareStreams;
 
+use Composer\Semver\Comparator;
 use DateTimeImmutable;
 use Minds\Core\Config;
 use Minds\Entities\Video;
@@ -65,9 +66,15 @@ class Manager
     {
         $signedToken = $this->getSigningToken($video->getCloudflareId());
 
+        $mimeType = 'application/vnd.apple.mpegURL';
+
+        if (isset($_SERVER['HTTP_APP_VERSION']) && Comparator::lessThan($_SERVER['HTTP_APP_VERSION'], '4.12.0')) {
+            $mimeType = 'video/hls';
+        }
+
         return [
             (new Source())
-                ->setType('video/hls')
+                ->setType($mimeType)
                 ->setSrc("https://videodelivery.net/$signedToken/manifest/video.m3u8")
         ];
     }

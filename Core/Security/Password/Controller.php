@@ -26,13 +26,13 @@ class Controller
     }
 
     /**
-     * Checks how risky a password is, based on passwords
-     * pwned in previous breaches
+     * Checks how risky a password is, based on list of
+     * passwords pwned in previous breaches
      * @return JsonResponse
      * @throws Exception when no password provided
      *
      */
-    public function getRisk(ServerRequest $request): JsonResponse
+    public function assessRisk(ServerRequest $request): JsonResponse
     {
         $body = $request->getParsedBody();
         $password = $body['password'];

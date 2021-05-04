@@ -307,5 +307,6 @@ class ProhibitedDomains
         '//localreviewshop.com/',
         '//prem.li',
         '//shr.link',
+        '.clickbank.net',
     ];
 }

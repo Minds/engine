@@ -20,7 +20,7 @@ class ManagerSpec extends ObjectBehavior
 
     /** @var OAuthManager */
     private $oauthManager;
-    
+
     public function let(SessionsManager $sessionsManager, OAuthManager $oauthManager)
     {
         $this->beConstructedWith($sessionsManager, $oauthManager);
@@ -94,7 +94,7 @@ class ManagerSpec extends ObjectBehavior
         $commonSession->setUserGuid('123');
         $commonSession->setPlatform('browser');
 
-        $this->sessionsManager->delete(false, Argument::that(function ($session) {
+        $this->sessionsManager->delete(Argument::that(function ($session) {
             return $session->getUserGuid() === '123'
                 && $session->getId() === 'id-1';
         }))
@@ -117,5 +117,23 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->delete($commonSession)->shouldBe(true);
+    }
+
+    public function it_should_delete_all_via_common_session()
+    {
+        $user = new User();
+        $user->guid = '1234567';
+
+        $this->sessionsManager->deleteAll(Argument::that(function ($user) {
+            return $user->getGuid() === '1234567';
+        }))
+            ->willReturn(true);
+
+        $this->oauthManager->deleteAll(Argument::that(function ($user) {
+            return $user->getGuid() === '1234567';
+        }))
+            ->willReturn(true);
+
+        $this->deleteAll($user)->shouldBe(true);
     }
 }

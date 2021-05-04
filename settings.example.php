@@ -127,10 +127,19 @@ $CONFIG->set(
       'label' => 'Token manipulation',
       'hasMore' => false,
     ],
+    [
+      'value' => 17,
+      'label' => 'Security',
+      'hasMore' => true,
+      'reasons' => [
+        ['value' => 1, 'label' => 'Hacked account']
+      ],
+    ],
     ['value' => 11,
      'label' => 'Another reason',
      'hasMore' => true,
     ],
+
   ]
 );
 

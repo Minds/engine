@@ -133,9 +133,9 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         $sessions = Di::_()->get('Sessions\Manager');
 
         if (isset($pages[0]) && $pages[0] === 'all') {
-            $sessions->delete(true);
+            $sessions->deleteAll();
         } else {
-            $sessions->delete(false);
+            $sessions->delete();
         }
 
         return Factory::response([]);

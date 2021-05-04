@@ -329,23 +329,22 @@ class Manager
                 }
 
                 // If this is a trial, we still create the subscription but do not charge
-                if (!$wire->getTrialDays()) {
-                    $intent = new PaymentIntent();
-                    $intent
-                        ->setUserGuid($this->sender->getGuid())
-                        ->setAmount($this->amount)
-                        ->setPaymentMethod($this->payload['paymentMethodId'])
-                        ->setOffSession(true)
-                        ->setConfirm(true)
-                        ->setStripeAccountId($this->receiver->getMerchant()['id'])
-                        ->setServiceFeePct(static::WIRE_SERVICE_FEE_PCT);
+                $intent = new PaymentIntent();
+                $intent
+                    ->setUserGuid($this->sender->getGuid())
+                    ->setAmount(!$wire->getTrialDays() ? $this->amount : 100) // $1 hold on card during trial
+                    ->setPaymentMethod($this->payload['paymentMethodId'])
+                    ->setOffSession(true)
+                    ->setConfirm(true)
+                    ->setCaptureMethod(!$wire->getTrialDays() ? 'automatic' : 'manual') // Do not charge card
+                    ->setStripeAccountId($this->receiver->getMerchant()['id'])
+                    ->setServiceFeePct(static::WIRE_SERVICE_FEE_PCT);
 
-                    // Charge stripe
-                    $intent = $this->stripeIntentsManager->add($intent);
+                // Charge stripe
+                $intent = $this->stripeIntentsManager->add($intent);
 
-                    if (!$intent->getId()) {
-                        throw new \Exception("Payment failed");
-                    }
+                if (!$intent->getId()) {
+                    throw new \Exception("Payment failed");
                 }
 
                 $wire->setAddress('stripe')

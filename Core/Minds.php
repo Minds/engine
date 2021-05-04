@@ -55,6 +55,7 @@ class Minds extends base
         Media\Video\CloudflareStreams\Module::class,
         Matrix\Module::class,
         Sessions\Module::class,
+        Register\Module::class,
     ];
 
     /**

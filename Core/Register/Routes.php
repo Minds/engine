@@ -1,13 +1,13 @@
 <?php
-namespace Minds\Core\Security\Password;
+namespace Minds\Core\Register;
 
 use Minds\Core\Di\Ref;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 
 /**
- * Password Routes
- * @package Minds\Core\Security\Password
+ * Register Routes
+ * @package Minds\Core\Register
  */
 class Routes extends ModuleRoutes
 {
@@ -17,11 +17,11 @@ class Routes extends ModuleRoutes
     public function register(): void
     {
         $this->route
-            ->withPrefix('api/v3/security/password')
+            ->withPrefix('api/v3/register')
             ->do(function (Route $route) {
-                $route->post(
-                    'risk',
-                    Ref::_('Security\Password\Controller', 'assessRisk')
+                $route->get(
+                    'validate',
+                    Ref::_('Register\Controller', 'validate')
                 );
             });
     }

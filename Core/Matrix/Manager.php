@@ -107,14 +107,19 @@ class Manager
      * Will create a room between two users
      * @param User $user
      * @param User $reveiver
+     * @param bool $autoAcceptInvite
      * @return MatrixRoom
      */
-    public function createDirectRoom(User $sender, User $receiver): MatrixRoom
+    public function createDirectRoom(User $sender, User $receiver, bool $autoAcceptInvite = false): MatrixRoom
     {
+        $senderMatrixId = $this->getMatrixId($sender);
         $receiverMatrixId = $this->getMatrixId($receiver);
         // First, check to see that we don't already have a direct room
 
-        $rooms = array_values(array_filter($this->getJoinedRooms($sender), function ($room) use ($receiverMatrixId) {
+        $directRooms = $this->getDirectRooms($sender);
+
+        /** @var MatrixRoom[] */
+        $rooms = array_values(array_filter($directRooms, function ($room) use ($receiverMatrixId) {
             return $room->isDirectMessage() && in_array($receiverMatrixId, $room->getMembers(), false);
         }));
 
@@ -131,6 +136,7 @@ class Manager
                     'is_direct' => true,
                     'visibility' => 'private',
                     'invite' => [ $receiverMatrixId ],
+                    'preset' => 'trusted_private_chat',
                 ]
             ]);
 
@@ -140,9 +146,97 @@ class Manager
         $matrixRoom->setName($receiver->getName())
                 ->setId($decodedResponse['room_id'])
                 ->setLastEvent(time())
+                ->setMembers([$receiverMatrixId])
                 ->setDirectMessage(true);
 
+        if ($autoAcceptInvite) {
+            $this->acceptInvite($receiver, $matrixRoom);
+        }
+
+        /**
+         * Patch for synapse - create a DM doesn't add to the 'people' section
+         */
+
+        $directRooms[] = $matrixRoom;
+        $patchedDirectRooms = [];
+    
+        foreach ($directRooms as $room) {
+            $member = $room->getMembers()[0];
+            $patchedDirectRooms[$member] = [ $room->getId() ];
+        }
+
+        // Send PUT request to tag as a direct room
+        $this->client
+            ->setAccessToken($this->getServerAccessToken($sender))
+            ->request('PUT', "_matrix/client/r0/user/$senderMatrixId/account_data/m.direct", [
+                'json' => $patchedDirectRooms
+            ]);
+
         return $matrixRoom;
+    }
+
+    /**
+     * Accept an invite to a room
+     * @param User $user
+     * @param MatrixRoom $matrixRoom
+     * @return bool
+     */
+    public function acceptInvite(User $user, MatrixRoom $room): bool
+    {
+        $endpoint = "_matrix/client/r0/rooms/{$room->getId()}/join";
+
+        try {
+            $this->client
+                ->setAccessToken($this->getServerAccessToken($user))
+                ->request('POST', $endpoint, [
+                    'json' => [ ]
+                ]);
+
+            return true;
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            if ($e->getResponse()->getStatusCode() === 404) {
+                return [];
+            }
+            throw $e;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Return a list of direct rooms (does not include last timestamps)
+     * @param User $user
+     * @return MatrixRoom[]
+     */
+    protected function getDirectRooms(User $user)
+    {
+        try {
+            $matrixId = $this->getMatrixId($user);
+            $response = $this->client
+            ->setAccessToken($this->getServerAccessToken($user))
+            ->request('GET', "_matrix/client/r0/user/$matrixId/account_data/m.direct");
+
+            $decodedResponse = json_decode($response->getBody(), true);
+
+            /** @var MatrixRoom[] */
+            $rooms = [];
+            foreach ($decodedResponse as $memberId => $roomIds) {
+                $matrixRoom = new MatrixRoom();
+                $matrixRoom->setId($roomIds[0])
+                ->setInvite(false)
+                ->setMembers([$memberId])
+                ->setDirectMessage(true);
+                $rooms[] = $matrixRoom;
+            }
+        
+
+            return $rooms;
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            if ($e->getResponse()->getStatusCode() === 404) {
+                return [];
+            }
+            throw $e;
+        }
     }
 
     /**
@@ -170,6 +264,16 @@ class Manager
 
             if (count($roomData['timeline']['events'])) {
                 $matrixRoom->setLastEvent(round($roomData['timeline']['events'][0]['origin_server_ts'] / 1000));
+            }
+
+            foreach ($data['account_data']['events'] as $event) {
+                if ($event['type'] === 'm.direct') {
+                    foreach ($event['content'] as $roomIds) {
+                        if (in_array($roomId, $roomIds, true)) {
+                            $matrixRoom->setDirectMessage(true);
+                        }
+                    }
+                }
             }
 
             $rooms[] = $matrixRoom;
@@ -222,7 +326,7 @@ class Manager
                 'not_types' => ['m.presence']
             ],
             'account_data' => [
-                'types' => ['im.vector.setting.breadcrumbs']
+                'types' => ['im.vector.setting.breadcrumbs', 'm.direct']
             ],
         ]);
 
@@ -421,6 +525,7 @@ class Manager
      */
     protected function getMatrixId(User $user): string
     {
-        return "@{$user->getUsername()}:{$this->matrixConfig->getHomeserverDomain()}";
+        $username = strtolower($user->getUsername());
+        return "@{$username}:{$this->matrixConfig->getHomeserverDomain()}";
     }
 }

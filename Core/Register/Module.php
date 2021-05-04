@@ -1,12 +1,16 @@
 <?php
 /**
- * Matrix module.
+ * Register module.
  */
 
-namespace Minds\Core\Matrix;
+namespace Minds\Core\Register;
 
 use Minds\Interfaces\ModuleInterface;
 
+/**
+ * Register Module
+ * @package Minds\Core\Register
+ */
 class Module implements ModuleInterface
 {
     /**
@@ -18,7 +22,5 @@ class Module implements ModuleInterface
         $provider->register();
         $routes = new Routes();
         $routes->register();
-        $events = new Events();
-        $events->register();
     }
 }
