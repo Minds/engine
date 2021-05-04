@@ -34,6 +34,35 @@ class EmailDelegate
         $this->config = $config ?: Di::_()->get('Config');
     }
 
+
+    /**
+     * On hacked account
+     * @param Report $report
+     * @param string $randomPassword
+     * @return void
+     */
+    public function onHack(Report $report)
+    {
+        $entityUrn = $report->getEntityUrn();
+        $entityGuid = $this->urn->setUrn($entityUrn)->getNss();
+
+        $entity = $this->entitiesBuilder->single($entityGuid);
+        $owner = $entity->type === 'user' ? $entity : $this->entitiesBuilder->single($entity->getOwnerGuid());
+
+        $template = 'hacked-account';
+
+        $subject = 'Account compromised';
+
+        $this->campaign->setUser($owner);
+        $this->campaign->setTemplate($template);
+        $this->campaign->setSubject($subject);
+        $this->campaign->setTitle($subject);
+        $this->campaign->setPreheader('Your account security has been compromised');
+        $this->campaign->setHideDownloadLinks(true);
+
+        $this->campaign->send();
+    }
+
     /**
      * On Action
      * @param Report $report

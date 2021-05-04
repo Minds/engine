@@ -12,6 +12,7 @@ use Cassandra\Varint;
 use Cassandra\Timestamp;
 use Exception;
 use Zend\Diactoros\ServerRequestFactory;
+use Minds\Entities\User;
 
 class Repository
 {
@@ -163,26 +164,41 @@ class Repository
     /**
      * Destroy session
      * @param Session $session
-     * @param bool $all - destroy all open sessions
      * @return bool
      */
-    public function delete($session, $all = false)
+    public function delete($session)
     {
         $prepared = new Prepared;
 
-        if ($all) {
-            $prepared->query("DELETE FROM jwt_sessions WHERE user_guid = ?", [
-                new Varint($session->getUserGuid()),
-            ]);
-        } else {
-            $prepared->query("DELETE FROM jwt_sessions WHERE user_guid = ? AND id = ?", [
+        $prepared->query("DELETE FROM jwt_sessions WHERE user_guid = ? AND id = ?", [
                 new Varint($session->getUserGuid()),
                 $session->getId(),
             ]);
-        }
 
         return (bool) $this->client->request($prepared);
     }
+
+    /**
+     * Destroy all sessions
+     * @param User $user
+     * @throws Exception
+     * @return bool
+     */
+    public function deleteAll($user)
+    {
+        if (!$user) {
+            throw new Exception("User required");
+        }
+
+        $prepared = new Prepared;
+
+        $prepared->query("DELETE FROM jwt_sessions WHERE user_guid = ?", [
+                new Varint($user->getGuid()),
+            ]);
+
+        return (bool) $this->client->request($prepared);
+    }
+
 
     /**
      * Return counts

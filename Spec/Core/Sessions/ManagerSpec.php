@@ -19,6 +19,7 @@ use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Signer\Rsa\Sha512;
 use Minds\Common\IpAddress;
+use Minds\Entities\User;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -346,8 +347,6 @@ YSoKTsWFlvr9YG4o6R2ktgzKJ5ofiGTz5e2wLzP3a0ma8vGNke4Q
             $cookie
         );
 
-        $all = false;
-
         $session = new Session();
         $session
             ->setId('mock_session_id')
@@ -357,7 +356,7 @@ YSoKTsWFlvr9YG4o6R2ktgzKJ5ofiGTz5e2wLzP3a0ma8vGNke4Q
 
         $this->setSession($session);
 
-        $repository->delete($session, $all)
+        $repository->delete($session)
         ->willReturn(true);
 
         $cookie->setName('minds_sess')
@@ -387,6 +386,22 @@ YSoKTsWFlvr9YG4o6R2ktgzKJ5ofiGTz5e2wLzP3a0ma8vGNke4Q
         $cookie->create()
             ->shouldBeCalled();
 
-        $this->delete(false);
+        $this->delete();
+    }
+
+    public function it_should_delete_all_sessions_on_server(
+        Repository $repository
+    ) {
+        $this->beConstructedWith(
+            $repository
+        );
+
+        $user = new User();
+        $user->guid = 1234567;
+
+        $repository->deleteAll($user)
+        ->willReturn(true);
+
+        $this->deleteAll($user);
     }
 }
