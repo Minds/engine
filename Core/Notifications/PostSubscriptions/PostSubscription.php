@@ -10,7 +10,7 @@ use Minds\Traits\MagicAttributes;
 
 /**
  * Class PostSubscription
- * @package Minds\Core\Notification\PostSubscriptions
+ * @package Minds\Core\Notifications\PostSubscriptions
  * @method PostSubscription setEntityGuid(int $value)
  * @method int getEntityGuid()
  * @method PostSubscription setUserGuid(int $value)

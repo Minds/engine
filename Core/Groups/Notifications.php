@@ -10,13 +10,12 @@ use Minds\Core\Queue;
 use Minds\Entities;
 use Minds\Helpers\Counters;
 use Minds\Core\Data\Cassandra\Prepared;
-use Minds\Core\Notification\Notification;
-use Minds\Core\Notification\UpdateMarkers\UpdateMarker;
+use Minds\Core\Notifications\Notification;
+use Minds\Core\Notifications\UpdateMarkers\UpdateMarker;
 use Minds\Behaviors\Actorable;
 
 use Minds\Exceptions\GroupOperationException;
 
-// ojm pin
 class Notifications
 {
     use Actorable;
@@ -49,7 +48,7 @@ class Notifications
         $this->cql = $cql ?: Di::_()->get('Database\Cassandra\Cql');
         $this->notifications = $notifications ?: Di::_()->get('Notification\Manager');
         $this->notificationBatches = $notificationBatches ?: Di::_()->get('Notification\Batches\Manager');
-        $this->updateMarkers = Di::_()->get('Notification\UpdateMarkers\Manager');
+        $this->updateMarkers = Di::_()->get('Notifications\UpdateMarkers\Manager');
     }
 
     /**

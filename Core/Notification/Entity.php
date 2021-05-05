@@ -6,8 +6,6 @@ namespace Minds\Core\Notification;
 
 use Minds\Core\Data\Relationships;
 
-// ojm pin - if nothing calls it, then this can be removed
-// ojm things *do* call it -- decide what to do
 class Entity
 {
     protected $guid;

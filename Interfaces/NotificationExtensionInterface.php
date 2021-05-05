@@ -1,7 +1,6 @@
 <?php
 namespace Minds\Interfaces;
 
-//ojm pin
 /**
  * Interface for Notification Extensions
  */

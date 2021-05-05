@@ -7,7 +7,6 @@ use Minds\Interfaces;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Core\Queue\Client as QueueClient;
 
-// ojm we should be pushing notifs through to a PushNotification class. but leave here for now
 class Push implements Interfaces\NotificationExtensionInterface
 {
     /**

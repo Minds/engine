@@ -11,7 +11,7 @@ namespace Minds\Controllers\api\v1\entities;
 
 use Minds\Api\Factory;
 use Minds\Core;
-use Minds\Core\Notification;
+use Minds\Core\Notifications;
 use Minds\Entities;
 use Minds\Interfaces;
 
@@ -33,7 +33,7 @@ class notifications implements Interfaces\Api
             ]);
         }
 
-        $manager = new Notification\PostSubscriptions\Manager();
+        $manager = new Notifications\PostSubscriptions\Manager();
         $manager
             ->setUserGuid($user->guid)
             ->setEntityGuid($entity->guid);
@@ -71,7 +71,7 @@ class notifications implements Interfaces\Api
             ]);
         }
 
-        $manager = new Notification\PostSubscriptions\Manager();
+        $manager = new Notifications\PostSubscriptions\Manager();
         $manager
             ->setEntityGuid($entity->guid)
             ->setUserGuid($user->guid);

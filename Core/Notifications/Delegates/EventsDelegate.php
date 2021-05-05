@@ -1,6 +1,6 @@
 <?php
 
-namespace Minds\Core\Notifications;
+namespace Minds\Core\Notifications\Delegates;
 
 use Minds\Common\Regex;
 use Minds\Entities;
@@ -10,14 +10,16 @@ use Minds\Core\Queue;
 use Minds\Core\Session;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
-use Minds\Core\Notification\Extensions\Push;
+use Minds\Core\Notifications\Notification;
+use Minds\Core\Notifications\Delegates\CounterDelegate;
+use Minds\Core\Notifications\Extensions\Push;
 use Minds\Core\Di\Di;
 use Minds\Core\Security\Block\BlockEntry;
 
 use Minds\Helpers;
 use Minds\Core\Sockets;
 
-class Events
+class EventsDelegate
 {
     /**
      * Centralized method to register Event handlers related to notifications
@@ -176,10 +178,10 @@ class Events
                 }
             }
 
-            $counters = new Delegates\CounterDelegate();
+            $counters = new CounterDelegate();
 
             /** @var Manager $manager */
-            $manager = Core\Di\Di::_()->get('Notification\Manager');
+            $manager = Core\Di\Di::_()->get('Notifications\Manager');
 
             foreach ($params['to'] as $to_user) {
                 if (!$notification->getFromGuid()) {

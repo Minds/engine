@@ -10,7 +10,7 @@ use Minds\Core\Email\Manager;
 use Minds\Core\Feeds;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Discovery\Trend;
-use Minds\Core\Notification;
+use Minds\Core\Notifications;
 use Minds\Entities\User;
 use Minds\Entities\Activity;
 use Minds\Common\Repository\Response;
@@ -31,7 +31,7 @@ class DigestSpec extends ObjectBehavior
     /** @var Feeds\Elastic\Manager */
     protected $feedsManager;
 
-    /** @var Notification\Manager */
+    /** @var Notifications\Manager */
     protected $notificationManager;
 
     public function let(
@@ -39,7 +39,7 @@ class DigestSpec extends ObjectBehavior
         Mailer $mailer,
         Manager $manager,
         Feeds\Elastic\Manager $feedsManager,
-        Notification\Manager $notificationManager
+        Notifications\Manager $notificationManager
     ) {
         $this->beConstructedWith($template, $mailer, $manager, $feedsManager, $notificationManager);
         $this->manager = $manager;
@@ -88,7 +88,7 @@ class DigestSpec extends ObjectBehavior
 
         $this->notificationManager->setUser($user)
             ->willReturn($this->notificationManager);
-        
+
         $this->notificationManager->getCount()
             ->willReturn(5);
 

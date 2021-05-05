@@ -12,7 +12,7 @@ use Minds\Core\Email\V2\Partials\SuggestedChannels\SuggestedChannels;
 use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds;
-use Minds\Core\Notification;
+use Minds\Core\Notifications;
 use Minds\Common\Repository\Response;
 use Minds\Core\Search\SortingAlgorithms;
 
@@ -32,7 +32,7 @@ class Digest extends EmailCampaign
     /** @var Feeds\Elastic\Manager */
     protected $feedsManager;
 
-    /** @var Notification\Manager */
+    /** @var Notifications\Manager */
     protected $notificationManager;
 
     public function __construct(
@@ -40,7 +40,7 @@ class Digest extends EmailCampaign
         Mailer $mailer = null,
         Manager $manager = null,
         Feeds\Elastic\Manager $feedsManager = null,
-        Notification\Manager $notificationManager = null
+        Notifications\Manager $notificationManager = null
     ) {
         $this->template = $template ?: new Template();
         $this->mailer = $mailer ?: new Mailer();

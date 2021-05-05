@@ -9,7 +9,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Feeds\Activity\Manager;
 use Minds\Core\Log\Logger;
-use Minds\Core\Notification\PostSubscriptions\Manager as PostSubscriptionsManager;
+use Minds\Core\Notifications\PostSubscriptions\Manager as PostSubscriptionsManager;
 use Minds\Entities\Activity;
 use Minds\Entities\Video;
 use Minds\Core\Data\Call;

@@ -6,7 +6,7 @@ namespace Minds\Controllers\api\v2\oauth;
 
 use Minds\Api\Factory;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Notification\PostSubscriptions\Manager;
+use Minds\Core\Notifications\PostSubscriptions\Manager;
 use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Core\Di\Di;
@@ -47,7 +47,7 @@ class token implements Interfaces\Api, Interfaces\ApiIgnorePam
             ];
             $response = new JsonResponse($body);
         }
-        
+
         $emitter = new SapiEmitter();
         $emitter->emit($response);
     }
@@ -65,7 +65,7 @@ class token implements Interfaces\Api, Interfaces\ApiIgnorePam
             $server = Di::_()->get('OAuth\Server\Resource');
             $accessTokenRepository = Di::_()->get('OAuth\Repositories\AccessToken');
             $refreshTokenRepository = Di::_()->get('OAuth\Repositories\RefreshToken');
-            
+
             $request = $server->validateAuthenticatedRequest($request);
 
             $tokenId = $request->getAttribute('oauth_access_token_id');
@@ -75,11 +75,11 @@ class token implements Interfaces\Api, Interfaces\ApiIgnorePam
             // remove surge token for push notifications.
             $user = Session::getLoggedinUser();
             $user->setSurgeToken('');
-            
+
             $save = new Save();
             $save->setEntity($user)
               ->save();
-            
+
             $response = new JsonResponse([]);
         } catch (\Exception $e) {
             Sentry\captureException($e); // Log to sentry

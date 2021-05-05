@@ -10,7 +10,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Entities;
 use Minds\Entities\Group;
-use Minds\Core\Notification\UpdateMarkers;
+use Minds\Core\Notifications\UpdateMarkers;
 use Minds\Behaviors\Actorable;
 
 use Minds\Exceptions\GroupOperationException;

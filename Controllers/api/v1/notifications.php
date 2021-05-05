@@ -182,14 +182,12 @@ class notifications implements Interfaces\Api
     }
 
 
-    // ojm are we calling owner and from... this needs to go
     /**
      * Polyfill notifications to be readed by legacy clients
      * @return array
      */
     protected function polyfillResponse($notifications) : array
     {
-        // ojm move this to Notifications/manager
         $manager = Di::_()->get('Notification\Manager');
         $acl = Di::_()->get('Security\ACL');
         $return = [];
@@ -199,7 +197,6 @@ class notifications implements Interfaces\Api
                 error_log('[notification]: Mismatch of to_guid with uuid ' . $entity->getUuid());
                 continue;
             }
-            //ojm use the entity builder here instead
             $entityObj = Entities\Factory::build($entity->getEntityGuid());
             $fromObj = Entities\Factory::build($entity->getFromGuid());
 
@@ -222,10 +219,6 @@ class notifications implements Interfaces\Api
                 unset($notifications[$key]);
                 continue;
             }
-            //////// ojm end /////////
-
-            // we might not need this? but check
-            // ojm we actually should do this in Notification.php
 
             $notification = [
                 'guid' => $entity->getUuid(),
@@ -244,7 +237,6 @@ class notifications implements Interfaces\Api
 
             $notification['entity'] = $notification['entityObj'];
 
-            // ojm check if used
             $notification['owner'] =
             $notification['ownerObj'] =
             $notification['from'] =

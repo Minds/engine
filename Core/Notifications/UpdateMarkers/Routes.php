@@ -34,11 +34,10 @@ class Routes extends ModuleRoutes
                             'read',
                             Ref::_('Notifications\UpdateMarkers\Controller', 'readMarker')
                         );
-                        // ojm heartbeat
-                        // $route->put(
-                        //     'heartbeat',
-                        //     Ref::_('Notifications\UpdateMarkers\Controller', 'markGathering')
-                        // );
+                        $route->put(
+                            'heartbeat',
+                            Ref::_('Notifications\UpdateMarkers\Controller', 'markGathering')
+                        );
                     });
             });
     }

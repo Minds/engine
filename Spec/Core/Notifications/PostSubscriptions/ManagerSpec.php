@@ -1,0 +1,120 @@
+<?php
+
+namespace Spec\Minds\Core\Notifications\PostSubscriptions;
+
+use Minds\Core\Notifications\PostSubscriptions\PostSubscription;
+use Minds\Core\Notifications\PostSubscriptions\Repository;
+use PhpSpec\ObjectBehavior;
+use Prophecy\Argument;
+
+class ManagerSpec extends ObjectBehavior
+{
+    protected $repository;
+
+    public function let(
+        Repository $repository
+    ) {
+        $this->beConstructedWith($repository);
+
+        $this->repository = $repository;
+    }
+
+    public function it_is_initializable()
+    {
+        $this->shouldHaveType('Minds\Core\Notifications\PostSubscriptions\Manager');
+    }
+
+    public function it_should_set_entity_guid()
+    {
+        $this
+            ->setEntityGuid(5000)
+            ->shouldReturn($this);
+    }
+
+    public function it_should_set_user_guid()
+    {
+        $this
+            ->setUserGuid(1000)
+            ->shouldReturn($this);
+    }
+
+    public function it_should_get()
+    {
+        $postSubscription = new PostSubscription();
+
+        $this->repository->get(5000, 1000)
+            ->shouldBeCalled()
+            ->willReturn($postSubscription);
+
+        $this
+            ->setEntityGuid(5000)
+            ->setUserGUid(1000)
+            ->get()
+            ->shouldReturn($postSubscription);
+    }
+
+    public function it_should_get_a_non_existing()
+    {
+        $this->repository->get(5000, 1000)
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this
+            ->setEntityGuid(5000)
+            ->setUserGUid(1000)
+            ->get()
+            ->shouldBeAnInstanceOf(PostSubscription::class);
+    }
+
+    public function it_should_follow()
+    {
+        $this->repository->add(Argument::type(PostSubscription::class))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this
+            ->setEntityGuid(5000)
+            ->setUserGUid(1000)
+            ->follow()
+            ->shouldReturn(true);
+    }
+
+    public function it_should_follow_without_forcing()
+    {
+        $this->repository->update(Argument::type(PostSubscription::class))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this
+            ->setEntityGuid(5000)
+            ->setUserGUid(1000)
+            ->follow(false)
+            ->shouldReturn(true);
+    }
+
+    public function it_should_unfollow()
+    {
+        $this->repository->add(Argument::type(PostSubscription::class))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this
+            ->setEntityGuid(5000)
+            ->setUserGUid(1000)
+            ->unfollow()
+            ->shouldReturn(true);
+    }
+
+    public function it_should_unsubscribe()
+    {
+        $this->repository->delete(Argument::type(PostSubscription::class))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this
+            ->setEntityGuid(5000)
+            ->setUserGUid(1000)
+            ->unsubscribe()
+            ->shouldReturn(true);
+    }
+}

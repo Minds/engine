@@ -14,7 +14,6 @@ use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 
-//ojm need to move and update this spec test
 class Controller
 {
     /** @var Manager */
@@ -36,10 +35,6 @@ class Controller
      */
     public function getList(ServerRequest $request): JsonResponse
     {
-        // ojm
-        // .get('api/v2/notifications/markers', {type: 'group',})
-
-        // ojm confirm that GET request objects are rec'd as query params
         $entityType = $request->getQueryParams()['type'] ?? 'group';
 
         /** @var User */
@@ -66,9 +61,6 @@ class Controller
      */
     public function readMarker(ServerRequest $request): JsonResponse
     {
-        // ojm
-        // this.http.post('api/v2/notifications/markers/read', opts)
-
         /** @var User */
         $user = $request->getAttribute('_user');
 
@@ -97,42 +89,33 @@ class Controller
         ]);
     }
 
-    //ojm heartbeat
     /**
      * Returns a hearbeat during live gathering
      * @return JsonResponse
      * @throws Exception
      *
      */
-    // public function markGathering(ServerRequest $request): JsonResponse
-    // {
+    public function markGathering(ServerRequest $request): JsonResponse
+    {
+        $body = $request->getParsedBody();
 
-    //     return new JsonResponse([
-    //         'marker' => $marker->export()
-    //     ]);
-    // }
+        $entityGuid = $body['entity_guid'];
 
+        if (!$entityGuid) {
+            throw new UserErrorException("entity_guid must be provided");
+        }
 
-    //ojm heartbeat
-    /**
-     * Equivalent to HTTP PUT method
-     * @param  array $pages
-     * @return mixed|null
-     */
-    // public function put($pages)
-    // {
-    //     $marker = new UpdateMarker;
-    //     $marker
-    //         ->setUserGuid(Session::getLoggedInUserGuid())
-    //         ->setEntityGuid($pages[1])
-    //         ->setEntityType('group')
-    //         ->setMarker('gathering-heartbeat')
-    //         ->setUpdatedTimestamp(time());
-    //     $manager = (new Manager());
-    //     $manager->pushToSocketRoom($marker);
+        $marker = new UpdateMarker;
+        $marker
+                ->setUserGuid(Session::getLoggedInUserGuid())
+                ->setEntityGuid($entityGuid)
+                ->setEntityType('group')
+                ->setMarker('gathering-heartbeat')
+                ->setUpdatedTimestamp(time());
+        $this->manager->pushToSocketRoom($marker);
 
-    //     return Factory::response([
-    //         'marker' => $marker->export(),
-    //     ]);
-    // }
+        return new JsonResponse([
+            'marker' => $marker->export()
+        ]);
+    }
 }

@@ -12,7 +12,7 @@ use Minds\Core\Comments\Comment;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\Dispatcher;
-use Minds\Core\Notification\PostSubscriptions\Manager;
+use Minds\Core\Notifications\PostSubscriptions\Manager;
 use Minds\Core\Security\Block;
 
 class ThreadNotifications
@@ -62,7 +62,7 @@ class ThreadNotifications
     {
         $isReply = $comment->getPartitionPath() !== '0:0:0';
         $subscribers = [];
-    
+
         $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
         if (!$entity || ($entity->type === 'group' && !$isReply)) {
             return;

@@ -13,7 +13,6 @@ class Manager
     public function __construct($repository = null, $sockets = null)
     {
         $this->repository = $repository ?: new Repository;
-        // ojm heartbeat
         $this->sockets = $sockets ?: new Sockets\Events;
     }
 
@@ -40,11 +39,11 @@ class Manager
         return $this->repository->add($marker);
     }
 
-    // ojm hearbeat
-    // public function pushToSocketRoom(UpdateMarker $marker)
-    // {
-    //     $this->sockets
-    //       ->setRoom("marker:{$marker->getEntityGuid()}")
-    //       ->emit("marker:{$marker->getEntityGuid()}", json_encode($marker->export()));
-    // }
+    public function pushToSocketRoom(UpdateMarker $marker)
+    {
+        $this->sockets
+          ->setRoom("marker:{$marker->getEntityGuid()}")
+          ->emit("marker:{$marker->getEntityGuid()}", json_encode($marker->export()));
+    }
 }
+`

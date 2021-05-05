@@ -6,7 +6,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Notification\Repository;
-use Minds\Core\Notification\Counters;
+use Minds\Core\Notifications\Delegates\CounterDelegate;
 use Minds\Common\Repository\Response;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -24,7 +24,7 @@ class NotificationsSpec extends ObjectBehavior
         Repository $notificationRepository,
         \Minds\Core\Email\Repository $emailRepository,
         EntitiesBuilder $builder,
-        Counters $counters
+        CounterDelegate $counters
     ) {
         $this->notificationRepository = $notificationRepository;
         $this->emailRepository = $emailRepository;

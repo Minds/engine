@@ -6,7 +6,7 @@ namespace Minds\Controllers\api\v2\oauth;
 
 use Minds\Api\Factory;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Notification\PostSubscriptions\Manager;
+use Minds\Core\Notifications\PostSubscriptions\Manager;
 use Minds\Core\Session as Sess;
 use Minds\Interfaces;
 use Minds\Core\Di\Di;

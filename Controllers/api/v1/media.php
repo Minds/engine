@@ -295,7 +295,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         // Follow activity
-        (new Core\Notification\PostSubscriptions\Manager())
+        (new Core\Notifications\PostSubscriptions\Manager())
             ->setEntityGuid($entity->guid)
             ->setUserGuid(Core\Session::getLoggedInUserGuid())
             ->follow();

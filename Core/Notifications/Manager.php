@@ -74,6 +74,27 @@ class Manager
         return $this->settings->getToggles();
     }
 
+    /**
+     * Update push notification settings for user
+     * @param string $userGuid
+     * @param string $id
+     * @param string $toggle
+     * @return boolean
+     * @throws UserErrorException
+     */
+    public function updateSettings(string $userGuid, string $id, string $toggle): bool
+    {
+        if (!$userGuid || !$id || !$toggle) {
+            throw new UserErrorException("userGuid, id and toggle must be provided");
+        }
+
+        $this->settings
+            ->setToggle($id, $toggle)
+            ->setUserGuid($userGuid)
+            ->save();
+
+        return true;
+    }
 
     /**
      * Return unread count

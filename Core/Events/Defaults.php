@@ -121,7 +121,7 @@ class Defaults
         });
 
         // Notifications events
-        Core\Notification\Events::registerEvents();
+        Core\Notifications\Delegates\EventsDelegate::registerEvents();
 
         // Search events
         (new Core\Search\Events())->register();

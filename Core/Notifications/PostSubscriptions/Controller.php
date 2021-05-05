@@ -1,15 +1,13 @@
 <?php
 
 /**
- * Minds Post Notifications controller
+ * Post subscriptions controller
  */
 
 namespace Minds\Core\Notifications\PostSubscriptions;
 
-use Minds\Api\Factory;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Notifications\PostSubscriptions\Manager;
-use Minds\Core\Session;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
@@ -57,62 +55,76 @@ class Controller
         ]);
     }
 
-    // ojm todo
     /**
-     * Equivalent to HTTP PUT method
-     * @param  array $pages
-     * @return mixed|null
+     * Updates a user's post subscription
+     * @return JsonResponse
+     * @throws UserErrorException
      */
-    public function put($pages)
+    public function put(ServerRequest $request): JsonResponse
     {
-        $user = Session::getLoggedinUser();
-        $entityGuid = $pages[0];
+        $body = $request->getParsedBody();
 
-        $manager = (new Manager());
-        $manager
+        $entityGuid = $body['entity_guid'];
+
+        if (!$entityGuid) {
+            throw new UserErrorException("Entity guid required");
+        }
+
+        /** @var User */
+        $user = $request->getAttribute('_user');
+
+        $this->manager
             ->setEntityGuid($entityGuid)
             ->setUserGuid($user->guid);
 
-        $saved = $manager->follow(true);
+        $saved = $this->manager->follow(true);
 
         $entity = (new EntitiesBuilder())->single($entityGuid);
         if ($saved && $entity && $entity->entity_guid) {
-            $manager
+            $this->manager
                 ->setEntityGuid($entity->entity_guid)
                 ->follow(true);
         }
 
-        return Factory::response([
+        return new JsonResponse([
+            'status' => 'success',
             'done' => $saved
         ]);
     }
 
-    // ojm todo
     /**
-     * Equivalent to HTTP DELETE method
-     * @param  array $pages
-     * @return mixed|null
+     * Deletes a user's post subscription
+     * @return JsonResponse
+     * @throws UserErrorException
      */
-    public function delete($pages)
+    public function delete(ServerRequest $request): JsonResponse
     {
-        $user = Session::getLoggedinUser();
-        $entityGuid = $pages[0];
+        $body = $request->getParsedBody();
 
-        $manager = (new Manager());
-        $manager
+        $entityGuid = $body['entity_guid'];
+
+        if (!$entityGuid) {
+            throw new UserErrorException("Entity guid required");
+        }
+
+        /** @var User */
+        $user = $request->getAttribute('_user');
+
+        $this->manager
             ->setEntityGuid($entityGuid)
             ->setUserGuid($user->guid);
 
-        $saved = $manager->unfollow();
+        $saved = $this->manager->unfollow();
 
         $entity = (new EntitiesBuilder())->single($entityGuid);
         if ($saved && $entity && $entity->entity_guid) {
-            $manager
+            $this->manager
                 ->setEntityGuid($entity->entity_guid)
                 ->unfollow();
         }
 
-        return Factory::response([
+        return new JsonResponse([
+            'status' => 'success',
             'done' => $saved
         ]);
     }

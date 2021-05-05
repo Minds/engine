@@ -39,7 +39,7 @@ class Routes extends ModuleRoutes
                             Ref::_('Notifications\Controller', 'getSettings')
                         );
                         $route->get(
-                            '',
+                            'list',
                             Ref::_('Notifications\Controller', 'getList')
                         );
                         $route->post(

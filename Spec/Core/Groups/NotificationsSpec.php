@@ -10,7 +10,7 @@ use Minds\Core\Data\Cassandra;
 use Minds\Core\Data\Cassandra\Thrift\Relationships;
 use Minds\Core\Data\Cassandra\Thrift\Indexes;
 use Minds\Entities\Group as GroupEntity;
-use Minds\Core\Notification\Manager as NotificationManager;
+use Minds\Core\Notifications\Manager as NotificationManager;
 use Minds\Core\Notification\Batches\Manager as NotificationBatches;
 
 class NotificationsSpec extends ObjectBehavior
@@ -125,7 +125,7 @@ class NotificationsSpec extends ObjectBehavior
 
         $this->notificationBatches->isSubscribed()
             ->willReturn(false);
-    
+
         $this->isMuted($user)->shouldReturn(true);
     }
 

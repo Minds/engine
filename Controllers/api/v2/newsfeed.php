@@ -383,7 +383,7 @@ class newsfeed implements Interfaces\Api
                             'message' => 'Remind not found',
                         ]);
                     }
-                    
+
                     // throw and error return response if acl interaction check fails.
                     try {
                         if (!Di::_()->get('Security\ACL')->interact($remind, $user)) {
@@ -522,14 +522,14 @@ class newsfeed implements Interfaces\Api
 
                 if ($success) {
                     // Follow activity
-                    (new Core\Notification\PostSubscriptions\Manager())
+                    (new Core\Notifications\PostSubscriptions\Manager())
                         ->setEntityGuid($activity->guid)
                         ->setUserGuid(Core\Session::getLoggedInUserGuid())
                         ->follow();
 
                     if ($activity->getEntityGuid()) {
                         // Follow activity entity as well
-                        (new Core\Notification\PostSubscriptions\Manager())
+                        (new Core\Notifications\PostSubscriptions\Manager())
                             ->setEntityGuid($activity->getEntityGuid())
                             ->setUserGuid(Core\Session::getLoggedInUserGuid())
                             ->follow();

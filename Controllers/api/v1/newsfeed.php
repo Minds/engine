@@ -455,14 +455,14 @@ class newsfeed implements Interfaces\Api
                     ]);
 
                     // Follow activity
-                    (new Core\Notification\PostSubscriptions\Manager())
+                    (new Core\Notifications\PostSubscriptions\Manager())
                         ->setEntityGuid($activity->guid)
                         ->setUserGuid(Core\Session::getLoggedInUserGuid())
                         ->follow();
 
                     if (isset($attachment) && $attachment) {
                         // Follow attachment
-                        (new Core\Notification\PostSubscriptions\Manager())
+                        (new Core\Notifications\PostSubscriptions\Manager())
                             ->setEntityGuid($attachment->guid)
                             ->setUserGuid(Core\Session::getLoggedInUserGuid())
                             ->follow();
