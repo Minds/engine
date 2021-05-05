@@ -91,7 +91,7 @@ class Manager
         }
 
         foreach ($previousRequests['withdrawals'] as $request) {
-            if ($request->getStatus() === 'pending' || $request->getStatus() === 'pending_review') {
+            if ($request->getStatus() === 'pending' || $request->getStatus() === 'pending_approval') {
                 return false;
             }
         }
