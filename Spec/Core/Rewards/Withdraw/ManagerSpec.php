@@ -101,7 +101,6 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->getList([
             'user_guid' => 1000,
-            'from' => strtotime('-1 day'),
         ])
             ->shouldBeCalled()
             ->willReturn([
@@ -126,9 +125,10 @@ class ManagerSpec extends ObjectBehavior
                 ],
             ]);
 
+        $request->getStatus()->shouldBeCalled()->willReturn('pending');
+
         $this->repository->getList([
             'user_guid' => 1000,
-            'from' => strtotime('-1 day'),
         ])
             ->shouldBeCalled()
             ->willReturn([
@@ -268,7 +268,6 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->getList([
             'user_guid' => 1000,
-            'from' => strtotime('-1 day'),
         ])
             ->shouldBeCalled()
             ->willReturn([
@@ -327,7 +326,6 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->getList([
             'user_guid' => 1000,
-            'from' => strtotime('-1 day'),
         ])
             ->shouldBeCalled()
             ->willReturn([
@@ -366,7 +364,6 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->getList([
             'user_guid' => 1000,
-            'from' => strtotime('-1 day'),
         ])
             ->shouldBeCalled()
             ->willReturn([
@@ -375,8 +372,10 @@ class ManagerSpec extends ObjectBehavior
                 ],
             ]);
 
+        $request->getStatus()->shouldBeCalled()->willReturn('pending');
+
         $this
-            ->shouldThrow(new Exception('A withdrawal has already been requested in the last 24 hours'))
+            ->shouldThrow(new Exception('You can only have one pending withdrawal at a time'))
             ->duringRequest($request);
     }
 

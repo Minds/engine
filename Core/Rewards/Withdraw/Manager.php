@@ -69,7 +69,7 @@ class Manager
     }
 
     /**
-     * Checks if a withdrawal has been made in the last 24 hours
+     * Checks if the user already has a pending withdrawal.
      * @param $userGuid
      * @return boolean
      */
@@ -84,12 +84,19 @@ class Manager
 
         $previousRequests = $this->repository->getList([
             'user_guid' => $userGuid,
-            'from' => strtotime('-1 day')
         ]);
 
-        return !$previousRequests
-            || !isset($previousRequests['withdrawals'])
-            || count($previousRequests['withdrawals']) === 0;
+        if (!$previousRequests || !isset($previousRequests['withdrawals'])) {
+            return true;
+        }
+
+        foreach ($previousRequests['withdrawals'] as $request) {
+            if ($request->getStatus() === 'pending' || $request->getStatus() === 'pending_approval') {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -167,7 +174,7 @@ class Manager
     public function request($request): bool
     {
         if (!$this->check($request->getUserGuid())) {
-            throw new Exception('A withdrawal has already been requested in the last 24 hours');
+            throw new Exception('You can only have one pending withdrawal at a time');
         }
 
         $user = new User();
