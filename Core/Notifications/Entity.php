@@ -6,7 +6,6 @@ namespace Minds\Core\Notifications;
 
 use Minds\Core\Data\Relationships;
 
-// ojm things *do* call it -- decide what to do with this
 class Entity
 {
     protected $guid;

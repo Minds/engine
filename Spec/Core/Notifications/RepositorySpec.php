@@ -30,10 +30,12 @@ class RepositorySpec extends ObjectBehavior
 
     public function it_should_return_a_notification_from_uuid()
     {
-        $this->cql->request(Argument::that(function ($prepared) {
+        $uuid = (new Timeuuid())->uuid();
+
+        $this->cql->request(Argument::that(function ($prepared) use ($uuid) {
             $values = $prepared->build()['values'];
             return $values[0]->value() == 123
-                && $values[1]->uuid() == 'uuid';
+                && $values[1]->uuid() == $uuid;
         }))
             ->willReturn(new Rows([
                 [
@@ -48,7 +50,7 @@ class RepositorySpec extends ObjectBehavior
                     'data' => '',
                 ]
             ], ''));
-        $notification = $this->get('urn:notification:123-uuid');
+        $notification = $this->get("urn:notification:123-$uuid");
 
         $notification->getToGuid()
             ->shouldBe(123);
@@ -66,9 +68,12 @@ class RepositorySpec extends ObjectBehavior
 
     public function it_should_add_to_database(Notification $notification)
     {
-        $this->cql->request(Argument::that(function ($prepared) {
+        $uuid = (new Timeuuid())->uuid();
+
+        $this->cql->request(Argument::that(function ($prepared) use ($uuid) {
             $values = $prepared->build()['values'];
-            return $values[0]->value() == 123;
+            return $values[0]->value() == 123
+            && $values[1]->uuid() == $uuid;
         }))
             ->shouldBeCalled()
             ->willReturn(true);
@@ -76,9 +81,7 @@ class RepositorySpec extends ObjectBehavior
         $notification->getToGuid()
             ->willReturn(123);
         $notification->getUuid()
-            ->willReturn(null);
-        $notification->setUuid(Argument::type('string'))
-            ->shouldBeCalled();
+            ->willReturn($uuid);
         $notification->getFromGuid()
             ->willReturn(456);
         $notification->getType()

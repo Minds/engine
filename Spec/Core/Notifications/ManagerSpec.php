@@ -48,6 +48,8 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_get_a_single_notification(Notification $notification, User $user)
     {
+        // TODO this test is broken after polyfill update
+
         $this->setUser($user);
         $user->getGUID()
             ->willReturn(456);
@@ -70,6 +72,8 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_add_to_repository(Notification $notification)
     {
+        // TODO this test is broken after polyfill update
+
         $this->repository->add($notification)
             ->shouldBeCalled();
 

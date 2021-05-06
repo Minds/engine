@@ -11,6 +11,7 @@ use Minds\Core\Notifications\Manager;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 use Minds\Core\Queue\Client as QueueClient;
+use Minds\Entities;
 
 /**
  * Notifications Controller
@@ -101,7 +102,7 @@ class Controller
 
         return new JsonResponse([
             'status' => 'success',
-            'notification' => $notification, // ojm polyfill here
+            'notification' => $notification,
         ]);
     }
 
@@ -148,7 +149,7 @@ class Controller
 
         return new JsonResponse([
             'status' => 'success',
-            'notifications' => $notifications, // ojm polyfill here
+            'notifications' => $notifications,
             'load-next' => $loadNext
         ]);
     }
@@ -177,11 +178,8 @@ class Controller
     }
 
     /**
-     * ojm what is this fx? How to test
-     * Creates a user's notification token
      * @return void
      * @throws UserErrorException
-     *
      */
     public function createToken(ServerRequest $request): void
     {
@@ -226,96 +224,4 @@ class Controller
                 'message' => $body['message'] ?? 'This is a test',
             ]);
     }
-
-
-    // ojm old polyfill from controllers/api/v1/notifications
-    // ojm are we calling owner and from... this needs to go
-    /**
-     * Polyfill notifications to be readed by legacy clients
-     * @return array
-     */
-    // protected function polyfillResponse($notifications) : array
-    // {
-    //     // ojm move this to Notifications/manager
-    //     $manager = Di::_()->get('Notification\Manager');
-    //     $acl = Di::_()->get('Security\ACL');
-    //     $return = [];
-    //     // Formatting for legacy notification handling in frontend
-    //     foreach ($notifications as $key => $entity) {
-    //         if ($entity->getToGuid() != Core\Session::getLoggedInUser()->guid) {
-    //             error_log('[notification]: Mismatch of to_guid with uuid ' . $entity->getUuid());
-    //             continue;
-    //         }
-    //         //ojm use the entity builder here instead
-    //         $entityObj = Entities\Factory::build($entity->getEntityGuid());
-    //         $fromObj = Entities\Factory::build($entity->getFromGuid());
-
-    //         $toObj = Core\Session::getLoggedInUser();
-    //         $data = $entity->getData();
-
-    //         try {
-    //             if (
-    //                 ($entity->getEntityGuid() && !$entityObj)
-    //                 || ($entityObj && !$acl->read($entityObj, $toObj))
-    //                 || ($entity->getFromGuid() && !$fromObj)
-    //                 || !$acl->read($fromObj, $toObj)
-    //                 || !$acl->interact($toObj, $fromObj)
-    //             ) {
-    //                 $manager->delete($entity);
-    //                 unset($notifications[$key]);
-    //                 continue;
-    //             }
-    //         } catch (\Exception $e) {
-    //             unset($notifications[$key]);
-    //             continue;
-    //         }
-    //         //////// ojm end /////////
-
-    //         // we might not need this? but check
-    //         // ojm we actually should do this in Notification.php
-
-    //         $notification = [
-    //             'guid' => $entity->getUuid(),
-    //             'uuid' => $entity->getUuid(),
-    //             'description' => $data['description'],
-    //             'entityObj' => $entityObj ? $entityObj->export() : null,
-    //             'filter' => $entity->getType(),
-    //             'fromObj' => $fromObj ? $fromObj->export() : null,
-    //             'from_guid' => $entity->getFromGuid(),
-    //             'to' => $toObj ? $toObj->export() : null,
-    //             'guid' => $entity->getUuid(),
-    //             'notification_view' => $entity->getType(),
-    //             'params' => $data, // possibly some deeper polyfilling needed here,
-    //             'time_created' => $entity->getCreatedTimestamp(),
-    //         ];
-
-    //         $notification['entity'] = $notification['entityObj'];
-
-    //         // ojm check if used
-    //         $notification['owner'] =
-    //         $notification['ownerObj'] =
-    //         $notification['from'] =
-    //         $notification['fromObj'];
-
-    //         if ($entityObj && $entityObj->getType() == 'comment') {
-    //             $parent = Entities\Factory::build($data['parent_guid']);
-    //             if ($parent) {
-    //                 $notification['params']['parent'] = $parent->export();
-    //             }
-    //         }
-
-    //         if ($notification['params']['group_guid']) {
-    //             $group = Entities\Factory::build($notification['params']['group_guid']);
-    //             if (!$group) {
-    //                 unset($notifications[$key]);
-    //                 continue;
-    //             }
-    //             $notification['params']['group'] = $group->export();
-    //         }
-
-    //         $return[$key] = $notification;
-    //     }
-
-    //     return array_values($return);
-    // }
 }

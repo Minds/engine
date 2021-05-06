@@ -46,4 +46,3 @@ class Manager
           ->emit("marker:{$marker->getEntityGuid()}", json_encode($marker->export()));
     }
 }
-`

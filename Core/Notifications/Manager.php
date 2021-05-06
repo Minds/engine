@@ -12,6 +12,8 @@ use Minds\Core\Notifications\Notification;
 use Minds\Exceptions\UserErrorException;
 use Exception;
 use Minds\Core\Config;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Security\ACL;
 
 /**
  * Notifications Manager
@@ -28,22 +30,33 @@ class Manager
     /** @var CounterDelegate $counters */
     private $counters;
 
+    /** @var PushSettingsDelegate $settings */
+    protected $settings;
+
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
+    /** @var ACL */
+    protected $acl;
+
     /** @var User $user */
     private $user;
 
-    /** @var PushSettingsDelegate $settings */
-    protected $settings;
 
     public function __construct(
         $config = null,
         $repository = null,
         $counters = null,
-        $settings = null
+        $settings = null,
+        $entitiesBuilder = null,
+        $acl = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->repository = $repository ?: new Repository;
         $this->counters = $counters ?? new CounterDelegate;
         $this->settings = $settings ?? new PushSettingsDelegate;
+        $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
+        $this->acl = $acl ?? Di::_()->get('Security\ACL');
     }
 
     /**
@@ -120,7 +133,9 @@ class Manager
                     $urn
                 ]);
         }
-        return $this->repository->get($urn);
+        $response = $this->prepareForExport($this->repository->get($urn));
+
+        return $response[0] || null;
     }
 
     /**
@@ -198,7 +213,8 @@ class Manager
                 break;
         }
 
-        return $this->repository->getList($opts);
+        $response = $this->repository->getList($opts);
+        return $this->prepareForExport($response);
     }
 
 
@@ -281,5 +297,90 @@ class Manager
                 break;
         }
         return 'unknown';
+    }
+
+    /**
+     * @param Response $notifications
+     * @return array
+     * @throws Exception
+     */
+    public function prepareForExport($notifications)
+    {
+        $return  = [];
+
+        if (!$notifications) {
+            return $return;
+        }
+
+        foreach ($notifications as $i => $notif) {
+            if ($notif->getToGuid() != Core\Session::getLoggedInUser()->guid) {
+                error_log('[notification]: Mismatch of to_guid with uuid ' . $notif->getUuid());
+                continue;
+            }
+
+            $entityObj = $this->entitiesBuilder->single($notif->getEntityGuid());
+            $fromObj = $this->entitiesBuilder->single($notif->getFromGuid());
+
+            $toObj = Core\Session::getLoggedInUser();
+            $data = $notif->getData();
+
+            try {
+                if (
+                    ($notif->getEntityGuid() && !$entityObj)
+                    || ($entityObj && !$this->acl->read($entityObj, $toObj))
+                    || ($notif->getFromGuid() && !$fromObj)
+                    || !$this->acl->read($fromObj, $toObj)
+                    || !$this->acl->interact($toObj, $fromObj)
+                ) {
+                    $this->manager->delete($notif);
+                    unset($notifications[$i]);
+                    continue;
+                }
+            } catch (\Exception $e) {
+                unset($notifications[$i]);
+                continue;
+            }
+
+            $notification = [
+                'guid' => $notif->getUuid(),
+                'uuid' => $notif->getUuid(),
+                'description' => $data['description'],
+                'entityObj' => $entityObj ? $entityObj->export() : null,
+                'filter' => $notif->getType(),
+                'fromObj' => $fromObj ? $fromObj->export() : null,
+                'from_guid' => $notif->getFromGuid(),
+                'to' => $toObj ? $toObj->export() : null,
+                'guid' => $notif->getUuid(),
+                'notification_view' => $notif->getType(),
+                'params' => $data, // possibly some deeper polyfilling needed here,
+                'time_created' => $notif->getCreatedTimestamp(),
+            ];
+
+            $notification['entity'] = $notification['entityObj'];
+
+            $notification['owner'] =
+            $notification['ownerObj'] =
+            $notification['from'] =
+            $notification['fromObj'];
+
+            if ($entityObj && $entityObj->getType() == 'comment') {
+                $parent = $this->entitiesBuilder->single(($data['parent_guid']));
+                if ($parent) {
+                    $notification['params']['parent'] = $parent->export();
+                }
+            }
+
+            if ($notification['params']['group_guid']) {
+                $group = $this->entitiesBuilder->single($notification['params']['group_guid']);
+                if (!$group) {
+                    unset($notifications[$i]);
+                    continue;
+                }
+                $notification['params']['group'] = $group->export();
+            }
+
+            $return[$i] = $notification;
+        }
+        return array_values($return);
     }
 }
