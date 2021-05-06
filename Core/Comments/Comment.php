@@ -11,6 +11,7 @@ use Minds\Helpers\Flags;
 use Minds\Helpers\Unknown;
 use Minds\Helpers\Export;
 use Minds\Core\Di\Di;
+use Minds\Core\Security\SignedUri;
 
 /**
  * Comment Entity
@@ -111,6 +112,15 @@ class Comment extends RepositoryEntity
 
     /** @var bool */
     protected $ephemeral = true;
+
+    /** @var SignedUri $signedUri */
+    private $signedUri;
+
+    public function __construct(
+        $signedUri = null
+    ) {
+        $this->signedUri = $signedUri ?? new SignedUri;
+    }
 
     /**
      * Gets the entity guid for the comment.
@@ -418,6 +428,9 @@ class Comment extends RepositoryEntity
                 $siteUrl = Di::_()->get('Config')->get('site_url');
                 $cdnUrl = Di::_()->get('Config')->get('cdn_url');
                 $output['custom_data']['src'] = $output['attachments']['custom_data']['src'] = str_replace($siteUrl, $cdnUrl, $output['attachments']['custom_data']['src']);
+
+                // add jwt sig
+                $output['custom_data']['src'] = $this->signedUri->sign($output['custom_data']['src']);
             }
         }
 
