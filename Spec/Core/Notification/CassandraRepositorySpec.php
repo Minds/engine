@@ -40,7 +40,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         }))
             ->willReturn(new Rows([
                 [
-                    'uuid' => $uuid,
+                    'uuid' => new Timeuuid($uuid),
                     'to_guid' => new Bigint(123),
                     'from_guid' => new Bigint(456),
                     'entity_guid' => '789',
