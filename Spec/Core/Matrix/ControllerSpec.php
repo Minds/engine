@@ -34,32 +34,32 @@ class ControllerSpec extends ObjectBehavior
         $this->shouldHaveType('Minds\Core\Matrix\Controller');
     }
 
-    public function it_should_get_total_unread(
-        ServerRequest $request
-    ) {
-        $user = new User();
-        $user->guid = '123';
+    // public function it_should_get_total_unread(
+    //     ServerRequest $request
+    // ) {
+    //     $user = new User();
+    //     $user->guid = '123';
 
-        $request->getAttribute('_user')
-            ->willReturn($user);
+    //     $request->getAttribute('_user')
+    //         ->willReturn($user);
 
-        $roomA = new MatrixRoom();
-        $roomA->setUnreadCount(7);
+    //     $roomA = new MatrixRoom();
+    //     $roomA->setUnreadCount(7);
 
-        $roomB = new MatrixRoom();
-        $roomB->setUnreadCount(42);
+    //     $roomB = new MatrixRoom();
+    //     $roomB->setUnreadCount(42);
 
-        $joinedRooms = [$roomA, $roomB];
+    //     $joinedRooms = [$roomA, $roomB];
 
-        $this->manager->getJoinedRooms($user)
-            ->willReturn($joinedRooms);
+    //     $this->manager->getJoinedRooms($user)
+    //         ->willReturn($joinedRooms);
 
-        $response = $this->getTotalUnread($request);
-        $json = $response->getBody()->getContents();
+    //     $response = $this->getTotalUnread($request);
+    //     $json = $response->getBody()->getContents();
 
-        $json->shouldBe(json_encode([
-            'status' => 'success',
-            'total_unread' => 49
-        ]));
-    }
+    //     $json->shouldBe(json_encode([
+    //         'status' => 'success',
+    //         'total_unread' => 49
+    //     ]));
+    // }
 }
