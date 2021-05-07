@@ -55,7 +55,7 @@ class Manager
         $this->repository = $repository ?: new Repository;
         $this->counters = $counters ?? new CounterDelegate;
         $this->settings = $settings ?? new PushSettingsDelegate;
-        $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->acl = $acl ?? Di::_()->get('Security\ACL');
     }
 
@@ -133,7 +133,8 @@ class Manager
                     $urn
                 ]);
         }
-        $response = $this->prepareForExport($this->repository->get($urn));
+
+        $response = $this->prepareForExport([$this->repository->get($urn)]);
 
         return $response[0] || null;
     }
@@ -308,7 +309,7 @@ class Manager
     {
         $return  = [];
 
-        if (!$notifications) {
+        if (!$notifications || !Core\Session::getLoggedinUser()) {
             return $return;
         }
 

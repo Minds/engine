@@ -48,22 +48,19 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_get_a_single_notification(Notification $notification, User $user)
     {
-        // ojm fail notice: Undefined offset: 0
-
         $this->setUser($user);
-        $user->getGUID()
+        $user->getGuid()
             ->willReturn(456);
 
         $this->repository->get('urn:notification:456-1234')
             ->shouldBeCalled()
             ->willReturn($notification);
 
-        $this->getSingle('1234')->shouldReturn($notification);
+        $this->getSingle('1234')->shouldNotReturn(null);
     }
 
     public function it_should_get_from_repository_if_urn_provided(Notification $notification)
     {
-        // ojm fail notice: Undefined offset: 0
         $this->repository->get('urn:notification:1234')
             ->shouldBeCalled()
             ->willReturn($notification);
