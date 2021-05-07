@@ -68,19 +68,20 @@ class Controller
     {
         $user = $request->getAttribute('_user');
 
-        try {
-            $joinedRooms = $this->manager->getJoinedRooms($user);
+        // try {
+        //     $joinedRooms = $this->manager->getJoinedRooms($user);
 
-            $sum = 0;
+        //     $sum = 0;
 
-            foreach ($joinedRooms as $room) {
-                $sum += $room->getUnreadCount();
-            }
-        } catch (ClientException $e) {
-            $sum = 0;
-        } catch (ServerException $e) {
-            $sum = 0; // Todo throw the browser a better message
-        }
+        //     foreach ($joinedRooms as $room) {
+        //         $sum += $room->getUnreadCount();
+        //     }
+        // } catch (ClientException $e) {
+        //     $sum = 0;
+        // } catch (ServerException $e) {
+        //     $sum = 0; // Todo throw the browser a better message
+        // }
+        $sum = 0;
 
         return new JsonResponse([
            'status' => 'success',
