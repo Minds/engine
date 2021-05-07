@@ -2,6 +2,7 @@
 namespace Minds\Core\Matrix;
 
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ServerException;
 use Minds\Api\Exportable;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
@@ -77,6 +78,8 @@ class Controller
             }
         } catch (ClientException $e) {
             $sum = 0;
+        } catch (ServerException $e) {
+            $sum = 0; // Todo throw the browser a better message
         }
 
         return new JsonResponse([
