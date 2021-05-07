@@ -48,7 +48,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_get_a_single_notification(Notification $notification, User $user)
     {
-        // TODO this test is broken after polyfill update
+        // ojm fail notice: Undefined offset: 0
 
         $this->setUser($user);
         $user->getGUID()
@@ -63,6 +63,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_get_from_repository_if_urn_provided(Notification $notification)
     {
+        // ojm fail notice: Undefined offset: 0
         $this->repository->get('urn:notification:1234')
             ->shouldBeCalled()
             ->willReturn($notification);

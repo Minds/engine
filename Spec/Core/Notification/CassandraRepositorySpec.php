@@ -30,6 +30,7 @@ class CassandraRepositorySpec extends ObjectBehavior
 
     public function it_should_return_a_notification_from_uuid()
     {
+        // ojm fail call to a member function getToGuid() on a non-object.
         $uuid = (new Timeuuid())->uuid();
 
         $this->cql->request(Argument::that(function ($prepared) use ($uuid) {
@@ -39,7 +40,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         }))
             ->willReturn(new Rows([
                 [
-                    'uuid' => new Timeuuid(time()),
+                    'uuid' => $uuid,
                     'to_guid' => new Bigint(123),
                     'from_guid' => new Bigint(456),
                     'entity_guid' => '789',
@@ -69,6 +70,8 @@ class CassandraRepositorySpec extends ObjectBehavior
 
     public function it_should_add_to_database(Notification $notification)
     {
+        // ojm fail unexpected method call on Double\Minds\Core\Notification\Notification\P283: setUuid('')... expectedCalls were...
+
         $uuid = (new Timeuuid())->uuid();
 
         $this->cql->request(Argument::that(function ($prepared) use ($uuid) {
