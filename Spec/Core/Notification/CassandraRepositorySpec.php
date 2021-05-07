@@ -85,7 +85,9 @@ class CassandraRepositorySpec extends ObjectBehavior
         $notification->getToGuid()
             ->willReturn(123);
         $notification->getUuid()
-            ->willReturn($uuid);
+        ->willReturn(null);
+        $notification->setUuid($uuid)
+            ->shouldBeCalled();
         $notification->getFromGuid()
             ->willReturn(456);
         $notification->getType()
