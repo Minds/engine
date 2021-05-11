@@ -8,6 +8,8 @@
 
 namespace Minds\Core\Search\Mappings;
 
+use Minds\Common\Regex;
+
 class EntityMapping implements MappingInterface
 {
     /** @var int */
@@ -198,10 +200,9 @@ class EntityMapping implements MappingInterface
             $fullText .= ' ' . $map['description'];
         }
 
-        $htRe = '/(^|\s||)#(\pL+)/u';
+        // parse #hashtags and $cryptotags from body into $matches.
         $matches = [];
-
-        preg_match_all($htRe, $fullText, $matches);
+        preg_match_all(Regex::HASH_CASH_TAG, $fullText, $matches);
 
         $messageTags = ($matches[2] ?? null) ?: [];
         $entityTags = method_exists($this->entity, 'getTags') ? ($this->entity->getTags() ?: []) : [];
