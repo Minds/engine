@@ -66,15 +66,18 @@ class Controller
         $this->manager
             ->setUserGuid($guid);
 
+        $response = $this->manager->getList(
+            (new RepositoryGetOptions())
+                ->setType($type)
+                ->setSearchQuery($request->getQueryParams()['q'] ?? '')
+                ->setLimit((int) ($request->getQueryParams()['limit'] ?? 12))
+                ->setOffset((int) ($request->getQueryParams()['from_timestamp'] ?? 0))
+        );
+
         return new JsonResponse([
             'status' => 'success',
-            'entities' => $this->manager->getList(
-                (new RepositoryGetOptions())
-                    ->setType($type)
-                    ->setSearchQuery($request->getQueryParams()['q'] ?? '')
-                    ->setLimit((int) ($request->getQueryParams()['limit'] ?? 12))
-                    ->setOffset((int) ($request->getQueryParams()['load-next'] ?? 0))
-            ),
+            'entities' => $response,
+            'load-next' => $response->getPagingToken(),
         ]);
     }
 }
