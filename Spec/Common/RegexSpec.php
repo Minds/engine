@@ -22,6 +22,8 @@ class RegexSpec extends ObjectBehavior
         $this->shouldHaveType(Regex::class);
     }
 
+    // @ tags
+
     public function it_should_detect_at_tag_at_start_of_string()
     {
         $this->globalMatch($this->regex::AT, '@minds channel')->shouldReturn(1);
@@ -86,6 +88,189 @@ class RegexSpec extends ObjectBehavior
         $this->globalMatch(
             $this->regex::AT,
             '@ab test @bc testing test @d4 @23 @asd @vxc @gdf @9fui @testing @123 @idsj'
+        )->shouldReturn(11);
+    }
+
+    // hash tags
+
+    public function it_should_detect_hash_tag_at_start_of_string()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '#minds channel')->shouldReturn(1);
+    }
+
+    public function it_should_detect_hash_tag_at_end_of_string()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, 'channel #minds')->shouldReturn(1);
+    }
+
+    public function it_should_match_multiple_hash_tags_together_no_whitespace()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '#minds#minds')->shouldReturn(2);
+    }
+
+    public function it_should_pick_hash_tag_out_mid_word()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, 'test#minds')->shouldReturn(1);
+    }
+
+    public function it_should_match_multiple_hash_tags_sequentially_with_space()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '#minds #minds')->shouldReturn(2);
+    }
+
+    public function it_should_match_multiple_hash_tags_seperated_by_a_word()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '#minds minds #minds')->shouldReturn(2);
+    }
+
+    public function it_should_match_multiple_hash_tags_on_multiple_lines()
+    {
+        $this->globalMatch(
+            $this->regex::HASH_CASH_TAG,
+            "#minds 
+            minds
+            #minds"
+        )->shouldReturn(2);
+
+        $this->globalMatch(
+            $this->regex::HASH_CASH_TAG,
+            "asd #minds 
+            minds asd
+            asd #minds asd"
+        )->shouldReturn(2);
+    }
+
+    public function it_should_match_hash_tags_with_suffixed_punctuation()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '#minds. #minds!')->shouldReturn(2);
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '#minds? #minds@')->shouldReturn(2);
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '#minds; #minds:')->shouldReturn(2);
+    }
+
+    public function it_should_pick_many_hash_tags_out_of_string()
+    {
+        $this->globalMatch(
+            $this->regex::HASH_CASH_TAG,
+            '#ab test #bc testing test #d4 #23 #asd #vxc #gdf #9fui #testing #123 #idsj'
+        )->shouldReturn(11);
+    }
+
+    // cash tags ($)
+
+    public function it_should_detect_cash_tag_at_start_of_string()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '$minds channel')->shouldReturn(1);
+    }
+
+    public function it_should_detect_cash_tag_at_end_of_string()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, 'channel $minds')->shouldReturn(1);
+    }
+
+    public function it_should_match_multiple_cash_tags_together_no_whitespace()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '$minds$minds')->shouldReturn(2);
+    }
+
+    public function it_should_pick_cash_tag_out_mid_word()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, 'test$minds')->shouldReturn(1);
+    }
+
+    public function it_should_match_multiple_cash_tags_sequentially_with_space()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '$minds $minds')->shouldReturn(2);
+    }
+
+    public function it_should_match_multiple_cash_tags_seperated_by_a_word()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '#minds minds #minds')->shouldReturn(2);
+    }
+
+    public function it_should_match_multiple_cash_tags_on_multiple_lines()
+    {
+        $this->globalMatch(
+            $this->regex::HASH_CASH_TAG,
+            "\$minds 
+            minds
+            \$minds"
+        )->shouldReturn(2);
+
+        $this->globalMatch(
+            $this->regex::HASH_CASH_TAG,
+            "asd \$minds 
+            minds asd
+            asd $\minds asd"
+        )->shouldReturn(2);
+    }
+
+    public function it_should_match_cash_tags_with_suffixed_punctuation()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '$minds. $minds!')->shouldReturn(2);
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '$minds? $minds@')->shouldReturn(2);
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '$minds; $minds:')->shouldReturn(2);
+    }
+
+    public function it_should_pick_many_cash_tags_out_of_string()
+    {
+        $this->globalMatch(
+            $this->regex::HASH_CASH_TAG,
+            '$ab test $bc testing test $d4 $23 $asd $vxc $gdf $9fui $testing $123 $idsj'
+        )->shouldReturn(11);
+    }
+
+
+    // hash AND cash tags ($ | #)
+
+    public function it_should_match_multiple_cash__and_hash_tags_together_no_whitespace()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '$minds#minds')->shouldReturn(2);
+    }
+
+    public function it_should_pick_cash_and_hash_tags_out_mid_word()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, 'test#minds$usd')->shouldReturn(2);
+    }
+
+    public function it_should_match_multiple_cash_and_hash_tags_sequentially_with_space()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '$minds $minds #minds #minds')->shouldReturn(4);
+    }
+
+    public function it_should_match_multiple_cash_and_hash_tags_seperated_by_a_word()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '#minds minds $minds')->shouldReturn(2);
+    }
+
+    public function it_should_match_multiple_cash_and_hash_tags_on_multiple_lines()
+    {
+        $this->globalMatch(
+            $this->regex::HASH_CASH_TAG,
+            "\$minds 
+            minds
+            #minds"
+        )->shouldReturn(2);
+
+        $this->globalMatch(
+            $this->regex::HASH_CASH_TAG,
+            "asd \$minds 
+            minds asd
+            asd #minds asd"
+        )->shouldReturn(2);
+    }
+
+    public function it_should_match_cash_and_hash_tags_with_suffixed_punctuation()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '$minds. #minds!')->shouldReturn(2);
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '$minds? #minds@')->shouldReturn(2);
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '$minds; #minds:')->shouldReturn(2);
+    }
+
+    public function it_should_pick_many_cash_and_hash_tags_out_of_string()
+    {
+        $this->globalMatch(
+            $this->regex::HASH_CASH_TAG,
+            '$ab test #bc testing test $d4 #23 $asd $vxc #gdf #9fui $testing $123 $idsj'
         )->shouldReturn(11);
     }
 }
