@@ -141,10 +141,14 @@ class Manager
      *
      * @throws Exception
      */
-    public function disable(): bool
+    public function disable($remove = false): bool
     {
         if (!$this->user) {
             throw new Exception('Invalid user');
+        }
+
+        if ($remove) {
+            $this->user->setProExpires(time());
         }
 
         $this->subscriptionDelegate

@@ -1,19 +1,15 @@
 <?php
-/**
- * pro
- *
- * @author edgebal
- */
 
 namespace Minds\Controllers\api\v2\admin;
 
 use Minds\Api\Factory;
 use Minds\Core\Pro\Manager;
+use Minds\Core\Plus\Subscription as PlusSubscription;
 use Minds\Entities\User as UserEntity;
 use Minds\Interfaces;
 use Minds\Core\Di\Di;
 
-class pro implements Interfaces\Api, Interfaces\ApiAdminPam
+class plus implements Interfaces\Api, Interfaces\ApiAdminPam
 {
     /**
      * Equivalent to HTTP GET method
@@ -64,10 +60,6 @@ class pro implements Interfaces\Api, Interfaces\ApiAdminPam
             ]);
         }
 
-        /** @var Manager $manager */
-        $manager = Di::_()->get('Pro\Manager');
-        $manager->setUser($target);
-
         if ($action === 'make') {
             $relativeTimespan = '+30 days';
 
@@ -85,17 +77,29 @@ class pro implements Interfaces\Api, Interfaces\ApiAdminPam
                     throw new \Exception('Invalid timespan');
             }
 
-            $success = $manager->enable(strtotime($relativeTimespan, time()));
+            /** @var Manager $manager */
+            $target->setPlusExpires(
+                strtotime($relativeTimespan, time())
+            );
         }
 
         if ($action === 'remove') {
-            $success = $manager->disable(true);
+            $target->setPlusExpires(time());
+            try {
+                (new PlusSubscription())
+                    ->setUser($target)
+                    ->cancel();
+            } catch (\Exception $e) {
+                Di::_()->get('Logger')->error($e);
+            }
         }
+
+        $success = $target->save();
 
         if (!$success) {
             return Factory::response([
                 'status' => 'error',
-                'message' => 'Error disabling Pro',
+                'message' => 'Error disabling Plus',
             ]);
         }
 
@@ -109,36 +113,6 @@ class pro implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function delete($pages)
     {
-        if (!($pages[0] ?? null)) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => 'Emtpy target',
-            ]);
-        }
-
-        $target = new UserEntity($pages[0]);
-
-        if (!$target || !$target->guid) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => 'Invalid target',
-            ]);
-        }
-
-        /** @var Manager $manager */
-        $manager = Di::_()->get('Pro\Manager');
-        $manager
-            ->setUser($target);
-
-        $success = $manager->disable();
-
-        if (!$success) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => 'Error disabling Pro',
-            ]);
-        }
-
         return Factory::response([]);
     }
 }
