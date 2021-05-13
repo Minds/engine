@@ -48,8 +48,10 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_get_a_single_notification(Notification $notification, User $user)
+    public function it_should_get_a_single_notification(User $user)
     {
+        $notification = new Notification();
+
         $this->setUser($user);
         $user->getGUID()
             ->willReturn(456);

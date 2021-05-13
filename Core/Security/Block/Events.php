@@ -11,7 +11,7 @@ class Events
 
     public function __construct($manager = null)
     {
-        $this->manager = $manager ?? Di::_()->get('Security\Block\Manager');
+        $this->manager = $manager;
     }
 
     /**
@@ -20,6 +20,10 @@ class Events
     public function register(): void
     {
         Dispatcher::register('acl:interact', 'all', function ($e) {
+            if (!$this->manager) {
+                $this->manager =  Di::_()->get('Security\Block\Manager');
+            }
+
             $params = $e->getParameters();
             $entity = $params['entity'];
             $user = $params['user'];
@@ -43,6 +47,10 @@ class Events
          * Returning true below will prohibit the entity from being read
          */
         Dispatcher::register('acl:read:blacklist', 'all', function ($e) {
+            if (!$this->manager) {
+                $this->manager =  Di::_()->get('Security\Block\Manager');
+            }
+
             $params = $e->getParameters();
             $entity = $params['entity'];
             $user = $params['user'];

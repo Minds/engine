@@ -12,6 +12,7 @@ date_default_timezone_set('UTC');
 define('__MINDS_ROOT__', dirname(__FILE__) . '/../');
 
 require_once(dirname(__FILE__) . '/mocks.php');
+require_once(dirname(__FILE__) . '/pulsar-mocks.php');
 
 $minds = new Minds\Core\Minds();
 

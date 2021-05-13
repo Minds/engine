@@ -20,5 +20,8 @@ class Provider extends DiProvider
         $this->di->bind('Matrix\Controller', function ($di) {
             return new Controller();
         }, ['useFactory' => false]);
+        $this->di->bind('Matrix\BlockListSync', function ($di) {
+            return new BlockListSync();
+        }, ['useFactory' => false]);
     }
 }
