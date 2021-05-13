@@ -68,4 +68,14 @@ abstract class AbstractTopic
     {
         return $this->config->get('pulsar')['namespace'] ?? 'engine';
     }
+
+    /**
+     * Close the connection
+     */
+    public function __destruct()
+    {
+        if ($this->client) {
+            $this->client->close();
+        }
+    }
 }
