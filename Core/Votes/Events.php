@@ -11,6 +11,8 @@ namespace Minds\Core\Votes;
 use Minds\Core;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
+use Minds\Core\EventStreams\ActionEvent;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Helpers;
 use Minds\Entities;
@@ -19,6 +21,29 @@ class Events
 {
     public function register()
     {
+        // Notification stream event
+        Dispatcher::register('vote', 'all', function (Event $event) {
+            $params = $event->getParameters();
+            $direction = $event->getNamespace();
+
+            $vote = $params['vote'];
+            $entity = $vote->getEntity();
+            $actor = $vote->getActor();
+
+            $actionEvent = new ActionEvent();
+            $actionEvent
+                ->setAction(ActionEvent::ACTION_VOTE)
+                ->setActionData([
+                    'vote_direction' => $direction,
+                    // 'comment_urn' => TODO if vote on comment
+                ])
+                ->setEntity($entity)
+                ->setUser($actor);
+
+            $actionEventTopic = new ActionEventsTopic();
+            $actionEventTopic->send($actionEvent);
+        });
+
         // Notification events
 
         Dispatcher::register('vote', 'all', function (Event $event) {
