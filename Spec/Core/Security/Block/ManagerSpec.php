@@ -6,6 +6,7 @@ use Minds\Core\Security\Block\Manager;
 use Minds\Core\Security\Block\Repository;
 use Minds\Core\Security\Block\BlockEntry;
 use Minds\Core\Security\Block\BlockListOpts;
+use Minds\Core\Security\Block\Delegates;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Common\Repository\Response;
 use PhpSpec\ObjectBehavior;
@@ -19,9 +20,9 @@ class ManagerSpec extends ObjectBehavior
     /** @var PsrWrapper */
     protected $cache;
 
-    public function let(Repository $repository, PsrWrapper $cache)
+    public function let(Repository $repository, PsrWrapper $cache, Delegates\EventStreamsDelegate $eventStreamsDelegate)
     {
-        $this->beConstructedWith($repository, $cache);
+        $this->beConstructedWith($repository, $cache, $eventStreamsDelegate);
         $this->repository = $repository;
         $this->cache = $cache;
     }
