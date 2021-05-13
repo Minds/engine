@@ -33,6 +33,9 @@ class deeplinks implements Interfaces\Api, Interfaces\ApiIgnorePam
                         // '/blog/view/*',
                         // '/blog/*',
                         // '/channels/*',
+                        'NOT /api/*',
+                        'NOT /register',
+                        'NOT /login',
                         '/*'
                     ]
                 ],

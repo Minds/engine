@@ -104,6 +104,31 @@ class Manager
     }
 
     /**
+     * Sets the matrixIds to block
+     * @param User $user
+     * @param string[] $blockedIds
+     * @return void
+     */
+    public function syncBlockList(User $user, array $blockedIds): void
+    {
+        $matrixId = $this->getMatrixId($user);
+
+        $keyValue = [];
+
+        foreach ($blockedIds as $blockedId) {
+            $keyValue[$blockedId] = [];
+        }
+
+        $this->client
+            ->setAccessToken($this->getServerAccessToken($user))
+            ->request('PUT', "_matrix/client/r0/user/$matrixId/account_data/m.ignored_user_list", [
+                'json' => [
+                    'ignored_users' => $keyValue
+                ]
+            ]);
+    }
+
+    /**
      * Will create a room between two users
      * @param User $user
      * @param User $reveiver
@@ -523,7 +548,7 @@ class Manager
      * @param User $user
      * @return string
      */
-    protected function getMatrixId(User $user): string
+    public function getMatrixId(User $user): string
     {
         $username = strtolower($user->getUsername());
         return "@{$username}:{$this->matrixConfig->getHomeserverDomain()}";

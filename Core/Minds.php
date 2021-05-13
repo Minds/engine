@@ -19,6 +19,7 @@ class Minds extends base
     private $modules = [
         Log\Module::class,
         Events\Module::class,
+        EventStreams\Module::class,
         Security\Module::class,
         OAuth\Module::class,
         Features\Module::class,

@@ -1,14 +1,18 @@
-FROM minds/php:7.3
+FROM minds/php:pulsar
 
 RUN echo 'zend_extension=opcache.so' > /usr/local/etc/php/conf.d/opcache.ini \
     && mkdir --parents --mode=0777 /tmp/minds-cache/ \
     && mkdir --parents --mode=0777 /data/
 
-# Instsall xdebug
+# Install xdebug
 
 RUN apk add --no-cache $PHPIZE_DEPS \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug
+
+# Install pulsar driver
+
+RUN 
 
 # Copy config
 
