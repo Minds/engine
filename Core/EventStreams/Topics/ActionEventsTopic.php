@@ -47,6 +47,7 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                 'action' => $event->getAction(),
                 'action_data' => $event->getActionData(),
                 'user_guid' => (string) $event->getUser()->getGuid(),
+                'entity_urn' => (string) $event->getEntity()->getUrn(),
                 'entity_guid' => (string) $event->getEntity()->getGuid(),
                 'entity_owner_guid' => (string) $event->getEntity()->getOwnerGuid(),
                 'entity_type' => (string) $event->getEntity()->getType(),
@@ -129,6 +130,10 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                 ],
                 [
                     'name' => 'user_guid',
+                    'type' => 'string',
+                ],
+                [
+                    'name' => 'entity_urn',
                     'type' => 'string',
                 ],
                 [
