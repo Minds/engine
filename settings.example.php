@@ -27,6 +27,13 @@ $CONFIG->rabbitmq = [
     'password' => 'guest',
 ];
 
+$CONFIG->set('pulsar', [
+    'host' => 'pulsar',
+    'port' => 6650,
+    'ssl' => false,
+    //'ssl_cert_path' => '',
+]);
+
 $CONFIG->set('cloudflare', [
     'api_key' => '',
     'email' => '',
