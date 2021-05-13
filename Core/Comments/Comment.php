@@ -463,9 +463,6 @@ class Comment extends RepositoryEntity
                 $siteUrl = Di::_()->get('Config')->get('site_url');
                 $cdnUrl = Di::_()->get('Config')->get('cdn_url');
                 $output['custom_data']['src'] = $output['attachments']['custom_data']['src'] = str_replace($siteUrl, $cdnUrl, $output['attachments']['custom_data']['src']);
-
-                // add jwt sig
-                // $output['custom_data']['src'] = $this->signedUri->sign($output['custom_data']['src']);
             }
         }
 
