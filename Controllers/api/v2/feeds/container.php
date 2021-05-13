@@ -162,6 +162,16 @@ class container implements Interfaces\Api
         try {
             $result = $manager->getList($opts);
 
+            /**
+             * This was added to prevent that some channels show posts that are not their own
+             * https://gitlab.com/minds/front/-/issues/4613
+             */
+            if ($container instanceof User) {
+                $result = $result->filter(function ($entity) use ($container_guid) {
+                    return $entity->getOwnerGuid() == $container_guid;
+                });
+            }
+
             if (!$sync) {
                 // Remove all unlisted content, if ES document is not in sync, it'll
                 // also remove pending activities
