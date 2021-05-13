@@ -11,7 +11,6 @@ use Minds\Helpers\Flags;
 use Minds\Helpers\Unknown;
 use Minds\Helpers\Export;
 use Minds\Core\Di\Di;
-use Minds\Core\Security\SignedUri;
 
 /**
  * Comment Entity
@@ -113,13 +112,13 @@ class Comment extends RepositoryEntity
     /** @var bool */
     protected $ephemeral = true;
 
-    /** @var SignedUri $signedUri */
-    private $signedUri;
+    /** @var  EntitiesBuilder */
+    private $entitiesBuilder;
 
     public function __construct(
-        $signedUri = null
+        $entitiesBuilder = null
     ) {
-        $this->signedUri = $signedUri ?? new SignedUri;
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -255,10 +254,46 @@ class Comment extends RepositoryEntity
         }
 
         if (in_array(substr($this->attachments[$attachment], 0, 1), ['[', '{'], true)) {
-            return json_decode($this->attachments[$attachment], true);
+            return $this->patchSignedAttachmentUrl(
+                json_decode($this->attachments[$attachment], true)
+            );
         }
 
         return $this->attachments[$attachment];
+    }
+
+    /**
+     * Patches signed attachment URL if the comment is in a group
+     * @param $attachments
+     * @return void
+     */
+    private function patchSignedAttachmentUrl($attachments)
+    {
+        try {
+            $mediaManager = Di::_()->get('Media\Image\Manager');
+
+            // if already signed - disregard.
+            if ($mediaManager->confirmSignedUri($attachments['src'])) {
+                return $attachments;
+            }
+
+            // build container entity
+            $containerEntity = $this->entitiesBuilder
+                ->single($attachments['container_guid'])
+                ->getContainerEntity();
+
+            // if the container entity is a closed group - sign the src
+            if ($containerEntity->getType() === 'group' && $containerEntity->getMembership() === 0) {
+                $attachments['src'] = $mediaManager->signUri($attachments['src']);
+            }
+
+            return $attachments;
+        } catch (\Exception $e) {
+            $this->logger->error($e);
+        }
+
+        // else pass back attachments as they came in.
+        return $attachments;
     }
 
     /**
@@ -430,7 +465,7 @@ class Comment extends RepositoryEntity
                 $output['custom_data']['src'] = $output['attachments']['custom_data']['src'] = str_replace($siteUrl, $cdnUrl, $output['attachments']['custom_data']['src']);
 
                 // add jwt sig
-                $output['custom_data']['src'] = $this->signedUri->sign($output['custom_data']['src']);
+                // $output['custom_data']['src'] = $this->signedUri->sign($output['custom_data']['src']);
             }
         }
 

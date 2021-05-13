@@ -103,7 +103,7 @@ class Manager
      * @param string $uri
      * @return string
      */
-    private function signUri($uri, $pub = ""): string
+    public function signUri($uri, $pub = ""): string
     {
         $now = new \DateTime();
         $expires = $now->modify('midnight + 30 days')->getTimestamp();
