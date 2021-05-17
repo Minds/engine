@@ -200,7 +200,7 @@ class RegexSpec extends ObjectBehavior
             $this->regex::HASH_CASH_TAG,
             "asd \$minds 
             minds asd
-            asd $\minds asd"
+            asd \$minds asd"
         )->shouldReturn(2);
     }
 
@@ -216,7 +216,7 @@ class RegexSpec extends ObjectBehavior
         $this->globalMatch(
             $this->regex::HASH_CASH_TAG,
             '$ab test $bc testing test $d4 $23 $asd $vxc $gdf $9fui $testing $123 $idsj'
-        )->shouldReturn(11);
+        )->shouldReturn(8);
     }
 
 
@@ -271,6 +271,14 @@ class RegexSpec extends ObjectBehavior
         $this->globalMatch(
             $this->regex::HASH_CASH_TAG,
             '$ab test #bc testing test $d4 #23 $asd $vxc #gdf #9fui $testing $123 $idsj'
-        )->shouldReturn(11);
+        )->shouldReturn(10);
+    }
+    
+    public function it_should_NOT_match_numeric_cashtags()
+    {
+        $this->globalMatch(
+            $this->regex::HASH_CASH_TAG,
+            '$20,000 $3d $23'
+        )->shouldReturn(0);
     }
 }
