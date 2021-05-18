@@ -12,6 +12,8 @@ use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Core\Notification\Extensions\Push;
 use Minds\Core\Di\Di;
+use Minds\Core\EventStreams\ActionEvent;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\Security\Block\BlockEntry;
 
 use Minds\Helpers;
@@ -119,13 +121,15 @@ class Events
 
             if (preg_match_all(Regex::AT, $message, $matches)) {
                 $usernames = $matches[1];
+                $toGuids = [];
                 $to = [];
 
                 foreach ($usernames as $username) {
                     $user = new Entities\User(strtolower($username));
 
                     if ($user->guid && Core\Security\ACL::_()->interact($user, Core\Session::getLoggedinUser())) {
-                        $to[] = $user->guid;
+                        $to[] = $user;
+                        $toGuids[] = $user->guid;
                     }
 
                     //limit of tags notifications: 5
@@ -144,12 +148,25 @@ class Events
 
                 if ($to) {
                     Dispatcher::trigger('notification', 'all', [
-                        'to' => $to,
+                        'to' => $toGuids,
                         'entity' => $entity,
                         'notification_view' => 'tag',
                         'description' => $message,
                         'params' => $params,
                     ]);
+
+                    // Tag event
+                    $actionEventTopic = new ActionEventsTopic();
+                    foreach ($to as $taggedUser) {
+                        $actionEvent = new ActionEvent();
+                        $actionEvent->setAction(ActionEvent::ACTION_TAG)
+                            ->setUser(Core\Session::getLoggedinUser()) // Who is tagging
+                            ->setEntity($taggedUser) // The tagged person
+                            ->setActionData([
+                                'tag_in_entity_urn' => $entity->getUrn(),
+                            ]);
+                        $actionEventTopic->send($actionEvent);
+                    }
                 }
             }
         });

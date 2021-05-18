@@ -938,6 +938,30 @@ CREATE MATERIALIZED VIEW minds.notifications_by_type_group AS
     PRIMARY KEY (to_guid, type_group, uuid)
     WITH CLUSTERING ORDER BY (type_group DESC, uuid DESC);
 
+CREATE TABLE minds.notifications_mergeable (
+    to_guid bigint,
+    uuid timeuuid,
+    type text,
+    type_group text,
+    from_guid bigint,
+    entity_urn text,
+    created_timestamp timestamp,
+    read_timestamp timestamp,
+    data text,
+    merged_from_guids set<bigint>,
+    merged_count int,
+    PRIMARY KEY (to_guid, uuid)
+)  WITH CLUSTERING ORDER BY (uuid DESC);
+
+CREATE MATERIALIZED VIEW minds.notifications_mergeable_by_type_group AS
+    SELECT *
+    FROM minds.notifications_mergeable
+    WHERE to_guid IS NOT NULL
+    AND uuid IS NOT NULL
+    AND type_group IS NOT NULL
+    PRIMARY KEY (to_guid, type_group, uuid)
+    WITH CLUSTERING ORDER BY (type_group DESC, uuid DESC);
+
 
 CREATE TABLE minds.friendsof (
     key text,
