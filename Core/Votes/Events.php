@@ -35,7 +35,6 @@ class Events
                 ->setAction(ActionEvent::ACTION_VOTE)
                 ->setActionData([
                     'vote_direction' => $direction,
-                    // 'comment_urn' => TODO if vote on comment
                 ])
                 ->setEntity($entity)
                 ->setUser($actor);

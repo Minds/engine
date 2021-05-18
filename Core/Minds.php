@@ -57,6 +57,7 @@ class Minds extends base
         Matrix\Module::class,
         Sessions\Module::class,
         Register\Module::class,
+        Notifications\Module::class,
     ];
 
     /**

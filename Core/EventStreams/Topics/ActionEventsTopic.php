@@ -4,6 +4,7 @@
  */
 namespace Minds\Core\EventStreams\Topics;
 
+use Minds\Common\Urn;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Entities\User;
@@ -95,7 +96,7 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
             $user = $this->entitiesBuilder->single($data['user_guid']);
             
             /** @var Entity */
-            $entity = $this->entitiesBuilder->single($data['entity_guid']);
+            $entity = $this->entitiesResolver->single(new Urn($data['entity_urn']));
 
             $event = new ActionEvent();
             $event->setUser($user)

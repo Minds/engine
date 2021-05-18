@@ -72,8 +72,7 @@ class ActionEvent implements EventInterface
             case self::ACTION_SUBSCRIBE:
                 break;
             case self::ACTION_TAG:
-                // Should tag be entity_guid for the tagged person or entity_guid be the
-                // post that contains the tag
+                $allowedKeys = [ 'tag_in_entity_urn' ];
                 break;
             case self::ACTION_BLOCK:
             case self::ACTION_UNBLOCK:
