@@ -94,9 +94,20 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
 
             /** @var User */
             $user = $this->entitiesBuilder->single($data['user_guid']);
+
+            // If no user, something went wrong, but still skip
+            if (!$user) {
+                $consumer->acknowledge($message);
+                return;
+            }
             
             /** @var Entity */
             $entity = $this->entitiesResolver->single(new Urn($data['entity_urn']));
+
+            // If no entity, this could be acl issue, we will skip and won't awknowledge
+            if (!$entity) {
+                return;
+            }
 
             $event = new ActionEvent();
             $event->setUser($user)
