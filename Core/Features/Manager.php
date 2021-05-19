@@ -32,6 +32,9 @@ class Manager
     /** @var string */
     protected $environment;
 
+    /** @var User */
+    protected $user;
+
     /**
      * Manager constructor.
      * @param string $environment
@@ -136,7 +139,7 @@ class Manager
                 $features,
                 $service
                     ->setEnvironment($this->getEnvironment())
-                    ->setUser($this->activeSession->getUser())
+                    ->setUser($this->getUser())
                     ->fetch($this->featureKeys)
             );
         }
@@ -204,5 +207,26 @@ class Manager
         });
 
         return $output;
+    }
+
+    /**
+     * @param User $user
+     * @return self
+     */
+    public function setUser(User $user): self
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    /**
+     * @return User
+     */
+    protected function getUser(): ?User
+    {
+        if ($this->user) {
+            return $this->user;
+        }
+        return $this->activeSession->getUser();
     }
 }
