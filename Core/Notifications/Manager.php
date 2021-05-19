@@ -70,10 +70,7 @@ class Manager
                 // Was there a groupable notification above?
                 // We check below with a mergedKey and combine all that match
 
-                $period = 3600 * 3; // 3 hour
-                $nearestPeriod = $notification->getCreatedTimestamp() - ($notification->getCreatedTimestamp() % $period);
-
-                $mergeKey = hash('sha256', $nearestPeriod . $notification->getEntityUrn() . $notification->getType());
+                $mergeKey = $notification->getMergeKey();
 
                 if ($mergeableWith = $mergeKeysToNotification[$mergeKey]) {
 

@@ -172,6 +172,18 @@ class Notification
     }
 
     /**
+     * Get the merge key
+     * @return string
+     */
+    public function getMergeKey(): string
+    {
+        $period = 3600 * 6; // 6 hour
+        $nearestPeriod = $this->getCreatedTimestamp() - ($this->getCreatedTimestamp() % $period);
+
+        return hash('sha256', $nearestPeriod . $this->getEntityUrn() . $this->getType());
+    }
+
+    /**
      * Export
      * @return array
      */
@@ -197,6 +209,7 @@ class Notification
             'merged_from_guids' => $this->getMergedFromGuids(),
             'merged_from' => $mergedFromExported,
             'merged_count' => $this->getMergedCount(),
+            'merge_key' => $this->getMergeKey(),
         ];
     }
 }
