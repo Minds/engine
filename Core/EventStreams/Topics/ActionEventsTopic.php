@@ -98,7 +98,7 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
             // If no user, something went wrong, but still skip
             if (!$user) {
                 $consumer->acknowledge($message);
-                return;
+                continue;
             }
             
             /** @var Entity */
@@ -106,7 +106,7 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
 
             // If no entity, this could be acl issue, we will skip and won't awknowledge
             if (!$entity) {
-                return;
+                continue;
             }
 
             $event = new ActionEvent();
