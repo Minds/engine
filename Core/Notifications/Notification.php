@@ -93,7 +93,7 @@ class Notification
      */
     public function getUuid(): string
     {
-        return $this->uuid ?? (new Timeuuid(time()))->uuid();
+        return $this->uuid ?? (new Timeuuid())->uuid();
     }
 
     /**
