@@ -125,6 +125,7 @@ class Minds extends base
         (new Groups\GroupsProvider())->register();
         (new Search\SearchProvider())->register();
         (new Votes\VotesProvider())->register();
+        (new Comments\Provider())->register();
         (new SMS\SMSProvider())->register();
         (new Blockchain\BlockchainProvider())->register();
         (new Issues\IssuesProvider())->register();

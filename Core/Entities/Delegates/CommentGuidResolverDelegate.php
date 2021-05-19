@@ -6,12 +6,9 @@
 namespace Minds\Core\Entities\Delegates;
 
 use Minds\Common\Urn;
-use Minds\Core\Boost\Repository;
 use Minds\Core\Comments\Comment;
 use Minds\Core\Comments\Manager;
 use Minds\Core\Di\Di;
-use Minds\Core\EntitiesBuilder;
-use Minds\Entities\Boost\BoostEntityInterface;
 
 class CommentGuidResolverDelegate implements ResolverDelegate
 {
@@ -26,7 +23,7 @@ class CommentGuidResolverDelegate implements ResolverDelegate
      */
     public function __construct($manager = null)
     {
-        $this->manager = $manager ?: new Manager();
+        $this->manager = $manager;
     }
 
     /**
@@ -48,8 +45,7 @@ class CommentGuidResolverDelegate implements ResolverDelegate
         $entities = [];
 
         foreach ($urns as $urn) {
-            /** @var Comment $comment */
-            $comment = $this->manager->getByUrn($urn);
+            $comment = $this->getManager()->getByUrn($urn);
 
             $entities[] = $comment;
         }
@@ -78,5 +74,19 @@ class CommentGuidResolverDelegate implements ResolverDelegate
         }
 
         return $entity->getUrn();
+    }
+
+    /**
+     * Why do we do this? Because of circular dependencies
+     * The manager has a delegate which posts to the ActionEventsTopic,
+     * which calls this resolver
+     * @return Manager
+     */
+    protected function getManager(): Manager
+    {
+        if (!$this->manager) {
+            $this->manager = new Manager();
+        }
+        return $this->manager;
     }
 }
