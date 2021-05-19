@@ -20,7 +20,7 @@ class Manager
      */
     public function getUnreadCount(User $user): int
     {
-        return Counters::get($user, 'notifications:count', false);
+        return Counters::get($user, 'notifications:v3:count', false);
     }
 
     /**
@@ -30,7 +30,7 @@ class Manager
      */
     public function incrementCount(User $user, $incrementBy = 1): void
     {
-        Counters::increment($user, 'notifications:count', $incrementBy);
+        Counters::increment($user, 'notifications:v3:count', $incrementBy);
     }
 
     /**
@@ -39,7 +39,7 @@ class Manager
      */
     public function resetCount(User $user): void
     {
-        Counters::clear($user, 'notifications:count');
+        Counters::clear($user, 'notifications:v3:count');
     }
 
     /**
@@ -76,6 +76,12 @@ class Manager
                 $mergeKey = hash('sha256', $nearestPeriod . $notification->getEntityUrn() . $notification->getType());
 
                 if ($mergeableWith = $mergeKeysToNotification[$mergeKey]) {
+
+                    // First, check for duplication, we don't want 'sillysealion and sillysealion' vote up...
+                    if ($mergeableWith->getFromGuid() === $notification->getFromGuid()) {
+                        continue;
+                    }
+
                     $mergedGuids = $notification->getMergedFromGuids();
                     $mergedGuids[] = (string) $notification->getFromGuid();
                     $mergeableWith->setMergedFromGuids($mergedGuids);
@@ -137,5 +143,24 @@ class Manager
         }
 
         return true;
+    }
+
+    /**
+     * @param Notification
+     * @return bool
+     */
+    public function markAsRead(Notification $notification, User $user): bool
+    {
+        if ($notification->getToGuid() !== $user->getGuid()) {
+            throw new \Exception('Can not edit a notification you dont own');
+        }
+
+        if ($notification->getReadTimestamp() > $notification->getCreatedTimestamp()) {
+            return true; // Already marked read
+        }
+
+        $notification->setReadTimestamp(time());
+
+        return $this->repository->update($notification, [ 'read_timestamp' ]);
     }
 }
