@@ -67,8 +67,8 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
         }
         
         $notification = new Notification();
-        $notification->setToGuid($event->getEntity()->getOwnerGuid());
-        $notification->setFromGuid($event->getUser()->getGuid());
+        $notification->setToGuid((string) $event->getEntity()->getOwnerGuid());
+        $notification->setFromGuid((string) $event->getUser()->getGuid());
         $notification->setEntityUrn($event->getEntity()->getUrn());
         
         switch ($event->getAction()) {
@@ -82,12 +82,28 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 ]);
                 break;
             case ActionEvent::ACTION_TAG:
+                // Replace toGuid with the entity guid as the entity is the tagged person
++               $notification->setToGuid((string) $notification->getEntity()->getGuid());
                 // Replace entity_urn with the post guid,
                 $notification->setEntityUrn($event->getActionData()['tag_in_entity_urn']);
                 $notification->setType(NotificationTypes::TYPE_TAG);
                 break;
             case ActionEvent::ACTION_SUBSCRIBE:
                 $notification->setType(NotificationTypes::TYPE_SUBSCRIBE);
+                break;
+            case ActionEvent::ACTION_REMIND:
+                $notification->setType(NotificationTypes::TYPE_REMIND);
+                $notification->setData([
+                    'remind_urn' => $event->getActionData()['remind_urn'],
+                ]);
+                break;
+            case ActionEvent::ACTION_QUOTE:
+                $notification->setType(NotificationTypes::TYPE_QUOTE);
+                $notification->setData([
+                    'quote_urn' => $event->getActionData()['quote_urn'],
+                ]);
+                // Replace entity_urn with our quote
+                $notification->setEntityUrn($event->getActionData()['quote_urn']);
                 break;
             default:
                 return true; // We will not make a notification from this

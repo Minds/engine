@@ -3,15 +3,21 @@ namespace Minds\Core\Notifications;
 
 use Minds\Entities\User;
 use Minds\Helpers\Counters;
+use Minds\Core\Comments;
+use Minds\Core\Di\Di;
 
 class Manager
 {
     /** @var Repository */
     protected $repository;
 
-    public function __construct(Repository $repository = null)
+    /** @var Comments\Manager */
+    protected $commentsManager;
+
+    public function __construct(Repository $repository = null, Comments\Manager $commentsManager = null)
     {
         $this->repository = $repository ?? new Repository();
+        $this->commentsManager = $commentsManager ?? Di::_()->get('Comments\Manager');
     }
 
     /**
@@ -86,6 +92,16 @@ class Manager
                     continue;
                 } else {
                     $mergeKeysToNotification[$mergeKey] = $notification;
+                }
+
+                // Is this a comment notification, if so lets get the comment
+                if ($notification->getType() === 'comment') {
+                    $data = $notification->getData();
+                    $comment = $this->commentsManager->getByUrn($data['comment_urn']);
+                    if ($comment) {
+                        $data['comment_excerpt'] = $comment->getBody();
+                        $notification->setData($data);
+                    }
                 }
             }
 
