@@ -383,6 +383,7 @@ class Comment extends RepositoryEntity
     {
         $output = [];
 
+        $output['urn'] = $this->getUrn();
         $output['_guid'] = (string) $export['guid'];
         $output['guid'] = $output['luid'] = (string) $this->getLuid();
 

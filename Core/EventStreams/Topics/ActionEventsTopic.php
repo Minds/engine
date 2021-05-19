@@ -4,6 +4,7 @@
  */
 namespace Minds\Core\EventStreams\Topics;
 
+use Minds\Common\Urn;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Entities\User;
@@ -93,9 +94,20 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
 
             /** @var User */
             $user = $this->entitiesBuilder->single($data['user_guid']);
+
+            // If no user, something went wrong, but still skip
+            if (!$user) {
+                $consumer->acknowledge($message);
+                continue;
+            }
             
             /** @var Entity */
-            $entity = $this->entitiesBuilder->single($data['entity_guid']);
+            $entity = $this->entitiesResolver->single(new Urn($data['entity_urn']));
+
+            // If no entity, this could be acl issue, we will skip and won't awknowledge
+            if (!$entity) {
+                continue;
+            }
 
             $event = new ActionEvent();
             $event->setUser($user)
