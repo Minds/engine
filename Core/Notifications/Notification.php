@@ -147,7 +147,7 @@ class Notification
     {
         try {
             $entity = $this->entitiesRevolver
-            ->setOpts(['asActivities' => true,])
+            //->setOpts(['asActivities' => true,])
             ->single(new Urn($this->getEntityUrn()));
 
             if ($entity) {
@@ -177,7 +177,7 @@ class Notification
      */
     public function getMergeKey(): string
     {
-        $period = 3600 * 6; // 6 hour
+        $period = 3600 * 48; // 24 hour blocks
         $nearestPeriod = $this->getCreatedTimestamp() - ($this->getCreatedTimestamp() % $period);
 
         return hash('sha256', $nearestPeriod . $this->getEntityUrn() . $this->getType());
