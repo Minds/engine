@@ -197,4 +197,35 @@ class Controller
         // (new Core\Data\Call('entities'))
         //     ->insert($user->guid, [ 'surge_token' => $token ]);
     }
+
+    /**
+     * Mark a notification as read
+     * @return JsonResponse
+     * @throws UserErrorException
+     */
+    public function markAsRead(ServerRequest $request): JsonResponse
+    {
+        /** @var User */
+        $user = $request->getAttribute('_user');
+
+        /** @var string */
+        $urn = $request->getAttribute('parameters')['urn'];
+
+
+        if (!$urn) {
+            throw new UserErrorException("Notification urn is required");
+        }
+
+        $notification = $this->manager->getByUrn($urn);
+
+        if (!$notification) {
+            throw new UserErrorException("Notification not found", 404);
+        }
+
+        $success = $this->manager->markAsRead($notification, $user);
+
+        return new JsonResponse([
+            'status' => $success ? 'success' : 'error',
+        ]);
+    }
 }

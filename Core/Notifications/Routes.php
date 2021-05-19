@@ -46,6 +46,10 @@ class Routes extends ModuleRoutes
                             'settings',
                             Ref::_('Notifications\Controller', 'updateSettings')
                         );
+                        $route->put(
+                            'read/:urn',
+                            Ref::_('Notifications\Controller', 'markAsRead')
+                        );
                     });
             });
     }

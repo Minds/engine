@@ -170,9 +170,55 @@ class Repository
         }
     }
 
-    // TODO
-    public function update($notification, $fields)
+    /**
+     * @param Notification $notification
+     * @param array $fields
+     * @return bool
+     */
+    public function update(Notification $notification, array $fields = []):bool
     {
+        if (!$notification) {
+            throw new \Exception("Notification required");
+        }
+
+        $statement = "UPDATE notifications_mergeable";
+        $values = [];
+
+        /**
+         * Set statement
+         */
+        $set = [];
+
+        foreach ($fields as $field) {
+            switch ($field) {
+                case "read_timestamp":
+                    $set["read_timestamp"] =  new Timestamp($notification->getReadTimestamp(), 0);
+                    break;
+            }
+        }
+
+        $statement .= " SET ";
+        foreach ($set as $field => $value) {
+            $statement .= "$field = ?,";
+            $values[] = $value;
+        }
+        $statement = rtrim($statement, ',');
+
+        /**
+         * Where statement
+         */
+        $where = [
+            "to_guid = ?" => new Bigint($notification->getToGuid()),
+            "uuid = ?" => new Timeuuid($notification->getUuid()),
+        ];
+
+        $statement .= " WHERE " . implode(' AND ', array_keys($where));
+        array_push($values, ...array_values($where));
+
+        $prepared = new Prepared\Custom();
+        $prepared->query($statement, $values);
+
+        return (bool) $this->cql->request($prepared);
     }
 
     /**
