@@ -56,7 +56,9 @@ class Register
                     $manager = Di::_()->get('Referrals\Manager');
                     $manager->add($referral);
                 } catch (\Exception $e) {
-                    $this->logger->error($e);
+                    if ($e->getCode() !== 404) {
+                        $this->logger->error($e);
+                    }
                 }
             }
         });
