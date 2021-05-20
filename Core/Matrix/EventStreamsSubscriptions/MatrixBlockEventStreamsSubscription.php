@@ -57,7 +57,10 @@ class MatrixBlockEventStreamsSubscription implements SubscriptionInterface
             return false;
         }
 
-        $this->blockListSync->sync($event->getUser());
+        try {
+            $this->blockListSync->sync($event->getUser());
+        } catch (\Exception $e) {
+        }
 
         return true; // Return true to awknowledge the event from the stream (stop it being redelivered)
     }
