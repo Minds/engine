@@ -89,34 +89,37 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
         $consumer = $this->client()->subscribeWithRegex("persistent://$tenant/$namespace/$topicRegex", $subscriptionId, $config);
 
         while (true) {
-            $message = $consumer->receive();
-            $data = json_decode($message->getDataAsString(), true);
+            try {
+                $message = $consumer->receive();
+                $data = json_decode($message->getDataAsString(), true);
 
-            /** @var User */
-            $user = $this->entitiesBuilder->single($data['user_guid']);
+                /** @var User */
+                $user = $this->entitiesBuilder->single($data['user_guid']);
 
-            // If no user, something went wrong, but still skip
-            if (!$user) {
-                $consumer->acknowledge($message);
-                continue;
-            }
+                // If no user, something went wrong, but still skip
+                if (!$user) {
+                    $consumer->acknowledge($message);
+                    continue;
+                }
             
-            /** @var Entity */
-            $entity = $this->entitiesResolver->single(new Urn($data['entity_urn']));
+                /** @var Entity */
+                $entity = $this->entitiesResolver->single(new Urn($data['entity_urn']));
 
-            // If no entity, this could be acl issue, we will skip and won't awknowledge
-            if (!$entity) {
-                continue;
-            }
+                // If no entity, this could be acl issue, we will skip and won't awknowledge
+                if (!$entity) {
+                    continue;
+                }
 
-            $event = new ActionEvent();
-            $event->setUser($user)
+                $event = new ActionEvent();
+                $event->setUser($user)
                 ->setEntity($entity)
                 ->setAction($data['action'])
                 ->setActionData($data['action_data']);
 
-            if (call_user_func($callback, $event, $message) === true) {
-                $consumer->acknowledge($message);
+                if (call_user_func($callback, $event, $message) === true) {
+                    $consumer->acknowledge($message);
+                }
+            } catch (\Exception $e) {
             }
         }
     }
