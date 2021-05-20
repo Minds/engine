@@ -112,13 +112,13 @@ class Comment extends RepositoryEntity
     /** @var bool */
     protected $ephemeral = true;
 
-    /** @var  EntitiesBuilder */
+    /** @var \Minds\Core\EntitiesBuilder */
     private $entitiesBuilder;
 
     public function __construct(
         $entitiesBuilder = null
     ) {
-        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->entitiesBuilder = $entitiesBuilder;
     }
 
     /**
@@ -354,6 +354,21 @@ class Comment extends RepositoryEntity
     {
         return null;
     }
+
+    /**
+     * Why do we do this? Because of circular dependencies.
+     * We do not want conflicts with any other EntityBuilder.
+     * @return \Minds\Core\EntitiesBuilder
+     */
+    private function getEntitiesBuilder(): \Minds\Core\EntitiesBuilder
+    {
+        if (!$this->entitiesBuilder) {
+            $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
+            ;
+        }
+        return $this->entitiesBuilder;
+    }
+
     /**
        * Patches signed attachment URL if the comment is in a group
        * @param $attachments
@@ -371,7 +386,7 @@ class Comment extends RepositoryEntity
             }
 
             // build container entity
-            $containerEntity = Di::_()->get('EntitiesBuilder')
+            $containerEntity = $this->getEntitiesBuilder()
                 ->single($attachments['container_guid'])
                 ->getContainerEntity();
 
