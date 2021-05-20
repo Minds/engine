@@ -364,17 +364,15 @@ class Comment extends RepositoryEntity
     {
         if (!$this->entitiesBuilder) {
             $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
-            ;
         }
         return $this->entitiesBuilder;
     }
 
     /**
-       * Patches signed attachment URL if the comment is in a group
-       * @param $attachments
-       * @return void
-       */
-
+     * Patches signed attachment URL if the comment is in a group
+     * @param array $attachments
+     * @return void
+     */
     private function patchSignedAttachmentUrl(array $attachments)
     {
         try {
