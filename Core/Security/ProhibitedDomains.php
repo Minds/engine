@@ -308,5 +308,6 @@ class ProhibitedDomains
         '//prem.li',
         '//shr.link',
         '.clickbank.net',
+        '//v.ht/',
     ];
 }
