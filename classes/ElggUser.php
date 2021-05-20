@@ -1,4 +1,7 @@
 <?php
+
+use Minds\Common\IpAddress;
+
 /**
  * ElggUser
  *
@@ -38,7 +41,7 @@ class ElggUser extends ElggEntity implements Friendable
         $this->attributes['code'] = null;
         $this->attributes['banned'] = "no";
         $this->attributes['admin'] = 'no';
-        $this->attributes['ip'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : null;
+        $this->attributes['ip'] = (new IpAddress())->get();
         $this->attributes['time_created'] = time();
         $this->attributes['enabled'] = 'yes';
     }
