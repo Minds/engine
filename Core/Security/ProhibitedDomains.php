@@ -309,5 +309,6 @@ class ProhibitedDomains
         '//shr.link',
         '.clickbank.net',
         '//v.ht/',
+        '//sites.google.com/',
     ];
 }
