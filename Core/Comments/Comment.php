@@ -254,46 +254,10 @@ class Comment extends RepositoryEntity
         }
 
         if (in_array(substr($this->attachments[$attachment], 0, 1), ['[', '{'], true)) {
-            return $this->patchSignedAttachmentUrl(
-                json_decode($this->attachments[$attachment], true)
-            );
+            return json_decode($this->attachments[$attachment], true);
         }
 
         return $this->attachments[$attachment];
-    }
-
-    /**
-     * Patches signed attachment URL if the comment is in a group
-     * @param $attachments
-     * @return void
-     */
-    private function patchSignedAttachmentUrl($attachments)
-    {
-        try {
-            $mediaManager = Di::_()->get('Media\Image\Manager');
-
-            // if already signed - disregard.
-            if ($mediaManager->confirmSignedUri($attachments['src'])) {
-                return $attachments;
-            }
-
-            // build container entity
-            $containerEntity = $this->entitiesBuilder
-                ->single($attachments['container_guid'])
-                ->getContainerEntity();
-
-            // if the container entity is a closed group - sign the src
-            if ($containerEntity->getType() === 'group' && $containerEntity->getMembership() === 0) {
-                $attachments['src'] = $mediaManager->signUri($attachments['src']);
-            }
-
-            return $attachments;
-        } catch (\Exception $e) {
-            $this->logger->error($e);
-        }
-
-        // else pass back attachments as they came in.
-        return $attachments;
     }
 
     /**
@@ -390,6 +354,40 @@ class Comment extends RepositoryEntity
     {
         return null;
     }
+    /**
+       * Patches signed attachment URL if the comment is in a group
+       * @param $attachments
+       * @return void
+       */
+
+    private function patchSignedAttachmentUrl(array $attachments)
+    {
+        try {
+            $mediaManager = Di::_()->get('Media\Image\Manager');
+
+            // if already signed - disregard.
+            if ($mediaManager->confirmSignedUri($attachments['src'])) {
+                return $attachments;
+            }
+
+            // build container entity
+            $containerEntity = Di::_()->get('EntitiesBuilder')
+                ->single($attachments['container_guid'])
+                ->getContainerEntity();
+
+            // if the container entity is a closed group - sign the src
+            if ($containerEntity->getType() === 'group' && $containerEntity->getMembership() === 0) {
+                $attachments['src'] = $mediaManager->signUri($attachments['src']);
+            }
+
+            return $attachments;
+        } catch (\Exception $e) {
+            Di::_()->get('Logger')->error($e);
+        }
+
+        // else pass back attachments as they came in.
+        return $attachments;
+    }
 
     /**
      * Defines the exportable members
@@ -463,6 +461,10 @@ class Comment extends RepositoryEntity
                 $siteUrl = Di::_()->get('Config')->get('site_url');
                 $cdnUrl = Di::_()->get('Config')->get('cdn_url');
                 $output['custom_data']['src'] = $output['attachments']['custom_data']['src'] = str_replace($siteUrl, $cdnUrl, $output['attachments']['custom_data']['src']);
+            
+                $output['custom_data'] = $this->patchSignedAttachmentUrl(
+                    $output['custom_data']
+                );
             }
         }
 
