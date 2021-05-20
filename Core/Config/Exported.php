@@ -81,6 +81,7 @@ class Exported
             'stripe_key' => $this->config->get('payments')['stripe']['public_key'],
             'recaptchaKey' => $this->config->get('google')['recaptcha']['site_key'],
             'max_video_length' => $this->config->get('max_video_length'),
+            'max_video_length_plus' => $this->config->get('max_video_length_plus'),
             'max_video_file_size' => $this->config->get('max_video_file_size'),
             'features' => (object) ($this->features->export() ?: []),
             'blockchain' => (object) $this->blockchain->getPublicSettings(),
