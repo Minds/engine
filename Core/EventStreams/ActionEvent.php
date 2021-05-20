@@ -12,6 +12,9 @@ class ActionEvent implements EventInterface
     const ACTION_COMMENT = 'comment';
 
     /** @var string */
+    const ACTION_QUOTE = 'quote';
+
+    /** @var string */
     const ACTION_REMIND = 'remind';
 
     /** @var string */
@@ -67,13 +70,15 @@ class ActionEvent implements EventInterface
                 $allowedKeys = [ 'comment_urn' ];
                 break;
             case self::ACTION_REMIND:
-                $allowedKeys = [ 'remind_guid' ];
+                $allowedKeys = [ 'remind_urn' ];
+                break;
+            case self::ACTION_QUOTE:
+                $allowedKeys = [ 'quote_urn' ];
                 break;
             case self::ACTION_SUBSCRIBE:
                 break;
             case self::ACTION_TAG:
-                // Should tag be entity_guid for the tagged person or entity_guid be the
-                // post that contains the tag
+                $allowedKeys = [ 'tag_in_entity_urn' ];
                 break;
             case self::ACTION_BLOCK:
             case self::ACTION_UNBLOCK:

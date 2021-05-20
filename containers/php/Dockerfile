@@ -135,6 +135,7 @@ RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && cd pulsar-php-client \
     && make -j4 \
     && cp output/pulsar.so $(php-config --extension-dir)/pulsar.so \
+    && cd .. \
     && rm -rf PHP-CPP pulsar pulsar-php-client \
     && apk del build-deps
 

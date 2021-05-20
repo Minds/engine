@@ -8,6 +8,7 @@ use Minds\Core\Plus\Subscription as PlusSubscription;
 use Minds\Entities\User as UserEntity;
 use Minds\Interfaces;
 use Minds\Core\Di\Di;
+use Minds\Core\Security\ACL;
 
 class plus implements Interfaces\Api, Interfaces\ApiAdminPam
 {
@@ -94,7 +95,11 @@ class plus implements Interfaces\Api, Interfaces\ApiAdminPam
             }
         }
 
+        $isAllowed = ACL::_()->setIgnore(true); // store previous state.
+
         $success = $target->save();
+
+        ACL::_()->setIgnore($isAllowed); // set back to previous state.
 
         if (!$success) {
             return Factory::response([

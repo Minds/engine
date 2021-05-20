@@ -4,6 +4,7 @@
  */
 namespace Minds\Core\EventStreams\Topics;
 
+use Minds\Common\Urn;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Entities\User;
@@ -47,6 +48,7 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                 'action' => $event->getAction(),
                 'action_data' => $event->getActionData(),
                 'user_guid' => (string) $event->getUser()->getGuid(),
+                'entity_urn' => (string) $event->getEntity()->getUrn(),
                 'entity_guid' => (string) $event->getEntity()->getGuid(),
                 'entity_owner_guid' => (string) $event->getEntity()->getOwnerGuid(),
                 'entity_type' => (string) $event->getEntity()->getType(),
@@ -87,23 +89,37 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
         $consumer = $this->client()->subscribeWithRegex("persistent://$tenant/$namespace/$topicRegex", $subscriptionId, $config);
 
         while (true) {
-            $message = $consumer->receive();
-            $data = json_decode($message->getDataAsString(), true);
+            try {
+                $message = $consumer->receive();
+                $data = json_decode($message->getDataAsString(), true);
 
-            /** @var User */
-            $user = $this->entitiesBuilder->single($data['user_guid']);
+                /** @var User */
+                $user = $this->entitiesBuilder->single($data['user_guid']);
+
+                // If no user, something went wrong, but still skip
+                if (!$user) {
+                    $consumer->acknowledge($message);
+                    continue;
+                }
             
-            /** @var Entity */
-            $entity = $this->entitiesBuilder->single($data['entity_guid']);
+                /** @var Entity */
+                $entity = $this->entitiesResolver->single(new Urn($data['entity_urn']));
 
-            $event = new ActionEvent();
-            $event->setUser($user)
+                // If no entity, this could be acl issue, we will skip and won't awknowledge
+                if (!$entity) {
+                    continue;
+                }
+
+                $event = new ActionEvent();
+                $event->setUser($user)
                 ->setEntity($entity)
                 ->setAction($data['action'])
                 ->setActionData($data['action_data']);
 
-            if (call_user_func($callback, $event, $message) === true) {
-                $consumer->acknowledge($message);
+                if (call_user_func($callback, $event, $message) === true) {
+                    $consumer->acknowledge($message);
+                }
+            } catch (\Exception $e) {
             }
         }
     }
@@ -129,6 +145,10 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                 ],
                 [
                     'name' => 'user_guid',
+                    'type' => 'string',
+                ],
+                [
+                    'name' => 'entity_urn',
                     'type' => 'string',
                 ],
                 [

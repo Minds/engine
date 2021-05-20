@@ -6,6 +6,7 @@ namespace Minds\Core\EventStreams\Topics;
 
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Resolver;
 use Minds\Core\EntitiesBuilder;
 use Pulsar\Client;
 use Pulsar\ClientConfiguration;
@@ -21,11 +22,19 @@ abstract class AbstractTopic
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    public function __construct(Client $client = null, Config $config = null, EntitiesBuilder $entitiesBuilder = null)
-    {
+    /** @var Resolver */
+    protected $entitiesResolver;
+
+    public function __construct(
+        Client $client = null,
+        Config $config = null,
+        EntitiesBuilder $entitiesBuilder = null,
+        Resolver $entitiesResolver = null
+    ) {
         $this->client = $client ?? null;
         $this->config = $config ?? Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->entitiesResolver = $entitiesResolver ?? new Resolver();
     }
 
     /**
@@ -67,5 +76,15 @@ abstract class AbstractTopic
     protected function getPulsarNamespace(): string
     {
         return $this->config->get('pulsar')['namespace'] ?? 'engine';
+    }
+
+    /**
+     * Close the connection
+     */
+    public function __destruct()
+    {
+        if ($this->client) {
+            $this->client->close();
+        }
     }
 }
