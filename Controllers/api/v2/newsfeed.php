@@ -259,6 +259,7 @@ class newsfeed implements Interfaces\Api
                     // vs patching on activity
                     if (!$activity instanceof Activity) {
                         $activity = $manager->createFromEntity($activity);
+                        $activity->guid = $pages[0]; // createFromEntity makes a new entity
                     }
 
                     $activityMutation = new EntityMutation($activity);
