@@ -21,6 +21,9 @@ class ActionEvent implements EventInterface
     const ACTION_SUBSCRIBE = 'subscribe';
 
     /** @var string */
+    const ACTION_UNSUBSCRIBE = 'unsubscribe';
+
+    /** @var string */
     const ACTION_TAG = 'tag';
 
     /** @var string */
@@ -76,6 +79,7 @@ class ActionEvent implements EventInterface
                 $allowedKeys = [ 'quote_urn' ];
                 break;
             case self::ACTION_SUBSCRIBE:
+            case self::ACTION_UNSUBSCRIBE:
                 break;
             case self::ACTION_TAG:
                 $allowedKeys = [ 'tag_in_entity_urn' ];
