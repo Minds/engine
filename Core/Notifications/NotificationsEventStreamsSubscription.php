@@ -11,6 +11,7 @@ use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
+use Minds\Helpers\Urn;
 
 class NotificationsEventStreamsSubscription implements SubscriptionInterface
 {
@@ -53,7 +54,7 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
     /**
      * Called when there is a new event
      * @param EventInterface $event
-     * @return booo
+     * @return bool
      */
     public function consume(EventInterface $event): bool
     {
@@ -63,17 +64,34 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
 
         if ($event->getEntity()->getOwnerGuid() == $event->getUser()->getGuid()) {
             $this->logger->info('Skipping as owner is sender');
-            return true; // True to awknowldge, but we dont care about interactions with our own posts
+            return true; // True to acknowledge, but we dont care about interactions with our own posts
         }
-        
+
         $notification = new Notification();
-        $notification->setToGuid((string) $event->getEntity()->getOwnerGuid());
-        $notification->setFromGuid((string) $event->getUser()->getGuid());
-        $notification->setEntityUrn($event->getEntity()->getUrn());
-        
+
+        $entityUrn = $event->getEntity()->getUrn();
+        $notification->setEntityUrn($entityUrn);
+
+        $entityUrnNid = Urn::getNid($entityUrn);
+
+        // ojm ask mark about how this is organized
+        // can we rename user to actor?
+        if ($entityUrnNid === 'user') {
+            $notification->setToGuid((string) $event->getEntity()->getGuid());
+            // ojm how to handle when there is no user or FromGuid?
+            $notification->setFromGuid((string) $event->getUser()->getGuid());
+        } else {
+            // Do this when the notification is related to something published (activity post/comment)
+            $notification->setToGuid((string) $event->getEntity()->getOwnerGuid());
+            $notification->setFromGuid((string) $event->getUser()->getGuid());
+        }
+
         switch ($event->getAction()) {
-            case ActionEvent::ACTION_VOTE:
-                $notification->setType($event->getActionData()['vote_direction'] === 'up' ? NotificationTypes::TYPE_VOTE_UP : NotificationTypes::TYPE_VOTE_DOWN);
+            case ActionEvent::ACTION_VOTE_UP:
+                $notification->setType(NotificationTypes::TYPE_VOTE_UP);
+                break;
+            case ActionEvent::ACTION_VOTE_DOWN:
+                $notification->setType(NotificationTypes::TYPE_VOTE_DOWN);
                 break;
             case ActionEvent::ACTION_COMMENT:
                 $notification->setType(NotificationTypes::TYPE_COMMENT);
@@ -91,6 +109,18 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
             case ActionEvent::ACTION_SUBSCRIBE:
                 $notification->setType(NotificationTypes::TYPE_SUBSCRIBE);
                 break;
+            case ActionEvent::ACTION_REFERRAL_PING:
+                return true; // Don't send notification until referrals are fixed
+                // $notification->setType(NotificationTypes::TYPE_REFERRAL_PING);
+                // break;
+            case ActionEvent::ACTION_REFERRAL_PENDING:
+                return true; // Don't send notification until referrals are fixed
+                // $notification->setType(NotificationTypes::TYPE_REFERRAL_PENDING);
+                // break;
+            case ActionEvent::ACTION_REFERRAL_COMPLETE:
+                return true; // Don't send notification until referrals are fixed
+                // $notification->setType(NotificationTypes::TYPE_REFERRAL_COMPLETE);
+                // break;
             case ActionEvent::ACTION_REMIND:
                 $notification->setType(NotificationTypes::TYPE_REMIND);
                 $notification->setData([
@@ -115,7 +145,7 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
             // Some logging
             $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
 
-            return true; // Return true to awknowledge the event from the stream (stop it being redelivered)
+            return true; // Return true to acknowledge the event from the stream (stop it being redelivered)
         }
 
         return false;

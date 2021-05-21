@@ -48,6 +48,12 @@ class Manager
             //     return $this->createAccount($user);
             // }
 
+            //ojm pin if they don't have an account, send notification 'you've been invited to chat'
+
+            // ojm pin add to /Matrix/Manager for messenger_invite notification
+            // might need to avoid circular dependency
+//
+
             throw $e; // Rethrow
         }
 
@@ -141,6 +147,10 @@ class Manager
         $receiverMatrixId = $this->getMatrixId($receiver);
         // First, check to see that we don't already have a direct room
 
+        //ojm pin notification
+        // messenger invite
+        // getAccountReceiverMatrixId -> if empty, they don't have a matrix ccount
+
         $directRooms = $this->getDirectRooms($sender);
 
         /** @var MatrixRoom[] */
@@ -184,7 +194,7 @@ class Manager
 
         $directRooms[] = $matrixRoom;
         $patchedDirectRooms = [];
-    
+
         foreach ($directRooms as $room) {
             $member = $room->getMembers()[0];
             $patchedDirectRooms[$member] = [ $room->getId() ];
@@ -224,7 +234,7 @@ class Manager
             }
             throw $e;
         }
-        
+
         return false;
     }
 
@@ -253,7 +263,7 @@ class Manager
                 ->setDirectMessage(true);
                 $rooms[] = $matrixRoom;
             }
-        
+
 
             return $rooms;
         } catch (\GuzzleHttp\Exception\ClientException $e) {
@@ -272,9 +282,9 @@ class Manager
     public function getJoinedRooms(User $user)
     {
         $matrixId = $this->getMatrixId($user);
-       
+
         $data = $this->getState($user);
-    
+
         /** @var MatrixRoom[] */
         $rooms = [];
 
@@ -303,14 +313,14 @@ class Manager
 
             $rooms[] = $matrixRoom;
         }
-        
+
         foreach ($data['rooms']['invite'] as $roomId => $roomData) {
             $matrixRoom = new MatrixRoom();
             $matrixRoom->setId($roomId);
             $matrixRoom->setInvite(true);
-            
+
             $this->getRoomFromStateEvents($roomData['invite_state']['events'], $matrixRoom, $matrixId);
-            
+
             $rooms[] = $matrixRoom;
         }
 
@@ -375,7 +385,7 @@ class Manager
         while (true) {
             $endpoint = '_synapse/admin/v2/users';
             $params = http_build_query([ 'from' => $from, 'limit' => $limit, 'guests' => 'false' ]);
-        
+
             $response = $this->client->request('GET', "$endpoint?$params");
             $decodedResponse = json_decode($response->getBody()->getContents(), true);
 
@@ -394,7 +404,7 @@ class Manager
                 }
 
                 $account->setUserGuid($user->getGuid());
-                
+
                 yield $account;
             }
 
@@ -484,7 +494,7 @@ class Manager
         $contents = $file->read();
 
         $accessToken = $this->getServerAccessToken($user);
-        
+
         $endpoint = "_matrix/media/r0/upload?filename=$filename";
 
         try {
