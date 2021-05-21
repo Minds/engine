@@ -89,6 +89,8 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 $notification->setType(NotificationTypes::TYPE_TAG);
                 break;
             case ActionEvent::ACTION_SUBSCRIBE:
+                // Replace toGuid with the entity guid as the entity is the subscribed person
++               $notification->setToGuid((string) $notification->getEntity()->getGuid());
                 $notification->setType(NotificationTypes::TYPE_SUBSCRIBE);
                 break;
             case ActionEvent::ACTION_REMIND:
