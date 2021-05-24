@@ -108,6 +108,10 @@ class Resolver
             $resolverDelegate = $this->resolverDelegates[$resolverDelegateClassName];
             $resolvedEntities = $resolverDelegate->resolve($batch, $this->opts);
 
+            if (!is_array($resolvedEntities)) {
+                continue;
+            }
+
             foreach ($resolvedEntities as $resolvedEntity) {
                 $urn = $resolverDelegate->asUrn($resolvedEntity);
                 $resolvedMap[$urn] = $resolverDelegate->map($urn, $resolvedEntity);
