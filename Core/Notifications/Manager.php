@@ -14,10 +14,14 @@ class Manager
     /** @var Comments\Manager */
     protected $commentsManager;
 
-    public function __construct(Repository $repository = null, Comments\Manager $commentsManager = null)
+    /** @var Delegates\NotificationsDelegateInterface[] */
+    protected $delegates = [];
+
+    public function __construct(Repository $repository = null, Comments\Manager $commentsManager = null, array $delegates = [])
     {
         $this->repository = $repository ?? new Repository();
         $this->commentsManager = $commentsManager ?? Di::_()->get('Comments\Manager');
+        $this->delegates = $delegates;
     }
 
     /**
@@ -46,15 +50,6 @@ class Manager
     public function resetCount(User $user): void
     {
         Counters::clear($user, 'notifications:v3:count');
-    }
-
-    /**
-     * @param string $uuid
-     * @return Notification
-     */
-    public function get(string $uuid): ?Notification
-    {
-        return null;
     }
 
     /**
@@ -138,7 +133,9 @@ class Manager
         // Increment the counter
         $this->incrementCount($notification->getTo());
 
-        // TODO: Send a push notification
+        foreach ($this->getDelegates() as $delegate) {
+            $delegate->onAdd($notification);
+        }
 
         return true;
     }
@@ -175,5 +172,18 @@ class Manager
         $notification->setReadTimestamp(time());
 
         return $this->repository->update($notification, [ 'read_timestamp' ]);
+    }
+
+    /**
+     * @return Delegates\NotificationsDelegateInterface[]
+     */
+    protected function getDelegates(): array
+    {
+        if (empty($this->delegates)) {
+            $this->delegates = [
+                new Delegates\EventStreamsDelegate(),
+            ];
+        }
+        return $this->delegates;
     }
 }
