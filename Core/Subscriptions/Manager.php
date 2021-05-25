@@ -125,8 +125,8 @@ class Manager
     public function subscribe($publisher)
     {
         $subscription = new Subscription();
-        $subscription->setSubscriberGuid($this->subscriber->getGuid())
-            ->setPublisherGuid($publisher->getGuid());
+        $subscription->setSubscriber($this->subscriber)
+            ->setPublisher($publisher);
 
         if ($this->getSubscriptionsCount() >= static::MAX_SUBSCRIPTIONS && $this->sendEvents) {
             $this->sendNotificationDelegate->onMaxSubscriptions($subscription);
@@ -156,8 +156,8 @@ class Manager
     public function unSubscribe($publisher)
     {
         $subscription = new Subscription();
-        $subscription->setSubscriberGuid($this->subscriber->getGuid())
-            ->setPublisherGuid($publisher->getGuid())
+        $subscription->setSubscriber($this->subscriber)
+            ->setPublisher($publisher)
             ->setActive(false);
 
         $subscription = $this->repository->delete($subscription);

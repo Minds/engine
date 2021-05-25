@@ -72,6 +72,11 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
             return true; // True to acknowledge, but we dont care about interactions with our own posts
         }
 
+        if ($event->getTimestamp() < time() - 3600) {
+            // Don't notify for event older than 1 hour, here
+            return true;
+        }
+
         $notification = new Notification();
 
         if ($event->getEntity() instanceof User) {
@@ -108,6 +113,8 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 $notification->setType(NotificationTypes::TYPE_TAG);
                 break;
             case ActionEvent::ACTION_SUBSCRIBE:
+                // Replace toGuid with the entity guid as the entity is the subscribed person
++               $notification->setToGuid((string) $notification->getEntity()->getGuid());
                 $notification->setType(NotificationTypes::TYPE_SUBSCRIBE);
                 break;
             case ActionEvent::ACTION_REFERRAL_PING:

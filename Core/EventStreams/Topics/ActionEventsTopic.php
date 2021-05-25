@@ -44,6 +44,7 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
         $builder = new MessageBuilder();
         $message = $builder
             //->setPartitionKey(0)
+            ->setEventTimestamp($event->getTimestamp() ?: time())
             ->setContent(json_encode([
                 'action' => $event->getAction(),
                 'action_data' => $event->getActionData(),
@@ -89,34 +90,42 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
         $consumer = $this->client()->subscribeWithRegex("persistent://$tenant/$namespace/$topicRegex", $subscriptionId, $config);
 
         while (true) {
-            $message = $consumer->receive();
-            $data = json_decode($message->getDataAsString(), true);
+            try {
+                $message = $consumer->receive();
+                $data = json_decode($message->getDataAsString(), true);
 
-            /** @var User */
-            $user = $this->entitiesBuilder->single($data['user_guid']);
+                /** @var User */
+                $user = $this->entitiesBuilder->single($data['user_guid']);
 
-            // If no user, something went wrong, but still skip
-            if (!$user) {
-                $consumer->acknowledge($message);
-                continue;
-            }
+                // If no user, something went wrong, but still skip
+                if (!$user) {
+                    $consumer->acknowledge($message);
+                    continue;
+                }
             
-            /** @var Entity */
-            $entity = $this->entitiesResolver->single(new Urn($data['entity_urn']));
+                /** @var Entity */
+                $entity = $this->entitiesResolver->single(new Urn($data['entity_urn']));
 
-            // If no entity, this could be acl issue, we will skip and won't awknowledge
-            if (!$entity) {
-                continue;
-            }
+                // If no entity, skip as its unavailable
+                if (!$entity) {
+                    $consumer->acknowledge($message);
+                    continue;
+                }
 
-            $event = new ActionEvent();
-            $event->setUser($user)
-                ->setEntity($entity)
-                ->setAction($data['action'])
-                ->setActionData($data['action_data']);
+                $event = new ActionEvent();
+                $event->setUser($user)
+                    ->setEntity($entity)
+                    ->setAction($data['action'])
+                    ->setActionData($data['action_data'])
+                    ->setTimestamp($message->getEventTimestamp());
 
-            if (call_user_func($callback, $event, $message) === true) {
-                $consumer->acknowledge($message);
+                if (call_user_func($callback, $event, $message) === true) {
+                    $consumer->acknowledge($message);
+                } else {
+                    throw new \Exception("Failed to process message");
+                }
+            } catch (\Exception $e) {
+                $consumer->negativeAcknowledge($message);
             }
         }
     }

@@ -250,7 +250,17 @@ class newsfeed implements Interfaces\Api
             default:
                 //essentially an edit
                 if (is_numeric($pages[0])) {
-                    $activity = new Activity($pages[0]);
+                    $activity = Di::_()->get('EntitiesBuilder')->single($pages[0]);
+
+                    // When editing media posts, they can sometimes be non-activity entities
+                    // so we provide some additional field
+                    // TODO: Anoter possible bug is the descrepency between 'description' and 'message'
+                    // here we are updating message field. Propose fixing this at Object/Image level
+                    // vs patching on activity
+                    if (!$activity instanceof Activity) {
+                        $activity = $manager->createFromEntity($activity);
+                        $activity->guid = $pages[0]; // createFromEntity makes a new entity
+                    }
 
                     $activityMutation = new EntityMutation($activity);
 

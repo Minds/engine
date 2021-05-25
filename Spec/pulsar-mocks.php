@@ -61,6 +61,10 @@ class PulsarMessageBuilderMock
     {
         return new PulsarMessageMock();
     }
+    public function setEventTimestamp(int $timestamp)
+    {
+        return $this;
+    }
 }
 class PulsarMessageMock
 {

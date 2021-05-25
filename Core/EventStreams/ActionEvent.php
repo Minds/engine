@@ -24,6 +24,9 @@ class ActionEvent implements EventInterface
     const ACTION_SUBSCRIBE = 'subscribe';
 
     /** @var string */
+    const ACTION_UNSUBSCRIBE = 'unsubscribe';
+
+    /** @var string */
     const ACTION_REFERRAL_PING = 'referral_ping';
 
     /** @var string */
@@ -80,6 +83,9 @@ class ActionEvent implements EventInterface
     /** @var string[] */
     protected $actionData = [];
 
+    /** @var int */
+    protected $timestamp = 0;
+
     /**
      * @param string $action
      * @return self
@@ -125,6 +131,7 @@ class ActionEvent implements EventInterface
             case self::ACTION_REFERRAL_COMPLETE:
                 break;
             case self::ACTION_SUBSCRIBE:
+            case self::ACTION_UNSUBSCRIBE:
                 break;
             case self::ACTION_TAG:
                 $allowedKeys = [ 'tag_in_entity_urn' ];
@@ -174,5 +181,24 @@ class ActionEvent implements EventInterface
     public function getActionData(): array
     {
         return $this->actionData;
+    }
+
+    /**
+     * The event timestamp
+     * @param int $timestamp
+     * @return self
+     */
+    public function setTimestamp(int $timestamp): EventInterface
+    {
+        $this->timestamp = $timestamp;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getTimestamp(): int
+    {
+        return $this->timestamp;
     }
 }

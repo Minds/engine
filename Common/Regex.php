@@ -10,8 +10,14 @@ class Regex
     // @tags
     const AT = '/(?:@)([a-zA-Z0-9_]+)/';
     
-    // #tags or $tags
-    const HASH_CASH_TAG = '/([^&]|\b|^)[#|\$]([\wÀ-ÿ\u0E00-\u0E7F\u2460-\u9FBB]+)/uim';
+    // #tags
+    const HASH_TAG = '/([^&]|\b|^)#([\wÀ-ÿ\u0E00-\u0E7F\u2460-\u9FBB]+)/uim';
+
+    // $tags
+    const CASH_TAG = '/([^&]|\b|^)\$([A-Za-z]+)/uim';
+
+    // #tags | $tags
+    const HASH_CASH_TAG = '/([^&]|\b|^)#([\wÀ-ÿ\u0E00-\u0E7F\u2460-\u9FBB]+)|([^&]|\b|^)\$([A-Za-z]+)/uim';
 
     /**
      * Wrapper around preg_match_all for testing.

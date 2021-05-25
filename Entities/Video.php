@@ -337,6 +337,7 @@ class Video extends MindsObject
             'video',
             [
                 'thumbnail_src' => $this->getIconUrl(),
+                'cloudflare_id' => $this->getCloudflareId(),
                 'guid' => $this->guid,
                 'mature' => $this->getFlag('mature'),
                 'full_hd' => $this->getFlag('full_hd'),
