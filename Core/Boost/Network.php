@@ -7,6 +7,9 @@ use Minds\Core\Di\Di;
 use Minds\Core\Data;
 use Minds\Entities;
 use Minds\Helpers;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Notifications;
+
 
 use MongoDB\BSON;
 
@@ -19,10 +22,13 @@ class Network implements BoostHandlerInterface
     protected $handler = 'newsfeed';
     protected $mongo;
 
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
 
-    public function __construct($options = [], Data\Interfaces\ClientInterface $mongo = null, Data\Call $db = null)
+    public function __construct($options = [], Data\Interfaces\ClientInterface $mongo = null, Data\Call $db = null, EntitiesBuilder $entitiesBuilder = null)
     {
         $this->mongo = $mongo ?: Data\Client::build('MongoDB');
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -187,6 +193,23 @@ class Network implements BoostHandlerInterface
             ],
             'impressions' => $boost->getBid()
         ]);
+
+        //
+        $notification = new Notifications\Notification();
+
+        $notification->setType(Notifications\NotificationTypes::TYPE_BOOST_COMPLETED);
+        $notification->setData(['impressions' =>  $this->boost->getImpressions()]);
+        $notification->setToGuid($this->boost->getOwnerGuid());
+        $notification->setEntityUrn($this->boost->getEntity()->getUrn());
+
+        // Save and submit
+        if ($this->notificationsManager->add($notification)) {
+
+            // Some logging
+            $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
+
+            return true; // Return true to acknowledge the event from the stream (stop it being redelivered)
+        }
     }
 
     /**

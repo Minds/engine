@@ -4,12 +4,15 @@ namespace Minds\Core\Boost\Network;
 
 use Minds\Core;
 use Minds\Core\Data;
+use Minds\Core\Di\Di;
 use Minds\Entities\Boost\BoostEntityInterface;
 use Minds\Entities\Boost\Network;
 use Minds\Helpers\MagicAttributes;
 use Minds\Interfaces\BoostReviewInterface;
 use Minds\Core\Boost\Delegates;
 use Minds\Core\Boost\Delegates\OnchainBadgeDelegate;
+use Minds\Core\EventStreams\ActionEvent;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 
 use MongoDB\BSON;
 
@@ -112,6 +115,20 @@ class Review implements BoostReviewInterface
                 'notification_view' => 'boost_rejected',
             ]);
 
+            //
+            $actionEvent = new ActionEvent();
+            $actionEvent
+                ->setAction(ActionEvent::ACTION_BOOST_REJECTED)
+                ->setActionData([
+                    'reason' => $this->boost->getRejectedReason(),
+                ])
+                ->setEntity($this->boost->getEntity())
+                ->setUser($this->boost->getOwner());
+
+            $actionEventTopic = new ActionEventsTopic();
+            $actionEventTopic->send($actionEvent);
+
+            //
             Core\Di\Di::_()->get('Boost\Payment')->refund($this->boost);
         } catch (\Exception $e) {
             throw new \Exception('error while rejecting the boost');

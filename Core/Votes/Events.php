@@ -42,10 +42,9 @@ class Events
 
             $actionEvent = new ActionEvent();
             $actionEvent
-                ->setAction(ActionEvent::ACTION_VOTE)
-                ->setActionData([
-                    'vote_direction' => $direction,
-                ])
+                ->setAction(
+                    $direction === 'up' ? ActionEvent::ACTION_VOTE_UP : ActionEvent::ACTION_VOTE_DOWN
+                )
                 ->setEntity($entity)
                 ->setUser($actor);
 

@@ -11,7 +11,8 @@ use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
-use Minds\Helpers\Urn;
+use Minds\Entities\User;
+use Minds\Core\Config;
 
 class NotificationsEventStreamsSubscription implements SubscriptionInterface
 {
@@ -21,10 +22,14 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
     /** @var Logger */
     protected $logger;
 
-    public function __construct(Manager $manager = null, Logger $logger = null)
+    /** @var Core\Config */
+    protected $config;
+
+    public function __construct(Manager $manager = null, Logger $logger = null, Config $config = null)
     {
         $this->manager = $manager ?? new Manager();
         $this->logger = $logger ?? Di::_()->get('Logger');
+        $this->config = $config ?? Di::_()->get('Config');
     }
 
     /**
@@ -69,16 +74,8 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
 
         $notification = new Notification();
 
-        $entityUrn = $event->getEntity()->getUrn();
-        $notification->setEntityUrn($entityUrn);
-
-        $entityUrnNid = Urn::getNid($entityUrn);
-
-        // ojm ask mark about how this is organized
-        // can we rename user to actor?
-        if ($entityUrnNid === 'user') {
+        if ($event->getEntity() instanceof User) {
             $notification->setToGuid((string) $event->getEntity()->getGuid());
-            // ojm how to handle when there is no user or FromGuid?
             $notification->setFromGuid((string) $event->getUser()->getGuid());
         } else {
             // Do this when the notification is related to something published (activity post/comment)
@@ -100,8 +97,12 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 ]);
                 break;
             case ActionEvent::ACTION_TAG:
+                if ($event->getEntity()->getGuid() == $event->getUser()->getGuid()) {
+                    $this->logger->info('Skipping as owner is sender');
+                    return true; // True to acknowledge, but we dont care about interactions with our own posts
+                }
                 // Replace toGuid with the entity guid as the entity is the tagged person
-+               $notification->setToGuid((string) $notification->getEntity()->getGuid());
++               $notification->setToGuid((string) $event->getEntity()->getGuid());
                 // Replace entity_urn with the post guid,
                 $notification->setEntityUrn($event->getActionData()['tag_in_entity_urn']);
                 $notification->setType(NotificationTypes::TYPE_TAG);
@@ -134,6 +135,76 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 ]);
                 // Replace entity_urn with our quote
                 $notification->setEntityUrn($event->getActionData()['quote_urn']);
+                break;
+            case ActionEvent::ACTION_BOOST_REJECTED:
+                $notification->setType(NotificationTypes::TYPE_BOOST_REJECTED);
+                $notification->setData([
+                    'reason' => $event->getActionData()['reason'],
+                ]);
+                break;
+            case ActionEvent::ACTION_BOOST_PEER_REQUEST:
+            case ActionEvent::ACTION_BOOST_PEER_ACCEPTED:
+            case ActionEvent::ACTION_BOOST_PEER_REJECTED:
+                $notification->setData([
+                    'bid' => $event->getActionData()['bid'],
+                    'type' => $event->getActionData()['type'],
+                ]);
+                // no break
+            case ActionEvent::ACTION_BOOST_PEER_REQUEST:
+                $notification->setType(NotificationTypes::TYPE_BOOST_PEER_REQUEST);
+                // Send notification to the intended recipient, not entity owner
+                $notification->setToGuid($event->getActionData()['toGuid']);
+                break;
+            case ActionEvent::ACTION_BOOST_PEER_ACCEPTED:
+                $notification->setType(NotificationTypes::TYPE_BOOST_PEER_ACCEPTED);
+                break;
+            case ActionEvent::ACTION_BOOST_PEER_REJECTED:
+                $notification->setType(NotificationTypes::TYPE_BOOST_PEER_REJECTED);
+                break;
+            case ActionEvent::ACTION_TOKEN_WITHDRAW_ACCEPTED:
+                $notification->setType(NotificationTypes::TYPE_TOKEN_WITHDRAW_ACCEPTED);
+                $notification->setData([
+                    'amount' => $event->getActionData()['amount'],
+                ]);
+                break;
+            case ActionEvent::ACTION_TOKEN_WITHDRAW_REJECTED:
+                $notification->setType(NotificationTypes::TYPE_TOKEN_WITHDRAW_REJECTED);
+                $notification->setData([
+                    'amount' => $event->getActionData()['amount'],
+                ]);
+                break;
+            case ActionEvent::ACTION_GROUP_INVITE:
+            case ActionEvent::ACTION_GROUP_QUEUE_ADD:
+            case ActionEvent::ACTION_GROUP_QUEUE_APPROVE:
+            case ActionEvent::ACTION_GROUP_QUEUE_REJECT:
+                $notification->setData([
+                    'group_urn' => $event->getActionData()['group_urn']
+                ]);
+                // no break
+            case ActionEvent::ACTION_GROUP_INVITE:
+                $notification->setType(NotificationTypes::TYPE_GROUP_INVITE);
+                break;
+            case ActionEvent::ACTION_GROUP_QUEUE_ADD:
+                $notification->setType(NotificationTypes::TYPE_GROUP_QUEUE_ADD);
+                break;
+            case ActionEvent::ACTION_GROUP_QUEUE_APPROVE:
+                $notification->setType(NotificationTypes::TYPE_GROUP_QUEUE_APPROVE);
+                break;
+            case ActionEvent::ACTION_GROUP_QUEUE_REJECT:
+                $notification->setType(NotificationTypes::TYPE_GROUP_QUEUE_REJECT);
+                break;
+            case ActionEvent::ACTION_WIRE_SENT:
+                $isPlusPayout = (string) $event->getUser()->getGuid() === (string) $this->config->get('plus')['handler'];
+                $isProPayout = (string) $event->getUser()->getGuid() === (string) $this->config->get('pro')['handler'];
+
+                if ($isPlusPayout || $isProPayout) {
+                    $notification->setType(NotificationTypes::TYPE_WIRE_PAYOUT);
+                } else {
+                    $notification->setType(NotificationTypes::TYPE_WIRE_RECEIVED);
+                }
+                $notification->setData([
+                    'amount' => $event->getActionData()['amount']
+                ]);
                 break;
             default:
                 return true; // We will not make a notification from this

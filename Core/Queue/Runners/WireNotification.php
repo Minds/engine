@@ -11,6 +11,8 @@ use Minds\Core\Queue\Interfaces;
 use Minds\Core\Util\BigNumber;
 use Minds\Core\Wire;
 use Minds\Entities;
+use Minds\Core\EventStreams\ActionEvent;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 
 class WireNotification implements Interfaces\QueueRunner
 {
@@ -50,6 +52,18 @@ class WireNotification implements Interfaces\QueueRunner
                     }
 
                     $senderUser = $wire->getSender();
+
+                    $actionEvent = new ActionEvent();
+                    $actionEvent
+                        ->setAction(ActionEvent::ACTION_WIRE_SENT)
+                        ->setActionData([
+                            'amount' => $this->getAmountString($wire),
+                        ])
+                        ->setEntity($receiverUser)
+                        ->setUser($senderUser);
+
+                    $actionEventTopic = new ActionEventsTopic();
+                    $actionEventTopic->send($actionEvent);
 
                     //send notification to receiver
                     Dispatcher::trigger('notification', 'wire', [

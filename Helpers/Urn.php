@@ -57,7 +57,7 @@ class Urn
      * @return string
      * @throws Exception
      */
-    public function getNid(string $urn, $strict = true): string
+    public static function getNid(string $urn, $strict = true): string
     {
         $fragments = explode(':', $urn);
 

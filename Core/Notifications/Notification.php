@@ -162,11 +162,11 @@ class Notification
      * Return the groupable type
      * @return string
      */
-    public function getGroupType(): string
+    public function getGroupingType(): string
     {
-        foreach (NotificationTypes::TYPES_GROUPS as $groupType => $types) {
+        foreach (NotificationTypes::TYPES_GROUPINGS as $groupingType => $types) {
             if (in_array($this->type, $types, true)) {
-                return $groupType;
+                return $groupingType;
             }
         }
     }

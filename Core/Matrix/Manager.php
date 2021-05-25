@@ -9,6 +9,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Matrix\MatrixAccount;
 use Minds\Entities\User;
+use Minds\Core\Notifications;
 
 class Manager
 {
@@ -48,10 +49,26 @@ class Manager
             //     return $this->createAccount($user);
             // }
 
-            //ojm pin if they don't have an account, send notification 'you've been invited to chat'
+            //
+            // ojm might need to avoid circular dependency
+            // //ojm how to get FromGuid??
 
-            // ojm pin add to /Matrix/Manager for messenger_invite notification
-            // might need to avoid circular dependency
+            // $notification = new Notifications\Notification();
+
+            // $notification->setType(Notifications\NotificationTypes::TYPE_CHAT_INVITE);
+
+            // $notification->setToGuid($this->$user->getGuid());
+
+            // // $notification->setFromGuid($this->boost->getOwnerGuid());
+
+            // // Save and submit
+            // if ($this->notificationsManager->add($notification)) {
+
+            // // Some logging
+            //     $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
+
+            //     return true; // Return true to acknowledge the event from the stream (stop it being redelivered)
+            // }
 //
 
             throw $e; // Rethrow

@@ -12,6 +12,9 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Core\Groups\Delegates\PropagateRejectionDelegate;
+use Minds\Core\EventStreams\ActionEvent;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Minds\Entities\User;
 
 // TODO: Migrate to new Feeds CQL (approveAll)
 class Feeds
@@ -127,8 +130,15 @@ class Feeds
         $adminQueue = Di::_()->get('Groups\AdminQueue');
         $success = $adminQueue->add($this->group, $activity);
 
+        $actor = $this->entitiesBuilder->single($activity->owner_guid);
+
+        if (!$actor instanceof User) {
+            throw new \Exception('Invalid activity owner');
+        }
+
         if ($success && $options['notification']) {
             $this->sendNotification('add', $activity);
+            $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_ADD, $actor, $activity);
         }
 
         return $success;
@@ -180,6 +190,7 @@ class Feeds
         $success = $adminQueue->delete($this->group, $activity);
 
         if ($success && $options['notification']) {
+            $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_APPROVE, Core\Session::getLoggedinUser(), $activity);
             $this->sendNotification('approve', $activity);
 
             (new Notifications())
@@ -219,6 +230,8 @@ class Feeds
         $success = $adminQueue->delete($this->group, $activity);
 
         if ($success && $options['notification']) {
+            $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_REJECT, Core\Session::getLoggedinUser(), $activity);
+
             $this->sendNotification('reject', $activity);
         }
 
@@ -254,6 +267,27 @@ class Feeds
 
         return $results;
     }
+
+    /**
+     * @param string $type
+     * @param Entities\Activity $activity
+     */
+    public function emitActionEvent($action, User $actor, Entities\Activity $activity)
+    {
+        $actionEvent = new ActionEvent();
+
+        $actionEvent
+            ->setAction($action)
+            ->setEntity($activity)
+            ->setUser($actor)
+            ->setActionData([
+                'group_urn' => $this->group->getUrn(),
+            ]);
+
+        $actionEventTopic = new ActionEventsTopic();
+        $actionEventTopic->send($actionEvent);
+    }
+
 
     /**
      * @param string $type
