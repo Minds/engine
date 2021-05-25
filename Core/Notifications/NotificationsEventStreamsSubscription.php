@@ -65,7 +65,12 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
             $this->logger->info('Skipping as owner is sender');
             return true; // True to awknowldge, but we dont care about interactions with our own posts
         }
-        
+
+        if ($event->getTimestamp() < time() - 3600) {
+            // Don't notify for event older than 1 hour, here
+            return true;
+        }
+         
         $notification = new Notification();
         $notification->setToGuid((string) $event->getEntity()->getOwnerGuid());
         $notification->setFromGuid((string) $event->getUser()->getGuid());
