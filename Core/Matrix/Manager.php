@@ -51,24 +51,21 @@ class Manager
 
             //
             // ojm might need to avoid circular dependency
-            // //ojm how to get FromGuid??
+            // ojm do i need the fromGuid?
+            $notification = new Notifications\Notification();
 
-            // $notification = new Notifications\Notification();
+            $notification->setType(Notifications\NotificationTypes::TYPE_CHAT_INVITE);
 
-            // $notification->setType(Notifications\NotificationTypes::TYPE_CHAT_INVITE);
+            $notification->setToGuid($this->$user->getGuid());
 
-            // $notification->setToGuid($this->$user->getGuid());
+            // Save and submit
+            if ($this->notificationsManager->add($notification)) {
 
-            // // $notification->setFromGuid($this->boost->getOwnerGuid());
+            // Some logging
+                $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
 
-            // // Save and submit
-            // if ($this->notificationsManager->add($notification)) {
-
-            // // Some logging
-            //     $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
-
-            //     return true; // Return true to acknowledge the event from the stream (stop it being redelivered)
-            // }
+                return true; // Return true to acknowledge the event from the stream (stop it being redelivered)
+            }
 //
 
             throw $e; // Rethrow

@@ -114,7 +114,7 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 break;
             case ActionEvent::ACTION_SUBSCRIBE:
                 // Replace toGuid with the entity guid as the entity is the subscribed person
-+               $notification->setToGuid((string) $notification->getEntity()->getGuid());
++               $notification->setToGuid((string) $event->getEntity()->getGuid());
                 $notification->setType(NotificationTypes::TYPE_SUBSCRIBE);
                 break;
             case ActionEvent::ACTION_REFERRAL_PING:
