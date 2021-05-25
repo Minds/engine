@@ -62,14 +62,14 @@ class Manager
 
         try {
             $pushNotification = new PushNotification($notification);
-            $pushNotification->setUnreadCount($this->notificationsManager->getUnreadCount($toUser));
+            $pushNotification->setUnreadCount($this->getNotificationsManager()->getUnreadCount($toUser));
         } catch (UndeliverableException $e) {
             return; // We can't deliver for a valid reason
         }
 
         $opts = new DeviceSubscriptions\DeviceSubscriptionListOpts();
         $opts->setUserGuid($notification->getToGuid());
-        foreach ($this->deviceSubscriptionsManager->getList($opts) as $deviceSubscription) {
+        foreach ($this->getDeviceSubscriptionsManager()->getList($opts) as $deviceSubscription) {
             $pushNotification->setDeviceSubscription($deviceSubscription);
 
             $this->getService($deviceSubscription->getService())->send($pushNotification);

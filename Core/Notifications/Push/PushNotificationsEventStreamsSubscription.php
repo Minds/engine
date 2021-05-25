@@ -67,9 +67,11 @@ class PushNotificationsEventStreamsSubscription implements SubscriptionInterface
         $notification = $event->getNotification();
 
         if ($notification->getReadTimestamp()) {
+            $this->logger->info("{$notification->getUrn()} already read");
             return true; // Already ready
         }
 
+        $this->logger->info("{$notification->getUrn()} sending");
         $this->manager->sendPushNotification($notification);
 
         return true;

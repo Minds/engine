@@ -11,6 +11,7 @@ namespace Minds\Core\EventStreams\Topics;
 
 use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\EventInterface;
+use Minds\Core\EventStreams\NotificationEvent;
 use Minds\Core\Notifications;
 use Pulsar\MessageBuilder;
 use Pulsar\ProducerConfiguration;
@@ -21,6 +22,9 @@ use Pulsar\Result;
 
 class NotificationsTopic extends AbstractTopic implements TopicInterface
 {
+    /** @var int */
+    const DELAY_MS = 30000; // 30 second delay
+
     /** @var Notifications\Manager */
     protected $notificationsManager;
     
@@ -55,7 +59,7 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
 
         $builder = new MessageBuilder();
         $message = $builder
-            ->setDeliverAfter(30000) // Wait 30 seconds before consumers will see this
+            ->setDeliverAfter(static::DELAY_MS) // Wait 30 seconds before consumers will see this
             //->setPartitionKey(0)
             ->setContent(json_encode([
                 'uuid' => $event->getNotification()->getUuid(),
