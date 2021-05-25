@@ -44,6 +44,7 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
         $builder = new MessageBuilder();
         $message = $builder
             //->setPartitionKey(0)
+            ->setEventTimestamp($event->getTimestamp() ?: time())
             ->setContent(json_encode([
                 'action' => $event->getAction(),
                 'action_data' => $event->getActionData(),
@@ -105,21 +106,26 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                 /** @var Entity */
                 $entity = $this->entitiesResolver->single(new Urn($data['entity_urn']));
 
-                // If no entity, this could be acl issue, we will skip and won't awknowledge
+                // If no entity, skip as its unavailable
                 if (!$entity) {
+                    $consumer->acknowledge($message);
                     continue;
                 }
 
                 $event = new ActionEvent();
                 $event->setUser($user)
-                ->setEntity($entity)
-                ->setAction($data['action'])
-                ->setActionData($data['action_data']);
+                    ->setEntity($entity)
+                    ->setAction($data['action'])
+                    ->setActionData($data['action_data'])
+                    ->setTimestamp($message->getEventTimestamp());
 
                 if (call_user_func($callback, $event, $message) === true) {
                     $consumer->acknowledge($message);
+                } else {
+                    throw new \Exception("Failed to process message");
                 }
             } catch (\Exception $e) {
+                $consumer->negativeAcknowledge($message);
             }
         }
     }

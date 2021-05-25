@@ -124,6 +124,12 @@ class Manager
      */
     public function add(Notification $notification): bool
     {
+        $to = $notification->getTo();
+
+        if (!$to) {
+            return false; // TODO: throw exception
+        }
+
         $success = $this->repository->add($notification);
 
         if (!$success) {
@@ -131,7 +137,7 @@ class Manager
         }
 
         // Increment the counter
-        $this->incrementCount($notification->getTo());
+        $this->incrementCount($to);
 
         foreach ($this->getDelegates() as $delegate) {
             $delegate->onAdd($notification);

@@ -24,6 +24,9 @@ class EventStreams extends Cli\Controller implements Interfaces\CliControllerInt
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
 
+        // Bypass the ACL at the CLI level,
+        Di::_()->get('Security\ACL')->setIgnore(true);
+
         $subscriptionClassName = "Minds\\" . $this->getOpt('subscription');
 
         $subscription = new $subscriptionClassName;
