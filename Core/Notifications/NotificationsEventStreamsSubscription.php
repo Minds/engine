@@ -22,7 +22,7 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
 
     public function __construct(Manager $manager = null, Logger $logger = null)
     {
-        $this->manager = $manager ?? new Manager();
+        $this->manager = $manager ?? Di::_()->get('Notifications\Manager');
         $this->logger = $logger ?? Di::_()->get('Logger');
     }
 
