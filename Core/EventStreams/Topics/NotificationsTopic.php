@@ -17,6 +17,7 @@ use Pulsar\MessageBuilder;
 use Pulsar\ProducerConfiguration;
 use Pulsar\ConsumerConfiguration;
 use Pulsar\Consumer;
+use Pulsar\Producer;
 use Pulsar\SchemaType;
 use Pulsar\Result;
 
@@ -27,6 +28,9 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
 
     /** @var Notifications\Manager */
     protected $notificationsManager;
+
+    /** @var Producer */
+    protected $producer;
     
     public function __construct(Notifications\Manager $notificationsManager = null, ...$deps)
     {
@@ -43,17 +47,6 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
         if (!$event instanceof NotificationEvent) {
             return false;
         }
-
-        $tenant = $this->getPulsarTenant();
-        $namespace = $this->getPulsarNamespace();
-        $topic = 'event-notification';
-
-        // Build the config and include the schema
-
-        $config = new ProducerConfiguration();
-        $config->setSchema(SchemaType::AVRO, "notification", $this->getSchema(), []);
-
-        $producer = $this->client()->createProducer("persistent://$tenant/$namespace/$topic", $config);
 
         // Build the message
 
@@ -72,7 +65,7 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
 
         // Send the event to the stream
 
-        $result = $producer->send($message);
+        $result = $this->getProducer()->send($message);
 
         if ($result != Result::ResultOk) {
             return false;
@@ -123,6 +116,27 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
             } catch (\Exception $e) {
             }
         }
+    }
+
+    /**
+     * @return Producer
+     */
+    protected function getProducer(): Producer
+    {
+        if ($this->producer) {
+            return $this->producer;
+        }
+
+        $tenant = $this->getPulsarTenant();
+        $namespace = $this->getPulsarNamespace();
+        $topic = 'event-notification';
+
+        // Build the config and include the schema
+
+        $config = new ProducerConfiguration();
+        $config->setSchema(SchemaType::AVRO, "notification", $this->getSchema(), []);
+
+        return $this->producer = $this->client()->createProducer("persistent://$tenant/$namespace/$topic", $config);
     }
 
     /**
