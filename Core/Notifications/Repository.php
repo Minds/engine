@@ -110,6 +110,10 @@ class Repository
     {
         list($toGuid, $uuid) = explode('-', $this->urn->setUrn($urn)->getNss(), 2);
 
+        if (!$uuid) {
+            return null; // Should we throw invalid urn?
+        }
+
         $opts = new NotificationsListOpts();
         $opts->setLimit(1)
             ->setToGuid($toGuid)
