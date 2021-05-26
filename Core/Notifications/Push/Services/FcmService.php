@@ -2,11 +2,20 @@
 namespace Minds\Core\Notifications\Push\Services;
 
 use Minds\Core\Notifications\Push\PushNotification;
+use Google_Client;
 use GuzzleHttp;
 use Psr\Http\Message\ResponseInterface;
 
 class FcmService extends AbstractService implements PushServiceInterface
 {
+    /** @var Google_Client */
+    protected $googleClient;
+
+    public function __construct(Google_Client $googleClient = null, ...$deps)
+    {
+        $this->googleClient = $googleClient ?? new Google_Client();
+        parent::__construct(...$deps);
+    }
     /**
      * @param PushNotification $pushNotification
      * @return bool
@@ -51,11 +60,10 @@ class FcmService extends AbstractService implements PushServiceInterface
      */
     protected function request($body): ResponseInterface
     {
-        $client = new \Google_Client();
-        $client->setAuthConfig($this->getFirebaseKey());
-        $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
+        $this->googleClient->setAuthConfig($this->getFirebaseKey());
+        $this->googleClient->addScope('https://www.googleapis.com/auth/firebase.messaging');
 
-        $httpClient = $client->authorize();
+        $httpClient = $this->googleClient->authorize();
 
         $projectId = $this->getFirebaseProjectId();
 
@@ -81,5 +89,4 @@ class FcmService extends AbstractService implements PushServiceInterface
     {
         return $this->config->get('google')['firebase']['key_path'];
     }
-
 }

@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Notifications\Push\Services;
 
+use Google_Client;
 use GuzzleHttp;
 use Minds\Core\Config\Config;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
@@ -13,15 +14,19 @@ use Zend\Diactoros\Response\JsonResponse;
 
 class FcmServiceSpec extends ObjectBehavior
 {
+    /** @var Google_Client */
+    protected $googleClient;
+
     /** @var GuzzleHttp\Client */
     protected $client;
  
     /** @var Config */
     protected $config;
     
-    public function let(GuzzleHttp\Client $client, Config $config)
+    public function let(Google_Client $googleClient, GuzzleHttp\Client $client, Config $config)
     {
-        $this->beConstructedWith($client, $config);
+        $this->beConstructedWith($googleClient, $client, $config);
+        $this->googleClient = $googleClient;
         $this->client = $client;
         $this->config = $config;
     }
@@ -45,25 +50,38 @@ class FcmServiceSpec extends ObjectBehavior
             ->willReturn('merge-key-will-be-here');
         $pushNotification->getDeviceSubscription()
             ->willReturn($deviceSubscription);
-        $pushNotification->getGroup()
-            ->willReturn('group');
+
         $pushNotification->getIcon()
             ->willReturn('icon');
+
+        $pushNotification->getMedia()
+            ->willReturn('media');
 
         $deviceSubscription->getToken()
             ->willReturn('apple-device-token');
 
         $this->config->get('google')
             ->willReturn([
-                'push' => 'firebase-api-key'
+                'firebase' => [
+                    'key_path' => 'firebase-api-key',
+                    'project_id' => 'project_id',
+                ],
             ]);
 
+        $this->googleClient->setAuthConfig('firebase-api-key')
+            ->shouldBeCalled();
+
+        $this->googleClient->addScope(Argument::type('string'))
+            ->shouldBeCalled();
+
+        $this->googleClient->authorize()
+            ->willReturn($this->client);
+
         $this->client->request('POST', Argument::any(), Argument::that(function ($payload) {
-            return $payload['json']['data']['title'] === 'This is the title line'
-                && $payload['json']['data']['body'] === 'This is the body line'
-                && $payload['json']['data']['group'] === 'group'
-                && $payload['json']['data']['uri'] === 'uri-here'
-                && $payload['json']['data']['largeIcon'] === 'icon';
+            return $payload['json']['message']['android']['notification']['title'] === 'This is the title line'
+                && $payload['json']['message']['android']['notification']['body'] === 'This is the body line'
+                && $payload['json']['message']['data']['uri'] === 'uri-here'
+                && $payload['json']['message']['data']['largeIcon'] === 'icon';
         }))
             ->willReturn(new JsonResponse([], 200));
 

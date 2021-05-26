@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Notifications\Push;
 
+use ArrayIterator;
 use Minds\Core\Notifications\Push\Manager;
 use Minds\Core\Notifications;
 use Minds\Core\EntitiesBuilder;
@@ -68,11 +69,19 @@ class ManagerSpec extends ObjectBehavior
     {
         $notification = new Notification();
         $notification->setToGuid('123');
+        $notification->setUuid('uuid-1');
 
         $toUser = new User();
 
         $this->entitiesBuilder->single('123')
             ->willReturn($toUser);
+
+        $this->notificationsManager->getList(Argument::that(function ($opts) {
+            return $opts->getLteUuid() === 'uuid-1';
+        }))
+            ->willReturn(new ArrayIterator([
+                [$notification,'']
+            ]));
 
         $this->featuresManager->setUser($toUser)
             ->willReturn($this->featuresManager);

@@ -50,7 +50,13 @@ class ApnsService extends AbstractService implements PushServiceInterface
      */
     protected function request($deviceToken, array $headers, array $body): ResponseInterface
     {
-        $json = $this->client->request('POST', 'https://api.sandbox.push.apple.com/3/device/' . $deviceToken, [
+        $uri = "https://api.push.apple.com/3/device/";
+
+        if ($this->config->get('apple')['sandbox']) {
+            $uri = "https://api.sandbox.push.apple.com/3/device/";
+        }
+    
+        $json = $this->client->request('POST', $uri . $deviceToken, [
                     'version' => 2,
                     'headers' => $headers,
                     'cert' => $this->config->get('apple')['cert'],
