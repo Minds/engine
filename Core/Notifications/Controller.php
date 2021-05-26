@@ -170,35 +170,6 @@ class Controller
     }
 
     /**
-     * @return void
-     * @throws UserErrorException
-     */
-    public function createToken(ServerRequest $request): void
-    {
-        /** @var User */
-        $user = $request->getAttribute('_user');
-
-        $body = $request->getParsedBody();
-
-        $service = $body['service'];
-        $passed_token = $body['token'];
-
-        if (!$service || !$passed_token) {
-            throw new UserErrorException("Service and token required");
-        }
-
-        // TODO
-
-        // $token = \Surge\Token::create([
-        //     'service' => $service,
-        //     'token' => $passed_token
-        // ]);
-
-        // (new Core\Data\Call('entities'))
-        //     ->insert($user->guid, [ 'surge_token' => $token ]);
-    }
-
-    /**
      * Mark a notification as read
      * @return JsonResponse
      * @throws UserErrorException

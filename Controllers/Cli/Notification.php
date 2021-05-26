@@ -5,6 +5,7 @@ namespace Minds\Controllers\Cli;
 use Minds\Cli;
 use Minds\Core\Events\Dispatcher;
 use Minds\Interfaces;
+use Minds\Core\Di\Di;
 
 class Notification extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -73,5 +74,16 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
         } else {
             $this->out('Error sending notification - is from guid valid?');
         }
+    }
+
+    public function push()
+    {
+        $urn = $this->getOpt('urn');
+        ;
+        $notificationsManager = Di::_()->get('Notifications\Manager');
+        $notification = $notificationsManager->getByUrn($urn);
+
+        $pushManager = Di::_()->get('Notifications\Push\Manager');
+        $pushManager->sendPushNotification($notification);
     }
 }
