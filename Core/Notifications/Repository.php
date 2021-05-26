@@ -68,9 +68,9 @@ class Repository
             $values[] = $opts->getGroupType();
         }
 
-        if ($opts->getLtUuid()) {
-            $statement .= " AND uuid < ?";
-            $values[] = new Timeuuid($opts->getUuid());
+        if ($opts->getLteUuid()) {
+            $statement .= " AND uuid <= ?";
+            $values[] = new Timeuuid($opts->getLteUuid());
         }
 
         $query = new Prepared\Custom();

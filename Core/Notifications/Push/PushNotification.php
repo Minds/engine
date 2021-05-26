@@ -35,14 +35,6 @@ class PushNotification
      */
     public function getTitle(): ?string
     {
-        return null;
-    }
-
-    /**
-     * @return string
-     */
-    public function getBody(): ?string
-    {
         $from = $this->notification->getFrom();
         $entity = $this->notification->getEntity();
 
@@ -58,13 +50,23 @@ class PushNotification
 
         $verb = $pronoun = $noun = '';
 
-        if ($entityOwnerGuid === (string) $from->getGuid()) {
+
+        if ($entityOwnerGuid === (string) $this->notification->getToGuid()) {
             $pronoun = 'your';
         } else {
             $pronoun = 'their';
         }
 
         switch ($entity->getType()) {
+            case 'comment':
+                $noun = 'comment';
+                break;
+            case 'user':
+                $noun = '';
+                break;
+            case 'object':
+                $noun = $entity->getSubtype();
+                break;
             default:
                 $noun = 'post';
         }
@@ -81,6 +83,7 @@ class PushNotification
                 break;
             case NotificationTypes::TYPE_QUOTE:
                 $verb = 'quoted';
+                $pronoun = 'your';
                 break;
             case NotificationTypes::TYPE_COMMENT:
                 $verb = 'commented on';
@@ -97,7 +100,48 @@ class PushNotification
                 throw new UndeliverableException("Invalid type");
         }
 
-        return "{$from->getName()} $verb $pronoun $noun";
+        $fromString = $from->getName();
+
+        if ($this->notification->getMergedCount() === 1) {
+            $other = $this->notification->getMergedFrom(1)[0];
+            if ($other) {
+                $fromString .= " and {$other->getName()}";
+            }
+        }
+
+        if ($this->notification->getMergedCount() > 1) {
+            $fromString .= " and {$this->notification->getMergedCount()} others";
+        }
+
+        return "$fromString $verb $pronoun $noun";
+    }
+
+	/**
+     * @return string
+     */
+    public function getBody(): ?string
+    {
+        $entity = $this->notification->getEntity();
+		$excerpt = '';
+
+		 switch ($entity->getType()) {
+            case 'comment':
+                $excerpt = $entity->getBody();
+                break;
+            case 'object':
+                $excerpt = $entity->getTitle();
+                break;
+            case 'activity':
+                $excerpt = $entity->getMessage();
+        }
+
+		switch ($this->notification->getType()) {
+			case NotificationTypes::TYPE_COMMENT:
+				$excerpt = $this->notification->getData()['comment_excerpt'];
+				break;
+		}		
+
+        return $excerpt;
     }
 
     /**
@@ -125,6 +169,17 @@ class PushNotification
     public function getIcon(): string
     {
         return $this->notification->getFrom()->getIconURL('xlarge');
+    }
+
+    /**
+     * @return string
+     */
+    public function getMedia(): ?string
+    {
+        $entity = $this->notification->getEntity();
+        if (!$entity) { return ''; };
+
+        return  $entity->getIconUrl('xlarge');
     }
 
     /**

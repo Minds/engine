@@ -60,6 +60,19 @@ class Manager
 
         // TODO: Get the max read timestamp, as this will indicate how 'active' the user is
 
+        $opts = new Notifications\NotificationsListOpts();
+        $opts->setToGuid((string) $notification->getToGuid());
+        $opts->setLteUuid($notification->getUuid());
+
+        // We gather our recent 12 notifications to get on the fly merging
+        $recentNotifications = iterator_to_array($this->getNotificationsManager()->getList($opts));
+        foreach ($recentNotifications as $recentNotification) {
+            if ($recentNotification[0]->getUrn() === $notification->getUrn()) {
+                $notification = $recentNotification[0];
+            }
+            break;
+        }
+
         try {
             $pushNotification = new PushNotification($notification);
             $pushNotification->setUnreadCount($this->getNotificationsManager()->getUnreadCount($toUser));

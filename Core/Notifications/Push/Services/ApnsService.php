@@ -13,11 +13,15 @@ class ApnsService extends AbstractService implements PushServiceInterface
      */
     public function send(PushNotification $pushNotification): bool
     {
-        $body = [
+        $message = $pushNotification->getTitle();
+        if ($body = $pushNotification->getBody()) {
+            $message .= ": $body";
+        }
+
+        $payload = [
             'aps' => [
                 'alert' => [
-                    'title' => $pushNotification->getTitle(),
-                    'body' => $pushNotification->getBody(),
+                    'body' => $message,
                 ],
                 'badge' => $pushNotification->getUnreadCount(),
                 'url-args' => [
@@ -28,9 +32,14 @@ class ApnsService extends AbstractService implements PushServiceInterface
 
         $headers = [
             'apns-collapse-id' => $pushNotification->getMergeKey(),
+            'apns-topic' => 'com.minds.mobile',
         ];
 
-        $this->request($pushNotification->getDeviceSubscription()->getToken(), $headers, $body);
+        try {
+            $this->request($pushNotification->getDeviceSubscription()->getToken(), $headers, $payload);
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+        }
         return true;
     }
     
@@ -41,7 +50,8 @@ class ApnsService extends AbstractService implements PushServiceInterface
      */
     protected function request($deviceToken, array $headers, array $body): ResponseInterface
     {
-        $json = $this->client->request('POST', 'https://api.push.apple.com/3/device/' . $deviceToken, [
+        $json = $this->client->request('POST', 'https://api.sandbox.push.apple.com/3/device/' . $deviceToken, [
+                    'version' => 2,
                     'headers' => $headers,
                     'cert' => $this->config->get('apple')['cert'],
                     'json' => $body
