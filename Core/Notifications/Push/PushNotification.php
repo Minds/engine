@@ -116,15 +116,15 @@ class PushNotification
         return "$fromString $verb $pronoun $noun";
     }
 
-	/**
+    /**
      * @return string
      */
     public function getBody(): ?string
     {
         $entity = $this->notification->getEntity();
-		$excerpt = '';
+        $excerpt = '';
 
-		 switch ($entity->getType()) {
+        switch ($entity->getType()) {
             case 'comment':
                 $excerpt = $entity->getBody();
                 break;
@@ -135,11 +135,11 @@ class PushNotification
                 $excerpt = $entity->getMessage();
         }
 
-		switch ($this->notification->getType()) {
-			case NotificationTypes::TYPE_COMMENT:
-				$excerpt = $this->notification->getData()['comment_excerpt'];
-				break;
-		}		
+        switch ($this->notification->getType()) {
+            case NotificationTypes::TYPE_COMMENT:
+                $excerpt = $this->notification->getData()['comment_excerpt'];
+                break;
+        }
 
         return $excerpt;
     }
@@ -177,7 +177,9 @@ class PushNotification
     public function getMedia(): ?string
     {
         $entity = $this->notification->getEntity();
-        if (!$entity) { return ''; };
+        if (!$entity) {
+            return '';
+        };
 
         return  $entity->getIconUrl('xlarge');
     }

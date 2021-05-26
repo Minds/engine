@@ -78,7 +78,8 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
 
     public function push()
     {
-        $urn = $this->getOpt('urn');;
+        $urn = $this->getOpt('urn');
+        ;
         $notificationsManager = Di::_()->get('Notifications\Manager');
         $notification = $notificationsManager->getByUrn($urn);
 
