@@ -168,7 +168,7 @@ class PushNotification
      */
     public function getIcon(): string
     {
-        return $this->notification->getFrom()->getIconURL('xlarge');
+        return $this->notification->getFrom()->getIconURL('large');
     }
 
     /**
