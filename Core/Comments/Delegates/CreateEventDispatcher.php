@@ -34,6 +34,11 @@ class CreateEventDispatcher
         $this->eventsDispatcher->trigger('create', 'elgg/event/comment', $comment);
         $this->eventsDispatcher->trigger('save', 'comment', [ 'entity' => $comment ]);
 
+        $this->emitActionEvent($comment);
+    }
+
+    public function emitActionEvent(Comment $comment)
+    {
         $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
 
         $actionEvent = new ActionEvent();
