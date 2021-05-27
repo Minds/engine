@@ -78,8 +78,8 @@ class FcmServiceSpec extends ObjectBehavior
             ->willReturn($this->client);
 
         $this->client->request('POST', Argument::any(), Argument::that(function ($payload) {
-            return $payload['json']['message']['android']['notification']['title'] === 'This is the title line'
-                && $payload['json']['message']['android']['notification']['body'] === 'This is the body line'
+            return $payload['json']['message']['data']['title'] === 'This is the title line'
+                && $payload['json']['message']['data']['body'] === 'This is the body line'
                 && $payload['json']['message']['data']['uri'] === 'uri-here'
                 && $payload['json']['message']['data']['largeIcon'] === 'icon';
         }))
