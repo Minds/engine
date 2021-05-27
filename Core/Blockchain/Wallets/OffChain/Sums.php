@@ -18,6 +18,9 @@ class Sums
     /** @var User */
     private $user;
 
+    /** @var User */
+    private $receiver;
+
     /** @var int $timestamp */
     private $timestamp;
 
@@ -35,6 +38,12 @@ class Sums
     public function setUser($user)
     {
         $this->user = $user;
+        return $this;
+    }
+
+    public function setReceiver($receiver)
+    {
+        $this->receiver = $receiver;
         return $this;
     }
 
@@ -157,5 +166,55 @@ class Sums
         }
         
         return (string) BigNumber::_($rows[0]['count']);
+    }
+
+    public function countByReceiver(): BigNumber
+    {
+        $query = new Custom();
+
+        if ($this->user) {
+            $cql = "SELECT *
+                FROM blockchain_transactions_mainnet_by_address
+                WHERE user_guid = ?
+                AND wallet_address = 'offchain'";
+            $values = [
+                new Varint((int) $this->user->guid)
+            ];
+
+            if ($this->timestamp) {
+                $cql .= " AND timestamp >= ?";
+                $values[] = new Timestamp($this->timestamp, 0);
+            }
+
+            $query->query(
+                $cql,
+                $values
+            );
+        } else {
+            return 0;
+        }
+
+        try {
+            $rows = $this->db->request($query);
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            return 0;
+        }
+
+        if (!$rows) {
+            return 0;
+        }
+
+        $agg = BigNumber::_(0);
+
+        foreach ($rows as $tx) {
+            $txData = json_decode($tx['data'] ?? false);
+            // TODO: Filter out subscriptions?
+            if ($txData->receiver_guid === (string) $this->receiver->getGuid()) {
+                $agg = $agg->add($txData->amount);
+            }
+        }
+
+        return $agg;
     }
 }

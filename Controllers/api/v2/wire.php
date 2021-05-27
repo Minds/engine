@@ -53,9 +53,13 @@ class wire implements Interfaces\Api
         if (Core\Session::getLoggedInUserGuid() === $user->guid) {
             return Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to yourself!']);
         }
+        $sender = Core\Session::getLoggedInUser();
+        if (!$sender->isPlus()) {
+            return Factory::response(['status' => 'error', 'message' => 'Only Minds+ and Minds Pro members can send offchain wires']);
+        }
 
-        $isPlus = (string) $user->getGuid() === (string) Core\Di\Di::_()->get('Config')->get('plus')['handler'];
-        if (!$isPlus && !Core\Security\ACL::_()->interact($user, Core\Session::getLoggedInUser())) {
+        $receiverIsPlus = (string) $user->getGuid() === (string) Core\Di\Di::_()->get('Config')->get('plus')['handler'];
+        if (!$receiverIsPlus && !Core\Security\ACL::_()->interact($user, $sender)) {
             return Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to a user as you are unable to interact with them.']);
         }
 

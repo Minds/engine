@@ -272,6 +272,10 @@ class Manager
                     throw new \Exception('You are not allowed to spend that amount of coins.');
                 }
 
+                if ($this->cap->exceedsSingleUserCap($this->receiver)) {
+                    throw new \Exception('You may only send 10 offchain tokens per month to a single user');
+                }
+
                 $txData = [
                     'amount' => (string) $this->amount,
                     'sender_guid' => (string) $this->sender->guid,

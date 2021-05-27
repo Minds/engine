@@ -82,4 +82,17 @@ class Balance
             ->setTimestamp($ts)
             ->getContractBalance($contract, $onlySpend);
     }
+
+    /**
+     * Aggregate total of all offchain transactions to a receiver in a given timeframe.
+     * @return BigNumber
+     */
+    public function countByReceiver($ts = null, $receiver = null): BigNumber
+    {
+        return $this->sums
+            ->setUser($this->user)
+            ->setReceiver($receiver)
+            ->setTimestamp($ts)
+            ->countByReceiver();
+    }
 }

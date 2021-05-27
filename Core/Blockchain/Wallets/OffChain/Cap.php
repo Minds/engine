@@ -15,6 +15,9 @@ use Minds\Entities\User;
 
 class Cap
 {
+    // Maximum withdrawable in a month by a user in Gwei
+    const MAXIMUM_SINGLE_USER_MONTHLY_THRESHOLD = 10000000000000000000;
+
     /** @var Config */
     protected $config;
 
@@ -73,6 +76,18 @@ class Cap
         $cap = BigNumber::toPlain($this->config->get('blockchain')['offchain']['cap'] ?: 0, 18)->sub($todaySpendBalance);
 
         return (string) $cap;
+    }
+
+    /**
+     * Returns true if a user has exceeded the offchain single user cap.
+     * @return bool
+     */
+    public function exceedsSingleUserCap($receiver): bool
+    {
+        return $this->offChainBalance
+            ->setUser($this->user)
+            ->countByReceiver(strtotime('-1 month'), $receiver)
+            ->gte($this->MAXIMUM_SINGLE_USER_MONTHLY_THRESHOLD);
     }
 
     /**
