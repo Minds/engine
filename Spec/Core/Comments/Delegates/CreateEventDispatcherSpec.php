@@ -16,15 +16,18 @@ class CreateEventDispatcherSpec extends ObjectBehavior
 {
     protected $eventsDispatcher;
     protected $entitiesBuilder;
+    protected $actionEventTopic;
 
     public function let(
         Dispatcher $eventsDispatcher,
-        EntitiesBuilder $entitiesBuilder
+        EntitiesBuilder $entitiesBuilder,
+        ActionEventsTopic $actionEventTopic
     ) {
-        $this->beConstructedWith($eventsDispatcher, $entitiesBuilder);
+        $this->beConstructedWith($eventsDispatcher, $entitiesBuilder, $actionEventTopic);
 
         $this->eventsDispatcher = $eventsDispatcher;
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->actionEventTopic = $actionEventTopic;
     }
 
     public function it_is_initializable()
@@ -36,36 +39,20 @@ class CreateEventDispatcherSpec extends ObjectBehavior
 
     public function it_should_emit_action_event(Comment $comment)
     {
-        $owner = new User();
-
-        $comment = new Comment();
-        $comment->setOwnerObj($owner);
-        $comment->setEntityGuid('123');
-        $comment->setGuid(456);
-        $comment->setParentGuidL1(0);
-        $comment->setParentGuidL2(0);
+        $comment->getEntityGuid()->willReturn('654');
+        $comment->getUrn()->willReturn('urn:comment:123');
+        $comment->getOwnerEntity()->willReturn(new User());
 
         $entity = new Entity();
         $entity->guid = '654';
-        $entity->urn = 'urn:entity:654';
 
-        $actionEvent = new ActionEvent();
+        $this->entitiesBuilder->single('654')->willReturn($entity);
 
-        $actionEvent
-            ->setAction(ActionEvent::ACTION_COMMENT)
-            ->setActionData(['comment_urn' => 'urn:comment:456'])
-            ->setEntity($entity)
-            ->setUser($comment->getOwnerEntity());
-
-        $actionEventTopic = new ActionEventsTopic();
-        $actionEventTopic->send(Argument::any())
+        $this->actionEventTopic->send(Argument::that(function ($actionEvent) {
+            return $actionEvent->getAction() === 'comment';
+        }))
             ->shouldBeCalled()
             ->willReturn(true);
-        // $actionEventTopic->send(Argument::that(function ($actionEvent) {
-        //     return $actionEvent->getAction() === 'comment';
-        // }))
-        //     ->shouldBeCalled()
-        //     ->willReturn(true);
 
         $this->emitActionEvent($comment);
     }

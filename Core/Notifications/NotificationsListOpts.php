@@ -3,7 +3,6 @@ namespace Minds\Core\Notifications;
 
 use Minds\Common\Repository\AbstractRepositoryOpts;
 
-//ojm pin
 /**
  * @method self setToGuid(string $toGuid)
  * @method string getToGuid()

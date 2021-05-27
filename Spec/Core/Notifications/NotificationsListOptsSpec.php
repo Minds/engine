@@ -7,7 +7,6 @@ use Minds\Core\Notifications\NotificationTypes;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-//ojm pin
 class NotificationsListOptsSpec extends ObjectBehavior
 {
     public function it_is_initializable()

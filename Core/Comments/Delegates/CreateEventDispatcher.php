@@ -23,10 +23,15 @@ class CreateEventDispatcher
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    public function __construct($eventsDispatcher = null, EntitiesBuilder $entitiesBuilder = null)
+    /** @var ActionEventsTopic */
+    protected $actionEventTopic;
+
+    public function __construct($eventsDispatcher = null, EntitiesBuilder $entitiesBuilder = null, ActionEventsTopic $actionEventTopic = null)
     {
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->actionEventTopic = $actionEventTopic ?? Di::_()->get('EventStreams\Topics\ActionEventsTopic');
+        ;
     }
 
     public function dispatch(Comment $comment)
@@ -50,7 +55,6 @@ class CreateEventDispatcher
             ->setEntity($entity)
             ->setUser($comment->getOwnerEntity());
 
-        $actionEventTopic = new ActionEventsTopic();
-        $actionEventTopic->send($actionEvent);
+        $this->actionEventTopic->send($actionEvent);
     }
 }

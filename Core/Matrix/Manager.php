@@ -49,23 +49,21 @@ class Manager
             //     return $this->createAccount($user);
             // }
 
-            //
-            // ojm might need to avoid circular dependency
-            // ojm do i need the fromGuid?
-            $notification = new Notifications\Notification();
+            // TODO: test this
+            // $notification = new Notifications\Notification();
 
-            $notification->setType(Notifications\NotificationTypes::TYPE_CHAT_INVITE);
+            // $notification->setType(Notifications\NotificationTypes::TYPE_CHAT_INVITE);
 
-            $notification->setToGuid($this->$user->getGuid());
+            // $notification->setToGuid($this->$user->getGuid());
 
-            // Save and submit
-            if ($this->notificationsManager->add($notification)) {
+            // // Save and submit
+            // if ($this->notificationsManager->add($notification)) {
 
-            // Some logging
-                $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
+            // // Some logging
+            //     $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
 
-                return true; // Return true to acknowledge the event from the stream (stop it being redelivered)
-            }
+            //     return true; // Return true to acknowledge the event from the stream (stop it being redelivered)
+            // }
 //
 
             throw $e; // Rethrow
@@ -160,11 +158,6 @@ class Manager
         $senderMatrixId = $this->getMatrixId($sender);
         $receiverMatrixId = $this->getMatrixId($receiver);
         // First, check to see that we don't already have a direct room
-
-        //ojm pin notification
-        // messenger invite
-        // getAccountReceiverMatrixId -> if empty, they don't have a matrix ccount
-
         $directRooms = $this->getDirectRooms($sender);
 
         /** @var MatrixRoom[] */

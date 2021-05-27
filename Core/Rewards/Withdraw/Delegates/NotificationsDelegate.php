@@ -43,6 +43,7 @@ class NotificationsDelegate
      */
     public function onRequest(Request $request): void
     {
+        // TODO make this a toaster instead
         $message = 'Your on-chain transfer request was submitted successfully.';
 
         $this->dispatcher->trigger('notification', 'all', [
@@ -52,8 +53,6 @@ class NotificationsDelegate
             'params' => ['message' => $message],
             'message' => $message,
         ]);
-
-        // TODO make this a toaster instead ojm
     }
 
     /**
@@ -61,7 +60,6 @@ class NotificationsDelegate
      */
     public function onConfirm(Request $request): void
     {
-        // ojm ignore this
         $message = 'Your on-chain transfer request was confirmed by the blockchain and has been placed onto the review queue.';
 
         $this->dispatcher->trigger('notification', 'all', [
@@ -80,7 +78,6 @@ class NotificationsDelegate
      */
     public function onFail(Request $request): void
     {
-        // ojm rare - only sent to hackers. so this would not be an action. leave it for now
         $message = 'Your on-chain transfer request failed. Please contact an administrator.';
 
         $this->dispatcher->trigger('notification', 'all', [
@@ -98,7 +95,6 @@ class NotificationsDelegate
      */
     public function onApprove(Request $request): void
     {
-        // ojm yes
         $amount = BigNumber::fromPlain($request->getAmount(), 18)->toDouble();
 
         $message = sprintf(

@@ -42,7 +42,6 @@ class NotificationTypes
     /** @var string */
     const TYPE_SUBSCRIBE = 'subscribe';
 
-    //ojm note - referrals broken, don't send
     /** @var string */
     const TYPE_REFERRAL_PING = 'referral_ping';
 
