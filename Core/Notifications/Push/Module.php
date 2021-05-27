@@ -1,9 +1,9 @@
 <?php
 /**
- * Notifications module.
+ * Push Notifications module.
  */
 
-namespace Minds\Core\Notifications;
+namespace Minds\Core\Notifications\Push;
 
 use Minds\Interfaces\ModuleInterface;
 
@@ -15,7 +15,6 @@ class Module implements ModuleInterface
 {
     /** @var array $submodules */
     public $submodules = [
-        Push\Module::class
     ];
 
     /**

@@ -17,7 +17,7 @@ class Provider extends DiProvider
     {
         $this->di->bind('Notifications\Manager', function ($di) {
             return new Manager();
-        }, ['useFactory' => false]);
+        }, ['useFactory' => true]);
         $this->di->bind('Notifications\Controller', function ($di) {
             return new Controller();
         }, ['useFactory' => false]);

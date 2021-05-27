@@ -84,7 +84,7 @@ class Notification
      */
     public function getUrn(): string
     {
-        return "urn:notification:" . implode('-', [ $this->toGuid, $this->uuid ]);
+        return "urn:notification:" . implode('-', [ $this->toGuid, $this->getUuid() ]);
     }
 
     /**
@@ -93,7 +93,10 @@ class Notification
      */
     public function getUuid(): string
     {
-        return $this->uuid ?? (new Timeuuid())->uuid();
+        if (!$this->uuid) {
+            $this->uuid = (new Timeuuid())->uuid();
+        }
+        return $this->uuid;
     }
 
     /**

@@ -36,6 +36,11 @@ class Push implements Interfaces\NotificationExtensionInterface
             return false;
         }
 
+        $toUser = EntitiesFactory::build($notification['to']);
+        if (Di::_()->get('Features\Manager')->setUser($toUser)->has('notifications-v3')) {
+            return;
+        }
+
         /*if ($notification['params']['notification_view'] == 'like' || $notification['params']['notification_view'] == 'downvote') {
             return false;
         }*/

@@ -45,6 +45,15 @@ abstract class ElggEntity extends ElggData implements
 
     protected $_context = 'default';
 
+    /**
+     * Default a fields isJSON checks to false. 
+     */
+    protected $nonJsonFields = [
+        'message',
+        'description',
+        'title'
+    ];
+
 	/**
 	 * Initialize the attributes array.
 	 *
@@ -108,7 +117,7 @@ abstract class ElggEntity extends ElggData implements
 
 	protected function loadFromArray($array){
 		foreach($array as $k=>$v){
-			if($this->isJson($v))
+			if($this->isJson($v, $k))
 				$v = json_decode($v, true);
 
 			$this->$k = $v;
@@ -118,9 +127,27 @@ abstract class ElggEntity extends ElggData implements
 			cache_entity($this);
 	}
 
-	public function isJson($string) {
-		if(!is_string($string))
+
+    /**
+     * Returns true if string contains valid JSON that is not on the exceptions list.
+     * @param $string - string to check.
+     * @param $key - key to check.
+     * @return bool - true if valid json not on exceptions list.
+     */
+	public function isJson($string, $key = ''): bool
+    {
+		// if its not a string, false
+        if(!is_string($string))
 			return false;
+
+        try {
+            // 'true' and 'false' are valid for some fields.
+            if (in_array($key, $this->nonJsonFields)) {
+                return false;
+            }
+        } catch(\Exception $e) {
+            // do nothing.
+        }
 
 		json_decode($string);
 		return (json_last_error() == JSON_ERROR_NONE);

@@ -12,6 +12,8 @@ use Minds\Common\Repository\AbstractRepositoryOpts;
  * @method int getOffset()
  * @method self setUuid(string $uuid)
  * @method string getUuid()
+ * @method self setLteUuid(string $uuid)
+ * @method string getLteUuid()
  * @method self setMerge(bool $merge)
  * @method bool getMerge()
  * @method self setGroupingType(string $type)
@@ -26,6 +28,9 @@ class NotificationsListOpts extends AbstractRepositoryOpts
 
     /** @var string */
     protected $offset = "";
+
+    /** @var string */
+    protected $lteUuid;
 
     /** @var string */
     protected $uuid;

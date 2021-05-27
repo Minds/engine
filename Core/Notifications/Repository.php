@@ -68,6 +68,11 @@ class Repository
             $values[] = $opts->getGroupingType();
         }
 
+        if ($opts->getLteUuid()) {
+            $statement .= " AND uuid <= ?";
+            $values[] = new Timeuuid($opts->getLteUuid());
+        }
+
         $query = new Prepared\Custom();
         $query->query($statement, $values);
         $query->setOpts([
@@ -104,6 +109,10 @@ class Repository
     public function get($urn): ?Notification
     {
         list($toGuid, $uuid) = explode('-', $this->urn->setUrn($urn)->getNss(), 2);
+
+        if (!$uuid) {
+            return null; // Should we throw invalid urn?
+        }
 
         $opts = new NotificationsListOpts();
         $opts->setLimit(1)
