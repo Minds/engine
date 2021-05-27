@@ -158,14 +158,17 @@ class Events
                     // Tag event
                     $actionEventTopic = new ActionEventsTopic();
                     foreach ($to as $taggedUser) {
-                        $actionEvent = new ActionEvent();
-                        $actionEvent->setAction(ActionEvent::ACTION_TAG)
+                        // Entity owner will already be getting notified of comment
+                        if ($taggedUser->getGuid() !== $entity->getOwnerGuid()) {
+                            $actionEvent = new ActionEvent();
+                            $actionEvent->setAction(ActionEvent::ACTION_TAG)
                             ->setUser(Core\Session::getLoggedinUser()) // Who is tagging
                             ->setEntity($taggedUser) // The tagged person
                             ->setActionData([
                                 'tag_in_entity_urn' => $entity->getUrn(),
                             ]);
-                        $actionEventTopic->send($actionEvent);
+                            $actionEventTopic->send($actionEvent);
+                        }
                     }
                 }
             }
