@@ -31,6 +31,15 @@ class Routes extends ModuleRoutes
                     'token/:token',
                     Ref::_('Notifications\Push\DeviceSubscriptions\Controller', 'deleteToken')
                 );
+                //
+                $route->get(
+                    'settings',
+                    Ref::_('Notifications\Push\Settings\Controller', 'getSettings')
+                );
+                $route->post(
+                    'settings/:notificationGroup',
+                    Ref::_('Notifications\Push\Settings\Controller', 'toggle')
+                );
             });
     }
 }

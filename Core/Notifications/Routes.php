@@ -31,10 +31,6 @@ class Routes extends ModuleRoutes
                             Ref::_('Notifications\Controller', 'getUnreadCount')
                         );
                         $route->get(
-                            'settings',
-                            Ref::_('Notifications\Controller', 'getSettings')
-                        );
-                        $route->get(
                             'single/:urn',
                             Ref::_('Notifications\Controller', 'getSingle')
                         );
