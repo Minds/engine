@@ -24,28 +24,14 @@ class FcmService extends AbstractService implements PushServiceInterface
     {
         $body = [
             'message' => [
-                'notification' => [
-                    'title' =>  $pushNotification->getTitle(),
-                    'body' => $pushNotification->getBody(),
-                    'image' => $pushNotification->getIcon(),
-                ],
-                'android' => [
-                    'collapse_key' => $pushNotification->getMergeKey(),
-                    'notification' => [
-                        'title' =>  $pushNotification->getTitle(),
-                        'body' => $pushNotification->getBody(),
-                        'tag' => $pushNotification->getMergeKey(),
-                        'image' => $pushNotification->getMedia(),
-                        'icon' => $pushNotification->getIcon(),
-                        'default_sound' => true,
-                        'default_vibrate_timings' => true,
-                        'notification_count' =>  $pushNotification->getUnreadCount(),
-                    ]
-                ],
                 'data' => [
+                    'title' => $pushNotification->getTitle(),
+                    'body' => $pushNotification->getBody(),
+                    'tag' => $pushNotification->getMergeKey(),
                     'uri' => $pushNotification->getUri(),
                     'largeIcon' => $pushNotification->getIcon(),
                     'bigPicture' => $pushNotification->getMedia(),
+                    'badge' => (string) $pushNotification->getUnreadCount(), // Has to be a string
                 ],
                 'token' => $pushNotification->getDeviceSubscription()->getToken(),
             ],

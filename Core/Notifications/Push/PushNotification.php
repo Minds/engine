@@ -178,10 +178,19 @@ class PushNotification
     {
         $entity = $this->notification->getEntity();
         if (!$entity) {
-            return '';
+            return null;
         };
 
-        return  $entity->getIconUrl('xlarge');
+        switch ($entity->getType()) {
+            case 'object':
+                return $entity->getIconUrl('xlarge');
+            break;
+            case 'activity':
+                return $entity->getThumbnail();
+            break;
+        }
+            
+        return null;
     }
 
     /**
@@ -236,5 +245,13 @@ class PushNotification
     public function getMergeKey(): string
     {
         return $this->notification->getMergeKey();
+    }
+
+    /**
+     * @return Notification
+     */
+    public function getNotification(): Notification
+    {
+        return $this->notification;
     }
 }
