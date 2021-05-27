@@ -9,6 +9,7 @@
 namespace Minds\Api;
 
 use Composer\Semver\Comparator;
+use Minds\Helpers\MagicAttributes;
 
 class Exportable implements \JsonSerializable
 {
@@ -107,7 +108,10 @@ class Exportable implements \JsonSerializable
 
             if (
                 $isSequential &&
-                (method_exists($item, '_magicAttributes') || method_exists($item, 'isDeleted')) &&
+                (
+                    (method_exists($item, '_magicAttributes') && MagicAttributes::getterExists($item, 'isDeleted'))
+                    || method_exists($item, 'isDeleted')
+                ) &&
                 $item->isDeleted()
             ) {
                 continue;
