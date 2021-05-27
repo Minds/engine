@@ -10,6 +10,8 @@ use Minds\Core\Di\Di;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Minds\Core\Boost\Delegates\OnchainBadgeDelegate;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Minds\Entities\Activity;
 use Minds\Entities\User;
 
 class ReviewSpec extends ObjectBehavior
@@ -17,11 +19,16 @@ class ReviewSpec extends ObjectBehavior
     private $manager;
     private $onchainBadge;
 
-    public function let(Manager $manager, OnchainBadgeDelegate $onchainBadge)
+
+    /** @var ActionEventsTopic */
+    protected $actionEventsTopic;
+
+    public function let(Manager $manager, OnchainBadgeDelegate $onchainBadge, ActionEventsTopic $actionEventsTopic)
     {
-        $this->beConstructedWith($manager, null, $onchainBadge);
+        $this->beConstructedWith($manager, null, $onchainBadge, $actionEventsTopic);
         $this->manager = $manager;
         $this->onchainBadge = $onchainBadge;
+        $this->actionEventsTopic = $actionEventsTopic;
     }
 
     public function it_is_initializable()
@@ -156,7 +163,7 @@ class ReviewSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $owner = new \stdClass();
+        $owner = new User();
         $owner->guid = '123';
         $boost->getOwner()
             ->willReturn($owner);
@@ -170,7 +177,7 @@ class ReviewSpec extends ObjectBehavior
         $boost->getRejectedReason()
             ->willReturn(3);
 
-        $entity = new \stdClass();
+        $entity = new Activity();
         $entity->title = 'title';
         $boost->getEntity()
             ->willReturn($entity);

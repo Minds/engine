@@ -7,6 +7,7 @@ use Minds\Entities\Boost\Network;
 use Minds\Core\Boost\Network\Manager;
 use Minds\Core\Boost\Network\Boost;
 use Minds\Entities\Entity;
+use Minds\Core\Notifications;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -14,10 +15,14 @@ class ExpireSpec extends ObjectBehavior
 {
     private $manager;
 
-    public function let(Manager $manager)
+    /** @var Notifications\Manager */
+    protected $notificationsManager;
+
+    public function let(Manager $manager, Notifications\Manager $notificationsManager)
     {
-        $this->beConstructedWith($manager);
+        $this->beConstructedWith($manager, $notificationsManager);
         $this->manager = $manager;
+        $this->notificationsManager = $notificationsManager;
     }
 
     public function it_is_initializable()
@@ -48,6 +53,12 @@ class ExpireSpec extends ObjectBehavior
 
         $boost->getImpressions()
             ->shouldBeCalled();
+
+        $this->notificationsManager->add(Argument::that(function ($notification) {
+            return $notification->getToGuid() === '123'
+                && $notification->getEntityUrn() === 'urn:entity:';
+        }))
+            ->willReturn(true);
 
         $this->setBoost($boost);
         $this->expire();

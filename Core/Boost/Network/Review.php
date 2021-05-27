@@ -33,11 +33,15 @@ class Review implements BoostReviewInterface
     /** @var string $type */
     protected $type;
 
-    public function __construct($manager = null, $analytics = null, $onchainBadge = null)
+    /** @var ActionEventsTopic */
+    protected $actionEventsTopic;
+
+    public function __construct($manager = null, $analytics = null, $onchainBadge = null, ActionEventsTopic $actionEventTopic = null)
     {
         $this->manager = $manager ?: new Manager;
         $this->analytics = $analytics ?: new Analytics;
         $this->onchainBadge = $onchainBadge ?: new OnchainBadgeDelegate;
+        $this->actionEventsTopic = $actionEventsTopic ?? Di::_()->get('EventStreams\Topics\ActionEventsTopic');
     }
 
     /**
@@ -125,8 +129,7 @@ class Review implements BoostReviewInterface
                 ->setEntity($this->boost->getEntity())
                 ->setUser($this->boost->getOwner());
 
-            $actionEventTopic = new ActionEventsTopic();
-            $actionEventTopic->send($actionEvent);
+            $this->actionEventsTopic->send($actionEvent);
 
             //
             Core\Di\Di::_()->get('Boost\Payment')->refund($this->boost);

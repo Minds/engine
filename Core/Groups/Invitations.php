@@ -31,16 +31,25 @@ class Invitations
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
+    /** @var ActionEventsTopic */
+    protected $actionEventsTopic;
+
     /**
      * Constructor
      * @param Group $group
      */
-    public function __construct($db = null, $acl = null, $friendsDB = null, EntitiesBuilder $entitiesBuilder = null)
-    {
+    public function __construct(
+        $db = null,
+        $acl = null,
+        $friendsDB = null,
+        EntitiesBuilder $entitiesBuilder = null,
+        ActionEventsTopic $actionEventsTopic = null
+    ) {
         $this->relDB = $db ?: Di::_()->get('Database\Cassandra\Relationships');
         // TODO: [emi] Ask Mark about a 'friendsof' replacement (or create a DI entry)
         $this->friendsDB = $friendsDB ?: new Core\Data\Call('friendsof');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->actionEventsTopic = $actionEventsTopic ?? Di::_()->get('EventStreams\Topics\ActionEventsTopic');
         $this->setAcl($acl);
     }
 
@@ -162,8 +171,6 @@ class Invitations
 
         $invited = $this->relDB->create('group:invited', $this->group->getGuid());
 
-        $invitee = $this->entitiesBuilder->single($invitee_guid);
-
         $actionEvent = new ActionEvent();
         $actionEvent
             ->setAction(ActionEvent::ACTION_GROUP_INVITE)
@@ -173,9 +180,7 @@ class Invitations
                 'group_urn' => $this->group->getUrn(),
             ]);
 
-        $actionEventTopic = new ActionEventsTopic();
-        $actionEventTopic->send($actionEvent);
-
+        $this->actionEventsTopic->send($actionEvent);
 
         if ($opts['notify']) {
             Dispatcher::trigger('notification', 'all', [

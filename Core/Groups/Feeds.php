@@ -28,14 +28,18 @@ class Feeds
     /** @var Delegates\PropagateRejectionDelegate */
     protected $propagateRejectionDelegate;
 
+    /** @var ActionEventsTopic */
+    protected $actionEventsTopic;
+
     /**
      * Feeds constructor.
      * @param null $entitiesBuilder
      */
-    public function __construct($entitiesBuilder = null, $propagateRejectionDelegate = null)
+    public function __construct($entitiesBuilder = null, $propagateRejectionDelegate = null, ActionEventsTopic $actionEventsTopic = null)
     {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->propagateRejectionDelegate = $propagateRejectionDelegate ?? new PropagateRejectionDelegate();
+        $this->actionEventsTopic = $actionEventsTopic ?? Di::_()->get('EventStreams\Topics\ActionEventsTopic');
     }
 
     /**
@@ -130,15 +134,10 @@ class Feeds
         $adminQueue = Di::_()->get('Groups\AdminQueue');
         $success = $adminQueue->add($this->group, $activity);
 
-        $actor = $this->entitiesBuilder->single($activity->owner_guid);
-
-        if (!$actor instanceof User) {
-            throw new \Exception('Invalid activity owner');
-        }
 
         if ($success && $options['notification']) {
             $this->sendNotification('add', $activity);
-            $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_ADD, $actor, $activity);
+            $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_ADD, $activity->getOwnerEntity(), $activity);
         }
 
         return $success;
@@ -284,8 +283,7 @@ class Feeds
                 'group_urn' => $this->group->getUrn(),
             ]);
 
-        $actionEventTopic = new ActionEventsTopic();
-        $actionEventTopic->send($actionEvent);
+        $this->actionEventTopic->send($actionEvent);
     }
 
 

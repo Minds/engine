@@ -2,6 +2,7 @@
 namespace Minds\Core\Rewards;
 
 use Brick\Math\BigDecimal;
+use Minds\Common\SystemUser;
 use Minds\Core\Blockchain\TokenPrices;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\EventsDispatcher;
@@ -102,16 +103,18 @@ class Notify
 
             $notification = new Notifications\Notification();
             $notification->setType(Notifications\NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY);
-            $notification->setData(['amount' =>  $tokensFormatted]);
+            $notification->setData([
+                'tokens_formatted' =>  $tokensFormatted,
+                'usd_formatted' => $usdFormated
+            ]);
             $notification->setToGuid($userGuid);
+            $notification->setEntityUrn('urn:user:' . $userGuid);
+            $notification->setFromGuid(SystemUser::GUID);
 
             // Save and submit
             if ($this->notificationsManager->add($notification)) {
-
                 // Some logging
                 $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
-
-                return true; // Return true to acknowledge the event from the stream (stop it being redelivered)
             }
         }
     }

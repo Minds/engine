@@ -15,13 +15,17 @@ class NotificationDelegate
     /** @var EventsDispatcher */
     protected $dispatcher;
 
-    /** @var EntitiesBuilder $entitiesBuilder */
+    /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    public function __construct($dispatcher = null, $entitiesBuilder = null)
+    /** @var ActionEventsTopic */
+    protected $actionEventTopic;
+
+    public function __construct($dispatcher = null, $entitiesBuilder = null, ActionEventsTopic $actionEventTopic = null)
     {
         $this->dispatcher = $dispatcher ?: Di::_()->get('EventsDispatcher');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
+        $this->actionEventTopic = $actionEventTopic ?? Di::_()->get('EventStreams\Topics\ActionEventsTopic');
     }
 
     /**
@@ -81,7 +85,6 @@ class NotificationDelegate
             ->setEntity($entity)
             ->setUser($prospectEntity);
 
-        $actionEventTopic = new ActionEventsTopic();
-        $actionEventTopic->send($actionEvent);
+        $this->actionEventTopic->send($actionEvent);
     }
 }
