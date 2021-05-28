@@ -82,12 +82,17 @@ class Cap
      * Returns true if a user has exceeded the offchain single user cap.
      * @return bool
      */
-    public function exceedsSingleUserCap($receiver): bool
+    public function exceedsSingleUserCap($receiver, $amount): bool
     {
+        if ($amount > self::MAXIMUM_SINGLE_USER_MONTHLY_THRESHOLD) {
+            return true;
+        }
+
         return $this->offChainBalance
             ->setUser($this->user)
             ->countByReceiver(strtotime('-1 month'), $receiver)
-            ->gte($this->MAXIMUM_SINGLE_USER_MONTHLY_THRESHOLD);
+            ->add($amount)
+            ->gt(self::MAXIMUM_SINGLE_USER_MONTHLY_THRESHOLD);
     }
 
     /**

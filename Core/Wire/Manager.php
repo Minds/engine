@@ -271,8 +271,9 @@ class Manager
                 if (!$this->cap->isAllowed($this->amount) && !$bypassAcl) {
                     throw new \Exception('You are not allowed to spend that amount of coins.');
                 }
-
-                if ($this->cap->exceedsSingleUserCap($this->receiver)) {
+#
+                // allow cli bypass for runner payouts.
+                if (php_sapi_name() !== 'cli' && $this->cap->exceedsSingleUserCap($this->receiver, $this->amount)) {
                     throw new \Exception('You may only send 10 offchain tokens per month to a single user');
                 }
 
