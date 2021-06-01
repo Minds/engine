@@ -9,7 +9,6 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Matrix\MatrixAccount;
 use Minds\Entities\User;
-use Minds\Core\Notifications;
 
 class Manager
 {
@@ -48,23 +47,6 @@ class Manager
             // if ($e->getResponse()->getStatusCode() === 404) {
             //     return $this->createAccount($user);
             // }
-
-            // TODO: test this
-            // $notification = new Notifications\Notification();
-
-            // $notification->setType(Notifications\NotificationTypes::TYPE_CHAT_INVITE);
-
-            // $notification->setToGuid($this->$user->getGuid());
-
-            // // Save and submit
-            // if ($this->notificationsManager->add($notification)) {
-
-            // // Some logging
-            //     $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
-
-            //     return true; // Return true to acknowledge the event from the stream (stop it being redelivered)
-            // }
-//
 
             throw $e; // Rethrow
         }
@@ -158,6 +140,7 @@ class Manager
         $senderMatrixId = $this->getMatrixId($sender);
         $receiverMatrixId = $this->getMatrixId($receiver);
         // First, check to see that we don't already have a direct room
+
         $directRooms = $this->getDirectRooms($sender);
 
         /** @var MatrixRoom[] */
@@ -201,7 +184,7 @@ class Manager
 
         $directRooms[] = $matrixRoom;
         $patchedDirectRooms = [];
-
+    
         foreach ($directRooms as $room) {
             $member = $room->getMembers()[0];
             $patchedDirectRooms[$member] = [ $room->getId() ];
@@ -241,7 +224,7 @@ class Manager
             }
             throw $e;
         }
-
+        
         return false;
     }
 
@@ -270,7 +253,7 @@ class Manager
                 ->setDirectMessage(true);
                 $rooms[] = $matrixRoom;
             }
-
+        
 
             return $rooms;
         } catch (\GuzzleHttp\Exception\ClientException $e) {
@@ -289,9 +272,9 @@ class Manager
     public function getJoinedRooms(User $user)
     {
         $matrixId = $this->getMatrixId($user);
-
+       
         $data = $this->getState($user);
-
+    
         /** @var MatrixRoom[] */
         $rooms = [];
 
@@ -320,14 +303,14 @@ class Manager
 
             $rooms[] = $matrixRoom;
         }
-
+        
         foreach ($data['rooms']['invite'] as $roomId => $roomData) {
             $matrixRoom = new MatrixRoom();
             $matrixRoom->setId($roomId);
             $matrixRoom->setInvite(true);
-
+            
             $this->getRoomFromStateEvents($roomData['invite_state']['events'], $matrixRoom, $matrixId);
-
+            
             $rooms[] = $matrixRoom;
         }
 
@@ -392,7 +375,7 @@ class Manager
         while (true) {
             $endpoint = '_synapse/admin/v2/users';
             $params = http_build_query([ 'from' => $from, 'limit' => $limit, 'guests' => 'false' ]);
-
+        
             $response = $this->client->request('GET', "$endpoint?$params");
             $decodedResponse = json_decode($response->getBody()->getContents(), true);
 
@@ -411,7 +394,7 @@ class Manager
                 }
 
                 $account->setUserGuid($user->getGuid());
-
+                
                 yield $account;
             }
 
@@ -501,7 +484,7 @@ class Manager
         $contents = $file->read();
 
         $accessToken = $this->getServerAccessToken($user);
-
+        
         $endpoint = "_matrix/media/r0/upload?filename=$filename";
 
         try {
