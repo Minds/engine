@@ -198,18 +198,10 @@ class Network implements BoostHandlerInterface
         $notification = new Notifications\Notification();
 
         $notification->setType(Notifications\NotificationTypes::TYPE_BOOST_COMPLETED);
-        $notification->setData(['impressions' =>  $this->boost->getImpressions()]);
         $notification->setToGuid($this->boost->getOwnerGuid());
-        $notification->setEntityUrn($this->boost->getEntity()->getUrn());
+        $notification->setEntityUrn($this->boost->getUrn());
 
-        // Save and submit
-        if ($this->notificationsManager->add($notification)) {
-
-            // Some logging
-            $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
-
-            return true; // Return true to acknowledge the event from the stream (stop it being redelivered)
-        }
+        $this->notificationsManager->add($notification);
     }
 
     /**
