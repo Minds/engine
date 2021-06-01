@@ -263,7 +263,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $withdrawRequest->getAmount()
             ->willReturn('100');
         $withdrawRequest->getUrn()
-            ->willReturn('urn:withdraw_request:123-' . time() . '-tx');
+            ->willReturn('urn:withdraw-request:123-' . time() . '-tx');
         
         $this->manager->add(Argument::that(function (Notification $notification) {
             return $notification->getType() === NotificationTypes::TYPE_TOKEN_WITHDRAW_ACCEPTED
@@ -300,7 +300,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $withdrawRequest->getAmount()
             ->willReturn('100');
         $withdrawRequest->getUrn()
-            ->willReturn('urn:withdraw_request:123-' . time() . '-tx');
+            ->willReturn('urn:withdraw-request:123-' . time() . '-tx');
         
         $this->manager->add(Argument::that(function (Notification $notification) {
             return $notification->getType() === NotificationTypes::TYPE_TOKEN_WITHDRAW_REJECTED

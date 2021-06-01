@@ -347,7 +347,7 @@ class Comment extends RepositoryEntity implements EntityInterface
 
     public function getOwnerGuid(): string
     {
-        return (string) $this->ownerGuid();
+        return (string) $this->ownerGuid;
     }
 
     /**
