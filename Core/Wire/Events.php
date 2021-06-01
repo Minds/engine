@@ -16,6 +16,14 @@ class Events
 {
     public function register()
     {
+        // Urn resolve
+        Dispatcher::register('urn:resolve', 'all', function (Core\Events\Event $event) {
+            $urn = $event->getParameters()['urn'];
+            /** @var Manager */
+            $manager = Di::_()->get('Wire\Manager');
+            $event->setResponse($manager->getByUrn($urn));
+        });
+
         // Recurring subscriptions
 
         Dispatcher::register('subscriptions:process', 'wire', function (Core\Events\Event $event) {

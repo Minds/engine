@@ -47,7 +47,7 @@ class Manager
             $pushSetting = new PushSetting();
             $pushSetting->setNotificationGroup($notificationGroup);
             return $pushSetting;
-        }, array_keys(array_merge(NotificationTypes::TYPES_GROUPS, [PushSetting::ALL => []])));
+        }, array_keys(array_merge(NotificationTypes::TYPES_GROUPINGS, [PushSetting::ALL => []])));
 
         $keyValue = [];
 

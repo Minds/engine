@@ -18,7 +18,7 @@ class SendNotificationDelegate
 
     /**
      * Send a notifications
-     * @param Subscription $subscrition
+     * @param Subscription $subscription
      * @return void
      */
     public function send($subscription)
@@ -34,6 +34,7 @@ class SendNotificationDelegate
 
     public function onMaxSubscriptions($subscription)
     {
+        // TODO make this a toast notification instead
         $message = "You are unable to subscribe to new channels as you have over 5000 subscriptions.";
         $this->eventsDispatcher->trigger('notification', 'all', [
             'to' => [ $subscription->getSubscriberGuid() ],

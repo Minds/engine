@@ -32,7 +32,7 @@ class EntityGuidResolverDelegate implements ResolverDelegate
      * @param Urn $urn
      * @return boolean
      */
-    public function shouldResolve(Urn $urn)
+    public function shouldResolve(Urn $urn): bool
     {
         return in_array($urn->getNid(), [
                 'entity',
@@ -50,7 +50,7 @@ class EntityGuidResolverDelegate implements ResolverDelegate
      * @param array $opts
      * @return mixed
      */
-    public function resolve(array $urns, array $opts = [])
+    public function resolve(array $urns, array $opts = []): ?array
     {
         $opts = array_merge([
             'asActivities' => false,
@@ -93,7 +93,7 @@ class EntityGuidResolverDelegate implements ResolverDelegate
      * @param mixed $entity
      * @return string|null
      */
-    public function asUrn($entity)
+    public function asUrn($entity): ?string
     {
         if (!$entity) {
             return null;

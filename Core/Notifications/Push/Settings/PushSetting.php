@@ -34,8 +34,8 @@ class PushSetting
      */
     public function setNotificationGroup(string $notificationGroup): self
     {
-        if (!isset(NotificationTypes::TYPES_GROUPS[$notificationGroup]) && $notificationGroup != self::ALL) {
-            throw new \Exception("NotificationGroup $notificationGroup not found in NotificationTypes::TYPES_GROUPS");
+        if (!isset(NotificationTypes::TYPES_GROUPINGS[$notificationGroup]) && $notificationGroup != self::ALL) {
+            throw new \Exception("NotificationGroup $notificationGroup not found in NotificationTypes::TYPES_GROUPINGS");
         }
         $this->notificationGroup = $notificationGroup;
         return $this;

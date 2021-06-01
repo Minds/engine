@@ -134,6 +134,15 @@ class Manager
     }
 
     /**
+     * @param string $requestHydrationDelegate
+     * @return Request
+     */
+    public function getByUrn(string $urn): ?Request
+    {
+        return $this->repository->get($urn);
+    }
+
+    /**
      * @param Request $request
      * @param bool $hydrate
      * @return Request|null
