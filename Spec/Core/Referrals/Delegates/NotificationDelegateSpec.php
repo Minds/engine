@@ -9,26 +9,32 @@ use Minds\Core\Referrals\Delegates\NotificationDelegate;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Entities\Entity;
-
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 class NotificationDelegateSpec extends ObjectBehavior
 {
-    /** @var EventsDispatcher $dispatcher */
+    /** @var EventsDispatcher */
     private $dispatcher;
 
-    /** @var EntitiesBuilder $entitiesBuilder */
+    /** @var EntitiesBuilder */
     private $entitiesBuilder;
+
+    /** @var ActionEventsTopic */
+    protected $actionEventsTopic;
 
     public function let(
         EventsDispatcher $dispatcher,
-        EntitiesBuilder $entitiesBuilder
+        EntitiesBuilder $entitiesBuilder,
+        ActionEventsTopic $actionEventsTopic
     ) {
-        $this->beConstructedWith($dispatcher, $entitiesBuilder);
+        $this->beConstructedWith($dispatcher, $entitiesBuilder, $actionEventsTopic);
         $this->dispatcher=$dispatcher;
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->actionEventsTopic = $actionEventsTopic;
     }
 
 
@@ -87,7 +93,7 @@ class NotificationDelegateSpec extends ObjectBehavior
         $this->notifyReferrer($referral);
     }
 
-    public function it_should_send_a_ping_notification_to_pending_prospect(Referral $referral, Entity $entity)
+    public function it_should_send_a_ping_notification_to_pending_prospect(Referral $referral, Entity $entity, User $user)
     {
         $referral->getProspectGuid()
             ->shouldBeCalled()
@@ -100,12 +106,25 @@ class NotificationDelegateSpec extends ObjectBehavior
         $this->entitiesBuilder->single(456)
             ->willReturn($entity);
 
+        $entity->getGuid()->willReturn('456');
+
         $referral->getJoinTimestamp()
             ->shouldBeCalled()
             ->willReturn(); // Referral is pending bc hasn't joined rewards yet
 
         $this->dispatcher->trigger('notification', 'all', Argument::that(function ($opts) {
             return $opts['notification_view'] === 'referral_ping';
+        }))
+            ->shouldBeCalled();
+
+        $this->entitiesBuilder->single('123')
+            ->willReturn($user);
+
+        $user->getGuid()->willReturn('123');
+
+        $this->actionEventsTopic->send(Argument::that(function ($actionEvent) {
+            return $actionEvent->getUser()->getGuid() === '123'
+                && $actionEvent->getEntity()->getGuid() === '456';
         }))
             ->shouldBeCalled();
 

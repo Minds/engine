@@ -1683,6 +1683,13 @@ CREATE TABLE minds.push_notifications_device_subscriptions (
     PRIMARY KEY (user_guid, device_token)
 ) WITH CLUSTERING ORDER BY (device_token DESC);
 
+CREATE TABLE minds.push_notifications_settings (
+    user_guid bigint,
+    notification_group text,
+    enabled boolean,
+    PRIMARY KEY (user_guid, notification_group)
+) WITH CLUSTERING ORDER BY (notification_group DESC);
+
 -- CREATE INDEX IF NOT EXISTS user_id_idx ON minds.oauth_access_tokens (user_id);
 -- ALTER TABLE minds.jwt_sessions ADD (last_active timestamp, user_agent text, ip text);
 -- ALTER TABLE minds.oauth_access_tokens ADD ip text;

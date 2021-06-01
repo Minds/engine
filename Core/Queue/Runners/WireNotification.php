@@ -11,6 +11,8 @@ use Minds\Core\Queue\Interfaces;
 use Minds\Core\Util\BigNumber;
 use Minds\Core\Wire;
 use Minds\Entities;
+use Minds\Core\EventStreams\ActionEvent;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 
 class WireNotification implements Interfaces\QueueRunner
 {

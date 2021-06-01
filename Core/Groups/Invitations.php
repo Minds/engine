@@ -10,6 +10,9 @@ use Minds\Core\Events\Dispatcher;
 use Minds\Entities;
 use Minds\Entities\User;
 use Minds\Entities\Group;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\EventStreams\ActionEvent;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 
 use Minds\Behaviors\Actorable;
 
@@ -25,15 +28,28 @@ class Invitations
     protected $relDB;
     protected $friendsDB;
 
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
+    /** @var ActionEventsTopic */
+    protected $actionEventsTopic;
+
     /**
      * Constructor
      * @param Group $group
      */
-    public function __construct($db = null, $acl = null, $friendsDB = null)
-    {
+    public function __construct(
+        $db = null,
+        $acl = null,
+        $friendsDB = null,
+        EntitiesBuilder $entitiesBuilder = null,
+        ActionEventsTopic $actionEventsTopic = null
+    ) {
         $this->relDB = $db ?: Di::_()->get('Database\Cassandra\Relationships');
         // TODO: [emi] Ask Mark about a 'friendsof' replacement (or create a DI entry)
         $this->friendsDB = $friendsDB ?: new Core\Data\Call('friendsof');
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->actionEventsTopic = $actionEventsTopic ?? Di::_()->get('EventStreams\Topics\ActionEventsTopic');
         $this->setAcl($acl);
     }
 
@@ -154,6 +170,17 @@ class Invitations
         $this->relDB->setGuid($invitee_guid);
 
         $invited = $this->relDB->create('group:invited', $this->group->getGuid());
+
+        $actionEvent = new ActionEvent();
+        $actionEvent
+            ->setAction(ActionEvent::ACTION_GROUP_INVITE)
+            ->setEntity($invitee)
+            ->setUser($this->getActor())
+            ->setActionData([
+                'group_urn' => $this->group->getUrn(),
+            ]);
+
+        $this->actionEventsTopic->send($actionEvent);
 
         if ($opts['notify']) {
             Dispatcher::trigger('notification', 'all', [

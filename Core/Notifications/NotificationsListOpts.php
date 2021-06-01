@@ -16,7 +16,7 @@ use Minds\Common\Repository\AbstractRepositoryOpts;
  * @method string getLteUuid()
  * @method self setMerge(bool $merge)
  * @method bool getMerge()
- * @method self setGroupType(string $type)
+ * @method self setGroupingType(string $type)
  */
 class NotificationsListOpts extends AbstractRepositoryOpts
 {
@@ -39,19 +39,19 @@ class NotificationsListOpts extends AbstractRepositoryOpts
     protected $merge = true;
 
     /** @var string */
-    protected $groupType;
+    protected $groupingType;
 
     /**
      * Set the type
-     * @param string $groupType
+     * @param string $groupingType
      * @return self
      */
-    public function setGroupType(string $groupType): self
+    public function setGroupingType(string $groupingType): self
     {
-        if (!isset(NotificationTypes::TYPES_GROUPS[$groupType])) {
-            throw new \Exception("GroupType $groupType not found in NotificationTypes::TYPES_GROUPS");
+        if (!isset(NotificationTypes::TYPES_GROUPINGS[$groupingType])) {
+            throw new \Exception("GroupingType $groupingType not found in NotificationTypes::TYPES_GROUPINGS");
         }
-        $this->groupType = $groupType;
+        $this->groupingType = $groupingType;
         return $this;
     }
 }
