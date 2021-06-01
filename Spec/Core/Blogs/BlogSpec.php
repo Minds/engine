@@ -58,7 +58,7 @@ class BlogSpec extends ObjectBehavior
             ->shouldBe([ 'guid' => 1000 ]);
 
         expect($this->getOwnerGuid()->getWrappedObject())
-            ->shouldBe(1000);
+            ->shouldBe('1000');
     }
 
     public function it_should_set_owner_obj_based_on_json_string()
@@ -70,7 +70,7 @@ class BlogSpec extends ObjectBehavior
             ->shouldBe([ 'guid' => 1000 ]);
 
         expect($this->getOwnerGuid()->getWrappedObject())
-            ->shouldBe(1000);
+            ->shouldBe('1000');
     }
 
     public function it_should_set_owner_obj_based_on_user(
@@ -87,7 +87,7 @@ class BlogSpec extends ObjectBehavior
             ->shouldBe([ 'guid' => 1000 ]);
 
         expect($this->getOwnerGuid()->getWrappedObject())
-            ->shouldBe(1000);
+            ->shouldBe('1000');
     }
 
     public function it_should_get_non_slugged_url()
