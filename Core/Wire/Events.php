@@ -6,6 +6,7 @@
 
 namespace Minds\Core\Wire;
 
+use Minds\Common\Urn;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
@@ -19,9 +20,14 @@ class Events
         // Urn resolve
         Dispatcher::register('urn:resolve', 'all', function (Core\Events\Event $event) {
             $urn = $event->getParameters()['urn'];
+
+            if ($urn->getNid() !== 'wire') {
+                return;
+            }
+
             /** @var Manager */
             $manager = Di::_()->get('Wire\Manager');
-            $event->setResponse($manager->getByUrn($urn));
+            $event->setResponse($manager->getByUrn((string) $urn));
         });
 
         // Recurring subscriptions
