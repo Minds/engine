@@ -55,7 +55,7 @@ class ElasticRepositorySpec extends ObjectBehavior
                 && $body['doc']['entity_guid'] === 123
                 && $body['doc']['impressions'] === 10000
                 && $body['doc']['impressions_met'] === 10
-                && $body['doc']['owner_guid'] === 456
+                && $body['doc']['owner_guid'] === '456'
                 && $body['doc']['type'] === 'newsfeed'
                 && $body['doc']['priority'] === false;
         }))

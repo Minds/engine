@@ -7,19 +7,25 @@ namespace Minds\Core\Referrals\Delegates;
 use Minds\Core\Di\Di;
 use Minds\Core\Referrals\Referral;
 use Minds\Core\Events\EventsDispatcher;
+use Minds\Core\EventStreams\ActionEvent;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 
 class NotificationDelegate
 {
     /** @var EventsDispatcher */
     protected $dispatcher;
 
-    /** @var EntitiesBuilder $entitiesBuilder */
+    /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    public function __construct($dispatcher = null, $entitiesBuilder = null, $urn = null)
+    /** @var ActionEventsTopic */
+    protected $actionEventTopic;
+
+    public function __construct($dispatcher = null, $entitiesBuilder = null, ActionEventsTopic $actionEventTopic = null)
     {
         $this->dispatcher = $dispatcher ?: Di::_()->get('EventsDispatcher');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
+        $this->actionEventTopic = $actionEventTopic ?? Di::_()->get('EventStreams\Topics\ActionEventsTopic');
     }
 
     /**
@@ -62,12 +68,23 @@ class NotificationDelegate
             return;
         }
 
+        $prospectGuid = $referral->getProspectGuid();
+        $prospectEntity = $this->entitiesBuilder->single($prospectGuid);
+
         $this->dispatcher->trigger('notification', 'all', [
-            'to' => [$referral->getProspectGuid()],
+            'to' => [$prospectGuid],
             'entity' => $entity,
             'from' => $referral->getReferrerGuid(),
             'notification_view' => 'referral_ping',
             'params' => [],
         ]);
+
+        $actionEvent = new ActionEvent();
+        $actionEvent
+            ->setAction(ActionEvent::ACTION_REFERRAL_PING)
+            ->setEntity($entity)
+            ->setUser($prospectEntity);
+
+        $this->actionEventTopic->send($actionEvent);
     }
 }

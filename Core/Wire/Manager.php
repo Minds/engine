@@ -86,6 +86,9 @@ class Manager
     /** @var Core\Security\ACL */
     protected $acl;
 
+    /** @var Delegates\EventsDelegate */
+    protected $eventsDelegate;
+
     /** @var int */
     const WIRE_SERVICE_FEE_PCT = 5;
 
@@ -109,7 +112,8 @@ class Manager
         $cacheDelegate = null,
         $offchainTxs = null,
         $stripeIntentsManager = null,
-        $acl = null
+        $acl = null,
+        $eventsDelegate = null
     ) {
         $this->repository = $repository ?: Di::_()->get('Wire\Repository');
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
@@ -125,6 +129,16 @@ class Manager
         $this->offchainTxs = $offchainTxs ?: new Core\Blockchain\Wallets\OffChain\Transactions();
         $this->stripeIntentsManager = $stripeIntentsManager ?? Di::_()->get('Stripe\Intents\Manager');
         $this->acl = $acl ?: Core\Security\ACL::_();
+        $this->eventsDelegate = $eventsDelegate ?? new Delegates\EventsDelegate();
+    }
+
+    /**
+     * @param string $urn
+     * @return Wire
+     */
+    public function getByUrn(string $urn): ?Wire
+    {
+        return $this->repository->get($urn);
     }
 
     /**
@@ -296,6 +310,9 @@ class Manager
                 $this->upgradesDelegate
                     ->onWire($wire, 'offchain');
 
+                // Submit action event
+                $this->eventsDelegate->onAdd($wire);
+
                 // Send notification
                 $this->notificationDelegate->onAdd($wire);
 
@@ -356,6 +373,9 @@ class Manager
                 // Notify plus/pro
                 $this->upgradesDelegate
                     ->onWire($wire, 'usd');
+
+                // Submit action event
+                $this->eventsDelegate->onAdd($wire);
 
                 // Send notification
                 $this->notificationDelegate->onAdd($wire);

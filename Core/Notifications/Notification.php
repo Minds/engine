@@ -5,6 +5,7 @@
 namespace Minds\Core\Notifications;
 
 use Cassandra\Timeuuid;
+use Minds\Common\SystemUser;
 use Minds\Common\Urn;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver;
@@ -118,6 +119,9 @@ class Notification
      */
     public function getFrom(): ?User
     {
+        if ((string) $this->getFromGuid() === SystemUser::GUID) {
+            return new SystemUser();
+        }
         $from = $this->entitiesBuilder->single($this->getFromGuid());
         if ($from instanceof User) {
             return $from;
@@ -165,11 +169,11 @@ class Notification
      * Return the groupable type
      * @return string
      */
-    public function getGroupType(): string
+    public function getGroupingType(): string
     {
-        foreach (NotificationTypes::TYPES_GROUPS as $groupType => $types) {
+        foreach (NotificationTypes::TYPES_GROUPINGS as $groupingType => $types) {
             if (in_array($this->type, $types, true)) {
-                return $groupType;
+                return $groupingType;
             }
         }
     }
@@ -200,8 +204,8 @@ class Notification
         return [
             'uuid' => $this->getUuid(),
             'urn' => $this->getUrn(),
-            'to_guid' => $this->getToGuid(),
-            'from_guid' => $this->getFromGuid(),
+            'to_guid' => (string) $this->getToGuid(),
+            'from_guid' => (string) $this->getFromGuid(),
             'from' => $from ? $from->export() : null,
             'entity_urn' => $this->getEntityUrn(),
             'entity' => $entity ? $entity->export() : null,
