@@ -736,7 +736,7 @@ class ElggUser extends ElggEntity implements Friendable
      *
      * @return int
      */
-    public function getOwnerGUID()
+    public function getOwnerGuid(): string
     {
         if ($this->owner_guid == 0) {
             return $this->guid;

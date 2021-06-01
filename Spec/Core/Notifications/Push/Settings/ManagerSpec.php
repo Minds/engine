@@ -45,7 +45,7 @@ class ManagerSpec extends ObjectBehavior
         $settings = $this->getList($opts);
         $settings[0]->getEnabled()->shouldBe(false);
 
-        $settings->shouldHaveCount(count(NotificationTypes::TYPES_GROUPS) + 1);
+        $settings->shouldHaveCount(count(NotificationTypes::TYPES_GROUPINGS) + 1);
     }
 
     public function it_should_confirm_if_we_can_send_push(PushNotification $pushNotification, Notification $notification)
@@ -54,7 +54,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($notification);
 
         $pushNotification->getGroup()
-            ->willReturn(NotificationTypes::GROUP_TYPE_VOTES);
+            ->willReturn(NotificationTypes::GROUPING_TYPE_VOTES);
 
         $notification->getToGuid()
             ->willReturn('123');
@@ -62,7 +62,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getList(Argument::that(function ($opts) {
             return $opts->getUserGuid() === '123';
         }))
-            ->willReturn([
+        ->willReturn([
                 (new PushSetting)
                     ->setNotificationGroup('all')
                     ->setEnabled(false)

@@ -299,22 +299,6 @@ class RepositorySpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_return_false_if_no_guid_during_delete(
-        Comment $comment
-    ) {
-        $comment->getGuid()
-            ->shouldBeCalled()
-            ->willReturn(null);
-
-        $comment->getEntityGuid()
-            ->shouldBeCalled()
-            ->willReturn(5000);
-
-        $this
-            ->delete($comment)
-            ->shouldReturn(false);
-    }
-
     public function it_should_return_false_if_no_entity_guid_during_delete(
         Comment $comment
     ) {

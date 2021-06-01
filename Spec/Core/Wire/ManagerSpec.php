@@ -51,6 +51,9 @@ class ManagerSpec extends ObjectBehavior
     /** @var Core\Payments\Stripe\Intents\Manager */
     protected $stripeIntentsManager;
 
+    /** @var Core\Wire\Delegates\EventsDelegate */
+    protected $eventsDelegate;
+
     public function let(
         Repository $repo,
         BlockchainManager $txManager,
@@ -64,7 +67,8 @@ class ManagerSpec extends ObjectBehavior
         Core\Wire\Delegates\NotificationDelegate $notificationDelegate,
         Core\Wire\Delegates\CacheDelegate $cacheDelegate,
         Core\Blockchain\Wallets\OffChain\Transactions $offchainTxs,
-        Core\Payments\Stripe\Intents\Manager $stripeIntentsManager
+        Core\Payments\Stripe\Intents\Manager $stripeIntentsManager,
+        Core\Wire\Delegates\EventsDelegate $eventsDelegate
     ) {
         $this->beConstructedWith(
             $repo,
@@ -79,7 +83,9 @@ class ManagerSpec extends ObjectBehavior
             $notificationDelegate,
             $cacheDelegate,
             $offchainTxs,
-            $stripeIntentsManager
+            $stripeIntentsManager,
+            null,
+            $eventsDelegate
         );
 
         $this->cacheDelegate = $cacheDelegate;
@@ -94,6 +100,7 @@ class ManagerSpec extends ObjectBehavior
         $this->plusDelegate = $plusDelegate;
         $this->offchainTxs = $offchainTxs;
         $this->stripeIntentsManager = $stripeIntentsManager;
+        $this->eventsDelegate = $eventsDelegate;
     }
 
     public function it_is_initializable()

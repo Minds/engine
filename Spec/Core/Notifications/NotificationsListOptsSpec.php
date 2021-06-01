@@ -14,10 +14,10 @@ class NotificationsListOptsSpec extends ObjectBehavior
         $this->shouldHaveType(NotificationsListOpts::class);
     }
 
-    public function it_should_validate_group_type()
+    public function it_should_validate_grouping_type()
     {
-        $this->setGroupType(NotificationTypes::GROUP_TYPE_COMMENTS);
+        $this->setGroupingType(NotificationTypes::GROUPING_TYPE_COMMENTS);
 
-        $this->shouldThrow(\Exception::class)->duringSetGroupType('invalid');
+        $this->shouldThrow(\Exception::class)->duringSetGroupingType('invalid');
     }
 }

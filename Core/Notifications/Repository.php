@@ -61,11 +61,11 @@ class Repository
             $values[] = new Timeuuid($opts->getUuid());
         }
 
-        if ($opts->getGroupType()) {
+        if ($opts->getGroupingType()) {
             $statement = "SELECT * FROM notifications_mergeable_by_type_group
                 WHERE to_guid = ?
                 AND type_group = ?";
-            $values[] = $opts->getGroupType();
+            $values[] = $opts->getGroupingType();
         }
 
         if ($opts->getLteUuid()) {
@@ -158,7 +158,7 @@ class Repository
             new Bigint($notification->getToGuid()),
             new Timeuuid($notification->getUuid()),
             (string) $notification->getType(),
-            $notification->getGroupType(),
+            $notification->getGroupingType(),
             new Bigint($notification->getFromGuid()),
             (string) $notification->getEntityUrn(),
             new Timestamp($notification->getCreatedTimestamp() ?: time(), 0),

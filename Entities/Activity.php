@@ -840,7 +840,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
      * Return a preferred urn
      * @return string
      */
-    public function getUrn()
+    public function getUrn(): string
     {
         return "urn:activity:{$this->getGuid()}";
     }

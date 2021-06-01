@@ -38,7 +38,7 @@ class ElasticRepositorySpec extends ObjectBehavior
             return $opts['must_not'][0]['match']['entity_owner_guid'] === 123 //Not self
                 && $opts['must_not'][1]['exists']['field'] === '@initial_jury_decided_timestamp' // Not initial jury
                 && $opts['must_not'][2]['exists']['field'] === '@appeal_jury_decided_timestamp' // Not appeal jury
-                && $opts['must_not'][3]['nested']['query']['bool']['must'][0]['match']['reports.reporter_guid'] === 123 // Not reported
+                && $opts['must_not'][3]['nested']['query']['bool']['must'][0]['match']['reports.reporter_guid'] === '123' // Not reported
                 && $opts['must_not'][4]['nested']['query']['bool']['must'][0]['match']['initial_jury.juror_hash'] === 'phoneHash' // Not initial_jury
                 && $opts['must_not'][5]['nested']['query']['bool']['must'][0]['match']['appeal_jury.juror_hash'] === 'phoneHash'; // Not appeal_jury
         }))
@@ -66,7 +66,7 @@ class ElasticRepositorySpec extends ObjectBehavior
                 && $opts['must'][0]['exists']['field'] === '@initial_jury_decided_timestamp' // must be initial jury
                 && $opts['must'][1]['exists']['field'] === '@appeal_timestamp' // must have appealed
                 && $opts['must_not'][1]['exists']['field'] === '@appeal_jury_decided_timestamp' // Not appeal jury
-                && $opts['must_not'][2]['nested']['query']['bool']['must'][0]['match']['reports.reporter_guid'] === 123 // Not reported
+                && $opts['must_not'][2]['nested']['query']['bool']['must'][0]['match']['reports.reporter_guid'] === '123' // Not reported
                 && $opts['must_not'][3]['nested']['query']['bool']['must'][0]['match']['initial_jury.juror_hash'] === 'phoneHash' // Not initial_jury
                 && $opts['must_not'][4]['nested']['query']['bool']['must'][0]['match']['appeal_jury.juror_hash'] === 'phoneHash'; // Not appeal_jury
         }))

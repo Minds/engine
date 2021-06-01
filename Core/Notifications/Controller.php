@@ -125,13 +125,13 @@ class Controller
             ->setOffset($offset);
 
         if ($filter) {
-            $opts->setGroupType($filter);
+            $opts->setGroupingType($filter);
         }
-   
+
         $rawNotifications = iterator_to_array($this->manager->getList($opts));
         $notifications = array_column($rawNotifications, 0);
         $loadNext = base64_encode(end(array_column($rawNotifications, 1)));
-        
+
         if (!$notifications) {
             return new JsonResponse([
                 'status' => 'success'

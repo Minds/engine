@@ -167,7 +167,7 @@ class Manager
      */
     public function markAsRead(Notification $notification, User $user): bool
     {
-        if ($notification->getToGuid() !== $user->getGuid()) {
+        if ((string) $notification->getToGuid() !== (string) $user->getGuid()) {
             throw new \Exception('Can not edit a notification you dont own');
         }
 

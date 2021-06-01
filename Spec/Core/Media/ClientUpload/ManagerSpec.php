@@ -51,7 +51,7 @@ class ManagerSpec extends ObjectBehavior
         $lease->getMediaType()
             ->shouldBe('video');
         $lease->getGuid()
-            ->shouldBe(123);
+            ->shouldBe('123');
         $lease->getPresignedUrl()
             ->shouldBe('s3-url-here');
     }

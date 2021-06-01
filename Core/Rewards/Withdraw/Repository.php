@@ -6,6 +6,7 @@ namespace Minds\Core\Rewards\Withdraw;
 use Cassandra\Varint;
 use Cassandra\Timestamp;
 use Exception;
+use Minds\Common\Urn;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
@@ -122,6 +123,25 @@ class Repository
             error_log($e->getMessage());
             return [];
         }
+    }
+
+    /**
+     * Return via a urn
+     * @param string $urn
+     * @return Request
+     */
+    public function get(string $urn): ?Request
+    {
+        $urn = new Urn($urn);
+        list($userGuid, $timestamp, $tx) = explode('-', $urn->getNss());
+
+        $list = $this->getList([
+            'user_guid' => $userGuid,
+            'timestamp' => $timestamp,
+            'tx' => $tx
+        ]);
+
+        return $list['withdrawals'][0];
     }
 
     /**

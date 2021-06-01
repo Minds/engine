@@ -1506,7 +1506,7 @@ class User extends \ElggUser
      *
      * @return string
      */
-    public function getUrn()
+    public function getUrn(): string
     {
         return "urn:user:{$this->getGuid()}";
     }

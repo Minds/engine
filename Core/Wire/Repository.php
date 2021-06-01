@@ -11,6 +11,7 @@ use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Cassandra;
 use Cassandra\Varint;
 use Cassandra\Timestamp;
+use Minds\Common\Urn;
 
 class Repository
 {
@@ -74,11 +75,12 @@ class Repository
             'sender_guid' => null,
             'receiver_guid' => null,
             'allowFiltering' => false,
+            'method' => 'tokens',
         ], $options);
 
         $table = 'wire';
         $where = ['method = ?'];
-        $values = ['tokens'];
+        $values = [$options['method']];
         $orderBy = ' ORDER BY method DESC, timestamp DESC';
 
         if ($options['receiver_guid']) {
@@ -146,7 +148,8 @@ class Repository
             $entity = $this->entitiesBuilder->single((string) $row['entity_guid']);
 
             $wire = new Wire();
-            $wire->setSender($this->entitiesBuilder->single((string) $row['sender_guid']))
+            $wire->setGuid($row['wire_guid']->value())
+                ->setSender($this->entitiesBuilder->single((string) $row['sender_guid']))
                 ->setReceiver($this->entitiesBuilder->single((string) $row['receiver_guid']))
                 ->setTimestamp($row['timestamp'])
                 ->setEntity($entity)
@@ -162,8 +165,31 @@ class Repository
         ];
     }
 
-    public function get($guid)
+    /**
+     * @param string $urn
+     * @return Wire
+     */
+    public function get(string $urn): ?Wire
     {
+        $urn = new Urn($urn);
+        list($receiverGuid, $method, $timestamp, $entityGuid, $guid) = explode('-', $urn->getNss());
+
+        $list = $this->getList([
+            'receiver_guid' => $receiverGuid,
+            'method' => $method,
+            'timestamp' => [
+                'gte' => $timestamp,
+                'lte' => $timestamp
+            ],
+        ]);
+
+        foreach ($list['wires'] as $wire) {
+            if ((string) $wire->getGuid() === (string) $guid) {
+                return $wire;
+            }
+        }
+
+        return null;
     }
 
     public function update($key, $guids)
