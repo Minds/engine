@@ -18,7 +18,11 @@ class Events
     {
         // Urn resolve
         Dispatcher::register('urn:resolve', 'all', function (Event $event) {
-            $urn = new Urn($event->getParameters()['urn']);
+            $urn = $event->getParameters()['urn'];
+
+            if ($urn->getNid() !== 'peer-boost') {
+                return;
+            }
             
             /** @var Repository */
             $repository = Di::_()->get('Boost\Repository');
