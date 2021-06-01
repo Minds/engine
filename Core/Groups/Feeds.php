@@ -229,6 +229,7 @@ class Feeds
         $success = $adminQueue->delete($this->group, $activity);
 
         if ($success && $options['notification']) {
+            // Reject notifs doesn't work at the moment as the post gets deleted on reject
             $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_REJECT, Core\Session::getLoggedinUser(), $activity);
 
             $this->sendNotification('reject', $activity);
@@ -283,7 +284,7 @@ class Feeds
                 'group_urn' => $this->group->getUrn(),
             ]);
 
-        $this->actionEventTopic->send($actionEvent);
+        $this->actionEventsTopic->send($actionEvent);
     }
 
 

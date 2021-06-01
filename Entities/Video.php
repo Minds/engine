@@ -359,7 +359,7 @@ class Video extends MindsObject
         return $this->boost_rejection_reason;
     }
 
-    public function getUrn()
+    public function getUrn(): string
     {
         return "urn:video:{$this->getGuid()}";
     }

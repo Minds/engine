@@ -9,6 +9,7 @@ use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Entities\User;
 use Minds\Entities\Entity;
+use Minds\Helpers\MagicAttributes;
 use Pulsar\MessageBuilder;
 use Pulsar\ProducerConfiguration;
 use Pulsar\ConsumerConfiguration;
@@ -52,8 +53,8 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                 'entity_urn' => (string) $event->getEntity()->getUrn(),
                 'entity_guid' => (string) $event->getEntity()->getGuid(),
                 'entity_owner_guid' => (string) $event->getEntity()->getOwnerGuid(),
-                'entity_type' => (string) $event->getEntity()->getType(),
-                'entity_subtype' => (string) $event->getEntity()->getSubtype(),
+                'entity_type' => MagicAttributes::getterExists($event->getEntity(), 'getType') ? (string) $event->getEntity()->getType() : '',
+                'entity_subtype' => MagicAttributes::getterExists($event->getEntity(), 'getSubtype') ? (string) $event->getEntity()->getSubtype() : '',
             ]))
             ->build();
 
@@ -108,6 +109,8 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
 
                 // If no entity, skip as its unavailable
                 if (!$entity) {
+                    error_log('invalid entity ');
+                    var_dump($data);
                     $consumer->acknowledge($message);
                     continue;
                 }

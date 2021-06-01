@@ -34,7 +34,7 @@ class UserRepositorySpec extends ObjectBehavior
         );
 
         $userEntity->getIdentifier()
-            ->shouldReturn(123);
+            ->shouldReturn('123');
     }
 
     public function it_should_not_return_a_user_with_bad_credentials(
@@ -77,6 +77,6 @@ class UserRepositorySpec extends ObjectBehavior
         );
 
         $userEntity->getIdentifier()
-            ->shouldReturn(123);
+            ->shouldReturn('123');
     }
 }

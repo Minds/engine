@@ -11,6 +11,7 @@ use Minds\Common\Urn;
 use Minds\Core\Entities\Delegates\BoostGuidResolverDelegate;
 use Minds\Core\Entities\Delegates\CommentGuidResolverDelegate;
 use Minds\Core\Entities\Delegates\EntityGuidResolverDelegate;
+use Minds\Core\Entities\Delegates\EventsResolverDelegate;
 use Minds\Core\Entities\Delegates\ResolverDelegate;
 use Minds\Core\Entities\Delegates\FilterEntitiesDelegate;
 use Minds\Core\Security\ACL;
@@ -41,6 +42,7 @@ class Resolver
     public function __construct($resolverDelegates = null, $acl = null)
     {
         $this->resolverDelegates = $resolverDelegates ?: [
+            EventsResolverDelegate::class => new EventsResolverDelegate(),
             EntityGuidResolverDelegate::class => new EntityGuidResolverDelegate(),
             BoostGuidResolverDelegate::class => new BoostGuidResolverDelegate(),
             CommentGuidResolverDelegate::class => new CommentGuidResolverDelegate(),

@@ -10,6 +10,7 @@ use Minds\Entities\User;
 use Minds\Entities\Entity;
 use Minds\Entities\MindsObject;
 use Minds\Core\EntitiesBuilder;
+use Minds\Entities\Activity;
 
 class ACLSpec extends ObjectBehavior
 {
@@ -127,15 +128,17 @@ class ACLSpec extends ObjectBehavior
         $this->read($entity)->shouldReturn(false);
     }
 
-    public function it_should_trigger_acl_read_event(MindsObject $entity)
+    public function it_should_trigger_acl_read_event()
     {
+        $activity = new Activity();
+
         $this->mock_session(true);
 
         Core\Events\Dispatcher::register('acl:read', 'all', function ($event) {
             $event->setResponse(true);
         });
 
-        $this->read($entity)->shouldReturn(true);
+        $this->read($activity)->shouldReturn(true);
         $this->mock_session(false);
     }
 
@@ -166,15 +169,17 @@ class ACLSpec extends ObjectBehavior
         $this->mock_session(false);
     }
 
-    public function it_should_trigger_acl_write_event(MindsObject $entity)
+    public function it_should_trigger_acl_write_event()
     {
+        $activity = new Activity();
+
         $this->mock_session(true);
 
         Core\Events\Dispatcher::register('acl:write', 'all', function ($event) {
             $event->setResponse(true);
         });
 
-        $this->read($entity)->shouldReturn(true);
+        $this->read($activity)->shouldReturn(true);
         $this->mock_session(false);
     }
 

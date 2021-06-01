@@ -53,18 +53,6 @@ class WireNotification implements Interfaces\QueueRunner
 
                     $senderUser = $wire->getSender();
 
-                    $actionEvent = new ActionEvent();
-                    $actionEvent
-                        ->setAction(ActionEvent::ACTION_WIRE_SENT)
-                        ->setActionData([
-                            'amount' => $this->getAmountString($wire),
-                        ])
-                        ->setEntity($receiverUser)
-                        ->setUser($senderUser);
-
-                    $actionEventTopic = new ActionEventsTopic();
-                    $actionEventTopic->send($actionEvent);
-
                     //send notification to receiver
                     Dispatcher::trigger('notification', 'wire', [
                         'to' => [$receiverUser->guid],

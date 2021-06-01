@@ -62,7 +62,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getList(Argument::that(function ($opts) {
             return $opts->getUserGuid() === '123';
         }))
-            ->willReturn([
+        ->willReturn([
                 (new PushSetting)
                     ->setNotificationGroup('all')
                     ->setEnabled(false)

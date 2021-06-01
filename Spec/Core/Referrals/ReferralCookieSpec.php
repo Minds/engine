@@ -52,7 +52,7 @@ class ReferralCookieSpec extends ObjectBehavior
         $this->create();
 
         expect($_COOKIE['referrer'])
-            ->toBe(123);
+            ->toBe('123');
     }
 
     public function it_should_set_cookie_from_activity()
@@ -67,7 +67,7 @@ class ReferralCookieSpec extends ObjectBehavior
         $this->create();
 
         expect($_COOKIE['referrer'])
-            ->toBe(456);
+            ->toBe('456');
     }
     
     public function it_should_not_allow_entity_to_override_param()

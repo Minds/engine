@@ -225,13 +225,8 @@ class peer implements Interfaces\Api
         $actionEvent = new ActionEvent();
         $actionEvent
             ->setAction(ActionEvent::ACTION_BOOST_PEER_REQUEST)
-            ->setEntity($boost->getEntity())
-            ->setUser(Core\Session::getLoggedinUser())
-            ->setActionData([
-                'bid' => $boost->getBid(),
-                'type' => $boost->getType(),
-                'toGuid' => $boost->getDestination()->guid
-            ]);
+            ->setEntity($boost)
+            ->setUser(Core\Session::getLoggedinUser());
 
         $actionEventTopic = new ActionEventsTopic();
         $actionEventTopic->send($actionEvent);
@@ -327,12 +322,8 @@ class peer implements Interfaces\Api
         $actionEvent = new ActionEvent();
         $actionEvent
             ->setAction(ActionEvent::ACTION_BOOST_PEER_ACCEPTED)
-            ->setEntity($boost->getEntity())
-            ->setUser(Core\Session::getLoggedinUser())
-            ->setActionData([
-                'bid' => $boost->getBid(),
-                'type' => $boost->getType(),
-            ]);
+            ->setEntity($boost)
+            ->setUser(Core\Session::getLoggedinUser());
 
         $actionEventTopic = new ActionEventsTopic();
         $actionEventTopic->send($actionEvent);
@@ -381,12 +372,8 @@ class peer implements Interfaces\Api
                 $actionEvent = new ActionEvent();
                 $actionEvent
                     ->setAction(ActionEvent::ACTION_BOOST_PEER_REJECTED)
-                    ->setEntity($boost->getEntity())
-                    ->setUser(Core\Session::getLoggedinUser())
-                    ->setActionData([
-                        'bid' => $boost->getBid(),
-                        'type' => $boost->getType(),
-                    ]);
+                    ->setEntity($boost)
+                    ->setUser(Core\Session::getLoggedinUser());
 
                 $actionEventTopic = new ActionEventsTopic();
                 $actionEventTopic->send($actionEvent);

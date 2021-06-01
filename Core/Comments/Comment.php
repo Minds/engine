@@ -11,6 +11,7 @@ use Minds\Helpers\Flags;
 use Minds\Helpers\Unknown;
 use Minds\Helpers\Export;
 use Minds\Core\Di\Di;
+use Minds\Entities\EntityInterface;
 
 /**
  * Comment Entity
@@ -47,7 +48,7 @@ use Minds\Core\Di\Di;
  * @method Comment setEphemeral(bool $value)
  * @method bool isEphemeral()
  */
-class Comment extends RepositoryEntity
+class Comment extends RepositoryEntity implements EntityInterface
 {
     /** @var string */
     protected $type = 'comment';
@@ -144,13 +145,13 @@ class Comment extends RepositoryEntity
     /**
      * @return int
      */
-    public function getGuid()
+    public function getGuid(): string
     {
         if (!$this->guid) {
             $this->setGuid(Guid::build());
         }
 
-        return $this->guid;
+        return (string) $this->guid;
     }
 
     /**
@@ -314,10 +315,26 @@ class Comment extends RepositoryEntity
     }
 
     /**
+     * @return string
+     */
+    public function getType(): string
+    {
+        return 'comment';
+    }
+
+    /**
+     * @return string
+     */
+    public function getSubtype(): ?string
+    {
+        return null;
+    }
+
+    /**
      * Return the urn for the comment
      * @return string
      */
-    public function getUrn()
+    public function getUrn(): string
     {
         return implode(':', [
             'urn',
@@ -326,6 +343,11 @@ class Comment extends RepositoryEntity
             $this->getPartitionPath(),
             $this->getGuid(),
         ]);
+    }
+
+    public function getOwnerGuid(): string
+    {
+        return (string) $this->ownerGuid();
     }
 
     /**

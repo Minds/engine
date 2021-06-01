@@ -4,6 +4,7 @@
  */
 namespace Minds\Core\Notifications;
 
+use Minds\Common\SystemUser;
 use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\EventInterface;
@@ -11,7 +12,9 @@ use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
+use Minds\Core\Wire\Wire;
 use Minds\Entities\User;
+use Minds\Entities\Boost\Peer;
 use Minds\Core\Config;
 
 class NotificationsEventStreamsSubscription implements SubscriptionInterface
@@ -67,7 +70,17 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
             return false;
         }
 
-        if ($event->getEntity()->getOwnerGuid() == $event->getUser()->getGuid()) {
+        /** @var User */
+        $user = $event->getUser();
+
+        /** @var mixed */
+        $entity = $event->getEntity();
+
+        if ($entity->getOwnerGuid() == $user->getGuid()
+            && !$entity instanceof Wire // Wire owners are the senders
+            && !$entity instanceof Peer // Peer boosters are the senders
+            && $event->getAction() !== ActionEvent::ACTION_GROUP_QUEUE_ADD // Actor is post owner
+        ) {
             $this->logger->info('Skipping as owner is sender');
             return true; // True to acknowledge, but we dont care about interactions with our own posts
         }
@@ -79,13 +92,14 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
 
         $notification = new Notification();
 
+        $notification->setFromGuid((string) $user->getGuid());
+        $notification->setEntityUrn($entity->getUrn());
+
         if ($event->getEntity() instanceof User) {
-            $notification->setToGuid((string) $event->getEntity()->getGuid());
-            $notification->setFromGuid((string) $event->getUser()->getGuid());
+            $notification->setToGuid((string) $entity->getGuid());
         } else {
             // Do this when the notification is related to something published (activity post/comment)
-            $notification->setToGuid((string) $event->getEntity()->getOwnerGuid());
-            $notification->setFromGuid((string) $event->getUser()->getGuid());
+            $notification->setToGuid((string) $entity->getOwnerGuid());
         }
 
         switch ($event->getAction()) {
@@ -102,19 +116,15 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 ]);
                 break;
             case ActionEvent::ACTION_TAG:
-                if ($event->getEntity()->getGuid() == $event->getUser()->getGuid()) {
-                    $this->logger->info('Skipping as owner is sender');
-                    return true; // True to acknowledge, but we dont care about interactions with our own posts
-                }
                 // Replace toGuid with the entity guid as the entity is the tagged person
-+               $notification->setToGuid((string) $event->getEntity()->getGuid());
+                $notification->setToGuid((string) $event->getEntity()->getGuid());
                 // Replace entity_urn with the post guid,
                 $notification->setEntityUrn($event->getActionData()['tag_in_entity_urn']);
                 $notification->setType(NotificationTypes::TYPE_TAG);
                 break;
             case ActionEvent::ACTION_SUBSCRIBE:
                 // Replace toGuid with the entity guid as the entity is the subscribed person
-+               $notification->setToGuid((string) $event->getEntity()->getGuid());
+                $notification->setToGuid((string) $entity->getGuid());
                 $notification->setType(NotificationTypes::TYPE_SUBSCRIBE);
                 break;
             case ActionEvent::ACTION_REFERRAL_PING:
@@ -145,72 +155,100 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 break;
             case ActionEvent::ACTION_BOOST_REJECTED:
                 $notification->setType(NotificationTypes::TYPE_BOOST_REJECTED);
+                $notification->setFromGuid(SystemUser::GUID);
                 $notification->setData([
-                    'reason' => $event->getActionData()['reason'],
+                    'reason' => $event->getActionData()['boost_reject_reason'],
                 ]);
                 break;
             case ActionEvent::ACTION_BOOST_PEER_REQUEST:
-            case ActionEvent::ACTION_BOOST_PEER_ACCEPTED:
-            case ActionEvent::ACTION_BOOST_PEER_REJECTED:
-                $notification->setData([
-                    'bid' => $event->getActionData()['bid'],
-                    'type' => $event->getActionData()['type'],
-                ]);
-                // no break
-            case ActionEvent::ACTION_BOOST_PEER_REQUEST:
+                /** @var Peer */
+                $peerBoost = $entity;
+
                 $notification->setType(NotificationTypes::TYPE_BOOST_PEER_REQUEST);
                 // Send notification to the intended recipient, not entity owner
-                $notification->setToGuid($event->getActionData()['toGuid']);
+                $notification->setToGuid($peerBoost->getDestination()->getGuid());
+
+                $notification->setData([
+                    'bid' => $peerBoost->getBid(),
+                    'type' => $peerBoost->getType(),
+                ]);
                 break;
             case ActionEvent::ACTION_BOOST_PEER_ACCEPTED:
+                /** @var Peer */
+                $peerBoost = $entity;
                 $notification->setType(NotificationTypes::TYPE_BOOST_PEER_ACCEPTED);
+                $notification->setData([
+                    'bid' => $peerBoost->getBid(),
+                    'type' => $peerBoost->getType(),
+                ]);
                 break;
             case ActionEvent::ACTION_BOOST_PEER_REJECTED:
+                /** @var Peer */
+                $peerBoost = $entity;
                 $notification->setType(NotificationTypes::TYPE_BOOST_PEER_REJECTED);
+                $notification->setData([
+                    'bid' => $peerBoost->getBid(),
+                    'type' => $peerBoost->getType(),
+                ]);
                 break;
             case ActionEvent::ACTION_TOKEN_WITHDRAW_ACCEPTED:
                 $notification->setType(NotificationTypes::TYPE_TOKEN_WITHDRAW_ACCEPTED);
+                // The entity is the Withdraw\Request
+                $notification->setToGuid($entity->getUserGuid());
+                $notification->setFromGuid(SystemUser::GUID);
                 $notification->setData([
-                    'amount' => $event->getActionData()['amount'],
+                    'amount' => $entity->getAmount(),
                 ]);
                 break;
             case ActionEvent::ACTION_TOKEN_WITHDRAW_REJECTED:
                 $notification->setType(NotificationTypes::TYPE_TOKEN_WITHDRAW_REJECTED);
+                $notification->setToGuid($entity->getUserGuid());
+                $notification->setFromGuid(SystemUser::GUID);
                 $notification->setData([
-                    'amount' => $event->getActionData()['amount'],
+                    'amount' => $entity->getAmount(),
                 ]);
                 break;
             case ActionEvent::ACTION_GROUP_INVITE:
-            case ActionEvent::ACTION_GROUP_QUEUE_ADD:
-            case ActionEvent::ACTION_GROUP_QUEUE_APPROVE:
-            case ActionEvent::ACTION_GROUP_QUEUE_REJECT:
-                $notification->setData([
-                    'group_urn' => $event->getActionData()['group_urn']
-                ]);
-                // no break
-            case ActionEvent::ACTION_GROUP_INVITE:
                 $notification->setType(NotificationTypes::TYPE_GROUP_INVITE);
+                $notification->setEntityUrn($event->getActionData()['group_urn']);
                 break;
             case ActionEvent::ACTION_GROUP_QUEUE_ADD:
                 $notification->setType(NotificationTypes::TYPE_GROUP_QUEUE_ADD);
+                $notification->setFromGuid(SystemUser::GUID);
+                $notification->setData([
+                    'group_urn' => $event->getActionData()['group_urn']
+                ]);
                 break;
             case ActionEvent::ACTION_GROUP_QUEUE_APPROVE:
                 $notification->setType(NotificationTypes::TYPE_GROUP_QUEUE_APPROVE);
+                $notification->setData([
+                    'group_urn' => $event->getActionData()['group_urn']
+                ]);
                 break;
             case ActionEvent::ACTION_GROUP_QUEUE_REJECT:
                 $notification->setType(NotificationTypes::TYPE_GROUP_QUEUE_REJECT);
+                $notification->setData([
+                    'group_urn' => $event->getActionData()['group_urn']
+                ]);
                 break;
             case ActionEvent::ACTION_WIRE_SENT:
-                $isPlusPayout = (string) $event->getUser()->getGuid() === (string) $this->config->get('plus')['handler'];
-                $isProPayout = (string) $event->getUser()->getGuid() === (string) $this->config->get('pro')['handler'];
+                /** @var Wire */
+                $wire = $entity;
+                $isPlusPayout = (string) $wire->getSender()->getGuid() === (string) $this->config->get('plus')['handler'];
+                $isProPayout = (string) $wire->getSender()->getGuid() === (string) $this->config->get('pro')['handler'];
 
                 if ($isPlusPayout || $isProPayout) {
                     $notification->setType(NotificationTypes::TYPE_WIRE_PAYOUT);
                 } else {
                     $notification->setType(NotificationTypes::TYPE_WIRE_RECEIVED);
                 }
+
+                $notification->setToGuid($wire->getReceiver()->getGuid());
+
                 $notification->setData([
-                    'amount' => $event->getActionData()['amount']
+                    'wire_urn' => $wire->getUrn(),
+                    'amount' => $wire->getAmount(),
+                    'method' => $wire->getMethod(),
                 ]);
                 break;
             default:

@@ -13,17 +13,21 @@ use Minds\Core\Rewards\Withdraw\Request;
 use Minds\Core\Util\BigNumber;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
-use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
 use Minds\Core;
+use Minds\Core\Sessions\ActiveSession;
 
 class NotificationsDelegate
 {
     /** @var EventsDispatcher */
     protected $dispatcher;
 
-    /** @var EntitiesBuilder */
-    protected $entitiesBuilder;
+
+    /** @var ActionEventsTopic */
+    protected $actionEventsTopic;
+
+    /** @var ActiveSession */
+    protected $activeSession;
 
     /**
      * NotificationsDelegate constructor.
@@ -32,10 +36,12 @@ class NotificationsDelegate
 
     public function __construct(
         $dispatcher = null,
-        EntitiesBuilder $entitiesBuilder = null
+        ActionEventsTopic $actionEventsTopic = null,
+        ActiveSession $activeSession = null
     ) {
         $this->dispatcher = $dispatcher ?: Di::_()->get('EventsDispatcher');
-        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->actionEventsTopic = $actionEventsTopic ?? Di::_()->get('EventStreams\Topics\ActionEventsTopic');
+        $this->activeSession = $activeSession ?? Di::_()->get('Sessions\ActiveSession');
     }
 
     /**
@@ -69,8 +75,6 @@ class NotificationsDelegate
             'params' => ['message' => $message],
             'message' => $message,
         ]);
-
-        $entity = $this->entitiesBuilder->single($request->getUserGuid());
     }
 
     /**
@@ -102,7 +106,7 @@ class NotificationsDelegate
             $amount
         );
 
-        $this->emitActionEvent(ActionEvent::ACTION_TOKEN_WITHDRAW_ACCEPTED, $request->getUserGuid(), $amount);
+        $this->emitActionEvent(ActionEvent::ACTION_TOKEN_WITHDRAW_ACCEPTED, $request);
 
         $this->dispatcher->trigger('notification', 'all', [
             'to' => [ $request->getUserGuid() ],
@@ -125,7 +129,7 @@ class NotificationsDelegate
             $amount
         );
 
-        $this->emitActionEvent(ActionEvent::ACTION_TOKEN_WITHDRAW_REJECTED, $request->getUserGuid(), $amount);
+        $this->emitActionEvent(ActionEvent::ACTION_TOKEN_WITHDRAW_REJECTED, $request);
 
         $this->dispatcher->trigger('notification', 'all', [
             'to' => [ $request->getUserGuid() ],
@@ -137,29 +141,20 @@ class NotificationsDelegate
     }
 
     /**
-     * @param string $type
-     * @param Entities\Activity $activity
+     * @param string $action
+     * @param Request $request
      */
-    public function emitActionEvent($action, $toGuid, $amount = null)
+    public function emitActionEvent(string $action, Request $request)
     {
-        $entity = $this->entitiesBuilder->single($toGuid);
-        $actor = $this->entitiesBuilder->single(Core\Session::getLoggedInUser());
-
-        if (!$actor instanceof User || !$entity instanceof User) {
-            return;
-        }
+        $actor = $this->activeSession->getUser();
 
         $actionEvent = new ActionEvent();
 
         $actionEvent
             ->setAction($action)
-            ->setEntity($entity)
-            ->setUser($actor)
-            ->setActionData([
-                'amount' => $amount,
-            ]);
+            ->setEntity($request)
+            ->setUser($actor);
 
-        $actionEventTopic = new ActionEventsTopic();
-        $actionEventTopic->send($actionEvent);
+        $this->actionEventsTopic->send($actionEvent);
     }
 }

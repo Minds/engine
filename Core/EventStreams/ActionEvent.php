@@ -42,6 +42,9 @@ class ActionEvent implements EventInterface
     const ACTION_BOOST_REJECTED = 'boost_rejected';
 
     /** @var string */
+    const ACTION_BOOST_ACCEPTED = 'boost_accepted';
+
+    /** @var string */
     const ACTION_BOOST_PEER_REQUEST = 'boost_peer_request';
 
     /** @var string */
@@ -137,17 +140,15 @@ class ActionEvent implements EventInterface
                 $allowedKeys = [ 'tag_in_entity_urn' ];
                 break;
             case self::ACTION_BOOST_REJECTED:
-                $allowedKeys = [ 'reason' ];
+                $allowedKeys = [ 'boost_reject_reason' ];
                 break;
+            case self::ACTION_BOOST_ACCEPTED:
             case self::ACTION_BOOST_PEER_REQUEST:
             case self::ACTION_BOOST_PEER_ACCEPTED:
             case self::ACTION_BOOST_PEER_REJECTED:
-                // toGuid is only used for boost_peer_request
-                $allowedKeys = [ 'bid', 'type', 'toGuid'];
                 break;
             case self::ACTION_TOKEN_WITHDRAW_ACCEPTED:
             case self::ACTION_TOKEN_WITHDRAW_REJECTED:
-                $allowedKeys = [ 'amount' ];
                 break;
             case self::ACTION_GROUP_INVITE:
             case self::ACTION_GROUP_QUEUE_ADD:
@@ -156,7 +157,7 @@ class ActionEvent implements EventInterface
                 $allowedKeys = [ 'group_urn' ];
                 break;
            case self::ACTION_WIRE_SENT:
-                $allowedKeys = [ 'amount' ];
+                $allowedKeys = [ 'wire_amount' ];
                 break;
             case self::ACTION_BLOCK:
             case self::ACTION_UNBLOCK:

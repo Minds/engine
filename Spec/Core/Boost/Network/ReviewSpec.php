@@ -10,7 +10,9 @@ use Minds\Core\Di\Di;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Minds\Core\Boost\Delegates\OnchainBadgeDelegate;
+use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Minds\Core\Sessions\ActiveSession;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 
@@ -19,16 +21,19 @@ class ReviewSpec extends ObjectBehavior
     private $manager;
     private $onchainBadge;
 
-
     /** @var ActionEventsTopic */
     protected $actionEventsTopic;
 
-    public function let(Manager $manager, OnchainBadgeDelegate $onchainBadge, ActionEventsTopic $actionEventsTopic)
+    /** @var ActiveSession */
+    protected $activeSession;
+
+    public function let(Manager $manager, OnchainBadgeDelegate $onchainBadge, ActionEventsTopic $actionEventsTopic, ActiveSession $activeSession)
     {
-        $this->beConstructedWith($manager, null, $onchainBadge, $actionEventsTopic);
+        $this->beConstructedWith($manager, null, $onchainBadge, $actionEventsTopic, $activeSession);
         $this->manager = $manager;
         $this->onchainBadge = $onchainBadge;
         $this->actionEventsTopic = $actionEventsTopic;
+        $this->activeSession = $activeSession;
     }
 
     public function it_is_initializable()
@@ -76,6 +81,13 @@ class ReviewSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->activeSession->getUser()
+            ->willReturn(new User());
+
+        $this->actionEventsTopic->send(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->setBoost($boost);
         $this->accept();
     }
@@ -109,6 +121,13 @@ class ReviewSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->activeSession->getUser()
+            ->willReturn(new User());
+
+        $this->actionEventsTopic->send(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->accept();
     }
 
@@ -137,6 +156,13 @@ class ReviewSpec extends ObjectBehavior
             ->willReturn(true);
             
         $this->manager->update($boost)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->activeSession->getUser()
+            ->willReturn(new User());
+
+        $this->actionEventsTopic->send(Argument::any())
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -181,6 +207,13 @@ class ReviewSpec extends ObjectBehavior
         $entity->title = 'title';
         $boost->getEntity()
             ->willReturn($entity);
+
+        $this->activeSession->getUser()
+            ->willReturn(new User());
+
+        $this->actionEventsTopic->send(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->setBoost($boost);
         $this->reject(3);
@@ -243,5 +276,33 @@ class ReviewSpec extends ObjectBehavior
         $this->setType('newsfeed');
 
         $this->getOutbox('123', 12, '456')->shouldReturn($boosts);
+    }
+
+    public function it_should_submit_action_event_on_reject(Boost $boost, Activity $activity, User $owner)
+    {
+        $boost->getEntity()
+            ->willReturn($activity);
+        $boost->getOwner()
+            ->willReturn($owner);
+        $boost->setRejectedReason(4)
+            ->shouldBeCalled();
+        $boost->setReviewedTimestamp(Argument::any())
+            ->shouldBeCalled();
+        $boost->setRejectedTimestamp(Argument::any())
+            ->shouldBeCalled();
+        $boost->getRejectedReason()
+            ->willReturn(4);
+
+        $this->activeSession->getUser()
+            ->willReturn(new User());
+
+        $this->actionEventsTopic->send(Argument::that(function (ActionEvent $actionEvent) {
+            return $actionEvent->getActionData()['boost_reject_reason'] === 4
+                && $actionEvent->getEntity() instanceof Boost;
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+    
+        $this->setBoost($boost)->reject(4);
     }
 }
