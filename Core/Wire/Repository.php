@@ -75,11 +75,12 @@ class Repository
             'sender_guid' => null,
             'receiver_guid' => null,
             'allowFiltering' => false,
+            'method' => 'tokens',
         ], $options);
 
         $table = 'wire';
         $where = ['method = ?'];
-        $values = ['tokens'];
+        $values = [$options['method']];
         $orderBy = ' ORDER BY method DESC, timestamp DESC';
 
         if ($options['receiver_guid']) {
