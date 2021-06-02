@@ -110,10 +110,20 @@ class boost implements Interfaces\Api
                 break;
             case "newsfeed":
             case "content":
+                $user = Core\Session::getLoggedinUser();
+
+                if ($user->isAdmin()) {
+                    $remote = isset($_GET['remote']) && $_GET['remote'] ? $_GET['remote'] : '';
+                    
+                    if ($remote) {
+                        $user = new \Minds\Entities\User($remote);
+                    }
+                }
+
                 /** @var Core\Boost\Network\Review $review */
                 $review = Di::_()->get('Boost\Network\Review');
                 $review->setType($pages[0]);
-                $boosts = $review->getOutbox(Core\Session::getLoggedinUser()->guid, $limit, $offset);
+                $boosts = $review->getOutbox($user->guid, $limit, $offset);
                 $response['boosts'] = Factory::exportable($boosts['data']);
                 $response['load-next'] = $boosts['next'];
                 break;
