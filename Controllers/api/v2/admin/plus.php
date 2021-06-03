@@ -54,6 +54,10 @@ class plus implements Interfaces\Api, Interfaces\ApiAdminPam
             'cache' => false,
         ]);
 
+        // Manually flush the cache.
+        $channelsManager = Di::_()->get('Channels\Manager');
+        $channelsManager->flushCache($target);
+
         if (!$target || !$target->guid || $target->getType() !== 'user') {
             return Factory::response([
                 'status' => 'error',
