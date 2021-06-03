@@ -58,6 +58,6 @@ class Controller
            'status' => 'success',
            'votes' => Exportable::_($votes),
            'load-next' => $nextPage,
-        ]);
+        ], 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
     }
 }
