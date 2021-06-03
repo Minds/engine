@@ -105,6 +105,7 @@ class Vote implements ExportableInterface
         return [
             'entity_urn' => $this->getEntity()->getUrn(),
             'actor_guid' => $this->getActor()->getGuid(),
+            'actor' => $this->getActor()->export(),
             'direction' => $this->getDirection(),
         ];
     }
