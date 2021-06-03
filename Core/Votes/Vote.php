@@ -5,13 +5,19 @@
  */
 namespace Minds\Core\Votes;
 
+use Minds\Entities\ExportableInterface;
 use Minds\Entities\Factory;
 use Minds\Entities\User;
 
-class Vote
+class Vote implements ExportableInterface
 {
+    /** @var mixed */
     protected $entity;
+
+    /** @var User */
     protected $actor;
+
+    /** @var string */
     protected $direction;
 
     /**
@@ -88,5 +94,18 @@ class Vote
     public function getDirection()
     {
         return $this->direction;
+    }
+
+    /**
+     * @param array $extras
+     * @return array
+     */
+    public function export(array $extras = []): array
+    {
+        return [
+            'entity_urn' => $this->getEntity()->getUrn(),
+            'actor_guid' => $this->getActor()->getGuid(),
+            'direction' => $this->getDirection(),
+        ];
     }
 }
