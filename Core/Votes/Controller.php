@@ -33,7 +33,7 @@ class Controller
     public function getList(ServerRequest $request): JsonResponse
     {
         $queryParams = $request->getQueryParams();
-        $limit = $queryParams['limit'] ?? 12;
+        $limit = (int) ($queryParams['limit'] ?? 12);
         $direction = $queryParams['direction'] ?? 'up';
         $entityGuid = $request->getAttribute('parameters')['entityGuid'] ?? null;
         $nextPage = $queryParams['next-page'] ?? null;
@@ -57,7 +57,7 @@ class Controller
         return new JsonResponse([
            'status' => 'success',
            'votes' => Exportable::_($votes),
-           'next-page' => $nextPage,
+           'load-next' => $nextPage,
         ]);
     }
 }
