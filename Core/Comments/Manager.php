@@ -21,6 +21,12 @@ use Minds\Common\Repository\Response;
 
 class Manager
 {
+    // timespan to check rate limit.
+    const RATE_LIMIT_TIMESPAN = 5;
+
+    // max amount of occurrence in timespan.
+    const RATE_LIMIT_MAX = 1;
+
     /** @var Repository */
     protected $repository;
 
@@ -48,6 +54,9 @@ class Manager
     /** @var Security\Spam */
     protected $spam;
 
+    /** @var KeyValueLimiter */
+    protected $kvLimiter;
+
     /**
      * Manager constructor.
      * @param Repository|null $repository
@@ -61,7 +70,8 @@ class Manager
         $createEventDispatcher = null,
         $countCache = null,
         $entitiesBuilder = null,
-        $spam = null
+        $spam = null,
+        $kvLimiter = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->legacyRepository = $legacyRepository ?: new Legacy\Repository();
@@ -72,6 +82,7 @@ class Manager
         $this->countCache = $countCache ?: new Delegates\CountCache();
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->spam = $spam ?: Di::_()->get('Security\Spam');
+        $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
     }
 
     public function get($entity_guid, $parent_path, $guid)
@@ -168,6 +179,14 @@ class Manager
         //if (!$this->acl->interact($entity, $owner, "comment")) {
         //    throw new \Exception();
         //}
+
+        // Can throw RateLimitException.
+        $this->kvLimiter
+            ->setKey('comment-limit')
+            ->setValue($owner->getGuid())
+            ->setSeconds(self::RATE_LIMIT_TIMESPAN)
+            ->setMax(self::RATE_LIMIT_MAX)
+            ->checkAndIncrement();
 
         $this->spam->check($comment);
 
