@@ -138,12 +138,12 @@ class Controller
             ]);
         }
 
-        $exportedList = array_filter(Exportable::_($notifications)->export(), function ($notification) {
+        $exportedList = array_values(array_filter(Exportable::_($notifications)->export(), function ($notification) {
             if (!isset($notification['entity'])) {
                 return false; // TODO: Delete this notification as the entity is invalid
             }
             return true;
-        });
+        }));
 
         return new JsonResponse([
             'status' => 'success',
