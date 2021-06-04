@@ -190,6 +190,20 @@ class NotificationTypes
 
     /**
      * *******************************************
+     * Reports
+     */
+
+    /** @var string */
+    const TYPE_REPORT_ACTIONED = 'report_actioned';
+
+    /** @var string[] */
+    const GROUPING_REPORTS = [ self::TYPE_REPORT_ACTIONED];
+
+    /** @var string */
+    const GROUPING_TYPE_REPORTS = 'reports';
+
+    /**
+     * *******************************************
      * Wires
      */
 
@@ -253,6 +267,8 @@ class NotificationTypes
         //
         self::TYPE_WIRE_PAYOUT,
         self::TYPE_WIRE_RECEIVED,
+        //
+        self::TYPE_REPORT_ACTIONED,
     ];
 
     /** @var array */
@@ -267,5 +283,6 @@ class NotificationTypes
         self::GROUPING_TYPE_CHATS => self::GROUPING_CHATS,
         self::GROUPING_TYPE_GROUPS => self::GROUPING_GROUPS,
         self::GROUPING_TYPE_WIRES => self::GROUPING_WIRES,
+        self::GROUPING_TYPE_REPORTS => self::GROUPING_REPORTS,
     ];
 }
