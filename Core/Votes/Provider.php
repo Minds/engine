@@ -8,9 +8,9 @@
 
 namespace Minds\Core\Votes;
 
-use Minds\Core\Di\Provider;
+use Minds\Core\Di;
 
-class VotesProvider extends Provider
+class Provider extends Di\Provider
 {
     public function register()
     {
@@ -24,6 +24,10 @@ class VotesProvider extends Provider
 
         $this->di->bind('Votes\Indexes', function () {
             return new Indexes();
+        }, [ 'useFactory' => true ]);
+
+        $this->di->bind('Votes\Controller', function () {
+            return new Controller();
         }, [ 'useFactory' => true ]);
     }
 }

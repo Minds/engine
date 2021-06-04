@@ -58,6 +58,7 @@ class Minds extends base
         Sessions\Module::class,
         Register\Module::class,
         Notifications\Module::class,
+        Votes\Module::class,
     ];
 
     /**
@@ -124,7 +125,6 @@ class Minds extends base
         (new Notification\NotificationProvider())->register();
         (new Groups\GroupsProvider())->register();
         (new Search\SearchProvider())->register();
-        (new Votes\VotesProvider())->register();
         (new Comments\Provider())->register();
         (new SMS\SMSProvider())->register();
         (new Blockchain\BlockchainProvider())->register();

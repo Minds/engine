@@ -1,37 +1,31 @@
 <?php
-
-/**
- * Routes
- * @author edgebal
- */
-
-namespace Minds\Core\Feeds;
+namespace Minds\Core\Votes;
 
 use Minds\Core\Di\Ref;
 use Minds\Core\Router\Middleware\LoggedInMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 
+/**
+ * Votes Routes
+ * @package Minds\Core\Votes
+ */
 class Routes extends ModuleRoutes
 {
     /**
-     * Registers all module routes
+     * @inheritDoc
      */
     public function register(): void
     {
         $this->route
-            ->withPrefix('api/v3/newsfeed')
+            ->withPrefix('api/v3/votes')
             ->withMiddleware([
                 LoggedInMiddleware::class,
             ])
             ->do(function (Route $route) {
                 $route->get(
-                    '',
-                    Ref::_('Feeds\Controller', 'getFeed')
-                );
-                $route->delete(
-                    ':urn',
-                    Ref::_('Feeds\Activity\Controller', 'delete')
+                    'list/:entityGuid',
+                    Ref::_('Votes\Controller', 'getList')
                 );
             });
     }
