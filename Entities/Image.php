@@ -162,6 +162,10 @@ class Image extends File
 
             $image = new \Imagick($master);
 
+            if ($image->getImageColorspace() == \Imagick::COLORSPACE_CMYK) {
+                $image->transformImageColorspace(\Imagick::COLORSPACE_SRGB);
+            }
+
             $autorotate->setImage($image);
             $image = $autorotate->autorotate();
 
