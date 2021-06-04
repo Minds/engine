@@ -237,6 +237,15 @@ class Manager
 
     /**
      * @param array $opts
+     * @return int
+     */
+    public function getCount(array $opts = [])
+    {
+        return $this->repository->getCount($opts);
+    }
+
+    /**
+     * @param array $opts
      * @return array
      * @throws \Exception
      */

@@ -22,6 +22,10 @@ class FeedsProvider extends Provider
 
         //
 
+        $this->di->bind('Feeds\Controller', function ($di) {
+            return new Controller();
+        });
+
         $this->di->bind('Feeds\Activity\Controller', function ($di) {
             return new Activity\Controller();
         });
