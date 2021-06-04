@@ -204,7 +204,7 @@ class Indexes
             $vote->setActor($actor);
             $vote->setDirection($opts->getDirection());
             $vote->setEntity($entity);
-            yield new IterableEntity($vote, $pagingToken);
+            yield new IterableEntity($vote, base64_encode($pagingToken));
         }
     }
 }
