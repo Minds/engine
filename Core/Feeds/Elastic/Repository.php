@@ -76,7 +76,7 @@ class Repository
 
         $response = $this->client->request($prepared);
 
-        if ($opts['pinned_guids'] && !$opts['from_timestamp']) { // Hack the response so we can have pinned posts
+        if (($opts['pinned_guids'] ?? null) && !$opts['from_timestamp']) { // Hack the response so we can have pinned posts
             foreach ($opts['pinned_guids'] as $pinned_guid) {
                 array_unshift($response['hits']['hits'], [
                     '_type' => 'activity',
