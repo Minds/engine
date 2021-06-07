@@ -434,7 +434,7 @@ CREATE TABLE minds.jwt_sessions (
     id text,
     expires timestamp,
     last_active timestamp,
-    user_agent text
+    user_agent text,
     ip text,
     PRIMARY KEY (user_guid, id)
 ) WITH CLUSTERING ORDER BY (id ASC)
