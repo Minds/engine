@@ -9,6 +9,7 @@ use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Reports\Report;
 use Minds\Core\Reports\Verdict\Delegates\NotificationDelegate;
 use Minds\Core\Reports\Verdict\Verdict;
+use Minds\Core\Notifications;
 use Minds\Entities\Entity;
 use Minds\Entities\Activity;
 use PhpSpec\ObjectBehavior;
@@ -28,13 +29,17 @@ class NotificationDelegateSpec extends ObjectBehavior
     /** @var Resolver */
     private $entitiesResolver;
 
-    public function let(EventsDispatcher $dispatcher, EntitiesBuilder $entitiesBuilder, Urn $urn, Resolver $entitiesResolver)
+    /** @var Notifications\Manager */
+    protected $notificationsManager;
+
+    public function let(EventsDispatcher $dispatcher, EntitiesBuilder $entitiesBuilder, Urn $urn, Resolver $entitiesResolver, Notifications\Manager $notificationsManager)
     {
-        $this->beConstructedWith($dispatcher, $entitiesBuilder, $urn, $entitiesResolver);
+        $this->beConstructedWith($dispatcher, $entitiesBuilder, $urn, $entitiesResolver, null, $notificationsManager);
         $this->dispatcher = $dispatcher;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->urn = $urn;
         $this->entitiesResolver = $entitiesResolver;
+        $this->notificationsManager = $notificationsManager;
     }
 
     public function it_is_initializable()
@@ -82,6 +87,11 @@ class NotificationDelegateSpec extends ObjectBehavior
         }))
             ->shouldBeCalled();
 
+        $this->notificationsManager->add(Argument::that(function ($notification) {
+            return true;
+        }))
+            ->willReturn(true);
+
         $this->onAction($verdict);
     }
 
@@ -117,6 +127,12 @@ class NotificationDelegateSpec extends ObjectBehavior
             return $opts['params']['action'] === 'marked as nsfw. You can appeal this decision';
         }))
             ->shouldBeCalled();
+
+
+        $this->notificationsManager->add(Argument::that(function ($notification) {
+            return true;
+        }))
+            ->willReturn(true);
 
         $this->onAction($verdict);
     }
@@ -161,6 +177,12 @@ class NotificationDelegateSpec extends ObjectBehavior
         }))
             ->shouldBeCalled();
 
+
+        $this->notificationsManager->add(Argument::that(function ($notification) {
+            return true;
+        }))
+            ->willReturn(true);
+
         $this->onAction($verdict);
     }
 
@@ -199,6 +221,12 @@ class NotificationDelegateSpec extends ObjectBehavior
             return $opts['params']['action'] === 'restored by the community appeal jury';
         }))
             ->shouldBeCalled();
+
+
+        $this->notificationsManager->add(Argument::that(function ($notification) {
+            return true;
+        }))
+            ->willReturn(true);
 
         $this->onAction($verdict);
     }
@@ -272,7 +300,7 @@ class NotificationDelegateSpec extends ObjectBehavior
         $verdict->isUpheld()
             ->willReturn(true);
 
-        $this->entitiesBuilder->single(123)
+        $this->entitiesBuilder->single('123')
             ->willReturn($entity);
 
         $entity->isPayWall()->willReturn(true);
@@ -289,6 +317,11 @@ class NotificationDelegateSpec extends ObjectBehavior
             return $opts['params']['action'] === 'removed. You can appeal this decision';
         }))
             ->shouldBeCalled();
+
+        $this->notificationsManager->add(Argument::that(function ($notification) {
+            return true;
+        }))
+            ->willReturn(true);
 
         $this->onAction($verdict);
     }

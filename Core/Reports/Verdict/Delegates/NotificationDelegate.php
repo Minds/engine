@@ -8,11 +8,13 @@ namespace Minds\Core\Reports\Verdict\Delegates;
 use Minds\Common\Urn;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver;
+use Minds\Common\SystemUser;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Reports\Verdict\Verdict;
 use Minds\Core\Plus;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
+use Minds\Core\Notifications;
 
 class NotificationDelegate
 {
@@ -31,13 +33,17 @@ class NotificationDelegate
     /** @var Plus\Manager */
     protected $plusManager;
 
-    public function __construct($dispatcher = null, $entitiesBuilder = null, $urn = null, $entitiesResolver = null, $plusManager = null)
+    /** @var Notifications\Manager */
+    protected $notificationsManager;
+
+    public function __construct($dispatcher = null, $entitiesBuilder = null, $urn = null, $entitiesResolver = null, $plusManager = null, Notifications\Manager $notificationsManager = null)
     {
         $this->dispatcher = $dispatcher ?: Di::_()->get('EventsDispatcher');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->urn = $urn ?: new Urn;
         $this->entitiesResolver = $entitiesResolver ?: new Resolver();
         $this->plusManager = $plusManager ?? Di::_()->get('Plus\Manager');
+        $this->notificationsManager = $notificationsManager ?? Di::_()->get('Notifications\Manager');
     }
 
     /**
@@ -88,5 +94,24 @@ class NotificationDelegate
             'notification_view' => 'report_actioned',
             'params' => ['action' => $readableAction],
         ]);
+
+        // v3 notification
+        $notification = new Notifications\Notification();
+
+
+        $notification->setData([
+                'action' => $readableAction
+            ]);
+        $notification->setToGuid($entity->getOwnerGuid());
+        $notification->setEntityUrn($entityUrn);
+        $notification->setFromGuid(SystemUser::GUID);
+
+        $notification->setType(Notifications\NotificationTypes::TYPE_REPORT_ACTIONED);
+
+        // Save and submit
+        if ($this->notificationsManager->add($notification)) {
+            // Some logging
+            $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
+        }
     }
 }
