@@ -9,7 +9,7 @@ class NotificationEvent implements EventInterface
     protected $notification;
 
     /** @var int */
-    protected $timestamp;
+    protected $timestamp = 0;
 
     /**
      * @param Notification $notification
