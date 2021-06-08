@@ -32,6 +32,10 @@ class InteractionCounters
         $this->feedsManager = $feedsManager ?? Di::_()->get('Feeds\Elastic\Manager');
     }
 
+    /**
+     * @param string $counter
+     * @return self
+     */
     public function setCounter(string $counter): self
     {
         switch ($counter) {
