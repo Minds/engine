@@ -76,14 +76,14 @@ class Manager
         if (!$opts['guid']) {
             return [];
         }
-        
+
         $opts = array_merge([
             'limit' => 12,
             'offset' => '',
             'guid' => '',
             'type' => 'subscribers',
         ], $opts);
-        
+
         return $this->repository->getList($opts);
     }
 
