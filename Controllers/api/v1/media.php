@@ -129,8 +129,6 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                     'type' => $_FILES['file']['type'],
                     'file' => $_FILES['file']['tmp_name']
                 ]);
-            } catch (UnverifiedEmailException $e) {
-                throw $e;
             } catch (\Exception $e) {
                 return Factory::response([
                     'status' => 'error',
