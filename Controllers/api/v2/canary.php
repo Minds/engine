@@ -42,7 +42,7 @@ class canary implements Interfaces\Api
         $user = Session::getLoggedInUser();
         $user->setCanary(true);
         $user->save();
-      
+
         $message = 'Welcome to Canary! You will now receive the latest Minds features before everyone else.';
         $dispatcher = Di::_()->get('EventsDispatcher');
         $dispatcher->trigger('notification', 'all', [
@@ -59,8 +59,8 @@ class canary implements Interfaces\Api
         // Set the canary cookie
         Di::_()->get('Features\Canary')
             ->setCookie($user->isCanary());
-        
-        return Factory::response([]);
+
+        return Factory::response(['enabled' => true]);
     }
 
     public function delete($pages)
