@@ -54,6 +54,7 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
         $message = $builder
             ->setDeliverAfter(static::DELAY_MS) // Wait 30 seconds before consumers will see this
             //->setPartitionKey(0)
+            ->setEventTimestamp($event->getTimestamp() ?: time())
             ->setContent(json_encode([
                 'uuid' => $event->getNotification()->getUuid(),
                 'urn' => $event->getNotification()->getUrn(),
