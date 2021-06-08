@@ -60,7 +60,6 @@ class NotificationDelegate
 
         if (!$entity) {
             $entityGuid = $this->urn->setUrn($entityUrn)->getNss();
-
             $entity = $this->entitiesBuilder->single($entityGuid);
         }
 
@@ -109,9 +108,6 @@ class NotificationDelegate
         $notification->setType(Notifications\NotificationTypes::TYPE_REPORT_ACTIONED);
 
         // Save and submit
-        if ($this->notificationsManager->add($notification)) {
-            // Some logging
-            $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
-        }
+        $this->notificationsManager->add($notification);
     }
 }
