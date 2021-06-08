@@ -108,7 +108,8 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
                 }
 
                 $event = new NotificationEvent();
-                $event->setNotification($notification);
+                $event->setNotification($notification)
+                    ->setTimestamp($message->getEventTimestamp());
 
                 if (call_user_func($callback, $event, $message) === true) {
                     $consumer->acknowledge($message);
