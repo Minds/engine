@@ -29,5 +29,9 @@ class FeedsProvider extends Provider
         $this->di->bind('Feeds\Activity\Controller', function ($di) {
             return new Activity\Controller();
         });
+
+        $this->di->bind('Feeds\Activity\InteractionCounters', function ($di) {
+            return new Activity\InteractionCounters();
+        });
     }
 }
