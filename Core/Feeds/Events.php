@@ -14,6 +14,7 @@ use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Core\Security\Block;
 use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\Feeds\Activity\InteractionCounters;
 
 class Events
 {
@@ -72,33 +73,17 @@ class Events
          * Add remind and quote counts to entities
          * NOTE: Remind not moved over yet, lets see how quote counts scale
          */
-        // $this->eventsDispatcher->register('export:extender', 'activity', function ($event) {
-        //     $params = $event->getParameters();
-        //     $activity = $params['entity'];
-        //     $export = $event->response() ?: [];
+        $this->eventsDispatcher->register('export:extender', 'activity', function ($event) {
+            $params = $event->getParameters();
+            $activity = $params['entity'];
+            $export = $event->response() ?: [];
 
-        //     $cacheKey = 'interactions:count:' . $activity->getGuid();
+            /** @var InteractionCounters */
+            $interactionCounters = Di::_()->get('Feeds\Activity\InteractionCounters');
+          
+            $export['quotes'] = $interactionCounters->setCounter(InteractionCounters::COUNTER_QUOTES)->get($activity);
 
-        //     /** @var PsrWrapper */
-        //     $psrCache = Di::_()->get('Cache\PsrWrapper');
-
-        //     if ($quoteCount = $psrCache->get($cacheKey)) {
-        //         $export['quotes'] = $quoteCount;
-        //     } else {
-        //         /** @var Elastic\Manager */
-        //         $feedsManager = Di::_()->get('Feeds\Elastic\Manager');
-
-        //         $export['quotes'] = $feedsManager->getCount([
-        //             'algorithm' => 'latest',
-        //             'type' => 'activity',
-        //             'period' => 'all',
-        //             'quote_guid' => $activity->getGuid(),
-        //         ]);
-
-        //         $psrCache->set($cacheKey, $export['quotes'], 900); // Cache for 15 minutes
-        //     }
-
-        //     $event->setResponse($export);
-        // });
+            $event->setResponse($export);
+        });
     }
 }
