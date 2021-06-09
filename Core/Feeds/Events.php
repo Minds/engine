@@ -73,17 +73,17 @@ class Events
          * Add remind and quote counts to entities
          * NOTE: Remind not moved over yet, lets see how quote counts scale
          */
-        $this->eventsDispatcher->register('export:extender', 'activity', function ($event) {
-            $params = $event->getParameters();
-            $activity = $params['entity'];
-            $export = $event->response() ?: [];
+        // $this->eventsDispatcher->register('export:extender', 'activity', function ($event) {
+        //     $params = $event->getParameters();
+        //     $activity = $params['entity'];
+        //     $export = $event->response() ?: [];
 
-            /** @var InteractionCounters */
-            $interactionCounters = Di::_()->get('Feeds\Activity\InteractionCounters');
+        //     /** @var InteractionCounters */
+        //     $interactionCounters = Di::_()->get('Feeds\Activity\InteractionCounters');
           
-            $export['quotes'] = $interactionCounters->setCounter(InteractionCounters::COUNTER_QUOTES)->get($activity);
+        //     $export['quotes'] = $interactionCounters->setCounter(InteractionCounters::COUNTER_QUOTES)->get($activity);
 
-            $event->setResponse($export);
-        });
+        //     $event->setResponse($export);
+        // });
     }
 }
