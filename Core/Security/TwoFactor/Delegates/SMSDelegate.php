@@ -48,7 +48,13 @@ class SMSDelegate implements TwoFactorDelegateInterface
         $this->logger->info('2fa - sending SMS to ' . $user->getGuid());
 
         $message = 'Minds verification code: '. $this->twoFactorService->getCode($secret);
-        
+
+        // Apply + to all number except 10 digit US numbers
+        // NOTE: This is a hacky workaround
+        if ($user->telno[0] !== '+' && strlen($user->telno) !== 10) {
+            $user->telno= '+'.$user->telno;
+        }
+
         $this->smsService->send($user->telno, $message);
 
         // create a lookup of a random key. The user can then use this key along side their twofactor code
@@ -90,7 +96,7 @@ class SMSDelegate implements TwoFactorDelegateInterface
         // we allow for 120 seconds (2 mins) after we send a code
         if ($payload['_guid']
             && $payload['ts'] > time() - 120
-            && $user->getGuid() === $payload['_guid']
+            && $user->getGuid() === (string) $payload['_guid']
         ) {
             $secret = $payload['secret'];
         } else {
