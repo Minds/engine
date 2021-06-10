@@ -6,6 +6,7 @@ use Minds\Core\Di\Di;
 use Minds\Interfaces;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Core\Queue\Client as QueueClient;
+use Minds\Entities\User;
 
 class Push implements Interfaces\NotificationExtensionInterface
 {
@@ -37,6 +38,9 @@ class Push implements Interfaces\NotificationExtensionInterface
         }
 
         $toUser = EntitiesFactory::build($notification['to']);
+        if (!$toUser instanceof User) {
+            return;
+        }
         if (Di::_()->get('Features\Manager')->setUser($toUser)->has('notifications-v3')) {
             return;
         }
