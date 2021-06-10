@@ -119,14 +119,15 @@ class Manager
                 $frequency = EmailDigestMarker::FREQUENCY_DAILY;
                 $timestamp = $notification->getCreatedTimestamp(); // Same day
                 break;
+            case 'periodically':
+                $frequency = EmailDigestMarker::FREQUENCY_PERIODICALLY;
+                $timestamp = strtotime('midnight first day of this month', $notification->getCreatedTimestamp()); // First day of month
+                break;
             case 'weekly':
+            default:
                 $frequency = EmailDigestMarker::FREQUENCY_WEEKLY;
                 $timestamp = strtotime('midnight first day of this week', $notification->getCreatedTimestamp()); // First day of week
                 break;
-            case 'periodically':
-            default:
-                $frequency = EmailDigestMarker::FREQUENCY_PERIODICALLY;
-                $timestamp = strtotime('midnight first day of this month', $notification->getCreatedTimestamp()); // First day of month
         }
 
         $marker->setToGuid($notification->getToGuid())
