@@ -107,9 +107,13 @@ class UnreadNotifications extends EmailCampaign
 
         // Of the above notifications, map to Push notifications so we can reuse their language
 
-        $pushNotifications = array_map(function ($item) {
-            return new PushNotification($item[0]);
-        }, $notifications);
+        $pushNotifications = array_filter(array_map(function ($item) {
+            try {
+                return new PushNotification($item[0]);
+            } catch (\Exception $e) {
+                return null;
+            }
+        }, $notifications));
 
         $this->template->set('unreadPushNotifications', $pushNotifications);
 
