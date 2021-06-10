@@ -51,6 +51,10 @@ class EmailSubscription
         $export['topic'] = $this->getTopic();
         $export['user_guid'] = $this->getUserGuid();
         $export['value'] = $this->getValue();
+
+        if ($export['value'] === '') {
+            $export['value'] = '0';
+        }
         return $export;
     }
 }
