@@ -418,7 +418,7 @@ class User extends \ElggUser
     /**
      * Returns and decrypts an email address.
      *
-     * @return $this
+     * @return string
      */
     public function getEmail()
     {

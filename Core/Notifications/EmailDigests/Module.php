@@ -1,22 +1,20 @@
 <?php
 /**
- * Notifications module.
+ * EmailDigests Notifications module.
  */
 
-namespace Minds\Core\Notifications;
+namespace Minds\Core\Notifications\EmailDigests;
 
 use Minds\Interfaces\ModuleInterface;
 
 /**
  * Notifications Module (v3)
- * @package Minds\Core\Notifications
+ * @package Minds\Core\Notifications\EmailDigests
  */
 class Module implements ModuleInterface
 {
     /** @var array $submodules */
     public $submodules = [
-        Push\Module::class,
-        EmailDigests\Module::class,
     ];
 
     /**
@@ -26,7 +24,5 @@ class Module implements ModuleInterface
     {
         $provider = new Provider();
         $provider->register();
-        $routes = new Routes();
-        $routes->register();
     }
 }
