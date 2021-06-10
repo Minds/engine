@@ -59,7 +59,7 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
                 $timestamp = strtotime('midnight yesterday');
                 break;
             case 'weekly':
-                $timestamp = strtotime('midnight first day of last week');
+                $timestamp = strtotime('midnight monday last week');
                 break;
             case 'periodically':
             case EmailDigestMarker::FREQUENCY_PERIODICALLY:
