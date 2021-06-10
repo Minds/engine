@@ -126,7 +126,7 @@ class Manager
             case 'weekly':
             default:
                 $frequency = EmailDigestMarker::FREQUENCY_WEEKLY;
-                $timestamp = strtotime('midnight first day of this week', $notification->getCreatedTimestamp()); // First day of week
+                $timestamp = strtotime('midnight monday this week', $notification->getCreatedTimestamp()); // First day of week
                 break;
         }
 
