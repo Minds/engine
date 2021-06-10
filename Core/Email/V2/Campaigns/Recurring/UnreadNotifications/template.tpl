@@ -41,7 +41,8 @@
             <?php foreach ($vars['unreadPushNotifications'] as $pushNotification) { ?>
             <tr <?php echo $emailStyles->getStyles('m-unreadNotifications__preview'); ?>>
                 <td>
-                    <?php echo $pushNotification->getTitle(); ?>: <?php echo $pushNotification->getBody(); ?> 
+                    <?php $body = $pushNotification->getBody(); ?>
+                    <?php echo $pushNotification->getTitle(); ?><?php if ($body) { ?>:<?php } ?> <?php echo $body; ?> 
                 </td>
             </tr>
             <?php } ?>

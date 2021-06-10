@@ -9,6 +9,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Notifications\Push\DeviceSubscriptions;
 use Minds\Core\Features;
 use Minds\Core\Notifications\Notification;
+use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\Services\ApnsService;
 use Minds\Entities\User;
@@ -70,6 +71,7 @@ class ManagerSpec extends ObjectBehavior
         $notification = new Notification();
         $notification->setToGuid('123');
         $notification->setUuid('uuid-1');
+        $notification->setType(NotificationTypes::TYPE_COMMENT);
 
         $toUser = new User();
 
