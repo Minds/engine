@@ -19,6 +19,9 @@ class Manager
     /** @var DeviceSubscriptions\Manager */
     protected $deviceSubscriptionsManager;
 
+    /** @var Settings\Manager */
+    protected $settingsManager;
+
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
@@ -34,11 +37,13 @@ class Manager
     public function __construct(
         Notifications\Manager $notificationsManager = null,
         DeviceSubscriptions\Manager $deviceSubscriptionsManager = null,
+        Settings\Manager $settingsManager = null,
         EntitiesBuilder $entitiesBuilder = null,
         Features\Manager $featuresManager = null
     ) {
         $this->notificationsManager = $notificationsManager;
         $this->deviceSubscriptionsManager = $deviceSubscriptionsManager;
+        $this->settingsManager = $settingsManager;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->featuresManager = $featuresManager;
     }
@@ -80,6 +85,11 @@ class Manager
             return; // We can't deliver for a valid reason
         }
 
+        // Has the user opted into this notification?
+        if (!$this->getSettingsManager()->canSend($pushNotification)) {
+            return; // User has opted out
+        }
+
         $opts = new DeviceSubscriptions\DeviceSubscriptionListOpts();
         $opts->setUserGuid($notification->getToGuid());
         foreach ($this->getDeviceSubscriptionsManager()->getList($opts) as $deviceSubscription) {
@@ -109,6 +119,17 @@ class Manager
             $this->deviceSubscriptionsManager = new DeviceSubscriptions\Manager();
         }
         return $this->deviceSubscriptionsManager;
+    }
+
+    /**
+     * @return Settings\Manager
+     */
+    protected function getSettingsManager(): Settings\Manager
+    {
+        if (!$this->settingsManager) {
+            $this->settingsManager = new Settings\Manager();
+        }
+        return $this->settingsManager;
     }
 
     /**
