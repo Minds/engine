@@ -4,7 +4,7 @@
     <p
         <?php echo $emailStyles->getStyles('m-unreadNotifications__title', 'm-fonts'); ?>
     >
-        Hi <?php echo $vars['user']->getName(); ?>! Here's some things you may have missed.
+        Hi <?php echo $vars['user']->getName(); ?>! Here's what you missed.
     </p>
     </td>
 </tr>
@@ -18,7 +18,7 @@
             <?php echo $emailStyles->getStyles('m-unreadNotifications__count'); ?>>
 
             <tr>
-                <td>
+                <td <?php echo $emailStyles->getStyles('m-unreadNotifications__col'); ?>>
                     <a href="<?php echo $vars['site_url']; ?>notifications/v3?<?php echo $vars['tracking']; ?>"
                         <?php echo $emailStyles->getStyles('m-fonts', 'm-unreadNotificationsCount__text', 'm-textColor--primary'); ?>
                     >
@@ -40,7 +40,7 @@
             >
             <?php foreach ($vars['unreadPushNotifications'] as $pushNotification) { ?>
             <tr <?php echo $emailStyles->getStyles('m-unreadNotifications__preview'); ?>>
-                <td>
+                <td <?php echo $emailStyles->getStyles('m-unreadNotifications__col'); ?>>
                     <?php $body = $pushNotification->getBody(); ?>
                     <?php echo $pushNotification->getTitle(); ?><?php if ($body) { ?>:<?php } ?> <?php echo $body; ?> 
                 </td>

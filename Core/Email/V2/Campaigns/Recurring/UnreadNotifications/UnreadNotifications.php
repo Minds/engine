@@ -111,9 +111,15 @@ class UnreadNotifications extends EmailCampaign
             try {
                 return new PushNotification($item[0]);
             } catch (\Exception $e) {
+                $this->logger->info("{$this->user->getGuid()} " . $e->getMessage());
                 return null;
             }
         }, $notifications));
+
+        if (empty($pushNotifications)) {
+            $this->logger->info("{$this->user->getGuid()} could not provided previews");
+            return null;
+        }
 
         $this->template->set('unreadPushNotifications', $pushNotifications);
 
