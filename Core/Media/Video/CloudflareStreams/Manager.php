@@ -103,7 +103,7 @@ class Manager
         $jwtBuilder->withClaim('kid', $signingKey->getId());
         $jwtBuilder->relatedTo($videoId);
         $jwtBuilder->expiresAt(new DateTimeImmutable("+$secondsTtl seconds"));
-    
+
         $token = (string) $jwtBuilder->getToken(new Sha256, new Key(base64_decode($signingKey->getPem(), true)));
 
         return $token;

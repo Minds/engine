@@ -59,6 +59,7 @@ class Minds extends base
         Register\Module::class,
         Notifications\Module::class,
         Votes\Module::class,
+        Media\Video\Module::class,
     ];
 
     /**

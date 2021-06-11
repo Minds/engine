@@ -95,6 +95,8 @@ class Manager
     public function add(Video $video): bool
     {
         if ($video->getTranscoder() === self::TRANSCODER_CLOUDFLARE) {
+            //ojm pin ... the url that gets returned is a signed url
+
             $this->cloudflareStreamsManager->copy($video, $this->getPublicAssetUri($video, 'source'));
         }
 
@@ -190,13 +192,15 @@ class Manager
         return $this->cloudflareStreamsManager->getSources($video);
     }
 
+    //  ojm can do 'source' as $size
+    // ojm pin
     /**
      * Return a public asset uri for entity type
      * @param Entity $entity
      * @param string $size
      * @return string
      */
-    public function getPublicAssetUri($entity, $size = '360.mp4'): string
+    public function getPublicAssetUri($entity, $size = '360.mp4', $download = false): string
     {
         $cmd = null;
         switch (get_class($entity)) {
@@ -204,9 +208,18 @@ class Manager
                 // To do
                 break;
             case Video::class:
+                $contentDisposition = 'inline';
+
+                if ($download) {
+                    $filename = date('\m\i\n\d\s\_Ymd\_His');
+                    $contentDisposition =
+                      'attachment; filename='.$filename;
+                }
+
                 $cmd = $this->s3->getCommand('GetObject', [
                     'Bucket' => 'cinemr', // TODO: don't hard code
                     'Key' => $this->config->get('transcoder')['dir'] . "/" . $entity->get('cinemr_guid') . "/" . $size,
+                    'ResponseContentDisposition' => $contentDisposition,
                 ]);
                 break;
         }
