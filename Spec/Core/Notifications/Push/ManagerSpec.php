@@ -12,6 +12,7 @@ use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\Services\ApnsService;
+use Minds\Core\Notifications\Push\Settings;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -23,6 +24,9 @@ class ManagerSpec extends ObjectBehavior
 
     /** @var DeviceSubscriptions\Manager */
     protected $deviceSubscriptionsManager;
+
+    /** @var Settings\Manager */
+    protected $settingsManager;
     
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
@@ -33,12 +37,14 @@ class ManagerSpec extends ObjectBehavior
     public function let(
         Notifications\Manager $notificationsManager,
         DeviceSubscriptions\Manager $deviceSubscriptionsManager,
+        Settings\Manager $settingsManager,
         EntitiesBuilder $entitiesBuilder,
         Features\Manager $featuresManager
     ) {
-        $this->beConstructedWith($notificationsManager, $deviceSubscriptionsManager, $entitiesBuilder, $featuresManager);
+        $this->beConstructedWith($notificationsManager, $deviceSubscriptionsManager, $settingsManager, $entitiesBuilder, $featuresManager);
         $this->notificationsManager = $notificationsManager;
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->settingsManager = $settingsManager;
         $this->deviceSubscriptionsManager = $deviceSubscriptionsManager;
         $this->featuresManager = $featuresManager;
     }
@@ -100,6 +106,9 @@ class ManagerSpec extends ObjectBehavior
                 (new DeviceSubscription())
                     ->setService(DeviceSubscription::SERVICE_APNS)
             ]);
+
+        $this->settingsManager->canSend(Argument::any())
+            ->willReturn(true);
 
         $this->setApnsService($apnsService);
 
