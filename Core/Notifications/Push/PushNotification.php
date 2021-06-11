@@ -101,6 +101,8 @@ class PushNotification
                 $pronoun = '';
                 $noun = 'you';
                 break;
+            case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
+                return 'Minds Token Rewards';
             default:
                 throw new UndeliverableException("Invalid type");
         }
@@ -143,6 +145,10 @@ class PushNotification
         switch ($this->notification->getType()) {
             case NotificationTypes::TYPE_COMMENT:
                 $excerpt = $this->notification->getData()['comment_excerpt'];
+                break;
+            case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
+                $data = $this->notification->getData();
+                $excerpt = "🚀' You earned {$data['tokens_formatted']} tokens (\${$data['usd_formatted']}) yesterday";
                 break;
         }
 
@@ -273,6 +279,7 @@ class PushNotification
             case NotificationTypes::TYPE_COMMENT:
             case NotificationTypes::TYPE_TAG:
             case NotificationTypes::TYPE_SUBSCRIBE:
+            case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
                 return true;
         }
         return false;
