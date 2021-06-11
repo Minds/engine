@@ -155,7 +155,7 @@ class Repository
                 ->setEntity($entity)
                 ->setRecurring($row['recurring'])
                 ->setMethod($row['method'])
-                ->setAmount((string) Core\Util\BigNumber::_($row['amount'] ?: 0)->add($row['wei']->toInt() ?: 0));
+                ->setAmount((string) Core\Util\BigNumber::_($row['amount'] ?: 0)->add((string) $row['wei'] ?: 0));
             $wires[] = $wire;
         }
 
