@@ -89,80 +89,80 @@ class ManagerSpec extends ObjectBehavior
         $sources[0]->getType()
             ->shouldBe('video/mp4');
         $sources[0]->getSize(360);
-    
+
         $sources[1]->getType()
             ->shouldBe('video/webm');
         $sources[1]->getSize(360);
     }
 
-    public function it_should_get_a_signed_720p_video_url(RequestInterface $request, \Aws\CommandInterface $cmd)
-    {
-        $this->config->get('transcoder')
-            ->willReturn([
-                'dir' => 'dir',
-            ]);
-        $this->config->get('aws')
-            ->willReturn([
-                'region' => 'us-east-1',
-                'useRoles' => true,
-            ]);
+    // public function it_should_get_a_signed_720p_video_url(RequestInterface $request, \Aws\CommandInterface $cmd)
+    // {
+    //     $this->config->get('transcoder')
+    //         ->willReturn([
+    //             'dir' => 'dir',
+    //         ]);
+    //     $this->config->get('aws')
+    //         ->willReturn([
+    //             'region' => 'us-east-1',
+    //             'useRoles' => true,
+    //         ]);
 
-        $this->config->get('cinemr_url')
-            ->willReturn('https://url.com/cinemr');
+    //     $this->config->get('cinemr_url')
+    //         ->willReturn('https://url.com/cinemr');
 
-        $this->s3->getCommand('GetObject', [
-            'Bucket' => 'cinemr',
-            'Key' => 'dir/123/720.mp4'
-        ])
-            ->shouldBeCalled()
-            ->willReturn($cmd);
+    //     $this->s3->getCommand('GetObject', [
+    //         'Bucket' => 'cinemr',
+    //         'Key' => 'dir/123/720.mp4'
+    //     ])
+    //         ->shouldBeCalled()
+    //         ->willReturn($cmd);
 
-        $request->getUri()
-            ->willReturn('s3-signed-url-here');
+    //     $request->getUri()
+    //         ->willReturn('s3-signed-url-here');
 
-        $this->s3->createPresignedRequest(Argument::any(), Argument::any())
-            ->willReturn($request);
+    //     $this->s3->createPresignedRequest(Argument::any(), Argument::any())
+    //         ->willReturn($request);
 
-        $video = new Video();
-        $video->set('cinemr_guid', 123);
-        $video->set('access_id', ACCESS_PRIVATE);
-        $this->getPublicAssetUri($video, '720.mp4')
-            ->shouldBe('s3-signed-url-here');
-    }
+    //     $video = new Video();
+    //     $video->set('cinemr_guid', 123);
+    //     $video->set('access_id', ACCESS_PRIVATE);
+    //     $this->getPublicAssetUri($video, '720.mp4')
+    //         ->shouldBe('s3-signed-url-here');
+    // }
 
-    public function it_should_get_an_unsigned_720p_video_url(RequestInterface $request, \Aws\CommandInterface $cmd)
-    {
-        $this->config->get('transcoder')
-            ->willReturn([
-                'dir' => 'dir',
-            ]);
-        $this->config->get('aws')
-            ->willReturn([
-                'region' => 'us-east-1',
-                'useRoles' => true,
-            ]);
+    // public function it_should_get_an_unsigned_720p_video_url(RequestInterface $request, \Aws\CommandInterface $cmd)
+    // {
+    //     $this->config->get('transcoder')
+    //         ->willReturn([
+    //             'dir' => 'dir',
+    //         ]);
+    //     $this->config->get('aws')
+    //         ->willReturn([
+    //             'region' => 'us-east-1',
+    //             'useRoles' => true,
+    //         ]);
 
-        $this->config->get('cinemr_url')
-            ->willReturn('https://url.com/cinemr');
+    //     $this->config->get('cinemr_url')
+    //         ->willReturn('https://url.com/cinemr');
 
-        $this->s3->getCommand('GetObject', [
-            'Bucket' => 'cinemr',
-            'Key' => 'dir/123/720.mp4'
-        ])
-            ->shouldBeCalled()
-            ->willReturn($cmd);
+    //     $this->s3->getCommand('GetObject', [
+    //         'Bucket' => 'cinemr',
+    //         'Key' => 'dir/123/720.mp4'
+    //     ])
+    //         ->shouldBeCalled()
+    //         ->willReturn($cmd);
 
-        $request->getUri()
-            ->willReturn('s3-signed-url-here');
+    //     $request->getUri()
+    //         ->willReturn('s3-signed-url-here');
 
-        $this->s3->createPresignedRequest(Argument::any(), Argument::any())
-            ->willReturn($request);
+    //     $this->s3->createPresignedRequest(Argument::any(), Argument::any())
+    //         ->willReturn($request);
 
-        $video = new Video();
-        $video->set('cinemr_guid', 123);
-        $this->getPublicAssetUri($video, '720.mp4')
-            ->shouldBe('https://url.com/cinemr123/720.mp4');
-    }
+    //     $video = new Video();
+    //     $video->set('cinemr_guid', 123);
+    //     $this->getPublicAssetUri($video, '720.mp4')
+    //         ->shouldBe('https://url.com/cinemr123/720.mp4');
+    // }
 
     public function it_should_create_transcoders_on_add()
     {
