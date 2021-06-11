@@ -4,6 +4,8 @@ namespace Minds\Core\Media\Video;
 use Minds\Api\Exportable;
 use Minds\Exceptions\UserErrorException;
 use Minds\Core\Media\Video\Manager;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Di\Di;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 use Minds\Entities\Video;
@@ -17,14 +19,18 @@ class Controller
     /** @var Manager */
     protected $manager;
 
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
     /**
      * Controller constructor.
      * @param null $manager
      */
     public function __construct(
-        $manager = null
+        $manager = null,
+        $entitiesBuilder = null
     ) {
         $this->manager = $manager ?? new Manager();
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
 
 
@@ -35,8 +41,11 @@ class Controller
     public function getDownloadUrl(ServerRequest $request): JsonResponse
     {
         /** @var string */
-        $guid = $request->getAttribute('parameters')['guid'];
+        $guid = $request->getAttribute('parameters')['guid'] ?? null;
 
+        if (!$guid) {
+            throw new UserErrorException('Invalid GUID');
+        }
         // /** @var Video */
         $video = $this->entitiesBuilder->single($guid);
 

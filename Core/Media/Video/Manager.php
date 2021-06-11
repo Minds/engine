@@ -95,8 +95,6 @@ class Manager
     public function add(Video $video): bool
     {
         if ($video->getTranscoder() === self::TRANSCODER_CLOUDFLARE) {
-            //ojm pin ... the url that gets returned is a signed url
-
             $this->cloudflareStreamsManager->copy($video, $this->getPublicAssetUri($video, 'source'));
         }
 
@@ -192,8 +190,6 @@ class Manager
         return $this->cloudflareStreamsManager->getSources($video);
     }
 
-    //  ojm can do 'source' as $size
-    // ojm pin
     /**
      * Return a public asset uri for entity type
      * @param Entity $entity
@@ -216,10 +212,13 @@ class Manager
                       'attachment; filename='.$filename;
                 }
 
+                $key = $this->config->get('transcoder')['dir'] . "/" . $entity->get('cinemr_guid') . "/" . $size;
+
                 $cmd = $this->s3->getCommand('GetObject', [
                     'Bucket' => 'cinemr', // TODO: don't hard code
-                    'Key' => $this->config->get('transcoder')['dir'] . "/" . $entity->get('cinemr_guid') . "/" . $size,
+                    'Key' => $key,
                     'ResponseContentDisposition' => $contentDisposition,
+                    'ResponseContentType' => 'video/mp4'
                 ]);
                 break;
         }
@@ -227,7 +226,7 @@ class Manager
         if (!$cmd) {
             return null;
         }
-        if ($entity->access_id !== Common\Access::PUBLIC) {
+        if ($entity->access_id !== Common\Access::PUBLIC || $download) {
             $url = (string)$this->s3->createPresignedRequest($cmd, '+48 hours')->getUri();
         } else {
             $url = $this->config->get('cinemr_url') . $entity->cinemr_guid . '/' . $size;

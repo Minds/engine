@@ -21,7 +21,7 @@ class Routes extends ModuleRoutes
             ->do(function (Route $route) {
                 $route->get(
                     'download-url/:guid',
-                    Ref::_('Media\Video\Controllers', 'getDownloadUrl')
+                    Ref::_('Media\Video\Controller', 'getDownloadUrl')
                 );
             });
     }
