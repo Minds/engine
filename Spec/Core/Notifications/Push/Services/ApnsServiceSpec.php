@@ -41,6 +41,8 @@ class ApnsServiceSpec extends ObjectBehavior
             ->willReturn(2);
         $pushNotification->getUri()
             ->willReturn('uri-here');
+        $pushNotification->getIcon()
+            ->willReturn('icon-here');
         $pushNotification->getMergeKey()
             ->willReturn('merge-key-will-be-here');
         $pushNotification->getDeviceSubscription()
