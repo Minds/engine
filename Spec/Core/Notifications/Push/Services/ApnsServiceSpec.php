@@ -41,6 +41,8 @@ class ApnsServiceSpec extends ObjectBehavior
             ->willReturn(2);
         $pushNotification->getUri()
             ->willReturn('uri-here');
+        $pushNotification->getIcon()
+            ->willReturn('icon-here');
         $pushNotification->getMergeKey()
             ->willReturn('merge-key-will-be-here');
         $pushNotification->getDeviceSubscription()
@@ -59,6 +61,8 @@ class ApnsServiceSpec extends ObjectBehavior
             return $payload['headers']['apns-collapse-id'] === 'merge-key-will-be-here'
                 && $payload['cert'] === '/path/to/cert'
                 && $payload['json']['aps']['alert']['body'] === 'This is the title line: This is the body line'
+                && $payload['json']['uri'] === 'uri-here'
+                && $payload['json']['largeIcon'] === 'icon-here'
                 && $payload['json']['aps']['badge'] === 2;
         }))
             ->willReturn(new JsonResponse([], 200));
