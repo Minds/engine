@@ -15,6 +15,7 @@ use Cassandra\Bigint;
 use Cassandra\Timestamp;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Spec\Minds\Mocks;
 
 class RepositorySpec extends ObjectBehavior
 {
@@ -46,7 +47,7 @@ class RepositorySpec extends ObjectBehavior
             return $values[0] === 'reported';
         }))
             ->shouldBeCalled()
-            ->willReturn([
+            ->willReturn(new Mocks\Cassandra\Rows([
                 [
                     'user_hashes' => (new Set(Type::text()))
                         ->add('hash'),
@@ -75,7 +76,7 @@ class RepositorySpec extends ObjectBehavior
                     'reports' => (new Set(Type::bigint()))
                         ->add(789),
                 ],
-            ]);
+            ], ''));
         
         $response = $this->getList([
             'user' => $user,
