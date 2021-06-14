@@ -1690,6 +1690,15 @@ CREATE TABLE minds.push_notifications_settings (
     PRIMARY KEY (user_guid, notification_group)
 ) WITH CLUSTERING ORDER BY (notification_group DESC);
 
+CREATE TABLE minds.notification_email_digests (
+    year int,
+    month int,
+    day int,
+    frequency text,
+    to_guid bigint,
+    PRIMARY KEY (year, month, day, frequency, to_guid)
+) WITH CLUSTERING ORDER BY (month DESC, day DESC);
+
 -- CREATE INDEX IF NOT EXISTS user_id_idx ON minds.oauth_access_tokens (user_id);
 -- ALTER TABLE minds.jwt_sessions ADD (last_active timestamp, user_agent text, ip text);
 -- ALTER TABLE minds.oauth_access_tokens ADD ip text;

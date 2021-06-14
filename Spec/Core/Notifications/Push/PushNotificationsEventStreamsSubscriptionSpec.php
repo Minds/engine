@@ -22,7 +22,8 @@ class PushNotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
 
         $notification = new Notification();
         $event = new NotificationEvent();
-        $event->setNotification($notification);
+        $event->setNotification($notification)
+            ->setTimestamp(time());
 
         $manager->sendPushNotification($notification)
           ->shouldBeCalled();
@@ -38,7 +39,8 @@ class PushNotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $notification = new Notification();
         $notification->setReadTimestamp(time());
         $event = new NotificationEvent();
-        $event->setNotification($notification);
+        $event->setNotification($notification)
+            ->setTimestamp(time());
 
         $manager->sendPushNotification($notification)
           ->shouldNotBeCalled();

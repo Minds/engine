@@ -4,12 +4,22 @@ namespace Minds\Core\Feeds\Activity\Delegates;
 
 use Minds\Core;
 use Minds\Core\Analytics\Metrics\Event;
+use Minds\Core\Di\Di;
+use Minds\Core\Feeds\Activity\InteractionCounters;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Entities\Activity;
 use Minds\Helpers\Counters;
 
 class MetricsDelegate
 {
+    /** @var InteractionCounters */
+    protected $interactionCounters;
+
+    public function __construct(InteractionCounters $interactionCounters = null)
+    {
+        $this->interactionCounters = $interactionCounters ?? Di::_()->get('Feeds\Activity\InteractionCounters');
+    }
+
     /**
      * On adding a new post
      * @param Activity $activity
@@ -42,6 +52,11 @@ class MetricsDelegate
             }
 
             $event->push();
+
+            // Purge counter cache
+            $this->interactionCounters
+                ->setCounter(InteractionCounters::COUNTER_QUOTES)
+                ->purgeCache($activity);
         }
 
         if ($activity->isRemind()) {

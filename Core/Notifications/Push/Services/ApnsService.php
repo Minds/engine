@@ -20,14 +20,14 @@ class ApnsService extends AbstractService implements PushServiceInterface
 
         $payload = [
             'aps' => [
+                "mutable-content" => 1,
                 'alert' => [
                     'body' => $message,
                 ],
                 'badge' => $pushNotification->getUnreadCount(),
-                'url-args' => [
-                    $pushNotification->getUri(),
-                ],
             ],
+            'uri' => $pushNotification->getUri(),
+            'largeIcon' => $pushNotification->getIcon(),
         ];
 
         $headers = [

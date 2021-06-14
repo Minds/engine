@@ -146,6 +146,9 @@ class Repository
 
         foreach ($rows as $row) {
             $entity = $this->entitiesBuilder->single((string) $row['entity_guid']);
+            if (!$entity) {
+                continue; // Entity deleted. TODO: allow passing entityGuid to Wire so urn can be constructed
+            }
 
             $wire = new Wire();
             $wire->setGuid($row['wire_guid']->value())
@@ -155,7 +158,7 @@ class Repository
                 ->setEntity($entity)
                 ->setRecurring($row['recurring'])
                 ->setMethod($row['method'])
-                ->setAmount((string) Core\Util\BigNumber::_($row['amount'] ?: 0)->add($row['wei']->toInt() ?: 0));
+                ->setAmount((string) Core\Util\BigNumber::_($row['amount'] ?: 0)->add((string) $row['wei'] ?: 0));
             $wires[] = $wire;
         }
 

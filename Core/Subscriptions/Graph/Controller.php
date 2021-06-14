@@ -2,6 +2,7 @@
 namespace Minds\Core\Subscriptions\Graph;
 
 use Exception;
+use Minds\Api\Exportable;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 
@@ -43,8 +44,7 @@ class Controller
      */
     public function getSubscribers(ServerRequest $request): JsonResponse
     {
-        throw new Exception('Not Implemented');
-        // return $this->getByType('subscribers', $request);
+        return $this->getByType('subscribers', $request);
     }
 
     /**
@@ -76,7 +76,7 @@ class Controller
 
         return new JsonResponse([
             'status' => 'success',
-            'entities' => $response,
+            'entities' => Exportable::_($response),
             'load-next' => $response->getPagingToken(),
         ]);
     }

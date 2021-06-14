@@ -58,6 +58,14 @@ class EmailStyles
             'm-digest__username' => 'padding-left: 10px; text-decoration: none;',
             'm-digest__yourActivity' => 'width: 100%; border: 1px solid #d4d4d4; padding: 20px;',
             'm-digestYourActivity__col' => 'padding: 10px;',
+
+            // PARTIAL : Digest
+            'm-unreadNotifications__col' => 'padding: 20px;',
+            'm-unreadNotifications__title' => 'font-size: 15px; font-weight: 400; margin-bottom: 20px;',
+            'm-unreadNotifications__count' => 'width: 100%; border: 1px solid #d4d4d4; margin-bottom: 20px; box-sizing: border-box;',
+            'm-unreadNotificationsCount__text' => 'text-decoration: none; font-size: 17px; font-weight: 500',
+            'm-unreadNotifications__previews' => 'width: 100%; border-collapse: collapse;',
+            'm-unreadNotifications__preview' => 'width: 100%; border: 1px solid #d4d4d4; padding: 20px; font-size: 15px;',
         ];
     }
 

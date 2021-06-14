@@ -189,6 +189,13 @@ class boost implements Interfaces\Api
                 $entity->getOwnerGuid()
         );
 
+        if ($entity->getTimeCreated() > time()) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => "You cannot boost a scheduled post."
+            ]);
+        }
+
         if (count($owner->getNSFW()) || count($owner->getNsfwLock())) {
             return Factory::response([
                 'status' => 'error',

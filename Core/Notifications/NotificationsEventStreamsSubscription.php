@@ -110,11 +110,9 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 $notification->setType(NotificationTypes::TYPE_VOTE_DOWN);
                 break;
             case ActionEvent::ACTION_COMMENT:
-                $notification->setType(NotificationTypes::TYPE_COMMENT);
-                $notification->setData([
-                    'comment_urn' => $event->getActionData()['comment_urn'],
-                ]);
-                break;
+                // Comment notifications are handled via their own EventStreamSubscription
+                // due to more tailored delivery specifications, so true to awknowledge but don't deliver
+                return true;
             case ActionEvent::ACTION_TAG:
                 // Replace toGuid with the entity guid as the entity is the tagged person
                 $notification->setToGuid((string) $event->getEntity()->getGuid());

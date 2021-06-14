@@ -64,6 +64,11 @@ class PushNotificationsEventStreamsSubscription implements SubscriptionInterface
             return false;
         }
 
+        if ($event->getTimestamp() < time() - 3600) {
+            // Don't notify for event older than 1 hour, here
+            return true;
+        }
+
         $notification = $event->getNotification();
 
         if ($notification->getReadTimestamp()) {

@@ -130,6 +130,10 @@ class Manager
             return false; // TODO: throw exception
         }
 
+        if (!$notification->getCreatedTimestamp()) {
+            $notification->setCreatedTimestamp(time());
+        }
+
         $success = $this->repository->add($notification);
 
         if (!$success) {
@@ -188,6 +192,7 @@ class Manager
         if (empty($this->delegates)) {
             $this->delegates = [
                 new Delegates\EventStreamsDelegate(),
+                new Delegates\EmailDigestsDelegate(),
             ];
         }
         return $this->delegates;
