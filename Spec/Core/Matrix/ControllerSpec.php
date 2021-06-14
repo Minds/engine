@@ -34,6 +34,37 @@ class ControllerSpec extends ObjectBehavior
         $this->shouldHaveType('Minds\Core\Matrix\Controller');
     }
 
+    public function it_should_send_chat_invite_notification_when_receiver_has_no_matrix_account(ServerRequest $request)
+    {
+        $user = new User();
+
+        $receiver = new User();
+
+        $request->getAttribute('_user')
+            ->willReturn($user);
+
+        $request->getAttribute('parameters')
+                    ->willReturn([
+                'receiverGuid' => '456',
+            ]);
+
+        $this->entitiesBuilder->single('456')->willReturn($receiver);
+
+        $this->manager->getAccountByUser($receiver)
+        ->willReturn(null);
+
+        $this->manager->sendChatInviteNotification($user, $receiver)
+        ->shouldBeCalled();
+
+        $response = $this->createDirectRoom($request);
+        $json = $response->getBody()->getContents();
+
+        $json->shouldBe(json_encode([
+            'status' => 'failed',
+            'message' => 'recipient has not set up chat account'
+        ]));
+    }
+
     // public function it_should_get_total_unread(
     //     ServerRequest $request
     // ) {

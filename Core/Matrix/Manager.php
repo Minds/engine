@@ -9,6 +9,8 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Matrix\MatrixAccount;
 use Minds\Entities\User;
+use Minds\Core\Notifications;
+use Minds\Core\Log\Logger;
 
 class Manager
 {
@@ -21,14 +23,27 @@ class Manager
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
+    /** @var Notifications\Manager */
+    protected $notificationsManager;
+
+    /** @var Logger */
+    protected $logger;
+
     /** @var array */
     protected $state = [];
 
-    public function __construct(Client $client = null, MatrixConfig $matrixConfig = null, EntitiesBuilder $entitiesBuilder = null)
-    {
+    public function __construct(
+        Client $client = null,
+        MatrixConfig $matrixConfig = null,
+        EntitiesBuilder $entitiesBuilder = null,
+        Notifications\Manager $notificationsManager = null,
+        Logger $logger = null
+    ) {
         $this->client = $client ?? new Client();
         $this->matrixConfig = $matrixConfig ?? new MatrixConfig();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->notificationsManager = $notificationsManager ?? Di::_()->get('Notifications\Manager');
+        $this->logger = $logger ?? Di::_()->get('Logger');
     }
 
     /**
@@ -36,13 +51,15 @@ class Manager
      * @param User $user
      * @return MatrixAccount
      */
-    public function getAccountByUser(User $user): MatrixAccount
+    public function getAccountByUser(User $user): ?MatrixAccount
     {
         $matrixId = $this->getMatrixId($user);
 
         try {
             $response = $this->client->request('GET', '_synapse/admin/v2/users/' . $matrixId);
         } catch (RequestException $e) {
+            return null;
+            //
             // if 404 then create new account
             // if ($e->getResponse()->getStatusCode() === 404) {
             //     return $this->createAccount($user);
@@ -184,7 +201,7 @@ class Manager
 
         $directRooms[] = $matrixRoom;
         $patchedDirectRooms = [];
-    
+
         foreach ($directRooms as $room) {
             $member = $room->getMembers()[0];
             $patchedDirectRooms[$member] = [ $room->getId() ];
@@ -224,7 +241,7 @@ class Manager
             }
             throw $e;
         }
-        
+
         return false;
     }
 
@@ -253,7 +270,7 @@ class Manager
                 ->setDirectMessage(true);
                 $rooms[] = $matrixRoom;
             }
-        
+
 
             return $rooms;
         } catch (\GuzzleHttp\Exception\ClientException $e) {
@@ -272,9 +289,9 @@ class Manager
     public function getJoinedRooms(User $user)
     {
         $matrixId = $this->getMatrixId($user);
-       
+
         $data = $this->getState($user);
-    
+
         /** @var MatrixRoom[] */
         $rooms = [];
 
@@ -303,14 +320,14 @@ class Manager
 
             $rooms[] = $matrixRoom;
         }
-        
+
         foreach ($data['rooms']['invite'] as $roomId => $roomData) {
             $matrixRoom = new MatrixRoom();
             $matrixRoom->setId($roomId);
             $matrixRoom->setInvite(true);
-            
+
             $this->getRoomFromStateEvents($roomData['invite_state']['events'], $matrixRoom, $matrixId);
-            
+
             $rooms[] = $matrixRoom;
         }
 
@@ -375,7 +392,7 @@ class Manager
         while (true) {
             $endpoint = '_synapse/admin/v2/users';
             $params = http_build_query([ 'from' => $from, 'limit' => $limit, 'guests' => 'false' ]);
-        
+
             $response = $this->client->request('GET', "$endpoint?$params");
             $decodedResponse = json_decode($response->getBody()->getContents(), true);
 
@@ -394,7 +411,7 @@ class Manager
                 }
 
                 $account->setUserGuid($user->getGuid());
-                
+
                 yield $account;
             }
 
@@ -484,7 +501,7 @@ class Manager
         $contents = $file->read();
 
         $accessToken = $this->getServerAccessToken($user);
-        
+
         $endpoint = "_matrix/media/r0/upload?filename=$filename";
 
         try {
@@ -552,5 +569,30 @@ class Manager
     {
         $username = strtolower($user->getUsername());
         return "@{$username}:{$this->matrixConfig->getHomeserverDomain()}";
+    }
+
+    /**
+     * @param User $sender
+     * @param User $receiver
+     * @return bool
+     */
+    public function sendChatInviteNotification(User $sender, User $receiver): bool
+    {
+        $receiverGuid = $receiver->getGuid();
+
+        $notification = new Notifications\Notification();
+        $notification->setType(Notifications\NotificationTypes::TYPE_CHAT_INVITE);
+        $notification->setToGuid($receiverGuid);
+        $notification->setEntityUrn('urn:user:' . $receiverGuid);
+        $notification->setFromGuid($sender->getGuid());
+
+        // Save and submit
+        if ($this->notificationsManager->add($notification)) {
+            // Some logging
+            $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
+            return true;
+        }
+
+        return false;
     }
 }
