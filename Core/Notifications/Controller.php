@@ -142,6 +142,15 @@ class Controller
             if (!isset($notification['entity'])) {
                 return false; // TODO: Delete this notification as the entity is invalid
             }
+
+            if (
+                !isset($notification['from']) ||
+                $notification['from']['banned'] === 'yes' ||
+                $notification['from']['enabled'] !== 'yes'
+            ) {
+                return false;
+            }
+
             return true;
         }));
 
