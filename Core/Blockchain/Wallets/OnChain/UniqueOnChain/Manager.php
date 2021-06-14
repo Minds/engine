@@ -107,9 +107,9 @@ class Manager
     }
 
     /**
-     * @return UniqueOnChainAddress[]
+     * @return iterable<UniqueOnChainAddress>
      */
-    public function getAll(): Response
+    public function getAll(): iterable
     {
         return $this->repository->getList([]);
     }
