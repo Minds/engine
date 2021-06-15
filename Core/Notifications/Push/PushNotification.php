@@ -12,6 +12,9 @@ use Minds\Entities\User;
  */
 class PushNotification
 {
+    /** @var string */
+    const MINDS_CHAT_URL = 'https://chat.minds.com';
+
     /** @var Notification */
     protected $notification;
 
@@ -41,6 +44,7 @@ class PushNotification
     public function getTitle(): ?string
     {
         $from = $this->notification->getFrom();
+
         $entity = $this->notification->getEntity();
 
         if (!$from) {
@@ -103,6 +107,11 @@ class PushNotification
                 break;
             case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
                 return 'Minds Token Rewards';
+             case NotificationTypes::TYPE_CHAT_INVITE:
+                $verb = 'sent';
+                $pronoun = 'you';
+                $noun = 'a message on Minds Chat';
+                break;
             default:
                 throw new UndeliverableException("Invalid type");
         }
@@ -150,6 +159,8 @@ class PushNotification
                 $data = $this->notification->getData();
                 $excerpt = "🚀' You earned {$data['tokens_formatted']} tokens (\${$data['usd_formatted']}) yesterday";
                 break;
+            case NotificationTypes::TYPE_CHAT_INVITE:
+                $excerpt = "Sign in now to view it";
         }
 
         return $excerpt;
@@ -160,6 +171,11 @@ class PushNotification
      */
     public function getUri(): string
     {
+        switch ($this->notification->getType()) {
+            case NotificationTypes::TYPE_CHAT_INVITE:
+                return self::MINDS_CHAT_URL;
+        }
+
         $entity = $this->notification->getEntity();
         switch ($entity->getType()) {
             case 'user':
@@ -200,7 +216,7 @@ class PushNotification
                 return $entity->getThumbnail();
             break;
         }
-            
+
         return null;
     }
 
@@ -280,6 +296,7 @@ class PushNotification
             case NotificationTypes::TYPE_TAG:
             case NotificationTypes::TYPE_SUBSCRIBE:
             case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
+            case NotificationTypes::TYPE_CHAT_INVITE:
                 return true;
         }
         return false;
