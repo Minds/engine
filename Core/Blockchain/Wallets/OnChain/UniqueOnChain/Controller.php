@@ -62,13 +62,13 @@ class Controller
      */
     public function getAll(ServerRequest $request): JsonResponse
     {
-        $list = $this->manager->getAll();
+        $list = iterator_to_array($this->manager->getAll());
 
         return new JsonResponse([
             'status' => 'success',
             'addresses' => array_map(function ($uniqueOnChain) {
                 return $uniqueOnChain->export();
-            }, $list->toArray()),
+            }, $list),
         ]);
     }
 
