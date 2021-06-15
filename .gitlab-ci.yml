@@ -118,10 +118,10 @@ review:start:
 
 review:stop:
   stage: review
-  image: minds/helm-eks:latest
+  image: minds/aws-helm:latest
   script:
     - aws eks update-kubeconfig --name=sandbox
-    - helm del --purge $CI_BUILD_REF_SLUG
+    - helm del $CI_BUILD_REF_SLUG
   environment:
     name: review/$CI_COMMIT_REF_NAME
     url: https://$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
