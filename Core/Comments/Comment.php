@@ -185,7 +185,7 @@ class Comment extends RepositoryEntity implements EntityInterface
     public function getOwnerObj()
     {
         if (!$this->ownerObj && $this->ownerGuid) {
-            $user = new User($this->ownerGuid);
+            $user = Di::_()->get('EntitiesBuilder')->single($this->ownerGuid, [ 'cacheTtl' => 84600 ]);
             $user->fullExport = false;
             $this->setOwnerObj($user->export());
         }
