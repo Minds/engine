@@ -12,6 +12,6 @@ class Provider extends Di\Provider
     {
         $this->di->bind('Comments\Manager', function ($di) {
             return new Manager();
-        }, ['useFactory' => false]);
+        }, ['useFactory' => true]);
     }
 }
