@@ -64,7 +64,15 @@ class EntityGuidResolverDelegate implements ResolverDelegate
             return $urn->getNss();
         }, $urns);
 
-        $entities = $this->entitiesBuilder->get(['guids' => $guids]);
+        $entities = [];
+
+        foreach ($guids as $guid) {
+            $entity = $this->entitiesBuilder->single($guid, $opts);
+
+            if ($entity) {
+                $entities[] = $entity;
+            }
+        }
 
         // Map, if faux-Activities are needed
         if ($opts['asActivities']) {

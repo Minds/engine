@@ -37,6 +37,9 @@ class Notification
 {
     use MagicAttributes;
 
+    /** @var int */
+    const ENTITY_CACHE_TTL = 86400; // 24 hour cache
+
     /** @param string */
     private $uuid;
 
@@ -106,7 +109,7 @@ class Notification
      */
     public function getTo(): ?User
     {
-        $to = $this->entitiesBuilder->single($this->getToGuid());
+        $to = $this->entitiesBuilder->single($this->getToGuid(), [ 'cacheTtl' => self::ENTITY_CACHE_TTL ]);
         if ($to instanceof User) {
             return $to;
         }
@@ -122,7 +125,7 @@ class Notification
         if ((string) $this->getFromGuid() === SystemUser::GUID) {
             return new SystemUser();
         }
-        $from = $this->entitiesBuilder->single($this->getFromGuid());
+        $from = $this->entitiesBuilder->single($this->getFromGuid(), [ 'cacheTtl' => self::ENTITY_CACHE_TTL ]);
         if ($from instanceof User) {
             return $from;
         }
@@ -138,7 +141,7 @@ class Notification
     {
         $mergedFrom = [];
         foreach (array_slice($this->mergedFromGuids, 0, $limit) as $fromGuid) {
-            $from = $this->entitiesBuilder->single($fromGuid);
+            $from = $this->entitiesBuilder->single($fromGuid, [ 'cacheTtl' => self::ENTITY_CACHE_TTL ]);
             if ($from instanceof User) {
                 $mergedFrom[] = $from;
             }
@@ -154,7 +157,7 @@ class Notification
     {
         try {
             $entity = $this->entitiesRevolver
-            //->setOpts(['asActivities' => true,])
+            ->setOpts([ 'cacheTtl' => self::ENTITY_CACHE_TTL ])
             ->single(new Urn($this->getEntityUrn()));
 
             if ($entity) {

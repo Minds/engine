@@ -57,6 +57,9 @@ class Manager
     /** @var KeyValueLimiter */
     protected $kvLimiter;
 
+    /** @var Comment[] */
+    protected $tmpCacheByUrn = [];
+
     /**
      * Manager constructor.
      * @param Repository|null $repository
@@ -345,6 +348,11 @@ class Manager
             return null;
         }
 
+        // Prevent grabbing the same comment multiple times per request (eg. notifications)
+        if (isset($this->tmpCacheByUrn[$urn]) && $this->tmpCacheByUrn[$urn]) {
+            return $this->tmpCacheByUrn[$urn];
+        }
+
         $entityGuid = $components[0];
         $parentPath = "{$components[1]}:{$components[2]}:{$components[3]}";
         $guid = $components[4];
@@ -353,7 +361,9 @@ class Manager
             return $this->legacyRepository->getByGuid($guid);
         }
 
-        return $this->repository->get($entityGuid, $parentPath, $guid);
+        $comment = $this->repository->get($entityGuid, $parentPath, $guid);
+        $this->tmpCacheByUrn[$urn] = $comment;
+        return $comment;
     }
 
     /**
