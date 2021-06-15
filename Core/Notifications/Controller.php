@@ -146,10 +146,11 @@ class Controller
             if (!isset($notification['from'])) {
                 return false;
             }
-
+    
             if (
                 $notification['from']['banned'] === 'yes' ||
-                $notification['from']['enabled'] !== 'yes'
+                $notification['from']['enabled'] !== 'yes' ||
+                $notification['from']['deleted'] === 1
             ) {
                 return false;
             }
