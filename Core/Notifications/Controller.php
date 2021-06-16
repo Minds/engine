@@ -28,6 +28,7 @@ class Controller
     
     /** @var ACL */
     protected $acl;
+
     /**
      * Controller constructor.
      * @param null $manager
