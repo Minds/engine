@@ -22,14 +22,21 @@ class Controller
     /** @var Manager */
     protected $manager;
 
+    //TODO: ADD TYPES
+    protected $entitiesBuilder;
+    protected $acl;
     /**
      * Controller constructor.
      * @param null $manager
      */
     public function __construct(
-        $manager = null
+        $manager = null,
+        $entitiesBuilder = null,
+        $acl = null
     ) {
         $this->manager = $manager ?? new Manager();
+        $this->entitiesBuilder = $entitiesBuilder ?? Core\Di\Di::_()->get('EntitiesBuilder');
+        $this->acl = $acl ?? Core\Di\Di::_()->get('Security\ACL');
     }
 
     /**
@@ -147,11 +154,11 @@ class Controller
                 return false;
             }
     
-            if (
-                $notification['from']['banned'] === 'yes' ||
-                $notification['from']['enabled'] !== 'yes' ||
-                $notification['from']['deleted'] === 1
-            ) {
+            $from = $this->entitiesBuilder->single($notification['from_guid'], [
+                'cache' => false,
+            ]);
+    
+            if (!$from || !$this->acl->read($from)) {
                 return false;
             }
 

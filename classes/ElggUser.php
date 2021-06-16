@@ -774,7 +774,6 @@ class ElggUser extends ElggEntity implements Friendable
             'legacy_guid',
             'featured_id',
             'banned',
-            'enabled',
             'ban_reason',
         ]);
     }
