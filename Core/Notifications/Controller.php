@@ -3,6 +3,7 @@ namespace Minds\Core\Notifications;
 
 use Minds\Entities\User;
 use Minds\Core;
+use Minds\Core\Di\Di;
 use Minds\Api\Exportable;
 use Minds\Exceptions\UserErrorException;
 use Minds\Core\Notifications\Manager;
@@ -22,8 +23,10 @@ class Controller
     /** @var Manager */
     protected $manager;
 
-    //TODO: ADD TYPES
+    /** @var EntitiesBuilder */
     protected $entitiesBuilder;
+    
+    /** @var ACL */
     protected $acl;
     /**
      * Controller constructor.
@@ -35,8 +38,8 @@ class Controller
         $acl = null
     ) {
         $this->manager = $manager ?? new Manager();
-        $this->entitiesBuilder = $entitiesBuilder ?? Core\Di\Di::_()->get('EntitiesBuilder');
-        $this->acl = $acl ?? Core\Di\Di::_()->get('Security\ACL');
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->acl = $acl ?? Di::_()->get('Security\ACL');
     }
 
     /**
