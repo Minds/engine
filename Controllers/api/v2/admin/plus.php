@@ -39,10 +39,17 @@ class plus implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function put($pages)
     {
+        $logger = Di::_()->get('Logger');
+        $logger->warn('AdminPlus | endpoint being hit');
+     
         $userGuid = $pages[0] ?? false;
         $action = $pages[1] ?? false;
         $timespan = $pages[2] ?? false;
- 
+
+        $logger->warn('AdminPlus | userGuid: '.$userGuid);
+        $logger->warn('AdminPlus | timespan: '.$timespan);
+        $logger->warn('AdminPlus | action: '.$action);
+
         if (!$action || !$userGuid) {
             return Factory::response([
                 'status' => 'error',
@@ -53,6 +60,8 @@ class plus implements Interfaces\Api, Interfaces\ApiAdminPam
         $target = Di::_()->get('EntitiesBuilder')->single($pages[0], [
             'cache' => false,
         ]);
+
+        $logger->warn('AdminPlus | target username: '.$target->getUsername());
 
         // Manually flush the cache.
         $channelsManager = Di::_()->get('Channels\Manager');
@@ -89,20 +98,30 @@ class plus implements Interfaces\Api, Interfaces\ApiAdminPam
         }
 
         if ($action === 'remove') {
+            $logger->warn('AdminPlus | plus_expires on target is currently '.$target->getPlusExpires());
+            $logger->warn('AdminPlus | setting plus expires to '.time());
+
             $target->setPlusExpires(time());
+
+            $logger->warn('AdminPlus | plus_expires set to '.$target->getPlusExpires());
+
             try {
                 (new PlusSubscription())
                     ->setUser($target)
                     ->cancel();
+
+                $logger->warn('AdminPlus | cancelled subscription');
             } catch (\Exception $e) {
+                $logger->warn('AdminPlus | caught error cancelling subscription');
                 Di::_()->get('Logger')->error($e);
             }
         }
 
         $isAllowed = ACL::_()->setIgnore(true); // store previous state.
 
+        $logger->warn('AdminPlus | saving...');
+        
         $success = $target->save();
-
         ACL::_()->setIgnore($isAllowed); // set back to previous state.
 
         if (!$success) {
@@ -111,6 +130,8 @@ class plus implements Interfaces\Api, Interfaces\ApiAdminPam
                 'message' => 'Error disabling Plus',
             ]);
         }
+
+        $logger->warn('AdminPlus | saved, new plus_expires: '.$target->getPlusExpires());
 
         return Factory::response([]);
     }
