@@ -22,16 +22,21 @@ class Subscription
     /** @var Repository $subscriptionsRepository */
     protected $subscriptionsRepository;
 
+    /** @var Logger $logger */
+    protected $logger;
+
     public function __construct(
         $config = null,
         $stripe = null,
         $subscriptionsManager = null,
-        $subscriptionsRepository = null
+        $subscriptionsRepository = null,
+        $logger = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->stripe = $stripe ?: Di::_()->get('StripePayments');
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Payments\Subscriptions\Manager');
         $this->subscriptionsRepository = $subscriptionsRepository ?: Di::_()->get('Payments\Subscriptions\Repository');
+        $this->logger = $logger ?: Di::_()->get('Payments\Subscriptions\Repository');
     }
 
     /**
@@ -82,6 +87,7 @@ class Subscription
         try {
             $this->subscriptionsManager->cancelSubscriptions($this->user->guid, $this->config->get('plus')['handler']);
         } catch (\Exception $e) {
+            $this->logger->error($e);
         }
 
         return $this;
