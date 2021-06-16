@@ -92,6 +92,7 @@ class Controller
     /**
      * @param ServerRequest $request
      * @return JsonResponse
+     * @throws UserErrorException
      */
     public function createDirectRoom(ServerRequest $request): JsonResponse
     {
@@ -105,22 +106,24 @@ class Controller
             throw new UserErrorException('User not found');
         }
 
-        // check if receiver has a matrix account
+        $newRoom = $this->manager->createDirectRoom($user, $receiver);
+
+        // check if receiver has set up a matrix account
+        $chatSetup = true;
+
         if (!$this->manager->getAccountByUser($receiver)) {
-            $this->manager->sendChatInviteNotification($user, $receiver);
-            return new JsonResponse([
-                'status' => 'failed',
-                'message' => 'recipient has not set up chat account'
-            ]);
+            $chatSetup = false;
+            $this->manager->sendChatInviteNotification($user, $receiver, $newRoom);
         };
 
-
-
-        $newRoom = $this->manager->createDirectRoom($user, $receiver);
-        return new JsonResponse([
-           'status' => 'success',
-           'room' => $newRoom->export(),
-        ]);
+        if ($chatSetup) {
+            return new JsonResponse([
+                'status' => 'success',
+                'room' => $newRoom->export(),
+            ]);
+        } else {
+            throw new UserErrorException("Recipient has not set up chat account");
+        }
     }
 
     /**

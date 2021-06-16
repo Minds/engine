@@ -576,7 +576,7 @@ class Manager
      * @param User $receiver
      * @return bool
      */
-    public function sendChatInviteNotification(User $sender, User $receiver): bool
+    public function sendChatInviteNotification(User $sender, User $receiver, MatrixRoom $room): bool
     {
         $receiverGuid = $receiver->getGuid();
 
@@ -585,6 +585,9 @@ class Manager
         $notification->setToGuid($receiverGuid);
         $notification->setEntityUrn('urn:user:' . $receiverGuid);
         $notification->setFromGuid($sender->getGuid());
+        $notification->setData([
+            'room_id' =>  $room->getId()
+        ]);
 
         // Save and submit
         if ($this->notificationsManager->add($notification)) {

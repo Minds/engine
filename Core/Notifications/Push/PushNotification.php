@@ -13,7 +13,7 @@ use Minds\Entities\User;
 class PushNotification
 {
     /** @var string */
-    const MINDS_CHAT_URL = 'https://chat.minds.com';
+    const MINDS_CHAT_URL = 'https://chat.minds.com/';
 
     /** @var Notification */
     protected $notification;
@@ -173,7 +173,8 @@ class PushNotification
     {
         switch ($this->notification->getType()) {
             case NotificationTypes::TYPE_CHAT_INVITE:
-                return self::MINDS_CHAT_URL;
+                $roomId = $this->notification->getData()['room_id'];
+                return self::MINDS_CHAT_URL . '#/room/' . $roomId;
         }
 
         $entity = $this->notification->getEntity();
