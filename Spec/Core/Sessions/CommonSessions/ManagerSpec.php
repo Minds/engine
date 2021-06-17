@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\Sessions\CommonSessions;
 
 use DateTimeImmutable;
 use Minds\Core\OAuth\Entities\AccessTokenEntity;
+use Minds\Core\OAuth\Entities\ClientEntity;
 use Minds\Core\Sessions\Manager as SessionsManager;
 use Minds\Core\OAuth\Managers\AccessTokenManager as OAuthManager;
 use Minds\Core\Sessions\CommonSessions\CommonSession;
@@ -57,18 +58,42 @@ class ManagerSpec extends ObjectBehavior
                     ->setIp('127.0.0.2')
                     ->setExpires(time())
                     ->setLastActive(strtotime('16th February 2021')),
+                (new Session())
+                    ->setId('id-4')
+                    ->setUserGuid('123')
+                    ->setIp('127.0.0.2')
+                    ->setExpires(time())
+                    ->setLastActive(strtotime('16th February 2021')),
             ]);
 
+        // mobile token.
         $accessToken1 = new AccessTokenEntity();
         $accessToken1->setIdentifier('token-1');
         $accessToken1->setUserIdentifier('123');
         $accessToken1->setIp('128.0.0.5');
         $accessToken1->setExpiryDateTime(new DateTimeImmutable());
         $accessToken1->setLastActive(strtotime('25th February 2021'));
+        
+        $client1 = new ClientEntity();
+        $client1->setIdentifier('mobile');
+        $accessToken1->setClient($client1);
+
+        // matrix token.
+        $accessToken2 = new AccessTokenEntity();
+        $accessToken2->setIdentifier('token-2');
+        $accessToken2->setUserIdentifier('123');
+        $accessToken2->setIp('128.0.0.6');
+        $accessToken2->setExpiryDateTime(new DateTimeImmutable());
+        $accessToken2->setLastActive(strtotime('25th February 2021'));
+        
+        $client2 = new ClientEntity();
+        $client2->setIdentifier('matrix');
+        $accessToken2->setClient($client2);
 
         $this->oauthManager->getList($user)
             ->willReturn([
                 $accessToken1,
+                $accessToken2
             ]);
 
         $sessions = $this->getAll($user);
@@ -77,10 +102,14 @@ class ManagerSpec extends ObjectBehavior
         $sessions[0]->getId()->shouldBe('id-2');
         $sessions[1]->getId()->shouldBe('id-1');
         $sessions[2]->getId()->shouldBe('token-1');
+        $sessions[3]->getId()->shouldBe('token-2');
 
         // Test access token has correct values
         $sessions[2]->getPlatform()->shouldBe('app');
         $sessions[2]->getIp()->shouldBe('128.0.0.5');
+
+        $sessions[3]->getPlatform()->shouldBe('matrix');
+        $sessions[3]->getIp()->shouldBe('128.0.0.6');
 
         // Test session has correct values
         $sessions[0]->getPlatform()->shouldBe('browser');
