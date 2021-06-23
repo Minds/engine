@@ -296,12 +296,20 @@ class channel implements Interfaces\Api
                 }
 
                 $update = [];
-                foreach (['name', 'website', 'briefdescription', 'gender',
+                foreach (['website', 'briefdescription', 'gender',
                         'city', 'coordinates', 'monetized'] as $field) {
                     if (isset($_POST[$field])) {
                         $update[$field] = $_POST[$field];
                         $owner->$field = $_POST[$field];
                     }
+                }
+
+                if (isset($_POST['name'])) {
+                    $maxLength = Di::_()->get('Config')->max_name_length ?? 50;
+                    $trimmedName = mb_substr($_POST['name'], 0, $maxLength);
+
+                    $update['name'] = $trimmedName;
+                    $owner->name = $trimmedName;
                 }
 
                 if (isset($_POST['dob'])) {
