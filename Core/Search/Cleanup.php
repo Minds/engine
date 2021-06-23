@@ -9,6 +9,7 @@
 namespace Minds\Core\Search;
 
 use Minds\Core;
+use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Di\Di;
 use Minds\Entities\Entity;
@@ -67,10 +68,31 @@ class Cleanup
             $prepared = new Prepared\Delete();
             $prepared->query($query);
             $result = (bool) $this->client->request($prepared);
+
+            $this->recordForMigration($query);
         } catch (\Exception $e) {
             error_log('[Search/Cleanup] ' . get_class($e) . ": {$e->getMessage()}");
         }
 
         return $result;
+    }
+
+    /**
+     * Record to cassandra what is being deleted
+     */
+    protected function recordForMigration(array $query): void
+    {
+        $prepared = new Custom();
+        $prepared->query("INSERT INTO entities_by_time (key, column1, value) VALUES (?,?,?)", [
+            'es7migration',
+            implode(',', [
+                'index=' . $query['index'],
+                'type=' . $query['type'],
+                'id=' . $query['id']
+            ]),
+            json_encode($query),
+        ]);
+
+        Di::_()->get('Database\Cassandra\Cql')->request($prepared);
     }
 }
