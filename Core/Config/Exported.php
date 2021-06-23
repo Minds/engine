@@ -83,6 +83,7 @@ class Exported
             'max_video_length' => $this->config->get('max_video_length'),
             'max_video_length_plus' => $this->config->get('max_video_length_plus'),
             'max_video_file_size' => $this->config->get('max_video_file_size'),
+            'max_name_length' => $this->config->get('max_name_length') ?? 50,
             'features' => (object) ($this->features->export() ?: []),
             'blockchain' => (object) $this->blockchain->getPublicSettings(),
             'sale' => $this->config->get('blockchain')['sale'],

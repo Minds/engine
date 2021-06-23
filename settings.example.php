@@ -706,3 +706,6 @@ $CONFIG->set('arweave', [
     'host' => 'host.docker.internal',
     'port' => 5000,
 ]);
+
+/* In characters */
+$CONFIG->set('max_name_length', 50);
