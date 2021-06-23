@@ -428,6 +428,13 @@ class newsfeed implements Interfaces\Api
                 $container = null;
 
                 if (isset($_POST['container_guid']) && $_POST['container_guid']) {
+                    if (isset($_POST['wire_threshold']) && $_POST['wire_threshold']) {
+                        return Factory::response([
+                            'status' => 'error',
+                            'message' => 'You cannot monetize group posts',
+                        ]);
+                    }
+                    
                     $activity->container_guid = $_POST['container_guid'];
                     if ($container = Entities\Factory::build($activity->container_guid)) {
                         $activity->containerObj = $container->export();
