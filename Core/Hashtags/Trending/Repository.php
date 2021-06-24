@@ -101,8 +101,7 @@ class Repository
         ];
 
         $query = [
-            'index' => 'minds_badger',
-            'type' => 'activity',
+            'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-activity',
             'body' => $body,
             'size' => 0,
         ];

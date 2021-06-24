@@ -24,19 +24,23 @@ class RepositorySpec extends ObjectBehavior
 
     public function let(Client $client, Config $config, FeaturesManager $features)
     {
+        $this->beConstructedWith($client, $config, $features);
+
         $this->client = $client;
         $this->config = $config;
         $this->features = $features;
 
         $config->get('elasticsearch')
             ->shouldBeCalled()
-            ->willReturn(['index' => 'minds']);
+            ->willReturn([
+                'indexes' => [
+                    'search_prefix' => 'minds-search'
+                ]
+            ]);
 
         $config->get('plus')
             ->shouldBeCalled()
             ->willReturn(['support_tier_urn' => 'urn:support-tier:fake/plus']);
-
-        $this->beConstructedWith($client, $config, $features);
     }
 
     public function it_is_initializable()
@@ -64,9 +68,11 @@ class RepositorySpec extends ObjectBehavior
                                 'owner_guid' => '1000',
                                 'time_created' => 1,
                                 '@timestamp' => 1000,
+                                'type' => 'activity',
                             ],
                             '_score' => 100,
-                            '_type' => 'activity',
+                            '_index' => 'minds-search-activity',
+                            '_type' => '_doc',
                         ],
                         [
                             '_source' => [
@@ -74,9 +80,11 @@ class RepositorySpec extends ObjectBehavior
                                 'owner_guid' => '1000',
                                 'time_created' => 1,
                                 '@timestamp' => 1000,
+                                'type' => 'activity',
                             ],
                             '_score' => 50,
-                            '_type' => 'activity',
+                            '_index' => 'minds-search-activity',
+                            '_type' => '_doc',
                         ],
                     ]
                 ]
@@ -102,7 +110,8 @@ class RepositorySpec extends ObjectBehavior
 
         $this->client->request(Argument::that(function ($query) {
             $query = $query->build();
-            return $query['type'] === 'activity,object:image,object:video,object:blog' && in_array('owner_guid', $query['body']['_source'], true);
+            return $query['index'] === 'minds-search-user'
+                && in_array('owner_guid', $query['body']['_source'], true);
         }))
             ->shouldBeCalled()
             ->willReturn([
@@ -114,9 +123,11 @@ class RepositorySpec extends ObjectBehavior
                                 'owner_guid' => '1',
                                 'time_created' => 1,
                                 '@timestamp' => 1000,
+                                'type' => 'user',
                             ],
                             '_score' => 100,
-                            '_type' => 'user',
+                            '_index' => 'minds-search-user',
+                            '_type' => '_doc',
                         ],
                         [
                             '_source' => [
@@ -124,9 +135,11 @@ class RepositorySpec extends ObjectBehavior
                                 'owner_guid' => '2',
                                 'time_created' => 2,
                                 '@timestamp' => 2000,
+                                'type' => 'user',
                             ],
+                            '_index' => 'minds-search-user',
                             '_score' => 50,
-                            '_type' => 'user',
+                            '_type' => '_doc',
                         ],
                     ]
                 ]
@@ -152,7 +165,8 @@ class RepositorySpec extends ObjectBehavior
 
         $this->client->request(Argument::that(function ($query) {
             $query = $query->build();
-            return $query['type'] === 'activity,object:image,object:video,object:blog' && in_array('container_guid', $query['body']['_source'], true);
+            return $query['index'] === 'minds-search-group'
+                && in_array('container_guid', $query['body']['_source'], true);
         }))
             ->shouldBeCalled()
             ->willReturn([
@@ -165,9 +179,11 @@ class RepositorySpec extends ObjectBehavior
                                 'time_created' => 1,
                                 '@timestamp' => 1000,
                                 'container_guid' => '1',
+                                'type' => 'group',
                             ],
                             '_score' => 100,
-                            '_type' => 'group',
+                            '_type' => '_doc',
+                            '_index' => 'minds-search-group',
                         ],
                         [
                             '_source' => [
@@ -176,9 +192,11 @@ class RepositorySpec extends ObjectBehavior
                                 'time_created' => 2,
                                 '@timestamp' => 2000,
                                 'container_guid' => '2',
+                                'type' => 'group',
                             ],
                             '_score' => 50,
-                            '_type' => 'group',
+                            '_type' => '_doc',
+                            '_index' => 'minds-search-group',
                         ],
                     ]
                 ]

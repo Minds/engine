@@ -47,7 +47,7 @@ class Repository
 
         $this->features = $features ?: Di::_()->get('Features\Manager');
 
-        $this->index = $config->get('elasticsearch')['index'];
+        $this->index = $config->get('elasticsearch')['indexes']['search_prefix'];
 
         $this->plusSupportTierUrn = $config->get('plus')['support_tier_urn'];
     }
@@ -103,9 +103,11 @@ class Repository
                         'owner_guid' => $key,
                         $this->getSourceField($type) => $key,
                         '@timestamp' => $doc['_source']['@timestamp'],
+                        'type' => $type,
                     ],
                     '_type' => $type,
                     '_score' => 0,
+                    '_index' => $this->index . '-' . $type,
                 ];
                 $newDocs[$key]['_score'] = log10($newDocs[$key]['_score'] + $algorithm->fetchScore($doc));
             }
@@ -121,7 +123,7 @@ class Repository
             $guids[$guid] = true;
             yield (new ScoredGuid())
                 ->setGuid($doc['_source'][$this->getSourceField($opts['type'])])
-                ->setType($doc['_type'])
+                ->setType(str_replace($this->index . '-', '', $doc['_index']))
                 ->setScore($algorithm->fetchScore($doc))
                 ->setOwnerGuid($doc['_source']['owner_guid'])
                 ->setTimestamp($doc['_source']['@timestamp']);
@@ -326,8 +328,7 @@ class Repository
             $should[] = [
                 'terms' => [
                     'owner_guid' => [
-                        'index' => 'minds-graph',
-                        'type' => 'subscriptions',
+                        'index' => 'minds-graph-subscriptions',
                         'id' => (string) $opts['subscriptions'],
                         'path' => 'guids',
                     ],
@@ -653,17 +654,23 @@ class Repository
 
         $esType = $opts['type'];
 
-        if ($type === 'user' || $type === 'group') {
-            $esType = 'activity,object:image,object:video,object:blog';
-        }
+        $index = $this->index . '-';
 
         if ($esType === 'all') {
-            $esType = 'object:image,object:video,object:blog';
+            $index = array_map(function ($type) {
+                $this->index . '-' . $type;
+            }, [
+                'activity',
+                'object-image',
+                'object-video',
+                'object-blog',
+            ]);
+        } else {
+            $index .= $esType;
         }
 
         $query = [
-            'index' => $this->index,
-            'type' => $esType,
+            'index' => $index,
             'body' => $body,
             'size' => $opts['limit'],
             'from' => $opts['offset'],

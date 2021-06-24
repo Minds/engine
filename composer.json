@@ -6,7 +6,7 @@
         "ext-redis": "~5.1.1",
         "aws/aws-sdk-php": "^3.38",
         "datastax/php-driver": "^1.2.2",
-        "elasticsearch/elasticsearch": "^6.1",
+        "elasticsearch/elasticsearch": "^7.13",
         "firebase/php-jwt": "^3.0",
         "kramnorth/cinemr-php-sdk": "dev-master@dev",
         "kickbox/kickbox": "*",

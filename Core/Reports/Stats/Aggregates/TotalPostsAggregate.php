@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Reports\Stats\Aggregates;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\ElasticSearch\Prepared;
 
@@ -9,9 +10,13 @@ class TotalPostsAggregate implements ModerationStatsAggregateInterface
     /** @var Client $es */
     private $es;
 
-    public function __construct($es = null)
+    /** @var Config */
+    protected $config;
+
+    public function __construct($es = null, Config $config = null)
     {
         $this->es = $es ?: Di::_()->get('Database\ElasticSearch');
+        $this->config = $config ?? Di::_()->get('Config');
     }
 
     /**
@@ -23,11 +28,6 @@ class TotalPostsAggregate implements ModerationStatsAggregateInterface
             'query' => [
                 'bool' => [
                     'must' => [
-                        [
-                            'term' => [
-                                'type' => 'activity',
-                            ],
-                        ],
                         [
                             'range' => [
                                 '@timestamp' => [
@@ -43,7 +43,7 @@ class TotalPostsAggregate implements ModerationStatsAggregateInterface
         ];
 
         $query = [
-            'index' => 'minds_badger',
+            'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-activity',
             'body' => $body,
             'size' => 0,
         ];

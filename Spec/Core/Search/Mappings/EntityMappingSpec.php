@@ -40,7 +40,7 @@ class EntityMappingSpec extends ObjectBehavior
         $this
             ->setEntity($entity)
             ->getType()
-            ->shouldReturn('entity:sub');
+            ->shouldReturn('entity-sub');
     }
 
     public function it_should_throw_during_get_type_if_no_entity()
@@ -77,7 +77,6 @@ class EntityMappingSpec extends ObjectBehavior
         $mappings->shouldHaveKey('guid');
         $mappings->shouldHaveKey('type');
         $mappings->shouldHaveKey('subtype');
-        $mappings->shouldHaveKey('taxonomy');
     }
 
     public function it_should_map_an_entity(
@@ -125,9 +124,7 @@ class EntityMappingSpec extends ObjectBehavior
             ->shouldReturn([
                 'passedValue' => 'PHPSpec',
                 'guid' => '5000',
-                'interactions' => 42,
                 'type' => 'entity',
-                'subtype' => '',
                 'time_created' => $now,
                 'access_id' => '2',
                 'owner_guid' => '1000',
@@ -142,7 +139,6 @@ class EntityMappingSpec extends ObjectBehavior
                 'paywall' => false,
                 'rating' => 1,
                 '@timestamp' => $now * 1000,
-                'taxonomy' => 'entity',
                 'public' => true,
                 // 'wire_support_tier' => 'urn:support-tier:123456',
                 // '@wire_support_tier_expire' => 1000000,

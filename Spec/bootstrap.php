@@ -26,6 +26,14 @@ $CONFIG->cassandra->cql_servers = ['127.0.0.1'];
 $CONFIG->cassandra->username = 'cassandra';
 $CONFIG->cassandra->password = 'cassandra';
 
+$CONFIG->elasticsearch = [
+    'hosts' => [ 'phpspec:9200' ],
+    'indexes' => [
+        'search_prefix' => 'minds-search',
+        'tags' => 'minds-hashtags',
+    ]
+];
+
 $CONFIG->payments = [
     'stripe' => [
         'api_key' => 'phpspec',

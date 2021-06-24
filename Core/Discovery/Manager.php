@@ -198,8 +198,7 @@ class Manager
         ];
 
         $query = [
-            'index' => $this->config->get('elasticsearch')['index'],
-            'type' => 'activity',
+            'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-activity',
             'body' =>  [
                 'query' => [
                     'bool' => [
@@ -272,7 +271,7 @@ class Manager
         //     $opts['hoursAgo'] = 1680; // 10 Weeks
         // }
 
-        $type = 'activity';
+        $types = [ 'activity' ];
 
         $languages = [ 'en' ];
         if ($this->user && $this->user->getLanguage() !== 'en') {
@@ -344,7 +343,10 @@ class Manager
             ];
             // Only blogs and videos show in top half of discovery
             // as we don't want blury thumbnails
-            $type = 'object:video,object:blog';
+            $types = [
+                'object-video',
+                'object-blog',
+            ];
         }
 
         // Not NSFW
@@ -419,9 +421,12 @@ class Manager
             'weight' => 10,
         ];
 
+        $index = array_map(function ($type) {
+            return $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-' . $type;
+        }, $types);
+        
         $query = [
-            'index' => $this->config->get('elasticsearch')['index'],
-            'type' => $type,
+            'index' => $index,
             'body' =>  [
                 'query' => [
                     'function_score' => [
@@ -544,13 +549,13 @@ class Manager
 
         switch ($type) {
             case 'blogs':
-                $type = 'object:blog';
+                $type = 'object-blog';
                 break;
             case 'images':
-                $type = 'object:image';
+                $type = 'object-image';
                 break;
             case 'videos':
-                $type = 'object:video';
+                $type = 'object-video';
                 break;
             default:
                 $type = 'activity';

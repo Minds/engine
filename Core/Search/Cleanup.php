@@ -34,7 +34,7 @@ class Cleanup
     public function __construct($client = null, $index = null, $entitiesBuilder = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
-        $this->esIndex = $index ?: Di::_()->get('Config')->elasticsearch['index'];
+        $this->esIndex = $index ?: Di::_()->get('Config')->elasticsearch['indexes']['search_prefix'];
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
     }
 
@@ -60,8 +60,7 @@ class Cleanup
             $mapper = Di::_()->get('Search\Mappings')->build($entity);
 
             $query = [
-                'index' => $this->esIndex,
-                'type' => $mapper->getType(),
+                'index' => $this->esIndex . '-' . $mapper->getType(),
                 'id' => $mapper->getId(),
             ];
 

@@ -155,8 +155,8 @@ class Manager
             ++$i; // Update here as we don't want to count skipped
 
             $entityType = $scoredGuid->getType() ?? 'entity';
-            if (strpos($entityType, 'object:', 0) === 0) {
-                $entityType = str_replace('object:', '', $entityType);
+            if (strpos($entityType, 'object-', 0) === 0) {
+                $entityType = str_replace('object-', '', $entityType);
             }
 
             if ($opts['as_activities'] && !in_array($opts['type'], ['user', 'group'], true)) {
