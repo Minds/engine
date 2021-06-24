@@ -165,7 +165,7 @@ class Manager
 
             $urn = implode(':', [
                 'urn',
-                $entityType,
+                $entityType ?: 'entity',
                 $scoredGuid->getGuid(),
             ]);
 
