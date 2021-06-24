@@ -45,7 +45,7 @@ class scheduled implements Interfaces\Api
 
         if (!$currentUser || (
             !$currentUser->isAdmin() &&
-            $container->getOwnerGuid() !== $currentUser->getGuid()
+            $container->canEdit()
         )) {
             return Factory::response([
                 'status' => 'error',
