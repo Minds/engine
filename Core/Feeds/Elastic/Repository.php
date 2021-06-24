@@ -475,7 +475,7 @@ class Repository
         }
 
         // Will start the feed after this timestamp (used for pagination)
-        if ($opts['from_timestamp']) {
+        if ($opts['from_timestamp'] && !$opts['to_timestamp']) {
             if (!$opts['reverse_sort']) {
                 $timestampUpperBounds[] = (int) $opts['from_timestamp'];
             } else {
@@ -483,16 +483,18 @@ class Repository
             }
         }
 
-        // Will load the feed until this timestamp is reached
-        if ($opts['to_timestamp']) {
-            $timestampLowerBounds[] = (int) $opts['to_timestamp'];
+        // Load the feed between these two timestamps
+        if ($opts['to_timestamp'] && $opts['from_timestamp']) {
+            $timestampUpperBounds[] = (int) $opts['to_timestamp'];
+            $timestampLowerBounds[] = (int) $opts['from_timestamp'];
         }
 
-        // Used to scenario such as loading scheduled posts
-        if ($opts['future']) {
-            $timestampLowerBounds[] = time() * 1000;
-        } else {
-            $timestampUpperBounds[] = time() * 1000;
+        if (!$opts['to_timestamp']) {
+            if ($opts['future']) {
+                $timestampLowerBounds[] = time() * 1000;
+            } else {
+                $timestampUpperBounds[] = time() * 1000;
+            }
         }
 
         if ($timestampUpperBounds || $timestampLowerBounds) {
