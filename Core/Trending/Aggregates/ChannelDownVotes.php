@@ -43,7 +43,6 @@ class ChannelDownVotes extends Aggregate
 
         $query = [
             'index' => 'minds-metrics-*',
-            'type' => 'action',
             'size' => 1, //we want just the aggregates
             'body' => [
                 'query' => [

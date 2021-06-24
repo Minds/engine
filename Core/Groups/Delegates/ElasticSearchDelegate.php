@@ -24,14 +24,14 @@ class ElasticSearchDelegate
     public function onSave(Group $group): void
     {
         $query = [
-            'index' => 'minds-groups',
+            'index' => 'minds-search-group',
             'type' => '_doc',
             'id' => $group->getGuid(),
             'body' => [
                 'doc' => [
                     'guid' => (int) $group->getGuid(),
                     'name' => (string) $group->getName(),
-                    'description' => (string) $group->getBriefDescription(),
+                    'briefdescription' => (string) $group->getBriefDescription(),
                     'members:count' => (int) $group->getMembersCount(),
                     'suggest' => array_merge(
                         $this->suggestCompleter->build([ $group->getName() ]),

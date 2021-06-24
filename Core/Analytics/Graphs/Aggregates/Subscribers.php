@@ -104,7 +104,6 @@ class Subscribers implements AggregateInterface
         $query = [
             'index' => 'minds-metrics-*',
             'size' => 0,
-            'type' => 'action',
             "stored_fields" => [
                 "*"
             ],

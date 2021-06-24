@@ -61,7 +61,6 @@ class RemindsSpec extends ObjectBehavior
         $prepared = new ElasticSearch\Prepared\Search();
         $prepared->query([
             'index' => 'minds-metrics-*',
-            'type' => 'action',
             'body' => [
                 'query' => [
                     'bool' => [
@@ -152,7 +151,6 @@ class RemindsSpec extends ObjectBehavior
         $prepared = new ElasticSearch\Prepared\Search();
         $prepared->query([
             'index' => 'minds-metrics-*',
-            'type' => 'action',
             'body' => [
                 'query' => [
                     'bool' => [
