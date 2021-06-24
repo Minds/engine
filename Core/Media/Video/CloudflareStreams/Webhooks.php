@@ -117,13 +117,13 @@ class Webhooks
 
         $this->logger->info("Cloudflare webhook - height: $video->height width: $video->width");
 
-        $ia = $this->acl->setIgnore(true);
+        // $ia = $this->acl->setIgnore(true);
 
-        $this->save
-            ->setEntity($video)
-            ->save();
+        // $this->save
+        //     ->setEntity($video)
+        //     ->save();
 
-        $this->acl->setIgnore($ia); // Set the ignore state back to what it was
+        // $this->acl->setIgnore($ia); // Set the ignore state back to what it was
     
         return new JsonResponse([ ]);
     }
