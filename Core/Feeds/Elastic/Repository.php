@@ -652,19 +652,19 @@ class Repository
 
         //
 
-        $esType = $opts['type'];
+        $esType = $opts['type'] ?: 'all';
 
         $index = $this->index . '-';
 
         if ($esType === 'all') {
-            $index = array_map(function ($type) {
-                $this->index . '-' . $type;
+            $index = implode(',', array_map(function ($type) {
+                return $this->index . '-' . $type;
             }, [
                 'activity',
                 'object-image',
                 'object-video',
                 'object-blog',
-            ]);
+            ]));
         } else {
             $index .= $esType;
         }
