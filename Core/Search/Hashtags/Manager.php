@@ -67,7 +67,6 @@ class Manager
 
         $query = [
             'index' => $this->hashtagsIndex,
-            'type' => 'tags',
             'id' => md5($hashtag),
             'body' => $body
         ];
