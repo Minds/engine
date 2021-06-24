@@ -131,7 +131,6 @@ class UsersIterator implements \Iterator
 
         $query = [
             'index' => 'minds-metrics-*',
-            'type' => 'action',
             'size' => 0, //we want just the aggregates
             'body' => [
                 'query' => [

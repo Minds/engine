@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Monetization\Partners;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\ElasticSearch\Prepared\Search;
 use Minds\Core\Data\ElasticSearch\Client;
@@ -9,10 +10,14 @@ class Sums
 {
     /** @var Client */
     protected $es;
+    
+    /** @var Config */
+    protected $config;
 
-    public function __construct($es = null)
+    public function __construct($es = null, Config $config = null)
     {
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
+        $this->config = $config ?? Di::_()->get('Config');
     }
 
     /**
@@ -139,7 +144,7 @@ class Sums
         ];
 
         $query = [
-            'index' => 'minds_badger',
+            'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-activity',
             'body' => $body,
         ];
 

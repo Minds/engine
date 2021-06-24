@@ -18,7 +18,7 @@ class Documents
     public function __construct($client = null, $index = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
-        $this->index = $index ?: Config::_()->elasticsearch['index'];
+        $this->index = $index ?: Config::_()->elasticsearch['indexes']['search_prefix'] . '-*';
     }
 
     /**
@@ -31,13 +31,13 @@ class Documents
     public function query($query, array $opts = [])
     {
         $opts = array_merge([
-        'limit' => 12,
-        'type' => null,
-        'offset' => '',
-        'flags' => [ ],
-        'mature' => null,
-        'container' => ''
-      ], $opts);
+            'limit' => 12,
+            'type' => null,
+            'offset' => '',
+            'flags' => [ ],
+            'mature' => null,
+            'container' => ''
+        ], $opts);
 
         $query = preg_replace('/[^A-Za-z0-9_\-#"+]/', ' ', $query);
         $flags = '';
