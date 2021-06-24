@@ -43,10 +43,9 @@ class scheduled implements Interfaces\Api
             ]);
         }
 
-        if (!$currentUser || (
-            !$currentUser->isAdmin() &&
-            $container->canEdit()
-        )) {
+        if (!$currentUser ||
+            !$container->canEdit()
+        ) {
             return Factory::response([
                 'status' => 'error',
                 'message' => 'You cannot view this users scheduled posts',
