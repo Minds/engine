@@ -18,11 +18,9 @@ class EntityMapping implements MappingInterface
     /** @var array $mappings */
     protected $mappings = [
         '@timestamp' => [ 'type' => 'date' ],
-        'interactions' => [ 'type' => 'integer', '$exportField' => 'interactions' ],
         'guid' => [ 'type' => 'text', '$exportField' => 'guid' ],
         'type' => [ 'type' => 'text', '$exportField' => 'type' ],
         'subtype' => [ 'type' => 'text', '$exportField' => 'subtype' ],
-        'taxonomy' => [ 'type' => 'text' ],
         'time_created' => [ 'type' => 'integer', '$exportField' => 'time_created' ],
         'access_id' => [ 'type' => 'text', '$exportField' => 'access_id' ],
         'public' => [ 'type' => 'boolean' ],
@@ -75,7 +73,7 @@ class EntityMapping implements MappingInterface
         $type = (string) $this->entity->type;
 
         if (isset($this->entity->subtype) && $this->entity->subtype) {
-            $type .= ':' . $this->entity->subtype;
+            $type .= '-' . $this->entity->subtype;
         }
 
         return $type;
@@ -119,19 +117,10 @@ class EntityMapping implements MappingInterface
         // Auto populate based on $exportField
         $map = array_merge($defaultValues, $this->autoMap());
 
-        // Basics (taxonomy and timestamp)
-
-        $taxonomy = [ $this->entity->type ];
-
-        if (isset($this->entity->subtype) && $this->entity->subtype) {
-            $taxonomy[] = $this->entity->subtype;
-        }
 
         if (isset($this->entity->time_created) && $this->entity->time_created) {
             $map['@timestamp'] = $this->entity->time_created * 1000;
         }
-
-        $map['taxonomy'] = implode(':', $taxonomy);
 
         // Public
 
@@ -224,7 +213,9 @@ class EntityMapping implements MappingInterface
 
         //
 
-        return $map;
+        return array_filter($map, function ($value) {
+            return isset($value) && $value !== "";
+        });
     }
 
     /**

@@ -38,22 +38,17 @@ class Repository
      */
     public function getSubscriptions(RepositoryGetOptions $options): Response
     {
+        $userIndex = $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-user';
         $query = [
-            'index' => 'minds_badger',
+            'index' => $userIndex,
             'body' => [
                 'query' => [
                     'bool' => [
                         'must' => [
                             [
-                                'term' => [
-                                    'type' => 'user'
-                                ]
-                            ],
-                            [
                                 'terms' => [
                                     'guid' => [
-                                        'index' => 'minds-graph',
-                                        'type' => 'subscriptions',
+                                        'index' => 'minds-graph-subscriptions',
                                         'id' => $options->getUserGuid(),
                                         'path' => 'guids',
                                     ],

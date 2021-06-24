@@ -5,6 +5,7 @@
 namespace Minds\Core\Security\AbuseGuard;
 
 use Minds\Core;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Helpers;
@@ -13,9 +14,16 @@ class Recover
 {
     private $accused;
 
-    public function __construct($client = null)
+    /** @var Client */
+    protected $client;
+
+    /** @var Config */
+    protected $config;
+
+    public function __construct($client = null, Config $config = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
+        $this->config = $config ?? Di::_()->get('Config');
     }
 
     public function setAccused($accused)
@@ -72,7 +80,6 @@ class Recover
     {
         $query = [
             'index' => 'minds-metrics-*',
-            'type' => 'action',
             'size' => 1000,
             'body' => [
                 'query' => [
@@ -114,7 +121,6 @@ class Recover
     {
         $query = [
             'index' => 'minds-metrics-*',
-            'type' => 'action',
             'size' => 1000,
             'body' => [
                 'query' => [
@@ -155,8 +161,7 @@ class Recover
     private function getPosts()
     {
         $query = [
-            'index' => 'minds_badger',
-            'type' => 'activity',
+            'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-activity',
             'size' => 1000,
             'body' => [
                 'query' => [

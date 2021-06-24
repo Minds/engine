@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Email\SendGrid\Lists;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Email\SendGrid\SendGridContact;
@@ -13,10 +14,14 @@ class MonetizedUsersList implements SendGridListInterface
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    public function __construct($scroll = null, $entitiesBuilder = null)
+    /** @var Config */
+    protected $config;
+
+    public function __construct($scroll = null, $entitiesBuilder = null, Config $config = null)
     {
         $this->scroll = $scroll ?? Di::_()->get('Database\ElasticSearch\Scroll');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->config = $config ?? Di::_()->get('Config');
     }
 
     /**
@@ -26,8 +31,7 @@ class MonetizedUsersList implements SendGridListInterface
     {
         $prepared = new Prepared\Search();
         $prepared->query([
-            'index' => 'minds_badger',
-            'type' => 'user',
+            'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-user',
             'body' => [
                 'query' => [
                     'bool' => [
