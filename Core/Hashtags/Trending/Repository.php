@@ -77,7 +77,7 @@ class Repository
             'aggs' => [
                 'tags' => [
                     'terms' => [
-                        'field' => 'tags.keyword',
+                        'field' => 'tags',
                         'size' => $opts['limit'],
                         'exclude' => array_merge($this->config->get('tags'), array_column($this->getHidden(), 'hashtag')),
                         'order' => [
@@ -92,7 +92,7 @@ class Repository
                         ],
                         'owners' => [
                             'cardinality' => [
-                                'field' => 'owner_guid.keyword',
+                                'field' => 'owner_guid',
                             ],
                         ],
                     ],
