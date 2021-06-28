@@ -17,7 +17,6 @@ class TransactionsCount extends Metrics\AbstractBlockchainMetric implements Metr
     {
         $query = [
             'index' =>  'minds-offchain*',
-            'size' => 0,
             'body' => [
                 'query' => [
                     'bool' => [
@@ -38,11 +37,11 @@ class TransactionsCount extends Metrics\AbstractBlockchainMetric implements Metr
         ];
 
 
-        $prepared = new ElasticSearch\Prepared\Search();
+        $prepared = new ElasticSearch\Prepared\Count();
         $prepared->query($query);
         $response = $this->es->request($prepared);
 
-        return BigDecimal::of($response['hits']['total'])->toScale(0);
+        return BigDecimal::of($response['count'])->toScale(0);
     }
 
     /**
@@ -52,7 +51,6 @@ class TransactionsCount extends Metrics\AbstractBlockchainMetric implements Metr
     {
         $query = [
             'index' =>  'minds-transactions-onchain*',
-            'size' => 0,
             'body' => [
                 'query' => [
                     'bool' => [
@@ -73,10 +71,10 @@ class TransactionsCount extends Metrics\AbstractBlockchainMetric implements Metr
         ];
 
 
-        $prepared = new ElasticSearch\Prepared\Search();
+        $prepared = new ElasticSearch\Prepared\Count();
         $prepared->query($query);
         $response = $this->es->request($prepared);
 
-        return BigDecimal::of($response['hits']['total'])->toScale(0);
+        return BigDecimal::of($response['count'])->toScale(0);
     }
 }
