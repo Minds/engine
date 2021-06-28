@@ -159,6 +159,10 @@ class container implements Interfaces\Api
             }
         }
 
+        if (isset($_GET['to_timestamp'])) {
+            $opts['to_timestamp'] = $_GET['to_timestamp'] ;
+        }
+
         try {
             $result = $manager->getList($opts);
 
