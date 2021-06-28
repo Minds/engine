@@ -166,9 +166,6 @@ class Defaults
 
         // Feeds events
         (new Core\Feeds\Events())->register();
-
-        // Entities events
-        (new Core\Entities\Events())->register();
     }
 
     public static function _()
