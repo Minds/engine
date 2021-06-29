@@ -2,6 +2,7 @@
 namespace Minds\Core\Subscriptions\Graph;
 
 use Minds\Common\Repository\Response;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Data\ElasticSearch\Prepared\Search;
 use Minds\Core\Di\Di;
@@ -20,16 +21,21 @@ class Repository
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
+    /** @var Config */
+    protected $config;
+
     /**
      * Repository constructor.
      * @param $es
      */
     public function __construct(
         $es = null,
-        EntitiesBuilder $entitiesBuilder = null
+        EntitiesBuilder $entitiesBuilder = null,
+        Config $config = null
     ) {
         $this->es = $es ?: Di::_()->get('Database\ElasticSearch');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->config = $config ?? Di::_()->get('Config');
     }
 
     /**
