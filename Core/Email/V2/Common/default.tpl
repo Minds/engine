@@ -564,7 +564,7 @@
                                               <div style="display: inline-block;">
                                                 Minds Inc
                                                 <span style="white-space: nowrap;"
-                                                  >© 2020</span
+                                                  >© 2021</span
                                                 >
                                               </div>
                                             </div>
