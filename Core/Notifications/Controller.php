@@ -158,11 +158,7 @@ class Controller
                 return false;
             }
     
-            $from = $this->entitiesBuilder->single($notification['from_guid'], [
-                'cache' => false,
-            ]);
-    
-            if (!$from || !$this->acl->read($from)) {
+            if (!$this->acl->interact($notification['from_guid'])) {
                 return false;
             }
 
