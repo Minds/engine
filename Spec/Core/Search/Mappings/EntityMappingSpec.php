@@ -80,7 +80,7 @@ class EntityMappingSpec extends ObjectBehavior
     }
 
     public function it_should_map_an_entity(
-        \ElggEntity $entity
+        \Minds\Entities\Activity $entity
     ) {
         $now = time();
 
@@ -93,26 +93,21 @@ class EntityMappingSpec extends ObjectBehavior
         $entity->get('owner_guid')->willReturn(1000);
         $entity->get('container_guid')->willReturn(1000);
         $entity->get('mature')->willReturn(false);
+        $entity->getMature()->willReturn(false);
         $entity->get('message')->willReturn('PHPSpec Message #test #hashtag');
         $entity->get('name')->willReturn('PHPSpec Name');
         $entity->get('title')->willReturn('PHPSpec Title');
         $entity->get('blurb')->willReturn('PHPSpec Blurb');
         $entity->get('description')->willReturn('PHPSpec Description');
         $entity->get('paywall')->willReturn(false);
+        $entity->isPayWall()->willReturn(false);
         $entity->get('tags')->willReturn(['test', 'hashtag']);
         $entity->get('rating')->willReturn(1);
         $entity->get('moderator_guid')->willReturn('123');
         $entity->get('time_moderated')->willReturn($now);
         $entity->getTags()->willReturn([ 'hashtag', 'spaceiscool' ]);
         $entity->getNsfw()->willReturn([ 1 ]);
-        // $entity->getWireThreshold()->willReturn(json_encode([
-        //     'type' => 'tokens',
-        //     'min' => 5,
-        //     'support_tier' => [
-        //         'urn' => 'urn:support-tier:123456',
-        //         'expires' => 1000,
-        //     ],
-        // ]));
+        $entity->getWireThreshold()->willReturn(null);
         $entity->get('language')->willReturn('en');
 
         $this

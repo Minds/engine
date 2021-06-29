@@ -9,6 +9,7 @@
 namespace Minds\Core\Search\Mappings;
 
 use Minds\Common\Regex;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 
 class EntityMapping implements MappingInterface
 {
@@ -140,31 +141,35 @@ class EntityMapping implements MappingInterface
 
         // Paywall
 
-        $paywall = isset($map['paywall']) && $map['paywall'];
+        if ($this->entity instanceof PaywallEntityInterface) {
+            $paywall = isset($map['paywall']) && $map['paywall'];
 
-        if (method_exists($this->entity, 'isPayWall')) {
-            $paywall = !!$this->entity->isPayWall();
-        }
-
-        $map['paywall'] = $paywall;
-
-        // Support Tier
-
-        if (method_exists($this->entity, 'getWireThreshold') && $this->entity->getWireThreshold()) {
-            $wireThreshold = $this->entity->getWireThreshold();
-            $supportTier = $wireThreshold['support_tier']['urn'] ?? null;
-
-            if ($wireThreshold['support_tier']['expires'] ?? null) {
-                $supportTierExpire = $wireThreshold['support_tier']['expires'] * 1000;
+            if (method_exists($this->entity, 'isPayWall')) {
+                $paywall = !!$this->entity->isPayWall();
             }
 
-            if ($supportTier) {
-                $map['wire_support_tier'] = $supportTier;
+            $map['paywall'] = $paywall;
 
-                if ($supportTierExpire) {
-                    $map['@wire_support_tier_expire'] = $supportTierExpire;
+            // Support Tier
+
+            if (method_exists($this->entity, 'getWireThreshold') && $this->entity->getWireThreshold()) {
+                $wireThreshold = $this->entity->getWireThreshold();
+                $supportTier = $wireThreshold['support_tier']['urn'] ?? null;
+
+                if ($wireThreshold['support_tier']['expires'] ?? null) {
+                    $supportTierExpire = $wireThreshold['support_tier']['expires'] * 1000;
+                }
+
+                if ($supportTier) {
+                    $map['wire_support_tier'] = $supportTier;
+
+                    if ($supportTierExpire) {
+                        $map['@wire_support_tier_expire'] = $supportTierExpire;
+                    }
                 }
             }
+        } else {
+            unset($map['paywall']);
         }
 
         // Text

@@ -76,7 +76,6 @@ class UserMappingSpec extends ObjectBehavior
                 'blurb' => 'PHPSpec Blurb',
                 'description' => 'PHPSpec Description',
                 'language' => 'en',
-                'paywall' => false,
                 'rating' => 1,
                 'username' => 'phpspec',
                 'briefdescription' => 'PHPSpec Brief Description #invalidhashtag',
