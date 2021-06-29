@@ -62,7 +62,7 @@ class ObjectBlogMapping extends EntityMapping implements MappingInterface
             throw new \Exception('Entity is required');
         }
 
-        $type = $this->entity->getType() . ':' . $this->entity->getSubtype();
+        $type = $this->entity->getType() . '-' . $this->entity->getSubtype();
 
         return $type;
     }
