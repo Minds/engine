@@ -23,9 +23,6 @@ class Controller
     /** @var Manager */
     protected $manager;
 
-    /** @var EntitiesBuilder */
-    protected $entitiesBuilder;
-    
     /** @var ACL */
     protected $acl;
 
@@ -35,11 +32,9 @@ class Controller
      */
     public function __construct(
         $manager = null,
-        $entitiesBuilder = null,
         $acl = null
     ) {
         $this->manager = $manager ?? new Manager();
-        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->acl = $acl ?? Di::_()->get('Security\ACL');
     }
 
@@ -158,7 +153,7 @@ class Controller
                 return false;
             }
     
-            if (!$this->acl->read($notification['from'])) {
+            if (!$this->acl->interact($notification['from_guid'])) {
                 return false;
             }
 
