@@ -158,7 +158,7 @@ class Controller
                 return false;
             }
     
-            if (!$this->acl->interact($notification['from_guid'])) {
+            if (!$this->acl->read($notification['from'])) {
                 return false;
             }
 
