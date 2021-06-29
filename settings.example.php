@@ -180,16 +180,24 @@ $CONFIG->system_cache_path = '{{cache-path}}';
 /*
  * Elasticsearch Settings
  */
-//server for elasticsearch
-$CONFIG->elasticsearch_server = '{{elasticsearch-server}}';
-//namespace
-$CONFIG->elasticsearch_prefix = '{{elasticsearch-prefix}}';
+
 
 $CONFIG->elasticsearch = [
     'hosts' => ['elasticsearch'],
     'index' => 'minds_badger',
     'metrics_index' => 'minds-metrics',
     'tags_index' => 'minds-trending-hashtags',
+    // ES 7.x
+    'indexes' => [
+        'search_prefix' => 'minds-search',
+        'boost' => 'minds-boost',
+        'graph' => 'minds-graph',
+        'metrics' => 'minds-metrics',
+        'tags' => 'minds-hashtags',
+    ],
+    'username' => null,
+    'password' => null,
+    'cert' => '/var/secure/elasticsearch.crt',
 ];
 
 /*
@@ -706,3 +714,6 @@ $CONFIG->set('arweave', [
     'host' => 'host.docker.internal',
     'port' => 5000,
 ]);
+
+/* In characters */
+$CONFIG->set('max_name_length', 50);

@@ -80,8 +80,8 @@ class UserMapping extends EntityMapping implements MappingInterface
     {
         $map = parent::suggestMap($defaultValues);
 
-        $name = preg_replace('/[0-9]*/', '', $this->entity->name);
-        $username = preg_replace('/[0-9]*/', '', $this->entity->username);
+        $name = $this->entity->getName();
+        $username = $this->entity->getUsername();
 
         if (!$name && !$username) {
             error_log('[es]: tried to save user without username or name ' . $this->entity->guid);

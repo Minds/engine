@@ -202,7 +202,7 @@ class ElasticRepository
     {
         $body = [
             'doc' => [
-                '@timestamp' => $boost->getCreatedTimestamp(),
+                '@timestamp' => (string)  $boost->getCreatedTimestamp(),
                 'bid' => $boost->getBidType() === 'tokens' ?
                     (string) BigNumber::fromPlain($boost->getBid(), 18)->toDouble() : $boost->getBid(),
                 'bid_type' => $boost->getBidType(),
@@ -226,19 +226,19 @@ class ElasticRepository
         }
 
         if ($boost->getCompletedTimestamp()) {
-            $body['doc']['@completed'] = $boost->getCompletedTimestamp();
+            $body['doc']['@completed'] = (string) $boost->getCompletedTimestamp();
         }
 
         if ($boost->getReviewedTimestamp()) {
-            $body['doc']['@reviewed'] = $boost->getReviewedTimestamp();
+            $body['doc']['@reviewed'] = (string) $boost->getReviewedTimestamp();
         }
 
         if ($boost->getRevokedTimestamp()) {
-            $body['doc']['@revoked'] = $boost->getRevokedTimestamp();
+            $body['doc']['@revoked'] = (string) $boost->getRevokedTimestamp();
         }
 
         if ($boost->getRejectedTimestamp()) {
-            $body['doc']['@rejected'] = $boost->getRejectedTimestamp();
+            $body['doc']['@rejected'] = (string) $boost->getRejectedTimestamp();
         }
 
         $prepared = new Prepared\Update();

@@ -46,7 +46,6 @@ class ObjectBlogMappingSpec extends ObjectBehavior
             ->shouldReturn([
                 'passedValue' => 'PHPSpec',
                 'guid' => '5000',
-                'interactions' => 42,
                 'type' => 'object',
                 'subtype' => 'blog',
                 'time_created' => $now,
@@ -60,7 +59,6 @@ class ObjectBlogMappingSpec extends ObjectBehavior
                 'license' => 'cc-test-lic',
                 'nsfw' => [ 1 ],
                 '@timestamp' => $now * 1000,
-                'taxonomy' => 'object:blog',
                 'public' => true,
                 'tags' => [ 'art', 'test', 'hashtag' ],
                 'rating' => 1,

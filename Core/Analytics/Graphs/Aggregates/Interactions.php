@@ -120,7 +120,6 @@ class Interactions implements AggregateInterface
     {
         $query = [
             'index' => $this->index,
-            'type' => 'action',
             'body' => [
                 'query' => [
                     'bool' => [
@@ -178,7 +177,6 @@ class Interactions implements AggregateInterface
         $query = [
             'index' => $this->index,
             'size' => 0,
-            'type' => 'action',
             'body' => [
                 'query' => [
                     'bool' => [

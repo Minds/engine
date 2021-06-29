@@ -22,6 +22,9 @@ class Manager
     /** @var string */
     const PLATFORM_APP = 'app';
 
+    /** @var string */
+    const PLATFORM_CHAT = 'matrix';
+
     /** @var SessionsManager */
     private $sessionsManager;
 
@@ -70,13 +73,23 @@ class Manager
             // Build the common session here
             $commonSession = new CommonSession();
 
+            $platform = null;
+            switch ($oauthSession->getClient()->getIdentifier() ?? '') {
+                case 'matrix':
+                    $platform = self::PLATFORM_CHAT;
+                    break;
+                case 'mobile':
+                default:
+                    $platform = self::PLATFORM_APP;
+            }
+
             $commonSession
                 ->setId($oauthSession->getIdentifier())
                 ->setUserGuid($oauthSession->getUserIdentifier())
                 ->setExpires($oauthSession->getExpiryDateTime()->getTimestamp())
                 ->setIp($oauthSession->getIp())
                 ->setLastActive($oauthSession->getLastActive())
-                ->setPlatform(self::PLATFORM_APP);
+                ->setPlatform($platform);
 
             return $commonSession;
         }, $oauthSessions);
