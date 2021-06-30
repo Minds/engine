@@ -126,7 +126,9 @@ class Join
             throw new VoIpPhoneException();
         }
 
-        $this->sms->send($this->number, $code);
+        $username = $this->user->getUsername();
+
+        $this->sms->send($this->number, "Minds Rewards Code for @$username: $code");
 
         return $secret;
     }
@@ -134,13 +136,16 @@ class Join
     public function resendCode()
     {
         $user_guid = $this->user->guid;
+        $username = $this->user->getUsername();
         $row = $this->db->getRow("rewards:verificationcode:$user_guid");
 
         if (!empty($row)) {
             if (!$this->sms->verify($this->number)) {
                 throw new VoIpPhoneException();
             }
-            $this->sms->send($this->number, $row['code']);
+
+            $code = $row['code'];
+            $this->sms->send($this->number, "Minds Rewards Code for @$username: $code");
 
             return $row['secret'];
         }
