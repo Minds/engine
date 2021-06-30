@@ -47,7 +47,7 @@ class SMSDelegate implements TwoFactorDelegateInterface
 
         $this->logger->info('2fa - sending SMS to ' . $user->getGuid());
 
-        $message = 'Minds verification code: '. $this->twoFactorService->getCode($secret);
+        $message = "Minds (@{$user->getUsername()}) 2FA code: " . $this->twoFactorService->getCode($secret);
 
         // Apply + to all number except 10 digit US numbers
         // NOTE: This is a hacky workaround
