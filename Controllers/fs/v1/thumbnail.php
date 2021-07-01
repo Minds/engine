@@ -80,12 +80,7 @@ class thumbnail extends Core\page implements Interfaces\page
                 $unlock = $_GET['unlock_paywall'] ?? false;
 
                 if (!($unlock && $allowed)) {
-                    exit;
-                    // $imagick = new \Imagick();
-                    // $imagick->readImageBlob($contents);
-                    // $imagick->setType('jpeg');
-                    // $imagick->blurImage(100, 500);
-                    // $contents = $imagick->getImageBlob();
+                    $contents = file_get_contents(dirname(dirname(dirname(dirname(__FILE__)))) . '/Assets/photos/paywall-blur.jpeg');
                 }
             }
 
