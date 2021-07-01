@@ -80,11 +80,12 @@ class thumbnail extends Core\page implements Interfaces\page
                 $unlock = $_GET['unlock_paywall'] ?? false;
 
                 if (!($unlock && $allowed)) {
-                    $imagick = new \Imagick();
-                    $imagick->readImageBlob($contents);
-                    $imagick->setType('jpeg');
-                    $imagick->blurImage(100, 500);
-                    $contents = $imagick->getImageBlob();
+                    exit;
+                    // $imagick = new \Imagick();
+                    // $imagick->readImageBlob($contents);
+                    // $imagick->setType('jpeg');
+                    // $imagick->blurImage(100, 500);
+                    // $contents = $imagick->getImageBlob();
                 }
             }
 
