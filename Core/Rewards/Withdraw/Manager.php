@@ -128,7 +128,7 @@ class Manager
         }
 
         $response
-            ->setPagingToken(base64_encode($requests['load-next'] ?? ''));
+            ->setPagingToken(base64_encode($requests['token'] ?? ''));
 
         return $response;
     }
