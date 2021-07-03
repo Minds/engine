@@ -8,9 +8,11 @@ namespace Minds\Core\Rewards;
 use Minds\Core\Di\Di;
 use Minds\Core;
 use Minds\Core\Referrals\Referral;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\SMS\Exceptions\VoIpPhoneException;
 use Minds\Entities\User;
 use Minds\Core\Util\BigNumber;
+use Minds\Exceptions\UserErrorException;
 
 class Join
 {
@@ -124,6 +126,10 @@ class Join
 
         if (!$this->sms->verify($this->number)) {
             throw new VoIpPhoneException();
+        }
+
+        if (!$this->user->isEmailConfirmed()) {
+            throw new UnverifiedEmailException();
         }
 
         $username = $this->user->getUsername();
