@@ -18,8 +18,14 @@ class Thumbnails
     /** @var Core\Media\Video\CloudflareStreams\Manager */
     protected $cloudflareStreamsManager;
 
+    /** @var Wire\Paywall\Manager */
+    protected $paywallManager;
+
+    private static $PAYWALL_BLUR = '/Assets/photos/paywall-blur.jpeg';
+
     public function __construct($config = null, $entitiesBuilder = null)
     {
+        $this->$paywallManager = Di::_()->get('Wire\Paywall\Manager');
         $this->config = $config ?: Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->cloudflareStreamsManager = $cloudflareStreamsManager ?? Di::_()->get('Media\Video\CloudflareStreams\Manager');
@@ -35,6 +41,7 @@ class Thumbnails
     {
         $opts = array_merge([
             'bypassPaywall' => false,
+            'unlockPaywall' => false,
         ], $opts);
 
         if (is_numeric($entity)) {
@@ -71,6 +78,11 @@ class Thumbnails
             case 'image':
                 if ($entity->filename) {
                     $thumbnail->setFilename($entity->filename);
+                }
+
+                if ($this->isLocked($entity) && !$opts['unlockPaywall']) {
+                    $thumbnail->setFilename("image/$entity->batch_guid/$entity->guid/blurred.jpg");
+                    break;
                 }
 
                 if ($size && !$entity->gif) {
@@ -116,5 +128,28 @@ class Thumbnails
         }
 
         return $thumbnail;
+    }
+
+    /**
+     * @param Entities\Entity $entity 
+     * @return bool
+     */
+    public function isLocked($entity): bool {
+        $isLocked = false;
+
+        if ($this->$paywallManager->isPaywalled($entity) && !$entity instanceof Video) {
+            $isLocked = !$this->$paywallManager
+                ->setUser(Core\Session::getLoggedInUser())
+                ->isAllowed($entity);
+        }
+
+        return $isLocked;
+    }
+
+    /**
+     * @return string|false
+     */
+    public function getDefaultBlurred(): string|false {
+        return file_get_contents(dirname(dirname(dirname(__FILE__))) . self::$PAYWALL_BLUR);
     }
 }

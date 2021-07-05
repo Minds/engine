@@ -176,11 +176,32 @@ class Image extends File
                 ->setHeight($h)
                 ->resize();
 
-            $this->setFilename("image/$this->batch_guid/$this->guid/$size.jpg");
+            $imageBlob = $resize->getJpeg(90);
+            $name = "image/$this->batch_guid/$this->guid";
+            if ($size === 'small') {
+                $this->createBlured($imageBlob, $name);
+            }
+            $this->setFilename("$name/$size.jpg");
             $this->open('write');
-            $this->write($resize->getJpeg(90));
+            $this->write($imageBlob);
             $this->close();
         }
+    }
+
+    /**
+     * @param string $imageBlob
+     * @param string $name 
+     * @return void
+     */
+    public function createBlured($imageBlob, $name) {
+        $imagick = new \Imagick();
+        $imagick->readImageBlob($imageBlob);
+        $imagick->setType('jpeg');
+        $imagick->blurImage(100, 500);
+        $this->setFilename("$name/blurred.jpg");
+        $this->open('write');
+        $this->write($imagick->getImageBlob());
+        $this->close();
     }
 
     public function getExportableValues()

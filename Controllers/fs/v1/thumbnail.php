@@ -55,7 +55,11 @@ class thumbnail extends Core\page implements Interfaces\page
         /** @var Core\Media\Thumbnails $mediaThumbnails */
         $mediaThumbnails = Di::_()->get('Media\Thumbnails');
 
-        $thumbnail = $mediaThumbnails->get($entity, $size, ['bypassPaywall' => true]);
+        $thumbnailOpts = [
+            'bypassPaywall' => true,
+            'unlockPaywall' => ($_GET['unlock_paywall'] ?? false),
+        ];
+        $thumbnail = $mediaThumbnails->get($entity, $size, $thumbnailOpts);
 
         if ($thumbnail instanceof \ElggFile) {
             $thumbnail->open('read');
@@ -68,20 +72,8 @@ class thumbnail extends Core\page implements Interfaces\page
                 $contents = $thumbnail->read();
             }
 
-            // Blur the image if paywalled
-            // TODO: Consider moving this logic to a new controller
-
-            $paywallManager = Di::_()->get('Wire\Paywall\Manager');
-
-            if ($paywallManager->isPaywalled($entity) && !$entity instanceof Video) {
-                $allowed = $paywallManager
-                    ->setUser(Core\Session::getLoggedInUser())
-                    ->isAllowed($entity);
-                $unlock = $_GET['unlock_paywall'] ?? false;
-
-                if (!($unlock && $allowed)) {
-                    $contents = file_get_contents(dirname(dirname(dirname(dirname(__FILE__)))) . '/Assets/photos/paywall-blur.jpeg');
-                }
+            if (!$contents && $mediaThumbnails->isLocked($entity)) {
+                $contents = $mediaThumbnails->getDefaultBlurred();
             }
 
             try {
