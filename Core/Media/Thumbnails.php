@@ -131,10 +131,11 @@ class Thumbnails
     }
 
     /**
-     * @param Entities\Entity $entity 
+     * @param Entities\Entity $entity
      * @return bool
      */
-    public function isLocked($entity): bool {
+    public function isLocked($entity): bool
+    {
         $isLocked = false;
 
         if ($this->$paywallManager->isPaywalled($entity) && !$entity instanceof Video) {
@@ -149,7 +150,8 @@ class Thumbnails
     /**
      * @return string|false
      */
-    public function getDefaultBlurred(): string|false {
+    public function getDefaultBlurred(): string|false
+    {
         return file_get_contents(dirname(dirname(dirname(__FILE__))) . self::$PAYWALL_BLUR);
     }
 }

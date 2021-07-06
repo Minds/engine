@@ -190,10 +190,11 @@ class Image extends File
 
     /**
      * @param string $imageBlob
-     * @param string $name 
+     * @param string $name
      * @return void
      */
-    public function createBlured($imageBlob, $name) {
+    public function createBlured($imageBlob, $name)
+    {
         $imagick = new \Imagick();
         $imagick->readImageBlob($imageBlob);
         $imagick->setType('jpeg');
