@@ -92,8 +92,6 @@ class Twilio implements SMSServiceInterface
             ->setMax(2) // 2 per day
             ->checkAndIncrement(); // Will throw exception
 
-        throw new \Exception("no limiter triggered");
-
         try {
             $result = $this->getClient()->messages->create(
                 $number,
