@@ -209,7 +209,7 @@ class Manager
                 'aggs' => [
                     'tags' => [
                         'terms' => [
-                            'field' => 'tags.keyword',
+                            'field' => 'tags',
                             'min_doc_count' => 10,
                             'exclude' => $opts['plus'] ? [] : $excludeTags,
                             'size' => $opts['limit'],
@@ -220,7 +220,7 @@ class Manager
                         'aggs' => [
                             'tags_per_owner' => [
                                 'cardinality' => [
-                                    'field' => 'owner_guid.keyword',
+                                    'field' => 'owner_guid',
                                 ]
                             ]
                         ],
