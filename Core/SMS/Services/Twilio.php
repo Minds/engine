@@ -83,6 +83,16 @@ class Twilio implements SMSServiceInterface
             ->setSeconds(86400) // Day
             ->setMax(10) // 10 per day
             ->checkAndIncrement(); // Will throw exception
+    
+        // Only allow 2 numbers from a 'number block' in a day.
+        $this->kvLimiter
+            ->setKey('sms-number-block')
+            ->setValue(substr($number, 0, -2))
+            ->setSeconds(86400) // 1 Day
+            ->setMax(2) // 2 per day
+            ->checkAndIncrement(); // Will throw exception
+
+        throw new \Exception("no limiter triggered");
 
         try {
             $result = $this->getClient()->messages->create(
