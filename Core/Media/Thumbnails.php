@@ -31,7 +31,7 @@ class Thumbnails
         $this->cloudflareStreamsManager = $cloudflareStreamsManager ?? Di::_()->get('Media\Video\CloudflareStreams\Manager');
     }
 
-    /**
+    /** 
      * @param $entity Entities\Entity|string
      * @param $size
      * @param array $opts
