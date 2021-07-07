@@ -81,6 +81,7 @@ class Provider extends DiProvider
                 'matrix',
                 'cloudflare-streams',
                 'notifications-v3',
+                'withdrawal-console',
             ];
         });
 
