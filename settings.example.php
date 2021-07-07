@@ -538,6 +538,7 @@ $CONFIG->set('features', [
     'wallet-upgrade' => true,
     'subscriber-conversations' => true,
     'activity-modal' => false,
+    'withdrawal-console' => true,
 ]);
 
 $CONFIG->set('email', [
