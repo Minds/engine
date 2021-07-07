@@ -148,9 +148,9 @@ class Thumbnails
     }
 
     /**
-     * @return string|false
+     * @return string|bool
      */
-    public function getDefaultBlurred(): string|false
+    public function getDefaultBlurred(): string
     {
         return file_get_contents(dirname(dirname(dirname(__FILE__))) . self::$PAYWALL_BLUR);
     }
