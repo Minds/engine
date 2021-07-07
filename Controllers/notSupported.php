@@ -23,12 +23,12 @@ class notSupported extends core\page implements Interfaces\page
             <link rel="icon" type="image/png" href="/assets/icon.png" />
             <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
 
-            <link rel="stylesheet" href="https://storage.googleapis.com/code.getmdl.io/1.0.5/material.blue_grey-amber.min.css" />
-            <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-            <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Roboto:400,700'>
+            <link rel="stylesheet" crossorigin="anonymous" href="https://storage.googleapis.com/code.getmdl.io/1.0.5/material.blue_grey-amber.min.css" />
+            <link rel="stylesheet" crossorigin="anonymous" integrity="sha256-84ef1bXQjXdmG+bNbSbO0Y+4fsZP2/ErjAn4GDn+D44=" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+            <link rel='stylesheet' crossorigin="anonymous" integrity="sha256-8MVHE8E/ZgANWGKD1HYQ9Ia4vDzIF9OculKcF1vK1JI=" href='https://fonts.googleapis.com/css?family=Roboto:400,700'>
             <link rel="stylesheet" href="stylesheets/main.css"/>
-            <script src="//storage.googleapis.com/code.getmdl.io/1.0.5/material.min.js"></script>
-            <script src="//tinymce.cachefly.net/4.2/tinymce.min.js"></script>
+            <script crossorigin="anonymous" integrity="sha256-fLhlduqmRvw+eKNAQhNwyNFG+hm3EaOj+eBfN0Ywa10=" src="//storage.googleapis.com/code.getmdl.io/1.0.5/material.min.js"></script>
+            <script crossorigin="anonymous" integrity="sha256-lvjW3BWzRRP7TD5khZrsg+SDjdafWOk+nTOM3fEfxd0=" src="//tinymce.cachefly.net/4.2/tinymce.min.js"></script>
             <!-- Google Analytics -->
             <script>
             (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
