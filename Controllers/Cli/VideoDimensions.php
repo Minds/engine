@@ -38,11 +38,18 @@ class VideoDimensions extends Cli\Controller implements Interfaces\CliController
         $url = $this->getOpt('url') ?? '';
 
         if (!$guid) {
-            echo "You must provide the video guid";
+            echo "[VideoDimensionsCli]: You must provide the video guid";
             return;
         }
 
-        $this->dimensions->reprocess($guid, $url);
+        $dimensions = $this->dimensions->reprocess($guid, $url);
+
+        if ($dimensions) {
+            $width = $dimensions->getWidth();
+            $height = $dimensions->getHeight();
+            echo "[VideoDimensionsCli]: Success - manually reprocessed $guid to (h$height, w$width)";
+            return;
+        }
     }
 
     /**
