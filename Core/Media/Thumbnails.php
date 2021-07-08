@@ -23,9 +23,9 @@ class Thumbnails
 
     private static $PAYWALL_BLUR = '/Assets/photos/paywall-blur.jpeg';
 
-    public function __construct($config = null, $entitiesBuilder = null)
+    public function __construct($config = null, $entitiesBuilder = null, $cloudflareStreamsManager = null, $paywallManager = null)
     {
-        $this->$paywallManager = Di::_()->get('Wire\Paywall\Manager');
+        $this->paywallManager = $paywallManager ?? Di::_()->get('Wire\Paywall\Manager');
         $this->config = $config ?: Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->cloudflareStreamsManager = $cloudflareStreamsManager ?? Di::_()->get('Media\Video\CloudflareStreams\Manager');
@@ -138,8 +138,8 @@ class Thumbnails
     {
         $isLocked = false;
 
-        if ($this->$paywallManager->isPaywalled($entity) && !$entity instanceof Video) {
-            $isLocked = !$this->$paywallManager
+        if ($this->paywallManager->isPaywalled($entity) && !$entity instanceof Video) {
+            $isLocked = !$this->paywallManager
                 ->setUser(Core\Session::getLoggedInUser())
                 ->isAllowed($entity);
         }
