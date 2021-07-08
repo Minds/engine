@@ -6,6 +6,7 @@
 namespace Minds\Core\Media\Services;
 
 use Aws\S3\S3Client;
+use FFMpeg\Coordinate\Dimension;
 use FFMpeg\FFMpeg as FFMpegClient;
 use FFMpeg\FFProbe as FFProbeClient;
 use FFMpeg\Filters\Video\ResizeFilter;
@@ -310,5 +311,20 @@ class FFMpeg implements ServiceInterface
         $status = new TranscodingStatus($video, $awsResult);
 
         return $status;
+    }
+
+    /**
+     * Probes for dimensions
+     *
+     * @param string $path filepath/URL
+     * @return Dimension dimensions.
+     */
+    public function getDimensions(string $path): Dimension
+    {
+        return $this->ffprobe
+            ->streams($path)
+            ->videos()
+            ->first()
+            ->getDimensions();
     }
 }
