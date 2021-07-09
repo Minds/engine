@@ -12,11 +12,16 @@ use Zend\Diactoros\Uri;
 
 class SignedUri
 {
+    /** @var JWT\Configuration */
+    protected $jwtConfig;
+
+    /** @var Config */
+    protected $config;
+
     public function __construct(
-        protected ?JWT\Configuration $jwtConfig = null,
-        protected ?Config $config = null
-    )
-    {
+        ?JWT\Configuration $jwtConfig = null,
+        ?Config $config = null
+    ) {
         $this->config = $config ?? Di::_()->get('Config');
         $this->jwtConfig = $jwtConfig;
     }
