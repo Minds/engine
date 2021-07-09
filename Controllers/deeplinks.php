@@ -15,7 +15,8 @@ class deeplinks implements Interfaces\Api, Interfaces\ApiIgnorePam
     private $applinks = [
         'activitycontinuation' => [
             "apps" => [
-              "35U3998VRZ.com.minds.mobile"
+              "35U3998VRZ.com.minds.mobile",
+              "35U3998VRZ.com.minds.chat"
             ]
         ],
         'applinks' => [
@@ -32,8 +33,15 @@ class deeplinks implements Interfaces\Api, Interfaces\ApiIgnorePam
                         // '/blog/view/*',
                         // '/blog/*',
                         // '/channels/*',
+                        'NOT /api/*',
+                        'NOT /register',
+                        'NOT /login',
                         '/*'
                     ]
+                ],
+                [
+                    'appID' => '35U3998VRZ.com.minds.chat',
+                    'paths' => [ '/*' ]
                 ]
             ]
         ]

@@ -29,8 +29,17 @@ class UniswapPairEntity extends UniswapBaseEntity
     /** @var BigDecimal */
     protected $reserveUSD;
 
+    /** @var BigDecimal */
+    protected $volumeToken0;
+
+    /** @var BigDecimal */
+    protected $volumeToken1;
+
+    /** @var BigDecimal */
+    protected $untrackedVolumeUSD;
+
     /**
-     * Builds from an array
+     * Builds from an arrayπ
      * @param array $data
      */
     public static function build(array $data): UniswapEntityInterface
@@ -39,7 +48,10 @@ class UniswapPairEntity extends UniswapBaseEntity
         $instance->setTotalSupply(BigDecimal::of($data['totalSupply']))
             ->setReserveUSD(BigDecimal::of($data['reserveUSD']))
             ->setReserve0(BigDecimal::of($data['reserve0']))
-            ->setReserve1(BigDecimal::of($data['reserve1']));
+            ->setReserve1(BigDecimal::of($data['reserve1']))
+            ->setVolumeToken0(BigDecimal::of($data['volumeToken0'] ?? 0))
+            ->setVolumeToken1(BigDecimal::of($data['volumeToken1'] ?? 0))
+            ->setUntrackedVolumeUSD(BigDecimal::of($data['untrackedVolumeUSD'] ?? 0));
        
         return $instance;
     }

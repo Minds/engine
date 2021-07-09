@@ -5,18 +5,24 @@ namespace Minds\Core\Media;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities;
+use Minds\Entities\Video;
 
 class Thumbnails
 {
     /** @var Core\Config */
     protected $config;
+
     /** @var Core\EntitiesBuilder */
     protected $entitiesBuilder;
+
+    /** @var Core\Media\Video\CloudflareStreams\Manager */
+    protected $cloudflareStreamsManager;
 
     public function __construct($config = null, $entitiesBuilder = null)
     {
         $this->config = $config ?: Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
+        $this->cloudflareStreamsManager = $cloudflareStreamsManager ?? Di::_()->get('Media\Video\CloudflareStreams\Manager');
     }
 
     /**
@@ -87,6 +93,11 @@ class Thumbnails
 
             case 'video':
                 if (!$entity->thumbnail) {
+                    if ($entity instanceof Video && $entity->getTranscoder() === 'cloudflare') {
+                        $thumbnail = $this->cloudflareStreamsManager->getThumbnailUrl($entity);
+                        break;
+                    }
+
                     $guid = $entity->cinemr_guid ?: $entity->guid;
                     $thumbnail = $this->config->get('cinemr_url') . $guid . '/thumbnail-00001.png';
 

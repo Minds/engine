@@ -75,6 +75,13 @@ class Provider extends DiProvider
                 'buy-tokens-uniswap-transak',
                 'guest-mode',
                 'wallet-v3',
+                'boost-modal-v2',
+                'new-posts',
+                'token-marketing-2021',
+                'matrix',
+                'cloudflare-streams',
+                'notifications-v3',
+                'withdrawal-console',
             ];
         });
 

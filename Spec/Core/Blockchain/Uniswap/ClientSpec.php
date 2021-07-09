@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\Blockchain\Uniswap;
 
 use Brick\Math\BigDecimal;
 use Minds\Core\Blockchain\Uniswap\Client;
+use Minds\Core\Blockchain\Services\BlockFinder;
 use Minds\Core\Http;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -13,10 +14,14 @@ class ClientSpec extends ObjectBehavior
     /** @var Http\Curl\Json\Client */
     protected $http;
 
-    public function let(Http\Curl\Json\Client $http)
+    /** @var BlockFinder */
+    protected $blockFinder;
+
+    public function let(Http\Curl\Json\Client $http, BlockFinder $blockFinder)
     {
-        $this->beConstructedWith($http);
+        $this->beConstructedWith($http, $blockFinder);
         $this->http = $http;
+        $this->blockFinder = $blockFinder;
     }
 
     public function it_is_initializable()
@@ -58,6 +63,9 @@ class ClientSpec extends ObjectBehavior
                 'burns' => [],
             ],
         ]);
+
+        $this->blockFinder->getBlockByTimestamp(Argument::any())
+            ->willReturn(1);
         
         $uniswapUser = $this->getUser('0xUser');
 
@@ -114,6 +122,9 @@ class ClientSpec extends ObjectBehavior
                 ]
             ],
         ]);
+
+        $this->blockFinder->getBlockByTimestamp(Argument::any())
+            ->willReturn(1);
 
         $pairs = $this->getPairs(['0xPair1', '0xPair2']);
         $pairs[0]->getId()

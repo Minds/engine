@@ -29,10 +29,14 @@ class Repository
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    public function __construct(Client $client = null, EntitiesBuilder $entitiesBuilder = null)
+    /** @var Config */
+    protected $config;
+
+    public function __construct(Client $client = null, EntitiesBuilder $entitiesBuilder = null, Config $config = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
+        $this->config = $config ?? Di::_()->get('Config');
     }
 
     /**
@@ -106,8 +110,7 @@ class Repository
         }
 
         $query = [
-            'index' => 'minds_badger',
-            'type' => 'object:video',
+            'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-object-video',
             'size' => $opts['limit'],
             'from' => $opts['offset'],
             'body' => [
@@ -147,8 +150,7 @@ class Repository
     public function getCount(User $user): array
     {
         $query = [
-            'index' => 'minds_badger',
-            'type' => 'object:video',
+            'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-object-video',
             'size' => 0,
             'body' => [
                 'query' => [
@@ -231,8 +233,7 @@ class Repository
             ];
 
             $query = [
-                'index' => 'minds_badger',
-                'type' => 'object:video',
+                'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-object-video',
                 'body' => [
                     'query' => [
                         'bool' => [

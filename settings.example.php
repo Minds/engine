@@ -27,6 +27,19 @@ $CONFIG->rabbitmq = [
     'password' => 'guest',
 ];
 
+$CONFIG->set('pulsar', [
+    'host' => 'pulsar',
+    'port' => 6650,
+    'ssl' => false,
+    //'ssl_cert_path' => '',
+]);
+
+$CONFIG->set('cloudflare', [
+    'api_key' => '',
+    'email' => '',
+    'account_id' => '',
+]);
+
 $CONFIG->disable_secure_cookies = true;
 
 $CONFIG->set('sessions', [
@@ -121,10 +134,19 @@ $CONFIG->set(
       'label' => 'Token manipulation',
       'hasMore' => false,
     ],
+    [
+      'value' => 17,
+      'label' => 'Security',
+      'hasMore' => true,
+      'reasons' => [
+        ['value' => 1, 'label' => 'Hacked account']
+      ],
+    ],
     ['value' => 11,
      'label' => 'Another reason',
      'hasMore' => true,
     ],
+
   ]
 );
 
@@ -158,16 +180,24 @@ $CONFIG->system_cache_path = '{{cache-path}}';
 /*
  * Elasticsearch Settings
  */
-//server for elasticsearch
-$CONFIG->elasticsearch_server = '{{elasticsearch-server}}';
-//namespace
-$CONFIG->elasticsearch_prefix = '{{elasticsearch-prefix}}';
+
 
 $CONFIG->elasticsearch = [
     'hosts' => ['elasticsearch'],
     'index' => 'minds_badger',
     'metrics_index' => 'minds-metrics',
     'tags_index' => 'minds-trending-hashtags',
+    // ES 7.x
+    'indexes' => [
+        'search_prefix' => 'minds-search',
+        'boost' => 'minds-boost',
+        'graph' => 'minds-graph',
+        'metrics' => 'minds-metrics',
+        'tags' => 'minds-hashtags',
+    ],
+    'username' => null,
+    'password' => null,
+    'cert' => '/var/secure/elasticsearch.crt',
 ];
 
 /*
@@ -349,6 +379,7 @@ $CONFIG->set('blockchain', [
             'wallet_pkey' => '',
             'limit_exemptions' => [
             ],
+            'limit' => 25000,
         ],
         'bonus' => [
             'wallet_address' => '0x461f1C5768cDB7E567A84E22b19db0eABa069BaD',
@@ -507,6 +538,7 @@ $CONFIG->set('features', [
     'wallet-upgrade' => true,
     'subscriber-conversations' => true,
     'activity-modal' => false,
+    'withdrawal-console' => true,
 ]);
 
 $CONFIG->set('email', [
@@ -618,22 +650,24 @@ $CONFIG->set('contact_details', [
 $CONFIG->set('upgrades', [
     'pro' => [
         'monthly' => [
-            'tokens' => 240,
             'usd' => 60,
         ],
         'yearly' => [
-            'tokens' => 2400,
             'usd' => 600,
+        ],
+        'lifetime' => [
+            'tokens' => 20000
         ],
     ],
     'plus' => [
         'monthly' => [
-            'tokens' => 28,
             'usd' => 7,
         ],
         'yearly' => [
-            'tokens' => 240,
             'usd' => 60,
+        ],
+        'lifetime' => [
+            'tokens' => 2500
         ],
     ],
 ]);
@@ -681,3 +715,6 @@ $CONFIG->set('arweave', [
     'host' => 'host.docker.internal',
     'port' => 5000,
 ]);
+
+/* In characters */
+$CONFIG->set('max_name_length', 50);

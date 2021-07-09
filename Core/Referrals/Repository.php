@@ -135,11 +135,11 @@ class Repository
     public function add(Referral $referral)
     {
         if (!$referral->getReferrerGuid()) {
-            throw new \Exception('Referrer GUID is required');
+            throw new \Exception('Referrer GUID is required', 404);
         }
 
         if (!$referral->getProspectGuid()) {
-            throw new \Exception('Prospect GUID is required');
+            throw new \Exception('Prospect GUID is required', 404);
         }
 
         if (!$referral->getRegisterTimestamp()) {

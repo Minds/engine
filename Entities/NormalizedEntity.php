@@ -101,7 +101,7 @@ class NormalizedEntity
     * Gets `guid`
     * @return mixed
     */
-    public function getGuid()
+    public function getGuid(): string
     {
         if (!$this->guid) {
             $this->guid = Core\Guid::build();

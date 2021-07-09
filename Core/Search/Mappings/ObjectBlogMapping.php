@@ -15,11 +15,9 @@ class ObjectBlogMapping extends EntityMapping implements MappingInterface
     /** @var array $mappings */
     protected $mappings = [
         '@timestamp' => [ 'type' => 'date' ],
-        'interactions' => [ 'type' => 'integer', '$exportGetter' => 'getInteractions' ],
         'guid' => [ 'type' => 'text', '$exportGetter' => 'getGuid' ],
         'type' => [ 'type' => 'text', '$exportGetter' => 'getType' ],
         'subtype' => [ 'type' => 'text', '$exportGetter' => 'getSubtype' ],
-        'taxonomy' => [ 'type' => 'text' ],
         'time_created' => [ 'type' => 'integer', '$exportGetter' => 'getTimeCreated' ],
         'access_id' => [ 'type' => 'text', '$exportGetter' => 'getAccessId' ],
         'public' => [ 'type' => 'boolean' ],
@@ -64,7 +62,7 @@ class ObjectBlogMapping extends EntityMapping implements MappingInterface
             throw new \Exception('Entity is required');
         }
 
-        $type = $this->entity->getType() . ':' . $this->entity->getSubtype();
+        $type = $this->entity->getType() . '-' . $this->entity->getSubtype();
 
         return $type;
     }
@@ -107,15 +105,9 @@ class ObjectBlogMapping extends EntityMapping implements MappingInterface
         // Auto populate based on $exportField
         $map = array_merge($defaultValues, $this->autoMap());
 
-        // Basics (taxonomy and timestamp)
-
-        $taxonomy = [ $this->entity->getType(), $this->entity->getSubtype() ];
-
         if ($this->entity->getTimeCreated()) {
             $map['@timestamp'] = $this->entity->getTimeCreated() * 1000;
         }
-
-        $map['taxonomy'] = implode(':', $taxonomy);
 
         // Public
 

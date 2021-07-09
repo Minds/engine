@@ -1,6 +1,6 @@
 FROM php:7.3-fpm-alpine3.10
 
-RUN apk add --no-cache --update php-deps make
+RUN apk add --no-cache --update --virtual .php-deps make
 
 RUN apk add --no-cache --virtual build-deps \
     libzip-dev \
@@ -92,7 +92,58 @@ RUN apk add --no-cache --virtual build-deps \
 
 RUN apk update && apk add --no-cache py-pip && pip install --upgrade pip && pip install awscli
 
+# Build Pulsar
+
+ENV BUILD_DEPS \
+    bash \
+    cmake \
+    autoconf \
+    g++ \
+    gcc \
+    make \
+    pcre-dev \
+    libuv-dev \
+    git \
+    gmp-dev \
+    autoconf \
+    libtool \
+    openssl-dev \
+    zlib-dev \
+    boost-dev \
+    py3-setuptools \
+    python3-dev \ 
+    protobuf-dev \
+    curl-dev \
+    gtest-dev gmock \
+    $PHPIZE_DEPS
+
+RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
+    # PHP CPP
+    && git clone https://github.com/CopernicaMarketingSoftware/PHP-CPP.git \
+    && cd PHP-CPP \
+    && make -j4 \
+    && make install \
+    && cd .. \
+    # Pulsar CPP Client
+    && git clone --depth 1 https://github.com/apache/pulsar.git \
+    && cd pulsar/pulsar-client-cpp \
+    && cmake . -DBUILD_TESTS=OFF \
+    && make -j2 \
+    && make install \
+    && cd ../.. \
+    && git clone https://gitlab.com/minds/pulsar-php-client \
+    && cd pulsar-php-client \
+    && make -j4 \
+    && cp output/pulsar.so $(php-config --extension-dir)/pulsar.so \
+    && cd .. \
+    && rm -rf PHP-CPP pulsar pulsar-php-client \
+    && apk del build-deps
+
+RUN apk add protobuf-dev
+
 # PHP INI
 COPY php.ini /usr/local/etc/php/
 COPY opcache.ini /usr/local/etc/php/conf.d/opcache-recommended.ini
+COPY pulsar.ini /usr/local/etc/php/conf.d/pulsar.ini
+
 WORKDIR /var/www/Minds

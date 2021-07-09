@@ -78,6 +78,9 @@ class Report
     /** @var array $stateChanges */
     private $stateChanges;
     
+    /** @var $state */
+    private $state;
+
     /**
      * Return the state of the report from the state changes
      */

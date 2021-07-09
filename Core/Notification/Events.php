@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Notification;
 
+use Minds\Common\Regex;
 use Minds\Entities;
 use Minds\Core;
 use Minds\Core\Data;
@@ -11,6 +12,8 @@ use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Core\Notification\Extensions\Push;
 use Minds\Core\Di\Di;
+use Minds\Core\EventStreams\ActionEvent;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\Security\Block\BlockEntry;
 
 use Minds\Helpers;
@@ -116,15 +119,17 @@ class Events
                 $message .= $entity->title;
             }
 
-            if (preg_match_all('!@(.+)(?:\s|$)!U', $message, $matches)) {
+            if (preg_match_all(Regex::AT, $message, $matches)) {
                 $usernames = $matches[1];
+                $toGuids = [];
                 $to = [];
 
                 foreach ($usernames as $username) {
                     $user = new Entities\User(strtolower($username));
 
                     if ($user->guid && Core\Security\ACL::_()->interact($user, Core\Session::getLoggedinUser())) {
-                        $to[] = $user->guid;
+                        $to[] = $user;
+                        $toGuids[] = $user->guid;
                     }
 
                     //limit of tags notifications: 5
@@ -143,12 +148,28 @@ class Events
 
                 if ($to) {
                     Dispatcher::trigger('notification', 'all', [
-                        'to' => $to,
+                        'to' => $toGuids,
                         'entity' => $entity,
                         'notification_view' => 'tag',
                         'description' => $message,
                         'params' => $params,
                     ]);
+
+                    // Tag event
+                    $actionEventTopic = new ActionEventsTopic();
+                    foreach ($to as $taggedUser) {
+                        // Entity owner will already be getting notified of comment
+                        if ($taggedUser->getGuid() !== $entity->getOwnerGuid()) {
+                            $actionEvent = new ActionEvent();
+                            $actionEvent->setAction(ActionEvent::ACTION_TAG)
+                            ->setUser(Core\Session::getLoggedinUser()) // Who is tagging
+                            ->setEntity($taggedUser) // The tagged person
+                            ->setActionData([
+                                'tag_in_entity_urn' => $entity->getUrn(),
+                            ]);
+                            $actionEventTopic->send($actionEvent);
+                        }
+                    }
                 }
             }
         });
@@ -181,6 +202,16 @@ class Events
             $manager = Core\Di\Di::_()->get('Notification\Manager');
 
             foreach ($params['to'] as $to_user) {
+                if (!$notification->getFromGuid()) {
+                    error_log('[NotificationDispatcher]: tried to send notification to ' . $to_user . ' but fromGruid is null');
+                    continue;
+                }
+
+                if (!$to_user) {
+                    error_log('[NotificationDispatcher]: ' . $notification->getFromGuid() . 'tried to send notification to send a notification but the to_user is null');
+                    continue;
+                }
+
                 /** @var BlockEntry */
                 $blockEntry = (new BlockEntry())
                     ->setActorGuid($notification->getFromGuid())
@@ -197,6 +228,9 @@ class Events
                 // Check rate limits on how many notifications this user has been sent by sender
                 if ($notification->getType() === 'tag') {
                     $toUser = Entities\Factory::build($notification->getToGuid());
+                    if (!$toUser) {
+                        continue;
+                    }
 
                     $cache = Core\Di\Di::_()->get('Cache');
                     $cacheKey = "{$notification->getFromGuid()}:recently-tagged:{$notification->getToGuid()}";

@@ -9,6 +9,8 @@ bin
 /2
 #ignore composer
 /vendor
+# ignore cassandra log
+cassandra.log
 # ignore IDE/hidden/OS cache files
 .*
 *~

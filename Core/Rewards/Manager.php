@@ -180,14 +180,19 @@ class Manager
 
         // Engagement rewards
 
-        $opts = (new ContributionQueryOpts())
-            ->setDateTs($opts->getDateTs());
+        $contributionsOpts = (new ContributionQueryOpts())
+           ->setDateTs(strtotime('midnight', $opts->getDateTs()));
 
-        foreach ($this->contributions->getSummaries($opts) as $i => $contributionSummary) {
+        foreach ($this->contributions->getSummaries($contributionsOpts) as $i => $contributionSummary) {
 
             /** @var User */
             $user = $this->entitiesBuilder->single($contributionSummary->getUserGuid());
             if (!$user) {
+                continue;
+            }
+
+            // Require phone number to be setup for uniqueness
+            if (!$user->getPhoneNumberHash()) {
                 continue;
             }
 
@@ -213,7 +218,7 @@ class Manager
                 ->setDateTs($contributionSummary->getDateTs())
                 ->setRewardType(static::REWARD_TYPE_ENGAGEMENT)
                 ->setScore($score)
-                ->setMultiplier($multiplier);
+                ->setMultiplier(BigDecimal::of($multiplier));
 
             //
 
@@ -225,18 +230,22 @@ class Manager
             ]);
         }
 
-
         // Liquidity rewards
 
         foreach ($this->liquidityPositionsManager->setDateTs($opts->getDateTs())->getAllProvidersSummaries() as $i => $liquiditySummary) {
-            $multiplier = 1; // TODO: check if we had a score yesterday and then increment the multiplier respectfully
-
-            $score = $liquiditySummary->getUserLiquidityTokens()->multipliedBy($multiplier);
-
             $rewardEntry = new RewardEntry();
             $rewardEntry->setUserGuid($liquiditySummary->getUserGuid())
                 ->setDateTs($opts->getDateTs())
-                ->setRewardType(static::REWARD_TYPE_LIQUIDITY)
+                ->setRewardType(static::REWARD_TYPE_LIQUIDITY);
+
+            // Get yesterday RewardEntry
+            $yesterdayRewardEntry = $this->getPreviousRewardEntry($rewardEntry, 1);
+            $multiplier = $yesterdayRewardEntry ? $this->calculateMultiplier($yesterdayRewardEntry, static::REWARD_TYPE_LIQUIDITY) : BigDecimal::of(1);
+            
+            $score = $liquiditySummary->getUserLiquidityTokens()->multipliedBy($multiplier);
+            
+            // Update our new RewardEntry
+            $rewardEntry
                 ->setScore($score)
                 ->setMultiplier($multiplier);
 
@@ -245,6 +254,7 @@ class Manager
             $this->logger->info("[$i]: Liquidity score calculated as $score", [
                 'userGuid' => $rewardEntry->getUserGuid(),
                 'reward_type' => $rewardEntry->getRewardType(),
+                'multiplier' => (string) $multiplier,
             ]);
         }
 
@@ -252,9 +262,14 @@ class Manager
         $blockNumber = $this->blockFinder->getBlockByTimestamp($opts->getDateTs());
         foreach ($this->uniqueOnChainManager->getAll() as $i => $uniqueOnChain) {
 
-             /** @var User */
+            /** @var User */
             $user = $this->entitiesBuilder->single($uniqueOnChain->getUserGuid());
             if (!$user) {
+                continue;
+            }
+
+            // Require phone number to be setup for uniqueness
+            if (!$user->getPhoneNumberHash()) {
                 continue;
             }
 
@@ -262,13 +277,19 @@ class Manager
                 $this->token->balanceOf($uniqueOnChain->getAddress(), $blockNumber)
             );
 
-            $multiplier = 1;
-            $score = BigDecimal::of($tokenBalance)->multipliedBy($multiplier);
-
             $rewardEntry = new RewardEntry();
             $rewardEntry->setUserGuid($user->getGuid())
                 ->setDateTs($opts->getDateTs())
-                ->setRewardType(static::REWARD_TYPE_HOLDING)
+                ->setRewardType(static::REWARD_TYPE_HOLDING);
+
+            // Get yesterday RewardEntry
+            $yesterdayRewardEntry = $this->getPreviousRewardEntry($rewardEntry, 1);
+            $multiplier = $yesterdayRewardEntry ? $this->calculateMultiplier($yesterdayRewardEntry, static::REWARD_TYPE_HOLDING) : BigDecimal::of(1);
+
+            $score = BigDecimal::of($tokenBalance)->multipliedBy($multiplier);
+
+            // Update our new RewardEntry
+            $rewardEntry
                 ->setScore($score)
                 ->setMultiplier($multiplier);
 
@@ -279,6 +300,7 @@ class Manager
                 'reward_type' => $rewardEntry->getRewardType(),
                 'blockNumber' => $blockNumber,
                 'tokenBalance' => $tokenBalance,
+                'multiplier' => (string) $multiplier,
             ]);
         }
 
@@ -300,8 +322,8 @@ class Manager
             $tokenAmount = $tokenPool->multipliedBy($rewardEntry->getSharePct(), 18, RoundingMode::FLOOR);
 
             $rewardEntry->setTokenAmount($tokenAmount);
-            $this->add($rewardEntry);
-        
+            $this->repository->update($rewardEntry, [ 'token_amount' ]);
+
             $sharePct = $rewardEntry->getSharePct() * 100;
 
             $this->logger->info("[$i]: Issued $tokenAmount tokens ($sharePct%)", [
@@ -312,12 +334,68 @@ class Manager
     }
 
     /**
+     * Calculate today's reward multiplier by adding daily increment to yesterday's multiplier
+     * @return float
+     * @param RewardEntry $rewardEntry
+     */
+    public function calculateMultiplier(RewardEntry $rewardEntry): BigDecimal
+    {
+        $manifest = $this->getTokenomicsManifest($rewardEntry->getTokenomicsVersion());
+
+        $maxMultiplierDays = $manifest->getMaxMultiplierDays(); // 365
+        $multiplierRange = $manifest->getMaxMultiplier() - $manifest->getMinMultiplier();
+
+        $dailyIncrement = BigDecimal::of($multiplierRange)->dividedBy($maxMultiplierDays, 12, RoundingMode::CEILING); // 0.0054794520
+
+        $multiplier = $rewardEntry->getMultiplier()->plus($dailyIncrement);
+
+        return BigDecimal::min($multiplier, $manifest->getMaxMultiplier());
+    }
+
+    /**
      * Issue tokens based on alreay calculated RewardEntry's
+     * @param bool $dryRun
      * @return void
      */
-    public function issueTokens(): void
+    public function issueTokens(RewardsQueryOpts $opts = null, $dryRun = true): void
     {
-        // TODO
+        $opts = $opts ?? (new RewardsQueryOpts())
+            ->setDateTs(strtotime('yesterday'));
+
+        foreach ($this->repository->getIterator($opts) as $i => $rewardEntry) {
+            if ($rewardEntry->getTokenAmount()->toFloat() === (float) 0) {
+                continue;
+            }
+
+            $tokenAmount = (string) BigNumber::toPlain($rewardEntry->getTokenAmount(), 18);
+
+            $transaction = new Transaction();
+            $transaction
+                ->setUserGuid($rewardEntry->getUserGuid())
+                ->setWalletAddress('offchain')
+                ->setTimestamp(strtotime("+24 hours - 1 second", $rewardEntry->getDateTs()))
+                ->setTx('oc:' . Guid::build())
+                ->setAmount($tokenAmount)
+                ->setContract('offchain:reward')
+                ->setData([
+                    'reward_type' => $rewardEntry->getRewardType(),
+                ])
+                ->setCompleted(true);
+
+            if (!$dryRun) {
+                $this->txRepository->add($transaction);
+
+                // Add in the TX to the database for auditing
+                $rewardEntry->setPayoutTx($transaction->getTx());
+                $this->repository->update($rewardEntry, [ 'payout_tx' ]);
+            }
+
+            $this->logger->info("[$i]: Issued $tokenAmount tokens", [
+                'userGuid' => $rewardEntry->getUserGuid(),
+                'reward_type' => $rewardEntry->getRewardType(),
+                'tx' => $transaction->getTx(),
+            ]);
+        }
     }
 
     /**
@@ -333,6 +411,27 @@ class Manager
             default:
                 throw new \Exception("Invalid tokenomics version");
         }
+    }
+
+    /**
+     * Will return a previous days RewardEntry
+     * @param RewardEntry $rewardEntry
+     * @param int $daysAgo
+     * @return RewardEntry
+     */
+    private function getPreviousRewardEntry(RewardEntry $rewardEntry, int $daysAgo = 1): ?RewardEntry
+    {
+        $opts = new RewardsQueryOpts();
+        $opts->setUserGuid($rewardEntry->getUserGuid())
+            ->setDateTs($rewardEntry->getDateTs() - (86400 * $daysAgo));
+
+        foreach ($this->getList($opts) as $previousRewardEntry) {
+            if ($previousRewardEntry->getRewardType() === $rewardEntry->getRewardType()) {
+                return $previousRewardEntry;
+            }
+        }
+
+        return null;
     }
 
     ////
@@ -377,7 +476,7 @@ class Manager
             ],
             'contract' => 'offchain:reward',
         ]);
-        
+
         if ($transactions['transactions']) {
             throw new \Exception("Already issued rewards to this user");
         }
@@ -392,7 +491,7 @@ class Manager
         }
 
         $amount = $this->contributions->getRewardsAmount();
- 
+
         $transaction = new Transaction();
         $transaction
             ->setUserGuid($this->user->guid)
@@ -446,7 +545,7 @@ class Manager
                 BigNumber::_($amount)->mul(0.25)->toHex(true),
             ])
         ]);
-        
+
         $transaction = new Transaction();
         $transaction
             ->setUserGuid($this->user->guid)
@@ -456,7 +555,7 @@ class Manager
             ->setAmount((string) BigNumber::_($amount)->mul(0.25))
             ->setContract('bonus')
             ->setCompleted(true);
-    
+
         $this->txRepository->add($transaction);
         return $transaction;
     }

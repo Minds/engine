@@ -9,6 +9,7 @@ use Exception;
 use Minds\Api\Exportable;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
+use Minds\Core\Session;
 
 /**
  * Rewards Controller
@@ -22,16 +23,21 @@ class Controller
     /** @var Features\Manager */
     protected $featuresManager;
 
+    /** @var Rewards\Withdraw\Manager */
+    protected $withdrawManager;
+
     /**
      * Controller constructor.
      * @param null $manager
      */
     public function __construct(
         $manager = null,
-        $featuresManager = null
+        $featuresManager = null,
+        $withdrawManager = null
     ) {
         $this->manager = $manager ?? new Manager();
         $this->featuresManager = $featuresManager ?? Di::_()->get('Features\Manager');
+        $this->withdrawManager = $withdrawManager ?? Di::_()->get('Rewards\Withdraw\Manager');
     }
 
     /**
@@ -57,5 +63,31 @@ class Controller
         return new JsonResponse(array_merge([
             'status' => 'success',
         ], $rewardsSummary->export()));
+    }
+
+    /**
+     * Constructs a response with a list of the logged in users withdrawals.
+     * @param ServerRequest $request
+     * @return JsonResponse
+     */
+    public function getWithdrawals(ServerRequest $request): JsonResponse
+    {
+        $userGuid = $request->getAttribute('_user')->getGuid();
+
+        $queryParams = $request->getQueryParams();
+
+        $opts = [
+            'user_guid' => $userGuid,
+            'limit' => isset($queryParams['limit']) ? (int) $queryParams['limit'] : 12,
+            'offset' => isset($queryParams['offset']) ? $queryParams['offset'] : '',
+            'hydrate' => true,
+        ];
+
+        $withdrawals = $this->withdrawManager->getList($opts);
+
+        return new JsonResponse([
+            'withdrawals' => $withdrawals,
+            'load-next' => $withdrawals->getPagingToken(),
+        ]);
     }
 }

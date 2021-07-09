@@ -8,19 +8,26 @@
 
 namespace Minds\Core\Votes;
 
+use Minds\Common\Repository\IterableEntity;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities;
+use Minds\Entities\User;
 
 class Indexes
 {
-    /** @var Client $cql */
+    /** @var Client */
     protected $cql;
 
-    public function __construct($cql = null)
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
+    public function __construct(Client $cql = null, EntitiesBuilder $entitiesBuilder = null)
     {
         $this->cql = $cql ?: Di::_()->get('Database\Cassandra\Cql');
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
 
     public function insert($vote)
@@ -159,5 +166,45 @@ class Indexes
         ]);
 
         return $this->cql->request($prepared);
+    }
+
+    /**
+     * @param VoteListOpts $opts
+     * @return iterable
+     */
+    public function getList(VoteListOpts $opts): iterable
+    {
+        $entity = $this->entitiesBuilder->single($opts->getEntityGuid());
+
+        if (!$entity) {
+            return;
+        }
+
+        $prepared = new Custom();
+        $prepared->query("SELECT * FROM entities_by_time WHERE key = ?", [
+            "thumbs:{$opts->getDirection()}:entity:{$opts->getEntityGuid()}",
+        ]);
+
+        $prepared->setOpts([
+            'page_size' => $opts->getLimit(),
+            'paging_state_token' => base64_decode($opts->getPagingToken(), true)
+        ]);
+
+        $rows = $this->cql->request($prepared);
+        foreach ($rows as $row) {
+            $pagingToken = $rows->pagingStateToken();
+
+            $actor = $this->entitiesBuilder->single($row['column1']);
+
+            if (!$actor instanceof User) {
+                continue; // Invalid user, or may not even exist anymore
+            }
+
+            $vote = new Vote();
+            $vote->setActor($actor);
+            $vote->setDirection($opts->getDirection());
+            $vote->setEntity($entity);
+            yield new IterableEntity($vote, base64_encode($pagingToken));
+        }
     }
 }

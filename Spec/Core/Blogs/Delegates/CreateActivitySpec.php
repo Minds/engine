@@ -88,6 +88,10 @@ class CreateActivitySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(9999);
 
+        $blog->getAccessId()
+            ->shouldBeCalled()
+            ->willReturn(2);
+
         $this->db->getRow("activity:entitylink:9999")
             ->shouldBeCalled()
             ->willReturn([]);

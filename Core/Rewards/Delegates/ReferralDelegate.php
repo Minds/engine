@@ -40,6 +40,24 @@ class ReferralDelegate
     }
 
     /**
+     * On reject, set the join_timestamp to -1, marking it as invalid.
+     *
+     * @param string $prospect_guid - guid of referral prospect
+     * @param string $referrer_guid - original referrer.
+     * @return void
+     */
+    public function onReject(string $prospect_guid, string $referrer_guid): void
+    {
+        $referral = new Referral();
+
+        $referral->setReferrerGuid($referrer_guid)
+            ->setProspectGuid($prospect_guid)
+            ->setJoinTimestamp(-1);
+
+        $this->manager->update($referral);
+    }
+
+    /**
      * Issue contribution score when referred
      * TODO: Move to own delegate?
      * @param User $user

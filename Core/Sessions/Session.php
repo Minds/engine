@@ -19,6 +19,10 @@ use Minds\Traits\MagicAttributes;
  * @method Session setUserGuid(int|string $userGuid)
  * @method int getExpires()
  * @method Session setExpires(int $expires)
+ * @method string getIp()
+ * @method Session setIp(string $ip)
+ * @method int getLastActive()
+ * @method Session setLastActive(int $expires)
  */
 class Session
 {
@@ -35,4 +39,10 @@ class Session
 
     /** @var int $expires */
     private $expires;
+
+    /** @var string $ip */
+    private $ip;
+
+    /** @var int $lastActive */
+    private $lastActive;
 }

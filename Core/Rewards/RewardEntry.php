@@ -13,12 +13,14 @@ use Brick\Math\BigDecimal;
  * @method int getDateTs()
  * @method self setScore(BigDecimal $score)
  * @method BigDecimal getScore()
- * @method self setMultiplier(float $multiplier)
- * @method float getMultiplier()
+ * @method self setMultiplier(BigDecimal $multiplier)
+ * @method BigDecimal getMultiplier()
  * @method self setTokenAmount(BigDecimal $tokenAmount)
  * @method BigDecimal getTokenAmount()
  * @method self setTokenomicVersion(int $tokenomicsVersion)
  * @method int getTokenomicsVersion()
+ * @method self setPayoutTx(string $tx)
+ * @method string getPayoutTx()
  */
 class RewardEntry
 {
@@ -36,17 +38,23 @@ class RewardEntry
     /** @var BigDecimal */
     private $score;
 
-    /** @var float */
-    private $multiplier = 0;
+    /** @var BigDecimal */
+    private $multiplier;
 
     /** @var BigDecimal */
     private $tokenAmount;
+
+    /** @var string */
+    private $payoutTx;
 
     /** @var float */
     private $sharePct = 0;
 
     /** @var RewardEntry */
     private $allTimeSummary;
+
+    /** @var RewardEntry */
+    private $globalSummary;
 
     /** @var int */
     private $tokenomicsVersion = 2;
@@ -55,6 +63,7 @@ class RewardEntry
     {
         $this->tokenAmount = BigDecimal::of(0);
         $this->score = BigDecimal::of(0);
+        $this->multiplier = BigDecimal::of(1);
     }
 
     /**
@@ -69,6 +78,7 @@ class RewardEntry
             'date_unixts' => $this->dateTs,
             'reward_type' => $this->rewardType,
             'score' => (string) $this->score,
+            'raw_score' => $this->score->dividedBy($this->multiplier),
             'share_pct' => $this->sharePct,
             'multiplier' => $this->multiplier,
             'token_amount' => (string) $this->tokenAmount,
@@ -77,6 +87,11 @@ class RewardEntry
                 'score' => $this->allTimeSummary ? (string) $this->allTimeSummary->getScore() : 0,
                 'token_amount' => $this->allTimeSummary ? (string) $this->allTimeSummary->getTokenAmount() : 0,
             ],
+            'global_summary' => [
+                'score' => $this->globalSummary ? (string) $this->globalSummary->getScore() : 0,
+                'token_amount' => $this->globalSummary ? (string) $this->globalSummary->getTokenAmount() : 0,
+            ],
+            'payout_tx' => $this->payoutTx,
         ];
     }
 }

@@ -5,6 +5,7 @@ use Minds\Entities\User;
 use Minds\Core\Di\Di;
 use Minds\Core\Features;
 use Exception;
+use Minds\Api\Exportable;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 
@@ -43,11 +44,32 @@ class Controller
         /** @var User */
         $user = $request->getAttribute('_user');
 
-        $summary = $this->manager->setUser($user)
+        /** @var int */
+        $timestamp = $request->getQueryParams()['timestamp'] ?? time() - 300;
+
+        $summary = $this->manager
+            ->setDateTs($timestamp)
+            ->setUser($user)
             ->getSummary();
          
         return new JsonResponse(array_merge([
             'status' => 'success',
         ], $summary->export()));
+    }
+
+    /**
+     * Returns a list of users providing liquidiry
+     * @param ServerRequest $request
+     * @return JsonResponse
+     * @throws Exception
+     */
+    public function getAllUsers(ServerRequest $request): JsonResponse
+    {
+        $users = iterator_to_array($this->manager->getProviderUsers());
+
+        return new JsonResponse([
+            'status' => 'success',
+            'users' => Exportable::_($users)
+        ]);
     }
 }

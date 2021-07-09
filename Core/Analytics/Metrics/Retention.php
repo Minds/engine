@@ -131,7 +131,6 @@ class Retention implements AnalyticsMetric
     {
         $query = [
             'index' => 'minds-metrics-*',
-            'type' => 'action',
             'size' => 5000,
             'body' => [
                 'query' => [

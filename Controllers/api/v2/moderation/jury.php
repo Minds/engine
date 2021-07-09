@@ -36,12 +36,15 @@ class jury implements Interfaces\Api
         }
 
         $reports = $juryManager->getUnmoderatedList([
-            'limit' => 12,
+            'limit' => $_GET['limit'] ?? 12,
+            'offset' => $_GET['offset'] ?? '',
             'hydrate' => true,
         ]);
 
         return Factory::response([
             'reports' => Factory::exportable($reports),
+            'load-next' => $reports->getPagingToken(),
+            'has-next' => !$reports->isLastPage(),
         ]);
     }
 
@@ -103,6 +106,12 @@ class jury implements Interfaces\Api
             return Factory::response([
                 'status' => 'error',
                 'message' => 'A summons could not be found'
+            ]);
+        } catch (\Exception $e) {
+            Di::_()->get('Logger')->error($e);
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'An unknown error has occurred'
             ]);
         }
         

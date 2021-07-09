@@ -116,8 +116,7 @@ class Pool
             $body['query']['bool']['must_not'][] = [
                 'terms' => [
                     'user_guid' => [
-                        'index' => 'minds-graph',
-                        'type' => 'subscriptions',
+                        'index' => 'minds-graph-subscriptions',
                         'id' => (string) $opts['for'],
                         'path' => 'guids',
                     ],
@@ -177,7 +176,6 @@ class Pool
 
         $query = [
             'index' => $this->index,
-            'type' => 'action',
             'body' => $body,
         ];
 

@@ -18,6 +18,7 @@ class Manager
         'test-widget-id',
         'discovery-disclaimer-2020',
         'language-sidebar-2020',
+        'matrix',
     ];
 
     /** @var User */

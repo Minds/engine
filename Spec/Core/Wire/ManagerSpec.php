@@ -7,6 +7,7 @@ use Minds\Core\Blockchain\Transactions\Manager as BlockchainManager;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Config;
 use Minds\Core\Data\cache\Redis;
+use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
 use Minds\Core\Queue\SQS\Client;
 use Minds\Core\Wire\Repository;
 use Minds\Core\Wire\Subscriptions\Manager as SubscriptionsManager;
@@ -50,6 +51,9 @@ class ManagerSpec extends ObjectBehavior
     /** @var Core\Payments\Stripe\Intents\Manager */
     protected $stripeIntentsManager;
 
+    /** @var Core\Wire\Delegates\EventsDelegate */
+    protected $eventsDelegate;
+
     public function let(
         Repository $repo,
         BlockchainManager $txManager,
@@ -63,7 +67,8 @@ class ManagerSpec extends ObjectBehavior
         Core\Wire\Delegates\NotificationDelegate $notificationDelegate,
         Core\Wire\Delegates\CacheDelegate $cacheDelegate,
         Core\Blockchain\Wallets\OffChain\Transactions $offchainTxs,
-        Core\Payments\Stripe\Intents\Manager $stripeIntentsManager
+        Core\Payments\Stripe\Intents\Manager $stripeIntentsManager,
+        Core\Wire\Delegates\EventsDelegate $eventsDelegate
     ) {
         $this->beConstructedWith(
             $repo,
@@ -78,7 +83,9 @@ class ManagerSpec extends ObjectBehavior
             $notificationDelegate,
             $cacheDelegate,
             $offchainTxs,
-            $stripeIntentsManager
+            $stripeIntentsManager,
+            null,
+            $eventsDelegate
         );
 
         $this->cacheDelegate = $cacheDelegate;
@@ -93,6 +100,7 @@ class ManagerSpec extends ObjectBehavior
         $this->plusDelegate = $plusDelegate;
         $this->offchainTxs = $offchainTxs;
         $this->stripeIntentsManager = $stripeIntentsManager;
+        $this->eventsDelegate = $eventsDelegate;
     }
 
     public function it_is_initializable()
@@ -133,6 +141,15 @@ class ManagerSpec extends ObjectBehavior
             'txHash' => '0xTX',
             'method' => 'onchain',
         ];
+        $this->config->get('plus')
+            ->willReturn([
+                'handler' => 456
+            ]);
+
+        $this->config->get('pro')
+            ->willReturn([
+                'handler' => 789
+            ]);
 
         $this->setSender($sender)
             ->setEntity($receiver)
@@ -219,6 +236,16 @@ class ManagerSpec extends ObjectBehavior
             'method' => 'onchain',
         ];
 
+        $this->config->get('plus')
+            ->willReturn([
+                'handler' => 456
+            ]);
+
+        $this->config->get('pro')
+            ->willReturn([
+                'handler' => 789
+            ]);
+
         $this->setSender($sender)
             ->setEntity($receiver)
             ->setPayload($payload)
@@ -243,6 +270,11 @@ class ManagerSpec extends ObjectBehavior
                 'handler' => 456
             ]);
 
+        $this->config->get('pro')
+            ->willReturn([
+                'handler' => 789
+            ]);
+
         $payload = [
             'method' => 'usd',
             'paymentMethodId' => 'mockPaymentId',
@@ -253,8 +285,11 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->shouldBeCalled();
 
-        $this->stripeIntentsManager->add(Argument::any())
-            ->shouldNotBeCalled();
+
+        $this->stripeIntentsManager->add(Argument::that(function ($intent) {
+            return $intent->getCaptureMethod() === 'manual';
+        }))
+            ->willReturn((new PaymentIntent())->setId('trial-id'));
 
         $this->setSender($sender)
             ->setEntity($receiver)
@@ -281,6 +316,11 @@ class ManagerSpec extends ObjectBehavior
                 'handler' => 456
             ]);
 
+        $this->config->get('pro')
+            ->willReturn([
+                'handler' => 789
+            ]);
+
         $payload = [
             'method' => 'usd',
             'paymentMethodId' => 'mockPaymentId',
@@ -291,8 +331,10 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->shouldBeCalled();
 
-        $this->stripeIntentsManager->add(Argument::any())
-            ->shouldNotBeCalled();
+        $this->stripeIntentsManager->add(Argument::that(function ($intent) {
+            return $intent->getCaptureMethod() === 'manual';
+        }))
+            ->willReturn((new PaymentIntent())->setId('trial-id'));
 
         $this->setSender($sender)
             ->setEntity($receiver)
@@ -319,6 +361,11 @@ class ManagerSpec extends ObjectBehavior
                 'handler' => 456
             ]);
 
+        $this->config->get('pro')
+            ->willReturn([
+                'handler' => 789
+            ]);
+
         $payload = [
             'method' => 'usd',
             'paymentMethodId' => 'mockPaymentId',
@@ -329,8 +376,12 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->shouldBeCalled();
 
+        $intent = new PaymentIntent();
+        $intent->setId('123');
+
         $this->stripeIntentsManager->add(Argument::any())
-            ->shouldBeCalled();
+            ->shouldBeCalled()
+            ->willReturn($intent);
 
         $this->setSender($sender)
             ->setEntity($receiver)

@@ -229,8 +229,7 @@ class Manager
         ];
 
         $query = [
-            'index' => 'minds_badger',
-            'type' => 'user',
+            'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-user',
             'body' => [
                 'query' => [
                     'bool' => [

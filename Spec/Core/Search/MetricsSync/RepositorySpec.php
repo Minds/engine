@@ -26,7 +26,11 @@ class RepositorySpec extends ObjectBehavior
 
         $config->get('elasticsearch')
             ->shouldBeCalled()
-            ->willReturn(['index' => 'minds']);
+            ->willReturn([
+                'indexes' => [
+                    'search_prefix' => 'minds'
+                ]
+            ]);
 
         $this->beConstructedWith($client, $config);
     }

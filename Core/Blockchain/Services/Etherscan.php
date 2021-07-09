@@ -231,7 +231,7 @@ class Etherscan
     public function getBlockNumberByTimestamp(int $unixTimestamp): int
     {
         $result = $this->request("module=block&action=getblocknobytime&timestamp=$unixTimestamp&closest=before&apikey={$this->apiKey}");
-        return $result['result'];
+        return (int) $result['result'];
     }
 
     /**

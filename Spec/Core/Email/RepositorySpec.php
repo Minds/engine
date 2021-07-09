@@ -55,6 +55,45 @@ class RepositorySpec extends ObjectBehavior
         $this->getList($opts)->shouldBeArray();
     }
 
+    public function it_should_omit_invalid_entries()
+    {
+        $opts = [
+            'campaign' => 'when',
+            'topic' => 'boost_completed',
+            'limit' => 2000,
+        ];
+
+        $this->db->request(Argument::that(function ($query) {
+            $built = $query->build();
+            return $built['string'] === 'SELECT * FROM email_subscriptions WHERE campaign IN ? AND topic IN ?';
+        }))
+            ->shouldBeCalled()
+            ->willReturn(new Rows([
+                [
+                    'campaign' => 'when',
+                    'topic' => 'boost_completed',
+                    'user_guid' => new Varint(123),
+                    'value' => true,
+                ],
+                [
+                    'campaign' => 'global',
+                    'topic' => 'boost_completed',
+                    'user_guid' => new Varint(456),
+                    'value' => true
+                ]
+            ], ''));
+
+        $emailSubscription = (new EmailSubscription())
+            ->setUserGuid('123')
+            ->setCampaign('when')
+            ->setTopic('boost_completed')
+            ->setValue(true);
+        
+        $this->getList($opts)['data']->shouldBeLike([
+                $emailSubscription
+        ]);
+    }
+
     public function it_should_throw_if_calling_add_without_user_guid()
     {
         $this->shouldThrow(new \Exception('user_guid is required'))->duringAdd(new EmailSubscription());

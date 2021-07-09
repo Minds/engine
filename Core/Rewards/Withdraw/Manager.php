@@ -40,6 +40,9 @@ class Manager
     /** @var Delegates\NotificationsDelegate */
     protected $notificationsDelegate;
 
+    /** @var Delegates\EmailDelegate */
+    protected $emailDelegate;
+
     /** @var Delegates\RequestHydrationDelegate */
     protected $requestHydrationDelegate;
 
@@ -51,6 +54,7 @@ class Manager
         $repository = null,
         $offChainBalance = null,
         $notificationsDelegate = null,
+        $emailDelegate = null,
         $requestHydrationDelegate = null
     ) {
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
@@ -60,11 +64,12 @@ class Manager
         $this->repository = $repository ?: new Repository();
         $this->offChainBalance = $offChainBalance ?: Di::_()->get('Blockchain\Wallets\OffChain\Balance');
         $this->notificationsDelegate = $notificationsDelegate ?: new Delegates\NotificationsDelegate();
+        $this->emailDelegate = $emailDelegate ?: new Delegates\EmailDelegate();
         $this->requestHydrationDelegate = $requestHydrationDelegate ?: new Delegates\RequestHydrationDelegate();
     }
 
     /**
-     * Checks if a withdrawal has been made in the last 24 hours
+     * Checks if the user already has a pending withdrawal.
      * @param $userGuid
      * @return boolean
      */
@@ -79,12 +84,19 @@ class Manager
 
         $previousRequests = $this->repository->getList([
             'user_guid' => $userGuid,
-            'from' => strtotime('-1 day')
         ]);
 
-        return !$previousRequests
-            || !isset($previousRequests['withdrawals'])
-            || count($previousRequests['withdrawals']) === 0;
+        if (!$previousRequests || !isset($previousRequests['withdrawals'])) {
+            return true;
+        }
+
+        foreach ($previousRequests['withdrawals'] as $request) {
+            if ($request->getStatus() === 'pending' || $request->getStatus() === 'pending_approval') {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -116,9 +128,18 @@ class Manager
         }
 
         $response
-            ->setPagingToken(base64_encode($requests['load-next'] ?? ''));
+            ->setPagingToken(base64_encode($requests['token'] ?? ''));
 
         return $response;
+    }
+
+    /**
+     * @param string $requestHydrationDelegate
+     * @return Request
+     */
+    public function getByUrn(string $urn): ?Request
+    {
+        return $this->repository->get($urn);
     }
 
     /**
@@ -162,7 +183,7 @@ class Manager
     public function request($request): bool
     {
         if (!$this->check($request->getUserGuid())) {
-            throw new Exception('A withdrawal has already been requested in the last 24 hours');
+            throw new Exception('You can only have one pending withdrawal at a time');
         }
 
         $user = new User();
@@ -212,6 +233,10 @@ class Manager
         // Notify
 
         $this->notificationsDelegate->onRequest($request);
+
+        // Email
+
+        $this->emailDelegate->onRequest($request);
 
         //
 
@@ -279,6 +304,10 @@ class Manager
 
         $this->notificationsDelegate->onConfirm($request);
 
+        // Email
+
+        $this->emailDelegate->onConfirm($request);
+
         //
 
         return true;
@@ -311,6 +340,10 @@ class Manager
 
         $this->notificationsDelegate->onFail($request);
 
+        // Email
+
+        $this->emailDelegate->onFail($request);
+
         //
 
         return true;
@@ -332,7 +365,7 @@ class Manager
         $txHash = $this->eth->sendRawTransaction($this->config->get('blockchain')['contracts']['withdraw']['wallet_pkey'], [
             'from' => $this->config->get('blockchain')['contracts']['withdraw']['wallet_address'],
             'to' => $this->config->get('blockchain')['contracts']['withdraw']['contract_address'],
-            'gasLimit' => BigNumber::_(4612388)->toHex(true),
+            'gasLimit' => BigNumber::_(87204)->toHex(true),
             'gasPrice' => BigNumber::_($this->config->get('blockchain')['server_gas_price'] * 1000000000)->toHex(true),
             'data' => $this->eth->encodeContractMethod('complete(address,uint256,uint256,uint256)', [
                 $request->getAddress(),
@@ -356,6 +389,10 @@ class Manager
         // Notify
 
         $this->notificationsDelegate->onApprove($request);
+
+        // Email
+
+        $this->emailDelegate->onApprove($request);
 
         //
 
@@ -400,6 +437,10 @@ class Manager
         // Notify
 
         $this->notificationsDelegate->onReject($request);
+
+        // Email
+
+        $this->emailDelegate->onReject($request);
 
         //
 

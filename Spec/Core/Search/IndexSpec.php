@@ -73,8 +73,7 @@ class IndexSpec extends ObjectBehavior
             $query = $prepared->build();
 
             return
-                $query['index'] == $this->_index &&
-                $query['type'] == 'test' &&
+                $query['index'] == $this->_index . '-test' &&
                 $query['id'] == '1000' &&
                 isset($query['body']) &&
                 $query['body']['doc']['guid'] == '1000' &&

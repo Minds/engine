@@ -17,6 +17,8 @@ use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Payments;
 use Minds\Core\Feeds\Activity;
+use Minds\Core\EventStreams\ActionEvent;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 
 class peer implements Interfaces\Api
 {
@@ -220,6 +222,17 @@ class peer implements Interfaces\Api
 
         // Notify
 
+        $actionEvent = new ActionEvent();
+        $actionEvent
+            ->setAction(ActionEvent::ACTION_BOOST_PEER_REQUEST)
+            ->setEntity($boost)
+            ->setUser(Core\Session::getLoggedinUser());
+
+        $actionEventTopic = new ActionEventsTopic();
+        $actionEventTopic->send($actionEvent);
+
+        //
+
         Core\Events\Dispatcher::trigger('notification', 'boost', [
             'to'=> [$boost->getDestination()->guid],
             'entity' => $boost->getEntity(),
@@ -306,6 +319,17 @@ class peer implements Interfaces\Api
 
         // Notify
 
+        $actionEvent = new ActionEvent();
+        $actionEvent
+            ->setAction(ActionEvent::ACTION_BOOST_PEER_ACCEPTED)
+            ->setEntity($boost)
+            ->setUser(Core\Session::getLoggedinUser());
+
+        $actionEventTopic = new ActionEventsTopic();
+        $actionEventTopic->send($actionEvent);
+
+        //
+
         Core\Events\Dispatcher::trigger('notification', 'boost', [
             'to'=>[$boost->getOwner()->guid],
             'entity' => $boost->getEntity(),
@@ -342,10 +366,19 @@ class peer implements Interfaces\Api
         try {
 
             // Action
-
             if ($revoked) {
                 $review->revoke();
             } else {
+                $actionEvent = new ActionEvent();
+                $actionEvent
+                    ->setAction(ActionEvent::ACTION_BOOST_PEER_REJECTED)
+                    ->setEntity($boost)
+                    ->setUser(Core\Session::getLoggedinUser());
+
+                $actionEventTopic = new ActionEventsTopic();
+                $actionEventTopic->send($actionEvent);
+
+                //
                 Core\Events\Dispatcher::trigger('notification', 'boost', [
                     'to' => [$boost->getOwner()->guid],
                     'entity' => $boost->getEntity(),
@@ -356,6 +389,8 @@ class peer implements Interfaces\Api
                         'title' => $boost->getEntity()->title,
                     ]
                 ]);
+
+                //
                 $review->reject();
             }
 

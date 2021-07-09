@@ -3,6 +3,7 @@ namespace Minds\Core\Rewards;
 
 use Brick\Math\BigDecimal;
 use Brick\Math\Exception\DivisionByZeroException;
+use Brick\Math\Exception\NumberFormatException;
 use Brick\Math\RoundingMode;
 use Cassandra\Bigint;
 use Cassandra\Decimal;
@@ -62,12 +63,13 @@ class Repository
             $allTimeSummary = $allTime[$rewardEntry->getRewardType()] ?? new RewardEntry();
             $dailyGlobalSummary = $dailyGlobal[$rewardEntry->getRewardType()] ?? new RewardEntry();
             try {
-                $sharePct = $rewardEntry->getScore()->dividedBy($dailyGlobalSummary->getScore(), 4, RoundingMode::FLOOR);
+                $sharePct = $rewardEntry->getScore()->dividedBy($dailyGlobalSummary->getScore(), 8, RoundingMode::FLOOR);
                 $rewardEntry->setSharePct($sharePct->toFloat());
             } catch (DivisionByZeroException $e) {
             }
 
             $rewardEntry->setAllTimeSummary($allTimeSummary);
+            $rewardEntry->setGlobalSummary($dailyGlobalSummary);
         }
 
         return new Response($daily);
@@ -85,9 +87,10 @@ class Repository
         foreach ($daily as $rewardEntry) {
             $dailyGlobalSummary = $dailyGlobal[$rewardEntry->getRewardType()] ?? new RewardEntry();
             try {
-                $sharePct = $rewardEntry->getScore()->dividedBy($dailyGlobalSummary->getScore(), 4, RoundingMode::FLOOR);
+                $sharePct = $rewardEntry->getScore()->dividedBy($dailyGlobalSummary->getScore(), 8, RoundingMode::FLOOR);
                 $rewardEntry->setSharePct($sharePct->toFloat());
             } catch (DivisionByZeroException $e) {
+            } catch (NumberFormatException $e) {
             }
             yield $rewardEntry;
         }
@@ -99,19 +102,82 @@ class Repository
      */
     public function add(RewardEntry $rewardEntry): bool
     {
-        $statement = "INSERT INTO token_rewards (user_guid, date, reward_type, score, multiplier, token_amount, tokenomics_version) VALUES (?,?,?,?,?,?,?)";
+        $statement = "INSERT INTO token_rewards (
+            user_guid,
+            date,
+            reward_type,
+            score,
+            multiplier,
+            tokenomics_version
+            ) VALUES (?,?,?,?,?,?)";
         $values = [
             new Bigint($rewardEntry->getUserGuid()),
             new Date($rewardEntry->getDateTs()),
             $rewardEntry->getRewardType(),
             new Decimal((string) $rewardEntry->getScore()),
-            new Decimal($rewardEntry->getMultiplier()),
-            new Decimal((string) $rewardEntry->getTokenAmount() ?: 0),
+            new Decimal((string) $rewardEntry->getMultiplier()),
             $rewardEntry->getTokenomicsVersion(),
         ];
 
         $prepared = new Prepared\Custom();
         $prepared->query($statement, $values);
+        $prepared->setOpts([
+            // Ensure we write to all the entire cluster and not just local
+            'consistency' => \Cassandra::CONSISTENCY_QUORUM,
+        ]);
+
+        return (bool) $this->cql->request($prepared);
+    }
+
+    /**
+     * @param RewardEntry $rewardEntry
+     * @param array $fields
+     * @return bool
+     */
+    public function update(RewardEntry $rewardEntry, array $fields = []): bool
+    {
+        $statement = "UPDATE token_rewards";
+        $values = [];
+
+        /**
+         * Set statement
+         */
+        $set = [];
+
+        foreach ($fields as $field) {
+            switch ($field) {
+                case "token_amount":
+                    $set["token_amount"] = new Decimal((string) $rewardEntry->getTokenAmount() ?: 0);
+                    break;
+                case "payout_tx":
+                    $set["payout_tx"] = $rewardEntry->getPayoutTx();
+                    break;
+            }
+        }
+
+        foreach ($set as $field => $value) {
+            $statement .= " SET $field = ?";
+            $values[] = $value;
+        }
+
+        /**
+         * Where statement
+         */
+        $where = [
+            "user_guid = ?" => new Bigint($rewardEntry->getUserGuid()),
+            "date = ?" =>  new Date($rewardEntry->getDateTs()),
+            "reward_type = ?" => $rewardEntry->getRewardType()
+        ];
+
+        $statement .= " WHERE " . implode(' AND ', array_keys($where));
+        array_push($values, ...array_values($where));
+
+        $prepared = new Prepared\Custom();
+        $prepared->query($statement, $values);
+        $prepared->setOpts([
+            // Ensure we write to all the entire cluster and not just local
+            'consistency' => \Cassandra::CONSISTENCY_QUORUM,
+        ]);
 
         return (bool) $this->cql->request($prepared);
     }
@@ -208,23 +274,27 @@ class Repository
     private function getRewardsSummaries(Prepared\Custom $prepared): iterable
     {
         foreach ($this->scroll->request($prepared) as $k => $row) {
-            $rewardType = $row['reward_type'];
-            $rewardEntry = (new RewardEntry())
+            try {
+                $rewardType = $row['reward_type'];
+                $rewardEntry = (new RewardEntry())
                 ->setUserGuid((string) ($row['user_guid'] ?? null))
                 ->setDateTs(isset($row['date']) ? $row['date']->seconds() : null)
                 ->setRewardType($rewardType)
                 ->setScore(BigDecimal::of((string) $row['score']))
-                ->setTokenAmount(BigDecimal::of((string) $row['token_amount']));
+                ->setTokenAmount(BigDecimal::of((string) $row['token_amount'] ?: 0))
+                ->setPayoutTx((string) ($row['payout_tx'] ?? null));
 
-            if (isset($row['data'])) {
-                $rewardEntry->setDateTs($row['date']->seconds());
+                if (isset($row['data'])) {
+                    $rewardEntry->setDateTs($row['date']->seconds());
+                }
+
+                if (isset($row['multiplier'])) {
+                    $rewardEntry->setMultiplier(BigDecimal::of($row['multiplier']));
+                }
+
+                yield $rewardEntry;
+            } catch (NumberFormatException $e) {
             }
-
-            if (isset($row['multiplier'])) {
-                $rewardEntry->setMultiplier((float) $row['multiplier']);
-            }
-
-            yield $rewardEntry;
         }
     }
 }

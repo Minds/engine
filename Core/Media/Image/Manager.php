@@ -18,19 +18,24 @@ use Lcobucci\JWT;
 use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
 use Zend\Diactoros\Uri;
+use Minds\Core\Media\Video\CloudflareStreams;
 
 class Manager
 {
-    /** @var Config $config */
+    /** @var Config */
     private $config;
 
-    /** @var SignedUri $signedUri */
+    /** @var SignedUri */
     private $signedUri;
 
-    public function __construct($config = null, $signedUri = null)
+    /** @var CloudflareStreams\Manager  */
+    private $cloudflareStreamsManager;
+
+    public function __construct($config = null, $signedUri = null, $cloudflareStreamsManager = null)
     {
         $this->config = $config ?? Di::_()->get('Config');
         $this->signedUri = $signedUri ?? new SignedUri;
+        $this->cloudflareStreamsManager = $cloudflareStreamsManager ?? Di::_()->get('Media\Video\CloudflareStreams\Manager');
     }
 
     /**
@@ -47,6 +52,11 @@ class Manager
         switch (get_class($entity)) {
             case Activity::class:
                 switch ($entity->get('custom_type')) {
+                    case "video":
+                        $asset_guid = $entity->get('entity_guid');
+                        // Cloudflare caches 302 redirect, so bust it each day
+                        $entity->set('last_updated', strtotime('midnight'));
+                        break;
                     case "batch":
                         $asset_guid = $entity->get('entity_guid');
                         break;
@@ -59,8 +69,13 @@ class Manager
                 $asset_guid = $entity->getGuid();
                 break;
             case Video::class:
-                $asset_guid = $entity->getGuid();
-                $lastUpdated = $entity->get('last_updated');
+                /** @var Video */
+                $video = $entity;
+                $asset_guid = $video->getGuid();
+                $lastUpdated = $video->get('last_updated');
+                if ($video->getTranscoder() === 'cloudflare' && !$video->thumbnail) {
+                    return $this->cloudflareStreamsManager->getThumbnailUrl($video);
+                }
                 break;
             case Comment::class:
                 $asset_guid = $entity->getAttachments()['attachment_guid'];

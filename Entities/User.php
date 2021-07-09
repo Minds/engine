@@ -16,6 +16,11 @@ class User extends \ElggUser
     public $fullExport = true;
     public $exportCounts = false;
 
+    const PLUS_PRO_VALID_METHODS = [
+        'tokens',
+        'usd',
+    ];
+
     protected function initializeAttributes()
     {
         $this->attributes['boost_rating'] = 1;
@@ -32,7 +37,9 @@ class User extends \ElggUser
         $this->attributes['partner_rpm'] = 0;
         $this->attributes['plus'] = 0; //TODO: REMOVE
         $this->attributes['plus_expires'] = 0;
+        $this->attributes['plus_method'] = 'tokens';
         $this->attributes['pro_expires'] = 0;
+        $this->attributes['pro_method'] = 'tokens';
         $this->attributes['pro_published'] = 0;
         $this->attributes['verified'] = 0;
         $this->attributes['founder'] = 0;
@@ -77,6 +84,24 @@ class User extends \ElggUser
         $this->attributes['liquidity_spot_opt_out'] = 0;
 
         parent::initializeAttributes();
+    }
+
+    /**
+     * Returns the username
+     * @return string
+     */
+    public function getUsername(): string
+    {
+        return $this->username;
+    }
+
+    /**
+     * Returns the display name
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
     }
 
     /**
@@ -393,7 +418,7 @@ class User extends \ElggUser
     /**
      * Returns and decrypts an email address.
      *
-     * @return $this
+     * @return string
      */
     public function getEmail()
     {
@@ -985,6 +1010,12 @@ class User extends \ElggUser
         $export['programs'] = $this->getPrograms();
         $export['plus'] = (bool) $this->isPlus();
         $export['pro'] = (bool) $this->isPro();
+        if ($this->isPlus()) {
+            $export['plus_method'] = $this->getPlusMethod();
+        }
+        if ($this->isPro()) {
+            $export['pro_method'] = $this->getProMethod();
+        }
         $export['pro_published'] = $this->isPro() && $this->isProPublished();
         $export['verified'] = (bool) $this->verified;
         $export['founder'] = (bool) $this->founder;
@@ -1095,6 +1126,30 @@ class User extends \ElggUser
     }
 
     /**
+     * Set plus payment method.
+     *
+     * @param string $paymentMethod
+     * @return self
+     */
+    public function setPlusMethod(string $paymentMethod): self
+    {
+        if (!in_array($paymentMethod, self::PLUS_PRO_VALID_METHODS, false)) {
+            throw new \Exception("Invalid payment method '$paymentMethod' on User->setPlusMethod");
+        }
+        $this->plus_method = $paymentMethod;
+        return $this;
+    }
+
+    /**
+     * Get plus payment method
+     * @return string
+     */
+    public function getPlusMethod(): string
+    {
+        return $this->plus_method ?: 'tokens';
+    }
+
+    /**
      * Get plus expires.
      *
      * @var int
@@ -1120,6 +1175,30 @@ class User extends \ElggUser
     public function getProExpires()
     {
         return $this->pro_expires ?: 0;
+    }
+
+    /**
+     * Set pro payment method
+     *
+     * @param string $paymentMethod
+     * @return self
+     */
+    public function setProMethod(string $paymentMethod): self
+    {
+        if (!in_array($paymentMethod, self::PLUS_PRO_VALID_METHODS, false)) {
+            throw new \Exception("Invalid payment method '$paymentMethod' on User->setProMethod");
+        }
+        $this->pro_method = $paymentMethod;
+        return $this;
+    }
+
+    /**
+     * Get plus payment method
+     * @return string
+     */
+    public function getProMethod(): string
+    {
+        return $this->pro_method ?: 'tokens';
     }
 
     /**
@@ -1427,7 +1506,7 @@ class User extends \ElggUser
      *
      * @return string
      */
-    public function getUrn()
+    public function getUrn(): string
     {
         return "urn:user:{$this->getGuid()}";
     }
@@ -1740,5 +1819,14 @@ class User extends \ElggUser
     public function isLiquiditySpotOptOut(): bool
     {
         return $this->getLiquiditySpotOptOut() === 1;
+    }
+
+    /**
+     * Returns the twofactor value of a user
+     * @return bool
+     */
+    public function getTwoFactor(): bool
+    {
+        return $this->twofactor;
     }
 }

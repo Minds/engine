@@ -99,7 +99,6 @@ class Manager
             'update' => [
                 '_id' => "{$userState->getUserGuid()}-{$userState->getReferenceDateMs()}",
                 '_index' => $this->userStateIndex,
-                '_type' => 'active_user',
             ],
         ];
 

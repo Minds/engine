@@ -8,6 +8,7 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Entities\User;
+use Minds\Entities\Group;
 use Minds\Interfaces;
 
 class container implements Interfaces\Api
@@ -43,19 +44,26 @@ class container implements Interfaces\Api
             ]);
         }
 
+        if (!($container instanceof User || $container instanceof Group)) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Bad request. The container does not appear to be a user or group',
+            ]);
+        }
+
         $type = '';
         switch ($pages[1]) {
             case 'activities':
                 $type = 'activity';
                 break;
             case 'images':
-                $type = 'object:image';
+                $type = 'object-image';
                 break;
             case 'videos':
-                $type = 'object:video';
+                $type = 'object-video';
                 break;
             case 'blogs':
-                $type = 'object:blog';
+                $type = 'object-blog';
                 break;
             case 'all':
                 $type = 'all';
@@ -149,6 +157,10 @@ class container implements Interfaces\Api
                 $nsfw = $_GET['nsfw'] ?? '';
                 $opts['nsfw'] = explode(',', $nsfw);
             }
+        }
+
+        if (isset($_GET['to_timestamp'])) {
+            $opts['to_timestamp'] = $_GET['to_timestamp'] ;
         }
 
         try {

@@ -2,29 +2,32 @@
 
 namespace Spec\Minds\Core\Votes;
 
+use Minds\Common\Repository\IterableEntity;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
-use Minds\Core\Helpdesk\Question\Repository;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Votes\Vote;
+use Minds\Core\Votes\VoteListOpts;
 use Minds\Entities\Activity;
 use Minds\Entities\Image;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Spec\Minds\Mocks\Cassandra\Rows;
 
 class IndexesSpec extends ObjectBehavior
 {
     protected $cql;
-    protected $repository;
+    protected $entitiesBuilder;
 
     public function let(
         Client $cql,
-        Repository $repo
+        EntitiesBuilder $entitiesBuilder
     ) {
         $this->cql = $cql;
-        $this->repository = $repo;
+        $this->entitiesBuilder = $entitiesBuilder;
 
-        $this->beConstructedWith($cql, $repo);
+        $this->beConstructedWith($cql, $entitiesBuilder);
     }
 
     public function it_is_initializable()
@@ -376,5 +379,53 @@ class IndexesSpec extends ObjectBehavior
         $vote->getDirection()->willReturn('up');
 
         $this->exists($vote)->shouldReturn(true);
+    }
+
+    public function it_should_return_a_list_of_voters(User $actor, User $actor2)
+    {
+        $opts = new VoteListOpts();
+        $opts->setEntityGuid('123')
+            ->setDirection('up')
+            ->setLimit(10);
+    
+        $this->cql->request(Argument::that(function ($prepared) {
+            return true;
+        }))
+            ->willReturn(new Rows([
+                [
+                    'column1' => '123',
+                    'value' => time(),
+                ],
+                [
+                    'column1' => '456',
+                    'value' => time(),
+                ],
+            ], 'next-page'));
+
+        //
+
+        $actor->get('guid')
+            ->willReturn('123');
+
+        $this->entitiesBuilder->single('123')
+            ->shouldBeCalled()
+            ->willReturn(
+                $actor
+            );
+
+        //
+
+        $actor2->get('guid')
+        ->willReturn('456');
+
+        $this->entitiesBuilder->single('456')
+            ->shouldBeCalled()
+            ->willReturn(
+                $actor2
+            );
+
+
+        $list = $this->getList($opts);
+        $list->shouldHaveCount(2);
     }
 }

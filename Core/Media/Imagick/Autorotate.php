@@ -2,7 +2,7 @@
 
 namespace Minds\Core\Media\Imagick;
 
-class Autorotate
+class Autorotate extends AbstractImagick
 {
     /** @var \Imagick */
     protected $image;

@@ -4,20 +4,26 @@
  */
 namespace Minds\Core\Trending\Aggregates;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 
 class Aggregate
 {
     protected $client;
+
+    /** @var Config */
+    protected $config;
+
     protected $type;
     protected $subtype;
     protected $from;
     protected $to;
     protected $limit = 50;
 
-    public function __construct($client = null)
+    public function __construct($client = null, Config $config = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
+        $this->config = $config ?? Di::_()->get('Config');
         $this->from = strtotime('-24 hours') * 1000;
         $this->to = time() * 1000;
     }

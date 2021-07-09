@@ -302,22 +302,22 @@ class blog implements Interfaces\Api
         }
 
 
-        if (isset($_POST['time_created'])) {
-            try {
-                $timeCreatedDelegate = new Core\Blogs\Delegates\TimeCreatedDelegate();
+        // if (isset($_POST['time_created'])) {
+        //     try {
+        //         $timeCreatedDelegate = new Core\Blogs\Delegates\TimeCreatedDelegate();
 
-                if ($editing) {
-                    $timeCreatedDelegate->onUpdate($blog, $_POST['time_created'], time());
-                } else {
-                    $timeCreatedDelegate->onAdd($blog, $_POST['time_created'], time());
-                }
-            } catch (\Exception $e) {
-                return Factory::response([
-                    'status' => 'error',
-                    'message' => $e->getMessage(),
-                ]);
-            }
-        }
+        //         if ($editing) {
+        //             $timeCreatedDelegate->onUpdate($blog, $_POST['time_created'], time());
+        //         } else {
+        //             $timeCreatedDelegate->onAdd($blog, $_POST['time_created'], time());
+        //         }
+        //     } catch (\Exception $e) {
+        //         return Factory::response([
+        //             'status' => 'error',
+        //             'message' => $e->getMessage(),
+        //         ]);
+        //     }
+        // }
 
         if (!$blog->isPublished()) {
             $blog->setAccessId(Access::UNLISTED);

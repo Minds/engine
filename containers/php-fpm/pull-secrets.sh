@@ -20,6 +20,9 @@ aws s3 cp $S3_BUCKET/var/secure/sessions-pub.key /var/secure/sessions-pub.key
 
 aws s3 cp $S3_BUCKET/var/secure/google.sheets.key.json /var/secure/google.sheets.key.json
 
+# Pulsar ssl cert
+aws s3 cp $S3_BUCKET/var/secure/pulsar.crt /var/secure/pulsar.crt
+
 chmod -xr /var/secure/
 
 echo "PULLED SECRETS";

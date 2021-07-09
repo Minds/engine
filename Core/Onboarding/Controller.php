@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Onboarding;
 
+use Composer\Semver\Comparator;
 use Minds\Entities\User;
 use Minds\Core\Di\Di;
 use Minds\Core\Features;
@@ -40,7 +41,11 @@ class Controller
      */
     public function getProgress(ServerRequest $request): JsonResponse
     {
-        if (!$this->featuresManager->has('onboarding-october-2020')) {
+        if (
+            !$this->featuresManager->has('onboarding-october-2020') &&
+            isset($_SERVER['HTTP_APP_VERSION']) &&
+            Comparator::lessThan($_SERVER['HTTP_APP_VERSION'], '4.9.0')
+        ) {
             return new JsonResponse([
                 'status' => 'error',
                 'message' => 'You need to enable the onboarding-october-2020 feature flag',

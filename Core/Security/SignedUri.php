@@ -7,6 +7,7 @@ use Minds\Core\Session;
 use Lcobucci\JWT;
 use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
+use Lcobucci\JWT\Signer\Key\LocalFileReference;
 use Zend\Diactoros\Uri;
 
 class SignedUri
@@ -37,15 +38,14 @@ class SignedUri
     {
         $uri = new Uri($uri);
 
-        $expires = (new \DateTime())->modify('midnight first day of next month')->modify('+1 month')->getTimestamp();
+        $expires = (new \DateTimeImmutable())->modify('midnight first day of next month')->modify('+1 month');
 
         $token = (new $this->jwtBuilder)
             //->setId((string) $uri)
             ->setExpiration($expires)
             ->set('uri', (string) $uri)
             ->set('user_guid', Session::isLoggedIn() ? (string) Session::getLoggedInUser()->getGuid() : null)
-            ->sign(new Sha256, $this->config->get('sessions')['private_key'])
-            ->getToken();
+            ->getToken(new Sha256, new LocalFileReference($this->config->get('sessions')['private_key']));
         $signedUri = $uri->withQuery("jwtsig=$token");
         return (string) $signedUri;
     }
@@ -67,7 +67,7 @@ class SignedUri
             return false;
         }
 
-        if (!$token->verify(new Sha256, $this->config->get('sessions')['private_key'])) {
+        if (!$token->verify(new Sha256, new LocalFileReference($this->config->get('sessions')['private_key']))) {
             return false;
         }
         return ((string) $token->getClaim('uri') === (string) $providedUri->withQuery(''));

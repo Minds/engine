@@ -493,6 +493,37 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $strikeDelegate->onStrike($strike);
     }
 
+    /**
+     * Example usage:
+     *  php cli.php Email testHackedAccount
+     * --entityUrn=urn:user:12345
+     * --output=/var/www/Minds/engine/mod_banned.html
+     */
+    public function testHackedAccount()
+    {
+        $entityUrn = $this->getOpt('entityUrn');
+        $output = $this->getOpt('output');
+
+
+        if (!$entityUrn) {
+            return $this->out('entityUrn must be supplied');
+        }
+
+        $report = new Reports\Report();
+        $report->setEntityUrn($entityUrn);
+        $report->setReasonCode(17);
+        $report->setSubReasonCode(1);
+
+        $emailDelegate = new Reports\Verdict\Delegates\EmailDelegate();
+
+        $emailDelegate->onHack($report);
+
+        if ($output) {
+            $message = $emailDelegate->getCampaign()->getMessage();
+            file_put_contents($output, $message->buildHtml());
+        }
+    }
+
     public function testTokenPurchase()
     {
         $issued = $this->getOpt('issued');

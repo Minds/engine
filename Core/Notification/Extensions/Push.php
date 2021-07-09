@@ -6,6 +6,7 @@ use Minds\Core\Di\Di;
 use Minds\Interfaces;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Core\Queue\Client as QueueClient;
+use Minds\Entities\User;
 
 class Push implements Interfaces\NotificationExtensionInterface
 {
@@ -34,6 +35,14 @@ class Push implements Interfaces\NotificationExtensionInterface
         // TODO: [emi] should I throw an \Exception?
         if (!$notification['uri'] || !$notification['to']) {
             return false;
+        }
+
+        $toUser = EntitiesFactory::build($notification['to']);
+        if (!$toUser instanceof User) {
+            return;
+        }
+        if (Di::_()->get('Features\Manager')->setUser($toUser)->has('notifications-v3')) {
+            return;
         }
 
         /*if ($notification['params']['notification_view'] == 'like' || $notification['params']['notification_view'] == 'downvote') {

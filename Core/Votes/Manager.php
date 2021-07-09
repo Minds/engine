@@ -152,4 +152,12 @@ class Manager
             return $this->cancel($vote, $options);
         }
     }
+
+    /**
+     * @return iterable<IterableEntity>
+     */
+    public function getList(VoteListOpts $opts): iterable
+    {
+        return $this->indexes->getList($opts);
+    }
 }

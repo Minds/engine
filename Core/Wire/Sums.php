@@ -111,12 +111,10 @@ class Sums
 
     /**
      * Returns how much money or points a user has sent through wire in a given time
-     * @param $sender_guid
-     * @param $method
-     * @param $timestamp
+     * @param $string
      * @return int
      */
-    public function getSent()
+    public function getSent($sumField = '')
     {
         // if $timestamp isn't set, I set it to a default date prior to wire creation so the query sums everything
         if (!$this->from) {
@@ -158,7 +156,7 @@ class Sums
             if (!$result) {
                 return 0;
             }
-            if ($this->method == 'tokens') {
+            if ($this->method == 'tokens' || $sumField === 'wei') {
                 return (string) $result[0]['wei_sum'];
             } else {
                 return (string) $result[0]['amount_sum'];

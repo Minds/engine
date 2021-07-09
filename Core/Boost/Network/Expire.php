@@ -2,8 +2,11 @@
 
 namespace Minds\Core\Boost\Network;
 
+use Minds\Common\SystemUser;
 use Minds\Core;
 use Minds\Core\Data;
+use Minds\Core\Di\Di;
+use Minds\Core\Notifications;
 
 class Expire
 {
@@ -13,9 +16,13 @@ class Expire
     /** @var Manager $manager */
     protected $manager;
 
-    public function __construct($manager = null)
+    /** @var Notifications\Manager */
+    protected $notificationsManager;
+
+    public function __construct($manager = null, Notifications\Manager $notificationsManager = null)
     {
         $this->manager = $manager ?: new Manager;
+        $this->notificationsManager = $notificationsManager ?? Di::_()->get('Notifications\Manager');
     }
 
     /**
@@ -63,5 +70,19 @@ class Expire
             ],
             'impressions' => $this->boost->getImpressions()
         ]);
+
+        //
+
+        $notification = new Notifications\Notification();
+
+        $notification->setType(Notifications\NotificationTypes::TYPE_BOOST_COMPLETED);
+        $notification->setData([
+            'impressions' =>  $this->boost->getImpressions()
+        ]);
+        $notification->setToGuid((string) $this->boost->getOwnerGuid());
+        $notification->setFromGuid(SystemUser::GUID);
+        $notification->setEntityUrn($this->boost->getEntity()->getUrn());
+
+        $this->notificationsManager->add($notification);
     }
 }

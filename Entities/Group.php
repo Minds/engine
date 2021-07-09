@@ -14,7 +14,7 @@ use Minds\Core\Groups\Invitations;
 use Minds\Core\Groups\Delegates\ElasticSearchDelegate;
 use Minds\Traits\MagicAttributes;
 
-class Group extends NormalizedEntity
+class Group extends NormalizedEntity implements EntityInterface
 {
     use MagicAttributes;
 
@@ -214,9 +214,17 @@ class Group extends NormalizedEntity
      *
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
+    }
+
+    /**
+     * @return null
+     */
+    public function getSubtype(): ?string
+    {
+        return null;
     }
 
     /**
@@ -290,9 +298,9 @@ class Group extends NormalizedEntity
      * Gets `access_id`
      * @return mixed
      */
-    public function getAccessId()
+    public function getAccessId(): string
     {
-        return $this->access_id;
+        return (string) $this->access_id;
     }
 
     /**
@@ -461,12 +469,12 @@ class Group extends NormalizedEntity
      * Return the original `owner_guid` for the group.
      * @return string guid
      */
-    public function getOwnerGuid()
+    public function getOwnerGuid(): string
     {
         $guids = $this->getOwnerGuids();
         return $guids
-            ? $guids[0]
-            : $this->getOwnerObj()->guid;
+            ? (string) $guids[0]
+            : (string) $this->getOwnerObj()->guid;
     }
 
     /**
@@ -923,7 +931,7 @@ class Group extends NormalizedEntity
         return $export;
     }
 
-    public function getUrn()
+    public function getUrn(): string
     {
         return "urn:group:{$this->guid}";
     }

@@ -58,7 +58,6 @@ class Comments extends Aggregate
 
         $query = [
             'index' => 'minds-metrics-*',
-            'type' => 'action',
             'body' => [
                 'query' => [
                     'bool' => [

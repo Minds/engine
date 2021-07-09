@@ -1,5 +1,4 @@
 <?php
-
 namespace Spec\Minds\Core\Rewards\Withdraw;
 
 use Exception;
@@ -43,6 +42,9 @@ class ManagerSpec extends ObjectBehavior
     /** @var Delegates\NotificationsDelegate */
     protected $notificationsDelegate;
 
+    /** @var Delegates\EmailDelegate */
+    protected $emailDelegate;
+
     /** @var Delegates\RequestHydrationDelegate */
     protected $requestHydrationDelegate;
 
@@ -54,6 +56,7 @@ class ManagerSpec extends ObjectBehavior
         Repository $repository,
         OffchainBalance $offChainBalance,
         Delegates\NotificationsDelegate $notificationsDelegate,
+        Delegates\EmailDelegate $emailDelegate,
         Delegates\RequestHydrationDelegate $requestHydrationDelegate
     ) {
         $this->beConstructedWith(
@@ -64,6 +67,7 @@ class ManagerSpec extends ObjectBehavior
             $repository,
             $offChainBalance,
             $notificationsDelegate,
+            $emailDelegate,
             $requestHydrationDelegate
         );
 
@@ -74,6 +78,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository = $repository;
         $this->offChainBalance = $offChainBalance;
         $this->notificationsDelegate = $notificationsDelegate;
+        $this->emailDelegate = $emailDelegate;
         $this->requestHydrationDelegate = $requestHydrationDelegate;
     }
 
@@ -96,7 +101,6 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->getList([
             'user_guid' => 1000,
-            'from' => strtotime('-1 day'),
         ])
             ->shouldBeCalled()
             ->willReturn([
@@ -121,9 +125,10 @@ class ManagerSpec extends ObjectBehavior
                 ],
             ]);
 
+        $request->getStatus()->shouldBeCalled()->willReturn('pending');
+
         $this->repository->getList([
             'user_guid' => 1000,
-            'from' => strtotime('-1 day'),
         ])
             ->shouldBeCalled()
             ->willReturn([
@@ -263,7 +268,6 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->getList([
             'user_guid' => 1000,
-            'from' => strtotime('-1 day'),
         ])
             ->shouldBeCalled()
             ->willReturn([
@@ -289,6 +293,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->notificationsDelegate->onRequest($request)
+            ->shouldBeCalled();
+
+        $this->emailDelegate->onRequest($request)
             ->shouldBeCalled();
 
         $this
@@ -319,7 +326,6 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->getList([
             'user_guid' => 1000,
-            'from' => strtotime('-1 day'),
         ])
             ->shouldBeCalled()
             ->willReturn([
@@ -358,7 +364,6 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->getList([
             'user_guid' => 1000,
-            'from' => strtotime('-1 day'),
         ])
             ->shouldBeCalled()
             ->willReturn([
@@ -367,8 +372,10 @@ class ManagerSpec extends ObjectBehavior
                 ],
             ]);
 
+        $request->getStatus()->shouldBeCalled()->willReturn('pending');
+
         $this
-            ->shouldThrow(new Exception('A withdrawal has already been requested in the last 24 hours'))
+            ->shouldThrow(new Exception('You can only have one pending withdrawal at a time'))
             ->duringRequest($request);
     }
 
@@ -436,6 +443,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->notificationsDelegate->onConfirm($request)
+            ->shouldBeCalled();
+
+        $this->emailDelegate->onConfirm($request)
             ->shouldBeCalled();
 
         $this
@@ -716,6 +726,9 @@ class ManagerSpec extends ObjectBehavior
         $this->notificationsDelegate->onFail($request)
             ->shouldBeCalled();
 
+        $this->emailDelegate->onFail($request)
+            ->shouldBeCalled();
+
         $this
             ->fail($request)
             ->shouldReturn(true);
@@ -798,6 +811,9 @@ class ManagerSpec extends ObjectBehavior
         $this->notificationsDelegate->onApprove($request)
             ->shouldBeCalled();
 
+        $this->emailDelegate->onApprove($request)
+            ->shouldBeCalled();
+
         $this
             ->approve($request)
             ->shouldReturn(true);
@@ -861,6 +877,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->notificationsDelegate->onReject($request)
+            ->shouldBeCalled();
+
+        $this->emailDelegate->onReject($request)
             ->shouldBeCalled();
 
         $this

@@ -64,6 +64,10 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('0xSpec');
         $user->isLiquiditySpotOptOut()
             ->willReturn(false);
+        $user->getNsfw()
+            ->willReturn([]);
+        $user->getPhoneNumberHash()
+            ->willReturn('phone_hash');
 
         $this->config->get('blockchain')
             ->willReturn([
@@ -110,7 +114,7 @@ class ManagerSpec extends ObjectBehavior
                 ->setPair($pairs[1])
         ]);
 
-        $this->uniswapClient->getUser('0xSpec', null)
+        $this->uniswapClient->getUser('0xSpec', Argument::any())
             ->willReturn($uniswapUser);
 
         $summary = $this->setUser($user)
@@ -220,7 +224,8 @@ class ManagerSpec extends ObjectBehavior
             );
 
         $holder1 = (new User())
-                ->setEthWallet('0xholder_1');
+                ->setEthWallet('0xholder_1')
+                ->setPhoneNumberHash('phone_hash');
         $this->entitiesBuilder->single('123', [ 'cache' => false ])
             ->willReturn(
                 $holder1
@@ -236,7 +241,7 @@ class ManagerSpec extends ObjectBehavior
             ->setLiquidityTokenBalance(BigDecimal::of(0.75)); // 50% of total (pairs totalSupply added up)
         $uniswapUser->setLiquidityPositions([$liquidityPosition]);
 
-        $this->uniswapClient->getUser('0xholder_1', null)
+        $this->uniswapClient->getUser('0xholder_1', Argument::any())
            ->willReturn($uniswapUser);
         
 

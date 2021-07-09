@@ -9,16 +9,49 @@
 namespace Minds\Core\Votes;
 
 use Minds\Core;
+use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
+use Minds\Core\EventStreams\ActionEvent;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Helpers;
 use Minds\Entities;
+use Minds\Entities\Activity;
 
 class Events
 {
     public function register()
     {
+        // Notification stream event
+        Dispatcher::register('vote', 'all', function (Event $event) {
+            $params = $event->getParameters();
+            $direction = $event->getNamespace();
+
+            $vote = $params['vote'];
+            $entity = $vote->getEntity();
+            $actor = $vote->getActor();
+
+            // If this is an activity post, then we will make the action on the image or video
+            if ($entity instanceof Activity && $entityGuid = $entity->getEntityGuid()) {
+                $entity = Di::_()->get('EntitiesBuilder')->single($entityGuid);
+                if (!$entity) {
+                    return; // Nothing we can do here...
+                }
+            }
+
+            $actionEvent = new ActionEvent();
+            $actionEvent
+                ->setAction(
+                    $direction === 'up' ? ActionEvent::ACTION_VOTE_UP : ActionEvent::ACTION_VOTE_DOWN
+                )
+                ->setEntity($entity)
+                ->setUser($actor);
+
+            $actionEventTopic = new ActionEventsTopic();
+            $actionEventTopic->send($actionEvent);
+        });
+
         // Notification events
 
         Dispatcher::register('vote', 'all', function (Event $event) {

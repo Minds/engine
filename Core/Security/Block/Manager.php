@@ -13,13 +13,17 @@ class Manager
     /** @var PsrWrapper */
     protected $cache;
 
+    /** @var Delegates\EventStreamsDelegate */
+    protected $eventStreamsDelegate;
+
     /** @var int */
     const CACHE_TTL = 86400; // 1 day
 
-    public function __construct(Repository $repository = null, PsrWrapper $cache = null)
+    public function __construct(Repository $repository = null, PsrWrapper $cache = null, Delegates\EventStreamsDelegate $eventStreamsDelegate = null)
     {
         $this->repository = $repository ?? new Repository();
         $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
+        $this->eventStreamsDelegate = $eventStreamsDelegate ?? new Delegates\EventStreamsDelegate();
     }
 
     /**
@@ -72,6 +76,9 @@ class Manager
 
         // Run any cleanup delegates
 
+        // Add to event stream
+        $this->eventStreamsDelegate->onAdd($block);
+
         return true;
     }
 
@@ -93,6 +100,9 @@ class Manager
         $this->cache->delete($this->getCacheKey($block->getActorGuid()));
 
         // Run any cleanup delegates
+
+        // Add to event stream
+        $this->eventStreamsDelegate->onDelete($block);
 
         return true;
     }

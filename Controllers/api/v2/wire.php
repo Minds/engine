@@ -99,6 +99,8 @@ class wire implements Interfaces\Api
             if (!$result) {
                 throw new \Exception('Something failed');
             }
+
+            $response['status'] = 'success';
         } catch (WalletNotSetupException $e) {
             $wireQueue = (Queue\Client::Build())
                 ->setQueue('WireNotification')

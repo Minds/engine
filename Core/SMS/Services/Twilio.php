@@ -6,11 +6,13 @@
 
 namespace Minds\Core\SMS\Services;
 
+use Minds\Common\IpAddress;
 use Minds\Core\Di\Di;
 use Minds\Core\Config;
 use Minds\Core\SMS\Exceptions\InvalidPhoneException;
 use Minds\Core\SMS\SMSServiceInterface;
 use Twilio\Rest\Client as TwilioClient;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
 
 class Twilio implements SMSServiceInterface
 {
@@ -23,10 +25,18 @@ class Twilio implements SMSServiceInterface
     /** @var string */
     protected $from;
 
-    public function __construct($client = null, $config = null)
+    /** @var KeyValueLimiter */
+    protected $kvLimiter;
+
+    /** @var IpAddress */
+    protected $ipAddress;
+
+    public function __construct($client = null, $config = null, $kvLimiter = null, IpAddress $ipAddress = null)
     {
         $this->config = $config ?? Di::_()->get('Config');
         $this->client = $client;
+        $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
+        $this->ipAddress = $ipAddress ?? new IpAddress();
     }
 
     /**
@@ -54,6 +64,25 @@ class Twilio implements SMSServiceInterface
     public function send($number, $message): bool
     {
         $result = null;
+
+        // Only allow 5 messages sent to a number per day
+        // To prevent malicious users flooding the system
+        $phoneNumberHash = hash('sha256', $number . $this->config->get('phone_number_hash_salt'));
+
+        $this->kvLimiter
+            ->setKey('sms-sender-twilio')
+            ->setValue($phoneNumberHash)
+            ->setSeconds(86400) // Day
+            ->setMax(5) // 5 per day
+            ->checkAndIncrement(); // Will throw exception
+
+        // Only allow 10 SMS messages per IP address per day
+        $this->kvLimiter
+            ->setKey('sms-sender-twilio-ip')
+            ->setValue($this->ipAddress->get())
+            ->setSeconds(86400) // Day
+            ->setMax(10) // 10 per day
+            ->checkAndIncrement(); // Will throw exception
 
         try {
             $result = $this->getClient()->messages->create(

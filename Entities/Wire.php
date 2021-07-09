@@ -337,4 +337,12 @@ class Wire extends NormalizedEntity
         $this->owner_guid = $owner_guid;
         return $this;
     }
+
+    /**
+     * @return string
+     */
+    public function getUrn(): string
+    {
+        return "urn:wire:{$this->guid}";
+    }
 }

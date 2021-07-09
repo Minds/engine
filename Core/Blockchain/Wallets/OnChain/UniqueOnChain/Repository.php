@@ -10,9 +10,13 @@ class Repository
     /** @var Cassandra\Client */
     protected $db;
 
-    public function __construct(Cassandra\Client $db = null)
+    /** @var Cassandra\Scroll */
+    protected $scroll;
+
+    public function __construct(Cassandra\Client $db = null, Cassandra\Scroll $scroll = null)
     {
         $this->db = $db ?? Di::_()->get('Database\Cassandra\Cql');
+        $this->scroll = $scroll ?? Di::_()->get('Database\Cassandra\Cql\Scroll');
     }
 
     /**
@@ -42,32 +46,23 @@ class Repository
 
     /**
      * @param array $opts
-     * @return Response
+     * @return iterable<UniqueOnChainAddress>
      */
-    public function getList($opts): Response
+    public function getList($opts): iterable
     {
         $statement = "SELECT * from onchain_unique_addresses";
 
         $prepared = new Cassandra\Prepared\Custom();
         $prepared->query($statement);
 
-        $result = $this->db->request($prepared);
 
-        $response = new Response();
-
-        if (!$result || !$result[0]) {
-            return $response;
-        }
-
-        foreach ($result as $row) {
+        foreach ($this->scroll->request($prepared) as $row) {
             $uniqueAddress = new UniqueOnChainAddress();
             $uniqueAddress->setAddress($row['address'])
                 ->setUserGuid((string) $row['user_guid']);
 
-            $response[] = $uniqueAddress;
+            yield $uniqueAddress;
         }
-
-        return $response;
     }
 
     /**

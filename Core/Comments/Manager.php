@@ -21,6 +21,12 @@ use Minds\Common\Repository\Response;
 
 class Manager
 {
+    // timespan to check rate limit.
+    const RATE_LIMIT_TIMESPAN = 5;
+
+    // max amount of occurrence in timespan.
+    const RATE_LIMIT_MAX = 1;
+
     /** @var Repository */
     protected $repository;
 
@@ -48,6 +54,12 @@ class Manager
     /** @var Security\Spam */
     protected $spam;
 
+    /** @var KeyValueLimiter */
+    protected $kvLimiter;
+
+    /** @var Comment[] */
+    protected $tmpCacheByUrn = [];
+
     /**
      * Manager constructor.
      * @param Repository|null $repository
@@ -61,7 +73,8 @@ class Manager
         $createEventDispatcher = null,
         $countCache = null,
         $entitiesBuilder = null,
-        $spam = null
+        $spam = null,
+        $kvLimiter = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->legacyRepository = $legacyRepository ?: new Legacy\Repository();
@@ -72,6 +85,7 @@ class Manager
         $this->countCache = $countCache ?: new Delegates\CountCache();
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->spam = $spam ?: Di::_()->get('Security\Spam');
+        $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
     }
 
     public function get($entity_guid, $parent_path, $guid)
@@ -168,6 +182,14 @@ class Manager
         //if (!$this->acl->interact($entity, $owner, "comment")) {
         //    throw new \Exception();
         //}
+
+        // Can throw RateLimitException.
+        $this->kvLimiter
+            ->setKey('comment-limit')
+            ->setValue($owner->getGuid())
+            ->setSeconds(self::RATE_LIMIT_TIMESPAN)
+            ->setMax(self::RATE_LIMIT_MAX)
+            ->checkAndIncrement();
 
         $this->spam->check($comment);
 
@@ -326,6 +348,11 @@ class Manager
             return null;
         }
 
+        // Prevent grabbing the same comment multiple times per request (eg. notifications)
+        if (isset($this->tmpCacheByUrn[$urn]) && $this->tmpCacheByUrn[$urn]) {
+            return $this->tmpCacheByUrn[$urn];
+        }
+
         $entityGuid = $components[0];
         $parentPath = "{$components[1]}:{$components[2]}:{$components[3]}";
         $guid = $components[4];
@@ -334,7 +361,9 @@ class Manager
             return $this->legacyRepository->getByGuid($guid);
         }
 
-        return $this->repository->get($entityGuid, $parentPath, $guid);
+        $comment = $this->repository->get($entityGuid, $parentPath, $guid);
+        $this->tmpCacheByUrn[$urn] = $comment;
+        return $comment;
     }
 
     /**

@@ -70,9 +70,6 @@ class magicproxy implements Interfaces\Api, Interfaces\ApiIgnorePam
         $roundY = isset($_GET['roundY']) ? (int) $_GET['roundY'] : null;
 
         try {
-            set_time_limit(static::MAX_TIME + 1);
-            ini_set('max_execution_time', static::MAX_TIME + 1);
-
             $this->downloader->setLimitKb(2048);
 
             /** @var Resize $resizer */

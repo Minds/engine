@@ -162,6 +162,10 @@ class Image extends File
 
             $image = new \Imagick($master);
 
+            if ($image->getImageColorspace() == \Imagick::COLORSPACE_CMYK) {
+                $image->transformImageColorspace(\Imagick::COLORSPACE_SRGB);
+            }
+
             $autorotate->setImage($image);
             $image = $autorotate->autorotate();
 
@@ -365,7 +369,7 @@ class Image extends File
         return $this->boost_rejection_reason;
     }
 
-    public function getUrn()
+    public function getUrn(): string
     {
         return "urn:image:{$this->guid}";
     }

@@ -110,10 +110,20 @@ class boost implements Interfaces\Api
                 break;
             case "newsfeed":
             case "content":
+                $user = Core\Session::getLoggedinUser();
+
+                if ($user->isAdmin()) {
+                    $remote = isset($_GET['remote']) && $_GET['remote'] ? $_GET['remote'] : '';
+                    
+                    if ($remote) {
+                        $user = new \Minds\Entities\User($remote);
+                    }
+                }
+
                 /** @var Core\Boost\Network\Review $review */
                 $review = Di::_()->get('Boost\Network\Review');
                 $review->setType($pages[0]);
-                $boosts = $review->getOutbox(Core\Session::getLoggedinUser()->guid, $limit, $offset);
+                $boosts = $review->getOutbox($user->guid, $limit, $offset);
                 $response['boosts'] = Factory::exportable($boosts['data']);
                 $response['load-next'] = $boosts['next'];
                 break;
@@ -181,6 +191,33 @@ class boost implements Interfaces\Api
 
         if (!$entity) {
             return Factory::response(['status' => 'error', 'message' => 'entity not found']);
+        }
+
+        $owner = Di::_()->get('EntitiesBuilder')->single(
+            $entity->getType() === 'user' ?
+                $entity->getGuid() :
+                $entity->getOwnerGuid()
+        );
+
+        if ($entity->getTimeCreated() > time()) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => "You cannot boost a scheduled post."
+            ]);
+        }
+
+        if (count($owner->getNSFW()) || count($owner->getNsfwLock())) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => "You cannot boost from an NSFW channel."
+            ]);
+        }
+
+        if (count($entity->getNSFW()) || count($entity->getNsfwLock())) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => "You cannot boost NSFW content."
+            ]);
         }
 
         if ($pages[0] == "object" || $pages[0] == "user" || $pages[0] == "suggested" || $pages[0] == 'group') {

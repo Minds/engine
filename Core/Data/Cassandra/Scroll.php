@@ -27,9 +27,10 @@ class Scroll
 
     /**
      * @param PreparedInterface $prepared
+     * @param string $pagingToken
      * @return \Generator
      */
-    public function request(PreparedInterface $prepared)
+    public function request(PreparedInterface $prepared, &$pagingToken = null)
     {
         $request = clone $prepared;
         $cqlOpts = $request->getOpts() ?: [];
@@ -44,7 +45,13 @@ class Scroll
             /** @var Driver\Rows $rows */
             $rows = $this->db->request($request);
 
+            // Update pass by reference
+            if ($rows) {
+                //$pagingToken = $rows->pagingStateToken();
+            }
+
             foreach ($rows as $row) {
+                $pagingToken = $rows->pagingStateToken();
                 yield $row;
             }
 

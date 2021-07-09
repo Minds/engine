@@ -7,6 +7,7 @@ namespace Minds\Core\OAuth\Repositories;
 
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
+use Minds\Core\OAuth\Entities\ClientEntity;
 use Minds\Core\OAuth\Entities\ScopeEntity;
 
 class ScopeRepository implements ScopeRepositoryInterface
@@ -25,6 +26,9 @@ class ScopeRepository implements ScopeRepositoryInterface
             ],
             'checkout' => [
                 'description' => 'Wyre transactions',
+            ],
+            'openid' => [
+                'description' => 'OpenID connect scope'
             ],
         ];
 
@@ -47,6 +51,14 @@ class ScopeRepository implements ScopeRepositoryInterface
         ClientEntityInterface $clientEntity,
         $userIdentifier = null
     ) {
+        if ($clientEntity instanceof ClientEntity) {
+            foreach ($clientEntity->getScopes() as $scopeIdentifier) {
+                $scope = new ScopeEntity();
+                $scope->setIdentifier($scopeIdentifier);
+                $scopes[] = $scope;
+            }
+        }
+
         return $scopes;
     }
 }

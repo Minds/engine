@@ -1,7 +1,7 @@
 <?php
 namespace Minds\Core\Media\Imagick;
 
-class Resize
+class Resize extends AbstractImagick
 {
     /** @var \Imagick $image */
     protected $image;

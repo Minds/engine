@@ -12,6 +12,7 @@ date_default_timezone_set('UTC');
 define('__MINDS_ROOT__', dirname(__FILE__) . '/../');
 
 require_once(dirname(__FILE__) . '/mocks.php');
+require_once(dirname(__FILE__) . '/pulsar-mocks.php');
 
 $minds = new Minds\Core\Minds();
 
@@ -24,6 +25,14 @@ $CONFIG->cassandra->servers = ['127.0.0.1'];
 $CONFIG->cassandra->cql_servers = ['127.0.0.1'];
 $CONFIG->cassandra->username = 'cassandra';
 $CONFIG->cassandra->password = 'cassandra';
+
+$CONFIG->elasticsearch = [
+    'hosts' => [ 'phpspec:9200' ],
+    'indexes' => [
+        'search_prefix' => 'minds-search',
+        'tags' => 'minds-hashtags',
+    ]
+];
 
 $CONFIG->payments = [
     'stripe' => [

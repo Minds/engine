@@ -68,8 +68,7 @@ class Repository
         ];
 
         $query = [
-            'index' => 'minds-graph',
-            'type' => 'pass',
+            'index' => 'minds-graph-pass',
             'id' => $pass->getUserGuid(),
             'body' => $body,
         ];

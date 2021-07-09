@@ -58,6 +58,11 @@ class Events
             }
 
             if ($activity->isPayWallUnlocked()) {
+
+                // append description if paywall is unlocked.
+                if ($activity->getSubtype() === 'blog') {
+                    $export['description'] = $activity->getBody();
+                }
                 $export['paywall'] = false;
                 $export['paywall_unlocked'] = true;
                 $event->setResponse($export);

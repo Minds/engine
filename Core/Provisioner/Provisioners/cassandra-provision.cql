@@ -433,6 +433,9 @@ CREATE TABLE minds.jwt_sessions (
     user_guid varint,
     id text,
     expires timestamp,
+    last_active timestamp,
+    user_agent text,
+    ip text,
     PRIMARY KEY (user_guid, id)
 ) WITH CLUSTERING ORDER BY (id ASC)
     AND bloom_filter_fp_chance = 0.01
@@ -728,7 +731,8 @@ CREATE TABLE minds.oauth_access_tokens (
     expires timestamp,
     last_active timestamp,
     scopes set<text>,
-    user_id varint
+    user_id varint,
+    ip text,
 ) WITH bloom_filter_fp_chance = 0.01
     AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
     AND comment = ''
@@ -743,6 +747,13 @@ CREATE TABLE minds.oauth_access_tokens (
     AND min_index_interval = 128
     AND read_repair_chance = 0.0
     AND speculative_retry = '99PERCENTILE';
+
+CREATE TABLE minds.oauth_auth_codes (
+    code_id text PRIMARY KEY,
+    client_id text,
+    user_id bigint,
+    expires timestamp
+);
 
 CREATE TABLE minds.plans (
     entity_guid text,
@@ -921,6 +932,30 @@ CREATE TABLE minds.notifications (
 CREATE MATERIALIZED VIEW minds.notifications_by_type_group AS
     SELECT *
     FROM minds.notifications
+    WHERE to_guid IS NOT NULL
+    AND uuid IS NOT NULL
+    AND type_group IS NOT NULL
+    PRIMARY KEY (to_guid, type_group, uuid)
+    WITH CLUSTERING ORDER BY (type_group DESC, uuid DESC);
+
+CREATE TABLE minds.notifications_mergeable (
+    to_guid bigint,
+    uuid timeuuid,
+    type text,
+    type_group text,
+    from_guid bigint,
+    entity_urn text,
+    created_timestamp timestamp,
+    read_timestamp timestamp,
+    data text,
+    merged_from_guids set<bigint>,
+    merged_count int,
+    PRIMARY KEY (to_guid, uuid)
+)  WITH CLUSTERING ORDER BY (uuid DESC);
+
+CREATE MATERIALIZED VIEW minds.notifications_mergeable_by_type_group AS
+    SELECT *
+    FROM minds.notifications_mergeable
     WHERE to_guid IS NOT NULL
     AND uuid IS NOT NULL
     AND type_group IS NOT NULL
@@ -1603,6 +1638,7 @@ CREATE TABLE minds.token_rewards (
     multiplier decimal,
     score decimal,
     token_amount decimal,
+    payout_tx text,
     tokenomics_version int,
     PRIMARY KEY (user_guid, reward_type, date)
 ) WITH CLUSTERING ORDER BY (reward_type ASC, date DESC);
@@ -1610,8 +1646,59 @@ CREATE TABLE minds.token_rewards (
 CREATE MATERIALIZED VIEW minds.token_rewards_by_date AS
     SELECT *
     FROM minds.token_rewards
-    WHERE user_guid IS NOT NULL 
+    WHERE user_guid IS NOT NULL
         AND reward_type IS NOT NULL
         AND date IS NOT NULL
     PRIMARY KEY (date, reward_type, user_guid)
     WITH CLUSTERING ORDER BY (reward_type ASC, user_guid ASC);
+
+CREATE TABLE minds.token_metrics (
+    metric text,
+    date date,
+    hour int,
+    offchain decimal,
+    onchain decimal,
+    PRIMARY KEY (metric, date, hour)
+) WITH CLUSTERING ORDER BY (date DESC, hour DESC);
+
+CREATE TABLE minds.totp_secrets (
+    user_guid bigint,
+    device_id text,
+    secret text,
+    recovery_hash text,
+    PRIMARY KEY (user_guid, device_id, secret)
+ ) WITH CLUSTERING ORDER BY (device_id DESC, secret DESC);
+
+CREATE TABLE minds.eth_blocks (
+    date date,
+    timestamp timestamp,
+    block_number int,
+    PRIMARY KEY (date, timestamp)
+) WITH CLUSTERING ORDER BY (timestamp DESC);
+
+CREATE TABLE minds.push_notifications_device_subscriptions (
+    user_guid bigint,
+    device_token text,
+    service text,
+    PRIMARY KEY (user_guid, device_token)
+) WITH CLUSTERING ORDER BY (device_token DESC);
+
+CREATE TABLE minds.push_notifications_settings (
+    user_guid bigint,
+    notification_group text,
+    enabled boolean,
+    PRIMARY KEY (user_guid, notification_group)
+) WITH CLUSTERING ORDER BY (notification_group DESC);
+
+CREATE TABLE minds.notification_email_digests (
+    year int,
+    month int,
+    day int,
+    frequency text,
+    to_guid bigint,
+    PRIMARY KEY (year, month, day, frequency, to_guid)
+) WITH CLUSTERING ORDER BY (month DESC, day DESC);
+
+-- CREATE INDEX IF NOT EXISTS user_id_idx ON minds.oauth_access_tokens (user_id);
+-- ALTER TABLE minds.jwt_sessions ADD (last_active timestamp, user_agent text, ip text);
+-- ALTER TABLE minds.oauth_access_tokens ADD ip text;

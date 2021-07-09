@@ -13,6 +13,8 @@ use Minds\Traits\MagicAttributes;
  * @method PaymentIntent getConfirm(): bool
  * @method PaymentIntent getOffSession(): bool
  * @method PaymentIntent getServiceFeePct(): int
+ * @method PaymentIntent setCaptureMethod($method)
+ * @method string getCaptureMethod()
  */
 class PaymentIntent extends Intent
 {
@@ -29,6 +31,9 @@ class PaymentIntent extends Intent
 
     /** @var boolean $confirm */
     private $confirm = false;
+
+    /** @var string */
+    private $captureMethod = 'automatic';
 
     /** @var boolean $offSession */
     private $offSession = false;

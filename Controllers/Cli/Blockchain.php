@@ -11,7 +11,7 @@ namespace Minds\Controllers\Cli;
 
 use Minds\Cli;
 use Minds\Core\Blockchain\EthPrice;
-use Minds\Core\Blockchain\Uniswap;
+use Minds\Core\Blockchain\Services;
 use Minds\Core\Blockchain\Purchase\Delegates\EthRate;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
@@ -243,5 +243,40 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
         $liquidityManager = Di::_()->get('Blockchain\LiquidityPositions\Manager');
         $summaries = $liquidityManager->getAllProvidersSummaries();
         var_dump($summaries);
+    }
+
+    public function syncMetrics()
+    {
+        Di::_()->get('Config')
+            ->set('min_log_level', 'INFO');
+
+        $hoursAgo = $this->getOpt('hoursAgo') ?? "0";
+        $to = strtotime("$hoursAgo hours ago", time());
+        $from = strtotime('24 hours ago', $to);
+
+        $metricManager = Di::_()->get('Blockchain\Metrics\Manager');
+        $metricManager
+            ->setTimeBoundary($from, $to)
+            ->sync();
+    }
+
+    /**
+     * Will sync blocks from etherscan to our cassandra table
+     */
+    public function syncBlocks()
+    {
+        /** @var Services\BlockFinder */
+        $blockFinder = Di::_()->get('Blockchain\Services\BlockFinder');
+        
+        /** @var int */
+        $interval = $this->getOpt('interval') ?: 10;
+        
+        while (true) {
+            $unixTimestamp = time();
+            $blockNumber = $blockFinder->getBlockByTimestamp($unixTimestamp, false);
+            $date = date('c', $unixTimestamp);
+            $this->out("[$date]: Block Number: $blockNumber");
+            sleep($interval);
+        }
     }
 }

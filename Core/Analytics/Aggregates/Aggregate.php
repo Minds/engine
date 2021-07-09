@@ -18,6 +18,8 @@ class Aggregate
     protected $user;
     protected $action;
 
+    protected $onlyPlus = false;
+
     public function __construct($client = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
@@ -70,6 +72,16 @@ class Aggregate
     public function setInterval($interval)
     {
         $this->interval = $interval;
+        return $this;
+    }
+
+    /**
+     * @param bool $onlyPlus
+     * @return self
+     */
+    public function setOnlyPlus(bool $onlyPlus): self
+    {
+        $this->onlyPlus = $onlyPlus;
         return $this;
     }
 

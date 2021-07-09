@@ -25,6 +25,10 @@ class Routes extends ModuleRoutes
                 LoggedInMiddleware::class,
             ])
             ->do(function (Route $route) {
+                $route->get(
+                    '',
+                    Ref::_('Feeds\Controller', 'getFeed')
+                );
                 $route->delete(
                     ':urn',
                     Ref::_('Feeds\Activity\Controller', 'delete')

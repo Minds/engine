@@ -42,16 +42,22 @@ class pro implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function put($pages)
     {
-        if (!($pages[0] ?? null)) {
+        $userGuid = $pages[0] ?? false;
+        $action = $pages[1] ?? false;
+        $timespan = $pages[2] ?? false;
+ 
+        if (!$action || !$userGuid) {
             return Factory::response([
                 'status' => 'error',
-                'message' => 'Emtpy target',
+                'message' => 'Invalid parameters. Expected guid, action and optional timespan',
             ]);
         }
 
-        $target = new UserEntity($pages[0]);
+        $target = Di::_()->get('EntitiesBuilder')->single($pages[0], [
+            'cache' => false,
+        ]);
 
-        if (!$target || !$target->guid) {
+        if (!$target || !$target->guid || $target->getType() !== 'user') {
             return Factory::response([
                 'status' => 'error',
                 'message' => 'Invalid target',
@@ -60,10 +66,31 @@ class pro implements Interfaces\Api, Interfaces\ApiAdminPam
 
         /** @var Manager $manager */
         $manager = Di::_()->get('Pro\Manager');
-        $manager
-            ->setUser($target);
+        $manager->setUser($target);
 
-        $success = $manager->enable(time() + (365 * 86400));
+        if ($action === 'make') {
+            $relativeTimespan = '+30 days';
+
+            switch ($timespan) {
+                case 'month':
+                    $relativeTimespan = '+1 month';
+                    break;
+                case 'year':
+                    $relativeTimespan = '+1 year';
+                    break;
+                case 'life':
+                    $relativeTimespan = '+100 years';
+                    break;
+                default:
+                    throw new \Exception('Invalid timespan');
+            }
+
+            $success = $manager->enable(strtotime($relativeTimespan, time()));
+        }
+
+        if ($action === 'remove') {
+            $success = $manager->disable(true);
+        }
 
         if (!$success) {
             return Factory::response([

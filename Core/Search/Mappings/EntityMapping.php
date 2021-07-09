@@ -8,6 +8,9 @@
 
 namespace Minds\Core\Search\Mappings;
 
+use Minds\Common\Regex;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
+
 class EntityMapping implements MappingInterface
 {
     /** @var int */
@@ -16,11 +19,9 @@ class EntityMapping implements MappingInterface
     /** @var array $mappings */
     protected $mappings = [
         '@timestamp' => [ 'type' => 'date' ],
-        'interactions' => [ 'type' => 'integer', '$exportField' => 'interactions' ],
         'guid' => [ 'type' => 'text', '$exportField' => 'guid' ],
         'type' => [ 'type' => 'text', '$exportField' => 'type' ],
         'subtype' => [ 'type' => 'text', '$exportField' => 'subtype' ],
-        'taxonomy' => [ 'type' => 'text' ],
         'time_created' => [ 'type' => 'integer', '$exportField' => 'time_created' ],
         'access_id' => [ 'type' => 'text', '$exportField' => 'access_id' ],
         'public' => [ 'type' => 'boolean' ],
@@ -73,7 +74,7 @@ class EntityMapping implements MappingInterface
         $type = (string) $this->entity->type;
 
         if (isset($this->entity->subtype) && $this->entity->subtype) {
-            $type .= ':' . $this->entity->subtype;
+            $type .= '-' . $this->entity->subtype;
         }
 
         return $type;
@@ -117,19 +118,10 @@ class EntityMapping implements MappingInterface
         // Auto populate based on $exportField
         $map = array_merge($defaultValues, $this->autoMap());
 
-        // Basics (taxonomy and timestamp)
-
-        $taxonomy = [ $this->entity->type ];
-
-        if (isset($this->entity->subtype) && $this->entity->subtype) {
-            $taxonomy[] = $this->entity->subtype;
-        }
 
         if (isset($this->entity->time_created) && $this->entity->time_created) {
             $map['@timestamp'] = $this->entity->time_created * 1000;
         }
-
-        $map['taxonomy'] = implode(':', $taxonomy);
 
         // Public
 
@@ -149,31 +141,35 @@ class EntityMapping implements MappingInterface
 
         // Paywall
 
-        $paywall = isset($map['paywall']) && $map['paywall'];
+        if ($this->entity instanceof PaywallEntityInterface) {
+            $paywall = isset($map['paywall']) && $map['paywall'];
 
-        if (method_exists($this->entity, 'isPayWall')) {
-            $paywall = !!$this->entity->isPayWall();
-        }
-
-        $map['paywall'] = $paywall;
-
-        // Support Tier
-
-        if (method_exists($this->entity, 'getWireThreshold') && $this->entity->getWireThreshold()) {
-            $wireThreshold = $this->entity->getWireThreshold();
-            $supportTier = $wireThreshold['support_tier']['urn'] ?? null;
-
-            if ($wireThreshold['support_tier']['expires'] ?? null) {
-                $supportTierExpire = $wireThreshold['support_tier']['expires'] * 1000;
+            if (method_exists($this->entity, 'isPayWall')) {
+                $paywall = !!$this->entity->isPayWall();
             }
 
-            if ($supportTier) {
-                $map['wire_support_tier'] = $supportTier;
+            $map['paywall'] = $paywall;
 
-                if ($supportTierExpire) {
-                    $map['@wire_support_tier_expire'] = $supportTierExpire;
+            // Support Tier
+
+            if (method_exists($this->entity, 'getWireThreshold') && $this->entity->getWireThreshold()) {
+                $wireThreshold = $this->entity->getWireThreshold();
+                $supportTier = $wireThreshold['support_tier']['urn'] ?? null;
+
+                if ($wireThreshold['support_tier']['expires'] ?? null) {
+                    $supportTierExpire = $wireThreshold['support_tier']['expires'] * 1000;
+                }
+
+                if ($supportTier) {
+                    $map['wire_support_tier'] = $supportTier;
+
+                    if ($supportTierExpire) {
+                        $map['@wire_support_tier_expire'] = $supportTierExpire;
+                    }
                 }
             }
+        } else {
+            unset($map['paywall']);
         }
 
         // Text
@@ -198,10 +194,9 @@ class EntityMapping implements MappingInterface
             $fullText .= ' ' . $map['description'];
         }
 
-        $htRe = '/(^|\s||)#(\pL+)/u';
+        // parse #hashtags and $cryptotags from body into $matches.
         $matches = [];
-
-        preg_match_all($htRe, $fullText, $matches);
+        preg_match_all(Regex::HASH_CASH_TAG, $fullText, $matches);
 
         $messageTags = ($matches[2] ?? null) ?: [];
         $entityTags = method_exists($this->entity, 'getTags') ? ($this->entity->getTags() ?: []) : [];
@@ -223,7 +218,9 @@ class EntityMapping implements MappingInterface
 
         //
 
-        return $map;
+        return array_filter($map, function ($value) {
+            return isset($value) && $value !== "";
+        });
     }
 
     /**

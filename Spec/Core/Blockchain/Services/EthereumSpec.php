@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Blockchain\Services;
 
+use kornrunner\Keccak;
 use Minds\Core\Blockchain\Config;
 use Minds\Core\Blockchain\GasPrice;
 use Minds\Core\Http\Curl\JsonRpc\Client as JsonRpc;
@@ -95,10 +96,7 @@ class EthereumSpec extends ObjectBehavior
         $this->_jsonRpc->post(Argument::type('string'), Argument::type('array'))
             ->willReturn(['result' => '00hello']);
 
-        $this->_sha3->setString("hello")->shouldBeCalled()->willReturn($this->_sha3);
-        $this->_sha3->hash()->willReturn('hello');
-
-        $this->sha3("hello")->shouldReturn("hello");
+        $this->sha3("hello")->shouldReturn("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8");
     }
 
     public function it_should_change_the_current_config()
@@ -111,28 +109,12 @@ class EthereumSpec extends ObjectBehavior
 
     public function it_should_encode_a_contract_method()
     {
-        $this->_sha3->setString('issue(address,uint256)')
-            ->shouldBeCalled()
-            ->willReturn($this->_sha3);
-
-        $this->_sha3->hash()
-            ->shouldBeCalled()
-            ->willReturn('hash');
-
         $this->encodeContractMethod('issue(address,uint256)', ['0x123', BigNumber::_(10 ** 18)->toHex(true)])
-            ->shouldReturn('0xhash00000000000000000000000000000000000000000000000000000000000001230000000000000000000000000000000000000000000000000de0b6b3a7640000');
+            ->shouldReturn('0x867904b400000000000000000000000000000000000000000000000000000000000001230000000000000000000000000000000000000000000000000de0b6b3a7640000');
     }
 
     public function it_should_fail_to_encode_a_contract_method_because_of_a_non_hex_param()
     {
-        $this->_sha3->setString('issue(address,uint256)')
-            ->shouldBeCalled()
-            ->willReturn($this->_sha3);
-
-        $this->_sha3->hash()
-            ->shouldBeCalled()
-            ->willReturn('hash');
-
         $this->shouldThrow(new \Exception('Ethereum::call only supports raw hex parameters'))
             ->during(
                 'encodeContractMethod',
@@ -152,19 +134,11 @@ class EthereumSpec extends ObjectBehavior
             'params' => [
                 [
                     'to' => '0x123',
-                    'data' => '0xhash'
+                    'data' => '0x2c383a9f',
                 ],
                 'latest'
             ]
         ])->willReturn(['result' => ['foo' => 'bar']]);
-
-        $this->_sha3->setString('method()')
-            ->shouldBeCalled()
-            ->willReturn($this->_sha3);
-
-        $this->_sha3->hash()
-            ->shouldBeCalled()
-            ->willReturn('hash');
 
         $this->call('0x123', 'method()', [])->shouldReturn(['foo' => 'bar']);
     }

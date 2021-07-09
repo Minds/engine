@@ -97,16 +97,16 @@ class ManagerSpec extends ObjectBehavior
         ]);
 
         $response[0]->getEntity()->getGuid()
-            ->shouldBe(123);
+            ->shouldBe('123');
         $response[0]->getOwner()->getGuid()
-            ->shouldBe(1);
+            ->shouldBe('1');
         $response[0]->getImpressions()
             ->shouldBe(1000);
 
         $response[1]->getEntity()->getGuid()
-            ->shouldBe(456);
+            ->shouldBe('456');
         $response[1]->getOwner()->getGuid()
-            ->shouldBe(2);
+            ->shouldBe('2');
         $response[1]->getImpressions()
             ->shouldBe(100);
     }
@@ -156,16 +156,16 @@ class ManagerSpec extends ObjectBehavior
         ]);
 
         $response[0]->getEntity()->getGuid()
-            ->shouldBe(123);
+            ->shouldBe('123');
         $response[0]->getOwner()->getGuid()
-            ->shouldBe(1);
+            ->shouldBe('1');
         $response[0]->getImpressions()
             ->shouldBe(1000);
 
         $response[1]->getEntity()->getGuid()
-            ->shouldBe(456);
+            ->shouldBe('456');
         $response[1]->getOwner()->getGuid()
-            ->shouldBe(2);
+            ->shouldBe('2');
         $response[1]->getImpressions()
             ->shouldBe(100);
     }
@@ -215,16 +215,16 @@ class ManagerSpec extends ObjectBehavior
         ]);
 
         $response[0]->getEntity()->getGuid()
-            ->shouldBe(123);
+            ->shouldBe('123');
         $response[0]->getOwner()->getGuid()
-            ->shouldBe(1);
+            ->shouldBe('1');
         $response[0]->getImpressions()
             ->shouldBe(1000);
 
         $response[1]->getEntity()->getGuid()
-            ->shouldBe(456);
+            ->shouldBe('456');
         $response[1]->getOwner()->getGuid()
-            ->shouldBe(2);
+            ->shouldBe('2');
         $response[1]->getImpressions()
             ->shouldBe(100);
     }
@@ -237,7 +237,7 @@ class ManagerSpec extends ObjectBehavior
 
         $boost->getGuid()
             ->shouldbeCalled()
-            ->willReturn(null);
+            ->willReturn('');
 
         $boost->setGuid(1)
             ->shouldBeCalled();

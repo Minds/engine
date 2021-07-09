@@ -61,7 +61,8 @@ class Manager
         $this->analytics
             ->setFrom($this->from)
             ->setTo($this->to)
-            ->setInterval('day');
+            ->setInterval('day')
+            ->setOnlyPlus(true);
 
         if ($this->user) {
             $this->analytics

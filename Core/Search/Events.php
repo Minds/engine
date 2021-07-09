@@ -193,16 +193,16 @@ class Events
                 'activity',
                 'user',
                 'group',
-                'object:blog',
-                'object:image',
-                'object:album',
-                'object:video'
+                'object-blog',
+                'object-image',
+                'object-album',
+                'object-video'
             ];
 
             $key = $entity->type;
 
             if ($entity->subtype) {
-                $key .= ':' . $entity->subtype;
+                $key .= '-' . $entity->subtype;
             }
 
             if (in_array($key, $allowedTypes, true)) {
@@ -232,10 +232,10 @@ class Events
                 'activity',
                 'user',
                 'group',
-                'object:blog',
-                'object:image',
-                'object:album',
-                'object:video'
+                'object-blog',
+                'object-image',
+                'object-album',
+                'object-video'
             ];
 
             $key = $entity->type;

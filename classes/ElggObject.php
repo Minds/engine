@@ -130,7 +130,8 @@ class ElggObject extends ElggEntity {
             'thumbs:up:count',
             'thumbs:up:user_guids',
             'thumbs:down:count',
-            'thumbs:down:user_guids'
+            'thumbs:down:user_guids',
+            'pinned'
 		));
 	}
 

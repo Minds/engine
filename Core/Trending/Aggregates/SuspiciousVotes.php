@@ -62,7 +62,6 @@ class SuspiciousVotes extends Aggregate
 
         $query = [
             'index' => 'minds-metrics-*',
-            'type' => 'action',
             'size' => 0, //we want just the aggregates
             'body' => [
                 'query' => [

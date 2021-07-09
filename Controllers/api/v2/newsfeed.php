@@ -250,7 +250,17 @@ class newsfeed implements Interfaces\Api
             default:
                 //essentially an edit
                 if (is_numeric($pages[0])) {
-                    $activity = new Activity($pages[0]);
+                    $activity = Di::_()->get('EntitiesBuilder')->single($pages[0]);
+
+                    // When editing media posts, they can sometimes be non-activity entities
+                    // so we provide some additional field
+                    // TODO: Anoter possible bug is the descrepency between 'description' and 'message'
+                    // here we are updating message field. Propose fixing this at Object/Image level
+                    // vs patching on activity
+                    if (!$activity instanceof Activity) {
+                        $activity = $manager->createFromEntity($activity);
+                        $activity->guid = $pages[0]; // createFromEntity makes a new entity
+                    }
 
                     $activityMutation = new EntityMutation($activity);
 
@@ -297,7 +307,8 @@ class newsfeed implements Interfaces\Api
                         $activityMutation->setLicense($license);
                     }
 
-                    if (isset($_POST['time_created'])) {
+                    // NOTE: Only update time created (schedule) if greater than current time)
+                    if (isset($_POST['time_created']) && $activity->getTimeCreated() > time()) {
                         $activityMutation->setTimeCreated($_POST['time_created']);
                     }
 
@@ -382,7 +393,13 @@ class newsfeed implements Interfaces\Api
                             'message' => 'Remind not found',
                         ]);
                     }
-                    if (!Di::_()->get('Security\ACL')->interact($remind, $user)) {
+                    
+                    // throw and error return response if acl interaction check fails.
+                    try {
+                        if (!Di::_()->get('Security\ACL')->interact($remind, $user)) {
+                            throw new \Exception(null);
+                        }
+                    } catch (\Exception $e) {
                         return Factory::response([
                             'status' => 'error',
                             'message' => 'You can not interact with this post',
@@ -411,6 +428,13 @@ class newsfeed implements Interfaces\Api
                 $container = null;
 
                 if (isset($_POST['container_guid']) && $_POST['container_guid']) {
+                    if (isset($_POST['wire_threshold']) && $_POST['wire_threshold']) {
+                        return Factory::response([
+                            'status' => 'error',
+                            'message' => 'You cannot monetize group posts',
+                        ]);
+                    }
+                    
                     $activity->container_guid = $_POST['container_guid'];
                     if ($container = Entities\Factory::build($activity->container_guid)) {
                         $activity->containerObj = $container->export();

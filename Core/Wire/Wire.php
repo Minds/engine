@@ -6,6 +6,7 @@
 namespace Minds\Core\Wire;
 
 use Minds\Core\Guid;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
@@ -35,7 +36,7 @@ use Minds\Traits\MagicAttributes;
  * @method int getTrialDays()
  * @method Wire setTrialDays(int $value)
  */
-class Wire
+class Wire implements EntityInterface
 {
     use MagicAttributes;
 
@@ -72,18 +73,66 @@ class Wire
     /** @var int $trialDays */
     private $trialDays;
 
-    public function getGuid()
+    public function getGuid(): string
     {
         if (!$this->guid) {
             $this->guid = Guid::build();
         }
 
-        return $this->guid;
+        return (string) $this->guid;
+    }
+
+    /**
+     * The owner here is the sender
+     * @return string
+     */
+    public function getOwnerGuid(): string
+    {
+        return (string) $this->sender->getGuid();
+    }
+
+    /**
+     * @return string
+     */
+    public function getType(): string
+    {
+        return 'wire';
+    }
+
+    /**
+     * @return string
+     */
+    public function getSubtype(): string
+    {
+        return '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getAccessId(): string
+    {
+        return '0'; // Private
+    }
+
+    /**
+     * @return string
+     */
+    public function getUrn(): string
+    {
+        return "urn:wire:" . implode('-', [
+            $this->receiver->getGuid(),
+            $this->method,
+            $this->timestamp,
+            $this->entity->getGuid(),
+            $this->guid,
+        ]);
     }
 
     public function export()
     {
         return [
+            'urn' => $this->getUrn(),
             'timestamp' => $this->timestamp,
             'amount' => $this->amount,
             'receiver' => $this->receiver->export(),

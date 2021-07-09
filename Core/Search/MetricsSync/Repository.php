@@ -24,7 +24,7 @@ class Repository
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
         $config = $config ?: Di::_()->get('Config');
-        $this->index = $config->get('elasticsearch')['index'];
+        $this->index = $config->get('elasticsearch')['indexes']['search_prefix'];
     }
 
     /**
@@ -48,8 +48,7 @@ class Repository
         $this->pendingBulkInserts[] = [
             'update' => [
                 '_id' => (string) $metric->getGuid(),
-                '_index' => 'minds_badger',
-                '_type' => $metric->getType(),
+                '_index' => "$this->index-{$metric->getType()}"
             ],
         ];
 

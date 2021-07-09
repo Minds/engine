@@ -1,12 +1,23 @@
 <?php
 namespace Minds\Core\Channels\Groups\Repository;
 
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
+
 /**
  * Class ElasticSearchQuery
  * @package Minds\Core\Channels\Groups\Repository
  */
 class ElasticSearchQuery
 {
+    /** @var Config */
+    protected $config;
+
+    public function __construct(Config $config = null)
+    {
+        $this->config = $config ?? Di::_()->get('Config');
+    }
+
     /**
      * Builds the ES Query
      * @param string $userGuid
@@ -15,17 +26,14 @@ class ElasticSearchQuery
      */
     public function build(string $userGuid, string $searchQuery = ''): array
     {
+        $indexPrefix = $this->config->get('elasticsearch')['indexes']['search_prefix'];
+        $index = $indexPrefix . '-group';
         $query = [
-            'index' => 'minds_badger',
+            'index' => $index,
             'body' => [
                 'query' => [
                     'bool' => [
                         'must' => [
-                            [
-                                'term' => [
-                                    'type' => 'group'
-                                ]
-                            ],
                             [
                                 'term' => [
                                     'membership' => 2
@@ -34,8 +42,7 @@ class ElasticSearchQuery
                             [
                                 'terms' => [
                                     'guid' => [
-                                        'index' => 'minds_badger',
-                                        'type' => 'user',
+                                        'index' => $indexPrefix . '-user',
                                         'id' => $userGuid,
                                         'path' => 'group_membership',
                                     ],

@@ -13,6 +13,8 @@ use Minds\Core\Session;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Core\Security\Block;
+use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\Feeds\Activity\InteractionCounters;
 
 class Events
 {
@@ -66,5 +68,22 @@ class Events
                 $event->setResponse($this->blockManager->hasBlocked($blockEntry));
             }
         });
+
+        /**
+         * Add remind and quote counts to entities
+         * NOTE: Remind not moved over yet, lets see how quote counts scale
+         */
+        // $this->eventsDispatcher->register('export:extender', 'activity', function ($event) {
+        //     $params = $event->getParameters();
+        //     $activity = $params['entity'];
+        //     $export = $event->response() ?: [];
+
+        //     /** @var InteractionCounters */
+        //     $interactionCounters = Di::_()->get('Feeds\Activity\InteractionCounters');
+          
+        //     $export['quotes'] = $interactionCounters->setCounter(InteractionCounters::COUNTER_QUOTES)->get($activity);
+
+        //     $event->setResponse($export);
+        // });
     }
 }

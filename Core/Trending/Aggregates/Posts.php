@@ -41,7 +41,7 @@ class Posts extends Aggregate
         }
 
         $query = [
-            'index' => 'minds_badger',
+            'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-' . $this->type,
             'body' => [
                 'query' => [
                     'bool' => [

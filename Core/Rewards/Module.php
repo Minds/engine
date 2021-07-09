@@ -18,5 +18,7 @@ class Module implements ModuleInterface
         $provider->register();
         $routes = new Routes();
         $routes->register();
+        $events = new Events();
+        $events->register();
     }
 }

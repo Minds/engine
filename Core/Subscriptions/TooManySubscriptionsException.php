@@ -1,7 +1,9 @@
 <?php
 namespace Minds\Core\Subscriptions;
 
-class TooManySubscriptionsException extends \Exception
+use Minds\Exceptions\UserErrorException;
+
+class TooManySubscriptionsException extends UserErrorException
 {
-    protected $message = "Subscribe to over 5000 channels";
+    protected $message = "You have reached the maximum allowed subscriptions.";
 }

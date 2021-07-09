@@ -36,7 +36,8 @@ class S3 implements ServiceInterface
             'http' => [
                 'connect_timeout' => 1, //if we don't connect in 1 second
                 'timeout' => 120 //if the request takes longer than 2 minutes (120 seconds)
-            ]
+            ],
+            'use_accelerate_endpoint' => true,
         ];
 
         if (!isset($awsConfig['useRoles']) || !$awsConfig['useRoles']) {

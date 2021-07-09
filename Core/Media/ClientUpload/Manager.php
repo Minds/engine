@@ -4,32 +4,36 @@
  */
 namespace Minds\Core\Media\ClientUpload;
 
-use Minds\Core\Media\Video\Transcoder\Manager as TranscoderManager;
+use Minds\Core\Media\Video\Transcoder;
+use Minds\Core\Media\Video\Manager as VideoManager;
 use Minds\Core\GuidBuilder;
-use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Features;
 use Minds\Core\Di\Di;
 use Minds\Entities\Video;
 
 class Manager
 {
-    /** @var TranscoderManager */
+    /** @var Transcoder\Manager */
     private $transcoderManager;
+
+    /** @var VideoManager */
+    private $videoManager;
 
     /** @var Guid $guid */
     private $guid;
 
-    /** @var Save $save */
-    private $save;
-
+    /** @var Features\Manager */
+    private $featuresManager;
 
     public function __construct(
-        TranscoderManager $transcoderManager = null,
-        GuidBuilder $guid = null,
-        Save $save = null
+        Transcoder\Manager $transcoderManager = null,
+        VideoManager $videoManager = null,
+        GuidBuilder $guid = null
     ) {
-        $this->transcoderManager = $transcoderManager ?: Di::_()->get('Media\Video\Transcoder\Manager');
+        $this->transcoderManager = $transcoderManager ?? Di::_()->get('Media\Video\Transcoder\Manager');
+        $this->videoManager = $videoManager ?: Di::_()->get('Media\Video\Manager');
         $this->guid = $guid ?: new GuidBuilder();
-        $this->save = $save ?: new Save();
+        $this->featuresManager = $featuresManager ?? Di::_()->get('Features\Manager');
     }
 
     /**
@@ -69,15 +73,16 @@ class Manager
 
         $video = new Video();
         $video->set('guid', $lease->getGuid());
+        $video->set('owner_guid', $lease->getUser()->getGuid());
         $video->set('cinemr_guid', $lease->getGuid());
         $video->set('access_id', 0); // Hide until published
         $video->setFlag('full_hd', !!$lease->getUser()->isPro());
 
-        // Save the video
-        $this->save->setEntity($video)->save();
+        if ($this->featuresManager->has('cloudflare-streams')) {
+            $video->setTranscoder('cloudflare');
+        }
 
-        // Kick off the transcoder
-        $this->transcoderManager->createTranscodes($video);
+        $this->videoManager->add($video);
 
         return true;
     }

@@ -145,7 +145,7 @@ class RepositorySpec extends ObjectBehavior
 
         $this
             ->add($blog, [ 'title', 'body' ])
-            ->shouldReturn(5000);
+            ->shouldReturn('5000');
     }
 
     // update() is a wrapper for add()

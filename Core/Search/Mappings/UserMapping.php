@@ -59,6 +59,14 @@ class UserMapping extends EntityMapping implements MappingInterface
             $map['email_confirmed_at'] = $this->entity->getEmailConfirmedAt() * 1000;
         }
 
+        if ($this->entity->getProExpires()) {
+            $map['pro_expires'] = $this->entity->getProExpires() * 1000;
+        }
+
+        if ($this->entity->getPlusExpires()) {
+            $map['plus_expires'] = $this->entity->getPlusExpires() * 1000;
+        }
+
         $map['tags'] = array_values(array_unique($this->entity->getTags()));
 
         return $map;
@@ -72,8 +80,8 @@ class UserMapping extends EntityMapping implements MappingInterface
     {
         $map = parent::suggestMap($defaultValues);
 
-        $name = preg_replace('/[0-9]*/', '', $this->entity->name);
-        $username = preg_replace('/[0-9]*/', '', $this->entity->username);
+        $name = $this->entity->getName();
+        $username = $this->entity->getUsername();
 
         if (!$name && !$username) {
             error_log('[es]: tried to save user without username or name ' . $this->entity->guid);

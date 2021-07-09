@@ -78,11 +78,12 @@ class Token
 
     /**
      * Gets the total supply of token
+     * @param int $blockNumber
      * @return double
      */
-    public function totalSupply()
+    public function totalSupply(int $blockNumber = null)
     {
-        $result = $this->client->call($this->tokenAddress, 'totalSupply()', []);
+        $result = $this->client->call($this->tokenAddress, 'totalSupply()', [], $blockNumber);
 
         return $this->fromTokenUnit(BigNumber::fromHex($result));
     }
@@ -105,5 +106,13 @@ class Token
     public function fromTokenUnit($amount)
     {
         return (string) BigNumber::fromPlain($amount, $this->tokenDecimals);
+    }
+
+    /**
+     * @return int
+     */
+    public function getDecimals(): int
+    {
+        return $this->tokenDecimals;
     }
 }

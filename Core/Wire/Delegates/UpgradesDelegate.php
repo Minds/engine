@@ -10,6 +10,7 @@ use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Wire\Wire;
 use Minds\Core\Pro\Manager as ProManager;
+use Minds\Entities\User;
 
 class UpgradesDelegate
 {
@@ -60,6 +61,7 @@ class UpgradesDelegate
         $user = $wire->getSender();
 
         // rebuild the user as we can't trust upstream
+        /** @var User */
         $user = $this->entitiesBuilder->single($user->getGuid(), [
             'cache' => false,
         ]);
@@ -71,18 +73,19 @@ class UpgradesDelegate
         $days = 30;
         $monthly = $this->config->get('upgrades')['plus']['monthly'];
         $yearly = $this->config->get('upgrades')['plus']['yearly'];
+        $lifetime = $this->config->get('upgrades')['plus']['lifetime'];
 
         switch ($wire->getMethod()) {
             case 'tokens':
-                if ($monthly['tokens'] == $wire->getAmount() / (10 ** 18)) {
-                    $days = 32;
-                } elseif ($yearly['tokens'] == $wire->getAmount() / (10 ** 18)) {
-                    $days = 368;
+                $user->setPlusMethod('tokens');
+                if ($lifetime['tokens'] == $wire->getAmount() / (10 ** 18)) {
+                    $days = 36500; // 100 years
                 } else {
                     return $wire;
                 }
                 break;
             case 'usd':
+                $user->setPlusMethod('usd');
                 if ($user->plus_expires > strtotime('40 days ago') && $wire->getAmount() == 500 && php_sapi_name() === 'cli') {
                     // If user has had Minds+ before, in the last billing period, and we are running via the CLI
                     // treat as legacy subscription customer
@@ -91,7 +94,7 @@ class UpgradesDelegate
                 }
                 // Users who have never had Minds+ before get a 7 day trial
                 // we still create the subscription, but do no charge for 7 days
-                if ($wire->isTrial()) {
+                if ($wire->getTrialDays()) {
                     $days = 9; // We charge on day 7, allow a buffer in case subscripton charge is late
                 } elseif ($monthly['usd'] == $wire->getAmount() / 100) {
                     $days = 32;
@@ -119,6 +122,7 @@ class UpgradesDelegate
         $user = $wire->getSender();
 
         // rebuild the user as we can't trust upstream
+        /** @var User */
         $user = $this->entitiesBuilder->single($user->getGuid(), [
             'cache' => false,
         ]);
@@ -130,20 +134,20 @@ class UpgradesDelegate
         $days = 30;
         $monthly = $this->config->get('upgrades')['pro']['monthly'];
         $yearly = $this->config->get('upgrades')['pro']['yearly'];
+        $lifetime = $this->config->get('upgrades')['pro']['lifetime'];
 
         error_log($wire->getMethod());
         switch ($wire->getMethod()) {
             case 'tokens':
-                error_log($wire->getAmount());
-                if ($monthly['tokens'] == $wire->getAmount() / (10 ** 18)) {
-                    $days = 32;
-                } elseif ($yearly['tokens'] == $wire->getAmount() / (10 ** 18)) {
-                    $days = 367;
+                $user->setProMethod('tokens');
+                if ($lifetime['tokens'] == $wire->getAmount() / (10 ** 18)) {
+                    $days = 36500; // 100 years
                 } else {
                     return $wire;
                 }
                 break;
             case 'usd':
+                $user->setProMethod('usd');
                 if ($monthly['usd'] == $wire->getAmount() / 100) {
                     $days = 32;
                 } elseif ($yearly['usd'] == $wire->getAmount() / 100) {

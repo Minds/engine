@@ -48,8 +48,7 @@ class CopyToElasticSearchDelegate
         ];
 
         $query = [
-            'index' => 'minds-graph',
-            'type' => 'subscriptions',
+            'index' => 'minds-graph-subscriptions',
             'id' => $subscription->getSubscriberGuid(),
             'body' => $body,
             'retry_on_conflict' => 5, // Retry 5 times
@@ -86,8 +85,7 @@ class CopyToElasticSearchDelegate
         ];
 
         $query = [
-            'index' => 'minds-graph',
-            'type' => 'subscriptions',
+            'index' => 'minds-graph-subscriptions',
             'id' => $subscription->getSubscriberGuid(),
             'body' => $body,
         ];

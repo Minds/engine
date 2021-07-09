@@ -165,7 +165,6 @@ class CommentsDelegate implements ArtifactsDelegateInterface
             'body' => $body,
             'size' => 0,
             'index' => 'minds-metrics-*',
-            'type' => 'action',
         ];
 
         $prepared = new Search();

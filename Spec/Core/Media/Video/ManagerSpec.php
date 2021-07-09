@@ -6,9 +6,11 @@ use Minds\Core\Config;
 use Aws\S3\S3Client;
 use Minds\Core\Media\Video\Manager;
 use Minds\Core\Media\Video\Transcoder;
+use Minds\Core\Media\Video\CloudflareStreams;
 use Minds\Entities\Video;
 use Minds\Core\EntitiesBuilder;
 use Minds\Common\Repository\Response;
+use Minds\Core\Entities\Actions\Save;
 use Psr\Http\Message\RequestInterface;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -19,14 +21,24 @@ class ManagerSpec extends ObjectBehavior
     private $s3;
     private $entitiesBuilder;
     private $transcoderManager;
+    private $save;
+    private $cloudflareStreamsManager;
 
-    public function let(Config $config, S3Client $s3, EntitiesBuilder $entitiesBuilder, Transcoder\Manager $transcoderManager)
-    {
-        $this->beConstructedWith($config, $s3, $entitiesBuilder, $transcoderManager);
+    public function let(
+        Config $config,
+        S3Client $s3,
+        EntitiesBuilder $entitiesBuilder,
+        Transcoder\Manager $transcoderManager,
+        Save $save,
+        CloudflareStreams\Manager $cloudflareStreamsManager
+    ) {
+        $this->beConstructedWith($config, $s3, $entitiesBuilder, $transcoderManager, $save, $cloudflareStreamsManager);
         $this->config = $config;
         $this->s3 = $s3;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->transcoderManager = $transcoderManager;
+        $this->save = $save;
+        $this->cloudflareStreamsManager = $cloudflareStreamsManager;
     }
 
     public function it_is_initializable()
@@ -150,5 +162,20 @@ class ManagerSpec extends ObjectBehavior
         $video->set('cinemr_guid', 123);
         $this->getPublicAssetUri($video, '720.mp4')
             ->shouldBe('https://url.com/cinemr123/720.mp4');
+    }
+
+    public function it_should_create_transcoders_on_add()
+    {
+        $video = new Video();
+
+        $this->save->setEntity($video)
+            ->willReturn($this->save);
+        $this->save->save()
+            ->willReturn(true);
+
+        $this->transcoderManager->createTranscodes($video)
+            ->shouldBeCalled();
+
+        $this->add($video);
     }
 }

@@ -10,7 +10,7 @@ use Minds\Core\SEO\Manager;
 class BlogsResolver extends AbstractEntitiesResolver
 {
     /** @var string */
-    protected $type = 'object:blog';
+    protected $type = 'object-blog';
 
     /** @var array */
     protected $query = [

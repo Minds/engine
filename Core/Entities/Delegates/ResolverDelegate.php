@@ -15,14 +15,14 @@ interface ResolverDelegate
      * @param Urn $urn
      * @return boolean
      */
-    public function shouldResolve(Urn $urn);
+    public function shouldResolve(Urn $urn): bool;
 
     /**
      * @param Urn[] $urns
      * @param array $opts
-     * @return mixed
+     * @return array
      */
-    public function resolve(array $urns, array $opts = []);
+    public function resolve(array $urns, array $opts = []): ?array;
 
     /**
      * @param string $urn
@@ -35,5 +35,5 @@ interface ResolverDelegate
      * @param mixed $entity
      * @return string|null
      */
-    public function asUrn($entity);
+    public function asUrn($entity): ?string;
 }

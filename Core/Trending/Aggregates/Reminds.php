@@ -58,7 +58,6 @@ class Reminds extends Aggregate
 
         $query = [
             'index' => 'minds-metrics-*',
-            'type' => 'action',
             'body' => [
                 'query' => [
                     'bool' => [

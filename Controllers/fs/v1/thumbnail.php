@@ -80,11 +80,7 @@ class thumbnail extends Core\page implements Interfaces\page
                 $unlock = $_GET['unlock_paywall'] ?? false;
 
                 if (!($unlock && $allowed)) {
-                    $imagick = new \Imagick();
-                    $imagick->readImageBlob($contents);
-                    $imagick->setType('jpeg');
-                    $imagick->blurImage(100, 500);
-                    $contents = $imagick->getImageBlob();
+                    $contents = file_get_contents(dirname(dirname(dirname(dirname(__FILE__)))) . '/Assets/photos/paywall-blur.jpeg');
                 }
             }
 
@@ -100,6 +96,11 @@ class thumbnail extends Core\page implements Interfaces\page
             header('Pragma: public');
             header('Cache-Control: public');
             header('Content-Length: '.strlen($contents));
+
+            if (isset($_GET['download']) && $_GET['download']) {
+                $filename = date('\m\i\n\d\s\_Ymd\_His');
+                header('Content-Disposition: attachment; filename='.$filename);
+            }
 
             $chunks = str_split($contents, 1024);
             foreach ($chunks as $chunk) {

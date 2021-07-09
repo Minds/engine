@@ -81,7 +81,9 @@ class Exported
             'stripe_key' => $this->config->get('payments')['stripe']['public_key'],
             'recaptchaKey' => $this->config->get('google')['recaptcha']['site_key'],
             'max_video_length' => $this->config->get('max_video_length'),
+            'max_video_length_plus' => $this->config->get('max_video_length_plus'),
             'max_video_file_size' => $this->config->get('max_video_file_size'),
+            'max_name_length' => $this->config->get('max_name_length') ?? 50,
             'features' => (object) ($this->features->export() ?: []),
             'blockchain' => (object) $this->blockchain->getPublicSettings(),
             'sale' => $this->config->get('blockchain')['sale'],
@@ -99,6 +101,9 @@ class Exported
             'environment' => getenv('MINDS_ENV') ?: 'development',
             'boost_rotator_interval' => $this->config->get('boost_rotator_interval'),
             'token_exchange_rate' => $this->config->get('token_exchange_rate'),
+            'matrix' => [
+                'chat_url' => $this->config->get('matrix')['chat_url'],
+            ]
         ];
 
         if (Session::isLoggedIn()) {

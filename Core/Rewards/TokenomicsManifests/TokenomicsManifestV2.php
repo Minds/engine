@@ -12,9 +12,9 @@ class TokenomicsManifestV2 implements TokenomicsManifestInterface
     public function getDailyPools(): array
     {
         return [
-            Manager::REWARD_TYPE_ENGAGEMENT => 20000,
-            Manager::REWARD_TYPE_HOLDING => 5000,
-            MANAGER::REWARD_TYPE_LIQUIDITY => 25000,
+            Manager::REWARD_TYPE_ENGAGEMENT => 4000,
+            Manager::REWARD_TYPE_HOLDING => 1000,
+            MANAGER::REWARD_TYPE_LIQUIDITY => 5000,
         ];
     }
 
@@ -24,6 +24,14 @@ class TokenomicsManifestV2 implements TokenomicsManifestInterface
     public function getMaxMultiplier(): int
     {
         return 3;
+    }
+
+    /**
+     * @return int
+     */
+    public function getMinMultiplier(): int
+    {
+        return 1;
     }
 
     /**

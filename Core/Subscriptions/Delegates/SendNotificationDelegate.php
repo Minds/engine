@@ -18,7 +18,7 @@ class SendNotificationDelegate
 
     /**
      * Send a notifications
-     * @param Subscription $subscrition
+     * @param Subscription $subscription
      * @return void
      */
     public function send($subscription)

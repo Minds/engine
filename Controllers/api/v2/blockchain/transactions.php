@@ -129,7 +129,7 @@ class transactions implements Interfaces\Api
                     ->setTx($_POST['tx'])
                     ->setAddress($_POST['address'])
                     ->setGas($_POST['gas'])
-                    ->setAmount((string) BigNumber::_($_POST['amount']));
+                    ->setAmount((string) BigNumber::fromHex($_POST['amount']));
 
                 $manager = new Withdraw\Manager();
                 try {

@@ -33,7 +33,7 @@ class subscribe implements Interfaces\Api
         $publisher = Entities\Factory::build($guid);
         $type = $pages[0] ?? "subscribers";
         $limit = $_GET['limit'] ?? 12;
-        $offset = $_GET['offset'] ?? "";
+        $offset = $_GET['offset'] ?? $_GET['from_timestamp'] ?? "";
 
         if ($type === 'subscribers' && $publisher->username === 'minds') {
             return Factory::response([

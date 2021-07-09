@@ -822,6 +822,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         $thumbnails = [];
         switch ($this->custom_type) {
             case 'video':
+                $mediaManager = Di::_()->get('Media\Image\Manager');
+                $thumbnails['xlarge'] = $mediaManager->getPublicAssetUri($this, 'xlarge');
                 break;
             case 'batch':
                 $mediaManager = Di::_()->get('Media\Image\Manager');
@@ -838,7 +840,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
      * Return a preferred urn
      * @return string
      */
-    public function getUrn()
+    public function getUrn(): string
     {
         return "urn:activity:{$this->getGuid()}";
     }

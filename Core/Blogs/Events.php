@@ -6,15 +6,20 @@ use Minds\Core\Di\Di;
 use Minds\Core\Events\Event;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Session;
+use Minds\Core\Blogs\Manager;
 
 class Events
 {
     /** @var EventsDispatcher */
     protected $eventsDispatcher;
 
-    public function __construct($eventsDispatcher = null)
+    /** @var Manager $manager */
+    private $manager;
+
+    public function __construct($eventsDispatcher = null, $manager = null)
     {
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
+        $this->manager = $manager ?? new Manager;
     }
 
     public function register()
@@ -46,21 +51,14 @@ class Events
             $export = $event->response() ?: [];
             $currentUser = Session::getLoggedInUserGuid();
 
-            $dirty = false;
-
             if ($blog->isPaywall() && $blog->owner_guid != $currentUser && !$blog->isPayWallUnlocked()) {
                 $export['description'] = '';
                 $export['body'] = '';
-                $dirty = true;
+            } else {
+                $export['description'] = $this->manager->signImages($blog->getBody());
             }
 
-            if ($dirty) {
-                return $event->setResponse($export);
-            }
-
-            if (!$currentUser) {
-                return;
-            }
+            return $event->setResponse($export);
         });
     }
 }

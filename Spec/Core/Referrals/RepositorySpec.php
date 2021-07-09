@@ -155,7 +155,7 @@ class RepositorySpec extends ObjectBehavior
             'offset' => 2000,
         ];
 
-        $this->shouldThrow(new \Exception('Referrer GUID is required'))
+        $this->shouldThrow(new \Exception('Referrer GUID is required', ))
             ->duringGetList($opts);
     }
 
@@ -165,7 +165,7 @@ class RepositorySpec extends ObjectBehavior
         $referral->setReferrerGuid(123);
         $referral->setRegisterTimestamp(456);
 
-        $this->shouldThrow(new \Exception('Prospect GUID is required'))
+        $this->shouldThrow(new \Exception('Prospect GUID is required', 404))
                 ->duringAdd($referral);
     }
 
@@ -175,7 +175,7 @@ class RepositorySpec extends ObjectBehavior
         $referral->setProspectGuid(123);
         $referral->setRegisterTimestamp(456);
 
-        $this->shouldThrow(new \Exception('Referrer GUID is required'))
+        $this->shouldThrow(new \Exception('Referrer GUID is required', 404))
                 ->duringAdd($referral);
     }
 

@@ -5,6 +5,9 @@ namespace Minds\Controllers\Cli;
 use Minds\Cli;
 use Minds\Core\Events\Dispatcher;
 use Minds\Interfaces;
+use Minds\Core\Di\Di;
+use Minds\Core\Notifications\EmailDigests\EmailDigestMarker;
+use Minds\Core\Notifications\EmailDigests\EmailDigestOpts;
 
 class Notification extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -30,48 +33,46 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
         $this->help();
     }
 
-    public function send()
+    public function push()
     {
-        $namespace = $this->getOpt('namespace');
-        $to = $this->getOpt('to');
-        $from = $this->getOpt('from') ?? \Minds\Core\Notification\Notification::SYSTEM_ENTITY;
-        $view = $this->getOpt('view');
-        $params = $this->getOpt('params') ?? '{}';
+        $urn = $this->getOpt('urn');
+        ;
+        $notificationsManager = Di::_()->get('Notifications\Manager');
+        $notification = $notificationsManager->getByUrn($urn);
 
-        if (is_null($namespace)) {
-            $this->out('namespace must be set');
-            return;
+        $pushManager = Di::_()->get('Notifications\Push\Manager');
+        $pushManager->sendPushNotification($notification);
+    }
+
+    /**
+     * Sends digest emails
+     * NOTE: this uses the last period, so last month.
+     */
+    public function emailDigests()
+    {
+        $frequency = $this->getOpt('frequency');
+
+        $emailDigestsManager = Di::_()->get('Notifications\EmailDigests\Manager');
+
+        switch ($frequency) {
+            case 'daily':
+                $timestamp = strtotime('midnight yesterday');
+                break;
+            case 'weekly':
+                $timestamp = strtotime('midnight monday last week');
+                break;
+            case 'periodically':
+            case EmailDigestMarker::FREQUENCY_PERIODICALLY:
+            default:
+                $timestamp = strtotime('midnight first day of last month');
         }
 
-        if (is_null($to)) {
-            $this->out('to must be set');
-            return;
-        }
+        $opts = new EmailDigestOpts();
+        $opts->setFrequency($frequency)
+            ->setTimestamp($timestamp);
 
-        if (is_null($view)) {
-            $this->out('view must be set');
-            return;
-        }
-
-        $paramsDecoded = json_decode($params, true);
-        if (is_null($paramsDecoded)) {
-            $this->out('Params is not valid JSON');
-            return;
-        }
-
-        $eventParams = [
-            'to' => [$to],
-            'from' => $from,
-            'notification_view' => $view,
-            'params' => $paramsDecoded
-        ];
-
-        $sent = Dispatcher::trigger('notification', $namespace, $eventParams);
-
-        if ($sent) {
-            $this->out('Notification sent');
-        } else {
-            $this->out('Error sending notification - is from guid valid?');
+        foreach ($emailDigestsManager->sendBulk($opts) as $item) {
+            $this->out($item->getEntity()->getToGuid());
         }
     }
 }

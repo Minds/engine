@@ -42,5 +42,13 @@ class Provider extends Di\Provider
         $this->di->bind('Rewards\Controller', function ($di) {
             return new Controller();
         }, [ 'useFactory' => false]);
+
+        $this->di->bind('Rewards\Manager', function ($di) {
+            return new Manager();
+        }, [ 'useFactory' => false]);
+
+        $this->di->bind('Rewards\Notify', function ($di) {
+            return new Notify();
+        }, [ 'useFactory' => false]);
     }
 }

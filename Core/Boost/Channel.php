@@ -46,6 +46,7 @@ class Channel implements Interfaces\BoostHandlerInterface
           ->setState('created')
           ->save();
 
+        // Ignoring this for notifications-v3 b/c looks broken
         Core\Events\Dispatcher::trigger('notification', 'boost', [
           'to'=> [$boost->getDestination()->guid],
           'entity' => $boost->getEntity(),

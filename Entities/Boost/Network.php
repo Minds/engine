@@ -38,7 +38,8 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
     protected $exportableDefaults = [
         'guid', '_id', 'entity', 'bid', 'bidType', 'destination', 'owner', 'state',
         'transactionId', 'time_created', 'last_updated', 'type', 'subtype', 'handler',
-        'rating', 'quality', 'impressions', 'categories', 'rejection_reason', 'checksum'
+        'rating', 'quality', 'impressions', 'categories', 'rejection_reason', 'checksum',
+        'revoked_timestamp'
     ];
 
     public function __construct($db = null)
@@ -83,6 +84,7 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
         $this->categories = $array['categories'];
         $this->rejection_reason = $array['rejection_reason'];
         $this->checksum = $array['checksum'];
+        $this->revoked_timestamp = $array['@revoked'] ?? null;
         return $this;
     }
 
@@ -116,6 +118,7 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
             'categories' => $this->categories,
             'rejection_reason'=> $this->getRejectionReason(),
             'checksum' => $this->getChecksum(),
+            'revoked_timestamp' => $this->revoked_timestamp,
         ];
 
         /** @var Core\Boost\Repository $repository */

@@ -4,6 +4,8 @@
  */
 namespace Minds\Core\Boost\Network;
 
+use Minds\Common\Access;
+use Minds\Entities\EntityInterface;
 use Minds\Traits\MagicAttributes;
 
 /**
@@ -35,7 +37,7 @@ use Minds\Traits\MagicAttributes;
  * @method Boost setTags(array $value)
  * @method string getType()
  */
-class Boost
+class Boost implements EntityInterface
 {
     use MagicAttributes;
 
@@ -126,6 +128,56 @@ class Boost
             return 'revoked';
         }
         return 'created';
+    }
+
+    /**
+     * @return string
+     */
+    public function getGuid(): string
+    {
+        return (string) $this->guid;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOwnerGuid(): string
+    {
+        return (string) $this->ownerGuid;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUrn(): string
+    {
+        return "urn:boost:{$this->getType()}:{$this->getGuid()}";
+    }
+
+    /**
+     * TODO: Fix this, type should be boost not boost type
+     * @return string
+     */
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    /**
+     * Boosts treat type different
+     * @return null
+     */
+    public function getSubtype(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAccessId(): string
+    {
+        return Access::idToString(Access::PUBLIC);
     }
 
     /**

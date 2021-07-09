@@ -6,11 +6,13 @@
 
 namespace Minds\Common;
 
+use DateTimeImmutable;
 use Exception;
 use Lcobucci\JWT\Builder;
 use Lcobucci\JWT\Claim;
 use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
+use Lcobucci\JWT\Signer\Key\InMemory;
 
 class Jwt
 {
@@ -47,16 +49,14 @@ class Jwt
         }
 
         if ($exp !== null) {
-            $builder->setExpiration($exp);
+            $builder->setExpiration((new DateTimeImmutable())->setTimestamp($exp));
         }
 
         if ($nbf !== null) {
-            $builder->setNotBefore($nbf);
+            $builder->setNotBefore((new DateTimeImmutable())->setTimestamp($nbf));
         }
 
-        $builder->sign(new Sha256(), $this->key);
-
-        return (string) $builder->getToken();
+        return (string) $builder->getToken(new Sha256(), new InMemory($this->key));
     }
 
     /**
@@ -72,7 +72,7 @@ class Jwt
 
         $token = (new Parser())->parse($jwt);
 
-        if (!$token->verify(new Sha256(), $this->key)) {
+        if (!$token->verify(new Sha256(), new InMemory($this->key))) {
             throw new Exception('Invalid JWT');
         }
 

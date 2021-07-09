@@ -101,9 +101,9 @@ class Repository
      * Add a subscription
      *
      * @param Category $category
-     * @return string|false
+     * @return Subscription
      */
-    public function add(Subscription $subscription)
+    public function add(Subscription $subscription): ?Subscription
     {
         // Do a batch request for consistency
         $requests = [];
@@ -142,9 +142,9 @@ class Repository
      * Delete a subscripiption
      *
      * @param Subscription $subscription
-     * @return bool
+     * @return Subscription|bool
      */
-    public function delete(Subscription $subscription)
+    public function delete(Subscription $subscription): ?Subscription
     {
         // Do a batch request for consistency
         $requests = [];

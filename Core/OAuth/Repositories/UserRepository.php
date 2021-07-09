@@ -4,11 +4,15 @@
  */
 namespace Minds\Core\OAuth\Repositories;
 
+use Composer\Semver;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\UserRepositoryInterface;
 use Minds\Core\OAuth\Entities\UserEntity;
+use Minds\Core\Security\Password;
+use Minds\Core\Security\TwoFactor;
 use Minds\Entities\User;
 use Minds\Core\Di\Di;
+use Zend\Diactoros\ServerRequestFactory;
 
 class UserRepository implements UserRepositoryInterface
 {
@@ -18,13 +22,17 @@ class UserRepository implements UserRepositoryInterface
     /** @var SentryScopeDelegate $sentryScopeDelegate */
     private $sentryScopeDelegate;
 
+    /** @var TwoFactor\Manager */
+    private $twoFactorManager;
+
     /** @var User $mock */
     public $mockUser = false;
 
-    public function __construct(Password $password = null, SentryScopeDelegate $sentryScopeDelegate = null)
+    public function __construct(Password $password = null, Delegates\SentryScopeDelegate $sentryScopeDelegate = null, $twoFactorManager = null)
     {
         $this->password = $password ?: Di::_()->get('Security\Password');
         $this->sentryScopeDelegate = $sentryScopeDelegate ?? new Delegates\SentryScopeDelegate;
+        $this->twoFactorManager = $twoFactorManager ?? Di::_()->get('Security\TwoFactor\Manager');
     }
 
     /**
@@ -53,6 +61,8 @@ class UserRepository implements UserRepositoryInterface
         if (!$this->password->check($user, $password)) {
             return false;
         }
+
+        $this->twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
 
         $entity = new UserEntity();
         $entity->setIdentifier($user->getGuid());

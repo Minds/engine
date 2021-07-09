@@ -120,7 +120,6 @@ class Votes implements AggregateInterface
         $query = [
             'index' => $this->index,
             'size' => 0,
-            'type' => 'action',
             "stored_fields" => [
                 "*"
             ],

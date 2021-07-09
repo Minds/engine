@@ -84,7 +84,7 @@ class ManagerSpec extends ObjectBehavior
         $activity->guid = 123;
 
         $this->save->setEntity(Argument::that(function ($activity) {
-            return $activity->getGuid() === 123;
+            return $activity->getGuid() === '123';
         }))
             ->shouldBeCalled()
             ->willReturn($this->save);
@@ -101,7 +101,7 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_apply_remind_delegates_and_nsfw(Activity $activity)
     {
         $this->save->setEntity(Argument::that(function ($activity) {
-            return $activity->getGuid() === 123;
+            return $activity->getGuid() === '123';
         }))
             ->shouldBeCalled()
             ->willReturn($this->save);

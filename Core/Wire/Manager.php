@@ -86,6 +86,9 @@ class Manager
     /** @var Core\Security\ACL */
     protected $acl;
 
+    /** @var Delegates\EventsDelegate */
+    protected $eventsDelegate;
+
     /** @var int */
     const WIRE_SERVICE_FEE_PCT = 5;
 
@@ -109,7 +112,8 @@ class Manager
         $cacheDelegate = null,
         $offchainTxs = null,
         $stripeIntentsManager = null,
-        $acl = null
+        $acl = null,
+        $eventsDelegate = null
     ) {
         $this->repository = $repository ?: Di::_()->get('Wire\Repository');
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
@@ -125,6 +129,16 @@ class Manager
         $this->offchainTxs = $offchainTxs ?: new Core\Blockchain\Wallets\OffChain\Transactions();
         $this->stripeIntentsManager = $stripeIntentsManager ?? Di::_()->get('Stripe\Intents\Manager');
         $this->acl = $acl ?: Core\Security\ACL::_();
+        $this->eventsDelegate = $eventsDelegate ?? new Delegates\EventsDelegate();
+    }
+
+    /**
+     * @param string $urn
+     * @return Wire
+     */
+    public function getByUrn(string $urn): ?Wire
+    {
+        return $this->repository->get($urn);
     }
 
     /**
@@ -223,9 +237,13 @@ class Manager
             ->setTimestamp(time())
             ->setRecurringInterval($this->recurringInterval);
 
-        // If Minds+ is the reciever, bypass the ACL
+        // If receiver is handler for Minds+/Pro, bypass the ACL
         $bypassAcl = false;
         if ((string) $this->receiver->getGuid() === (string) $this->config->get('plus')['handler']) {
+            $bypassAcl = true;
+        }
+
+        if ((string) $this->receiver->getGuid() === (string) $this->config->get('pro')['handler']) {
             $bypassAcl = true;
         }
 
@@ -264,7 +282,7 @@ class Manager
                     ->setUser($this->sender)
                     ->setContract('wire');
 
-                if (!$this->cap->isAllowed($this->amount)) {
+                if (!$this->cap->isAllowed($this->amount) && !$bypassAcl) {
                     throw new \Exception('You are not allowed to spend that amount of coins.');
                 }
 
@@ -291,6 +309,9 @@ class Manager
                 // Notify plus/pro
                 $this->upgradesDelegate
                     ->onWire($wire, 'offchain');
+
+                // Submit action event
+                $this->eventsDelegate->onAdd($wire);
 
                 // Send notification
                 $this->notificationDelegate->onAdd($wire);
@@ -325,19 +346,22 @@ class Manager
                 }
 
                 // If this is a trial, we still create the subscription but do not charge
-                if (!$wire->getTrialDays()) {
-                    $intent = new PaymentIntent();
-                    $intent
-                        ->setUserGuid($this->sender->getGuid())
-                        ->setAmount($this->amount)
-                        ->setPaymentMethod($this->payload['paymentMethodId'])
-                        ->setOffSession(true)
-                        ->setConfirm(true)
-                        ->setStripeAccountId($this->receiver->getMerchant()['id'])
-                        ->setServiceFeePct(static::WIRE_SERVICE_FEE_PCT);
+                $intent = new PaymentIntent();
+                $intent
+                    ->setUserGuid($this->sender->getGuid())
+                    ->setAmount(!$wire->getTrialDays() ? $this->amount : 100) // $1 hold on card during trial
+                    ->setPaymentMethod($this->payload['paymentMethodId'])
+                    ->setOffSession(true)
+                    ->setConfirm(true)
+                    ->setCaptureMethod(!$wire->getTrialDays() ? 'automatic' : 'manual') // Do not charge card
+                    ->setStripeAccountId($this->receiver->getMerchant()['id'])
+                    ->setServiceFeePct(static::WIRE_SERVICE_FEE_PCT);
 
-                    // Charge stripe
-                    $this->stripeIntentsManager->add($intent);
+                // Charge stripe
+                $intent = $this->stripeIntentsManager->add($intent);
+
+                if (!$intent->getId()) {
+                    throw new \Exception("Payment failed");
                 }
 
                 $wire->setAddress('stripe')
@@ -349,6 +373,9 @@ class Manager
                 // Notify plus/pro
                 $this->upgradesDelegate
                     ->onWire($wire, 'usd');
+
+                // Submit action event
+                $this->eventsDelegate->onAdd($wire);
 
                 // Send notification
                 $this->notificationDelegate->onAdd($wire);

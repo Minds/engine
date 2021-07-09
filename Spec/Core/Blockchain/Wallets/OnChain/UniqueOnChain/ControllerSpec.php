@@ -100,7 +100,7 @@ class ControllerSpec extends ObjectBehavior
         $this->manager->add(Argument::that(function ($address) {
             return $address->getAddress() === '0xADDR'
                 && $address->getUserGuid() === '123';
-        }))
+        }), $user, true)
             ->willReturn(true);
 
         $this->validate($request);
@@ -119,7 +119,7 @@ class ControllerSpec extends ObjectBehavior
         $this->manager->delete(Argument::that(function ($address) {
             return $address->getAddress() === '0xADDR'
                 && $address->getUserGuid() === '123';
-        }))
+        }), $user, true)
             ->willReturn(true);
 
         $this->unValidate($request);

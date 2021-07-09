@@ -13,6 +13,7 @@ use Minds\Core\Blockchain\Uniswap\UniswapEntityInterface;
 use Minds\Core\Blockchain\Uniswap\UniswapMintEntity;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain;
 use Minds\Core\EntitiesBuilder;
+use Minds\Exceptions\UserErrorException;
 
 class Manager
 {
@@ -82,10 +83,12 @@ class Manager
         }
 
         if (!$address = $this->user->getEthWallet()) {
-            throw new \Exception("User must have an ETH wallet setup");
+            throw new UserErrorException("User must have an ETH wallet setup");
         }
 
-        $uniswapUser = $this->uniswapClient->getUser($address, $this->dateTs);
+        // The latest possible time
+        $asOf = min(time() - 300, strtotime('tomorrow', $this->dateTs ?: time()) - 1);
+        $uniswapUser = $this->uniswapClient->getUser($address, $asOf);
 
         $pairs = $this->uniswapClient->getPairs($this->getApprorvedLiquidityPairIds());
 
@@ -212,7 +215,7 @@ class Manager
                     ->setUsd($shareOfLiquidityUSD)
                     ->setMinds($shareOfLiquidityMINDS)
             )
-            ->setLiquiditySpotOptOut($this->user->isLiquiditySpotOptOut());
+            ->setLiquiditySpotOptOut($this->user->isLiquiditySpotOptOut() || count($this->user->getNsfw()));
 
         // How to calculate a multiplier
         // Mint time * volume
@@ -226,14 +229,34 @@ class Manager
      */
     public function getAllProvidersSummaries(): array
     {
+        $summaries = [];
+
+        foreach ($this->getProviderUsers() as $user) {
+            try {
+                if ($user->getPhoneNumberHash()) { // Must have phone number to have summary
+                    $summaries[] = $this->setUser($user)->getSummary();
+                }
+            } catch (\Exception $e) {
+                //var_dump($e);
+                //exit;
+            }
+        }
+
+        return $summaries;
+    }
+
+    /**
+     * Iterates out user entities that are providing uniswap liquidity
+     * @return iterable
+     */
+    public function getProviderUsers(): iterable
+    {
         $uniswapMints = $this->uniswapClient->getMintsByPairIds($this->getApprorvedLiquidityPairIds());
 
         // Map to 'to' and reduce to unique
         $liquidityProviderIds = array_unique(array_map(function ($uniswapMint) {
             return $uniswapMint->getTo();
         }, $uniswapMints));
-
-        $summaries = [];
 
         foreach ($liquidityProviderIds as $liquidityProviderId) {
             $uniqueOnChainAddress = $this->uniqueOnchain->getByAddress($liquidityProviderId);
@@ -245,15 +268,21 @@ class Manager
             $userGuid = $uniqueOnChainAddress->getUserGuid();
             /** @var User */
             $user = $this->entitiesBuilder->single($userGuid, [ 'cache' => false ]); // This may loop in the CLI so we don't want to cache
-            try {
-                $summaries[] = $this->setUser($user)->getSummary();
-            } catch (\Exception $e) {
-                var_dump($e);
-                exit;
+
+            if ($user) {
+                yield $user;
             }
         }
+    }
 
-        return $summaries;
+    /**
+     * Get the pairs
+     * @return array
+     */
+    public function getPairs(): array
+    {
+        $uniswapSwaps = $this->uniswapClient->getPairs($this->getApprorvedLiquidityPairIds(), $this->dateTs);
+        return $uniswapSwaps;
     }
 
     /**

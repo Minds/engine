@@ -28,6 +28,10 @@ class Routes extends ModuleRoutes
                     '',
                     Ref::_('Rewards\Controller', 'get')
                 );
+                $route->get(
+                    'withdrawals',
+                    Ref::_('Rewards\Controller', 'getWithdrawals')
+                );
             });
     }
 }

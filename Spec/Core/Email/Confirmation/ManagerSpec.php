@@ -61,6 +61,14 @@ class ManagerSpec extends ObjectBehavior
                 'signing_key' => '~key~',
             ]);
 
+        $this->config->get('elasticsearch')
+            ->willReturn([
+                'indexes' => [
+                    'search_prefix' => 'minds-search',
+                ]
+            ]);
+
+
         $this->beConstructedWith($config, $jwt, $queue, $es, $userFactory, $resolver, $eventsDispatcher);
     }
 

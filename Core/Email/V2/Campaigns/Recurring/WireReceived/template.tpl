@@ -1,7 +1,7 @@
 <?php
     $wireDate = date('l F jS Y', ($vars['timestamp']));
     $amount = $vars['amount'];
-    $senderName = $vars['sender']->get('name');
+    $senderName = $vars['sender']->get('username');
 ?>
 <tr>
     <td>
