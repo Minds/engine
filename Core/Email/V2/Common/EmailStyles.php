@@ -73,6 +73,6 @@ class EmailStyles
     {
         $styles = array_intersect_key($this->styles, array_flip($styleKeys));
 
-        return ' style="'.implode($styles, ';').'" ';
+        return ' style="'.implode(';', $styles).'" ';
     }
 }

@@ -32,8 +32,8 @@ class Etherscan
     {
         $this->http = $http ?: Di::_()->get('Http\Json');
         $config = $config ?: Di::_()->get('Config');
-
-        $this->apiKey = $config->get('blockchain')['etherscan']['api_key'];
+        $blockchainConfig = $config->get('blockchain');
+        $this->apiKey = ($blockchainConfig['etherscan'] ?? [])['api_key'] ?? null;
     }
 
     /**

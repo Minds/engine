@@ -297,6 +297,6 @@ class Minds extends base
      */
     public static function getVersion()
     {
-        return false;
+        return '0.0';
     }
 }

@@ -47,7 +47,8 @@ class Customer
     public function getId()
     {
         if (!$this->id) {
-            $this->id = $this->lu->get("{$this->user->guid}:payments")['customer_id'];
+            $lookup = $this->lu->get("{$this->user->guid}:payments");
+            $this->id = $lookup ? $lookup['customer_id'] : null;
         }
         return $this->id;
     }

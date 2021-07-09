@@ -456,10 +456,10 @@ class Comment extends RepositoryEntity implements EntityInterface
 
         if (!$this->isEphemeral()) {
             $output['thumbs:up:user_guids'] = $this->getVotesUp();
-            $output['thumbs:up:count'] = count($this->getVotesUp());
+            $output['thumbs:up:count'] = count($this->getVotesUp() ?: []);
 
             $output['thumbs:down:user_guids'] = $this->getVotesDown();
-            $output['thumbs:down:count'] = count($this->getVotesDown());
+            $output['thumbs:down:count'] = count($this->getVotesDown() ?: []);
         }
 
         $output['thumbnails'] = $this->getThumbnails();

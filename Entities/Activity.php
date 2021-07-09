@@ -982,6 +982,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function isRemind(): bool
     {
         return !$this->message
+            && is_array($this->remind_object)
             && $this->remind_object['guid']
             && !($this->remind_object['quoted_post'] ?? true);
     }
@@ -993,7 +994,9 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
      */
     public function isQuotedPost(): bool
     {
-        return $this->remind_object['guid'] && !$this->isRemind();
+        return is_array($this->remind_object)
+            && $this->remind_object['guid']
+            && !$this->isRemind();
     }
 
     /**

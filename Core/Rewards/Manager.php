@@ -477,7 +477,7 @@ class Manager
             'contract' => 'offchain:reward',
         ]);
 
-        if ($transactions['transactions']) {
+        if (count($transactions['transactions'] ?? []) > 0) {
             throw new \Exception("Already issued rewards to this user");
         }
 

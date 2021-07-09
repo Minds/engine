@@ -62,7 +62,7 @@ class Manager
         $this->hashtagManager = $hashtagManager ?? Di::_()->get('Hashtags\User\Manager');
         $this->elasticFeedsManager = $elasticFeedsManager ?? Di::_()->get('Feeds\Elastic\Manager');
         $this->user = $user ?? Session::getLoggedInUser();
-        $this->plusSupportTierUrn = $this->config->get('plus')['support_tier_urn'];
+        $this->plusSupportTierUrn = $this->config->get('plus')['support_tier_urn'] ?? null;
         $this->acl = $acl ?? Di::_()->get('Security\ACL');
     }
 

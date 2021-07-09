@@ -15,10 +15,6 @@ class MonetizationProvider extends Provider
             return new Admin();
         }, [ 'useFactory' => true ]);
 
-        $this->di->bind('Monetization\Ads', function ($di) {
-            return new Ads();
-        }, [ 'useFactory' => true ]);
-
         $this->di->bind('Monetization\Manager', function ($di) {
             return new Manager();
         }, [ 'useFactory' => true ]);
@@ -40,13 +36,5 @@ class MonetizationProvider extends Provider
         }, [ 'useFactory' => true ]);
 
         /* Services */
-        $this->di->bind('Monetization\Services\Adsense', function ($di) {
-            return new Services\AdsensePolyfill();
-        }, [ 'useFactory' => true ]);
-
-        /* Default service */
-        $this->di->bind('Monetization\DefaultService', function ($di) {
-            return $di->get('Monetization\Services\Adsense');
-        }, [ 'useFactory' => true ]);
     }
 }

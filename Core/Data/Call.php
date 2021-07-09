@@ -286,8 +286,8 @@ class Call
             $query->query($statement, $values);
 
             $result = $this->client->request($query);
-            return (int) $result[0]['count'];
-        } catch (Exception $e) {
+            return (int) (isset($result[0]) ? $result[0]['count'] : 0);
+        } catch (\Exception $e) {
             return 0;
         }
     }

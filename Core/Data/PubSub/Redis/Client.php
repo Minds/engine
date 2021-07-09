@@ -22,7 +22,7 @@ class Client
         if (class_exists('\Redis')) {
             $this->redis = $redis ?: new \Redis();
             $config = Config::_()->get('redis');
-            $this->host = $config['pubsub'] ?: $config['master'] ?: '127.0.0.1';
+            $this->host = ($config['pubsub'] ?? null) ?: $config['master'] ?: '127.0.0.1';
             $this->connect();
         }
     }

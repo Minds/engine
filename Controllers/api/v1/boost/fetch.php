@@ -85,7 +85,7 @@ class fetch implements Interfaces\Api
                 }
                 $response['load-next'] = $iterator->getOffset();
                 
-                if (!$response['boosts']) {
+                if (!isset($response['boosts']) || !$response['boosts']) {
                     $result = Di::_()->get('Trending\Repository')->getList([
                         'type' => 'images',
                         'rating' => isset($rating) ? (int) $rating : 1,

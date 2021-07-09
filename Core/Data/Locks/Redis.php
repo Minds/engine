@@ -18,7 +18,9 @@ class Redis
     {
         $this->config = $config ?: Di::_()->get('Config');
         $this->redis = $redis ?: new RedisServer();
-        $this->redis->connect($this->config->redis['master']);
+        if (isset($this->config->get('redis')['master'])) {
+            $this->redis->connect($this->config->get('redis')['master']);
+        }
     }
 
     public function setKey($key)

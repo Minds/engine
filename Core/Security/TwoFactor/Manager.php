@@ -61,7 +61,9 @@ class Manager
         }
 
         // Does a two factor header code exist?
-        if (!$code = (string) $request->getHeader('X-MINDS-2FA-CODE')[0]) {
+        $twoFactorHeader = $request->getHeader('X-MINDS-2FA-CODE');
+
+        if (!$twoFactorHeader || !$code = (string) $twoFactorHeader[0]) {
             // No code exists, so we trigger requireTwoFactor
             $this->requireTwoFactor($user);
         }

@@ -118,7 +118,7 @@ class Repository
             $values[] = new Timestamp($options['timestamp']['lte']);
         }
 
-        if ($options['timestamp']['eq']) {
+        if (isset($options['timestamp']['eq'])) {
             $where[] = 'timestamp = ?';
             $values[] = new Timestamp($options['timestamp']['eq']);
         }

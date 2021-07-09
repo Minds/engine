@@ -20,17 +20,17 @@ class S3Storage implements TranscodeStorageInterface
     public function __construct($config = null, $s3 = null)
     {
         $this->config = $config ?? Di::_()->get('Config');
-        $this->dir = $this->config->get('transcoder')['dir'];
+        $this->dir = $this->config->get('transcoder')['dir'] ?? '';
         
         $awsConfig = $this->config->get('aws');
         $opts = [
-            'region' => $awsConfig['region'],
+            'region' => $awsConfig['region'] ?? 'us-east-1',
         ];
 
         if (!isset($awsConfig['useRoles']) || !$awsConfig['useRoles']) {
             $opts['credentials'] = [
-                'key' => $awsConfig['key'],
-                'secret' => $awsConfig['secret'],
+                'key' => $awsConfig['key'] ?? null,
+                'secret' => $awsConfig['secret'] ?? null,
             ];
         }
 

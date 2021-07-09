@@ -47,7 +47,6 @@ class banners implements Interfaces\FS
 
         $content = "";
 
-
         switch ($type) {
           case "user":
             $size = isset($pages[1]) ? $pages[1] : 'fat';
@@ -116,7 +115,7 @@ class banners implements Interfaces\FS
         //    exit;
         //}
 
-        if (!$content && $f) {
+        if (!$content && isset($f)) {
             $content = $f->read();
             if (!$content) {
                 exit;
