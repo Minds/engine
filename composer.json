@@ -29,7 +29,7 @@
         "league/oauth2-server": "^8.2",
         "lcobucci/jwt": "^4.1.4",
         "zendframework/zend-permissions-rbac": "^3.0",
-        "php-amqplib/php-amqplib": "^2.10",
+        "php-amqplib/php-amqplib": "^3.0",
         "facebook/graph-sdk": "^5.7",
         "psr/http-message": "1.0.1",
         "psr/http-server-handler": "1.0.1",
