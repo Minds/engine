@@ -111,7 +111,7 @@ class Controller
                 $type = 'video';
 
                 return new JsonResponse([
-                    'status' => 200,
+                    'status' => 'success',
                     'html' => "<iframe src=\"https://www.minds.com/embed/$entity->guid\"></iframe>",
                     'height' => $height,
                     'width' => $width,
@@ -186,6 +186,13 @@ class Controller
         if (!$height || !$width) {
             $height = 720;
             $width = 1280;
+        }
+
+        if ($maxHeight === 0 && $maxWidth === 0) {
+            return [
+                'width' => $width,
+                'height' => $height
+            ];
         }
 
         if ($maxHeight && $height > $maxHeight) {
