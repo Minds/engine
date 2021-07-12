@@ -10,8 +10,16 @@ use Minds\Entities;
 
 class AccusedEntity
 {
+    /** @var Core\Data\ElasticSearch\Client */
+    private $client;
+
+    /** @var Entites\User */
     private $user;
+
+    /** @var int */
     private $score = 0;
+
+    /** @var array */
     private $metrics = [];
 
     public function __construct($client = null)

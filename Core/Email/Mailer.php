@@ -16,6 +16,9 @@ class Mailer
     private $queue;
     private $stats;
 
+    /** @var SpamFilter */
+    private $filter;
+
     public function __construct($mailer = null, $queue = null, $filter = null)
     {
         $this->mailer = $mailer ?: new PHPMailer();

@@ -98,7 +98,7 @@ function elgg_load_library($name) {
  * Is the request using SSL?
  */
 function isSSL(){
-	return $_SERVER['SERVER_PORT'] == 443 || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? null) == 'https';
+	return ($_SERVER['SERVER_PORT'] ?? null) == 443 || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? null) == 'https';
 }
 
 /**
@@ -1624,7 +1624,9 @@ function _elgg_shutdown_hook() {
 
 		$time = (float)(microtime(TRUE) - $START_MICROTIME);
 		// demoted to NOTICE from DEBUG so javascript is not corrupted
-		elgg_log("Page {$_SERVER['REQUEST_URI']} generated in $time seconds", 'NOTICE');
+                if (isset($_SERVER['REQUEST_URI'])) {
+		    elgg_log("Page {$_SERVER['REQUEST_URI']} generated in $time seconds", 'NOTICE');
+                }
 	} catch (Exception $e) {
 		$message = 'Error: ' . get_class($e) . ' thrown within the shutdown handler. ';
 		$message .= "Message: '{$e->getMessage()}' in file {$e->getFile()} (line {$e->getLine()})";

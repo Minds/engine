@@ -43,7 +43,7 @@ class Repository
 
         if ($opts['from']) {
             $where[] = "timestamp >= ?";
-            $values[] = new Timestamp($opts['from']);
+            $values[] = new Timestamp($opts['from'], 0);
             if (!$opts['user_guid']) { // This is a temporary work around (MH)
                 $opts['allow_filtering'] = true;
             }
@@ -51,7 +51,7 @@ class Repository
 
         if ($opts['to']) {
             $where[] = "timestamp < ?";
-            $values[] = new Timestamp($opts['to']);
+            $values[] = new Timestamp($opts['to'], 0);
         }
 
         $statement .= " WHERE " . implode(' AND ', $where);
@@ -89,9 +89,10 @@ class Repository
      * @param string $urn
      * @return EarningsDeposit
      */
-    public function get($urn): EarningsDeposit
+    public function get($urn): ?EarningsDeposit
     {
         // TODO
+        return null;
     }
 
     /**
@@ -105,7 +106,7 @@ class Repository
             "INSERT INTO partner_earnings_ledger (user_guid, timestamp, item, amount_cents, amount_tokens) VALUES (?,?,?,?,?)",
             [
                 new Bigint($deposit->getUserGuid()),
-                new Timestamp($deposit->getTimestamp()),
+                new Timestamp($deposit->getTimestamp(), 0),
                 $deposit->getItem(),
                 $deposit->getAmountCents() ? (int) $deposit->getAmountCents() : null,
                 $deposit->getAmountTokens() ? new Bigint($deposit->getAmountTokens()) : null,
@@ -119,16 +120,18 @@ class Repository
      * @param array $fields
      * @return bool
      */
-    public function update(EarningsDeposit $deposit, $fields = []): bool
+    public function update(EarningsDeposit $deposit, $fields = []): ?bool
     {
+        return null;
     }
 
     /**
      * @param EarningsDeposit $deposit
      * @return bool
      */
-    public function delete(EarningsDeposit $deposit): bool
+    public function delete(EarningsDeposit $deposit): ?bool
     {
+        return null;
     }
 
     /**
@@ -144,7 +147,7 @@ class Repository
         ";
         $values = [
             new Bigint($guid),
-            new Timestamp($asOfTs ?? time()),
+            new Timestamp($asOfTs ?? time(), 0),
         ];
 
         $prepared = new Prepared();

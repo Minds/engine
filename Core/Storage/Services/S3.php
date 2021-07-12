@@ -93,7 +93,7 @@ class S3 implements ServiceInterface
                     ]);
                     return $result['Body'];
                 } catch (\Exception $e) {
-                    return null;
+                    return "";
                 }
                 break;
             case "redirect":

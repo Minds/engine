@@ -13,7 +13,6 @@ use Minds\Core\Security;
 use Minds\Entities;
 use Minds\Helpers;
 use Minds\Core\Messenger;
-use Minds\Core\Messenger\Conversations;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Sockets;
@@ -51,7 +50,7 @@ class conversations implements Interfaces\Api
         $conversation = (new Entities\Conversation())
           ->setParticipant($me->guid)
           ->setParticipant($pages[0]);
-        $messages = (new Entities\Messages)
+        $messages = (new Entities\Message)
           ->setConversation($conversation);
 
         if ($conversation) {
@@ -154,6 +153,8 @@ class conversations implements Interfaces\Api
             }
         }
 
+        $messages = [];
+
         foreach ($conversation->getParticipants() as $guid) {
             $key = "message:$guid";
             $messages[$guid] = base64_encode(base64_decode(rawurldecode($_POST[$key]), true)); //odd bug sometimes with device base64..
@@ -223,24 +224,8 @@ class conversations implements Interfaces\Api
                                                 ]);
                 break;
             case 'no-answer':
-              //leave a notification
-              $conversation = new entities\conversation(elgg_get_logged_in_user_guid(), $pages[1]);
-              $message = new entities\CallMissed($conversation);
-              $message->save();
-              $conversation->update();
-              Core\Queue\Client::build()->setExchange("mindsqueue")
-                                        ->setQueue("Push")
-                                        ->send([
-                                              "user_guid"=>$pages[1],
-                                              "message"=> \Minds\Core\Session::getLoggedInUser()->name . " tried to call you.",
-                                              "uri" => 'chat',
-
-                                             ]);
               break;
             case 'ended':
-              $conversation = new entities\conversation(elgg_get_logged_in_user_guid(), $pages[1]);
-              $message = new entities\CallEnded($conversation);
-              $message->save();
               break;
         }
 

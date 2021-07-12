@@ -23,7 +23,7 @@ use Minds\Traits\MagicAttributes;
  * @method string getFromGuid()
  * @method Notification setFromGuid(string $value)
  * @method string getEntityUrn()
- * @method Notification getEntityUrn(string $value)
+ * @method Notification setEntityUrn(string $value)
  * @method string getType()
  * @method Notification setType(string $value)
  * @method array getData()
@@ -32,6 +32,8 @@ use Minds\Traits\MagicAttributes;
  * @method Notification setCreatedTimestamp(int $value)
  * @method int getReadTimestamp()
  * @method Notification setReadTimestamp(int $value)
+ * @method array getMergedFromGuids()
+ * @method int getMergedCount()
  */
 class Notification
 {
@@ -98,6 +100,7 @@ class Notification
     public function getUuid(): string
     {
         if (!$this->uuid) {
+            /** @phpstan-ignore-next-line - Specifying a value causes conflicts! (MH) */
             $this->uuid = (new Timeuuid())->uuid();
         }
         return $this->uuid;
@@ -179,6 +182,7 @@ class Notification
                 return $groupingType;
             }
         }
+        throw new \Exception("Invalid type ($this->type), can not find group");
     }
 
     /**

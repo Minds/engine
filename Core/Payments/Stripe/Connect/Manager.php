@@ -266,7 +266,7 @@ class Manager
 
         try {
             $stripeAccount->save();
-        } catch (Stripe\Error\InvalidRequest $e) {
+        } catch (Stripe\Exception\InvalidRequestException $e) {
             throw new \Exception($e->getMessage());
         }
 
@@ -285,7 +285,7 @@ class Manager
 
         try {
             $this->accountInstance->deleteExternalAccount($account->getId(), $bankAccountId);
-        } catch (Stripe\Error\InvalidRequest $e) {
+        } catch (Stripe\Exception\InvalidRequestException $e) {
             throw new \Exception($e->getMessage());
         }
 
@@ -364,7 +364,7 @@ class Manager
             $account->setTotalPaidOut($this->getTotalPaidOut($account));
 
             return $account;
-        } catch (Stripe\Error\Permission $e) {
+        } catch (Stripe\Exception\PermissionException $e) {
             throw new \Exception($e->getMessage());
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());

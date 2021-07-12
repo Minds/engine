@@ -13,9 +13,9 @@ class Events implements ModuleInterface
 {
     private $autoReporter;
 
-    public function __construct($autoReport = null)
+    public function __construct($autoReporter = null)
     {
-        $this->autoReporter = $autoReports ?: Di::_()->get('Steward\AutoReporter');
+        $this->autoReporter = $autoReporter ?: Di::_()->get('Steward\AutoReporter');
     }
 
     public function onInit()

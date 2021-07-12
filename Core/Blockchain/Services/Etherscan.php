@@ -23,6 +23,9 @@ class Etherscan
     /** @var string $apiKey */
     protected $apiKey;
 
+    /** @var string */
+    protected $contractAddress;
+
     /**
      * Etherscan constructor.
      * @param Http\Json $http
@@ -201,13 +204,15 @@ class Etherscan
     /**
      * Return the last block of the blockchain
      *
-     * @return array
+     * @return int
      */
     public function getLastBlock()
     {
         $number = $this->getLastBlockNumber();
         if ($number) {
             return $this->getBlock($number);
+        } else {
+            return 0;
         }
     }
 
@@ -215,7 +220,7 @@ class Etherscan
      * Get a block by number
      *
      * @param integer $number
-     * @return void
+     * @return int
      */
     public function getBlock($number)
     {

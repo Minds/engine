@@ -33,6 +33,11 @@ class Exported
     /** @var FeaturesManager */
     protected $features;
 
+    /** @var BlockchainManager */
+    protected $blockchain;
+
+    protected $proDomain;
+
     /**
      * Exported constructor.
      *

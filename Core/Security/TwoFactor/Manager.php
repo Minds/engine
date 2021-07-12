@@ -69,7 +69,7 @@ class Manager
         }
 
         // If we have got this far, then we should try to authenticate the 2fa code
-        $this->authenticateTwoFactor($user, $code);
+        $this->authenticateTwoFactor($user, $code ?? 0);
     }
 
     /**

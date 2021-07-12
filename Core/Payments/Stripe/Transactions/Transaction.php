@@ -38,6 +38,9 @@ class Transaction
     /** @var string */
     private $status;
 
+    /** @var string */
+    private $userGuid;
+
     /**
      * Expose to the public apis
      * @param array $extend

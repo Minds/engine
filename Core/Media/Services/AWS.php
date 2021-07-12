@@ -70,7 +70,7 @@ class AWS implements ServiceInterface
                   ]);
                 return $this;
             } elseif (is_resource($file)) {
-                $result =  $this->client->putObject([
+                $result =  $this->s3->putObject([
                   'ACL' => 'public-read',
                   'Bucket' => 'cinemr',
                   'Key' => "$this->dir/$this->key/source",

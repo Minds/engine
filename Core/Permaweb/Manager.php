@@ -6,9 +6,21 @@
 namespace Minds\Core\Permaweb;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Log;
+use Minds\Core\Http;
+use Minds\Core\Config;
 
 class Manager
 {
+    /** @var Http\Curl\Client  */
+    protected $http;
+
+    /** @var Config */
+    protected $config;
+
+    /** @var Log\Logger */
+    protected $logger;
+
     public function __construct($http = null, $config = null, $logger = null)
     {
         $this->http = $http ?: Di::_()->get('Http');
@@ -22,7 +34,7 @@ class Manager
      * @param string $id - transaction id
      * @return array - response from gateway
      */
-    public function getById(string $id): array
+    public function getById(string $id): ?array
     {
         try {
             $baseUrl = $this->buildUrl($this->config->get('arweave'));
@@ -31,6 +43,7 @@ class Manager
         } catch (\Exception $e) {
             $this->logger->error($e);
         }
+        return null;
     }
 
     /**
@@ -48,7 +61,7 @@ class Manager
      * @param $opts - guid, minds link required, thumbnail_src optional
      * @return array response from microservice
      */
-    public function save(array $opts): array
+    public function save(array $opts): ?array
     {
         try {
             if (!$opts['guid'] || !$opts['minds_link']) {
@@ -66,6 +79,8 @@ class Manager
         } catch (\Exception $e) {
             $this->logger->error($e);
         }
+
+        return null;
     }
 
     /**

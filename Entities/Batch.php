@@ -37,7 +37,7 @@ class Batch extends MindsObject
      * Extend the default entity save function to update the remote service
      *
      */
-    public function save()
+    public function save($timebased = true)
     {
         $this->super_subtype = 'archive';
         parent::save(true);
@@ -49,6 +49,6 @@ class Batch extends MindsObject
      */
     public function delete()
     {
-        parent::delete();
+        return parent::delete();
     }
 }

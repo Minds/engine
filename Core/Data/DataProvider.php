@@ -64,9 +64,6 @@ class DataProvider extends Provider
         $this->di->bind('Database\MongoDB', function ($di) {
             return new MongoDB\Client();
         }, ['useFactory'=>true]);
-        $this->di->bind('Database\Neo4j', function ($di) {
-            return new Neo4j\Client();
-        }, ['useFactory'=>true]);
         $this->di->bind('Database\ElasticSearch', function ($di) {
             return new ElasticSearch\Client();
         }, ['useFactory'=>true]);

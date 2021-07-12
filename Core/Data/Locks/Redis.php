@@ -5,11 +5,15 @@ namespace Minds\Core\Data\Locks;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Data\Redis\Client as RedisServer;
+use Minds\Core\Config;
 
 class Redis
 {
     /** @var Redis */
     protected $redis;
+
+    /** @var Config */
+    protected $config;
 
     protected $key;
     protected $ttl;

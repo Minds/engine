@@ -152,7 +152,7 @@ class Manager
             if (!$referrerGuid) {
                 continue; // if no referrer to skip
             }
-            if (!isset($feesToUser[$referrerGuid])) {
+            if (!isset($feesToUserGuid[$referrerGuid])) {
                 $feesToUserGuid[$referrerGuid] = (float) 0;
             }
             $feesToUserGuid[$referrerGuid] += (float) $fee->amount;

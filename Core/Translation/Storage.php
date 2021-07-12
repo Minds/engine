@@ -13,6 +13,9 @@ class Storage
 {
     protected $prepared;
 
+    /** @var Cassandra\Client */
+    protected $db;
+
     public function __construct($db = null)
     {
         $di = Core\Di\Di::_();

@@ -10,6 +10,8 @@ use Minds\Entities\Factory as EntitiesFactory;
 
 class PushSettings
 {
+    protected $db;
+
     protected $types = [
       'daily' => true,
       'comment' => true,

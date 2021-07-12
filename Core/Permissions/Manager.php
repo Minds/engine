@@ -3,16 +3,18 @@
 namespace Minds\Core\Permissions;
 
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
+use Minds\Entities;
 
 /*
 * Manager for managing role based permissions
 */
 class Manager
 {
-    /** @var EntityBuilder */
-    private $entityBuilder;
+    /** @var EntitiesBuilder */
+    private $entitiesBuilder;
 
-    public function __construct($entityBuilder = null)
+    public function __construct($entitiesBuilder = null)
     {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
     }
@@ -39,6 +41,7 @@ class Manager
             throw new \InvalidArgumentException('user_guid is required');
         }
 
+        /** @var Entities\User */
         $user = $this->entitiesBuilder->single($opts['user_guid']);
         $entities = $this->entitiesBuilder->get($opts);
 
@@ -46,10 +49,8 @@ class Manager
             throw new \InvalidArgumentException('Entity is not a user');
         }
 
-        $roles = new Roles();
-
         /** @var Permissions */
-        $permissions = new Permissions($user, null, $entitiesBuilder);
+        $permissions = new Permissions($user, null, $this->entitiesBuilder);
         if (is_array($entities)) {
             $permissions->calculate($entities);
         }

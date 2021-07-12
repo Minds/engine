@@ -31,6 +31,7 @@ class EventsIterator implements \Iterator
     private $elastic;
     private $index;
     private $position;
+    private $period;
 
     public function __construct($elastic = null, $index = null)
     {
@@ -112,6 +113,8 @@ class EventsIterator implements \Iterator
         }
 
         $this->offset = count($this->data);
+
+        return $this->data;
     }
 
     /**

@@ -101,7 +101,5 @@ class TokenSaleEvent implements BlockchainEventInterface
         }
 
         $transaction->setFailed(true);
-
-        $this->txRepository->update($transaction, ['failed']);
     }
 }

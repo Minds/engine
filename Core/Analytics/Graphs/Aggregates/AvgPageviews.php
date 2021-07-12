@@ -33,6 +33,7 @@ class AvgPageviews implements AggregateInterface
     public function fetchAll($opts = [])
     {
         $result = [];
+        $span = null;
         foreach ([
                      'total_pageviews',
                  ] as $key) {

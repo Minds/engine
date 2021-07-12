@@ -75,7 +75,7 @@ class Factory
         }
 
         if ($options['cache'] && $options['cacheTtl'] > 0) {
-            $psrCache->set("entity:$value", serialize($entity), $opts['cacheTtl']);
+            $psrCache->set("entity:$value", serialize($entity), $options['cacheTtl']);
         }
 
         return $entity;

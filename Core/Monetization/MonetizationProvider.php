@@ -23,10 +23,6 @@ class MonetizationProvider extends Provider
             return new Merchants();
         }, [ 'useFactory' => true ]);
 
-        $this->di->bind('Monetization\Payouts', function ($di) {
-            return new Payouts();
-        }, [ 'useFactory' => true ]);
-
         $this->di->bind('Monetization\Users', function ($di) {
             return new Users();
         }, [ 'useFactory' => true ]);

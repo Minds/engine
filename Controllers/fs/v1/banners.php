@@ -26,7 +26,7 @@ define('DEFAULT_BANNER_PATHS', [
     'Assets/banners/9.jpg',
 ]);
 
-class banners implements Interfaces\FS
+class banners implements Interfaces\Fs
 {
     public function get($pages)
     {

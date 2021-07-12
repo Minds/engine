@@ -104,7 +104,7 @@ class Repository
         $cql = "INSERT INTO analytics_graphs (key, last_synced, data) VALUES (?, ?, ?)";
         $values = [
             $graph->getKey(),
-            new Timestamp($graph->getLastSynced()),
+            new Timestamp($graph->getLastSynced(), 0),
             json_encode($graph->getData())
         ];
 

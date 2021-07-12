@@ -12,7 +12,7 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Helpers\File;
 
-class avatars implements Interfaces\FS
+class avatars implements Interfaces\Fs
 {
     public function get($pages)
     {
@@ -53,7 +53,7 @@ class avatars implements Interfaces\FS
                 break;
         }
 
-        $contents = $f ? $f->read() : null;
+        $contents = isset($f) ? $f->read() : null;
         if (empty($contents)) {
             $filepath = Core\Config::build()->path . "engine/Assets/avatars/default-$size.png";
             $contents = file_get_contents($filepath);

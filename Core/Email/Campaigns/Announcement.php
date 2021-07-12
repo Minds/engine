@@ -73,5 +73,7 @@ class Announcement extends EmailCampaign
             ->setSubject($this->subject)
             ->setHtml($this->template);
         $this->mailer->queue($message);
+
+        return $message;
     }
 }

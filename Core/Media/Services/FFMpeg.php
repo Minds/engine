@@ -125,7 +125,7 @@ class FFMpeg implements ServiceInterface
 
                 return $this;
             } elseif (is_resource($file)) {
-                $result = $this->client->putObject([
+                $result = $this->s3->putObject([
                   'ACL' => 'public-read',
                   'Bucket' => 'cinemr',
                   'Key' => "$this->dir/$this->key/source",
@@ -230,7 +230,7 @@ class FFMpeg implements ServiceInterface
                 continue;
             }
 
-            if ($rotated) {
+            if ($rotated && isset($videostream)) {
                 $ratio = $videostream->get('width') / $videostream->get('height');
                 $width = round($opts['height'] * $ratio);
                 $opts['width'] = $opts['height'];

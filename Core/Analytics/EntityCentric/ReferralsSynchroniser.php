@@ -4,8 +4,7 @@ namespace Minds\Core\Analytics\EntityCentric;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Di\Di;
 use Minds\Core\Analytics\UserStates\ActiveUsersIterator;
-use DateTime;
-use Exception;
+use Minds\Core\EntitiesBuilder;
 
 class ReferralsSynchroniser
 {
@@ -15,7 +14,13 @@ class ReferralsSynchroniser
     /** @var ElasticSearch\Client */
     private $es;
 
-    public function __construct($es = null)
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
+    /** @var int */
+    protected $from;
+
+    public function __construct($es = null, $entitiesBuilder = null)
     {
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');

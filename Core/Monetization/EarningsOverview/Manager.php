@@ -6,6 +6,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Payments\Stripe;
 use Minds\Core\Monetization\Partners;
 use Minds\Core\Wire;
+use Minds\Core\Config;
 
 class Manager
 {
@@ -23,6 +24,9 @@ class Manager
 
     /** @var Wire\Sums */
     protected $wireSums;
+
+    /** @var Config */
+    protected $config;
 
     public function __construct(
         $stripeConnectManager = null,

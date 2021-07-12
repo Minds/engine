@@ -76,6 +76,9 @@ class Repository
             return [];
         }
 
+        /** @var Session[] */
+        $sessions = [];
+
         foreach ($rows as $row) {
             $session = new Session();
             $session

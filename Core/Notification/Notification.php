@@ -18,7 +18,7 @@ use Minds\Traits\MagicAttributes;
  * @method string getEntityGuid()
  * @method Notification setEntityGuid(string $value)
  * @method string getEntityUrn()
- * @method Notification getEntityUrn(string $value)
+ * @method Notification setEntityUrn(string $value)
  * @method string getType()
  * @method Notification setType(string $value)
  * @method array getData()

@@ -7,12 +7,21 @@ use Minds\Core\EntitiesBuilder;
 
 class Manager
 {
+    /** @var Repository $repository */
     private $repository;
+
+    /** @var EntityValidator $validator */
     private $validator;
 
-    private $entities = [];
+    /** @var EntitiesBuilder $entitiesBuilder */
+    private $entitiesBuilder;
+
     private $from;
     private $to;
+
+    /** @var array $maps */
+    private $maps;
+
 
     public function __construct(
         $repository = null,
@@ -46,6 +55,7 @@ class Manager
         \Minds\Core\Security\ACL::$ignore = true;
         $ratings = [1, 2];
         $scores = [];
+        $guids = [];
 
         $maps = null;
         switch ($type) {
