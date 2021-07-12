@@ -37,6 +37,7 @@ static-analysis:
   stage: test
   image: minds/php:8.0
   script:
+    - mv settings.example.php settings.php
     - bin/phpstan analyse --memory-limit=1G
   allow_failure: true
 
@@ -191,7 +192,7 @@ staging:fpm:
   only:
     refs:
       - master
-      - feat/1732-block-refactor
+      - feat/php8
       - production
       - test/gitlab-ci
 

@@ -73,7 +73,7 @@ class EntitiesBuilder
      * Builds an entity object based on the values passed (GUID, array, object, etc)
      * @param  mixed  $row
      * @param  bool   $cache - cache or load from cache?
-     * @return Entity
+     * @return Entity|null
      */
     public function build($row, $cache = true)
     {
@@ -110,6 +110,8 @@ class EntitiesBuilder
         } elseif (is_subclass_of($default, "Minds\\Entities\\DenormalizedEntity") || is_subclass_of($default, "Minds\\Entities\\NormalizedEntity")) {
             return (new $default())->loadFromArray((array) $row);
         }
+
+        return null;
     }
 
     /**
