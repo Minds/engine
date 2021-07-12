@@ -14,6 +14,7 @@ use Minds\Core\Feeds\Elastic\Manager as ElasticFeedsManager;
 use Minds\Core\Search\SortingAlgorithms;
 use Minds\Core\Security\ACL;
 use Minds\Entities;
+use Minds\Entities\User;
 
 class Manager
 {
@@ -596,8 +597,11 @@ class Manager
         $entities = $entities->pushArray($rows->toArray());
 
         if ($type === 'user') {
-            foreach ($entities as $entity) {
-                $entity->getEntity()->exportCounts = true;
+            foreach ($entities as $feedItem) {
+                $entity = $feedItem->getEntity();
+                if ($entity && $entity instanceof User) {
+                    $entity->exportCounts = true;
+                }
             }
         }
 
