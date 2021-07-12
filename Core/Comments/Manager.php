@@ -349,8 +349,8 @@ class Manager
         }
 
         // Prevent grabbing the same comment multiple times per request (eg. notifications)
-        if (isset($this->tmpCacheByUrn[$urn]) && $this->tmpCacheByUrn[$urn]) {
-            return $this->tmpCacheByUrn[$urn];
+        if (isset($this->tmpCacheByUrn[(string) $urn]) && $this->tmpCacheByUrn[(string) $urn]) {
+            return $this->tmpCacheByUrn[(string) $urn];
         }
 
         $entityGuid = $components[0];
@@ -362,7 +362,7 @@ class Manager
         }
 
         $comment = $this->repository->get($entityGuid, $parentPath, $guid);
-        $this->tmpCacheByUrn[$urn] = $comment;
+        $this->tmpCacheByUrn[(string) $urn] = $comment;
         return $comment;
     }
 
