@@ -266,7 +266,7 @@ class ElggDiskFilestore extends ElggFilestore
      *
      * @return int|false
      */
-    public function getSize($prefix = '', $container_guid)
+    public function getSize($prefix = '', $container_guid = null)
     {
         if ($container_guid) {
             return get_dir_size($this->dir_root . $this->makefileMatrix($container_guid) . $prefix);
