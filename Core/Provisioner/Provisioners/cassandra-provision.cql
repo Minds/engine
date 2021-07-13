@@ -1082,8 +1082,6 @@ CREATE TABLE minds.rewards_withdrawals (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99PERCENTILE';
 
-ALTER TABLE minds.withdrawals ADD (status text, address text, gas varint);
-
 CREATE TABLE minds.friends (
     key text,
     column1 text,
