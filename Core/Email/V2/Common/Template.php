@@ -23,6 +23,9 @@ class Template
     /** @var Translator */
     protected $translator;
 
+    /** @var Config */
+    protected $config;
+
     /**
      * Constructor.
      *

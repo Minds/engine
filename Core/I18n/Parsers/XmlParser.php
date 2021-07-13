@@ -41,7 +41,7 @@ class XmlParser
 
         try {
             return static::parse($content, $schemaOrCallable);
-        } catch (InvalidXmlException $e) {
+        } catch (\Exception $e) {
             throw new XmlParsingException(sprintf('The XML file "%s" is not valid.', $file), 0, $e->getPrevious());
         }
     }
@@ -119,7 +119,7 @@ class XmlParser
             if (!$valid) {
                 $messages = static::getXmlErrors($internalErrors);
                 if (empty($messages)) {
-                    throw new InvalidXmlException('The XML is not valid.', 0, $e);
+                    throw new \Exception('The XML is not valid.', 0, $e);
                 }
                 throw new XmlParsingException(implode("\n", $messages), 0, $e);
             }

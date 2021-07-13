@@ -38,7 +38,7 @@ class Entities extends base
      * Builds an entity object based on the values passed (GUID, array, object, etc)
      * @param  mixed  $row
      * @param  bool   $cache - cache or load from cache?
-     * @return Entity
+     * @return Entity|null
      */
     public static function build($row, $cache = true)
     {
@@ -78,6 +78,8 @@ class Entities extends base
         } elseif (is_subclass_of($default, "Minds\\Entities\\DenormalizedEntity") || is_subclass_of($default, "Minds\\Entities\\NormalizedEntity")) {
             return (new $default())->loadFromArray((array) $row);
         }
+
+        return null;
     }
 
     /**

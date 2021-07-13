@@ -15,9 +15,9 @@ class UserStateChange implements Interfaces\QueueRunner
     {
         $client = Queue\Client::Build();
         $client->setQueue('UserStateChanges')
-               ->receive(function ($data) use ($mailer) {
+               ->receive(function ($data) {
                    $data = $data->getData();
-                   $result = Dispatcher::trigger('user_state_change', $data['user_state_change']['state'], $data['user_state_change']);
+                   Dispatcher::trigger('user_state_change', $data['user_state_change']['state'], $data['user_state_change']);
                });
     }
 }

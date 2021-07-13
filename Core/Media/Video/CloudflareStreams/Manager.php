@@ -9,8 +9,8 @@ use Minds\Core\Di\Di;
 use Minds\Core\Data\cache\PsrWrapper;
 use Lcobucci\JWT;
 use Lcobucci\JWT\Signer\Key;
+use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
-use Lcobucci\JWT\Signer\Rsa\Sha512;
 use Minds\Core\Media\Video\Source;
 
 class Manager
@@ -99,12 +99,14 @@ class Manager
     {
         $signingKey = $this->getSigningKey();
 
-        $jwtBuilder = new JWT\Builder;
+        $jwtConfig = JWT\Configuration::forSymmetricSigner(new Sha256, InMemory::plainText(base64_decode($signingKey->getPem(), true)));
+
+        $jwtBuilder = $jwtConfig->builder();
         $jwtBuilder->withClaim('kid', $signingKey->getId());
         $jwtBuilder->relatedTo($videoId);
         $jwtBuilder->expiresAt(new DateTimeImmutable("+$secondsTtl seconds"));
     
-        $token = (string) $jwtBuilder->getToken(new Sha256, new Key(base64_decode($signingKey->getPem(), true)));
+        $token = (string) $jwtBuilder->getToken($jwtConfig->signer(), $jwtConfig->signingKey())->toString();
 
         return $token;
     }

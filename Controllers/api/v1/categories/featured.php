@@ -59,6 +59,8 @@ class featured implements Interfaces\Api
             return ((int)$a->featured_id < (int)$b->featured_id) ? 1 : -1;
         });
 
+        $response = [];
+
         if ($entities) {
             $response['entities'] = Factory::exportable($entities);
             $response['load-next'] = (string) end($entities)->featured_id;

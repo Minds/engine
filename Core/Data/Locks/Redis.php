@@ -5,11 +5,15 @@ namespace Minds\Core\Data\Locks;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Data\Redis\Client as RedisServer;
+use Minds\Core\Config;
 
 class Redis
 {
     /** @var Redis */
     protected $redis;
+
+    /** @var Config */
+    protected $config;
 
     protected $key;
     protected $ttl;
@@ -18,7 +22,9 @@ class Redis
     {
         $this->config = $config ?: Di::_()->get('Config');
         $this->redis = $redis ?: new RedisServer();
-        $this->redis->connect($this->config->redis['master']);
+        if (isset($this->config->get('redis')['master'])) {
+            $this->redis->connect($this->config->get('redis')['master']);
+        }
     }
 
     public function setKey($key)

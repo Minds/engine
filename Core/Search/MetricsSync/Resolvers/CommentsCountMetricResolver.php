@@ -44,7 +44,7 @@ class CommentsCountMetricResolver extends AbstractMetricResolver
     {
         try {
             return $this->commentsManager->count($guid, null, true);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return 0;
         }
     }

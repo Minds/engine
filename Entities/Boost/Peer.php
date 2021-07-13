@@ -30,11 +30,6 @@ class Peer implements BoostEntityInterface, EntityInterface
     private $handler = 'peer';
     private $method = '';
 
-    public function __construct($db = null)
-    {
-        $this->db = null;
-    }
-
     /**
      * Loads from database using a GUID
      * @param  $guid
@@ -115,6 +110,7 @@ class Peer implements BoostEntityInterface, EntityInterface
             $this->guid = $guid;
             $this->time_created = time();
         }
+        return $this;
     }
 
     /**

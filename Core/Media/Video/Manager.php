@@ -60,12 +60,12 @@ class Manager
         // AWS
         $awsConfig = $this->config->get('aws');
         $opts = [
-            'region' => $awsConfig['region'],
+            'region' => $awsConfig['region'] ?? 'us-east-1',
         ];
         if (!isset($awsConfig['useRoles']) || !$awsConfig['useRoles']) {
             $opts['credentials'] = [
-                'key' => $awsConfig['key'],
-                'secret' => $awsConfig['secret'],
+                'key' => $awsConfig['key'] ?? null,
+                'secret' => $awsConfig['secret'] ?? null,
             ];
         }
         $this->s3 = $s3 ?: new S3Client(array_merge(['version' => '2006-03-01'], $opts));
@@ -161,7 +161,7 @@ class Manager
                 ->setSize($transcode->getProfile()->getHeight())
                 ->setSrc(implode('/', [
                     $this->config->get('transcoder')['cdn_url'] ?? 'https://cdn-cinemr.minds.com',
-                    $this->config->get('transcoder')['dir'],
+                    $this->config->get('transcoder')['dir'] ?? '',
                     $transcode->getGuid(),
                     $transcode->getProfile()->getStorageName()
                 ]));

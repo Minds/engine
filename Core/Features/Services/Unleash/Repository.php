@@ -113,8 +113,8 @@ class Repository
             (string) $entity->getEnvironment(),
             (string) $entity->getFeatureName(),
             (string) json_encode($entity->getData()),
-            new Timestamp($entity->getCreatedAt()),
-            new Timestamp($entity->getStaleAt())
+            new Timestamp($entity->getCreatedAt(), 0),
+            new Timestamp($entity->getStaleAt(), 0)
         ];
 
         $prepared = new Custom();

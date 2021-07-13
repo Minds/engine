@@ -11,14 +11,14 @@ use Minds\Entities;
 
 class Aggregates
 {
+    /** @var Core\Data\ElasticSearch\Client */
+    protected $client;
+
     private $start = 0;
     private $end = 0;
     private $limit = 100;
 
     private $aggregates = [];
-
-    /** @var Client */
-    protected $client;
 
     /** @var Config */
     protected $config;

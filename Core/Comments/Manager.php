@@ -147,18 +147,18 @@ class Manager
                 $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
                 $commentOwner = $this->entitiesBuilder->single($comment->getOwnerGuid());
                 if (!$this->acl->interact($entity, $commentOwner)) {
-                    error_log("{$opts['entity_guid']} found comment that entity owner can not interact with. Consider deleting.");
+                    error_log("{$comment->getEntityGuid()} found comment that entity owner can not interact with. Consider deleting.");
                     // $this->delete($comment, [ 'force' => true ]);
                     continue;
                 }
 
                 if (!$this->acl->read($comment)) {
-                    error_log("{$opts['entity_guid']} found comment we can't read");
+                    error_log("{$comment->getEntityGuid()} found comment we can't read");
                     continue;
                 }
                 $filtered[] = $comment;
             } catch (\Exception $e) {
-                error_log("{$opts['entity_guid']} exception reading comment {$e->getMessage()}");
+                error_log("{$comment->getEntityGuid()} exception reading comment {$e->getMessage()}");
             }
         }
         return $filtered;
@@ -349,8 +349,8 @@ class Manager
         }
 
         // Prevent grabbing the same comment multiple times per request (eg. notifications)
-        if (isset($this->tmpCacheByUrn[$urn]) && $this->tmpCacheByUrn[$urn]) {
-            return $this->tmpCacheByUrn[$urn];
+        if (isset($this->tmpCacheByUrn[(string) $urn]) && $this->tmpCacheByUrn[(string) $urn]) {
+            return $this->tmpCacheByUrn[(string) $urn];
         }
 
         $entityGuid = $components[0];
@@ -362,7 +362,7 @@ class Manager
         }
 
         $comment = $this->repository->get($entityGuid, $parentPath, $guid);
-        $this->tmpCacheByUrn[$urn] = $comment;
+        $this->tmpCacheByUrn[(string) $urn] = $comment;
         return $comment;
     }
 

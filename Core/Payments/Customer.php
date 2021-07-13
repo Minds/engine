@@ -16,9 +16,11 @@ class Customer
 
     private $payment_methods;
 
+    private $token;
+
     public function __construct($lu = null)
     {
-        $this->lu = Di::_()->get('Database\Cassandra\Lookup');
+        $this->lu = $lu ?? Di::_()->get('Database\Cassandra\Lookup');
     }
 
     public function setUser($user)
@@ -47,7 +49,8 @@ class Customer
     public function getId()
     {
         if (!$this->id) {
-            $this->id = $this->lu->get("{$this->user->guid}:payments")['customer_id'];
+            $lookup = $this->lu->get("{$this->user->guid}:payments");
+            $this->id = $lookup ? $lookup['customer_id'] : null;
         }
         return $this->id;
     }

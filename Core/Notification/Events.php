@@ -10,7 +10,6 @@ use Minds\Core\Queue;
 use Minds\Core\Session;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
-use Minds\Core\Notification\Extensions\Push;
 use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
@@ -106,6 +105,8 @@ class Events
             if ($type != 'activity' && $type != 'comment') {
                 return;
             }
+            
+            $message = "";
 
             if ($entity->message) {
                 $message = $entity->message;
@@ -227,6 +228,7 @@ class Events
 
                 // Check rate limits on how many notifications this user has been sent by sender
                 if ($notification->getType() === 'tag') {
+                    /** @var Entities\User */
                     $toUser = Entities\Factory::build($notification->getToGuid());
                     if (!$toUser) {
                         continue;
@@ -251,15 +253,6 @@ class Events
 
                 $params = $notification->getData();
                 $params['notification_view']  = $notification->getType();
-
-                Push::_()->queue([
-                    'uri' => 'notification',
-                    'from' => $notification->getFromGuid(),
-                    'to' => $notification->getToGuid(),
-                    'notification' => $notification,
-                    'params' => $params,
-                    'count' => $counters->getCount()
-                ]);
 
                 try {
                     (new Sockets\Events())

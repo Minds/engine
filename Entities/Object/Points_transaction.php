@@ -5,6 +5,8 @@ use Minds\Entities;
 
 /**
  * Points Transaction Entity
+ * @property int $points
+ * @property string $entity_guid
  */
 class Points_transaction extends Entities\MindsObject
 {

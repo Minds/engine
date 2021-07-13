@@ -2,7 +2,7 @@
 
 namespace Minds\Core\Media;
 
-use AWS\ResultInterface;
+use Aws\ResultInterface;
 use Minds\Entities\Video;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
@@ -21,12 +21,12 @@ class TranscodingStatus
     private $presets;
     
     /**
-     * @param Video video The video entity that got transcoded
-     * @param ResultInterface awsResult The output of the AWS S3 listObjects on the cinemr bucket
-     * @param Config config Mocked version of Config for testing, else DI'ed
+     * @param Video $video The video entity that got transcoded
+     * @param mixed $awsResult The output of the AWS S3 listObjects on the cinemr bucket
+     * @param Config $config Mocked version of Config for testing, else DI'ed
      * Builds and parses the transcoding status object and provides functions for checking the results of the transcode
      */
-    public function __construct(Video $video, ResultInterface $awsResult, Config $config = null)
+    public function __construct(Video $video, $awsResult, Config $config = null)
     {
         $this->config = $config ?: Di::_()->get('Config');
         $this->video = $video;

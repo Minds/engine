@@ -107,7 +107,7 @@ class Repository
         ) VALUES (?, ?, ?, ? {$extraFieldValuePlaceholders})", array_merge([
             (string) $type,
             new Varint($user_guid),
-            new Timestamp($time_created),
+            new Timestamp($time_created, 0),
             (string)$payment_id
         ], $extraFieldValues));
 
