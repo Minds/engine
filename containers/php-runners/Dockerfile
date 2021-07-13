@@ -1,4 +1,4 @@
-FROM minds/php:pulsar
+FROM minds/php:8.0
 
 # Copy our built the code
 
