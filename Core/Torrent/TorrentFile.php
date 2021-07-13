@@ -1,6 +1,8 @@
 <?php
 namespace Minds\Core\Torrent;
 
+use Exception;
+
 /**
  * Torrent.
  *
@@ -73,6 +75,18 @@ class TorrentFile
      * @const float Default http timeout
      */
     const timeout = 30;
+
+    /** @var array $info */
+    protected $info;
+
+    /** @var array $announce */
+    protected $announce;
+
+    /** @var array $httpseeds */
+    protected $httpseeds;
+
+    /** @var string $comment */
+    protected $comment;
 
     /**
      * @var array List of error occurred
@@ -726,9 +740,9 @@ class TorrentFile
 
     /** Set torrent creator and creation date
      *
-     * @param any param
+     * @param mixed param
      *
-     * @return any param
+     * @return mixed param
      */
     protected function touch($void = null)
     {

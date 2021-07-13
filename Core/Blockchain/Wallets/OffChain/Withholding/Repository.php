@@ -39,7 +39,7 @@ class Repository
                 'string' => $cql,
                 'values' => [
                     new Cassandra\Varint($withholding->getUserGuid()),
-                    new Cassandra\Timestamp($withholding->getTimestamp()),
+                    new Cassandra\Timestamp($withholding->getTimestamp(), 0),
                     $withholding->getTx(),
                     $withholding->getType(),
                     $withholding->getWalletAddress(),

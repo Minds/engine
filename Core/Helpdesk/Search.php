@@ -5,10 +5,24 @@
 namespace Minds\Core\Helpdesk;
 
 use Minds\Core;
+use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 
 class Search
 {
+    /** @var ElasticSearch\Client */
+    private $elastic;
+
+    /** @var string */
+    private $index;
+
+    /** @var EntitiesBuilder */
+    private $entitiesBuilder;
+
+    /** @var int */
+    private $offset;
+
     /**
      * Constructor
      *

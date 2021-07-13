@@ -66,6 +66,16 @@ class WireEventSpec extends ObjectBehavior
         $this->manager->confirm(Argument::type('Minds\Core\Wire\Wire'), $transaction)
             ->shouldBeCalled();
 
+        $transaction->getData()
+            ->willReturn([
+                'sender_guid' => '123',
+                'receiver_guid' => '456',
+                'entity_guid' => '789',
+            ]);
+
+        $transaction->getTimestamp()
+            ->willReturn(1);
+
         $log = [
             'address' => '0xasd',
             'data' => [

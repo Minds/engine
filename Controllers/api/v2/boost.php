@@ -156,11 +156,11 @@ class boost implements Interfaces\Api
             return Factory::response(['status' => 'error', 'message' => ':guid must be passed in uri']);
         }
 
-        $impressions = (int) $_POST['impressions'];
-
-        if (!isset($impressions)) {
+        if (!isset($_POST['impressions'])) {
             return Factory::response(['status' => 'error', 'message' => 'impressions must be sent in post body']);
         }
+
+        $impressions = (int) $_POST['impressions'];
 
         if ($impressions <= 0) {
             return Factory::response(['status' => 'error', 'message' => 'impressions must be a positive whole number']);

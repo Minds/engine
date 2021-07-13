@@ -88,6 +88,8 @@ class ElasticRepository
         if (count($this->pendingBulkInserts) > 2000) { //1000 inserts
             $this->bulk();
         }
+
+        return true;
     }
 
     /**

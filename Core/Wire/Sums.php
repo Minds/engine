@@ -137,8 +137,8 @@ class Sums
                     new \Cassandra\Varint($this->sender_guid),
                     new \Cassandra\Varint($this->receiver_guid),
                     $this->method,
-                    new \Cassandra\Timestamp($this->from),
-                    new \Cassandra\Timestamp($this->to)
+                    new \Cassandra\Timestamp($this->from, 0),
+                    new \Cassandra\Timestamp($this->to, 0)
                 ]);
         } else {
             $query->query("SELECT SUM(amount) as amount_sum FROM wire_by_sender
@@ -147,7 +147,7 @@ class Sums
                 AND timestamp >= ? ALLOW FILTERING", [
                     new \Cassandra\Varint($this->sender_guid),
                     $this->method,
-                    new \Cassandra\Timestamp($this->from)
+                    new \Cassandra\Timestamp($this->from, 0)
                 ]);
         }
 
@@ -193,8 +193,8 @@ class Sums
           AND timestamp < ?", [
             new \Cassandra\Varint($this->receiver_guid),
             $this->method,
-            new \Cassandra\Timestamp($this->from),
-            new \Cassandra\Timestamp($this->to)
+            new \Cassandra\Timestamp($this->from, 0),
+            new \Cassandra\Timestamp($this->to, 0)
         ]);
 
         try {
@@ -240,7 +240,7 @@ class Sums
           AND timestamp >= ?", [
             new \Cassandra\Varint($this->receiver_guid),
             $this->method,
-            new \Cassandra\Timestamp($this->from)
+            new \Cassandra\Timestamp($this->from, 0)
         ]);
 
         try {

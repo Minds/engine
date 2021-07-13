@@ -13,6 +13,9 @@ class ActiveUsersSynchroniser
     /** @var Active */
     private $activeMetric;
 
+    /** @var int */
+    protected $from;
+
     public function __construct($activeMetric = null)
     {
         $this->activeMetric = $activeMetric ?? new Active();

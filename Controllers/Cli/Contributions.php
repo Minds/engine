@@ -169,9 +169,7 @@ class Contributions extends Cli\Controller implements Interfaces\CliControllerIn
         $totals_by_time = [];
         foreach ($results as $result) {
             $totals += $result->getAmount();
-            $totals_by_type[$result->getMetric()] += $result->getAmount();
         }
         var_dump($totals);
-        var_dump($totals_by_type);
     }
 }

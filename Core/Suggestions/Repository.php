@@ -170,7 +170,6 @@ class Repository
 
     /**
      * Return a single suggestion
-     * @return Suggestion
      */
     public function get($guid)
     {

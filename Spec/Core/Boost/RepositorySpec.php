@@ -55,8 +55,8 @@ class RepositorySpec extends ObjectBehavior
     public function it_should_get_a_list_of_boosts()
     {
         $rows = new Mocks\Cassandra\Rows([
-            [ 'type' => 'network', 'data' => $this::$boostEntityDataMock ],
-            [ 'type' => 'network', 'data' => $this::$boostEntityDataMock ],
+            [ 'type' => 'network', 'data' => json_encode($this::$boostEntityDataMock) ],
+            [ 'type' => 'network', 'data' => json_encode($this::$boostEntityDataMock) ],
         ], '');
 
         $this->_client->request(Argument::type(Prepared\Custom::class))
@@ -74,8 +74,8 @@ class RepositorySpec extends ObjectBehavior
     public function it_should_get_a_list_of_boosts_by_owner()
     {
         $rows = new Mocks\Cassandra\Rows([
-            [ 'type' => 'network', 'data' => $this::$boostEntityDataMock ],
-            [ 'type' => 'network', 'data' => $this::$boostEntityDataMock ],
+            [ 'type' => 'network', 'data' => json_encode($this::$boostEntityDataMock) ],
+            [ 'type' => 'network', 'data' => json_encode($this::$boostEntityDataMock) ],
         ], '');
 
         $this->_client->request(Argument::that(function ($query) {
@@ -103,8 +103,8 @@ class RepositorySpec extends ObjectBehavior
     public function it_should_get_a_list_of_boosts_by_destination()
     {
         $rows = new Mocks\Cassandra\Rows([
-            [ 'type' => 'network', 'data' => $this::$boostEntityDataMock ],
-            [ 'type' => 'network', 'data' => $this::$boostEntityDataMock ],
+            [ 'type' => 'network', 'data' => json_encode($this::$boostEntityDataMock) ],
+            [ 'type' => 'network', 'data' => json_encode($this::$boostEntityDataMock) ],
         ], '');
 
         $this->_client->request(Argument::that(function ($query) {
@@ -132,8 +132,8 @@ class RepositorySpec extends ObjectBehavior
     public function it_should_get_a_list_of_boosts_by_owner_and_destination()
     {
         $rows = new Mocks\Cassandra\Rows([
-            [ 'type' => 'network', 'data' => $this::$boostEntityDataMock ],
-            [ 'type' => 'network', 'data' => $this::$boostEntityDataMock ],
+            [ 'type' => 'network', 'data' => json_encode($this::$boostEntityDataMock) ],
+            [ 'type' => 'network', 'data' => json_encode($this::$boostEntityDataMock) ],
         ], '');
 
         $this->_client->request(Argument::that(function ($query) {
@@ -163,8 +163,8 @@ class RepositorySpec extends ObjectBehavior
     public function it_should_get_a_list_of_specific_boosts_by_guid()
     {
         $rows = new Mocks\Cassandra\Rows([
-            [ 'type' => 'network', 'data' => $this::$boostEntityDataMock ],
-            [ 'type' => 'network', 'data' => $this::$boostEntityDataMock ],
+            [ 'type' => 'network', 'data' => json_encode($this::$boostEntityDataMock) ],
+            [ 'type' => 'network', 'data' => json_encode($this::$boostEntityDataMock) ],
         ], '');
 
         $this->_client->request(Argument::that(function ($query) {

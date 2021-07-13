@@ -37,7 +37,7 @@ class XliffFileLoader implements LoaderInterface
         $this->extract($resource, $catalogue, $domain);
 
         if (class_exists('Symfony\Component\Config\Resource\FileResource')) {
-            $catalogue->addResource(new FileResource($resource));
+            $catalogue->addResource(new \Symfony\Component\Config\Resource\FileResource($resource));
         }
 
         return $catalogue;

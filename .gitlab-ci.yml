@@ -1,4 +1,4 @@
-image: minds/php:7.3
+image: minds/php:8.0
 
 stages:
   - build
@@ -23,15 +23,23 @@ build:
 
 test:
   stage: test
-  image: minds/php:7.3
+  image: minds/php:8.0
   script:
     - php -n -c Spec/php-test.ini bin/phpspec run
 
 lint:
   stage: test
-  image: minds/php:7.3
+  image: minds/php:8.0
   script:
     - bin/php-cs-fixer fix --allow-risky=yes --verbose --dry-run
+
+static-analysis:
+  stage: test
+  image: minds/php:8.0
+  script:
+    - mv settings.example.php settings.php
+    - bin/phpstan analyse --memory-limit=1G
+  allow_failure: true
 
 prepare:fpm:
   stage: prepare
@@ -184,7 +192,7 @@ staging:fpm:
   only:
     refs:
       - master
-      - feat/1732-block-refactor
+      - feat/php8
       - production
       - test/gitlab-ci
 

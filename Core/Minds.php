@@ -169,7 +169,7 @@ class Minds extends base
         if ($this->detectMultisite()) {
             //we do this on db load.. not here
         } else {
-            if (!file_exists(__MINDS_ROOT__ . '/settings.php') && !defined('__MINDS_INSTALLING__')) {
+            if (!file_exists(__MINDS_ROOT__ . '/settings.php') && !defined('__MINDS_INSTALLING__') && php_sapi_name() !== 'cli') {
                 ob_end_clean();
                 header('Fatal error', true, 500);
                 error_log('settings.php file could not be found');
@@ -297,6 +297,6 @@ class Minds extends base
      */
     public static function getVersion()
     {
-        return false;
+        return '0.0';
     }
 }

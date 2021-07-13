@@ -38,7 +38,7 @@ class Factory
                 'luid' => $luid
             ], null);
         } elseif (is_numeric($value)) {
-            if ($options['cache'] && isset(self::$entitiesCache[$value])) {
+            if ($options['cache'] && $value && isset(self::$entitiesCache[$value])) {
                 return self::$entitiesCache[$value];
             }
 
@@ -75,7 +75,7 @@ class Factory
         }
 
         if ($options['cache'] && $options['cacheTtl'] > 0) {
-            $psrCache->set("entity:$value", serialize($entity), $opts['cacheTtl']);
+            $psrCache->set("entity:$value", serialize($entity), $options['cacheTtl']);
         }
 
         return $entity;

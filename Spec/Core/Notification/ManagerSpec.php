@@ -19,9 +19,6 @@ class ManagerSpec extends ObjectBehavior
     /** @var Config */
     private $config;
 
-    /** @var Repository */
-    private $repository;
-
     /** @var CassandraRepository */
     private $cassandraRepository;
 
@@ -30,17 +27,15 @@ class ManagerSpec extends ObjectBehavior
 
     public function let(
         Config $config,
-        Repository $repository,
         CassandraRepository $cassandraRepository,
         FeaturesManager $features,
         Counters $counters
     ) {
         $this->config = $config;
-        $this->repository = $repository;
         $this->cassandraRepository = $cassandraRepository;
         $this->features = $features;
 
-        $this->beConstructedWith($config, $repository, $cassandraRepository, $features, $counters);
+        $this->beConstructedWith($config, $cassandraRepository, $features, $counters);
     }
 
     public function it_is_initializable()
@@ -89,9 +84,6 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_add_to_both_repositories(Notification $notification)
     {
-        $this->repository->add($notification)
-            ->shouldBeCalled();
-
         $this->cassandraRepository->add($notification)
             ->shouldBeCalled();
 

@@ -85,10 +85,10 @@ class fetch implements Interfaces\Api
                 }
                 $response['load-next'] = $iterator->getOffset();
                 
-                if (!$response['boosts']) {
+                if (!isset($response['boosts']) || !$response['boosts']) {
                     $result = Di::_()->get('Trending\Repository')->getList([
                         'type' => 'images',
-                        'rating' => isset($rating) ? (int) $rating : 1,
+                        'rating' => $rating,
                         'limit' => $limit,
                     ]);
 
@@ -107,7 +107,7 @@ class fetch implements Interfaces\Api
                     ]);
                 }
                 $response['load-next'] = $iterator->getOffset();
-                if (isset($_GET['rating']) && $pages[0] == 'newsfeed') {
+                if (isset($_GET['rating']) && $pages[0] == 'newsfeed' && isset($cacher)) {
                     $cacher->set(Core\Session::getLoggedinUser()->guid . ':boost-offset:newsfeed', $iterator->getOffset(), (3600 / 2));
                 }
                 if (!$iterator->list && false) {

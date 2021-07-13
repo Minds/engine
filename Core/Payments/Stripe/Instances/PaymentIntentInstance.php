@@ -11,7 +11,7 @@ use Minds\Core\Di\Di;
  */
 class PaymentIntentInstance extends StaticToInstance
 {
-    public function __construct(Config $config = null)
+    public function __construct()
     {
         Di::_()->get('StripeSDK');
         $this->setClass(new \Stripe\PaymentIntent);

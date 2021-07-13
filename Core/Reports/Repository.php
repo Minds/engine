@@ -116,7 +116,7 @@ class Repository
 
         if ($opts['timestamp']) {
             $where[] = "timestamp = ?";
-            $values[] = new Timestamp($opts['timestamp']);
+            $values[] = new Timestamp($opts['timestamp'], 0);
         }
 
         if ($where) {

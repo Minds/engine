@@ -20,7 +20,6 @@ class Repository
     /**
      * Return a list of passes
      * @param array $opts
-     * @return Response
      */
     public function getList($opts = [])
     {
@@ -30,7 +29,6 @@ class Repository
     /**
      * Return a single pass
      * @param Pass $pass
-     * @return Pass
      */
     public function get($pass)
     {
@@ -83,7 +81,6 @@ class Repository
      * Update a pass
      * @param Param $pass
      * @param array $fields
-     * @return boolean
      */
     public function update(Pass $pass, $fields = [])
     {
@@ -93,7 +90,6 @@ class Repository
     /**
      * Delete a pass
      * @param Pass $pass
-     * @return boolean
      */
     public function delete(Pass $Pass)
     {

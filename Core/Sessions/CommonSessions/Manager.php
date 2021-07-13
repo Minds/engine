@@ -101,7 +101,7 @@ class Manager
 
         // Sort by last active
         usort($sessions, function (CommonSession $a, CommonSession $b) {
-            return $a->getLastActive() < $b->getLastActive();
+            return $a->getLastActive() < $b->getLastActive() ? 1 : 0;
         });
 
         return $sessions;

@@ -29,6 +29,7 @@ class indexes
 
     public function set($name, array $guids = [])
     {
+        // @phpstan-ignore-next-line
         return $this->insert($this->namespace.$name, $guids);
     }
 

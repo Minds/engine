@@ -22,6 +22,7 @@ class EmailDelegate
     protected $entitiesBuilder;
 
     /** @var Urn $urn */
+    protected $urn;
 
     /** @var Config */
     protected $config;

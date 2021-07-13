@@ -23,6 +23,10 @@ class ActiveUsersIterator implements \Iterator
     private $data = [];
     private $active;
     private $valid = true;
+    protected $client;
+    protected $position;
+    protected $rangeOffset;
+    protected $referenceDate;
 
     /** @var array */
     private $filterUserGuids;
