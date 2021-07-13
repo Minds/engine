@@ -3,7 +3,7 @@
 
 namespace Minds\Core\Rewards\Withdraw;
 
-use Cassandra\Varint;
+use Cassandra\Bigint;
 use Cassandra\Timestamp;
 use Exception;
 use Minds\Common\Urn;
@@ -43,7 +43,7 @@ class Repository
             'offset' => null,
         ], $opts);
 
-        $cql = "SELECT * from withdrawals";
+        $cql = "SELECT * from rewards_withdrawals";
         $where = [];
         $values = [];
 
@@ -55,7 +55,7 @@ class Repository
 
         if ($opts['user_guid']) {
             $where[] = 'user_guid = ?';
-            $values[] = new Varint($opts['user_guid']);
+            $values[] = new Bigint($opts['user_guid']);
         }
 
         if ($opts['timestamp']) {
@@ -152,14 +152,14 @@ class Repository
     {
         $cql = "INSERT INTO withdrawals (user_guid, timestamp, tx, address, amount, completed, completed_tx, gas, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $values = [
-            new Varint($request->getUserGuid()),
+            new Bigint($request->getUserGuid()),
             new Timestamp($request->getTimestamp(), 0),
             $request->getTx(),
             (string) $request->getAddress(),
-            new Varint($request->getAmount()),
+            new Bigint($request->getAmount()),
             (bool) $request->isCompleted(),
             ((string) $request->getCompletedTx()) ?: null,
-            new Varint($request->getGas()),
+            new Bigint($request->getGas()),
             (string) $request->getStatus(),
         ];
 
