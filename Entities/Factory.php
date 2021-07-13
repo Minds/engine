@@ -38,7 +38,7 @@ class Factory
                 'luid' => $luid
             ], null);
         } elseif (is_numeric($value)) {
-            if ($options['cache'] && isset(self::$entitiesCache[$value])) {
+            if ($options['cache'] && $value && isset(self::$entitiesCache[$value])) {
                 return self::$entitiesCache[$value];
             }
 
