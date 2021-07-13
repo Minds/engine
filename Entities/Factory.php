@@ -25,10 +25,12 @@ class Factory
         $entity = null;
         $canBeCached = false;
         $psrCache = Di::_()->get('Cache\PsrWrapper');
+        $cacheKey = null;
 
         if (Core\Luid::isValid($value)) {
-            if ($options['cache'] && isset(self::$entitiesCache[$value])) {
-                return self::$entitiesCache[$value];
+            $cacheKey = (string) $value;
+            if ($options['cache'] && isset(self::$entitiesCache[$cacheKey])) {
+                return self::$entitiesCache[$cacheKey];
             }
 
             $canBeCached = true;
@@ -38,12 +40,14 @@ class Factory
                 'luid' => $luid
             ], null);
         } elseif (is_numeric($value)) {
-            if ($options['cache'] && $value && isset(self::$entitiesCache[$value])) {
-                return self::$entitiesCache[$value];
+            $cacheKey = (string) $value;
+
+            if ($options['cache'] && $cacheKey && isset(self::$entitiesCache[$cacheKey])) {
+                return self::$entitiesCache[$cacheKey];
             }
 
             if ($options['cache'] && $options['cacheTtl'] > 0) {
-                $cached = $psrCache->get("entity:$value");
+                $cached = $psrCache->get("entity:$cacheKey");
                 if ($cached) {
                     return unserialize($cached);
                 }
@@ -70,12 +74,12 @@ class Factory
             $entity = Core\Di\Di::_()->get('Entities')->build((object) $row);
         }
 
-        if ($options['cache'] && $canBeCached && $entity) {
-            self::$entitiesCache[$value] = $entity;
+        if ($options['cache'] && $canBeCached && $entity && $cacheKey) {
+            self::$entitiesCache[$cacheKey] = $entity;
         }
 
-        if ($options['cache'] && $options['cacheTtl'] > 0) {
-            $psrCache->set("entity:$value", serialize($entity), $options['cacheTtl']);
+        if ($options['cache'] && $options['cacheTtl'] > 0 && $cacheKey) {
+            $psrCache->set("entity:$cacheKey", serialize($entity), $options['cacheTtl']);
         }
 
         return $entity;
