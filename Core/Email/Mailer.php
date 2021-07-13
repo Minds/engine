@@ -16,10 +16,15 @@ class Mailer
     private $queue;
     private $stats;
 
+    /** @var SpamFilter */
+    private $filter;
+
     public function __construct($mailer = null, $queue = null, $filter = null)
     {
         $this->mailer = $mailer ?: new PHPMailer();
-        $this->setup();
+        if (isset(Core\Config::_()->email['smtp'])) {
+            $this->setup();
+        }
         $this->stats = [
           'sent' => 0,
           'failed' => 0

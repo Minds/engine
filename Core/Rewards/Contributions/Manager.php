@@ -12,10 +12,21 @@ class Manager
     protected $analytics;
     protected $repository;
     protected $user;
+
+    /** @var int */
     protected $from;
+
+    /** @var int */
     protected $to;
+
+    /** @var bool */
     protected $dryRun = false;
+
+    /** @var array */
     protected $site_contribtion_score_cache = [];
+
+    /** @var Sums */
+    protected $sums;
 
     public function __construct($analytics = null, $repository = null, $sums = null)
     {

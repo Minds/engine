@@ -9,7 +9,7 @@ namespace Minds\Core\Blockchain\Reports;
 
 class Manager implements ReportInterface
 {
-    /** @var AbstractReprot $report */
+    /** @var AbstractReport $report */
     private $report = null;
 
     /**
@@ -20,7 +20,7 @@ class Manager implements ReportInterface
      */
     public function setReport($report)
     {
-        if ($report instanceof AbstrsctReport) {
+        if ($report instanceof AbstractReport) {
             $this->report = $report;
         } else {
             $this->report = new $report;

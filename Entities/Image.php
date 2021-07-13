@@ -10,6 +10,21 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Helpers;
 
+/**
+ * @property string $super_subtype
+ * @property string $filename
+ * @property int $batch_guid
+ * @property int $width
+ * @property int $height
+ * @property int $gif
+ * @property int $mature
+ * @property string $license
+ * @property int $boost_rejection_reason
+ * @property int $time_sent
+ * @property array $nsfw
+ * @property string $permaweb_id
+ */
+
 class Image extends File
 {
     protected function initializeAttributes()

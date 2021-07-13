@@ -18,11 +18,13 @@ class Conversations
     private $redis;
     private $user;
     private $toUpgrade = [];
+    private $config;
+    private $cache;
 
     public function __construct($db = null, $indexDb = null, $redis = null, $cache = null, $config = null)
     {
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
-        $this->indexDb = $db ?: Di::_()->get('Database\Cassandra\Indexes');
+        $this->indexDb = $indexDb ?: Di::_()->get('Database\Cassandra\Indexes');
         $this->redis = $redis ?: new \Redis();
         $this->config = $config ?: Di::_()->get('Config');
         $this->cache = $cache ?: new Messenger\ConversationsCache($this->redis, $this->config);
@@ -108,6 +110,10 @@ class Conversations
             }
         }
 
+        if (!isset($return)) {
+            return [];
+        }
+
         if (!$return) {
             return $return;
         }
@@ -117,55 +123,11 @@ class Conversations
         });
 
         $return = array_slice($return, (int) $offset, $limit);
-        $return = $this->filterOnline($return);
-        $this->runUpgrades();
+
         if (!$offset && !$usingCache) {
             $this->cache->setUser($this->user)->saveList($return);
         }
+
         return $return;
-    }
-
-    public function filterOnline($conversations)
-    {
-        if (!$conversations) {
-            return [];
-        }
-        try {
-            $config = $this->config->get('redis');
-            $this->redis->connect($config['pubsub'] ?: $config['master'] ?: '127.0.0.1');
-            //put this set of conversations into redis
-            $guids = [];
-            foreach ($conversations as $conversation) {
-                foreach ($conversation->getParticipants() as $participant) {
-                    if ($participant != Session::getLoggedInUserGuid()) {
-                        $guids[$participant] = $participant;
-                    }
-                }
-            }
-            array_unshift($guids, Session::getLoggedInUserGuid() . ":conversations");
-            call_user_func_array([$this->redis, 'sadd'], $guids);
-
-            //return the online users
-            $online = $this->redis->sinter("online", Session::getLoggedInUserGuid() . ":conversations");
-
-            foreach ($conversations as $key => $conversation) {
-                foreach ($conversation->getParticipants() as $participant) {
-                    if (in_array($participant, $online, false)) {
-                        $conversations[$key] = $conversation->setOnline(true);
-                    }
-                }
-            }
-        } catch (\Exception $e) {
-        }
-
-        return $conversations;
-    }
-
-    public function runUpgrades()
-    {
-        foreach ($this->toUpgrade as $guid => $conversation) {
-            $conversation->saveToLists();
-            $this->indexDb->remove("object:gathering:conversations:{$this->user->guid}", [ $guid ]);
-        }
     }
 }

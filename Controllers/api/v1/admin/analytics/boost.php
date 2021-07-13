@@ -43,7 +43,7 @@ class boost implements Interfaces\Api, Interfaces\ApiAdminPam
         ];*/
 
         $response['newsfeed'] = $boosts;
-        $response['content'] = $boosts_content;
+        //$response['content'] = $boosts_content;
 
         return Factory::response($response);
     }

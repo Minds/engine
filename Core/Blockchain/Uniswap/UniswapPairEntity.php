@@ -15,8 +15,10 @@ use Brick\Math\BigDecimal;
  * @method BigDecimal getReserveUSD()
  * @method self setReserveUSD(BigDecimal $reserveUSD)
  */
-class UniswapPairEntity extends UniswapBaseEntity
+class UniswapPairEntity implements UniswapEntityInterface
 {
+    use UniswapBaseTrait;
+
     /** @var BigDecimal */
     protected $totalSupply;
 
@@ -42,9 +44,9 @@ class UniswapPairEntity extends UniswapBaseEntity
      * Builds from an arrayπ
      * @param array $data
      */
-    public static function build(array $data): UniswapEntityInterface
+    public static function build(array $data): self
     {
-        $instance = parent::build($data);
+        $instance = self::buildBase($data);
         $instance->setTotalSupply(BigDecimal::of($data['totalSupply']))
             ->setReserveUSD(BigDecimal::of($data['reserveUSD']))
             ->setReserve0(BigDecimal::of($data['reserve0']))

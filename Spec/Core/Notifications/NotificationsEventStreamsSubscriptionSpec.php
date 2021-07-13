@@ -519,6 +519,18 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
 
     public function it_should_send_wire_received(ActionEvent $actionEvent, Wire $wire, User $sender, User $receiver)
     {
+        $this->config->get('plus')
+            ->willReturn([
+                'handler' => '121'
+            ]);
+
+        $this->config->get('pro')
+            ->willReturn([
+                'handler' => '122'
+            ]);
+
+        //
+
         $actionEvent->getAction()
             ->willReturn(ActionEvent::ACTION_WIRE_SENT);
         

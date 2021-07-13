@@ -48,7 +48,7 @@ class Repository
                 'values' => [
                     new Varint($transaction->getUserGuid()),
                     $transaction->getWalletAddress(),
-                    new Timestamp($transaction->getTimestamp()),
+                    new Timestamp($transaction->getTimestamp(), 0),
                     $transaction->getTx(),
                     $transaction->getContract(),
                     new Varint($transaction->getAmount()),
@@ -110,17 +110,17 @@ class Repository
 
         if ($options['timestamp']['gte']) {
             $where[] = 'timestamp >= ?';
-            $values[] = new Timestamp($options['timestamp']['gte']);
+            $values[] = new Timestamp($options['timestamp']['gte'], 0);
         }
 
         if ($options['timestamp']['lte']) {
             $where[] = 'timestamp <= ?';
-            $values[] = new Timestamp($options['timestamp']['lte']);
+            $values[] = new Timestamp($options['timestamp']['lte'], 0);
         }
 
-        if ($options['timestamp']['eq']) {
+        if (isset($options['timestamp']['eq'])) {
             $where[] = 'timestamp = ?';
-            $values[] = new Timestamp($options['timestamp']['eq']);
+            $values[] = new Timestamp($options['timestamp']['eq'], 0);
         }
 
         if ($options['contract']) {
@@ -251,7 +251,7 @@ class Repository
 
         $template .= " WHERE user_guid = ? AND timestamp = ?";
         $values[] = new Varint($transaction->getUserGuid());
-        $values[] = new Timestamp($transaction->getTimestamp());
+        $values[] = new Timestamp($transaction->getTimestamp(), 0);
 
         $query = new Custom();
         $query->query($template, $values);
@@ -268,7 +268,7 @@ class Repository
     public function delete($user_guid, $timestamp, $wallet_address)
     {
         $cql = "DELETE FROM blockchain_transactions_mainnet where user_guid = ? AND timestamp = ?";
-        $values = [ new Varint($user_guid), new Timestamp($timestamp) ];
+        $values = [ new Varint($user_guid), new Timestamp($timestamp, 0) ];
 
         $query = new Custom();
         $query->query($cql, $values);

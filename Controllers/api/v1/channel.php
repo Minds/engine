@@ -81,7 +81,7 @@ class channel implements Interfaces\Api
         $return = Factory::exportable([$user]);
 
         $response['channel'] = $return[0];
-        if (Core\Session::getLoggedinUser()->guid == $user->guid) {
+        if (Core\Session::isLoggedIn() && Core\Session::getLoggedinUser()->guid == $user->guid) {
             $response['channel']['admin'] = $user->admin;
         }
         $response['channel']['avatar_url'] = [
@@ -117,12 +117,6 @@ class channel implements Interfaces\Api
         }
 
         //
-
-        if (!$user->merchant || !$supporters_count) {
-            $db = new Core\Data\Call('entities_by_time');
-            //$feed_count = $db->countRow("activity:user:" . $user->guid);
-            $response['channel']['activity_count'] = $feed_count;
-        }
 
         $carousels = Core\Entities::get(['subtype'=>'carousel', 'owner_guid'=>$user->guid]);
         if ($carousels) {

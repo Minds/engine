@@ -27,6 +27,6 @@ class Upload
         }
 
         fclose($input);
-        return ['headers' => $raw_headers, 'body' => $body];
+        return ['headers' => $raw_headers ?? [], 'body' => $body ?? null];
     }
 }

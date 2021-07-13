@@ -1,4 +1,4 @@
-FROM minds/php:pulsar
+FROM minds/php:8.0
 
 ADD --chown=www-data . /var/www/Minds/engine
 

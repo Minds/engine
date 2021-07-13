@@ -2,7 +2,7 @@
 namespace Minds\Core\Wire\SupportTiers\Delegates;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Data\Cache\PsrWrapper;
+use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Sessions\ActiveSession;
 use Minds\Core\Payments\Subscriptions;
 use Minds\Core\Util\BigNumber;

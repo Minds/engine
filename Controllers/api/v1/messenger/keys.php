@@ -42,16 +42,16 @@ class keys implements Interfaces\Api
         try {
             $keystore->unlockPrivateKey($unlock_password, null);
             $tmp = $keystore->getUnlockedPrivateKey();
+
+            if (!$tmp || !$unlock_password) {
+                $response['status'] = 'error';
+                $response['message'] = "please check your password";
+            } else {
+                $response['key'] = $tmp;
+            }
         } catch (\Exception $e) {
             $response['status'] = 'error';
             $response['message'] = "please check your password";
-        }
-
-        if (!$tmp || !$unlock_password) {
-            $response['status'] = 'error';
-            $response['message'] = "please check your password";
-        } else {
-            $response['key'] = $tmp;
         }
 
         return Factory::response($response);

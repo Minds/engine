@@ -168,6 +168,6 @@ class Exportable implements \JsonSerializable
      */
     public static function _($items = [])
     {
-        return new static($items);
+        return new self($items);
     }
 }

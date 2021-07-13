@@ -14,6 +14,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Feeds;
 use Minds\Core\Notification;
 use Minds\Common\Repository\Response;
+use Minds\Core\Discovery\NoTagsException;
 use Minds\Core\Search\SortingAlgorithms;
 
 class Digest extends EmailCampaign
@@ -131,12 +132,12 @@ class Digest extends EmailCampaign
 
                 $subject = "New posts from " . $namesString;
             }
-        } catch (Discovery\NoTagsException $e) {
+        } catch (NoTagsException $e) {
             $activities = [];
         } catch (\Exception $e) {
-            return false;
+            return null;
         } finally {
-            $this->template->set('activities', $activities);
+            $this->template->set('activities', $activities ?? []);
         }
 
         //
