@@ -17,13 +17,17 @@ class Repository
     /** @var Client */
     protected $db;
 
+    /** @var Logger */
+    protected $logger;
+
     /**
      * Repository constructor.
      * @param Client $db
      */
-    public function __construct($db = null)
+    public function __construct($db = null, $logger = null)
     {
         $this->db = $db ? $db : Di::_()->get('Database\Cassandra\Cql');
+        $this->logger = $logger ? $logger : Di::_()->get('Logger');
     }
 
     /**
@@ -100,17 +104,21 @@ class Repository
             $requests = [];
             foreach ($rows ?: [] as $row) {
                 $request = new Request();
-                $request
-                    ->setUserGuid((string) $row['user_guid']->value())
-                    ->setTimestamp($row['timestamp']->time())
-                    ->setTx($row['tx'])
-                    ->setAddress($row['address'] ?: '')
-                    ->setAmount((string) BigNumber::_($row['amount']))
-                    ->setCompleted((bool) $row['completed'])
-                    ->setCompletedTx($row['completed_tx'] ?: null)
-                    ->setGas((string) BigNumber::_($row['gas']))
-                    ->setStatus($row['status'] ?: '')
-                ;
+
+                try {
+                    $request->setUserGuid((string) $row['user_guid']->value())
+                        ->setTimestamp($row['timestamp']->time())
+                        ->setTx($row['tx'])
+                        ->setAddress($row['address'] ?: '')
+                        ->setAmount((string) BigNumber::_($row['amount'] ?? 0))
+                        ->setCompleted((bool) $row['completed'])
+                        ->setCompletedTx($row['completed_tx'] ?: null)
+                        ->setGas((string) BigNumber::_($row['gas'] ?? 0))
+                        ->setStatus($row['status'] ?: '');
+                } catch(\Exception $e) {
+                    // log and continue loop.
+                    $this->logger->error($e->getMessage());
+                }
 
                 $requests[] = $request;
             }
