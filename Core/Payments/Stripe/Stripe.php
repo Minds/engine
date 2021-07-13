@@ -324,7 +324,7 @@ class Stripe implements SubscriptionPaymentServiceInterface
 
         $params = [
             'type' => 'payment',
-            'limit' => $hasFilter ? 100 : (int) $options[$limit]
+            'limit' => $hasFilter ? 100 : (int) $options['limit']
         ];
 
         if ($options['offset']) {
@@ -386,7 +386,7 @@ class Stripe implements SubscriptionPaymentServiceInterface
         );
 
         $params = [
-            'limit' => $hasFilter ? 100 : (int) $options[$limit]
+            'limit' => $hasFilter ? 100 : (int) $options['limit']
         ];
 
         if ($options['offset']) {
@@ -501,7 +501,7 @@ class Stripe implements SubscriptionPaymentServiceInterface
         $totals = [];
         foreach ($results->available as $available) {
             if ($available->amount) {
-                $total[$available->currency] += $available->amount / 100;
+                $totals[$available->currency] += $available->amount / 100;
             }
         }
         foreach ($results->pending as $pending) {
@@ -514,19 +514,19 @@ class Stripe implements SubscriptionPaymentServiceInterface
 
     public function verifyMerchant($id, $file)
     {
-        $result = StripeSDK\FileUpload::create(
-            [
-            'purpose' => "identity_document",
-            'file' => fopen($file['tmp_name'], 'r')
-        ],
-            ['stripe_account' => $id]
-        );
+        // $result = StripeSDK\FileUpload::create(
+        //     [
+        //     'purpose' => "identity_document",
+        //     'file' => fopen($file['tmp_name'], 'r')
+        // ],
+        //     ['stripe_account' => $id]
+        // );
 
-        $account = StripeSDK\Account::retrieve($id);
-        $account->legal_entity->verification->document = $result->id;
-        $account->save();
+        // $account = StripeSDK\Account::retrieve($id);
+        // $account->legal_entity->verification->document = $result->id;
+        // $account->save();
 
-        return $result->id;
+        // return $result->id;
     }
 
     /* Subscriptions */
@@ -706,7 +706,7 @@ class Stripe implements SubscriptionPaymentServiceInterface
             $subscription->setNextBillingDate($result->current_period_end);
 
             return $subscription;
-        } catch (StripeSDK\Error\InvalidRequest $e) {
+        } catch (StripeSDK\Exception\InvalidRequestException $e) {
             return false;
         }
         return false;
@@ -721,7 +721,7 @@ class Stripe implements SubscriptionPaymentServiceInterface
                 'stripe_account' => $subscription->getMerchant()['id']
             ]
             )->cancel();
-        } catch (StripeSDK\Error\InvalidRequest $e) {
+        } catch (StripeSDK\Exception\InvalidRequestException $e) {
             return false;
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage()); // :v
@@ -747,7 +747,7 @@ class Stripe implements SubscriptionPaymentServiceInterface
             ]);
 
             $transfer->setId($result->id);
-        } catch (StripeSDK\Error\InvalidRequest $e) {
+        } catch (StripeSDK\Exception\InvalidRequestException $e) {
             // var_dump($e);die;
             return false;
         } catch (\Exception $e) {

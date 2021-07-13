@@ -38,6 +38,7 @@ class Reminds implements AggregateInterface
     public function fetchAll($opts = [])
     {
         $result = [];
+        $span = null;
         foreach (['hour', 'day', 'month'] as $unit) {
             switch ($unit) {
                 case 'hour':

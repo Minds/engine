@@ -19,8 +19,10 @@ use Brick\Math\BigDecimal;
  * @method UniswapPairEntity getPair()
  * @method self setPair(UniswapPairEntity $pair)
  */
-class UniswapMintEntity extends UniswapBaseEntity implements UniswapEntityHasPairInterface
+class UniswapMintEntity implements UniswapEntityHasPairInterface, UniswapEntityInterface
 {
+    use UniswapBaseTrait;
+
     /** @var BigDecimal */
     protected $liquidity;
 
@@ -39,9 +41,9 @@ class UniswapMintEntity extends UniswapBaseEntity implements UniswapEntityHasPai
     /** @var UniswapPairEntity */
     protected $pair;
 
-    public static function build(array $data): UniswapEntityInterface
+    public static function build(array $data): self
     {
-        $instance = parent::build($data);
+        $instance = self::buildBase($data);
         $instance
             ->setTo($data['to'])
             ->setAmount0(BigDecimal::of($data['amount0']))

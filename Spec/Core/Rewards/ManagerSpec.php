@@ -284,7 +284,9 @@ class ManagerSpec extends ObjectBehavior
             'contract' => 'offchain:reward',
             ])
             ->shouldBeCalled()
-            ->willReturn([(new Transaction)]);
+            ->willReturn([
+                'transactions' => [(new Transaction)]
+            ]);
 
         $user = new User;
         $user->guid = 123;

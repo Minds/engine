@@ -63,7 +63,7 @@ class Order
             'currency' => $this->getCurrency(),
             'service_fee_pct' => $this->getServiceFeePct(),
             'service_fee' => $this->getServiceFee(),
-            'stripe_account_id' => $this->getStripeAccount(),
+            'stripe_account_id' => $this->getStripeAccountId(),
         ];
     }
 }

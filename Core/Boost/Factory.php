@@ -25,7 +25,7 @@ class Factory
      * @param  array  $options (optional)
      * @return BoostHandlerInterface
      */
-    public static function build($handler, $options = [], $db = null)
+    public static function build($handler, $options = [])
     {
         if ($handler == 'newsfeed') {
             $handler = 'network';
@@ -33,7 +33,7 @@ class Factory
         $handler = ucfirst($handler);
         $handler = "Minds\\Core\\Boost\\$handler";
         if (class_exists($handler)) {
-            $class = new $handler($options, $db);
+            $class = new $handler();
             if ($class instanceof Interfaces\BoostHandlerInterface) {
                 return $class;
             }

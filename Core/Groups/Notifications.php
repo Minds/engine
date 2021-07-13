@@ -21,7 +21,7 @@ class Notifications
     use Actorable;
 
     protected $relDB;
-    protected $indexDB;
+    protected $indexDb;
     protected $cql;
     protected $group;
 
@@ -104,9 +104,9 @@ class Notifications
     /**
      * Return send batch for group
      * @yield $guid
-     * @return void
+     * @return iterable
      */
-    public function getSubscribedBatch()
+    public function getSubscribedBatch(): iterable
     {
         return $this->notificationBatches
             ->setBatchId($this->group->getGuid())

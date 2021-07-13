@@ -11,7 +11,7 @@ use Minds\Core\Notifications\Notification;
 class EmailDigestsDelegate implements NotificationsDelegateInterface
 {
     /** @var EmailDigests\Manager */
-    protected $notificationsTopic;
+    protected $emailDigestsManager;
 
     public function __construct(EmailDigests\Manager $emailDigestsManager = null)
     {

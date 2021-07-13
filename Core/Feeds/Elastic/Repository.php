@@ -49,7 +49,7 @@ class Repository
 
         $this->index = $config->get('elasticsearch')['indexes']['search_prefix'];
 
-        $this->plusSupportTierUrn = $config->get('plus')['support_tier_urn'];
+        $this->plusSupportTierUrn = $config->get('plus')['support_tier_urn'] ?? null;
     }
 
     /**

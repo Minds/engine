@@ -4,9 +4,13 @@ namespace Minds\Core\Payments\Stripe\Connect\Delegates;
 
 use Minds\Core\Payments\Stripe\Connect\Account;
 use Minds\Core\Di\Di;
+use Minds\Core\Events\EventsDispatcher;
 
 class NotificationDelegate
 {
+    /** @var EventsDispatcher */
+    private $eventsDispatcher;
+
     public function __construct($eventsDispatcher = null)
     {
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');

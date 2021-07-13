@@ -12,6 +12,7 @@ namespace Minds\Controllers\api\v2;
 
 use Minds\Api\Factory;
 use Minds\Core;
+use Minds\Core\Queue;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Util\BigNumber;
 use Minds\Core\Wire\Exceptions\WalletNotSetupException;

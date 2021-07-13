@@ -221,6 +221,7 @@ class Repository
             return $entities;
         } catch (\Exception $e) {
             error_log($e);
+            return [];
         }
     }
 

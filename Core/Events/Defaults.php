@@ -53,7 +53,7 @@ class Defaults
                 $allowedTags = '<pre><code>';
             }
 
-            if ($export['message']) {
+            if (isset($export['message'])) {
                 $export['message'] = strip_tags(
                     htmlspecialchars_decode($export['message']),
                     $allowedTags

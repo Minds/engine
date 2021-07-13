@@ -68,6 +68,8 @@ class pro implements Interfaces\Api, Interfaces\ApiAdminPam
         $manager = Di::_()->get('Pro\Manager');
         $manager->setUser($target);
 
+        $success = false;
+
         if ($action === 'make') {
             $relativeTimespan = '+30 days';
 

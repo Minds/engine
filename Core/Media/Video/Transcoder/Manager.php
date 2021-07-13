@@ -213,8 +213,7 @@ class Manager
 
         // Perform the transcode
         try {
-            $ref = $this;
-            $success = $this->transcodeExecutor->transcode($transcode, function ($progress) use ($ref, $transcode) {
+            $success = $this->transcodeExecutor->transcode($transcode, function ($progress) use ($transcode) {
                 $transcode->setProgress($progress);
                 $this->update($transcode, [ 'progress' ]);
             });

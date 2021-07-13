@@ -32,6 +32,8 @@ class Timestamps
                 case "year":
                 $ref = "year";
                 break;
+                default:
+                    throw new \Exception("Invalid period provided");
             }
 
             $time[$period] = strtotime($ref, $ts);
