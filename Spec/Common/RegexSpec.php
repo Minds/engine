@@ -98,6 +98,13 @@ class RegexSpec extends ObjectBehavior
         $this->globalMatch($this->regex::HASH_CASH_TAG, '#minds channel')->shouldReturn(1);
     }
 
+
+    public function it_should_detect_at_numeric_hash_tag_at_start_of_string()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, '#123 channel')->shouldReturn(1);
+    }
+
+
     public function it_should_detect_hash_tag_at_end_of_string()
     {
         $this->globalMatch($this->regex::HASH_CASH_TAG, 'channel #minds')->shouldReturn(1);
@@ -153,6 +160,16 @@ class RegexSpec extends ObjectBehavior
             $this->regex::HASH_CASH_TAG,
             '#ab test #bc testing test #d4 #23 #asd #vxc #gdf #9fui #testing #123 #idsj'
         )->shouldReturn(11);
+    }
+
+    public function it_should_match_thai_hashtags_with_whitespace()
+    {
+        $this->globalMatch($this->regex::HASH_TAG, '#ทดสอบ #วางแผน')->shouldReturn(2);
+    }
+
+    public function it_should_match_multiple_thai_hashtags_no_whitespace()
+    {
+        $this->globalMatch($this->regex::HASH_TAG, '#ทดสอบ#วางแผน')->shouldReturn(2);
     }
 
     // cash tags ($)
@@ -227,10 +244,10 @@ class RegexSpec extends ObjectBehavior
         $this->globalMatch($this->regex::HASH_CASH_TAG, '$minds#minds')->shouldReturn(2);
     }
 
-    // public function it_should_pick_cash_and_hash_tags_out_mid_word()
-    // {
-    //     $this->globalMatch($this->regex::HASH_CASH_TAG, 'test#minds$usd')->shouldReturn(2);
-    // }
+    public function it_should_pick_cash_and_hash_tags_out_mid_word()
+    {
+        $this->globalMatch($this->regex::HASH_CASH_TAG, 'test#minds$usd')->shouldReturn(2);
+    }
 
     public function it_should_match_multiple_cash_and_hash_tags_sequentially_with_space()
     {

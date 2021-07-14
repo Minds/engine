@@ -11,13 +11,13 @@ class Regex
     const AT = '/(?:@)([a-zA-Z0-9_]+)/';
     
     // #tags
-    const HASH_TAG = '/([^&]|\b|^)#([\wÀ-ÿ\u0E00-\u0E7F\u2460-\u9FBB]+)/uim';
+    const HASH_TAG = '/([^&]|\b|^)\#([\pL]+)/uim';
 
     // $tags
-    const CASH_TAG = '/([^&]|\b|^)\$([A-Za-z]+)/uim';
+    const CASH_TAG = '/([^&]|\b|^)\$(\pL+)/uim';
 
     // #tags | $tags
-    const HASH_CASH_TAG = '/([^&]|\b|^)#([\wÀ-ÿ\x0E00\x0E7F\x2460-\x9FBB]+)|([^&]|\b|^)\$([A-Za-z]+)/uim';
+    const HASH_CASH_TAG = '/([^&]|\b|^)\#([\pL\pN]+)|([^&]|\b|^)(\$)([\pL]+)/uim';
 
     /**
      * Wrapper around preg_match_all for testing.
