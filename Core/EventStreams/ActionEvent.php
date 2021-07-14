@@ -6,6 +6,9 @@ class ActionEvent implements EventInterface
     use EntityEventTrait;
 
     /** @var string */
+    const ACTION_CREATE = 'create';
+
+    /** @var string */
     const ACTION_VOTE_UP = 'vote_up';
 
     /** @var string */
@@ -117,6 +120,8 @@ class ActionEvent implements EventInterface
         $allowedKeys = [];
 
         switch ($this->action) {
+            case self::ACTION_CREATE:
+                break;
             case self::ACTION_VOTE_UP:
             case self::ACTION_VOTE_DOWN:
                 break;

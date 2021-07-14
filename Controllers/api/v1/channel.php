@@ -404,7 +404,7 @@ class channel implements Interfaces\Api
                 $channel->enabled = 'no';
                 $channel->save();
 
-                (new Core\Data\Sessions())->destroyAll($channel->guid);
+                (new Core\Sessions\CommonSessions\Manager())->deleteAll($channel);
         }
 
         return Factory::response([]);

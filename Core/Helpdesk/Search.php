@@ -15,7 +15,7 @@ class Search
     private $elastic;
 
     /** @var string */
-    private $index;
+    private $indexPrefix;
 
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
@@ -27,12 +27,12 @@ class Search
      * Constructor
      *
      * @param Database\ElasticSearch $elastic
-     * @param string $index
+     * @param string $indexPrefix
      */
-    public function __construct($elastic = null, $index = null, $entitiesBuilder = null)
+    public function __construct($elastic = null, $indexPrefix = null, $entitiesBuilder = null)
     {
         $this->elastic = $elastic ?: Di::_()->get('Database\ElasticSearch');
-        $this->index = $index ?: Di::_()->get('Config')->elasticsearch['index'];
+        $this->indexPrefix  = $indexPrefix ?: Di::_()->get('Config')->elasticsearch['indexes']['search_prefix'];
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
     }
 
@@ -68,8 +68,7 @@ class Search
         $prepared = new Core\Data\ElasticSearch\Prepared\Search();
         $prepared->query([
             'body' => $body,
-            'index' => $this->index,
-            'type' => 'activity',
+            'index' => $this->indexPrefix . '-activity',
             'size' => $limit,
             'from' => (int) $this->offset,
             'client' => [
