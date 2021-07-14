@@ -5,6 +5,7 @@ namespace Minds\Core\Rewards\Withdraw;
 
 use Cassandra\Bigint;
 use Cassandra\Timestamp;
+use Cassandra\Varint;
 use Exception;
 use Minds\Common\Urn;
 use Minds\Core\Data\Cassandra\Client;
@@ -164,7 +165,7 @@ class Repository
             new Timestamp($request->getTimestamp(), 0),
             $request->getTx(),
             (string) $request->getAddress(),
-            new Bigint($request->getAmount()),
+            new Varint($request->getAmount()),
             (bool) $request->isCompleted(),
             ((string) $request->getCompletedTx()) ?: null,
             new Bigint($request->getGas()),
