@@ -9,6 +9,7 @@ use Minds\Entities\User as UserEntity;
 use Minds\Interfaces;
 use Minds\Core\Di\Di;
 use Minds\Core\Security\ACL;
+use Minds\Core\Log\Logger;
 
 class plus implements Interfaces\Api, Interfaces\ApiAdminPam
 {
@@ -39,7 +40,11 @@ class plus implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function put($pages)
     {
-        $logger = Di::_()->get('Logger');
+        // $logger = Di::_()->get('Logger');
+        $logger = new Logger('Minds', [
+            'minLogLevel' => Logger::DEBUG,
+        ]);
+
         $logger->warn('AdminPlus | endpoint being hit');
      
         $userGuid = $pages[0] ?? false;
