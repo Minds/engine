@@ -52,7 +52,7 @@ class Repository
         $values = [];
 
         if ($opts['status']) {
-            $cql = "SELECT * from withdrawals_by_status";
+            $cql = "SELECT * from rewards_withdrawals_by_status";
             $where[] = 'status = ?';
             $values[] = (string) $opts['status'];
         }
@@ -115,7 +115,7 @@ class Repository
                         ->setCompletedTx($row['completed_tx'] ?: null)
                         ->setGas((string) BigNumber::_($row['gas'] ?? 0))
                         ->setStatus($row['status'] ?: '');
-                } catch(\Exception $e) {
+                } catch (\Exception $e) {
                     // log and continue loop.
                     $this->logger->error($e->getMessage());
                 }
