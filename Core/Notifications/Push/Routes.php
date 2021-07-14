@@ -19,7 +19,7 @@ class Routes extends ModuleRoutes
     {
         $this->route
             ->withPrefix('api/v3/notifications/push')
-            ->withMiddlware([
+            ->withMiddleware([
                 LoggedInMiddleware::class,
             ])
             ->do(function (Route $route) {
