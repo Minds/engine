@@ -360,6 +360,13 @@ class newsfeed implements Interfaces\Api
 
                 $now = time();
 
+                if ($_POST['time_created'] > $now && $_POST['time_created'] < strtotime("+5 minutes")) {
+                    return Factory::response([
+                        'status' => 'error',
+                        'message' => 'Scheduled posts must be more than 5 minutes in the future.',
+                    ]);
+                }
+
                 try {
                     $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
                     $timeCreatedDelegate->onAdd($activity, $_POST['time_created'] ?? $now, $now);
