@@ -31,6 +31,9 @@ class Manager
     /** @var Delegates\SnowplowDelegate */
     protected $snowplowDelegate;
 
+    /** @var Delegates\EmailDelegate */
+    protected $emailDelegate;
+
     /** @var Subscription $subscription */
     protected $subscription;
 
@@ -80,7 +83,7 @@ class Manager
 
         $this->snowplowDelegate->onCharge($this->subscription);
 
-        return $result;
+        return $result ?? false;
     }
 
     /**

@@ -78,11 +78,11 @@ class Transaction
             'timestamp' => $this->timestamp,
             'contract' => $this->contract
         ];
-        if ($this->data['sender_guid']) {
+        if (isset($this->data['sender_guid'])) {
             $sender = EntityFactory::build($this->data['sender_guid']) ?: Unknown::user();
             $export['sender'] = $sender->export();
         }
-        if ($this->data['receiver_guid']) {
+        if (isset($this->data['receiver_guid'])) {
             $receiver = EntityFactory::build($this->data['receiver_guid']) ?: Unknown::user();
             $export['receiver'] = $receiver->export();
         }

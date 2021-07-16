@@ -66,7 +66,7 @@ class ElasticRepository
             ];
         }
 
-        if ($opts['entity_guid']) {
+        if (isset($opts['entity_guid'])) {
             $must[] = [
                 'term' => [
                     'entity_guid' => $opts['entity_guid'],
@@ -74,7 +74,7 @@ class ElasticRepository
             ];
         }
 
-        if ($opts['owner_guid']) {
+        if (isset($opts['owner_guid'])) {
             $must[] = [
                 'term' => [
                     'owner_guid' => $opts['owner_guid'],

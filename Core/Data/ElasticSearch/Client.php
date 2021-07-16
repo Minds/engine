@@ -20,9 +20,8 @@ class Client implements Interfaces\ClientInterface
 
     /**
      * Client constructor.
-     * @param array $options
      */
-    public function __construct(array $options = [], Config $config = null)
+    public function __construct(Config $config = null)
     {
         $config = $config ?? Di::_()->get('Config');
         $esConfig = $config->get('elasticsearch');

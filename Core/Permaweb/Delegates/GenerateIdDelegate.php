@@ -15,6 +15,9 @@ use Minds\Entities\Video;
 
 class GenerateIdDelegate extends AbstractPermawebDelegate
 {
+    /** @var Save */
+    protected $save;
+
     public function __construct($save = null)
     {
         parent::__construct();

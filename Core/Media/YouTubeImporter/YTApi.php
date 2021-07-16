@@ -2,7 +2,7 @@
 namespace Minds\Core\Media\YouTubeImporter;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Data\Cache\PsrWrapper;
+use Minds\Core\Data\cache\PsrWrapper;
 use GuzzleHttp;
 
 class YTApi
@@ -38,6 +38,8 @@ class YTApi
             $queryParams = http_build_query([
                 'video_id' => $ytVideoId,
                 'html5' => 1,
+                'c' => 'TVHTML5',
+                'cver' => '6.20180913'
             ]);
             $response = $this->httpClient->get("https://youtube.com/get_video_info?$queryParams");
             parse_str($response->getBody()->getContents(), $ytInfo);

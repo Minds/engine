@@ -62,7 +62,7 @@ class Matrix extends Cli\Controller implements Interfaces\CliControllerInterface
             $this->manager->syncAccount($user);
 
             $this->blockListSync->sync($user);
-        } catch (\Excepton $e) {
+        } catch (\Exception $e) {
         }
 
         $this->out("{$user->getGuid()}");

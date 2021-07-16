@@ -232,8 +232,8 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
             case ActionEvent::ACTION_WIRE_SENT:
                 /** @var Wire */
                 $wire = $entity;
-                $isPlusPayout = (string) $wire->getSender()->getGuid() === (string) $this->config->get('plus')['handler'];
-                $isProPayout = (string) $wire->getSender()->getGuid() === (string) $this->config->get('pro')['handler'];
+                $isPlusPayout = (string) $wire->getSender()->getGuid() === (string) $this->config->get('plus')['handler'] ?? '';
+                $isProPayout = (string) $wire->getSender()->getGuid() === (string) $this->config->get('pro')['handler'] ?? '';
 
                 if ($isPlusPayout || $isProPayout) {
                     $notification->setType(NotificationTypes::TYPE_WIRE_PAYOUT);

@@ -22,7 +22,7 @@ class Webhooks
     ];
     protected $hooks;
 
-    public function __construct($hooks = null, $stripe)
+    public function __construct($hooks = null)
     {
         $this->hooks = $hooks ?: new Payments\Hooks();
     }
@@ -145,9 +145,8 @@ class Webhooks
 
         $subscription = (new Payments\Subscriptions\Subscription())
             ->setCustomer($customer)
-            ->setId($subscripionObj->id)
-            ->setPlanId($subscripionObj->plan->id)
-            ->setPrice($charge->amount / 100);
+            ->setId($subscriptionObj->id)
+            ->setPlanId($subscriptionObj->plan->id);
         $this->hooks->onCanceled($subscription);
     }
 

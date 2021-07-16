@@ -13,6 +13,9 @@ class SignupsSynchroniser
     /** @var Signup */
     private $signupMetric;
 
+    /** @var int */
+    protected $from;
+
     public function __construct($signupMetric = null)
     {
         $this->signupMetric = $signupMetric ?? new Signup;

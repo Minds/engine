@@ -57,16 +57,15 @@ class CommentNotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         EntitiesBuilder $entitiesBuilder,
         PostSubscriptions\Manager $postSubscriptionsManager,
         Block\Manager $blockManager,
-        Logger $logger,
         Config $config
     ) {
-        $this->beConstructedWith($manager, $notificationsManager, $entitiesBuilder, $postSubscriptionsManager, $blockManager, $logger, $config);
+        $this->beConstructedWith($manager, $notificationsManager, $entitiesBuilder, $postSubscriptionsManager, $blockManager, $config);
         $this->manager = $manager;
         $this->notificationsManager = $notificationsManager;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->postSubscriptionsManager = $postSubscriptionsManager;
         $this->blockManager = $blockManager;
-        $this->logger = $logger;
+        // $this->logger = $logger;
         $this->config = $config;
     }
     

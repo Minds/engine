@@ -116,6 +116,6 @@ class RefreshTokenRepositorySpec extends ObjectBehavior
         ClientEntityInterface $clientEntity
     ) {
         $refreshToken = $this->getNewRefreshToken();
-        $refreshToken->shouldNotBeNull();
+        $refreshToken->shouldBeAnInstanceOf(RefreshTokenEntity::class);
     }
 }

@@ -101,7 +101,7 @@ class Manager
 
         // Sort by last active
         usort($sessions, function (CommonSession $a, CommonSession $b) {
-            return $a->getLastActive() < $b->getLastActive();
+            return $a->getLastActive() < $b->getLastActive() ? 1 : 0;
         });
 
         return $sessions;
@@ -123,7 +123,7 @@ class Manager
                 ->setId($commonSession->getId());
 
             $response = $this->sessionsManager->delete($session);
-        } elseif ($platform === self::PLATFORM_APP) {
+        } elseif ($platform === self::PLATFORM_APP || $platform === self::PLATFORM_CHAT) {
             $token = new AccessTokenEntity();
             $token->setIdentifier($commonSession->getId());
             $token->setUserIdentifier($commonSession->getUserGuid());

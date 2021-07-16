@@ -193,7 +193,7 @@ class PreFeb2019Repository
         $values = [
             new Cassandra\Varint($guid),
             new Cassandra\Varint($entity_guid),
-            new Cassandra\Timestamp(time()),
+            new Cassandra\Timestamp(time(), 0),
             new Cassandra\Varint($reporter),
             method_exists($entity, 'getLuid') ? (string) $entity->getLuid() : '',
             new Cassandra\Varint($owner_guid),
@@ -241,7 +241,7 @@ class PreFeb2019Repository
             if (in_array($key, [ 'reporter_guid', 'entity_guid', 'owner_guid' ], true)) {
                 $value = new Cassandra\Varint($value);
             } elseif (in_array($key, [ 'time_created' ], true)) {
-                $values = new Cassandra\Timestamp($value);
+                $values = new Cassandra\Timestamp($value, 0);
             }
 
             $updates[] = "{$key} = ?";

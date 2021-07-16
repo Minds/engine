@@ -141,8 +141,8 @@ class TokenBalanceMetric extends AbstractMetric
 
 
         $this->visualisation = (new Visualisations\ChartVisualisation())
-            ->setXValues($xValues)
-            ->setYValues($yValues)
+            ->setXValues($xValues ?? [])
+            ->setYValues($yValues ?? [])
             ->setXLabel('Date')
             ->setYLabel('Balancce')
             ->setBuckets(array_reverse($buckets));

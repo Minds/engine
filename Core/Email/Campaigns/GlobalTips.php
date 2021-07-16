@@ -68,5 +68,7 @@ class GlobalTips extends EmailCampaign
 
         //send email
         $this->mailer->queue($message);
+
+        return $message;
     }
 }

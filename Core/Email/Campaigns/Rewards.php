@@ -16,6 +16,12 @@ class Rewards
     protected $config;
     protected $founderRewards;
 
+    /** @var Template */
+    protected $template;
+
+    /** @var Mailer */
+    protected $mailer;
+
     public function __construct($config = null, $founderRewards = null, Template $template = null, Mailer $mailer = null)
     {
         $this->config = $config ?: Core\Di\Di::_()->get('Config');

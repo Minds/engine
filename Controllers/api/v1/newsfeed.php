@@ -409,7 +409,7 @@ class newsfeed implements Interfaces\Api
                         'activity' => $activity,
                     ]);
 
-                    if ($activity->getPending() && $attachment) {
+                    if ($activity->getPending() && isset($attachment)) {
                         $attachment->access_id = 0;
                         $save->setEntity($attachment)->save();
                     }

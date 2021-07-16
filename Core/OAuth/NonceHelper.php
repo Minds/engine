@@ -26,7 +26,7 @@ class NonceHelper
     public function __construct($cache = null)
     {
         $this->cache = $cache ?? Di::_()->get('Cache');
-        $this->encryptionKey = Di::_()->get('Config')->get('oauth')['encryption_key'];
+        $this->encryptionKey = (Di::_()->get('Config')->get('oauth') ?? [])['encryption_key'] ?? null;
     }
 
     /**

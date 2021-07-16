@@ -116,7 +116,7 @@ class membership implements Interfaces\Api
 
                 $i = 0;
                 $guids = array_filter($guids, function ($guid) use ($membership, &$i) {
-                    if ($is > 12) {
+                    if ($i > 12) {
                         return false;
                     }
                     $is = $membership->isMember($guid, false);

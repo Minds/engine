@@ -4,17 +4,17 @@
  */
 namespace Minds\Core\Channels\Delegates;
 
-use Minds\Core\Data\Sessions;
+use Minds\Core\Sessions\CommonSessions;
 use Minds\Entities\User;
 
 class Logout
 {
-    /** @var Sessions $sessions */
-    protected $session;
+    /** @var Sessions */
+    protected $sessions;
 
     public function __construct($sessions = null)
     {
-        $this->sessions = $sessions ?: new Sessions();
+        $this->sessions = $sessions ?: new CommonSessions\Manager();
     }
 
     /**
@@ -23,6 +23,6 @@ class Logout
      */
     public function logout($user)
     {
-        $this->sessions->destroyAll($user->guid);
+        $this->sessions->deleteAll($user);
     }
 }

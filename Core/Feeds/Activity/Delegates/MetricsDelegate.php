@@ -59,7 +59,7 @@ class MetricsDelegate
                 ->purgeCache($activity);
         }
 
-        if ($activity->isRemind()) {
+        if ($activity->isRemind() && isset($remind)) {
             // Update remind counters (legacy support)
             Counters::increment($remind->getGuid(), 'remind');
         }

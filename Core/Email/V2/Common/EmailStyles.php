@@ -28,7 +28,6 @@ class EmailStyles
             'm-textColor--white' => 'color: #FFFFFF !important;',
             'm-title' => 'font-size:26px; text-align:center;color: #4f4f50;margin-top: 0;',
             'm-title--ltr' => 'font-size:26px; text-align:left;color: #4f4f50;margin-top: 0;',
-            'm-subtitle' => 'font-size:22px; line-height:29px;',
             'm-signature' => 'margin: 0 0 4px 0;padding: 0 !important;',
 
         // SPACING & LAYOUT ///////////////////////////
@@ -73,6 +72,6 @@ class EmailStyles
     {
         $styles = array_intersect_key($this->styles, array_flip($styleKeys));
 
-        return ' style="'.implode($styles, ';').'" ';
+        return ' style="'.implode(';', $styles).'" ';
     }
 }

@@ -49,14 +49,15 @@ class Peer implements Interfaces\BoostHandlerInterface
     /**
      * Return a boost. Not used.
      * @deprecated
-     * @return array
      */
     public function getBoost($offset = "")
     {
 
        ///
-       //// THIS DOES NOT APPLY BECAUSE IT'S PRE-AGREED
-       ///
+        //// THIS DOES NOT APPLY BECAUSE IT'S PRE-AGREED
+        ///
+
+        return [];
     }
 
 

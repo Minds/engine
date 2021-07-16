@@ -66,7 +66,7 @@ class Incentive
 
         $config = $this->config->get('blockchain');
 
-        if (!$config['testnet']) {
+        if (!($config['testnet'] ?? null)) {
             return false;
         }
 

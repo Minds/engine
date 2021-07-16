@@ -8,12 +8,16 @@
 namespace Minds\Core\Data\cache;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Config;
 use Redis as RedisServer;
 
 class Redis extends abstractCacher
 {
     private $redisMaster;
     private $redisSlave;
+
+    /** @var Config */
+    private $config;
 
     /** @var array */
     private $local = []; //a local cache before we check the remote

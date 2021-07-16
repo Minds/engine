@@ -13,9 +13,19 @@ use Minds\Core\Security\AbuseGuard\Recover;
 
 class AbuseGuard
 {
+    /** @var Aggregates */
+    protected $aggregates;
+
+    /** @var int */
     private $start = 0;
+
+    /** @var int */
     private $end = 0;
+
+    /** @var array */
     private $accused = [];
+
+    /** @var int */
     private $score = 15;
 
     public function __construct($aggregates = null)

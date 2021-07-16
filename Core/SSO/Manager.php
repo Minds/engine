@@ -103,7 +103,7 @@ class Manager
             throw new Exception('Invalid encryption key');
         }
 
-        $sessionToken = (string) $session->getToken();
+        $sessionToken = (string) $session->getToken()->toString();
         $sessionTokenHash = hash('sha256', $key . $sessionToken);
 
         $ssoKey = implode(':', ['sso', $this->domain, $sessionTokenHash, $this->jwt->randomString()]);

@@ -26,26 +26,30 @@ class ClientRepository implements ClientRepositoryInterface
     private function getClients()
     {
         $clients = [
-            'mobile' => [
-                'secret' => $this->config->get('oauth')['clients']['mobile']['secret'],
-                'name' => 'Mobile',
-                'redirect_uri' => '',
-                'is_confidential' => true,
-            ],
             'checkout' => [
                 'redirect_uri' => $this->config->get('checkout_url'),
                 'is_confidential' => false,
             ],
         ];
 
-        $clientsConfig = (array) $this->config->get('oauth')['clients'];
-        if (isset($clientsConfig['matrix']['secret'])) {
-            $clients['matrix'] = [
+        if (isset($this->config->get('oauth')['clients'])) {
+            $clients['mobile'] = [
+                'secret' => $this->config->get('oauth')['clients']['mobile']['secret'],
+                'name' => 'Mobile',
+                'redirect_uri' => '',
+                'is_confidential' => true,
+            ];
+        
+
+            $clientsConfig = (array) $this->config->get('oauth')['clients'];
+            if (isset($clientsConfig['matrix']['secret'])) {
+                $clients['matrix'] = [
                 'secret' => $this->config->get('oauth')['clients']['matrix']['secret'],
                 'redirect_uri' =>  $this->config->get('oauth')['clients']['matrix']['redirect_uri'],
                 'is_confidential' => false,
                 'scopes' => [ 'openid' ],
             ];
+            }
         }
 
         return $clients;

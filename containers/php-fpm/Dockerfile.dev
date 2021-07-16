@@ -1,4 +1,4 @@
-FROM minds/php:pulsar
+FROM minds/php:8.0
 
 RUN echo 'zend_extension=opcache.so' > /usr/local/etc/php/conf.d/opcache.ini \
     && mkdir --parents --mode=0777 /tmp/minds-cache/ \

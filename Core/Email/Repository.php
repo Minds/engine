@@ -119,7 +119,7 @@ class Repository
             error_log($e);
         }
 
-        if ($result) {
+        if (isset($result)) {
             foreach ($result as $row) {
                 // if row not in campaign - discard it.
                 if (!in_array($row['topic'], EmailSubscriptionTypes::TYPES_GROUPINGS[$row['campaign']], true)) {

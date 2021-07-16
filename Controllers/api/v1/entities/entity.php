@@ -34,6 +34,7 @@ class entity implements Interfaces\Api
      */
     public function get($pages)
     {
+        $response = [];
         if (!isset($pages[0])) {
             $response['status'] = 'error';
         } else {

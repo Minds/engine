@@ -78,7 +78,7 @@ class Manager
                 }
                 break;
             case Comment::class:
-                $asset_guid = $entity->getAttachments()['attachment_guid'];
+                $asset_guid = $entity->getAttachments()['attachment_guid'] ?? null;
                 break;
         }
 

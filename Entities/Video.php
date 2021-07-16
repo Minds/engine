@@ -22,6 +22,15 @@ use Minds\Helpers;
  * @property string $transcoding_status
  * @property string $chosen_format_url
  * @property string $youtube_thumbnail
+ * @property string $cinemr_guid
+ * @property string $super_subtype
+ * @property string $thumbnail
+ * @property string $boost_rejection_reason
+ * @property string $license
+ * @property int $time_sent
+ * @property int $width
+ * @property int $height
+ * @property string $permaweb_id
  */
 class Video extends MindsObject
 {

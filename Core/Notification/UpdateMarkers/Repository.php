@@ -105,11 +105,11 @@ class Repository
         ];
 
         if ($marker->getUpdatedTimestamp()) {
-            $columns['updated_timestamp'] = new Timestamp($marker->getUpdatedTimestamp());
+            $columns['updated_timestamp'] = new Timestamp($marker->getUpdatedTimestamp(), 0);
         }
 
         if ($marker->getReadTimestamp()) {
-            $columns['read_timestamp'] = new Timestamp($marker->getReadTimestamp());
+            $columns['read_timestamp'] = new Timestamp($marker->getReadTimestamp(), 0);
         }
 
         if ($marker->getDisabled() !== null) {
@@ -141,7 +141,6 @@ class Repository
     /**
      * Remove a marker
      * @param UpdateMarker $marker
-     * @return bool
      */
     public function delete(UpdateMarker $marker)
     {

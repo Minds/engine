@@ -16,10 +16,10 @@ class Manager
         $lineItems = [];
 
         $lineItems[] = [
-            'name' => $this->getName(),
-            'amount' => $this->getAmount(),
-            'currency' => $this->getCurrency(),
-            'quantity' => $this->getQuantity(),
+            'name' => $order->getName(),
+            'amount' => $order->getAmount(),
+            'currency' => $order->getCurrency(),
+            'quantity' => $order->getQuantity(),
         ];
 
         $session = Session::create([

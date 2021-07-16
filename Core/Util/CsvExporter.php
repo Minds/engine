@@ -16,7 +16,7 @@ class CsvExporter
      * Create a file
      *
      * @param mixed $file file path or will output to the standar output by default
-     * @return void
+     * @return self
      */
     public static function create($file = null)
     {

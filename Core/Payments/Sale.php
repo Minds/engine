@@ -20,6 +20,9 @@ class Sale
     private $customerId;
     private $nonce;
     private $settle = false;
+    private $source;
+    private $createdAt;
+    private $settledAt;
 
     public function __construct()
     {

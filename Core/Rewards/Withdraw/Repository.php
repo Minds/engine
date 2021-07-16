@@ -60,7 +60,7 @@ class Repository
 
         if ($opts['timestamp']) {
             $where[] = 'timestamp = ?';
-            $values[] = new Timestamp($opts['timestamp']);
+            $values[] = new Timestamp($opts['timestamp'], 0);
         }
 
         if ($opts['tx']) {
@@ -70,12 +70,12 @@ class Repository
 
         if ($opts['from']) {
             $where[] = 'timestamp >= ?';
-            $values[] = new Timestamp($opts['from']);
+            $values[] = new Timestamp($opts['from'], 0);
         }
 
         if ($opts['to']) {
             $where[] = 'timestamp <= ?';
-            $values[] = new Timestamp($opts['to']);
+            $values[] = new Timestamp($opts['to'], 0);
         }
 
         if ($opts['completed']) {
@@ -153,7 +153,7 @@ class Repository
         $cql = "INSERT INTO withdrawals (user_guid, timestamp, tx, address, amount, completed, completed_tx, gas, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $values = [
             new Varint($request->getUserGuid()),
-            new Timestamp($request->getTimestamp()),
+            new Timestamp($request->getTimestamp(), 0),
             $request->getTx(),
             (string) $request->getAddress(),
             new Varint($request->getAmount()),

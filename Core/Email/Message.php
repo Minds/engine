@@ -97,11 +97,13 @@ class Message
      *
      * @param string $html
      *
-     * @return $this
+     * @return self
      */
     public function setHtml(Template $html)
     {
         $this->html = $html;
+
+        return $this;
     }
 
     /**

@@ -64,7 +64,7 @@ abstract class AbstractTranscodeProfile implements TranscodeProfileInterface
             'width' => (int) $this->width,
             'height' => (int) $this->height,
             'bitrate' => (int) $this->bitrate,
-            'audio_bitrate' => (int) $this->audioBitrarte,
+            'audio_bitrate' => (int) $this->audioBitrate,
         ];
     }
 }

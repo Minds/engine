@@ -16,7 +16,7 @@ class Client
      */
     public function __construct($httpClient = null)
     {
-        $this->httpClient = new GuzzleHttp\Client();
+        $this->httpClient = $httpClient ?? new GuzzleHttp\Client();
     }
 
     /**

@@ -284,7 +284,7 @@ class BoostEventSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->boostRepository->getEntity(null, null)
+        $this->boostRepository->getEntity('newsfeed', '123')
             ->shouldBeCalled()
             ->willReturn($boost);
 
@@ -292,7 +292,11 @@ class BoostEventSpec extends ObjectBehavior
         $transaction = new Transaction();
         $transaction->setTx('testTX')
             ->setContract('boost')
-            ->setFailed(false);
+            ->setFailed(false)
+            ->setData([
+                'handler' => 'newsfeed',
+                'guid' => '123',
+            ]);
 
         $this->txRepository->update($transaction, ['failed'])
             ->shouldBeCalled();

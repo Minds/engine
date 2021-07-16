@@ -32,6 +32,9 @@ class ACL
     /** @var Logger */
     private $logger;
 
+    /** @var bool */
+    private $normalizeEntities;
+
     public function __construct($rateLimits = null, $entitiesBuilder = null, $logger = null, $config = null)
     {
         $this->rateLimits = $rateLimits ?: new RateLimitsManager;

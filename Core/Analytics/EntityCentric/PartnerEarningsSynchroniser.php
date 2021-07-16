@@ -10,6 +10,9 @@ class PartnerEarningsSynchroniser
     /** @var PartnersManager */
     private $partnersManager;
 
+    /** @var int */
+    protected $from;
+
     public function __construct($partnersManager = null)
     {
         $this->partnersManager = $partnersManager ?? new PartnersManager;

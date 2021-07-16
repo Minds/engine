@@ -154,7 +154,7 @@ class Repository
 
                 $data = @json_decode($row['data'], true);
                 
-                if ($data && $data['is_campaign']) {
+                if ($data && ($data['is_campaign'] ?? false)) {
                     continue;
                 }
 

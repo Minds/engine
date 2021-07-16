@@ -31,7 +31,7 @@ class roles implements Interfaces\Api
                 'status' => 'success',
                 'roles' => $permissions,
             ]);
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             return Factory::response([
                 'status' => 'error',
                 'message' => $ex->getMessage(),

@@ -52,7 +52,7 @@ class Repository
             ->setUserGuid((int) $result[0]['user_guid']->value())
             ->setExpires((int) $result[0]['expires']->time())
             ->setIp($result[0]['ip'])
-            ->setLastActive((int) $result[0]['last_active'] ? $result[0]['last_active']->time() : 0);
+            ->setLastActive((int) ($result[0]['last_active'] ? $result[0]['last_active']->time() : 0));
 
         return $session;
     }
@@ -75,6 +75,9 @@ class Repository
         if (!$rows) {
             return [];
         }
+
+        /** @var Session[] */
+        $sessions = [];
 
         foreach ($rows as $row) {
             $session = new Session();

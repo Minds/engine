@@ -22,6 +22,8 @@ class WirePayment
     protected $description;
     protected $amount;
     protected $charged = false;
+    protected $receiptData;
+    protected $receiptNumber;
 
     public function __construct(Call $db = null, Template $template = null, Mailer $mailer = null)
     {

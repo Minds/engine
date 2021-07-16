@@ -21,7 +21,7 @@ use Minds\Entities\User;
 use Minds\Entities\Video;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
-use Minds\Core\Data\Cache\PsrWrapper;
+use Minds\Core\Data\cache\PsrWrapper;
 use Zend\Diactoros\Response\JsonResponse;
 
 /**

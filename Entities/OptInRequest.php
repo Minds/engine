@@ -29,7 +29,7 @@ class OptInRequest extends DenormalizedEntity
     /**
      * Load entity data from a GUID
      * @param  $guid
-     * @return $this
+     * @return self
      * @throws \Exception
      */
     public function loadFromGuid($guid)
@@ -38,7 +38,7 @@ class OptInRequest extends DenormalizedEntity
             $this->rowKey = 'opt_in_requests:queue';
         }
 
-        parent::loadFromGuid($guid);
+        return parent::loadFromGuid($guid);
     }
 
     /**

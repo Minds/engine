@@ -77,6 +77,9 @@ class featured implements Interfaces\Api, Interfaces\ApiIgnorePam
                 $type = "user";
         }
 
+
+        $response = [];
+
         //the allowed, plus default, options
         $options = [
             'type' => $type,

@@ -47,6 +47,6 @@ class Ref
      */
     public static function _(string $provider, string $method): Ref
     {
-        return new static($provider, $method);
+        return new Ref($provider, $method);
     }
 }

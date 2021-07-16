@@ -14,6 +14,12 @@ use Minds\Core\Groups\Invitations;
 use Minds\Core\Groups\Delegates\ElasticSearchDelegate;
 use Minds\Traits\MagicAttributes;
 
+/**
+ * @method Group getOwnerObj() : array
+ * @method Group getMembership() : int
+ * @property int $time_created
+ * @property array $nsfwLock
+ */
 class Group extends NormalizedEntity implements EntityInterface
 {
     use MagicAttributes;
@@ -842,7 +848,7 @@ class Group extends NormalizedEntity implements EntityInterface
         $array = array_unique($array);
         foreach ($array as $reason) {
             if ($reason < 1 || $reason > 6) {
-                throw \Exception('Incorrect NSFW value provided');
+                throw new \Exception('Incorrect NSFW value provided');
             }
         }
         $this->nsfw = $array;
@@ -879,7 +885,7 @@ class Group extends NormalizedEntity implements EntityInterface
         $array = array_unique($array);
         foreach ($array as $reason) {
             if ($reason < 1 || $reason > 6) {
-                throw \Exception('Incorrect NSFW value provided');
+                throw new \Exception('Incorrect NSFW value provided');
             }
         }
         $this->nsfwLock = $array;

@@ -35,9 +35,10 @@ class RouterHooks
         if (strpos($path, '/emails/unsubscribe') !== false) {
             $action = 'email:unsubscribe';
         } elseif (isset($queryParams['__e_cnf_token'])) {
+            $cnfToken = rtrim($queryParams['__e_cnf_token'], '?');
             try {
                 $this->confirmationManager
-                    ->confirm($queryParams['__e_cnf_token']);
+                    ->confirm($cnfToken);
             } catch (Exception $e) {
                 // Do not continue processing.
                 // TODO: Log?

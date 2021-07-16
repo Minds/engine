@@ -13,6 +13,9 @@ class ViewsSynchroniser
     /** @var ViewsRepository */
     private $viewsRepository;
 
+    /** @var int */
+    protected $from;
+
     public function __construct($viewsRepository = null)
     {
         $this->viewsRepository = $viewsRepository ?: new ViewsRepository();

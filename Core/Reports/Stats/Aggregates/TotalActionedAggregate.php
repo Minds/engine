@@ -26,7 +26,7 @@ class TotalActionedAggregate implements ModerationStatsAggregateInterface
             AND uphold = true
             ALLOW FILTERING
             ";
-        $values = [ new Timestamp(strtotime('-30 days', time())) ];
+        $values = [ new Timestamp(strtotime('-30 days', time()), 0) ];
 
         $prepared = new Prepared\Custom();
         $prepared->query($statement, $values);
@@ -37,7 +37,7 @@ class TotalActionedAggregate implements ModerationStatsAggregateInterface
         $statement = "SELECT count(*) as total FROM moderation_reports_by_state
             WHERE state = 'appeal_jury_decided' 
             AND timestamp > ?";
-        $values = [ new Timestamp(strtotime('-30 days', time())) ];
+        $values = [ new Timestamp(strtotime('-30 days', time()), 0) ];
 
         $prepared = new Prepared\Custom();
         $prepared->query($statement, $values);

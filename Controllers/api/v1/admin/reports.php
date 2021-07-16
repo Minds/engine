@@ -74,8 +74,6 @@ class reports implements Interfaces\Api, Interfaces\ApiAdminPam
             case 'spam':
                 $response['done'] = $actions->markAsSpam($guid, $reason);
                 break;
-            case 'spam':
-                $response['done'] = (new Core\Reports())->spam($guid, $reason);
                 break;
             case 'delete':
                 $response['done'] = $actions->delete($guid, $reason);

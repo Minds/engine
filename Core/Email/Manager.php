@@ -125,7 +125,7 @@ class Manager
      * Saves a log when we send a user a campaign email
      * Used to select subsequent mailings and send different emails
      * @param CampaignLog $campaignLog the receiver, time and campaign class name
-     * @return boolean the add result
+     * @return void
      */
     public function saveCampaignLog(CampaignLog $campaignLog)
     {

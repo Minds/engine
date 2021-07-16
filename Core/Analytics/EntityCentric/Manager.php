@@ -89,6 +89,7 @@ class Manager
      */
     public function getAggregateByQuery(array $query): array
     {
+        return [];
     }
 
     /**

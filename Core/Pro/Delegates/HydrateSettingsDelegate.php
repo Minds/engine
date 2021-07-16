@@ -11,6 +11,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Pro\Settings;
 use Minds\Entities\User;
+use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\Text;
 
 class HydrateSettingsDelegate
@@ -80,6 +81,10 @@ class HydrateSettingsDelegate
         try {
             if ($user->getPinnedPosts()) {
                 $pinnedPosts = $this->entitiesBuilder->get(['guids' => Text::buildArray($user->getPinnedPosts())]);
+
+                if (!$pinnedPosts || empty($pinnedPosts)) {
+                    throw new UserErrorException("No pinned posts");
+                }
 
                 uasort($pinnedPosts, function ($a, $b) {
                     if (!$a || !$b) {

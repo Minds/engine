@@ -13,8 +13,10 @@ namespace Minds\Core\Blockchain\Uniswap;
  * @method UniswapBurnEntity[] getBurns()
  * @method self setBurns(UniswapMints[] $burns)
  */
-class UniswapUserEntity extends UniswapBaseEntity
+class UniswapUserEntity implements UniswapEntityInterface
 {
+    use UniswapBaseTrait;
+
     /** @var float */
     protected $usdSwapped;
 
@@ -31,9 +33,9 @@ class UniswapUserEntity extends UniswapBaseEntity
      * Builds from an array
      * @param array $data
      */
-    public static function build(array $data): UniswapEntityInterface
+    public static function build(array $data): self
     {
-        $instance = parent::build($data);
+        $instance = self::buildBase($data);
         $instance->setUsdWapped($data['usdSwapped']);
        
         return $instance;

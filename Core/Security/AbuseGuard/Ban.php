@@ -15,6 +15,9 @@ class Ban
     private $recover;
     private $events = true;
 
+    /** @var Core\Data\Sessions */
+    private $sessions;
+
     /** @var Core\Channels\Ban */
     private $channelsBanManager;
 

@@ -62,13 +62,7 @@ class page extends base
      */
     public function render(array $params = [])
     {
-        $default = [
-            'title' => null,
-            'body' => null,
-            'page_shell' => 'default'
-        ];
-        $params = array_merge($default, $params);
-        return \elgg_view_page($params['title'], $params['body'], $params['page_shell'], $params);
+        return "";
     }
 
     /**

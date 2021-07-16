@@ -121,7 +121,7 @@ class Repository
         $cql = "INSERT INTO search_dispatcher_queue (entity_urn, last_retry, retries) VALUES (?, ?, ?)";
         $values = [
             (string) $retryQueueEntry->getEntityUrn(),
-            new Timestamp($retryQueueEntry->getLastRetry()),
+            new Timestamp($retryQueueEntry->getLastRetry(), 0),
             (int) $retryQueueEntry->getRetries(),
         ];
 

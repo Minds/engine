@@ -10,7 +10,7 @@ use Minds\Core\Di\Di;
  */
 class ChargeInstance extends StaticToInstance
 {
-    public function __construct(Config $config = null)
+    public function __construct()
     {
         Di::_()->get('StripeSDK');
         $this->setClass(new \Stripe\Charge);

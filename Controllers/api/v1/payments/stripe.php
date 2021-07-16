@@ -32,6 +32,7 @@ class stripe implements Interfaces\Api
           break;
         case "cards":
           $stripe = Core\Di\Di::_()->get('StripePayments');
+          $cards = [];
 
           try {
               $customer = (new Customer())->setUser(Core\Session::getLoggedInUser());
@@ -40,6 +41,9 @@ class stripe implements Interfaces\Api
                   $cards = $customerObj->getPaymentMethods();
               }
           } catch (\Exception $e) {
+              return Factory::response([
+                'status' => 'error',
+            ]);
           }
 
           $response['cards'] = $cards ?: [];

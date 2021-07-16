@@ -274,7 +274,7 @@ class BigNumber implements JsonSerializable
         $base = (string) $base;
 
         if (!$based) {
-            return new static(0);
+            return new BigNumber(0);
         }
 
         $digits = array_reverse(str_split($based));
@@ -287,7 +287,7 @@ class BigNumber implements JsonSerializable
             $dec = bcadd($dec, $part, '0');
         }
 
-        return new static($dec, 0);
+        return new BigNumber($dec, 0);
     }
 
     /**
@@ -314,8 +314,8 @@ class BigNumber implements JsonSerializable
      */
     public static function toPlain($value, $decimalPlaces)
     {
-        $decimal = (new static(10))->pow((int) $decimalPlaces);
-        return (new static($value))->mul($decimal);
+        $decimal = (new BigNumber(10))->pow((int) $decimalPlaces);
+        return (new BigNumber($value))->mul($decimal);
     }
 
     /**
@@ -327,8 +327,8 @@ class BigNumber implements JsonSerializable
      */
     public static function fromPlain($value, $decimalPlaces)
     {
-        $decimal = (new static(10))->pow((int) $decimalPlaces);
-        return (new static($value, $decimalPlaces))->div($decimal);
+        $decimal = (new BigNumber(10))->pow((int) $decimalPlaces);
+        return (new BigNumber($value, $decimalPlaces))->div($decimal);
     }
 
     /**
@@ -339,7 +339,7 @@ class BigNumber implements JsonSerializable
      */
     public static function _($value, $base = 0)
     {
-        return new static($value, $base);
+        return new BigNumber($value, $base);
     }
 
     /**
@@ -350,7 +350,7 @@ class BigNumber implements JsonSerializable
      */
     protected function immutable($value)
     {
-        return new static($value, $this->scale);
+        return new BigNumber($value, $this->scale);
     }
 
     /**

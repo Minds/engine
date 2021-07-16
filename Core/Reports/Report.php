@@ -25,6 +25,8 @@ use Minds\Traits\MagicAttributes;
  * @method Report setTimestamp(int $timestamp)
  * @method Report setReasonCode(int $value)
  * @method Report setSubReasonCode(int $value)
+ * @method int getTimestamp()
+ * @method string getAppealNote()
  */
 class Report
 {

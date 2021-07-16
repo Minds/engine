@@ -21,15 +21,15 @@ class AWS implements ServiceInterface
 
     public function __construct($custom = [])
     {
-        $awsConfig = Di::_()->get('Config')->get('aws');
+        $awsConfig = Di::_()->get('Config')->get('aws') ?? [];
         $opts = [
-            'region' => $awsConfig['region']
+            'region' => $awsConfig['region'] ?? 'us-east-1',
         ];
 
         if (!isset($awsConfig['useRoles']) || !$awsConfig['useRoles']) {
             $opts['credentials'] = [
-                'key' => $awsConfig['key'],
-                'secret' => $awsConfig['secret'],
+                'key' => $awsConfig['key'] ?? null,
+                'secret' => $awsConfig['secret'] ?? null,
             ];
         }
 
@@ -70,7 +70,7 @@ class AWS implements ServiceInterface
                   ]);
                 return $this;
             } elseif (is_resource($file)) {
-                $result =  $this->client->putObject([
+                $result =  $this->s3->putObject([
                   'ACL' => 'public-read',
                   'Bucket' => 'cinemr',
                   'Key' => "$this->dir/$this->key/source",

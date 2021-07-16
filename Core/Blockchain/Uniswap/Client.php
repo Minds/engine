@@ -93,7 +93,7 @@ class Client
 
         $uniswapUser = new UniswapUserEntity();
         $uniswapUser->setId($response['user']['id'])
-            ->setUsdSwapped($response['user']['usdSwaped']);
+            ->setUsdSwapped($response['user']['usdSwaped'] ?? 0);
 
         // Liquidity Positions
 

@@ -38,7 +38,7 @@ class Repository
             $lease->getKey(),
             $lease->getSecret(),
             new Varint($lease->getHolderGuid()),
-            new Timestamp($lease->getLastRefreshed()),
+            new Timestamp($lease->getLastRefreshed(), 0),
         ];
 
         $query = new Prepared();
@@ -94,6 +94,10 @@ class Repository
             $rows = $this->db->request($query);
         } catch (\Exception $e) {
             error_log($e->getMessage());
+        }
+
+        if (!isset($rows)) {
+            return $leases;
         }
 
         foreach ($rows as $row) {

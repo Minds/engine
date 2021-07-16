@@ -8,16 +8,19 @@ namespace Minds\Common;
 
 use DateTimeImmutable;
 use Exception;
-use Lcobucci\JWT\Builder;
+use Lcobucci\JWT\Configuration;
 use Lcobucci\JWT\Claim;
-use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
+use Lcobucci\JWT\Validation\Constraint\SignedWith;
 
 class Jwt
 {
     /** @var string */
     protected $key;
+
+    /** @var Configuration */
+    protected $jwtConfig;
 
     /**
      * @param string $key
@@ -26,6 +29,9 @@ class Jwt
     public function setKey(string $key): Jwt
     {
         $this->key = $key;
+
+        $this->jwtConfig = Configuration::forSymmetricSigner(new Sha256(), InMemory::plainText($key));
+
         return $this;
     }
 
@@ -42,21 +48,21 @@ class Jwt
             throw new Exception('Invalid JWT key');
         }
 
-        $builder = new Builder();
+        $builder = $this->jwtConfig->builder();
 
         foreach ($payload as $key => $value) {
-            $builder->set($key, $value);
+            $builder->withClaim($key, $value);
         }
 
         if ($exp !== null) {
-            $builder->setExpiration((new DateTimeImmutable())->setTimestamp($exp));
+            $builder->expiresAt((new DateTimeImmutable())->setTimestamp($exp));
         }
 
         if ($nbf !== null) {
-            $builder->setNotBefore((new DateTimeImmutable())->setTimestamp($nbf));
+            $builder->canOnlyBeUsedAfter((new DateTimeImmutable())->setTimestamp($nbf));
         }
 
-        return (string) $builder->getToken(new Sha256(), new InMemory($this->key));
+        return (string) $builder->getToken($this->jwtConfig->signer(), $this->jwtConfig->signingKey())->toString();
     }
 
     /**
@@ -70,15 +76,13 @@ class Jwt
             throw new Exception('Invalid JWT key');
         }
 
-        $token = (new Parser())->parse($jwt);
+        $token = $this->jwtConfig->parser()->parse($jwt);
 
-        if (!$token->verify(new Sha256(), new InMemory($this->key))) {
+        if (!$this->jwtConfig->validator()->validate($token, new SignedWith($this->jwtConfig->signer(), $this->jwtConfig->signingKey()))) {
             throw new Exception('Invalid JWT');
         }
 
-        return array_map(function (Claim $claim) {
-            return $claim->getValue();
-        }, $token->getClaims());
+        return $token->claims()->all();
     }
 
     /**

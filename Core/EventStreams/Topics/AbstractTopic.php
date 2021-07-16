@@ -46,16 +46,23 @@ abstract class AbstractTopic
         $pulsarConfig = $this->config->get('pulsar');
         $pulsarHost = $pulsarConfig['host'] ?? 'pulsar';
         $pulsarPort = $pulsarConfig['port'] ?? 6650;
-        $pulsarSchema = $pulsarConfig['ssl'] ? 'pulsar+ssl' : 'pulsar';
+        $pulsarSchema = ($pulsarConfig['ssl'] ?? true) ? 'pulsar+ssl' : 'pulsar';
 
         $clientConfig = new ClientConfiguration();
 
-        if ($pulsarConfig['ssl']) {
+        if ($pulsarConfig['ssl'] ?? true) {
             $clientConfig->setUseTls(true)
-                ->setTlsTrustCertsFilePath($pulsarConfig['ssl_cert_path']);
+                ->setTlsTrustCertsFilePath($pulsarConfig['ssl_cert_path'] ?? '/var/secure/pulsar.crt');
         }
 
-        return $this->client ?? new Client("$pulsarSchema://$pulsarHost:$pulsarPort", $clientConfig);
+        if ($this->client) {
+            return $this->client;
+        }
+
+        $this->client = new Client();
+        $this->client->init("$pulsarSchema://$pulsarHost:$pulsarPort", $clientConfig);
+
+        return $this->client;
     }
 
     /**

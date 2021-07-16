@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\SSO;
 
 use Exception;
+use Lcobucci\JWT\Token;
 use Minds\Common\Jwt;
 use Minds\Core\Config;
 use Minds\Core\Data\cache\abstractCacher;
@@ -63,7 +64,8 @@ class ManagerSpec extends ObjectBehavior
     }
 
     public function it_should_generate_token(
-        Session $session
+        Session $session,
+        Token $token
     ) {
         $this->proDelegate->isAllowed('phpspec.test')
             ->shouldBeCalled()
@@ -79,6 +81,9 @@ class ManagerSpec extends ObjectBehavior
 
         $session->getToken()
             ->shouldBeCalled()
+            ->willReturn($token);
+
+        $token->toString()
             ->willReturn('~token~');
 
         $this->jwt->randomString()

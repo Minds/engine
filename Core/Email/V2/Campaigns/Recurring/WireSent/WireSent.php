@@ -104,7 +104,7 @@ class WireSent extends EmailCampaign
         $proSettings = $this->proManager->setUser($this->wire->getReceiver())->get();
         if ($proSettings && $this->proManager->isActive()) {
             $proHeader = (new ProHeader())
-                ->set('tracking', $trackingQuery)
+                ->set('tracking', $tracking)
                 ->setProSettings($proSettings);
             $this->template->set('custom_header', $proHeader->build());
         }

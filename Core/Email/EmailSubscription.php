@@ -8,6 +8,9 @@ use Minds\Traits\MagicAttributes;
  * @package Minds\Core\Email
  *
  * @method string getUserGuid()
+ * @method string getCampaign()
+ * @method string getTopic()
+ * @method bool getValue()
  */
 class EmailSubscription
 {

@@ -171,7 +171,8 @@ class Manager
 
             $feedSyncEntities[] = (new FeedSyncEntity())
                 ->setGuid((string) $scoredGuid->getGuid())
-                ->setOwnerGuid((string) $ownerGuid)
+    
+                 ->setOwnerGuid((string) $ownerGuid)
                 ->setUrn(new Urn($urn))
                 ->setTimestamp($scoredGuid->getTimestamp());
 

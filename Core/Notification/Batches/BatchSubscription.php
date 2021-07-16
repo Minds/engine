@@ -6,11 +6,15 @@ namespace Minds\Core\Notification\Batches;
 
 use Minds\Traits\MagicAttributes;
 
+/**
+ * @method string getUserGuid()
+ * @method string getBatchId()
+ */
 class BatchSubscription
 {
     use MagicAttributes;
 
-    /** @param int $userGuid */
+    /** @param string $userGuid */
     private $userGuid;
 
     /** @param string $batchId */

@@ -38,6 +38,7 @@ class Pageviews implements AggregateInterface
     public function fetchAll($opts = [])
     {
         $result = [];
+        $span = null;
         foreach ([
                      null,
                      'routes',

@@ -98,7 +98,7 @@ function elgg_load_library($name) {
  * Is the request using SSL?
  */
 function isSSL(){
-	return $_SERVER['SERVER_PORT'] == 443 || $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https';
+	return ($_SERVER['SERVER_PORT'] ?? null) == 443 || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? null) == 'https';
 }
 
 /**
@@ -936,7 +936,7 @@ function fatalErrorShutdownHandler(){
 
 	$last_error = error_get_last();
 
-	if($last_error['type'] == E_ERROR && php_sapi_name() != "cli"){
+	if($last_error && $last_error['type'] == E_ERROR && php_sapi_name() != "cli"){
 		error_log('Fatal error: '.nl2br(htmlentities(print_r($last_error, true), ENT_QUOTES, 'UTF-8')));
 		// Wipe any existing output buffer
 		ob_end_clean();
@@ -1188,7 +1188,7 @@ function current_page_url() {
  * @todo Combine / replace with current_page_url()
  */
 function full_url() {
-	$s = empty($_SERVER["HTTPS"]) ? '' : ($_SERVER["HTTPS"] == "on") ? "s" : "";
+	$s = empty($_SERVER["HTTPS"]) ? '' : (($_SERVER["HTTPS"] == "on") ? "s" : "");
 	$protocol = substr(strtolower($_SERVER["SERVER_PROTOCOL"]), 0,
 		strpos(strtolower($_SERVER["SERVER_PROTOCOL"]), "/")) . $s;
 
@@ -1624,7 +1624,9 @@ function _elgg_shutdown_hook() {
 
 		$time = (float)(microtime(TRUE) - $START_MICROTIME);
 		// demoted to NOTICE from DEBUG so javascript is not corrupted
-		elgg_log("Page {$_SERVER['REQUEST_URI']} generated in $time seconds", 'NOTICE');
+                if (isset($_SERVER['REQUEST_URI'])) {
+		    elgg_log("Page {$_SERVER['REQUEST_URI']} generated in $time seconds", 'NOTICE');
+                }
 	} catch (Exception $e) {
 		$message = 'Error: ' . get_class($e) . ' thrown within the shutdown handler. ';
 		$message .= "Message: '{$e->getMessage()}' in file {$e->getFile()} (line {$e->getLine()})";

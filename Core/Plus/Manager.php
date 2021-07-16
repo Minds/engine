@@ -147,8 +147,8 @@ class Manager
           ALLOW FILTERING
         ", [
             new \Cassandra\Varint($this->getPlusGuid()),
-            new \Cassandra\Timestamp($from),
-            new \Cassandra\Timestamp($to),
+            new \Cassandra\Timestamp($from, 0),
+            new \Cassandra\Timestamp($to, 0),
             new \Cassandra\Varint($amount)
         ]);
 

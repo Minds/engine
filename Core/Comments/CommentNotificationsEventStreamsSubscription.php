@@ -50,7 +50,6 @@ class CommentNotificationsEventStreamsSubscription implements SubscriptionInterf
         EntitiesBuilder $entitiesBuilder = null,
         PostSubscriptions\Manager $postSubscriptionsManager = null,
         Block\Manager $blockManager = null,
-        Logger $logger = null,
         Config $config = null
     ) {
         $this->manager = $manager ?? Di::_()->get('Comments\Manager');
@@ -121,6 +120,9 @@ class CommentNotificationsEventStreamsSubscription implements SubscriptionInterf
             return true; // If this is a group conversation, and not a reply don't notify
         }
 
+        $parent = null;
+        $subscribers = [];
+
         if ($isReply) {
             $parent_guids = explode(':', $comment->getPartitionPath());
 
@@ -157,7 +159,7 @@ class CommentNotificationsEventStreamsSubscription implements SubscriptionInterf
                 ->toArray();
         }
 
-        if (!$subscribers) {
+        if (empty($subscribers)) {
             return true; // No one is subscribe
         }
 

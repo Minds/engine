@@ -46,7 +46,7 @@ class Subscribe implements EmailBatchInterface
 
             foreach ($guids as $guid => $ts) {
                 if ($sFails > 5) {
-                    $this->out('Too many failures [pausing for 5 seconds]');
+                    //$this->out('Too many failures [pausing for 5 seconds]');
                     sleep(5);
                 }
 

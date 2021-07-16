@@ -7,19 +7,17 @@
 namespace Minds\Core\Data;
 
 use phpcassa\Connection\ConnectionPool;
-use Minds\Core;
-use Minds\Core\config;
 
 class Pool
 {
     public static $pools = [];
 
-    public static function build($keyspace, $servers = ['localhost'], $poolsize, $retries = 1, $sendTimeout = 200, $receiveTimeout = 800)
+    public static function build($keyspace, $servers = ['localhost'], $poolsize = 2, $retries = 2, $sendTimeout = 200, $receiveTimeout = 800)
     {
 //        return  new ConnectionPool($keyspace, $servers, $poolsize, 2, $sendTimeout, $receiveTimeout);
 
         if (!isset(self::$pools[$keyspace])) {
-            self::$pools[$keyspace] = new ConnectionPool($keyspace, $servers, $poolsize, 2, $sendTimeout, $receiveTimeout);
+            self::$pools[$keyspace] = new ConnectionPool($keyspace, $servers, $poolsize, $retries, $sendTimeout, $receiveTimeout);
         }
 
         return self::$pools[$keyspace];

@@ -91,9 +91,10 @@ class S3 implements ServiceInterface
                         'Bucket' => Config::_()->aws['bucket'],
                         'Key' => $this->filepath
                     ]);
+                    return $result['Body'];
                 } catch (\Exception $e) {
+                    return "";
                 }
-                return $result['Body'];
                 break;
             case "redirect":
             default:

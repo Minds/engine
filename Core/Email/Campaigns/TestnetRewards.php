@@ -26,6 +26,7 @@ class TestnetRewards
     protected $templateKey = "";
     protected $topic = "minds_news";
     protected $campaign = "global";
+    protected $vars = [];
 
     public function __construct(Call $db = null, Template $template = null, Mailer $mailer = null)
     {

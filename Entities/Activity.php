@@ -13,6 +13,36 @@ use Minds\Core\Feeds\Activity\RemindIntent;
 
 /**
  * Activity Entity
+ * @property array $ownerObj
+ * @property User $owner
+ * @property int $boost_rejection_reason
+ * @property array $wire_threshold
+ * @property array $remind_object
+ * @property int $comments_enabled
+ * @property int $paywall
+ * @property int $edited
+ * @property int $deleted
+ * @property int $spam
+ * @property int $pending
+ * @property int $ephemeral
+ * @property string $entity_guid
+ * @property int $mature
+ * @property string $to_guid
+ * @property int $boosted
+ * @property int $boosted_onchain
+ * @property int $p2p_boosted
+ * @property string $title
+ * @property string $message
+ * @property string $perma_url
+ * @property string $blurb
+ * @property array $custom_data
+ * @property string $custom_type
+ * @property string $thumbnail_src
+ * @property string $boosted_guid
+ * @property string $urn
+ * @property int $time_sent
+ * @property string $license
+ * @property string $permaweb_id
  */
 class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface
 {
@@ -70,6 +100,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         parent::__construct($guid);
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->activityManager = $activityManager ?? Di::_()->get('Feeds\Activity\Manager');
+        if ($cache) {
+        }
     }
 
     /**
@@ -982,6 +1014,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function isRemind(): bool
     {
         return !$this->message
+            && is_array($this->remind_object)
             && $this->remind_object['guid']
             && !($this->remind_object['quoted_post'] ?? true);
     }
@@ -993,7 +1026,9 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
      */
     public function isQuotedPost(): bool
     {
-        return $this->remind_object['guid'] && !$this->isRemind();
+        return is_array($this->remind_object)
+            && $this->remind_object['guid']
+            && !$this->isRemind();
     }
 
     /**

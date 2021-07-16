@@ -64,9 +64,6 @@ class DataProvider extends Provider
         $this->di->bind('Database\MongoDB', function ($di) {
             return new MongoDB\Client();
         }, ['useFactory'=>true]);
-        $this->di->bind('Database\Neo4j', function ($di) {
-            return new Neo4j\Client();
-        }, ['useFactory'=>true]);
         $this->di->bind('Database\ElasticSearch', function ($di) {
             return new ElasticSearch\Client();
         }, ['useFactory'=>true]);
@@ -114,13 +111,13 @@ class DataProvider extends Provider
          * Redis
          */
         $this->di->bind('Redis', function ($di) {
-            $master = $di->get('Config')->redis['master'];
+            $master = ($di->get('Config')->redis ?? null)['master'] ?? null;
             $client = new Redis\Client();
             $client->connect($master);
             return $client;
         }, ['useFactory'=>true]);
         $this->di->bind('Redis\Slave', function ($di) {
-            $slave = $di->get('Config')->redis['slave'];
+            $slave = ($di->get('Config')->redis ?? null)['slave'] ?? null;
             $client = new Redis\Client();
             $client->connect($slave);
             return $client;

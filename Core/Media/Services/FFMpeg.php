@@ -53,7 +53,7 @@ class FFMpeg implements ServiceInterface
         $this->ffmpeg = $ffmpeg ?: FFMpegClient::create([
             'ffmpeg.binaries' => '/usr/bin/ffmpeg',
             'ffprobe.binaries' => '/usr/bin/ffprobe',
-            'ffmpeg.threads' => $this->config->get('transcoder')['threads'],
+            'ffmpeg.threads' => $this->config->get('transcoder')['threads'] ?? 1,
             'timeout' => 0,
         ]);
         $this->ffprobe = $ffprobe ?: FFProbeClient::create([
@@ -61,18 +61,18 @@ class FFMpeg implements ServiceInterface
         ]);
         $awsConfig = $this->config->get('aws');
         $opts = [
-            'region' => $awsConfig['region'],
+            'region' => $awsConfig['region'] ?? 'us-east-1',
         ];
 
         if (!isset($awsConfig['useRoles']) || !$awsConfig['useRoles']) {
             $opts['credentials'] = [
-                'key' => $awsConfig['key'],
-                'secret' => $awsConfig['secret'],
+                'key' => $awsConfig['key'] ?? null,
+                'secret' => $awsConfig['secret'] ?? null,
             ];
         }
 
         $this->s3 = $s3 ?: new S3Client(array_merge(['version' => '2006-03-01'], $opts));
-        $this->dir = $this->config->get('transcoder')['dir'];
+        $this->dir = $this->config->get('transcoder')['dir'] ?? '';
     }
 
     /**
@@ -125,7 +125,7 @@ class FFMpeg implements ServiceInterface
 
                 return $this;
             } elseif (is_resource($file)) {
-                $result = $this->client->putObject([
+                $result = $this->s3->putObject([
                   'ACL' => 'public-read',
                   'Bucket' => 'cinemr',
                   'Key' => "$this->dir/$this->key/source",
@@ -230,7 +230,7 @@ class FFMpeg implements ServiceInterface
                 continue;
             }
 
-            if ($rotated) {
+            if ($rotated && isset($videostream)) {
                 $ratio = $videostream->get('width') / $videostream->get('height');
                 $width = round($opts['height'] * $ratio);
                 $opts['width'] = $opts['height'];

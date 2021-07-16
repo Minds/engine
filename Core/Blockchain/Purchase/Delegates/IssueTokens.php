@@ -10,6 +10,7 @@ namespace Minds\Core\Blockchain\Purchase\Delegates;
 
 use Minds\Core\Blockchain\Config;
 use Minds\Core\Blockchain\Transactions\Transaction;
+use Minds\Core\Blockchain\Transactions\Repository;
 use Minds\Core\Blockchain\Purchase\Purchase;
 use Minds\Core\Blockchain\Services\Ethereum;
 use Minds\Core\Di\Di;
@@ -17,8 +18,14 @@ use Minds\Core\Util\BigNumber;
 
 class IssueTokens
 {
+    /** @var Config */
+    protected $config;
+
     /** @var Ethereum */
     protected $ethereumClient;
+
+    /** @var Repository */
+    protected $txRepository;
 
     /**
      * Whitelist constructor.

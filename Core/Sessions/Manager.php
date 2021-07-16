@@ -5,14 +5,17 @@
 
 namespace Minds\Core\Sessions;
 
+use DateTimeImmutable;
 use Exception;
 use Minds\Common\Cookie;
 use Minds\Common\IpAddress;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Lcobucci\JWT;
+use Lcobucci\JWT\Signer\InvalidKeyProvided;
 use Lcobucci\JWT\Signer\Key\LocalFileReference;
 use Lcobucci\JWT\Signer\Rsa\Sha512;
+use Lcobucci\JWT\Validation\Constraint\SignedWith;
 use Minds\Common\Repository\Response;
 use Minds\Entities\User;
 
@@ -42,15 +45,14 @@ class Manager
     /** @var User $user */
     private $user;
 
-    /** @var JWT\Builder */
-    private $jwtBuilder;
+    /** @var JWT\Configuration */
+    private $jwtConfig;
 
     public function __construct(
         $repository = null,
         $config = null,
         $cookie = null,
-        $jwtBuilder = null,
-        $jwtParser = null,
+        $jwtConfig = null,
         $ipAddress = null,
         $sentryScopeDelegate = null,
         $userLanguageDelegate = null
@@ -58,11 +60,22 @@ class Manager
         $this->repository = $repository ?: new Repository;
         $this->config = $config ?: Di::_()->get('Config');
         $this->cookie = $cookie ?: new Cookie;
-        $this->jwtBuilder = $jwtBuilder ?: new JWT\Builder;
-        $this->jwtParser = $jwtParser ?: new JWT\Parser;
+        $this->jwtConfig = $jwtConfig;
         $this->ipAddress = $ipAddress ?? new IpAddress();
         $this->sentryScopeDelegate = $sentryScopeDelegate ?: new Delegates\SentryScopeDelegate;
         $this->userLanguageDelegate = $userLanguageDelegate ?: new Delegates\UserLanguageDelegate();
+    }
+
+    /**
+     * @return JWT\Configuration
+     */
+    protected function getJwtConfig(): JWT\Configuration
+    {
+        if (!$this->jwtConfig) {
+            $this->jwtConfig = JWT\Configuration::forAsymmetricSigner(new Sha512, LocalFileReference::file($this->config->get('sessions')['private_key']), LocalFileReference::file($this->config->get('sessions')['public_key']));
+        }
+
+        return $this->jwtConfig;
     }
 
     /**
@@ -118,29 +131,34 @@ class Manager
     public function withString(string $sessionToken): Manager
     {
         try {
-            $token = $this->jwtParser->parse($sessionToken);
-            $token->getHeaders();
-            $token->getClaims();
+            $token = $this->getJwtConfig()->parser()->parse($sessionToken);
         } catch (\Exception $e) {
             return $this;
         }
 
-        $key = $this->config->get('sessions')['public_key'];
-
-        if (!$token->verify(new Sha512, new LocalFileReference($key))) {
+        try {
+            $constraints = [
+                new SignedWith($this->getJwtConfig()->signer(), $this->getJwtConfig()->verificationKey()),
+            ];
+            if (!$this->getJwtConfig()->validator()->validate($token, ...$constraints)) {
+                return $this;
+            }
+        } catch (InvalidKeyProvided $e) {
             return $this;
         }
 
-        $id = $token->getHeader('jti');
-        $user_guid = $token->getClaim('user_guid');
-        $expires = $token->getClaim('exp');
+        $id = $token->headers()->get('jti');
+        $user_guid = $token->claims()->get('user_guid');
+
+        /** @var \DateTimeImmutable */
+        $expires = $token->claims()->get('exp');
 
         $session = new Session;
         $session
             ->setId($id)
             ->setUserGuid($user_guid)
             ->setToken($token)
-            ->setExpires($expires);
+            ->setExpires($expires->getTimestamp());
 
         if (!$this->validateSession($session)) {
             return $this;
@@ -216,23 +234,23 @@ class Manager
     public function createSession()
     {
         $id = $this->generateId();
-        $expires = time() + (60 * 60 * 24 * 30); // 30 days
+        $expires = new DateTimeImmutable("+30 days");
 
-        $token = $this->jwtBuilder
+        $token = $this->getJwtConfig()->builder()
             //->issuedBy($this->config->get('site_url'))
             //->canOnlyBeUsedBy($this->config->get('site_url'))
-            ->setId($id)
-            ->setHeader('jti', $id)
-            ->setExpiration($expires)
-            ->set('user_guid', (string) $this->user->getGuid())
-            ->getToken(new Sha512, new LocalFileReference($this->config->get('sessions')['private_key']));
+            ->identifiedBy($id)
+            ->withHeader('jti', $id)
+            ->expiresAt($expires)
+            ->withClaim('user_guid', (string) $this->user->getGuid())
+            ->getToken($this->getJwtConfig()->signer(), $this->getJwtConfig()->signingKey());
 
         $this->session = new Session();
         $this->session
             ->setId($id)
-            ->setToken($token)
+            ->setToken($token->toString())
             ->setUserGuid($this->user->getGuid())
-            ->setExpires($expires)
+            ->setExpires($expires->getTimestamp())
             ->setLastActive(time())
             ->setIp($this->ipAddress->get());
 

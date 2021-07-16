@@ -46,7 +46,6 @@ class SignupsIterator implements \Iterator
 
     /**
      * Fetch all the users who signed up
-     * @return array
      */
     protected function getUsers()
     {

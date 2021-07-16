@@ -51,7 +51,7 @@ class Repository
                     $purchase->getTx(),
                     new Varint($purchase->getUserGuid()),
                     $purchase->getWalletAddress(),
-                    new Timestamp($purchase->getTimestamp()),
+                    new Timestamp($purchase->getTimestamp(), 0),
                     new Varint($purchase->getRequestedAmount()),
                     new Varint($purchase->getIssuedAmount()),
                     (string) $purchase->getStatus(),
@@ -147,7 +147,7 @@ class Repository
         }
 
         return [
-            'purchases' => $purchases,
+            'purchases' => $purchases ?? [],
             'token' => $rows->pagingStateToken()
         ];
     }

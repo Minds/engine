@@ -11,7 +11,7 @@ class Client
 
     public function __construct($redis = null)
     {
-        $this->redis = $redis ?: class_exists('Redis') ? new \Redis : null;
+        $this->redis = $redis ?: (class_exists('Redis') ? new \Redis : null);
     }
 
     public function connect(...$args)

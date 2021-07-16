@@ -34,6 +34,7 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
     protected $categories = [];
     protected $rejection_reason = -1;
     protected $checksum = null;
+    protected $revoked_timestamp;
 
     protected $exportableDefaults = [
         'guid', '_id', 'entity', 'bid', 'bidType', 'destination', 'owner', 'state',
@@ -41,11 +42,6 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
         'rating', 'quality', 'impressions', 'categories', 'rejection_reason', 'checksum',
         'revoked_timestamp'
     ];
-
-    public function __construct($db = null)
-    {
-        $this->db = null;
-    }
 
     /**
      * Loads from the database using a GUID
@@ -445,7 +441,9 @@ class Network extends Entities\DenormalizedEntity implements BoostEntityInterfac
      */
     public function export(array $keys = [])
     {
-        $this->owner->fullExport = false; //don't grab counts etc
+        if ($this->owner) {
+            $this->owner->fullExport = false; //don't grab counts etc
+        }
         $export = parent::export();
         $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'all', ['entity' => $this], []));
         $export = \Minds\Helpers\Export::sanitize($export);

@@ -18,6 +18,12 @@ abstract class AbstractReport implements ReportInterface
     /** @var array required parameters for the report */
     protected $required = [];
 
+    /** @var int */
+    protected $from;
+
+    /** @var int */
+    protected $to;
+
     /**
      * Get report result
      *

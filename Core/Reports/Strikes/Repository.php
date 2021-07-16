@@ -68,17 +68,17 @@ class Repository
 
         if ($opts['timestamp']) {
             $statement .= " AND timestamp = ?";
-            $values[] = new Timestamp($opts['timestamp']);
+            $values[] = new Timestamp($opts['timestamp'], 0);
         }
 
         if ($opts['from']) {
             $statement .= " AND timestamp > ?";
-            $values[] = new Timestamp($opts['from']);
+            $values[] = new Timestamp($opts['from'], 0);
         }
 
         if ($opts['to']) {
             $statement .= " AND timestamp < ?";
-            $values[] = new Timestamp($opts['to']);
+            $values[] = new Timestamp($opts['to'], 0);
         }
 
         if (!isset($opts['reason_code']) && !isset($opts['sub_reason_code'])) {
@@ -140,7 +140,7 @@ class Repository
             (?, ?, ?, ?, ?)";
         $values = [
             new Bigint($strike->getUserGuid()),
-            new Timestamp($strike->getTimestamp()),
+            new Timestamp($strike->getTimestamp(), 0),
             new Tinyint($strike->getReasonCode()),
             new Decimal($strike->getSubReasonCode()),
             $strike->getReportUrn(),
@@ -167,7 +167,7 @@ class Repository
             new Bigint($strike->getUserGuid()),
             new Tinyint($strike->getReasonCode()),
             new Decimal($strike->getSubReasonCode()),
-            new Timestamp($strike->getTimestamp()),
+            new Timestamp($strike->getTimestamp(), 0),
         ];
 
         $prepared = new Prepared();

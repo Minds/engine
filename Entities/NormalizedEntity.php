@@ -19,6 +19,18 @@ class NormalizedEntity
     protected $indexes = [];
     protected $exportableDefaults = [];
 
+    /** @var string $featured_id */
+    protected $featured_id;
+
+    /** @var int $featured */
+    protected $featured;
+
+    /** @var string $type */
+    protected $type;
+
+    /** @var string $subtype */
+    protected $subtype;
+
     public function __construct($db = null, $indexDb = null)
     {
         $this->db = $db ?: new Data\Call('entities');
@@ -197,5 +209,9 @@ class NormalizedEntity
     public function canEdit()
     {
         return Core\Security\ACL::_()->write($this);
+    }
+
+    public function save()
+    {
     }
 }

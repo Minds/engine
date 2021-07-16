@@ -11,6 +11,7 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
 use Cassandra\Varint;
 use Minds\Core\Di\Di;
+use Minds\Core\Notification\PostSubscriptions\PostSubscription;
 
 class Repository
 {

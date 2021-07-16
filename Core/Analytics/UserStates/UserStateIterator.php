@@ -24,6 +24,10 @@ class UserStateIterator implements \Iterator
     private $active;
     private $valid = true;
 
+    protected $client;
+    protected $position;
+    protected $referenceDate;
+
     public function __construct($client = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');

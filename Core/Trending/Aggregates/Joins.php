@@ -15,8 +15,6 @@ class Joins extends Aggregate
         $filter = [
             'term' => [
                 'action' => 'join',
-            ],
-            'term' => [
                 'entity_membership' => 2
             ]
         ];

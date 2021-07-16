@@ -27,6 +27,10 @@ class Permissions implements \JsonSerializable
     private $roles;
     /** @var array */
     private $entities;
+    /** @var array */
+    private $groups;
+    /** @var array */
+    private $channels;
     /** @var ChannelRoleCalculator */
     private $channelRoleCalculator;
     /** @var GroupRoleCalculator */

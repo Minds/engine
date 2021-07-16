@@ -47,7 +47,7 @@ class PsrWrapper implements CacheInterface
      */
     public function delete($key)
     {
-        $this->cache->destroy($key);
+        return $this->cache->destroy($key);
     }
 
     /**

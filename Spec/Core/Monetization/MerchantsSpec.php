@@ -61,17 +61,8 @@ class MerchantsSpec extends ObjectBehavior
     }
 
     public function it_should_ban_merchants(
-        Monetization\Payouts $payouts,
         Entities\User $user
     ) {
-        Di::_()->bind('Monetization\Payouts', function ($di) use ($payouts) {
-            return $payouts->getWrappedObject();
-        });
-
-        $payouts->setUser($user)->shouldBeCalled();
-        $payouts->getLastPayout()->shouldBeCalled()->willReturn(false);
-        $payouts->cancel(Argument::cetera())->shouldNotBeCalled();
-
         $user->get('guid')->shouldBeCalled()->willReturn(10);
         $user->set('ban_monetization', 'yes')->shouldBeCalled();
         $user->save()->shouldBeCalled()->willReturn(true);
@@ -81,20 +72,8 @@ class MerchantsSpec extends ObjectBehavior
     }
 
     public function it_should_ban_merchants_and_cancel_last_payout(
-        Monetization\Payouts $payouts,
         Entities\User $user
     ) {
-        Di::_()->bind('Monetization\Payouts', function ($di) use ($payouts) {
-            return $payouts->getWrappedObject();
-        });
-
-        $payouts->setUser($user)->shouldBeCalled();
-        $payouts->getLastPayout()->shouldBeCalled()->willReturn([
-            'guid' => '1',
-            'status' => 'inprogress'
-        ]);
-        $payouts->cancel('1')->shouldBeCalled();
-
         $user->get('guid')->shouldBeCalled()->willReturn(10);
         $user->set('ban_monetization', 'yes')->shouldBeCalled();
         $user->save()->shouldBeCalled()->willReturn(true);

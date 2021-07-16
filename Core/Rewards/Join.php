@@ -59,6 +59,9 @@ class Join
     /** @var KeyValueLimiter */
     protected $kvLimiter;
 
+    /** @var JoinedValidator */
+    private $joinedValidator;
+
     public function __construct(
         $twofactor = null,
         $sms = null,

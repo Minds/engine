@@ -16,16 +16,16 @@ use Zend\Diactoros\ServerRequestFactory;
 
 class UserRepository implements UserRepositoryInterface
 {
-    /** @var Password $password */
+    /** @var Password */
     private $password;
 
-    /** @var SentryScopeDelegate $sentryScopeDelegate */
+    /** @var Delegates\SentryScopeDelegate */
     private $sentryScopeDelegate;
 
     /** @var TwoFactor\Manager */
     private $twoFactorManager;
 
-    /** @var User $mock */
+    /** @var User */
     public $mockUser = false;
 
     public function __construct(Password $password = null, Delegates\SentryScopeDelegate $sentryScopeDelegate = null, $twoFactorManager = null)

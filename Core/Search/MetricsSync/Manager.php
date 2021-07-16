@@ -43,11 +43,9 @@ class Manager
     /**
      * Sync constructor.
      * @param Repository $repository
-     * @param Counters $counters
      */
     public function __construct(
-        $repository = null,
-        $counters = null
+        $repository = null
     ) {
         $this->repository = $repository ?? new Repository();
         $this->logger = $logger ?? Di::_()->get('Logger');

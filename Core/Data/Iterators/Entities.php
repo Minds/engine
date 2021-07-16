@@ -41,7 +41,7 @@ class Entities implements \Iterator
 
     public function __construct($db = null)
     {
-        $this->db = Core\Di\Di::_()->get('Database\Cassandra\Cql');
+        $this->db = $db ?? Core\Di\Di::_()->get('Database\Cassandra\Cql');
     }
 
     /**

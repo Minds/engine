@@ -96,6 +96,7 @@ class Events
 
             if ($entity->type == 'activity' && $entity->custom_type) {
                 $subtype = '';
+                $guid = '';
                 switch ($entity->custom_type) {
                     case 'video':
                         $subtype = 'video';

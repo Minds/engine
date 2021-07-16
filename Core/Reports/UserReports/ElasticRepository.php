@@ -23,7 +23,6 @@ class ElasticRepository
 
     /**
      * @param array $options 'limit', 'offset', 'state'
-     * @return array
      */
     public function getList(array $opts = [])
     {

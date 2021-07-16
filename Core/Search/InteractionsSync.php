@@ -15,7 +15,7 @@ class InteractionsSync
 
     protected $indexer;
 
-    public function __construct($indexer = null, $cql = null, $cache = null)
+    public function __construct($indexer = null)
     {
         $this->indexer = $indexer ?: Di::_()->get('Search\Index');
     }

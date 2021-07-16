@@ -112,7 +112,7 @@ class Manager
             ->setBatchId($this->batchId);
     }
 
-    public function getSubscribers()
+    public function getSubscribers(): iterable
     {
         $token = '';
         while (true) {

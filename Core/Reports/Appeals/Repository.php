@@ -120,7 +120,7 @@ class Repository
             AND timestamp = ?";
 
         $stateChanges = new Map(Type::text(), Type::timestamp());
-        $stateChanges->set('appealed', new Timestamp($appeal->getTimestamp()));
+        $stateChanges->set('appealed', new Timestamp($appeal->getTimestamp(), 0));
 
         $values = [
             $appeal->getNote(),
@@ -129,7 +129,7 @@ class Repository
             $appeal->getReport()->getEntityUrn(),
             new Tinyint($appeal->getReport()->getReasonCode()),
             new Decimal($appeal->getReport()->getSubReasonCode()),
-            new Timestamp($appeal->getReport()->getTimestamp()),
+            new Timestamp($appeal->getReport()->getTimestamp(), 0),
         ];
 
         $prepared = new Prepared();

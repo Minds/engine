@@ -7,7 +7,7 @@ use Minds\Traits\MagicAttributes;
  * @method string getId()
  * @method self setId(string $id)
  */
-class UniswapBaseEntity implements UniswapEntityInterface
+trait UniswapBaseTrait
 {
     use MagicAttributes;
 
@@ -17,11 +17,11 @@ class UniswapBaseEntity implements UniswapEntityInterface
     /**
      * Builds from an array
      * @param array $data
-     * @return UniswapBaseEntity
+     * @return self
      */
-    public static function build(array $data): UniswapEntityInterface
+    protected static function buildBase(array $data): self
     {
-        $instance = new static();
+        $instance = new self();
         $instance->setId($data['id']);
 
         return $instance;

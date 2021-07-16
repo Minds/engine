@@ -69,7 +69,7 @@ class Manager
         $paywallDelegate = null,
         $metricsDelegate = null,
         $notificationsDelegate = null,
-        $entitiesBulder = null
+        $entitiesBuilder = null
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -98,7 +98,7 @@ class Manager
         if ($activity->isRemind() || $activity->isQuotedPost()) {
             $remind = $activity->getRemind();
             if (!$remind) {
-                return null; // Can not save a remind where the original post doesn't exist
+                return false; // Can not save a remind where the original post doesn't exist
             }
             $activity->setNsfw(array_merge($remind->getNsfw(), $activity->getNsfw()));
         }
@@ -253,9 +253,10 @@ class Manager
     }
 
     /**
-     *
+     * TODO
      */
     public function getByGuid(string $guid): ?Activity
     {
+        return null;
     }
 }

@@ -8,10 +8,6 @@ class Mock
     protected $analytics;
     protected $client;
 
-    public function __construct($config = null)
-    {
-    }
-
     public function getTotalRevenueAndViews($dimension1, $start, $end)
     {
         $start = $start->getTimestamp();

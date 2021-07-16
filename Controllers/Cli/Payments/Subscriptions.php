@@ -176,6 +176,7 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
                 $offset = $result->pagingStateToken();
             } catch (\Exception $e) {
                 var_dump($e);
+                return;
             }
             foreach ($result as $row) {
                 $data = json_decode($row['data'], true);
