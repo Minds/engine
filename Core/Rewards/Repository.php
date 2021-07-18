@@ -159,9 +159,10 @@ class Repository
         }
 
         foreach ($set as $field => $value) {
-            $statement .= " SET $field = ?";
+            $statement .= " SET $field = ?,";
             $values[] = $value;
         }
+        $statement = rtrim($statement, ',');
 
         /**
          * Where statement
