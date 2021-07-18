@@ -149,6 +149,9 @@ class Repository
                 case "token_amount":
                     $set["token_amount"] = new Decimal((string) $rewardEntry->getTokenAmount() ?: 0);
                     break;
+                case "score":
+                    $set["score"] = new Decimal((string) $rewardEntry->getScore() ?: 0);
+                    break;
                 case "payout_tx":
                     $set["payout_tx"] = $rewardEntry->getPayoutTx();
                     break;
