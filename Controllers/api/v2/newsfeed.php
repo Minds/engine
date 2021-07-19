@@ -535,6 +535,7 @@ class newsfeed implements Interfaces\Api
                 Di::_()->get('Logger')->error($e);
             }
         } catch (\Exception $e) {
+            \Sentry\captureException($e);
             return Factory::response([
                         'status' => 'error',
                         'message' => $e->getMessage()
