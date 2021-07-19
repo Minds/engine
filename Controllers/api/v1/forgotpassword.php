@@ -150,7 +150,7 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
           $user->override_password = true;
           $user->save();
 
-          (new \Minds\Core\Data\Sessions())->destroyAll($user->guid);
+          (new \Minds\Core\Sessions\CommonSessions\Manager())->deleteAll($user);
 
           $sessions = Core\Di\Di::_()->get('Sessions\Manager');
           $sessions->setUser($user);
