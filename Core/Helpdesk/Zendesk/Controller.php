@@ -39,7 +39,7 @@ class Controller
         $routeConfig = $this->config->get('zendesk')['url'];
 
         // create url
-        $url = $routeConfig['base'].$routeConfig['jwt_route'].'?'.$payload;
+        $url = $routeConfig['base'].$routeConfig['jwt_route'].'?jwt='.$payload;
         
         // redirect to zendesk with token.
         header('Location: ' . $url);
