@@ -92,7 +92,7 @@ class Analytics
         
         return [
             'oldest' => $result['aggregations']['oldest']['value'],
-            'count' => $result['hits']['total']
+            'count' => $result['hits']['total']['value']
         ];
     }
 
