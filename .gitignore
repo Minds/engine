@@ -2,6 +2,7 @@
 /settings.php
 /multi.settings.php
 !.gitlab-ci.yml
+!.php-cs-fixer.php
 bin
 
 /.htaccess

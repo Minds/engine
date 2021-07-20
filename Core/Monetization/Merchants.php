@@ -7,6 +7,9 @@ use Minds\Core\Di\Di;
 
 class Merchants
 {
+    /** @var Entities\User */
+    private $user;
+
     public function __construct()
     {
     }
@@ -67,15 +70,6 @@ class Merchants
 
         $this->user->ban_monetization = 'yes';
         $this->user->save();
-
-        $payouts = Di::_()->get('Monetization\Payouts');
-        $payouts->setUser($this->user);
-
-        $lastPayout = $payouts->getLastPayout();
-
-        if ($lastPayout && $lastPayout['status'] === 'inprogress') {
-            $payouts->cancel($lastPayout['guid']);
-        }
 
         return true;
     }

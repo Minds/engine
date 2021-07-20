@@ -14,6 +14,7 @@ use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Entities\User;
+use Minds\Core\Email\EmailSubscriptionTypes;
 
 class Repository
 {
@@ -118,8 +119,13 @@ class Repository
             error_log($e);
         }
 
-        if ($result) {
+        if (isset($result)) {
             foreach ($result as $row) {
+                // if row not in campaign - discard it.
+                if (!in_array($row['topic'], EmailSubscriptionTypes::TYPES_GROUPINGS[$row['campaign']], true)) {
+                    continue;
+                }
+
                 $subscription = new EmailSubscription();
                 $subscription->setCampaign($row['campaign'])
                     ->setTopic($row['topic'])

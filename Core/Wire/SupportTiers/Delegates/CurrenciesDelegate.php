@@ -2,6 +2,7 @@
 namespace Minds\Core\Wire\SupportTiers\Delegates;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Config;
 use Minds\Core\Wire\SupportTiers\SupportTier;
 
 /**
@@ -10,6 +11,9 @@ use Minds\Core\Wire\SupportTiers\SupportTier;
  */
 class CurrenciesDelegate
 {
+    /** @var Config */
+    private $config;
+
     /**
      * CurrenciesDelegate constructor.
      * @param $config

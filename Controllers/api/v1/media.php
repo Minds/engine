@@ -204,7 +204,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                 unlink("/tmp/{$image->guid}-master.jpg");
         }
 
-        return Factory::response(['guid' => $guid, 'location' => $loc]);
+        return Factory::response(['guid' => $guid ?? '', 'location' => $loc ?? '']);
     }
 
     /**

@@ -42,6 +42,10 @@ class Controller
         /** @var User */
         $user = $request->getAttribute('_user');
 
+        if (!$user) {
+            throw new UserErrorException("Invalid user");
+        }
+
         $count = $this->manager
             ->getUnreadCount($user);
 

@@ -1,4 +1,4 @@
-image: minds/php:7.3
+image: minds/php:8.0
 
 stages:
   - build
@@ -23,15 +23,23 @@ build:
 
 test:
   stage: test
-  image: minds/php:7.3
+  image: minds/php:8.0
   script:
     - php -n -c Spec/php-test.ini bin/phpspec run
 
 lint:
   stage: test
-  image: minds/php:7.3
+  image: minds/php:8.0
   script:
     - bin/php-cs-fixer fix --allow-risky=yes --verbose --dry-run
+
+static-analysis:
+  stage: test
+  image: minds/php:8.0
+  script:
+    - mv settings.example.php settings.php
+    - bin/phpstan analyse --memory-limit=1G
+  allow_failure: true
 
 prepare:fpm:
   stage: prepare
@@ -87,7 +95,7 @@ prepare:all:sentry:
 
 review:start:
   stage: review
-  image: minds/helm-eks:latest
+  image: minds/aws-helm:latest
   script:
     - aws eks update-kubeconfig --name=sandbox
     - git clone --branch=master https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/minds/helm-charts.git
@@ -96,12 +104,11 @@ review:start:
     - "helm upgrade \
       --install \
       --reuse-values \
-      --set phpfpm.image.repository=$CI_REGISTRY_IMAGE/fpm \
-      --set-string phpfpm.image.tag=$CI_PIPELINE_ID \
-      --set runners.image.repository=$CI_REGISTRY_IMAGE/runners \
-      --set-string runners.image.tag=$CI_PIPELINE_ID \
-      --set domain=$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN \
-      --set elasticsearch.clusterName=$CI_BUILD_REF_SLUG-elasticsearch \
+      --set engine.image.repository=$CI_REGISTRY_IMAGE/fpm \
+      --set-string engine.image.tag=$CI_PIPELINE_ID \
+      --set domain=$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
+      --set cdn_domain=$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
+      --set siteUrl=https://$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN/
       --wait \
       $CI_BUILD_REF_SLUG \
       ./helm-charts/minds"
@@ -119,10 +126,10 @@ review:start:
 
 review:stop:
   stage: review
-  image: minds/helm-eks:latest
+  image: minds/aws-helm:latest
   script:
     - aws eks update-kubeconfig --name=sandbox
-    - helm del --purge $CI_BUILD_REF_SLUG
+    - helm del $CI_BUILD_REF_SLUG
   environment:
     name: review/$CI_COMMIT_REF_NAME
     url: https://$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
@@ -185,7 +192,7 @@ staging:fpm:
   only:
     refs:
       - master
-      - feat/1732-block-refactor
+      - feat/php8
       - production
       - test/gitlab-ci
 

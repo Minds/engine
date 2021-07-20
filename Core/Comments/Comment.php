@@ -21,6 +21,8 @@ use Minds\Entities\EntityInterface;
  * @method int getParentGuidL1()
  * @method Comment setParentGuidL2(int $value)
  * @method int getParentGuidL2()
+ * @method Comment setParentGuidL3(int $value)
+ * @method int getParentGuidL3()
  * @method Comment setGuid(int $value)
  * @method Comment setRepliesCount(int $value)
  * @method int getRepliesCount())
@@ -185,7 +187,7 @@ class Comment extends RepositoryEntity implements EntityInterface
     public function getOwnerObj()
     {
         if (!$this->ownerObj && $this->ownerGuid) {
-            $user = new User($this->ownerGuid);
+            $user = Di::_()->get('EntitiesBuilder')->single($this->ownerGuid, [ 'cacheTtl' => 84600 ]);
             $user->fullExport = false;
             $this->setOwnerObj($user->export());
         }
@@ -456,10 +458,10 @@ class Comment extends RepositoryEntity implements EntityInterface
 
         if (!$this->isEphemeral()) {
             $output['thumbs:up:user_guids'] = $this->getVotesUp();
-            $output['thumbs:up:count'] = count($this->getVotesUp());
+            $output['thumbs:up:count'] = count($this->getVotesUp() ?: []);
 
             $output['thumbs:down:user_guids'] = $this->getVotesDown();
-            $output['thumbs:down:count'] = count($this->getVotesDown());
+            $output['thumbs:down:count'] = count($this->getVotesDown() ?: []);
         }
 
         $output['thumbnails'] = $this->getThumbnails();

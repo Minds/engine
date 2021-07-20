@@ -70,7 +70,7 @@ class Repository
 
         $query = new Core\Data\Cassandra\Prepared\Custom();
 
-        if ($planIds) {
+        if ($plansIds) {
             $query->query("SELECT * FROM plans_by_user_guid WHERE plan IN ? AND user_guid = ? ", [
                 \Cassandra\Type::collection(\Cassandra\Type::text())->create(... $plansIds),
                 (string) $this->user_guid

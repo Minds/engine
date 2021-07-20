@@ -65,10 +65,11 @@ class block extends Controller implements Interfaces\Api
                     })->toArray();
                     $response['guids'] = Helpers\Text::buildArray($guids);
                 } elseif ($guids) {
+                    $aclManager = new Core\Security\ACL();
                     // ACL read needs to be bypassed so we can see who we have blocked
-                    $ia = Core\Security\ACL::setIgnore(true);
+                    $ia =  $aclManager->setIgnore(true);
                     $entities = Core\Entities::get(['guids' => $guids]);
-                    Core\Security\ACL::setIgnore($ia);
+                    $aclManager->setIgnore($ia);
                     $response['entities'] = Exportable::_($entities);
                     $response['load-next'] = $list->getPagingToken();
                 }

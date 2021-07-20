@@ -87,6 +87,10 @@ class settings implements Interfaces\Api
         $emailChange = false;
 
         if (isset($_POST['email']) && $_POST['email']) {
+            if (Di::_()->get('Email\SpamFilter')->isSpam($_POST['email'])) {
+                return Factory::response(['status' => 'error', 'message' => "This email provider is blocked due to spam. Please use another address."]);
+            }
+
             $user->setEmail($_POST['email']);
 
             if (strtolower($_POST['email']) !== strtolower($user->getEmail())) {
@@ -120,7 +124,8 @@ class settings implements Interfaces\Api
 
         if (isset($_POST['password']) && $_POST['password']) {
             try {
-                if (!Core\Security\Password::check($user, $_POST['password'])) {
+                $password = new Core\Security\Password();
+                if (!$password->check($user, $_POST['password'])) {
                     return Factory::response([
                         'status' => 'error',
                         'message' => 'You current password is incorrect'

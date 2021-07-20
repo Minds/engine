@@ -53,7 +53,6 @@ class SignupsOffsetIterator implements \Iterator
 
     /**
      * Fetch all the users who signed up in a certain period
-     * @return array
      */
     protected function getUsers()
     {

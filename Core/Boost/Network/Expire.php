@@ -84,5 +84,7 @@ class Expire
         $notification->setEntityUrn($this->boost->getEntity()->getUrn());
 
         $this->notificationsManager->add($notification);
+
+        return true;
     }
 }

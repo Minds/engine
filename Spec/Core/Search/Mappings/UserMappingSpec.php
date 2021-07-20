@@ -29,11 +29,13 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('container_guid')->willReturn(1000);
         $user->get('mature')->willReturn(false);
         $user->get('message')->willReturn('PHPSpec Message #test #hashtag');
+        $user->getName()->willReturn('PHPSpec Name');
         $user->get('name')->willReturn('PHPSpec Name');
         $user->get('title')->willReturn('PHPSpec Title');
         $user->get('blurb')->willReturn('PHPSpec Blurb');
         $user->get('description')->willReturn('PHPSpec Description');
         $user->get('paywall')->willReturn(false);
+        $user->getUsername()->willReturn('phpspec');
         $user->get('username')->willReturn('phpspec');
         $user->get('briefdescription')->willReturn('PHPSpec Brief Description #invalidhashtag');
         $user->get('rating')->willReturn(1);
@@ -63,12 +65,9 @@ class UserMappingSpec extends ObjectBehavior
             ->shouldReturn([
                 'passedValue' => 'PHPSpec',
                 'guid' => '1000',
-                'interactions' => 42,
                 'type' => 'user',
-                'subtype' => '',
                 'time_created' => $now,
                 'access_id' => '2',
-                'owner_guid' => '',
                 'container_guid' => '1000',
                 'mature' => false,
                 'message' => 'PHPSpec Message #test #hashtag',
@@ -77,13 +76,11 @@ class UserMappingSpec extends ObjectBehavior
                 'blurb' => 'PHPSpec Blurb',
                 'description' => 'PHPSpec Description',
                 'language' => 'en',
-                'paywall' => false,
                 'rating' => 1,
                 'username' => 'phpspec',
                 'briefdescription' => 'PHPSpec Brief Description #invalidhashtag',
                 'email_confirmed_at' =>  $now * 1000,
                 '@timestamp' => $now * 1000,
-                'taxonomy' => 'user',
                 'public' => true,
                 'tags' => [ 'spaceiscool' ],
                 'nsfw' => [ 1 ],
@@ -97,24 +94,23 @@ class UserMappingSpec extends ObjectBehavior
     {
         $now = time();
 
-        $user->get('interactions')->willReturn(42);
         $user->get('guid')->willReturn(1000);
         $user->get('type')->willReturn('user');
-        $user->get('subtype')->willReturn('');
         $user->get('time_created')->willReturn($now);
         $user->get('email_confirmed_at')->willReturn($now);
         $user->get('access_id')->willReturn(2);
+        $user->get('subtype')->willReturn('');
         $user->get('owner_guid')->willReturn(false);
         $user->get('container_guid')->willReturn(1000);
         $user->get('mature')->willReturn(false);
         $user->get('is_mature')->willReturn(false);
         $user->get('message')->willReturn('PHPSpec Message #test #hashtag');
-        $user->get('name')->willReturn('PHPSpec Name');
+        $user->getName()->willReturn('PHPSpec Name');
         $user->get('title')->willReturn('PHPSpec Title');
         $user->get('blurb')->willReturn('PHPSpec Blurb');
         $user->get('description')->willReturn('PHPSpec Description');
         $user->get('paywall')->willReturn(false);
-        $user->get('username')->willReturn('phpspec');
+        $user->getUsername()->willReturn('phpspec');
         $user->get('briefdescription')->willReturn('PHPSpec Brief Description #invalidhashtag');
         $user->get('rating')->willReturn(1);
         $user->getTags()->willReturn([ 'spaceiscool' ]);
@@ -129,6 +125,8 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('time_moderated')->willReturn(null);
         $user->get('wire_threshold')->willReturn(null);
         $user->get('language')->willReturn('en');
+        $user->get('name')->willReturn('PHPSpec Name');
+        $user->get('username')->willReturn('phpspec');
 
         $this
             ->setEntity($user)
@@ -142,8 +140,8 @@ class UserMappingSpec extends ObjectBehavior
     public function it_should_suggest_map(
         User $user
     ) {
-        $user->get('username')->willReturn('phpspec');
-        $user->get('name')->willReturn('testing framework');
+        $user->getUsername()->willReturn('phpspec');
+        $user->getName()->willReturn('testing framework');
         $user->get('featured_id')->willReturn(12000);
         $user->get('icontime')->willReturn(5000);
         $user->get('time_created')->willReturn(4000);
@@ -169,8 +167,8 @@ class UserMappingSpec extends ObjectBehavior
     public function it_should_suggest_map_permutating_camelcase_name(
         User $user
     ) {
-        $user->get('username')->willReturn('phpspec');
-        $user->get('name')->willReturn('TestingFramework');
+        $user->getUsername()->willReturn('phpspec');
+        $user->getName()->willReturn('TestingFramework');
         $user->get('featured_id')->willReturn(12000);
         $user->get('icontime')->willReturn(5000);
         $user->get('time_created')->willReturn(4000);

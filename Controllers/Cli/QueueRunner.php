@@ -30,7 +30,7 @@ class QueueRunner extends Cli\Controller implements Interfaces\CliControllerInte
             $this->out("Running $runner");
             $this->out('Press Ctrl + C to cancel');
             $runner = Runners\Factory::build($runner)->run();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->out('Failed: '.$e->getMessage());
         }
     }

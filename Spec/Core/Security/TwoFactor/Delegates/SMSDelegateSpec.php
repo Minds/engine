@@ -34,6 +34,19 @@ class SMSDelegateSpec extends ObjectBehavior
 
     public function it_should_send_sms_on_2fa(User $user)
     {
+        $user->getGuid()
+            ->willReturn('123');
+        $user->get('guid')
+            ->willReturn('123');
+        $user->getUsername()
+            ->willReturn('mark');
+        $user->get('username')
+            ->willReturn('mark');
+        $user->get('telno')
+            ->willReturn('+44000000000000');
+        $user->get('salt')
+            ->willReturn('salt');
+
         $this->smsService->send(Argument::any(), Argument::any())
             ->shouldBeCalled()
             ->willReturn(true);

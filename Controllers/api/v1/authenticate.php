@@ -71,7 +71,8 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         try {
-            if (!Core\Security\Password::check($user, $_POST['password'])) {
+            $passwordSvc = new Core\Security\Password();
+            if (!$passwordSvc->check($user, $_POST['password'])) {
                 $attempts->logFailure();
                 header('HTTP/1.1 401 Unauthorized', true, 401);
                 return Factory::response(['status' => 'failed']);
@@ -88,7 +89,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
             $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
             $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
         } catch (\Exception $e) {
-            header('HTTP/1.1 ' + $e->getCode(), true, $e->getCode());
+            header('HTTP/1.1 ' . $e->getCode(), true, $e->getCode());
             $response['status'] = "error";
             $response['code'] = $e->getCode();
             $response['message'] = $e->getMessage();

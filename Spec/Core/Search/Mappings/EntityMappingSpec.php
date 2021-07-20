@@ -40,7 +40,7 @@ class EntityMappingSpec extends ObjectBehavior
         $this
             ->setEntity($entity)
             ->getType()
-            ->shouldReturn('entity:sub');
+            ->shouldReturn('entity-sub');
     }
 
     public function it_should_throw_during_get_type_if_no_entity()
@@ -77,11 +77,10 @@ class EntityMappingSpec extends ObjectBehavior
         $mappings->shouldHaveKey('guid');
         $mappings->shouldHaveKey('type');
         $mappings->shouldHaveKey('subtype');
-        $mappings->shouldHaveKey('taxonomy');
     }
 
     public function it_should_map_an_entity(
-        \ElggEntity $entity
+        \Minds\Entities\Activity $entity
     ) {
         $now = time();
 
@@ -94,26 +93,21 @@ class EntityMappingSpec extends ObjectBehavior
         $entity->get('owner_guid')->willReturn(1000);
         $entity->get('container_guid')->willReturn(1000);
         $entity->get('mature')->willReturn(false);
+        $entity->getMature()->willReturn(false);
         $entity->get('message')->willReturn('PHPSpec Message #test #hashtag');
         $entity->get('name')->willReturn('PHPSpec Name');
         $entity->get('title')->willReturn('PHPSpec Title');
         $entity->get('blurb')->willReturn('PHPSpec Blurb');
         $entity->get('description')->willReturn('PHPSpec Description');
         $entity->get('paywall')->willReturn(false);
+        $entity->isPayWall()->willReturn(false);
         $entity->get('tags')->willReturn(['test', 'hashtag']);
         $entity->get('rating')->willReturn(1);
         $entity->get('moderator_guid')->willReturn('123');
         $entity->get('time_moderated')->willReturn($now);
         $entity->getTags()->willReturn([ 'hashtag', 'spaceiscool' ]);
         $entity->getNsfw()->willReturn([ 1 ]);
-        // $entity->getWireThreshold()->willReturn(json_encode([
-        //     'type' => 'tokens',
-        //     'min' => 5,
-        //     'support_tier' => [
-        //         'urn' => 'urn:support-tier:123456',
-        //         'expires' => 1000,
-        //     ],
-        // ]));
+        $entity->getWireThreshold()->willReturn(null);
         $entity->get('language')->willReturn('en');
 
         $this
@@ -125,9 +119,7 @@ class EntityMappingSpec extends ObjectBehavior
             ->shouldReturn([
                 'passedValue' => 'PHPSpec',
                 'guid' => '5000',
-                'interactions' => 42,
                 'type' => 'entity',
-                'subtype' => '',
                 'time_created' => $now,
                 'access_id' => '2',
                 'owner_guid' => '1000',
@@ -142,7 +134,6 @@ class EntityMappingSpec extends ObjectBehavior
                 'paywall' => false,
                 'rating' => 1,
                 '@timestamp' => $now * 1000,
-                'taxonomy' => 'entity',
                 'public' => true,
                 // 'wire_support_tier' => 'urn:support-tier:123456',
                 // '@wire_support_tier_expire' => 1000000,

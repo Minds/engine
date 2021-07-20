@@ -39,6 +39,9 @@ class Subscription
     private $addOns;
     private $coupon;
 
+    /** @var User */
+    public $user;
+
     /** @var int */
     private $trialDays;
 

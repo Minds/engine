@@ -127,7 +127,6 @@ class Event
         $prepared->query([
             'body' => $this->data,
             'index' => $this->index,
-            'type' => $this->data['type'],
             //'id' => $data['guid'],
             'client' => [
                 'timeout' => 2,

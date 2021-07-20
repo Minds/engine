@@ -81,7 +81,7 @@ class channel implements Interfaces\Api
         $return = Factory::exportable([$user]);
 
         $response['channel'] = $return[0];
-        if (Core\Session::getLoggedinUser()->guid == $user->guid) {
+        if (Core\Session::isLoggedIn() && Core\Session::getLoggedinUser()->guid == $user->guid) {
             $response['channel']['admin'] = $user->admin;
         }
         $response['channel']['avatar_url'] = [
@@ -117,12 +117,6 @@ class channel implements Interfaces\Api
         }
 
         //
-
-        if (!$user->merchant || !$supporters_count) {
-            $db = new Core\Data\Call('entities_by_time');
-            //$feed_count = $db->countRow("activity:user:" . $user->guid);
-            $response['channel']['activity_count'] = $feed_count;
-        }
 
         $carousels = Core\Entities::get(['subtype'=>'carousel', 'owner_guid'=>$user->guid]);
         if ($carousels) {
@@ -296,12 +290,20 @@ class channel implements Interfaces\Api
                 }
 
                 $update = [];
-                foreach (['name', 'website', 'briefdescription', 'gender',
+                foreach (['website', 'briefdescription', 'gender',
                         'city', 'coordinates', 'monetized'] as $field) {
                     if (isset($_POST[$field])) {
                         $update[$field] = $_POST[$field];
                         $owner->$field = $_POST[$field];
                     }
+                }
+
+                if (isset($_POST['name'])) {
+                    $maxLength = Di::_()->get('Config')->max_name_length ?? 50;
+                    $trimmedName = mb_substr($_POST['name'], 0, $maxLength);
+
+                    $update['name'] = $trimmedName;
+                    $owner->name = $trimmedName;
                 }
 
                 if (isset($_POST['dob'])) {
@@ -402,7 +404,7 @@ class channel implements Interfaces\Api
                 $channel->enabled = 'no';
                 $channel->save();
 
-                (new Core\Data\Sessions())->destroyAll($channel->guid);
+                (new Core\Sessions\CommonSessions\Manager())->deleteAll($channel);
         }
 
         return Factory::response([]);

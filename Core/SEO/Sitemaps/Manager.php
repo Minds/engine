@@ -70,8 +70,8 @@ class Manager
             }
         }
 
-        $this->generator->createSitemap();
-        $this->generator->writeSitemap();
+        $this->generator->flush();
+        $this->generator->finalize();
 
         // Upload to s3
         $this->uploadToS3();

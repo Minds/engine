@@ -155,8 +155,8 @@ class Manager
             ++$i; // Update here as we don't want to count skipped
 
             $entityType = $scoredGuid->getType() ?? 'entity';
-            if (strpos($entityType, 'object:', 0) === 0) {
-                $entityType = str_replace('object:', '', $entityType);
+            if (strpos($entityType, 'object-', 0) === 0) {
+                $entityType = str_replace('object-', '', $entityType);
             }
 
             if ($opts['as_activities'] && !in_array($opts['type'], ['user', 'group'], true)) {
@@ -165,13 +165,14 @@ class Manager
 
             $urn = implode(':', [
                 'urn',
-                $entityType,
+                $entityType ?: 'entity',
                 $scoredGuid->getGuid(),
             ]);
 
             $feedSyncEntities[] = (new FeedSyncEntity())
                 ->setGuid((string) $scoredGuid->getGuid())
-                ->setOwnerGuid((string) $ownerGuid)
+    
+                 ->setOwnerGuid((string) $ownerGuid)
                 ->setUrn(new Urn($urn))
                 ->setTimestamp($scoredGuid->getTimestamp());
 

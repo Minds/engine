@@ -65,6 +65,9 @@ class Transcode
     /** @var string */
     private $failureReason;
 
+    /** @var bool */
+    private $completed;
+
     /**
      * @param Video $video
      * @return self

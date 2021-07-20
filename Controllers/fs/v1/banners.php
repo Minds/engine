@@ -26,7 +26,7 @@ define('DEFAULT_BANNER_PATHS', [
     'Assets/banners/9.jpg',
 ]);
 
-class banners implements Interfaces\FS
+class banners implements Interfaces\Fs
 {
     public function get($pages)
     {
@@ -46,7 +46,6 @@ class banners implements Interfaces\FS
         }
 
         $content = "";
-
 
         switch ($type) {
           case "user":
@@ -116,7 +115,7 @@ class banners implements Interfaces\FS
         //    exit;
         //}
 
-        if (!$content && $f) {
+        if (!$content && isset($f)) {
             $content = $f->read();
             if (!$content) {
                 exit;

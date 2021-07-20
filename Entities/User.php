@@ -10,6 +10,63 @@ use Minds\Helpers;
  * User Entity.
  *
  * @todo Do not inherit from ElggUser
+ * @property int $boost_rating
+ * @property int $mature
+ * @property int $mature_content
+ * @property int $mature_lock
+ * @property int $is_mature
+ * @property int $spam
+ * @property int $deleted
+ * @property array $social_profiles
+ * @property string $ban_monetization
+ * @property array $tags
+ * @property int $onboarding_shown
+ * @property User $last_avatar_upload
+ * @property int $toaster_notifications
+ * @property int $onchain_booster
+ * @property int $theme
+ * @property int $canary
+ * @property int $opted_in_hashtags
+ * @property int $last_accepted_tos
+ * @property int $creator_frequency
+ * @property string $phone_number
+ * @property string $phone_number_hash
+ * @property array $wire_rewards
+ * @property int $icontime
+ * @property array $pinned_posts
+ * @property array $feature_flags
+ * @property array $programs
+ * @property string $eth_wallet
+ * @property int $eth_incentive
+ * @property array $categories
+ * @property int $plus_expires
+ * @property string $plus_method;
+ * @property int $pro_expires
+ * @property string $pro_method;
+ * @property int $pro_published
+ * @property int $disabled_boost
+ * @property int $founder
+ * @property array $merchant
+ * @property array $monetization_settings
+ * @property array $group_membership
+ * @property int $boost_autorotate
+ * @property string $fb
+ * @property int $verified
+ * @property int $mode
+ * @property string $btc_address
+ * @property bool $initial_onboarding_completed
+ * @property string $email_confirmation_token
+ * @property int $email_confirmed_at
+ * @property int $allow_unsubscribed_contact
+ * @property bool $hide_share_buttons
+ * @property array $dismissed_widgets
+ * @property int $partner_rpm
+ * @property int $liquidity_spot_opt_out
+ * @property string $public_dob
+ * @property string $dob
+ * @property string $surge_token
+ * @property int $disable_autoplay_videos
+ * @property string $twofactor
  */
 class User extends \ElggUser
 {
@@ -92,7 +149,7 @@ class User extends \ElggUser
      */
     public function getUsername(): string
     {
-        return $this->username;
+        return $this->username ?: '';
     }
 
     /**
@@ -101,7 +158,7 @@ class User extends \ElggUser
      */
     public function getName(): string
     {
-        return $this->name;
+        return $this->name ?: '';
     }
 
     /**
@@ -838,7 +895,7 @@ class User extends \ElggUser
      */
     public function unSubscribe($guid)
     {
-        return \Minds\Helpers\Subscriptions::unSubscribe($this->guid, $guid, $data);
+        return \Minds\Helpers\Subscriptions::unSubscribe($this->guid, $guid);
     }
 
     /**
@@ -904,10 +961,6 @@ class User extends \ElggUser
 
     public function getSubscribersCount()
     {
-        if ($this->host) {
-            return 0;
-        }
-
         $cacher = Core\Data\cache\factory::build();
         if ($cache = $cacher->get("$this->guid:friendsofcount")) {
             return $cache;
@@ -927,10 +980,6 @@ class User extends \ElggUser
      */
     public function getSubscriptonsCount()
     {
-        if ($this->host) {
-            return 0;
-        }
-
         $cacher = Core\Data\cache\factory::build();
         if ($cache = $cacher->get("$this->guid:friendscount")) {
             return $cache;
@@ -990,8 +1039,8 @@ class User extends \ElggUser
 
         if ($this->fullExport) {
             if (Core\Session::isLoggedIn()) {
-                $export['subscribed'] = elgg_get_logged_in_user_entity()->isSubscribed($this->guid);
-                $export['subscriber'] = elgg_get_logged_in_user_entity()->isSubscriber($this->guid);
+                $export['subscribed'] = Core\Session::getLoggedinUser()->isSubscribed($this->guid);
+                $export['subscriber'] = Core\Session::getLoggedinUser()->isSubscriber($this->guid);
             }
         }
         if ($this->exportCounts) {

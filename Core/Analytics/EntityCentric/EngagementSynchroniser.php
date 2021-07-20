@@ -14,6 +14,9 @@ class EngagementSynchroniser
     /** @var ElasticSearch\Client */
     private $es;
 
+    /** @var int */
+    protected $from;
+
     public function __construct($es = null)
     {
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');

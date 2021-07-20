@@ -70,7 +70,7 @@ class ModerationCache
                     $locks[] = (int) $entityGuid;
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log($e->getMessage());
         }
 

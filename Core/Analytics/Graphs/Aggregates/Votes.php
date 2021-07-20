@@ -38,6 +38,7 @@ class Votes implements AggregateInterface
     public function fetchAll($opts = [])
     {
         $result = [];
+        $span = null;
         foreach (['hour', 'day', 'month'] as $unit) {
             switch ($unit) {
                 case 'hour':
@@ -120,7 +121,6 @@ class Votes implements AggregateInterface
         $query = [
             'index' => $this->index,
             'size' => 0,
-            'type' => 'action',
             "stored_fields" => [
                 "*"
             ],

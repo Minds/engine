@@ -7,5 +7,5 @@ namespace Minds\Core\Data\Interfaces;
 
 interface ClientInterface
 {
-    public function __construct(array $options = []);
+    public function __construct();
 }

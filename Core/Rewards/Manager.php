@@ -70,6 +70,9 @@ class Manager
     /** @var UniqueOnChain\Manager */
     protected $uniqueOnChainManager;
 
+    /** @var BlockFinder */
+    protected $blockFinder;
+
     /** @var Token */
     protected $token;
 
@@ -240,7 +243,7 @@ class Manager
 
             // Get yesterday RewardEntry
             $yesterdayRewardEntry = $this->getPreviousRewardEntry($rewardEntry, 1);
-            $multiplier = $yesterdayRewardEntry ? $this->calculateMultiplier($yesterdayRewardEntry, static::REWARD_TYPE_LIQUIDITY) : BigDecimal::of(1);
+            $multiplier = $yesterdayRewardEntry ? $this->calculateMultiplier($yesterdayRewardEntry) : BigDecimal::of(1);
             
             $score = $liquiditySummary->getUserLiquidityTokens()->multipliedBy($multiplier);
             
@@ -264,7 +267,7 @@ class Manager
 
             /** @var User */
             $user = $this->entitiesBuilder->single($uniqueOnChain->getUserGuid());
-            if (!$user) {
+            if (!$user || !$user instanceof User) {
                 continue;
             }
 
@@ -284,7 +287,7 @@ class Manager
 
             // Get yesterday RewardEntry
             $yesterdayRewardEntry = $this->getPreviousRewardEntry($rewardEntry, 1);
-            $multiplier = $yesterdayRewardEntry ? $this->calculateMultiplier($yesterdayRewardEntry, static::REWARD_TYPE_HOLDING) : BigDecimal::of(1);
+            $multiplier = $yesterdayRewardEntry ? $this->calculateMultiplier($yesterdayRewardEntry) : BigDecimal::of(1);
 
             $score = BigDecimal::of($tokenBalance)->multipliedBy($multiplier);
 
@@ -313,6 +316,25 @@ class Manager
         foreach ($this->repository->getIterator($opts) as $i => $rewardEntry) {
             if ($rewardEntry->getSharePct() === (float) 0) {
                 continue;
+            }
+
+            // Confirm the wallet address is still connected
+            if (in_array($rewardEntry->getRewardType(), [static::REWARD_TYPE_LIQUIDITY, static::REWARD_TYPE_HOLDING], false)) {
+                /** @var User */
+                $user = $this->entitiesBuilder->single($rewardEntry->getUserGuid());
+                if (!$this->uniqueOnChainManager->isUnique($user)) {
+                    // do not issue payout
+
+                    $rewardEntry->setScore(BigDecimal::of(0));
+                    $rewardEntry->setTokenAmount(BigDecimal::of(0));
+                    $this->repository->update($rewardEntry, [ 'token_amount', 'score' ]);
+
+                    $this->logger->info("[$i]: Clearing score and token amount for {$user->getGuid()}. Address isn't unique.", [
+                        'userGuid' => $rewardEntry->getUserGuid(),
+                        'reward_type' => $rewardEntry->getRewardType(),
+                    ]);
+                    continue;
+                }
             }
 
             // Get the pool
@@ -477,7 +499,7 @@ class Manager
             'contract' => 'offchain:reward',
         ]);
 
-        if ($transactions['transactions']) {
+        if (count($transactions['transactions'] ?? []) > 0) {
             throw new \Exception("Already issued rewards to this user");
         }
 

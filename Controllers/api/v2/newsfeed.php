@@ -245,318 +245,329 @@ class newsfeed implements Interfaces\Api
 
         $manager = Di::_()->get('Feeds\Activity\Manager');
 
-        //factory::authorize();
-        switch ($pages[0]) {
-            default:
-                //essentially an edit
-                if (is_numeric($pages[0])) {
-                    $activity = Di::_()->get('EntitiesBuilder')->single($pages[0]);
+        //essentially an edit
+        if (isset($pages[0]) && is_numeric($pages[0])) {
+            $activity = Di::_()->get('EntitiesBuilder')->single($pages[0]);
 
-                    // When editing media posts, they can sometimes be non-activity entities
-                    // so we provide some additional field
-                    // TODO: Anoter possible bug is the descrepency between 'description' and 'message'
-                    // here we are updating message field. Propose fixing this at Object/Image level
-                    // vs patching on activity
-                    if (!$activity instanceof Activity) {
-                        $activity = $manager->createFromEntity($activity);
-                        $activity->guid = $pages[0]; // createFromEntity makes a new entity
-                    }
+            // When editing media posts, they can sometimes be non-activity entities
+            // so we provide some additional field
+            // TODO: Anoter possible bug is the descrepency between 'description' and 'message'
+            // here we are updating message field. Propose fixing this at Object/Image level
+            // vs patching on activity
+            if (!$activity instanceof Activity) {
+                $activity = $manager->createFromEntity($activity);
+                $activity->guid = $pages[0]; // createFromEntity makes a new entity
+            }
 
-                    $activityMutation = new EntityMutation($activity);
+            $activityMutation = new EntityMutation($activity);
 
-                    if (isset($_POST['message'])) {
-                        $activityMutation->setMessage($_POST['message']);
-                    }
+            if (isset($_POST['message'])) {
+                $activityMutation->setMessage($_POST['message']);
+            }
 
-                    if (isset($_POST['title'])) {
-                        $activityMutation->setTitle($_POST['title']);
-                    }
+            if (isset($_POST['title'])) {
+                $activityMutation->setTitle($_POST['title']);
+            }
 
-                    if (isset($_POST['entity_guid'])) {
-                        $activityMutation->setEntityGuid($_POST['entity_guid']);
-                    }
+            if (isset($_POST['entity_guid'])) {
+                $activityMutation->setEntityGuid($_POST['entity_guid']);
+            }
 
-                    if (isset($_POST['mature'])) {
-                        $activityMutation->setMature($_POST['mature']);
-                    }
+            if (isset($_POST['mature'])) {
+                $activityMutation->setMature($_POST['mature']);
+            }
 
-                    if (isset($_POST['tags'])) {
-                        $activityMutation->setTags($_POST['tags']);
-                    }
+            if (isset($_POST['tags'])) {
+                $activityMutation->setTags($_POST['tags']);
+            }
 
-                    if (isset($_POST['nsfw'])) {
-                        $activityMutation->setNsfw($_POST['nsfw']);
-                    }
+            if (isset($_POST['nsfw'])) {
+                $activityMutation->setNsfw($_POST['nsfw']);
+            }
 
-                    // TODO: remove this when new paywall is released
-                    if (isset($_POST['wire_threshold'])) {
-                        // Validation happend on Manager->onUpdate // PaywallDelegate->onUpdate
+            // TODO: remove this when new paywall is released
+            if (isset($_POST['wire_threshold'])) {
+                // Validation happend on Manager->onUpdate // PaywallDelegate->onUpdate
 
-                        $activityMutation->setWireThreshold($_POST['wire_threshold']);
-                        $activityMutation->setPaywall(!!$_POST['wire_threshold']);
-                    }
+                $activityMutation->setWireThreshold($_POST['wire_threshold']);
+                $activityMutation->setPaywall(!!$_POST['wire_threshold']);
+            }
 
-                    if (isset($_POST['paywall']) && !$_POST['paywall']) {
-                        $activityMutation->setWireThreshold(null);
-                        $activityMutation->setPaywall(false);
-                    }
+            if (isset($_POST['paywall']) && !$_POST['paywall']) {
+                $activityMutation->setWireThreshold(null);
+                $activityMutation->setPaywall(false);
+            }
 
-                    $license = $_POST['license'] ?? $_POST['attachment_license'] ?? '';
+            $license = $_POST['license'] ?? $_POST['attachment_license'] ?? '';
 
-                    if ($license) {
-                        $activityMutation->setLicense($license);
-                    }
+            if ($license) {
+                $activityMutation->setLicense($license);
+            }
 
-                    // NOTE: Only update time created (schedule) if greater than current time)
-                    if (isset($_POST['time_created']) && $activity->getTimeCreated() > time()) {
-                        $activityMutation->setTimeCreated($_POST['time_created']);
-                    }
+            // NOTE: Only update time created (schedule) if greater than current time)
+            if (isset($_POST['time_created']) && $activity->getTimeCreated() > time()) {
+                $activityMutation->setTimeCreated($_POST['time_created']);
+            }
 
-                    // Rich embed fields (manager will override if entity_guid exists)
+            // Rich embed fields (manager will override if entity_guid exists)
 
-                    if (isset($_POST['url'])) {
-                        $activityMutation
+            if (isset($_POST['url'])) {
+                $activityMutation
                             ->setBlurb(rawurldecode($_POST['blurb'] ?? ''))
                             ->setURL(rawurldecode($_POST['url'] ?? ''))
                             ->setThumbnail($_POST['thumbnail'] ?? '');
-                    }
+            }
 
-                    if (isset($_POST['video_poster'])) {
-                        $activityMutation->setVideoPosterBase64Blob($_POST['video_poster']);
-                    }
+            if (isset($_POST['video_poster'])) {
+                $activityMutation->setVideoPosterBase64Blob($_POST['video_poster']);
+            }
 
-                    if (isset($_POST['access_id'])) {
-                        error_log("accessId is: " . $_POST['access_id']);
-                        $activityMutation->setAccessId($_POST['access_id']);
-                    }
+            if (isset($_POST['access_id'])) {
+                error_log("accessId is: " . $_POST['access_id']);
+                $activityMutation->setAccessId($_POST['access_id']);
+            }
 
-                    // Update the entity
+            // Update the entity
 
-                    try {
-                        $manager->update($activityMutation);
-                    } catch (\Exception $e) {
-                        return Factory::response([
+            try {
+                $manager->update($activityMutation);
+            } catch (\Exception $e) {
+                return Factory::response([
                             'status' => 'error',
                             'message' => $e->getMessage(),
                         ]);
-                    }
+            }
 
-                    $activity->setExportContext(true);
+            $activity->setExportContext(true);
 
-                    return Factory::response([
+            return Factory::response([
                         'guid' => $activity->guid,
                         'activity' => $activityMutation->getMutatedEntity()->export(),
                         'edited' => true
                     ]);
-                }
+        }
 
-                // New activity
-                $activity = new Activity();
+        // New activity
+        $activity = new Activity();
 
-                $activity->setMature(isset($_POST['mature']) && !!$_POST['mature']);
-                $activity->setNsfw($_POST['nsfw'] ?? []);
+        $activity->setMature(isset($_POST['mature']) && !!$_POST['mature']);
+        $activity->setNsfw($_POST['nsfw'] ?? []);
 
-                $user = Core\Session::getLoggedInUser();
+        $user = Core\Session::getLoggedInUser();
 
-                $now = time();
+        $now = time();
 
-                try {
-                    $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
-                    $timeCreatedDelegate->onAdd($activity, $_POST['time_created'] ?? $now, $now);
-                } catch (\Exception $e) {
-                    return Factory::response([
+        if ($_POST['time_created'] > $now && $_POST['time_created'] < strtotime("+5 minutes")) {
+            return Factory::response([
+                        'status' => 'error',
+                        'message' => 'Scheduled posts must be more than 5 minutes in the future.',
+                    ]);
+        }
+
+        try {
+            $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
+            $timeCreatedDelegate->onAdd($activity, $_POST['time_created'] ?? $now, $now);
+        } catch (\Exception $e) {
+            return Factory::response([
                         'status' => 'error',
                         'message' => $e->getMessage(),
                     ]);
-                }
+        }
 
-                if ($user->isMature()) {
-                    $activity->setMature(true);
-                }
+        if ($user->isMature()) {
+            $activity->setMature(true);
+        }
 
-                if (isset($_POST['access_id'])) {
-                    $activity->access_id = $_POST['access_id'];
-                }
+        if (isset($_POST['access_id'])) {
+            $activity->access_id = $_POST['access_id'];
+        }
 
-                if (isset($_POST['message'])) {
-                    $activity->setMessage(rawurldecode($_POST['message']));
-                }
+        if (isset($_POST['message'])) {
+            $activity->setMessage(rawurldecode($_POST['message']));
+        }
 
-                // Remind
+        // Remind
 
-                if (isset($_POST['remind_guid'])) {
-                    // Fetch the remind
-                    $remind = Di::_()->get('EntitiesBuilder')->single($_POST['remind_guid']);
-                    if (!$remind) {
-                        return Factory::response([
+        if (isset($_POST['remind_guid'])) {
+            // Fetch the remind
+            $remind = Di::_()->get('EntitiesBuilder')->single($_POST['remind_guid']);
+            if (!$remind) {
+                return Factory::response([
                             'status' => 'error',
                             'message' => 'Remind not found',
                         ]);
-                    }
+            }
                     
-                    // throw and error return response if acl interaction check fails.
-                    try {
-                        if (!Di::_()->get('Security\ACL')->interact($remind, $user)) {
-                            throw new \Exception(null);
-                        }
-                    } catch (\Exception $e) {
-                        return Factory::response([
+            // throw and error return response if acl interaction check fails.
+            try {
+                if (!Di::_()->get('Security\ACL')->interact($remind, $user)) {
+                    throw new \Exception(null);
+                }
+            } catch (\Exception $e) {
+                return Factory::response([
                             'status' => 'error',
                             'message' => 'You can not interact with this post',
                         ]);
-                    }
+            }
 
-                    $remindIntent = new RemindIntent();
-                    $remindIntent->setGuid($remind->getGuid())
+            $remindIntent = new RemindIntent();
+            $remindIntent->setGuid($remind->getGuid())
                         ->setOwnerGuid($remind->getOwnerGuid())
                         ->setQuotedPost(!!($_POST['message'] ?? false));
 
-                    $activity->setRemind($remindIntent);
-                }
+            $activity->setRemind($remindIntent);
+        }
 
-                // Wire/Paywall
+        // Wire/Paywall
 
-                if (isset($_POST['wire_threshold']) && $_POST['wire_threshold']) {
-                    $activity->setWireThreshold($_POST['wire_threshold']);
+        if (isset($_POST['wire_threshold']) && $_POST['wire_threshold']) {
+            $activity->setWireThreshold($_POST['wire_threshold']);
 
-                    $paywallDelegate = new Core\Feeds\Activity\Delegates\PaywallDelegate();
-                    $paywallDelegate->onAdd($activity);
-                }
+            $paywallDelegate = new Core\Feeds\Activity\Delegates\PaywallDelegate();
+            $paywallDelegate->onAdd($activity);
+        }
 
-                // Container
+        // Container
 
-                $container = null;
+        $container = null;
 
-                if (isset($_POST['container_guid']) && $_POST['container_guid']) {
-                    $activity->container_guid = $_POST['container_guid'];
-                    if ($container = Entities\Factory::build($activity->container_guid)) {
-                        $activity->containerObj = $container->export();
-                    }
-                    $activity->indexes = [
+        if (isset($_POST['container_guid']) && $_POST['container_guid']) {
+            if (isset($_POST['wire_threshold']) && $_POST['wire_threshold']) {
+                return Factory::response([
+                            'status' => 'error',
+                            'message' => 'You cannot monetize group posts',
+                        ]);
+            }
+                    
+            $activity->container_guid = $_POST['container_guid'];
+            if ($container = Entities\Factory::build($activity->container_guid)) {
+                $activity->containerObj = $container->export();
+            }
+            $activity->indexes = [
                         "activity:container:$activity->container_guid",
                         "activity:network:$activity->owner_guid"
                     ];
 
-                    $cache = Di::_()->get('Cache');
-                    $cache->destroy("activity:container:$activity->container_guid");
+            $cache = Di::_()->get('Cache');
+            $cache->destroy("activity:container:$activity->container_guid");
 
-                    Core\Events\Dispatcher::trigger('activity:container:prepare', $container->type, [
+            Core\Events\Dispatcher::trigger('activity:container:prepare', $container->type, [
                         'container' => $container,
                         'activity' => $activity,
                     ]);
+        }
+
+        // Tags
+
+        if (isset($_POST['tags'])) {
+            $activity->setTags($_POST['tags']);
+        }
+
+        // NSFW
+
+        $nsfw = $_POST['nsfw'] ?? [];
+        $activity->setNsfw($nsfw);
+
+        $activity->setLicense($_POST['license'] ?? $_POST['attachment_license'] ?? '');
+
+        $entityGuid = $_POST['entity_guid'] ?? $_POST['attachment_guid'] ?? null;
+        $url = $_POST['url'] ?? null;
+
+        try {
+            if ($entityGuid && !$url) {
+                // Attachment
+
+                if ($_POST['title'] ?? null) {
+                    $activity->setTitle($_POST['title']);
                 }
 
-                // Tags
-
-                if (isset($_POST['tags'])) {
-                    $activity->setTags($_POST['tags']);
-                }
-
-                // NSFW
-
-                $nsfw = $_POST['nsfw'] ?? [];
-                $activity->setNsfw($nsfw);
-
-                $activity->setLicense($_POST['license'] ?? $_POST['attachment_license'] ?? '');
-
-                $entityGuid = $_POST['entity_guid'] ?? $_POST['attachment_guid'] ?? null;
-                $url = $_POST['url'] ?? null;
-
-                try {
-                    if ($entityGuid && !$url) {
-                        // Attachment
-
-                        if ($_POST['title'] ?? null) {
-                            $activity->setTitle($_POST['title']);
-                        }
-
-                        // Sets the attachment
-                        (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
+                // Sets the attachment
+                (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
                             ->setActor(Core\Session::getLoggedinUser())
                             ->onCreate($activity, (string) $entityGuid);
-                    } elseif (!$entityGuid && $url) {
-                        // Set-up rich embed
+            } elseif (!$entityGuid && $url) {
+                // Set-up rich embed
 
-                        $activity
+                $activity
                             ->setTitle(rawurldecode($_POST['title']))
                             ->setBlurb(rawurldecode($_POST['description']))
                             ->setURL(rawurldecode($_POST['url']))
                             ->setThumbnail($_POST['thumbnail']);
-                    } else {
-                        // TODO: Handle immutable embeds (like blogs, which have an entity_guid and a URL)
+            } else {
+                // TODO: Handle immutable embeds (like blogs, which have an entity_guid and a URL)
                         // These should not appear naturally when creating, but might be implemented in the future.
-                    }
+            }
 
-                    // TODO: Move this to Core/Feeds/Activity/Manager
-                    if ($_POST['video_poster'] ?? null) {
-                        $activity->setVideoPosterBase64Blob($_POST['video_poster']);
-                        $videoPosterDelegate = new Core\Feeds\Activity\Delegates\VideoPosterDelegate();
-                        $videoPosterDelegate->onAdd($activity);
-                    }
+            // TODO: Move this to Core/Feeds/Activity/Manager
+            if ($_POST['video_poster'] ?? null) {
+                $activity->setVideoPosterBase64Blob($_POST['video_poster']);
+                $videoPosterDelegate = new Core\Feeds\Activity\Delegates\VideoPosterDelegate();
+                $videoPosterDelegate->onAdd($activity);
+            }
 
-                    // save entity
-                    $success = $manager->add($activity);
+            // save entity
+            $success = $manager->add($activity);
 
-                    // if posting to permaweb
-                    try {
-                        if (
+            // if posting to permaweb
+            try {
+                if (
                             Di::_()->get('Features\Manager')->has('permaweb')
                             && $_POST['post_to_permaweb']
                         ) {
-                            // get guid for linkback
-                            $newsfeedGuid = $activity->custom_type === 'video' || $activity->custom_type === 'batch'
+                    // get guid for linkback
+                    $newsfeedGuid = $activity->custom_type === 'video' || $activity->custom_type === 'batch'
                                 ? $activity->entity_guid
                                 : $activity->guid;
 
-                            // dry run to generate id and save it to this activity, but not commit it to the arweave network.
-                            Di::_()->get('Permaweb\Delegates\GenerateIdDelegate')
+                    // dry run to generate id and save it to this activity, but not commit it to the arweave network.
+                    Di::_()->get('Permaweb\Delegates\GenerateIdDelegate')
                                 ->setActivity($activity)
                                 ->setNewsfeedGuid($newsfeedGuid)
                                 ->dispatch();
 
-                            // Save to permaweb.
-                            Di::_()->get('Permaweb\Delegates\DispatchDelegate')
+                    // Save to permaweb.
+                    Di::_()->get('Permaweb\Delegates\DispatchDelegate')
                                 ->setActivity($activity)
                                 ->setNewsfeedGuid($newsfeedGuid)
                                 ->dispatch();
-                        }
-                    } catch (\Exception $e) {
-                        Di::_()->get('Logger')->error($e);
-                    }
-                } catch (\Exception $e) {
-                    return Factory::response([
+                }
+            } catch (\Exception $e) {
+                Di::_()->get('Logger')->error($e);
+            }
+        } catch (\Exception $e) {
+            \Sentry\captureException($e);
+            return Factory::response([
                         'status' => 'error',
                         'message' => $e->getMessage()
                     ]);
-                }
+        }
 
-                if ($success) {
-                    // Follow activity
-                    (new Core\Notification\PostSubscriptions\Manager())
+        if ($success) {
+            // Follow activity
+            (new Core\Notification\PostSubscriptions\Manager())
                         ->setEntityGuid($activity->guid)
                         ->setUserGuid(Core\Session::getLoggedInUserGuid())
                         ->follow();
 
-                    if ($activity->getEntityGuid()) {
-                        // Follow activity entity as well
-                        (new Core\Notification\PostSubscriptions\Manager())
+            if ($activity->getEntityGuid()) {
+                // Follow activity entity as well
+                (new Core\Notification\PostSubscriptions\Manager())
                             ->setEntityGuid($activity->getEntityGuid())
                             ->setUserGuid(Core\Session::getLoggedInUserGuid())
                             ->follow();
-                    }
+            }
 
-                    if ($container) {
-                        Core\Events\Dispatcher::trigger('activity:container', $container->type, [
+            if ($container) {
+                Core\Events\Dispatcher::trigger('activity:container', $container->type, [
                             'container' => $container,
                             'activity' => $activity,
                         ]);
-                    }
+            }
 
-                    $activity->setExportContext(true);
-                    return Factory::response(['guid' => $activity->guid, 'activity' => $activity->export()]);
-                } else {
-                    return Factory::response(['status' => 'failed', 'message' => 'could not save']);
-                }
+            $activity->setExportContext(true);
+            return Factory::response(['guid' => $activity->guid, 'activity' => $activity->export()]);
+        } else {
+            return Factory::response(['status' => 'failed', 'message' => 'could not save']);
         }
     }
 

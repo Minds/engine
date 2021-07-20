@@ -27,7 +27,7 @@ class Manager
         'referrals' => 'referral',
     ];
 
-    public function __construct($client = null, $index = null)
+    public function __construct($client = null)
     {
         $this->es = $client ?: Di::_()->get('Database\ElasticSearch');
     }

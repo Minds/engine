@@ -60,7 +60,6 @@ class ObjectImageMappingSpec extends ObjectBehavior
             ->shouldReturn([
                 'passedValue' => 'PHPSpec',
                 'guid' => '5000',
-                'interactions' => 42,
                 'type' => 'object',
                 'subtype' => 'image',
                 'time_created' => $now,
@@ -77,7 +76,6 @@ class ObjectImageMappingSpec extends ObjectBehavior
                 'rating' => 1,
                 'license' => 'cc-test-lic',
                 '@timestamp' => $now * 1000,
-                'taxonomy' => 'object:image',
                 'public' => true,
                 'wire_support_tier' => 'urn:support-tier:123456',
                 '@wire_support_tier_expire' => 1000000,

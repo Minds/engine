@@ -9,12 +9,21 @@ use Minds\Core\Di\Di;
 use Minds\Core\Data\Cassandra;
 use Minds\Core\Session;
 use Minds\Entities\User;
+use Minds\Core\Config;
 
 class ConversationsCache
 {
+    /** @var \Redis */
     private $redis;
+
+    /** @var User */
     private $user;
+
+    /** @var string */
     private $user_guid;
+
+    /** @var Config */
+    protected $config;
 
     public function __construct($redis = null, $config = null)
     {

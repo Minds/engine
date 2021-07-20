@@ -15,15 +15,12 @@ class Joins extends Aggregate
         $filter = [
             'term' => [
                 'action' => 'join',
-            ],
-            'term' => [
                 'entity_membership' => 2
             ]
         ];
 
         $query = [
             'index' => 'minds-metrics-*',
-            'type' => 'action',
             'size' => 1, //we want just the aggregates
             'body' => [
                 'query' => [

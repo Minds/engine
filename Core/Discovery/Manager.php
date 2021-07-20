@@ -14,6 +14,7 @@ use Minds\Core\Feeds\Elastic\Manager as ElasticFeedsManager;
 use Minds\Core\Search\SortingAlgorithms;
 use Minds\Core\Security\ACL;
 use Minds\Entities;
+use Minds\Entities\User;
 
 class Manager
 {
@@ -62,7 +63,7 @@ class Manager
         $this->hashtagManager = $hashtagManager ?? Di::_()->get('Hashtags\User\Manager');
         $this->elasticFeedsManager = $elasticFeedsManager ?? Di::_()->get('Feeds\Elastic\Manager');
         $this->user = $user ?? Session::getLoggedInUser();
-        $this->plusSupportTierUrn = $this->config->get('plus')['support_tier_urn'];
+        $this->plusSupportTierUrn = $this->config->get('plus')['support_tier_urn'] ?? null;
         $this->acl = $acl ?? Di::_()->get('Security\ACL');
     }
 
@@ -198,8 +199,7 @@ class Manager
         ];
 
         $query = [
-            'index' => $this->config->get('elasticsearch')['index'],
-            'type' => 'activity',
+            'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-activity',
             'body' =>  [
                 'query' => [
                     'bool' => [
@@ -210,7 +210,7 @@ class Manager
                 'aggs' => [
                     'tags' => [
                         'terms' => [
-                            'field' => 'tags.keyword',
+                            'field' => 'tags',
                             'min_doc_count' => 10,
                             'exclude' => $opts['plus'] ? [] : $excludeTags,
                             'size' => $opts['limit'],
@@ -221,7 +221,7 @@ class Manager
                         'aggs' => [
                             'tags_per_owner' => [
                                 'cardinality' => [
-                                    'field' => 'owner_guid.keyword',
+                                    'field' => 'owner_guid',
                                 ]
                             ]
                         ],
@@ -272,7 +272,7 @@ class Manager
         //     $opts['hoursAgo'] = 1680; // 10 Weeks
         // }
 
-        $type = 'activity';
+        $types = [ 'activity' ];
 
         $languages = [ 'en' ];
         if ($this->user && $this->user->getLanguage() !== 'en') {
@@ -344,7 +344,10 @@ class Manager
             ];
             // Only blogs and videos show in top half of discovery
             // as we don't want blury thumbnails
-            $type = 'object:video,object:blog';
+            $types = [
+                'object-video',
+                'object-blog',
+            ];
         }
 
         // Not NSFW
@@ -419,9 +422,12 @@ class Manager
             'weight' => 10,
         ];
 
+        $index = array_map(function ($type) {
+            return $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-' . $type;
+        }, $types);
+        
         $query = [
-            'index' => $this->config->get('elasticsearch')['index'],
-            'type' => $type,
+            'index' => $index,
             'body' =>  [
                 'query' => [
                     'function_score' => [
@@ -544,13 +550,13 @@ class Manager
 
         switch ($type) {
             case 'blogs':
-                $type = 'object:blog';
+                $type = 'object-blog';
                 break;
             case 'images':
-                $type = 'object:image';
+                $type = 'object-image';
                 break;
             case 'videos':
-                $type = 'object:video';
+                $type = 'object-video';
                 break;
             default:
                 $type = 'activity';
@@ -591,8 +597,11 @@ class Manager
         $entities = $entities->pushArray($rows->toArray());
 
         if ($type === 'user') {
-            foreach ($entities as $entity) {
-                $entity->getEntity()->exportCounts = true;
+            foreach ($entities as $feedItem) {
+                $entity = $feedItem->getEntity();
+                if ($entity && $entity instanceof User) {
+                    $entity->exportCounts = true;
+                }
             }
         }
 

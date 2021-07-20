@@ -4,9 +4,13 @@ namespace Minds\Core\Analytics\UserStates;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Queue;
+use Minds\Core\Data\ElasticSearch;
 
 class Manager
 {
+    /** @var ElasticSearch\Client */
+    private $es;
+
     /** @var Queue\RabbitMQ\Client */
     private $queue;
 
@@ -99,7 +103,6 @@ class Manager
             'update' => [
                 '_id' => "{$userState->getUserGuid()}-{$userState->getReferenceDateMs()}",
                 '_index' => $this->userStateIndex,
-                '_type' => 'active_user',
             ],
         ];
 

@@ -4,7 +4,7 @@ $finder = PhpCsFixer\Finder::create()
     ->exclude(['vendor','lib','classes'])
     ->in(__DIR__);
 
-return PhpCsFixer\Config::create()
+return (new PhpCsFixer\Config())
     ->setRules([
         '@PSR2' => true,
         'strict_param' => true,

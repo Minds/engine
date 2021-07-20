@@ -5,20 +5,28 @@
 namespace Minds\Core\Security\AbuseGuard;
 
 use Minds\Core;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Entities;
 
 class Aggregates
 {
+    /** @var Core\Data\ElasticSearch\Client */
+    protected $client;
+
     private $start = 0;
     private $end = 0;
     private $limit = 100;
 
     private $aggregates = [];
 
-    public function __construct($client = null)
+    /** @var Config */
+    protected $config;
+
+    public function __construct($client = null, Config $config = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
+        $this->config = $config ?? Di::_()->get('Config');
         $this->start = time() - (60 * 10);
         $this->end = time();
     }
@@ -40,7 +48,6 @@ class Aggregates
     {
         $query = [
             'index' => 'minds-metrics-*',
-            'type' => 'action',
             'size' => 1, //we want just the aggregates
             'body' => [
                 'query' => [
@@ -92,7 +99,6 @@ class Aggregates
     {
         $query = [
             'index' => 'minds-metrics-*',
-            'type' => 'action',
             'size' => 0, //we want just the aggregates
             'body' => [
                 'query' => [
@@ -141,8 +147,7 @@ class Aggregates
     public function getPosts()
     {
         $query = [
-            'index' => 'minds_badger',
-            'type' => 'activity',
+            'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-activity',
             'size' => 0, //we want just the aggregates
             'body' => [
                 'query' => [

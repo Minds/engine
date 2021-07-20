@@ -74,6 +74,10 @@ class sendwyre implements Interfaces\Api
             ]);
         } catch (\Exception $e) {
             Core\Di\Di::_()->get('Logger')->error($e);
+
+            return Factory::response([
+                'status' => 'error',
+            ]);
         }
     }
 

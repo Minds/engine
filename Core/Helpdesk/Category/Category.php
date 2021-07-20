@@ -20,6 +20,7 @@ use Minds\Traits\MagicAttributes;
  * @method Category setBranch(string $value)
  * @method array getQuestions()
  * @method Category setQuestions(array $value)
+ * @method int getPosition()
  */
 class Category
 {

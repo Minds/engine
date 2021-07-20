@@ -50,7 +50,6 @@ class JoinedValidator
 
         $query = [
             'index' => 'minds-metrics-*',
-            'type' => 'action',
             'body' => [
                 'query' => [
                     'bool' => [

@@ -89,7 +89,7 @@ class Exportable implements \JsonSerializable
         $isSequential = isset($this->items[0]);
 
         foreach ($this->items as $key => $item) {
-            if (!method_exists($item, 'export')) {
+            if (!$item || !method_exists($item, 'export')) {
                 if (!$isSequential) {
                     $output[$key] = null;
                 }
@@ -168,6 +168,6 @@ class Exportable implements \JsonSerializable
      */
     public static function _($items = [])
     {
-        return new static($items);
+        return new self($items);
     }
 }

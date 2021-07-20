@@ -76,6 +76,11 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             }
 
             $user = register_user($_POST['username'], $_POST['password'], $_POST['username'], $_POST['email'], false);
+
+            if (!$user) {
+                return Factory::response(['status'=>'error', 'message' => "An unknown error occurred"]);
+            }
+
             $guid = $user->guid;
 
             // Hacky, move to service soon!
@@ -137,13 +142,15 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 'user' => $user->export(),
             ];
         } catch (\Exception $e) {
-            error_log(
-                "RegistrationError | username: ".$_POST['username']
-                .", email:".$_POST['email']
-                .", signupParentId".$user->signupParentId
-                .", exception: ".$e->getMessage()
-                .", addr: " . $_SERVER['HTTP_X_FORWARDED_FOR']
-            );
+            if (isset($user)) {
+                error_log(
+                    "RegistrationError | username: ".$_POST['username']
+                    .", email:".$_POST['email']
+                    .", signupParentId". $user->signupParentId
+                    .", exception: ".$e->getMessage()
+                    .", addr: " . $_SERVER['HTTP_X_FORWARDED_FOR']
+                );
+            }
             $response = ['status' => 'error', 'message' => $e->getMessage()];
         }
         return Factory::response($response);

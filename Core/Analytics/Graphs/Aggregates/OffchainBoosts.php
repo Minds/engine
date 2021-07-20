@@ -48,6 +48,7 @@ class OffchainBoosts implements AggregateInterface
     public function fetchAll($opts = [])
     {
         $result = [];
+        $span = null;
         foreach ([
                      'completed',
                      'not_completed',
