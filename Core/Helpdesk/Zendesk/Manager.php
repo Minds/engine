@@ -47,7 +47,7 @@ class Manager
             ->issuedAt(new DateTimeImmutable()) // iat
             ->withClaim('name', $user->getUsername())
             ->withClaim('email', $user->getEmail())
-            ->withClaim('external_id', $user->getGuid())
+            ->withClaim('external_id', (string) $user->getGuid())
             ->withClaim('role', 'user') // fixed to default
             ->getToken($this->jwtConfig->signer(), $this->jwtConfig->signingKey());
 
