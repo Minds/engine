@@ -108,22 +108,15 @@ class Controller
 
         $newRoom = $this->manager->createDirectRoom($user, $receiver);
 
-        // check if receiver has set up a matrix account
-        $chatSetup = true;
-
+        // Check if receiver has set up a matrix account
         if (!$this->manager->getAccountByUser($receiver)) {
-            $chatSetup = false;
             $this->manager->sendChatInviteNotification($user, $receiver, $newRoom);
-        };
-
-        if ($chatSetup) {
-            return new JsonResponse([
-                'status' => 'success',
-                'room' => $newRoom->export(),
-            ]);
-        } else {
-            throw new UserErrorException("Recipient has not set up chat account");
         }
+
+        return new JsonResponse([
+            'status' => 'success',
+            'room' => $newRoom->export(),
+        ]);
     }
 
     /**
