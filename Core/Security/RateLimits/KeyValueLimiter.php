@@ -4,6 +4,7 @@
  */
 namespace Minds\Core\Security\RateLimits;
 
+use Minds\Common\Jwt;
 use Minds\Traits\MagicAttributes;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\Redis\Client as RedisServer;
@@ -43,15 +44,20 @@ class KeyValueLimiter
     /** @var int */
     private $seconds = 300; // 5 minutes
 
+    /** @var Jwt */
+    protected $jwt;
+    
     /**
      * @param RedisServer $redis
      * @param Condfig $config
      */
-    public function __construct($redis = null, $config = null, $logger = null)
+    public function __construct($redis = null, $config = null, $logger = null, $jwt = null)
     {
         $this->config = $config ?? Di::_()->get('Config');
         $this->redis = $redis ?: new RedisServer();
         $this->logger = $logger ?? Di::_()->get('Logger');
+        $this->jwt = $jwt ?? new Jwt();
+        $this->jwt->setKey($this->config->get('cypress')['shared_key'] ?? '');
     }
 
     /**
@@ -60,6 +66,9 @@ class KeyValueLimiter
      */
     public function checkAndIncrement(): bool
     {
+        if ($this->verifyBypass()) {
+            return true;
+        }
         $recordKey = "ratelimit:$this->key-$this->value:$this->seconds";
         $count = (int) $this->getRedis()->get("$recordKey");
         
@@ -74,6 +83,28 @@ class KeyValueLimiter
             ->exec();
 
         return true;
+    }
+
+    /**
+     * Verify whether or not rate limits can be bypassed.
+     * @return bool
+     */
+    public function verifyBypass(): bool
+    {
+        if (!isset($_COOKIE['rate_limit_bypass'])) {
+            return false;
+        }
+        try {
+            $this->logger->warn('[KVLimiter]: Bypass cookie was used');
+
+            $decoded = $this->jwt->decode($_COOKIE['rate_limit_bypass']);
+            $timeDiff = time() / ($decoded['timestamp_ms'] / 1000);
+
+            // if less than 5 minutes.
+            return $timeDiff < 300;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     /**
