@@ -718,3 +718,12 @@ $CONFIG->set('arweave', [
 
 /* In characters */
 $CONFIG->set('max_name_length', 50);
+
+
+$CONFIG->SET('zendesk', [
+    'private_key' => '',
+    'url' => [
+        'base' => '',
+        'jwt_route' => 'access/jwt'
+    ]
+]);

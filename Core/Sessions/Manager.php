@@ -241,6 +241,7 @@ class Manager
             //->canOnlyBeUsedBy($this->config->get('site_url'))
             ->identifiedBy($id)
             ->withHeader('jti', $id)
+            
             ->expiresAt($expires)
             ->withClaim('user_guid', (string) $this->user->getGuid())
             ->getToken($this->getJwtConfig()->signer(), $this->getJwtConfig()->signingKey());
