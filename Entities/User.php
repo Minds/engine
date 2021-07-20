@@ -149,7 +149,7 @@ class User extends \ElggUser
      */
     public function getUsername(): string
     {
-        return $this->username;
+        return $this->username ?: '';
     }
 
     /**
@@ -158,7 +158,7 @@ class User extends \ElggUser
      */
     public function getName(): string
     {
-        return $this->name;
+        return $this->name ?: '';
     }
 
     /**
