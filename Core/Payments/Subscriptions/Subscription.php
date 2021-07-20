@@ -40,7 +40,7 @@ class Subscription
     private $coupon;
 
     /** @var User */
-    protected $user;
+    public $user;
 
     /** @var int */
     private $trialDays;
