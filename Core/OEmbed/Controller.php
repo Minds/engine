@@ -10,6 +10,9 @@ namespace Minds\Core\OEmbed;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 use Minds\Core\Di\Di;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
+use Minds\Entities\Image;
+use Minds\Entities\Video;
 
 class Controller
 {
@@ -66,7 +69,7 @@ class Controller
             ]);
         }
 
-        $guid = $this->trimGuid($params['url']);
+        $guid = $this->extractGuid($params['url']);
         
         if (!filter_var($guid ?? false, FILTER_VALIDATE_INT)) {
             return new JsonResponse([
@@ -77,7 +80,8 @@ class Controller
 
         $entity = $this->entitiesBuilder->single($guid);
 
-        if (!$this->acl->read($entity) || $entity->wire_threshold) {
+        // do not allow paywalled content to be returned.
+        if ($entity instanceof PaywallEntityInterface && $entity->isPaywall()) {
             return new JsonResponse([
                 'status' => 401,
                 'messaged' => 'Unauthorized access to resource'
@@ -92,7 +96,7 @@ class Controller
         }
 
         // not image or video
-        if ($entity->type !== 'object') {
+        if (get_class($entity) !== Video::class && get_class($entity) !== Image::class) {
             return new JsonResponse([
                 'status' => 501,
                 'message' => 'Only image and video links are supported.',
@@ -106,8 +110,8 @@ class Controller
         $height = $dimensions['height'];
         $width = $dimensions['width'];
 
-        switch ($entity->subtype) {
-            case 'video':
+        switch (get_class($entity)) {
+            case Video::class:
                 $type = 'video';
 
                 return new JsonResponse([
@@ -124,7 +128,7 @@ class Controller
                     'provider_url' => $this->getProviderUrl()  ?: null,
                 ]);
                 break;
-            case 'image':
+            case Image::class:
                 $type = 'photo';
                 $exportedEntity = $entity->export();
                 $url = $exportedEntity['thumbnail_src'] ?: $$exportedEntity['thumbnail'] ?: '';
@@ -161,11 +165,11 @@ class Controller
     }
 
     /**
-     * Trims GUID from a URL.
-     * @param string $url - url to be trimmed.
+     * Extracts GUID from a URL.
+     * @param string $url - url to be extracted.
      * @return string - guid.
      */
-    private function trimGuid(string $url): string
+    private function extractGuid(string $url): string
     {
         $queryString = explode('newsfeed/', $url)[1];
         return explode('?', $queryString)[0];
@@ -218,7 +222,7 @@ class Controller
      */
     private function getAuthorName($entity): string
     {
-        return $entity->getOwnerEntity()->username;
+        return $entity->getOwnerEntity()->getUsername();
     }
 
     /**

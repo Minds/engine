@@ -17,9 +17,8 @@ class Routes extends ModuleRoutes
     public function register(): void
     {
         $this->route
-            ->withPrefix("api/oembed")
+            ->withPrefix("api/v3/oembed")
             ->do(function (Route $route) {
-                error_log("match");
                 $route->get(
                     '',
                     Ref::_('OEmbed\Controller', 'getOEmbed')
