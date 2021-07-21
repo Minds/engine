@@ -539,6 +539,7 @@ $CONFIG->set('features', [
     'subscriber-conversations' => true,
     'activity-modal' => false,
     'withdrawal-console' => true,
+    'helpdesk-2021' => true,
 ]);
 
 $CONFIG->set('email', [
