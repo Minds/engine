@@ -41,10 +41,13 @@ class jury implements Interfaces\Api
             'hydrate' => true,
         ]);
 
+        $count = $juryManager->countList();
+
         return Factory::response([
             'reports' => Factory::exportable($reports),
             'load-next' => $reports->getPagingToken(),
             'has-next' => !$reports->isLastPage(),
+            'count' => $count,
         ]);
     }
 
