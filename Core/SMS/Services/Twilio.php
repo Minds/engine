@@ -89,7 +89,7 @@ class Twilio implements SMSServiceInterface
             ->setKey('sms-number-block')
             ->setValue(substr($number, 0, -2))
             ->setSeconds(86400) // 1 Day
-            ->setMax(2) // 2 per day
+            ->setMax(10) // 10 per day
             ->checkAndIncrement(); // Will throw exception
 
         try {
