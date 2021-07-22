@@ -172,4 +172,31 @@ class Repository
 
         return (bool) $this->cql->request($prepared);
     }
+
+    /**
+     * Count by jury type
+     * @param array $options 'juryType'
+     * @return Response
+     */
+    public function count(array $opts = []): int
+    {
+        $opts = array_merge([
+            'juryType' => 'reported',
+        ], $opts);
+
+        $statement = "SELECT COUNT(*) FROM moderation_reports_by_state
+            WHERE state = ?";
+
+        $values = [
+            $opts['juryType'] === 'appeal' ? 'appealed' : 'reported',
+        ];
+
+        $prepared = new Prepared;
+
+        $prepared->query($statement, $values);
+
+        $result = $this->cql->request($prepared);
+
+        return (int) $result[0]['count'] ?? 0;
+    }
 }

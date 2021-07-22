@@ -40,11 +40,15 @@ class Manager
     /** @var User */
     protected $user;
 
-    public function __construct($repository = null, $snowplowDelegate = null, $emailDelegate = null)
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
+    public function __construct($repository = null, $snowplowDelegate = null, $emailDelegate = null, $entitiesBuilder = null)
     {
         $this->repository = $repository ?: Di::_()->get('Payments\Subscriptions\Repository');
         $this->snowplowDelegate = $snowplowDelegate ?? new Delegates\SnowplowDelegate;
         $this->emailDelegate = $emailDelegate ?? new Delegates\EmailDelegate();
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -58,12 +62,36 @@ class Manager
     }
 
     /**
+     * Validates whether user can be charged based off account state
+     * banned, enabled, deleted.
+     * @return boolean true if user can be charged.
+     */
+    public function canCharge()
+    {
+        // reconstruct from cache to ensure values are up to date.
+        $user = $this->entitiesBuilder->single($this->subscription->user->guid, [
+            'cache' => false,
+        ]);
+
+        return !(
+            !$user ||
+            $user->enabled === "no" ||
+            $user->isBanned() ||
+            $user->getDeleted()
+        );
+    }
+
+    /**
      * Charge
      * @return bool
      */
     public function charge()
     {
         try {
+            if (!$this->canCharge()) {
+                throw new \Exception("Cannot charge this user - they are banned, disabled or deleted");
+            }
+
             $result = Dispatcher::trigger('subscriptions:process', $this->subscription->getPlanId(), [
                 'subscription' => $this->subscription
             ]);
