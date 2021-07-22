@@ -120,6 +120,22 @@ class Manager
     }
 
     /**
+     * Counts entries in a list, filtered by class-level juryType.
+     * @param array $opts - 'juryType'
+     * @return Response
+     */
+    public function countList($opts = [])
+    {
+        $opts = array_merge([
+            'juryType' => $this->juryType,
+        ], $opts);
+
+        $response = $this->repository->count($opts);
+
+        return $response;
+    }
+
+    /**
      * Return a single report
      * @param string $urn
      * @return Report
