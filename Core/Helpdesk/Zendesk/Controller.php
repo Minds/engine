@@ -41,8 +41,14 @@ class Controller
         // create url
         $url = $routeConfig['base'].$routeConfig['jwt_route'].'?jwt='.$payload;
         
-        // redirect to zendesk with token.
-        header('Location: ' . $url);
+        // redirect to zendesk with token if headers are not already sent.
+        if (headers_sent()) {
+            return new JsonResponse([
+                'error' => 'An error has occurred redirecting to Zendesk'
+            ]);
+        } else {
+            header('Location: ' . $url);
+        }
 
         return new JsonResponse([
             'status' => 'success'

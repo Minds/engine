@@ -32,7 +32,7 @@ class ControllerSpec extends ObjectBehavior
         $this->shouldHaveType(Controller::class);
     }
 
-    public function it_should_redirect(ServerRequest $request,  User $user)
+    public function it_should_redirect(ServerRequest $request, User $user)
     {
         $request->getAttribute('_user')
             ->willReturn($user);
