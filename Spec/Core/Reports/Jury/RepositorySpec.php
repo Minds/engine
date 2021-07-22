@@ -170,4 +170,26 @@ class RepositorySpec extends ObjectBehavior
         $this->add($decision)
             ->shouldBe(true);
     }
+
+    public function it_should_count_reports()
+    {
+        $this->cql->request(Argument::that(function ($prepared) {
+            $query = $prepared->build();
+            $values = $query['values'];
+
+            return $values[0] === 'reported';
+        }))
+            ->shouldBeCalled()
+            ->willReturn([
+                [
+                    'count' => 100
+                ]
+            ]);
+
+        $response = $this->count([
+            'juryType' => 'reported',
+        ]);
+
+        $response->shouldBe(100);
+    }
 }
