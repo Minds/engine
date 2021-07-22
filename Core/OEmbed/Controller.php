@@ -96,8 +96,7 @@ class Controller
         }
 
         // not image or video
-        if (get_class($entity) !== Video::class && get_class($entity) !== Image::class) {
-            return new JsonResponse([
+        if (!$entity instanceof Video && !$entity instanceof Image) {            return new JsonResponse([
                 'status' => 501,
                 'message' => 'Only image and video links are supported.',
             ]);
@@ -113,10 +112,11 @@ class Controller
         switch (get_class($entity)) {
             case Video::class:
                 $type = 'video';
+                $url = 'https://www.minds.com/embed/' . $entity->getGuid();
 
                 return new JsonResponse([
                     'status' => 'success',
-                    'html' => "<iframe src=\"https://www.minds.com/embed/$entity->guid\"></iframe>",
+                    'html' => '<iframe src="'.$url.'"></iframe>',
                     'height' => $height,
                     'width' => $width,
                     'type' => $type,
