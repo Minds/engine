@@ -148,7 +148,7 @@ class Join
 
 
         if ($this->featuresManager->has('twilio-verify')) {
-            if (!$this->sms->verify($this->number)) {
+            if (!$this->twilioVerify->verify($this->number)) {
                 throw new VoIpPhoneException();
             }
 
