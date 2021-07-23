@@ -61,9 +61,10 @@ class rewards implements Interfaces\Api
                 }
                 $code = $_POST['code'];
 
-                if (!isset($_POST['secret'])) {
-                    return Factory::response(['status' => 'error', 'message' => 'code field is required']);
+                if (!Core\Di\Di::_()->get('Features\Manager')->has('twilio-verify') && !isset($_POST['secret'])) {
+                    return Factory::response(['status' => 'error', 'message' => 'secret field is required']);
                 }
+
                 $secret = $_POST['secret'];
 
                 $user = Session::getLoggedInUser();
