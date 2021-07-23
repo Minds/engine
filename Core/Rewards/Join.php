@@ -187,7 +187,7 @@ class Join
             $this->verify();
             return;
         }
-g
+
         $user_guid = $this->user->guid;
         $username = $this->user->getUsername();
         $row = $this->db->getRow("rewards:verificationcode:$user_guid");
