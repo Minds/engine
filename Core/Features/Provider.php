@@ -82,6 +82,7 @@ class Provider extends DiProvider
                 'cloudflare-streams',
                 'notifications-v3',
                 'withdrawal-console',
+                'helpdesk-2021',
             ];
         });
 
