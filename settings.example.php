@@ -543,6 +543,7 @@ $CONFIG->set('features', [
     'activity-modal' => false,
     'withdrawal-console' => true,
     'twilio-verify' => true,
+    'helpdesk-2021' => true
 ]);
 
 $CONFIG->set('email', [
@@ -722,3 +723,12 @@ $CONFIG->set('arweave', [
 
 /* In characters */
 $CONFIG->set('max_name_length', 50);
+
+
+$CONFIG->SET('zendesk', [
+    'private_key' => '',
+    'url' => [
+        'base' => '',
+        'jwt_route' => 'access/jwt'
+    ]
+]);

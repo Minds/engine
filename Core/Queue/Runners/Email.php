@@ -3,6 +3,7 @@ namespace Minds\Core\Queue\Runners;
 
 use Minds\Core;
 use Minds\Core\Data;
+use Minds\Core\Email\Message;
 use Minds\Core\Queue\Interfaces;
 use Minds\Core\Queue;
 use Minds\Core\Notification\Settings;
@@ -26,8 +27,11 @@ class Email implements Interfaces\QueueRunner
                    $data = $data->getData();
 
                    $message = unserialize($data['message']);
-                   $mailer->send($message);
-                   echo "[email]: delivered to {$message->to[0]['name']} ($message->subject) \n";
+
+                   if ($message && $message instanceof Message) {
+                       $mailer->send($message);
+                       echo "[email]: delivered to {$message->to[0]['name']} ($message->subject) \n";
+                   }
                });
         $this->run();
     }

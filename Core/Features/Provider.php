@@ -82,7 +82,8 @@ class Provider extends DiProvider
                 'cloudflare-streams',
                 'notifications-v3',
                 'withdrawal-console',
-                'twilio-verify'
+                'twilio-verify',
+                'helpdesk-2021'
             ];
         });
 
