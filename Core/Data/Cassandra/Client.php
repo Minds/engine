@@ -106,10 +106,10 @@ class Client implements Interfaces\ClientInterface
             $this->cluster = Driver::cluster()
                 ->withContactPoints(... $options['cql_servers'])
                 ->withWhiteListHosts(... $options['cql_servers'])
-                ->withPersistentSessions(false)
-                ->withSchemaMetadata(false) // Disables token aware routing but faster boot times
+                //->withPersistentSessions(false)
+                //->withSchemaMetadata(false) // Disables token aware routing but faster boot times
                 ->withCredentials($options['username'], $options['password'])
-                ->withLatencyAwareRouting(true)
+                //->withLatencyAwareRouting(true)
                 ->withDefaultConsistency(Driver::CONSISTENCY_LOCAL_QUORUM)
                 ->withRetryPolicy(new Driver\RetryPolicy\Logging($retry_policy))
                 ->withPort(9042)
