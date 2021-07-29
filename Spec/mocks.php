@@ -29,6 +29,11 @@ class Mock
         return $this;
     }
 
+    public function withWhiteListHosts()
+    {
+        return $this;
+    }
+
     public function withPersistentSessions()
     {
         return $this;

@@ -105,6 +105,7 @@ class Client implements Interfaces\ClientInterface
 
             $this->cluster = Driver::cluster()
                 ->withContactPoints(... $options['cql_servers'])
+                ->withWhiteListHosts(... $options['cql_servers'])
                 ->withPersistentSessions(false)
                 ->withSchemaMetadata(false) // Disables token aware routing but faster boot times
                 ->withCredentials($options['username'], $options['password'])
