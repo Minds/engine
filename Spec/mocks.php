@@ -24,6 +24,11 @@ class Mock
         return $this;
     }
 
+    public function withSchemaMetadata()
+    {
+        return $this;
+    }
+
     public function withPersistentSessions()
     {
         return $this;
