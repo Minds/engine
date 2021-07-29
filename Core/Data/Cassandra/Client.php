@@ -109,6 +109,7 @@ class Client implements Interfaces\ClientInterface
                 ->withLatencyAwareRouting(true)
                 ->withDefaultConsistency(Driver::CONSISTENCY_LOCAL_QUORUM)
                 ->withRetryPolicy(new Driver\RetryPolicy\Logging($retry_policy))
+                ->withTokenAwareRouting(false) // makes initial connect fast
                 ->withPort(9042)
                 ->build();
 
