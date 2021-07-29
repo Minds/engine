@@ -105,6 +105,7 @@ class Client implements Interfaces\ClientInterface
 
             $this->cluster = Driver::cluster()
                 ->withContactPoints(... $options['cql_servers'])
+                ->withPersistentSessions(true)
                 ->withCredentials($options['username'], $options['password'])
                 ->withLatencyAwareRouting(true)
                 ->withDefaultConsistency(Driver::CONSISTENCY_LOCAL_QUORUM)
