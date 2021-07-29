@@ -34,6 +34,11 @@ class Mock
         return $this;
     }
 
+    public function withTokenAwareRouting()
+    {
+        return $this;
+    }
+
     public static function collection()
     {
         return new Mock();
