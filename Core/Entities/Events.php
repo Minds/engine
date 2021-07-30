@@ -51,7 +51,7 @@ class Events
             ->setEntity($entity)
             ->setUser($user);
 
-            $this->actionEventTopic->send($actionEvent);
+            // $this->actionEventTopic->send($actionEvent);
         });
     }
 }
