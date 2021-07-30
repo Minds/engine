@@ -32,7 +32,7 @@ class Search
     public function __construct($elastic = null, $indexPrefix = null, $entitiesBuilder = null)
     {
         $this->elastic = $elastic ?: Di::_()->get('Database\ElasticSearch');
-        $this->indexPrefix  = $indexPrefix ?: Di::_()->get('Config')->elasticsearch['indexes']['search_prefix'];
+        $this->indexPrefix  = $indexPrefix ?: Di::_()->get('Config')->get('elasticsearch')['indexes']['search_prefix'];
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
     }
 

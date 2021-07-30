@@ -46,7 +46,7 @@ class Index
         $cleanup = null
     ) {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
-        $this->esIndex = $index ?: Di::_()->get('Config')->elasticsearch['indexes']['search_prefix'];
+        $this->esIndex = $index ?: Di::_()->get('Config')->get('elasticsearch')['indexes']['search_prefix'];
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->hashtagsManager = $hashtagsManager ?: Di::_()->get('Search\Hashtags\Manager');
         $this->cleanup = $cleanup ?? new Cleanup();
