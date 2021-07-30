@@ -32,7 +32,7 @@ class Provisioner
     public function __construct($client = null, $esIndex = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
-        $this->esIndex = $esIndex ?: Di::_()->get('Config')->elasticsearch['index'];
+        $this->esIndex = $esIndex ?: Di::_()->get('Config')->get('elasticsearch')['index'];
     }
 
     public function setUp()

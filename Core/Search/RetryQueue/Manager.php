@@ -9,6 +9,7 @@ namespace Minds\Core\Search\RetryQueue;
 use Exception;
 use Minds\Common\Urn;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Resolver;
 use Minds\Core\Events\EventsDispatcher;
 
 class Manager
@@ -79,5 +80,16 @@ class Manager
         }
 
         return $retrySaved;
+    }
+
+    public function retryAll()
+    {
+        foreach ($this->repository->getList() as $retryQueueEntry) {
+            $resolver = new Resolver();
+            $entity = $resolver->single($retryQueueEntry->getEntityUrn());
+            $this->eventsDispatcher->trigger('search:index', 'all', [
+                'entity' => $entity
+            ]);
+        }
     }
 }
