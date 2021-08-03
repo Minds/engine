@@ -68,4 +68,10 @@ class Search extends Cli\Controller implements Interfaces\CliControllerInterface
         $sync = new Core\Search\InteractionsSync();
         $sync->sync($entity);
     }
+
+    public function retryAll()
+    {
+        $retryManager = new Core\Search\RetryQueue\Manager();
+        $retryManager->retryAll();
+    }
 }

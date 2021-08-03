@@ -46,7 +46,7 @@ class Analytics
 
         //skip if we've cached this hour
         $ts = static::buildTS("hour", time());
-        $cacher = Core\Data\cache\factory::build('apcu');
+        $cacher = Core\Data\cache\factory::build('Redis');
         if ($cacher->get("$platform:$metric:$ts:$user_guid") == true) {
             return;
         }

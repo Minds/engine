@@ -21,7 +21,7 @@ class Documents
     public function __construct($client = null, $index = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
-        $this->index = $index ?: Config::_()->elasticsearch['indexes']['search_prefix'] . '-*';
+        $this->index = $index ?: Config::_()->get('elasticsearch')['indexes']['search_prefix'] . '-*';
     }
 
     /**

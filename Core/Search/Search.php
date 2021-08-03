@@ -31,8 +31,8 @@ class Search
     public function __construct($client = null, $index = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
-        $this->esIndex = $index ?: Di::_()->get('Config')->elasticsearch['indexes']['search_prefix']  . '-user';
-        $this->tagsIndex = $index ?: Di::_()->get('Config')->elasticsearch['indexes']['tags'];
+        $this->esIndex = $index ?: Di::_()->get('Config')->get('elasticsearch')['indexes']['search_prefix']  . '-user';
+        $this->tagsIndex = $index ?: Di::_()->get('Config')->get('elasticsearch')['indexes']['tags'];
     }
 
 
