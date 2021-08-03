@@ -188,16 +188,6 @@ class ManagerSpec extends ObjectBehavior
             ->getTitle('goodbye world');
     }
 
-    public function it_should_throw_exception_if_no_tags()
-    {
-        $this->hashtagManager
-            ->get(Argument::any())
-            ->willReturn([]);
-
-        $this->shouldThrow("Minds\Core\Discovery\NoTagsException")
-            ->duringGetTagTrends();
-    }
-
     public function it_should_return_search()
     {
         $this->elasticFeedsManager
