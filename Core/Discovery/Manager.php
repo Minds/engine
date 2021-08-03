@@ -96,7 +96,8 @@ class Manager
         if ($opts['tag_cloud_override']) {
             $this->tagCloud = $opts['tag_cloud_override'];
         } elseif (empty($this->tagCloud) && $opts['plus'] === false) {
-            throw new NoTagsException();
+            // fallback to defaults.
+            $this->tagCloud = $this->config->get('discovery_default_tags') ?? [];
         }
 
         $tagTrends12 = $this->getTagTrendsForPeriod(12, [], [

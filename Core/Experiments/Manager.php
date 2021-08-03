@@ -19,6 +19,7 @@ class Manager
         'Homepage121118' => Hypotheses\Homepage121118::class,
         'Homepage200619' => Hypotheses\Homepage200619::class,
         'Homepage121119' => Hypotheses\Homepage121119::class,
+        'Homepage030821' => Hypotheses\Homepage030821::class,
     ];
 
     public function __construct($sampler = null)
