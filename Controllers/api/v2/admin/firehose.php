@@ -51,6 +51,10 @@ class firehose implements Interfaces\Api, Interfaces\ApiAdminPam
 
         $period = $_GET['period'] ?? '12h';
 
+        if (isset($_GET['offset'])) {
+            $offset = intval($_GET['offset']);
+        }
+
         if ($algorithm === 'hot') {
             $period = '12h';
         } elseif ($algorithm === 'latest') {
@@ -70,7 +74,7 @@ class firehose implements Interfaces\Api, Interfaces\ApiAdminPam
 
         $opts = [
             'limit' => 12,
-            'offset' => 0,
+            'from_timestamp' => $offset,
             'type' => $type,
             'algorithm' => $algorithm,
             'period' => $period,
@@ -107,6 +111,8 @@ class firehose implements Interfaces\Api, Interfaces\ApiAdminPam
             /** @var Core\Feeds\Firehose\Manager $manager */
             $manager = Di::_()->get('Feeds\Firehose\Manager');
             $activities = $manager->getList($opts);
+            $pagingToken = $activities->getPagingToken();
+            $isLastPage = $activities->isLastPage();
         } catch (\Exception $e) {
             error_log($e);
             return Factory::response(['status' => 'error', 'message' => $e->getMessage()]);
@@ -121,7 +127,9 @@ class firehose implements Interfaces\Api, Interfaces\ApiAdminPam
 
         return Factory::response([
             'status' => 'success',
-            'entities' => Exportable::_($activities)
+            'entities' => Exportable::_($activities),
+            'load-next' => $pagingToken,
+            'has-next' => !$isLastPage,
         ]);
     }
 
