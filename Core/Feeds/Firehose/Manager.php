@@ -69,6 +69,17 @@ class Manager
         });
     }
 
+    public function getCount(array $opts = null): int
+    {
+        $opts = array_merge([
+            'moderation_user' => null,
+            'exclude_moderated' => true,
+            'moderation_reservations' => null,
+        ], $opts);
+
+        return $this->topFeedsManager->getCount($opts);
+    }
+
     /**
      * Marks an entity as moderated.
      *

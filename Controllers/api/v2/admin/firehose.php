@@ -111,8 +111,10 @@ class firehose implements Interfaces\Api, Interfaces\ApiAdminPam
             /** @var Core\Feeds\Firehose\Manager $manager */
             $manager = Di::_()->get('Feeds\Firehose\Manager');
             $activities = $manager->getList($opts);
+            $totalCount = $manager->getCount($opts);
+
             $pagingToken = $activities->getPagingToken();
-            $isLastPage = $activities->isLastPage();
+            $isLastPage = $totalCount === 0;
         } catch (\Exception $e) {
             error_log($e);
             return Factory::response(['status' => 'error', 'message' => $e->getMessage()]);
@@ -127,6 +129,7 @@ class firehose implements Interfaces\Api, Interfaces\ApiAdminPam
 
         return Factory::response([
             'status' => 'success',
+            'count' => $totalCount,
             'entities' => Exportable::_($activities),
             'load-next' => $pagingToken,
             'has-next' => !$isLastPage,
