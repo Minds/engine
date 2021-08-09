@@ -74,7 +74,7 @@ class firehose implements Interfaces\Api, Interfaces\ApiAdminPam
 
         $opts = [
             'limit' => 12,
-            'from_timestamp' => $offset,
+            'from_timestamp' => $offset ?? null,
             'type' => $type,
             'algorithm' => $algorithm,
             'period' => $period,
