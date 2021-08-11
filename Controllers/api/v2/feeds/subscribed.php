@@ -2,6 +2,7 @@
 
 namespace Minds\Controllers\api\v2\feeds;
 
+use Composer\Semver\Comparator;
 use Minds\Api\Exportable;
 use Minds\Api\Factory;
 use Minds\Core;
@@ -119,7 +120,13 @@ class subscribed implements Interfaces\Api
         ];
 
         if ($_GET['to_timestamp'] ?? null) {
-            $opts['to_timestamp'] = (int) $_GET['to_timestamp'] * 1000;
+            // Fallbacks to the old timestamp filter for old versions of mobile
+            if (isset($_SERVER['HTTP_APP_VERSION']) && Comparator::lessThan($_SERVER['HTTP_APP_VERSION'], '4.17.0')) {
+                $opts['from_timestamp'] = (int) $_GET['to_timestamp'] * 1000;
+                $opts['to_timestamp'] = time() * 1000;
+            } else {
+                $opts['to_timestamp'] = (int) $_GET['to_timestamp'];
+            }
         }
 
         try {

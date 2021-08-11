@@ -48,6 +48,16 @@ class FeedSyncEntity implements JsonSerializable
     protected $deleted = false;
 
     /**
+     * Makes properties accessible from outside
+     */
+    public function __get($name) {
+        if (!property_exists($this, $name)) {
+            return $this->$name;
+        }
+        return null;
+    }
+
+    /**
      * Export to public API
      * @return array
      */
