@@ -13,6 +13,7 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Security;
 use Minds\Core\SMS\Exceptions\VoIpPhoneException;
+use Minds\Helpers\FormatPhoneNumber;
 use Minds\Entities;
 use Minds\Interfaces;
 
@@ -51,9 +52,21 @@ class twofactor implements Interfaces\Api
             $pages[0] = '';
         }
 
+        $featuresManager = Di::_()->get('Features\Manager');
+        $twilioVerify = Di::_()->get('SMS\Twilio\Verify');
 
         switch ($pages[0]) {
             case "setup":
+                if ($featuresManager->has('twilio-verify')) {
+                    if (!$twilioVerify->verify($this->number)) {
+                        throw new VoIpPhoneException();
+                    }
+
+                    $number = FormatPhoneNumber::format($_POST['tel']);
+                    $twilioVerify->send($number, '');
+
+                    break;
+                }
 
                 $secret = $twofactor->createSecret();
 
@@ -72,11 +85,7 @@ class twofactor implements Interfaces\Api
                 }
 
                 $message = 'Minds TwoFactor code: '. $twofactor->getCode($secret);
-                $number = $_POST['tel'];
-                
-                if ($number[0] !== '+') {
-                    $number = '+'.$number;
-                }
+                $number = FormatPhoneNumber::format($_POST['tel']);
 
                 if ($sms->send($number, $message)) {
                     $response['secret'] = $secret;
@@ -89,7 +98,21 @@ class twofactor implements Interfaces\Api
             case "check":
                 $secret = $_POST['secret'];
                 $code = $_POST['code'];
-                $telno = $_POST['telno'];
+                $telno = FormatPhoneNumber::format($_POST['telno']);
+
+                if ($featuresManager->has('twilio-verify')) {
+                    if ($twilioVerify->verifyCode($code, $telno)) {
+                        $user->twofactor = true;
+                        $user->telno = $telno;
+                    } else {
+                        $response['status'] = "error";
+                        $response['message'] = "2factor code failed";
+                        $user->twofactor = false;
+                    }
+                    $user->save();
+                    break;
+                }
+
                 if ($twofactor->verifyCode($secret, $code, 1)) {
                     $response['status'] = "success";
                     $response['message'] = "2factor now setup";
