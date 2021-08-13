@@ -306,7 +306,7 @@ class channel implements Interfaces\Api
                     $owner->name = $trimmedName;
                 }
 
-                if (isset($_POST['dob'])) {
+                if (isset($_POST['dob']) && preg_match('/^\d{4}-\d{2}-\d{2}/', $_POST['dob'])) {
                     $update['dob'] = $_POST['dob'];
                     $owner->setDateOfBirth($_POST['dob']);
                 }
