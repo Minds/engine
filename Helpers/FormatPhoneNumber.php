@@ -10,7 +10,7 @@ class FormatPhoneNumber
 {
     /**
      * Formats a phone number by adding a leading '+' character if required.
-     * @param string $number - phone number to format. 
+     * @param string $number - phone number to format.
      * @return string formatted number
      */
     public static function format(string $number): string
