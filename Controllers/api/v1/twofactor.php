@@ -58,11 +58,12 @@ class twofactor implements Interfaces\Api
         switch ($pages[0]) {
             case "setup":
                 if ($featuresManager->has('twilio-verify')) {
-                    if (!$twilioVerify->verify($this->number)) {
+                    $number = FormatPhoneNumber::format($_POST['tel']);
+
+                    if (!$twilioVerify->verify($number)) {
                         throw new VoIpPhoneException();
                     }
 
-                    $number = FormatPhoneNumber::format($_POST['tel']);
                     $twilioVerify->send($number, '');
 
                     break;
