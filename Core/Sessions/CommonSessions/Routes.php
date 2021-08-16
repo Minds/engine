@@ -31,6 +31,10 @@ class Routes extends ModuleRoutes
                     'session',
                     Ref::_('Sessions\CommonSessions\Controller', 'deleteSession')
                 );
+                $route->delete(
+                    'all',
+                    Ref::_('Sessions\CommonSessions\Controller', 'deleteAllSessions')
+                );
             });
     }
 }

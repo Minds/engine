@@ -147,8 +147,7 @@ class settings implements Interfaces\Api
             $user->password = Core\Security\Password::generate($user, $_POST['new_password']);
             $user->override_password = true;
 
-            (new \Minds\Core\Data\Sessions())->destroyAll($user->guid);
-            \Minds\Core\Session::regenerate(true, $user);
+            Di::_()->get('Sessions\CommonSessions\Manager')->deleteAll($user);
         }
 
         /** @var Core\I18n\Manager $i18n */
