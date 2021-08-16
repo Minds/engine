@@ -92,4 +92,20 @@ class Controller
             'status' => 'success',
         ]);
     }
+
+    /**
+     * Deletes all sessions for the logged-in user.
+     * @param ServerRequest $request - request object from client
+     * @return JsonResponse $response - object passed to client.
+     */
+    public function deleteAllSessions(ServerRequest $request): JsonResponse
+    {
+        /** @var User */
+        $user = $request->getAttribute('_user');
+        $this->manager->deleteAll($user);
+
+        return new JsonResponse([
+            'status' => 'success',
+        ]);
+    }
 }
