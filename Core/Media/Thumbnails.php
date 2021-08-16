@@ -21,7 +21,8 @@ class Thumbnails
     /** @var Wire\Paywall\Manager */
     protected $paywallManager;
 
-    private static $PAYWALL_BLUR = '/Assets/photos/paywall-blur.jpeg';
+    /** @var string */
+    const PAYWALL_BLUR = '/Assets/photos/paywall-blur.jpeg';
 
     public function __construct($config = null, $entitiesBuilder = null, $cloudflareStreamsManager = null, $paywallManager = null)
     {
@@ -152,6 +153,6 @@ class Thumbnails
      */
     public function getDefaultBlurred(): string
     {
-        return file_get_contents(dirname(dirname(dirname(__FILE__))) . self::$PAYWALL_BLUR);
+        return file_get_contents(dirname(dirname(dirname(__FILE__))) . self::PAYWALL_BLUR);
     }
 }
