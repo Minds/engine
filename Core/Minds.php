@@ -52,6 +52,7 @@ class Minds extends base
         Media\Proxy\Module::class,
         Blockchain\Module::class,
         Boost\Module::class,
+        OEmbed\Module::class,
         Rewards\Module::class,
         Media\Video\CloudflareStreams\Module::class,
         Matrix\Module::class,
