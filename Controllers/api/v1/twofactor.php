@@ -65,7 +65,6 @@ class twofactor implements Interfaces\Api
                     }
 
                     $twilioVerify->send($number, '');
-
                     break;
                 }
 
