@@ -178,9 +178,6 @@ class Image extends File
 
             $imageBlob = $resize->getJpeg(90);
             $name = "image/$this->batch_guid/$this->guid";
-            if ($size === 'small') {
-                $this->createBlured($imageBlob, $name);
-            }
             $this->setFilename("$name/$size.jpg");
             $this->open('write');
             $this->write($imageBlob);
@@ -189,17 +186,17 @@ class Image extends File
     }
 
     /**
-     * @param string $imageBlob
-     * @param string $name
+     * Create a blured image
      * @return void
      */
-    public function createBlured($imageBlob, $name)
+    public function createBlured()
     {
-        $imagick = new \Imagick();
-        $imagick->readImageBlob($imageBlob);
+        $thumbnail = new \Imagick($this->getFilenameOnFilestore());
+        $imagick= new \Imagick();
+        $imagick->readImageBlob($thumbnail->getImageBlob());
         $imagick->setType('jpeg');
         $imagick->blurImage(100, 500);
-        $this->setFilename("$name/blurred.jpg");
+        $this->setFilename("image/$this->batch_guid/$this->guid/blured.jpg");
         $this->open('write');
         $this->write($imagick->getImageBlob());
         $this->close();

@@ -294,6 +294,17 @@ class newsfeed implements Interfaces\Api
 
                         $activityMutation->setWireThreshold($_POST['wire_threshold']);
                         $activityMutation->setPaywall(!!$_POST['wire_threshold']);
+
+                        
+                        if ($_POST['wire_threshold']) {
+                            $entityGuid =  $activityMutation->getEntityGuid() ?? null;
+                            if ($entityGuid) {
+                                $entity = Entities\Factory::build($entityGuid);
+                                if ($entity->subtype === 'image' && !$entity->gif) {
+                                    $entity->createBlured();
+                                }
+                            }
+                        }
                     }
 
                     if (isset($_POST['paywall']) && !$_POST['paywall']) {
@@ -481,6 +492,13 @@ class newsfeed implements Interfaces\Api
                         (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
                             ->setActor(Core\Session::getLoggedinUser())
                             ->onCreate($activity, (string) $entityGuid);
+
+                        if (isset($_POST['wire_threshold']) && $_POST['wire_threshold']) {
+                            $entity = Entities\Factory::build($entityGuid);
+                            if ($entity->subtype === 'image' && !$entity->gif) {
+                                $entity->createBlured();
+                            }
+                        }
                     } elseif (!$entityGuid && $url) {
                         // Set-up rich embed
 
