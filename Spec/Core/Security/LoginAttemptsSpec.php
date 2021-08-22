@@ -3,12 +3,21 @@
 namespace Spec\Minds\Core\Security;
 
 use Minds\Core\Security\Exceptions\UserNotSetupException;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 class LoginAttemptsSpec extends ObjectBehavior
 {
+    private $keyValueLimiter;
+
+    public function let(KeyValueLimiter $keyValueLimiter)
+    {
+        $this->beConstructedWith($keyValueLimiter);
+        $this->keyValueLimiter = $keyValueLimiter;
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Security\LoginAttempts');
@@ -69,6 +78,21 @@ class LoginAttemptsSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(strtotime('-30 sec'));
 
+        $this->keyValueLimiter
+            ->setKey('login-attempts-ip')
+            ->willReturn($this->keyValueLimiter);
+        $this->keyValueLimiter->setValue(Argument::any())
+            ->willReturn($this->keyValueLimiter);
+
+        $this->keyValueLimiter->setSeconds(Argument::any())
+            ->willReturn($this->keyValueLimiter);
+        
+        $this->keyValueLimiter->setMax(Argument::any())
+            ->willReturn($this->keyValueLimiter);
+        
+        $this->keyValueLimiter->checkAndIncrement()
+            ->shouldBeCalled();
+
         $this->setUser($user);
 
         $this->checkFailures()->shouldReturn(true);
@@ -85,6 +109,22 @@ class LoginAttemptsSpec extends ObjectBehavior
         $user->getPrivateSetting(Argument::exact('login_failures'))
             ->shouldBeCalled()
             ->willReturn(3);
+
+        $this->keyValueLimiter
+            ->setKey('login-attempts-ip')
+            ->willReturn($this->keyValueLimiter);
+
+        $this->keyValueLimiter->setValue(Argument::any())
+            ->willReturn($this->keyValueLimiter);
+
+        $this->keyValueLimiter->setSeconds(Argument::any())
+            ->willReturn($this->keyValueLimiter);
+        
+        $this->keyValueLimiter->setMax(Argument::any())
+            ->willReturn($this->keyValueLimiter);
+        
+        $this->keyValueLimiter->checkAndIncrement()
+            ->shouldBeCalled();
 
         $this->setUser($user);
 
