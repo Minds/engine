@@ -3,13 +3,24 @@
 
 namespace Minds\Core\Security;
 
+use Minds\Common\IpAddress;
+use Minds\Core\Di\Di;
 use Minds\Core\Security\Exceptions\UserNotSetupException;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Entities\User;
 
 class LoginAttempts
 {
     /** @var User */
     protected $user;
+
+    /** @var KeyValueLimiter */
+    protected $kvLimiter;
+
+    public function __construct($kvLimiter = null)
+    {
+        $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
+    }
 
     /**
      * Sets the user
@@ -61,6 +72,18 @@ class LoginAttempts
         $user_guid = (int) $this->user->guid;
 
         if ($user_guid) {
+
+            // Bad place for this, but increment each time we check
+
+            $period = 86400;
+
+            $this->kvLimiter
+                ->setKey('login-attempts-ip')
+                ->setValue((new IpAddress)->get())
+                ->setSeconds($period)
+                ->setMax(1000) // 1000 ip logins per day
+                ->checkAndIncrement();
+
             $fails = (int) $this->user->getPrivateSetting("login_failures");
             if ($fails >= $limit) {
                 $cnt = 0;
