@@ -65,6 +65,9 @@ class container implements Interfaces\Api
             case 'blogs':
                 $type = 'object-blog';
                 break;
+            case 'objects':
+                $type = 'object-*';
+                break;
             case 'all':
                 $type = 'all';
                 break;
