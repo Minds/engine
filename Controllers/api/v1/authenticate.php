@@ -19,6 +19,7 @@ use Minds\Exceptions\TwoFactorRequired;
 use Minds\Core\Queue;
 use Minds\Core\Subscriptions;
 use Minds\Core\Analytics;
+use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Zend\Diactoros\ServerRequestFactory;
 
 class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
@@ -59,7 +60,14 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         $attempts->setUser($user);
 
-        if ($attempts->checkFailures()) {
+        try {
+            if ($attempts->checkFailures()) {
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => 'LoginException::AttemptsExceeded'
+                ]);
+            }
+        } catch (RateLimitExceededException $e) {
             return Factory::response([
                 'status' => 'error',
                 'message' => 'LoginException::AttemptsExceeded'
