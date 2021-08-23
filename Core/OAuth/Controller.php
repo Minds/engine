@@ -131,7 +131,7 @@ class Controller
             $body['status'] = 'success';
             $response = new JsonResponse($body);
         } catch (OAuthServerException $e) {
-            \Sentry\captureException($e);
+            // \Sentry\captureException($e);
             $response = $e->generateHttpResponse($response);
         } catch (\Exception $exception) {
             $body = [
