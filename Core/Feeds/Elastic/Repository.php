@@ -667,6 +667,14 @@ class Repository
                 'object-video',
                 'object-blog',
             ]));
+        } elseif ($esType === 'object-*') {
+            $index = implode(',', array_map(function ($type) {
+                return $this->index . '-' . $type;
+            }, [
+                'object-image',
+                'object-video',
+                'object-blog',
+            ]));
         } else {
             $index .= $esType;
         }
