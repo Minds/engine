@@ -3,6 +3,7 @@ namespace Minds\Core\OAuth;
 
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Exception\OAuthServerException;
+use Minds\Common\IpAddress;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
@@ -11,6 +12,7 @@ use Minds\Core\OAuth\Entities\UserEntity;
 use Minds\Core\OAuth\Repositories\AccessTokenRepository;
 use Minds\Core\OAuth\Repositories\ClientRepository;
 use Minds\Core\OAuth\Repositories\RefreshTokenRepository;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
@@ -42,6 +44,9 @@ class Controller
     /** @var EventsDelegates */
     protected $eventsDelegate;
 
+    /** @var KeyValueLimiter */
+    protected $kvLimiter;
+
     public function __construct(
         Config $config = null,
         AuthorizationServer $authorizationServer = null,
@@ -49,7 +54,8 @@ class Controller
         RefreshTokenRepository $refreshTokenRepository = null,
         ClientRepository $clientRepository = null,
         NonceHelper $nonceHelper = null,
-        EventsDelegate $eventsDelegate = null
+        EventsDelegate $eventsDelegate = null,
+        KeyValueLimiter $kvLimiter = null
     ) {
         $this->config = $config ?? Di::_()->get('Config');
         $this->authorizationServer = $authorizationServer ?? Di::_()->get('OAuth\Server\Authorization');
@@ -58,6 +64,7 @@ class Controller
         $this->clientRepository = $clientRepository ?? Di::_()->get('OAuth\Repositories\Client');
         $this->nonceHelper = $nonceHelper ?? Di::_()->get('OAuth\NonceHelper');
         $this->eventsDelegate = $eventsDelegate ?? new EventsDelegate;
+        $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
     }
 
     /**
@@ -111,6 +118,16 @@ class Controller
     public function token(ServerRequest $request): JsonResponse
     {
         $response = new JsonResponse([]);
+        
+        /**
+         * Some simple rate limits
+         */
+        $this->kvLimiter
+            ->setKey('login-attempts-ip')
+            ->setValue((new IpAddress)->get())
+            ->setSeconds(86400) // 24 hours
+            ->setMax(1000) // 1000 ip logins per day
+            ->checkAndIncrement();
 
         /**
          * Hack as some matrix is not sending client_id
@@ -131,7 +148,7 @@ class Controller
             $body['status'] = 'success';
             $response = new JsonResponse($body);
         } catch (OAuthServerException $e) {
-            \Sentry\captureException($e);
+            // \Sentry\captureException($e);
             $response = $e->generateHttpResponse($response);
         } catch (\Exception $exception) {
             $body = [

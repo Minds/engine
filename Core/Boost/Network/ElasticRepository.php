@@ -171,7 +171,7 @@ class ElasticRepository
                 ->setType($doc['_source']['type'])
                 ->setRating($doc['_source']['rating'])
                 ->setImpressions($doc['_source']['impressions'])
-                ->setImpressionsMet($doc['_source']['impressions_met'])
+                ->setImpressionsMet($doc['_source']['impressions_met'] ?? 0)
                 ->setBid($doc['_source']['bid'])
                 ->setBidType($doc['_source']['bid_type']);
             $offset = $boost->getCreatedTimestamp();
