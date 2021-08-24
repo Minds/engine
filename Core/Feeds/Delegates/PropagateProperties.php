@@ -91,7 +91,7 @@ class PropagateProperties extends Properties
 
             if ($from->getWireThreshold()) {
                 if ($to->getSubtype() === 'image') {
-                    $to->createBlured();
+                    $to->createBlurred();
                 }
             }
         }

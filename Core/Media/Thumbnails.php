@@ -82,7 +82,7 @@ class Thumbnails
                 }
 
                 if ($this->isLocked($entity) && !$opts['unlockPaywall']) {
-                    $thumbnail->setFilename("image/$entity->batch_guid/$entity->guid/blured.jpg");
+                    $thumbnail->setFilename("image/$entity->batch_guid/$entity->guid/blurred.jpg");
                     break;
                 }
 

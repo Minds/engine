@@ -186,17 +186,17 @@ class Image extends File
     }
 
     /**
-     * Create a blured image
+     * Create a blurred image
      * @return void
      */
-    public function createBlured()
+    public function createBlurred()
     {
         $thumbnail = new \Imagick($this->getFilenameOnFilestore());
         $imagick= new \Imagick();
         $imagick->readImageBlob($thumbnail->getImageBlob());
         $imagick->setType('jpeg');
         $imagick->blurImage(100, 500);
-        $this->setFilename("image/$this->batch_guid/$this->guid/blured.jpg");
+        $this->setFilename("image/$this->batch_guid/$this->guid/blurred.jpg");
         $this->open('write');
         $this->write($imagick->getImageBlob());
         $this->close();
