@@ -58,6 +58,8 @@ class PropagatePropertiesSpec extends ObjectBehavior
         $this->entity->get('hidden')->shouldBeCalled()->willReturn(false);
         $this->entity->set('hidden', true)->shouldBeCalled();
 
+        $this->activity->getWireThreshold()->shouldBeCalled();
+
         $this->fromActivity($this->activity, $this->entity);
     }
 }
