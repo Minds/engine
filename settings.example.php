@@ -728,3 +728,8 @@ $CONFIG->SET('zendesk', [
         'jwt_route' => 'access/jwt'
     ]
 ]);
+
+$CONFIG->set(
+    'status_url',
+    'https://status.minds.com'
+);
