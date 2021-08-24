@@ -280,6 +280,12 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
 
             if ($this->entity_guid) {
                 $export['entity_guid'] = (string) $this->entity_guid;
+                if ($this->getWireThreshold()) {
+                    $entity = \Minds\Entities\Factory::build($this->entity_guid);
+                    if ($entity->subtype === 'image' && !$entity->gif) {
+                        $entity->createBlured();
+                    }
+                }
             }
 
             if ($this->urn) {

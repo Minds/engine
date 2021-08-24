@@ -88,6 +88,12 @@ class PropagateProperties extends Properties
                     $to->setWireThreshold($from->getWireThreshold() ?: false);
                 }
             }
+
+            if ($from->getWireThreshold()) {
+                if ($to->getSubtype() === 'image') {
+                    $to->createBlured();
+                }
+            }
         }
 
         return $to;
