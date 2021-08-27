@@ -729,7 +729,6 @@ $CONFIG->SET('zendesk', [
     ]
 ]);
 
-$CONFIG->set(
-    'status_url',
-    'https://status.minds.com'
-);
+$CONFIG->set('statuspage_io', [
+    'url' => 'https://status.minds.com/'
+]);
