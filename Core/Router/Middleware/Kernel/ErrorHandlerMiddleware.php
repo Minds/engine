@@ -13,6 +13,7 @@ use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Exceptions\UserErrorException;
+use Minds\Exceptions\ServerErrorException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -73,6 +74,9 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
         } catch (UserErrorException $e) {
             $message = $e->getMessage();
             $status = ((int) $e->getCode()) ?: 400;
+        } catch (ServerErrorException $e) {
+            $message = $e->getMessage();
+            $status = ((int) $e->getCode()) ?: 500;
         } catch (Exception $e) {
             // Log
             $this->logger->critical($e, ['exception' => $e]);
