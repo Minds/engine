@@ -107,6 +107,9 @@ class Exported
             'token_exchange_rate' => $this->config->get('token_exchange_rate'),
             'matrix' => [
                 'chat_url' => $this->config->get('matrix')['chat_url'] ?? null,
+            ],
+            'statuspage_io' => [
+                'url' => $this->config->get('statuspage_io')['url'] ?? null,
             ]
         ];
 
