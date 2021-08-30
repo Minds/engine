@@ -33,6 +33,7 @@ class Controller
     public function redirect(ServerRequest $request): JsonResponse
     {
         $user = $request->getAttribute('_user');
+        $queryParams = $request->getQueryParams();
 
         $payload = $this->manager->getJwt($user); // generate payload
 
@@ -40,6 +41,14 @@ class Controller
 
         // create url
         $url = $routeConfig['base'].$routeConfig['jwt_route'].'?jwt='.$payload;
+
+        // if requested - return the URL rather than redirecting within PHP.
+        if (isset($queryParams['returnUrl']) && $queryParams['returnUrl'] === 'true') {
+            return new JsonResponse([
+                'status' => 'success',
+                'url' => urlencode($url)
+            ]);
+        }
         
         // redirect to zendesk with token if headers are not already sent.
         if (headers_sent()) {
