@@ -8,6 +8,7 @@
 namespace Minds\Controllers\api\v1;
 
 use Minds\Api\Factory;
+use Minds\Common\IpAddress;
 use Minds\Core;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
@@ -91,6 +92,14 @@ class settings implements Interfaces\Api
                 return Factory::response(['status' => 'error', 'message' => "This email provider is blocked due to spam. Please use another address."]);
             }
 
+            try {
+                if (!\validate_email_address($_POST['email'])) {
+                    throw new \RegistrationException("Invalid email");
+                }
+            } catch (\Exception) {
+                return Factory::response(['status' => 'error', 'message' => "Invalid email"]);
+            }
+
             $user->setEmail($_POST['email']);
 
             if (strtolower($_POST['email']) !== strtolower($user->getEmail())) {
@@ -135,6 +144,15 @@ class settings implements Interfaces\Api
             }
 
             try {
+                Di::_()->get("Security\RateLimits\KeyValueLimiter")
+                    // Use the same key as login.
+                    // should really be called password attempts and in a central place
+                    ->setKey('login-attempts-ip')
+                    ->setValue((new IpAddress)->get())
+                    ->setSeconds(3600) // 1 hours
+                    ->setMax(35)
+                    ->checkAndIncrement();
+
                 validate_password($_POST['new_password']);
             } catch (\Exception $e) {
                 $response = ['status'=>'error', 'message'=>$e->getMessage()];
