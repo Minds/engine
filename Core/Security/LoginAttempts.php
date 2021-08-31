@@ -75,13 +75,13 @@ class LoginAttempts
 
             // Bad place for this, but increment each time we check
 
-            $period = 86400;
+            $period = 3600; // 1 hour
 
             $this->kvLimiter
                 ->setKey('login-attempts-ip')
                 ->setValue((new IpAddress)->get())
                 ->setSeconds($period)
-                ->setMax(1000) // 1000 ip logins per day
+                ->setMax(35)
                 ->checkAndIncrement();
 
             $fails = (int) $this->user->getPrivateSetting("login_failures");

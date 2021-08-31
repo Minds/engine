@@ -125,8 +125,8 @@ class Controller
         $this->kvLimiter
             ->setKey('login-attempts-ip')
             ->setValue((new IpAddress)->get())
-            ->setSeconds(86400) // 24 hours
-            ->setMax(1000) // 1000 ip logins per day
+            ->setSeconds(3600) // 1 hours
+            ->setMax(35)
             ->checkAndIncrement();
 
         /**
@@ -192,7 +192,7 @@ class Controller
             
             $response = new JsonResponse([]);
         } catch (\Exception $e) {
-            \Sentry\captureException($e); // Log to sentry
+            // \Sentry\captureException($e); // Log to sentry
             throw new UserErrorException($e->getMessage(), 500);
         }
 
