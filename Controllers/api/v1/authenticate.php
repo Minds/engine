@@ -54,7 +54,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         $attempts = Core\Di\Di::_()->get('Security\LoginAttempts');
 
         if (!$user->username) {
-            header('HTTP/1.1 401 Unauthorized', true, 401);
+            header('HTTP/1.1 404 Not Found', true, 404);
             return Factory::response(['status' => 'failed']);
         }
 
