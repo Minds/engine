@@ -17,8 +17,6 @@ use Minds\Core\OAuth\Entities\ClientEntity;
 use Minds\Core\OAuth\Entities\UserEntity;
 use Minds\Core\OAuth\Repositories\AccessTokenRepository;
 use Minds\Core\OAuth\Repositories\RefreshTokenRepository;
-use Minds\Core\Security\RateLimits\KeyValueLimiter;
-use Minds\Core\Security\RateLimits\kvLimiter;
 use Minds\Entities\User;
 use Zend\Diactoros\Response\JsonResponse;
 
@@ -39,24 +37,19 @@ class ControllerSpec extends ObjectBehavior
     /** @var EventsDelegate */
     protected $eventsDelegate;
 
-    /** @var kvLimiter */
-    protected $kvLimiter;
-
     public function let(
         Config $config,
         AuthorizationServer $authorizationServer,
         AccessTokenRepository $accessTokenRepository,
         RefreshTokenRepository $refreshTokenRepository,
-        EventsDelegate $eventsDelegate,
-        KeyValueLimiter $kvLimiter
+        EventsDelegate $eventsDelegate
     ) {
-        $this->beConstructedWith($config, $authorizationServer, $accessTokenRepository, $refreshTokenRepository, null, null, $eventsDelegate, $kvLimiter);
+        $this->beConstructedWith($config, $authorizationServer, $accessTokenRepository, $refreshTokenRepository, null, null, $eventsDelegate);
         $this->config = $config;
         $this->authorizationServer = $authorizationServer;
         $this->accessTokenRepository = $accessTokenRepository;
         $this->refreshTokenRepository = $refreshTokenRepository;
         $this->eventsDelegate = $eventsDelegate;
-        $this->kvLimiter = $kvLimiter;
     }
 
     public function it_is_initializable()
@@ -111,24 +104,6 @@ class ControllerSpec extends ObjectBehavior
     {
         $this->authorizationServer->respondToAccessTokenRequest($request, Argument::any())
             ->willReturn(new JsonResponse([]));
-
-        //
-
-        $this->kvLimiter
-            ->setKey('login-attempts-ip')
-            ->willReturn($this->kvLimiter);
-
-        $this->kvLimiter->setValue(Argument::any())
-            ->willReturn($this->kvLimiter);
-
-        $this->kvLimiter->setSeconds(Argument::any())
-            ->willReturn($this->kvLimiter);
-        
-        $this->kvLimiter->setMax(Argument::any())
-            ->willReturn($this->kvLimiter);
-        
-        $this->kvLimiter->checkAndIncrement()
-            ->shouldBeCalled();
 
         //
 

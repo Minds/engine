@@ -15,6 +15,7 @@ use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Common\IpAddress;
 use Minds\Exceptions\TwoFactorRequired;
 use Minds\Core\Queue;
 use Minds\Core\Subscriptions;
@@ -48,13 +49,25 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
             return false;
         }
 
+        // Quick rate limit to make sure people aren't bombing this.
+        // Note: the password rate limits are in Core\Security\Password->check
+
+        Di::_()->get("Security\RateLimits\KeyValueLimiter")
+                ->setKey('router-post-api-v1-authenticate')
+                ->setValue((new IpAddress)->get())
+                ->setSeconds(3600)
+                ->setMax(100) // 100 times an hour
+                ->checkAndIncrement();
+
+        //
+
         $user = new Entities\User(strtolower($_POST['username']));
 
         /** @var Core\Security\LoginAttempts $attempts */
         $attempts = Core\Di\Di::_()->get('Security\LoginAttempts');
 
         if (!$user->username) {
-            header('HTTP/1.1 401 Unauthorized', true, 401);
+            header('HTTP/1.1 404 Not Found', true, 404);
             return Factory::response(['status' => 'failed']);
         }
 
@@ -62,12 +75,14 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         try {
             if ($attempts->checkFailures()) {
+                header('HTTP/1.1 429 Too Many Requests', true, 429);
                 return Factory::response([
                     'status' => 'error',
                     'message' => 'LoginException::AttemptsExceeded'
                 ]);
             }
         } catch (RateLimitExceededException $e) {
+            header('HTTP/1.1 429 Too Many Requests', true, 429);
             return Factory::response([
                 'status' => 'error',
                 'message' => 'LoginException::AttemptsExceeded'

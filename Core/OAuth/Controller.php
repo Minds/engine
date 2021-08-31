@@ -12,7 +12,7 @@ use Minds\Core\OAuth\Entities\UserEntity;
 use Minds\Core\OAuth\Repositories\AccessTokenRepository;
 use Minds\Core\OAuth\Repositories\ClientRepository;
 use Minds\Core\OAuth\Repositories\RefreshTokenRepository;
-use Minds\Core\Security\RateLimits\KeyValueLimiter;
+use Minds\Core\Security\Password\RateLimits;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
@@ -44,8 +44,8 @@ class Controller
     /** @var EventsDelegates */
     protected $eventsDelegate;
 
-    /** @var KeyValueLimiter */
-    protected $kvLimiter;
+    /** @var RateLimits */
+    protected $passwordRateLimits;
 
     public function __construct(
         Config $config = null,
@@ -54,8 +54,7 @@ class Controller
         RefreshTokenRepository $refreshTokenRepository = null,
         ClientRepository $clientRepository = null,
         NonceHelper $nonceHelper = null,
-        EventsDelegate $eventsDelegate = null,
-        KeyValueLimiter $kvLimiter = null
+        EventsDelegate $eventsDelegate = null
     ) {
         $this->config = $config ?? Di::_()->get('Config');
         $this->authorizationServer = $authorizationServer ?? Di::_()->get('OAuth\Server\Authorization');
@@ -64,7 +63,6 @@ class Controller
         $this->clientRepository = $clientRepository ?? Di::_()->get('OAuth\Repositories\Client');
         $this->nonceHelper = $nonceHelper ?? Di::_()->get('OAuth\NonceHelper');
         $this->eventsDelegate = $eventsDelegate ?? new EventsDelegate;
-        $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
     }
 
     /**
@@ -118,16 +116,6 @@ class Controller
     public function token(ServerRequest $request): JsonResponse
     {
         $response = new JsonResponse([]);
-        
-        /**
-         * Some simple rate limits
-         */
-        $this->kvLimiter
-            ->setKey('login-attempts-ip')
-            ->setValue((new IpAddress)->get())
-            ->setSeconds(86400) // 24 hours
-            ->setMax(1000) // 1000 ip logins per day
-            ->checkAndIncrement();
 
         /**
          * Hack as some matrix is not sending client_id
@@ -192,7 +180,7 @@ class Controller
             
             $response = new JsonResponse([]);
         } catch (\Exception $e) {
-            \Sentry\captureException($e); // Log to sentry
+            // \Sentry\captureException($e); // Log to sentry
             throw new UserErrorException($e->getMessage(), 500);
         }
 
