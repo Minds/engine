@@ -4,11 +4,23 @@
  */
 namespace Minds\Core\Security;
 
+use Minds\Common\IpAddress;
 use Minds\Core;
+use Minds\Core\Di\Di;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Entities;
+use Minds\Entities\User;
 
 class Password
 {
+    /** @var KeyValueLimiter */
+    protected $kvLimiter;
+
+    public function __construct(KeyValueLimiter $kvLimiter = null)
+    {
+        $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
+    }
+
     /**
      * Check if a password is valid
      * @param mixed $user
@@ -21,6 +33,9 @@ class Password
         if (is_numeric($user) || is_string($user)) {
             $user = new Entities\User($user);
         }
+
+        // Rate limits defined and executed here
+        $this->checkRateLimits($user);
 
         // if the password was generated using password_hash, then return, otherwise try other algorithms
         if (password_verify($password, $user->password)) {
@@ -40,6 +55,31 @@ class Password
         }
 
         return false;
+    }
+
+    /**
+     * @param User $user
+     * @throws RateLimitExceededException
+     */
+    protected function checkRateLimits(User $user)
+    {
+        if ($user) {
+            // Limit by user guid
+            $this->kvLimiter
+                ->setKey('password-attempts-user_guid')
+                ->setValue($user->getGuid())
+                ->setSeconds(3600)
+                ->setMax(35)
+                ->checkAndIncrement();
+        }
+    
+        // Limit by IP
+        $this->kvLimiter
+                ->setKey('password-attempts-ip')
+                ->setValue((new IpAddress)->get())
+                ->setSeconds(3600)
+                ->setMax(35)
+                ->checkAndIncrement();
     }
 
     /**

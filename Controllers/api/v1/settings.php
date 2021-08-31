@@ -134,6 +134,7 @@ class settings implements Interfaces\Api
         if (isset($_POST['password']) && $_POST['password']) {
             try {
                 $password = new Core\Security\Password();
+                // Rate limit checked in here too
                 if (!$password->check($user, $_POST['password'])) {
                     return Factory::response([
                         'status' => 'error',
@@ -144,15 +145,6 @@ class settings implements Interfaces\Api
             }
 
             try {
-                Di::_()->get("Security\RateLimits\KeyValueLimiter")
-                    // Use the same key as login.
-                    // should really be called password attempts and in a central place
-                    ->setKey('login-attempts-ip')
-                    ->setValue((new IpAddress)->get())
-                    ->setSeconds(3600) // 1 hours
-                    ->setMax(35)
-                    ->checkAndIncrement();
-
                 validate_password($_POST['new_password']);
             } catch (\Exception $e) {
                 $response = ['status'=>'error', 'message'=>$e->getMessage()];
