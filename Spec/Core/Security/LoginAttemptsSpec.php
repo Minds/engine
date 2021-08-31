@@ -78,21 +78,6 @@ class LoginAttemptsSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(strtotime('-30 sec'));
 
-        $this->keyValueLimiter
-            ->setKey('login-attempts-ip')
-            ->willReturn($this->keyValueLimiter);
-        $this->keyValueLimiter->setValue(Argument::any())
-            ->willReturn($this->keyValueLimiter);
-
-        $this->keyValueLimiter->setSeconds(Argument::any())
-            ->willReturn($this->keyValueLimiter);
-        
-        $this->keyValueLimiter->setMax(Argument::any())
-            ->willReturn($this->keyValueLimiter);
-        
-        $this->keyValueLimiter->checkAndIncrement()
-            ->shouldBeCalled();
-
         $this->setUser($user);
 
         $this->checkFailures()->shouldReturn(true);
@@ -109,22 +94,6 @@ class LoginAttemptsSpec extends ObjectBehavior
         $user->getPrivateSetting(Argument::exact('login_failures'))
             ->shouldBeCalled()
             ->willReturn(3);
-
-        $this->keyValueLimiter
-            ->setKey('login-attempts-ip')
-            ->willReturn($this->keyValueLimiter);
-
-        $this->keyValueLimiter->setValue(Argument::any())
-            ->willReturn($this->keyValueLimiter);
-
-        $this->keyValueLimiter->setSeconds(Argument::any())
-            ->willReturn($this->keyValueLimiter);
-        
-        $this->keyValueLimiter->setMax(Argument::any())
-            ->willReturn($this->keyValueLimiter);
-        
-        $this->keyValueLimiter->checkAndIncrement()
-            ->shouldBeCalled();
 
         $this->setUser($user);
 

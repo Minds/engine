@@ -72,18 +72,6 @@ class LoginAttempts
         $user_guid = (int) $this->user->guid;
 
         if ($user_guid) {
-
-            // Bad place for this, but increment each time we check
-
-            $period = 3600; // 1 hour
-
-            $this->kvLimiter
-                ->setKey('login-attempts-ip')
-                ->setValue((new IpAddress)->get())
-                ->setSeconds($period)
-                ->setMax(35)
-                ->checkAndIncrement();
-
             $fails = (int) $this->user->getPrivateSetting("login_failures");
             if ($fails >= $limit) {
                 $cnt = 0;
