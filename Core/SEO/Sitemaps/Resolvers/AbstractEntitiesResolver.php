@@ -59,18 +59,23 @@ abstract class AbstractEntitiesResolver
      */
     public function getRawData(): iterable
     {
+        $max = 100000;
+
         $prepared = new Search();
         $prepared->query([
             "index" => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-' . $this->type,
-            "size" => 5000,
+            "size" => 1000,
             "body" => [
                 "query" => $this->query,
                 'sort' => $this->sort,
             ],
         ]);
-
+        $i = 0;
         foreach ($this->scroll->request($prepared) as $entity) {
             yield $entity['_source'];
+            if (++$i > $max) {
+                break;
+            }
         }
     }
 

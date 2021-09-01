@@ -23,6 +23,7 @@ class Manager
 
     protected $resolvers = [
         Resolvers\MarketingResolver::class,
+        Resolvers\DiscoveryResolver::class,
         Resolvers\ActivityResolver::class,
         Resolvers\UsersResolver::class,
         Resolvers\HelpdeskResolver::class,
