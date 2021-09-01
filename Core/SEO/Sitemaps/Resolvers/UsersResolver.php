@@ -66,6 +66,7 @@ class UsersResolver extends AbstractEntitiesResolver
             $sitemapUrl = new SitemapUrl();
             $sitemapUrl->setLoc("/$entity->username")
                 ->setChangeFreq('daily')
+                ->setPriority(0.7)
                 ->setLastModified($lastModified);
             $this->logger->info("$i: @$entity->username");
             yield $sitemapUrl;

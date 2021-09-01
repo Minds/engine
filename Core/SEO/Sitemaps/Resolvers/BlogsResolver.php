@@ -60,6 +60,7 @@ class BlogsResolver extends AbstractEntitiesResolver
             $sitemapUrl = new SitemapUrl();
             $sitemapUrl->setLoc("/" . $entity->getUrl(true))
                 ->setChangeFreq('never')
+                ->setPriority(0.5)
                 ->setLastModified($lastModified);
             error_log("$i: {$entity->getUrl()}");
             yield $sitemapUrl;
