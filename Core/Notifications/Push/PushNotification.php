@@ -267,6 +267,14 @@ class PushNotification
     }
 
     /**
+     * @return string
+     */
+    public function getUserGuid(): string
+    {
+        return (string) $this->notification->getToGuid();
+    }
+
+    /**
      * @return bool
      */
     protected function isValidNotification(Notification $notification): bool

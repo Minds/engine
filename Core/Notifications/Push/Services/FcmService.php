@@ -32,6 +32,7 @@ class FcmService extends AbstractService implements PushServiceInterface
                     'largeIcon' => $pushNotification->getIcon(),
                     'bigPicture' => $pushNotification->getMedia(),
                     'badge' => (string) $pushNotification->getUnreadCount(), // Has to be a string
+                    'user_guid' => $pushNotification->getUserGuid(),
                 ],
                 'token' => $pushNotification->getDeviceSubscription()->getToken(),
             ],
