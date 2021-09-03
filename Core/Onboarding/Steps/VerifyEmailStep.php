@@ -17,6 +17,6 @@ class VerifyEmailStep implements OnboardingStepInterface
      */
     public function isCompleted(User $user)
     {
-        return $user->isEmailConfirmed();
+        return $user->isTrusted();
     }
 }
