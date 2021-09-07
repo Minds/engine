@@ -177,7 +177,7 @@ class Repository
                     $set['status'] = (string) $transcode->getStatus();
                     break;
                 case 'lastEventTimestampMs':
-                    $set['last_event_timestamp_ms'] = new Timestamp($transcode->getLastEventTimestampMs() / 1000);
+                    $set['last_event_timestamp_ms'] = new Timestamp($transcode->getLastEventTimestampMs() / 1000, 0);
                     break;
                 case 'lengthSecs':
                     $set['length_secs'] = (int) $transcode->getLengthSecs();

@@ -6,6 +6,7 @@ namespace Minds\Core\EventStreams\Topics;
 
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Resolver;
 use Minds\Core\EntitiesBuilder;
 use Pulsar\Client;
 use Pulsar\ClientConfiguration;
@@ -21,11 +22,19 @@ abstract class AbstractTopic
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    public function __construct(Client $client = null, Config $config = null, EntitiesBuilder $entitiesBuilder = null)
-    {
+    /** @var Resolver */
+    protected $entitiesResolver;
+
+    public function __construct(
+        Client $client = null,
+        Config $config = null,
+        EntitiesBuilder $entitiesBuilder = null,
+        Resolver $entitiesResolver = null
+    ) {
         $this->client = $client ?? null;
         $this->config = $config ?? Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->entitiesResolver = $entitiesResolver ?? new Resolver();
     }
 
     /**
@@ -37,16 +46,23 @@ abstract class AbstractTopic
         $pulsarConfig = $this->config->get('pulsar');
         $pulsarHost = $pulsarConfig['host'] ?? 'pulsar';
         $pulsarPort = $pulsarConfig['port'] ?? 6650;
-        $pulsarSchema = $pulsarConfig['ssl'] ? 'pulsar+ssl' : 'pulsar';
+        $pulsarSchema = ($pulsarConfig['ssl'] ?? true) ? 'pulsar+ssl' : 'pulsar';
 
         $clientConfig = new ClientConfiguration();
 
-        if ($pulsarConfig['ssl']) {
+        if ($pulsarConfig['ssl'] ?? true) {
             $clientConfig->setUseTls(true)
-                ->setTlsTrustCertsFilePath($pulsarConfig['ssl_cert_path']);
+                ->setTlsTrustCertsFilePath($pulsarConfig['ssl_cert_path'] ?? '/var/secure/pulsar.crt');
         }
 
-        return $this->client ?? new Client("$pulsarSchema://$pulsarHost:$pulsarPort", $clientConfig);
+        if ($this->client) {
+            return $this->client;
+        }
+
+        $this->client = new Client();
+        $this->client->init("$pulsarSchema://$pulsarHost:$pulsarPort", $clientConfig);
+
+        return $this->client;
     }
 
     /**

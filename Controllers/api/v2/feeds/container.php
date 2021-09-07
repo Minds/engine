@@ -57,13 +57,16 @@ class container implements Interfaces\Api
                 $type = 'activity';
                 break;
             case 'images':
-                $type = 'object:image';
+                $type = 'object-image';
                 break;
             case 'videos':
-                $type = 'object:video';
+                $type = 'object-video';
                 break;
             case 'blogs':
-                $type = 'object:blog';
+                $type = 'object-blog';
+                break;
+            case 'objects':
+                $type = 'object-*';
                 break;
             case 'all':
                 $type = 'all';
@@ -72,7 +75,7 @@ class container implements Interfaces\Api
 
         //
 
-        $hardLimit = 5000;
+        $hardLimit = 150;
         $offset = 0;
 
         if (isset($_GET['offset'])) {
@@ -159,8 +162,22 @@ class container implements Interfaces\Api
             }
         }
 
+        if (isset($_GET['to_timestamp'])) {
+            $opts['to_timestamp'] = $_GET['to_timestamp'] ;
+        }
+
         try {
             $result = $manager->getList($opts);
+
+            /**
+             * This was added to prevent that some channels show posts that are not their own
+             * https://gitlab.com/minds/front/-/issues/4613
+             */
+            if ($container instanceof User) {
+                $result = $result->filter(function ($entity) use ($container_guid) {
+                    return $entity->getOwnerGuid() == $container_guid;
+                });
+            }
 
             if (!$sync) {
                 // Remove all unlisted content, if ES document is not in sync, it'll

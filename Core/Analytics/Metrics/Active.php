@@ -27,7 +27,7 @@ class Active implements AnalyticsMetric
     {
         $this->db = $db ?: new Core\Data\Call('entities_by_time');
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
-        $this->cacher = Core\Data\cache\factory::build('apcu');
+        $this->cacher = $cacher ?? Core\Data\cache\factory::build('apcu');
 
         if (Core\Session::getLoggedinUser()) {
             $this->key = Core\Session::getLoggedinUser()->guid;
@@ -54,15 +54,16 @@ class Active implements AnalyticsMetric
 
     /**
      * Increments metric counter
-     * @return bool
      */
     public function increment()
     {
-        if ($this->cacher->get("{$this->namespace}active:$p:$ts:$this->key") == true) {
-            return;
-        }
-        $this->db->insert("{$this->namespace}active:$p:$ts", [$this->key => time()]);
-        $this->cacher->set("{$this->namespace}active:$p:$ts:$this->key", time());
+        // if ($this->cacher->get("{$this->namespace}active:$p:$ts:$this->key") == true) {
+        //     return;
+        // }
+        // $this->db->insert("{$this->namespace}active:$p:$ts", [$this->key => time()]);
+        // $this->cacher->set("{$this->namespace}active:$p:$ts:$this->key", time());
+
+        return false;
     }
 
     /**
@@ -92,7 +93,6 @@ class Active implements AnalyticsMetric
 
         $query = [
             'index' => 'minds-metrics-*',
-            //'type' => 'action',
             'body' => [
                 'query' => [
                     'bool' => [

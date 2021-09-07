@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\EventStreams;
 
+use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 
 trait EntityEventTrait
@@ -12,10 +13,10 @@ trait EntityEventTrait
     protected $user;
 
     /**
-     * @param mixed $entity
+     * @param EntityInterface $entity
      * @return self
      */
-    public function setEntity($entity): self
+    public function setEntity(EntityInterface $entity): self
     {
         $this->entity = $entity;
         return $this;

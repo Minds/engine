@@ -5,6 +5,7 @@
  */
 namespace Minds\Core\SEO\Sitemaps\Resolvers;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Scroll;
 use Minds\Core\Data\ElasticSearch\Prepared\Search;
 use Minds\Core\Di\Di;
@@ -41,11 +42,15 @@ abstract class AbstractEntitiesResolver
     /** @var array */
     protected $sort = [ '@timestamp' => 'desc' ];
 
-    public function __construct($scroll = null, $entitiesBuilder = null, $logger = null)
+    /** @var Config */
+    protected $config;
+
+    public function __construct($scroll = null, $entitiesBuilder = null, $logger = null, Config $config = null)
     {
         $this->scroll = $scroll ?? Di::_()->get('Database\ElasticSearch\Scroll');
         $this->entitiesBuilder = $entitiesBuilder ??  Di::_()->get('EntitiesBuilder');
         $this->logger = $logger ?? Di::_()->get('Logger');
+        $this->config = $config ?? Di::_()->get('Config');
     }
 
     /**
@@ -54,19 +59,23 @@ abstract class AbstractEntitiesResolver
      */
     public function getRawData(): iterable
     {
+        $max = 100000;
+
         $prepared = new Search();
         $prepared->query([
-            "index" => "minds_badger",
-            "type" => $this->type,
-            "size" => 5000,
+            "index" => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-' . $this->type,
+            "size" => 1000,
             "body" => [
                 "query" => $this->query,
                 'sort' => $this->sort,
             ],
         ]);
-
+        $i = 0;
         foreach ($this->scroll->request($prepared) as $entity) {
             yield $entity['_source'];
+            if (++$i > $max) {
+                break;
+            }
         }
     }
 

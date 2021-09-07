@@ -26,6 +26,14 @@ $CONFIG->cassandra->cql_servers = ['127.0.0.1'];
 $CONFIG->cassandra->username = 'cassandra';
 $CONFIG->cassandra->password = 'cassandra';
 
+$CONFIG->elasticsearch = [
+    'hosts' => [ 'phpspec:9200' ],
+    'indexes' => [
+        'search_prefix' => 'minds-search',
+        'tags' => 'minds-hashtags',
+    ]
+];
+
 $CONFIG->payments = [
     'stripe' => [
         'api_key' => 'phpspec',
@@ -36,8 +44,27 @@ $CONFIG->cypress = [
     'shared_key' => 'random-key',
 ];
 
+$CONFIG->pro = [
+    'stripe_account' => null
+];
+
 $CONFIG->plus = [
     'support_tier_urn' => 'plus_support_tier_urn',
+];
+
+$CONFIG->snowplow = [
+    'collector_uri' => ''
+];
+
+$CONFIG->sessions = [
+    'public_key' => '/.dev/minds.pub',
+    'private_key' => '/.dev/minds.pem',
+];
+
+
+$CONFIG->redis = [
+    'master' => 'phpspec',
+    'slave' => 'phpspec'
 ];
 
 $minds->loadLegacy();

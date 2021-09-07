@@ -56,4 +56,22 @@ class Controller
             'message' => 'There was an unknown error deleting this post',
         ]);
     }
+
+    /**
+     * @param ServerRequest $request
+     * @return JsonResponse
+     */
+    public function getRemindList(ServerRequest $request): JsonResponse
+    {
+        return new JsonResponse([]);
+    }
+
+    /**
+     * @param ServerRequest $request
+     * @return JsonResponse
+     */
+    public function getQuoteList(ServerRequest $request): JsonResponse
+    {
+        return new JsonResponse([]);
+    }
 }

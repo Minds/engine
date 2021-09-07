@@ -11,6 +11,7 @@ use Minds\Helpers\Flags;
 use Minds\Helpers\Unknown;
 use Minds\Helpers\Export;
 use Minds\Core\Di\Di;
+use Minds\Entities\EntityInterface;
 
 /**
  * Comment Entity
@@ -20,6 +21,8 @@ use Minds\Core\Di\Di;
  * @method int getParentGuidL1()
  * @method Comment setParentGuidL2(int $value)
  * @method int getParentGuidL2()
+ * @method Comment setParentGuidL3(int $value)
+ * @method int getParentGuidL3()
  * @method Comment setGuid(int $value)
  * @method Comment setRepliesCount(int $value)
  * @method int getRepliesCount())
@@ -47,7 +50,7 @@ use Minds\Core\Di\Di;
  * @method Comment setEphemeral(bool $value)
  * @method bool isEphemeral()
  */
-class Comment extends RepositoryEntity
+class Comment extends RepositoryEntity implements EntityInterface
 {
     /** @var string */
     protected $type = 'comment';
@@ -144,13 +147,13 @@ class Comment extends RepositoryEntity
     /**
      * @return int
      */
-    public function getGuid()
+    public function getGuid(): string
     {
         if (!$this->guid) {
             $this->setGuid(Guid::build());
         }
 
-        return $this->guid;
+        return (string) $this->guid;
     }
 
     /**
@@ -184,7 +187,7 @@ class Comment extends RepositoryEntity
     public function getOwnerObj()
     {
         if (!$this->ownerObj && $this->ownerGuid) {
-            $user = new User($this->ownerGuid);
+            $user = Di::_()->get('EntitiesBuilder')->single($this->ownerGuid, [ 'cacheTtl' => 84600 ]);
             $user->fullExport = false;
             $this->setOwnerObj($user->export());
         }
@@ -314,10 +317,26 @@ class Comment extends RepositoryEntity
     }
 
     /**
+     * @return string
+     */
+    public function getType(): string
+    {
+        return 'comment';
+    }
+
+    /**
+     * @return string
+     */
+    public function getSubtype(): ?string
+    {
+        return null;
+    }
+
+    /**
      * Return the urn for the comment
      * @return string
      */
-    public function getUrn()
+    public function getUrn(): string
     {
         return implode(':', [
             'urn',
@@ -326,6 +345,11 @@ class Comment extends RepositoryEntity
             $this->getPartitionPath(),
             $this->getGuid(),
         ]);
+    }
+
+    public function getOwnerGuid(): string
+    {
+        return (string) $this->ownerGuid;
     }
 
     /**
@@ -383,6 +407,7 @@ class Comment extends RepositoryEntity
     {
         $output = [];
 
+        $output['urn'] = $this->getUrn();
         $output['_guid'] = (string) $export['guid'];
         $output['guid'] = $output['luid'] = (string) $this->getLuid();
 
@@ -433,10 +458,10 @@ class Comment extends RepositoryEntity
 
         if (!$this->isEphemeral()) {
             $output['thumbs:up:user_guids'] = $this->getVotesUp();
-            $output['thumbs:up:count'] = count($this->getVotesUp());
+            $output['thumbs:up:count'] = count($this->getVotesUp() ?: []);
 
             $output['thumbs:down:user_guids'] = $this->getVotesDown();
-            $output['thumbs:down:count'] = count($this->getVotesDown());
+            $output['thumbs:down:count'] = count($this->getVotesDown() ?: []);
         }
 
         $output['thumbnails'] = $this->getThumbnails();

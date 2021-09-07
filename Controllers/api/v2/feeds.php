@@ -65,16 +65,16 @@ class feeds implements Interfaces\Api
                 $type = 'user';
                 break;
             case 'images':
-                $type = 'object:image';
+                $type = 'object-image';
                 break;
             case 'videos':
-                $type = 'object:video';
+                $type = 'object-video';
                 break;
             case 'groups':
                 $type = 'group';
                 break;
             case 'blogs':
-                $type = 'object:blog';
+                $type = 'object-blog';
                 break;
         }
 
@@ -92,7 +92,7 @@ class feeds implements Interfaces\Api
             $exportCounts = true;
         }
 
-        $hardLimit = 600;
+        $hardLimit = 150;
 
         if ($currentUser && $currentUser->isAdmin()) {
             $hardLimit = 5000;

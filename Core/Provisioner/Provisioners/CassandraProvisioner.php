@@ -3,11 +3,18 @@ namespace Minds\Core\Provisioner\Provisioners;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Data;
+use Minds\Core\Config;
 
 class CassandraProvisioner implements ProvisionerInterface
 {
+    /** @var Config */
     protected $config;
+
+    /** */
     protected $db;
+
+    /** @var Data\Cassandra\Client */
+    protected $client;
 
     public function __construct($config = null, $db = null, $client = null)
     {

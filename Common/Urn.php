@@ -18,6 +18,9 @@ class Urn implements \JsonSerializable
     /** @var string */
     protected $nss;
 
+    /** @var string[] */
+    protected $components = [];
+
     /**
      * Urn constructor.
      * @param string $urn
@@ -133,6 +136,6 @@ class Urn implements \JsonSerializable
      */
     public static function _($urn)
     {
-        return new static($urn);
+        return new self($urn);
     }
 }

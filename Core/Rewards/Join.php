@@ -8,9 +8,12 @@ namespace Minds\Core\Rewards;
 use Minds\Core\Di\Di;
 use Minds\Core;
 use Minds\Core\Referrals\Referral;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Core\SMS\Exceptions\VoIpPhoneException;
 use Minds\Entities\User;
 use Minds\Core\Util\BigNumber;
+use Minds\Exceptions\UserErrorException;
 
 class Join
 {
@@ -53,6 +56,12 @@ class Join
     /** @var ReferralDelegate $eventsDelegate */
     private $referralDelegate;
 
+    /** @var KeyValueLimiter */
+    protected $kvLimiter;
+
+    /** @var JoinedValidator */
+    private $joinedValidator;
+
     public function __construct(
         $twofactor = null,
         $sms = null,
@@ -63,7 +72,8 @@ class Join
         $joinedValidator = null,
         $ofacBlacklist = null,
         $testnetBalance = null,
-        $referralDelegate = null
+        $referralDelegate = null,
+        KeyValueLimiter  $kvLimiter = null
     ) {
         $this->twofactor = $twofactor ?: Di::_()->get('Security\TwoFactor');
         $this->sms = $sms ?: Di::_()->get('SMS');
@@ -75,6 +85,7 @@ class Join
         $this->ofacBlacklist = $ofacBlacklist ?: Di::_()->get('Rewards\OfacBlacklist');
         $this->testnetBalance = $testnetBalance ?: Di::_()->get('Blockchain\Wallets\OffChain\TestnetBalance');
         $this->referralDelegate = $referralDelegate ?: new Delegates\ReferralDelegate;
+        $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
     }
 
     public function setUser(&$user)
@@ -119,6 +130,14 @@ class Join
         $secret = $this->twofactor->createSecret();
         $code = $this->twofactor->getCode($secret);
 
+        // Limit a single account to 3 attempts per day
+        $this->kvLimiter
+            ->setKey('rewards-verify')
+            ->setValue($this->user->getGuid())
+            ->setSeconds(86400) // Day
+            ->setMax(3) // 2 per day
+            ->checkAndIncrement(); // Will throw exception
+
         $user_guid = $this->user->guid;
         $this->db->insert("rewards:verificationcode:$user_guid", compact('code', 'secret'));
 
@@ -126,7 +145,13 @@ class Join
             throw new VoIpPhoneException();
         }
 
-        $this->sms->send($this->number, $code);
+        if (!$this->user->isEmailConfirmed()) {
+            throw new UnverifiedEmailException();
+        }
+
+        $username = $this->user->getUsername();
+
+        $this->sms->send($this->number, "Minds Rewards Code for @$username: $code");
 
         return $secret;
     }
@@ -134,13 +159,16 @@ class Join
     public function resendCode()
     {
         $user_guid = $this->user->guid;
+        $username = $this->user->getUsername();
         $row = $this->db->getRow("rewards:verificationcode:$user_guid");
 
         if (!empty($row)) {
             if (!$this->sms->verify($this->number)) {
                 throw new VoIpPhoneException();
             }
-            $this->sms->send($this->number, $row['code']);
+
+            $code = $row['code'];
+            $this->sms->send($this->number, "Minds Rewards Code for @$username: $code");
 
             return $row['secret'];
         }

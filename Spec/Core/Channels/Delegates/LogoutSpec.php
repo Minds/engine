@@ -3,7 +3,7 @@
 namespace Spec\Minds\Core\Channels\Delegates;
 
 use Minds\Core\Channels\Delegates\Logout;
-use Minds\Core\Data\Sessions;
+use Minds\Core\Sessions\CommonSessions;
 use Minds\Entities\User;
 
 use PhpSpec\ObjectBehavior;
@@ -16,13 +16,13 @@ class LogoutSpec extends ObjectBehavior
         $this->shouldHaveType(Logout::class);
     }
 
-    public function it_should_logout(Sessions $sessions)
+    public function it_should_logout(CommonSessions\Manager $sessions)
     {
         $this->beConstructedWith($sessions);
         $user = new User();
         $user->guid = 123;
 
-        $sessions->destroyAll(123)
+        $sessions->deleteAll($user)
             ->shouldBeCalled();
 
         $this->logout($user);

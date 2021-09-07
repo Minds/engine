@@ -46,6 +46,7 @@ class Channel implements Interfaces\BoostHandlerInterface
           ->setState('created')
           ->save();
 
+        // Ignoring this for notifications-v3 b/c looks broken
         Core\Events\Dispatcher::trigger('notification', 'boost', [
           'to'=> [$boost->getDestination()->guid],
           'entity' => $boost->getEntity(),
@@ -106,17 +107,16 @@ class Channel implements Interfaces\BoostHandlerInterface
      * Accept a boost and do a remind
      * @param object/int $entity
      * @param int points
-     * @return boolean
      */
     public function accept($entity, $points)
     {
         // Removed
+        return false;
     }
 
     /**
      * Reject a boost
      * @param object/int $entity
-     * @return boolean
      */
     public function reject($entity)
     {
@@ -148,14 +148,15 @@ class Channel implements Interfaces\BoostHandlerInterface
 
     /**
      * Return a boost
-     * @return array
      */
     public function getBoost($offset = "")
     {
 
        ///
-       //// THIS DOES NOT APPLY BECAUSE IT'S PRE-AGREED
-       ///
+        //// THIS DOES NOT APPLY BECAUSE IT'S PRE-AGREED
+        ///
+
+        return [];
     }
 
     public function autoExpire()

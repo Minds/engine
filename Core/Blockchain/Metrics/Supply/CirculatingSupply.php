@@ -11,6 +11,8 @@ class CirculatingSupply extends Metrics\AbstractBlockchainMetric implements Metr
     const MINDS_WALLETS = [
         '0x0125e3eca599e46702e534efd58bfb9ed8fbd461', // Coinbase
         '0x14d8d469df598ca2f101f861cc70ba406b806ca3', // Coinbase
+        '0x7Ef271b4613c2F61eCd69Fd4f5D1de91860bcE4B', // Coinbase
+        '0xef5Be346D746761DC4a400A536E50B06B8F56b09', // Gnosis safe
         '0x6f2548b1bee178a49c8ea09be6845f6aeaf3e8da', // Withdraw
         '0x1f28c6fb3ea8ba23038c70a51d8986c5d1276a8d', // Sale
         '0x112ca67c8e9a6ac65e1a2753613d37b89ab7436b', // Boost

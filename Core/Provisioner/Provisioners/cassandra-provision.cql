@@ -434,7 +434,7 @@ CREATE TABLE minds.jwt_sessions (
     id text,
     expires timestamp,
     last_active timestamp,
-    user_agent text
+    user_agent text,
     ip text,
     PRIMARY KEY (user_guid, id)
 ) WITH CLUSTERING ORDER BY (id ASC)
@@ -932,6 +932,30 @@ CREATE TABLE minds.notifications (
 CREATE MATERIALIZED VIEW minds.notifications_by_type_group AS
     SELECT *
     FROM minds.notifications
+    WHERE to_guid IS NOT NULL
+    AND uuid IS NOT NULL
+    AND type_group IS NOT NULL
+    PRIMARY KEY (to_guid, type_group, uuid)
+    WITH CLUSTERING ORDER BY (type_group DESC, uuid DESC);
+
+CREATE TABLE minds.notifications_mergeable (
+    to_guid bigint,
+    uuid timeuuid,
+    type text,
+    type_group text,
+    from_guid bigint,
+    entity_urn text,
+    created_timestamp timestamp,
+    read_timestamp timestamp,
+    data text,
+    merged_from_guids set<bigint>,
+    merged_count int,
+    PRIMARY KEY (to_guid, uuid)
+)  WITH CLUSTERING ORDER BY (uuid DESC);
+
+CREATE MATERIALIZED VIEW minds.notifications_mergeable_by_type_group AS
+    SELECT *
+    FROM minds.notifications_mergeable
     WHERE to_guid IS NOT NULL
     AND uuid IS NOT NULL
     AND type_group IS NOT NULL
@@ -1652,6 +1676,25 @@ CREATE TABLE minds.eth_blocks (
     PRIMARY KEY (date, timestamp)
 ) WITH CLUSTERING ORDER BY (timestamp DESC);
 
--- CREATE INDEX IF NOT EXISTS user_id_idx ON minds.oauth_access_tokens (user_id);
--- ALTER TABLE minds.jwt_sessions ADD (last_active timestamp, user_agent text, ip text);
--- ALTER TABLE minds.oauth_access_tokens ADD ip text;
+CREATE TABLE minds.push_notifications_device_subscriptions (
+    user_guid bigint,
+    device_token text,
+    service text,
+    PRIMARY KEY (user_guid, device_token)
+) WITH CLUSTERING ORDER BY (device_token DESC);
+
+CREATE TABLE minds.push_notifications_settings (
+    user_guid bigint,
+    notification_group text,
+    enabled boolean,
+    PRIMARY KEY (user_guid, notification_group)
+) WITH CLUSTERING ORDER BY (notification_group DESC);
+
+CREATE TABLE minds.notification_email_digests (
+    year int,
+    month int,
+    day int,
+    frequency text,
+    to_guid bigint,
+    PRIMARY KEY (year, month, day, frequency, to_guid)
+) WITH CLUSTERING ORDER BY (month DESC, day DESC);

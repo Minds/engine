@@ -12,7 +12,7 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Helpers\File;
 
-class paywall implements Interfaces\FS
+class paywall implements Interfaces\Fs
 {
     public function get($pages)
     {

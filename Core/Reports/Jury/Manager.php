@@ -17,6 +17,7 @@ use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\Reports\Summons\SummonsNotFoundException;
 use Minds\Core\Reports\Summons\Summons as SummonsEntity;
 use Minds\Core\Security\ACL;
+use Minds\Core\Session;
 
 class Manager
 {
@@ -100,6 +101,8 @@ class Manager
             'hydrate' => false,
             'juryType' => $this->juryType,
             'user' => $this->user, // Session user
+            'limit' => 12,
+            'offset' => '',
         ], $opts);
 
         $response = $this->repository->getList($opts);
@@ -112,6 +115,22 @@ class Manager
                 $report->setEntity($entity);
             }
         }
+
+        return $response;
+    }
+
+    /**
+     * Counts entries in a list, filtered by class-level juryType.
+     * @param array $opts - 'juryType'
+     * @return Response
+     */
+    public function countList($opts = [])
+    {
+        $opts = array_merge([
+            'juryType' => $this->juryType,
+        ], $opts);
+
+        $response = $this->repository->count($opts);
 
         return $response;
     }
@@ -145,7 +164,12 @@ class Manager
         $report = $decision->getReport();
 
         if (!in_array($report->getState(), [ 'reported', 'appealed' ], true)) {
-            throw new JuryClosedException();
+            // report exception if not admin.
+            if (!Core\Session::isAdmin()) {
+                throw new JuryClosedException();
+            }
+            // if an admin - mark it as decided so that it no longer appears in queue.
+            $report->setState('initial_jury_decided');
         }
 
         if ($decision->isAppeal() && !$this->hasSummons($decision)) {

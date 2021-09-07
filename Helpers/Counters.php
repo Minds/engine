@@ -117,7 +117,6 @@ class Counters
      * @param  string         $metric
      * @param  number         $value  - Resetted value. Defaults to 0.
      * @param  Data\Client    $client - Database. Defaults to Cassandra.
-     * @return int
      */
     public static function clear($entity, $metric, $value = 0, $client = null)
     {

@@ -9,7 +9,7 @@
 namespace Minds\Core\Data\ElasticSearch;
 
 use Elasticsearch;
-
+use Minds\Core\Config\Config;
 use Minds\Core\Data\Interfaces;
 use Minds\Core\Di\Di;
 
@@ -20,14 +20,17 @@ class Client implements Interfaces\ClientInterface
 
     /**
      * Client constructor.
-     * @param array $options
      */
-    public function __construct(array $options = [])
+    public function __construct(Config $config = null)
     {
-        $hosts = Di::_()->get('Config')->elasticsearch['hosts'];
-
+        $config = $config ?? Di::_()->get('Config');
+        $esConfig = $config->get('elasticsearch');
+        $hosts = $esConfig['hosts'];
+     
         $this->elasticsearch = Elasticsearch\ClientBuilder::create()
             ->setHosts($hosts)
+            ->setBasicAuthentication($esConfig['username'] ?? '', $esConfig['password'] ?? '')
+            ->setSSLVerification($esConfig['cert'] ?? false)
             ->build();
     }
 

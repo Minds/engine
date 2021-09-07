@@ -10,6 +10,21 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Helpers;
 
+/**
+ * @property string $super_subtype
+ * @property string $filename
+ * @property int $batch_guid
+ * @property int $width
+ * @property int $height
+ * @property int $gif
+ * @property int $mature
+ * @property string $license
+ * @property int $boost_rejection_reason
+ * @property int $time_sent
+ * @property array $nsfw
+ * @property string $permaweb_id
+ */
+
 class Image extends File
 {
     protected function initializeAttributes()
@@ -161,6 +176,10 @@ class Image extends File
             $resize = Core\Di\Di::_()->get('Media\Imagick\Resize');
 
             $image = new \Imagick($master);
+
+            if ($image->getImageColorspace() == \Imagick::COLORSPACE_CMYK) {
+                $image->transformImageColorspace(\Imagick::COLORSPACE_SRGB);
+            }
 
             $autorotate->setImage($image);
             $image = $autorotate->autorotate();
@@ -365,7 +384,7 @@ class Image extends File
         return $this->boost_rejection_reason;
     }
 
-    public function getUrn()
+    public function getUrn(): string
     {
         return "urn:image:{$this->guid}";
     }

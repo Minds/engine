@@ -24,6 +24,7 @@ use Minds\Helpers\Text;
 use Minds\Traits\MagicAttributes;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Core\Wire\Paywall\PaywallEntityTrait;
+use Minds\Entities\EntityInterface;
 
 /**
  * Blog Entity
@@ -101,7 +102,7 @@ use Minds\Core\Wire\Paywall\PaywallEntityTrait;
  * @method bool getEditorVersion()
  * @method bool setEditorVersion(int $editorVersion)
  */
-class Blog extends RepositoryEntity implements PaywallEntityInterface
+class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInterface
 {
     use MagicAttributes;
     use PaywallEntityTrait;
@@ -254,6 +255,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface
 
     /** @var int */
     protected $editorVersion = 1;
+
     /**
      * Blog constructor.
      * @param null $eventsDispatcher
@@ -295,15 +297,15 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getGuid()
+    public function getGuid(): string
     {
         if (!$this->guid) {
             $this->setGuid(Guid::build());
         }
 
-        return $this->guid;
+        return (string) $this->guid;
     }
 
     /**
@@ -509,7 +511,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface
         $array = array_unique($array);
         foreach ($array as $reason) {
             if ($reason < 1 || $reason > 6) {
-                throw \Exception('Incorrect NSFW value provided');
+                throw new \Exception('Incorrect NSFW value provided');
             }
         }
         $this->nsfw = $array;
@@ -547,7 +549,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface
         $array = array_unique($array);
         foreach ($array as $reason) {
             if ($reason < 1 || $reason > 6) {
-                throw \Exception('Incorrect NSFW value provided');
+                throw new \Exception('Incorrect NSFW value provided');
             }
         }
         $this->nsfwLock = $array;
@@ -687,8 +689,40 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface
      * Return the URN
      * @return string
      */
-    public function getUrn()
+    public function getUrn(): string
     {
         return "urn:blog:{$this->getGuid()}";
+    }
+
+    /**
+     * @return string
+     */
+    public function getType(): string
+    {
+        return 'object';
+    }
+
+    /**
+     * @return string
+     */
+    public function getSubtype(): ?string
+    {
+        return 'blog';
+    }
+
+    /**
+     * @return string
+     */
+    public function getAccessId(): string
+    {
+        return (string) $this->accessId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOwnerGuid(): string
+    {
+        return (string) $this->ownerGuid;
     }
 }

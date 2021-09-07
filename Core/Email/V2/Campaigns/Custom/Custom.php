@@ -31,6 +31,9 @@ class Custom
     protected $preheader = "";
     protected $hideDownloadLinks = false;
 
+    /** @var array */
+    protected $vars = [];
+
     /** @var Message */
     public $message;
 

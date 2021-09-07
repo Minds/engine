@@ -28,7 +28,6 @@ class EmailStyles
             'm-textColor--white' => 'color: #FFFFFF !important;',
             'm-title' => 'font-size:26px; text-align:center;color: #4f4f50;margin-top: 0;',
             'm-title--ltr' => 'font-size:26px; text-align:left;color: #4f4f50;margin-top: 0;',
-            'm-subtitle' => 'font-size:22px; line-height:29px;',
             'm-signature' => 'margin: 0 0 4px 0;padding: 0 !important;',
 
         // SPACING & LAYOUT ///////////////////////////
@@ -58,6 +57,14 @@ class EmailStyles
             'm-digest__username' => 'padding-left: 10px; text-decoration: none;',
             'm-digest__yourActivity' => 'width: 100%; border: 1px solid #d4d4d4; padding: 20px;',
             'm-digestYourActivity__col' => 'padding: 10px;',
+
+            // PARTIAL : Digest
+            'm-unreadNotifications__col' => 'padding: 20px;',
+            'm-unreadNotifications__title' => 'font-size: 15px; font-weight: 400; margin-bottom: 20px;',
+            'm-unreadNotifications__count' => 'width: 100%; border: 1px solid #d4d4d4; margin-bottom: 20px; box-sizing: border-box;',
+            'm-unreadNotificationsCount__text' => 'text-decoration: none; font-size: 17px; font-weight: 500',
+            'm-unreadNotifications__previews' => 'width: 100%; border-collapse: collapse;',
+            'm-unreadNotifications__preview' => 'width: 100%; border: 1px solid #d4d4d4; padding: 20px; font-size: 15px;',
         ];
     }
 
@@ -65,6 +72,6 @@ class EmailStyles
     {
         $styles = array_intersect_key($this->styles, array_flip($styleKeys));
 
-        return ' style="'.implode($styles, ';').'" ';
+        return ' style="'.implode(';', $styles).'" ';
     }
 }

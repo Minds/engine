@@ -12,6 +12,7 @@ use Minds\Core\Comments\Repository;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Luid;
 use Minds\Core\Security\ACL;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Core\Security\Spam;
 use Minds\Entities\Entity;
 use Minds\Entities\User;
@@ -48,6 +49,9 @@ class ManagerSpec extends ObjectBehavior
     /** @var Security\Spam */
     protected $spam;
 
+    /** @var KeyValueLimiter */
+    protected $kvLimiter;
+    
     public function let(
         Repository $repository,
         LegacyRepository $legacyRepository,
@@ -57,7 +61,8 @@ class ManagerSpec extends ObjectBehavior
         CreateEventDispatcher $createEventDispatcher,
         CountCache $countCache,
         EntitiesBuilder $entitiesBuilder,
-        Spam $spam
+        Spam $spam,
+        KeyValueLimiter $kvLimiter
     ) {
         $this->beConstructedWith(
             $repository,
@@ -68,7 +73,8 @@ class ManagerSpec extends ObjectBehavior
             $createEventDispatcher,
             $countCache,
             $entitiesBuilder,
-            $spam
+            $spam,
+            $kvLimiter,
         );
 
         $this->repository = $repository;
@@ -80,6 +86,7 @@ class ManagerSpec extends ObjectBehavior
         $this->countCache = $countCache;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->spam = $spam;
+        $this->kvLimiter = $kvLimiter;
     }
 
     public function it_is_initializable()
@@ -113,6 +120,8 @@ class ManagerSpec extends ObjectBehavior
         $this->entitiesBuilder->single(5000)
             ->shouldBeCalled()
             ->willReturn($entity);
+        
+        $this->kvLimiterMock();
 
         /*$entity->get('guid')
             ->shouldBeCalled()
@@ -183,6 +192,8 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(100);*/
 
+        $this->kvLimiterMock();
+
         $this->acl->interact($entity, $owner, "comment")
             ->shouldBeCalled()
             ->willReturn(false);
@@ -216,6 +227,8 @@ class ManagerSpec extends ObjectBehavior
         /*$entity->get('guid')
             ->shouldBeCalled()
             ->willReturn(100);*/
+
+        $this->kvLimiterMock();
 
         $this->acl->interact($entity, $owner, "comment")
             ->shouldBeCalled()
@@ -425,5 +438,14 @@ class ManagerSpec extends ObjectBehavior
         $this
             ->count(5000, 0)
             ->shouldReturn(0);
+    }
+
+    private function kvLimiterMock()
+    {
+        $this->kvLimiter->setKey(Argument::any())->willReturn($this->kvLimiter);
+        $this->kvLimiter->setValue(Argument::any())->willReturn($this->kvLimiter);
+        $this->kvLimiter->setSeconds(Argument::any())->willReturn($this->kvLimiter);
+        $this->kvLimiter->setMax(Argument::any())->willReturn($this->kvLimiter);
+        $this->kvLimiter->checkAndIncrement()->willReturn(true);
     }
 }

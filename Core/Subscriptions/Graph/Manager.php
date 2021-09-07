@@ -53,9 +53,8 @@ class Manager
             ->setUserGuid($this->userGuid);
 
         switch ($options->getType()) {
-            // TODO
-            // case 'subscribers':
-            //     return $this->repository->getSubscribers($options);
+            case 'subscribers':
+                return $this->repository->getSubscribers($options);
 
             case 'subscriptions':
                 return $this->repository->getSubscriptions($options);

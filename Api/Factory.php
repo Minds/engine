@@ -202,7 +202,7 @@ class Factory
         })) > 0;
 
         if (!$wasSet) {
-            header("Access-Control-Allow-Origin: *");
+            header("Access-Control-Allow-Origin: " . $_SERVER['HTTP_HOST']);
         }
     }
 
@@ -223,7 +223,9 @@ class Factory
             }
 
             $entities[$k] = $entity->export();
-            $entities[$k]['guid'] = (string) $entities[$k]['guid']; //javascript doesn't like long numbers..
+            if (isset($entities[$k]['guid'])) {
+                $entities[$k]['guid'] = (string) $entities[$k]['guid']; //javascript doesn't like long numbers..
+            }
             if (isset($entities[$k]['ownerObj']['guid'])) {
                 $entities[$k]['ownerObj']['guid'] = (string) $entity->ownerObj['guid'];
             }

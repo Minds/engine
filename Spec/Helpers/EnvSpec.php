@@ -56,13 +56,13 @@ class EnvSpec extends ObjectBehavior
         expect(Env::cast('-4.34'))->toBe(-4.34);
     }
 
-    public function it_handles_errors_and_invalid_types()
-    {
-        expect(Env::cast(null))->toBe(null);
-        expect(Env::cast([]))->toBe([]);
-        $this->shouldThrow(\Exception::class)
-            ->during('cast', [(object)[]]);
-    }
+    // public function it_handles_errors_and_invalid_types()
+    // {
+    //     expect(Env::cast(null))->toBe(null);
+    //     expect(Env::cast([]))->toBe([]);
+    //     $this->shouldThrow(\Exception::class)
+    //         ->during('cast', [(object)[]]);
+    // }
 
     public function it_should_nest_arrays()
     {

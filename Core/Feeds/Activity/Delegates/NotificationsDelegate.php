@@ -6,18 +6,24 @@ use Minds\Core;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Entities\Activity;
 use Minds\Core\Di\Di;
+use Minds\Core\EventStreams\ActionEvent;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 
 class NotificationsDelegate
 {
     /** @var EventsDispatcher */
     private $eventsDispatcher;
 
+    /** @var ActionEventsTopic */
+    private $actionEventsTopic;
+
     /**
      * @param EventsDispatcher $eventsDispatcher
      */
-    public function __construct($eventsDispatcher = null)
+    public function __construct($eventsDispatcher = null, ActionEventsTopic $actionEventsTopic = null)
     {
         $this->eventsDispatcher = $eventsDispatcher ?? Di::_()->get('EventsDispatcher');
+        $this->actionEventsTopic = $actionEventsTopic ?? new ActionEventsTopic();
     }
 
     /**
@@ -42,6 +48,17 @@ class NotificationsDelegate
                     'entity' => $activity->isQuotedPost() ? $activity : $remind
                 ]);
             }
+
+            // New style events system
+            $actionEvent = new ActionEvent();
+            $actionEvent
+                ->setUser($activity->getOwnerEntity())
+                ->setEntity($remind)
+                ->setAction($activity->isRemind() ? ActionEvent::ACTION_REMIND : ActionEvent::ACTION_QUOTE)
+                ->setActionData([
+                    ($activity->isRemind() ? 'remind_urn' : 'quote_urn') => $activity->getUrn(),
+                ]);
+            $this->actionEventsTopic->send($actionEvent);
         }
     }
 }

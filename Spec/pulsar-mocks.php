@@ -23,6 +23,9 @@ class PulsarSchemaTypeMock
 }
 class PulsarClientMock
 {
+    public function init()
+    {
+    }
     public function createProducer()
     {
         return new PulsarProducerMock();
@@ -31,9 +34,21 @@ class PulsarClientMock
     {
         return new PulsarConsumerMock();
     }
+    public function close(): void
+    {
+    }
 }
 class PulsarClientConfigurationMock
 {
+    public function setUseTls(bool $useTl): self
+    {
+        return $this;
+    }
+
+    public function setTlsTrustCertsFilePath(string $path): self
+    {
+        return $this;
+    }
 }
 class PulsarProducerMock
 {
@@ -60,6 +75,10 @@ class PulsarMessageBuilderMock
     public function build()
     {
         return new PulsarMessageMock();
+    }
+    public function setEventTimestamp(int $timestamp)
+    {
+        return $this;
     }
 }
 class PulsarMessageMock

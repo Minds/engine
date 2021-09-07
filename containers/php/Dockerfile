@@ -1,4 +1,4 @@
-FROM php:7.3-fpm-alpine3.10
+FROM php:8.0-fpm-alpine3.14
 
 RUN apk add --no-cache --update --virtual .php-deps make
 
@@ -19,7 +19,7 @@ RUN apk add --no-cache --virtual build-deps \
     icu-dev \
     && docker-php-ext-install -j$(nproc) bcmath \
     && docker-php-ext-install -j$(nproc) zip \
-    && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+    && docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/ \
     && docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-install -j$(nproc) exif \
     && docker-php-ext-install -j$(nproc) sockets \
@@ -30,11 +30,9 @@ RUN apk add --no-cache --virtual build-deps \
 RUN apk add --no-cache --virtual build-deps \
     $PHPIZE_DEPS \
     imagemagick-dev \
-    && pecl install mongodb \
     && pecl install redis \
     && pecl install apcu \
     && pecl install imagick \
-    && docker-php-ext-enable mongodb \
     && docker-php-ext-enable redis \
     && docker-php-ext-enable apcu \
     && docker-php-ext-enable imagick \
@@ -62,11 +60,17 @@ ENV BUILD_DEPS \
 
 RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && apk add --no-cache libuv gmp \
-    && git clone https://github.com/datastax/php-driver.git $INSTALL_DIR \
+    && git clone https://github.com/nano-interactive/php-driver.git $INSTALL_DIR \
     && cd $INSTALL_DIR \
-    && git reset --hard f73debf39e395817dd2ced76acfc64249d4d3a0a \
     && git submodule update --init \
-    && cd ext && bash $INSTALL_DIR/ext/install.sh \
+    # Install CPP Driver
+    && cd $INSTALL_DIR/lib/cpp-driver \
+    && mkdir build && cd build \
+    && cmake -DCASS_BUILD_STATIC=ON -DCASS_BUILD_SHARED=ON .. \
+    && make && make install \
+    # Install PHP Driver
+    && cd $INSTALL_DIR/ext \
+    && phpize && ./configure && make && make install \
     && docker-php-ext-enable cassandra \
     && apk del build-deps \
     && rm -rf $INSTALL_DIR
@@ -119,8 +123,9 @@ ENV BUILD_DEPS \
 
 RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     # PHP CPP
-    && git clone https://github.com/CopernicaMarketingSoftware/PHP-CPP.git \
+    && git clone https://github.com/Minds/PHP-CPP.git \
     && cd PHP-CPP \
+    && git checkout php80 \
     && make -j4 \
     && make install \
     && cd .. \

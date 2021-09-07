@@ -34,6 +34,9 @@ class Verdict
     /** @var string $initialJuryAction */
     private $initialJuryAction;
 
+    /** @var bool $accepted */
+    private $accepted;
+
     /**
      * Decisions
      * @return Decision[]
@@ -73,7 +76,7 @@ class Verdict
             'report' => $this->report->export(),
             'decisions' => array_map(function ($decision) {
                 return $decision->export();
-            }, $this->decisions),
+            }, $this->getDecisions()),
             '@timestamp' => $this->timestamp,
             'is_appeal' => $this->isAppeal(),
             'is_accepted' => $this->accepted,

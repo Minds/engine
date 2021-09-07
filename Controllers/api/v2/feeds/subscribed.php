@@ -2,6 +2,7 @@
 
 namespace Minds\Controllers\api\v2\feeds;
 
+use Composer\Semver\Comparator;
 use Minds\Api\Exportable;
 use Minds\Api\Factory;
 use Minds\Core;
@@ -31,13 +32,13 @@ class subscribed implements Interfaces\Api
                 $type = 'activity';
                 break;
             case 'images':
-                $type = 'object:image';
+                $type = 'object-image';
                 break;
             case 'videos':
-                $type = 'object:video';
+                $type = 'object-video';
                 break;
             case 'blogs':
-                $type = 'object:blog';
+                $type = 'object-blog';
                 break;
         }
 
@@ -119,7 +120,14 @@ class subscribed implements Interfaces\Api
         ];
 
         if ($_GET['to_timestamp'] ?? null) {
-            $opts['to_timestamp'] = (int) $_GET['to_timestamp'] * 1000;
+            // Fallbacks for old versions of mobile: The timestamp filter logic of the endpoint has changed
+            // so, instead of receiving to_timestamp as the oldest date we need to send a date range from_timestamp to_timestamp
+            if (isset($_SERVER['HTTP_APP_VERSION']) && Comparator::lessThan($_SERVER['HTTP_APP_VERSION'], '4.17.0')) {
+                $opts['from_timestamp'] = (int) $_GET['to_timestamp'] * 1000;
+                $opts['to_timestamp'] = time() * 1000;
+            } else {
+                $opts['to_timestamp'] = (int) $_GET['to_timestamp'];
+            }
         }
 
         try {

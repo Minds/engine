@@ -39,6 +39,7 @@ class Subscribers implements AggregateInterface
     public function fetchAll($opts = [])
     {
         $result = [];
+        $span = null;
         foreach (['hour', 'day', 'month'] as $unit) {
             switch ($unit) {
                 case 'hour':
@@ -104,7 +105,6 @@ class Subscribers implements AggregateInterface
         $query = [
             'index' => 'minds-metrics-*',
             'size' => 0,
-            'type' => 'action',
             "stored_fields" => [
                 "*"
             ],

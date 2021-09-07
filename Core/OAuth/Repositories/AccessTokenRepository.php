@@ -145,6 +145,6 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
             $accessTokens[] = $accessToken;
         }
 
-        return $accessTokens;
+        return $accessTokens ?? [];
     }
 }

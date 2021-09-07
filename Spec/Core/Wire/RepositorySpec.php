@@ -12,6 +12,7 @@ use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Spec\Minds\Mocks;
 use Cassandra;
+use Cassandra\Varint;
 
 class RepositorySpec extends ObjectBehavior
 {
@@ -29,6 +30,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(new Mocks\Cassandra\Rows([
              [
+                 'wire_guid' => new Varint(12345),
                  'sender_guid' => 123,
                  'receiver_guid' => 1234,
                  'timestamp' => '2017-05-03',
@@ -62,7 +64,8 @@ class RepositorySpec extends ObjectBehavior
 
         $wire = new Wire();
 
-        $wire->setSender($sender)
+        $wire->setGuid(12345)
+            ->setSender($sender)
             ->setReceiver($receiver)
             ->setTimestamp('2017-05-03')
             ->setEntity($entity)

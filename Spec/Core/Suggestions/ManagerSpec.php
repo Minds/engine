@@ -91,12 +91,12 @@ class ManagerSpec extends ObjectBehavior
         $newResponse[0]->getEntityGuid()
             ->shouldBe(456);
         $newResponse[0]->getEntity()->getGuid()
-            ->shouldBe(456);
+            ->shouldBe('456');
 
         $newResponse[1]->getEntityGuid()
             ->shouldBe(789);
         $newResponse[1]->getEntity()->getGuid()
-            ->shouldBe(789);
+            ->shouldBe('789');
     }
 
     public function it_shouldnt_return_a_list_of_suggested_users_if_close_too_close_to_the_rate_limit_threshold()

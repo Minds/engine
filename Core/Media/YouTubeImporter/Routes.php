@@ -33,7 +33,7 @@ class Routes extends ModuleRoutes
 
                 // Logged in endpoints
                 $route
-                    ->withMiddlware([
+                    ->withMiddleware([
                         LoggedInMiddleware::class,
                     ])
                     ->do(function (Route $route) {

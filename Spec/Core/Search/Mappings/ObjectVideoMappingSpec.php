@@ -58,7 +58,6 @@ class ObjectVideoMappingSpec extends ObjectBehavior
             ->shouldReturn([
                 'passedValue' => 'PHPSpec',
                 'guid' => '5000',
-                'interactions' => 42,
                 'type' => 'object',
                 'subtype' => 'video',
                 'time_created' => $now,
@@ -78,7 +77,6 @@ class ObjectVideoMappingSpec extends ObjectBehavior
                 'youtube_channel_id' => 'channel_id',
                 'transcoding_status' => 'queued',
                 '@timestamp' => $now * 1000,
-                'taxonomy' => 'object:video',
                 'public' => true,
                 // 'wire_support_tier' => null,
                 // '@wire_support_tier_expire' => null,

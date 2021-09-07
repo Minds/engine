@@ -45,6 +45,7 @@ class OffchainPlus implements AggregateInterface
     public function fetchAll($opts = [])
     {
         $result = [];
+        $span = null;
         foreach (['month'] as $unit) {
             $k = Manager::buildKey([
                 'aggregate' => $opts['aggregate'] ?? 'offchainplus',

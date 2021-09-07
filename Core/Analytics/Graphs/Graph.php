@@ -35,6 +35,6 @@ class Graph
      */
     public function getUrn()
     {
-        return "urn:graph:$this->report";
+        return "urn:graph:$this->key";
     }
 }

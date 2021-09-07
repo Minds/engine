@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Feeds\Elastic;
 
+use Composer\Semver\Comparator;
 use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
 use Minds\Core\Feeds\FeedSyncEntity;
@@ -155,8 +156,8 @@ class Manager
             ++$i; // Update here as we don't want to count skipped
 
             $entityType = $scoredGuid->getType() ?? 'entity';
-            if (strpos($entityType, 'object:', 0) === 0) {
-                $entityType = str_replace('object:', '', $entityType);
+            if (strpos($entityType, 'object-', 0) === 0) {
+                $entityType = str_replace('object-', '', $entityType);
             }
 
             if ($opts['as_activities'] && !in_array($opts['type'], ['user', 'group'], true)) {
@@ -165,13 +166,14 @@ class Manager
 
             $urn = implode(':', [
                 'urn',
-                $entityType,
+                $entityType ?: 'entity',
                 $scoredGuid->getGuid(),
             ]);
 
             $feedSyncEntities[] = (new FeedSyncEntity())
                 ->setGuid((string) $scoredGuid->getGuid())
-                ->setOwnerGuid((string) $ownerGuid)
+    
+                 ->setOwnerGuid((string) $ownerGuid)
                 ->setUrn(new Urn($urn))
                 ->setTimestamp($scoredGuid->getTimestamp());
 
@@ -180,6 +182,18 @@ class Manager
 
         $entities = [];
         $next = '';
+
+        /**
+         * Awkward hack to pin mobile post
+         */
+        if (isset($_SERVER['HTTP_APP_VERSION']) && Comparator::lessThan($_SERVER['HTTP_APP_VERSION'], '4.17.0')) {
+            $mobilePin = (new FeedSyncEntity())
+                ->setGuid("1279518512628371457")
+                ->setOwnerGuid("100000000000000519")
+                ->setUrn(new Urn("urn:activity:1279518512628371457"))
+                ->setTimestamp(1630436985);
+            array_unshift($feedSyncEntities, $mobilePin);
+        }
 
         if (count($feedSyncEntities) > 0) {
             $next = (string) (array_reduce($feedSyncEntities, function ($carry, FeedSyncEntity $feedSyncEntity) {
@@ -233,6 +247,15 @@ class Manager
         $response->setPagingToken($next ?: '');
 
         return $response;
+    }
+
+    /**
+     * @param array $opts
+     * @return int
+     */
+    public function getCount(array $opts = [])
+    {
+        return $this->repository->getCount($opts);
     }
 
     /**

@@ -5,13 +5,14 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Entities\Entity;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Helpers;
 
 /**
  * Peer Boost Entity
  */
-class Peer implements BoostEntityInterface
+class Peer implements BoostEntityInterface, EntityInterface
 {
     public $guid;
     private $entity;
@@ -28,11 +29,6 @@ class Peer implements BoostEntityInterface
     private $checksum = null;
     private $handler = 'peer';
     private $method = '';
-
-    public function __construct($db = null)
-    {
-        $this->db = null;
-    }
 
     /**
      * Loads from database using a GUID
@@ -114,19 +110,20 @@ class Peer implements BoostEntityInterface
             $this->guid = $guid;
             $this->time_created = time();
         }
+        return $this;
     }
 
     /**
      * Get the GUID of this boost
      * @return string
      */
-    public function getGuid()
+    public function getGuid(): string
     {
         if (!$this->guid) {
             $this->guid = Core\Guid::build();
             $this->time_created = time();
         }
-        return $this->guid;
+        return (string) $this->guid;
     }
 
     /**
@@ -253,7 +250,7 @@ class Peer implements BoostEntityInterface
      * Return the boost type
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return $this->_type;
     }
@@ -358,6 +355,38 @@ class Peer implements BoostEntityInterface
     public function getChecksum()
     {
         return $this->checksum;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSubtype(): string
+    {
+        return '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getOwnerGuid(): string
+    {
+        return $this->owner->getGuid();
+    }
+
+    /**
+     * @return string
+     */
+    public function getUrn(): string
+    {
+        return 'urn:peer-boost:' . $this->guid;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAccessId(): string
+    {
+        return '0'; // Private
     }
 
     /**

@@ -5,6 +5,7 @@
 namespace Minds\Core\Payments\Stripe\PaymentMethods;
 
 use Minds\Traits\MagicAttributes;
+use Minds\Entities\User;
 
 /**
  * @method PaymentMethod getId(): string
@@ -39,6 +40,9 @@ class PaymentMethod
 
     /** @var int $cardLast4 */
     private $cardLast4;
+
+    /** @var User */
+    private $user;
 
     /**
      * Expose to the public apis

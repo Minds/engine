@@ -10,6 +10,7 @@ use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Log\Logger;
 use Minds\Core\Rewards\Repository;
 use Minds\Core\Rewards\RewardEntry;
+use Minds\Core\Notifications;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -27,15 +28,20 @@ class NotifySpec extends ObjectBehavior
     /** @var Logger */
     protected $logger;
 
+    /** @var Notifications\Manager */
+    protected $notificationsManager;
+
     public function let(
         Repository $repository,
         TokenPrices\Manager $tokenPricesManager,
-        EventsDispatcher $eventsDispatcher
+        EventsDispatcher $eventsDispatcher,
+        Notifications\Manager $notificationsManager
     ) {
-        $this->beConstructedWith($repository, $tokenPricesManager, $eventsDispatcher);
+        $this->beConstructedWith($repository, $tokenPricesManager, $eventsDispatcher, null, $notificationsManager);
         $this->repository = $repository;
         $this->tokenPricesManager = $tokenPricesManager;
         $this->eventsDispatcher = $eventsDispatcher;
+        $this->notificationsManager = $notificationsManager;
     }
 
     public function it_is_initializable()
@@ -66,6 +72,11 @@ class NotifySpec extends ObjectBehavior
         }))
             ->shouldBeCalled();
 
+        $this->notificationsManager->add(Argument::that(function ($notification) {
+            return true;
+        }))
+            ->willReturn(true);
+
         $this->run();
     }
 
@@ -91,6 +102,11 @@ class NotifySpec extends ObjectBehavior
                 && $payload['message'] === "🚀 You earned 0.020 tokens yesterday 🚀";
         }))
             ->shouldBeCalled();
+
+        $this->notificationsManager->add(Argument::that(function ($notification) {
+            return true;
+        }))
+            ->willReturn(true);
 
         $this->run();
     }

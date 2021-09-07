@@ -70,11 +70,11 @@ class ManagerSpec extends ObjectBehavior
         $response[0]->getReport()->getEntityUrn()
             ->shouldBe('urn:activity:123');
         $response[0]->getReport()->getEntity()->getGuid()
-            ->shouldBe(123);
+            ->shouldBe('123');
         $response[1]->getReport()->getEntityUrn()
             ->shouldBe('urn:activity:456');
         $response[1]->getReport()->getEntity()->getGuid()
-            ->shouldBe(456);
+            ->shouldBe('456');
     }
 
     public function it_should_add_appeal_to_repository(Appeal $appeal, Report $report)

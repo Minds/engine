@@ -25,6 +25,8 @@ use Minds\Traits\MagicAttributes;
  * @method Report setTimestamp(int $timestamp)
  * @method Report setReasonCode(int $value)
  * @method Report setSubReasonCode(int $value)
+ * @method int getTimestamp()
+ * @method string getAppealNote()
  */
 class Report
 {
@@ -78,6 +80,9 @@ class Report
     /** @var array $stateChanges */
     private $stateChanges;
     
+    /** @var $state */
+    private $state;
+
     /**
      * Return the state of the report from the state changes
      */

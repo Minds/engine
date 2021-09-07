@@ -20,7 +20,7 @@ class Repository
 
         $config = $config ?: Di::_()->get('Config');
 
-        $this->index = $config->get('elasticsearch')['index'];
+        $this->index = $config->get('elasticsearch')['indexes']['search_prefix'];
     }
 
     public function getScheduledCount(array $opts = [])
@@ -41,8 +41,7 @@ class Repository
 
         $containerGuids = Text::buildArray($opts['container_guid']);
         $query = [
-            'index' => $this->index,
-            'type' => $opts['type'],
+            'index' => $this->index . '-*',
             'body' => [
                 'query' => [
                     'bool' => [

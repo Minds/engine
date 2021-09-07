@@ -14,7 +14,13 @@ use Minds\Core\Groups\Invitations;
 use Minds\Core\Groups\Delegates\ElasticSearchDelegate;
 use Minds\Traits\MagicAttributes;
 
-class Group extends NormalizedEntity
+/**
+ * @method Group getOwnerObj() : array
+ * @method Group getMembership() : int
+ * @property int $time_created
+ * @property array $nsfwLock
+ */
+class Group extends NormalizedEntity implements EntityInterface
 {
     use MagicAttributes;
 
@@ -214,9 +220,17 @@ class Group extends NormalizedEntity
      *
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
+    }
+
+    /**
+     * @return null
+     */
+    public function getSubtype(): ?string
+    {
+        return null;
     }
 
     /**
@@ -290,9 +304,9 @@ class Group extends NormalizedEntity
      * Gets `access_id`
      * @return mixed
      */
-    public function getAccessId()
+    public function getAccessId(): string
     {
-        return $this->access_id;
+        return (string) $this->access_id;
     }
 
     /**
@@ -461,12 +475,12 @@ class Group extends NormalizedEntity
      * Return the original `owner_guid` for the group.
      * @return string guid
      */
-    public function getOwnerGuid()
+    public function getOwnerGuid(): string
     {
         $guids = $this->getOwnerGuids();
         return $guids
-            ? $guids[0]
-            : $this->getOwnerObj()->guid;
+            ? (string) $guids[0]
+            : (string) $this->getOwnerObj()->guid;
     }
 
     /**
@@ -834,7 +848,7 @@ class Group extends NormalizedEntity
         $array = array_unique($array);
         foreach ($array as $reason) {
             if ($reason < 1 || $reason > 6) {
-                throw \Exception('Incorrect NSFW value provided');
+                throw new \Exception('Incorrect NSFW value provided');
             }
         }
         $this->nsfw = $array;
@@ -871,7 +885,7 @@ class Group extends NormalizedEntity
         $array = array_unique($array);
         foreach ($array as $reason) {
             if ($reason < 1 || $reason > 6) {
-                throw \Exception('Incorrect NSFW value provided');
+                throw new \Exception('Incorrect NSFW value provided');
             }
         }
         $this->nsfwLock = $array;
@@ -923,7 +937,7 @@ class Group extends NormalizedEntity
         return $export;
     }
 
-    public function getUrn()
+    public function getUrn(): string
     {
         return "urn:group:{$this->guid}";
     }

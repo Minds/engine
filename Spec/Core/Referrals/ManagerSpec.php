@@ -165,7 +165,7 @@ class ManagerSpec extends ObjectBehavior
         $newResponse[0]->getProspectGuid()
             ->shouldBe(456);
         $newResponse[0]->getProspect()->getGuid()
-            ->shouldBe(456);
+            ->shouldBe('456');
         $newResponse[0]->getRegisterTimestamp()
             ->shouldBe(11);
         $newResponse[0]->getJoinTimestamp()

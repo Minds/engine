@@ -54,8 +54,9 @@ class ActivitySpec extends ObjectBehavior
         $this->getAllowComments()->shouldBe(false);
     }
 
-    public function it_should_convert_reminded_blog_to_activity(\Minds\Core\Blogs\Blog $blog)
+    public function it_should_convert_reminded_blog_to_activity()
     {
+        $blog = new \Minds\Core\Blogs\Blog();
         $this->remind_object = [
             'guid' => 456
         ];

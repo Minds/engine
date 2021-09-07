@@ -127,11 +127,11 @@ class Events
 
             try {
                 $isAllowed = Di::_()->get('Wire\Thresholds')->isAllowed($user, $entity);
+           
+                if ($isAllowed) {
+                    return $event->setResponse(true);
+                }
             } catch (\Exception $e) {
-            }
-
-            if ($isAllowed) {
-                return $event->setResponse(true);
             }
 
             return $event->setResponse(false);

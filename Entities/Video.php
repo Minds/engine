@@ -22,6 +22,15 @@ use Minds\Helpers;
  * @property string $transcoding_status
  * @property string $chosen_format_url
  * @property string $youtube_thumbnail
+ * @property string $cinemr_guid
+ * @property string $super_subtype
+ * @property string $thumbnail
+ * @property string $boost_rejection_reason
+ * @property string $license
+ * @property int $time_sent
+ * @property int $width
+ * @property int $height
+ * @property string $permaweb_id
  */
 class Video extends MindsObject
 {
@@ -337,6 +346,7 @@ class Video extends MindsObject
             'video',
             [
                 'thumbnail_src' => $this->getIconUrl(),
+                'cloudflare_id' => $this->getCloudflareId(),
                 'guid' => $this->guid,
                 'mature' => $this->getFlag('mature'),
                 'full_hd' => $this->getFlag('full_hd'),
@@ -358,7 +368,7 @@ class Video extends MindsObject
         return $this->boost_rejection_reason;
     }
 
-    public function getUrn()
+    public function getUrn(): string
     {
         return "urn:video:{$this->getGuid()}";
     }

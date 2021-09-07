@@ -48,11 +48,11 @@ class Engagement implements AnalyticsMetric
 
     /**
      * Increments metric counter
-     * @return bool
      */
     public function increment()
     {
         //not applicable
+        return false;
     }
 
     /**

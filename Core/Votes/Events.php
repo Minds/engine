@@ -9,6 +9,7 @@
 namespace Minds\Core\Votes;
 
 use Minds\Core;
+use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Core\EventStreams\ActionEvent;
@@ -16,6 +17,7 @@ use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Helpers;
 use Minds\Entities;
+use Minds\Entities\Activity;
 
 class Events
 {
@@ -30,13 +32,19 @@ class Events
             $entity = $vote->getEntity();
             $actor = $vote->getActor();
 
+            // If this is an activity post, then we will make the action on the image or video
+            if ($entity instanceof Activity && $entityGuid = $entity->getEntityGuid()) {
+                $entity = Di::_()->get('EntitiesBuilder')->single($entityGuid);
+                if (!$entity) {
+                    return; // Nothing we can do here...
+                }
+            }
+
             $actionEvent = new ActionEvent();
             $actionEvent
-                ->setAction(ActionEvent::ACTION_VOTE)
-                ->setActionData([
-                    'vote_direction' => $direction,
-                    // 'comment_urn' => TODO if vote on comment
-                ])
+                ->setAction(
+                    $direction === 'up' ? ActionEvent::ACTION_VOTE_UP : ActionEvent::ACTION_VOTE_DOWN
+                )
                 ->setEntity($entity)
                 ->setUser($actor);
 
@@ -88,6 +96,7 @@ class Events
 
             if ($entity->type == 'activity' && $entity->custom_type) {
                 $subtype = '';
+                $guid = '';
                 switch ($entity->custom_type) {
                     case 'video':
                         $subtype = 'video';

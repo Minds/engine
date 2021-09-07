@@ -80,6 +80,10 @@ class Provider extends DiProvider
                 'token-marketing-2021',
                 'matrix',
                 'cloudflare-streams',
+                'notifications-v3',
+                'withdrawal-console',
+                'helpdesk-2021',
+                'plus-discovery-filter'
             ];
         });
 

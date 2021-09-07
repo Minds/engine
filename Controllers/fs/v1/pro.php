@@ -9,7 +9,7 @@ namespace Minds\Controllers\fs\v1;
 use Minds\Core\Pro\Assets\Asset;
 use Minds\Interfaces;
 
-class pro implements Interfaces\FS
+class pro implements Interfaces\Fs
 {
     /**
      * Equivalent to HTTP GET method

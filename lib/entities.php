@@ -827,7 +827,7 @@ function elgg_get_entities(array $options = array()) {
                         if($owner_guid = $options['owner_guids'][0]){
                             $namespace .= ':user:'. $owner_guid;
                         }
-                        if($container_guid = $options['container_guids'][0]){
+                        if($options['container_guids'] && $container_guid = $options['container_guids'][0]){
                             $namespace .= ':container:'. $container_guid;
                         }
                         if($network = $options['network']){

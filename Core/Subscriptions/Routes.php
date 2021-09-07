@@ -27,9 +27,7 @@ class Routes extends ModuleRoutes
 
                 $route->get(
                     ':guid/subscribers',
-                    function () {
-                        throw new UserErrorException('Not implemented');
-                    }
+                    Ref::_('Subscriptions\Graph\Controller', 'getSubscribers')
                 );
             });
     }

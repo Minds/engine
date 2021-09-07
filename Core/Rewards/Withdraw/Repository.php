@@ -6,6 +6,7 @@ namespace Minds\Core\Rewards\Withdraw;
 use Cassandra\Varint;
 use Cassandra\Timestamp;
 use Exception;
+use Minds\Common\Urn;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
@@ -59,7 +60,7 @@ class Repository
 
         if ($opts['timestamp']) {
             $where[] = 'timestamp = ?';
-            $values[] = new Timestamp($opts['timestamp']);
+            $values[] = new Timestamp($opts['timestamp'], 0);
         }
 
         if ($opts['tx']) {
@@ -69,12 +70,12 @@ class Repository
 
         if ($opts['from']) {
             $where[] = 'timestamp >= ?';
-            $values[] = new Timestamp($opts['from']);
+            $values[] = new Timestamp($opts['from'], 0);
         }
 
         if ($opts['to']) {
             $where[] = 'timestamp <= ?';
-            $values[] = new Timestamp($opts['to']);
+            $values[] = new Timestamp($opts['to'], 0);
         }
 
         if ($opts['completed']) {
@@ -125,6 +126,25 @@ class Repository
     }
 
     /**
+     * Return via a urn
+     * @param string $urn
+     * @return Request
+     */
+    public function get(string $urn): ?Request
+    {
+        $urn = new Urn($urn);
+        list($userGuid, $timestamp, $tx) = explode('-', $urn->getNss());
+
+        $list = $this->getList([
+            'user_guid' => $userGuid,
+            'timestamp' => $timestamp,
+            'tx' => $tx
+        ]);
+
+        return $list['withdrawals'][0];
+    }
+
+    /**
      * @param Request $request
      * @return bool
      */
@@ -133,7 +153,7 @@ class Repository
         $cql = "INSERT INTO withdrawals (user_guid, timestamp, tx, address, amount, completed, completed_tx, gas, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $values = [
             new Varint($request->getUserGuid()),
-            new Timestamp($request->getTimestamp()),
+            new Timestamp($request->getTimestamp(), 0),
             $request->getTx(),
             (string) $request->getAddress(),
             new Varint($request->getAmount()),

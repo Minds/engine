@@ -11,6 +11,7 @@ use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Cassandra;
 use Cassandra\Varint;
 use Cassandra\Timestamp;
+use Minds\Common\Urn;
 
 class Repository
 {
@@ -48,7 +49,7 @@ class Repository
                     new Varint($wire->getReceiver()->guid),
                     new Varint($wire->getSender()->guid),
                     $wire->getMethod(),
-                    new Timestamp($wire->getTimestamp()),
+                    new Timestamp($wire->getTimestamp(), 0),
                     new Varint($wire->getEntity()->guid ?: $wire->getReceiver()->guid),
                     new Varint($wire->getGuid()),
                     new Cassandra\Varint($wire->getAmount()),
@@ -74,11 +75,12 @@ class Repository
             'sender_guid' => null,
             'receiver_guid' => null,
             'allowFiltering' => false,
+            'method' => 'tokens',
         ], $options);
 
         $table = 'wire';
         $where = ['method = ?'];
-        $values = ['tokens'];
+        $values = [$options['method']];
         $orderBy = ' ORDER BY method DESC, timestamp DESC';
 
         if ($options['receiver_guid']) {
@@ -101,12 +103,12 @@ class Repository
 
         if ($options['timestamp']['gte']) {
             $where[] = 'timestamp >= ?';
-            $values[] = new Timestamp($options['timestamp']['gte']);
+            $values[] = new Timestamp($options['timestamp']['gte'], 0);
         }
 
         if ($options['timestamp']['lte']) {
             $where[] = 'timestamp <= ?';
-            $values[] = new Timestamp($options['timestamp']['lte']);
+            $values[] = new Timestamp($options['timestamp']['lte'], 0);
         }
 
         $cql = "SELECT * from $table";
@@ -144,15 +146,19 @@ class Repository
 
         foreach ($rows as $row) {
             $entity = $this->entitiesBuilder->single((string) $row['entity_guid']);
+            if (!$entity) {
+                continue; // Entity deleted. TODO: allow passing entityGuid to Wire so urn can be constructed
+            }
 
             $wire = new Wire();
-            $wire->setSender($this->entitiesBuilder->single((string) $row['sender_guid']))
+            $wire->setGuid($row['wire_guid']->value())
+                ->setSender($this->entitiesBuilder->single((string) $row['sender_guid']))
                 ->setReceiver($this->entitiesBuilder->single((string) $row['receiver_guid']))
                 ->setTimestamp($row['timestamp'])
                 ->setEntity($entity)
                 ->setRecurring($row['recurring'])
                 ->setMethod($row['method'])
-                ->setAmount((string) Core\Util\BigNumber::_($row['amount'] ?: 0)->add($row['wei']->toInt() ?: 0));
+                ->setAmount((string) Core\Util\BigNumber::_($row['amount'] ?: 0)->add((string) $row['wei'] ?: 0));
             $wires[] = $wire;
         }
 
@@ -162,8 +168,31 @@ class Repository
         ];
     }
 
-    public function get($guid)
+    /**
+     * @param string $urn
+     * @return Wire
+     */
+    public function get(string $urn): ?Wire
     {
+        $urn = new Urn($urn);
+        list($receiverGuid, $method, $timestamp, $entityGuid, $guid) = explode('-', $urn->getNss());
+
+        $list = $this->getList([
+            'receiver_guid' => $receiverGuid,
+            'method' => $method,
+            'timestamp' => [
+                'gte' => $timestamp,
+                'lte' => $timestamp
+            ],
+        ]);
+
+        foreach ($list['wires'] as $wire) {
+            if ((string) $wire->getGuid() === (string) $guid) {
+                return $wire;
+            }
+        }
+
+        return null;
     }
 
     public function update($key, $guids)

@@ -47,9 +47,9 @@ class Repository
 
         $this->features = $features ?: Di::_()->get('Features\Manager');
 
-        $this->index = $config->get('elasticsearch')['index'];
+        $this->index = $config->get('elasticsearch')['indexes']['search_prefix'];
 
-        $this->plusSupportTierUrn = $config->get('plus')['support_tier_urn'];
+        $this->plusSupportTierUrn = $config->get('plus')['support_tier_urn'] ?? null;
     }
 
     /**
@@ -58,6 +58,114 @@ class Repository
      * @throws \Exception
      */
     public function getList(array $opts = [])
+    {
+        $built = $this->buildQuery($opts);
+
+        // Using an typed object would be nice
+        // but don't have time
+        $query = $built['query'];
+        $type = $built['type'];
+        $algorithm = $built['algorithm'];
+
+        $prepared = new Prepared\Search();
+        $prepared->query($query);
+
+        if (static::DEBUG) {
+            error_log("Querying ES with: \n".json_encode($query));
+        }
+
+        $response = $this->client->request($prepared);
+
+        if (($opts['pinned_guids'] ?? null) && !$opts['from_timestamp']) { // Hack the response so we can have pinned posts
+            foreach ($opts['pinned_guids'] as $pinned_guid) {
+                array_unshift($response['hits']['hits'], [
+                    '_type' => 'activity',
+                    '_source' => [
+                        'guid' => $pinned_guid,
+                        'owner_guid' => null,
+                        'score' => 0,
+                        'timestamp' => 0,
+                    ],
+                ]);
+            }
+        }
+
+        $docs = $response['hits']['hits'];
+
+        // Sort channels / groups by post scores
+        if ($type === 'user' || $type === 'group') {
+            $newDocs = []; // New array so we return only users and groups, not posts
+            foreach ($docs as $doc) {
+                $key = $doc['_source'][$this->getSourceField($type)];
+                $newDocs[$key] = $newDocs[$key] ?? [
+                    '_source' => [
+                        'guid' => $key,
+                        'owner_guid' => $key,
+                        $this->getSourceField($type) => $key,
+                        '@timestamp' => $doc['_source']['@timestamp'],
+                        'type' => $type,
+                    ],
+                    '_type' => $type,
+                    '_score' => 0,
+                    '_index' => $this->index . '-' . $type,
+                ];
+                $newDocs[$key]['_score'] = log10($newDocs[$key]['_score'] + $algorithm->fetchScore($doc));
+            }
+            $docs = $newDocs;
+        }
+
+        $guids = [];
+        foreach ($docs as $doc) {
+            $guid = $doc['_source'][$this->getSourceField($opts['type'])];
+            if (isset($guids[$guid])) {
+                continue;
+            }
+            $guids[$guid] = true;
+            yield (new ScoredGuid())
+                ->setGuid($doc['_source'][$this->getSourceField($opts['type'])])
+                ->setType(str_replace($this->index . '-', '', $doc['_index']))
+                ->setScore($algorithm->fetchScore($doc))
+                ->setOwnerGuid($doc['_source']['owner_guid'])
+                ->setTimestamp($doc['_source']['@timestamp']);
+        }
+    }
+
+    /**
+     * Returns a count of the query
+     * @param array $opts
+     * @return
+     */
+    public function getCount(array $opts = []): int
+    {
+        $built = $this->buildQuery($opts);
+
+        // Using an typed object would be nice
+        // but don't have time
+        $query = $built['query'];
+        unset($query['size']);
+        unset($query['from']);
+        unset($query['body']['_source']);
+        unset($query['body']['sort']);
+
+        $prepared = new Prepared\Count();
+        $prepared->query($query);
+
+        try {
+            $response = $this->client->request($prepared);
+
+            return $response['count'];
+        } catch (\Exception $e) {
+            return 0;
+            // TODO: Log this error, why did it fail
+        }
+    }
+
+    /**
+     * Too monolithic of a function, but it does the job
+     * @param array $opts
+     * @return array
+     */
+    protected function buildQuery(array $opts)
     {
         $opts = array_merge([
             'offset' => 0,
@@ -88,6 +196,10 @@ class Repository
             'portrait' => false,
             'hide_reminds' => false,
             'wire_support_tier_only' => false,
+            // Focus on reminds
+            'remind_guid' => null,
+            // Focus on quotes
+            'quote_guid' => null,
         ], $opts);
 
         if (!$opts['type']) {
@@ -216,8 +328,7 @@ class Repository
             $should[] = [
                 'terms' => [
                     'owner_guid' => [
-                        'index' => 'minds-graph',
-                        'type' => 'subscriptions',
+                        'index' => 'minds-graph-subscriptions',
                         'id' => (string) $opts['subscriptions'],
                         'path' => 'guids',
                     ],
@@ -364,7 +475,7 @@ class Repository
         }
 
         // Will start the feed after this timestamp (used for pagination)
-        if ($opts['from_timestamp']) {
+        if ($opts['from_timestamp'] && !$opts['to_timestamp']) {
             if (!$opts['reverse_sort']) {
                 $timestampUpperBounds[] = (int) $opts['from_timestamp'];
             } else {
@@ -372,16 +483,18 @@ class Repository
             }
         }
 
-        // Will load the feed until this timestamp is reached
-        if ($opts['to_timestamp']) {
-            $timestampLowerBounds[] = (int) $opts['to_timestamp'];
+        // Load the feed between these two timestamps
+        if ($opts['to_timestamp'] && $opts['from_timestamp']) {
+            $timestampUpperBounds[] = (int) $opts['to_timestamp'];
+            $timestampLowerBounds[] = (int) $opts['from_timestamp'];
         }
 
-        // Used to scenario such as loading scheduled posts
-        if ($opts['future']) {
-            $timestampLowerBounds[] = time() * 1000;
-        } else {
-            $timestampUpperBounds[] = time() * 1000;
+        if (!$opts['to_timestamp']) {
+            if ($opts['future']) {
+                $timestampLowerBounds[] = time() * 1000;
+            } else {
+                $timestampUpperBounds[] = time() * 1000;
+            }
         }
 
         if ($timestampUpperBounds || $timestampLowerBounds) {
@@ -481,6 +594,36 @@ class Repository
 
         //
 
+        if ($opts['remind_guid']) {
+            $body['query']['function_score']['query']['bool']['must'][] = [
+                'term' => [
+                    'remind_guid' => (string) $opts['remind_guid'],
+                ]
+            ];
+            $body['query']['function_score']['query']['bool']['must'][] = [
+                'term' => [
+                    'is_remind' => true
+                ]
+            ];
+        }
+
+        //
+
+        if ($opts['quote_guid']) {
+            $body['query']['function_score']['query']['bool']['must'][] = [
+                'term' => [
+                    'remind_guid' => (string) $opts['quote_guid'], // Note: remind_guid is correct, filter below by is_quote_post
+                ]
+            ];
+            $body['query']['function_score']['query']['bool']['must'][] = [
+                'term' => [
+                    'is_quoted_post' => true,
+                ]
+            ];
+        }
+
+        //
+
         $esScript = $algorithm->getScript();
         if ($esScript) {
             $body['query']['function_score']['functions'][] = [
@@ -511,83 +654,43 @@ class Repository
 
         //
 
-        $esType = $opts['type'];
+        $esType = $opts['type'] ?: 'all';
 
-        if ($type === 'user' || $type === 'group') {
-            $esType = 'activity,object:image,object:video,object:blog';
-        }
+        $index = $this->index . '-';
 
         if ($esType === 'all') {
-            $esType = 'object:image,object:video,object:blog';
+            $index = implode(',', array_map(function ($type) {
+                return $this->index . '-' . $type;
+            }, [
+                'activity',
+                'object-image',
+                'object-video',
+                'object-blog',
+            ]));
+        } elseif ($esType === 'object-*') {
+            $index = implode(',', array_map(function ($type) {
+                return $this->index . '-' . $type;
+            }, [
+                'object-image',
+                'object-video',
+                'object-blog',
+            ]));
+        } else {
+            $index .= $esType;
         }
 
         $query = [
-            'index' => $this->index,
-            'type' => $esType,
+            'index' => $index,
             'body' => $body,
             'size' => $opts['limit'],
             'from' => $opts['offset'],
         ];
 
-        $prepared = new Prepared\Search();
-        $prepared->query($query);
-
-        if (static::DEBUG) {
-            error_log("Querying ES with: \n".json_encode($query));
-        }
-
-        $response = $this->client->request($prepared);
-
-        if ($opts['pinned_guids'] && !$opts['from_timestamp']) { // Hack the response so we can have pinned posts
-            foreach ($opts['pinned_guids'] as $pinned_guid) {
-                array_unshift($response['hits']['hits'], [
-                    '_type' => 'activity',
-                    '_source' => [
-                        'guid' => $pinned_guid,
-                        'owner_guid' => null,
-                        'score' => 0,
-                        'timestamp' => 0,
-                    ],
-                ]);
-            }
-        }
-
-        $docs = $response['hits']['hits'];
-
-        // Sort channels / groups by post scores
-        if ($type === 'user' || $type === 'group') {
-            $newDocs = []; // New array so we return only users and groups, not posts
-            foreach ($docs as $doc) {
-                $key = $doc['_source'][$this->getSourceField($type)];
-                $newDocs[$key] = $newDocs[$key] ?? [
-                    '_source' => [
-                        'guid' => $key,
-                        'owner_guid' => $key,
-                        $this->getSourceField($type) => $key,
-                        '@timestamp' => $doc['_source']['@timestamp'],
-                    ],
-                    '_type' => $type,
-                    '_score' => 0,
-                ];
-                $newDocs[$key]['_score'] = log10($newDocs[$key]['_score'] + $algorithm->fetchScore($doc));
-            }
-            $docs = $newDocs;
-        }
-
-        $guids = [];
-        foreach ($docs as $doc) {
-            $guid = $doc['_source'][$this->getSourceField($opts['type'])];
-            if (isset($guids[$guid])) {
-                continue;
-            }
-            $guids[$guid] = true;
-            yield (new ScoredGuid())
-                ->setGuid($doc['_source'][$this->getSourceField($opts['type'])])
-                ->setType($doc['_type'])
-                ->setScore($algorithm->fetchScore($doc))
-                ->setOwnerGuid($doc['_source']['owner_guid'])
-                ->setTimestamp($doc['_source']['@timestamp']);
-        }
+        return [
+            'query' => $query,
+            'type' => $type,
+            'algorithm' => $algorithm,
+        ];
     }
 
     private function getSourceField(string $type)

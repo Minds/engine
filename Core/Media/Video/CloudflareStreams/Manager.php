@@ -9,8 +9,8 @@ use Minds\Core\Di\Di;
 use Minds\Core\Data\cache\PsrWrapper;
 use Lcobucci\JWT;
 use Lcobucci\JWT\Signer\Key;
+use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
-use Lcobucci\JWT\Signer\Rsa\Sha512;
 use Minds\Core\Media\Video\Source;
 
 class Manager
@@ -85,25 +85,28 @@ class Manager
      */
     public function getThumbnailUrl(Video $video): string
     {
-        $signedToken = $this->getSigningToken($video->getCloudflareId());
+        $signedToken = $this->getSigningToken($video->getCloudflareId(), 86400 * 90); // 90 days ttl for thumbnails
 
         return "https://videodelivery.net/$signedToken/thumbnails/thumbnail.jpg?width=1280";
     }
 
     /**
      * @param string $videoId
+     * @param int $secondsTtl - 3600 (1 hour)
      * @return string
      */
-    protected function getSigningToken($videoId): string
+    protected function getSigningToken($videoId, $secondsTtl = 3600): string
     {
         $signingKey = $this->getSigningKey();
 
-        $jwtBuilder = new JWT\Builder;
+        $jwtConfig = JWT\Configuration::forSymmetricSigner(new Sha256, InMemory::plainText(base64_decode($signingKey->getPem(), true)));
+
+        $jwtBuilder = $jwtConfig->builder();
         $jwtBuilder->withClaim('kid', $signingKey->getId());
         $jwtBuilder->relatedTo($videoId);
-        $jwtBuilder->expiresAt(new DateTimeImmutable('+1 hour'));
+        $jwtBuilder->expiresAt(new DateTimeImmutable("+$secondsTtl seconds"));
     
-        $token = (string) $jwtBuilder->getToken(new Sha256, new Key(base64_decode($signingKey->getPem(), true)));
+        $token = (string) $jwtBuilder->getToken($jwtConfig->signer(), $jwtConfig->signingKey())->toString();
 
         return $token;
     }

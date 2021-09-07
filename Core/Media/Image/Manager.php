@@ -52,6 +52,11 @@ class Manager
         switch (get_class($entity)) {
             case Activity::class:
                 switch ($entity->get('custom_type')) {
+                    case "video":
+                        $asset_guid = $entity->get('entity_guid');
+                        // Cloudflare caches 302 redirect, so bust it each day
+                        $entity->set('last_updated', strtotime('midnight'));
+                        break;
                     case "batch":
                         $asset_guid = $entity->get('entity_guid');
                         break;
@@ -73,7 +78,7 @@ class Manager
                 }
                 break;
             case Comment::class:
-                $asset_guid = $entity->getAttachments()['attachment_guid'];
+                $asset_guid = $entity->getAttachments()['attachment_guid'] ?? null;
                 break;
         }
 

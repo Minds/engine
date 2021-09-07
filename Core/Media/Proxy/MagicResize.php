@@ -28,7 +28,7 @@ class MagicResize
     /** @var bool $upscale */
     protected $upscale = false;
 
-    /** @var resource $output */
+    /** @var Imagick */
     protected $output;
 
     /** @var string $imageFormat */
@@ -125,5 +125,13 @@ class MagicResize
         $this->output->setImageFormat($this->imageFormat);
 
         return $this->output->getImage();
+    }
+
+    /**
+     * Cleanup imagick on destruct
+     */
+    public function __destruct()
+    {
+        $this->output->clear();
     }
 }

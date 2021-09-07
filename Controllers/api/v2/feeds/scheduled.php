@@ -43,10 +43,9 @@ class scheduled implements Interfaces\Api
             ]);
         }
 
-        if (!$currentUser || (
-            !$currentUser->isAdmin() &&
-            $container->getOwnerGuid() !== $currentUser->getGuid()
-        )) {
+        if (!$currentUser ||
+            !$container->canEdit()
+        ) {
             return Factory::response([
                 'status' => 'error',
                 'message' => 'You cannot view this users scheduled posts',
@@ -59,13 +58,13 @@ class scheduled implements Interfaces\Api
                 $type = 'activity';
                 break;
             case 'images':
-                $type = 'object:image';
+                $type = 'object-image';
                 break;
             case 'videos':
-                $type = 'object:video';
+                $type = 'object-video';
                 break;
             case 'blogs':
-                $type = 'object:blog';
+                $type = 'object-blog';
                 break;
             case 'count':
                 $type = 'activity';

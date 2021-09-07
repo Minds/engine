@@ -26,29 +26,6 @@ class SearchSpec extends ObjectBehavior
         $this->shouldHaveType('Minds\Core\Search\Search');
     }
 
-    public function it_should_query()
-    {
-        $this->_client->request(Argument::that(function ($prepared) {
-            if (!($prepared instanceof Match)) {
-                return false;
-            }
-
-            $query = $prepared->build();
-            return $query['index'] == 'phpspec' && $query['body'];
-        }))
-            ->shouldBeCalled()
-            ->willReturn([ 'hits' => [ 'hits' => [
-                [ '_id' => 5000 ],
-                [ '_id' => 5001 ],
-            ]]]);
-
-        $this
-            ->query([
-                'text' => 'phpspec'
-            ])
-            ->shouldReturn([ 5000, 5001 ]);
-    }
-
     public function it_should_suggest()
     {
         $this->_client->request(Argument::that(function ($prepared) {

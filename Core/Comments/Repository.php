@@ -403,11 +403,11 @@ class Repository
         }
 
         if (in_array('timeCreated', $attributes, true)) {
-            $fields['time_created'] = new Timestamp($comment->getTimeCreated());
+            $fields['time_created'] = new Timestamp($comment->getTimeCreated(), 0);
         }
 
         if (in_array('timeUpdated', $attributes, true)) {
-            $fields['time_updated'] = new Timestamp($comment->getTimeUpdated());
+            $fields['time_updated'] = new Timestamp($comment->getTimeUpdated(), 0);
         }
 
         if (in_array('body', $attributes, true)) {

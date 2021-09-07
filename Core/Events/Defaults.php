@@ -53,7 +53,7 @@ class Defaults
                 $allowedTags = '<pre><code>';
             }
 
-            if ($export['message']) {
+            if (isset($export['message'])) {
                 $export['message'] = strip_tags(
                     htmlspecialchars_decode($export['message']),
                     $allowedTags
@@ -149,9 +149,6 @@ class Defaults
         // Blog events
         (new Core\Blogs\Events())->register();
 
-        // Vote events
-        (new Core\Votes\Events())->register();
-
         // Messenger Events
         (new Core\Messenger\Events())->setup();
 
@@ -169,6 +166,9 @@ class Defaults
 
         // Feeds events
         (new Core\Feeds\Events())->register();
+
+        // Entities events
+        (new Core\Entities\Events())->register();
     }
 
     public static function _()

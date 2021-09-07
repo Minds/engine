@@ -8,6 +8,7 @@
 namespace Minds\Controllers\api\v1;
 
 use Minds\Api\Factory;
+use Minds\Common\IpAddress;
 use Minds\Core;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
@@ -87,6 +88,18 @@ class settings implements Interfaces\Api
         $emailChange = false;
 
         if (isset($_POST['email']) && $_POST['email']) {
+            if (Di::_()->get('Email\SpamFilter')->isSpam($_POST['email'])) {
+                return Factory::response(['status' => 'error', 'message' => "This email provider is blocked due to spam. Please use another address."]);
+            }
+
+            try {
+                if (!\validate_email_address($_POST['email'])) {
+                    throw new \RegistrationException("Invalid email");
+                }
+            } catch (\Exception) {
+                return Factory::response(['status' => 'error', 'message' => "Invalid email"]);
+            }
+
             $user->setEmail($_POST['email']);
 
             if (strtolower($_POST['email']) !== strtolower($user->getEmail())) {
@@ -120,7 +133,9 @@ class settings implements Interfaces\Api
 
         if (isset($_POST['password']) && $_POST['password']) {
             try {
-                if (!Core\Security\Password::check($user, $_POST['password'])) {
+                $password = new Core\Security\Password();
+                // Rate limit checked in here too
+                if (!$password->check($user, $_POST['password'])) {
                     return Factory::response([
                         'status' => 'error',
                         'message' => 'You current password is incorrect'
@@ -142,8 +157,7 @@ class settings implements Interfaces\Api
             $user->password = Core\Security\Password::generate($user, $_POST['new_password']);
             $user->override_password = true;
 
-            (new \Minds\Core\Data\Sessions())->destroyAll($user->guid);
-            \Minds\Core\Session::regenerate(true, $user);
+            Di::_()->get('Sessions\CommonSessions\Manager')->deleteAll($user);
         }
 
         /** @var Core\I18n\Manager $i18n */

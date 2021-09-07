@@ -52,11 +52,15 @@ class Minds extends base
         Media\Proxy\Module::class,
         Blockchain\Module::class,
         Boost\Module::class,
+        OEmbed\Module::class,
         Rewards\Module::class,
         Media\Video\CloudflareStreams\Module::class,
         Matrix\Module::class,
         Sessions\Module::class,
         Register\Module::class,
+        Notifications\Module::class,
+        Votes\Module::class,
+        Helpdesk\Zendesk\Module::class,
     ];
 
     /**
@@ -123,7 +127,7 @@ class Minds extends base
         (new Notification\NotificationProvider())->register();
         (new Groups\GroupsProvider())->register();
         (new Search\SearchProvider())->register();
-        (new Votes\VotesProvider())->register();
+        (new Comments\Provider())->register();
         (new SMS\SMSProvider())->register();
         (new Blockchain\BlockchainProvider())->register();
         (new Issues\IssuesProvider())->register();
@@ -167,7 +171,7 @@ class Minds extends base
         if ($this->detectMultisite()) {
             //we do this on db load.. not here
         } else {
-            if (!file_exists(__MINDS_ROOT__ . '/settings.php') && !defined('__MINDS_INSTALLING__')) {
+            if (!file_exists(__MINDS_ROOT__ . '/settings.php') && !defined('__MINDS_INSTALLING__') && php_sapi_name() !== 'cli') {
                 ob_end_clean();
                 header('Fatal error', true, 500);
                 error_log('settings.php file could not be found');
@@ -295,6 +299,6 @@ class Minds extends base
      */
     public static function getVersion()
     {
-        return false;
+        return '0.0';
     }
 }

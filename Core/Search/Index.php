@@ -46,7 +46,7 @@ class Index
         $cleanup = null
     ) {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
-        $this->esIndex = $index ?: Di::_()->get('Config')->elasticsearch['index'];
+        $this->esIndex = $index ?: Di::_()->get('Config')->get('elasticsearch')['indexes']['search_prefix'];
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->hashtagsManager = $hashtagsManager ?: Di::_()->get('Search\Hashtags\Manager');
         $this->cleanup = $cleanup ?? new Cleanup();
@@ -86,8 +86,7 @@ class Index
             }
 
             $query = [
-                'index' => $this->esIndex,
-                'type' => $mapper->getType(),
+                'index' => $this->esIndex . '-' .$mapper->getType(),
                 'id' => $mapper->getId(),
                 'body' => [
                     'doc' => $body,
@@ -143,8 +142,7 @@ class Index
             $mapper = Di::_()->get('Search\Mappings')->build($entity);
 
             $query = [
-                'index' => $this->esIndex,
-                'type' => $mapper->getType(),
+                'index' => $this->esIndex . '-' . $mapper->getType(),
                 'id' => $mapper->getId(),
                 'body' => ['doc' => $opts]
             ];

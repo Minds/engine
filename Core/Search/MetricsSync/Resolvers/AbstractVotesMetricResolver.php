@@ -40,7 +40,7 @@ abstract class AbstractVotesMetricResolver extends AbstractMetricResolver
     {
         try {
             return $this->counters->get($guid, $this->counterMetricId);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return 0;
         }
     }

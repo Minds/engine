@@ -29,10 +29,18 @@ class Repository
     /** @var ReportsRepository $reportsRepository */
     private $reportsRepository;
 
-    public function __construct($cql = null, $reportsRepository = null)
+    /** @var Config $config */
+    private $config;
+
+    /** @var Logger $logger */
+    private $logger;
+
+    public function __construct($cql = null, $reportsRepository = null, $config = null)
     {
         $this->cql = $cql ?: Di::_()->get('Database\Cassandra\Cql');
         $this->reportsRepository = $reportsRepository ?: new ReportsRepository;
+        $this->config = $config ?? Di::_()->get('Config');
+        $this->logger = $logger ?? Di::_()->get('Logger');
     }
 
     /**
@@ -63,6 +71,14 @@ class Repository
         ];
 
         $prepared = new Prepared;
+
+        $decodedPagingToken = base64_decode($opts['offset'], true) ?? '';
+
+        $prepared->setOpts([
+            'page_size' => (int) $opts['limit'],
+            'paging_state_token' => $decodedPagingToken,
+        ]);
+
         $prepared->query($statement, $values);
 
         $result = $this->cql->request($prepared);
@@ -78,6 +94,7 @@ class Repository
                     }, $row['user_hashes']->values()),
                     true
                 )
+                && !($this->config->get('development_mode'))
             ) {
                 continue; // Already interacted with
             }
@@ -85,6 +102,15 @@ class Repository
             $report = $this->reportsRepository->buildFromRow($row);
 
             $response[] = $report;
+        }
+
+        try {
+            if ($result) {
+                $response->setPagingToken(urlencode(base64_encode($result->pagingStateToken())) ?? '');
+                $response->setLastPage($result->isLastPage() ?? false);
+            }
+        } catch (\Exception $e) {
+            $this->logger->error($e);
         }
 
         return $response;
@@ -138,12 +164,39 @@ class Repository
             $decision->getReport()->getEntityUrn(),
             new Tinyint($decision->getReport()->getReasonCode()),
             new Decimal($decision->getReport()->getSubReasonCode()),
-            new Timestamp($decision->getReport()->getTimestamp()),
+            new Timestamp($decision->getReport()->getTimestamp(), 0),
         ];
 
         $prepared = new Prepared();
         $prepared->query($statement, $params);
 
         return (bool) $this->cql->request($prepared);
+    }
+
+    /**
+     * Count by jury type
+     * @param array $options 'juryType'
+     * @return Response
+     */
+    public function count(array $opts = []): int
+    {
+        $opts = array_merge([
+            'juryType' => 'reported',
+        ], $opts);
+
+        $statement = "SELECT COUNT(*) FROM moderation_reports_by_state
+            WHERE state = ?";
+
+        $values = [
+            $opts['juryType'] === 'appeal' ? 'appealed' : 'reported',
+        ];
+
+        $prepared = new Prepared;
+
+        $prepared->query($statement, $values);
+
+        $result = $this->cql->request($prepared);
+
+        return (int) $result[0]['count'] ?? 0;
     }
 }

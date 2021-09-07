@@ -4,13 +4,16 @@ namespace Minds\Core\Boost\Network;
 
 use Minds\Core;
 use Minds\Core\Data;
+use Minds\Core\Di\Di;
 use Minds\Entities\Boost\BoostEntityInterface;
 use Minds\Entities\Boost\Network;
 use Minds\Helpers\MagicAttributes;
 use Minds\Interfaces\BoostReviewInterface;
 use Minds\Core\Boost\Delegates;
 use Minds\Core\Boost\Delegates\OnchainBadgeDelegate;
-
+use Minds\Core\EventStreams\ActionEvent;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Minds\Core\Sessions\ActiveSession;
 use MongoDB\BSON;
 
 class Review implements BoostReviewInterface
@@ -30,11 +33,24 @@ class Review implements BoostReviewInterface
     /** @var string $type */
     protected $type;
 
-    public function __construct($manager = null, $analytics = null, $onchainBadge = null)
-    {
+    /** @var ActionEventsTopic */
+    protected $actionEventsTopic;
+
+    /** @var ActiveSession */
+    protected $activeSession;
+
+    public function __construct(
+        $manager = null,
+        $analytics = null,
+        $onchainBadge = null,
+        ActionEventsTopic $actionEventsTopic = null,
+        ActiveSession $activeSession = null
+    ) {
         $this->manager = $manager ?: new Manager;
         $this->analytics = $analytics ?: new Analytics;
         $this->onchainBadge = $onchainBadge ?: new OnchainBadgeDelegate;
+        $this->actionEventsTopic = $actionEventsTopic ?? Di::_()->get('EventStreams\Topics\ActionEventsTopic');
+        $this->activeSession = $activeSession ?? Di::_()->get('Sessions\ActiveSession');
     }
 
     /**
@@ -75,6 +91,15 @@ class Review implements BoostReviewInterface
                 $this->onchainBadge->dispatch($this->boost);
             }
             $this->boost->setReviewedTimestamp(round(microtime(true) * 1000));
+
+            $actionEvent = new ActionEvent();
+            $actionEvent
+                ->setAction(ActionEvent::ACTION_BOOST_ACCEPTED)
+                ->setEntity($this->boost)
+                ->setUser($this->activeSession->getUser());
+
+            $this->actionEventsTopic->send($actionEvent);
+
             return $this->manager->update($this->boost);
         }
         throw new \Exception('error while accepting the boost');
@@ -112,6 +137,19 @@ class Review implements BoostReviewInterface
                 'notification_view' => 'boost_rejected',
             ]);
 
+            //
+            $actionEvent = new ActionEvent();
+            $actionEvent
+                ->setAction(ActionEvent::ACTION_BOOST_REJECTED)
+                ->setActionData([
+                    'boost_reject_reason' => $this->boost->getRejectedReason(),
+                ])
+                ->setEntity($this->boost)
+                ->setUser($this->activeSession->getUser());
+
+            $this->actionEventsTopic->send($actionEvent);
+
+            //
             Core\Di\Di::_()->get('Boost\Payment')->refund($this->boost);
         } catch (\Exception $e) {
             throw new \Exception('error while rejecting the boost');

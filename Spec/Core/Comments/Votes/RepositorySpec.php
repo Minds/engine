@@ -30,9 +30,10 @@ class RepositorySpec extends ObjectBehavior
 
     public function it_should_add(
         Vote $vote,
-        Comment $comment,
         User $actor
     ) {
+        $comment = new Comment();
+
         $vote->getEntity()
             ->shouldBeCalled()
             ->willReturn($comment);
@@ -57,9 +58,10 @@ class RepositorySpec extends ObjectBehavior
 
     public function it_should_delete(
         Vote $vote,
-        Comment $comment,
         User $actor
     ) {
+        $comment = new Comment();
+
         $vote->getEntity()
             ->shouldBeCalled()
             ->willReturn($comment);

@@ -1,15 +1,16 @@
 <?php
 namespace Minds\Core\EventStreams;
 
+use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 
 interface EntityEventInterface
 {
     /**
-     * @param mixed $entity
+     * @param EntityInterface $entity
      * @return self
      */
-    public function setEntity($entity): self;
+    public function setEntity(EntityInterface $entity): self;
 
     /*
      * @return mixed

@@ -6,11 +6,12 @@ use Minds\Core\Session;
 use Minds\Core\Data;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
-use Minds\Core\Notification\Extensions\Push;
 use Minds\Entities\Factory as EntitiesFactory;
 
 class PushSettings
 {
+    protected $db;
+
     protected $types = [
       'daily' => true,
       'comment' => true,

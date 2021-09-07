@@ -2,6 +2,8 @@
 namespace Minds\Core\Rewards\Withdraw;
 
 use JsonSerializable;
+use Minds\Common\Access;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
@@ -31,7 +33,7 @@ use Minds\Traits\MagicAttributes;
  * @method User|null getReferrer()
  * @method Request setReferrer(User|null $referrer)
  */
-class Request implements JsonSerializable
+class Request implements JsonSerializable, EntityInterface
 {
     use MagicAttributes;
 
@@ -92,6 +94,53 @@ class Request implements JsonSerializable
         }
 
         return $data;
+    }
+
+    /**
+     * User guid owner for entity purposes
+     * @return string
+     */
+    public function getOwnerGuid(): string
+    {
+        return $this->userGuid;
+    }
+
+    /**
+     * No concept of GUID for withdrawals
+     * @return null
+     */
+    public function getGuid(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUrn(): string
+    {
+        return 'urn:withdraw-request:' . implode('-', [ $this->userGuid, $this->timestamp, $this->tx]);
+    }
+
+    /**
+     * @return string
+     */
+    public function getType(): string
+    {
+        return 'withdraw';
+    }
+
+    /**
+     * @return string
+     */
+    public function getSubtype(): ?string
+    {
+        return 'request';
+    }
+
+    public function getAccessId(): string
+    {
+        return Access::idToString(Access::UNLISTED);
     }
 
     /**

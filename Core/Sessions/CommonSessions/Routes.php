@@ -19,7 +19,7 @@ class Routes extends ModuleRoutes
     {
         $this->route
             ->withPrefix('api/v3/sessions/common-sessions')
-            ->withMiddlware([
+            ->withMiddleware([
                 LoggedInMiddleware::class,
             ])
             ->do(function (Route $route) {
@@ -30,6 +30,10 @@ class Routes extends ModuleRoutes
                 $route->delete(
                     'session',
                     Ref::_('Sessions\CommonSessions\Controller', 'deleteSession')
+                );
+                $route->delete(
+                    'all',
+                    Ref::_('Sessions\CommonSessions\Controller', 'deleteAllSessions')
                 );
             });
     }

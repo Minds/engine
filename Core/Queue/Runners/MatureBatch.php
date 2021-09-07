@@ -9,6 +9,7 @@ use Minds\Core\Queue\Interfaces;
 use Minds\Entities;
 use Minds\Helpers\MagicAttributes;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Interfaces\Flaggable;
 
 /**
  * triggered when an admin marks a channel as explicit. It sets every post from that channel as explicit too.
@@ -89,7 +90,7 @@ class MatureBatch implements Interfaces\QueueRunner
         if ($entity->entity_guid) {
             $attachment = Entities\Factory::build($entity->entity_guid);
 
-            if ($attachment && $attachment->guid && $attachment instanceof Interfaces\Flaggable) {
+            if ($attachment && $attachment->guid && $attachment instanceof Flaggable) {
                 if (method_exists($attachment, 'setMature')) {
                     $attachment->setMature($value);
                 } elseif (method_exists($attachment, 'setFlag')) {

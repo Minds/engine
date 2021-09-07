@@ -3,12 +3,21 @@
 namespace Spec\Minds\Core\Security;
 
 use Minds\Core\Security\Exceptions\UserNotSetupException;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 class LoginAttemptsSpec extends ObjectBehavior
 {
+    private $keyValueLimiter;
+
+    public function let(KeyValueLimiter $keyValueLimiter)
+    {
+        $this->beConstructedWith($keyValueLimiter);
+        $this->keyValueLimiter = $keyValueLimiter;
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Security\LoginAttempts');

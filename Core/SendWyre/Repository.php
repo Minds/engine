@@ -33,7 +33,7 @@ class Repository
     /**
      * @param varint $userGuid
      *
-     * @return SendWyreAccount
+     * @return SendWyreAccount|null
      */
     public function get($userGuid)
     {
@@ -47,6 +47,10 @@ class Repository
             $result = $this->db->request($query);
         } catch (\Exception $e) {
             error_log($e);
+        }
+
+        if (!isset($result)) {
+            return null;
         }
 
         if ($result && $result->count() > 0) {

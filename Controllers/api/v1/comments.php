@@ -18,6 +18,7 @@ use Minds\Api\Factory;
 use Minds\Helpers;
 use Minds\Core\Sockets;
 use Minds\Core\Security;
+use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Minds\Core\Wire\Paywall\PaywallUserNotPaid;
 
 class comments implements Interfaces\Api
@@ -254,6 +255,11 @@ class comments implements Interfaces\Api
                 $response = [
                     'status' => 'error',
                     'message' => "You do not meet the subscription tier requirements to comment on this activity."
+                ];
+            } catch (RateLimitExceededException $e) {
+                $response = [
+                    'status' => 'error',
+                    'message' => "Please wait before making another comment."
                 ];
             } catch (\Exception $e) {
                 error_log($e);

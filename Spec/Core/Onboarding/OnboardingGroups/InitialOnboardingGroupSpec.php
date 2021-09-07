@@ -37,6 +37,7 @@ class InitialOnboardingGroupSpec extends ObjectBehavior
         $this->beConstructedWith([ new Steps\VerifyEmailStep(), $tagsStep ]);
        
         $user = new User();
+        $user->email_confirmation_token = 'random';
 
         $tagsStep->isCompleted($user)
             ->willReturn(false);

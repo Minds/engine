@@ -128,9 +128,18 @@ class Manager
         }
 
         $response
-            ->setPagingToken(base64_encode($requests['load-next'] ?? ''));
+            ->setPagingToken(base64_encode($requests['token'] ?? ''));
 
         return $response;
+    }
+
+    /**
+     * @param string $requestHydrationDelegate
+     * @return Request
+     */
+    public function getByUrn(string $urn): ?Request
+    {
+        return $this->repository->get($urn);
     }
 
     /**
