@@ -89,12 +89,15 @@ class Controllers
      */
     public function getTags(ServerRequest $request): JsonResponse
     {
-        $tags = $this->manager->getTags();
+        $wireSupportTier = $request->getQueryParams()['wire_support_tier'] ?? null;
+
+
+        $tags = $this->manager->getTags(['wire_support_tier' => $wireSupportTier]);
 
         $entityGuid = $request->getQueryParams()['entity_guid'] ?? null;
 
         $activityRelated = $entityGuid ? $this->manager->getActivityRelatedTags($entityGuid) : null;
-    
+
         try {
             $forYou = $this->manager->getTagTrends([ 'limit' => 12, 'plus' => false]);
         } catch (\Exception $e) {

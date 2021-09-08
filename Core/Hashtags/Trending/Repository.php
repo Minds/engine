@@ -44,29 +44,39 @@ class Repository
             'languages' => [ 'en' ],
         ], $opts);
 
-        $body = [
-            'query' => [
-                'bool' => [
-                    'must' => [
-                        [
-                            'range' => [
-                                '@timestamp' => [
-                                    'gte' => $opts['from'] * 1000,
-                                ],
-                            ],
-                        ],
-                        [
-                            'terms' => [
-                                'language' => $opts['languages'],
-                            ],
-                        ]
+        $must= [
+            [
+                'range'=> [
+                    '@timestamp'=> [
+                        'gte'=> $opts['from'] * 1000,
                     ],
-                    'must_not' => [
-                        'bool' => [
-                            'should' => [
+                ],
+            ],
+            [
+                'terms'=> [
+                    'language'=> $opts['languages'],
+                ],
+            ],
+        ];
+
+        if ($opts['wire_support_tier']) {
+            $must[] = [
+                'term'=> [
+                    'wire_support_tier'=> $opts['wire_support_tier'],
+                ],
+            ];
+        }
+
+        $body= [
+            'query'=> [
+                'bool'=> [
+                    'must'=> $must,
+                    'must_not'=> [
+                        'bool'=> [
+                            'should'=> [
                                 [
-                                    'terms' => [
-                                        'nsfw' => [ 1, 2, 3, 4, 5, 6 ],
+                                    'terms'=> [
+                                        'nsfw'=> [ 1, 2, 3, 4, 5, 6],
                                     ],
                                 ],
                             ],
