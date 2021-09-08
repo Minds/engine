@@ -36,6 +36,6 @@ class SetupChannelStep implements OnboardingStepInterface
         // $avatarStep = new AvatarStep($this->config);
         return $displayNameStep->isCompleted($user)
             && $bioStep->isCompleted($user);
-            // && $avatarStep->isCompleted($user)
+        // && $avatarStep->isCompleted($user)
     }
 }
