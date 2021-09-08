@@ -91,7 +91,6 @@ class Controllers
     {
         $wireSupportTier = $request->getQueryParams()['wire_support_tier'] ?? null;
 
-
         $tags = $this->manager->getTags(['wire_support_tier' => $wireSupportTier]);
 
         $entityGuid = $request->getQueryParams()['entity_guid'] ?? null;
