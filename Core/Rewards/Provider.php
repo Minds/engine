@@ -2,6 +2,8 @@
 namespace Minds\Core\Rewards;
 
 use Minds\Core\Di;
+use Minds\Core\Rewards\Withdraw\Admin\Controller as AdminController;
+use Minds\Core\Rewards\Withdraw\Admin\Manager as AdminManager;
 
 class Provider extends Di\Provider
 {
@@ -49,6 +51,14 @@ class Provider extends Di\Provider
 
         $this->di->bind('Rewards\Notify', function ($di) {
             return new Notify();
+        }, [ 'useFactory' => false]);
+
+        $this->di->bind('Rewards\Withdraw\Admin\Controller', function ($di) {
+            return new AdminController();
+        }, [ 'useFactory' => false]);
+
+        $this->di->bind('Rewards\Withdraw\Admin\Manager', function ($di) {
+            return new AdminManager();
         }, [ 'useFactory' => false]);
     }
 }

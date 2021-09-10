@@ -92,7 +92,7 @@ class feeds implements Interfaces\Api
             $exportCounts = true;
         }
 
-        $hardLimit = 600;
+        $hardLimit = 150;
 
         if ($currentUser && $currentUser->isAdmin()) {
             $hardLimit = 5000;

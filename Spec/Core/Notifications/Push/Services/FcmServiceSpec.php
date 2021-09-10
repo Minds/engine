@@ -50,6 +50,8 @@ class FcmServiceSpec extends ObjectBehavior
             ->willReturn('merge-key-will-be-here');
         $pushNotification->getDeviceSubscription()
             ->willReturn($deviceSubscription);
+        $pushNotification->getUserGuid()
+            ->willReturn('123');
 
         $pushNotification->getIcon()
             ->willReturn('icon');

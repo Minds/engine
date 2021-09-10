@@ -61,4 +61,10 @@ $CONFIG->sessions = [
     'private_key' => '/.dev/minds.pem',
 ];
 
+
+$CONFIG->redis = [
+    'master' => 'phpspec',
+    'slave' => 'phpspec'
+];
+
 $minds->loadLegacy();

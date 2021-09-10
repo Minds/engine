@@ -27,6 +27,7 @@ class ApnsService extends AbstractService implements PushServiceInterface
                 'badge' => $pushNotification->getUnreadCount(),
             ],
             'uri' => $pushNotification->getUri(),
+            'user_guid' => $pushNotification->getUserGuid(),
             'largeIcon' => $pushNotification->getIcon(),
         ];
 

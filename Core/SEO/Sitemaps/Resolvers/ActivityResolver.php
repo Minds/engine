@@ -42,7 +42,7 @@ class ActivityResolver extends AbstractEntitiesResolver
                                 ]
                             ]
                         ],
-                        "should" => [
+                        /*"should" => [
                             [
                                 "regexp" => [
                                   "message" => ".+"
@@ -53,8 +53,8 @@ class ActivityResolver extends AbstractEntitiesResolver
                                   "title" => ".+"
                                 ],
                             ]
-                        ],
-                        "minimum_should_match" => 1,
+                        ],*/
+                        //"minimum_should_match" => 1,
                     ]
                 ];
 
@@ -67,11 +67,16 @@ class ActivityResolver extends AbstractEntitiesResolver
         foreach ($this->getRawData() as $raw) {
             $entity = new Activity($raw);
 
+            if (!($entity->getMessage() || $entity->getTitle())) {
+                continue;
+            }
+
             ++$i;
             $lastModified = (new \DateTime)->setTimestamp($entity->time_created);
             $sitemapUrl = new SitemapUrl();
             $sitemapUrl->setLoc("/newsfeed/{$entity->guid}")
                 ->setChangeFreq('never')
+                ->setPriority(0.1)
                 ->setLastModified($lastModified);
             $this->logger->info("$i: {$entity->getUrl()}");
             yield $sitemapUrl;

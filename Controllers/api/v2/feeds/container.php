@@ -65,6 +65,9 @@ class container implements Interfaces\Api
             case 'blogs':
                 $type = 'object-blog';
                 break;
+            case 'objects':
+                $type = 'object-*';
+                break;
             case 'all':
                 $type = 'all';
                 break;
@@ -72,7 +75,7 @@ class container implements Interfaces\Api
 
         //
 
-        $hardLimit = 5000;
+        $hardLimit = 150;
         $offset = 0;
 
         if (isset($_GET['offset'])) {

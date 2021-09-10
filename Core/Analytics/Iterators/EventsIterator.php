@@ -36,7 +36,7 @@ class EventsIterator implements \Iterator
     public function __construct($elastic = null, $index = null)
     {
         $this->elastic = $elastic ?: Di::_()->get('Database\ElasticSearch');
-        $this->index = $index ?: Di::_()->get('Config')->elasticsearch['metrics_index'] . '-*';
+        $this->index = $index ?: Di::_()->get('Config')->get('elasticsearch')['metrics_index'] . '-*';
         $this->position = 0;
     }
 

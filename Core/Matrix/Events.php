@@ -57,8 +57,8 @@ class Events
             $this->manager->syncAccount($user);
 
             // Auto invite to support room
-            $support = $this->entitiesBuilder->getByUserByIndex('support'); // TODO: make this a config
-            $this->manager->createDirectRoom($user, $support, true);
+            // $support = $this->entitiesBuilder->getByUserByIndex('support'); // TODO: make this a config
+            // $this->manager->createDirectRoom($user, $support, true);
 
             error_log("$userGuid is now in sync");
         });

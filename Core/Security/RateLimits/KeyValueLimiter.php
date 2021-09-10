@@ -113,7 +113,7 @@ class KeyValueLimiter
      */
     private function getRedis(): RedisServer
     {
-        if (!$this->redisIsConnected) {
+        if (!$this->redisIsConnected && $this->config->redis) {
             $this->redis->connect($this->config->redis['master']);
             $this->redisIsConnected = true;
         }

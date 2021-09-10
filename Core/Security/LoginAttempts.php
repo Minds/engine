@@ -3,13 +3,24 @@
 
 namespace Minds\Core\Security;
 
+use Minds\Common\IpAddress;
+use Minds\Core\Di\Di;
 use Minds\Core\Security\Exceptions\UserNotSetupException;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Entities\User;
 
 class LoginAttempts
 {
     /** @var User */
     protected $user;
+
+    /** @var KeyValueLimiter */
+    protected $kvLimiter;
+
+    public function __construct($kvLimiter = null)
+    {
+        $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
+    }
 
     /**
      * Sets the user
