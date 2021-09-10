@@ -98,7 +98,7 @@ class wire implements Interfaces\Api
         if ($_POST['method'] === 'offchain') {
             try {
                 $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
-                $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
+                $twoFactorManager->gatekeeper(Core\Session::getLoggedinUser(), ServerRequestFactory::fromGlobals());
             } catch (\Exception $e) {
                 header('HTTP/1.1 ' . $e->getCode(), true, $e->getCode());
                 $response['status'] = "error";
