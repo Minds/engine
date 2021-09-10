@@ -12,12 +12,14 @@ namespace Minds\Controllers\api\v2;
 
 use Minds\Api\Factory;
 use Minds\Core;
+use Minds\Core\Di\Di;
 use Minds\Core\Queue;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Util\BigNumber;
 use Minds\Core\Wire\Exceptions\WalletNotSetupException;
 use Minds\Entities;
 use Minds\Interfaces;
+use Zend\Diactoros\ServerRequestFactory;
 
 class wire implements Interfaces\Api
 {
@@ -85,6 +87,26 @@ class wire implements Interfaces\Api
 
         if ($_POST['method'] === 'usd') {
             $digits = 2;
+        }
+
+        /**
+         * Require two factor if offchain wire
+         * - TOTP priority
+         * - Then SMS
+         * - Then Email
+         */
+        if ($_POST['method'] === 'offchain') {
+            try {
+                $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
+                $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
+            } catch (\Exception $e) {
+                header('HTTP/1.1 ' . $e->getCode(), true, $e->getCode());
+                $response['status'] = "error";
+                $response['code'] = $e->getCode();
+                $response['message'] = $e->getMessage();
+                $response['errorId'] = str_replace('\\', '::', get_class($e));
+                return Factory::response($response);
+            }
         }
 
         try {
