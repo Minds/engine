@@ -618,7 +618,6 @@ class Manager
             'wire_support_tier' => null,
         ], $opts);
 
-
         $tagsList = $this->hashtagManager
             ->setUser($this->user)
             ->get([
@@ -628,6 +627,7 @@ class Manager
                 'wire_support_tier' => $opts['wire_support_tier']
             ]);
 
+        // ojm test fail: there is no $tagsList
         $tags = array_filter($tagsList, function ($tag) {
             return $tag['type'] === 'user';
         });

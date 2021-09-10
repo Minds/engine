@@ -42,6 +42,7 @@ class Repository
             'limit' => 12,
             'from' => strtotime('-12 hours', time()),
             'languages' => [ 'en' ],
+            'wire_support_tier' => null
         ], $opts);
 
         $must= [
@@ -60,10 +61,8 @@ class Repository
         ];
 
         if ($opts['wire_support_tier']) {
-            $must[] = [
-                'term'=> [
-                    'wire_support_tier'=> $opts['wire_support_tier'],
-                ],
+            $must[]['term'] = [
+                'wire_support_tier'=> $opts['wire_support_tier']
             ];
         }
 
