@@ -9,6 +9,7 @@ use Minds\Core\Notifications;
 use Minds\Core\Matrix\MatrixConfig;
 use Minds\Core\Matrix\Client;
 use Minds\Core\Log\Logger;
+use Minds\Core\Matrix\MatrixRoom;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -42,7 +43,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType('Minds\Core\Matrix\Manager');
     }
 
-    public function it_should_send_chat_invite_notification(User $sender, User $receiver)
+    public function it_should_send_chat_invite_notification(User $sender, User $receiver, MatrixRoom $room)
     {
         $sender->getGuid()
             ->willReturn('123');
@@ -55,6 +56,6 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->willReturn(true);
 
-        $this->sendChatInviteNotification($sender, $receiver);
+        $this->sendChatInviteNotification($sender, $receiver, $room);
     }
 }

@@ -40,28 +40,33 @@ class ControllerSpec extends ObjectBehavior
 
         $receiver = new User();
 
+        $room = new MatrixRoom;
+
         $request->getAttribute('_user')
             ->willReturn($user);
 
         $request->getAttribute('parameters')
-                    ->willReturn([
-                'receiverGuid' => '456',
-            ]);
+                ->willReturn([
+                    'receiverGuid' => '456',
+                ]);
 
         $this->entitiesBuilder->single('456')->willReturn($receiver);
 
-        $this->manager->getAccountByUser($receiver)
-        ->willReturn(null);
+        $this->manager->createDirectRoom($user, $receiver)
+            ->willReturn($room);
 
-        $this->manager->sendChatInviteNotification($user, $receiver)
-        ->shouldBeCalled();
+        $this->manager->getAccountByUser($receiver)
+            ->willReturn(null);
+
+        $this->manager->sendChatInviteNotification($user, $receiver, $room)
+            ->shouldBeCalled();
 
         $response = $this->createDirectRoom($request);
         $json = $response->getBody()->getContents();
 
         $json->shouldBe(json_encode([
-            'status' => 'failed',
-            'message' => 'recipient has not set up chat account'
+            'status' => 'success',
+            'room' => $room->export()
         ]));
     }
 
