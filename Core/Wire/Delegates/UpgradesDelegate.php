@@ -11,6 +11,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Wire\Wire;
 use Minds\Core\Pro\Manager as ProManager;
 use Minds\Entities\User;
+use Minds\Core\Plus\Subscription as PlusSubscription;
 
 class UpgradesDelegate
 {
@@ -23,11 +24,15 @@ class UpgradesDelegate
     /** @var ProManager */
     private $proManager;
 
-    public function __construct($config = null, $entitiesBuilder = null, $proManager = null)
+    /** @var Logger */
+    private $logger;
+
+    public function __construct($config = null, $entitiesBuilder = null, $proManager = null, $logger = null)
     {
         $this->config = $config ?: Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->proManager = $proManager ?? Di::_()->get('Pro\Manager');
+        $this->logger = $logger ?? Di::_()->get('Logger');
     }
 
     /**
@@ -165,6 +170,27 @@ class UpgradesDelegate
         $this->proManager->setUser($user)
             ->enable($expires);
 
+        $this->cancelExistingPlus($user);
+
         return $wire;
+    }
+
+    /**
+     * Cancels an existing plus subscription upon subscribing to Pro (if one exists).     *
+     * @param User $user - user to cancel for.
+     * @return void
+     */
+    private function cancelExistingPlus(User $user): void
+    {
+        try {
+            $plusSubscription = (new PlusSubscription())
+                        ->setUser($user);
+
+            if ($plusSubscription->canBeCancelled()) {
+                $plusSubscription->cancel();
+            }
+        } catch (\Exception $e) {
+            $this->logger->error($e);
+        }
     }
 }
