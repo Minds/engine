@@ -25,6 +25,9 @@ class LoginAttempts
     /** @var Config */
     private $config;
 
+    /** @var bool */
+    protected $redisIsConnected = false;
+
     public function __construct($kvLimiter = null, $redis = null, $config = null)
     {
         $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
