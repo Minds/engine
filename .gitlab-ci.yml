@@ -242,3 +242,17 @@ production:fpm:
 #   environment:
 #     name: runners
 #     url: https://www.minds.com/
+
+
+
+
+
+ALTER TABLE minds.entities 
+  WITH compaction = {
+    'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy',
+    'unchecked_tombstone_compaction': true,
+    'tombstone_compaction_interval': '3600',
+    'tombstone_threshold': '0.001'
+  }
+  AND gc_grace_seconds = 86400
+  AND memtable_flush_period_in_ms = 60000;
