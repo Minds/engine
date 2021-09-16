@@ -31,6 +31,10 @@ use Minds\Helpers;
  * @property int $width
  * @property int $height
  * @property string $permaweb_id
+ * @property bool $full_hd
+ * @property bool $mature
+ * @property array $nsfw
+ * @property int $rating
  */
 class Video extends MindsObject
 {
