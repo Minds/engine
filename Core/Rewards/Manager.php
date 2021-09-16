@@ -280,6 +280,10 @@ class Manager
                 $this->token->balanceOf($uniqueOnChain->getAddress(), $blockNumber)
             );
 
+            if (strtolower($uniqueOnChain->getAddress()) !== strtolower($user->getEthWallet())) {
+                continue;
+            }
+
             $rewardEntry = new RewardEntry();
             $rewardEntry->setUserGuid($user->getGuid())
                 ->setDateTs($opts->getDateTs())
