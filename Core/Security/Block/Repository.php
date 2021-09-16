@@ -92,13 +92,13 @@ class Repository
 
     /**
      * Count blocks
-     * @param BlockListOpts $opts
+     * @param string $userGuid
      * @return int
      */
-    public function count(BlockListOpts $opts): int
+    public function countList(string $userGuid): int
     {
         $statement = "SELECT COUNT(*) FROM entities_by_time WHERE key= ?";
-        $values = [ "acl:blocked:{$opts->getUserGuid()}" ];
+        $values = [ "acl:blocked:{$userGuid}" ];
 
         $prepared = new Prepared\Custom;
 
