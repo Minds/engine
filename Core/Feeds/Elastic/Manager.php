@@ -196,9 +196,11 @@ class Manager
         }
 
         if (count($feedSyncEntities) > 0) {
-            $next = (string) (array_reduce($feedSyncEntities, function ($carry, FeedSyncEntity $feedSyncEntity) {
-                return min($feedSyncEntity->getTimestamp() ?: INF, $carry);
-            }, INF) - 1);
+            if ($this->getCount($opts) > ($opts['offset'] + $opts['limit'])) {
+                $next = (string) (array_reduce($feedSyncEntities, function ($carry, FeedSyncEntity $feedSyncEntity) {
+                    return min($feedSyncEntity->getTimestamp() ?: INF, $carry);
+                }, INF) - 1);
+            }
 
             $hydrateGuids = array_map(function (FeedSyncEntity $feedSyncEntity) {
                 return $feedSyncEntity->getGuid();
