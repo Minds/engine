@@ -7,6 +7,7 @@ use Minds\Core\Analytics\Snowplow;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Di\Di;
+use Minds\Core\Experiments;
 use Minds\Entities\User;
 
 /**
@@ -49,18 +50,22 @@ class Event
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
+    /** @var Experiments\Manager */
+    private $experimentsManager;
+
     /** @var array */
     protected $data;
 
     /** @var User */
     protected $user;
 
-    public function __construct($elastic = null, $snowplowManager = null, $entitiesBuilder = null)
+    public function __construct($elastic = null, $snowplowManager = null, $entitiesBuilder = null, Experiments\Manager $experimentsManager = null)
     {
         $this->elastic = $elastic ?: Core\Di\Di::_()->get('Database\ElasticSearch');
         $this->index = 'minds-metrics-'.date('m-Y', time());
         $this->snowplowManager = $snowplowManager ?? Di::_()->get('Analytics\Snowplow\Manager');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
     }
 
     /**
@@ -212,9 +217,9 @@ class Event
 
         $entityContext = new Snowplow\Contexts\SnowplowEntityContext();
         $sessionContext = new Snowplow\Contexts\SnowplowSessionContext();
+        $contexts = [ $entityContext, $sessionContext ];
 
         $event = new Snowplow\Events\SnowplowActionEvent();
-        $event->setContext([$entityContext, $sessionContext]);
 
         $event->setAction($this->data['action']);
 
@@ -258,8 +263,24 @@ class Event
             $sessionContext->setUserPhoneNumberHash($this->data['user_phone_number_hash']);
         }
 
+
         // Rebuild the user, as we need the full entity
+        
+        /** @var User */
         $user = $this->entitiesBuilder->single($this->data['user_guid']);
+
+        /**
+         * Gather all our experiments we have been part of
+         */
+        foreach ($this->experimentsManager->setUser($user)->getExperiments() as $trackData) {
+            $context = new Snowplow\Contexts\SnowplowGrowthbookContext();
+            $context->setExperimentId($trackData->experiment->key)
+                ->setVariationId($trackData->result->variationId);
+            $contexts[] = $context;
+        }
+
+        $event->setContext($contexts);
+
 
         // Emit the event
         $this->snowplowManager->setSubject($user)->emit($event);
