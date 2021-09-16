@@ -14,7 +14,6 @@
         "minds/mw3": "dev-master@dev",
         "phpmailer/phpmailer": "~5.2",
         "stripe/stripe-php": "^7.27",
-        "thobbs/phpcassa": "dev-minds-legacy",
         "tijsverkoyen/twitteroauth": "dev-master@dev",
         "twilio/sdk": "^5.26",
         "vscn/cruftflake": "dev-master#cab1b9ee9869072e7a58a1eb593b602ec5bedcd3",
@@ -50,7 +49,8 @@
         "minds/oauth2-openid-connect-server": "@dev",
         "strobotti/php-jwk": "^1.3",
         "steverhoades/oauth2-openid-connect-server": "@dev",
-        "kornrunner/keccak": "^1.1"
+        "kornrunner/keccak": "^1.1",
+        "growthbook/growthbook": "^0.3.0"
     },
     "repositories": [
         {
@@ -60,10 +60,6 @@
         {
             "type": "vcs",
             "url": "https://0544aedfc74db62dcd39301588cd672b2b91e060@github.com/minds/mw3.git"
-        },
-	    {
-            "type": "vcs",
-            "url": "https://github.com/minds/phpcassa"
         },
         {
             "type": "vcs",
