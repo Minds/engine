@@ -275,7 +275,7 @@ class Event
         foreach ($this->experimentsManager->setUser($user)->getExperiments() as $trackData) {
             $context = new Snowplow\Contexts\SnowplowGrowthbookContext();
             $context->setExperimentId($trackData->experiment->key)
-                ->setVariationId($trackData->result->variationId);
+                ->setVariationId((int) $trackData->result->variationId);
             $contexts[] = $context;
         }
 
