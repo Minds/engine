@@ -74,14 +74,14 @@ class TopV2 implements SortingAlgorithm
                     'missing' => 0,
                 ],
             ],
-            [
-                'field_value_factor' => [
-                    'field' => 'comments:count',
-                    'factor' => 2,
-                    'modifier' => 'sqrt',
-                    'missing' => 0,
-                ],
-            ],
+            // [
+            //     'field_value_factor' => [
+            //         'field' => 'comments:count',
+            //         'factor' => 2,
+            //         'modifier' => 'sqrt',
+            //         'missing' => 0,
+            //     ],
+            // ],
             [
                 'filter' => [
                     'range' => [

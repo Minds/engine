@@ -32,7 +32,7 @@ class ManagerSpec extends ObjectBehavior
         $analytics->setFrom(strtotime('-7 days') * 1000)->shouldBeCalled()->willReturn($analytics);
         $analytics->setTo(time() * 1000)->shouldBeCalled()->willReturn($analytics);
         $analytics->setInterval('day')->shouldBeCalled()->willReturn($analytics);
-        $analytics->setOnlyPlus(true)->willReturn($analytics);
+        $analytics->setOnlyPlus(false)->willReturn($analytics);
 
         $dayAgo = (strtotime('-1 day') * 1000);
         $twoDaysAgo = (strtotime('-2 days') * 1000);
@@ -41,18 +41,15 @@ class ManagerSpec extends ObjectBehavior
         $analytics->getCounts()->shouldBeCalled()->willReturn([
             $dayAgo => [
                 'votes' => 24,
-                'comments' => 10,
-                'reminds' => 4
+                'downvotes' => 10,
             ],
             $twoDaysAgo => [
                 'votes' => 40,
-                'comments' => 20,
-                'reminds' => 1
+                'downvotes' => 20,
             ],
             $threeDaysAgo => [
                 'votes' => 2,
-                'comments' => 1,
-                'reminds' => 40
+                'downvotes' => 1,
             ]
         ]);
 
@@ -64,17 +61,11 @@ class ManagerSpec extends ObjectBehavior
                 ->setScore(24)
                 ->setAmount(24),
             (new Contribution)
-                ->setMetric('comments')
+                ->setMetric('downvotes')
                 ->setUser($user)
                 ->setTimestamp($dayAgo)
-                ->setScore(20)
+                ->setScore(-10)
                 ->setAmount(10),
-            (new Contribution)
-                ->setMetric('reminds')
-                ->setUser($user)
-                ->setTimestamp($dayAgo)
-                ->setScore(16)
-                ->setAmount(4),
 
             (new Contribution)
                 ->setMetric('votes')
@@ -83,18 +74,12 @@ class ManagerSpec extends ObjectBehavior
                 ->setScore(40)
                 ->setAmount(40),
             (new Contribution)
-                ->setMetric('comments')
+                ->setMetric('downvotes')
                 ->setUser($user)
                 ->setTimestamp($twoDaysAgo)
-                ->setScore(40)
+                ->setScore(-20)
                 ->setAmount(20),
-            (new Contribution)
-                ->setMetric('reminds')
-                ->setUser($user)
-                ->setTimestamp($twoDaysAgo)
-                ->setScore(4)
-                ->setAmount(1),
-
+            
             (new Contribution)
                 ->setMetric('votes')
                 ->setUser($user)
@@ -102,17 +87,11 @@ class ManagerSpec extends ObjectBehavior
                 ->setScore(2)
                 ->setAmount(2),
             (new Contribution)
-                ->setMetric('comments')
+                ->setMetric('downvotes')
                 ->setUser($user)
                 ->setTimestamp($threeDaysAgo)
-                ->setScore(2)
+                ->setScore(-1)
                 ->setAmount(1),
-            (new Contribution)
-                ->setMetric('reminds')
-                ->setUser($user)
-                ->setTimestamp($threeDaysAgo)
-                ->setScore(160)
-                ->setAmount(40)
         ];
 
         $repository->add($contributions)->shouldBeCalled();
@@ -134,7 +113,7 @@ class ManagerSpec extends ObjectBehavior
 
         $sums->getScore()
             ->shouldBeCalled()
-            ->willReturn(1, 10);
+            ->willReturn(1);
 
         $this->getRewardsAmount()->shouldReturn("15707963267949000");
     }
