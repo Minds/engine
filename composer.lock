@@ -2493,7 +2493,7 @@
             "source": {
                 "type": "git",
                 "url": "https://0544aedfc74db62dcd39301588cd672b2b91e060@github.com/minds/mw3.git",
-                "reference": "ba585b8ef2bb282535cff2f30b27947c6ee43a69"
+                "reference": "6e043c5940f056f9ca643be8ddebbb7f5a595456"
             },
             "require": {
                 "composer-plugin-api": "^2.0"
