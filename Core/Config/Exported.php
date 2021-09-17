@@ -111,6 +111,7 @@ class Exported
             'environment' => getenv('MINDS_ENV') ?: 'development',
             'boost_rotator_interval' => $this->config->get('boost_rotator_interval'),
             'token_exchange_rate' => $this->config->get('token_exchange_rate'),
+            'sms_mfa_deprecated_timestamp' => $this->config->get('sms_mfa_deprecated_timestamp') ?? 1631867426,
             'matrix' => [
                 'chat_url' => $this->config->get('matrix')['chat_url'] ?? null,
             ],

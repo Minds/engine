@@ -732,3 +732,5 @@ $CONFIG->SET('zendesk', [
 $CONFIG->set('statuspage_io', [
     'url' => 'https://status.minds.com/'
 ]);
+
+$CONFIG->set('sms_mfa_deprecated_timestamp', 1631867426);
