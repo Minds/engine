@@ -4,6 +4,7 @@ namespace Minds\Core\Security\Block;
 use Minds\Common\Repository\Response;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
+use Minds\Core\Security\ACL;
 
 class Manager
 {
@@ -16,14 +17,18 @@ class Manager
     /** @var Delegates\EventStreamsDelegate */
     protected $eventStreamsDelegate;
 
+    /** @var ACL */
+    protected $acl;
+
     /** @var int */
     const CACHE_TTL = 86400; // 1 day
 
-    public function __construct(Repository $repository = null, PsrWrapper $cache = null, Delegates\EventStreamsDelegate $eventStreamsDelegate = null)
+    public function __construct(Repository $repository = null, PsrWrapper $cache = null, Delegates\EventStreamsDelegate $eventStreamsDelegate = null, $acl = null)
     {
         $this->repository = $repository ?? new Repository();
         $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
         $this->eventStreamsDelegate = $eventStreamsDelegate ?? new Delegates\EventStreamsDelegate();
+        $this->acl = $acl ?: ACL::_();
     }
 
     /**
@@ -64,8 +69,13 @@ class Manager
      */
     public function add(BlockEntry $block): bool
     {
+        // Allow block for disabled channels
+        $ignore = $this->acl->setIgnore(true);
+
         /** @var bool */
         $success = $this->repository->add($block);
+
+        $this->acl->setIgnore($ignore);
 
         if (!$success) {
             return false;
@@ -89,8 +99,13 @@ class Manager
      */
     public function delete(BlockEntry $block): bool
     {
+        // Allow unblock for disabled channels
+        $ignore = $this->acl->setIgnore(true);
+
         /** @var bool */
         $success = $this->repository->delete($block);
+
+        $this->acl->setIgnore($ignore);
 
         if (!$success) {
             return false;
