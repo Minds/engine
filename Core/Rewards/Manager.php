@@ -343,6 +343,11 @@ class Manager
 
             $tokenAmount = $tokenPool->multipliedBy($rewardEntry->getSharePct(), 18, RoundingMode::FLOOR);
 
+            // Do not allow negative rewards to be issued
+            if ($tokenAmount->isLessThanOrEqualTo(0)) {
+                $tokenAmount = BigDecimal::of(0);
+            }
+
             $rewardEntry->setTokenAmount($tokenAmount);
             $this->repository->update($rewardEntry, [ 'token_amount' ]);
 
