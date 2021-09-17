@@ -138,4 +138,41 @@ class Controller
         $this->manager->runGarbageCollection();
         return new JsonResponse(['status' => 'success']);
     }
+
+    /**
+     * Forces garbage collection / failure of a single transaction.
+     * @param ServerRequest $request
+     * @return JsonResponse
+     */
+    public function runGarbageCollectionSingle(ServerRequest $request): JsonResponse
+    {
+        $userGuid = $request->getParsedBody()['user_guid'];
+        $timestamp = $request->getParsedBody()['timestamp'];
+        $requestTxid = $request->getParsedBody()['request_txid'];
+
+        if (!$userGuid ||
+            !$timestamp ||
+            !$requestTxid
+        ) {
+            throw new UserErrorException('You must provide all parameters');
+        }
+
+        try {
+            $requestObj = $this->manager->get(
+                (new Request())
+                    ->setUserGuid((string) $userGuid)
+                    ->setTimestamp((int) $timestamp)
+                    ->setTx((string) $requestTxid)
+            );
+
+            $this->manager->runGarbageCollectionSingle($requestObj);
+        } catch (\Exception $e) {
+            throw new ServerErrorException($e->getMessage());
+        }
+
+        return new JsonResponse([
+            'status' => 'success',
+            'message' => 'Garbage collection success.'
+        ]);
+    }
 }
