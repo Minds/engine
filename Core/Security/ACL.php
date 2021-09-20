@@ -349,11 +349,7 @@ class ACL
             return true;
         }
 
-        $rateLimited = $this->rateLimits
-            ->setUser($user)
-            ->setEntity($entity)
-            ->setInteraction($interaction)
-            ->isLimited();
+        $rateLimited = $this->rateLimits->control($user, $interaction);
 
         if ($rateLimited) {
             return false;

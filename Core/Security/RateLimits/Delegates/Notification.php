@@ -18,23 +18,24 @@ class Notification
         $this->dispatcher = $dispatcher ?: Di::_()->get('EventsDispatcher');
     }
 
-    public function notify($user, $key, $period)
+    public function notify($user, $interaction, $period)
     {
         $message = "Your channel has been rate limited due to high activity. Please try again later";
-        switch ($key) {
-            case "ratelimited_interaction:subscribe":
+
+        switch ($interaction) {
+            case "subscribe":
                 $message = "Your channel has been rate limited due to a high number of subscribes.";
                 break;
-            case "ratelimited_interaction:voteup":
+            case "voteup":
                 $message = "Your channel has been rate limited due to a high number of up votes.";
                 break;
-            case "ratelimited_interaction:votedown":
+            case "votedown":
                 $message = "Your channel has been rate limited due to a high number of down votes.";
                 break;
-            case "ratelimited_interaction:comment":
+            case "comment":
                 $message = "Your channel has been rate limited due to a high number of comments.";
                 break;
-            case "ratelimited_interaction:remind":
+            case "remind":
                 $message = "Your channel has been rate limited due to a high number of reminds.";
                 break;
         }
