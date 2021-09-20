@@ -160,6 +160,10 @@ class PushNotification
      */
     public function getUri(): string
     {
+        if ($this->notification->getType() === NotificationTypes::TYPE_SUBSCRIBE) {
+            return $this->config->get('site_url') . 'notifications';
+        }
+
         $entity = $this->notification->getEntity();
         switch ($entity->getType()) {
             case 'user':
