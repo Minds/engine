@@ -120,11 +120,10 @@ class subscribed implements Interfaces\Api
         ];
 
         if ($_GET['to_timestamp'] ?? null) {
-            // Fallbacks for old versions of mobile: The timestamp filter logic of the endpoint has changed
-            // so, instead of receiving to_timestamp as the oldest date we need to send a date range from_timestamp to_timestamp
-            if (isset($_SERVER['HTTP_APP_VERSION']) && Comparator::lessThan($_SERVER['HTTP_APP_VERSION'], '4.17.0')) {
+            // Fixes 4.17 build of app
+            if (isset($_SERVER['HTTP_APP_VERSION']) && Comparator::lessThan($_SERVER['HTTP_APP_VERSION'], '4.18.0')) {
                 $opts['from_timestamp'] = (int) $_GET['to_timestamp'] * 1000;
-                $opts['to_timestamp'] = time() * 1000;
+                $opts['to_timestamp'] = (int) $_GET['from_timestamp'] * 1000;
             } else {
                 $opts['to_timestamp'] = (int) $_GET['to_timestamp'];
             }
