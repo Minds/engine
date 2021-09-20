@@ -276,6 +276,10 @@ class Manager
                 continue;
             }
 
+            if (strtolower($uniqueOnChain->getAddress()) !== strtolower($user->getEthWallet())) {
+                continue;
+            }
+
             $tokenBalance = $this->token->fromTokenUnit(
                 $this->token->balanceOf($uniqueOnChain->getAddress(), $blockNumber)
             );
