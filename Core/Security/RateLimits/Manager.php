@@ -7,8 +7,6 @@
 namespace Minds\Core\Security\RateLimits;
 
 use Minds\Core\Data\Sessions;
-use Minds\Core\Di\Di;
-use Minds\Core\Data\Redis;
 use Minds\Entities\Entity;
 use Minds\Entities\User;
 
@@ -34,9 +32,6 @@ class Manager
 
     /** @var KeyValueLimiter */
     private $kvLimiter;
-
-    /** @var Redis\Client */
-    protected $redis;
 
     const INTERACTION_RATE_LIMITS = [
         'subscribe' => [
@@ -95,12 +90,10 @@ class Manager
         $sessions = null,
         $notificationDelegate = null,
         $analyticsDelegate = null,
-        Redis\Client $redis = null,
         $kvLimiter = null,
     ) {
         $this->sessions = $sessions ?: new Sessions;
         $this->kvLimiter = $kvLimiter ?: new KeyValueLimiter();
-        $this->redis = $redis ?? Di::_()->get('Redis');
         $this->notificationDelegate = $notificationDelegate ?: new Delegates\Notification;
         $this->analyticsDelegate = $analyticsDelegate ?: new Delegates\Analytics;
     }
@@ -214,7 +207,6 @@ class Manager
                             ->setMax($rateLimit['threshold'])
                             ->checkAndIncrement();
                     } catch (RateLimitExceededException $e) {
-                        $this->notify($key, $user, $rateLimit['period']);
                         $rateLimited = true;
                         break;
                     }
@@ -223,33 +215,5 @@ class Manager
         }
 
         return $rateLimited;
-    }
-
-    /**
-     * handles sending notification and emitting to analytics
-     * @param string $key
-     * @param User $user
-     * @param int $period
-     * @return void
-     */
-    private function notify($key, $user, $period)
-    {
-        $guid = $user->getGuid();
-        $interaction = explode(':', $key)[1];
-        $recordKey = "ratelimit:$key-$guid:$period:notified";
-        $notified = $this->redis->get($recordKey);
-
-        if ($notified) return;
-
-        //Send a notification
-        $this->notificationDelegate->notify($user, $interaction, $period);
-        //Emit to analytics
-        $this->analyticsDelegate->emit($user, $key, $period);
-
-        $this->redis
-            ->multi()
-            ->set($recordKey, true)
-            ->expire($recordKey, $period)
-            ->exec();
     }
 }
