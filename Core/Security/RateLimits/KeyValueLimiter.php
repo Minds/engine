@@ -46,7 +46,10 @@ class KeyValueLimiter
 
     /** @var Jwt */
     protected $jwt;
-    
+
+    /** @var array */
+    private $thresholds = [];
+
     /**
      * @param RedisServer $redis
      * @param Condfig $config
@@ -61,6 +64,15 @@ class KeyValueLimiter
     }
 
     /**
+     * Returns a consistent record key
+     * @return string
+     */
+    private function getRecordKey(): string
+    {
+        return "ratelimit:$this->key-$this->value" . $this->seconds ?? ":{$this->seconds}";
+    }
+
+    /**
      * Checks and increment the rate limit
      * @return bool
      */
@@ -69,9 +81,9 @@ class KeyValueLimiter
         if ($this->verifyBypass()) {
             return true;
         }
-        $recordKey = "ratelimit:$this->key-$this->value:$this->seconds";
-        $count = (int) $this->getRedis()->get("$recordKey");
-        
+        $recordKey = $this->getRecordKey();
+        $count = (int) $this->getRedis()->get($recordKey);
+
         if ($count >= $this->max) {
             $this->logger->warn("[RateLimit]: $recordKey was hit with $this->max");
             throw new RateLimitExceededException();
@@ -104,6 +116,60 @@ class KeyValueLimiter
             return $timeDiff < 300;
         } catch (\Exception $e) {
             return false;
+        }
+    }
+
+    /**
+     * Controls rate limit. Can handle multiple thresholds and single thresholds.
+     * 
+     * @param User $user
+     * @param string $interaction
+     * @return void
+     */
+    public function control()
+    {
+        if ($this->verifyBypass()) {
+            return true;
+        }
+
+        if (count($this->thresholds) > 0) {
+            return $this->handleMultiThresholdRateLimit();
+        }
+
+        return $this->checkAndIncrement();
+    }
+
+    /**
+     * Control rate limit for interactions.
+     * This creates multiple redis records per rate limit period, per interaction, per user
+     * 
+     * @return $this
+     */
+    private function handleMultiThresholdRateLimit()
+    {
+        $recordKeys = $this->getRedis()->keys($this->getRecordKey() . ":*"); // e.g. interaction:comment:300
+        $counts = $this->getRedis()->mget($recordKeys); // e.g. interaction:comment:300
+
+        // we check all rate limits first in order not to increment the count of a 
+        // shorter period if we were already ratelimited in a longer period 
+        foreach ($this->thresholds as $threshold) {
+            foreach ($recordKeys as $index => $recordKey) {
+                $period = (int) array_reverse(explode(":", $recordKey))[0];
+                $count = (int) $counts[$index];
+
+                if ($threshold["period"] === $period && ($count >= $threshold["threshold"])) {
+                    $this->logger->warn("[RateLimit]: $recordKey was hit with {$threshold["threshold"]}");
+                    throw new RateLimitExceededException();
+                }
+            }
+        }
+
+        foreach ($this->thresholds as $threshold) {
+            $recordKey = $this->getRecordKey() . ":{$threshold["period"]}";
+            $this->getRedis()->multi()
+                ->incr($recordKey)
+                ->expire($recordKey, $threshold["period"])
+                ->exec();
         }
     }
 
