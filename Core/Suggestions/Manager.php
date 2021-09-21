@@ -6,9 +6,10 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Features;
-use Minds\Core\Suggestions\Delegates\CheckRateLimit;
+use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 use Minds\Core\Security\Block;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
 
 class Manager
 {
@@ -24,8 +25,8 @@ class Manager
     /** @var User $user */
     private $user;
 
-    /** @var CheckRateLimit */
-    private $checkRateLimit;
+    /** @var KeyValueLimiter */
+    private $kvLimiter;
 
     /** @var Features\Manager */
     private $features;
@@ -41,14 +42,14 @@ class Manager
         $entitiesBuilder = null,
         $suggestedFeedsManager = null,
         $subscriptionsManager = null,
-        $checkRateLimit = null,
+        $kvLimiter = null,
         $features = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder();
         //$this->suggestedFeedsManager = $suggestedFeedsManager ?: Di::_()->get('Feeds\Suggested\Manager');
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Subscriptions\Manager');
-        $this->checkRateLimit = $checkRateLimit ?: new CheckRateLimit();
+        $this->kvLimiter = $kvLimiter ?: new KeyValueLimiter();
         $this->features = $features ?? new Features\Manager();
         $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
     }
@@ -100,7 +101,7 @@ class Manager
             'type' => $this->type,
         ], $opts);
 
-        if (!$this->checkRateLimit->check($this->user->guid)) {
+        if ($this->isNearSubscriptionRateLimit()) {
             return new Response([]);
         }
 
@@ -189,5 +190,28 @@ class Manager
         }, $users->toArray());
 
         return $this->repository->getList($opts);
+    }
+
+    /**
+     * Returns the smallest rate limit remaining attempts based
+     * on period.
+     * 
+     * @return bool
+     */
+    private function isNearSubscriptionRateLimit() {
+        $attempts = $this->kvLimiter
+            ->setKey("interaction:subscribe")
+            ->setValue($this->user->getGuid())
+            ->setThresholds(ACL::INTERACTION_THRESHOLDS['subscribe'])
+            ->getRemainingAttempts();
+
+        $smallestRemainingAttempts = array_reduce(
+            $attempts,
+            function ($carry, $attempt) {
+                return min($attempt["remaining"] ?: INF, $carry);
+            }
+        );
+
+        return $smallestRemainingAttempts < 10;
     }
 }
