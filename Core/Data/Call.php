@@ -39,8 +39,8 @@ class Call
     ) {
         global $CONFIG;
 
-        $this->servers = $servers ?: $CONFIG->cassandra->servers;
-        $this->keyspace = $keyspace ?: $CONFIG->cassandra->keyspace;
+        $this->servers = $servers ?: $CONFIG->get('cassandra')['servers'];
+        $this->keyspace = $keyspace ?: $CONFIG->get('cassandra')['keyspace'];
         $this->cf_name = $cf;
         $this->client = $cql ?: Core\Di\Di::_()->get('Database\Cassandra\Cql');
     }
