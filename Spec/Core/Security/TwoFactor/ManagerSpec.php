@@ -38,7 +38,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_pass_gatekeeper_if_no_2fa(User $user, ServerRequest $request)
+    public function it_should_pass_gatekeeper_if_no_2fa_and_email_disabled(User $user, ServerRequest $request)
     {
         $this->totpManager->isRegistered($user)
             ->willReturn(false);
@@ -46,7 +46,7 @@ class ManagerSpec extends ObjectBehavior
         $user->getTwoFactor()
             ->willReturn(false);
 
-        $this->gatekeeper($user, $request);
+        $this->gatekeeper($user, $request, enableEmail: false);
     }
 
     public function it_should_block_gatekeeper_if_2fa_and_no_code(User $user, ServerRequest $request)
