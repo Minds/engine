@@ -85,11 +85,6 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
 
             // Hacky, move to service soon!
             $hasSignupTags = false;
-            if (isset($_COOKIE['mexp'])) {
-                $manager = Core\Di\Di::_()->get('Experiments\Manager');
-                $bucket = $manager->getBucketForExperiment('Homepage121119');
-                $user->expHomepage200619 = $bucket->getId();
-            }
 
             if (isset($_POST['parentId'])) {
                 $user->signupParentId = (string) $_POST['parentId'];

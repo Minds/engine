@@ -26,17 +26,17 @@ class SetupChannelStepSpec extends ObjectBehavior
     public function it_should_check_if_completed(User $user)
     {
         // Avatar
-        $this->config->get('onboarding_modal_timestamp')
-            ->shouldBeCalled()
-            ->willReturn(400000);
+        // $this->config->get('onboarding_modal_timestamp')
+        //     ->shouldBeCalled()
+        //     ->willReturn(400000);
         
-        $user->get('time_created')
-            ->shouldBeCalled()
-            ->willReturn(500000);
+        // $user->get('time_created')
+        //     ->shouldBeCalled()
+        //     ->willReturn(500000);
 
-        $user->getLastAvatarUpload()
-            ->shouldBeCalled()
-            ->willReturn(500001);
+        // $user->getLastAvatarUpload()
+        //     ->shouldBeCalled()
+        //     ->willReturn(500001);
 
         // Bio
         $user->get('briefdescription')
@@ -65,32 +65,32 @@ class SetupChannelStepSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_check_if_not_avatar_completed(User $user)
-    {
+    // public function it_should_check_if_not_avatar_completed(User $user)
+    // {
         
 
-        // Display name
-        $user->get('name')
-            ->shouldBeCalled()
-            ->willReturn('I do have a name');
+    //     // Display name
+    //     $user->get('name')
+    //         ->shouldBeCalled()
+    //         ->willReturn('I do have a name');
 
-        // Avatar
-        $this->config->get('onboarding_modal_timestamp')
-            ->shouldBeCalled()
-            ->willReturn(400000);
+    //     // Avatar
+    //     $this->config->get('onboarding_modal_timestamp')
+    //         ->shouldBeCalled()
+    //         ->willReturn(400000);
     
-        $user->get('time_created')
-            ->shouldBeCalled()
-            ->willReturn(500000);
+    //     $user->get('time_created')
+    //         ->shouldBeCalled()
+    //         ->willReturn(500000);
 
-        $user->getLastAvatarUpload()
-            ->shouldBeCalled()
-            ->willReturn(500000);
+    //     $user->getLastAvatarUpload()
+    //         ->shouldBeCalled()
+    //         ->willReturn(500000);
 
-        $this
-            ->isCompleted($user)
-            ->shouldReturn(false);
-    }
+    //     $this
+    //         ->isCompleted($user)
+    //         ->shouldReturn(false);
+    // }
 
     public function it_should_check_if_not_bio_completed(User $user)
     {
@@ -100,17 +100,17 @@ class SetupChannelStepSpec extends ObjectBehavior
             ->willReturn('I do have a name');
 
         // Avatar
-        $this->config->get('onboarding_modal_timestamp')
-            ->shouldBeCalled()
-            ->willReturn(400000);
+        // $this->config->get('onboarding_modal_timestamp')
+        //     ->shouldBeCalled()
+        //     ->willReturn(400000);
     
-        $user->get('time_created')
-            ->shouldBeCalled()
-            ->willReturn(500000);
+        // $user->get('time_created')
+        //     ->shouldBeCalled()
+        //     ->willReturn(500000);
 
-        $user->getLastAvatarUpload()
-            ->shouldBeCalled()
-            ->willReturn(500001);
+        // $user->getLastAvatarUpload()
+        //     ->shouldBeCalled()
+        //     ->willReturn(500001);
 
         // Bio
         $user->get('briefdescription')
