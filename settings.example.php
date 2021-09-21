@@ -7,7 +7,7 @@ $CONFIG->minds_debug = true;
 /*
  * Cassandra configuration
  */
-$CONFIG->cassandra = (object) [
+$CONFIG->cassandra = [
     'keyspace' => '{{cassandra-keyspace}}',
     'servers' => ['{{cassandra-server}}'],
     'cql_servers' => ['{{cassandra-server}}'],
