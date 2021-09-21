@@ -405,16 +405,18 @@ class ACL
         }
 
         $rateLimited = false;
-        foreach (self::INTERACTION_THRESHOLDS as $thresholdKey => $thresholds) {
-            if ($thresholdKey === $interaction) {
-                try {
-                    $this->kvLimiter
-                        ->setKey("interaction:$interaction")
-                        ->setValue($user->getGuid())
-                        ->setThresholds($thresholds)
-                        ->control(); // Will throw exception
-                } catch (RateLimitExceededException $e) {
-                    $rateLimited = true;
+        if ($interaction) {
+            foreach (self::INTERACTION_THRESHOLDS as $thresholdKey => $thresholds) {
+                if ($thresholdKey === $interaction) {
+                    try {
+                        $this->kvLimiter
+                            ->setKey("interaction:$interaction")
+                            ->setValue($user->getGuid())
+                            ->setThresholds($thresholds)
+                            ->control(); // Will throw exception
+                    } catch (RateLimitExceededException $e) {
+                        $rateLimited = true;
+                    }
                 }
             }
         }
