@@ -409,6 +409,11 @@ class newsfeed implements Interfaces\Api
                         ->setQuotedPost(!!($_POST['message'] ?? false));
 
             $activity->setRemind($remindIntent);
+
+            // propagate any remind paywall to activity
+            if ($remind->isPaywall()) {
+                $activity->setWireThreshold($remind->getWireThreshold());
+            }
         }
 
         // Wire/Paywall
