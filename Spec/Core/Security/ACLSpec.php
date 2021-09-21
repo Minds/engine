@@ -14,20 +14,20 @@ use Minds\Entities\Activity;
 
 class ACLSpec extends ObjectBehavior
 {
-    /** @var Core\Security\RateLimits\Manager */
-    private $rateLimits;
+    /** @var Core\Security\RateLimits\KeyValueLimiter */
+    private $kvLimiter;
 
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
-    public function let(Core\Security\RateLimits\Manager $rateLimits, EntitiesBuilder $entitiesBuilder, Config $config)
+    public function let(Core\Security\RateLimits\KeyValueLimiter $kvLimiter, EntitiesBuilder $entitiesBuilder, Config $config)
     {
-        $this->rateLimits = $rateLimits;
+        $this->kvLimiter = $kvLimiter;
         $this->entitiesBuilder = $entitiesBuilder;
         $config->get('normalize_entities')
             ->willReturn(true);
 
-        $this->beConstructedWith($rateLimits, $entitiesBuilder, null, $config);
+        $this->beConstructedWith($kvLimiter, $entitiesBuilder, null, $config);
     }
 
     public function mock_session($on = true)
@@ -192,21 +192,7 @@ class ACLSpec extends ObjectBehavior
     {
         $this->mock_session(true);
 
-        $this->rateLimits->setUser(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn($this->rateLimits);
-
-        $this->rateLimits->setEntity($entity)
-            ->shouldBeCalled()
-            ->willReturn($this->rateLimits);
-
-        $this->rateLimits->setInteraction(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn($this->rateLimits);
-
-        $this->rateLimits->isLimited()
-            ->shouldBeCalled()
-            ->willReturn(false);
+        $this->kvLimiterMock();
 
         $this->interact($entity)->shouldReturn(true);
         $this->mock_session(false);
@@ -216,21 +202,7 @@ class ACLSpec extends ObjectBehavior
     {
         $this->mock_session(true);
 
-        $this->rateLimits->setUser(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn($this->rateLimits);
-
-        $this->rateLimits->setEntity($entity)
-            ->shouldBeCalled()
-            ->willReturn($this->rateLimits);
-
-        $this->rateLimits->setInteraction(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn($this->rateLimits);
-
-        $this->rateLimits->isLimited()
-            ->shouldBeCalled()
-            ->willReturn(false);
+        $this->kvLimiterMock(true);
 
         Core\Events\Dispatcher::register('acl:interact', 'all', function ($event) {
             $event->setResponse(false);
@@ -246,5 +218,20 @@ class ACLSpec extends ObjectBehavior
         $this->read($entity)->shouldReturn(true);
         $this->write($entity)->shouldReturn(true);
         $this->setIgnore(false);
+    }
+
+    /**
+     * @return bool
+     */
+    private function kvLimiterMock($willThrow = false)
+    {
+        $this->kvLimiter->setKey(Argument::any())->willReturn($this->kvLimiter);
+        $this->kvLimiter->setValue(Argument::any())->willReturn($this->kvLimiter);
+        $this->kvLimiter->setThresholds([]);
+        if ($willThrow) {
+            $this->kvLimiter->control()->willThrow(new \Minds\Core\Security\RateLimits\RateLimitExceededException());
+        } else {
+            $this->kvLimiter->control()->willReturn(null);
+        }
     }
 }
