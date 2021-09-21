@@ -732,3 +732,10 @@ $CONFIG->SET('zendesk', [
 $CONFIG->set('statuspage_io', [
     'url' => 'https://status.minds.com/'
 ]);
+
+$CONFIG->SET('skale', [
+    'chain_name' => '',
+    'rpc_url' => '',
+    'chain_id_hex' => '',
+    'erc20_address' => ''
+]);

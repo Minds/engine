@@ -73,6 +73,10 @@ class Manager
                 'api_key' => '',
                 'environment' => 'STAGING',
             ],
+            'skale' => [
+                'skale_contracts' => (new SKALE\SKALEContracts())->getAbis(),
+                'erc20_contract' =>(new SKALE\SkMINDS())->getAbi()
+            ],
             'overrides' => $this->getOverrides(),
             'withdraw_limit' => $blockchainConfig['contracts']['withdraw']['limit'] ?? 1,
         ], $this->contracts);
