@@ -1,7 +1,9 @@
 <?php
+
 /**
  * ACL Security handlers
  */
+
 namespace Minds\Core\Security;
 
 use Minds\Core;
@@ -95,7 +97,7 @@ class ACL
         $this->kvLimiter = $kvLimiter ?? Di::_()->get('Security\RateLimits\KeyValueLimiter');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->logger = $logger ?? Di::_()->get('Logger');
-        $config= $config ?? Di::_()->get('Config');
+        $config = $config ?? Di::_()->get('Config');
         $this->normalizeEntities = $config->get('normalize_entities');
     }
 
@@ -143,7 +145,7 @@ class ACL
         /**
          * Blacklist will not not allow entity to be read
          */
-        if (Core\Events\Dispatcher::trigger('acl:read:blacklist', $entity->getType(), ['entity'=>$entity, 'user'=>$user], false) === true) {
+        if (Core\Events\Dispatcher::trigger('acl:read:blacklist', $entity->getType(), ['entity' => $entity, 'user' => $user], false) === true) {
             return false;
         }
 
@@ -182,16 +184,15 @@ class ACL
         if (!Core\Session::isLoggedIn()) {
             if (
                 (int) $entity->access_id == ACCESS_PUBLIC
-                && (
-                    $entity->owner_guid == $entity->container_guid
-                    || $entity->container_guid == 0
-                )
+                && ($entity->owner_guid == $entity->container_guid
+                    || $entity->container_guid == 0)
             ) {
                 return true;
             } else {
-                if (Core\Events\Dispatcher::trigger('acl:read', $entity->getType(), [
-                    'entity' => $entity,
-                    'user' => $user
+                if (
+                    Core\Events\Dispatcher::trigger('acl:read', $entity->getType(), [
+                        'entity' => $entity,
+                        'user' => $user
                     ], false) === true
                 ) {
                     return true;
@@ -217,10 +218,8 @@ class ACL
          */
         if (
             in_array($entity->getAccessId(), [ACCESS_LOGGED_IN, ACCESS_PUBLIC], false)
-            && (
-                $entity->owner_guid == $entity->container_guid
-                || $entity->container_guid == 0
-            )
+            && ($entity->owner_guid == $entity->container_guid
+                || $entity->container_guid == 0)
         ) {
             return true;
         }
@@ -247,7 +246,7 @@ class ACL
         /**
          * Allow plugins to extend the ACL check
          */
-        if (Core\Events\Dispatcher::trigger('acl:read', $entity->getType(), ['entity'=>$entity, 'user'=>$user], false) === true) {
+        if (Core\Events\Dispatcher::trigger('acl:read', $entity->getType(), ['entity' => $entity, 'user' => $user], false) === true) {
             return true;
         }
 
@@ -307,7 +306,8 @@ class ACL
          * Check if its the same entity (is user)
          */
         if ((isset($entity->guid) && $entity->guid == $user->guid) ||
-            MagicAttributes::getterExists($entity, 'getGuid') && $entity->getGuid() == $user->guid) {
+            MagicAttributes::getterExists($entity, 'getGuid') && $entity->getGuid() == $user->guid
+        ) {
             return true;
         }
 
@@ -322,14 +322,15 @@ class ACL
          * Allow plugins to extend the ACL check
          */
         $type = property_exists($entity, 'type') ? $entity->type : 'all';
-        if (Core\Events\Dispatcher::trigger('acl:write', $entity->type, ['entity'=>$entity, 'user'=>$user], false) === true) {
+        if (Core\Events\Dispatcher::trigger('acl:write', $entity->type, ['entity' => $entity, 'user' => $user], false) === true) {
             return true;
         }
 
         /**
          * Allow plugins to check if we own the container
          */
-        if ($entity->container_guid
+        if (
+            $entity->container_guid
             && $entity->container_guid != $entity->owner_guid
             && $entity->container_guid != $entity->guid
         ) {
@@ -420,16 +421,18 @@ class ACL
                 }
             }
         }
-        if ($rateLimited) return false;
+        if ($rateLimited) {
+            return false;
+        }
 
         /**
          * Allow plugins to extend the ACL check
          */
         $event = Core\Events\Dispatcher::trigger('acl:interact', $entity->type, [
-                    'entity'=>$entity,
-                    'user'=>$user,
-                    'interaction' => $interaction,
-                ], null);
+            'entity' => $entity,
+            'user' => $user,
+            'interaction' => $interaction,
+        ], null);
 
         if ($event === false) {
             return false;

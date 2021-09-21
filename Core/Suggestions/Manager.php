@@ -195,10 +195,11 @@ class Manager
     /**
      * Returns the smallest rate limit remaining attempts based
      * on period.
-     * 
+     *
      * @return bool
      */
-    private function isNearSubscriptionRateLimit() {
+    private function isNearSubscriptionRateLimit()
+    {
         $attempts = $this->kvLimiter
             ->setKey("interaction:subscribe")
             ->setValue($this->user->getGuid())

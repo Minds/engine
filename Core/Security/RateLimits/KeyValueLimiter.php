@@ -124,7 +124,7 @@ class KeyValueLimiter
 
     /**
      * Controls rate limit. Can handle multiple thresholds and single thresholds.
-     * 
+     *
      * @param User $user
      * @param string $interaction
      * @return void
@@ -145,15 +145,15 @@ class KeyValueLimiter
     /**
      * Control rate limit for interactions.
      * This creates multiple redis records per rate limit period, per interaction, per user
-     * 
+     *
      * @return void
      */
     private function handleMultiThresholdRateLimit()
     {
         $limits = $this->getLimits();
 
-        // we check all rate limits first in order not to increment the count of a 
-        // shorter period if we were already ratelimited in a longer period 
+        // we check all rate limits first in order not to increment the count of a
+        // shorter period if we were already ratelimited in a longer period
         foreach ($this->thresholds as $threshold) {
             foreach ($limits as $limit) {
                 if ($threshold["period"] === $limit['period'] && ($limit['count'] >= $threshold["threshold"])) {
@@ -202,8 +202,8 @@ class KeyValueLimiter
         $limits = $this->getLimits();
 
         $attemps = [];
-        // we check all rate limits first in order not to increment the count of a 
-        // shorter period if we were already ratelimited in a longer period 
+        // we check all rate limits first in order not to increment the count of a
+        // shorter period if we were already ratelimited in a longer period
         foreach ($this->thresholds as $threshold) {
             $count = 0;
 

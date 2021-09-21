@@ -1,7 +1,9 @@
 <?php
+
 /**
  * Subscriptions manager
  */
+
 namespace Minds\Core\Subscriptions;
 
 use Minds\Core\Subscriptions\Delegates\CacheDelegate;
