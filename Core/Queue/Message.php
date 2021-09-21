@@ -22,11 +22,11 @@ class Message
      */
     public function setData($data)
     {
-        if (is_array($data)) {
-            //multisites require that we pass the keyspace
-            global $CONFIG;
-            $data['keyspace'] = $CONFIG->cassandra->keyspace;
-        }
+        // if (is_array($data)) {
+        //     //multisites require that we pass the keyspace
+        //     global $CONFIG;
+        //     $data['keyspace'] = $CONFIG->cassandra->keyspace;
+        // }
         $this->data = json_encode($data);
         return $this->data;
     }
