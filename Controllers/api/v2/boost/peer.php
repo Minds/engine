@@ -19,6 +19,7 @@ use Minds\Core\Payments;
 use Minds\Core\Feeds\Activity;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Zend\Diactoros\ServerRequestFactory;
 
 class peer implements Interfaces\Api
 {
@@ -133,6 +134,18 @@ class peer implements Interfaces\Api
                 'stage' => 'initial',
                 'message' => "You are not allowed to boost to @{$destination->username}'s channel"
             ]);
+        }
+
+        try {
+            $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
+            $twoFactorManager->gatekeeper(Core\Session::getLoggedinUser(), ServerRequestFactory::fromGlobals());
+        } catch (\Exception $e) {
+            header('HTTP/1.1 ' . $e->getCode(), true, $e->getCode());
+            $response['status'] = "error";
+            $response['code'] = $e->getCode();
+            $response['message'] = $e->getMessage();
+            $response['errorId'] = str_replace('\\', '::', get_class($e));
+            return Factory::response($response);
         }
 
         // Build entity
