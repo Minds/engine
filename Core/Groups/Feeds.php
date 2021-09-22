@@ -15,6 +15,8 @@ use Minds\Core\Groups\Delegates\PropagateRejectionDelegate;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Entities\User;
+use Minds\Core\Notifications\Notification;
+use Minds\Core\Notifications\NotificationTypes;
 
 // TODO: Migrate to new Feeds CQL (approveAll)
 class Feeds
@@ -226,13 +228,26 @@ class Feeds
 
         /** @var AdminQueue $adminQueue */
         $adminQueue = Di::_()->get('Groups\AdminQueue');
+
+        $activityClone= clone $activity;
+
         $success = $adminQueue->delete($this->group, $activity);
 
         if ($success && $options['notification']) {
-            // Reject notifs doesn't work at the moment as the post gets deleted on reject
-            $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_REJECT, Core\Session::getLoggedinUser(), $activity);
+            // ActionEvent doesn't work bc the post gets deleted on reject,
+            // so we bypass pulsar and manually send notification instead
 
-            $this->sendNotification('reject', $activity);
+            // $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_REJECT, Core\Session::getLoggedinUser(), $activity);
+
+            $notification = new Notification();
+            $notification->setType(NotificationTypes::TYPE_GROUP_QUEUE_REJECT);
+
+            $notification->setFromGuid((string) Core\Session::getLoggedinUser());
+            $notification->setToGuid((string) $activityClone->getOwnerGuid());
+
+            $notification->setEntityUrn($this->group->getUrn());
+
+            $this->sendNotification('reject', $activityClone);
         }
 
         $this->propagateRejectionDelegate->onReject($activity);
