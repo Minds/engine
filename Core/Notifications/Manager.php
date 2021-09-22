@@ -30,7 +30,10 @@ class Manager
      */
     public function getUnreadCount(User $user): int
     {
-        return Counters::get($user, 'notifications:v3:count', false);
+        $count = Counters::get($user, 'notifications:v3:count', false);
+        // fixes an issue where the counter would sometimes
+        // return a negative values due to race condition
+        return $count > 0 ? $count : 0;
     }
 
     /**
