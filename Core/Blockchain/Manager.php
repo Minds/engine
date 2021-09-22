@@ -74,7 +74,9 @@ class Manager
                 'environment' => 'STAGING',
             ],
             'skale' => [
-                'skale_contracts' => (new SKALE\SKALEContracts())->getAbis(),
+                // TODO: Switch to mainnet instead of rinkeby when in production mode
+                'skale_contracts_mainnet' => (new SKALE\SKALEContractsRinkeby())->getAbis(),
+                'skale_contracts_skale_network' => (new SKALE\SKALEContractsSkaleNetwork())->getAbis(),
                 'erc20_contract' =>(new SKALE\SkMINDS())->getAbi()
             ],
             'overrides' => $this->getOverrides(),

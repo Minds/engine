@@ -2,7 +2,7 @@
 
 namespace Minds\Core\Blockchain\SKALE;
 
-class SKALEContracts
+class SKALEContractsRinkeby
 {
     public function __construct()
     {
@@ -10,7 +10,6 @@ class SKALEContracts
 
     /**
      * Converted from JSON using https://dataconverter.curiousconcept.com/
-     * TODO: SWAPOUT WITH MAINNET CONTRACT OR MAKE SWITCH ON DEV MODE.
      * @return array
      */
     public function getABIs(): array
