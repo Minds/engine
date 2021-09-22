@@ -3,6 +3,7 @@ namespace Minds\Core\OAuth;
 
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Exception\OAuthServerException;
+use Minds\Common\IpAddress;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
@@ -11,6 +12,7 @@ use Minds\Core\OAuth\Entities\UserEntity;
 use Minds\Core\OAuth\Repositories\AccessTokenRepository;
 use Minds\Core\OAuth\Repositories\ClientRepository;
 use Minds\Core\OAuth\Repositories\RefreshTokenRepository;
+use Minds\Core\Security\Password\RateLimits;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
@@ -41,6 +43,9 @@ class Controller
 
     /** @var EventsDelegates */
     protected $eventsDelegate;
+
+    /** @var RateLimits */
+    protected $passwordRateLimits;
 
     public function __construct(
         Config $config = null,
@@ -131,7 +136,7 @@ class Controller
             $body['status'] = 'success';
             $response = new JsonResponse($body);
         } catch (OAuthServerException $e) {
-            \Sentry\captureException($e);
+            // \Sentry\captureException($e);
             $response = $e->generateHttpResponse($response);
         } catch (\Exception $exception) {
             $body = [
@@ -140,7 +145,7 @@ class Controller
                 'message' => $exception->getMessage(),
                 'errorId' => str_replace('\\', '::', get_class($exception)),
             ];
-            $response = new JsonResponse($body);
+            $response = new JsonResponse($body, $exception->getCode());
         }
 
         return $response;
@@ -175,7 +180,7 @@ class Controller
             
             $response = new JsonResponse([]);
         } catch (\Exception $e) {
-            \Sentry\captureException($e); // Log to sentry
+            // \Sentry\captureException($e); // Log to sentry
             throw new UserErrorException($e->getMessage(), 500);
         }
 

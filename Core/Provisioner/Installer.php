@@ -248,7 +248,6 @@ class Installer
 
     public function reloadStorage()
     {
-        Core\Data\Pool::$pools = [];
     }
 
     public function setupSite($site = null)

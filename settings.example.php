@@ -7,7 +7,7 @@ $CONFIG->minds_debug = true;
 /*
  * Cassandra configuration
  */
-$CONFIG->cassandra = (object) [
+$CONFIG->cassandra = [
     'keyspace' => '{{cassandra-keyspace}}',
     'servers' => ['{{cassandra-server}}'],
     'cql_servers' => ['{{cassandra-server}}'],
@@ -730,4 +730,8 @@ $CONFIG->SET('zendesk', [
         'base' => '',
         'jwt_route' => 'access/jwt'
     ]
+]);
+
+$CONFIG->set('statuspage_io', [
+    'url' => 'https://status.minds.com/'
 ]);

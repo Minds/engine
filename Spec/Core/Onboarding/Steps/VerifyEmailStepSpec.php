@@ -16,7 +16,7 @@ class VerifyEmailStepSpec extends ObjectBehavior
 
     public function it_should_check_if_completed(User $user)
     {
-        $user->isEmailConfirmed()
+        $user->isTrusted()
             ->willReturn(true);
 
         $this
@@ -26,7 +26,7 @@ class VerifyEmailStepSpec extends ObjectBehavior
 
     public function it_should_check_if_not_completed(User $user)
     {
-        $user->isEmailConfirmed()
+        $user->isTrusted()
             ->willReturn(false);
 
         $this

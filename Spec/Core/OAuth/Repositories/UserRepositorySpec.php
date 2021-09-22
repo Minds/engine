@@ -66,7 +66,7 @@ class UserRepositorySpec extends ObjectBehavior
 
         $_SERVER['HTTP_APP_VERSION'] = '4.10.0'; // temp requirement until build is widely available
 
-        $twoFactorManager->gatekeeper($this->mockUser, Argument::any())
+        $twoFactorManager->gatekeeper($this->mockUser, Argument::any(), enableEmail: false)
             ->shouldBeCalled();
 
         $userEntity = $this->getUserEntityByUserCredentials(

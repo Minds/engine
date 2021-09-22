@@ -19,12 +19,13 @@ $minds = new Minds\Core\Minds();
 $CONFIG = Minds\Core\Di\Di::_()->get('Config');
 $CONFIG->default_access = 2;
 $CONFIG->site_guid = 0;
-$CONFIG->cassandra = new stdClass;
-$CONFIG->cassandra->keyspace = 'phpspec';
-$CONFIG->cassandra->servers = ['127.0.0.1'];
-$CONFIG->cassandra->cql_servers = ['127.0.0.1'];
-$CONFIG->cassandra->username = 'cassandra';
-$CONFIG->cassandra->password = 'cassandra';
+$CONFIG->cassandra = [
+    'keyspace' => 'phpspec',
+    'servers' => ['127.0.0.1'],
+    'cql_servers' => ['127.0.0.1'],
+    'username' => 'cassandra',
+    'password' => 'cassandra',
+];
 
 $CONFIG->elasticsearch = [
     'hosts' => [ 'phpspec:9200' ],
@@ -59,6 +60,12 @@ $CONFIG->snowplow = [
 $CONFIG->sessions = [
     'public_key' => '/.dev/minds.pub',
     'private_key' => '/.dev/minds.pem',
+];
+
+
+$CONFIG->redis = [
+    'master' => 'phpspec',
+    'slave' => 'phpspec'
 ];
 
 $minds->loadLegacy();

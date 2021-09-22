@@ -34,11 +34,11 @@ class PasswordSpec extends ObjectBehavior
 
     public function it_should_notice_to_rehash_password()
     {
-        $check = new \stdClass();
+        $check = new User();
         $check->shouldMigrate = true;
         $check->matches = true;
 
-        $user = new \stdClass();
+        $user = new User();
         $user->salt = (string)$this->getWrappedObject()->salt();
         $user->password = '';
 
@@ -57,12 +57,15 @@ class PasswordSpec extends ObjectBehavior
         $check = new \stdClass();
         $check->shouldMigrate = false;
         $check->matches = true;
+
+        $user->getGuid()->willReturn('123');
         $user->get('password')->willReturn($this::generate($user, "foobar"));
         $this::check($user, "foobar")->shouldBeLike($check);
     }
 
     public function it_should_check_a_password_is_incorrect(User $user)
     {
+        $user->getGuid()->willReturn('123');
         $user->get('password')->willReturn($this::generate($user, "foobar"));
         // although salt is not needed for newer passwords, check method will use it for retro-compatibility it if the password was generated via sha256 or md5
         $user->get('salt')->willReturn("");

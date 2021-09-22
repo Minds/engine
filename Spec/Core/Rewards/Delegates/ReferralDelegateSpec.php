@@ -38,34 +38,34 @@ class ReferralDelegateSpec extends ObjectBehavior
         $this->shouldHaveType(ReferralDelegate::class);
     }
 
-    public function it_should_tell_manager_to_update_referral()
-    {
-        $user = new User();
-        $user->referrer = 123;
-        $user->guid = 456;
+    // public function it_should_tell_manager_to_update_referral()
+    // {
+    //     $user = new User();
+    //     $user->referrer = 123;
+    //     $user->guid = 456;
 
-        $referral = new Referral;
-        $referral->setReferrerGuid($user->referrer)
-            ->shouldBeCalled();
+    //     $referral = new Referral;
+    //     $referral->setReferrerGuid($user->referrer)
+    //         ->shouldBeCalled();
 
-        $referral->setProspectGuid($user->guid)
-            ->shouldBeCalled();
+    //     $referral->setProspectGuid($user->guid)
+    //         ->shouldBeCalled();
 
-        $referral->setJoinTimestamp(time())
-            ->shouldBeCalled();
+    //     $referral->setJoinTimestamp(time())
+    //         ->shouldBeCalled();
 
-        $this->manager->update($referral)
-            ->shouldBeCalled();
+    //     $this->manager->update($referral)
+    //         ->shouldBeCalled();
 
-        $this->contributionsManager->add(Argument::that(function ($contribution) {
-            return $contribution->getMetric() === 'referrals_welcome'
-                && $contribution->getScore() === 1
-                && $contribution->getAmount() === 1
-                && $contribution->getUser()->guid === 456
-                && $contribution->getTimestamp() === strtotime('midnight') * 1000;
-        }))
-            ->willReturn(true);
+    //     $this->contributionsManager->add(Argument::that(function ($contribution) {
+    //         return $contribution->getMetric() === 'referrals_welcome'
+    //             && $contribution->getScore() === 1
+    //             && $contribution->getAmount() === 1
+    //             && $contribution->getUser()->guid === 456
+    //             && $contribution->getTimestamp() === strtotime('midnight') * 1000;
+    //     }))
+    //         ->willReturn(true);
 
-        $this->onReferral($user);
-    }
+    //     $this->onReferral($user);
+    // }
 }

@@ -23,6 +23,7 @@ use Minds\Helpers;
  * @property int $time_sent
  * @property array $nsfw
  * @property string $permaweb_id
+ * @property int $rating
  */
 
 class Image extends File

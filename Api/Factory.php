@@ -202,7 +202,7 @@ class Factory
         })) > 0;
 
         if (!$wasSet) {
-            header("Access-Control-Allow-Origin: *");
+            header("Access-Control-Allow-Origin: " . $_SERVER['HTTP_HOST']);
         }
     }
 

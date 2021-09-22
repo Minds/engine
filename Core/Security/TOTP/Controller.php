@@ -117,7 +117,7 @@ class Controller
     {
         $body = $request->getParsedBody();
 
-        $username = $body['username'] ?? null;
+        $username = mb_strtolower($body['username']) ?? null;
         $password = $body['password'] ?? null;
         $recoveryCode = $body['recovery_code'] ?? null;
 

@@ -26,8 +26,8 @@ class Push implements Interfaces\QueueRunner
                    $keyspace = $data['keyspace'];
 
                    //for multisite support.
-                   global $CONFIG;
-                   $CONFIG->cassandra->keyspace = $keyspace;
+                   //    global $CONFIG;
+                   //    $CONFIG->cassandra->keyspace = $keyspace;
 
                    $config = Di::_()->get('Config');
                    $googleConfig = $config->get('google');
