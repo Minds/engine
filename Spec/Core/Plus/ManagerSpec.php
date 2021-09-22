@@ -164,7 +164,7 @@ class ManagerSpec extends ObjectBehavior
                                             ]
                                         ],
                                         [
-                                            'key' => 'comment',
+                                            'key' => 'vote:down',
                                             'unique_user_actions' => [
                                                 'value' => 10,
                                             ]
@@ -184,7 +184,7 @@ class ManagerSpec extends ObjectBehavior
                                             ]
                                         ],
                                         [
-                                            'key' => 'remind',
+                                            'key' => 'vote_down',
                                             'unique_user_actions' => [
                                                 'value' => 5,
                                             ]
@@ -200,18 +200,18 @@ class ManagerSpec extends ObjectBehavior
         $response = $this->getScores($asOfTs);
         $response->current()->shouldBe([
             'user_guid' => "123",
-            'total' => 100,
-            'count' => 75,
-            'sharePct' => 0.75
+            'total' => 50,
+            'count' => 45,
+            'sharePct' => 0.9
         ]);
 
         //
         $response->next();
         $response->current()->shouldBe([
             'user_guid' => "456",
-            'total' => 100,
-            'count' => 25,
-            'sharePct' => 0.25
+            'total' => 50,
+            'count' => 5,
+            'sharePct' => 0.1
         ]);
     }
 }

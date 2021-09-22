@@ -20,11 +20,12 @@ class Manager
     private $onlyPlus = false;
 
     private $actions = [
-        'subscribers' => 'subscribe',
-        'comments' => 'comment',
-        'reminds' => 'remind',
+        //'subscribers' => 'subscribe',
+        //'comments' => 'comment',
+        //'reminds' => 'remind',
         'votes' => 'vote:up',
-        'referrals' => 'referral',
+        'downvotes' => 'vote:down',
+        //'referrals' => 'referral',
     ];
 
     public function __construct($client = null)

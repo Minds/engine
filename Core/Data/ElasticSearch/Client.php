@@ -27,11 +27,17 @@ class Client implements Interfaces\ClientInterface
         $esConfig = $config->get('elasticsearch');
         $hosts = $esConfig['hosts'];
      
-        $this->elasticsearch = Elasticsearch\ClientBuilder::create()
+        $builder = Elasticsearch\ClientBuilder::create()
             ->setHosts($hosts)
             ->setBasicAuthentication($esConfig['username'] ?? '', $esConfig['password'] ?? '')
-            ->setSSLVerification($esConfig['cert'] ?? false)
-            ->build();
+            ->setSSLVerification($esConfig['cert'] ?? false);
+
+        // If cli, ping first
+        if (php_sapi_name() === 'cli') {
+            $builder->setConnectionPool('\Elasticsearch\ConnectionPool\StaticConnectionPool', []);
+        }
+
+        $this->elasticsearch = $builder->build();
     }
 
     /**

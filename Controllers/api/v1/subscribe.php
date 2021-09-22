@@ -79,24 +79,6 @@ class subscribe implements Interfaces\Api
     {
         Factory::isLoggedIn();
 
-        if ($pages[0] === 'batch') {
-            $guids = $_POST['guids'];
-
-            //temp: captcha tests
-            if (Core\Session::getLoggedInUser()->captcha_failed) {
-                return Factory::response(['status' => 'error']);
-            }
-
-            Queue\Client::build()
-              ->setQueue('SubscriptionDispatcher')
-              ->send([
-                  'currentUser' => Core\Session::getLoggedInUser()->guid,
-                  'guids' => $guids
-              ]);
-
-            return Factory::response(['status' => 'success']);
-        }
-
         $publisher = Entities\Factory::build($pages[0]);
 
         $canSubscribe = Security\ACL::_()->interact($publisher, Core\Session::getLoggedinUser(), 'subscribe');
