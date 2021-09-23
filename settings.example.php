@@ -519,6 +519,11 @@ $CONFIG->set('development_mode', '{{development_mode}}');
 // load discovery content irrespective of activity levels.
 $CONFIG->set('discovery_development_mode', true);
 
+// default tags for discovery.
+$CONFIG->set('discovery_default_tags', [
+    'art', 'music', 'blockchain', 'nature', 'bitcoin', 'technology', 'food', 'animals'
+]);
+
 $CONFIG->set('max_video_length', 900);
 
 $CONFIG->set('max_video_length_plus', 1860);
