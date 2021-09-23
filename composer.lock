@@ -2493,10 +2493,10 @@
             "source": {
                 "type": "git",
                 "url": "https://0544aedfc74db62dcd39301588cd672b2b91e060@github.com/minds/mw3.git",
-                "reference": "7d7b0893fbb907cc874c3c2ba2dd59e60948bfce"
+                "reference": "6e043c5940f056f9ca643be8ddebbb7f5a595456"
             },
             "require": {
-                "composer-plugin-api": "^1.0"
+                "composer-plugin-api": "^2.0"
             },
             "require-dev": {
                 "phpspec/phpspec": "~2.0"
@@ -2512,7 +2512,7 @@
                 }
             },
             "description": "Minds PHP Web3",
-            "time": "2020-12-08T11:35:00+00:00"
+            "time": "2021-09-17T18:05:28+00:00"
         },
         {
             "name": "minds/oauth2-openid-connect-server",

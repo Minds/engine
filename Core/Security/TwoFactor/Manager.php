@@ -20,14 +20,19 @@ class Manager
     /** @var Delegates\TOTPDelegate */
     protected $totpDelegate;
 
+    /** @var Delegates\EmailDelegate */
+    protected $emailDelegate;
+
     public function __construct(
         TOTP\Manager $totpManager = null,
         Delegates\SMSDelegate $smsDelegate = null,
-        Delegates\TOTPDelegate $totpDelegate = null
+        Delegates\TOTPDelegate $totpDelegate = null,
+        Delegates\EmailDelegate $emailDelegate = null
     ) {
         $this->totpManager = $totpManager ?? Di::_()->get('Security\TOTP\Manager');
         $this->smsDelegate = $smsDelegate ?? new Delegates\SMSDelegate();
         $this->totpDelegate = $totpDelegate ?? new Delegates\TOTPDelegate();
+        $this->emailDelegate = $emailDelegate ?? new Delegates\EmailDelegate();
     }
 
     /**
@@ -52,11 +57,12 @@ class Manager
      * Gatekeeper for two factor. Authenticators should call this in a delegator pattern
      * @param User $user
      * @param ServerRequest $request
+     * @param bool $enableEmail - defaults to true. Disable to bypass email 2fa
      */
-    public function gatekeeper(User $user, ServerRequest $request): void
+    public function gatekeeper(User $user, ServerRequest $request, $enableEmail = true): void
     {
         // First of all, do we evern need 2fa?
-        if (!$this->isTwoFactorEnabled($user)) {
+        if (!$this->isTwoFactorEnabled($user) && !$enableEmail) {
             return; // No two factor is setup, so we can allow
         }
 
@@ -85,6 +91,8 @@ class Manager
         if ($user->getTwoFactor()) {
             $this->smsDelegate->onRequireTwoFactor($user);
         }
+
+        $this->emailDelegate->onRequireTwoFactor($user);
     }
 
     /**
@@ -104,5 +112,7 @@ class Manager
             $this->smsDelegate->onAuthenticateTwoFactor($user, $code);
             return;
         }
+
+        $this->emailDelegate->onAuthenticateTwoFactor($user, $code);
     }
 }

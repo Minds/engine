@@ -62,7 +62,7 @@ class UserRepository implements UserRepositoryInterface
             return false;
         }
 
-        $this->twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
+        $this->twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals(), enableEmail: false);
 
         $entity = new UserEntity();
         $entity->setIdentifier($user->getGuid());
