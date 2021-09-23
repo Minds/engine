@@ -110,7 +110,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         try {
             $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
-            $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
+            $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals(), enableEmail: false);
         } catch (\Exception $e) {
             header('HTTP/1.1 ' . $e->getCode(), true, $e->getCode());
             $response['status'] = "error";

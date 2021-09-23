@@ -17,6 +17,7 @@ use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Rewards\Withdraw;
 use Minds\Core\Rewards\Join;
+use Zend\Diactoros\ServerRequestFactory;
 
 class transactions implements Interfaces\Api
 {
@@ -122,6 +123,18 @@ class transactions implements Interfaces\Api
                 $response['canWithdraw'] = $manager->check(Session::getLoggedinUser()->guid);
                 break;
             case "withdraw":
+                try {
+                    $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
+                    $twoFactorManager->gatekeeper(Session::getLoggedInUser(), ServerRequestFactory::fromGlobals());
+                } catch (\Exception $e) {
+                    header('HTTP/1.1 ' . $e->getCode(), true, $e->getCode());
+                    $response['status'] = "error";
+                    $response['code'] = $e->getCode();
+                    $response['message'] = $e->getMessage();
+                    $response['errorId'] = str_replace('\\', '::', get_class($e));
+                    return Factory::response($response);
+                }
+        
                 $request = new Withdraw\Request();
                 $request
                     ->setUserGuid(Session::getLoggedInUser()->guid)
@@ -141,38 +154,38 @@ class transactions implements Interfaces\Api
                     $response = ['status' => 'error', 'message' => $e->getMessage()];
                 }
                 break;
-            case 'spend':
-                if (!$_POST['type']) {
-                    return Factory::response([
-                        'status' => 'error',
-                        'message' => 'Type is required'
-                    ]);
-                }
+            // case 'spend':
+            //     if (!$_POST['type']) {
+            //         return Factory::response([
+            //             'status' => 'error',
+            //             'message' => 'Type is required'
+            //         ]);
+            //     }
 
-                $amount = BigNumber::_($_POST['amount']);
+            //     $amount = BigNumber::_($_POST['amount']);
 
-                if ($amount->lte(0)) {
-                    return Factory::response([
-                        'status' => 'error',
-                        'message' => 'Amount should be a positive number'
-                    ]);
-                }
+            //     if ($amount->lte(0)) {
+            //         return Factory::response([
+            //             'status' => 'error',
+            //             'message' => 'Amount should be a positive number'
+            //         ]);
+            //     }
 
-                /** @var Core\Blockchain\Wallets\OffChain\Transactions $transactions */
-                $transactions = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
+            //     /** @var Core\Blockchain\Wallets\OffChain\Transactions $transactions */
+            //     $transactions = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
 
-                $transactions
-                    ->setUser(Session::getLoggedinUser())
-                    ->setType($_POST['type'])
-                    ->setAmount((string) BigNumber::_($amount)->neg());
+            //     $transactions
+            //         ->setUser(Session::getLoggedinUser())
+            //         ->setType($_POST['type'])
+            //         ->setAmount((string) BigNumber::_($amount)->neg());
 
-                $transaction = $transactions->create();
+            //     $transaction = $transactions->create();
 
-                $response = [
-                    'txHash' => $transaction->getTx()
-                ];
+            //     $response = [
+            //         'txHash' => $transaction->getTx()
+            //     ];
 
-                break;
+            //     break;
         }
 
         return Factory::response($response);
