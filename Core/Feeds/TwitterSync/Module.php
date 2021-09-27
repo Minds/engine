@@ -1,26 +1,22 @@
 <?php
 /**
  * Module
- * @author edgebal
+ * @author mark
  */
 
-namespace Minds\Core\Feeds;
+namespace Minds\Core\Feeds\TwitterSync;
 
 use Minds\Interfaces\ModuleInterface;
 
 class Module implements ModuleInterface
 {
-    public $submodules = [
-        TwitterSync\Module::class,
-    ];
-
     /**
      * Executed onInit
      * @return void
      */
     public function onInit(): void
     {
-        (new FeedsProvider())->register();
+        (new Provider())->register();
         (new Routes())->register();
     }
 }
