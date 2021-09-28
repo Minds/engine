@@ -7,6 +7,7 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\TwitterSync\Manager;
 use Minds\Core\Feeds\TwitterSync\Client;
+use Minds\Core\Feeds\TwitterSync\Delegates\ChannelLinksDelegate;
 use Minds\Core\Feeds\TwitterSync\Repository;
 use PhpSpec\ObjectBehavior;
 
@@ -17,9 +18,10 @@ class ManagerSpec extends ObjectBehavior
         Repository $repository,
         Config $config,
         EntitiesBuilder $entitiesBuilder,
-        Save $save
+        Save $save,
+        ChannelLinksDelegate $channelLinksDelegate
     ) {
-        $this->beConstructedWith($client, $repository, $config, $entitiesBuilder, $save);
+        $this->beConstructedWith($client, $repository, $config, $entitiesBuilder, $save, $channelLinksDelegate);
     }
 
     public function it_is_initializable()
