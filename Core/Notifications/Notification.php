@@ -153,7 +153,7 @@ class Notification
     }
 
     /**
-     * Return a hydrated 'from' user
+     * Return a hydrated entity
      * @return User
      */
     public function getEntity()

@@ -3,6 +3,7 @@ namespace Minds\Core\Notifications;
 
 use Minds\Entities\User;
 use Minds\Core;
+use Minds\Core\Notification;
 use Minds\Api\Exportable;
 use Minds\Exceptions\UserErrorException;
 use Minds\Core\Notifications\Manager;
@@ -143,7 +144,10 @@ class Controller
         }
 
         $exportedList = array_values(array_filter(Exportable::_($notifications)->export(), function ($notification) {
-            if (!isset($notification['entity'])) {
+            $wireType = $notification['type'] === NotificationTypes::TYPE_WIRE_RECEIVED || $notification['type'] === NotificationTypes::TYPE_WIRE_PAYOUT;
+
+            // Wire entities aren't getting properly hydrated
+            if (!isset($notification['entity']) && !$wireType) {
                 return false; // TODO: Delete this notification as the entity is invalid
             }
             if (!isset($notification['from'])) {
