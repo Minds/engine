@@ -173,6 +173,10 @@ class Manager
     public function syncTweets(): iterable
     {
         foreach ($this->repository->getList() as $connectedAccount) {
+            if ($connectedAccount->getTwitterUser()->getFollowersCount() < ($this->config->get('twitter')['min_followers_for_sync'] ?? 25000)) {
+                continue; // Too few followers
+            }
+
             $i = 0;
             $recentTweets = $this->getLatestTweets($connectedAccount);
             foreach ($recentTweets as $recentTweet) {
