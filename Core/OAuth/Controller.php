@@ -16,6 +16,8 @@ use Minds\Core\Security\Password\RateLimits;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
+use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
+use Minds\Core\Notifications\Push\DeviceSubscriptions\Manager as DeviceSubscriptionManager;
 
 /**
  * OAuth Controller
@@ -47,6 +49,12 @@ class Controller
     /** @var RateLimits */
     protected $passwordRateLimits;
 
+    /** @var DeviceSubscription */
+    protected $deviceSubscription;
+
+    /** @var DeviceSubscriptionManager */
+    protected $deviceSubscriptionManager;
+
     public function __construct(
         Config $config = null,
         AuthorizationServer $authorizationServer = null,
@@ -54,7 +62,9 @@ class Controller
         RefreshTokenRepository $refreshTokenRepository = null,
         ClientRepository $clientRepository = null,
         NonceHelper $nonceHelper = null,
-        EventsDelegate $eventsDelegate = null
+        EventsDelegate $eventsDelegate = null,
+        DeviceSubscription $deviceSubscription = null,
+        DeviceSubscriptionManager $deviceSubscriptionManager = null,
     ) {
         $this->config = $config ?? Di::_()->get('Config');
         $this->authorizationServer = $authorizationServer ?? Di::_()->get('OAuth\Server\Authorization');
@@ -63,6 +73,8 @@ class Controller
         $this->clientRepository = $clientRepository ?? Di::_()->get('OAuth\Repositories\Client');
         $this->nonceHelper = $nonceHelper ?? Di::_()->get('OAuth\NonceHelper');
         $this->eventsDelegate = $eventsDelegate ?? new EventsDelegate;
+        $this->deviceSubscription = $deviceSubscription ?? new DeviceSubscription;
+        $this->deviceSubscriptionManager = $deviceSubscriptionManager ?? new DeviceSubscriptionManager;
     }
 
     /**
@@ -163,6 +175,11 @@ class Controller
             /** @var string */
             $tokenId = $request->getAttribute('oauth_access_token_id');
 
+            /** @var string */
+            $deviceToken = $request->getAttribute('parameters')['deviceToken'] ?? null;
+
+            $user = $request->getAttribute('_user');
+
             $this->accessTokenRepository->revokeAccessToken($tokenId);
 
             $refreshToken = $this->refreshTokenRepository->getRefreshTokenFromAccessTokenId($tokenId);
@@ -170,9 +187,12 @@ class Controller
                 $this->refreshTokenRepository->revokeRefreshToken($refreshToken->getIdentifier());
             }
 
-            // remove surge token for push notifications.
-            $user = $request->getAttribute('_user');
-            $user->setSurgeToken('');
+            if ($deviceToken) {
+                $this->deviceSubscription->setUserGuid($user->getGuid())
+                ->setToken($deviceToken);
+    
+                $this->deviceSubscriptionManager->delete($this->deviceSubscription);
+            }
             
             $save = new Save();
             $save->setEntity($user)
