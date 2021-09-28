@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Feeds\TwitterSync;
 
+use Cassandra\Timestamp;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Feeds\TwitterSync\ConnectedAccount;
 use Minds\Core\Feeds\TwitterSync\Repository;
@@ -38,7 +39,8 @@ class RepositorySpec extends ObjectBehavior
                     'twitter_username' => 'mark',
                     'twitter_followers_count' => 10,
                     'last_imported_tweet_id' => '',
-                    'discoverable' => true
+                    'discoverable' => true,
+                    'connected_timestamp' => new Timestamp(time(), 0),
                 ]
             ], ''));
         $connectedAccount = $this->get("123");

@@ -4,7 +4,9 @@ namespace Minds\Core\Feeds\TwitterSync;
 use Minds\Traits\MagicAttributes;
 
 /**
- * @method self setTwitterUser(TwktterUser $twitterUser)
+ * @method self setId(string $id)
+ * @method string getId()
+ * @method self setTwitterUser(TwitterUser $twitterUser)
  * @method TwitterUser getTwitterUser()
  * @method self setText(string $text)
  * @method string getText()
