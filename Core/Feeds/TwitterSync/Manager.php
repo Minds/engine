@@ -7,6 +7,7 @@ use Minds\Controllers\api\v2\admin\pro;
 use Minds\Core\Config\Config;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Feeds\TwitterSync\Delegates\ChannelLinksDelegate;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
@@ -20,7 +21,8 @@ class Manager
         protected Repository $repository,
         protected Config $config,
         protected EntitiesBuilder $entitiesBuilder,
-        protected Save $saveAction
+        protected Save $saveAction,
+        protected ChannelLinksDelegate $channelLinksDelegate,
     ) {
     }
 
@@ -75,6 +77,8 @@ class Manager
         }
 
         $connectedAccount->setConnectedTimestampSeconds(time());
+
+        $this->channelLinksDelegate->onConnect($connectedAccount);
 
         return $this->repository->add($connectedAccount);
     }
