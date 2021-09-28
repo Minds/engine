@@ -26,6 +26,14 @@ class BlockchainProvider extends Provider
             return new Token($di->get('Blockchain\Manager'));
         });
 
+        $this->di->bind('Blockchain\Token', function ($di) {
+            return new Token($di->get('Blockchain\Manager'));
+        });
+
+        $this->di->bind('Blockchain\SkaleToken', function ($di) {
+            return new SkaleToken();
+        });
+
         $this->di->bind('Blockchain\TokenDistributionEvent', function ($di) {
             return new TokenDistributionEvent();
         });
@@ -44,6 +52,10 @@ class BlockchainProvider extends Provider
 
         $this->di->bind('Blockchain\Services\Ethereum', function () {
             return new Services\Ethereum();
+        }, [ 'useFactory' => true ]);
+
+        $this->di->bind('Blockchain\Services\Skale', function () {
+            return new Services\Skale();
         }, [ 'useFactory' => true ]);
 
         $this->di->bind('Blockchain\Services\BlockFinder', function () {
@@ -108,6 +120,10 @@ class BlockchainProvider extends Provider
 
         $this->di->bind('Blockchain\Wallets\Ether\Balance', function () {
             return new Wallets\Ether\Balance();
+        });
+
+        $this->di->bind('Blockchain\Wallets\skMINDS\Balance', function () {
+            return new Wallets\skMINDS\Balance();
         });
 
         $this->di->bind('Blockchain\Uniswap\Client', function () {

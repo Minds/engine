@@ -54,9 +54,22 @@ class wallet implements Interfaces\Api
                 $etherBalance = Di::_()->get('Blockchain\Wallets\Ether\Balance');
                 $etherBalance->setUser($user);
                 $etherBalanceVal = $etherBalance->get();
-                
+
+                $skMINDSBalance = Di::_()->get('Blockchain\Wallets\skMINDS\Balance');
+                $skMINDSBalance->setUser($user);
+                $skMINDSBalanceVal = $skMINDSBalance->get();
+
+                $balance = $offChainBalanceVal;
+                if ($onChainBalanceVal) {
+                    $balance = $offChainBalanceVal->add($onChainBalanceVal);
+                }
+
+                if ($skMINDSBalanceVal) {
+                    $balance = $balance->add($skMINDSBalanceVal);
+                }
+
                 $balance = $onChainBalanceVal
-                    ? $onChainBalanceVal->add($offChainBalanceVal)
+                    ? $onChainBalanceVal->add($offChainBalanceVal)->add($skMINDSBalanceVal)
                     : $offChainBalanceVal;
 
                 $wireCap = Di::_()->get('Blockchain\Wallets\OffChain\Cap')
@@ -82,6 +95,11 @@ class wallet implements Interfaces\Api
                             'label' => 'OffChain',
                             'balance' => (string) $offChainBalanceVal,
                             'available' => (string) $offchainAvailableVal,
+                        ],
+                        [
+                            'address' => $user->getEthWallet(),
+                            'label' => 'skMINDS',
+                            'balance' => (string) $skMINDSBalanceVal,
                         ]
                     ],
                     'balance' => (string) $balance,
