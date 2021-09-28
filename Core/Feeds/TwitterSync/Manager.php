@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Feeds\TwitterSync;
 
+use DateTime;
 use GuzzleHttp\Exception\ClientException;
 use Minds\Controllers\api\v2\admin\pro;
 use Minds\Core\Config\Config;
@@ -52,24 +53,27 @@ class Manager
             // Get their latest tweets, does it mention minds.com/:username
             $verificationString = strtolower($this->config->get('site_url') . $user->getUsername());
 
-            // False by default, if there is a match below we set to true
-            $verified = false;
+            // null by default, if there is a match below we set to the id that matched
+            // must be within 5 minute window and one of their recent 5 tweets
+            $verifiedTweetId = null;
 
-            $latestTweets = $this->getLatestTweets($connectedAccount);
+            $latestTweets = $this->getLatestTweets($connectedAccount, limit: 5, gteTimestamp: time() - 300);
             foreach ($latestTweets as $tweet) {
                 if (array_filter($tweet->getUrls(), function ($tweetUrl) use ($verificationString) {
                     return strtolower($tweetUrl) === $verificationString;
                 })) {
-                    $verified = true;
+                    $verifiedTweetId = $tweet->getId();
                     break; // Success!
                 }
             }
 
-            if (!$verified) {
+            if (!$verifiedTweetId) {
                 throw new UserErrorException("Could not find verification tweet");
             }
         }
 
+        $connectedAccount->setLastImportedTweetId($verifiedTweetId)
+            ->setConnectedTimestampSeconds(time());
 
         return $this->repository->add($connectedAccount);
     }
@@ -103,7 +107,7 @@ class Manager
      * @param int $limit - defaults to 24
      * @return iterable<TwitterTweet>
      */
-    public function getLatestTweets(ConnectedAccount $connectedAccount, int $limit = 24): iterable
+    public function getLatestTweets(ConnectedAccount $connectedAccount, int $limit = 24, int $gteTimestamp = null): iterable
     {
         $queryParams = [
             'tweet.fields' => implode(',', [
@@ -122,6 +126,10 @@ class Manager
 
         if ($lastImpotedTweetId = $connectedAccount->getLastImportedTweetId()) {
             $queryParams['since_id'] = $lastImpotedTweetId;
+        }
+
+        if ($gteTimestamp) {
+            $queryParams['start_time'] = date('c', $gteTimestamp);
         }
 
         $response = $this->client->request('GET', "2/users/{$connectedAccount->getTwitterUser()->getUserId()}/tweets?" . http_build_query($queryParams));

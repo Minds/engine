@@ -13,6 +13,8 @@ use Minds\Traits\MagicAttributes;
  * @method string getLastImportedTweetId()
  * @method self setDiscoverable(bool $discoverable)
  * @method bool isDiscoverable()
+ * @method self setConnectedTimestampSeconds(int $seconds)
+ * @method int getConnectedTimestampSeconds()
  */
 class ConnectedAccount implements ExportableInterface
 {
@@ -29,6 +31,9 @@ class ConnectedAccount implements ExportableInterface
 
     /** @var bool */
     protected $discoverable = true;
+
+    /** @var int */
+    protected $connectedTimestampSeconds;
 
     /**
      * @return array
