@@ -203,4 +203,11 @@ class ManagerSpec extends ObjectBehavior
 
         $this->runGarbageCollection();
     }
+
+    public function it_should_garbage_collect_a_single_withdrawal()
+    {
+        $request = new Request();
+        $this->withdrawManager->fail($request)->shouldBeCalled();
+        $this->runGarbageCollectionSingle($request);
+    }
 }

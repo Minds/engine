@@ -87,4 +87,22 @@ class ControllerSpec extends ObjectBehavior
         $this->manager->runGarbageCollection()->shouldBeCalled();
         $this->runGarbageCollection();
     }
+
+    public function it_should_call_to_garbage_collect_a_single_withdrawal(
+        ServerRequest $request
+    ) {
+        $userGuid = '123';
+        $timestamp = '1529380737';
+        $requestTxid = '0x000000000000000000';
+
+        $request->getParsedBody()->shouldBeCalled()->willReturn([
+            'user_guid' => $userGuid,
+            'timestamp' => $timestamp,
+            'request_txid' => $requestTxid,
+        ]);
+
+        $this->manager->get(Argument::any())->shouldBeCalled();
+        $this->manager->runGarbageCollectionSingle(Argument::any())->shouldBeCalled();
+        $this->runGarbageCollectionSingle($request);
+    }
 }

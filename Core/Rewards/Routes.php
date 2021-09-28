@@ -59,6 +59,10 @@ class Routes extends ModuleRoutes
                     'gc',
                     Ref::_('Rewards\Withdraw\Admin\Controller', 'runGarbageCollection')
                 );
+                $route->post(
+                    'gc-single',
+                    Ref::_('Rewards\Withdraw\Admin\Controller', 'runGarbageCollectionSingle')
+                );
             });
     }
 }
