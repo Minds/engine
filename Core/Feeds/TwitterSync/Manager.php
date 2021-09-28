@@ -70,10 +70,11 @@ class Manager
             if (!$verifiedTweetId) {
                 throw new UserErrorException("Could not find verification tweet");
             }
+
+            $connectedAccount->setLastImportedTweetId($verifiedTweetId);
         }
 
-        $connectedAccount->setLastImportedTweetId($verifiedTweetId)
-            ->setConnectedTimestampSeconds(time());
+        $connectedAccount->setConnectedTimestampSeconds(time());
 
         return $this->repository->add($connectedAccount);
     }
