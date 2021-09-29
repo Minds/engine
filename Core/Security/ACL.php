@@ -9,7 +9,6 @@ namespace Minds\Core\Security;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
-use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
@@ -26,9 +25,6 @@ class ACL
     private static $_;
     public static $ignore = false;
 
-    /** @var KeyValueLimiter $kvLimiter */
-    private $kvLimiter;
-
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
@@ -38,63 +34,8 @@ class ACL
     /** @var bool */
     private $normalizeEntities;
 
-    /** @var array */
-    const INTERACTION_THRESHOLDS = [
-        'subscribe' => [
-            [
-                'period' => 300, //5 minutes
-                'threshold' => 50, //50 per 5 minutes
-            ],
-            [
-                'period' => 3600, //1 hour
-                'threshold' => 200, //200 per 1 hour
-            ],
-            [
-                'period' => 86400, //1 day
-                'threshold' => 400, //400 per 1 day
-            ]
-        ],
-        'voteup' => [
-            [
-                'period' => 300, //5 minutes
-                'threshold' => 150, //150 per 5 minutes, 10 per minute
-            ],
-            [
-                'period' => 86400, //1 day
-                'threshold' => 1000,
-            ],
-        ],
-        'votedown' => [
-            [
-                'period' => 300, //5 minutes
-                'threshold' => 150, //150 per 5 minutes, 10 per minute
-            ],
-            [
-                'period' => 86400, //1 day
-                'threshold' => 5,
-            ],
-        ],
-        'comment' => [
-            [
-                'period' => 300, //5 minutes
-                'threshold' => 75, //150 per 5 minutes, 10 per minute
-            ],
-            [
-                'period' => 86400, //1 day
-                'threshold' => 500,
-            ]
-        ],
-        'remind' => [
-            [
-                'period' => 86400, //1 day
-                'threshold' => 500,
-            ]
-        ]
-    ];
-
-    public function __construct($kvLimiter = null, $entitiesBuilder = null, $logger = null, $config = null)
+    public function __construct($entitiesBuilder = null, $logger = null, $config = null)
     {
-        $this->kvLimiter = $kvLimiter ?? Di::_()->get('Security\RateLimits\KeyValueLimiter');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->logger = $logger ?? Di::_()->get('Logger');
         $config = $config ?? Di::_()->get('Config');
@@ -403,26 +344,6 @@ class ACL
          */
         if ($user->isAdmin()) {
             return true;
-        }
-
-        $rateLimited = false;
-        if ($interaction) {
-            foreach (self::INTERACTION_THRESHOLDS as $thresholdKey => $thresholds) {
-                if ($thresholdKey === $interaction) {
-                    try {
-                        $this->kvLimiter
-                            ->setKey("interaction:$interaction")
-                            ->setValue($user->getGuid())
-                            ->setThresholds($thresholds)
-                            ->control(); // Will throw exception
-                    } catch (RateLimitExceededException $e) {
-                        $rateLimited = true;
-                    }
-                }
-            }
-        }
-        if ($rateLimited) {
-            return false;
         }
 
         /**

@@ -3,31 +3,23 @@
 namespace Spec\Minds\Core\Security;
 
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 use Minds\Core;
 use Minds\Core\Config;
 use Minds\Entities\User;
 use Minds\Entities\Entity;
-use Minds\Entities\MindsObject;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Activity;
 
 class ACLSpec extends ObjectBehavior
 {
-    /** @var Core\Security\RateLimits\KeyValueLimiter */
-    private $kvLimiter;
-
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
-    public function let(Core\Security\RateLimits\KeyValueLimiter $kvLimiter, EntitiesBuilder $entitiesBuilder, Config $config)
+    public function let(EntitiesBuilder $entitiesBuilder, Config $config)
     {
-        $this->kvLimiter = $kvLimiter;
         $this->entitiesBuilder = $entitiesBuilder;
         $config->get('normalize_entities')
             ->willReturn(true);
-
-        $this->beConstructedWith($kvLimiter, $entitiesBuilder, null, $config);
     }
 
     public function mock_session($on = true)
@@ -192,8 +184,6 @@ class ACLSpec extends ObjectBehavior
     {
         $this->mock_session(true);
 
-        $this->kvLimiterMock();
-
         $this->interact($entity)->shouldReturn(true);
         $this->mock_session(false);
     }
@@ -201,8 +191,6 @@ class ACLSpec extends ObjectBehavior
     public function it_should_return_false_on_acl_interact_event(Entity $entity)
     {
         $this->mock_session(true);
-
-        $this->kvLimiterMock(true);
 
         Core\Events\Dispatcher::register('acl:interact', 'all', function ($event) {
             $event->setResponse(false);

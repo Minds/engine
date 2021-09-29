@@ -32,11 +32,6 @@ class Client
         return $this->redis->mget(...$args);
     }
 
-    public function keys(...$args)
-    {
-        return $this->redis->keys(...$args);
-    }
-
     public function set(...$args)
     {
         return $this->redis->set(...$args);

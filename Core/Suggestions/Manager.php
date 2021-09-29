@@ -9,6 +9,7 @@ use Minds\Core\Features;
 use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 use Minds\Core\Security\Block;
+use Minds\Core\Security\RateLimits\InteractionsLimiter;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
 
 class Manager
@@ -26,7 +27,7 @@ class Manager
     private $user;
 
     /** @var KeyValueLimiter */
-    private $kvLimiter;
+    private $interactionsLimiter;
 
     /** @var Features\Manager */
     private $features;
@@ -42,14 +43,14 @@ class Manager
         $entitiesBuilder = null,
         $suggestedFeedsManager = null,
         $subscriptionsManager = null,
-        $kvLimiter = null,
+        $interactionsLimiter = null,
         $features = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder();
         //$this->suggestedFeedsManager = $suggestedFeedsManager ?: Di::_()->get('Feeds\Suggested\Manager');
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Subscriptions\Manager');
-        $this->kvLimiter = $kvLimiter ?: new KeyValueLimiter();
+        $this->interactionsLimiter = $interactionsLimiter ?: new InteractionsLimiter();
         $this->features = $features ?? new Features\Manager();
         $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
     }
@@ -200,16 +201,12 @@ class Manager
      */
     private function isNearSubscriptionRateLimit()
     {
-        $attempts = $this->kvLimiter
-            ->setKey("interaction:subscribe")
-            ->setValue($this->user->getGuid())
-            ->setThresholds(ACL::INTERACTION_THRESHOLDS['subscribe'])
-            ->getRemainingAttempts();
+        $attempts = $this->interactionsLimiter->getRemainingAttempts($this->user->getGuid(), 'subscribe');
 
         $smallestRemainingAttempts = array_reduce(
             $attempts,
             function ($carry, $attempt) {
-                return min($attempt["remaining"] ?: INF, $carry);
+                return min($attempt->getRemaining() ?: INF, $carry);
             }
         );
 

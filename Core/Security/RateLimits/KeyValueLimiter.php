@@ -17,7 +17,7 @@ use Minds\Core\Logger;
  * @method KeyValueLimiter setValue(string $value)
  * @method KeyValueLimiter setMax(int $max)
  * @method KeyValueLimiter setSeconds(int $seconds)
- * @method KeyValueLimiter setThresholds(array $value)
+ * @method KeyValueLimiter setRateLimits(RateLimit[] $ratelimits)
  */
 class KeyValueLimiter
 {
@@ -50,8 +50,8 @@ class KeyValueLimiter
     /** @var Jwt */
     protected $jwt;
 
-    /** @var array */
-    private $thresholds = [];
+    /** @var RateLimit[] */
+    private $rateLimits;
 
     /**
      * @param RedisServer $redis
@@ -67,35 +67,88 @@ class KeyValueLimiter
     }
 
     /**
-     * Returns a consistent record key
+     * Returns a consistent record key based on a rateLimit
+     *
+     * @param RateLimit $rateLimit
      * @return string
      */
-    private function getRecordKey(): string
+    private function getRecordKey($rateLimit): string
     {
-        return "ratelimit:$this->key-$this->value" . $this->seconds ?? ":{$this->seconds}";
+        $resetPeriod = round(time() / $rateLimit->getSeconds());
+        return "ratelimit:{$rateLimit->getKey()}-$this->value:{$rateLimit->getSeconds()}:{$resetPeriod}";
     }
 
     /**
-     * Checks and increment the rate limit
-     * @return bool
+     * checks ratelimits and throws an exception if one was hit
+     *
+     * @throws RateLimitExceededException
+     * @return void
      */
-    public function checkAndIncrement(): bool
+    private function check()
     {
         if ($this->verifyBypass()) {
             return true;
         }
-        $recordKey = $this->getRecordKey();
-        $count = (int) $this->getRedis()->get($recordKey);
 
-        if ($count >= $this->max) {
-            $this->logger->warn("[RateLimit]: $recordKey was hit with $this->max");
-            throw new RateLimitExceededException();
+        $keys = array_map(fn ($rateLimit): string => $this->getRecordKey($rateLimit), $this->getRateLimits());
+        $counts = $this->getRedis()->mget($keys);
+
+        foreach ($this->getRateLimits() as $index => $rateLimit) {
+            $max = $rateLimit->getMax();
+            $count = (int) $counts[$index];
+
+            if ($count >= $max) {
+                $this->logger->warn("[RateLimit]: {$rateLimit->getKey()} was hit with $max");
+                throw new RateLimitExceededException();
+            }
+        }
+    }
+
+    /**
+     * checks ratelimits and throws an exception if one was hit
+     *
+     * @return RateLimit[] $rateLimits
+     */
+    private function getRemainingAttempts()
+    {
+        $keys = array_map(fn ($rateLimit): string => $this->getRecordKey($rateLimit), $this->getRateLimits());
+        $counts = $this->getRedis()->mget($keys);
+
+        $rateLimits = [];
+        foreach ($this->getRateLimits() as $index => $rateLimit) {
+            $rateLimit->setRemaining(min($rateLimit->getMax() - (int) $counts[$index], 0));
+
+            $rateLimits[] = $rateLimit;
         }
 
-        $this->getRedis()->multi()
-            ->incr($recordKey)
-            ->expire($recordKey, $this->seconds)
-            ->exec();
+        return $rateLimits;
+    }
+
+    /**
+     * increments count and resets expiry of rateLimits
+     *
+     * @return void
+     */
+    private function increment()
+    {
+        foreach ($this->getRateLimits() as $rateLimit) {
+            $recordKey = $this->getRecordKey($rateLimit);
+            $this->getRedis()->multi()
+                ->incr($recordKey)
+                ->expire($recordKey, $rateLimit->getSeconds())
+                ->exec();
+        }
+    }
+
+    /**
+     * Checks and increments the rate limit
+     *
+     * @return bool
+     */
+    public function checkAndIncrement(): bool
+    {
+        $this->check();
+        $this->increment();
 
         return true;
     }
@@ -123,103 +176,25 @@ class KeyValueLimiter
     }
 
     /**
-     * Controls rate limit. Can handle multiple thresholds and single thresholds.
+     * Returns rate limits. Supports legacy seconds and max
      *
-     * @param User $user
-     * @param string $interaction
-     * @return void
+     * @return RateLimit[]
      */
-    public function control()
+    private function getRateLimits()
     {
-        if ($this->verifyBypass()) {
-            return true;
+        $rateLimits = $this->rateLimits;
+
+        // legacy support
+        if ($this->max && $this->seconds) {
+            $rateLimit = new RateLimit();
+            $rateLimit->setSeconds($this->seconds);
+            $rateLimit->setMax($this->max);
+            $rateLimit->setKey($this->key);
+
+            $rateLimits[] = $rateLimit;
         }
 
-        if (count($this->thresholds) > 0) {
-            return $this->handleMultiThresholdRateLimit();
-        }
-
-        return $this->checkAndIncrement();
-    }
-
-    /**
-     * Control rate limit for interactions.
-     * This creates multiple redis records per rate limit period, per interaction, per user
-     *
-     * @return void
-     */
-    private function handleMultiThresholdRateLimit()
-    {
-        $limits = $this->getLimits();
-
-        // we check all rate limits first in order not to increment the count of a
-        // shorter period if we were already ratelimited in a longer period
-        foreach ($this->thresholds as $threshold) {
-            foreach ($limits as $limit) {
-                if ($threshold["period"] === $limit['period'] && ($limit['count'] >= $threshold["threshold"])) {
-                    $this->logger->warn("[RateLimit]: {$limit['key']} was hit with {$threshold["threshold"]}");
-                    throw new RateLimitExceededException();
-                }
-            }
-        }
-
-        foreach ($this->thresholds as $threshold) {
-            $recordKey = $this->getRecordKey() . ":{$threshold["period"]}";
-            $this->getRedis()->multi()
-                ->incr($recordKey)
-                ->expire($recordKey, $threshold["period"])
-                ->exec();
-        }
-    }
-
-    private function getLimits()
-    {
-        $recordKeys = $this->getRedis()->keys($this->getRecordKey() . ":*"); // e.g. interaction:comment:300
-        $counts = $this->getRedis()->mget($recordKeys); // e.g. interaction:comment:300
-
-        $arr = [];
-
-        foreach ($recordKeys as $index => $recordKey) {
-            $period = (int) array_reverse(explode(":", $recordKey))[0];
-            $count = (int) $counts[$index];
-
-            $arr[] = [
-                "key" => $recordKey,
-                "period" => $period,
-                "count" => $count,
-            ];
-        }
-
-        return $arr;
-    }
-
-    /**
-     * Returns the remaining number of attempts a user has
-     * @return array
-     */
-    public function getRemainingAttempts()
-    {
-        $limits = $this->getLimits();
-
-        $attemps = [];
-        // we check all rate limits first in order not to increment the count of a
-        // shorter period if we were already ratelimited in a longer period
-        foreach ($this->thresholds as $threshold) {
-            $count = 0;
-
-            foreach ($limits as $limit) {
-                if ($threshold['period'] === $limit['period']) {
-                    $count = $limit['count'];
-                }
-            }
-
-            $attemps[] = [
-                "period" => $threshold['period'],
-                "remaining" => min($threshold['threshold'] - $count, 0),
-            ];
-        };
-
-        return $attemps;
+        return $rateLimits;
     }
 
     /**
