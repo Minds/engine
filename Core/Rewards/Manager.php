@@ -326,7 +326,7 @@ class Manager
             if (in_array($rewardEntry->getRewardType(), [static::REWARD_TYPE_LIQUIDITY, static::REWARD_TYPE_HOLDING], false)) {
                 /** @var User */
                 $user = $this->entitiesBuilder->single($rewardEntry->getUserGuid());
-                if (!$this->uniqueOnChainManager->isUnique($user)) {
+                if ($user && !$this->uniqueOnChainManager->isUnique($user)) {
                     // do not issue payout
 
                     $rewardEntry->setScore(BigDecimal::of(0));
