@@ -167,6 +167,17 @@ class Manager
             $this->withdrawManager->fail($request);
         }
     }
+
+    /**
+     * Fails / garbage collects a single transaction.
+     * @param Request|null $request
+     * @return boolean
+     */
+    public function runGarbageCollectionSingle(Request $request = null): bool
+    {
+        return $this->withdrawManager->fail($request);
+    }
+
     /**
      * Builds a Transaction object from a Request object.
      * @param Request $request - Request object.
