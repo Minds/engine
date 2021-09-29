@@ -10,7 +10,8 @@ use Minds\Core\Suggestions\Repository;
 use Minds\Core\Subscriptions\Manager as SubscriptionsManager;
 use Minds\Core\Features;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Security\RateLimits\KeyValueLimiter;
+use Minds\Core\Security\RateLimits\InteractionsLimiter;
+use Minds\Core\Security\RateLimits\RateLimit;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -20,8 +21,8 @@ class ManagerSpec extends ObjectBehavior
     private $repository;
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
-    /** @var KeyValueLimiter */
-    private $kvLimiter;
+    /** @var InteractionsLimiter */
+    private $interactionsLimiter;
     /** @var SubscriptionsManager */
     private $subscriptionsManager;
 
@@ -29,18 +30,18 @@ class ManagerSpec extends ObjectBehavior
         Repository $repository,
         EntitiesBuilder $entitiesBuilder,
         SubscriptionsManager $subscriptionsManager,
-        KeyValueLimiter $kvLimiter,
+        InteractionsLimiter $interactionsLimiter,
         Features\Manager $features
     ) {
         $this->repository = $repository;
         $this->entitiesBuilder = $entitiesBuilder;
-        $this->kvLimiter = $kvLimiter;
+        $this->interactionsLimiter = $interactionsLimiter;
         $this->subscriptionsManager = $subscriptionsManager;
 
         $features->has('suggestions')
             ->willReturn(true);
 
-        $this->beConstructedWith($repository, $entitiesBuilder, null, $subscriptionsManager, $kvLimiter, $features);
+        $this->beConstructedWith($repository, $entitiesBuilder, null, $subscriptionsManager, $interactionsLimiter, $features);
     }
 
     public function it_is_initializable()
@@ -63,8 +64,6 @@ class ManagerSpec extends ObjectBehavior
         $this->subscriptionsManager->getSubscriptionsCount()
             ->willReturn(10);
 
-        // TODO handle kvLimiter
-        $this->kvLimiterMock();
 
         $this->repository->getList([
             'limit' => 24 * 3,
@@ -100,12 +99,6 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_shouldnt_return_a_list_of_suggested_users_if_close_too_close_to_the_rate_limit_threshold()
     {
-        // TODO handle kvLimiter
-        $this->kvLimiterMock([[
-            "period" => 300,
-            "remaining" => 5
-        ]]);
-
         $this->setUser((new User)->set('guid', 123));
 
         $newResponse = $this->getList(['limit' => 24]);
