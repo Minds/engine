@@ -29,8 +29,12 @@ class TwitterSync extends Cli\Controller implements Interfaces\CliControllerInte
         Core\Security\ACL::_()->setIgnore(true);
     
         $manager = Di::_()->get('Feeds\TwitterSync\Manager');
-        foreach ($manager->syncTweets() as $connectedAccount) {
-            $this->out('checking for ' . $connectedAccount->getUserGuid());
+
+        while (true) {
+            foreach ($manager->syncTweets() as $connectedAccount) {
+                $this->out('checking for ' . $connectedAccount->getUserGuid());
+            }
+            sleep(120); // Sleep for 2 mins
         }
     }
 
