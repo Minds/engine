@@ -264,6 +264,8 @@ $CONFIG->set('facebook', [
 $CONFIG->set('twitter', [
     'api_key' => '{{twitter-app-id}}',
     'api_secret' => '{{twitter-app-id}}',
+    'bearer_token' => '',
+    'min_followers_for_sync' => 25000,
 ]);
 
 $CONFIG->set('twilio', [

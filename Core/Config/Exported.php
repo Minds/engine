@@ -120,7 +120,10 @@ class Exported
             'experiments' => $this->experimentsManager
                 ->setUser(Session::getLoggedinUser())
                 ->getExportableExperiments(),
-            'experiments_id' => $this->experimentsManager->getUserId()
+            'experiments_id' => $this->experimentsManager->getUserId(),
+            'twitter' => [
+                'min_followers_for_sync' => $this->config->get('twitter')['min_followers_for_sync'] ?? 25000,
+            ]
         ];
 
         if (Session::isLoggedIn()) {
