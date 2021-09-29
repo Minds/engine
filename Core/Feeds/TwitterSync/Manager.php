@@ -245,7 +245,7 @@ class Manager
         $twitterUser = new TwitterUser();
         $twitterUser->setUserId((string) $json['data']['id'])
             ->setUsername((string) $json['data']['username'])
-            ->setFollwersCount($json['data']['public_metrics']['followers_count']);
+            ->setFollowersCount($json['data']['public_metrics']['followers_count']);
 
         return $twitterUser;
     }
