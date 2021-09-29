@@ -276,6 +276,10 @@ class Manager
                 continue;
             }
 
+            if (strtolower($uniqueOnChain->getAddress()) !== strtolower($user->getEthWallet())) {
+                continue;
+            }
+
             $tokenBalance = $this->token->fromTokenUnit(
                 $this->token->balanceOf($uniqueOnChain->getAddress(), $blockNumber)
             );
@@ -322,14 +326,14 @@ class Manager
             if (in_array($rewardEntry->getRewardType(), [static::REWARD_TYPE_LIQUIDITY, static::REWARD_TYPE_HOLDING], false)) {
                 /** @var User */
                 $user = $this->entitiesBuilder->single($rewardEntry->getUserGuid());
-                if (!$this->uniqueOnChainManager->isUnique($user)) {
+                if (!$user || !$this->uniqueOnChainManager->isUnique($user)) {
                     // do not issue payout
 
                     $rewardEntry->setScore(BigDecimal::of(0));
                     $rewardEntry->setTokenAmount(BigDecimal::of(0));
                     $this->repository->update($rewardEntry, [ 'token_amount', 'score' ]);
 
-                    $this->logger->info("[$i]: Clearing score and token amount for {$user->getGuid()}. Address isn't unique.", [
+                    $this->logger->info("[$i]: Clearing score and token amount for {$rewardEntry->getUserGuid()}. Address isn't unique.", [
                         'userGuid' => $rewardEntry->getUserGuid(),
                         'reward_type' => $rewardEntry->getRewardType(),
                     ]);
@@ -342,6 +346,11 @@ class Manager
             $tokenPool = BigDecimal::of($tokenomicsManifest->getDailyPools()[$rewardEntry->getRewardType()]);
 
             $tokenAmount = $tokenPool->multipliedBy($rewardEntry->getSharePct(), 18, RoundingMode::FLOOR);
+
+            // Do not allow negative rewards to be issued
+            if ($tokenAmount->isLessThanOrEqualTo(0)) {
+                $tokenAmount = BigDecimal::of(0);
+            }
 
             $rewardEntry->setTokenAmount($tokenAmount);
             $this->repository->update($rewardEntry, [ 'token_amount' ]);

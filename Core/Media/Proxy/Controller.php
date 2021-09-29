@@ -60,6 +60,11 @@ class Controller
         $cdnUrl = Di::_()->get('Config')->get('cdn_url');
         $mediaProxyRoutes = ["api/v2/media/proxy", "api/v3/media/proxy"];
 
+        // loopback bug, so change domain to cdn
+        if (strpos($src, $siteUrl) === 0) {
+            $src = str_replace($siteUrl, $cdnUrl, $src);
+        }
+
         // exit if src was a media proxy url
         foreach ($mediaProxyRoutes as $mediaProxyRoute) {
             if ($siteUrl && strpos($src, $siteUrl . $mediaProxyRoute) === 0) {

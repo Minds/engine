@@ -145,7 +145,7 @@ class Controller
                 'message' => $exception->getMessage(),
                 'errorId' => str_replace('\\', '::', get_class($exception)),
             ];
-            $response = new JsonResponse($body);
+            $response = new JsonResponse($body, $exception->getCode());
         }
 
         return $response;

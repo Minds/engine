@@ -19,6 +19,10 @@ class Manager
     /** @var int */
     const CACHE_TTL = 86400; // 1 day
 
+    // No more than this qty of users may be blocked
+    /** @var int */
+    const BLOCK_LIMIT = 1000;
+
     public function __construct(Repository $repository = null, PsrWrapper $cache = null, Delegates\EventStreamsDelegate $eventStreamsDelegate = null)
     {
         $this->repository = $repository ?? new Repository();
@@ -64,6 +68,16 @@ class Manager
      */
     public function add(BlockEntry $block): bool
     {
+        $userGuid = $block->getActorGuid();
+
+        $count = $this->repository->countList($userGuid);
+
+        $limit = static::BLOCK_LIMIT;
+
+        if ($count >= $limit) {
+            throw new BlockLimitException();
+        }
+
         /** @var bool */
         $success = $this->repository->add($block);
 

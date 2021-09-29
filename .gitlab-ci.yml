@@ -217,28 +217,25 @@ production:fpm:
 ##
 # TODO: As we now have lots of runners,
 # redeploying them needs more though
+# below simply updates the container
 ##
 
-# production:runners:
-#   stage: deploy:production
-#   image: minds/ci:latest
-#   services:
-#     - docker:dind
-#   script:
-#     - IMAGE_LABEL="production"
-#     - $(aws ecr get-login --no-include-email --region us-east-1)
-#     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
-#     - docker pull $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
-#     # Push to production register
-#     - docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $ECR_REPOSITORY_URL_RUNNERS:$IMAGE_LABEL
-#     - docker push $ECR_REPOSITORY_URL_RUNNERS:$IMAGE_LABEL
-#     # Push gitlab registry
-#     - docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/runners:$IMAGE_LABEL
-#     - docker push $CI_REGISTRY_IMAGE/runners:$IMAGE_LABEL
-#     - aws ecs update-service --service=$ECS_RUNNERS_PRODUCTION_SERVICE --force-new-deployment --region us-east-1 --cluster=$ECS_CLUSTER
-#   only:
-#     refs:
-#       - master
-#   environment:
-#     name: runners
-#     url: https://www.minds.com/
+production:runners:
+  stage: deploy:production
+  image: minds/ci:latest
+  services:
+    - docker:dind
+  script:
+    - IMAGE_LABEL="production"
+    - $(aws ecr get-login --no-include-email --region us-east-1)
+    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
+    - docker pull $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
+    # Push gitlab registry
+    - docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/runners:$IMAGE_LABEL
+    - docker push $CI_REGISTRY_IMAGE/runners:$IMAGE_LABEL
+  only:
+    refs:
+      - master
+  environment:
+    name: runners
+    url: https://www.minds.com/

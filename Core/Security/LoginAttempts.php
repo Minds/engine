@@ -7,6 +7,8 @@ use Minds\Common\IpAddress;
 use Minds\Core\Di\Di;
 use Minds\Core\Security\Exceptions\UserNotSetupException;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
+use Minds\Core\Data\Redis\Client as RedisServer;
+use Minds\Core\Config;
 use Minds\Entities\User;
 
 class LoginAttempts
@@ -17,9 +19,20 @@ class LoginAttempts
     /** @var KeyValueLimiter */
     protected $kvLimiter;
 
-    public function __construct($kvLimiter = null)
+    /** @var RedisServer */
+    private $redis;
+
+    /** @var Config */
+    private $config;
+
+    /** @var bool */
+    protected $redisIsConnected = false;
+
+    public function __construct($kvLimiter = null, $redis = null, $config = null)
     {
         $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
+        $this->redis = $redis ?: new RedisServer();
+        $this->config = $config ?? Di::_()->get('Config');
     }
 
     /**
@@ -46,11 +59,13 @@ class LoginAttempts
         $user_guid = (int) $this->user->guid;
 
         if ($user_guid) {
-            $fails = (int) $this->user->getPrivateSetting("login_failures");
-            $fails++;
+            $recordKey = "login-failures:$user_guid";
 
-            $this->user->setPrivateSetting("login_failures", $fails);
-            $this->user->setPrivateSetting("login_failure_$fails", time());
+            $this->getRedis()->multi()
+                ->incr($recordKey)
+                ->expire($recordKey, 600) // 10 mins
+                ->exec();
+
             return true;
         }
 
@@ -72,24 +87,10 @@ class LoginAttempts
         $user_guid = (int) $this->user->guid;
 
         if ($user_guid) {
-            $fails = (int) $this->user->getPrivateSetting("login_failures");
-            if ($fails >= $limit) {
-                $cnt = 0;
-                $time = time();
-                for ($n = $fails; $n > 0; $n--) {
-                    $f = $this->user->getPrivateSetting("login_failure_$n");
-                    if ($f > $time - (60)) {
-                        $cnt++;
-                    } else {
-                        // Cleanup as we go as this has expired
-                        $this->user->removePrivateSetting("login_failure_$n");
-                    }
-
-                    if ($cnt == $limit) {
-                        // Limit reached
-                        return true;
-                    }
-                }
+            $recordKey = "login-failures:$user_guid";
+            $fails = (int) $this->getRedis()->get("$recordKey");
+            if ($fails > 10) {
+                return true;
             }
         }
 
@@ -126,5 +127,18 @@ class LoginAttempts
         }
 
         return false;
+    }
+
+    /**
+     * Get our redis connection
+     * @return RedisServer
+     */
+    private function getRedis(): RedisServer
+    {
+        if (!$this->redisIsConnected && $this->config->redis) {
+            $this->redis->connect($this->config->redis['master']);
+            $this->redisIsConnected = true;
+        }
+        return $this->redis;
     }
 }

@@ -10,6 +10,10 @@ use Minds\Interfaces\ModuleInterface;
 
 class Module implements ModuleInterface
 {
+    public $submodules = [
+        TwitterSync\Module::class,
+    ];
+
     /**
      * Executed onInit
      * @return void
