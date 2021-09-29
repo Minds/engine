@@ -326,14 +326,14 @@ class Manager
             if (in_array($rewardEntry->getRewardType(), [static::REWARD_TYPE_LIQUIDITY, static::REWARD_TYPE_HOLDING], false)) {
                 /** @var User */
                 $user = $this->entitiesBuilder->single($rewardEntry->getUserGuid());
-                if ($user && !$this->uniqueOnChainManager->isUnique($user)) {
+                if (!$user || !$this->uniqueOnChainManager->isUnique($user)) {
                     // do not issue payout
 
                     $rewardEntry->setScore(BigDecimal::of(0));
                     $rewardEntry->setTokenAmount(BigDecimal::of(0));
                     $this->repository->update($rewardEntry, [ 'token_amount', 'score' ]);
 
-                    $this->logger->info("[$i]: Clearing score and token amount for {$user->getGuid()}. Address isn't unique.", [
+                    $this->logger->info("[$i]: Clearing score and token amount for {$rewardEntry->getUserGuid()}. Address isn't unique.", [
                         'userGuid' => $rewardEntry->getUserGuid(),
                         'reward_type' => $rewardEntry->getRewardType(),
                     ]);
