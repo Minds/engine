@@ -92,7 +92,7 @@ class Manager
      */
     public function add(Activity $activity): bool
     {
-        // Ensure reminds & quoted posts inherit the NSFW settings
+        // Ensure reminds & quoted posts inherit the NSFW settings / paywall
         // NOTE: this is not fool proof. If the original entity changes, we still
         // need to create a feature that will propogate these settings to its child derivatives.
         if ($activity->isRemind() || $activity->isQuotedPost()) {
@@ -101,6 +101,11 @@ class Manager
                 return false; // Can not save a remind where the original post doesn't exist
             }
             $activity->setNsfw(array_merge($remind->getNsfw(), $activity->getNsfw()));
+
+            // propagate any remind paywall to activity
+            if ($remind->isPaywall()) {
+                $activity->setWireThreshold($remind->getWireThreshold());
+            }
         }
 
         $success = $this->save
