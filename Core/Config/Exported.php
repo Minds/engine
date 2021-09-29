@@ -118,8 +118,9 @@ class Exported
                 'url' => $this->config->get('statuspage_io')['url'] ?? null,
             ],
             'experiments' => $this->experimentsManager
-                                ->setUser(Session::getLoggedinUser())
-                                ->getExportableExperiments(),
+                ->setUser(Session::getLoggedinUser())
+                ->getExportableExperiments(),
+            'experiments_id' => $this->experimentsManager->getUserId()
         ];
 
         if (Session::isLoggedIn()) {

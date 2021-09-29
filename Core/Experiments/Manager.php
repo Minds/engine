@@ -27,8 +27,7 @@ class Manager
             new Growthbook\Experiment("boost-rotator", ["on", "off"]),
             new Growthbook\Experiment(
                 "discovery-homepage",
-                ["off", "on"],
-                ["anon" => true]
+                ["off", "on"]
             ),
         ];
     }
@@ -44,6 +43,15 @@ class Manager
             'id' => $user ? $user->getGuid() : uniqid('exp-', true),
         ]);
         return $this;
+    }
+
+    /**
+     * Gets a users id
+     * @return string
+     */
+    public function getUserId(): string
+    {
+        return $this->growthbookUser->ids['id'];
     }
 
     /**
