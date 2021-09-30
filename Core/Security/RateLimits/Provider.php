@@ -13,5 +13,9 @@ class Provider extends Di\Provider
         $this->di->bind('Security\RateLimits\InteractionsLimiter', function ($di) {
             return new InteractionsLimiter();
         }, ['useFactory' => false]);
+
+        $this->di->bind('Security\RateLimits\KeyValueLimiter', function ($di) {
+            return new KeyValueLimiter();
+        }, ['useFactory' => false]);
     }
 }
