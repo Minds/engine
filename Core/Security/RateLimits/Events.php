@@ -30,6 +30,10 @@ class Events
             $user = $params['user'];
             $interaction = $params['interaction'];
 
+            if (!$interaction) {
+                return;
+            }
+
             try {
                 $this->interactionsLimiter->checkAndIncrement($user->getGuid(), $interaction);
             } catch (RateLimitException $exception) {
