@@ -20,7 +20,7 @@ class SubscriptionsProvider extends Provider
 
         $this->di->bind('Payments\Subscriptions\Iterator', function ($di) {
             return new SubscriptionsIterator();
-        }, [ 'useFactory' => true ]);
+        }, [ 'useFactory' => false ]);
 
         $this->di->bind('Payments\Subscriptions\Repository', function ($di) {
             return new Repository();

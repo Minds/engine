@@ -59,7 +59,7 @@ class Plus
             return $wire;
         }
 
-        $user->setPlusExpires(strtotime('+30 days', $wire->getTimestamp()));
+        $user->setPlusExpires(strtotime('+31 days', $wire->getTimestamp()));
         $user->save();
 
         //$wire->setSender($user);
