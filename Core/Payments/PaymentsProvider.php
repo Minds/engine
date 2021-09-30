@@ -43,5 +43,13 @@ class PaymentsProvider extends Provider
         $this->di->bind('Stripe\Transactions\Manager', function ($di) {
             return new Stripe\Transactions\Manager();
         }, ['useFactory'=>true]);
+
+        $this->di->bind('Stripe\PaymentMethods\Manager', function ($di) {
+            return new Stripe\PaymentMethods\Manager();
+        }, ['useFactory'=>true]);
+
+        $this->di->bind('Stripe\Customers\Manager', function ($di) {
+            return new Stripe\Customers\Manager();
+        }, ['useFactory'=>true]);
     }
 }
