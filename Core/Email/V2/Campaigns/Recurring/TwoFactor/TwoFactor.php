@@ -78,6 +78,7 @@ class TwoFactor extends EmailCampaign
         $this->template->set('guid', $this->user->guid);
         $this->template->set('tracking', $trackingQuery);
         $this->template->set('preheader', $subject);
+        $this->template->set('title', $subject);
 
         $this->template->set('code', $this->code);
 
