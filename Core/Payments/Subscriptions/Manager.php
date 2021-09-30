@@ -82,6 +82,15 @@ class Manager
     }
 
     /**
+     * @param string $id
+     * @return Subscription
+     */
+    public function get($id)
+    {
+        return $this->repository->get($id);
+    }
+
+    /**
      * Charge
      * @return bool
      */
@@ -100,6 +109,8 @@ class Manager
             $this->subscription->setNextBilling($this->getNextBilling());
             // Cancel trial after subsequent charge
             $this->subscription->setTrialDays(0);
+            // Successful should always reset
+            $this->subscription->setStatus('active');
         } catch (\Exception $e) {
             error_log("Payment failed: " . $e->getMessage());
             $this->subscription->setStatus('failed');
