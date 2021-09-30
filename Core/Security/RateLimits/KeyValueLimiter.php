@@ -90,38 +90,14 @@ class KeyValueLimiter
             return true;
         }
 
-        $keys = array_map(fn ($rateLimit): string => $this->getRecordKey($rateLimit), $this->getRateLimits());
-        $counts = $this->getRedis()->mget($keys);
+        $rateLimits = $this->getRateLimitsWithCounts();
 
-        foreach ($this->getRateLimits() as $index => $rateLimit) {
-            $max = $rateLimit->getMax();
-            $count = (int) $counts[$index];
-
-            if ($count >= $max) {
-                $this->logger->warn("[RateLimit]: {$rateLimit->getKey()} was hit with $max");
+        foreach ($rateLimits as $rateLimit) {
+            if ($rateLimit->getRemaining() === 0) {
+                $this->logger->warn("[RateLimit]: {$rateLimit->getKey()} was hit with {$rateLimit->getMax()}");
                 throw new RateLimitExceededException();
             }
         }
-    }
-
-    /**
-     * checks ratelimits and throws an exception if one was hit
-     *
-     * @return RateLimit[] $rateLimits
-     */
-    private function getRemainingAttempts()
-    {
-        $keys = array_map(fn ($rateLimit): string => $this->getRecordKey($rateLimit), $this->getRateLimits());
-        $counts = $this->getRedis()->mget($keys);
-
-        $rateLimits = [];
-        foreach ($this->getRateLimits() as $index => $rateLimit) {
-            $rateLimit->setRemaining(min($rateLimit->getMax() - (int) $counts[$index], 0));
-
-            $rateLimits[] = $rateLimit;
-        }
-
-        return $rateLimits;
     }
 
     /**
@@ -195,6 +171,22 @@ class KeyValueLimiter
         }
 
         return $rateLimits;
+    }
+
+    private function getRateLimitsWithCounts()
+    {
+        $rateLimits = $this->getRateLimits();
+        $keys = array_map(fn ($rateLimit): string => $this->getRecordKey($rateLimit), $rateLimits);
+        $counts = $this->getRedis()->mget($keys);
+
+        $rateLimitsWithCounts = [];
+        foreach ($rateLimits as $index => $rateLimit) {
+            $rateLimit->setRemaining(max($rateLimit->getMax() - (int) $counts[$index], 0));
+
+            $rateLimitsWithCounts[] = $rateLimit;
+        }
+
+        return $rateLimitsWithCounts;
     }
 
     /**

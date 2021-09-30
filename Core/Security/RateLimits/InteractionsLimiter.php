@@ -78,7 +78,7 @@ class InteractionsLimiter
         return $this->kvLimiter->setKey($interaction)
             ->setValue($userGuid)
             ->setRateLimits($rateLimits)
-            ->getRemainingAttempts();
+            ->getRateLimitsWithCounts();
     }
 
     /**

@@ -116,7 +116,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $this->kvLimiter->setKey(Argument::any())->willReturn($this->kvLimiter);
         $this->kvLimiter->setValue(Argument::any())->willReturn($this->kvLimiter);
-        $this->kvLimiter->setThresholds(Argument::any())->willReturn($this->kvLimiter);
-        $this->kvLimiter->getRemainingAttempts()->willReturn($returnValue);
+        $this->kvLimiter->setRateLimits(Argument::any())->willReturn($this->kvLimiter);
+        $this->kvLimiter->getRateLimitsWithCounts()->willReturn($returnValue);
     }
 }
