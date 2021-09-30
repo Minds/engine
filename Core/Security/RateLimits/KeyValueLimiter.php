@@ -42,16 +42,16 @@ class KeyValueLimiter
     private $value;
 
     /** @var int */
-    private $max = 300;
+    private $max;
 
     /** @var int */
-    private $seconds = 300; // 5 minutes
+    private $seconds; // 5 minutes
 
     /** @var Jwt */
     protected $jwt;
 
     /** @var RateLimit[] */
-    private $rateLimits;
+    private $rateLimits = [];
 
     /**
      * @param RedisServer $redis
