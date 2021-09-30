@@ -3,6 +3,7 @@ namespace Minds\Core\Notifications;
 
 use Minds\Entities\User;
 use Minds\Core;
+use Minds\Core\Notification;
 use Minds\Api\Exportable;
 use Minds\Exceptions\UserErrorException;
 use Minds\Core\Notifications\Manager;

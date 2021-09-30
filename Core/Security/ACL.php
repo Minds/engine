@@ -238,7 +238,7 @@ class ACL
         /**
          * Does the user own the entity, or is it the container?
          */
-        if ($entity->owner_guid
+        if (isset($entity->owner_guid)
             && ($entity->owner_guid == $user->guid)
             && (
                 !$entity->container_guid // there is no container guid
