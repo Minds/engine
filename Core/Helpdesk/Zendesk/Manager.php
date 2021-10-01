@@ -1,5 +1,4 @@
 <?php
-
 namespace Minds\Core\Helpdesk\Zendesk;
 
 use DateTimeImmutable;
@@ -48,7 +47,7 @@ class Manager
             ->issuedAt(new DateTimeImmutable()) // iat
             ->withClaim('name', $user->getUsername())
             ->withClaim('email', $user->getEmail())
-            ->withClaim('external_id', 'minds-guid:' . $user->getGuid())
+            ->withClaim('external_id', 'minds-guid:'.$user->getGuid())
             ->withClaim('role', 'user') // fixed to default
             ->getToken($this->jwtConfig->signer(), $this->jwtConfig->signingKey());
 

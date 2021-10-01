@@ -1,9 +1,7 @@
 <?php
-
 /**
  * Key based limiter
  */
-
 namespace Minds\Core\Security\RateLimits;
 
 use Minds\Common\Jwt;

@@ -1,9 +1,7 @@
 <?php
-
 /**
  * ACL Security handlers
  */
-
 namespace Minds\Core\Security;
 
 use Minds\Core;

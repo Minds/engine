@@ -1,12 +1,10 @@
 <?php
-
 /**
  * Minds Settings API
  *
  * @version 1
  * @author Mark Harding
  */
-
 namespace Minds\Controllers\api\v1;
 
 use Minds\Api\Factory;
@@ -51,7 +49,7 @@ class settings implements Interfaces\Api
         $response['channel']['boost_rating'] = $user->getBoostRating();
         $response['channel']['disabled_emails'] = $user->disabled_emails;
         $response['channel']['toaster_notifications'] = $user->getToasterNotifications();
-
+        
         $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
         $response['channel']['has2fa'] = [
             'totp' => $twoFactorManager->isTwoFactorEnabled($user) && !$user->telno,
