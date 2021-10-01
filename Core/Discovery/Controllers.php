@@ -18,7 +18,7 @@ class Controllers
     }
 
     /**
-     * Controller for search requests
+     * Controller for post trends (based on tag trends)
      * @param ServerRequest $request
      * @return JsonResponse
      */

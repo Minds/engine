@@ -40,7 +40,8 @@ class Repository
     {
         $opts = array_merge([
             'limit' => 12,
-            'from' => strtotime('-12 hours', time()),
+            'from' => strtotime('-500 hours', time()),
+            // 'from' => strtotime('-12 hours', time()), //ojm extended for testing
             'languages' => [ 'en' ],
             'wire_support_tier' => null
         ], $opts);
@@ -60,6 +61,7 @@ class Repository
             ],
         ];
 
+        // ojm uncomment
         if ($opts['wire_support_tier']) {
             $must[]['term'] = [
                 'wire_support_tier'=> $opts['wire_support_tier']
@@ -125,8 +127,12 @@ class Repository
         $rows = $result['aggregations']['tags']['buckets'];
 
         usort($rows, function ($a, $b) {
-            $a_score = $this->getConfidenceScore($a['owners']['value'], $a['counts']['value']);
-            $b_score = $this->getConfidenceScore($b['owners']['value'], $b['counts']['value']);
+            $a_count = !empty($a['counts']['value']) ? $a['counts']['value'] : 1;
+            $b_count = !empty($b['counts']['value']) ? $b['counts']['value'] : 1;
+
+            // Make sure we're not dividing by zero
+            $a_score = $this->getConfidenceScore($a['owners']['value'], $a_count);
+            $b_score = $this->getConfidenceScore($b['owners']['value'], $b_count);
 
             return $a_score < $b_score ? 1 : 0;
         });

@@ -268,6 +268,7 @@ class Manager
             'plus' => false,
         ], $opts);
 
+        // ojm recomment
         // if ($opts['plus'] === true) {
         //     $opts['hoursAgo'] = 1680; // 10 Weeks
         // }
@@ -315,6 +316,7 @@ class Manager
                 'range' => [
                     'votes:up' => [
                         'gte' => 2,
+                        // ojm return to 2
                     ]
                 ]
             ];
@@ -474,6 +476,7 @@ class Manager
         $response = $this->es->request($prepared);
 
         $trends = [];
+
         foreach ($response['hits']['hits'] as $doc) {
             $ownerGuid = $doc['_source']['owner_guid'];
 
@@ -505,7 +508,6 @@ class Manager
                 $title = strlen($entity->description) > 60 ? mb_substr($entity->description, 0, 60) . '...' : $entity->description;
             }
 
-            // If still no title, then skip
             if (!$title) {
                 continue;
             }
@@ -627,7 +629,6 @@ class Manager
                 'wire_support_tier' => $opts['wire_support_tier']
             ]);
 
-        // ojm test fail: there is no $tagsList
         $tags = array_filter($tagsList, function ($tag) {
             return $tag['type'] === 'user';
         });
