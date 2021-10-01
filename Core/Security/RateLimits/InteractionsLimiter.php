@@ -61,7 +61,13 @@ class InteractionsLimiter
         ];
     }
 
-    public function checkAndIncrement($userGuid, $interaction)
+    /**
+     * Checks and increments rate limits for an interaction
+     * @param string $userGuid
+     * @param string $interaction
+     * @return void
+     */
+    public function checkAndIncrement(string $userGuid, string $interaction)
     {
         $rateLimits = $this->getRateLimitsByInteraction($interaction);
 
@@ -71,21 +77,36 @@ class InteractionsLimiter
             ->checkAndIncrement();
     }
 
-    public function getRemainingAttempts($userGuid, $interaction)
+    /**
+     * Returns the smallest remaining attempts a user has for an interaction
+     * @param string $userGuid
+     * @param string $interaction
+     * @return int
+     */
+    public function getRemainingAttempts(string $userGuid, string $interaction)
     {
-        $rateLimits = $this->getRateLimitsByInteraction($interaction);
-
-        return $this->kvLimiter->setKey($interaction)
+        $rateLimits = $this->kvLimiter->setKey($interaction)
             ->setValue($userGuid)
-            ->setRateLimits($rateLimits)
-            ->getRateLimitsWithCounts();
+            ->setRateLimits($this->getRateLimitsByInteraction($interaction))
+            ->getRateLimitsWithRemainings();
+
+        $remainingAttempts = array_reduce(
+            $rateLimits,
+            function ($carry, $rateLimit) {
+                return min($rateLimit->getRemaining() ?: INF, $carry);
+            },
+            INF
+        );
+
+        return $remainingAttempts;
     }
 
     /**
+     * Returns rate limits set for an interaction
      * @param string $interaction
      * @return RateLimit[]
      */
-    private function getRateLimitsByInteraction($interaction)
+    private function getRateLimitsByInteraction(string $interaction)
     {
         $rateLimits = [];
         foreach ($this->maps as $rateLimit) {

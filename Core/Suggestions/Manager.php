@@ -6,11 +6,9 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Features;
-use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 use Minds\Core\Security\Block;
 use Minds\Core\Security\RateLimits\InteractionsLimiter;
-use Minds\Core\Security\RateLimits\KeyValueLimiter;
 
 class Manager
 {
@@ -26,7 +24,7 @@ class Manager
     /** @var User $user */
     private $user;
 
-    /** @var KeyValueLimiter */
+    /** @var InteractionsLimiter */
     private $interactionsLimiter;
 
     /** @var Features\Manager */
@@ -194,23 +192,12 @@ class Manager
     }
 
     /**
-     * Returns the smallest rate limit remaining attempts based
-     * on period.
-     *
+     * Returns the smallest rate limit remaining attempts based on period.
      * @return bool
      */
     private function isNearSubscriptionRateLimit()
     {
-        $attempts = $this->interactionsLimiter->getRemainingAttempts($this->user->getGuid(), 'subscribe');
-
-        $smallestRemainingAttempts = array_reduce(
-            $attempts,
-            function ($carry, $attempt) {
-                return min($attempt->getRemaining() ?: INF, $carry);
-            },
-            INF
-        );
-
-        return $smallestRemainingAttempts < 10;
+        $remainingAttempts = $this->interactionsLimiter->getRemainingAttempts((string) $this->user->getGuid(), 'subscribe');
+        return $remainingAttempts < 10;
     }
 }

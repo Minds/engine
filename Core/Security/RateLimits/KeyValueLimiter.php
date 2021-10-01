@@ -67,69 +67,6 @@ class KeyValueLimiter
     }
 
     /**
-     * Returns a consistent record key based on a rateLimit
-     *
-     * @param RateLimit $rateLimit
-     * @return string
-     */
-    private function getRecordKey($rateLimit): string
-    {
-        $resetPeriod = round(time() / $rateLimit->getSeconds());
-        return "ratelimit:{$rateLimit->getKey()}-$this->value:{$rateLimit->getSeconds()}:{$resetPeriod}";
-    }
-
-    /**
-     * checks ratelimits and throws an exception if one was hit
-     *
-     * @throws RateLimitExceededException
-     * @return void
-     */
-    private function check()
-    {
-        if ($this->verifyBypass()) {
-            return true;
-        }
-
-        $rateLimits = $this->getRateLimitsWithCounts();
-
-        foreach ($rateLimits as $rateLimit) {
-            if ($rateLimit->getRemaining() === 0) {
-                $this->logger->warn("[RateLimit]: {$rateLimit->getKey()} was hit with {$rateLimit->getMax()}");
-                throw new RateLimitExceededException();
-            }
-        }
-    }
-
-    /**
-     * increments count and resets expiry of rateLimits
-     *
-     * @return void
-     */
-    private function increment()
-    {
-        foreach ($this->getRateLimits() as $rateLimit) {
-            $recordKey = $this->getRecordKey($rateLimit);
-            $this->getRedis()->multi()
-                ->incr($recordKey)
-                ->expire($recordKey, $rateLimit->getSeconds())
-                ->exec();
-        }
-    }
-
-    /**
-     * Checks and increments the rate limit
-     *
-     * @return bool
-     */
-    public function checkAndIncrement(): bool
-    {
-        $this->check();
-        $this->increment();
-
-        return true;
-    }
-
-    /**
      * Verify whether or not rate limits can be bypassed.
      * @return bool
      */
@@ -151,9 +88,56 @@ class KeyValueLimiter
         }
     }
 
+
+    /**
+     * Returns a consistent record key based on a rateLimit
+     * @param RateLimit $rateLimit
+     * @return string
+     */
+    private function getRecordKey(RateLimit $rateLimit): string
+    {
+        $resetPeriod = round(time() / $rateLimit->getSeconds());
+        return "ratelimit:{$rateLimit->getKey()}-$this->value:{$rateLimit->getSeconds()}:{$resetPeriod}";
+    }
+
+    /**
+     * checks ratelimits and throws an exception if one was hit
+     * @throws RateLimitExceededException
+     * @return void
+     */
+    private function check()
+    {
+        if ($this->verifyBypass()) {
+            return true;
+        }
+
+        $rateLimits = $this->getRateLimitsWithRemainings();
+
+        foreach ($rateLimits as $rateLimit) {
+            if ($rateLimit->getRemaining() < 1) {
+                $this->logger->warn("[RateLimit]: {$rateLimit->getKey()} was hit with {$rateLimit->getMax()}");
+                throw new RateLimitExceededException();
+            }
+        }
+    }
+
+    /**
+     * increments count and resets expiry of rateLimits
+     * @return void
+     */
+    private function increment()
+    {
+        foreach ($this->getRateLimits() as $rateLimit) {
+            $recordKey = $this->getRecordKey($rateLimit);
+            $this->getRedis()->multi()
+                ->incr($recordKey)
+                ->expire($recordKey, $rateLimit->getSeconds())
+                ->exec();
+        }
+    }
+
     /**
      * Returns rate limits. Supports legacy seconds and max
-     *
      * @return RateLimit[]
      */
     private function getRateLimits()
@@ -173,7 +157,11 @@ class KeyValueLimiter
         return $rateLimits;
     }
 
-    private function getRateLimitsWithCounts()
+    /**
+     * Returns rate limits and populates their "remaining" attribute from redis
+     * @return RateLimit[] $rateLimitsWithRemainings
+     */
+    private function getRateLimitsWithRemainings()
     {
         $rateLimits = $this->getRateLimits();
         $keys = array_map(fn ($rateLimit): string => $this->getRecordKey($rateLimit), $rateLimits);
@@ -182,7 +170,6 @@ class KeyValueLimiter
         $rateLimitsWithCounts = [];
         foreach ($rateLimits as $index => $rateLimit) {
             $rateLimit->setRemaining(max($rateLimit->getMax() - (int) $counts[$index], 0));
-
             $rateLimitsWithCounts[] = $rateLimit;
         }
 

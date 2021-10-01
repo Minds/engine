@@ -112,10 +112,8 @@ class ManagerSpec extends ObjectBehavior
     /**
      * @return bool
      */
-    private function interactionsLimiterMock($remaining = 20)
+    private function interactionsLimiterMock(int $remaining = 20)
     {
-        $this->interactionsLimiter->getRemainingAttempts(Argument::any(), Argument::any())->willReturn([
-            (new RateLimit())->setRemaining($remaining)->setMax(30)->setSeconds(300)->setKey('subscribe'),
-        ]);
+        $this->interactionsLimiter->getRemainingAttempts(Argument::any(), Argument::any())->willReturn($remaining);
     }
 }
