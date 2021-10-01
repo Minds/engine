@@ -67,6 +67,9 @@ class ManagerSpec extends ObjectBehavior
         $subscription->setTrialDays(0)
             ->willReturn($subscription);
 
+        $subscription->setStatus('active')
+            ->shouldBeCalled();
+
         $this->repository->add($subscription)
             ->shouldBeCalled();
 
