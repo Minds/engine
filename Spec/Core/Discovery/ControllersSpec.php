@@ -101,145 +101,137 @@ class ControllersSpec extends ObjectBehavior
         ]));
     }
 
-    // ojm failing test
-    // exception [err:TypeError("Double\Minds\Core\Discovery\Manager\P151::
-    //getTags(): Return value must be of type array, null returned")] has been thrown.
-    // public function it_should_get_tags_response(ServerRequest $request)
-    // {
-    //     $opts = ['wire_support_tier' => null];
+    public function it_should_get_tags_response(ServerRequest $request)
+    {
+        $this->manager->getTags()
+            ->willReturn([
+                'tags' => [
+                    [
+                        'selected' => true,
+                        'value' => 'music',
+                        'type' => 'user',
+                    ],
+                    [
+                        'selected' => true,
+                        'value' => 'beatles',
+                        'type' => 'user',
+                    ]
+                ],
+                'trending' => [
+                    [
+                        'selected' => false,
+                        'value' => 'comedy',
+                        'posts_count' => 32,
+                        'votes_count' => 45,
+                        'type' => "trending"
+                    ]
+                ],
+                'default' => [],
+            ]);
 
-    //     $this->manager->getTags($opts)
-    //         ->willReturn([
-    //             'tags' => [
-    //                 [
-    //                     'selected' => true,
-    //                     'value' => 'music',
-    //                     'type' => 'user',
-    //                 ],
-    //                 [
-    //                     'selected' => true,
-    //                     'value' => 'beatles',
-    //                     'type' => 'user',
-    //                 ]
-    //             ],
-    //             'trending' => [
-    //                 [
-    //                     'selected' => false,
-    //                     'value' => 'comedy',
-    //                     'posts_count' => 32,
-    //                     'votes_count' => 45,
-    //                     'type' => "trending"
-    //                 ]
-    //             ],
-    //             'default' => [],
-    //         ]);
+        $this->manager->getTagTrends(Argument::any())
+            ->willReturn([]);
 
-    //     $this->manager->getTagTrends(Argument::any())
-    //         ->willReturn([]);
+        $response = $this->getTags($request);
+        $json = $response->getBody()->getContents();
 
-    //     $response = $this->getTags($request);
-    //     $json = $response->getBody()->getContents();
+        $json->shouldBe(json_encode([
+            'status' => 'success',
+            'tags' => [
+                [
+                    'selected' => true,
+                    'value' => 'music',
+                    'type' => 'user',
+                ],
+                [
+                    'selected' => true,
+                    'value' => 'beatles',
+                    'type' => 'user',
+                ]
+            ],
+            'trending' => [
+                [
+                    'selected' => false,
+                    'value' => 'comedy',
+                    'posts_count' => 32,
+                    'votes_count' => 45,
+                    'type' => "trending"
+                ]
+            ],
+            'default' => [],
+            'for_you' => null,
+            'activity_related' => null,
+        ]));
+    }
 
-    //     $json->shouldBe(json_encode([
-    //         'status' => 'success',
-    //         'tags' => [
-    //             [
-    //                 'selected' => true,
-    //                 'value' => 'music',
-    //                 'type' => 'user',
-    //             ],
-    //             [
-    //                 'selected' => true,
-    //                 'value' => 'beatles',
-    //                 'type' => 'user',
-    //             ]
-    //         ],
-    //         'trending' => [
-    //             [
-    //                 'selected' => false,
-    //                 'value' => 'comedy',
-    //                 'posts_count' => 32,
-    //                 'votes_count' => 45,
-    //                 'type' => "trending"
-    //             ]
-    //         ],
-    //         'default' => [],
-    //         'for_you' => null,
-    //         'activity_related' => null,
-    //     ]));
-    // }
+    public function it_should_get_related_tags_response(ServerRequest $request)
+    {
+        $this->manager->getTags()
+            ->willReturn([
+                'tags' => [
+                ],
+                'trending' => [
+                ],
+                'default' => [],
+            ]);
 
-    // ojm failing test
-    // exception [err:TypeError("Double\Minds\Core\Discovery\Manager\P151::
-    // getTags(): Return value must be of type array, null returned")] has been thrown.
-    // public function it_should_get_related_tags_response(ServerRequest $request)
-    // {
-    //     $this->manager->getTags()
-    //         ->willReturn([
-    //             'tags' => [
-    //             ],
-    //             'trending' => [
-    //             ],
-    //             'default' => [],
-    //         ]);
+        $this->manager->getTagTrends(Argument::any())
+            ->willReturn([]);
 
-    //     $this->manager->getTagTrends(Argument::any())
-    //         ->willReturn([]);
+        $request->getQueryParams()
+                ->willReturn([
+                    'entity_guid' => '123',
+                ]);
 
-    //     $request->getQueryParams()
-    //             ->willReturn([
-    //                 'entity_guid' => '123',
-    //             ]);
+        $this->manager->getActivityRelatedTags('123')
+                    ->willReturn([
+                        (new Trend())
+                            ->setId('id')
+                            ->setHashtag('music')
+                            ->setVolume(10)
+                            ->setPeriod(12)
+                            ->setSelected(true),
+                        (new Trend())
+                            ->setId('id2')
+                            ->setHashtag('art')
+                            ->setVolume(5)
+                            ->setPeriod(24)
+                            ->setSelected(false)
+                    ]);
 
-    //     $this->manager->getActivityRelatedTags('123')
-    //                 ->willReturn([
-    //                     (new Trend())
-    //                         ->setId('id')
-    //                         ->setHashtag('music')
-    //                         ->setVolume(10)
-    //                         ->setPeriod(12)
-    //                         ->setSelected(true),
-    //                     (new Trend())
-    //                         ->setId('id2')
-    //                         ->setHashtag('art')
-    //                         ->setVolume(5)
-    //                         ->setPeriod(24)
-    //                         ->setSelected(false)
-    //                 ]);
+        $response = $this->getTags($request);
+        $json = $response->getBody()->getContents();
 
-    //     $response = $this->getTags($request);
-    //     $json = $response->getBody()->getContents();
-
-    //     $json->shouldBe(json_encode([
-    //         'status' => 'success',
-    //         'tags' => [
-    //         ],
-    //         'trending' => [
-    //         ],
-    //         'default' => [],
-    //         'for_you' => null,
-    //         'activity_related' => [
-    //             [
-    //                 'id' => 'id',
-    //                 'entity' => null,
-    //                 'guid' => null,
-    //                 'hashtag' => 'music',
-    //                 'title' => "",
-    //                 'volume' => 10,
-    //                 'period' => 12,
-    //                 'selected' => true,
-    //             ],
-    //             [
-    //                 'id' => 'id2',
-    //                 'entity' => null,
-    //                 'guid' => null,
-    //                 'hashtag' => 'art',
-    //                 'title' => "",
-    //                 'volume' => 5,
-    //                 'period' => 24,
-    //                 'selected' => false,
-    //             ]
-    //         ],
-    //     ]));
-    // }
+        $json->shouldBe(json_encode([
+            'status' => 'success',
+            'tags' => [
+            ],
+            'trending' => [
+            ],
+            'default' => [],
+            'for_you' => null,
+            'activity_related' => [
+                [
+                    'id' => 'id',
+                    'entity' => null,
+                    'guid' => null,
+                    'hashtag' => 'music',
+                    'title' => "",
+                    'volume' => 10,
+                    'period' => 12,
+                    'selected' => true,
+                ],
+                [
+                    'id' => 'id2',
+                    'entity' => null,
+                    'guid' => null,
+                    'hashtag' => 'art',
+                    'title' => "",
+                    'volume' => 5,
+                    'period' => 24,
+                    'selected' => false,
+                ]
+            ],
+        ]));
+    }
 }

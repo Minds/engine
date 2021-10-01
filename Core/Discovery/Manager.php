@@ -425,7 +425,7 @@ class Manager
         $index = array_map(function ($type) {
             return $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-' . $type;
         }, $types);
-
+        
         $query = [
             'index' => $index,
             'body' =>  [
@@ -612,22 +612,16 @@ class Manager
      * Returns the preferred and trending tags
      * @return array
      */
-    public function getTags(array $opts = []): array
+    public function getTags(): array
     {
-        $opts = array_merge([
-            'wire_support_tier' => null,
-        ], $opts);
-
         $tagsList = $this->hashtagManager
             ->setUser($this->user)
             ->get([
                 'defaults' => true,
                 'trending' => true,
                 'limit' => 20,
-                'wire_support_tier' => $opts['wire_support_tier']
             ]);
 
-        // ojm test fail: there is no $tagsList
         $tags = array_filter($tagsList, function ($tag) {
             return $tag['type'] === 'user';
         });

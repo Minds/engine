@@ -42,40 +42,31 @@ class Repository
             'limit' => 12,
             'from' => strtotime('-12 hours', time()),
             'languages' => [ 'en' ],
-            'wire_support_tier' => null
         ], $opts);
 
-        $must= [
-            [
-                'range'=> [
-                    '@timestamp'=> [
-                        'gte'=> $opts['from'] * 1000,
+        $body = [
+            'query' => [
+                'bool' => [
+                    'must' => [
+                        [
+                            'range' => [
+                                '@timestamp' => [
+                                    'gte' => $opts['from'] * 1000,
+                                ],
+                            ],
+                        ],
+                        [
+                            'terms' => [
+                                'language' => $opts['languages'],
+                            ],
+                        ]
                     ],
-                ],
-            ],
-            [
-                'terms'=> [
-                    'language'=> $opts['languages'],
-                ],
-            ],
-        ];
-
-        if ($opts['wire_support_tier']) {
-            $must[]['term'] = [
-                'wire_support_tier'=> $opts['wire_support_tier']
-            ];
-        }
-
-        $body= [
-            'query'=> [
-                'bool'=> [
-                    'must'=> $must,
-                    'must_not'=> [
-                        'bool'=> [
-                            'should'=> [
+                    'must_not' => [
+                        'bool' => [
+                            'should' => [
                                 [
-                                    'terms'=> [
-                                        'nsfw'=> [ 1, 2, 3, 4, 5, 6],
+                                    'terms' => [
+                                        'nsfw' => [ 1, 2, 3, 4, 5, 6 ],
                                     ],
                                 ],
                             ],
