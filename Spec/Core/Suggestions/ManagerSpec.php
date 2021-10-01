@@ -64,6 +64,7 @@ class ManagerSpec extends ObjectBehavior
         $this->subscriptionsManager->getSubscriptionsCount()
             ->willReturn(10);
 
+        $this->interactionsLimiterMock(100);
 
         $this->repository->getList([
             'limit' => 24 * 3,
@@ -101,6 +102,8 @@ class ManagerSpec extends ObjectBehavior
     {
         $this->setUser((new User)->set('guid', 123));
 
+        $this->interactionsLimiterMock(5);
+
         $newResponse = $this->getList(['limit' => 24]);
 
         $newResponse->count()->shouldBe(0);
@@ -109,14 +112,10 @@ class ManagerSpec extends ObjectBehavior
     /**
      * @return bool
      */
-    private function kvLimiterMock($returnValue = [[
-        "period" => 300,
-        "remaining" => 50
-    ]])
+    private function interactionsLimiterMock($remaining = 20)
     {
-        $this->kvLimiter->setKey(Argument::any())->willReturn($this->kvLimiter);
-        $this->kvLimiter->setValue(Argument::any())->willReturn($this->kvLimiter);
-        $this->kvLimiter->setRateLimits(Argument::any())->willReturn($this->kvLimiter);
-        $this->kvLimiter->getRateLimitsWithCounts()->willReturn($returnValue);
+        $this->interactionsLimiter->getRemainingAttempts(Argument::any(), Argument::any())->willReturn([
+            (new RateLimit())->setRemaining($remaining)->setMax(30)->setSeconds(300)->setKey('subscribe'),
+        ]);
     }
 }

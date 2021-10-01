@@ -20,6 +20,8 @@ class ACLSpec extends ObjectBehavior
         $this->entitiesBuilder = $entitiesBuilder;
         $config->get('normalize_entities')
             ->willReturn(true);
+
+        $this->beConstructedWith($entitiesBuilder, null, $config);
     }
 
     public function mock_session($on = true)
@@ -206,20 +208,5 @@ class ACLSpec extends ObjectBehavior
         $this->read($entity)->shouldReturn(true);
         $this->write($entity)->shouldReturn(true);
         $this->setIgnore(false);
-    }
-
-    /**
-     * @return bool
-     */
-    private function kvLimiterMock($willThrow = false)
-    {
-        $this->kvLimiter->setKey(Argument::any())->willReturn($this->kvLimiter);
-        $this->kvLimiter->setValue(Argument::any())->willReturn($this->kvLimiter);
-        $this->kvLimiter->setThresholds([]);
-        if ($willThrow) {
-            $this->kvLimiter->control()->willThrow(new \Minds\Core\Security\RateLimits\RateLimitExceededException());
-        } else {
-            $this->kvLimiter->control()->willReturn(null);
-        }
     }
 }

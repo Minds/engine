@@ -207,7 +207,8 @@ class Manager
             $attempts,
             function ($carry, $attempt) {
                 return min($attempt->getRemaining() ?: INF, $carry);
-            }
+            },
+            INF
         );
 
         return $smallestRemainingAttempts < 10;
