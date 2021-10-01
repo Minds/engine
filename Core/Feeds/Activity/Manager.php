@@ -228,6 +228,8 @@ class Manager
         $activity->setTitle($entity->title);
         $activity->setMessage($entity->description);
         $activity->setFromEntity($entity);
+        $activity->setNsfw($entity->getNsfw());
+        $activity->setNsfwLock($entity->getNsfwLock());
         $activity->owner_guid = $entity->owner_guid;
         $activity->container_guid = $entity->container_guid;
         $activity->access_id = $entity->access_id;

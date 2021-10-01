@@ -16,7 +16,7 @@ class SubscriptionsIterator implements \Iterator
     private $payment_method;
 
     /** @var int $limit */
-    private $limit = 2000;
+    private $limit = 5000;
 
     /** @var string $token */
     private $token = "";
