@@ -97,7 +97,7 @@ class Manager
             $this->tagCloud = $opts['tag_cloud_override'];
         } elseif (empty($this->tagCloud) && $opts['plus'] === false) {
             // fallback to defaults.
-            $this->tagCloud = $this->config->get('discovery_default_tags') ?? [];
+            $this->tagCloud = $this->config->get('tags') ?? [];
         }
 
         $tagTrends12 = $this->getTagTrendsForPeriod(12, [], [
@@ -292,6 +292,11 @@ class Manager
         $must_not = [];
         $functions = [];
 
+        /**
+         * Discovery development mode will significantly alter the discovery algorithm
+         * so that it does not factor in time, weights on comments and votes etc, allowing for 
+         * development around the UI.
+         */
         if (!$this->config->get('discovery_development_mode')) {
             // Date Range
 
