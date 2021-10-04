@@ -101,11 +101,6 @@ class Manager
                 return false; // Can not save a remind where the original post doesn't exist
             }
             $activity->setNsfw(array_merge($remind->getNsfw(), $activity->getNsfw()));
-
-            // propagate any remind paywall to activity
-            if ($remind->isPaywall()) {
-                $activity->setWireThreshold($remind->getWireThreshold());
-            }
         }
 
         $success = $this->save
@@ -242,7 +237,7 @@ class Manager
             /** @var Video|Image */
             $entity = $media = $entity; // Helper for static analysis
             $activity->setCustom(...$entity->getActivityParameters());
-            $activity->setPayWall($entity->getFlag('paywall'));
+            $activity->setPayWall($entity->isPayWall());
         }
 
         if ($entity->subtype === 'blog') {
