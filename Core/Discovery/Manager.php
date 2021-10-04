@@ -268,7 +268,6 @@ class Manager
             'plus' => false,
         ], $opts);
 
-        // ojm recomment
         // if ($opts['plus'] === true) {
         //     $opts['hoursAgo'] = 1680; // 10 Weeks
         // }
@@ -316,7 +315,6 @@ class Manager
                 'range' => [
                     'votes:up' => [
                         'gte' => 2,
-                        // ojm return to 2
                     ]
                 ]
             ];

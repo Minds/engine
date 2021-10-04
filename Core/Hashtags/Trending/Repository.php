@@ -40,8 +40,7 @@ class Repository
     {
         $opts = array_merge([
             'limit' => 12,
-            'from' => strtotime('-500 hours', time()),
-            // 'from' => strtotime('-12 hours', time()), //ojm extended for testing
+            'from' => strtotime('-12 hours', time()),
             'languages' => [ 'en' ],
             'wire_support_tier' => null
         ], $opts);
@@ -61,7 +60,6 @@ class Repository
             ],
         ];
 
-        // ojm uncomment
         if ($opts['wire_support_tier']) {
             $must[]['term'] = [
                 'wire_support_tier'=> $opts['wire_support_tier']

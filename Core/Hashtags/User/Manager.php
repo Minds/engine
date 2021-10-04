@@ -94,8 +94,7 @@ class Manager
 
         if ($opts['trending']) {
             $cached = $this->cacher->get($this->getSharedCacheKey('trending', $opts));
-            // ojm comment line below
-            $cached = false;
+            // $cached = false;
 
             if ($cached !== false) {
                 $trending = json_decode($cached, true);

@@ -211,46 +211,43 @@ class ManagerSpec extends ObjectBehavior
         $entities->shouldHaveCount(2);
     }
 
-    // ojm failing test
-    // exception [err:TypeError("array_filter(): Argument #1 ($array) must be of type array, null given")] has been thrown.
-    // public function it_should_return_tags()
-    // {
-    //     $this->hashtagManager
-    //         ->get([
-    //             'defaults' => true,
-    //             'trending' => true,
-    //             'limit' => 20,
-    //             'wire_support_tier' => null
-    //         ])
-    //         ->willReturn([
-    //             [
-    //                 'type' => 'user',
-    //                 'tag' => 'music',
-    //             ],
-    //             [
-    //                 'type' => 'trending',
-    //                 'tag' => 'beatles',
-    //             ]
-    //         ]);
+    public function it_should_return_tags()
+    {
+        $this->hashtagManager
+            ->get([
+                'defaults' => true,
+                'trending' => true,
+                'limit' => 20,
+                'wire_support_tier' => null
+            ])
+            ->willReturn([
+                [
+                    'type' => 'user',
+                    'tag' => 'music',
+                ],
+                [
+                    'type' => 'trending',
+                    'tag' => 'beatles',
+                ]
+            ]);
 
-    //     $this->hashtagManager
-    //         ->get([
-    //             'defaults' => true,
-    //             'limit' => 20,
-    //             'wire_support_tier' => null
-    //         ])
-    //         ->willReturn([]);
+        $this->hashtagManager
+            ->get([
+                'defaults' => true,
+                'limit' => 20
+            ])
+            ->willReturn([]);
 
-    //     $tags = $this->getTags();
-    //     $tags['tags']->shouldHaveCount(1);
-    //     $tags['tags'][0]->shouldBe([
-    //         'type' => 'user',
-    //         'tag' => 'music',
-    //     ]);
-    //     $tags['trending']->shouldHaveCount(1);
-    //     $tags['trending'][0]->shouldBe([
-    //         'type' => 'trending',
-    //         'tag' => 'beatles',
-    //     ]);
-    // }
+        $tags = $this->getTags();
+        $tags['tags']->shouldHaveCount(1);
+        $tags['tags'][0]->shouldBe([
+            'type' => 'user',
+            'tag' => 'music',
+        ]);
+        $tags['trending']->shouldHaveCount(1);
+        $tags['trending'][0]->shouldBe([
+            'type' => 'trending',
+            'tag' => 'beatles',
+        ]);
+    }
 }
