@@ -48,7 +48,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_copy_over_a_tweet(ConnectedAccount $connectedAccount, TwitterUser $twitterUser)
+    public function it_should_copy_over_a_tweet(ConnectedAccount $connectedAccount, TwitterUser $twitterUser, User $user)
     {
         //
         $this->repository->getList()
@@ -92,7 +92,7 @@ class ManagerSpec extends ObjectBehavior
         //
 
         $this->entitiesBuilder->single('123')
-            ->willReturn(new User());
+            ->willReturn($user);
 
         //
 
