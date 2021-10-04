@@ -65,6 +65,23 @@ class KeyValueLimiter
     }
 
     /**
+     * Checks and increment the rate limit
+     * @return bool
+     */
+    public function checkAndIncrement(): bool
+    {
+        if ($this->verifyBypass()) {
+            return true;
+        }
+
+        $this->check();
+
+        $this->increment();
+
+        return true;
+    }
+
+    /**
      * Verify whether or not rate limits can be bypassed.
      * @return bool
      */
@@ -86,6 +103,20 @@ class KeyValueLimiter
         }
     }
 
+    public function getRateLimitsWithRemainings()
+    {
+        $rateLimits = $this->getRateLimits();
+        $keys = array_map(fn ($rateLimit): string => $this->getRecordKey($rateLimit), $rateLimits);
+        $counts = $this->getRedis()->mget($keys);
+
+        $rateLimitsWithRemainings = [];
+        foreach ($rateLimits as $index => $rateLimit) {
+            $rateLimit->setRemaining(max($rateLimit->getMax() - (int) $counts[$index], 0));
+            $rateLimitsWithRemainings[] = $rateLimit;
+        }
+
+        return $rateLimitsWithRemainings;
+    }
 
     /**
      * Returns a consistent record key based on a rateLimit
@@ -153,25 +184,6 @@ class KeyValueLimiter
         }
 
         return $rateLimits;
-    }
-
-    /**
-     * Returns rate limits and populates their "remaining" attribute from redis
-     * @return RateLimit[] $rateLimitsWithRemainings
-     */
-    private function getRateLimitsWithRemainings()
-    {
-        $rateLimits = $this->getRateLimits();
-        $keys = array_map(fn ($rateLimit): string => $this->getRecordKey($rateLimit), $rateLimits);
-        $counts = $this->getRedis()->mget($keys);
-
-        $rateLimitsWithCounts = [];
-        foreach ($rateLimits as $index => $rateLimit) {
-            $rateLimit->setRemaining(max($rateLimit->getMax() - (int) $counts[$index], 0));
-            $rateLimitsWithCounts[] = $rateLimit;
-        }
-
-        return $rateLimitsWithCounts;
     }
 
     /**
