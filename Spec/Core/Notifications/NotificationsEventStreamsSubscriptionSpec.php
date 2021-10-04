@@ -264,7 +264,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
             ->willReturn('100');
         $withdrawRequest->getUrn()
             ->willReturn('urn:withdraw-request:123-' . time() . '-tx');
-        
+
         $this->manager->add(Argument::that(function (Notification $notification) {
             return $notification->getType() === NotificationTypes::TYPE_TOKEN_WITHDRAW_ACCEPTED
                 && $notification->getToGuid() === '123'
@@ -301,7 +301,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
             ->willReturn('100');
         $withdrawRequest->getUrn()
             ->willReturn('urn:withdraw-request:123-' . time() . '-tx');
-        
+
         $this->manager->add(Argument::that(function (Notification $notification) {
             return $notification->getType() === NotificationTypes::TYPE_TOKEN_WITHDRAW_REJECTED
                 && $notification->getToGuid() === '123'
@@ -321,7 +321,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
     {
         $actionEvent->getAction()
             ->willReturn(ActionEvent::ACTION_GROUP_INVITE);
-        
+
         $actionEvent->getEntity()
             ->willReturn($receiver);
 
@@ -370,7 +370,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
     {
         $actionEvent->getAction()
             ->willReturn(ActionEvent::ACTION_GROUP_QUEUE_ADD);
-        
+
         $actionEvent->getEntity()
             ->willReturn($activity);
 
@@ -419,7 +419,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
     {
         $actionEvent->getAction()
             ->willReturn(ActionEvent::ACTION_GROUP_QUEUE_APPROVE);
-        
+
         $actionEvent->getEntity()
             ->willReturn($activity);
 
@@ -464,54 +464,55 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $this->consume($actionEvent);
     }
 
-    public function it_should_send_group_queue_reject(ActionEvent $actionEvent, Activity $activity, User $actor, User $receiver)
-    {
-        $actionEvent->getAction()
-            ->willReturn(ActionEvent::ACTION_GROUP_QUEUE_REJECT);
-        
-        $actionEvent->getEntity()
-            ->willReturn($activity);
+    // Disabled because post is deleted immediately when rejected
+    // public function it_should_send_group_queue_reject(ActionEvent $actionEvent, Activity $activity, User $actor, User $receiver)
+    // {
+    //     $actionEvent->getAction()
+    //         ->willReturn(ActionEvent::ACTION_GROUP_QUEUE_REJECT);
 
-        $actionEvent->getUser()
-            ->willReturn($actor);
+    //     $actionEvent->getEntity()
+    //         ->willReturn($activity);
 
-        $actionEvent->getTimestamp()
-            ->willReturn(time());
+    //     $actionEvent->getUser()
+    //         ->willReturn($actor);
 
-        $actionEvent->getActionData()
-            ->willReturn([
-                'group_urn' => 'urn:group:789'
-            ]);
+    //     $actionEvent->getTimestamp()
+    //         ->willReturn(time());
 
-        //
+    //     $actionEvent->getActionData()
+    //         ->willReturn([
+    //             'group_urn' => 'urn:group:789'
+    //         ]);
 
-        $actor->getGuid()
-            ->willReturn('456');
+    //     //
 
-        $receiver->getGuid()
-            ->willReturn('123');
+    //     $actor->getGuid()
+    //         ->willReturn('456');
 
-        $receiver->getOwnerGuid()
-            ->willReturn(0);
+    //     $receiver->getGuid()
+    //         ->willReturn('123');
 
-        $activity->getOwnerEntity()
-            ->willReturn($receiver);
-        $activity->getOwnerGuid()
-            ->willReturn('123');
-        $activity->getUrn()
-            ->willReturn('urn:activity:123');
+    //     $receiver->getOwnerGuid()
+    //         ->willReturn(0);
 
-        //
-        $this->manager->add(Argument::that(function (Notification $notification) {
-            return $notification->getType() === NotificationTypes::TYPE_GROUP_QUEUE_REJECT
-                && $notification->getToGuid() === '123'
-                && $notification->getFromGuid() === '456';
-        }))
-            ->shouldBeCalled()
-            ->willReturn(true);
+    //     $activity->getOwnerEntity()
+    //         ->willReturn($receiver);
+    //     $activity->getOwnerGuid()
+    //         ->willReturn('123');
+    //     $activity->getUrn()
+    //         ->willReturn('urn:activity:123');
 
-        $this->consume($actionEvent);
-    }
+    //     //
+    //     $this->manager->add(Argument::that(function (Notification $notification) {
+    //         return $notification->getType() === NotificationTypes::TYPE_GROUP_QUEUE_REJECT
+    //             && $notification->getToGuid() === '123'
+    //             && $notification->getFromGuid() === '456';
+    //     }))
+    //         ->shouldBeCalled()
+    //         ->willReturn(true);
+
+    //     $this->consume($actionEvent);
+    // }
 
     /**
      * Wire notifications
@@ -533,7 +534,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
 
         $actionEvent->getAction()
             ->willReturn(ActionEvent::ACTION_WIRE_SENT);
-        
+
         $actionEvent->getEntity()
             ->willReturn($wire);
 
@@ -547,7 +548,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
 
         $wire->getOwnerGuid()
             ->willReturn('123');
-        
+
         $wire->getSender()
             ->willReturn($sender);
 
@@ -559,7 +560,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
 
         $wire->getAmount()
             ->willReturn(10);
-        
+
         $wire->getMethod()
             ->willReturn('usd');
 
@@ -598,7 +599,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $actionEvent->getAction()
             ->shouldBeCalled()
             ->willReturn(ActionEvent::ACTION_WIRE_SENT);
-        
+
         $actionEvent->getEntity()
             ->shouldBeCalled()
             ->willReturn($wire);
@@ -615,7 +616,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $wire->getOwnerGuid()
             ->shouldBeCalled()
             ->willReturn('123');
-        
+
         $wire->getSender()
             ->shouldBeCalled()
             ->willReturn($sender);
@@ -631,7 +632,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $wire->getAmount()
             ->shouldBeCalled()
             ->willReturn(10);
-        
+
         $wire->getMethod()
             ->shouldBeCalled()
             ->willReturn('usd');

@@ -15,6 +15,10 @@ use Minds\Core\Groups\Delegates\PropagateRejectionDelegate;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Entities\User;
+use Minds\Core\Notifications\Manager as NotificationsManager;
+use Minds\Core\Notifications\Notification;
+use Minds\Core\Notifications\NotificationTypes;
+use Minds\Core\Log\Logger;
 
 // TODO: Migrate to new Feeds CQL (approveAll)
 class Feeds
@@ -31,15 +35,22 @@ class Feeds
     /** @var ActionEventsTopic */
     protected $actionEventsTopic;
 
+    /** @var NotificationsManager */
+    protected $notificationsManager;
+
+    /** @var Logger */
+    protected $logger;
     /**
      * Feeds constructor.
      * @param null $entitiesBuilder
      */
-    public function __construct($entitiesBuilder = null, $propagateRejectionDelegate = null, ActionEventsTopic $actionEventsTopic = null)
+    public function __construct($entitiesBuilder = null, $propagateRejectionDelegate = null, ActionEventsTopic $actionEventsTopic = null, NotificationsManager $notificationsManager = null, Logger $logger = null)
     {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->propagateRejectionDelegate = $propagateRejectionDelegate ?? new PropagateRejectionDelegate();
         $this->actionEventsTopic = $actionEventsTopic ?? Di::_()->get('EventStreams\Topics\ActionEventsTopic');
+        $this->notificationsManager = $notificationsManager ?? Di::_()->get('Notifications\Manager');
+        $this->logger = $logger ?? Di::_()->get('Logger');
     }
 
     /**
@@ -226,11 +237,31 @@ class Feeds
 
         /** @var AdminQueue $adminQueue */
         $adminQueue = Di::_()->get('Groups\AdminQueue');
+
+        $activityOwnerGuid= $activity->owner_guid;
+
         $success = $adminQueue->delete($this->group, $activity);
 
         if ($success && $options['notification']) {
-            // Reject notifs doesn't work at the moment as the post gets deleted on reject
-            $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_REJECT, Core\Session::getLoggedinUser(), $activity);
+            // ActionEvent doesn't work bc the post gets deleted on reject,
+            // so we bypass pulsar and manually send notification instead
+
+            // $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_REJECT, Core\Session::getLoggedinUser(), $activity);
+
+            $notification = new Notification();
+            $notification->setType(NotificationTypes::TYPE_GROUP_QUEUE_REJECT);
+
+            $notification->setFromGuid((string) Core\Session::getLoggedInUserGuid());
+            $notification->setToGuid((string) $activityOwnerGuid);
+
+            $notification->setEntityUrn($this->group->getUrn());
+
+            // Save and submit
+            if ($this->notificationsManager->add($notification)) {
+                // Some logging
+                $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
+            }
+
 
             $this->sendNotification('reject', $activity);
         }
