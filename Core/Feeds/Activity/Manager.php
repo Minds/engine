@@ -240,6 +240,7 @@ class Manager
             $entity = $media = $entity; // Helper for static analysis
             $activity->setCustom(...$entity->getActivityParameters());
             $activity->setPayWall($entity->isPayWall());
+            $activity->setWireThreshold($entity->getWireThreshold());
         }
 
         if ($entity->subtype === 'blog') {
