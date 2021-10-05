@@ -16,6 +16,7 @@ use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
+use Zend\Diactoros\ServerRequestFactory;
 
 class Manager
 {
@@ -46,6 +47,12 @@ class Manager
     /** @var Delegates\RequestHydrationDelegate */
     protected $requestHydrationDelegate;
 
+    /** @var Security\DeferredSecrets */
+    private $deferredSecrets;
+
+    /** @var Security\TwoFactor\Manager */
+    private $twoFactorManager;
+
     public function __construct(
         $txManager = null,
         $offChainTransactions = null,
@@ -55,7 +62,9 @@ class Manager
         $offChainBalance = null,
         $notificationsDelegate = null,
         $emailDelegate = null,
-        $requestHydrationDelegate = null
+        $requestHydrationDelegate = null,
+        $twoFactorManager = null,
+        $deferredSecrets = null
     ) {
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
         $this->offChainTransactions = $offChainTransactions ?: Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
@@ -66,6 +75,8 @@ class Manager
         $this->notificationsDelegate = $notificationsDelegate ?: new Delegates\NotificationsDelegate();
         $this->emailDelegate = $emailDelegate ?: new Delegates\EmailDelegate();
         $this->requestHydrationDelegate = $requestHydrationDelegate ?: new Delegates\RequestHydrationDelegate();
+        $this->twoFactorManager = $twoFactorManager ?: Di::_()->get('Security\TwoFactor\Manager');
+        $this->deferredSecrets = $deferredSecrets ?: Di::_()->get('Security\DeferredSecrets');
     }
 
     /**
@@ -177,13 +188,20 @@ class Manager
 
     /**
      * @param Request $request
+     * @param User $user - user we're requesting for - nullable when called by admin.
+     * @param string $secret - deferred authentication secret - nullable when called by admin.
      * @return bool
      * @throws Exception
      */
-    public function request($request): bool
+    public function request(Request $request, User $user = null, string $secret = ''): bool
     {
         if (!$this->check($request->getUserGuid())) {
             throw new Exception('You can only have one pending withdrawal at a time');
+        }
+
+        // verify user has been authenticated prior to dispatching transaction.
+        if (!$user->isAdmin() && !$this->verifyDeferredAuthentication($secret, $user)) {
+            throw new Exception('Invalid authentication secret', 401);
         }
 
         $user = new User();
@@ -445,5 +463,29 @@ class Manager
         //
 
         return true;
+    }
+
+    /**
+     * Calls to check gatekeeper and returns secret that can be verified.
+     * @param User $user - user to verify.
+     * @throws TwoFactorRequired - Exception indicating TwoFactor is required.
+     */
+    public function deferAuthentication(User $user): string
+    {
+        // trigger 2fa gatekeeper
+        $this->twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
+        
+        // if no exception thrown
+        return $this->deferredSecrets->generate($user);
+    }
+
+    /**
+     * Verify authentication was previously a success using the secret value.
+     * @param string $secret - the secret a user was given to authenticate themselves.
+     * @param User $user - user to verify.
+     */
+    public function verifyDeferredAuthentication(string $secret, User $user): bool
+    {
+        return $this->deferredSecrets->verify($secret, $user);
     }
 }
