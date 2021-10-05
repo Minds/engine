@@ -124,6 +124,12 @@ class KeyValueLimiter
      */
     private function getRecordKey(RateLimit $rateLimit): string
     {
+        // we do this so that rate limits apply per unique periods in time and
+        // don't get extended more than that. e.g. if the period (seconds) were
+        // set to a day, and at the end of that day we extend the key's
+        // expiry one more day, the user won't get limited for an extra day.
+        // instead at the beginning of the next day we will have a fresh key
+        // with reset limits
         $resetPeriod = round(time() / $rateLimit->getSeconds());
         return "ratelimit:{$rateLimit->getKey()}-$this->value:{$rateLimit->getSeconds()}:{$resetPeriod}";
     }
