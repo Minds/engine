@@ -86,14 +86,11 @@ class KeyValueLimiter
         $keys = array_map(fn ($rateLimit): string => $this->getRecordKey($rateLimit), $rateLimits);
         $counts = $this->getRedis()->mget($keys);
 
-        echo json_encode($counts);
-
         $rateLimitsWithRemainings = [];
         foreach ($rateLimits as $index => $rateLimit) {
             $rateLimit->setRemaining(max($rateLimit->getMax() - (int) $counts[$index], 0));
             $rateLimitsWithRemainings[] = $rateLimit;
         }
-        echo json_encode($rateLimitsWithRemainings);
 
         return $rateLimitsWithRemainings;
     }
