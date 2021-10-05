@@ -22,7 +22,7 @@ class RateLimit
     /** @var int */
     private $seconds;
 
-    /** 
+    /**
      * utility attribute that is max - count
      * @var int */
     private $remaining;
