@@ -425,7 +425,7 @@ class Manager
         $index = array_map(function ($type) {
             return $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-' . $type;
         }, $types);
-        
+
         $query = [
             'index' => $index,
             'body' =>  [
@@ -474,6 +474,7 @@ class Manager
         $response = $this->es->request($prepared);
 
         $trends = [];
+
         foreach ($response['hits']['hits'] as $doc) {
             $ownerGuid = $doc['_source']['owner_guid'];
 
@@ -505,7 +506,6 @@ class Manager
                 $title = strlen($entity->description) > 60 ? mb_substr($entity->description, 0, 60) . '...' : $entity->description;
             }
 
-            // If still no title, then skip
             if (!$title) {
                 continue;
             }
@@ -612,14 +612,19 @@ class Manager
      * Returns the preferred and trending tags
      * @return array
      */
-    public function getTags(): array
+    public function getTags(array $opts = []): array
     {
+        $opts = array_merge([
+            'wire_support_tier' => null,
+        ], $opts);
+
         $tagsList = $this->hashtagManager
             ->setUser($this->user)
             ->get([
                 'defaults' => true,
                 'trending' => true,
                 'limit' => 20,
+                'wire_support_tier' => $opts['wire_support_tier']
             ]);
 
         $tags = array_filter($tagsList, function ($tag) {

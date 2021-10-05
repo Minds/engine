@@ -209,7 +209,11 @@ class Manager
                             ->setThumbnail($richEmbed['links']['thumbnail'][0]['href']);
                 }
 
-                $this->saveAction->setEntity($activity)->save();
+                try {
+                    $this->saveAction->setEntity($activity)->save();
+                } catch (\Exception $e) {
+                    // sadly we have just a generic exception for found spam
+                }
 
                 // Update our last imported tweet, but only the first one
                 if (++$i === 1) {
