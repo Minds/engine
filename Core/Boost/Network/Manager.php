@@ -28,18 +28,23 @@ class Manager
     /** @var Config $config */
     private $config;
 
+    /** @var Delegates\AnalyticsDelegate */
+    protected $analyticsDelegate;
+
     public function __construct(
         $repository = null,
         $elasticRepository = null,
         $entitiesBuilder = null,
         $guidBuilder = null,
-        $config = null
+        $config = null,
+        $analyticsDelegate = null
     ) {
         $this->repository = $repository ?: new Repository;
         $this->elasticRepository = $elasticRepository ?: new ElasticRepository;
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->guidBuilder = $guidBuilder ?: new GuidBuilder;
         $this->config = $config ?: Di::_()->get('Config');
+        $this->analyticsDelegate = $analyticsDelegate ?? new Delegates\AnalyticsDelegate();
     }
 
     /**
@@ -130,6 +135,9 @@ class Manager
         }
         $this->repository->add($boost);
         $this->elasticRepository->add($boost);
+
+        $this->analyticsDelegate->onAdd($boost);
+
         return true;
     }
 
