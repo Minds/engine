@@ -8,6 +8,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\TwitterSync\Delegates\ChannelLinksDelegate;
+use Minds\Core\Feeds\Activity\RichEmbed;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
@@ -22,6 +23,7 @@ class Manager
         protected Config $config,
         protected EntitiesBuilder $entitiesBuilder,
         protected Save $saveAction,
+        protected RichEmbed\Manager $richEmbedManager,
         protected ChannelLinksDelegate $channelLinksDelegate,
     ) {
     }
@@ -196,7 +198,22 @@ class Manager
                 $activity->ownerObj = $owner->export();
                 //
                 $activity->setMessage($recentTweet->getText());
-                $this->saveAction->setEntity($activity)->save();
+                //
+                if ($recentTweet->getUrls() && isset($recentTweet->getUrls()[0])) {
+                    $url = $recentTweet->getUrls()[0];
+                    $richEmbed = $this->richEmbedManager->getRichEmbed($url);
+                    $activity
+                            ->setTitle($richEmbed['meta']['title'])
+                            ->setBlurb($richEmbed['meta']['description'])
+                            ->setURL($url)
+                            ->setThumbnail($richEmbed['links']['thumbnail'][0]['href']);
+                }
+
+                try {
+                    $this->saveAction->setEntity($activity)->save();
+                } catch (\Exception $e) {
+                    // sadly we have just a generic exception for found spam
+                }
 
                 // Update our last imported tweet, but only the first one
                 if (++$i === 1) {

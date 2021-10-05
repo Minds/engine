@@ -12,6 +12,7 @@ class Module implements ModuleInterface
 {
     public $submodules = [
         TwitterSync\Module::class,
+        Activity\RichEmbed\Module::class,
     ];
 
     /**
