@@ -103,7 +103,9 @@ class ControllersSpec extends ObjectBehavior
 
     public function it_should_get_tags_response(ServerRequest $request)
     {
-        $this->manager->getTags()
+        $opts = ['wire_support_tier' => null];
+
+        $this->manager->getTags($opts)
             ->willReturn([
                 'tags' => [
                     [
@@ -166,7 +168,9 @@ class ControllersSpec extends ObjectBehavior
 
     public function it_should_get_related_tags_response(ServerRequest $request)
     {
-        $this->manager->getTags()
+        $opts = ['wire_support_tier' => null];
+
+        $this->manager->getTags($opts)
             ->willReturn([
                 'tags' => [
                 ],
@@ -181,6 +185,7 @@ class ControllersSpec extends ObjectBehavior
         $request->getQueryParams()
                 ->willReturn([
                     'entity_guid' => '123',
+                    'wire_support_tier' => null
                 ]);
 
         $this->manager->getActivityRelatedTags('123')

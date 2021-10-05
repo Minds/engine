@@ -87,7 +87,7 @@ class ManagerSpec extends ObjectBehavior
                                 'key' => 'technology',
                                 'doc_count' => 100
                             ],
-                            
+
                         ]
                     ]
                 ]
@@ -208,6 +208,7 @@ class ManagerSpec extends ObjectBehavior
                 'defaults' => true,
                 'trending' => true,
                 'limit' => 20,
+                'wire_support_tier' => null
             ])
             ->willReturn([
                 [
@@ -223,7 +224,7 @@ class ManagerSpec extends ObjectBehavior
         $this->hashtagManager
             ->get([
                 'defaults' => true,
-                'limit' => 20,
+                'limit' => 20
             ])
             ->willReturn([]);
 

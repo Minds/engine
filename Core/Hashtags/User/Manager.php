@@ -59,6 +59,7 @@ class Manager
             'defaults' => true,
             'user_guid' => $this->user ? $this->user->getGuid() : null,
             'languages' => [ 'en' ],
+            'wire_support_tier' => null
         ], $opts); // Merge in our defaults
 
         if ($this->user && $this->user->getLanguage() !== 'en') {
@@ -124,7 +125,7 @@ class Manager
                 'type' => 'user',
             ];
         }
-        
+
         foreach ($trending as $tag) {
             $posts = $tag['posts'];
             $votes = $tag['votes'];
