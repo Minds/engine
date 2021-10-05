@@ -18,6 +18,7 @@ use Lcobucci\JWT\Signer\Rsa\Sha512;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
 use Minds\Common\Repository\Response;
 use Minds\Entities\User;
+use Minds\Helpers\File;
 
 class Manager
 {
@@ -184,7 +185,7 @@ class Manager
      * @param Session $session
      * @return bool
      */
-    public function validateSession($session)
+    public function validateSession(Session $session) : bool
     {
         $validated = $this->repository->get(
             $session->getUserGuid(),
@@ -217,6 +218,13 @@ class Manager
             return false;
         }
 
+        if (
+            !$session->getXsrfToken()
+            || $session->getXsrfToken() != $_SERVER['HTTP_X_XSRF_TOKEN']
+        ) {
+            return false;
+        }
+
         // Update the last active and timestamp, if validated past 15 mins
         if ($validated->getLastActive() < time() - 1500) {
             $session->setLastActive(time());
@@ -231,7 +239,7 @@ class Manager
      * Create the session
      * @return $this
      */
-    public function createSession()
+    public function createSession() : Manager
     {
         $id = $this->generateId();
         $expires = new DateTimeImmutable("+30 days");
@@ -246,11 +254,14 @@ class Manager
             ->getToken($this->getJwtConfig()->signer(), $this->getJwtConfig()->signingKey());
 
         $this->session = new Session();
+
+        // TODO: Set XSRF token within the session object
         $this->session
             ->setId($id)
             ->setToken($token->toString())
             ->setUserGuid($this->user->getGuid())
             ->setExpires($expires->getTimestamp())
+            ->setXsrfToken("")
             ->setLastActive(time())
             ->setIp($this->ipAddress->get());
 
@@ -259,7 +270,7 @@ class Manager
         return $this;
     }
 
-    private function generateId()
+    private function generateId() : string
     {
         $bytes = openssl_random_pseudo_bytes(128);
         return hash('sha512', $bytes);
@@ -269,7 +280,7 @@ class Manager
      * Save the session to the database and client
      * @return $this
      */
-    public function save()
+    public function save() : Manager
     {
         $this->repository->add($this->session);
 
@@ -287,10 +298,10 @@ class Manager
 
     /**
      * Delete all jwt sessions for a given user
-     * @param User $user
+     * @param User|null $user
      * @return bool
      */
-    public function deleteAll(User $user = null)
+    public function deleteAll(User $user = null) : bool
     {
         if (!$user) {
             $user = Core\Session::getLoggedInUser();

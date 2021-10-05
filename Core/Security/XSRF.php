@@ -4,19 +4,29 @@
  */
 namespace Minds\Core\Security;
 
-use Minds\Core;
 use Minds\Common\Cookie;
+use Minds\Core\Session;
+use Minds\Core\Sessions\Manager as SessionsManager;
+use Psr\Http\Message\ServerRequestInterface;
 
 class XSRF
 {
-    public static function buildToken()
+    public static function buildToken() : string
     {
         $bytes = openssl_random_pseudo_bytes(128);
         return hash('sha512', $bytes);
     }
 
-    public static function validateRequest()
+    public static function validateRequest(ServerRequestInterface $request = null) : bool
     {
+        if (Session::isLoggedin()) {
+            if ($request == null)
+                return false;
+
+            $sessionsManager = (new SessionsManager())->withRouterRequest($request);
+            return $sessionsManager->validateSession();
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             return true; // XSRF only needed for modifiers
         }
@@ -38,7 +48,13 @@ class XSRF
      */
     public static function setCookie($force = false)
     {
-        if (!$force && isset($_COOKIE['XSRF-TOKEN'])) {
+        if (
+            !$force
+            && (
+                Session::isLoggedin()
+                || isset($_COOKIE['XSRF-TOKEN'])
+            )
+        ) {
             return;
         }
         $token = self::buildToken();

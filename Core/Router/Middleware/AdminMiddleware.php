@@ -55,7 +55,7 @@ class AdminMiddleware implements MiddlewareInterface
     {
         if (
             !$request->getAttribute($this->attributeName) ||
-            !call_user_func($this->xsrfValidateRequest)
+            !call_user_func($this->xsrfValidateRequest, $request)
         ) {
             throw new UnauthorizedException();
         }

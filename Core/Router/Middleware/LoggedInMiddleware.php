@@ -52,7 +52,7 @@ class LoggedInMiddleware implements MiddlewareInterface
     {
         if (
             !$request->getAttribute($this->attributeName) ||
-            (!call_user_func($this->xsrfValidateRequest) && !$request->getAttribute('oauth_user_id'))
+            (!call_user_func($this->xsrfValidateRequest, $request) && !$request->getAttribute('oauth_user_id'))
         ) {
             throw new UnauthorizedException();
         }
