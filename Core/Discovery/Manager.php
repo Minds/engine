@@ -48,6 +48,9 @@ class Manager
     /** @var ACL */
     protected $acl;
 
+    /** @var Features */
+    protected $features;
+
     public function __construct(
         $es = null,
         $entitiesBuilder = null,
@@ -55,7 +58,8 @@ class Manager
         $hashtagManager = null,
         $elasticFeedsManager = null,
         $user = null,
-        $acl = null
+        $acl = null,
+        $features = null
     ) {
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
@@ -65,6 +69,7 @@ class Manager
         $this->user = $user ?? Session::getLoggedInUser();
         $this->plusSupportTierUrn = $this->config->get('plus')['support_tier_urn'] ?? null;
         $this->acl = $acl ?? Di::_()->get('Security\ACL');
+        $this->features = $features ?: Di::_()->get('Features\Manager');
     }
 
     /**
@@ -96,6 +101,9 @@ class Manager
         if ($opts['tag_cloud_override']) {
             $this->tagCloud = $opts['tag_cloud_override'];
         } elseif (empty($this->tagCloud) && $opts['plus'] === false) {
+            if (!$this->features->has('discovery-default-tags')) {
+                throw new NoTagsException();
+            }
             // fallback to defaults.
             $this->tagCloud = $this->config->get('tags') ?? [];
         }
