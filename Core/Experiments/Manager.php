@@ -46,15 +46,6 @@ class Manager
     }
 
     /**
-     * Gets a users id
-     * @return string
-     */
-    public function getUserId(): string
-    {
-        return $this->growthbookUser->ids['id'];
-    }
-
-    /**
      * Return a list of experiments
      * @return Growthbook\TrackData<mixed>[]
      */
