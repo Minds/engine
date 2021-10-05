@@ -294,7 +294,7 @@ class Manager
 
         /**
          * Discovery development mode will significantly alter the discovery algorithm
-         * so that it does not factor in time, weights on comments and votes etc, allowing for 
+         * so that it does not factor in time, weights on comments and votes etc, allowing for
          * development around the UI.
          */
         if (!$this->config->get('discovery_development_mode')) {
