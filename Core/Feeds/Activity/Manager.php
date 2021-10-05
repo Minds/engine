@@ -239,7 +239,8 @@ class Manager
             /** @var Video|Image */
             $entity = $media = $entity; // Helper for static analysis
             $activity->setCustom(...$entity->getActivityParameters());
-            $activity->setPayWall($entity->getFlag('paywall'));
+            $activity->setPayWall($entity->isPayWall());
+            $activity->setWireThreshold($entity->getWireThreshold());
         }
 
         if ($entity->subtype === 'blog') {
