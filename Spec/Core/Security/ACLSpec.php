@@ -51,6 +51,7 @@ class ACLSpec extends ObjectBehavior
     {
         $user->getType()->willReturn('user');
         $user->get('type')->willReturn('user');
+        $user->get('username')->willReturn('username');
         $user->get('guid')->willReturn(123);
         $user->get('access_id')->willReturn(2);
         $user->get('owner_guid')->willReturn(0);
@@ -106,6 +107,7 @@ class ACLSpec extends ObjectBehavior
     {
         $user->getType()->willReturn('user');
         $user->get('type')->willReturn('user');
+        $user->get('username')->willReturn('username');
         $user->get('guid')->willReturn(123);
         $user->get('access_id')->willReturn(2);
         $user->get('owner_guid')->willReturn(0);
@@ -246,5 +248,15 @@ class ACLSpec extends ObjectBehavior
         $this->read($entity)->shouldReturn(true);
         $this->write($entity)->shouldReturn(true);
         $this->setIgnore(false);
+    }
+
+    public function it_should_not_return_corrupted_data(Entity $entity, User $user)
+    {
+        $entity->getType()->willReturn('user');
+        $entity->get('owner_guid')->willReturn(123);
+        $entity->get('type')->willReturn('activity');
+        $entity->get('username')->willReturn(null);
+
+        $this->read($entity)->shouldReturn(false);
     }
 }
