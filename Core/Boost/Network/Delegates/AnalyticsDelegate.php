@@ -17,7 +17,7 @@ class AnalyticsDelegate implements BoostDelegateInterface
         $event->setType('action')
             ->setAction('boost')
             ->setProduct('boost')
-            ->setUserGuid((string) $boost->getGuid())
+            ->setUserGuid(Core\Session::getLoggedInUserGuid())
             ->setEntityGuid((string) $boost->getGuid()) // Note its the boost guid and not the entity being boosted
             ->setEntityType('boost')
             ->setEntityOwnerGuid($boost->getOwnerGuid())
