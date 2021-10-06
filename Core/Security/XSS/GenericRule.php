@@ -3,8 +3,11 @@
  * Tags Rule
  */
 
- namespace Minds\Core\Security\XSS;
+namespace Minds\Core\Security\XSS;
 
+use DOMElement;
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Interfaces;
 
 class GenericRule implements Interfaces\XSSRule
@@ -12,6 +15,13 @@ class GenericRule implements Interfaces\XSSRule
     private $dirtyString = "";
     private $cleanString = "";
     private $allowedAttributes = "";
+    /** @var Config */
+    protected $config;
+
+    public function __construct($config = null)
+    {
+        $this->config = $config ?: Di::_()->get('Config');
+    }
 
     /**
      * Set the dirty string to sanitize
@@ -138,6 +148,7 @@ class GenericRule implements Interfaces\XSSRule
 
         //Evaluate Anchor tag in HTML
         $xpath = new \DOMXPath($dom);
+        /** @var DOMElement[] */
         $elements = $xpath->evaluate("//*");
 
         foreach ($elements as $element) {
@@ -162,11 +173,29 @@ class GenericRule implements Interfaces\XSSRule
 
             //make all urls force open in a new tab/window
             if ($element->nodeName == 'a') {
+                // get the href
+                $href = $element->getAttribute('href');
+                // see if its minds.com
+                $rel = $this->getExternalLinkRel($href);
+                // nofollow hurts spammers
+                $element->setAttribute('rel', $rel);
                 $element->setAttribute('target', '_blank');
-                $element->setAttribute('rel', 'noopener noreferrer nofollow ugc'); //nofollow hurts spammers
             }
         }
 
         return $dom->saveHtml();
+    }
+
+    private function getExternalLinkRel(string $url)
+    {
+        $siteUrl = $this->config->get('site_url');
+        $defaultRel = 'noopener noreferrer';
+        // if the link was pointing to our website
+        if (strpos($url, $siteUrl) === 0) {
+            return $defaultRel;
+        }
+
+        // don't follow links that aren't from our site
+        return $defaultRel . ' ugc nofollow';
     }
 }
