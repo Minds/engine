@@ -3,6 +3,9 @@ namespace Minds\Core\Subscriptions\Graph;
 
 use Exception;
 use Minds\Api\Exportable;
+use Minds\Core;
+use Minds\Api\Factory;
+use Minds\Core\Di\Di;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 
@@ -15,14 +18,19 @@ class Controller
     /** @var Manager */
     protected $manager;
 
+    /** @var ACL */
+    protected $acl;
+
     /**
      * Controller constructor.
      * @param null $manager
      */
     public function __construct(
-        $manager = null
+        $manager = null,
+        $acl = null
     ) {
         $this->manager = $manager ?: new Manager();
+        $this->acl = $acl ?? Di::_()->get('Security\ACL');
     }
 
     /**
@@ -74,9 +82,13 @@ class Controller
                 ->setOffset((int) ($request->getQueryParams()['from_timestamp'] ?? 0))
         );
 
+        $entities = array_filter($response->toArray(), function ($user) {
+            return ($user->enabled != 'no' && $user->banned != 'yes' && $this->acl->read($user, Core\Session::getLoggedinUser()));
+        });
+
         return new JsonResponse([
             'status' => 'success',
-            'entities' => Exportable::_($response),
+            'entities' => Exportable::_($entities),
             'load-next' => $response->getPagingToken(),
         ]);
     }

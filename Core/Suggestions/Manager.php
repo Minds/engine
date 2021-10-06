@@ -9,6 +9,7 @@ use Minds\Core\Features;
 use Minds\Core\Suggestions\Delegates\CheckRateLimit;
 use Minds\Entities\User;
 use Minds\Core\Security\Block;
+use Minds\Core\Security\ACL;
 
 class Manager
 {
@@ -33,6 +34,9 @@ class Manager
     /** @var Block\Manager */
     private $blockManager;
 
+    /** @var ACL */
+    protected $acl;
+
     /** @var string $type */
     private $type = 'user';
 
@@ -42,6 +46,7 @@ class Manager
         $suggestedFeedsManager = null,
         $subscriptionsManager = null,
         $checkRateLimit = null,
+        $acl = null,
         $features = null
     ) {
         $this->repository = $repository ?: new Repository();
@@ -50,6 +55,7 @@ class Manager
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Subscriptions\Manager');
         $this->checkRateLimit = $checkRateLimit ?: new CheckRateLimit();
         $this->features = $features ?? new Features\Manager();
+        $this->acl = $acl ?: Di::_()->get('Security\ACL');
         $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
     }
 
@@ -141,10 +147,19 @@ class Manager
                 return null;
             }
 
-            $blockEntry = (new Block\BlockEntry())
-                ->setActor($this->user)
-                ->setSubject($entity);
-            if ($this->blockManager->hasBlocked($blockEntry)) {
+            // $blockEntry = (new Block\BlockEntry())
+            //     ->setActor($this->user)
+            //     ->setSubject($entity);
+
+            // if ($this->blockManager->hasBlocked($blockEntry)) {
+            //     return null;
+            // }
+
+            // if ($this->corruptionFilterManager->isCorrupted($entity)) {
+            //     return null;
+            // }
+
+            if (!$this->acl->read($entity, $this->user)) {
                 return null;
             }
 

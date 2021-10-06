@@ -13,7 +13,7 @@ use Minds\Core\Queue;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
-use Minds\Helpers;
+use Minds\Core\Di\Di;
 use Minds\Core\Subscriptions;
 
 class subscribe implements Interfaces\Api
@@ -59,8 +59,10 @@ class subscribe implements Interfaces\Api
         }
         $pagingToken = (string) $users->getPagingToken();
         
-        $users = array_filter(Factory::exportable($users->toArray()), function ($user) {
-            return ($user->enabled != 'no' && $user->banned != 'yes');
+        $acl = Di::_()->get('Security\ACL');
+
+        $users = array_filter(Factory::exportable($users->toArray()), function ($user) use ($acl) {
+            return ($user->enabled != 'no' && $user->banned != 'yes' && $acl->read($user, Core\Session::getLoggedinUser()));
         });
 
         $response['users'] = $users;
