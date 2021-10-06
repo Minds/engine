@@ -253,8 +253,8 @@ class ACLSpec extends ObjectBehavior
     public function it_should_not_return_corrupted_data(Entity $entity, User $user)
     {
         $entity->getType()->willReturn('user');
-        $entity->get('owner_guid')->willReturn(123);
-        $entity->get('type')->willReturn('activity');
+        $entity->get('type')->willReturn('user');
+        $entity->get('guid')->willReturn(123);
         $entity->get('username')->willReturn(null);
 
         $this->read($entity)->shouldReturn(false);
