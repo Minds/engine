@@ -143,7 +143,7 @@ class KeyValueLimiter
      * @throws RateLimitExceededException
      * @return void
      */
-    private function check(): bool
+    private function check(): void
     {
         $rateLimits = $this->getRateLimitsWithRemainings();
 
