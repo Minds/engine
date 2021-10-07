@@ -67,7 +67,7 @@ class InteractionsLimiter
      * @param string $interaction
      * @return void
      */
-    public function checkAndIncrement(string $userGuid, string $interaction)
+    public function checkAndIncrement(string $userGuid, string $interaction): void
     {
         $rateLimits = $this->getRateLimitsByInteraction($interaction);
 
@@ -83,7 +83,7 @@ class InteractionsLimiter
      * @param string $interaction
      * @return int
      */
-    public function getRemainingAttempts(string $userGuid, string $interaction)
+    public function getRemainingAttempts(string $userGuid, string $interaction): int
     {
         $rateLimits = $this->kvLimiter->setKey($interaction)
             ->setValue($userGuid)
@@ -106,7 +106,7 @@ class InteractionsLimiter
      * @param string $interaction
      * @return RateLimit[]
      */
-    private function getRateLimitsByInteraction(string $interaction)
+    private function getRateLimitsByInteraction(string $interaction): array
     {
         $rateLimits = [];
         foreach ($this->maps as $rateLimit) {

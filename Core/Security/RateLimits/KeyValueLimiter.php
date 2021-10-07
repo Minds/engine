@@ -80,7 +80,11 @@ class KeyValueLimiter
         return true;
     }
 
-    public function getRateLimitsWithRemainings()
+    /**
+     * Returns ratelimits + how many remaining attempts each of them have
+     * @return array
+     */
+    public function getRateLimitsWithRemainings(): array
     {
         $rateLimits = $this->getRateLimits();
         $keys = array_map(fn ($rateLimit): string => $this->getRecordKey($rateLimit), $rateLimits);
@@ -139,7 +143,7 @@ class KeyValueLimiter
      * @throws RateLimitExceededException
      * @return void
      */
-    private function check()
+    private function check(): bool
     {
         $rateLimits = $this->getRateLimitsWithRemainings();
 
@@ -155,7 +159,7 @@ class KeyValueLimiter
      * increments count and resets expiry of rateLimits
      * @return void
      */
-    private function increment()
+    private function increment(): void
     {
         foreach ($this->getRateLimits() as $rateLimit) {
             $recordKey = $this->getRecordKey($rateLimit);
@@ -170,7 +174,7 @@ class KeyValueLimiter
      * Returns rate limits. Supports legacy seconds and max
      * @return RateLimit[]
      */
-    private function getRateLimits()
+    private function getRateLimits(): array
     {
         $rateLimits = $this->rateLimits;
 
