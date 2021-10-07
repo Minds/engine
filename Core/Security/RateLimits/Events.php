@@ -34,12 +34,7 @@ class Events
                 return;
             }
 
-            try {
-                $this->interactionsLimiter->checkAndIncrement($user->getGuid(), $interaction);
-            } catch (RateLimitException $exception) {
-                // TODO: how to tell the user they're limited
-                return $e->setResponse(false);
-            }
+            $this->interactionsLimiter->checkAndIncrement($user->getGuid(), $interaction);
         });
     }
 }
