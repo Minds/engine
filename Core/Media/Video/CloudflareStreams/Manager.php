@@ -120,8 +120,11 @@ class Manager
      */
     protected function getSigningKey(): SigningKey
     {
-        if ($preConfigured = ($this->config->get('cloudflare')['signing_key'] ?? null)) {
-            return $preConfigured;
+        if (isset($this->config->get('cloudflare')['signing_key'])) {
+            // More efficient for a production environment
+            return (new SigningKey())
+                ->setId($this->config->get('cloudflare')['signing_key']['id'])
+                ->setPem($this->config->get('cloudflare')['signing_key']['pem']);
         }
 
         if ($cached = $this->cache->get('cloudflare_signing_key')) {
