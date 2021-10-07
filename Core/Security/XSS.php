@@ -5,28 +5,42 @@
 namespace Minds\Core\Security;
 
 use Minds\Core;
+use Minds\Core\Config;
+use Minds\Core\Di\Di;
 use Minds\Interfaces\XSSRule;
 
 class XSS
 {
     private $rules = [];
     private $allowed = [];
+    /** @var Config */
+    protected $config;
 
-    public function __construct()
-    {
-        $this->init();
+    public function __construct(
+        XSS\TagsRule $tagsRule = null,
+        XSS\GenericRule $genericRule = null,
+        XSS\UriSchemeRule $uriSchemeRule = null,
+    ) {
+        $this->init(
+            $tagsRule ?? new XSS\TagsRule,
+            $genericRule ?? new XSS\GenericRule,
+            $uriSchemeRule ?? new XSS\UriSchemeRule,
+        );
     }
 
     /**
      * Initialise our basic rules
      * @return void
      */
-    private function init()
-    {
+    private function init(
+        XSS\TagsRule $tagsRule,
+        XSS\GenericRule $genericRule,
+        XSS\UriSchemeRule $uriSchemeRule,
+    ) {
         $this->setAllowed();
-        $this->addRule(new XSS\TagsRule);
-        $this->addRule(new XSS\GenericRule);
-        $this->addRule(new XSS\UriSchemeRule);
+        $this->addRule($tagsRule);
+        $this->addRule($genericRule);
+        $this->addRule($uriSchemeRule);
     }
 
     /**
