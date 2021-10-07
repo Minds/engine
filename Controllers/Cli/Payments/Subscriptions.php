@@ -256,7 +256,7 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
                 return new \Cassandra\Varint($userGuid);
             }, $userGuids);
             $values[] = new \Cassandra\Varint(5);
-            $values[] = new \Cassandra\Timestamp(strtotime('35 days ago'));
+            $values[] = new \Cassandra\Timestamp(strtotime('35 days ago'), 0);
             $prepared->query($statement, $values);
 
             $prepared->setOpts([
