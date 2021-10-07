@@ -6,7 +6,7 @@
 namespace Minds\Core\Security\XSS;
 
 use DOMElement;
-use Minds\Core\Config\Config;
+use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Interfaces;
 
@@ -178,24 +178,30 @@ class GenericRule implements Interfaces\XSSRule
                 // see if its minds.com
                 $rel = $this->getExternalLinkRel($href);
                 // nofollow hurts spammers
-                $element->setAttribute('rel', $rel);
                 $element->setAttribute('target', '_blank');
+                if ($rel) {
+                    $element->setAttribute('rel', $rel);
+                }
             }
         }
 
         return $dom->saveHtml();
     }
 
+    /**
+     * @param string $url anchor url
+     * @return string the rel attribute
+     */
     private function getExternalLinkRel(string $url)
     {
         $siteUrl = $this->config->get('site_url');
-        $defaultRel = 'noopener noreferrer';
+
         // if the link was pointing to our website
         if (strpos($url, $siteUrl) === 0) {
-            return $defaultRel;
+            return '';
         }
 
         // don't follow links that aren't from our site
-        return $defaultRel . ' ugc nofollow';
+        return 'noopener noreferrer nofollow ugc';
     }
 }
