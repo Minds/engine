@@ -91,7 +91,7 @@ class Repository
         return $response->map(function ($document) {
             $feedSyncEntity = new FeedSyncEntity();
 
-            if (empty($document['_source']['username'])) {
+            if (!$document['_source']['username']) {
                 return null;
             }
 
