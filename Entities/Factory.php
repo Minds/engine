@@ -75,7 +75,7 @@ class Factory
         }
 
         // filter out invalid users
-        if ($entity->get('type') === 'user' && empty($entity->get('username'))) {
+        if ($entity instanceof User && !$entity->getUsername()) {
             return false;
         };
 
