@@ -173,11 +173,8 @@ class GenericRule implements Interfaces\XSSRule
 
             //make all urls force open in a new tab/window
             if ($element->nodeName == 'a') {
-                // get the href
                 $href = $element->getAttribute('href');
-                // see if its minds.com
                 $rel = $this->getExternalLinkRel($href);
-                // nofollow hurts spammers
                 $element->setAttribute('target', '_blank');
                 if ($rel) {
                     $element->setAttribute('rel', $rel);
