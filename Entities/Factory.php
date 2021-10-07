@@ -74,6 +74,11 @@ class Factory
             $entity = Core\Di\Di::_()->get('Entities')->build((object) $row);
         }
 
+        // filter out invalid users
+        if ($entity->get('type') === 'user' && empty($entity->get('username'))) {
+            return false;
+        };
+
         if ($options['cache'] && $canBeCached && $entity && $cacheKey) {
             self::$entitiesCache[$cacheKey] = $entity;
         }
