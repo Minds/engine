@@ -11,31 +11,78 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class XSRF
 {
-    public static function buildToken() : string
+    public function __construct(
+        private ?ServerRequestInterface $request = null,
+        private ?SessionsManager $sessionsManager = null
+    ) {
+    }
+
+    private function buildToken() : string
+    {
+        $sessionId = "";
+        if (Session::isLoggedin()) {
+            $sessionId = $this->getSessionId();
+        }
+        return $this->createTokenString($sessionId);
+    }
+
+    private function createRandomHash() : string
     {
         $bytes = openssl_random_pseudo_bytes(128);
         return hash('sha512', $bytes);
     }
 
-    public static function validateRequest(ServerRequestInterface $request = null) : bool
+    private function createTokenString(string $sessionId) : string
     {
-        if (Session::isLoggedin()) {
-            if ($request == null)
-                return false;
+        $token = $this->createRandomHash();
 
-            $sessionsManager = (new SessionsManager())->withRouterRequest($request);
-            return $sessionsManager->validateSession();
+        if ($sessionId != "") {
+            $token .= "-${sessionId}";
+        }
+        return $token;
+    }
+
+    private function getSessionId() : string
+    {
+        $this->sessionsManager->setUser(Session::getLoggedinUser());
+
+        return $this->sessionsManager
+            ->withRouterRequest($this->request)
+            ->getSession()
+            ->getId();
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return $this
+     */
+    public function setRequest(ServerRequestInterface $request) : self
+    {
+        $this->request = $request;
+        return $this;
+    }
+
+    /**
+     * @param SessionsManager $sessionsManager
+     * @return $this
+     */
+    public function setSessionsManager(SessionsManager $sessionsManager) : self
+    {
+        $this->sessionsManager = $sessionsManager;
+        return $this;
+    }
+
+    public function validateRequest() : bool
+    {
+        if ($this->request->getMethod() == "GET") {
+            return true;
         }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            return true; // XSRF only needed for modifiers
-        }
-
-        if (!isset($_SERVER['HTTP_X_XSRF_TOKEN'])) {
+        if (!isset($this->request->getServerParams()['HTTP_X_XSRF_TOKEN'])) {
             return false;
         }
 
-        if ($_SERVER['HTTP_X_XSRF_TOKEN'] == $_COOKIE['XSRF-TOKEN']) {
+        if ($this->request->getServerParams()['HTTP_X_XSRF_TOKEN'] == $this->request->getCookieParams()['XSRF-TOKEN']) {
             return true;
         }
 
@@ -44,28 +91,46 @@ class XSRF
 
     /**
      * Set the cookie
-     * @return void
+     * @return bool
      */
-    public static function setCookie($force = false)
+    public function setCookie($force = false) : bool
     {
         if (
             !$force
-            && (
-                Session::isLoggedin()
-                || isset($_COOKIE['XSRF-TOKEN'])
-            )
+            && array_key_exists('XSRF-TOKEN', $this->request->getCookieParams())
         ) {
-            return;
+            $tokenParts = $this->parseToken($this->request->getCookieParams()['XSRF-TOKEN']);
+
+            // Should we check the actual sessionId with the sessionId found in the Token
+            // to make sure that the token sent is not the one of another user?
+            if (Session::isLoggedin() && !empty($tokenParts[1])) {
+                return false;
+            }
+
+            if (!Session::isLoggedin() && empty($tokenParts[1])) {
+                return false;
+            }
         }
         $token = self::buildToken();
 
-        $cookie = new Cookie();
-        $cookie
+        $cookie = $this->prepareCookie($token);
+        $cookie->create();
+        return true;
+    }
+
+    private function parseToken(string $token) : array
+    {
+        return preg_split("/-/", $token);
+    }
+
+
+    private function prepareCookie(string $token) : Cookie
+    {
+        return (new Cookie())
             ->setName('XSRF-TOKEN')
             ->setValue($token)
             ->setExpire(0)
             ->setPath('/')
-            ->setHttpOnly(false) //must be able to read in JS
-            ->create();
+            ->setHttpOnly(false);
     }
 }

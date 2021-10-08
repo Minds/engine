@@ -99,12 +99,15 @@ class Factory
      */
     public static function pamCheck(ServerRequestInterface $request, $response) : bool|string
     {
-        if ($request->getAttribute('oauth_user_id'))
+        if ($request->getAttribute('oauth_user_id')) {
             return true;
+        }
 
-        $isRequestValid = Security\XSRF::validateRequest($request);
-        if ($isRequestValid)
+        $xsrf = new Security\XSRF($request);
+        $isRequestValid = $xsrf->validateRequest();
+        if ($isRequestValid) {
             return true;
+        }
 
         //error_log('failed authentication:: OAUTH via API');
         ob_end_clean();

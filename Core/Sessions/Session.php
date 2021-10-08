@@ -21,8 +21,6 @@ use Minds\Traits\MagicAttributes;
  * @method Session setExpires(int $expires)
  * @method string getIp()
  * @method Session setIp(string $ip)
- * @method string getXsrfToken()
- * @method Session setXsrfToken(string $xsrfToken)
  * @method int getLastActive()
  * @method Session setLastActive(int $expires)
  */
@@ -44,9 +42,6 @@ class Session
 
     /** @var string $ip */
     private $ip;
-
-    /** @var string $xsrfToken */
-    private string $xsrfToken;
 
     /** @var int $lastActive */
     private $lastActive;
