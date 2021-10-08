@@ -45,7 +45,9 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function post($pages)
     {
-        if (!Core\Security\XSRF::validateRequest()) {
+        $request = ServerRequestFactory::fromGlobals();
+        $xsrf = new Security\XSRF($request);
+        if (!$xsrf->validateRequest()) {
             return false;
         }
 
@@ -110,7 +112,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         try {
             $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
-            $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals(), enableEmail: false);
+            $twoFactorManager->gatekeeper($user, $request, enableEmail: false);
         } catch (\Exception $e) {
             header('HTTP/1.1 ' . $e->getCode(), true, $e->getCode());
             $response['status'] = "error";
@@ -128,7 +130,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         \set_last_login($user); // TODO: Refactor this
 
         Session::generateJWTCookie($sessions->getSession());
-        Security\XSRF::setCookie(true);
+        $xsrf->setCookie(true);
 
         // Set the canary cookie
         Di::_()->get('Features\Canary')

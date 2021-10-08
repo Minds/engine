@@ -102,7 +102,6 @@ class XSRFSpec extends ObjectBehavior
         $request = (new ServerRequest())
             ->withCookieParams(
                 [
-                    'minds_sess' => $this->mockJWTToken()->toString(),
                     'XSRF-TOKEN' => 'randompart'
                 ]
             );
@@ -113,6 +112,66 @@ class XSRFSpec extends ObjectBehavior
 
         // Assert results
         $response->shouldBeEqualTo(false);
+    }
+
+    public function it_should_create_xsrf_token_when_cookie_exists_with_sessionId_and_no_session_active()
+    {
+        $request = (new ServerRequest())
+            ->withCookieParams(
+                [
+                    'XSRF-TOKEN' => 'randompart-sessionId'
+                ]
+            );
+        $this->setRequest($request);
+
+        // Perform actions
+        $response = $this->setCookie();
+
+        // Assert results
+        $response->shouldBeEqualTo(true);
+    }
+
+    public function it_should_create_xsrf_token_when_cookie_exists_without_sessionId_and_session_active(
+        SessionsManager $sessionsManager
+    )
+    {
+        //Prepare request
+        $request = (new ServerRequest())
+            ->withCookieParams(
+                [
+                    'minds_sess' => $this->mockJWTToken()->toString(),
+                    'XSRF-TOKEN' => 'randompart'
+                ]
+            );
+        $this->setRequest($request);
+
+        // Prepare sessions manager
+        // Prepare the session manager mock
+        $sessionsManager
+            ->getSession()
+            ->shouldBecalled()
+            ->willReturn($this->mockSession());
+
+        $sessionsManager
+            ->setUser($this->mockUser())
+            ->shouldBeCalled()
+            ->willReturn($this->mockUser());
+
+        $sessionsManager
+            ->withRouterRequest($request)
+            ->shouldBeCalled()
+            ->willReturn($sessionsManager);
+
+        $this->setSessionsManager($sessionsManager);
+
+        // Set loggedIn user
+        SessionHandler::setUser($this->mockUser());
+
+        // Perform actions
+        $response = $this->setCookie();
+
+        // Assert results
+        $response->shouldBeEqualTo(true);
     }
 
     private function mockUser() : User

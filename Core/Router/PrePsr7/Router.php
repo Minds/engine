@@ -110,7 +110,8 @@ class Router
         }
 
         // XSRF Cookie - may be able to remove now with OAuth flow
-        Security\XSRF::setCookie();
+        $xsrf = new Security\XSRF($request);
+        $xsrf->setCookie();
 
         if (Session::isLoggedin()) {
             Helpers\Analytics::increment('active');

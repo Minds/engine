@@ -163,7 +163,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        // TODO: Do we need this call? the test is failing because this method is not called
         $this->cache->destroy('sso:key')
             ->shouldBeCalled()
             ->willReturn(true);
