@@ -32,8 +32,8 @@ class Message
     private function init()
     {
         $this->from = [
-          'name' => $this->config->get('email')['sender']['name'] ?? 'Minds',
-          'email' => $this->config->get('email')['sender']['email'] ?? 'no-reply@minds.com',
+            'name' => $this->config->get('email')['sender']['name'] ?? 'Minds',
+            'email' => $this->config->get('email')['sender']['email'] ?? 'no-reply@minds.com',
         ];
     }
 
@@ -48,9 +48,9 @@ class Message
     public function setFrom($email, $name = 'Minds')
     {
         $this->from = [
-        'name' => $name,
-        'email' => $email,
-      ];
+            'name' => $name,
+            'email' => $email,
+        ];
 
         return $this;
     }
@@ -65,9 +65,9 @@ class Message
     public function setTo($user)
     {
         $this->to[] = [
-        'name' => $user->name,
-        'email' => $user->getEmail(),
-      ];
+            'name' => $user->name,
+            'email' => $user->getEmail(),
+        ];
 
         return $this;
     }
