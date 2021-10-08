@@ -32,8 +32,8 @@ class Message
     private function init()
     {
         $this->from = [
-            'name' => $this->config->get('email')['sender']['name'] ?? 'Minds',
-            'email' => $this->config->get('email')['sender']['email'] ?? 'no-reply@minds.com',
+          'name' => $this->config->get('email')['sender']['name'] ?? 'Minds',
+          'email' => $this->config->get('email')['sender']['email'] ?? 'no-reply@minds.com',
         ];
     }
 
