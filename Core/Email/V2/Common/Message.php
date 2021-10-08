@@ -5,6 +5,8 @@
 
 namespace Minds\Core\Email\V2\Common;
 
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
@@ -18,16 +20,20 @@ class Message
     public $html = '';
     public $messageId = '';
 
-    public function __construct()
+    /** @var Config */
+    protected $config;
+
+    public function __construct(Config $config = null)
     {
+        $this->config = $config ?: Di::_()->get('Config');
         $this->init();
     }
 
     private function init()
     {
         $this->from = [
-          'name' => 'Minds',
-          'email' => 'no-reply@minds.com',
+            'name' => $this->config->get('email')['sender']['name'] ?? 'Minds',
+            'email' => $this->config->get('email')['sender']['email'] ?? 'no-reply@minds.com',
         ];
     }
 
