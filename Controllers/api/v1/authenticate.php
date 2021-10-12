@@ -12,6 +12,7 @@ use Minds\Core\Security;
 use Minds\Core\Session;
 use Minds\Core\Features;
 use Minds\Core\Di\Di;
+use Minds\Core\Sessions\Manager;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
@@ -46,7 +47,9 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
     public function post($pages)
     {
         $request = ServerRequestFactory::fromGlobals();
-        $xsrf = new Security\XSRF($request);
+        $sessionsManager = Di::_()->get('Sessions\Manager');
+
+        $xsrf = new Security\XSRF($request, $sessionsManager);
         if (!$xsrf->validateRequest()) {
             return false;
         }
@@ -155,7 +158,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
     public function delete($pages)
     {
-        /** @var Core\Sessions\Manager $sessions */
+        /** @var Manager $sessions */
         $sessions = Di::_()->get('Sessions\Manager');
 
         if (isset($pages[0]) && $pages[0] === 'all') {

@@ -6,6 +6,7 @@
 
 namespace Minds\Core\Router\Middleware;
 
+use Minds\Core\Di\Di;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security\XSRF;
@@ -48,7 +49,8 @@ class AdminMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $xsrf = new XSRF($request);
+        $sessionsManager = Di::_()->get('Sessions\Manager');
+        $xsrf = new XSRF($request, $sessionsManager);
         if (
             !$request->getAttribute($this->attributeName) ||
             !$xsrf->validateRequest()

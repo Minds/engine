@@ -12,8 +12,8 @@ use Psr\Http\Message\ServerRequestInterface;
 class XSRF
 {
     public function __construct(
-        private ?ServerRequestInterface $request = null,
-        private ?SessionsManager $sessionsManager = null
+        private ServerRequestInterface $request,
+        private SessionsManager $sessionsManager
     ) {
     }
 

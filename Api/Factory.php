@@ -2,6 +2,8 @@
 
 namespace Minds\Api;
 
+use Minds\Core\Di\Di;
+use Minds\Core\Sessions\Manager;
 use Minds\Interfaces;
 use Minds\Core\Security;
 use Minds\Core\Session;
@@ -103,7 +105,9 @@ class Factory
             return true;
         }
 
-        $xsrf = new Security\XSRF($request);
+        $sessionsManager = Di::_()->get('Sessions\Manager');
+
+        $xsrf = new Security\XSRF($request, $sessionsManager);
         $isRequestValid = $xsrf->validateRequest();
         if ($isRequestValid) {
             return true;

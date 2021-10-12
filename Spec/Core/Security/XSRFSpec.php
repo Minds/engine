@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Security;
 
+use GuzzleHttp\Tests\Ring\Client\Server;
 use Lcobucci\JWT\Configuration;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Signer\Rsa\Sha512;
@@ -18,7 +19,7 @@ class XSRFSpec extends ObjectBehavior
 {
     public function let()
     {
-        $this->beConstructedWith(null);
+        $this->beConstructedWith(new ServerRequest(), new SessionsManager());
         SessionHandler::setUser(null);
     }
 
