@@ -108,7 +108,7 @@ class EmailDelegate implements TwoFactorDelegateInterface
             throw new TwoFactorInvalidCodeException();
         }
 
-        if (!$this->twoFactorService->verifyCode($secret, $code, 1)) {
+        if (!$this->twoFactorService->verifyCode($secret, $code, 10)) {
             throw new TwoFactorInvalidCodeException();
         }
     }
