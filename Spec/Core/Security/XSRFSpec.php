@@ -133,8 +133,7 @@ class XSRFSpec extends ObjectBehavior
 
     public function it_should_create_xsrf_token_when_cookie_exists_without_sessionId_and_session_active(
         SessionsManager $sessionsManager
-    )
-    {
+    ) {
         //Prepare request
         $request = (new ServerRequest())
             ->withCookieParams(
@@ -176,8 +175,7 @@ class XSRFSpec extends ObjectBehavior
 
     public function it_should_validate_request_and_succeed_when_loggedIn(
         SessionsManager $sessionsManager
-    )
-    {
+    ) {
         $_SERVER['HTTP_X_XSRF_TOKEN'] = 'xsrftoken-123';
         $request = (new ServerRequest(serverParams: $_SERVER))
             ->withMethod("POST")
@@ -216,8 +214,7 @@ class XSRFSpec extends ObjectBehavior
 
     public function it_should_validate_request_and_fail_when_loggedIn_and_sessionId_mismatch(
         SessionsManager $sessionsManager
-    )
-    {
+    ) {
         $_SERVER['HTTP_X_XSRF_TOKEN'] = 'xsrftoken-121';
         $request = (new ServerRequest(serverParams: $_SERVER))
             ->withMethod("POST")
