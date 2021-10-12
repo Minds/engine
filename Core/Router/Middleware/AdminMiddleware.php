@@ -20,6 +20,10 @@ class AdminMiddleware implements MiddlewareInterface
     /** @var string */
     protected string $attributeName = '_user';
 
+    public function __construct()
+    {
+    }
+
     /**
      * @param string $attributeName
      * @return AdminMiddleware

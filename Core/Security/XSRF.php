@@ -82,8 +82,20 @@ class XSRF
             return false;
         }
 
-        if ($this->request->getServerParams()['HTTP_X_XSRF_TOKEN'] == $this->request->getCookieParams()['XSRF-TOKEN']) {
-            return true;
+        $xsrfToken = $this->request->getCookieParams()['XSRF-TOKEN'];
+        if ($this->request->getServerParams()['HTTP_X_XSRF_TOKEN'] == $xsrfToken) {
+            if (!Session::isLoggedin()) {
+                return true;
+            }
+
+            $parts = $this->parseToken($xsrfToken);
+            if (
+                Session::isLoggedin()
+                && !empty($parts[1])
+                && $parts[1] == $this->getSessionId()
+            ) {
+                return true;
+            }
         }
 
         return false;

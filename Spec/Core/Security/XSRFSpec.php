@@ -174,6 +174,120 @@ class XSRFSpec extends ObjectBehavior
         $response->shouldBeEqualTo(true);
     }
 
+    public function it_should_validate_request_and_succeed_when_loggedIn(
+        SessionsManager $sessionsManager
+    )
+    {
+        $_SERVER['HTTP_X_XSRF_TOKEN'] = 'xsrftoken-123';
+        $request = (new ServerRequest(serverParams: $_SERVER))
+            ->withMethod("POST")
+            ->withCookieParams([
+                'XSRF-TOKEN' => 'xsrftoken-123'
+            ]);
+        $this->setRequest($request);
+
+        // Set the loggedIn user
+        SessionHandler::setUser($this->mockUser());
+
+        // Prepare the session manager mock
+        $sessionsManager
+            ->getSession()
+            ->shouldBecalled()
+            ->willReturn($this->mockSession());
+
+        $sessionsManager
+            ->setUser($this->mockUser())
+            ->shouldBeCalled()
+            ->willReturn($this->mockUser());
+
+        $sessionsManager
+            ->withRouterRequest($request)
+            ->shouldBeCalled()
+            ->willReturn($sessionsManager);
+
+        $this->setSessionsManager($sessionsManager);
+
+        // Perform the action
+        $response = $this->validateRequest();
+
+        // Assert
+        $response->shouldBeEqualTo(true);
+    }
+
+    public function it_should_validate_request_and_fail_when_loggedIn_and_sessionId_mismatch(
+        SessionsManager $sessionsManager
+    )
+    {
+        $_SERVER['HTTP_X_XSRF_TOKEN'] = 'xsrftoken-121';
+        $request = (new ServerRequest(serverParams: $_SERVER))
+            ->withMethod("POST")
+            ->withCookieParams([
+                'XSRF-TOKEN' => 'xsrftoken-121'
+            ]);
+        $this->setRequest($request);
+
+        // Set the loggedIn user
+        SessionHandler::setUser($this->mockUser());
+
+        // Prepare the session manager mock
+        $sessionsManager
+            ->getSession()
+            ->shouldBecalled()
+            ->willReturn($this->mockSession());
+
+        $sessionsManager
+            ->setUser($this->mockUser())
+            ->shouldBeCalled()
+            ->willReturn($this->mockUser());
+
+        $sessionsManager
+            ->withRouterRequest($request)
+            ->shouldBeCalled()
+            ->willReturn($sessionsManager);
+
+        $this->setSessionsManager($sessionsManager);
+
+        // Perform the action
+        $response = $this->validateRequest();
+
+        // Assert
+        $response->shouldBeEqualTo(false);
+    }
+
+    public function it_should_validate_request_and_succeed_when_not_loggedIn()
+    {
+        $_SERVER['HTTP_X_XSRF_TOKEN'] = 'xsrftoken-121';
+        $request = (new ServerRequest(serverParams: $_SERVER))
+            ->withMethod("POST")
+            ->withCookieParams([
+                'XSRF-TOKEN' => 'xsrftoken-121'
+            ]);
+        $this->setRequest($request);
+
+        // Perform the action
+        $response = $this->validateRequest();
+
+        // Assert
+        $response->shouldBeEqualTo(true);
+    }
+
+    public function it_should_validate_request_and_fail_when_not_loggedIn_and_token_mismatch()
+    {
+        $_SERVER['HTTP_X_XSRF_TOKEN'] = 'xsrftoken-123';
+        $request = (new ServerRequest(serverParams: $_SERVER))
+            ->withMethod("POST")
+            ->withCookieParams([
+                'XSRF-TOKEN' => 'xsrftoken-121'
+            ]);
+        $this->setRequest($request);
+
+        // Perform the action
+        $response = $this->validateRequest();
+
+        // Assert
+        $response->shouldBeEqualTo(false);
+    }
+
     private function mockUser() : User
     {
         $user =  new User();
