@@ -545,6 +545,10 @@ $CONFIG->set('features', [
 ]);
 
 $CONFIG->set('email', [
+    'sender' => [
+        'email' => 'no-reply@minds.com',
+        'name' => 'Minds'
+    ],
     'smtp' => [
         'host' => '',
         'username' => '',
