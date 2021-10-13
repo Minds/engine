@@ -66,7 +66,7 @@ class TwoFactor extends EmailCampaign
 
         $translator = $this->template->getTranslator();
 
-        $subject = $translator->trans('Two-Factor Code');
+        $subject = 'Minds '.$translator->trans('Two-Factor Code').': '.$this->code;
 
         $trackingQuery = http_build_query($tracking);
 
