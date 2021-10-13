@@ -116,8 +116,9 @@ class Router
             if (!$xsrf->validateRequest()) {
                 return false;
             }
-            $xsrf->setCookie();
         }
+
+        $xsrf->setCookie();
 
         if (Session::isLoggedin()) {
             Helpers\Analytics::increment('active');
