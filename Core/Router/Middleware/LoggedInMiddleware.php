@@ -6,6 +6,7 @@
 
 namespace Minds\Core\Router\Middleware;
 
+use Minds\Core\Di\Di;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security\XSRF;
 use Psr\Http\Message\ResponseInterface;
@@ -16,15 +17,10 @@ use Psr\Http\Server\RequestHandlerInterface;
 class LoggedInMiddleware implements MiddlewareInterface
 {
     /** @var string */
-    protected $attributeName = '_user';
+    protected string $attributeName = '_user';
 
-    /** @var callable */
-    private $xsrfValidateRequest;
-
-    public function __construct(
-        $xsrfValidateRequest = null
-    ) {
-        $this->xsrfValidateRequest = $xsrfValidateRequest ?: [XSRF::class, 'validateRequest'];
+    public function __construct()
+    {
     }
 
     /**
@@ -50,9 +46,11 @@ class LoggedInMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+        $sessionsManager = Di::_()->get('Sessions\Manager');
+        $xsrf = new XSRF($request, $sessionsManager);
         if (
             !$request->getAttribute($this->attributeName) ||
-            (!call_user_func($this->xsrfValidateRequest) && !$request->getAttribute('oauth_user_id'))
+            (!$xsrf->validateRequest() && !$request->getAttribute('oauth_user_id'))
         ) {
             throw new UnauthorizedException();
         }

@@ -10,6 +10,7 @@ use Prophecy\Argument;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Zend\Diactoros\ServerRequest;
 
 class LoggedInMiddlewareSpec extends ObjectBehavior
 {
@@ -30,14 +31,20 @@ class LoggedInMiddlewareSpec extends ObjectBehavior
 
 
     public function it_should_process(
-        ServerRequestInterface $request,
         RequestHandlerInterface $handler,
         ResponseInterface $response,
         User $user
     ) {
-        $request->getAttribute('_phpspec_user')
-            ->shouldBeCalled()
-            ->willReturn($user);
+        $_SERVER['HTTP_X_XSRF_TOKEN'] = 'xsrftoken';
+
+        $request = (new ServerRequest(serverParams: $_SERVER))
+            ->withCookieParams(
+                [
+                    'XSRF-TOKEN' => 'xsrftoken'
+                ]
+            )
+            ->withMethod("POST")
+            ->withAttribute('_phpspec_user', $user);
 
         $handler->handle($request)
             ->shouldBeCalled()
@@ -67,22 +74,16 @@ class LoggedInMiddlewareSpec extends ObjectBehavior
     }
 
     public function it_should_throw_unauthorized_if_xsrf_check_fail_during_process(
-        ServerRequestInterface $request,
         RequestHandlerInterface $handler,
         User $user
     ) {
-        $this->beConstructedWith(function () {
-            /** XSRF::validateRequest() */
-            return false;
-        });
-
-        $request->getAttribute('_phpspec_user')
-            ->shouldBeCalled()
-            ->willReturn($user);
-
-        $request->getAttribute('oauth_user_id')
-            ->shouldBeCalled()
-            ->willReturn(false);
+        $request = (new ServerRequest())
+            ->withMethod("POST")
+            ->withCookieParams([
+                'XSRF-TOKEN' => 'xsrftoken'
+            ])
+            ->withAttribute('_phpspec_user', $user)
+            ->withAttribute('oauth_user_id', false);
 
         $handler->handle($request)
             ->shouldNotBeCalled();
