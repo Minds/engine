@@ -7,6 +7,7 @@
 namespace Minds\Core\Router\Middleware\Kernel;
 
 use Minds\Core\Security\XSRF;
+use Minds\Core\Sessions\Manager as SessionsManager;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -26,7 +27,8 @@ class XsrfCookieMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        XSRF::setCookie();
+        $xsrf = new XSRF($request, new SessionsManager());
+        $xsrf->setCookie();
 
         return $handler
             ->handle($request);
