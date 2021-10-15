@@ -192,8 +192,8 @@ class Ethereum
         if (!isset($transaction['from']) || !isset($transaction['gasLimit'])) {
             throw new \Exception('Transaction must have `from` and `gasLimit`');
         }
-
-        if (!isset($transaction['gasPrice'])) {
+        // if no gas parameters are set, fallback to setting soft-deprecated gasPrice.
+        if (!isset($transaction['gasPrice']) && !isset($transaction['maxFeePerGas']) && !isset($transaction['maxPriorityFeePerGas'])) {
             $transaction['gasPrice'] = $this->gasPrice->getLatestGasPrice($config['server_gas_price'] ?: 1);
         }
 
@@ -209,8 +209,8 @@ class Ethereum
 
         $signedTx = $this->sign($privateKey, $transaction);
 
-        if (!$signedTx) {
-            throw new \Exception('Error signing transaction');
+        if (str_starts_with($signedTx, 'ERROR: ')) {
+            throw new \Exception($signedTx);
         }
 
 

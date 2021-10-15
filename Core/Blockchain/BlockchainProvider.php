@@ -102,8 +102,13 @@ class BlockchainProvider extends Provider
             return new Purchase\Sums();
         });
 
+        // soft-deprecated in favor of Blockchain\EthereumGasPrice\Manager and 1559 style transactions.
         $this->di->bind('Blockchain\GasPrice', function () {
             return new GasPrice();
+        });
+
+        $this->di->bind('Blockchain\EthereumGasPrice\Manager', function () {
+            return new EthereumGasPrice\Manager();
         });
 
         $this->di->bind('Blockchain\Wallets\Ether\Balance', function () {

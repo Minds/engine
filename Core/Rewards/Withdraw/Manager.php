@@ -16,6 +16,7 @@ use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 
 class Manager
 {
@@ -46,6 +47,9 @@ class Manager
     /** @var Delegates\RequestHydrationDelegate */
     protected $requestHydrationDelegate;
 
+    /** @var Blockchain\EthereumGasPrice\Manager */
+    protected $ethGasPrice;
+
     public function __construct(
         $txManager = null,
         $offChainTransactions = null,
@@ -55,7 +59,8 @@ class Manager
         $offChainBalance = null,
         $notificationsDelegate = null,
         $emailDelegate = null,
-        $requestHydrationDelegate = null
+        $requestHydrationDelegate = null,
+        $ethGasPrice = null
     ) {
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
         $this->offChainTransactions = $offChainTransactions ?: Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
@@ -66,6 +71,7 @@ class Manager
         $this->notificationsDelegate = $notificationsDelegate ?: new Delegates\NotificationsDelegate();
         $this->emailDelegate = $emailDelegate ?: new Delegates\EmailDelegate();
         $this->requestHydrationDelegate = $requestHydrationDelegate ?: new Delegates\RequestHydrationDelegate();
+        $this->ethGasPrice = $ethGasPrice ?? Di::_()->get('Blockchain\EthereumGasPrice\Manager');
     }
 
     /**
@@ -360,13 +366,27 @@ class Manager
             throw new Exception('Request is not pending approval');
         }
 
-        // Send blockchain transaction
+        // Get gas estimates.
+        $gasEstimate = $this->ethGasPrice->estimate();
+        $maxFeePerGas = $gasEstimate->getMaxFeePerGas();
+        $maxPriorityFeePerGas = $gasEstimate->getMaxPriorityFeePerGas();
+        
+        // Get max price from server.
+        $maxServerPrice = BigNumber::_($this->config->get('blockchain')['server_gas_price'])->mul(1000000000);
 
+        // Check max fee per gas does not exceed server specified maximum.
+        if ($maxFeePerGas->gt($maxServerPrice)) {
+            throw new ServerErrorException('maxFeePerGas exceeds server specified max gas price');
+        }
+
+        // Send EIP-1559 compatible approval transaction.
         $txHash = $this->eth->sendRawTransaction($this->config->get('blockchain')['contracts']['withdraw']['wallet_pkey'], [
             'from' => $this->config->get('blockchain')['contracts']['withdraw']['wallet_address'],
             'to' => $this->config->get('blockchain')['contracts']['withdraw']['contract_address'],
             'gasLimit' => BigNumber::_(87204)->toHex(true),
-            'gasPrice' => BigNumber::_($this->config->get('blockchain')['server_gas_price'] * 1000000000)->toHex(true),
+            'type' => '0x2',
+            'maxFeePerGas' => $maxFeePerGas->toHex(true),
+            'maxPriorityFeePerGas' => $maxPriorityFeePerGas->toHex(true),
             'data' => $this->eth->encodeContractMethod('complete(address,uint256,uint256,uint256)', [
                 $request->getAddress(),
                 BigNumber::_($request->getUserGuid())->toHex(true),

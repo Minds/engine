@@ -8,6 +8,8 @@ use Minds\Core\Blockchain\Transactions\Manager as TransactionsManager;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Blockchain\Wallets\OffChain\Balance as OffchainBalance;
 use Minds\Core\Blockchain\Wallets\OffChain\Transactions as OffchainTransactions;
+use Minds\Core\Blockchain\EthereumGasPrice;
+use Minds\Core\Blockchain\EthereumGasPrice\GasPriceEstimate;
 use Minds\Core\Config;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Rewards\Withdraw\Delegates;
@@ -48,6 +50,9 @@ class ManagerSpec extends ObjectBehavior
     /** @var Delegates\RequestHydrationDelegate */
     protected $requestHydrationDelegate;
 
+    /** @var EthereumGasPrice\Manager */
+    protected $ethGasPrice;
+
     public function let(
         TransactionsManager $txManager,
         OffchainTransactions $offChainTransactions,
@@ -57,7 +62,8 @@ class ManagerSpec extends ObjectBehavior
         OffchainBalance $offChainBalance,
         Delegates\NotificationsDelegate $notificationsDelegate,
         Delegates\EmailDelegate $emailDelegate,
-        Delegates\RequestHydrationDelegate $requestHydrationDelegate
+        Delegates\RequestHydrationDelegate $requestHydrationDelegate,
+        EthereumGasPrice\Manager $ethGasPrice
     ) {
         $this->beConstructedWith(
             $txManager,
@@ -68,7 +74,8 @@ class ManagerSpec extends ObjectBehavior
             $offChainBalance,
             $notificationsDelegate,
             $emailDelegate,
-            $requestHydrationDelegate
+            $requestHydrationDelegate,
+            $ethGasPrice
         );
 
         $this->txManager = $txManager;
@@ -80,6 +87,7 @@ class ManagerSpec extends ObjectBehavior
         $this->notificationsDelegate = $notificationsDelegate;
         $this->emailDelegate = $emailDelegate;
         $this->requestHydrationDelegate = $requestHydrationDelegate;
+        $this->ethGasPrice = $ethGasPrice;
     }
 
     public function it_is_initializable()
@@ -755,15 +763,24 @@ class ManagerSpec extends ObjectBehavior
         $this->config->get('blockchain')
             ->shouldBeCalled()
             ->willReturn([
-                'server_gas_price' => 100,
+                'server_gas_price' => 300,
                 'contracts' => [
                     'withdraw' => [
                         'wallet_pkey' => '',
                         'wallet_address' => '',
                         'contract_address' => '',
                     ],
-                ],
+                ]
             ]);
+
+        $this->ethGasPrice->estimate()
+            ->shouldBeCalled()
+            ->willReturn(
+                (new GasPriceEstimate)
+                ->setBlockNum(BigNumber::_(123))
+                ->setBaseFeePerGas(BigNumber::_(122156085639))
+                ->setMaxPriorityFeePerGas(BigNumber::_(1277717773))
+            );
 
         $request->getStatus()
             ->shouldBeCalled()

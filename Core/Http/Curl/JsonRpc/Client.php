@@ -56,7 +56,7 @@ class Client extends Curl\Client
         ], $options['headers']);
 
         $data = array_merge($data, [
-            'version' => static::$version,
+            'jsonrpc' => static::$version,
             'id' => $this->id++,
         ]);
 

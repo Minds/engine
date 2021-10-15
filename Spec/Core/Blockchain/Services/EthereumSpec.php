@@ -267,7 +267,7 @@ class EthereumSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('');
 
-        $this->shouldThrow(new \Exception('Error signing transaction'))->during(
+        $this->shouldThrow(new \Exception('Server did not respond'))->during(
             'sendRawTransaction',
             ['privateKey', $transaction]
         );

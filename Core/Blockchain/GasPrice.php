@@ -7,6 +7,11 @@ use Minds\Core\Di\Di;
 use Minds\Core\Http\Curl\Json\Client;
 use Minds\Core\Util\BigNumber;
 
+/**
+ * @deprecated The eth_gasPrice RPC call can be considered deprecated as of the ETH London fork.
+ * It can be used still however will cost more than when using EIP-1559 style transactions.
+ * https://blog.infura.io/london-fork/
+ */
 class GasPrice
 {
     /** @var Client */
