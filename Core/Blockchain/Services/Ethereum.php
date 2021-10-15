@@ -157,6 +157,7 @@ class Ethereum
 
         return $this->sign->setPrivateKey($privateKey)
             ->setTx($tx)
+            ->setRpcEndpoint($this->getBestEndpoint())
             ->sign();
     }
 
