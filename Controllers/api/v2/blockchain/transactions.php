@@ -146,7 +146,7 @@ class transactions implements Interfaces\Api
                     ->setAmount((string) BigNumber::fromHex($_POST['amount']));
 
                 try {
-                    $manager->request($request, Session::getLoggedinUser(), $_POST['secret']);
+                    $manager->request(request: $request, secret: $_POST['secret']);
 
                     $response['done'] = true;
                     $response['entity'] = $request->export();

@@ -16,6 +16,7 @@ use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
+use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\ServerRequestFactory;
 
 class Manager
@@ -53,6 +54,9 @@ class Manager
     /** @var Security\TwoFactor\Manager */
     private $twoFactorManager;
 
+    /** @var EntitiesBuilder $entitiesBuilder */
+    private $entitiesBuilder;
+
     public function __construct(
         $txManager = null,
         $offChainTransactions = null,
@@ -64,6 +68,7 @@ class Manager
         $emailDelegate = null,
         $requestHydrationDelegate = null,
         $twoFactorManager = null,
+        $entitiesBuilder = null,
         $deferredSecrets = null
     ) {
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
@@ -76,6 +81,7 @@ class Manager
         $this->emailDelegate = $emailDelegate ?: new Delegates\EmailDelegate();
         $this->requestHydrationDelegate = $requestHydrationDelegate ?: new Delegates\RequestHydrationDelegate();
         $this->twoFactorManager = $twoFactorManager ?: Di::_()->get('Security\TwoFactor\Manager');
+        $this->entitiesBuilder = $entitiesBuilder ?:  Di::_()->get('EntitiesBuilder');
         $this->deferredSecrets = $deferredSecrets ?: Di::_()->get('Security\DeferredSecrets');
     }
 
@@ -188,24 +194,22 @@ class Manager
 
     /**
      * @param Request $request
-     * @param User $user - user we're requesting for - nullable when called by admin.
      * @param string $secret - deferred authentication secret - nullable when called by admin.
      * @return bool
      * @throws Exception
      */
-    public function request(Request $request, User $user = null, string $secret = ''): bool
+    public function request(Request $request, string $secret = ''): bool
     {
         if (!$this->check($request->getUserGuid())) {
             throw new Exception('You can only have one pending withdrawal at a time');
         }
 
+        $user = $this->entitiesBuilder->single($request->getUserGuid());
+
         // verify user has been authenticated prior to dispatching transaction.
         if (!$user->isAdmin() && !$this->verifyDeferredAuthentication($secret, $user)) {
-            throw new Exception('Invalid authentication secret', 401);
+            throw new UserErrorException('Invalid authentication secret', 403);
         }
-
-        $user = new User();
-        $user->guid = (string) $request->getUserGuid();
 
         // Check how much tokens the user can request
 

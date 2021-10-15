@@ -59,7 +59,7 @@ class DeferredSecrets
         }
 
         if (!$secret) {
-            $this->logger->error('Deferred secret verification attempted without a secret by: ' . $user->guid);
+            $this->logger->error('Deferred secret verification attempted without a secret by: ' . $user->getGuid());
             throw new UserErrorException("Missing secret for authorization");
         }
 
