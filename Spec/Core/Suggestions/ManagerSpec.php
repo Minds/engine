@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Suggestions;
 
+use Minds\Core\Suggestions\Delegates\CheckRateLimit;
 use Minds\Entities\User;
 use Minds\Common\Repository\Response;
 use Minds\Core\Suggestions\Manager;
@@ -10,8 +11,6 @@ use Minds\Core\Suggestions\Repository;
 use Minds\Core\Subscriptions\Manager as SubscriptionsManager;
 use Minds\Core\Features;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Security\RateLimits\InteractionsLimiter;
-use Minds\Core\Security\RateLimits\RateLimit;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -21,8 +20,8 @@ class ManagerSpec extends ObjectBehavior
     private $repository;
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
-    /** @var InteractionsLimiter */
-    private $interactionsLimiter;
+    /** @var CheckRateLimit */
+    private $checkRateLimit;
     /** @var SubscriptionsManager */
     private $subscriptionsManager;
 
@@ -30,18 +29,18 @@ class ManagerSpec extends ObjectBehavior
         Repository $repository,
         EntitiesBuilder $entitiesBuilder,
         SubscriptionsManager $subscriptionsManager,
-        InteractionsLimiter $interactionsLimiter,
+        CheckRateLimit $checkRateLimit,
         Features\Manager $features
     ) {
         $this->repository = $repository;
         $this->entitiesBuilder = $entitiesBuilder;
-        $this->interactionsLimiter = $interactionsLimiter;
+        $this->checkRateLimit = $checkRateLimit;
         $this->subscriptionsManager = $subscriptionsManager;
 
         $features->has('suggestions')
             ->willReturn(true);
 
-        $this->beConstructedWith($repository, $entitiesBuilder, null, $subscriptionsManager, $interactionsLimiter, $features);
+        $this->beConstructedWith($repository, $entitiesBuilder, null, $subscriptionsManager, $checkRateLimit, $features);
     }
 
     public function it_is_initializable()
@@ -64,7 +63,9 @@ class ManagerSpec extends ObjectBehavior
         $this->subscriptionsManager->getSubscriptionsCount()
             ->willReturn(10);
 
-        $this->interactionsLimiterMock(100);
+        $this->checkRateLimit->check(123)
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->repository->getList([
             'limit' => 24 * 3,
@@ -100,20 +101,14 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_shouldnt_return_a_list_of_suggested_users_if_close_too_close_to_the_rate_limit_threshold()
     {
-        $this->setUser((new User)->set('guid', 123));
+        $this->checkRateLimit->check(123)
+            ->shouldBeCalled()
+            ->willReturn(false);
 
-        $this->interactionsLimiterMock(5);
+        $this->setUser((new User)->set('guid', 123));
 
         $newResponse = $this->getList(['limit' => 24]);
 
         $newResponse->count()->shouldBe(0);
-    }
-
-    /**
-     * @return bool
-     */
-    private function interactionsLimiterMock(int $remaining = 20)
-    {
-        $this->interactionsLimiter->getRemainingAttempts(Argument::any(), Argument::any())->willReturn($remaining);
     }
 }

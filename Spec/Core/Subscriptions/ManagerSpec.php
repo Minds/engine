@@ -6,6 +6,7 @@ use Minds\Core\Subscriptions\Delegates;
 use Minds\Core\Subscriptions\Manager;
 use Minds\Core\Subscriptions\Repository;
 use Minds\Core\Subscriptions\Subscription;
+use Minds\Core\Suggestions\Delegates\CheckRateLimit;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -18,6 +19,7 @@ class ManagerSpec extends ObjectBehavior
     private $cacheDelegate;
     private $eventsDelegate;
     private $feedsDelegate;
+    private $checkRateLimitDelegate;
 
 
     public function let(
@@ -27,6 +29,7 @@ class ManagerSpec extends ObjectBehavior
         Delegates\CacheDelegate $cacheDelegate = null,
         Delegates\EventsDelegate $eventsDelegate = null,
         Delegates\FeedsDelegate $feedsDelegate = null,
+        CheckRateLimit $checkRateLimitDelegate = null
     ) {
         $this->beConstructedWith(
             $repository,
@@ -35,6 +38,7 @@ class ManagerSpec extends ObjectBehavior
             $cacheDelegate,
             $eventsDelegate,
             $feedsDelegate,
+            $checkRateLimitDelegate
         );
         $this->repository = $repository;
         $this->copyToElasticSearchDelegate = $copyToElasticSearchDelegate;
@@ -42,6 +46,7 @@ class ManagerSpec extends ObjectBehavior
         $this->cacheDelegate = $cacheDelegate;
         $this->eventsDelegate = $eventsDelegate;
         $this->feedsDelegate = $feedsDelegate;
+        $this->checkRateLimitDelegate = $checkRateLimitDelegate;
     }
 
     public function it_is_initializable()
@@ -97,6 +102,10 @@ class ManagerSpec extends ObjectBehavior
 
         // Call the cache delegate
         $this->cacheDelegate->cache($subscription)
+            ->shouldBeCalled();
+
+        // Call the Rate Limit delegate
+        $this->checkRateLimitDelegate->incrementCache(123)
             ->shouldBeCalled();
 
         $newSubscription = $this->subscribe($publisher);

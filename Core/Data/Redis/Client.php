@@ -27,26 +27,6 @@ class Client
         return $this->redis->get(...$args);
     }
 
-    public function mget(...$args)
-    {
-        return $this->redis->mget(...$args);
-    }
-
-    public function multi(...$args)
-    {
-        return $this->redis->multi(...$args);
-    }
-
-    public function incr(...$args)
-    {
-        return $this->redis->incr(...$args);
-    }
-
-    public function expire(...$args)
-    {
-        return $this->redis->expire(...$args);
-    }
-
     public function set(...$args)
     {
         return $this->redis->set(...$args);
@@ -70,11 +50,6 @@ class Client
     public function sRem(...$args)
     {
         return $this->redis->sRem(...$args);
-    }
-
-    public function exec(...$args)
-    {
-        return $this->redis->exec(...$args);
     }
 
 
