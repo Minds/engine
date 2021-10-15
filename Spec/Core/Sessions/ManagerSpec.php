@@ -115,6 +115,13 @@ class ManagerSpec extends ObjectBehavior
             'minds_sess' => $token,
         ]);
 
+        $session = new Session();
+        $session
+            ->setId('mock_session_id')
+            ->setUserGuid('user_1')
+            ->setToken($token)
+            ->setExpires(time() + 3600);
+
         $repository->get('user_1', 'mock_session_id')
             ->shouldBeCalled()
             ->willReturn(null);

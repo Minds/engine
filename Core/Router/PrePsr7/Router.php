@@ -3,7 +3,6 @@
 namespace Minds\Core\Router\PrePsr7;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Router\PrePsr7\Middleware\ProMiddleware;
 use Minds\Core\Router\PrePsr7\Middleware\RouterMiddleware;
@@ -111,8 +110,7 @@ class Router
         }
 
         // XSRF Cookie - may be able to remove now with OAuth flow
-        $xsrf = new Security\XSRF($request, $session);
-        $xsrf->setCookie();
+        Security\XSRF::setCookie();
 
         if (Session::isLoggedin()) {
             Helpers\Analytics::increment('active');
