@@ -145,12 +145,20 @@ class EthereumSpec extends ObjectBehavior
 
     public function it_should_sign_a_transaction()
     {
+        $this->_config->get()->willReturn([
+            'rpc_endpoints' => ['127.0.0.1'],
+        ]);
+
         $transaction = [];
         $this->_sign->setPrivateKey('privateKey')
             ->shouldBeCalled()
             ->willReturn($this->_sign);
 
         $this->_sign->setTx(json_encode($transaction))
+            ->shouldBeCalled()
+            ->willReturn($this->_sign);
+
+        $this->_sign->setRpcEndpoint(Argument::any())
             ->shouldBeCalled()
             ->willReturn($this->_sign);
 
@@ -184,6 +192,10 @@ class EthereumSpec extends ObjectBehavior
             ->willReturn($this->_sign);
 
         $this->_sign->setTx(json_encode(array_merge($transaction, ['gasPrice' => '0x2540be400'])))
+            ->shouldBeCalled()
+            ->willReturn($this->_sign);
+
+        $this->_sign->setRpcEndpoint(Argument::any())
             ->shouldBeCalled()
             ->willReturn($this->_sign);
 
@@ -255,11 +267,19 @@ class EthereumSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->_sign);
 
+        $this->_sign->setPrivateKey('privateKey')
+            ->shouldBeCalled()
+            ->willReturn($this->_sign);
+
         $this->_gasPrice->getLatestGasPrice(Argument::any())
             ->shouldBeCalled()
             ->willReturn('0x2540be400');
 
         $this->_sign->setTx(json_encode(array_merge($transaction, ['gasPrice' => '0x2540be400'])))
+            ->shouldBeCalled()
+            ->willReturn($this->_sign);
+
+        $this->_sign->setRpcEndpoint(Argument::any())
             ->shouldBeCalled()
             ->willReturn($this->_sign);
 
