@@ -6,9 +6,9 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Features;
+use Minds\Core\Suggestions\Delegates\CheckRateLimit;
 use Minds\Entities\User;
 use Minds\Core\Security\Block;
-use Minds\Core\Security\RateLimits\InteractionsLimiter;
 
 class Manager
 {
@@ -24,8 +24,8 @@ class Manager
     /** @var User $user */
     private $user;
 
-    /** @var InteractionsLimiter */
-    private $interactionsLimiter;
+    /** @var CheckRateLimit */
+    private $checkRateLimit;
 
     /** @var Features\Manager */
     private $features;
@@ -41,14 +41,14 @@ class Manager
         $entitiesBuilder = null,
         $suggestedFeedsManager = null,
         $subscriptionsManager = null,
-        $interactionsLimiter = null,
+        $checkRateLimit = null,
         $features = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder();
         //$this->suggestedFeedsManager = $suggestedFeedsManager ?: Di::_()->get('Feeds\Suggested\Manager');
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Subscriptions\Manager');
-        $this->interactionsLimiter = $interactionsLimiter ?: new InteractionsLimiter();
+        $this->checkRateLimit = $checkRateLimit ?: new CheckRateLimit();
         $this->features = $features ?? new Features\Manager();
         $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
     }
@@ -100,7 +100,7 @@ class Manager
             'type' => $this->type,
         ], $opts);
 
-        if ($this->isNearSubscriptionRateLimit()) {
+        if (!$this->checkRateLimit->check($this->user->guid)) {
             return new Response([]);
         }
 
@@ -189,15 +189,5 @@ class Manager
         }, $users->toArray());
 
         return $this->repository->getList($opts);
-    }
-
-    /**
-     * Returns the smallest rate limit remaining attempts based on period.
-     * @return bool
-     */
-    private function isNearSubscriptionRateLimit()
-    {
-        $remainingAttempts = $this->interactionsLimiter->getRemainingAttempts((string) $this->user->getGuid(), 'subscribe');
-        return $remainingAttempts < 10;
     }
 }
