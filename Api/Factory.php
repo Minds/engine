@@ -2,12 +2,9 @@
 
 namespace Minds\Api;
 
-use Minds\Core\Di\Di;
-use Minds\Core\Sessions\Manager;
 use Minds\Interfaces;
 use Minds\Core\Security;
 use Minds\Core\Session;
-use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * API Factory
@@ -19,10 +16,9 @@ class Factory
      * based on the current HTTP request method,
      * or null if the class is not found.
      * @param string $segments - String representing a route
-     * @param ServerRequestInterface $request - The incoming request
      * @return mixed|null
      */
-    public static function build($segments, ServerRequestInterface $request, $response)
+    public static function build($segments, $request, $response)
     {
         //try {
         //    Helpers\RequestMetrics::increment('api');
@@ -99,39 +95,34 @@ class Factory
      * Terminates an API response based on PAM policies for current user
      * @return bool|null
      */
-    public static function pamCheck(ServerRequestInterface $request, $response) : bool|string
+    public static function pamCheck($request, $response)
     {
-        if ($request->getAttribute('oauth_user_id')) {
+        if (
+            $request->getAttribute('oauth_user_id') ||
+            Security\XSRF::validateRequest()
+        ) {
             return true;
+        } else {
+            //error_log('failed authentication:: OAUTH via API');
+            ob_end_clean();
+
+            static::setCORSHeader();
+
+            $code = !Security\XSRF::validateRequest() ? 403 : 401;
+
+            if (isset($_SERVER['HTTP_APP_VERSION'])) {
+                $code = 401; // Mobile requires 401 errors
+            }
+
+            header('Content-type: application/json');
+            http_response_code($code);
+            echo json_encode([
+                'error' => 'Sorry, you are not authenticated',
+                'code' => $code,
+                'loggedin' => false
+                ]);
+            exit;
         }
-
-        $sessionsManager = Di::_()->get('Sessions\Manager');
-
-        $xsrf = new Security\XSRF($request, $sessionsManager);
-        $isRequestValid = $xsrf->validateRequest();
-        if ($isRequestValid) {
-            return true;
-        }
-
-        //error_log('failed authentication:: OAUTH via API');
-        ob_end_clean();
-
-        static::setCORSHeader();
-
-        $code = 403; // By this point the request is surely not valid, so we should return a 403
-
-        if (isset($_SERVER['HTTP_APP_VERSION'])) {
-            $code = 401; // Mobile requires 401 errors
-        }
-
-        header('Content-type: application/json');
-        http_response_code($code);
-        echo json_encode([
-            'error' => 'Sorry, you are not authenticated',
-            'code' => $code,
-            'loggedin' => false
-            ]);
-        exit;
     }
 
     /**

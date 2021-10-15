@@ -12,7 +12,6 @@ use Minds\Core\Security;
 use Minds\Core\Session;
 use Minds\Core\Features;
 use Minds\Core\Di\Di;
-use Minds\Core\Sessions\Manager;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
@@ -46,11 +45,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function post($pages)
     {
-        $request = ServerRequestFactory::fromGlobals();
-        $sessionsManager = Di::_()->get('Sessions\Manager');
-
-        $xsrf = new Security\XSRF($request, $sessionsManager);
-        if (!$xsrf->validateRequest()) {
+        if (!Core\Security\XSRF::validateRequest()) {
             return false;
         }
 
@@ -115,7 +110,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         try {
             $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
-            $twoFactorManager->gatekeeper($user, $request, enableEmail: false);
+            $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals(), enableEmail: false);
         } catch (\Exception $e) {
             header('HTTP/1.1 ' . $e->getCode(), true, $e->getCode());
             $response['status'] = "error";
@@ -133,7 +128,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         \set_last_login($user); // TODO: Refactor this
 
         Session::generateJWTCookie($sessions->getSession());
-        $xsrf->setCookie(true);
+        Security\XSRF::setCookie(true);
 
         // Set the canary cookie
         Di::_()->get('Features\Canary')
@@ -158,7 +153,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
     public function delete($pages)
     {
-        /** @var Manager $sessions */
+        /** @var Core\Sessions\Manager $sessions */
         $sessions = Di::_()->get('Sessions\Manager');
 
         if (isset($pages[0]) && $pages[0] === 'all') {

@@ -114,7 +114,7 @@ class Manager
      * @param $request
      * @return Manager
      */
-    public function withRouterRequest($request): self
+    public function withRouterRequest($request): Manager
     {
         $cookies = $request->getCookieParams();
         if (!isset($cookies['minds_sess'])) {
@@ -128,7 +128,7 @@ class Manager
      * @param string $sessionToken
      * @return Manager
      */
-    public function withString(string $sessionToken): self
+    public function withString(string $sessionToken): Manager
     {
         try {
             $token = $this->getJwtConfig()->parser()->parse($sessionToken);
@@ -339,13 +339,13 @@ class Manager
     public function removeFromClient()
     {
         $this->cookie
-            ->setName('minds_sess')
-            ->setValue('')
-            ->setExpire(time() - 3600)
-            ->setSecure(true) //only via ssl
-            ->setHttpOnly(true) //never by browser
-            ->setPath('/')
-            ->create();
+        ->setName('minds_sess')
+        ->setValue('')
+        ->setExpire(time() - 3600)
+        ->setSecure(true) //only via ssl
+        ->setHttpOnly(true) //never by browser
+        ->setPath('/')
+        ->create();
     }
 
     /**
