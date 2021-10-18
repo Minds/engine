@@ -51,6 +51,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         $xsrf = new Security\XSRF($request, $sessionsManager);
         if (!$xsrf->validateRequest()) {
+            echo "validateRequest Failed";
             return false;
         }
 

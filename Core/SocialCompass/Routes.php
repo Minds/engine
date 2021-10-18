@@ -24,8 +24,15 @@ class Routes extends ModuleRoutes
                             'questions',
                             Ref::_('SocialCompass\Controller', 'getQuestions')
                         );
+                        $route->post(
+                            'answers',
+                            Ref::_('SocialCompass\Controller', 'storeAnswers')
+                        );
+                        $route->put(
+                            'answers',
+                            Ref::_('SocialCompass\Controller', 'updateAnswers')
+                        );
                     });
             });
-        // TODO: Implement register() method.
     }
 }

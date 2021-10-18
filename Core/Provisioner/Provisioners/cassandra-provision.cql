@@ -1707,3 +1707,9 @@ CREATE TABLE minds.twitter_sync (
     twitter_username text,
     discoverable boolean
 );
+
+CREATE TABLE minds.social_compass_answers (
+    user_guid bigint PRIMARY KEY,
+    question_id string,
+    current_value int
+);

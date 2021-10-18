@@ -84,8 +84,7 @@ class Provider extends DiProvider
                 'withdrawal-console',
                 'helpdesk-2021',
                 'plus-discovery-filter',
-                'twitter-sync',
-                'social-compass'
+                'twitter-sync'
             ];
         });
 
