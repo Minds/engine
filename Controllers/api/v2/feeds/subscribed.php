@@ -108,7 +108,7 @@ class subscribed implements Interfaces\Api
             'custom_type' => $custom_type,
             'limit' => $limit,
             'type' => $type,
-            'algorithm' => 'latest',
+            'algorithm' => $_GET['algorithm'] ?? 'latest',
             'period' => '1y',
             'sync' => $sync,
             'from_timestamp' => $fromTimestamp,
