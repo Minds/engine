@@ -286,7 +286,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->deferredSecrets->verify($secret, $user)
             ->shouldBeCalled()
-            ->willReturn(true);    
+            ->willReturn(true);
 
         $this->config->get('blockchain')
             ->shouldBeCalled()
