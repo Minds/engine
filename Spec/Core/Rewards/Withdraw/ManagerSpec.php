@@ -10,6 +10,7 @@ use Minds\Core\Blockchain\Wallets\OffChain\Balance as OffchainBalance;
 use Minds\Core\Blockchain\Wallets\OffChain\Transactions as OffchainTransactions;
 use Minds\Core\Config;
 use Minds\Core\Data\Locks\LockFailedException;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Rewards\Withdraw\Delegates;
 use Minds\Core\Rewards\Withdraw\Manager;
 use Minds\Core\Rewards\Withdraw\Repository;
@@ -56,6 +57,9 @@ class ManagerSpec extends ObjectBehavior
     /** @var Security\TwoFactor\Manager */
     private $twoFactorManager;
 
+    /** @var EntitiesBuilder $entitiesBuilder */
+    private $entitiesBuilder;
+
     public function let(
         TransactionsManager $txManager,
         OffchainTransactions $offChainTransactions,
@@ -67,6 +71,7 @@ class ManagerSpec extends ObjectBehavior
         Delegates\EmailDelegate $emailDelegate,
         Delegates\RequestHydrationDelegate $requestHydrationDelegate,
         TwoFactorManager $twoFactorManager,
+        EntitiesBuilder $entitiesBuilder,
         DeferredSecrets $deferredSecrets
     ) {
         $this->beConstructedWith(
@@ -80,6 +85,7 @@ class ManagerSpec extends ObjectBehavior
             $emailDelegate,
             $requestHydrationDelegate,
             $twoFactorManager,
+            $entitiesBuilder,
             $deferredSecrets
         );
 
@@ -93,6 +99,7 @@ class ManagerSpec extends ObjectBehavior
         $this->emailDelegate = $emailDelegate;
         $this->requestHydrationDelegate = $requestHydrationDelegate;
         $this->twoFactorManager = $twoFactorManager;
+        $this->entitiesBuilder = $entitiesBuilder;
         $this->deferredSecrets = $deferredSecrets;
     }
 
@@ -272,9 +279,15 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('100000000000');
 
         $secret = 'secret';
-    
-        $this->deferredSecrets->verify($secret, $user)->shouldBeCalled()->willReturn(true);
-    
+
+        $this->entitiesBuilder->single(1000)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->deferredSecrets->verify($secret, $user)
+            ->shouldBeCalled()
+            ->willReturn(true);    
+
         $this->config->get('blockchain')
             ->shouldBeCalled()
             ->willReturn([
@@ -318,7 +331,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this
-            ->request($request, $user, $secret)
+            ->request($request, $secret)
             ->shouldReturn(true);
     }
 
@@ -335,7 +348,11 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(BigNumber::toPlain(10, 18));
 
         $secret = 'secret';
-    
+
+        $this->entitiesBuilder->single(1000)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
         $this->deferredSecrets->verify($secret, $user)->shouldBeCalled()->willReturn(true);
 
         $this->config->get('blockchain')
@@ -366,7 +383,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this
             ->shouldThrow(new Exception('You can only request 5 tokens.'))
-            ->duringRequest($request, $user, $secret);
+            ->duringRequest($request, $secret);
     }
 
     public function it_should_throw_during_request_if_already_withdrawn(
@@ -401,7 +418,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this
             ->shouldThrow(new Exception('You can only have one pending withdrawal at a time'))
-            ->duringRequest($request, $user, 'secret');
+            ->duringRequest($request, 'secret');
     }
 
     public function it_should_throw_during_request_if_user_has_not_completed_deferred_auth(
@@ -415,6 +432,10 @@ class ManagerSpec extends ObjectBehavior
         $secret = 'secret';
 
         $this->deferredSecrets->verify($secret, $user)->shouldBeCalled()->willReturn(false);
+
+        $this->entitiesBuilder->single(1000)
+            ->shouldBeCalled()
+            ->willReturn($user);
 
         $this->config->get('blockchain')
             ->shouldBeCalled()
@@ -435,8 +456,8 @@ class ManagerSpec extends ObjectBehavior
             ]);
 
         $this
-            ->shouldThrow(new Exception('Invalid authentication secret', 401))
-            ->duringRequest($request, $user, 'secret');
+            ->shouldThrow(new Exception('Invalid authentication secret', 403))
+            ->duringRequest($request, 'secret');
     }
 
 
