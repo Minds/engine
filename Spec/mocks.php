@@ -261,10 +261,6 @@ class RedisMock
     {
         return false;
     }
-    public function mget($keys)
-    {
-        return array_fill(0, count($keys), null);
-    }
     public function set($set, $values)
     {
         return false;
