@@ -10,6 +10,7 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Di\Di;
+use Minds\Core\Queue;
 
 class nsfw implements Interfaces\Api, Interfaces\ApiAdminPam
 {
@@ -73,6 +74,17 @@ class nsfw implements Interfaces\Api, Interfaces\ApiAdminPam
                 'entity' => $child,
                 'immediate' => true,
             ]);
+        }
+
+        // if this is a user and we are REMOVING their nsfw status.
+        if ($entity->getType() === 'user' && empty($_POST['nsfw'])) {
+            $queueClient = Queue\Client::Build();
+
+            $queueClient->setQueue('NsfwLockBatch')
+                ->send([
+                    'user_guid' => $entity->getGuid(),
+                    'value' => [],
+                ]);
         }
 
         return Factory::response([]);
