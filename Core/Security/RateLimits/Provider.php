@@ -10,12 +10,15 @@ class Provider extends Di\Provider
      */
     public function register(): void
     {
-        $this->di->bind('Security\RateLimits\InteractionsLimiter', function ($di) {
-            return new InteractionsLimiter();
-        }, ['useFactory' => false]);
+        /**
+         * We provide these in SecurityProvider because of the order in which the DI injects dependencies
+         */
+        // $this->di->bind('Security\RateLimits\InteractionsLimiter', function ($di) {
+        //     return new InteractionsLimiter();
+        // }, ['useFactory' => false]);
 
-        $this->di->bind('Security\RateLimits\KeyValueLimiter', function ($di) {
-            return new KeyValueLimiter();
-        }, ['useFactory' => false]);
+        // $this->di->bind('Security\RateLimits\KeyValueLimiter', function ($di) {
+        //     return new KeyValueLimiter();
+        // }, ['useFactory' => false]);
     }
 }
