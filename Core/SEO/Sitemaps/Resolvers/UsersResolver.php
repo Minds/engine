@@ -53,6 +53,7 @@ class UsersResolver extends AbstractEntitiesResolver
 
     public function __construct($balance = null)
     {
+        parent::__construct();
         $this->balance = $balance ?: new Balance();
     }
 
