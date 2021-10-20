@@ -201,12 +201,15 @@ class Manager
                 //
                 if ($recentTweet->getUrls() && isset($recentTweet->getUrls()[0])) {
                     $url = $recentTweet->getUrls()[0];
-                    $richEmbed = $this->richEmbedManager->getRichEmbed($url);
-                    $activity
+                    try {
+                        $richEmbed = $this->richEmbedManager->getRichEmbed($url);
+                        $activity
                             ->setTitle($richEmbed['meta']['title'])
                             ->setBlurb($richEmbed['meta']['description'])
                             ->setURL($url)
                             ->setThumbnail($richEmbed['links']['thumbnail'][0]['href']);
+                    } catch (\GuzzleHttp\Exception\ClientException $e) {
+                    }
                 }
 
                 try {
