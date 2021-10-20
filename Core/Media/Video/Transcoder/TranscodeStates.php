@@ -39,6 +39,31 @@ class TranscodeStates
      */
     public function getStatus(Video $video): string
     {
+        switch ($video->getTranscoder()) {
+            case \Minds\Core\Media\Video\Manager::TRANSCODER_CLOUDFLARE:
+                return $this->getCloudflareTranscoderStatus($video);
+            case \Minds\Core\Media\Video\Manager::TRANSCODER_MINDS:
+            default:
+                 return $this->getMindsTranscoderStatus($video);
+        }
+    }
+
+    /**
+     * @param Video $video
+     * @return string the transcode state
+     */
+    protected function getCloudflareTranscoderStatus(Video $video): string
+    {
+        // FIXME: this is naïve. Track the progress by adding different states throughout the lifecycle
+        return $video->getTranscodingStatus() ?? TranscodeStates::COMPLETED;
+    }
+
+    /**
+     * @param Video $video
+     * @return string the transcode state
+     */
+    protected function getMindsTranscoderStatus(Video $video): string
+    {
         $transcodes = $this->repository->getList([
             'guid' => $video->getGuid(),
         ]);
