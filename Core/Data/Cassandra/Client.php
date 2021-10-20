@@ -51,7 +51,6 @@ class Client implements Interfaces\ClientInterface
                 return $response = $future->get();
             }
         } catch (\Exception $e) {
-            error_log('[CQL Error: ' . get_class($e) . '] ' . $e->getMessage());
             if ($this->isDebug()) {
                 error_log('[CQL Error: ' . get_class($e) . '] ' . $e->getMessage());
                 error_log(json_encode($cql));

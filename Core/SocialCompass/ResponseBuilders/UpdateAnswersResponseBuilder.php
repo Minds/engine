@@ -22,10 +22,9 @@ class UpdateAnswersResponseBuilder
 
     public function buildBadRequestResponse(string $message) : JsonResponse
     {
-        http_response_code(400);
         return new JsonResponse([
             'status' => 'error',
             'message' => $message
-        ]);
+        ], 400);
     }
 }
