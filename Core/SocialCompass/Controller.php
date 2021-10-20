@@ -17,7 +17,6 @@ class Controller
 
     public function getQuestions(ServerRequestInterface $request) : JsonResponse
     {
-        $this->manager->setRequest($request);
         return $this->manager->retrieveSocialCompassQuestions();
     }
 

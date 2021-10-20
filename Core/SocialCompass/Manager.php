@@ -23,11 +23,6 @@ class Manager implements ManagerInterface
         $this->repository = $this->repository ?? new Repository();
     }
 
-    public function setRequest(ServerRequestInterface $request) : void
-    {
-        $this->request = $request;
-    }
-
     public function retrieveSocialCompassQuestions(): JsonResponse
     {
         return (new GetQuestionsResponseBuilder($this->currentQuestionSetVersion))->build($this->repository);
