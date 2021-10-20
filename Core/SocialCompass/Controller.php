@@ -10,8 +10,7 @@ class Controller
 {
     public function __construct(
         private ?ManagerInterface $manager = null
-    )
-    {
+    ) {
         $this->manager = $this->manager ?? new Manager();
     }
 

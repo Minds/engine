@@ -11,8 +11,8 @@ class GetQuestionsResponseBuilder
 {
     public function __construct(
         private string $currenQuestionSetVersion
-    )
-    {}
+    ) {
+    }
 
     /**
      * Build the response object for the Social Compass getQuestions endpoint
@@ -26,8 +26,7 @@ class GetQuestionsResponseBuilder
 
         $results = [];
 
-        foreach ($questionsList::Questions as $questionId)
-        {
+        foreach ($questionsList::Questions as $questionId) {
             $userGuid = Session::getLoggedInUserGuid();
             $question = new $questionId();
             $answer = $repository->getAnswerByQuestionId($userGuid, $question->questionId);

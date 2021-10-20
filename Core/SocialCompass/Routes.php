@@ -9,7 +9,6 @@ use Minds\Core\Router\Route;
 
 class Routes extends ModuleRoutes
 {
-
     public function register(): void
     {
         $this->route
@@ -19,7 +18,7 @@ class Routes extends ModuleRoutes
                     ->withMiddleware([
                         LoggedInMiddleware::class
                     ])
-                    ->do(function(Route $route) {
+                    ->do(function (Route $route) {
                         $route->get(
                             'questions',
                             Ref::_('SocialCompass\Controller', 'getQuestions')

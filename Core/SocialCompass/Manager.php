@@ -17,8 +17,7 @@ class Manager implements ManagerInterface
     public function __construct(
         private ?ServerRequestInterface $request = null,
         private ?RepositoryInterface $repository = null
-    )
-    {
+    ) {
         $this->request = $this->request ?? ServerRequestFactory::fromGlobals();
         $this->repository = $this->repository ?? new Repository();
     }

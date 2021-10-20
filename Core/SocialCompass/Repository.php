@@ -16,8 +16,7 @@ class Repository implements RepositoryInterface
         private ?Client $cql = null,
         private ?Scroll $scroll = null,
         private ?Urn $urn = null
-    )
-    {
+    ) {
         $this->cql = $this->cql ?? Di::_()->get('Database\Cassandra\Cql');
         $this->scroll = $this->scroll ?? Di::_()->get('Database\Cassandra\Cql\Scroll');
         $this->urn = $this->urn ?? new Urn();
@@ -85,7 +84,7 @@ class Repository implements RepositoryInterface
                             )
                         VALUES
                             (?, ?, ?)";
-            $values = array($userGuid, $questionId, $answerValue);
+            $values = [$userGuid, $questionId, $answerValue];
 
             $this->addQueryIntoArray($queries, $statement, $values);
         }
@@ -101,8 +100,7 @@ class Repository implements RepositoryInterface
     private function processQueries(array $queries) : array
     {
         $failedQueries = [];
-        foreach ($queries as $query)
-        {
+        foreach ($queries as $query) {
             $result = $this->cql->request($query);
             if (!$result) {
                 array_push($failedQueries, $query);

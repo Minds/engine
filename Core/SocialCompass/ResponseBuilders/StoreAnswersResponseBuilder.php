@@ -22,10 +22,12 @@ class StoreAnswersResponseBuilder
 
     public function buildBadRequestResponse(string $message) : JsonResponse
     {
-        return new JsonResponse([
+        return new JsonResponse(
+            [
             'status' => 'error',
             'message' => $message
         ],
-        400);
+            400
+        );
     }
 }
