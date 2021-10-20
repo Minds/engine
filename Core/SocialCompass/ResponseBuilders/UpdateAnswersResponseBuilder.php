@@ -4,7 +4,7 @@ namespace Minds\Core\SocialCompass\ResponseBuilders;
 
 use Zend\Diactoros\Response\JsonResponse;
 
-class StoreAnswersResponseBuilder
+class UpdateAnswersResponseBuilder
 {
     public function buildResponse(bool $wereAnswersStored) : JsonResponse
     {
@@ -22,10 +22,10 @@ class StoreAnswersResponseBuilder
 
     public function buildBadRequestResponse(string $message) : JsonResponse
     {
+        http_response_code(400);
         return new JsonResponse([
             'status' => 'error',
             'message' => $message
-        ],
-        400);
+        ]);
     }
 }

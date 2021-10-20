@@ -9,7 +9,7 @@ use Zend\Diactoros\Response\JsonResponse;
 class Controller
 {
     public function __construct(
-        private ?ManagerInterface $manager
+        private ?ManagerInterface $manager = null
     )
     {
         $this->manager = $this->manager ?? new Manager();
@@ -17,6 +17,7 @@ class Controller
 
     public function getQuestions(ServerRequestInterface $request) : JsonResponse
     {
+        $this->manager->setRequest($request);
         return $this->manager->retrieveSocialCompassQuestions();
     }
 
@@ -27,6 +28,6 @@ class Controller
 
     public function updateAnswers(ServerRequestInterface $request) : JsonResponse
     {
-        throw new NotImplementedException();
+        return $this->manager->updateSocialCompassAnswers();
     }
 }

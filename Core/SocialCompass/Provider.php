@@ -3,7 +3,6 @@
 namespace Minds\Core\SocialCompass;
 
 use Minds\Core\Di\Provider as DiProvider;
-use Zend\Diactoros\ServerRequestFactory;
 
 class Provider extends DiProvider
 {

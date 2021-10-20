@@ -4,12 +4,9 @@ namespace Minds\Core\SocialCompass\Questions;
 
 class OpinionsDisagreementQuestion extends BaseQuestion
 {
-    protected string $minimumStepLabel = "Less";
-    protected string $maximumStepLabel = "More";
-    protected string $questionText = "Opinions I disagree with";
-    protected const QuestionId = self::class;
+    public string $minimumStepLabel = "Less";
+    public string $maximumStepLabel = "More";
+    public string $questionText = "Opinions I disagree with";
 
-    public function __construct()
-    {
-    }
+    public string $questionId = "OpinionsDisagreementQuestion";
 }

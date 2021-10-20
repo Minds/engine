@@ -4,12 +4,9 @@ namespace Minds\Core\SocialCompass\Questions;
 
 class PoliticalContentQuestion extends BaseQuestion
 {
-    protected string $minimumStepLabel = "Less";
-    protected string $maximumStepLabel = "More";
-    protected string $questionText = "Political Content";
-    protected const QuestionId = self::class;
+    public string $minimumStepLabel = "Less";
+    public string $maximumStepLabel = "More";
+    public string $questionText = "Political Content";
 
-    public function __construct()
-    {
-    }
+    public string $questionId = "PoliticalContentQuestion";
 }

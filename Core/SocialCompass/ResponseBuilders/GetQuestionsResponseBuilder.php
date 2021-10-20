@@ -2,6 +2,9 @@
 
 namespace Minds\Core\SocialCompass\ResponseBuilders;
 
+use Cassandra\Rows;
+use Minds\Core\Session;
+use Minds\Core\SocialCompass\RepositoryInterface;
 use Zend\Diactoros\Response\JsonResponse;
 
 class GetQuestionsResponseBuilder
@@ -13,21 +16,23 @@ class GetQuestionsResponseBuilder
 
     /**
      * Build the response object for the Social Compass getQuestions endpoint
-     * @param array|null $answers
+     * @param RepositoryInterface|null $repository
      * @return JsonResponse
      */
-    public function build(?array $answers) : JsonResponse
+    public function build(?RepositoryInterface $repository = null) : JsonResponse
     {
-        $questionsList = new ${"QuestionsManifestV$this->currenQuestionSetVersion"}();
+        $manifest = "Minds\Core\SocialCompass\Questions\Manifests\QuestionsManifestV{$this->currenQuestionSetVersion}";
+        $questionsList = new $manifest();
 
         $results = [];
 
-        foreach ($questionsList as $questionId)
+        foreach ($questionsList::Questions as $questionId)
         {
+            $userGuid = Session::getLoggedInUserGuid();
             $question = new $questionId();
-
-            if (isset($answers[$questionId])) {
-                $question->currentValue = $answers[$questionId]['current_value'];
+            $answer = $repository->getAnswerByQuestionId($userGuid, $question->questionId);
+            if (isset($answer) && $answer->count() > 0) {
+                $question->currentValue = $answer->first()["current_value"];
             }
 
             array_push($results, $question);

@@ -9,7 +9,7 @@ use Minds\Core\SocialCompass\Questions\PoliticalContentQuestion;
 
 class QuestionsManifestV1 implements QuestionsManifestInterface
 {
-    protected const Questions = [
+    public const Questions = [
         PoliticalContentQuestion::class,
         OpinionsDisagreementQuestion::class,
         PoliticalBeliefsQuestion::class,

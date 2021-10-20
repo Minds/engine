@@ -1,10 +1,13 @@
 <?php
 namespace Minds\Core\SocialCompass;
 
+use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
 
 interface ManagerInterface
 {
+    public function setRequest(ServerRequestInterface $request) : void;
+
     /**
      * Retrieves the active Social Compass question set and
      * if the user has answered them previously it also sets the answers to the relative questions
