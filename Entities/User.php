@@ -819,7 +819,10 @@ class User extends \ElggUser
     }
 
     /**
-     * @return bool
+     * Whether a user has an `email_confirmed_at` time.
+     * Consider calling `isTrusted()` rather than calling this function directly
+     * as isTrusted contains a polyfill for legacy accounts.
+     * @return bool true if user has an `email_confirmed_at` time.
      */
     public function isEmailConfirmed(): bool
     {
@@ -1109,9 +1112,7 @@ class User extends \ElggUser
             $export['deleted'] = $this->getDeleted();
         }
 
-        $export['email_confirmed'] =
-            (!$this->getEmailConfirmationToken() && !$this->getEmailConfirmedAt()) || // Old users poly-fill
-            $this->isEmailConfirmed();
+        $export['email_confirmed'] = $this->isTrusted();
 
         $export['eth_wallet'] = $this->getEthWallet() ?: '';
         $export['rating'] = $this->getRating();
