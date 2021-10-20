@@ -61,6 +61,7 @@ class Minds extends base
         Notifications\Module::class,
         Votes\Module::class,
         Helpdesk\Zendesk\Module::class,
+        SocialCompass\Module::class,
     ];
 
     /**
@@ -140,6 +141,7 @@ class Minds extends base
         (new Channels\ChannelsProvider())->register();
         (new Blogs\BlogsProvider())->register();
         (new Permaweb\PermawebProvider())->register();
+        (new SocialCompass\Provider())->register();
     }
 
     /**
