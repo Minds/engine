@@ -7,7 +7,7 @@ use Minds\Core\SocialCompass\Questions\OpinionsDisagreementQuestion;
 use Minds\Core\SocialCompass\Questions\PoliticalBeliefsQuestion;
 use Minds\Core\SocialCompass\Questions\PoliticalContentQuestion;
 
-class QuestionsManifestV1 implements QuestionsManifestInterface
+class QuestionsManifestV1
 {
     public const Questions = [
         PoliticalContentQuestion::class,
