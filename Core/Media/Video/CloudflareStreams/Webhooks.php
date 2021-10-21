@@ -116,6 +116,7 @@ class Webhooks
     /**
      * Verifies whether the webhook is authentic
      * @param ServerRequest $request
+     * @throws UserErrorException
      * @return void
      */
     private function verifyWebhookAuthenticity(ServerRequest $request): void

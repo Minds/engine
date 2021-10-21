@@ -54,7 +54,7 @@ class TranscodeStates
      */
     protected function getCloudflareTranscoderStatus(Video $video): string
     {
-        // FIXME: this is naïve. Track the progress by adding different states throughout the lifecycle
+        // TODO: what should the default value be?
         return $video->getTranscodingStatus() ?? TranscodeStates::COMPLETED;
     }
 
