@@ -96,11 +96,11 @@ class Webhooks
 
         $video->patch([
             // TODO: find out what other states exist and use a switch
-            // FIXME: not sure if we should use TranscodeStates::CREATED
-            'transcoding_status' => $transcodingState === 'ready' ? TranscodeStates::COMPLETED : TranscodeStates::CREATED,
+            // FIXME: not sure if we should use TranscodeStates::FAILED
+            'transcoding_status' => $transcodingState === 'ready' ? TranscodeStates::COMPLETED : TranscodeStates::FAILED,
         ]);
 
-        $this->logger->info("Cloudflare webhook - height: $video->height width: $video->width");
+        $this->logger->info("Cloudflare webhook - height: $video->height width: $video->width transcodingState: $transcodingState");
 
         $ia = $this->acl->setIgnore(true);
 
