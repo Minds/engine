@@ -12,6 +12,7 @@ use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
 use Minds\Core\Media\Video\Source;
+use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 
 class Manager
 {
@@ -56,6 +57,11 @@ class Manager
 
         $uid = $json['result']['uid'];
         $video->setCloudflareId($uid);
+        // set the status to transcoding after the request was successfully sent
+        $video->patch([
+            'transcoding_status' => TranscodeStates::TRANSCODING, // TODO: or should it be TranscodeStates::CREATED
+        ]);
+        // TODO: how do we know the transcoding failed if we somehow don't receive the webhook call?
     }
 
     /**
