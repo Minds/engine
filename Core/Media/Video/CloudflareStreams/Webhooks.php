@@ -97,6 +97,7 @@ class Webhooks
         $video->patch([
             // TODO: find out what other states exist and use a switch
             // FIXME: not sure if we should use TranscodeStates::FAILED
+            // TODO: what if we miss this hook? that'll leave videos in TranscodeStates::TRANSCODING state forever
             'transcoding_status' => $transcodingState === 'ready' ? TranscodeStates::COMPLETED : TranscodeStates::FAILED,
         ]);
 
