@@ -54,8 +54,8 @@ class TranscodeStates
      */
     protected function getCloudflareTranscoderStatus(Video $video): string
     {
-        // TODO: what should the default value be?
-        return $video->getTranscodingStatus() ?? TranscodeStates::COMPLETED;
+        // TODO: should there be a default value?
+        return $video->getTranscodingStatus();
     }
 
     /**
