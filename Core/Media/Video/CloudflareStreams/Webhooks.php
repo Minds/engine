@@ -47,7 +47,7 @@ class Webhooks
 
     /**
      * Registers a webhook and returns the secrets.
-     * You must put this secret in settings.php (cloudflare->webhook_secrets)
+     * You must put this secret in settings.php (cloudflare->webhook_secret)
      * @return string
      */
     public function registerWebhook(): ?string
