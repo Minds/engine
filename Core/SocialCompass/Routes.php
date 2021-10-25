@@ -15,14 +15,17 @@ class Routes extends ModuleRoutes
             ->withPrefix('api/v3/social-compass')
             ->do(function (Route $route) {
                 $route
-                    ->withMiddleware([
-                        LoggedInMiddleware::class
-                    ])
                     ->do(function (Route $route) {
                         $route->get(
                             'questions',
                             Ref::_('SocialCompass\Controller', 'getQuestions')
                         );
+                    });
+                $route
+                    ->withMiddleware([
+                        LoggedInMiddleware::class
+                    ])
+                    ->do(function (Route $route) {
                         $route->post(
                             'answers',
                             Ref::_('SocialCompass\Controller', 'storeAnswers')

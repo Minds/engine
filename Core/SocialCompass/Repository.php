@@ -59,8 +59,12 @@ class Repository implements RepositoryInterface
         return $this->prepareAnswer($rows->first());
     }
 
-    private function prepareAnswer(array $row): AnswerModel
+    private function prepareAnswer(?array $row): ?AnswerModel
     {
+        if (!$row) {
+            return null;
+        }
+
         return new AnswerModel(
             $row['user_guid'],
             $row['question_id'],
