@@ -3,7 +3,6 @@
 namespace Minds\Core\SocialCompass;
 
 use Cassandra\Bigint;
-use JetBrains\PhpStorm\Pure;
 use Minds\Common\Urn;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom as CustomQuery;
@@ -60,7 +59,6 @@ class Repository implements RepositoryInterface
         return $this->prepareAnswer($rows->first());
     }
 
-    #[Pure]
     private function prepareAnswer(array $row): AnswerModel
     {
         return new AnswerModel(
