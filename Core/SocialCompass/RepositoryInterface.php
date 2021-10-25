@@ -2,7 +2,7 @@
 
 namespace Minds\Core\SocialCompass;
 
-use Cassandra\Rows;
+use Minds\Core\SocialCompass\Entities\AnswerModel;
 
 interface RepositoryInterface
 {
@@ -12,9 +12,9 @@ interface RepositoryInterface
      * @param int $userGuid The unique identifier of the user to fetch the answers for
      * @return array|null|false The list of answers found in the database or null if nothing has been found
      */
-    public function getAnswers(int $userGuid, ?int $version = null) : Rows|null|false;
+    public function getAnswers(int $userGuid, ?int $version = null) : iterable|null|false;
 
-    public function getAnswerByQuestionId(int $userGuid, string $questionId) : Rows|null|false;
+    public function getAnswerByQuestionId(int $userGuid, string $questionId) : AnswerModel|null|false;
 
     /**
      * Stores the answers the user has given to the Social Compass questions

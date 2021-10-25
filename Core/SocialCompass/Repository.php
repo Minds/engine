@@ -3,12 +3,13 @@
 namespace Minds\Core\SocialCompass;
 
 use Cassandra\Bigint;
-use Cassandra\Rows;
+use JetBrains\PhpStorm\Pure;
 use Minds\Common\Urn;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom as CustomQuery;
 use Minds\Core\Data\Cassandra\Scroll;
 use Minds\Core\Di\Di;
+use Minds\Core\SocialCompass\Entities\AnswerModel;
 
 class Repository implements RepositoryInterface
 {
@@ -22,7 +23,7 @@ class Repository implements RepositoryInterface
         $this->urn = $this->urn ?? new Urn();
     }
 
-    public function getAnswers(int $userGuid, ?int $version = null) : Rows|null|false
+    public function getAnswers(int $userGuid, ?int $version = null) : iterable|null|false
     {
         $statement = "SELECT *
             FROM
@@ -33,10 +34,14 @@ class Repository implements RepositoryInterface
 
         $query = $this->prepareQuery($statement, $values);
 
-        return $this->cql->request($query);
+        $rows = $this->cql->request($query);
+
+        foreach ($rows as $row) {
+            yield $this->prepareAnswer($row);
+        }
     }
 
-    public function getAnswerByQuestionId(int $userGuid, string $questionId) : Rows|null|false
+    public function getAnswerByQuestionId(int $userGuid, string $questionId) : AnswerModel|null|false
     {
         $statement = "SELECT *
             FROM
@@ -50,7 +55,19 @@ class Repository implements RepositoryInterface
 
         $query = $this->prepareQuery($statement, $values);
 
-        return $this->cql->request($query);
+        $rows = $this->cql->request($query);
+
+        return $this->prepareAnswer($rows->first());
+    }
+
+    #[Pure]
+    private function prepareAnswer(array $row): AnswerModel
+    {
+        return new AnswerModel(
+            $row['user_guid'],
+            $row['question_id'],
+            $row['current_value']
+        );
     }
 
     private function prepareQuery(string $statement, array $values) : CustomQuery

@@ -1,24 +1,27 @@
 <?php
 namespace Minds\Core\SocialCompass;
 
-use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
 
 interface ManagerInterface
 {
     /**
-     * Retrieves the active Social Compass question set and
-     * if the user has answered them previously it also sets the answers to the relative questions
-     * @return JsonResponse The built response containing the current Social Compass question set
-     *                      and the relative answers if the loggedIn user has answered them previously
+     * Retrieves the Social Compass questions set and
+     * @return array
      */
-    public function retrieveSocialCompassQuestions() : JsonResponse;
+    public function retrieveSocialCompassQuestions(): array;
 
     /**
      * Stores the answers to the Social Compass questions set in the database
-     * @return JsonResponse The successful response if the answers have been stored, an error response otherwise
+     * @param array $answers The list of Social Compass answers to store from the request object
+     * @return bool True if the answers have successfully been stored, false otherwise
      */
-    public function storeSocialCompassAnswers() : JsonResponse;
+    public function storeSocialCompassAnswers(array $answers) : bool;
 
-    public function updateSocialCompassAnswers() : JsonResponse;
+    /**
+     * Updates the answers to the Social Compass questions set in the database
+     * @param array $answers The list of Social Compass answers to store from the request object
+     * @return bool True if the answers have successfully been stored, false otherwise
+     */
+    public function updateSocialCompassAnswers(array $answers) : bool;
 }

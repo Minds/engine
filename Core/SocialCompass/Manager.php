@@ -3,11 +3,8 @@
 namespace Minds\Core\SocialCompass;
 
 use Minds\Core\Session;
-use Minds\Core\SocialCompass\ResponseBuilders\GetQuestionsResponseBuilder;
-use Minds\Core\SocialCompass\ResponseBuilders\StoreAnswersResponseBuilder;
-use Minds\Core\SocialCompass\ResponseBuilders\UpdateAnswersResponseBuilder;
+use Minds\Core\SocialCompass\Questions\Manifests\QuestionsManifest;
 use Psr\Http\Message\ServerRequestInterface;
-use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequestFactory;
 
 class Manager implements ManagerInterface
@@ -22,38 +19,47 @@ class Manager implements ManagerInterface
         $this->repository = $this->repository ?? new Repository();
     }
 
-    public function retrieveSocialCompassQuestions(): JsonResponse
+    public function retrieveSocialCompassQuestions(): array
     {
-        return (new GetQuestionsResponseBuilder($this->currentQuestionSetVersion))->build($this->repository);
+        $questionsList = $this->retrieveCurrentQuestionsSet();
+        return $this->prepareSocialCompassQuestions($questionsList);
     }
 
-    public function storeSocialCompassAnswers(): JsonResponse
+    private function retrieveCurrentQuestionsSet(): QuestionsManifest
     {
-        $requestBody = json_decode($this->request->getBody()->getContents());
-        $responseBuilder = new StoreAnswersResponseBuilder();
-
-        if (empty($requestBody->{"social-compass-answers"})) {
-            return $responseBuilder->buildBadRequestResponse("The 'social-compass-answers' property must be provided and must have at least one entry");
-        }
-
-        $answers = (array) $requestBody->{"social-compass-answers"};
-        $userGuid = Session::getLoggedInUserGuid();
-
-        return $responseBuilder->buildResponse($this->repository->storeAnswers($userGuid, $answers));
+        $manifest = "Minds\Core\SocialCompass\Questions\Manifests\QuestionsManifestV{$this->currentQuestionSetVersion}";
+        return new $manifest();
     }
 
-    public function updateSocialCompassAnswers(): JsonResponse
+    private function prepareSocialCompassQuestions(QuestionsManifest $questionsList): array
     {
-        $requestBody = json_decode($this->request->getBody()->getContents());
-        $responseBuilder = new UpdateAnswersResponseBuilder();
+        $results = [];
+        foreach ($questionsList::QUESTIONS as $questionClass) {
+            $userGuid = Session::getLoggedInUserGuid();
 
-        if (empty($requestBody->{"social-compass-answers"})) {
-            return $responseBuilder->buildBadRequestResponse("The 'social-compass-answers' property must be provided and must have at least one entry");
+            $question = new $questionClass();
+
+            $answer = $this->repository->getAnswerByQuestionId($userGuid, $question->getQuestionId());
+            if (isset($answer) && $answer->count() > 0) {
+                $question->setCurrentValue($answer->getCurrentValue());
+            }
+
+            array_push($results, $question);
         }
+        return $results;
+    }
 
-        $answers = (array) $requestBody->{"social-compass-answers"};
+    public function storeSocialCompassAnswers(array $answers): bool
+    {
         $userGuid = Session::getLoggedInUserGuid();
 
-        return $responseBuilder->buildResponse($this->repository->storeAnswers($userGuid, $answers));
+        return $this->repository->storeAnswers($userGuid, $answers);
+    }
+
+    public function updateSocialCompassAnswers(array $answers): bool
+    {
+        $userGuid = Session::getLoggedInUserGuid();
+
+        return $this->repository->storeAnswers($userGuid, $answers);
     }
 }

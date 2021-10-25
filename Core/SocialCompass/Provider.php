@@ -9,7 +9,10 @@ class Provider extends DiProvider
     public function register() : void
     {
         $this->di->bind('SocialCompass\Manager', function ($di) {
-            return new Manager();
+            return new Manager(
+                null,
+                new Repository()
+            );
         });
         $this->di->bind('SocialCompass\Controller', function ($di) {
             return new Controller();
