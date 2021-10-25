@@ -23,12 +23,10 @@ class AnswerModel
         protected Bigint $userGuid,
         protected string $questionId,
         protected int $currentValue
-    )
-    {
+    ) {
     }
 
     public function export(): array
     {
-
     }
 }
