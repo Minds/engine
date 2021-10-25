@@ -10,7 +10,9 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Di\Di;
-use Minds\Core\Queue;
+use Minds\Core\EventStreams\AdminActionEvent;
+use Minds\Core\EventStreams\Topics\AdminEventTopic;
+use Minds\Core\Session;
 
 class nsfw implements Interfaces\Api, Interfaces\ApiAdminPam
 {
@@ -78,13 +80,18 @@ class nsfw implements Interfaces\Api, Interfaces\ApiAdminPam
 
         // if this is a user and we are REMOVING their nsfw status.
         if ($entity->getType() === 'user' && empty($_POST['nsfw'])) {
-            $queueClient = Queue\Client::Build();
+            $actionEvent = new AdminActionEvent();
+            $actionEvent
+                ->setAction(AdminActionEvent::ACTION_NSFW_LOCK)
+                ->setActionData([
+                    'nsfw_lock' => [],
+                ])
+                ->setActor(Session::getLoggedInUser())
+                ->setTimestamp(time())
+                ->setSubject($entity);
 
-            $queueClient->setQueue('NsfwLockBatch')
-                ->send([
-                    'user_guid' => $entity->getGuid(),
-                    'value' => [],
-                ]);
+            $actionEventTopic = new AdminEventTopic(); // The topic
+            $actionEventTopic->send($actionEvent); // Simple, right?
         }
 
         return Factory::response([]);

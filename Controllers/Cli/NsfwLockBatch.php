@@ -2,18 +2,23 @@
 
 namespace Minds\Controllers\Cli;
 
-use Minds\Core;
+use Minds\Entities\User;
+use Minds\Core\Di\Di;
 use Minds\Cli;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\EventStreams\AdminActionEvent;
+use Minds\Core\EventStreams\Topics\AdminEventTopic;
 use Minds\Interfaces;
 
 /**
- * CLI Controller to push new nsfw_lock batch jobs to the NsfwLockBatch queue.
+ * CLI Controller to push new nsfw_lock batch jobs to the admin events pulsar stream
  * Can be used to batch set and unset nsfw_lock status for a user's entities.
  */
 class NsfwLockBatch extends Cli\Controller implements Interfaces\CliControllerInterface
 {
-    public function __construct()
+    public function __construct(private ?EntitiesBuilder $entitiesBuilder = null)
     {
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
 
     public function help($command = null)
@@ -39,25 +44,41 @@ class NsfwLockBatch extends Cli\Controller implements Interfaces\CliControllerIn
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
 
-        $userGuid = $this->getOpt('user_guid');
+        // subject user guid
+        $subjectGuid = $this->getOpt('user_guid');
 
         $value = $this->getOpt('value') ?
             explode(',', $this->getOpt('value')) :
             [];
-    
-        if (!$userGuid) {
+        
+        // since we are not running from a user context,
+        // we need to pass an empty user.
+        $actor = new User(null);
+
+        if (!$subjectGuid) {
             $this->out('user_guid field must be provided.');
             exit(1);
         }
 
-        /** @var Core\Queue\Interfaces\QueueClient $queueClient */
-        $queueClient = Core\Queue\Client::build();
+        $subject = $this->entitiesBuilder->single($subjectGuid);
 
-        $queueClient
-            ->setQueue('NsfwLockBatch')
-            ->send([
-                'user_guid' => $userGuid,
-                'value' => $value,
-            ]);
+        if (!$subject) {
+            $this->out('User not found.');
+            exit(1);
+        }
+
+        // construct and send event.
+        $actionEvent = new AdminActionEvent();
+        $actionEvent
+            ->setAction(AdminActionEvent::ACTION_NSFW_LOCK)
+            ->setActionData([
+                'nsfw_lock' => $value,
+            ])
+            ->setActor($actor)
+            ->setTimestamp(time())
+            ->setSubject($subject);
+
+        $actionEventTopic = new AdminEventTopic();
+        $actionEventTopic->send($actionEvent);
     }
 }
