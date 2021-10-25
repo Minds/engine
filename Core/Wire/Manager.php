@@ -429,4 +429,29 @@ class Manager
 
         return $success;
     }
+
+    /**
+     * Gets top channels sending/receiving offchain tokens for given timespan
+     *
+     * @param integer $from timestamp
+     * @param integer $to timestamp
+     * @param string $type - either 'actors' or 'beneficiaries'
+     * @return array
+     */
+
+    public function getOffchainLeaderboard($from, $to, $type): array
+    {
+        $field = 'wire_sender_guid';
+
+        if ($type !== 'actors') {
+            $field = 'wire_receiver_guid';
+        }
+
+        /** @var Leaderboard $leaderboard */
+        $leaderboard = Di::_()->get('Wire\Leaderboard');
+
+        $result = $leaderboard->fetchOffchain($from, $to, $field);
+
+        return $result;
+    }
 }

@@ -42,5 +42,9 @@ class WireProvider extends Provider
         $this->di->bind('Wire\Sums', function ($di) {
             return new Sums();
         }, ['useFactory' => false]);
+
+        $this->di->bind('Wire\Leaderboard', function ($di) {
+            return new Leaderboard();
+        }, ['useFactory' => false]);
     }
 }
