@@ -25,8 +25,4 @@ class AnswerModel
         protected int $currentValue
     ) {
     }
-
-    public function export(): array
-    {
-    }
 }
