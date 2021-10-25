@@ -4,9 +4,8 @@ namespace Minds\Core\SocialCompass\Questions;
 
 class PoliticalBeliefsQuestion extends BaseQuestion
 {
-    public string $minimumStepLabel = "Left";
-    public string $maximumStepLabel = "Right";
-    public string $questionText = "Political Beliefs";
-
-    public string $questionId = "PoliticalBeliefsQuestion";
+    protected string $minimumStepLabel = "Left";
+    protected string $maximumStepLabel = "Right";
+    protected string $questionText = "Political Beliefs";
+    protected string $questionId = "PoliticalBeliefsQuestion";
 }
