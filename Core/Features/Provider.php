@@ -84,7 +84,7 @@ class Provider extends DiProvider
                 'withdrawal-console',
                 'helpdesk-2021',
                 'skale',
-                'multi-network'
+                'polygon',
             ];
         });
 
