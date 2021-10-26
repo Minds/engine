@@ -541,7 +541,6 @@ $CONFIG->set('features', [
     'withdrawal-console' => true,
     'helpdesk-2021' => true,
     'skale' => true,
-    'multi-network' => true
 ]);
 
 $CONFIG->set('email', [
