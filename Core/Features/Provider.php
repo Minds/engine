@@ -83,7 +83,8 @@ class Provider extends DiProvider
                 'notifications-v3',
                 'withdrawal-console',
                 'helpdesk-2021',
-                'skale'
+                'skale',
+                'multi-network'
             ];
         });
 
