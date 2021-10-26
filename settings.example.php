@@ -264,8 +264,6 @@ $CONFIG->set('facebook', [
 $CONFIG->set('twitter', [
     'api_key' => '{{twitter-app-id}}',
     'api_secret' => '{{twitter-app-id}}',
-    'bearer_token' => '',
-    'min_followers_for_sync' => 25000,
 ]);
 
 $CONFIG->set('twilio', [
@@ -542,13 +540,11 @@ $CONFIG->set('features', [
     'activity-modal' => false,
     'withdrawal-console' => true,
     'helpdesk-2021' => true,
+    'skale' => true,
+    'multi-network' => true
 ]);
 
 $CONFIG->set('email', [
-    'sender' => [
-        'email' => 'no-reply@minds.com',
-        'name' => 'Minds'
-    ],
     'smtp' => [
         'host' => '',
         'username' => '',
@@ -737,4 +733,11 @@ $CONFIG->SET('zendesk', [
 
 $CONFIG->set('statuspage_io', [
     'url' => 'https://status.minds.com/'
+]);
+
+$CONFIG->SET('skale', [
+    'chain_name' => '',
+    'rpc_url' => '',
+    'chain_id_hex' => '',
+    'erc20_address' => ''
 ]);
