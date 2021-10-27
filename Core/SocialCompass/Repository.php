@@ -13,17 +13,14 @@ use Minds\Core\SocialCompass\Entities\AnswerModel;
 class Repository implements RepositoryInterface
 {
     public function __construct(
-        private ?Client $cql = null,
-        private ?Scroll $scroll = null,
-        private ?Urn $urn = null
+        public ?Client $cql = null
     ) {
         $this->cql = $this->cql ?? Di::_()->get('Database\Cassandra\Cql');
-        $this->scroll = $this->scroll ?? Di::_()->get('Database\Cassandra\Cql\Scroll');
-        $this->urn = $this->urn ?? new Urn();
     }
 
-    public function getAnswers(int $userGuid, ?int $version = null) : iterable|null|false
+    public function getAnswers(int $userGuid) : iterable|null|false
     {
+        echo "entered the getAnswers method";
         $statement = "SELECT *
             FROM
                 minds.social_compass_answers
