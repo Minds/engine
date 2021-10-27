@@ -32,7 +32,9 @@ class Manager
             new Growthbook\Experiment("channel-gallery", ["on", "off"]),
             new Growthbook\Experiment("boost-rotator", ["on", "off"]),
             new Growthbook\Experiment("boost-prompt", ["on", "off"]),
-            new Growthbook\Experiment("discovery-homepage", ["off", "on"]),
+            // TODO: This is forced with BOTH states being ON - do not push to master.
+            new Growthbook\Experiment("discovery-homepage", ["on", "on"]),
+            // new Growthbook\Experiment("discovery-homepage", ["off", "on"]),
             new Growthbook\Experiment("top-feed", ["off", "on"]),
         ];
     }
