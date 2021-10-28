@@ -18,6 +18,7 @@ use Minds\Core\Reports\Summons\SummonsNotFoundException;
 use Minds\Core\Reports\Summons\Summons as SummonsEntity;
 use Minds\Core\Security\ACL;
 use Minds\Core\Session;
+use Minds\Core\Analytics\Metrics\Event as AnalyticsEvent;
 
 class Manager
 {
@@ -163,9 +164,11 @@ class Manager
     {
         $report = $decision->getReport();
 
+        $isAdmin = Core\Session::isAdmin();
+
         if (!in_array($report->getState(), [ 'reported', 'appealed' ], true)) {
             // report exception if not admin.
-            if (!Core\Session::isAdmin()) {
+            if (!$isAdmin) {
                 throw new JuryClosedException();
             }
             // if an admin - mark it as decided so that it no longer appears in queue.
@@ -189,7 +192,20 @@ class Manager
         }
 
         $this->verdictManager->decideFromReport($report);
-  
+
+        // Record jury votes for non-admins.
+        if (!$isAdmin) {
+            $action = $report->isUpheld() ? 'upheld' : 'overturned';
+
+            $event = new AnalyticsEvent();
+            $event->setUserGuid(Core\Session::getLoggedInUserGuid())
+                ->setType('action')
+                ->setAction('jury_vote_'.$action)
+                ->setEntityUrn($report->getEntityUrn())
+                ->setUserPhoneNumberHash(Core\Session::getLoggedInUser()->getPhoneNumberHash())
+                ->push();
+        }
+
         return $success;
     }
 
