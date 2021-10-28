@@ -16,7 +16,6 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\Dispatcher;
 use Minds\Helpers\MagicAttributes;
-use Minds\Entities\Factory;
 use Minds\Interfaces\Flaggable;
 use Minds\Entities\User;
 
@@ -87,53 +86,87 @@ class AdminActionEventNsfwStreamsSubscription implements SubscriptionInterface
         }
 
         // get data.
-        $userGuid = $subject->getGuid();
+        $userGuid = (string) $subject->getGuid();
         $value = (array) $event->getActionData()['nsfw_lock'];
 
         // output receipt message for when ran by CLI.
         $valueString = json_encode($value);
         echo "Received a request to set nsfw_lock for all of the posts from user: $userGuid, to $valueString\n";
 
-        // iterate through entity types.
-        foreach (['image', 'video', 'activity'] as $type) {
-            // set owner guid in options to users guid.
-            $options = [
-                'owner_guid' => $userGuid
-            ];
+        // get entities of different types.
+        $images = $this->getEntitiesByType('image', $userGuid);
+        $videos = $this->getEntitiesByType('video', $userGuid);
+        $blogs = $this->getEntitiesByType('blog', $userGuid);
+        $activities = $this->getEntitiesByType('activity', $userGuid);
 
-            // if its an image or video, set the appropriate type and subtype.
-            if ($type == 'image' || $type == 'video') {
-                $options['subtype'] = $type;
-                $type = 'object';
-            }
+        $entities = [
+            ...$images,
+            ...$videos,
+            ...$blogs,
+            ...$activities
+        ];
 
-            // get entities from database using options.
-            // hard capping at 1000 entities - which should cover posts made in the time a user appeals a decision.
-            $entities = Entities::get(array_merge([
-                'type' => $type,
-                'limit' => 1000,
-                'offset' => '',
-            ], $options));
+        $this->applyNsfwLockToEntities($entities, $value);
 
-            if (!$entities) {
-                continue;
-            }
-
-            // iterate through entities and set nsfw_lock.
-            foreach ((array)$entities as $entity) {
-                try {
-                    $this->setNsfwLock($entity, $value);
-                    $entityNsfwLockString = json_encode($entity->getNsfwLock());
-                    echo "Set nsfw_lock for post: {$entity->getGuid()}, by user: {$entity->getOwnerGuid()}, to {$entityNsfwLockString}\n";
-                } catch (\Exception $e) {
-                    $this->logger->error($e);
-                    echo "Skipped {$entity->getGuid()} because of the above exception\n";
-                }
-            }
-        }
         echo "Finished updating nsfw_lock status of entities for user: $userGuid\n";
 
         return true;
+    }
+
+    /**
+     * Get entities by type for a given user guid.
+     * @param string $type - entity type.
+     * @param string $userGuid - user guid.
+     * @return array array of entities.
+     */
+    private function getEntitiesByType(string $type, string $userGuid): array
+    {
+        // set owner guid in options to users guid.
+        $options = [
+            'owner_guid' => $userGuid
+        ];
+
+        // if its an image, video or blog, set the appropriate type and subtype.
+        if ($type == 'image' || $type == 'video' || $type == 'blog') {
+            $options['subtype'] = $type;
+            $type = 'object';
+        }
+
+        // get entities from database using options.
+        // hard capping at 500 entities - which should cover posts made in the time a user appeals a decision.
+        $entities = Entities::get(array_merge([
+            'type' => $type,
+            'limit' => 500,
+            'offset' => '',
+        ], $options));
+
+        if (!$entities) {
+            return [];
+        }
+
+        return array_filter($entities, function ($entity) {
+            return !!$entity;
+        });
+    }
+
+    /**
+     * Apply NSFW lock to a batch of entities.
+     * @param array $entities - array of entities.
+     * @param array $value - array of nsfw values, such as [1, 2, 3].
+     * @return void
+     */
+    private function applyNsfwLockToEntities(array $entities, array $value): void
+    {
+        foreach ($entities as $entity) {
+            try {
+                $this->setNsfwLock($entity, $value);
+                $entityNsfwLockString = json_encode($entity->getNsfwLock());
+                echo "Set nsfw_lock for post: {$entity->getGuid()}, by user: {$entity->getOwnerGuid()}, to {$entityNsfwLockString}\n";
+            } catch (\Exception $e) {
+                $this->logger->error($e);
+                echo "Skipped {$entity->getGuid()} because of the above exception\n";
+            }
+        }
     }
 
     /**

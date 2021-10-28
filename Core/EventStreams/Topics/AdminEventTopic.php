@@ -110,7 +110,7 @@ class AdminEventTopic extends AbstractTopic implements TopicInterface
                     continue;
                 }
             
-                $actor = $this->entitiesBuilder->single($data['user_guid']) ?? new User(null);
+                $actor = $this->entitiesBuilder->single($data['user_guid'] ?? null) ?? new User(null);
 
                 if (!$actor instanceof User) {
                     $this->logger->error('Non-user guid was passed to construct User object for admin event');
