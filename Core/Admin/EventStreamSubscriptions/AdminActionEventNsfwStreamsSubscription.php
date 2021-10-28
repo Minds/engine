@@ -13,6 +13,7 @@ use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\Log\Logger;
 use Minds\Core\Entities;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\Dispatcher;
 use Minds\Helpers\MagicAttributes;
 use Minds\Entities\Factory;
@@ -28,9 +29,11 @@ class AdminActionEventNsfwStreamsSubscription implements SubscriptionInterface
     public function __construct(
         private ?Logger $logger = null,
         private ?Save $save = null,
+        private ?EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->save = $save ?? new Save();
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -135,10 +138,10 @@ class AdminActionEventNsfwStreamsSubscription implements SubscriptionInterface
 
     /**
      * Sets nsfw_lock of an entity.
-    * @param Entities\Entity $entity - the entity to set / unset the locks on.
-    * @param array $value - array to be set as nsfw_lock (e.g. [1, 2, 3]).
-    * @return void
-    */
+     * @param Entities\Entity $entity - the entity to set / unset the locks on.
+     * @param array $value - array to be set as nsfw_lock (e.g. [1, 2, 3]).
+     * @return void
+     */
     private function setNsfwLock($entity, array $value): void
     {
         // apply nsfw_lock to entity.
@@ -156,7 +159,7 @@ class AdminActionEventNsfwStreamsSubscription implements SubscriptionInterface
 
         // apply to any attachments.
         if ($entity->entity_guid) {
-            $attachment = Factory::build($entity->entity_guid);
+            $attachment = $this->entitiesBuilder->single($entity->entity_guid);
 
             if ($attachment && $attachment->guid && $attachment instanceof Flaggable) {
                 if (method_exists($attachment, 'setNsfwLock')) {
