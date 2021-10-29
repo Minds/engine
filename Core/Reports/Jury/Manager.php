@@ -6,19 +6,15 @@ namespace Minds\Core\Reports\Jury;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
-use Minds\Core\Data;
-use Minds\Core\Data\Cassandra\Prepared;
-use Minds\Entities;
-use Minds\Entities\DenormalizedEntity;
-use Minds\Entities\NormalizedEntity;
 use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\Reports\Summons\SummonsNotFoundException;
 use Minds\Core\Reports\Summons\Summons as SummonsEntity;
 use Minds\Core\Security\ACL;
-use Minds\Core\Session;
 use Minds\Core\Analytics\Metrics\Event as AnalyticsEvent;
+use Minds\Entities\User;
+use Minds\Core\Reports\Report;
 
 class Manager
 {
@@ -37,6 +33,12 @@ class Manager
     /** @var ACL $acl */
     private $acl;
 
+    /** @var AnalyticsEvent $analyticsEvent */
+    private $analyticsEvent;
+
+    /** @var Logger $analyticsEvent */
+    private $logger;
+
     /** @var string $juryType */
     private $juryType;
 
@@ -48,13 +50,17 @@ class Manager
         $entitiesResolver = null,
         $verdictManager = null,
         $summonsManager = null,
-        $acl = null
+        $acl = null,
+        $analyticsEvent = null,
+        $logger = null
     ) {
         $this->repository = $repository ?: new Repository;
         $this->entitiesResolver = $entitiesResolver  ?: new EntitiesResolver;
         $this->verdictManager = $verdictManager ?: Di::_()->get('Moderation\Verdict\Manager');
         $this->summonsManager = $summonsManager ?: Di::_()->get('Moderation\Summons\Manager');
         $this->acl = $acl ?: new ACL;
+        $this->analyticsEvent = $analyticsEvent ?: new AnalyticsEvent();
+        $this->logger = $logger ?: Di::_()->get('Logger');
     }
 
     /**
@@ -195,15 +201,7 @@ class Manager
 
         // Record jury votes for non-admins.
         if (!$isAdmin) {
-            $action = $report->isUpheld() ? 'upheld' : 'overturned';
-
-            $event = new AnalyticsEvent();
-            $event->setUserGuid(Core\Session::getLoggedInUserGuid())
-                ->setType('action')
-                ->setAction('jury_vote_'.$action)
-                ->setEntityUrn($report->getEntityUrn())
-                ->setUserPhoneNumberHash(Core\Session::getLoggedInUser()->getPhoneNumberHash())
-                ->push();
+            $this->pushAnalyticsEvent($report);
         }
 
         return $success;
@@ -221,5 +219,26 @@ class Manager
             ->setJurorGuid($decision->getJurorGuid())
             ->setJuryType('appeal_jury');
         return $this->summonsManager->isSummoned($summons);
+    }
+
+    /**
+     * Push an analytics event for a cast vote.
+     * @param Report $report - the report to push analytics for.
+     * @return void
+     */
+    private function pushAnalyticsEvent(Report $report): void
+    {
+        try {
+            $action = $report->isUpheld() ? 'upheld' : 'overturned';
+
+            $this->analyticsEvent->setUserGuid($this->user->getGuid())
+                ->setType('action')
+                ->setAction('jury_vote_'.$action)
+                ->setEntityGuid($report->getEntity()->getGuid())
+                ->setUserPhoneNumberHash($this->user->getPhoneNumberHash() ?? '')
+                ->push();
+        } catch (\Exception $e) {
+            $this->logger->error($e->getMessage());
+        }
     }
 }

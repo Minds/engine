@@ -5,6 +5,7 @@
 namespace Minds\Core\Reports\Jury;
 
 use Minds\Traits\MagicAttributes;
+use Minds\Core\Reports\Report;
 
 /**
  * @method Report getReport(): Report

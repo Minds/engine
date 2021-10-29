@@ -99,7 +99,8 @@ class jury implements Interfaces\Api
             ->setJurorHash(Core\Session::getLoggedInUser()->getPhoneNumberHash());
 
         try {
-            $juryManager->cast($decision);
+            $juryManager->setUser(Core\Session::getLoggedInUser())
+                ->cast($decision);
         } catch (JuryClosedException $e) {
             return Factory::response([
                 'status' => 'error',
