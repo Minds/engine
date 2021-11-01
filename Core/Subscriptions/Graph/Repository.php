@@ -91,6 +91,10 @@ class Repository
         return $response->map(function ($document) {
             $feedSyncEntity = new FeedSyncEntity();
 
+            if (!$document['_source']['username']) {
+                return null;
+            }
+
             $feedSyncEntity
                 ->setGuid($document['_source']['guid'])
                 ->setOwnerGuid($document['_source']['guid'])
