@@ -74,6 +74,7 @@ class ActionEventNsfwLockStreamsSubscription implements SubscriptionInterface
         }
 
         $subject = $event->getEntity();
+        $actor = $event->getUser();
 
         // batch job should only be ran for users.
         if (!$subject instanceof User) {
@@ -81,6 +82,11 @@ class ActionEventNsfwLockStreamsSubscription implements SubscriptionInterface
                 'Tried to batch change nsfw_lock for a user but passed entity: '.
                 $subject->getUrn()
             );
+            return false;
+        }
+
+        if (!$actor->isAdmin()) {
+            $this->logger->error('Unauthorized access to nsfw_lock event stream subscription by: ' . $actor->getGuid());
             return false;
         }
 
