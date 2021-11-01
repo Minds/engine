@@ -43,6 +43,7 @@ class ManagerSpec extends ObjectBehavior
                         return true;
                     }
                 }
+                return false;
             }
         ];
     }

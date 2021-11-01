@@ -3,24 +3,23 @@
 namespace Minds\Core\SocialCompass;
 
 use Cassandra\Bigint;
-use Minds\Common\Urn;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom as CustomQuery;
-use Minds\Core\Data\Cassandra\Scroll;
 use Minds\Core\Di\Di;
 use Minds\Core\SocialCompass\Entities\AnswerModel;
 
 class Repository implements RepositoryInterface
 {
+    private ?Client $cql;
+
     public function __construct(
-        public ?Client $cql = null
+        ?Client $cql = null
     ) {
-        $this->cql = $this->cql ?? Di::_()->get('Database\Cassandra\Cql');
+        $this->cql = $cql ?? Di::_()->get('Database\Cassandra\Cql');
     }
 
-    public function getAnswers(int $userGuid) : iterable|null|false
+    public function getAnswers(int $userGuid): array|null|false
     {
-        echo "entered the getAnswers method";
         $statement = "SELECT *
             FROM
                 minds.social_compass_answers
@@ -31,13 +30,19 @@ class Repository implements RepositoryInterface
         $query = $this->prepareQuery($statement, $values);
 
         $rows = $this->cql->request($query);
-
-        foreach ($rows as $row) {
-            yield $this->prepareAnswer($row);
+        if (!$rows) {
+            return $rows;
         }
+
+        $results = [];
+        foreach ($rows as $row) {
+            $results[] = $this->prepareAnswer($row);
+        }
+
+        return $results;
     }
 
-    public function getAnswerByQuestionId(int $userGuid, string $questionId) : AnswerModel|null|false
+    public function getAnswerByQuestionId(int $userGuid, string $questionId): AnswerModel|null|false
     {
         $statement = "SELECT *
             FROM
@@ -53,7 +58,7 @@ class Repository implements RepositoryInterface
 
         $rows = $this->cql->request($query);
 
-        return $this->prepareAnswer($rows->first());
+        return $rows ? $this->prepareAnswer($rows->first()) : $rows;
     }
 
     private function prepareAnswer(?array $row): ?AnswerModel

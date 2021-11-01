@@ -59,6 +59,11 @@ class Rows implements \IteratorAggregate, \ArrayAccess
         return count($this->_items);
     }
 
+    public function first()
+    {
+        return $this->_items[0];
+    }
+
     public function current()
     {
         return $this->_items[key($this->_items)];
