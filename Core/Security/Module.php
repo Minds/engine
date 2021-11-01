@@ -12,6 +12,7 @@ class Module implements ModuleInterface
     /** @var array $submodules */
     public $submodules = [
         Block\Module::class,
+        RateLimits\Module::class,
         TOTP\Module::class,
         TwoFactor\Module::class,
         Password\Module::class,
