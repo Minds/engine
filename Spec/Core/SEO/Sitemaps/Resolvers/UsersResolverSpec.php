@@ -6,15 +6,18 @@ use Minds\Core\Data\ElasticSearch\Scroll;
 use Minds\Core\SEO\Sitemaps\Resolvers\UsersResolver;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Minds\Core\Blockchain\Wallets\Balance;
 
 class UsersResolverSpec extends ObjectBehavior
 {
     protected $scroll;
+    protected $balance;
 
-    public function let(Scroll $scroll)
+    public function let(Scroll $scroll, Balance $balance)
     {
-        $this->beConstructedWith($scroll);
+        $this->beConstructedWith($scroll, $balance);
         $this->scroll = $scroll;
+        $this->balance = $balance;
     }
 
     public function it_is_initializable()
