@@ -53,6 +53,10 @@ class ActionEventNsfwLockStreamsSubscription implements SubscriptionInterface
         return new ActionEventsTopic();
     }
 
+    /**
+     * Returns topic regex, scoping subscription to nsfw_lock suffixed events.
+     * @return string topic regex.
+     */
     public function getTopicRegex(): string
     {
         return 'nsfw_lock';
@@ -84,7 +88,7 @@ class ActionEventNsfwLockStreamsSubscription implements SubscriptionInterface
         $userGuid = (string) $subject->getGuid();
         $value = (array) $event->getActionData()['nsfw_lock'];
 
-        // output receipt message for when ran by CLI.
+        // output receipt message.
         $valueString = json_encode($value);
         echo "Received a request to set nsfw_lock for all of the posts from user: $userGuid, to $valueString\n";
 
