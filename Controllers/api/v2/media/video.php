@@ -39,7 +39,7 @@ class video implements Interfaces\Api, Interfaces\ApiIgnorePam
         $sources = $videoManager->getSources($video);
         $status = $transcodeStates->getStatus($video); // Currently not efficient as no caching
 
-        // why are we doing this? :confused:
+        // if we had at least one transcode just return completed, even if some transcodes fail
         if ($status === TranscodeStates::FAILED && count($sources)) {
             $status = TranscodeStates::COMPLETED;
         }
