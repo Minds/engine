@@ -100,7 +100,7 @@ class ManagerSpec extends ObjectBehavior
         $video->guid = 123;
         $video->setCloudflareId(ManagerSpec::CLOUDFLARE_ID);
 
-        $this->mockTranscodeResponse('ready', 0);
+        $this->mockTranscodeResponse('ready', 100);
 
         $this->getVideoTranscodeStatus($video)->getState()->shouldReturn(TranscodeStates::COMPLETED);
     }
