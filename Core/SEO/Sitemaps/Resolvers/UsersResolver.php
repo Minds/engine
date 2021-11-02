@@ -6,9 +6,13 @@ namespace Minds\Core\SEO\Sitemaps\Resolvers;
 use Minds\Entities\User;
 use Minds\Core\SEO\Sitemaps\SitemapUrl;
 use Minds\Core\SEO\Manager;
+use Minds\Core\Blockchain\Wallets\Balance;
 
 class UsersResolver extends AbstractEntitiesResolver
 {
+    /** @var Balance */
+    protected $balance;
+
     /** @var string */
     protected $type = 'user';
 
@@ -47,6 +51,12 @@ class UsersResolver extends AbstractEntitiesResolver
         '@timestamp' => 'asc'
     ];
 
+    public function __construct($balance = null)
+    {
+        parent::__construct();
+        $this->balance = $balance ?: new Balance();
+    }
+
     public function getUrls(): iterable
     {
         $i = 0;
@@ -58,6 +68,16 @@ class UsersResolver extends AbstractEntitiesResolver
             }
 
             if ($entity->getSubscribersCount() < Manager::MIN_METRIC_FOR_ROBOTS) {
+                continue;
+            }
+
+            if ($entity->getDeleted()) {
+                continue;
+            }
+
+            // Don't map users without token balances bc their pages
+            // require login (as spam reduction measure)
+            if ($this->balance->setUser($entity)->count() === 0) {
                 continue;
             }
 
