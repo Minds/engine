@@ -56,7 +56,7 @@ class TranscodeStates
     {
         switch ($video->getTranscoder()) {
             case \Minds\Core\Media\Video\Manager::TRANSCODER_CLOUDFLARE:
-                return $this->getCloudflareTranscodeStatus($video)->getState();
+                return $this->getCloudflareTranscodeStatus($video);
             case \Minds\Core\Media\Video\Manager::TRANSCODER_MINDS:
             default:
                  return $this->getMindsTranscoderStatus($video);
@@ -64,16 +64,15 @@ class TranscodeStates
     }
 
     /**
+     * get transcode status from cloudflare and handle caching
      * @param Video $video
-     * @return CloudflareStreams\TranscodeStatus the transcode status
+     * @return string the transcode status
      */
-    private function getCloudflareTranscodeStatus(Video $video): object
+    private function getCloudflareTranscodeStatus(Video $video): string
     {
         // if the status was completed, just return completed
         if ($video->getTranscodingStatus() === TranscodeStates::COMPLETED) {
-            return (new CloudflareStreams\TranscodeStatus())
-                ->setPct(100)
-                ->setState(TranscodeStates::COMPLETED);
+            return TranscodeStates::COMPLETED;
         }
         
         // get video transcode status from cloudflare and save it in db
@@ -89,7 +88,7 @@ class TranscodeStates
             ->save();
         $this->acl->setIgnore($ia);
 
-        return $transcodeStatus;
+        return $transcodeStatus->getState();
     }
 
     /**
