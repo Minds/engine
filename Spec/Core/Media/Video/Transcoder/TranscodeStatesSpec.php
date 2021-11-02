@@ -149,9 +149,6 @@ class TranscodeStatesSpec extends ObjectBehavior
                     ->setPct(20)
             );
 
-        $this->save->setEntity($video)->willReturn($this->save);
-        $this->save->save()->shouldBeCalled();
-
         $this->getStatus($video)
             ->shouldReturn(TranscodeStates::TRANSCODING);
     }
@@ -169,10 +166,6 @@ class TranscodeStatesSpec extends ObjectBehavior
                     ->setPct(20)
             );
         
-        $this->save->setEntity($video)->willReturn($this->save);
-        $this->save->save()->shouldBeCalled();
-
-
         $this->getStatus($video)
             ->shouldReturn(TranscodeStates::TRANSCODING);
     }

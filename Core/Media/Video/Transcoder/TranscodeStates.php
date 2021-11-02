@@ -77,9 +77,14 @@ class TranscodeStates
         
         // get video transcode status from cloudflare and save it in db
         $transcodeStatus = $this->cloudflareStreamsManager->getVideoTranscodeStatus($video);
-        $video->patch([
-            'transcoding_status' => $transcodeStatus->getState(),
-        ]);
+
+        // don't continue saving if video was still transcoding
+        if ($transcodeStatus->getState() === TranscodeStates::TRANSCODING) {
+            return TranscodeStates::TRANSCODING;
+        }
+
+        // only saves on failed or success statuses
+        $video->setTranscodingStatus($transcodeStatus->getState());
         
         // disable acl and set it back to what it was after saving
         $ia = $this->acl->setIgnore(true);

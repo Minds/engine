@@ -58,9 +58,7 @@ class Manager
         $uid = $json['result']['uid'];
         $video->setCloudflareId($uid);
         // set the status to transcoding after the request was successfully sent
-        $video->patch([
-            'transcoding_status' => TranscodeStates::TRANSCODING,
-        ]);
+        $video->setTranscodingStatus(TranscodeStates::TRANSCODING);
     }
 
     /**
