@@ -94,9 +94,7 @@ class Webhooks
         $video->width = $body['input']['width'];
         $video->height = $body['input']['height'];
 
-        $video->patch([
-            'transcoding_status' => $transcodingState === 'ready' ? TranscodeStates::COMPLETED : TranscodeStates::FAILED,
-        ]);
+        $video->setTranscodingStatus($transcodingState === 'ready' ? TranscodeStates::COMPLETED : TranscodeStates::FAILED);
 
         $this->logger->info("Cloudflare webhook - height: $video->height width: $video->width transcodingState: $transcodingState");
 
