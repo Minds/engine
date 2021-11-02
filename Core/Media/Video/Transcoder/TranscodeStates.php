@@ -1,9 +1,11 @@
 <?php
 namespace Minds\Core\Media\Video\Transcoder;
 
+use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Entities\Video;
 use Minds\Core\Media\Video\CloudflareStreams;
+use Minds\Core\Security\ACL;
 
 class TranscodeStates
 {
@@ -31,7 +33,10 @@ class TranscodeStates
     /** @var CloudflareStreams\Manager */
     private $cloudflareStreamsManager;
 
-    public function __construct($repository = null, $save, $cloudflareStreamsManager)
+    /** @var ACL */
+    private $acl;
+
+    public function __construct($repository = null, $save = null, $cloudflareStreamsManager = null, $acl = null)
     {
         // NOTE: We are using repository as this is called via
         // Delegates\NotificationDelegate and it causes an infinite loop
@@ -39,6 +44,7 @@ class TranscodeStates
         $this->repository = $repository ?? new Repository();
         $this->save = $save ?? new Save();
         $this->cloudflareStreamsManager = $cloudflareStreamsManager ?? new CloudflareStreams\Manager();
+        $this->acl = $acl ?? Di::_()->get('Security\ACL');
     }
 
     /**
@@ -62,7 +68,7 @@ class TranscodeStates
      * @param Video $video
      * @return CloudflareStreams\TranscodeStatus the transcode status
      */
-    protected function getCloudflareTranscodeStatus(Video $video): object
+    private function getCloudflareTranscodeStatus(Video $video): object
     {
         // if the status was completed, just return completed
         if ($video->getTranscodingStatus() === TranscodeStates::COMPLETED) {
@@ -91,7 +97,7 @@ class TranscodeStates
      * @param Video $video
      * @return string the transcode state
      */
-    protected function getMindsTranscoderStatus(Video $video): string
+    private function getMindsTranscoderStatus(Video $video): string
     {
         $transcodes = $this->repository->getList([
             'guid' => $video->getGuid(),
