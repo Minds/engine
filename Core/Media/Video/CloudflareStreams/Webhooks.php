@@ -76,6 +76,7 @@ class Webhooks
     public function onWebhook(ServerRequest $request): JsonResponse
     {
         $this->verifyWebhookAuthenticity($request);
+        
         $body = $request->getParsedBody();
         $guid = $body['meta']['guid'];
         $transcodingState = $body['status']['state'];
@@ -95,20 +96,15 @@ class Webhooks
         $video->height = $body['input']['height'];
 
         $video->patch([
-            // TODO: find out what other states exist and use a switch
-            // FIXME: not sure if we should use TranscodeStates::FAILED
-            // TODO: what if we miss this hook? that'll leave videos in TranscodeStates::TRANSCODING state forever
             'transcoding_status' => $transcodingState === 'ready' ? TranscodeStates::COMPLETED : TranscodeStates::FAILED,
         ]);
 
         $this->logger->info("Cloudflare webhook - height: $video->height width: $video->width transcodingState: $transcodingState");
 
         $ia = $this->acl->setIgnore(true);
-
         $this->save
             ->setEntity($video)
             ->save();
-
         $this->acl->setIgnore($ia); // Set the ignore state back to what it was
     
         return new JsonResponse([ ]);

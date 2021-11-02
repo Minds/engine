@@ -1,7 +1,9 @@
 <?php
 namespace Minds\Core\Media\Video\Transcoder;
 
+use Minds\Core\Entities\Actions\Save;
 use Minds\Entities\Video;
+use Minds\Core\Media\Video\CloudflareStreams;
 
 class TranscodeStates
 {
@@ -23,12 +25,20 @@ class TranscodeStates
     /** @var Repository */
     private $repository;
 
-    public function __construct($repository = null)
+    /** @var Save */
+    private $save;
+
+    /** @var CloudflareStreams\Manager */
+    private $cloudflareStreamsManager;
+
+    public function __construct($repository = null, $save, $cloudflareStreamsManager)
     {
         // NOTE: We are using repository as this is called via
         // Delegates\NotificationDelegate and it causes an infinite loop
         // with the manager
         $this->repository = $repository ?? new Repository();
+        $this->save = $save ?? new Save();
+        $this->cloudflareStreamsManager = $cloudflareStreamsManager ?? new CloudflareStreams\Manager();
     }
 
     /**
@@ -41,7 +51,7 @@ class TranscodeStates
     {
         switch ($video->getTranscoder()) {
             case \Minds\Core\Media\Video\Manager::TRANSCODER_CLOUDFLARE:
-                return $this->getCloudflareTranscoderStatus($video);
+                return $this->getCloudflareTranscodeStatus($video)->getState();
             case \Minds\Core\Media\Video\Manager::TRANSCODER_MINDS:
             default:
                  return $this->getMindsTranscoderStatus($video);
@@ -50,12 +60,31 @@ class TranscodeStates
 
     /**
      * @param Video $video
-     * @return string the transcode state
+     * @return CloudflareStreams\TranscodeStatus the transcode status
      */
-    protected function getCloudflareTranscoderStatus(Video $video): string
+    protected function getCloudflareTranscodeStatus(Video $video): object
     {
-        // TODO: should there be a default value?
-        return $video->getTranscodingStatus();
+        // if the status was completed, just return completed
+        if ($video->getTranscodingStatus() === TranscodeStates::COMPLETED) {
+            return (new CloudflareStreams\TranscodeStatus())
+                ->setPct(100)
+                ->setState(TranscodeStates::COMPLETED);
+        }
+        
+        // get video transcode status from cloudflare and save it in db
+        $transcodeStatus = $this->cloudflareStreamsManager->getVideoTranscodeStatus($video);
+        $video->patch([
+            'transcoding_status' => $transcodeStatus->getState(),
+        ]);
+        
+        // disable acl and set it back to what it was after saving
+        $ia = $this->acl->setIgnore(true);
+        $this->save
+            ->setEntity($video)
+            ->save();
+        $this->acl->setIgnore($ia);
+
+        return $transcodeStatus;
     }
 
     /**
