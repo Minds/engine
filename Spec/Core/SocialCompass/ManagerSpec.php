@@ -2,9 +2,12 @@
 
 namespace Spec\Minds\Core\SocialCompass;
 
+use Minds\Core\Session;
+use Minds\Core\Sessions\ActiveSession;
 use Minds\Core\SocialCompass\Manager;
 use Minds\Core\SocialCompass\Questions\EstablishmentQuestion;
 use Minds\Core\SocialCompass\RepositoryInterface;
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Zend\Diactoros\ServerRequest;
@@ -16,9 +19,26 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_retrieve_social_compass_questions(
-        RepositoryInterface $repository
+    public function it_should_retrieve_social_compass_questions_with_no_active_user()
+    {
+        $request = (new ServerRequest())
+            ->withMethod("GET");
+
+        $this->beConstructedWith($request);
+
+        $this
+            ->retrieveSocialCompassQuestions()
+            ->shouldContainValueLike(new EstablishmentQuestion());
+    }
+
+    public function it_should_retrieve_social_compass_questions_with_active_user(
+        RepositoryInterface $repository,
+        ActiveSession $session
     ) {
+        $session
+            ->getUser()
+            ->willReturn(new User(1));
+
         $request = (new ServerRequest())
             ->withMethod("GET");
 
@@ -27,7 +47,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $this->beConstructedWith($request, $repository);
+        $this->beConstructedWith($request, $repository, $session);
 
         $this
             ->retrieveSocialCompassQuestions()
@@ -49,8 +69,13 @@ class ManagerSpec extends ObjectBehavior
     }
 
     public function it_should_store_social_compass_answers(
-        RepositoryInterface $repository
+        RepositoryInterface $repository,
+        ActiveSession $session
     ) {
+        $session
+            ->getUser()
+            ->willReturn(new User(1));
+
         $_SERVER['HTTP_X_XSRF_TOKEN'] = "xsrftoken";
         $request = (new ServerRequest(serverParams: $_SERVER))
             ->withMethod("POST")
@@ -63,7 +88,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->beConstructedWith($request, $repository);
+        $this->beConstructedWith($request, $repository, $session);
 
         $this
             ->storeSocialCompassAnswers([])
@@ -71,8 +96,13 @@ class ManagerSpec extends ObjectBehavior
     }
 
     public function it_should_update_social_compass_answers(
-        RepositoryInterface $repository
+        RepositoryInterface $repository,
+        ActiveSession $session
     ) {
+        $session
+            ->getUser()
+            ->willReturn(new User(1));
+
         $_SERVER['HTTP_X_XSRF_TOKEN'] = "xsrftoken";
         $request = (new ServerRequest(serverParams: $_SERVER))
             ->withMethod("PUT")
@@ -85,7 +115,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->beConstructedWith($request, $repository);
+        $this->beConstructedWith($request, $repository, $session);
 
         $this
             ->updateSocialCompassAnswers([])

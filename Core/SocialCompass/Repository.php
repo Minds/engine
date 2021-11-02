@@ -3,6 +3,7 @@
 namespace Minds\Core\SocialCompass;
 
 use Cassandra\Bigint;
+use Cassandra\Rows;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom as CustomQuery;
 use Minds\Core\Di\Di;
@@ -30,16 +31,8 @@ class Repository implements RepositoryInterface
         $query = $this->prepareQuery($statement, $values);
 
         $rows = $this->cql->request($query);
-        if (!$rows) {
-            return $rows;
-        }
 
-        $results = [];
-        foreach ($rows as $row) {
-            $results[] = $this->prepareAnswer($row);
-        }
-
-        return $results;
+        return $this->prepareAnswers($rows);
     }
 
     public function getAnswerByQuestionId(int $userGuid, string $questionId): AnswerModel|null|false
@@ -59,6 +52,20 @@ class Repository implements RepositoryInterface
         $rows = $this->cql->request($query);
 
         return $rows ? $this->prepareAnswer($rows->first()) : $rows;
+    }
+
+    private function prepareAnswers($rows): array|bool|null
+    {
+        if (!$rows) {
+            return $rows;
+        }
+
+        $results = [];
+        foreach ($rows as $row) {
+            $results[] = $this->prepareAnswer($row);
+        }
+
+        return $results;
     }
 
     private function prepareAnswer(?array $row): ?AnswerModel

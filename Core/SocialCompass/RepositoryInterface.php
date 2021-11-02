@@ -14,6 +14,12 @@ interface RepositoryInterface
      */
     public function getAnswers(int $userGuid): array|null|false;
 
+    /**
+     * Returns the answer object for a specific questionId if it exists
+     * @param int $userGuid
+     * @param string $questionId
+     * @return AnswerModel|false|null
+     */
     public function getAnswerByQuestionId(int $userGuid, string $questionId): AnswerModel|null|false;
 
     /**
@@ -24,5 +30,11 @@ interface RepositoryInterface
      */
     public function storeAnswers(int $userGuid, array $answers): bool;
 
+    /**
+     * Updates the answers the user has given to the Social Compass questions
+     * @param int $userGuid
+     * @param array $answers
+     * @return bool
+     */
     public function updateAnswers(int $userGuid, array $answers): bool;
 }

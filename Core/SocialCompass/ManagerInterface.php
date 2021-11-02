@@ -1,7 +1,7 @@
 <?php
 namespace Minds\Core\SocialCompass;
 
-use Zend\Diactoros\Response\JsonResponse;
+use Minds\Entities\User;
 
 interface ManagerInterface
 {
@@ -10,6 +10,13 @@ interface ManagerInterface
      * @return array
      */
     public function retrieveSocialCompassQuestions(): array;
+
+    /**
+     * Set the user to be used for the other methods
+     * @param User $user
+     * @return $this
+     */
+    public function setUser(User $user): self;
 
     /**
      * Stores the answers to the Social Compass questions set in the database

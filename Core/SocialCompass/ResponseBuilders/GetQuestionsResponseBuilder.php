@@ -12,7 +12,7 @@ class GetQuestionsResponseBuilder
      * @param array $questions The list of Social Compass questions
      * @return JsonResponse
      */
-    public function build(array $questions) : JsonResponse
+    public function build(array $questions): JsonResponse
     {
         return new JsonResponse(Exportable::_($questions));
     }
