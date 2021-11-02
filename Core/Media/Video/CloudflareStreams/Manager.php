@@ -59,9 +59,8 @@ class Manager
         $video->setCloudflareId($uid);
         // set the status to transcoding after the request was successfully sent
         $video->patch([
-            'transcoding_status' => TranscodeStates::TRANSCODING, // TODO: or should it be TranscodeStates::CREATED
+            'transcoding_status' => TranscodeStates::TRANSCODING,
         ]);
-        // TODO: how do we know the transcoding failed if we somehow don't receive the webhook call?
     }
 
     /**
@@ -95,6 +94,32 @@ class Manager
 
         return "https://videodelivery.net/$signedToken/thumbnails/thumbnail.jpg?width=1280";
     }
+
+    /**
+     * Returns the video transcode status
+     * @return TranscodeStatus status
+     */
+    public function getVideoTranscodeStatus(Video $video): object
+    {
+        $videoDetails = $this->getVideo($video);
+        $status = new TranscodeStatus();
+        $status->setPct($videoDetails["status"]["pct"]);
+
+        // TODO: figure out what other statuses exist and handle them
+        switch ($videoDetails["status"]["state"]) {
+            case "inprogress":
+                $status->setState(TranscodeStates::TRANSCODING);
+                break;
+            case "ready":
+                $status->setState(TranscodeStates::COMPLETED);
+                break;
+            default: // failed
+                $status->setState(TranscodeStates::FAILED);
+                break;
+        }
+        return $status;
+    }
+
 
     /**
      * @param string $videoId
@@ -148,5 +173,20 @@ class Manager
         $this->cache->set('cloudflare_signing_key', serialize($signingKey));
 
         return $signingKey;
+    }
+
+    /**
+     * Returns the video details
+     * @throws \Exception
+     * @return object videoDetails from cloudflare
+     */
+    private function getVideo(Video $video): object
+    {
+        if (!$video->getCloudflareId()) {
+            throw new \Exception('Cloudflare ID not found', 404);
+        }
+
+        $response = $this->client->request('GET', 'stream/' . $video->getCloudflareId());
+        return $response["result"];
     }
 }
