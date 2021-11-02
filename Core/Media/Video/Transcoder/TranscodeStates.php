@@ -48,8 +48,7 @@ class TranscodeStates
     }
 
     /**
-     * Return the overral transcoding status
-     * MH: I don't love this function at all!
+     * Return the transcoding state of the video
      * @param Video $video
      * @return string
      */
@@ -94,6 +93,8 @@ class TranscodeStates
     }
 
     /**
+     * Return the overral transcoding status
+     * MH: I don't love this function at all!
      * @param Video $video
      * @return string the transcode state
      */
