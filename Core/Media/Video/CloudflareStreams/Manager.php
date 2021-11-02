@@ -178,15 +178,15 @@ class Manager
     /**
      * Returns the video details
      * @throws \Exception
-     * @return object videoDetails from cloudflare
+     * @return array videoDetails from cloudflare
      */
-    private function getVideo(Video $video): object
+    private function getVideo(Video $video): array
     {
         if (!$video->getCloudflareId()) {
             throw new \Exception('Cloudflare ID not found', 404);
         }
 
         $response = $this->client->request('GET', 'stream/' . $video->getCloudflareId());
-        return $response["result"];
+        return json_decode($response->getBody(), true)["result"];
     }
 }
