@@ -9,6 +9,7 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\TwitterSync\Delegates\ChannelLinksDelegate;
 use Minds\Core\Feeds\Activity\RichEmbed;
+use Minds\Core\Log\Logger;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
@@ -25,6 +26,7 @@ class Manager
         protected Save $saveAction,
         protected RichEmbed\Manager $richEmbedManager,
         protected ChannelLinksDelegate $channelLinksDelegate,
+        protected Logger $logger
     ) {
     }
 
@@ -146,6 +148,8 @@ class Manager
         if (!isset($json['data'])) {
             return null;
         }
+
+        $this->logger->info("[TwitterSync][getLatestTweets()]: {$connectedAccount->getTwitterUser()->getUserId()} returned " . count($json['data']));
 
         foreach ($json['data'] as $tweetData) {
             if (isset($tweetData['referenced_tweets'])) {
