@@ -63,7 +63,7 @@ class subscribe implements Interfaces\Api
             return ($user->enabled != 'no' && $user->banned != 'yes' && $user->getUsername());
         });
 
-        $response['users'] = Factory::exportable($users);
+        $response['users'] = array_values(Factory::exportable($users));
         $response['load-next'] = $pagingToken;
 
         return Factory::response($response);
