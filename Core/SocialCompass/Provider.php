@@ -6,7 +6,7 @@ use Minds\Core\Di\Provider as DiProvider;
 
 class Provider extends DiProvider
 {
-    public function register() : void
+    public function register(): void
     {
         $this->di->bind('SocialCompass\Manager', function ($di) {
             return new Manager(

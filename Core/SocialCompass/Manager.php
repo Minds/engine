@@ -4,6 +4,8 @@ namespace Minds\Core\SocialCompass;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Sessions\ActiveSession;
+use Minds\Core\SocialCompass\Entities\AnswerModel;
+use Minds\Core\SocialCompass\Questions\BaseQuestion;
 use Minds\Core\SocialCompass\Questions\Manifests\QuestionsManifest;
 use Minds\Entities\User;
 use Psr\Http\Message\ServerRequestInterface;
@@ -12,25 +14,33 @@ use Zend\Diactoros\ServerRequestFactory;
 class Manager implements ManagerInterface
 {
     private string $currentQuestionSetVersion = "1";
-    private ?User $loggedInUser;
 
     public function __construct(
         private ?ServerRequestInterface $request = null,
         private ?RepositoryInterface $repository = null,
-        ?ActiveSession $activeSession = null,
+        private ?User $targetUser = null
     ) {
         $this->request = $this->request ?? ServerRequestFactory::fromGlobals();
         $this->repository = $this->repository ?? new Repository();
-        $activeSession = $activeSession ?? Di::_()->get('Sessions\ActiveSession');
-        $this->loggedInUser = $activeSession?->getUser();
+
+        $this->targetUser = $this->targetUser ?? $this->getLoggedInUser();
+    }
+
+    private function getLoggedInUser(): ?User
+    {
+        $activeSession = Di::_()->get('Sessions\ActiveSession');
+        return $activeSession->getUser();
     }
 
     public function setUser(User $user): self
     {
-        $this->loggedInUser = $user;
+        $this->targetUser = $user;
         return $this;
     }
 
+    /**
+     * @return AnswerModel[]
+     */
     public function retrieveSocialCompassQuestions(): array
     {
         $questionsList = $this->retrieveCurrentQuestionsSet();
@@ -43,17 +53,26 @@ class Manager implements ManagerInterface
         return new $manifest();
     }
 
+    /**
+     * @param QuestionsManifest $questionsList
+     * @return BaseQuestion[]
+     */
     private function prepareSocialCompassQuestions(QuestionsManifest $questionsList): array
     {
         $results = [];
+        $answers = [];
+        if ($this->targetUser) {
+            $answers = $this->repository->getAnswers($this->getUserId());
+        }
+
         foreach ($questionsList::QUESTIONS as $questionClass) {
             $question = new $questionClass();
 
-            if ($this->loggedInUser) {
-                $answer = $this->repository->getAnswerByQuestionId($this->getUserId(), $question->getQuestionId());
-                if (isset($answer) && $answer->count() > 0) {
-                    $question->setCurrentValue($answer->getCurrentValue());
-                }
+            if ($this->targetUser && !empty($answers[$question->getQuestionId()])) {
+                $question->setCurrentValue(
+                    $answers[$question->getQuestionId()]
+                        ->getCurrentValue()
+                );
             }
 
             array_push($results, $question);
@@ -61,24 +80,32 @@ class Manager implements ManagerInterface
         return $results;
     }
 
+    /**
+     * @param AnswerModel[] $answers
+     * @return bool
+     */
     public function storeSocialCompassAnswers(array $answers): bool
     {
-        if ($this->loggedInUser == null) {
+        if ($this->targetUser == null) {
             return false;
         }
-        return $this->repository->storeAnswers($this->getUserId(), $answers);
+        return $this->repository->storeAnswers($answers);
     }
 
+    /**
+     * @param AnswerModel[] $answers
+     * @return bool
+     */
     public function updateSocialCompassAnswers(array $answers): bool
     {
-        if ($this->loggedInUser == null) {
+        if ($this->targetUser == null) {
             return false;
         }
-        return $this->repository->storeAnswers($this->getUserId(), $answers);
+        return $this->repository->storeAnswers($answers);
     }
 
     private function getUserId(): int
     {
-        return (int) $this->loggedInUser?->getGuid();
+        return (int) $this->targetUser?->getGuid();
     }
 }

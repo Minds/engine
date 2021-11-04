@@ -18,9 +18,9 @@ class RepositorySpec extends ObjectBehavior
     }
 
     public function it_should_get_answers_and_return_an_array_with_the_entries_found(
-        Client $cql
+        Client $cassandraClientMock
     ) {
-        $cql
+        $cassandraClientMock
             ->request(Argument::any())
             ->shouldBeCalled()
             ->willReturn(new Rows([
@@ -31,7 +31,7 @@ class RepositorySpec extends ObjectBehavior
                 ]
             ], ""));
 
-        $this->beConstructedWith($cql);
+        $this->beConstructedWith($cassandraClientMock);
 
         $this
             ->getAnswers(1)
@@ -39,14 +39,14 @@ class RepositorySpec extends ObjectBehavior
     }
 
     public function it_should_get_answers_and_return_null_when_no_entries_found(
-        Client $cql
+        Client $cassandraClientMock
     ) {
-        $cql
+        $cassandraClientMock
             ->request(Argument::any())
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $this->beConstructedWith($cql);
+        $this->beConstructedWith($cassandraClientMock);
 
         $this
             ->getAnswers(1)
@@ -54,14 +54,14 @@ class RepositorySpec extends ObjectBehavior
     }
 
     public function it_should_get_answers_and_return_false_when_an_error_occurred(
-        Client $cql
+        Client $cassandraClientMock
     ) {
-        $cql
+        $cassandraClientMock
             ->request(Argument::any())
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->beConstructedWith($cql);
+        $this->beConstructedWith($cassandraClientMock);
 
         $this
             ->getAnswers(1)
@@ -69,9 +69,9 @@ class RepositorySpec extends ObjectBehavior
     }
 
     public function it_should_get_answer_by_question_id_and_return_an_answer_entity_when_answer_is_found(
-        Client $cql
+        Client $cassandraClientMock
     ) {
-        $cql
+        $cassandraClientMock
             ->request(Argument::any())
             ->shouldBeCalled()
             ->willReturn(new Rows([
@@ -81,7 +81,7 @@ class RepositorySpec extends ObjectBehavior
                     'current_value' => 50
                 ]
             ], ""));
-        $this->beConstructedWith($cql);
+        $this->beConstructedWith($cassandraClientMock);
 
         $this
             ->getAnswerByQuestionId(1, "EstablishmentQuestion")
@@ -89,13 +89,13 @@ class RepositorySpec extends ObjectBehavior
     }
 
     public function it_should_get_answer_by_question_id_and_return_null_when_no_answer_is_found(
-        Client $cql
+        Client $cassandraClientMock
     ) {
-        $cql
+        $cassandraClientMock
             ->request(Argument::any())
             ->shouldBeCalled()
             ->willReturn(null);
-        $this->beConstructedWith($cql);
+        $this->beConstructedWith($cassandraClientMock);
 
         $this
             ->getAnswerByQuestionId(1, "EstablishmentQuestion")
@@ -103,13 +103,13 @@ class RepositorySpec extends ObjectBehavior
     }
 
     public function it_should_get_answer_by_question_id_and_return_false_when_an_error_occurred(
-        Client $cql
+        Client $cassandraClientMock
     ) {
-        $cql
+        $cassandraClientMock
             ->request(Argument::any())
             ->shouldBeCalled()
             ->willReturn(false);
-        $this->beConstructedWith($cql);
+        $this->beConstructedWith($cassandraClientMock);
 
         $this
             ->getAnswerByQuestionId(1, "EstablishmentQuestion")
@@ -117,34 +117,35 @@ class RepositorySpec extends ObjectBehavior
     }
 
     public function it_should_store_answers_and_return_true_if_successful(
-        Client $cql
+        Client $cassandraClientMock,
+        Rows $rowsMock
     ) {
-        $cql
+        $cassandraClientMock
             ->request(Argument::any())
             ->shouldBeCalled()
-            ->willReturn(new Rows([
+            ->willReturn($rowsMock);
+        $this->beConstructedWith($cassandraClientMock);
+        $answers = [
+            new AnswerModel(
                 new Bigint(1),
                 "EstablishmentQuestion",
                 50
-            ], ""));
-        $this->beConstructedWith($cql);
-        $answers = [
-            "EstablishmentQuestion" => 50
+            )
         ];
 
         $this
-            ->storeAnswers(1, $answers)
+            ->storeAnswers($answers)
             ->shouldBe(true);
     }
 
     public function it_should_store_answers_and_return_false_if_one_or_more_answers_not_stored(
-        Client $cql
+        Client $cassandraClientMock
     ) {
-        $cql
+        $cassandraClientMock
             ->request(Argument::any())
             ->shouldBeCalled()
             ->willReturn(false);
-        $this->beConstructedWith($cql);
+        $this->beConstructedWith($cassandraClientMock);
         $answers = [
             "EstablishmentQuestion" => 50
         ];
@@ -155,17 +156,14 @@ class RepositorySpec extends ObjectBehavior
     }
 
     public function it_should_update_answers_and_return_true_if_successful(
-        Client $cql
+        Client $cassandraClientMock,
+        Rows $rowsMock
     ) {
-        $cql
+        $cassandraClientMock
             ->request(Argument::any())
             ->shouldBeCalled()
-            ->willReturn(new Rows([
-                new Bigint(1),
-                "EstablishmentQuestion",
-                50
-            ], ""));
-        $this->beConstructedWith($cql);
+            ->willReturn($rowsMock);
+        $this->beConstructedWith($cassandraClientMock);
         $answers = [
             "EstablishmentQuestion" => 50
         ];
@@ -176,13 +174,13 @@ class RepositorySpec extends ObjectBehavior
     }
 
     public function it_should_update_answers_and_return_false_if_one_or_more_answers_not_stored(
-        Client $cql
+        Client $cassandraClientMock
     ) {
-        $cql
+        $cassandraClientMock
             ->request(Argument::any())
             ->shouldBeCalled()
             ->willReturn(false);
-        $this->beConstructedWith($cql);
+        $this->beConstructedWith($cassandraClientMock);
         $answers = [
             "EstablishmentQuestion" => 50
         ];

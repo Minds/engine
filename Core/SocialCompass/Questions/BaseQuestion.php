@@ -2,6 +2,7 @@
 
 namespace Minds\Core\SocialCompass\Questions;
 
+use Minds\Entities\ExportableInterface;
 use Minds\Traits\MagicAttributes;
 
 /**
@@ -34,7 +35,7 @@ use Minds\Traits\MagicAttributes;
  * @method int getDefaultValue()
  * @method self setDefaultValue(int $defaultValue)
  */
-class BaseQuestion
+class BaseQuestion implements ExportableInterface
 {
     use MagicAttributes;
     /**
@@ -46,9 +47,25 @@ class BaseQuestion
      * @var string The label to show to the use in relation to the maximum value of the range for the answer to be given
      */
     protected string $maximumStepLabel = "";
+
+    /**
+     * @var string
+     */
     protected string $questionText = "";
+
+    /**
+     * @var int
+     */
     protected int $totalSteps = 10;
+
+    /**
+     * @var int
+     */
     protected int $currentValue = 50;
+
+    /**
+     * @var string
+     */
     protected string $questionId = "";
 
     /**
@@ -68,9 +85,10 @@ class BaseQuestion
 
     /**
      * Defines the properties that are user-friendly to return to the FE
+     * @param array $extras
      * @return array
      */
-    public function export(): array
+    public function export(array $extras = []): array
     {
         return [
             "minimumStepLabel" => $this->getMinimumStepLabel(),

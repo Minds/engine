@@ -2,9 +2,12 @@
 
 namespace Minds\Core\SocialCompass;
 
+use Cassandra\Bigint;
+use Minds\Core\SocialCompass\Entities\AnswerModel;
 use Minds\Core\SocialCompass\ResponseBuilders\GetQuestionsResponseBuilder;
 use Minds\Core\SocialCompass\ResponseBuilders\StoreAnswersResponseBuilder;
 use Minds\Core\SocialCompass\ResponseBuilders\UpdateAnswersResponseBuilder;
+use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
 
@@ -26,7 +29,7 @@ class Controller
      * @param ServerRequestInterface $request
      * @return JsonResponse
      */
-    public function getQuestions(ServerRequestInterface $request) : JsonResponse
+    public function getQuestions(ServerRequestInterface $request): JsonResponse
     {
         $result = $this->manager->retrieveSocialCompassQuestions();
         $responseBuilder = new GetQuestionsResponseBuilder();
@@ -38,18 +41,13 @@ class Controller
      * have been stored correctly, returns a Bad Request response otherwise.
      * @param ServerRequestInterface $request
      * @return JsonResponse
-     * @throws \Minds\Exceptions\UserErrorException
+     * @throws UserErrorException
      */
-    public function storeAnswers(ServerRequestInterface $request) : JsonResponse
+    public function storeAnswers(ServerRequestInterface $request): JsonResponse
     {
-        $requestBody = json_decode($request->getBody()->getContents());
+        $answers = $this->getAnswersArrayFromRequestBody($request);
+
         $responseBuilder = new StoreAnswersResponseBuilder();
-
-        if (empty($requestBody->{"social-compass-answers"})) {
-            $responseBuilder->buildBadRequestResponse("The 'social-compass-answers' property must be provided and must have at least one entry");
-        }
-
-        $answers = (array) $requestBody->{"social-compass-answers"};
 
         $result = $this->manager->storeSocialCompassAnswers($answers);
 
@@ -57,13 +55,38 @@ class Controller
     }
 
     /**
+     * @param ServerRequestInterface $request
+     * @return AnswerModel[]
+     * @throws UserErrorException
+     */
+    private function getAnswersArrayFromRequestBody(ServerRequestInterface $request): array
+    {
+        $requestBody = json_decode($request->getBody()->getContents(), true);
+
+        if (empty($requestBody["social-compass-answers"])) {
+            throw new UserErrorException("The 'social-compass-answers' property must be provided and must have at least one entry");
+        }
+
+        $answers = [];
+        foreach ($requestBody["social-compass-answers"] as $questionId => $answerValue) {
+            $answers[] = new AnswerModel(
+                new Bigint(),
+                $questionId,
+                $answerValue
+            );
+        }
+
+        return $answers;
+    }
+
+    /**
      * Returns a successful response if the answers to the Social Compass questions
      * have been updated correctly, returns a Bad Request response otherwise.
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @return \Zend\Diactoros\Response\JsonResponse
-     * @throws \Minds\Exceptions\UserErrorException
+     * @throws UserErrorException
      */
-    public function updateAnswers(ServerRequestInterface $request) : JsonResponse
+    public function updateAnswers(ServerRequestInterface $request): JsonResponse
     {
         $requestBody = json_decode($request->getBody()->getContents());
         $responseBuilder = new UpdateAnswersResponseBuilder();

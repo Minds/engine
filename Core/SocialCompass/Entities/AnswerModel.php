@@ -6,6 +6,8 @@ use Cassandra\Bigint;
 use Minds\Traits\MagicAttributes;
 
 /**
+ * The model representing an answer to the Social Compass questions
+ *
  * @method Bigint getUserGuid()
  * @method self setUserGuid(Bigint $userGuid)
  *

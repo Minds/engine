@@ -19,11 +19,15 @@ class Repository implements RepositoryInterface
         $this->cql = $cql ?? Di::_()->get('Database\Cassandra\Cql');
     }
 
+    /**
+     * @param int $userGuid
+     * @return AnswerModel[]|false|null
+     */
     public function getAnswers(int $userGuid): array|null|false
     {
         $statement = "SELECT *
             FROM
-                minds.social_compass_answers
+                social_compass_answers
             WHERE
                 user_guid = ?";
         $values = [new Bigint($userGuid)];
@@ -39,7 +43,7 @@ class Repository implements RepositoryInterface
     {
         $statement = "SELECT *
             FROM
-                minds.social_compass_answers
+                social_compass_answers
             WHERE
                 user_guid = ? AND question_id = ?";
         $values = [
@@ -54,7 +58,11 @@ class Repository implements RepositoryInterface
         return $rows ? $this->prepareAnswer($rows->first()) : $rows;
     }
 
-    private function prepareAnswers($rows): array|bool|null
+    /**
+     * @param Rows|bool|null $rows
+     * @return AnswerModel[]|bool|null
+     */
+    private function prepareAnswers(Rows|bool|null $rows): array|bool|null
     {
         if (!$rows) {
             return $rows;
@@ -62,7 +70,7 @@ class Repository implements RepositoryInterface
 
         $results = [];
         foreach ($rows as $row) {
-            $results[] = $this->prepareAnswer($row);
+            $results[$row["question_id"]] = $this->prepareAnswer($row);
         }
 
         return $results;
@@ -81,7 +89,12 @@ class Repository implements RepositoryInterface
         );
     }
 
-    private function prepareQuery(string $statement, array $values) : CustomQuery
+    /**
+     * @param string $statement
+     * @param array $values The values for the parameters in the query statement
+     * @return CustomQuery
+     */
+    private function prepareQuery(string $statement, array $values): CustomQuery
     {
         $query = new CustomQuery();
         $query->query($statement, $values);
@@ -89,22 +102,29 @@ class Repository implements RepositoryInterface
         return $query;
     }
 
-    public function storeAnswers(int $userGuid, array $answers): bool
+    /**
+     * @param AnswerModel[] $answers
+     * @return bool
+     */
+    public function storeAnswers(array $answers): bool
     {
-        $dbUserGuid = new Bigint($userGuid);
-        $queries = $this->createAnswersInsertQueries($dbUserGuid, $answers);
+        $queries = $this->createAnswersInsertQueries($answers);
 
         $failedInserts = $this->processQueries($queries);
 
         return count($failedInserts) == 0;
     }
 
-    private function createAnswersInsertQueries(Bigint $userGuid, array $answers) : array
+    /**
+     * @param AnswerModel[] $answers
+     * @return CustomQuery[]
+     */
+    private function createAnswersInsertQueries(array $answers): array
     {
         $queries = [];
-        foreach ($answers as $questionId => $answerValue) {
+        foreach ($answers as $answer) {
             $statement = "INSERT INTO
-                        minds.social_compass_answers
+                        social_compass_answers
                             (
                              user_guid,
                              question_id,
@@ -112,7 +132,7 @@ class Repository implements RepositoryInterface
                             )
                         VALUES
                             (?, ?, ?)";
-            $values = [$userGuid, $questionId, $answerValue];
+            $values = [$answer->getUserGuid(), $answer->getQuestionId(), $answer->getCurrentValue()];
 
             $this->addQueryIntoArray($queries, $statement, $values);
         }
@@ -120,12 +140,21 @@ class Repository implements RepositoryInterface
         return $queries;
     }
 
-    private function addQueryIntoArray(array &$array, string $statement, array $values) : void
+    /**
+     * @param CustomQuery[] $array
+     * @param string $statement
+     * @param array{Bigint, string, int} $values
+     */
+    private function addQueryIntoArray(array &$array, string $statement, array $values): void
     {
         array_push($array, $this->prepareQuery($statement, $values));
     }
 
-    private function processQueries(array $queries) : array
+    /**
+     * @param CustomQuery[] $queries
+     * @return CustomQuery[]
+     */
+    private function processQueries(array $queries): array
     {
         $failedQueries = [];
         foreach ($queries as $query) {
@@ -138,8 +167,12 @@ class Repository implements RepositoryInterface
         return $failedQueries;
     }
 
-    public function updateAnswers(int $userGuid, array $answers): bool
+    /**
+     * @param AnswerModel[] $answers
+     * @return bool
+     */
+    public function updateAnswers(array $answers): bool
     {
-        return $this->storeAnswers($userGuid, $answers);
+        return $this->storeAnswers($answers);
     }
 }
