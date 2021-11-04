@@ -29,6 +29,9 @@ class TwitterSync extends Cli\Controller implements Interfaces\CliControllerInte
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
 
+        Di::_()->get('Config')
+            ->set('min_log_level', 'INFO');
+
         Core\Security\ACL::_()->setIgnore(true);
     
         $manager = Di::_()->get('Feeds\TwitterSync\Manager');
