@@ -63,6 +63,8 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($twitterUser);
         $connectedAccount->getLastImportedTweetId()
             ->willReturn('456');
+        $connectedAccount->getLastSyncUnixTs()
+            ->willReturn(time());
         $connectedAccount->getUserGuid()
             ->willReturn('123');
         //
@@ -127,6 +129,9 @@ class ManagerSpec extends ObjectBehavior
         //
 
         $connectedAccount->setLastImportedTweetId('789')
+            ->shouldBeCalled();
+
+        $connectedAccount->setLastSyncUnixTs(time())
             ->shouldBeCalled();
 
         $this->repository->add($connectedAccount)

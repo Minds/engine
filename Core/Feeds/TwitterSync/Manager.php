@@ -189,7 +189,7 @@ class Manager
             }
 
             $i = 0;
-            $recentTweets = $this->getLatestTweets($connectedAccount);
+            $recentTweets = $this->getLatestTweets($connectedAccount, gteTimestamp: $connectedAccount->getLastSyncUnixTs() ?: time());
             foreach ($recentTweets as $recentTweet) {
                 $owner = $this->entitiesBuilder->single($connectedAccount->getUserGuid());
                 if (!$owner) {
@@ -225,9 +225,11 @@ class Manager
                 // Update our last imported tweet, but only the first one
                 if (++$i === 1) {
                     $connectedAccount->setLastImportedTweetId($recentTweet->getId());
-                    $this->updateAccount($connectedAccount);
                 }
             }
+
+            $connectedAccount->setLastSyncUnixTs(time());
+            $this->updateAccount($connectedAccount);
 
             yield $connectedAccount;
         }

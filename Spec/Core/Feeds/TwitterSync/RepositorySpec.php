@@ -39,6 +39,7 @@ class RepositorySpec extends ObjectBehavior
                     'twitter_username' => 'mark',
                     'twitter_followers_count' => 10,
                     'last_imported_tweet_id' => '',
+                    'last_sync_ts' => new Timestamp(null, 0),
                     'discoverable' => true,
                     'connected_timestamp' => new Timestamp(time(), 0),
                 ]

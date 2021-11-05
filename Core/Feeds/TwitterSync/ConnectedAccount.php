@@ -11,6 +11,8 @@ use Minds\Traits\MagicAttributes;
  * @method TwitterUser getTwitterUser()
  * @method self setLastImportedTweetId(string $lastImportedTweetId)
  * @method string getLastImportedTweetId()
+ * @method self setLastSyncUnixTs(int $lastSyncUnixTs)
+ * @method int getLastSyncUnixTs()
  * @method self setDiscoverable(bool $discoverable)
  * @method bool isDiscoverable()
  * @method self setConnectedTimestampSeconds(int $seconds)
@@ -28,6 +30,9 @@ class ConnectedAccount implements ExportableInterface
 
     /** @var string */
     protected $lastImportedTweetId = "0";
+
+    /** @var int */
+    protected $lastSyncUnixTs = 0;
 
     /** @var bool */
     protected $discoverable = true;
