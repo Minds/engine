@@ -49,7 +49,7 @@ class Repository
             $connectedAccount->setUserGuid((string) $row['user_guid'])
                 ->setTwitterUser($twitterUser)
                 ->setLastImportedTweetId((string) $row['last_imported_tweet_id'])
-                ->setLastSyncUnixTs($row['last_sync_ts']->time())
+                ->setLastSyncUnixTs(isset($row['last_sync_ts']) ? $row['last_sync_ts']->time() : time())
                 ->setDiscoverable($row['discoverable'])
                 ->setConnectedTimestampSeconds($row['connected_timestamp']->time());
 
@@ -83,7 +83,7 @@ class Repository
             last_sync_ts,
             discoverable,
             connected_timestamp
-            ) VALUES (?,?,?,?,?,?,?)";
+            ) VALUES (?,?,?,?,?,?,?,?)";
 
         $values = [
             new Bigint($connectedAccount->getUserGuid()),
