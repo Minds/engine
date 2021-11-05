@@ -12,7 +12,11 @@ interface ManagerInterface
 {
     /**
      * Retrieves the Social Compass questions set
-     * @return AnswerModel[]
+     * @return array
+     *         [
+     *             "questions": BaseQuestion[]
+     *             "answersProvided": bool
+     *         ]
      */
     public function retrieveSocialCompassQuestions(): array;
 

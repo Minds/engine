@@ -2,7 +2,6 @@
 
 namespace Spec\Minds\Core\SocialCompass;
 
-use Minds\Core\Session;
 use Minds\Core\Sessions\ActiveSession;
 use Minds\Core\SocialCompass\Manager;
 use Minds\Core\SocialCompass\Questions\EstablishmentQuestion;
@@ -26,9 +25,8 @@ class ManagerSpec extends ObjectBehavior
 
         $this->beConstructedWith($request);
 
-        $this
-            ->retrieveSocialCompassQuestions()
-            ->shouldContainValueLike(new EstablishmentQuestion());
+        $questions = $this->retrieveSocialCompassQuestions();
+        $questions["questions"]->shouldContainValueLike(new EstablishmentQuestion());
     }
 
     public function it_should_retrieve_social_compass_questions_with_active_user(
@@ -84,7 +82,7 @@ class ManagerSpec extends ObjectBehavior
             ]);
 
         $repository
-            ->storeAnswers(Argument::any(), Argument::type("array"))
+            ->storeAnswers(Argument::type("array"))
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -111,7 +109,7 @@ class ManagerSpec extends ObjectBehavior
             ]);
 
         $repository
-            ->storeAnswers(Argument::any(), Argument::type("array"))
+            ->storeAnswers(Argument::type("array"))
             ->shouldBeCalled()
             ->willReturn(true);
 

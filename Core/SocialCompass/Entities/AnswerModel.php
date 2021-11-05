@@ -3,6 +3,8 @@
 namespace Minds\Core\SocialCompass\Entities;
 
 use Cassandra\Bigint;
+use Minds\Entities\ValidatableObjectInterface;
+use Minds\Entities\ValidationErrorCollection;
 use Minds\Traits\MagicAttributes;
 
 /**
@@ -17,7 +19,7 @@ use Minds\Traits\MagicAttributes;
  * @method int getCurrentValue()
  * @method self setCurrentValue(int $currentValue)
  */
-class AnswerModel
+class AnswerModel implements ValidatableObjectInterface
 {
     use MagicAttributes;
 
@@ -26,5 +28,9 @@ class AnswerModel
         protected string $questionId,
         protected int $currentValue
     ) {
+    }
+
+    public function validate(): ValidationErrorCollection
+    {
     }
 }

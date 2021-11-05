@@ -17,8 +17,8 @@ use Minds\Traits\MagicAttributes;
  * @method string getQuestionText()
  * @method self setQuestionText(string $questionText)
  *
- * @method int getTotalSteps()
- * @method self setTotalSteps(int $totalSteps)
+ * @method int getStepSize()
+ * @method self setStepSize(int $stepSize)
  *
  * @method int getCurrentValue()
  * @method self setCurrentValue(int $currentValue)
@@ -54,9 +54,9 @@ class BaseQuestion implements ExportableInterface
     protected string $questionText = "";
 
     /**
-     * @var int
+     * @var int The increment size to be used in the FE to determine the steps for the input range
      */
-    protected int $totalSteps = 10;
+    protected int $stepSize = 10;
 
     /**
      * @var int
@@ -95,7 +95,7 @@ class BaseQuestion implements ExportableInterface
             "maximumStepLabel" => $this->getMaximumStepLabel(),
             "questionText" => $this->getQuestionText(),
             "questionId" => $this->getQuestionId(),
-            "totalSteps" => $this->getTotalSteps(),
+            "stepSize" => $this->getStepSize(),
             "defaultValue" => $this->getDefaultValue(),
             "currentValue" => $this->getCurrentValue(),
             "maximumRangeValue" => $this->getMaximumRangeValue(),

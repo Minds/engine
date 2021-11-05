@@ -2,10 +2,9 @@
 
 namespace Minds\Core\SocialCompass;
 
+use Minds\Api\Exportable;
 use Minds\Core\Di\Di;
-use Minds\Core\Sessions\ActiveSession;
 use Minds\Core\SocialCompass\Entities\AnswerModel;
-use Minds\Core\SocialCompass\Questions\BaseQuestion;
 use Minds\Core\SocialCompass\Questions\Manifests\QuestionsManifest;
 use Minds\Entities\User;
 use Psr\Http\Message\ServerRequestInterface;
@@ -39,7 +38,11 @@ class Manager implements ManagerInterface
     }
 
     /**
-     * @return AnswerModel[]
+     * @return array
+     *         [
+     *             "questions": BaseQuestion[]
+     *             "answersProvided": bool
+     *         ]
      */
     public function retrieveSocialCompassQuestions(): array
     {
@@ -55,14 +58,22 @@ class Manager implements ManagerInterface
 
     /**
      * @param QuestionsManifest $questionsList
-     * @return BaseQuestion[]
+     * @return array
+     *         [
+     *             "questions": BaseQuestion[]
+     *             "answersProvided": bool
+     *         ]
      */
     private function prepareSocialCompassQuestions(QuestionsManifest $questionsList): array
     {
-        $results = [];
+        $results = [
+            "questions" => [],
+            "answersProvided" => false
+        ];
         $answers = [];
         if ($this->targetUser) {
             $answers = $this->repository->getAnswers($this->getUserId());
+            $results["answersProvided"] = count($answers) > 0;
         }
 
         foreach ($questionsList::QUESTIONS as $questionClass) {
@@ -75,7 +86,7 @@ class Manager implements ManagerInterface
                 );
             }
 
-            array_push($results, $question);
+            array_push($results["questions"], $question);
         }
         return $results;
     }
