@@ -133,9 +133,9 @@ class Manager
             ]),
         ];
 
-        if ($lastImpotedTweetId = $connectedAccount->getLastImportedTweetId()) {
-            $queryParams['since_id'] = $lastImpotedTweetId;
-        }
+        // if ($lastImpotedTweetId = $connectedAccount->getLastImportedTweetId()) {
+        //     $queryParams['since_id'] = $lastImpotedTweetId;
+        // }
 
         if ($gteTimestamp) {
             $queryParams['start_time'] = date('c', $gteTimestamp);
