@@ -87,7 +87,7 @@ class Controller
         // Require previous two factor (default email) before proceeding
         $this->twoFactorManager->gatekeeper($user, $request);
 
-        $codeIsValid = $this->twoFactor->verifyCode($secret, $code, 3);
+        $codeIsValid = $this->twoFactor->verifyCode($secret, $code, 10);
 
         if (!$codeIsValid) {
             throw new UserErrorException("Invalid code");
@@ -171,7 +171,7 @@ class Controller
         }
 
         // Validate code
-        $codeIsValid = $this->twoFactor->verifyCode($totpSecret->getSecret(), $code, 1);
+        $codeIsValid = $this->twoFactor->verifyCode($totpSecret->getSecret(), $code, 10);
 
         if (!$codeIsValid) {
             throw new UserErrorException("Invalid code");
