@@ -171,7 +171,7 @@ class Controller
         }
 
         // Validate code
-        $codeIsValid = $this->twoFactor->verifyCode($totpSecret->getSecret(), $code, 10);
+        $codeIsValid = $this->twoFactor->verifyCode($totpSecret->getSecret(), $code, 1);
 
         if (!$codeIsValid) {
             throw new UserErrorException("Invalid code");
