@@ -180,8 +180,8 @@ class RepositorySpec extends ObjectBehavior
         ];
 
         $this
-            ->shouldThrow(ServerErrorException::class)
-            ->during("storeAnswers", [$answers]);
+            ->storeAnswers($answers)
+            ->shouldBe(false);
     }
 
     public function it_should_update_answers_and_return_true_if_successful(
@@ -230,7 +230,7 @@ class RepositorySpec extends ObjectBehavior
         ];
 
         $this
-            ->shouldThrow(ServerErrorException::class)
-            ->during("updateAnswers", [$answers]);
+            ->updateAnswers($answers)
+            ->shouldBe(false);
     }
 }
