@@ -223,12 +223,13 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                     'group_urn' => $event->getActionData()['group_urn']
                 ]);
                 break;
-            case ActionEvent::ACTION_GROUP_QUEUE_REJECT:
-                $notification->setType(NotificationTypes::TYPE_GROUP_QUEUE_REJECT);
-                $notification->setData([
-                    'group_urn' => $event->getActionData()['group_urn']
-                ]);
-                break;
+            // Doesn't work bc post gets deleted immediately when rejected
+            // case ActionEvent::ACTION_GROUP_QUEUE_REJECT:
+            //     $notification->setType(NotificationTypes::TYPE_GROUP_QUEUE_REJECT);
+            //     $notification->setData([
+            //         'group_urn' => $event->getActionData()['group_urn']
+            //     ]);
+            //     break;
             case ActionEvent::ACTION_WIRE_SENT:
                 /** @var Wire */
                 $wire = $entity;

@@ -83,7 +83,10 @@ class ManagerSpec extends ObjectBehavior
         $user->isEmailConfirmed()
             ->shouldBeCalled()
             ->willReturn(false);
-
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+        
         $this->jwt->setKey('~key~')
             ->shouldBeCalled()
             ->willReturn($this->jwt);

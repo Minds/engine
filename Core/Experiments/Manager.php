@@ -24,7 +24,8 @@ class Manager
 
         $this->experiments = [
             new Growthbook\Experiment("channel-gallery", ["on", "off"]),
-            new Growthbook\Experiment("boost-rotator", ["on", "off"]),
+            new Growthbook\Experiment("boost-prompt", ["on", "off"]),
+            new Growthbook\Experiment("top-feed", ["off", "on"]),
         ];
     }
 

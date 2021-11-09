@@ -1698,3 +1698,13 @@ CREATE TABLE minds.notification_email_digests (
     to_guid bigint,
     PRIMARY KEY (year, month, day, frequency, to_guid)
 ) WITH CLUSTERING ORDER BY (month DESC, day DESC);
+
+CREATE TABLE minds.twitter_sync (
+    user_guid bigint PRIMARY KEY,
+    last_imported_tweet_id bigint,
+    last_sync_ts timestamp,
+    twitter_followers_count int,
+    twitter_user_id bigint,
+    twitter_username text,
+    discoverable boolean
+);

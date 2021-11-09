@@ -63,7 +63,7 @@ class EmailDelegate implements TwoFactorDelegateInterface
         $this->twoFactorEmail->send();
 
         // create a lookup of a random key. The user can then use this key along side their twofactor code
-        // to login. This temporary code should be removed within 2 minutes.
+        // to login. This temporary code should be removed within 5 minutes.
         $bytes = openssl_random_pseudo_bytes(128);
         $key = hash('sha512', $user->username . $user->salt . $bytes);
 
@@ -98,9 +98,9 @@ class EmailDelegate implements TwoFactorDelegateInterface
 
         $payload = json_decode($payload, true);
 
-        // we allow for 120 seconds (2 mins) after we send a code
+        // we allow for 300 seconds (5 mins) after we send a code
         if ($payload['_guid']
-            && $payload['ts'] > time() - 120
+            && $payload['ts'] > time() - 300
             && $user->getGuid() === (string) $payload['_guid']
         ) {
             $secret = $payload['secret'];
@@ -108,7 +108,7 @@ class EmailDelegate implements TwoFactorDelegateInterface
             throw new TwoFactorInvalidCodeException();
         }
 
-        if (!$this->twoFactorService->verifyCode($secret, $code, 1)) {
+        if (!$this->twoFactorService->verifyCode($secret, $code, 10)) {
             throw new TwoFactorInvalidCodeException();
         }
     }

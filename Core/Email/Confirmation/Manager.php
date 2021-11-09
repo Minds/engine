@@ -22,7 +22,12 @@ use Minds\Entities\User;
 use Minds\Entities\UserFactory;
 
 class Manager
-{
+{    // timespan to check rate limit.
+    const RATE_LIMIT_TIMESPAN = 60;
+
+    // max amount of occurrence in timespan.
+    const RATE_LIMIT_MAX = 1;
+
     /** @var Config */
     protected $config;
 
@@ -47,6 +52,9 @@ class Manager
     /** @var User */
     protected $user;
 
+    /** @var KeyValueLimiter */
+    protected $kvLimiter;
+
     /**
      * Manager constructor.
      * @param Config $config
@@ -65,7 +73,8 @@ class Manager
         $elasticsearch = null,
         $userFactory = null,
         $resolver = null,
-        $eventsDispatcher = null
+        $eventsDispatcher = null,
+        $kvLimiter = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->jwt = $jwt ?: new Jwt();
@@ -74,6 +83,7 @@ class Manager
         $this->userFactory = $userFactory ?: new UserFactory();
         $this->resolver = $resolver ?: new Resolver();
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
+        $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
     }
 
     /**
@@ -98,6 +108,14 @@ class Manager
         if ($this->user->isEmailConfirmed()) {
             throw new Exception('User email was already confirmed');
         }
+
+        // Can throw RateLimitException.
+        $this->kvLimiter
+            ->setKey('email-confirmation')
+            ->setValue($this->user->getGuid())
+            ->setSeconds(self::RATE_LIMIT_TIMESPAN)
+            ->setMax(self::RATE_LIMIT_MAX)
+            ->checkAndIncrement();
 
         $config = $this->config->get('email_confirmation');
 
