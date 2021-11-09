@@ -264,6 +264,8 @@ $CONFIG->set('facebook', [
 $CONFIG->set('twitter', [
     'api_key' => '{{twitter-app-id}}',
     'api_secret' => '{{twitter-app-id}}',
+    'bearer_token' => '',
+    'min_followers_for_sync' => 25000,
 ]);
 
 $CONFIG->set('twilio', [
@@ -420,6 +422,7 @@ $CONFIG->set('blockchain', [
     ],
 
     'mw3' => '/usr/bin/env node '.__MINDS_ROOT__.'/../mw3/index.js',
+
     // SKALE network config.
     'skale' => [
         'chain_name' => '',
@@ -547,10 +550,13 @@ $CONFIG->set('features', [
     'activity-modal' => false,
     'withdrawal-console' => true,
     'helpdesk-2021' => true,
-    'skale' => true,
 ]);
 
 $CONFIG->set('email', [
+    'sender' => [
+        'email' => 'no-reply@minds.com',
+        'name' => 'Minds'
+    ],
     'smtp' => [
         'host' => '',
         'username' => '',
