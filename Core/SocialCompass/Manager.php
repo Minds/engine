@@ -2,24 +2,19 @@
 
 namespace Minds\Core\SocialCompass;
 
-use Minds\Api\Exportable;
 use Minds\Core\Di\Di;
 use Minds\Core\SocialCompass\Entities\AnswerModel;
 use Minds\Core\SocialCompass\Questions\Manifests\QuestionsManifest;
 use Minds\Entities\User;
-use Psr\Http\Message\ServerRequestInterface;
-use Zend\Diactoros\ServerRequestFactory;
 
 class Manager implements ManagerInterface
 {
     private string $currentQuestionSetVersion = "1";
 
     public function __construct(
-        private ?ServerRequestInterface $request = null,
         private ?RepositoryInterface $repository = null,
         private ?User $targetUser = null
     ) {
-        $this->request = $this->request ?? ServerRequestFactory::fromGlobals();
         $this->repository = $this->repository ?? new Repository();
 
         $this->targetUser = $this->targetUser ?? $this->getLoggedInUser();
@@ -97,9 +92,6 @@ class Manager implements ManagerInterface
      */
     public function storeSocialCompassAnswers(array $answers): bool
     {
-        if ($this->targetUser == null) {
-            return false;
-        }
         return $this->repository->storeAnswers($answers);
     }
 
@@ -109,9 +101,6 @@ class Manager implements ManagerInterface
      */
     public function updateSocialCompassAnswers(array $answers): bool
     {
-        if ($this->targetUser == null) {
-            return false;
-        }
         return $this->repository->storeAnswers($answers);
     }
 

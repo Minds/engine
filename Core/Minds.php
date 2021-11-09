@@ -141,7 +141,6 @@ class Minds extends base
         (new Channels\ChannelsProvider())->register();
         (new Blogs\BlogsProvider())->register();
         (new Permaweb\PermawebProvider())->register();
-        (new SocialCompass\Provider())->register();
     }
 
     /**

@@ -6,6 +6,7 @@ use Cassandra\Bigint;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\SocialCompass\Entities\AnswerModel;
 use Minds\Core\SocialCompass\Repository;
+use Minds\Exceptions\ServerErrorException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Spec\Minds\Mocks\Cassandra\Rows as RowsMock;
@@ -65,8 +66,8 @@ class RepositorySpec extends ObjectBehavior
         $this->beConstructedWith($cassandraClientMock);
 
         $this
-            ->getAnswers(1)
-            ->shouldBe(null);
+            ->shouldThrow(ServerErrorException::class)
+            ->during("getAnswers", [1]);
     }
 
     public function it_should_get_answers_and_return_false_when_an_error_occurred(
@@ -80,8 +81,8 @@ class RepositorySpec extends ObjectBehavior
         $this->beConstructedWith($cassandraClientMock);
 
         $this
-            ->getAnswers(1)
-            ->shouldBe(false);
+            ->shouldThrow(ServerErrorException::class)
+            ->during("getAnswers", [1]);
     }
 
     public function it_should_get_answer_by_question_id_and_return_an_answer_entity_when_answer_is_found(
@@ -114,8 +115,8 @@ class RepositorySpec extends ObjectBehavior
         $this->beConstructedWith($cassandraClientMock);
 
         $this
-            ->getAnswerByQuestionId(1, "EstablishmentQuestion")
-            ->shouldBe(null);
+            ->shouldThrow(ServerErrorException::class)
+            ->during("getAnswerByQuestionId", [1, "EstablishmentQuestion"]);
     }
 
     public function it_should_get_answer_by_question_id_and_return_false_when_an_error_occurred(
@@ -128,8 +129,8 @@ class RepositorySpec extends ObjectBehavior
         $this->beConstructedWith($cassandraClientMock);
 
         $this
-            ->getAnswerByQuestionId(1, "EstablishmentQuestion")
-            ->shouldBe(false);
+            ->shouldThrow(ServerErrorException::class)
+            ->during("getAnswerByQuestionId", [1, "EstablishmentQuestion"]);
     }
 
     public function it_should_store_answers_and_return_true_if_successful(
@@ -179,8 +180,8 @@ class RepositorySpec extends ObjectBehavior
         ];
 
         $this
-            ->storeAnswers($answers)
-            ->shouldBe(false);
+            ->shouldThrow(ServerErrorException::class)
+            ->during("storeAnswers", [$answers]);
     }
 
     public function it_should_update_answers_and_return_true_if_successful(
@@ -229,7 +230,7 @@ class RepositorySpec extends ObjectBehavior
         ];
 
         $this
-            ->updateAnswers($answers)
-            ->shouldBe(false);
+            ->shouldThrow(ServerErrorException::class)
+            ->during("updateAnswers", [$answers]);
     }
 }

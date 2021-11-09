@@ -32,5 +32,6 @@ class AnswerModel implements ValidatableObjectInterface
 
     public function validate(): ValidationErrorCollection
     {
+        return new ValidationErrorCollection();
     }
 }

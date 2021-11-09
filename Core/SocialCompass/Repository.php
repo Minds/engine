@@ -9,6 +9,7 @@ use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom as CustomQuery;
 use Minds\Core\Di\Di;
 use Minds\Core\SocialCompass\Entities\AnswerModel;
+use Minds\Exceptions\ServerErrorException;
 
 class Repository implements RepositoryInterface
 {
@@ -22,9 +23,10 @@ class Repository implements RepositoryInterface
 
     /**
      * @param int $userGuid
-     * @return AnswerModel[]|false|null
+     * @return AnswerModel[]
+     * @throws ServerErrorException
      */
-    public function getAnswers(int $userGuid): array|null|false
+    public function getAnswers(int $userGuid): array
     {
         $statement = "SELECT *
             FROM
@@ -40,7 +42,13 @@ class Repository implements RepositoryInterface
         return $this->prepareAnswers($rows);
     }
 
-    public function getAnswerByQuestionId(int $userGuid, string $questionId): AnswerModel|null|false
+    /**
+     * @param int $userGuid
+     * @param string $questionId
+     * @return AnswerModel
+     * @throws ServerErrorException
+     */
+    public function getAnswerByQuestionId(int $userGuid, string $questionId): AnswerModel
     {
         $statement = "SELECT *
             FROM
@@ -56,17 +64,22 @@ class Repository implements RepositoryInterface
 
         $rows = $this->cql->request($query);
 
-        return $rows ? $this->prepareAnswer($rows->first()) : $rows;
+        if (!$rows) {
+            throw new ServerErrorException("No answer has been found in the db for the provided user");
+        }
+
+        return $this->prepareAnswer($rows->first());
     }
 
     /**
      * @param Iterator|bool|null $rows
-     * @return AnswerModel[]|bool|null
+     * @return AnswerModel[]
+     * @throws ServerErrorException
      */
-    private function prepareAnswers(Iterator|bool|null $rows): array|bool|null
+    private function prepareAnswers(Iterator|bool|null $rows): array
     {
         if (!$rows) {
-            return $rows;
+            throw new ServerErrorException("No answers have been found in the db for the provided user");
         }
 
         $results = [];
@@ -77,12 +90,17 @@ class Repository implements RepositoryInterface
         return $results;
     }
 
-    private function prepareAnswer(?array $row): ?AnswerModel
+    /**
+     * @param array{user_guid: Bigint, question_id: string, current_value: int} $row
+     *                   [
+     *                      "user_guid": Bigint,
+     *                      "question_id": string,
+     *                      "current_value": int
+     *                   ]
+     * @return AnswerModel
+     */
+    private function prepareAnswer(array $row): AnswerModel
     {
-        if (!$row) {
-            return null;
-        }
-
         return new AnswerModel(
             $row['user_guid'],
             $row['question_id'],

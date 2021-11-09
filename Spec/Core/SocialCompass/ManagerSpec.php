@@ -8,7 +8,6 @@ use Minds\Core\SocialCompass\RepositoryInterface;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use Zend\Diactoros\ServerRequest;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -19,11 +18,6 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_retrieve_social_compass_questions_with_no_active_user()
     {
-        $request = (new ServerRequest())
-            ->withMethod("GET");
-
-        $this->beConstructedWith($request);
-
         $questions = $this->retrieveSocialCompassQuestions();
         $questions["questions"]->shouldContainValueLike(new EstablishmentQuestion());
     }
@@ -34,17 +28,15 @@ class ManagerSpec extends ObjectBehavior
     ) {
         $targetUserMock
             ->getGuid()
+            ->shouldBeCalled()
             ->willReturn(1);
-
-        $request = (new ServerRequest())
-            ->withMethod("GET");
 
         $repository
             ->getAnswers(Argument::any())
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $this->beConstructedWith($request, $repository, $targetUserMock);
+        $this->beConstructedWith($repository, $targetUserMock);
 
         $this
             ->retrieveSocialCompassQuestions()["questions"]
@@ -73,19 +65,12 @@ class ManagerSpec extends ObjectBehavior
             ->getGuid()
             ->willReturn(1);
 
-        $_SERVER['HTTP_X_XSRF_TOKEN'] = "xsrftoken";
-        $request = (new ServerRequest(serverParams: $_SERVER))
-            ->withMethod("POST")
-            ->withCookieParams([
-                'XSRF-TOKEN' => "xsrftoken"
-            ]);
-
         $repository
             ->storeAnswers(Argument::type("array"))
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->beConstructedWith($request, $repository, $targetUserMock);
+        $this->beConstructedWith($repository, $targetUserMock);
 
         $this
             ->storeSocialCompassAnswers([])
@@ -100,19 +85,12 @@ class ManagerSpec extends ObjectBehavior
             ->getGuid()
             ->willReturn(1);
 
-        $_SERVER['HTTP_X_XSRF_TOKEN'] = "xsrftoken";
-        $request = (new ServerRequest(serverParams: $_SERVER))
-            ->withMethod("PUT")
-            ->withCookieParams([
-                'XSRF-TOKEN' => "xsrftoken"
-            ]);
-
         $repository
             ->storeAnswers(Argument::type("array"))
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->beConstructedWith($request, $repository, $targetUserMock);
+        $this->beConstructedWith($repository, $targetUserMock);
 
         $this
             ->updateSocialCompassAnswers([])

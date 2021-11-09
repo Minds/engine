@@ -89,20 +89,15 @@ class Controller
     /**
      * Returns a successful response if the answers to the Social Compass questions
      * have been updated correctly, returns a Bad Request response otherwise.
-     * @param \Psr\Http\Message\ServerRequestInterface $request
-     * @return \Zend\Diactoros\Response\JsonResponse
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
      * @throws UserErrorException
      */
     public function updateAnswers(ServerRequestInterface $request): JsonResponse
     {
-        $requestBody = json_decode($request->getBody()->getContents());
+        $answers = $this->getAnswersArrayFromRequestBody($request);
+
         $responseBuilder = new UpdateAnswersResponseBuilder();
-
-        if (empty($requestBody->{"social-compass-answers"})) {
-            $responseBuilder->buildBadRequestResponse("The 'social-compass-answers' property must be provided and must have at least one entry");
-        }
-
-        $answers = (array) $requestBody->{"social-compass-answers"};
 
         $result = $this->manager->updateSocialCompassAnswers($answers);
 
