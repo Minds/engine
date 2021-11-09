@@ -2,7 +2,6 @@
 
 namespace Spec\Minds\Core\Feeds\Activity\RichEmbed;
 
-use Http\Client\Common\Exception\ServerErrorException;
 use Minds\Core\Config\Config;
 use Minds\Core\Feeds\Activity\RichEmbed\Iframely;
 use Minds\Core\Feeds\Activity\RichEmbed\Manager;
@@ -54,7 +53,6 @@ class ManagerSpec extends ObjectBehavior
                 'site' => "Minds"
             ]);
     }
-
 
     public function it_should_throw_exception_when_iframely_returns_non_200_code(
         ResponseInterface $response,
