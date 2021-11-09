@@ -25,6 +25,7 @@ class Manager
         ]);
 
         $response = $this->iframely->request('GET', '?' . $queryParamString);
+
         $meta = json_decode($response->getBody()->getContents(), true);
 
         if (isset($meta['status']) && $meta['status'] !== 200) {
