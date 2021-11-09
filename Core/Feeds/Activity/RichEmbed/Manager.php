@@ -2,6 +2,7 @@
 namespace Minds\Core\Feeds\Activity\RichEmbed;
 
 use Minds\Core\Config\Config;
+use Minds\Exceptions\ServerErrorException;
 
 class Manager
 {
@@ -23,10 +24,17 @@ class Manager
             'url' => $url,
         ]);
 
-        $response = $this->iframely->request('GET', '?' . $queryParamString);
+        try {
+            $response = $this->iframely->request('GET', '?' . $queryParamString);
+            $meta = json_decode($response->getBody()->getContents(), true);
+            $meta['meta']['description'] = html_entity_decode($meta['meta']['description'], ENT_QUOTES); //Decode HTML entities.    
 
-        $meta = json_decode($response->getBody()->getContents(), true);
-        $meta['meta']['description'] = html_entity_decode($meta['meta']['description'], ENT_QUOTES); //Decode HTML entities.
+            if (isset($meta['status']) && $meta['status'] !== 200) {
+                throw new \Exception();
+            }
+        } catch(\Exception $e) {
+            throw new ServerErrorException('Unable to fetch data for given URL');
+        }
 
         return $meta;
     }
