@@ -73,7 +73,7 @@ class Manager implements ManagerInterface
         $answers = [];
         if ($this->targetUser) {
             $answers = $this->repository->getAnswers($this->getUserId());
-            $results["answersProvided"] = count($answers) > 0;
+            $results["answersProvided"] = $answers && count($answers) > 0;
         }
 
         foreach ($questionsList::QUESTIONS as $questionClass) {

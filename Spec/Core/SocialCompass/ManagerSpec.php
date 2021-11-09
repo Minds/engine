@@ -2,7 +2,6 @@
 
 namespace Spec\Minds\Core\SocialCompass;
 
-use Minds\Core\Sessions\ActiveSession;
 use Minds\Core\SocialCompass\Manager;
 use Minds\Core\SocialCompass\Questions\EstablishmentQuestion;
 use Minds\Core\SocialCompass\RepositoryInterface;
@@ -31,24 +30,24 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_retrieve_social_compass_questions_with_active_user(
         RepositoryInterface $repository,
-        ActiveSession $session
+        User $targetUserMock
     ) {
-        $session
-            ->getUser()
-            ->willReturn(new User(1));
+        $targetUserMock
+            ->getGuid()
+            ->willReturn(1);
 
         $request = (new ServerRequest())
             ->withMethod("GET");
 
         $repository
-            ->getAnswerByQuestionId(Argument::any(), Argument::any())
+            ->getAnswers(Argument::any())
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $this->beConstructedWith($request, $repository, $session);
+        $this->beConstructedWith($request, $repository, $targetUserMock);
 
         $this
-            ->retrieveSocialCompassQuestions()
+            ->retrieveSocialCompassQuestions()["questions"]
             ->shouldContainValueLike(new EstablishmentQuestion());
     }
 
@@ -68,11 +67,11 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_store_social_compass_answers(
         RepositoryInterface $repository,
-        ActiveSession $session
+        User $targetUserMock
     ) {
-        $session
-            ->getUser()
-            ->willReturn(new User(1));
+        $targetUserMock
+            ->getGuid()
+            ->willReturn(1);
 
         $_SERVER['HTTP_X_XSRF_TOKEN'] = "xsrftoken";
         $request = (new ServerRequest(serverParams: $_SERVER))
@@ -86,7 +85,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->beConstructedWith($request, $repository, $session);
+        $this->beConstructedWith($request, $repository, $targetUserMock);
 
         $this
             ->storeSocialCompassAnswers([])
@@ -95,11 +94,11 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_update_social_compass_answers(
         RepositoryInterface $repository,
-        ActiveSession $session
+        User $targetUserMock
     ) {
-        $session
-            ->getUser()
-            ->willReturn(new User(1));
+        $targetUserMock
+            ->getGuid()
+            ->willReturn(1);
 
         $_SERVER['HTTP_X_XSRF_TOKEN'] = "xsrftoken";
         $request = (new ServerRequest(serverParams: $_SERVER))
@@ -113,7 +112,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->beConstructedWith($request, $repository, $session);
+        $this->beConstructedWith($request, $repository, $targetUserMock);
 
         $this
             ->updateSocialCompassAnswers([])

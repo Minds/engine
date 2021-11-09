@@ -4,6 +4,7 @@ namespace Minds\Core\SocialCompass;
 
 use Cassandra\Bigint;
 use Cassandra\Rows;
+use Iterator;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom as CustomQuery;
 use Minds\Core\Di\Di;
@@ -59,10 +60,10 @@ class Repository implements RepositoryInterface
     }
 
     /**
-     * @param Rows|bool|null $rows
+     * @param Iterator|bool|null $rows
      * @return AnswerModel[]|bool|null
      */
-    private function prepareAnswers(Rows|bool|null $rows): array|bool|null
+    private function prepareAnswers(Iterator|bool|null $rows): array|bool|null
     {
         if (!$rows) {
             return $rows;

@@ -8,7 +8,7 @@ use Minds\Core\SocialCompass\Entities\AnswerModel;
 use Minds\Core\SocialCompass\Repository;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use Spec\Minds\Mocks\Cassandra\Rows;
+use Spec\Minds\Mocks\Cassandra\Rows as RowsMock;
 
 class RepositorySpec extends ObjectBehavior
 {
@@ -17,19 +17,35 @@ class RepositorySpec extends ObjectBehavior
         $this->shouldHaveType(Repository::class);
     }
 
+    public function getMatchers(): array
+    {
+        return  [
+            'containValueLike' => function ($subject, $value) {
+                foreach ($subject as $item) {
+                    if ($item == $value) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        ];
+    }
+
     public function it_should_get_answers_and_return_an_array_with_the_entries_found(
         Client $cassandraClientMock
     ) {
+        $rowsMock = new RowsMock([
+            [
+                "user_guid" => new Bigint(1),
+                "question_id" => "EstablishmentQuestion",
+                "current_value" => 50
+            ]
+        ], "");
+
         $cassandraClientMock
             ->request(Argument::any())
             ->shouldBeCalled()
-            ->willReturn(new Rows([
-                [
-                    'user_guid' => new Bigint(1),
-                    'question_id' => 'EstablishmentQuestion',
-                    'current_value' => 50
-                ]
-            ], ""));
+            ->willReturn($rowsMock);
 
         $this->beConstructedWith($cassandraClientMock);
 
@@ -74,7 +90,7 @@ class RepositorySpec extends ObjectBehavior
         $cassandraClientMock
             ->request(Argument::any())
             ->shouldBeCalled()
-            ->willReturn(new Rows([
+            ->willReturn(new RowsMock([
                 [
                     'user_guid' => new Bigint(1),
                     'question_id' => 'EstablishmentQuestion',
@@ -117,13 +133,21 @@ class RepositorySpec extends ObjectBehavior
     }
 
     public function it_should_store_answers_and_return_true_if_successful(
-        Client $cassandraClientMock,
-        Rows $rowsMock
+        Client $cassandraClientMock
     ) {
+        $rowsMock = new RowsMock([
+            [
+                "user_guid" => new Bigint(1),
+                "question_id" => "EstablishmentQuestion",
+                "current_value" => 50
+            ]
+        ], "");
+
         $cassandraClientMock
             ->request(Argument::any())
             ->shouldBeCalled()
             ->willReturn($rowsMock);
+
         $this->beConstructedWith($cassandraClientMock);
         $answers = [
             new AnswerModel(
@@ -147,29 +171,44 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn(false);
         $this->beConstructedWith($cassandraClientMock);
         $answers = [
-            "EstablishmentQuestion" => 50
+            new AnswerModel(
+                new Bigint(1),
+                "EstablishmentQuestion",
+                50
+            )
         ];
 
         $this
-            ->storeAnswers(1, $answers)
+            ->storeAnswers($answers)
             ->shouldBe(false);
     }
 
     public function it_should_update_answers_and_return_true_if_successful(
-        Client $cassandraClientMock,
-        Rows $rowsMock
+        Client $cassandraClientMock
     ) {
+        $rowsMock = new RowsMock([
+            [
+                "user_guid" => new Bigint(1),
+                "question_id" => "EstablishmentQuestion",
+                "current_value" => 50
+            ]
+        ], "");
+
         $cassandraClientMock
             ->request(Argument::any())
             ->shouldBeCalled()
             ->willReturn($rowsMock);
         $this->beConstructedWith($cassandraClientMock);
         $answers = [
-            "EstablishmentQuestion" => 50
+            new AnswerModel(
+                new Bigint(1),
+                "EstablishmentQuestion",
+                50
+            )
         ];
 
         $this
-            ->updateAnswers(1, $answers)
+            ->updateAnswers($answers)
             ->shouldBe(true);
     }
 
@@ -182,11 +221,15 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn(false);
         $this->beConstructedWith($cassandraClientMock);
         $answers = [
-            "EstablishmentQuestion" => 50
+            new AnswerModel(
+                new Bigint(1),
+                "EstablishmentQuestion",
+                50
+            )
         ];
 
         $this
-            ->updateAnswers(1, $answers)
+            ->updateAnswers($answers)
             ->shouldBe(false);
     }
 }
