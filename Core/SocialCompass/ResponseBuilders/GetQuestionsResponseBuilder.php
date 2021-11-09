@@ -23,6 +23,10 @@ class GetQuestionsResponseBuilder
      */
     public function build(array $questions): JsonResponse
     {
-        return new JsonResponse(Exportable::_($questions));
+        $response = [
+            "status" => "success"
+        ];
+        $response = array_merge($response, $questions);
+        return new JsonResponse(Exportable::_($response));
     }
 }
