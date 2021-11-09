@@ -91,10 +91,6 @@ class Exportable implements \JsonSerializable
         $isSequential = isset($items[0]);
 
         foreach ($items as $key => $item) {
-            if (!$item) {
-                continue;
-            }
-
             if (!is_object($item)) {
                 if (is_array($item)) {
                     $item = $this->export($item);
