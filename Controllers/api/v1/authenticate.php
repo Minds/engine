@@ -20,6 +20,7 @@ use Minds\Exceptions\TwoFactorRequired;
 use Minds\Core\Queue;
 use Minds\Core\Subscriptions;
 use Minds\Core\Analytics;
+use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -153,6 +154,10 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
     public function delete($pages)
     {
+        if (!Session::isLoggedin()) {
+            throw new UnauthorizedException();
+        }
+
         /** @var Core\Sessions\Manager $sessions */
         $sessions = Di::_()->get('Sessions\Manager');
 
