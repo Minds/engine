@@ -2148,6 +2148,11 @@ class SKALEContractsRinkeby
                 [
                   0 =>
                   [
+                    'type' => 'address',
+                    'name' => 'user',
+                  ],
+                  1 =>
+                  [
                     'type' => 'string',
                     'name' => 'schainName',
                   ],
@@ -2464,6 +2469,11 @@ class SKALEContractsRinkeby
                     'type' => 'string',
                     'name' => 'schainName',
                   ],
+                  1 =>
+                  [
+                      'type' => 'address',
+                      'name' => 'user',
+                  ]
                 ],
                 'outputs' =>
                 [
