@@ -27,12 +27,12 @@ class Manager
         try {
             $response = $this->iframely->request('GET', '?' . $queryParamString);
             $meta = json_decode($response->getBody()->getContents(), true);
-            $meta['meta']['description'] = html_entity_decode($meta['meta']['description'], ENT_QUOTES); //Decode HTML entities.    
+            $meta['meta']['description'] = html_entity_decode($meta['meta']['description'], ENT_QUOTES); //Decode HTML entities.
 
             if (isset($meta['status']) && $meta['status'] !== 200) {
                 throw new \Exception();
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             throw new ServerErrorException('Unable to fetch data for given URL');
         }
 
