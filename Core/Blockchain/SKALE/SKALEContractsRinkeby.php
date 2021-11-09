@@ -3725,11 +3725,6 @@ class SKALEContractsRinkeby
                   ],
                   2 =>
                   [
-                    'type' => 'address',
-                    'name' => 'to',
-                  ],
-                  3 =>
-                  [
                     'type' => 'uint256',
                     'name' => 'amount',
                   ],
