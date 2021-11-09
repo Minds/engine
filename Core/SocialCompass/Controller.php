@@ -3,10 +3,12 @@
 namespace Minds\Core\SocialCompass;
 
 use Cassandra\Bigint;
+use Minds\Core\Di\Di;
 use Minds\Core\SocialCompass\Entities\AnswerModel;
 use Minds\Core\SocialCompass\ResponseBuilders\GetQuestionsResponseBuilder;
 use Minds\Core\SocialCompass\ResponseBuilders\StoreAnswersResponseBuilder;
 use Minds\Core\SocialCompass\ResponseBuilders\UpdateAnswersResponseBuilder;
+use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
@@ -16,10 +18,15 @@ use Zend\Diactoros\Response\JsonResponse;
  */
 class Controller
 {
+    private ?User $loggedInUser;
+
     public function __construct(
         private ?ManagerInterface $manager = null
     ) {
         $this->manager = $this->manager ?? new Manager();
+
+        $activeSession = Di::_()->get("Sessions\ActiveSession");
+        $this->loggedInUser = $activeSession->getUser();
     }
 
     /**
@@ -70,7 +77,7 @@ class Controller
         $answers = [];
         foreach ($requestBody["social-compass-answers"] as $questionId => $answerValue) {
             $answers[] = new AnswerModel(
-                new Bigint(),
+                new Bigint($this->loggedInUser?->getGuid()),
                 $questionId,
                 $answerValue
             );
