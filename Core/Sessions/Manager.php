@@ -275,7 +275,7 @@ class Manager
 
         $this->cookie
             ->setName('minds_sess')
-            ->setValue($this->session->getToken())
+            ->setValue((string) $this->session->getToken())
             ->setExpire($this->session->getExpires())
             ->setSecure(true) //only via ssl
             ->setHttpOnly(true) //never by browser
