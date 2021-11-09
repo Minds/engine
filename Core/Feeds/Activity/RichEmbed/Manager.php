@@ -24,17 +24,14 @@ class Manager
             'url' => $url,
         ]);
 
-        try {
-            $response = $this->iframely->request('GET', '?' . $queryParamString);
-            $meta = json_decode($response->getBody()->getContents(), true);
-            $meta['meta']['description'] = html_entity_decode($meta['meta']['description'], ENT_QUOTES); //Decode HTML entities.
+        $response = $this->iframely->request('GET', '?' . $queryParamString);
+        $meta = json_decode($response->getBody()->getContents(), true);
 
-            if (isset($meta['status']) && $meta['status'] !== 200) {
-                throw new \Exception();
-            }
-        } catch (\Exception $e) {
+        if (isset($meta['status']) && $meta['status'] !== 200) {
             throw new ServerErrorException('Unable to fetch data for given URL');
         }
+
+        $meta['meta']['description'] = html_entity_decode($meta['meta']['description'], ENT_QUOTES); //Decode HTML entities.
 
         return $meta;
     }
