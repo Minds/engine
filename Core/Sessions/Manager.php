@@ -15,6 +15,7 @@ use Lcobucci\JWT;
 use Lcobucci\JWT\Signer\InvalidKeyProvided;
 use Lcobucci\JWT\Signer\Key\LocalFileReference;
 use Lcobucci\JWT\Signer\Rsa\Sha512;
+use Lcobucci\JWT\Token\Plain;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
 use Minds\Common\Repository\Response;
 use Minds\Entities\User;
@@ -273,9 +274,15 @@ class Manager
     {
         $this->repository->add($this->session);
 
+        $token = $this->session->getToken();
+
+        if ($token instanceof Plain) {
+            $token = $token->toString();
+        }
+
         $this->cookie
             ->setName('minds_sess')
-            ->setValue((string) $this->session->getToken())
+            ->setValue($token)
             ->setExpire($this->session->getExpires())
             ->setSecure(true) //only via ssl
             ->setHttpOnly(true) //never by browser
