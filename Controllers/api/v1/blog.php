@@ -439,8 +439,12 @@ class blog implements Interfaces\Api
      * @param User $user
      * @return bool
      */
-    private function checkBalance(User $user): bool
+    private function checkBalance(?User $user): bool
     {
+        if (!$user) {
+            return false;
+        }
+
         return Di::_()->get('Blockchain\Wallets\Balance')
             ->setUser($user)
             ->count() !== 0;
