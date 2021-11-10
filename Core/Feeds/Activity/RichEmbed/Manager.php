@@ -28,13 +28,13 @@ class Manager
             $response = $this->iframely->request('GET', '?' . $queryParamString);
             $meta = json_decode($response->getBody()->getContents(), true);
         } catch (ClientException $e) {
-            throw new ServerErrorException('Failed to communicate with iframe provider');
+            throw new ServerErrorException('Failed to communicate with iframe provider', $e->getCode() ?? 500);
         } catch (\Exception $e) {
-            throw new ServerErrorException('An unknown error occurred with iframe provider');
+            throw new ServerErrorException('An unknown error occurred with iframe provider', $e->getCode() ?? 500);
         }
 
         if (isset($meta['status']) && $meta['status'] !== 200) {
-            throw new ServerErrorException('Unable to fetch data for given URL');
+            throw new ServerErrorException('Unable to fetch data for given URL', $meta['status']);
         }
 
         $meta['meta']['description'] = html_entity_decode($meta['meta']['description'], ENT_QUOTES); //Decode HTML entities.
