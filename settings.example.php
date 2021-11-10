@@ -518,6 +518,9 @@ $CONFIG->set('steward_guid', '');
 $CONFIG->set('steward_autoconfirm', false);
 $CONFIG->set('development_mode', '{{development_mode}}');
 
+// load discovery content irrespective of activity levels.
+$CONFIG->set('discovery_development_mode', true);
+
 $CONFIG->set('max_video_length', 900);
 
 $CONFIG->set('max_video_length_plus', 1860);
@@ -542,6 +545,7 @@ $CONFIG->set('features', [
     'activity-modal' => false,
     'withdrawal-console' => true,
     'helpdesk-2021' => true,
+    'discovery-default-tags' => true,
 ]);
 
 $CONFIG->set('email', [
