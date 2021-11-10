@@ -97,7 +97,7 @@ class Controller
     {
         $validator = new AnswersCollectionValidator($answers);
         $validator->validate();
-        if ($validator->errors()?->count()) {
+        if ($validator->errors()?->count() > 0) {
             throw new UserErrorException("There were some errors found when validating the answers provided", 0, $validator->errors());
         }
     }

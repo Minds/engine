@@ -10,7 +10,7 @@ use Minds\Entities\ValidationErrorCollection;
  */
 class AnswersCollectionValidator implements CollectionValidatorInterface
 {
-    private ValidationErrorCollection $errors;
+    private ?ValidationErrorCollection $errors;
 
     /**
      * @param AnswerModel[] $answers
@@ -32,7 +32,7 @@ class AnswersCollectionValidator implements CollectionValidatorInterface
 
         $this->errors = $errors->count() ? $errors : null;
 
-        return $this->errors->count();
+        return !$this->errors?->count();
     }
 
     public function errors(): ?ValidationErrorCollection
