@@ -13,6 +13,7 @@ use Minds\Core\Feeds\TwitterSync\ConnectedAccount;
 use Minds\Core\Feeds\TwitterSync\Delegates\ChannelLinksDelegate;
 use Minds\Core\Feeds\TwitterSync\Repository;
 use Minds\Core\Feeds\TwitterSync\TwitterUser;
+use Minds\Core\Log\Logger;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -33,9 +34,10 @@ class ManagerSpec extends ObjectBehavior
         EntitiesBuilder $entitiesBuilder,
         Save $save,
         RichEmbed\Manager $richEmbedManager,
-        ChannelLinksDelegate $channelLinksDelegate
+        ChannelLinksDelegate $channelLinksDelegate,
+        Logger $logger
     ) {
-        $this->beConstructedWith($client, $repository, $config, $entitiesBuilder, $save, $richEmbedManager, $channelLinksDelegate);
+        $this->beConstructedWith($client, $repository, $config, $entitiesBuilder, $save, $richEmbedManager, $channelLinksDelegate, $logger);
         $this->client = $client;
         $this->repository = $repository;
         $this->entitiesBuilder = $entitiesBuilder;
@@ -61,6 +63,8 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($twitterUser);
         $connectedAccount->getLastImportedTweetId()
             ->willReturn('456');
+        $connectedAccount->getLastSyncUnixTs()
+            ->willReturn(time());
         $connectedAccount->getUserGuid()
             ->willReturn('123');
         //
@@ -125,6 +129,9 @@ class ManagerSpec extends ObjectBehavior
         //
 
         $connectedAccount->setLastImportedTweetId('789')
+            ->shouldBeCalled();
+
+        $connectedAccount->setLastSyncUnixTs(time())
             ->shouldBeCalled();
 
         $this->repository->add($connectedAccount)

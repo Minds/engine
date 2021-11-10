@@ -4,6 +4,7 @@
 namespace Minds\Controllers\api\v2\admin\analytics;
 
 use Minds\Core\Analytics\Manager;
+use Minds\Core\Wire\Manager as WireManager;
 use Minds\Entities\User;
 use Minds\Interfaces;
 use Minds\Api\Factory;
@@ -37,12 +38,14 @@ class leaderboard implements Interfaces\Api, Interfaces\ApiAdminPam
         $from = $_GET['from'] * 1000 ?: strtotime('1 week ago') * 1000;
         $to = $_GET['to'] * 1000 ?: time() * 1000;
 
-        $manager = new Manager();
-        $manager->setFrom($from)
+
+        if ($metric !== 'offchain') {
+            $manager = new Manager();
+            $manager->setFrom($from)
             ->setTo($to)
             ->setMetric($metric);
 
-        switch ($type) {
+            switch ($type) {
             case 'actors':
                 $manager->setTerm('user_guid')
                     ->useUniques(false);
@@ -58,7 +61,12 @@ class leaderboard implements Interfaces\Api, Interfaces\ApiAdminPam
                 }
                 break;
         }
-        $result = $manager->getTopCounts();
+            $result = $manager->getTopCounts();
+        } else {
+            // Offchain
+            $manager = new WireManager();
+            $result = $manager->getOffchainLeaderboard($from, $to, $type);
+        }
 
         $counts[$type] = array_map(function ($item) {
             $item['user'] = (new User($item['user_guid']))->export();

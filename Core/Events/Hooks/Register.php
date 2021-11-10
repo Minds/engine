@@ -7,15 +7,20 @@ use Minds\Core\Referrals\Referral;
 use Minds\Entities;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Di\Di;
+use Minds\Core\Experiments\Cookie\Manager as ExperimentsCookie;
 
 class Register
 {
     /** @var Logger */
     protected $logger;
 
-    public function __construct($logger = null)
+    /** @var ExperimentsCookie */
+    protected $experimentsCookie;
+
+    public function __construct($logger = null, $experimentsCookie = null)
     {
         $this->logger = $logger ?? Di::_()->get('Logger');
+        $this->experimentsCookie = $experimentsCookie ?? Di::_()->get('Experiments\Cookie\Manager');
     }
 
     public function init()
@@ -115,6 +120,9 @@ class Register
                 }
 
                 $event->push();
+
+                // delete experiments cookie as it will contain a logged-out placeholder guid.
+                $this->experimentsCookie->delete();
             } catch (\Exception $e) {
                 error_log((string) $e);
             }

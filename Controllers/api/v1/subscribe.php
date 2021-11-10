@@ -59,11 +59,11 @@ class subscribe implements Interfaces\Api
         }
         $pagingToken = (string) $users->getPagingToken();
         
-        $users = array_filter(Factory::exportable($users->toArray()), function ($user) {
-            return ($user->enabled != 'no' && $user->banned != 'yes');
+        $users = array_filter($users->toArray(), function ($user) {
+            return ($user->enabled != 'no' && $user->banned != 'yes' && $user->getUsername());
         });
 
-        $response['users'] = $users;
+        $response['users'] = array_values(Factory::exportable($users));
         $response['load-next'] = $pagingToken;
 
         return Factory::response($response);

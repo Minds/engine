@@ -9,6 +9,7 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\TwitterSync\Delegates\ChannelLinksDelegate;
 use Minds\Core\Feeds\Activity\RichEmbed;
+use Minds\Core\Log\Logger;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
@@ -25,6 +26,7 @@ class Manager
         protected Save $saveAction,
         protected RichEmbed\Manager $richEmbedManager,
         protected ChannelLinksDelegate $channelLinksDelegate,
+        protected Logger $logger
     ) {
     }
 
@@ -131,9 +133,9 @@ class Manager
             ]),
         ];
 
-        if ($lastImpotedTweetId = $connectedAccount->getLastImportedTweetId()) {
-            $queryParams['since_id'] = $lastImpotedTweetId;
-        }
+        // if ($lastImpotedTweetId = $connectedAccount->getLastImportedTweetId()) {
+        //     $queryParams['since_id'] = $lastImpotedTweetId;
+        // }
 
         if ($gteTimestamp) {
             $queryParams['start_time'] = date('c', $gteTimestamp);
@@ -146,6 +148,8 @@ class Manager
         if (!isset($json['data'])) {
             return null;
         }
+
+        $this->logger->info("[TwitterSync][getLatestTweets()]: {$connectedAccount->getTwitterUser()->getUserId()} returned " . count($json['data']));
 
         foreach ($json['data'] as $tweetData) {
             if (isset($tweetData['referenced_tweets'])) {
@@ -185,7 +189,7 @@ class Manager
             }
 
             $i = 0;
-            $recentTweets = $this->getLatestTweets($connectedAccount);
+            $recentTweets = $this->getLatestTweets($connectedAccount, gteTimestamp: $connectedAccount->getLastSyncUnixTs() ?: time());
             foreach ($recentTweets as $recentTweet) {
                 $owner = $this->entitiesBuilder->single($connectedAccount->getUserGuid());
                 if (!$owner) {
@@ -221,9 +225,11 @@ class Manager
                 // Update our last imported tweet, but only the first one
                 if (++$i === 1) {
                     $connectedAccount->setLastImportedTweetId($recentTweet->getId());
-                    $this->updateAccount($connectedAccount);
                 }
             }
+
+            $connectedAccount->setLastSyncUnixTs(time());
+            $this->updateAccount($connectedAccount);
 
             yield $connectedAccount;
         }

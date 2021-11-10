@@ -14,5 +14,9 @@ class Provider extends DiProvider
         $this->di->bind('Experiments\Manager', function ($di) {
             return new Manager;
         });
+
+        $this->di->bind('Experiments\Cookie\Manager', function ($di) {
+            return new Cookie\Manager;
+        });
     }
 }
