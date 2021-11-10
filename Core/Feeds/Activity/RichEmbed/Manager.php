@@ -1,13 +1,20 @@
 <?php
 namespace Minds\Core\Feeds\Activity\RichEmbed;
 
+use GuzzleHttp\Exception\ClientException;
+use Minds\Core\Di\Di;
 use Minds\Core\Config\Config;
+use Minds\Core\Log\Logger;
 use Minds\Exceptions\ServerErrorException;
 
 class Manager
 {
-    public function __construct(private Iframely $iframely, private Config $config)
-    {
+    public function __construct(
+        private Iframely $iframely,
+        private Config $config,
+        private ?Logger $logger = null,
+    ) {
+        $this->logger = $this->logger ?? Di::_()->get('Logger');
     }
 
     /**
@@ -23,10 +30,14 @@ class Manager
             'api_key' => $iframelyConfig['key'],
             'url' => $url,
         ]);
-
-        $response = $this->iframely->request('GET', '?' . $queryParamString);
-
-        $meta = json_decode($response->getBody()->getContents(), true);
+        try {
+            $response = $this->iframely->request('GET', '?' . $queryParamString);
+            $meta = json_decode($response->getBody()->getContents(), true);
+        } catch (ClientException $e) {
+            throw new ServerErrorException('Failed to communicate with iframe provider');
+        } catch (\Exception $e) {
+            throw new ServerErrorException('An unknown error occurred with iframe provider');
+        }
 
         if (isset($meta['status']) && $meta['status'] !== 200) {
             throw new ServerErrorException('Unable to fetch data for given URL');
