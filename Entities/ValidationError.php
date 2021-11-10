@@ -2,6 +2,8 @@
 
 namespace Minds\Entities;
 
+use Minds\Traits\MagicAttributes;
+
 /**
  * @method string getField()
  * @method self setField(string $field)
@@ -11,6 +13,8 @@ namespace Minds\Entities;
  */
 class ValidationError implements ExportableInterface
 {
+    use MagicAttributes;
+
     public function __construct(
         private string $field = "",
         private string $message = ""

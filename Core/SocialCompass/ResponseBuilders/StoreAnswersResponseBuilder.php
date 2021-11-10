@@ -2,6 +2,7 @@
 
 namespace Minds\Core\SocialCompass\ResponseBuilders;
 
+use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 
@@ -13,7 +14,7 @@ class StoreAnswersResponseBuilder implements AnswersResponseBuilderInterface
     public function buildResponse(bool $wereAnswersStored): JsonResponse
     {
         if (!$wereAnswersStored) {
-            throw new UserErrorException("it was not possible to store the Social Compass answers");
+            throw new ServerErrorException("it was not possible to store the Social Compass answers");
         }
 
         return new JsonResponse([

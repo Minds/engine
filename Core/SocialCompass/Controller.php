@@ -8,7 +8,9 @@ use Minds\Core\SocialCompass\Entities\AnswerModel;
 use Minds\Core\SocialCompass\ResponseBuilders\GetQuestionsResponseBuilder;
 use Minds\Core\SocialCompass\ResponseBuilders\StoreAnswersResponseBuilder;
 use Minds\Core\SocialCompass\ResponseBuilders\UpdateAnswersResponseBuilder;
+use Minds\Core\SocialCompass\Validators\AnswersCollectionValidator;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
@@ -48,11 +50,13 @@ class Controller
      * have been stored correctly, returns a Bad Request response otherwise.
      * @param ServerRequestInterface $request
      * @return JsonResponse
-     * @throws UserErrorException
+     * @throws UserErrorException|ServerErrorException
      */
     public function storeAnswers(ServerRequestInterface $request): JsonResponse
     {
         $answers = $this->getAnswersArrayFromRequestBody($request);
+
+        $this->validateAnswers($answers);
 
         $responseBuilder = new StoreAnswersResponseBuilder();
 
@@ -87,15 +91,29 @@ class Controller
     }
 
     /**
+     * @throws UserErrorException
+     */
+    private function validateAnswers(array $answers): void
+    {
+        $validator = new AnswersCollectionValidator($answers);
+        $validator->validate();
+        if ($validator->errors()?->count()) {
+            throw new UserErrorException("There were some errors found when validating the answers provided", 0, $validator->errors());
+        }
+    }
+
+    /**
      * Returns a successful response if the answers to the Social Compass questions
      * have been updated correctly, returns a Bad Request response otherwise.
      * @param ServerRequestInterface $request
      * @return JsonResponse
-     * @throws UserErrorException
+     * @throws UserErrorException|ServerErrorException
      */
     public function updateAnswers(ServerRequestInterface $request): JsonResponse
     {
         $answers = $this->getAnswersArrayFromRequestBody($request);
+
+        $this->validateAnswers($answers);
 
         $responseBuilder = new UpdateAnswersResponseBuilder();
 

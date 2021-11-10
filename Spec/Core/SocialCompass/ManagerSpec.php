@@ -34,7 +34,7 @@ class ManagerSpec extends ObjectBehavior
         $repository
             ->getAnswers(Argument::any())
             ->shouldBeCalled()
-            ->willReturn(null);
+            ->willReturn([]);
 
         $this->beConstructedWith($repository, $targetUserMock);
 

@@ -7,6 +7,7 @@
 namespace Minds\Core\Router\Middleware\Kernel;
 
 use Exception;
+use Minds\Api\Exportable;
 use Minds\Core\Di\Di;
 use Minds\Core\Config;
 use Minds\Core\Log\Logger;
@@ -74,6 +75,9 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
         } catch (UserErrorException $e) {
             $message = $e->getMessage();
             $status = ((int) $e->getCode()) ?: 400;
+            $data = [
+                "errors" => Exportable::_($e->getErrors())
+            ];
         } catch (ServerErrorException $e) {
             $message = $e->getMessage();
             $status = ((int) $e->getCode()) ?: 500;

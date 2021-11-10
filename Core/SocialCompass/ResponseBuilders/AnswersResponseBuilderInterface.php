@@ -2,6 +2,7 @@
 
 namespace Minds\Core\SocialCompass\ResponseBuilders;
 
+use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 
@@ -16,7 +17,7 @@ interface AnswersResponseBuilderInterface
      * Throws a UserErrorException if at least one question was not stored successfully.
      * @param bool $wereAnswersStored
      * @return JsonResponse
-     * @throws UserErrorException
+     * @throws ServerErrorException
      */
     public function buildResponse(bool $wereAnswersStored): JsonResponse;
 
