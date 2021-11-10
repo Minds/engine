@@ -28,9 +28,9 @@ class Manager
             $response = $this->iframely->request('GET', '?' . $queryParamString);
             $meta = json_decode($response->getBody()->getContents(), true);
         } catch (ClientException $e) {
-            throw new ServerErrorException('Failed to communicate with iframe provider', $e->getCode() ?? 500);
+            throw new ServerErrorException('Failed to communicate with iframe provider', $e->getCode());
         } catch (\Exception $e) {
-            throw new ServerErrorException('An unknown error occurred with iframe provider', $e->getCode() ?? 500);
+            throw new ServerErrorException('An unknown error occurred with iframe provider', $e->getCode());
         }
 
         if (isset($meta['status']) && $meta['status'] !== 200) {
