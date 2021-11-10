@@ -134,6 +134,9 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         Di::_()->get('Features\Canary')
             ->setCookie($user->isCanary());
 
+        // delete experiments cookie as it will contain a logged-out placeholder guid.
+        Di::_()->get('Experiments\Cookie\Manager')->delete();
+
         // Record login events
         $event = new Analytics\Metrics\Event();
         $event->setUserGuid($user->getGuid())

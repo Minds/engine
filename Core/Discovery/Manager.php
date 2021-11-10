@@ -48,6 +48,9 @@ class Manager
     /** @var ACL */
     protected $acl;
 
+    /** @var Features */
+    protected $features;
+
     public function __construct(
         $es = null,
         $entitiesBuilder = null,
@@ -55,7 +58,8 @@ class Manager
         $hashtagManager = null,
         $elasticFeedsManager = null,
         $user = null,
-        $acl = null
+        $acl = null,
+        $features = null
     ) {
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
@@ -65,6 +69,7 @@ class Manager
         $this->user = $user ?? Session::getLoggedInUser();
         $this->plusSupportTierUrn = $this->config->get('plus')['support_tier_urn'] ?? null;
         $this->acl = $acl ?? Di::_()->get('Security\ACL');
+        $this->features = $features ?: Di::_()->get('Features\Manager');
     }
 
     /**
@@ -96,7 +101,11 @@ class Manager
         if ($opts['tag_cloud_override']) {
             $this->tagCloud = $opts['tag_cloud_override'];
         } elseif (empty($this->tagCloud) && $opts['plus'] === false) {
-            throw new NoTagsException();
+            if (!$this->features->has('discovery-default-tags')) {
+                throw new NoTagsException();
+            }
+            // fallback to defaults.
+            $this->tagCloud = $this->config->get('tags') ?? [];
         }
 
         $tagTrends12 = $this->getTagTrendsForPeriod(12, [], [
@@ -289,49 +298,57 @@ class Manager
 
         $must = [];
         $must_not = [];
+        $functions = [];
 
-        // Date Range
+        /**
+         * Discovery development mode will significantly alter the discovery algorithm
+         * so that it does not factor in time, weights on comments and votes etc, allowing for
+         * development around the UI.
+         */
+        if (!$this->config->get('discovery_development_mode')) {
+            // Date Range
 
-        $must[] = [
-            'range' => [
-                '@timestamp' => [
-                    'gte' => strtotime("{$opts['hoursAgo']} hours ago") * 1000,
-                ]
-            ],
-        ];
-
-        // Have interaction
-
-        if ($opts['plus'] === false) {
             $must[] = [
                 'range' => [
-                    'comments:count' => [
-                        'gte' => 1,
+                    '@timestamp' => [
+                        'gte' => strtotime("{$opts['hoursAgo']} hours ago") * 1000,
                     ]
-                ]
-            ];
-        } else {
-            $must[] = [
-                'range' => [
-                    'votes:up' => [
-                        'gte' => 2,
-                    ]
-                ]
-            ];
-        }
-
-        // Match query
-
-        if ($opts['plus'] === false) {
-            $must[] = [
-                'multi_match' => [
-                    //'type' => 'cross_fields',
-                    'query' => implode(' ', $tags),
-                    'operator' => 'OR',
-                    'fields' => ['title', 'message', 'tags^2'],
-                    'boost' => 0,
                 ],
             ];
+
+            // Have interaction
+
+            if ($opts['plus'] === false) {
+                $must[] = [
+                    'range' => [
+                        'comments:count' => [
+                            'gte' => 1,
+                        ]
+                    ]
+                ];
+            } else {
+                $must[] = [
+                    'range' => [
+                        'votes:up' => [
+                            'gte' => 2,
+                        ]
+                    ]
+                ];
+            }
+    
+            // Match query
+
+            if ($opts['plus'] === false) {
+                $must[] = [
+                    'multi_match' => [
+                        //'type' => 'cross_fields',
+                        'query' => implode(' ', $tags),
+                        'operator' => 'OR',
+                        'fields' => ['title', 'message', 'tags^2'],
+                        'boost' => 0,
+                    ],
+                ];
+            }
         }
 
         // Only plus?
@@ -358,69 +375,69 @@ class Manager
             ]
         ];
 
-        // Scoring functions
+        if (!$this->config->get('discovery_development_mode')) {
+            // Scoring functions
 
-        $functions = [];
-
-        $functions[] = [
-            'filter' => [
-                'multi_match' => [
-                    'query' => implode(' ', $this->tagCloud),
-                    'operator' => 'OR',
-                    'fields' => ['title', 'message', 'tags'],
-                    'boost' => 0,
+            $functions[] = [
+                'filter' => [
+                    'multi_match' => [
+                        'query' => implode(' ', $this->tagCloud),
+                        'operator' => 'OR',
+                        'fields' => ['title', 'message', 'tags'],
+                        'boost' => 0,
+                    ],
                 ],
-            ],
-            'weight' => 2,
-        ];
+                'weight' => 2,
+            ];
 
-        $functions[] = [
-            'filter' => [
-                'terms' => [
-                    'subtype' => [ 'video', 'blog' ],
-                ]
-            ],
-            'weight' => 10, // videos and blogs are worth 10x
-        ];
-
-        if ($this->user && $opts['plus'] !== true) {
             $functions[] = [
                 'filter' => [
                     'terms' => [
-                        'language' => [ $this->user->getLanguage() ],
+                        'subtype' => [ 'video', 'blog' ],
                     ]
                 ],
-                'weight' => 50, // Multiply your own language by 50x
+                'weight' => 10, // videos and blogs are worth 10x
             ];
-        } elseif ($opts['plus'] === true) {
-            $must[] = [
-                'terms' => [
-                    'language' => $languages,
+
+            if ($this->user && $opts['plus'] !== true) {
+                $functions[] = [
+                    'filter' => [
+                        'terms' => [
+                            'language' => [ $this->user->getLanguage() ],
+                        ]
+                    ],
+                    'weight' => 50, // Multiply your own language by 50x
+                ];
+            } elseif ($opts['plus'] === true) {
+                $must[] = [
+                    'terms' => [
+                        'language' => $languages,
+                    ],
+                ];
+            }
+
+            $functions[] = [
+                'field_value_factor' => [
+                    'field' => 'comments:count',
+                    'factor' => 10,
+                    'modifier' => 'sqrt',
+                    'missing' => 0,
                 ],
+            ];
+
+            $functions[] = [
+                'gauss' => [
+                    '@timestamp' => [
+                        'offset' => '6h', // Do not decay until we reach this bound
+                        //'offset' => $opts['hoursAgo'] . 'h',
+                        'scale' => '24h', // Peak decay will be here
+                        //'scale' => '12h',
+                        //'decay' => rand(1, 9) / 10
+                    ],
+                ],
+                'weight' => 10,
             ];
         }
-
-        $functions[] = [
-            'field_value_factor' => [
-                'field' => 'comments:count',
-                'factor' => 10,
-                'modifier' => 'sqrt',
-                'missing' => 0,
-            ],
-        ];
-
-        $functions[] = [
-            'gauss' => [
-                '@timestamp' => [
-                    'offset' => '6h', // Do not decay until we reach this bound
-                    //'offset' => $opts['hoursAgo'] . 'h',
-                    'scale' => '24h', // Peak decay will be here
-                    //'scale' => '12h',
-                    //'decay' => rand(1, 9) / 10
-                ],
-            ],
-            'weight' => 10,
-        ];
 
         $index = array_map(function ($type) {
             return $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-' . $type;
