@@ -71,6 +71,9 @@ class WebhooksSpec extends ObjectBehavior
                 'input' => [
                     'width' => 1280,
                     'height' => 1960
+                ],
+                'status' => [
+                    'state' => 'ready',
                 ]
             ]);
 

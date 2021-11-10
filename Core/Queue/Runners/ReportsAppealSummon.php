@@ -33,7 +33,7 @@ class ReportsAppealSummon implements QueueRunner
                 $params = $data->getData();
 
                 /** @var Appeal $appeal */
-                $appeal = $params['appeal'] ? unserialize($params['appeal']) : null;
+                $appeal = is_string($params['appeal']) ? unserialize($params['appeal']) : null;
 
                 /** @var string[] $cohort */
                 $cohort = $params['cohort'] ?? null;
