@@ -12,6 +12,7 @@ use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
 use Minds\Core\Media\Video\Source;
+use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 
 class Manager
 {
@@ -56,6 +57,8 @@ class Manager
 
         $uid = $json['result']['uid'];
         $video->setCloudflareId($uid);
+        // set the status to transcoding after the request was successfully sent
+        $video->setTranscodingStatus(TranscodeStates::TRANSCODING);
     }
 
     /**
@@ -89,6 +92,32 @@ class Manager
 
         return "https://videodelivery.net/$signedToken/thumbnails/thumbnail.jpg?width=1280";
     }
+
+    /**
+     * Returns the video transcode status
+     * @return TranscodeStatus status
+     */
+    public function getVideoTranscodeStatus(Video $video): object
+    {
+        $videoDetails = $this->getVideo($video);
+        $status = new TranscodeStatus();
+        $status->setPct($videoDetails["status"]["pct"]);
+
+        // TODO: figure out what other statuses exist and handle them
+        switch ($videoDetails["status"]["state"]) {
+            case "inprogress":
+                $status->setState(TranscodeStates::TRANSCODING);
+                break;
+            case "ready":
+                $status->setState(TranscodeStates::COMPLETED);
+                break;
+            default: // failed
+                $status->setState(TranscodeStates::FAILED);
+                break;
+        }
+        return $status;
+    }
+
 
     /**
      * @param string $videoId
@@ -142,5 +171,20 @@ class Manager
         $this->cache->set('cloudflare_signing_key', serialize($signingKey));
 
         return $signingKey;
+    }
+
+    /**
+     * Returns the video details
+     * @throws \Exception
+     * @return array videoDetails from cloudflare
+     */
+    private function getVideo(Video $video): array
+    {
+        if (!$video->getCloudflareId()) {
+            throw new \Exception('Cloudflare ID not found', 404);
+        }
+
+        $response = $this->client->request('GET', 'stream/' . $video->getCloudflareId());
+        return json_decode($response->getBody(), true)["result"];
     }
 }
