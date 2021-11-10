@@ -131,14 +131,18 @@ class Manager
 
         // Pick up to missing size
 
-        $cohort = $this->cohort->pick([
-            'size' => $poolSize * 500, // 500 users
-            'for' => $appeal->getOwnerGuid(),
-            'except' => $alreadyInvolvedGuids,
-            'except_hashes' => $alreadyInvolvedPhoneHashes,
-            'include_only' => $opts['include_only'],
-            'active_threshold' => $opts['active_threshold'],
-        ]);
+        if (isset($opts['include_only'])) {
+            $cohort = $opts['include_only'];
+        } else {
+            $cohort = $this->cohort->pick([
+                'size' => $poolSize * 500, // 500 users
+                'for' => $appeal->getOwnerGuid(),
+                'except' => $alreadyInvolvedGuids,
+                'except_hashes' => $alreadyInvolvedPhoneHashes,
+                'include_only' => $opts['include_only'],
+                'active_threshold' => $opts['active_threshold'],
+            ]);
+        }
 
         // Build Summonses
 
