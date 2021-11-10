@@ -2,19 +2,13 @@
 namespace Minds\Core\Feeds\Activity\RichEmbed;
 
 use GuzzleHttp\Exception\ClientException;
-use Minds\Core\Di\Di;
 use Minds\Core\Config\Config;
-use Minds\Core\Log\Logger;
 use Minds\Exceptions\ServerErrorException;
 
 class Manager
 {
-    public function __construct(
-        private Iframely $iframely,
-        private Config $config,
-        private ?Logger $logger = null,
-    ) {
-        $this->logger = $this->logger ?? Di::_()->get('Logger');
+    public function __construct(private Iframely $iframely, private Config $config)
+    {
     }
 
     /**
