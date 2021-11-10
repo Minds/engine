@@ -5,6 +5,7 @@ namespace Minds\Controllers\Cli;
 use Minds\Cli;
 use Minds\Core\Di\Di;
 use Minds\Interfaces;
+use Minds\Core\Media\Video\CloudflareStreams\Webhooks;
 
 class Cloudflare extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -22,6 +23,7 @@ class Cloudflare extends Cli\Controller implements Interfaces\CliControllerInter
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
 
+        /** @var Webhooks */
         $cloudflareStreamsWebhooks = Di::_()->get('Media\Video\CloudflareStreams\Webhooks');
 
         $secret = $cloudflareStreamsWebhooks->registerWebhook();

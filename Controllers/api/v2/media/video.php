@@ -9,6 +9,7 @@ namespace Minds\Controllers\api\v2\media;
 
 use Minds\Api\Factory;
 use Minds\Core\Di\Di;
+use Minds\Core\Media\Video\Manager;
 use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Interfaces;
 
@@ -21,7 +22,9 @@ class video implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function get($pages)
     {
+        /** @var Manager */
         $videoManager = Di::_()->get('Media\Video\Manager');
+        /** @var TranscodeStates */
         $transcodeStates = Di::_()->get('Media\Video\Transcoder\TranscodeStates');
 
         $video = $videoManager->get($pages[0]);
@@ -36,6 +39,7 @@ class video implements Interfaces\Api, Interfaces\ApiIgnorePam
         $sources = $videoManager->getSources($video);
         $status = $transcodeStates->getStatus($video); // Currently not efficient as no caching
 
+        // if we had at least one transcode just return completed, even if some transcodes fail
         if ($status === TranscodeStates::FAILED && count($sources)) {
             $status = TranscodeStates::COMPLETED;
         }
