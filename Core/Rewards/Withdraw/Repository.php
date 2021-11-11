@@ -159,7 +159,7 @@ class Repository
      */
     public function add(Request $request)
     {
-        $cql = "INSERT INTO withdrawals (user_guid, timestamp, tx, address, amount, completed, completed_tx, gas, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $cql = "INSERT INTO rewards_withdrawals (user_guid, timestamp, tx, address, amount, completed, completed_tx, gas, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $values = [
             new Bigint($request->getUserGuid()),
             new Timestamp($request->getTimestamp(), 0),
