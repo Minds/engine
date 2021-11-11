@@ -3,8 +3,9 @@
 
 namespace Minds\Core\Rewards\Withdraw;
 
-use Cassandra\Varint;
+use Cassandra\Bigint;
 use Cassandra\Timestamp;
+use Cassandra\Varint;
 use Exception;
 use Minds\Common\Urn;
 use Minds\Core\Data\Cassandra\Client;
@@ -17,13 +18,17 @@ class Repository
     /** @var Client */
     protected $db;
 
+    /** @var Logger */
+    protected $logger;
+
     /**
      * Repository constructor.
      * @param Client $db
      */
-    public function __construct($db = null)
+    public function __construct($db = null, $logger = null)
     {
         $this->db = $db ? $db : Di::_()->get('Database\Cassandra\Cql');
+        $this->logger = $logger ? $logger : Di::_()->get('Logger');
     }
 
     /**
@@ -43,19 +48,19 @@ class Repository
             'offset' => null,
         ], $opts);
 
-        $cql = "SELECT * from withdrawals";
+        $cql = "SELECT * from rewards_withdrawals";
         $where = [];
         $values = [];
 
         if ($opts['status']) {
-            $cql = "SELECT * from withdrawals_by_status";
+            $cql = "SELECT * from rewards_withdrawals_by_status";
             $where[] = 'status = ?';
             $values[] = (string) $opts['status'];
         }
 
         if ($opts['user_guid']) {
             $where[] = 'user_guid = ?';
-            $values[] = new Varint($opts['user_guid']);
+            $values[] = new Bigint($opts['user_guid']);
         }
 
         if ($opts['timestamp']) {
@@ -100,17 +105,21 @@ class Repository
             $requests = [];
             foreach ($rows ?: [] as $row) {
                 $request = new Request();
-                $request
-                    ->setUserGuid((string) $row['user_guid']->value())
-                    ->setTimestamp($row['timestamp']->time())
-                    ->setTx($row['tx'])
-                    ->setAddress($row['address'] ?: '')
-                    ->setAmount((string) BigNumber::_($row['amount']))
-                    ->setCompleted((bool) $row['completed'])
-                    ->setCompletedTx($row['completed_tx'] ?: null)
-                    ->setGas((string) BigNumber::_($row['gas']))
-                    ->setStatus($row['status'] ?: '')
-                ;
+
+                try {
+                    $request->setUserGuid((string) $row['user_guid']->value())
+                        ->setTimestamp($row['timestamp']->time())
+                        ->setTx($row['tx'])
+                        ->setAddress($row['address'] ?: '')
+                        ->setAmount((string) BigNumber::_($row['amount'] ?? 0))
+                        ->setCompleted((bool) $row['completed'])
+                        ->setCompletedTx($row['completed_tx'] ?: null)
+                        ->setGas((string) BigNumber::_($row['gas'] ?? 0))
+                        ->setStatus($row['status'] ?: '');
+                } catch (\Exception $e) {
+                    // log and continue loop.
+                    $this->logger->error($e->getMessage());
+                }
 
                 $requests[] = $request;
             }
@@ -152,14 +161,14 @@ class Repository
     {
         $cql = "INSERT INTO withdrawals (user_guid, timestamp, tx, address, amount, completed, completed_tx, gas, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $values = [
-            new Varint($request->getUserGuid()),
+            new Bigint($request->getUserGuid()),
             new Timestamp($request->getTimestamp(), 0),
             $request->getTx(),
             (string) $request->getAddress(),
             new Varint($request->getAmount()),
             (bool) $request->isCompleted(),
             ((string) $request->getCompletedTx()) ?: null,
-            new Varint($request->getGas()),
+            new Bigint($request->getGas()),
             (string) $request->getStatus(),
         ];
 
