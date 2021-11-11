@@ -83,6 +83,9 @@ class ActionEvent implements EventInterface
     /** @var string */
     const ACTION_UNBLOCK = 'unblock';
 
+    /** @var array */
+    const ACTION_NSFW_LOCK = 'nsfw_lock';
+
     /** @var string */
     protected $action;
 
@@ -166,6 +169,9 @@ class ActionEvent implements EventInterface
                 break;
             case self::ACTION_BLOCK:
             case self::ACTION_UNBLOCK:
+                break;
+            case self::ACTION_NSFW_LOCK:
+                $allowedKeys = [ 'nsfw_lock' ];
                 break;
             default:
                 throw new \Exception("Invalid action set. Ensure allowedKeys are set in ActionEvent model");
