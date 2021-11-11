@@ -1055,6 +1055,19 @@ CREATE TABLE minds.withdrawals (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99PERCENTILE';
 
+CREATE TABLE minds.rewards_withdrawals (
+    user_guid bigint,
+    timestamp timestamp,
+    tx text,
+    amount varint,
+    completed boolean,
+    completed_tx text,
+    status text,
+    address text,
+    gas bigint,
+    PRIMARY KEY (user_guid, timestamp, tx)
+) WITH CLUSTERING ORDER BY (timestamp DESC, tx ASC);
+
 CREATE TABLE minds.friends (
     key text,
     column1 text,
@@ -1588,6 +1601,13 @@ ALTER TABLE minds.withdrawals ADD (status text, address text, gas varint);
 CREATE MATERIALIZED VIEW minds.withdrawals_by_status AS
     SELECT *
     FROM minds.withdrawals
+    WHERE status IS NOT NULL AND user_guid IS NOT NULL AND timestamp IS NOT NULL AND tx IS NOT NULL
+    PRIMARY KEY (status, timestamp, user_guid, tx)
+    WITH CLUSTERING ORDER BY (timestamp ASC, user_guid ASC, tx ASC);
+
+CREATE MATERIALIZED VIEW minds.rewards_withdrawals_by_status AS
+    SELECT *
+    FROM minds.rewards_withdrawals
     WHERE status IS NOT NULL AND user_guid IS NOT NULL AND timestamp IS NOT NULL AND tx IS NOT NULL
     PRIMARY KEY (status, timestamp, user_guid, tx)
     WITH CLUSTERING ORDER BY (timestamp ASC, user_guid ASC, tx ASC);
