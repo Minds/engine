@@ -55,7 +55,7 @@ class thumbnail extends Core\page implements Interfaces\page
         /** @var Core\Media\Thumbnails $mediaThumbnails */
         $mediaThumbnails = Di::_()->get('Media\Thumbnails');
 
-        $thumbnail = $mediaThumbnails->get($entity, $size);
+        $thumbnail = $mediaThumbnails->get($entity, $size, ['bypassPaywall' => true]);
 
         if ($thumbnail instanceof \ElggFile) {
             $thumbnail->open('read');
@@ -63,7 +63,7 @@ class thumbnail extends Core\page implements Interfaces\page
 
             if (!$contents && $size) {
                 // Size might not exist
-                $thumbnail = $mediaThumbnails->get($pages[0], null);
+                $thumbnail = $mediaThumbnails->get($pages[0], null, ['bypassPaywall' => true]);
                 $thumbnail->open('read');
                 $contents = $thumbnail->read();
             }
