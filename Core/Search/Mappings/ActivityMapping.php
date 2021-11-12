@@ -8,6 +8,8 @@
 
 namespace Minds\Core\Search\Mappings;
 
+use Minds\Entities\Activity;
+
 class ActivityMapping extends EntityMapping implements MappingInterface
 {
     /**
@@ -30,6 +32,10 @@ class ActivityMapping extends EntityMapping implements MappingInterface
     public function map(array $defaultValues = [])
     {
         $map = parent::map($defaultValues);
+
+        if (!$this->entity instanceof Activity) {
+            return $map;
+        }
 
         $isPortrait = false;
 
