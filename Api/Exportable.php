@@ -77,30 +77,23 @@ class Exportable implements \JsonSerializable
 
     /**
      * Exports the items
-     * @param array|null $items
      * @return array
      */
-    public function export(?array $items = null): array
+    public function export()
     {
-        $items = $items ?? $this->items;
-        if (!$items || (!is_array($items) && !($items instanceof \Iterator))) {
+        if (!$this->items || (!is_array($this->items) && !($this->items instanceof \Iterator))) {
             return [];
         }
 
         $output = [];
-        $isSequential = isset($items[0]);
+        $isSequential = isset($this->items[0]);
 
-        foreach ($items as $key => $item) {
-            if (!is_object($item)) {
-                if (is_array($item)) {
-                    $item = $this->export($item);
+        foreach ($this->items as $key => $item) {
+            if (!$item || !method_exists($item, 'export')) {
+                if (!$isSequential) {
+                    $output[$key] = null;
                 }
-                $output[$key] = $item;
-                continue;
-            }
 
-            if (!method_exists($item, 'export') && !$isSequential) {
-                $output[$key] = null;
                 continue;
             }
 

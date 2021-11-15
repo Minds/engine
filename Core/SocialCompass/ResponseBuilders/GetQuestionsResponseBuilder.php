@@ -3,6 +3,7 @@
 namespace Minds\Core\SocialCompass\ResponseBuilders;
 
 use Minds\Api\Exportable;
+use Minds\Core\SocialCompass\Questions\BaseQuestion;
 use Zend\Diactoros\Response\JsonResponse;
 
 /**
@@ -26,7 +27,8 @@ class GetQuestionsResponseBuilder
         $response = [
             "status" => "success"
         ];
+        $questions["questions"] = Exportable::_($questions["questions"]);
         $response = array_merge($response, $questions);
-        return new JsonResponse(Exportable::_($response));
+        return new JsonResponse($response);
     }
 }
