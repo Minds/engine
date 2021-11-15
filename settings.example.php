@@ -546,6 +546,8 @@ $CONFIG->set('features', [
     'withdrawal-console' => true,
     'helpdesk-2021' => true,
     'discovery-default-tags' => true,
+    'skale' => true,
+    'polygon' => true,
 ]);
 
 $CONFIG->set('email', [
