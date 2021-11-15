@@ -41,6 +41,7 @@ class Manager
             ->setValue($id)
             ->setExpire(0) // expires at end of session.
             ->setPath('/')
+            ->setHttpOnly(false) // browser needs to be able to read this cookie
             ->create();
         return $this;
     }
