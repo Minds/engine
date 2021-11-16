@@ -19,7 +19,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_a_list_of_experiments()
     {
-        $this->setUser()->getExperiments()->shouldHaveCount(5);
+        $this->setUser()->getExperiments()->shouldHaveCount(4);
     }
 
     // public function it_should_return_bucket_for_experiment(
