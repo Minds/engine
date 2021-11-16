@@ -88,6 +88,7 @@ class Provider extends DiProvider
                 'discovery-default-tags',
                 'skale',
                 'polygon',
+                'social-compass',
             ];
         });
 
