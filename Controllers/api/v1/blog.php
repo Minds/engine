@@ -153,6 +153,12 @@ class blog implements Interfaces\Api
 
                     if (!Core\Session::isLoggedIn()) {
                         $owner = Di::_()->get('EntitiesBuilder')->single($blog->owner_guid);
+                        
+                        if (!$owner) {
+                            $response['require_login'] = true;
+                            break;
+                        }
+                        
                         $response['require_login'] = !$this->checkBalance($owner);
                     }
                 }

@@ -3,6 +3,8 @@
  * Bootstraps Minds engine
  */
 
+use Stripe\Exception\RateLimitException;
+
 /**
  * The time with microseconds when the Minds engine was started.
  *
@@ -25,6 +27,12 @@ Sentry\init([
     'release' => getenv('MINDS_VERSION') ?: 'Unknown',
     'environment' => getenv('MINDS_ENV') ?: 'development',
     'send_default_pii' => false,
+    'before_send' => function (\Sentry\Event $event, ?\Sentry\EventHint $hint): ?\Sentry\Event {
+        if ($hint !== null && $hint->exception instanceof RateLimitException) {
+            return null;
+        }
+        return $event;
+    },
 ]);
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);

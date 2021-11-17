@@ -71,7 +71,7 @@ class Moderation extends Cli\Controller implements Interfaces\CliControllerInter
         if (!$report) {
             $this->out('Error: Invalid report');
             exit(1);
-        } elseif ($report->getState() !== 'initial_jury_decided') {
+        } elseif ($report->getState() !== 'appealed') {
             $this->out("Error: Report is not appealable. State is [{$report->getState()}].");
             exit(1);
         }
@@ -81,12 +81,10 @@ class Moderation extends Cli\Controller implements Interfaces\CliControllerInter
             ->setReport($report)
             ->setOwnerGuid($report->getEntityOwnerGuid());
 
-        $queueClient
-            ->setQueue('ReportsAppealSummon')
-            ->send([
-                'appeal' => $appeal,
-                'cohort' => $guids ?: null,
-            ]);
+        $summonsManager = Di::_()->get('Moderation\Summons\Manager');
+        $summonsManager->summon($appeal, [
+            'include_only' => $guids
+        ]);
 
         $this->out('Sent to summon queue!');
     }

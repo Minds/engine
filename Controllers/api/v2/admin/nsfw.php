@@ -10,6 +10,9 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Di\Di;
+use Minds\Core\EventStreams\ActionEvent;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Minds\Core\Session;
 
 class nsfw implements Interfaces\Api, Interfaces\ApiAdminPam
 {
@@ -73,6 +76,21 @@ class nsfw implements Interfaces\Api, Interfaces\ApiAdminPam
                 'entity' => $child,
                 'immediate' => true,
             ]);
+        }
+
+        // if this is a user and we are REMOVING their nsfw status.
+        if ($entity->getType() === 'user' && empty($_POST['nsfw'])) {
+            $actionEvent = new ActionEvent();
+            $actionEvent
+                ->setAction(ActionEvent::ACTION_NSFW_LOCK)
+                ->setActionData([
+                    'nsfw_lock' => [],
+                ])
+                ->setEntity($entity)
+                ->setUser(Session::getLoggedInUser());
+
+            $actionEventsTopic = new ActionEventsTopic(); // The topic
+            $actionEventsTopic->send($actionEvent); // Simple, right?
         }
 
         return Factory::response([]);

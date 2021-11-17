@@ -118,8 +118,8 @@ class Exported
                 'url' => $this->config->get('statuspage_io')['url'] ?? null,
             ],
             'experiments' => $this->experimentsManager
-                                ->setUser(Session::getLoggedinUser())
-                                ->getExportableExperiments(),
+                ->setUser(Session::getLoggedinUser())
+                ->getExportableExperiments(),
             'twitter' => [
                 'min_followers_for_sync' => $this->config->get('twitter')['min_followers_for_sync'] ?? 25000,
             ]

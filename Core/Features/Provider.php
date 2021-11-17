@@ -85,7 +85,10 @@ class Provider extends DiProvider
                 'helpdesk-2021',
                 'plus-discovery-filter',
                 'twitter-sync',
+                'discovery-default-tags',
                 'skale',
+                'polygon',
+                'social-compass',
             ];
         });
 

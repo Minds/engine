@@ -61,6 +61,7 @@ class Minds extends base
         Notifications\Module::class,
         Votes\Module::class,
         Helpdesk\Zendesk\Module::class,
+        SocialCompass\Module::class,
     ];
 
     /**

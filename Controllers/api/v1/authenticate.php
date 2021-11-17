@@ -20,6 +20,7 @@ use Minds\Exceptions\TwoFactorRequired;
 use Minds\Core\Queue;
 use Minds\Core\Subscriptions;
 use Minds\Core\Analytics;
+use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -134,6 +135,9 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         Di::_()->get('Features\Canary')
             ->setCookie($user->isCanary());
 
+        // delete experiments cookie as it will contain a logged-out placeholder guid.
+        Di::_()->get('Experiments\Cookie\Manager')->delete();
+
         // Record login events
         $event = new Analytics\Metrics\Event();
         $event->setUserGuid($user->getGuid())
@@ -153,6 +157,10 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
     public function delete($pages)
     {
+        if (!Session::isLoggedin()) {
+            throw new UnauthorizedException();
+        }
+
         /** @var Core\Sessions\Manager $sessions */
         $sessions = Di::_()->get('Sessions\Manager');
 
