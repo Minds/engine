@@ -3373,12 +3373,6 @@ class SKALEContractsSkaleNetwork
                 [
                   0 =>
                   [
-                    'internalType' => 'address',
-                    'name' => 'to',
-                    'type' => 'address',
-                  ],
-                  1 =>
-                  [
                     'internalType' => 'uint256',
                     'name' => 'amount',
                     'type' => 'uint256',
@@ -3871,12 +3865,6 @@ class SKALEContractsSkaleNetwork
                   ],
                   1 =>
                   [
-                    'internalType' => 'address',
-                    'name' => 'to',
-                    'type' => 'address',
-                  ],
-                  2 =>
-                  [
                     'internalType' => 'uint256',
                     'name' => 'amount',
                     'type' => 'uint256',
@@ -4224,6 +4212,30 @@ class SKALEContractsSkaleNetwork
               [
                 'inputs' =>
                 [
+                  0 =>
+                  [
+                    'internalType' => 'contract ERC20OnChain',
+                    'name' => '',
+                    'type' => 'address',
+                  ],
+                ],
+                'name' => 'addedClones',
+                'outputs' =>
+                [
+                  0 =>
+                  [
+                    'internalType' => 'bool',
+                    'name' => '',
+                    'type' => 'bool',
+                  ],
+                ],
+                'stateMutability' => 'view',
+                'type' => 'function',
+              ],
+              15 =>
+              [
+                'inputs' =>
+                [
                 ],
                 'name' => 'automaticDeploy',
                 'outputs' =>
@@ -4238,7 +4250,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              15 =>
+              16 =>
               [
                 'inputs' =>
                 [
@@ -4256,7 +4268,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              16 =>
+              17 =>
               [
                 'inputs' =>
                 [
@@ -4280,7 +4292,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              17 =>
+              18 =>
               [
                 'inputs' =>
                 [
@@ -4298,7 +4310,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              18 =>
+              19 =>
               [
                 'inputs' =>
                 [
@@ -4316,7 +4328,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              19 =>
+              20 =>
               [
                 'inputs' =>
                 [
@@ -4328,7 +4340,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              20 =>
+              21 =>
               [
                 'inputs' =>
                 [
@@ -4340,7 +4352,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              21 =>
+              22 =>
               [
                 'inputs' =>
                 [
@@ -4351,12 +4363,6 @@ class SKALEContractsSkaleNetwork
                     'type' => 'address',
                   ],
                   1 =>
-                  [
-                    'internalType' => 'address',
-                    'name' => 'to',
-                    'type' => 'address',
-                  ],
-                  2 =>
                   [
                     'internalType' => 'uint256',
                     'name' => 'amount',
@@ -4370,7 +4376,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              22 =>
+              23 =>
               [
                 'inputs' =>
                 [
@@ -4394,7 +4400,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              23 =>
+              24 =>
               [
                 'inputs' =>
                 [
@@ -4424,7 +4430,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              24 =>
+              25 =>
               [
                 'inputs' =>
                 [
@@ -4448,7 +4454,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              25 =>
+              26 =>
               [
                 'inputs' =>
                 [
@@ -4472,7 +4478,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              26 =>
+              27 =>
               [
                 'inputs' =>
                 [
@@ -4502,7 +4508,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              27 =>
+              28 =>
               [
                 'inputs' =>
                 [
@@ -4526,7 +4532,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              28 =>
+              29 =>
               [
                 'inputs' =>
                 [
@@ -4568,7 +4574,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              29 =>
+              30 =>
               [
                 'inputs' =>
                 [
@@ -4610,7 +4616,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              30 =>
+              31 =>
               [
                 'inputs' =>
                 [
@@ -4628,7 +4634,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              31 =>
+              32 =>
               [
                 'inputs' =>
                 [
@@ -4664,7 +4670,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              32 =>
+              33 =>
               [
                 'inputs' =>
                 [
@@ -4676,30 +4682,6 @@ class SKALEContractsSkaleNetwork
                   ],
                 ],
                 'name' => 'removeTokenManager',
-                'outputs' =>
-                [
-                ],
-                'stateMutability' => 'nonpayable',
-                'type' => 'function',
-              ],
-              33 =>
-              [
-                'inputs' =>
-                [
-                  0 =>
-                  [
-                    'internalType' => 'bytes32',
-                    'name' => 'role',
-                    'type' => 'bytes32',
-                  ],
-                  1 =>
-                  [
-                    'internalType' => 'address',
-                    'name' => 'account',
-                    'type' => 'address',
-                  ],
-                ],
-                'name' => 'renounceRole',
                 'outputs' =>
                 [
                 ],
@@ -4723,7 +4705,7 @@ class SKALEContractsSkaleNetwork
                     'type' => 'address',
                   ],
                 ],
-                'name' => 'revokeRole',
+                'name' => 'renounceRole',
                 'outputs' =>
                 [
                 ],
@@ -4731,6 +4713,30 @@ class SKALEContractsSkaleNetwork
                 'type' => 'function',
               ],
               35 =>
+              [
+                'inputs' =>
+                [
+                  0 =>
+                  [
+                    'internalType' => 'bytes32',
+                    'name' => 'role',
+                    'type' => 'bytes32',
+                  ],
+                  1 =>
+                  [
+                    'internalType' => 'address',
+                    'name' => 'account',
+                    'type' => 'address',
+                  ],
+                ],
+                'name' => 'revokeRole',
+                'outputs' =>
+                [
+                ],
+                'stateMutability' => 'nonpayable',
+                'type' => 'function',
+              ],
+              36 =>
               [
                 'inputs' =>
                 [
@@ -4748,7 +4754,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              36 =>
+              37 =>
               [
                 'inputs' =>
                 [
@@ -4772,7 +4778,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              37 =>
+              38 =>
               [
                 'inputs' =>
                 [
@@ -4790,7 +4796,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              38 =>
+              39 =>
               [
                 'inputs' =>
                 [
@@ -4814,7 +4820,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              39 =>
+              40 =>
               [
                 'inputs' =>
                 [
@@ -4838,7 +4844,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              40 =>
+              41 =>
               [
                 'inputs' =>
                 [
@@ -4855,12 +4861,6 @@ class SKALEContractsSkaleNetwork
                     'type' => 'address',
                   ],
                   2 =>
-                  [
-                    'internalType' => 'address',
-                    'name' => 'to',
-                    'type' => 'address',
-                  ],
-                  3 =>
                   [
                     'internalType' => 'uint256',
                     'name' => 'amount',
@@ -5209,6 +5209,30 @@ class SKALEContractsSkaleNetwork
               [
                 'inputs' =>
                 [
+                  0 =>
+                  [
+                    'internalType' => 'contract ERC721OnChain',
+                    'name' => '',
+                    'type' => 'address',
+                  ],
+                ],
+                'name' => 'addedClones',
+                'outputs' =>
+                [
+                  0 =>
+                  [
+                    'internalType' => 'bool',
+                    'name' => '',
+                    'type' => 'bool',
+                  ],
+                ],
+                'stateMutability' => 'view',
+                'type' => 'function',
+              ],
+              15 =>
+              [
+                'inputs' =>
+                [
                 ],
                 'name' => 'automaticDeploy',
                 'outputs' =>
@@ -5223,7 +5247,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              15 =>
+              16 =>
               [
                 'inputs' =>
                 [
@@ -5241,7 +5265,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              16 =>
+              17 =>
               [
                 'inputs' =>
                 [
@@ -5265,7 +5289,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              17 =>
+              18 =>
               [
                 'inputs' =>
                 [
@@ -5283,7 +5307,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              18 =>
+              19 =>
               [
                 'inputs' =>
                 [
@@ -5301,7 +5325,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              19 =>
+              20 =>
               [
                 'inputs' =>
                 [
@@ -5313,7 +5337,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              20 =>
+              21 =>
               [
                 'inputs' =>
                 [
@@ -5325,7 +5349,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              21 =>
+              22 =>
               [
                 'inputs' =>
                 [
@@ -5336,12 +5360,6 @@ class SKALEContractsSkaleNetwork
                     'type' => 'address',
                   ],
                   1 =>
-                  [
-                    'internalType' => 'address',
-                    'name' => 'to',
-                    'type' => 'address',
-                  ],
-                  2 =>
                   [
                     'internalType' => 'uint256',
                     'name' => 'tokenId',
@@ -5355,7 +5373,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              22 =>
+              23 =>
               [
                 'inputs' =>
                 [
@@ -5379,7 +5397,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              23 =>
+              24 =>
               [
                 'inputs' =>
                 [
@@ -5409,7 +5427,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              24 =>
+              25 =>
               [
                 'inputs' =>
                 [
@@ -5433,7 +5451,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              25 =>
+              26 =>
               [
                 'inputs' =>
                 [
@@ -5457,7 +5475,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              26 =>
+              27 =>
               [
                 'inputs' =>
                 [
@@ -5487,7 +5505,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              27 =>
+              28 =>
               [
                 'inputs' =>
                 [
@@ -5511,7 +5529,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              28 =>
+              29 =>
               [
                 'inputs' =>
                 [
@@ -5553,7 +5571,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              29 =>
+              30 =>
               [
                 'inputs' =>
                 [
@@ -5595,7 +5613,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              30 =>
+              31 =>
               [
                 'inputs' =>
                 [
@@ -5613,7 +5631,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              31 =>
+              32 =>
               [
                 'inputs' =>
                 [
@@ -5649,7 +5667,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              32 =>
+              33 =>
               [
                 'inputs' =>
                 [
@@ -5661,30 +5679,6 @@ class SKALEContractsSkaleNetwork
                   ],
                 ],
                 'name' => 'removeTokenManager',
-                'outputs' =>
-                [
-                ],
-                'stateMutability' => 'nonpayable',
-                'type' => 'function',
-              ],
-              33 =>
-              [
-                'inputs' =>
-                [
-                  0 =>
-                  [
-                    'internalType' => 'bytes32',
-                    'name' => 'role',
-                    'type' => 'bytes32',
-                  ],
-                  1 =>
-                  [
-                    'internalType' => 'address',
-                    'name' => 'account',
-                    'type' => 'address',
-                  ],
-                ],
-                'name' => 'renounceRole',
                 'outputs' =>
                 [
                 ],
@@ -5708,7 +5702,7 @@ class SKALEContractsSkaleNetwork
                     'type' => 'address',
                   ],
                 ],
-                'name' => 'revokeRole',
+                'name' => 'renounceRole',
                 'outputs' =>
                 [
                 ],
@@ -5716,6 +5710,30 @@ class SKALEContractsSkaleNetwork
                 'type' => 'function',
               ],
               35 =>
+              [
+                'inputs' =>
+                [
+                  0 =>
+                  [
+                    'internalType' => 'bytes32',
+                    'name' => 'role',
+                    'type' => 'bytes32',
+                  ],
+                  1 =>
+                  [
+                    'internalType' => 'address',
+                    'name' => 'account',
+                    'type' => 'address',
+                  ],
+                ],
+                'name' => 'revokeRole',
+                'outputs' =>
+                [
+                ],
+                'stateMutability' => 'nonpayable',
+                'type' => 'function',
+              ],
+              36 =>
               [
                 'inputs' =>
                 [
@@ -5733,7 +5751,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              36 =>
+              37 =>
               [
                 'inputs' =>
                 [
@@ -5757,7 +5775,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              37 =>
+              38 =>
               [
                 'inputs' =>
                 [
@@ -5775,7 +5793,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              38 =>
+              39 =>
               [
                 'inputs' =>
                 [
@@ -5799,7 +5817,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              39 =>
+              40 =>
               [
                 'inputs' =>
                 [
@@ -5816,12 +5834,6 @@ class SKALEContractsSkaleNetwork
                     'type' => 'address',
                   ],
                   2 =>
-                  [
-                    'internalType' => 'address',
-                    'name' => 'to',
-                    'type' => 'address',
-                  ],
-                  3 =>
                   [
                     'internalType' => 'uint256',
                     'name' => 'tokenId',
@@ -6177,6 +6189,30 @@ class SKALEContractsSkaleNetwork
               [
                 'inputs' =>
                 [
+                  0 =>
+                  [
+                    'internalType' => 'contract ERC1155OnChain',
+                    'name' => '',
+                    'type' => 'address',
+                  ],
+                ],
+                'name' => 'addedClones',
+                'outputs' =>
+                [
+                  0 =>
+                  [
+                    'internalType' => 'bool',
+                    'name' => '',
+                    'type' => 'bool',
+                  ],
+                ],
+                'stateMutability' => 'view',
+                'type' => 'function',
+              ],
+              15 =>
+              [
+                'inputs' =>
+                [
                 ],
                 'name' => 'automaticDeploy',
                 'outputs' =>
@@ -6191,7 +6227,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              15 =>
+              16 =>
               [
                 'inputs' =>
                 [
@@ -6209,7 +6245,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              16 =>
+              17 =>
               [
                 'inputs' =>
                 [
@@ -6233,7 +6269,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              17 =>
+              18 =>
               [
                 'inputs' =>
                 [
@@ -6251,7 +6287,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              18 =>
+              19 =>
               [
                 'inputs' =>
                 [
@@ -6269,7 +6305,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              19 =>
+              20 =>
               [
                 'inputs' =>
                 [
@@ -6281,48 +6317,12 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              20 =>
+              21 =>
               [
                 'inputs' =>
                 [
                 ],
                 'name' => 'enableAutomaticDeploy',
-                'outputs' =>
-                [
-                ],
-                'stateMutability' => 'nonpayable',
-                'type' => 'function',
-              ],
-              21 =>
-              [
-                'inputs' =>
-                [
-                  0 =>
-                  [
-                    'internalType' => 'address',
-                    'name' => 'contractOnMainnet',
-                    'type' => 'address',
-                  ],
-                  1 =>
-                  [
-                    'internalType' => 'address',
-                    'name' => 'to',
-                    'type' => 'address',
-                  ],
-                  2 =>
-                  [
-                    'internalType' => 'uint256',
-                    'name' => 'id',
-                    'type' => 'uint256',
-                  ],
-                  3 =>
-                  [
-                    'internalType' => 'uint256',
-                    'name' => 'amount',
-                    'type' => 'uint256',
-                  ],
-                ],
-                'name' => 'exitToMainERC1155',
                 'outputs' =>
                 [
                 ],
@@ -6341,17 +6341,41 @@ class SKALEContractsSkaleNetwork
                   ],
                   1 =>
                   [
-                    'internalType' => 'address',
-                    'name' => 'to',
-                    'type' => 'address',
+                    'internalType' => 'uint256',
+                    'name' => 'id',
+                    'type' => 'uint256',
                   ],
                   2 =>
+                  [
+                    'internalType' => 'uint256',
+                    'name' => 'amount',
+                    'type' => 'uint256',
+                  ],
+                ],
+                'name' => 'exitToMainERC1155',
+                'outputs' =>
+                [
+                ],
+                'stateMutability' => 'nonpayable',
+                'type' => 'function',
+              ],
+              23 =>
+              [
+                'inputs' =>
+                [
+                  0 =>
+                  [
+                    'internalType' => 'address',
+                    'name' => 'contractOnMainnet',
+                    'type' => 'address',
+                  ],
+                  1 =>
                   [
                     'internalType' => 'uint256[]',
                     'name' => 'ids',
                     'type' => 'uint256[]',
                   ],
-                  3 =>
+                  2 =>
                   [
                     'internalType' => 'uint256[]',
                     'name' => 'amounts',
@@ -6365,7 +6389,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              23 =>
+              24 =>
               [
                 'inputs' =>
                 [
@@ -6389,7 +6413,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              24 =>
+              25 =>
               [
                 'inputs' =>
                 [
@@ -6419,7 +6443,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              25 =>
+              26 =>
               [
                 'inputs' =>
                 [
@@ -6443,7 +6467,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              26 =>
+              27 =>
               [
                 'inputs' =>
                 [
@@ -6467,7 +6491,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              27 =>
+              28 =>
               [
                 'inputs' =>
                 [
@@ -6497,7 +6521,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              28 =>
+              29 =>
               [
                 'inputs' =>
                 [
@@ -6521,7 +6545,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              29 =>
+              30 =>
               [
                 'inputs' =>
                 [
@@ -6563,7 +6587,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              30 =>
+              31 =>
               [
                 'inputs' =>
                 [
@@ -6605,7 +6629,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              31 =>
+              32 =>
               [
                 'inputs' =>
                 [
@@ -6623,7 +6647,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              32 =>
+              33 =>
               [
                 'inputs' =>
                 [
@@ -6659,7 +6683,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'nonpayable',
                 'type' => 'function',
               ],
-              33 =>
+              34 =>
               [
                 'inputs' =>
                 [
@@ -6671,30 +6695,6 @@ class SKALEContractsSkaleNetwork
                   ],
                 ],
                 'name' => 'removeTokenManager',
-                'outputs' =>
-                [
-                ],
-                'stateMutability' => 'nonpayable',
-                'type' => 'function',
-              ],
-              34 =>
-              [
-                'inputs' =>
-                [
-                  0 =>
-                  [
-                    'internalType' => 'bytes32',
-                    'name' => 'role',
-                    'type' => 'bytes32',
-                  ],
-                  1 =>
-                  [
-                    'internalType' => 'address',
-                    'name' => 'account',
-                    'type' => 'address',
-                  ],
-                ],
-                'name' => 'renounceRole',
                 'outputs' =>
                 [
                 ],
@@ -6718,7 +6718,7 @@ class SKALEContractsSkaleNetwork
                     'type' => 'address',
                   ],
                 ],
-                'name' => 'revokeRole',
+                'name' => 'renounceRole',
                 'outputs' =>
                 [
                 ],
@@ -6726,6 +6726,30 @@ class SKALEContractsSkaleNetwork
                 'type' => 'function',
               ],
               36 =>
+              [
+                'inputs' =>
+                [
+                  0 =>
+                  [
+                    'internalType' => 'bytes32',
+                    'name' => 'role',
+                    'type' => 'bytes32',
+                  ],
+                  1 =>
+                  [
+                    'internalType' => 'address',
+                    'name' => 'account',
+                    'type' => 'address',
+                  ],
+                ],
+                'name' => 'revokeRole',
+                'outputs' =>
+                [
+                ],
+                'stateMutability' => 'nonpayable',
+                'type' => 'function',
+              ],
+              37 =>
               [
                 'inputs' =>
                 [
@@ -6743,7 +6767,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              37 =>
+              38 =>
               [
                 'inputs' =>
                 [
@@ -6767,7 +6791,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              38 =>
+              39 =>
               [
                 'inputs' =>
                 [
@@ -6785,7 +6809,7 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              39 =>
+              40 =>
               [
                 'inputs' =>
                 [
@@ -6809,48 +6833,6 @@ class SKALEContractsSkaleNetwork
                 'stateMutability' => 'view',
                 'type' => 'function',
               ],
-              40 =>
-              [
-                'inputs' =>
-                [
-                  0 =>
-                  [
-                    'internalType' => 'string',
-                    'name' => 'targetSchainName',
-                    'type' => 'string',
-                  ],
-                  1 =>
-                  [
-                    'internalType' => 'address',
-                    'name' => 'contractOnMainnet',
-                    'type' => 'address',
-                  ],
-                  2 =>
-                  [
-                    'internalType' => 'address',
-                    'name' => 'to',
-                    'type' => 'address',
-                  ],
-                  3 =>
-                  [
-                    'internalType' => 'uint256',
-                    'name' => 'id',
-                    'type' => 'uint256',
-                  ],
-                  4 =>
-                  [
-                    'internalType' => 'uint256',
-                    'name' => 'amount',
-                    'type' => 'uint256',
-                  ],
-                ],
-                'name' => 'transferToSchainERC1155',
-                'outputs' =>
-                [
-                ],
-                'stateMutability' => 'nonpayable',
-                'type' => 'function',
-              ],
               41 =>
               [
                 'inputs' =>
@@ -6869,17 +6851,47 @@ class SKALEContractsSkaleNetwork
                   ],
                   2 =>
                   [
-                    'internalType' => 'address',
-                    'name' => 'to',
-                    'type' => 'address',
+                    'internalType' => 'uint256',
+                    'name' => 'id',
+                    'type' => 'uint256',
                   ],
                   3 =>
+                  [
+                    'internalType' => 'uint256',
+                    'name' => 'amount',
+                    'type' => 'uint256',
+                  ],
+                ],
+                'name' => 'transferToSchainERC1155',
+                'outputs' =>
+                [
+                ],
+                'stateMutability' => 'nonpayable',
+                'type' => 'function',
+              ],
+              42 =>
+              [
+                'inputs' =>
+                [
+                  0 =>
+                  [
+                    'internalType' => 'string',
+                    'name' => 'targetSchainName',
+                    'type' => 'string',
+                  ],
+                  1 =>
+                  [
+                    'internalType' => 'address',
+                    'name' => 'contractOnMainnet',
+                    'type' => 'address',
+                  ],
+                  2 =>
                   [
                     'internalType' => 'uint256[]',
                     'name' => 'ids',
                     'type' => 'uint256[]',
                   ],
-                  4 =>
+                  3 =>
                   [
                     'internalType' => 'uint256[]',
                     'name' => 'amounts',
@@ -10120,6 +10132,6 @@ class SKALEContractsSkaleNetwork
                 'type' => 'function',
               ],
             ],
-        ];
+          ];
     }
 }

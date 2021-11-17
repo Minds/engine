@@ -136,11 +136,12 @@ class Skale
      */
     protected function getBestEndpoint()
     {
-        $config = $this->config->get('skale');
+        $config = $this->config->get('blockchain')['skale'];
 
         if (!$config['rpc_url']) {
             throw new \Exception('No RPC endpoints available');
         }
+
         return $config['rpc_url'];
     }
 }

@@ -2471,9 +2471,9 @@ class SKALEContractsRinkeby
                   ],
                   1 =>
                   [
-                      'type' => 'address',
-                      'name' => 'user',
-                  ]
+                    'type' => 'address',
+                    'name' => 'user',
+                  ],
                 ],
                 'outputs' =>
                 [
@@ -2886,11 +2886,6 @@ class SKALEContractsRinkeby
                   [
                     'type' => 'string',
                     'name' => 'schainName',
-                  ],
-                  1 =>
-                  [
-                    'type' => 'address',
-                    'name' => 'to',
                   ],
                 ],
                 'outputs' =>
@@ -4616,11 +4611,6 @@ class SKALEContractsRinkeby
                   ],
                   2 =>
                   [
-                    'type' => 'address',
-                    'name' => 'to',
-                  ],
-                  3 =>
-                  [
                     'type' => 'uint256',
                     'name' => 'tokenId',
                   ],
@@ -5518,15 +5508,10 @@ class SKALEContractsRinkeby
                   ],
                   2 =>
                   [
-                    'type' => 'address',
-                    'name' => 'to',
-                  ],
-                  3 =>
-                  [
                     'type' => 'uint256',
                     'name' => 'id',
                   ],
-                  4 =>
+                  3 =>
                   [
                     'type' => 'uint256',
                     'name' => 'amount',
@@ -5556,15 +5541,10 @@ class SKALEContractsRinkeby
                   ],
                   2 =>
                   [
-                    'type' => 'address',
-                    'name' => 'to',
-                  ],
-                  3 =>
-                  [
                     'type' => 'uint256[]',
                     'name' => 'ids',
                   ],
-                  4 =>
+                  3 =>
                   [
                     'type' => 'uint256[]',
                     'name' => 'amounts',
