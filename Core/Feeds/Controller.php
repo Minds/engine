@@ -2,6 +2,7 @@
 namespace Minds\Core\Feeds;
 
 use Minds\Api\Exportable;
+use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Exceptions\UserErrorException;
@@ -20,10 +21,17 @@ class Controller
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    public function __construct(Elastic\Manager $manager = null, EntitiesBuilder $entitiesBuilder = null)
-    {
+    /** @var Config */
+    protected $config;
+
+    public function __construct(
+        Elastic\Manager $manager = null,
+        EntitiesBuilder $entitiesBuilder = null,
+        Config $config = null
+    ) {
         $this->manager = $manager ?? new Elastic\Manager();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->config = $config ?? Di::_()->get('Config');
     }
 
     /**
@@ -59,6 +67,39 @@ class Controller
            'status' => 'success',
            'entities' => Exportable::_($entities),
            'load-next' => $nextPage,
+        ], 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
+    }
+
+    /**
+     * Fetches a default feed for a logged out user.
+     * @param ServerRequest $request - params: 'limit' and 'next-page'.
+     * @return JsonResponse - JSON response containing status, entities and load-next for pagination.
+     */
+    public function getLoggedOutFeed(ServerRequest $request): JsonResponse
+    {
+        $queryParams = $request->getQueryParams();
+        $limit = (int) ($queryParams['limit'] ?? 12);
+        $nextPage = (int) ($queryParams['next-page'] ?? 0);
+
+        $recommendationsUserGuid = $this->config->get('default_recommendations_user') ?? '100000000000000519';
+        
+        $response = $this->manager->getList([
+            'cache_key' => $recommendationsUserGuid,
+            'subscriptions' => $recommendationsUserGuid,
+            'access_id' => 2,
+            'limit' => $limit,
+            'type' => 'activity',
+            'algorithm' => 'latest', // TODO: switch to top
+            'period' => '1y',
+            'single_owner_threshold' => 0,
+            'from_timestamp' => $nextPage,
+            'nsfw' => []
+        ]);
+
+        return new JsonResponse([
+            'status' => 'success',
+            'entities' => Exportable::_($response),
+            'load-next' => $response->getPagingToken(),
         ], 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
     }
 }
