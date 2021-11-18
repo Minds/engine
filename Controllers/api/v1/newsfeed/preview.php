@@ -25,7 +25,7 @@ class preview implements Interfaces\Api
         $url = $_GET['url'];
         try {
             $meta = Core\Di\Di::_()->get('Feeds\Activity\RichEmbed\Manager')->getRichEmbed($url);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return Factory::response([
                 'status' => 'error',
                 'message' => 'An unknown error has occurred'
