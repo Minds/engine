@@ -28,7 +28,7 @@ class preview implements Interfaces\Api
         } catch(\Exception $e) {
             return Factory::response([
                 'status' => 'error',
-                'message' => $e->getMessage()
+                'message' => 'An unknown error has occurred'
             ]);
         }
         return Factory::response($meta);
