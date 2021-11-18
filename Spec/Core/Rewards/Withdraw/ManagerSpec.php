@@ -10,14 +10,17 @@ use Minds\Core\Blockchain\Wallets\OffChain\Balance as OffchainBalance;
 use Minds\Core\Blockchain\Wallets\OffChain\Transactions as OffchainTransactions;
 use Minds\Core\Config;
 use Minds\Core\Data\Locks\LockFailedException;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Rewards\Withdraw\Delegates;
 use Minds\Core\Rewards\Withdraw\Manager;
 use Minds\Core\Rewards\Withdraw\Repository;
 use Minds\Core\Rewards\Withdraw\Request;
+use Minds\Core\Security\DeferredSecrets;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Minds\Core\Security\TwoFactor\Manager as TwoFactorManager;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -48,6 +51,15 @@ class ManagerSpec extends ObjectBehavior
     /** @var Delegates\RequestHydrationDelegate */
     protected $requestHydrationDelegate;
 
+    /** @var Security\DeferredSecrets */
+    private $deferredSecrets;
+
+    /** @var Security\TwoFactor\Manager */
+    private $twoFactorManager;
+
+    /** @var EntitiesBuilder $entitiesBuilder */
+    private $entitiesBuilder;
+
     public function let(
         TransactionsManager $txManager,
         OffchainTransactions $offChainTransactions,
@@ -57,7 +69,10 @@ class ManagerSpec extends ObjectBehavior
         OffchainBalance $offChainBalance,
         Delegates\NotificationsDelegate $notificationsDelegate,
         Delegates\EmailDelegate $emailDelegate,
-        Delegates\RequestHydrationDelegate $requestHydrationDelegate
+        Delegates\RequestHydrationDelegate $requestHydrationDelegate,
+        TwoFactorManager $twoFactorManager,
+        EntitiesBuilder $entitiesBuilder,
+        DeferredSecrets $deferredSecrets
     ) {
         $this->beConstructedWith(
             $txManager,
@@ -68,7 +83,10 @@ class ManagerSpec extends ObjectBehavior
             $offChainBalance,
             $notificationsDelegate,
             $emailDelegate,
-            $requestHydrationDelegate
+            $requestHydrationDelegate,
+            $twoFactorManager,
+            $entitiesBuilder,
+            $deferredSecrets
         );
 
         $this->txManager = $txManager;
@@ -80,6 +98,9 @@ class ManagerSpec extends ObjectBehavior
         $this->notificationsDelegate = $notificationsDelegate;
         $this->emailDelegate = $emailDelegate;
         $this->requestHydrationDelegate = $requestHydrationDelegate;
+        $this->twoFactorManager = $twoFactorManager;
+        $this->entitiesBuilder = $entitiesBuilder;
+        $this->deferredSecrets = $deferredSecrets;
     }
 
     public function it_is_initializable()
@@ -230,7 +251,8 @@ class ManagerSpec extends ObjectBehavior
     }
 
     public function it_should_request(
-        Request $request
+        Request $request,
+        User $user
     ) {
         $request->getUserGuid()
             ->shouldBeCalled()
@@ -255,6 +277,16 @@ class ManagerSpec extends ObjectBehavior
         $request->getGas()
             ->shouldBeCalled()
             ->willReturn('100000000000');
+
+        $secret = 'secret';
+
+        $this->entitiesBuilder->single(1000)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->deferredSecrets->verify($secret, $user)
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->config->get('blockchain')
             ->shouldBeCalled()
@@ -299,12 +331,13 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this
-            ->request($request)
+            ->request($request, $secret)
             ->shouldReturn(true);
     }
 
     public function it_should_throw_during_request_if_got_past_allowance(
-        Request $request
+        Request $request,
+        User $user,
     ) {
         $request->getUserGuid()
             ->shouldBeCalled()
@@ -313,6 +346,14 @@ class ManagerSpec extends ObjectBehavior
         $request->getAmount()
             ->shouldBeCalled()
             ->willReturn(BigNumber::toPlain(10, 18));
+
+        $secret = 'secret';
+
+        $this->entitiesBuilder->single(1000)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->deferredSecrets->verify($secret, $user)->shouldBeCalled()->willReturn(true);
 
         $this->config->get('blockchain')
             ->shouldBeCalled()
@@ -342,11 +383,12 @@ class ManagerSpec extends ObjectBehavior
 
         $this
             ->shouldThrow(new Exception('You can only request 5 tokens.'))
-            ->duringRequest($request);
+            ->duringRequest($request, $secret);
     }
 
     public function it_should_throw_during_request_if_already_withdrawn(
-        Request $request
+        Request $request,
+        User $user
     ) {
         $request->getUserGuid()
             ->shouldBeCalled()
@@ -376,8 +418,48 @@ class ManagerSpec extends ObjectBehavior
 
         $this
             ->shouldThrow(new Exception('You can only have one pending withdrawal at a time'))
-            ->duringRequest($request);
+            ->duringRequest($request, 'secret');
     }
+
+    public function it_should_throw_during_request_if_user_has_not_completed_deferred_auth(
+        Request $request,
+        User $user
+    ) {
+        $request->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $secret = 'secret';
+
+        $this->deferredSecrets->verify($secret, $user)->shouldBeCalled()->willReturn(false);
+
+        $this->entitiesBuilder->single(1000)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->config->get('blockchain')
+            ->shouldBeCalled()
+            ->willReturn([
+                'contracts' => [
+                    'withdraw' => [
+                        'limit_exemptions' => [1001],
+                    ],
+                ],
+            ]);
+
+        $this->repository->getList([
+            'user_guid' => 1000,
+        ])
+            ->shouldBeCalled()
+            ->willReturn([
+                'withdrawals' => [],
+            ]);
+
+        $this
+            ->shouldThrow(new Exception('Invalid authentication secret', 403))
+            ->duringRequest($request, 'secret');
+    }
+
 
     public function it_should_confirm(
         Request $request,
