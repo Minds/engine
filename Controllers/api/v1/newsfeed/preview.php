@@ -23,7 +23,14 @@ class preview implements Interfaces\Api
     public function get($pages)
     {
         $url = $_GET['url'];
-        $meta = Core\Di\Di::_()->get('Feeds\Activity\RichEmbed\Manager')->getRichEmbed($url);
+        try {
+            $meta = Core\Di\Di::_()->get('Feeds\Activity\RichEmbed\Manager')->getRichEmbed($url);
+        } catch (\Exception $e) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'An unknown error has occurred'
+            ]);
+        }
         return Factory::response($meta);
     }
 

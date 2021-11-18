@@ -52,6 +52,6 @@ class TotalPostsAggregate implements ModerationStatsAggregateInterface
         $prepared->query($query);
         $result = $this->es->request($prepared);
 
-        return $result['hits']['total'];
+        return $result['hits']['total']['value'];
     }
 }
