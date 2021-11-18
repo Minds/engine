@@ -23,12 +23,21 @@ class UserErrorException extends \Exception
         $this->setErrors($errors);
     }
 
+    /**
+     * Set the validation errors collection to be returned with the exception
+     * @param ValidationErrorCollection|null $errors
+     * @return $this
+     */
     public function setErrors(?ValidationErrorCollection $errors): self
     {
         $this->errors = $errors;
         return $this;
     }
 
+    /**
+     * Returns the collection of validation errors
+     * @return ValidationErrorCollection|null
+     */
     public function getErrors(): ?ValidationErrorCollection
     {
         return $this->errors;
