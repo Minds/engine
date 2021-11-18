@@ -6,22 +6,31 @@
 namespace Minds\Exceptions;
 
 use Minds\Entities\ValidationErrorCollection;
-use Minds\Traits\MagicAttributes;
 
-/**
- * @method ValidationErrorCollection getErrors()
- * @method self setErrors(ValidationErrorCollection $errors)
- */
 class UserErrorException extends \Exception
 {
-    use MagicAttributes;
-
-    public function __construct($message = "", $code = 0, ?ValidationErrorCollection $errors = null)
-    {
-        parent::__construct($message, $code);
-        $this->setErrors($errors);
-    }
+    private ?ValidationErrorCollection $errors;
 
     /** @var string */
     protected $message = "An unknown error occurred";
+
+    public function __construct($message = "", $code = 0, ?ValidationErrorCollection $errors = null)
+    {
+        parent::__construct(
+            !empty($message) ? $message : $this->message,
+            $code
+        );
+        $this->setErrors($errors);
+    }
+
+    public function setErrors(?ValidationErrorCollection $errors): self
+    {
+        $this->errors = $errors;
+        return $this;
+    }
+
+    public function getErrors(): ?ValidationErrorCollection
+    {
+        return $this->errors;
+    }
 }
