@@ -20,6 +20,10 @@ class FeedsProvider extends Provider
             return new Firehose\Manager();
         });
 
+        $this->di->bind('Feeds\UnseenTopFeed\Manager', function ($di) {
+            return new UnseenTopFeed\Manager();
+        });
+
         //
 
         $this->di->bind('Feeds\Controller', function ($di) {
@@ -32,6 +36,10 @@ class FeedsProvider extends Provider
 
         $this->di->bind('Feeds\Activity\InteractionCounters', function ($di) {
             return new Activity\InteractionCounters();
+        });
+
+        $this->di->bind('Feeds\UnseenTopFeed\Controller', function ($di) {
+            return new UnseenTopFeed\Controller();
         });
     }
 }
