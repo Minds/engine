@@ -15,10 +15,10 @@ use Minds\Core\SocialCompass\Questions\PoliticalContentQuestion;
 class QuestionsManifestV1 extends QuestionsManifest
 {
     public const QUESTIONS = [
-        PoliticalContentQuestion::class,
         EchoChamberQuestion::class,
-        PoliticalBeliefsQuestion::class,
-        EstablishmentQuestion::class,
         FreeSpeechQuestion::class,
+        PoliticalBeliefsQuestion::class,
+        PoliticalContentQuestion::class,
+//        EstablishmentQuestion::class,
     ];
 }

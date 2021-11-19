@@ -8,8 +8,8 @@ namespace Minds\Core\SocialCompass\Questions;
  */
 class FreeSpeechQuestion extends BaseQuestion
 {
-    protected string $minimumStepLabel = "Less";
-    protected string $maximumStepLabel = "More";
-    protected string $questionText = "Free Speech";
+    protected string $minimumStepLabel = "Censored";
+    protected string $maximumStepLabel = "Debated";
+    protected string $questionText = "I think misinformation should be...";
     protected string $questionId = "FreeSpeechQuestion";
 }

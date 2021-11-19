@@ -8,8 +8,8 @@ namespace Minds\Core\SocialCompass\Questions;
  */
 class EchoChamberQuestion extends BaseQuestion
 {
-    protected string $minimumStepLabel = "Less";
-    protected string $maximumStepLabel = "More";
-    protected string $questionText = "Echo Chamber";
+    protected string $minimumStepLabel = "Open";
+    protected string $maximumStepLabel = "Closed";
+    protected string $questionText = "I prefer my echo chamber to be...";
     protected string $questionId = "EchoChamberQuestion";
 }

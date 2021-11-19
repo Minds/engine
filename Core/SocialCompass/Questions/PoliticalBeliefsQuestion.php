@@ -11,6 +11,6 @@ class PoliticalBeliefsQuestion extends BaseQuestion
 {
     protected string $minimumStepLabel = "Left";
     protected string $maximumStepLabel = "Right";
-    protected string $questionText = "Political Beliefs";
+    protected string $questionText = "My political philosophy leans toward...";
     protected string $questionId = "PoliticalBeliefsQuestion";
 }
