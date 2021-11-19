@@ -9,8 +9,8 @@ namespace Minds\Core\SocialCompass\Questions;
  */
 class PoliticalBeliefsQuestion extends BaseQuestion
 {
-    protected string $minimumStepLabel = "Left";
-    protected string $maximumStepLabel = "Right";
+    protected string $minimumStepLabel = "Regulation";
+    protected string $maximumStepLabel = "Free Markets";
     protected string $questionText = "My political philosophy leans toward...";
     protected string $questionId = "PoliticalBeliefsQuestion";
 }
