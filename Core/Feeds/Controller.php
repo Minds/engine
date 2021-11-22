@@ -5,7 +5,6 @@ use Minds\Api\Exportable;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
-use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 
