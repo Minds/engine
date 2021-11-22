@@ -89,7 +89,7 @@ class Controller
             'access_id' => 2,
             'limit' => $limit,
             'type' => 'activity',
-            'algorithm' => 'latest', // TODO: switch to top
+            'algorithm' => 'top',
             'period' => '1y',
             'single_owner_threshold' => 0,
             'from_timestamp' => $nextPage,
