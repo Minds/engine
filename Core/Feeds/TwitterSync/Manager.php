@@ -213,6 +213,9 @@ class Manager
                             ->setURL($url)
                             ->setThumbnail($richEmbed['links']['thumbnail'][0]['href']);
                     } catch (\GuzzleHttp\Exception\ClientException $e) {
+                    } catch (\Exception $e) {
+                        $this->logger->error($e->getMessage());
+                        continue;
                     }
                 }
 
