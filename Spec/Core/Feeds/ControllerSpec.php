@@ -14,14 +14,14 @@ use Minds\Common\Repository\Response;
 
 class ControllerSpec extends ObjectBehavior
 {
-   /** @var Elastic\Manager */
-   protected $manager;
+    /** @var Elastic\Manager */
+    protected $manager;
 
-   /** @var EntitiesBuilder */
-   protected $entitiesBuilder;
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
 
-   /** @var Config */
-   protected $config;
+    /** @var Config */
+    protected $config;
 
     public function let(
         Elastic\Manager $manager = null,
