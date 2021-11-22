@@ -6,8 +6,6 @@ use \Minds\Core\Feeds\Controller;
 use Minds\Core\Config;
 use Minds\Core\EntitiesBuilder;
 use \Minds\Core\Feeds\Elastic;
-// use Minds\Entities\User;
-// use Minds\Exceptions\NotFoundException;
 use PhpSpec\ObjectBehavior;
 use Zend\Diactoros\ServerRequest;
 use Minds\Common\Repository\Response;
