@@ -89,6 +89,7 @@ class Provider extends DiProvider
                 'skale',
                 'polygon',
                 'social-compass',
+                'content-settings-modal'
             ];
         });
 
