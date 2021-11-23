@@ -744,3 +744,5 @@ $CONFIG->SET('zendesk', [
 $CONFIG->set('statuspage_io', [
     'url' => 'https://status.minds.com/'
 ]);
+
+$CONFIG->set('default_recommendations_user', '100000000000000519');
