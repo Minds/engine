@@ -17,6 +17,7 @@ class BlurHash
     {
         $components_x = 4;
         $components_y = 3;
+        // @phpstan-ignore-next-line
         return bh_encode($components_x, $components_y, $imagePath);
     }
 }
