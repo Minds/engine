@@ -15,14 +15,7 @@ class suggestions implements Interfaces\Api
         $type = $pages[0] ?? 'user';
         $loggedInUser = Core\Session::getLoggedinUser();
 
-        if (!$loggedInUser) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => 'You must be logged in to receive suggestions',
-            ]);
-        }
-
-        if ($loggedInUser->getSubscriptionsCount() >= 5000) {
+        if ($loggedInUser && $loggedInUser->getSubscriptionsCount() >= 5000) {
             return Factory::response([
                 'status' => 'error',
                 'message' => 'You have too many subscriptions'
@@ -30,8 +23,11 @@ class suggestions implements Interfaces\Api
         }
 
         $manager = (new Core\Suggestions\Manager())
-            ->setUser(Core\Session::getLoggedinUser())
             ->setType($type);
+
+        if ($loggedInUser) {
+            $manager->setUser(Core\Session::getLoggedinUser());
+        }
 
         $opts = [
             'limit' => $_GET['limit'] ?? 12,
