@@ -7,10 +7,10 @@ namespace Minds\Core\SocialCompass\Questions;
  * if they would like to interact with more or less
  * content of political nature
  */
-class PoliticalContentQuestion extends BaseQuestion
+class NeverCompromisedPersonalPrivacyQuestion extends BaseQuestion
 {
     protected string $minimumStepLabel = "Disagree";
     protected string $maximumStepLabel = "Agree";
-    protected string $questionText = "I prefer to see content that is political";
-    protected string $questionId = "PoliticalContentQuestion";
+    protected string $questionText = "Personal privacy should never be compromised";
+    protected string $questionId = "NeverCompromisedPersonalPrivacyQuestion";
 }
