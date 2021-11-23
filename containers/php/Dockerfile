@@ -76,7 +76,7 @@ RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && rm -rf $INSTALL_DIR
 
 # blurhash extension
-RUN apk add --no-cache --virtual build-deps \
+RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && curl -fsSL 'https://gitlab.com/minds/php-ext-blurhash/-/archive/master/php_ext_blurhash-master.tar.gz' -o blurhash.tar.gz \
     && mkdir -p blurhash \
     && tar -xf blurhash.tar.gz -C blurhash --strip-components=1 \
