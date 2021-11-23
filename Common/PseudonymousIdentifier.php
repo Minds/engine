@@ -61,6 +61,6 @@ class PseudonymousIdentifier
      */
     public function getId(): ?string
     {
-        return $_COOKIE['minds_psudeoid'] ?? null;
+        return $_COOKIE[static::COOKIE_NAME] ?? null;
     }
 }
