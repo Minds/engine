@@ -17,20 +17,22 @@ class PseudonymousIdentifierSpec extends ObjectBehavior
     {
         $user->getGuid()
             ->willReturn('123');
+        $user->get('password')
+            ->willReturn('$2y$10$JWASv0VBel4cdYxe4350.OZtrgI24rWYkon7O89Mt2OXNjPmw.aGC');
         $this
             ->setUser($user)
             ->generateWithPassword('hello-world')
-            ->shouldBe("4acf10598d44c62e45ace11515b2a36ef42af2109a52008afc5e7c35646c71d1"); // hash('sha256', '123hello-world')
+            ->shouldBe("cb0d93f3f30d315e49a1c9d4ed2c1fbe"); // echo hash_hmac('md5', '123', 'hello-world$2y$10$JWASv0VBel4cdYxe4350.OZtrgI24rWYkon7O89Mt2OXNjPmw.aGC');
     }
 
     public function it_should_return_id_based_on_cookie_value(User $user)
     {
-        $_COOKIE['minds_psudeoid'] = hash('sha256', '123hello-world');
+        $_COOKIE['minds_psudeoid'] = hash_hmac('md5', '123', 'hello-world$2y$10$JWASv0VBel4cdYxe4350.OZtrgI24rWYkon7O89Mt2OXNjPmw.aGC');
 
         $user->getGuid()
             ->willReturn('123');
         $this
             ->setUser($user)
-            ->getId()->shouldBe("4acf10598d44c62e45ace11515b2a36ef42af2109a52008afc5e7c35646c71d1");
+            ->getId()->shouldBe("cb0d93f3f30d315e49a1c9d4ed2c1fbe");
     }
 }

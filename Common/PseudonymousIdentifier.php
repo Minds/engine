@@ -16,9 +16,7 @@ class PseudonymousIdentifier
 
     public function __construct(protected ?Cookie $cookie = null)
     {
-        if ($cookie === null) {
-            $this->cookie = new Cookie();
-        }
+        $this->cookie = $cookie ?? new Cookie();
     }
 
     /**
@@ -39,7 +37,8 @@ class PseudonymousIdentifier
      */
     public function generateWithPassword(string $password): string
     {
-        $identifier = hash('sha256', $this->user->getGuid() . $password);
+        $passwordPair = $password . $this->user->password; // For our key we need the real password and the already salted/hashed password to
+        $identifier = hash_hmac('md5', (string) $this->user->getGuid(), $passwordPair);
 
         $this->cookie
             ->setName(static::COOKIE_NAME)
