@@ -3,7 +3,7 @@
 namespace Spec\Minds\Core\SocialCompass;
 
 use Minds\Core\SocialCompass\Manager;
-use Minds\Core\SocialCompass\Questions\EstablishmentQuestion;
+use Minds\Core\SocialCompass\Questions\BannedMisinformationQuestion;
 use Minds\Core\SocialCompass\RepositoryInterface;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -19,7 +19,7 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_retrieve_social_compass_questions_with_no_active_user()
     {
         $questions = $this->retrieveSocialCompassQuestions();
-        $questions["questions"]->shouldContainValueLike(new EstablishmentQuestion());
+        $questions["questions"]->shouldContainValueLike(new BannedMisinformationQuestion());
     }
 
     public function it_should_retrieve_social_compass_questions_with_active_user(
@@ -40,7 +40,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this
             ->retrieveSocialCompassQuestions()["questions"]
-            ->shouldContainValueLike(new EstablishmentQuestion());
+            ->shouldContainValueLike(new BannedMisinformationQuestion());
     }
 
     public function getMatchers(): array
