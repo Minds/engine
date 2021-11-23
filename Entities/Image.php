@@ -218,11 +218,11 @@ class Image extends File
      * @param $imageBlob the image as string
      * @return string the blur hash
      */
-    public function generateBlurHash(string $imageBlob): string
+    public function generateBlurHash(): string
     {
         /** @var Core\Media\Services\BlurHash $blurHashService */
         $blurHashService = Core\Di\Di::_()->get('Media\BlurHash');
-        $blurHash = $blurHashService->getHash($imageBlob);
+        $blurHash = $blurHashService->getHash("/tmp/$this->batch_guid-$this->guid-small.jpg");
         $this->blurhash = $blurHash;
 
         return $this->blurhash;
@@ -376,8 +376,10 @@ class Image extends File
             $thumbnails = $this->createThumbnails(null, $assets['media']['file']);
             // NOTE: it's better if we use tiny, but we aren't resizing to tiny at the moment.
             // not sure if resizing to tiny and blurhash->encode('tiny' size) >> blurhash->encode('small' size)
-            $this->generateBlurHash($thumbnails['small']);
-
+            file_put_contents("/tmp/$this->batch_guid-$this->guid-small.jpg", $thumbnails['small']);
+            $this->generateBlurHash();
+            unlink("/tmp/$this->batch_guid-$this->guid-small.jpg");
+            
             if (strpos($assets['media']['type'], '/gif') !== false) {
                 $this->gif = true;
             }
