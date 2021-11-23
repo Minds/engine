@@ -3,6 +3,7 @@
 namespace Minds\Core\Suggestions;
 
 use Minds\Common\Repository\Response;
+use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Features;
@@ -36,13 +37,17 @@ class Manager
     /** @var string $type */
     private $type = 'user';
 
+    /** @var Config */
+    protected $config;
+
     public function __construct(// @phpstan-ignore-line
         $repository = null,
         $entitiesBuilder = null,
         $suggestedFeedsManager = null,
         $subscriptionsManager = null,
         $interactionsLimiter = null,
-        $features = null
+        $features = null,
+        Config $config = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder();
@@ -51,6 +56,7 @@ class Manager
         $this->interactionsLimiter = $interactionsLimiter ?: new InteractionsLimiter();
         $this->features = $features ?? new Features\Manager();
         $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
+        $this->config = $config ?? Di::_()->get('Config');
     }
 
     /**
@@ -100,18 +106,21 @@ class Manager
             'type' => $this->type,
         ], $opts);
 
-        if ($this->isNearSubscriptionRateLimit()) {
+        if ($this->user && $this->isNearSubscriptionRateLimit()) {
             return new Response([]);
         }
 
-        $opts['user_guid'] = $this->user->getGuid();
-
         $opts['limit'] = $opts['limit'] * 3; // To prevent removed channels or closed groups
 
+        if ($this->user) {
+            $opts['user_guid'] = $this->user->getGuid();
 
-        if ($this->subscriptionsManager->setSubscriber($this->user)
-            ->getSubscriptionsCount() > 1) {
-            $response = $this->repository->getList($opts);
+            if ($this->subscriptionsManager->setSubscriber($this->user)
+                ->getSubscriptionsCount() > 1) {
+                $response = $this->repository->getList($opts);
+            } else {
+                $response = $this->getFallbackSuggested($opts);
+            }
         } else {
             $response = $this->getFallbackSuggested($opts);
         }
@@ -171,14 +180,14 @@ class Manager
     private function getFallbackSuggested($opts = [])
     {
         $opts = array_merge([
-            'user_guid' => $this->user->getGuid(),
+            'user_guid' => $this->user ? $this->user->getGuid() : '',
             'type' => 'user',
         ], $opts);
 
-        $response = new Response();
+        $recommendationsUserGuid = $this->config->get('default_recommendations_user') ?? '100000000000000519';
 
         $users = $this->subscriptionsManager->getList([
-            'guid' => '100000000000000519',
+            'guid' => $recommendationsUserGuid,
             'type' => 'subscriptions',
             'hydrate' => false,
             'limit' => 500,
