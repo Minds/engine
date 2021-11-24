@@ -68,8 +68,8 @@ class PseudonymousIdentifier
             static::COST
         );
 
-        // Wrap around md5 to get a shorter id
-        $identifier = $this->hashAndTruncate($identifier, static::ID_LENGTH);
+        // Ensure we only return alphanumeric ids
+        $identifier = preg_replace("/[^a-zA-Z0-9]+/", '', $this->hashAndTruncate($identifier, static::ID_LENGTH));
 
         $this->cookie
             ->setName(static::COOKIE_NAME)
@@ -136,6 +136,6 @@ class PseudonymousIdentifier
      */
     protected function hashAndTruncate($text, $limit = 22): string
     {
-        return substr(hash('md5', $text), 0, $limit);
+        return substr(base64_encode(hash('md5', $text, binary: true)), 0, $limit);
     }
 }

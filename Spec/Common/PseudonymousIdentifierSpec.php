@@ -33,7 +33,7 @@ class PseudonymousIdentifierSpec extends ObjectBehavior
         $this
             ->setUser($user)
             ->generateWithPassword('hello-world')
-            ->shouldBe("b231c25a79a13bdd05d1fc");
+            ->shouldBe("ci0o3kJj4aILhsVK5oFXtw");
 
         $user->getGuid()
             ->willReturn('456');
@@ -42,7 +42,7 @@ class PseudonymousIdentifierSpec extends ObjectBehavior
         $this
             ->setUser($user)
             ->generateWithPassword('thisisaveryweakpassword')
-            ->shouldBe("a22ede5d5fcc329e667025");
+            ->shouldBe("opfMNIxLlqH6LGCpQ0W1w");
 
         $user->getGuid()
             ->willReturn('100000000000000063');
@@ -51,7 +51,7 @@ class PseudonymousIdentifierSpec extends ObjectBehavior
         $this
             ->setUser($user)
             ->generateWithPassword('Pa$$w0rd')
-            ->shouldBe("2fe778b1ad9b77aef0da00");
+            ->shouldBe("OKmajPbHOpbCqXWRsVGdEQ");
     }
 
     public function it_should_return_id_based_on_cookie_value(User $user)
