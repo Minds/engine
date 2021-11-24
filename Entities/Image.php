@@ -136,7 +136,7 @@ class Image extends File
      * @param string $filepath where to save the iamges
      * @return string xlarge image blob
      */
-    public function createThumbnails($sizes = ['small', 'medium', 'large', 'xlarge'], $filepath = null): array
+    public function createThumbnails($sizes = ['small', 'medium', 'large', 'xlarge'], $filepath = null): string
     {
         if (!$sizes) {
             $sizes = ['small', 'medium', 'large', 'xlarge'];
