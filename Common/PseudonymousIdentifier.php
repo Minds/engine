@@ -4,6 +4,7 @@ namespace Minds\Common;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 
 /**
  * We create a one-way Pseudonymous Identifier to protect users privacy. The Identifier consists of a hash between
@@ -15,10 +16,16 @@ class PseudonymousIdentifier
     const COOKIE_NAME = "minds_psudeoid";
 
     /** @var int */
-    const COST = 1024;
+    const COST = 11;
 
     /** @var int */
-    const ID_LENGTH = 20;
+    const ID_LENGTH = 22;
+
+    /** @var int */
+    const SALT_LENGTH= 22;
+
+    /** @var int */
+    const DATA_LENGTH = 72;
 
     protected User $user;
 
@@ -48,10 +55,21 @@ class PseudonymousIdentifier
     {
         // For our key we need the real password and the already salted/hashed password
         // we then hash that with our global session private key
-        $key = hash_pbkdf2('sha256', crypt($password, '$2y$10$' . base64_encode($this->user->password) . '$'), $this->getSessionsPrivateKey(), static::COST);
+        $key = $this->bcrypt(
+            $this->hashAndTruncate($password.$this->user->password, static::DATA_LENGTH),
+            $this->hashAndTruncate($this->getSessionsPrivateKey(), static::SALT_LENGTH),
+            static::COST
+        );
 
         // Our root identifier is the userGuid
-        $identifier = hash_pbkdf2('sha256', (string) $this->user->getGuid(), $key, static::COST, static::ID_LENGTH);
+        $identifier  = $this->bcrypt(
+            (string) $this->user->getGuid(),
+            $this->hashAndTruncate($key, static::SALT_LENGTH),
+            static::COST
+        );
+
+        // Wrap around md5 to get a shorter id
+        $identifier = $this->hashAndTruncate($identifier, static::ID_LENGTH);
 
         $this->cookie
             ->setName(static::COOKIE_NAME)
@@ -83,5 +101,41 @@ class PseudonymousIdentifier
     protected function getSessionsPrivateKey(): string
     {
         return file_get_contents($this->config->get('sessions')['private_key']);
+    }
+
+    /**
+     * @param string $data - max 72 chars
+     * @param string $salt - max 22 chars
+     * @param int $cost
+     * @return string
+     */
+    protected function bcrypt($data, $salt, $cost): string
+    {
+        $bcryptFnId = '$2y$';
+        $cost = str_pad($cost, 2, '0', STR_PAD_LEFT);
+
+        if (strlen($data) > 72) {
+            throw new ServerErrorException("You can not provide more than 72 characters to bcrypt data param", 500);
+        }
+
+        if (strlen($salt) > 22) {
+            throw new ServerErrorException("You can not provide more than 22 characters to bcrypt salt param", 500);
+        }
+
+        return crypt(
+            $data,
+            $bcryptFnId . $cost . '$' . base64_encode($salt) . '$'
+        );
+    }
+
+    /**
+     * Will return a hash and truncate the the string
+     * @param string $text
+     * @param int $limit
+     * @return int
+     */
+    protected function hashAndTruncate($text, $limit = 22): string
+    {
+        return substr(hash('md5', $text), 0, $limit);
     }
 }
