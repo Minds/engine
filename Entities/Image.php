@@ -134,7 +134,7 @@ class Image extends File
      * Creates thumbnails for the image, saves to fs, and returns the image blobgs
      * @param string[] $sizes thumbnail sizes
      * @param string $filepath where to save the iamges
-     * @return string[] image blobs
+     * @return string xlarge image blob
      */
     public function createThumbnails($sizes = ['small', 'medium', 'large', 'xlarge'], $filepath = null): array
     {
@@ -142,7 +142,7 @@ class Image extends File
             $sizes = ['small', 'medium', 'large', 'xlarge'];
         }
         $master = $filepath ?: $this->getFilenameOnFilestore();
-        $thumbnails = [];
+        $thumbnail = '';
         foreach ($sizes as $size) {
             switch ($size) {
                 case 'tiny':
@@ -202,7 +202,10 @@ class Image extends File
                 ->resize();
 
             $imageBlob = $resize->getJpeg(90);
-            $thumbnails[$size] = $imageBlob;
+
+            if ($size == 'xlarge') {
+                $thumbnail = $imageBlob;
+            }
 
             $this->setFilename("image/$this->batch_guid/$this->guid/$size.jpg");
             $this->open('write');
@@ -210,7 +213,7 @@ class Image extends File
             $this->close();
         }
 
-        return $thumbnails;
+        return $thumbnail;
     }
 
     /**
@@ -218,11 +221,24 @@ class Image extends File
      * @param $imageBlob the image as string
      * @return string the blur hash
      */
-    public function generateBlurHash(): string
+    public function generateBlurHash(string $thumbnail): string
     {
+        $image = new \Imagick();
+        $image->readImageBlob($thumbnail);
+
+        $resize = Core\Di\Di::_()->get('Media\Imagick\Resize');
+        $resize->setImage($image)
+            ->setUpscale(true)
+            ->setSquare(false)
+            ->setWidth(50)
+            ->setHeight(50)
+            ->resize();
+        $imageBlob = $resize->getJpeg(90);
+
         /** @var Core\Media\Services\BlurHash $blurHashService */
         $blurHashService = Core\Di\Di::_()->get('Media\BlurHash');
-        $blurHash = $blurHashService->getHash("/tmp/$this->batch_guid-$this->guid-small.jpg");
+        //
+        $blurHash = $blurHashService->getHash($imageBlob);
         $this->blurhash = $blurHash;
 
         return $this->blurhash;
@@ -373,13 +389,13 @@ class Image extends File
         }
 
         if (isset($assets['media'])) {
-            $thumbnails = $this->createThumbnails(null, $assets['media']['file']);
+            $thumbnail = $this->createThumbnails(null, $assets['media']['file']);
             // NOTE: it's better if we use tiny, but we aren't resizing to tiny at the moment.
             // not sure if resizing to tiny and blurhash->encode('tiny' size) >> blurhash->encode('small' size)
-            file_put_contents("/tmp/$this->batch_guid-$this->guid-small.jpg", $thumbnails['small']);
-            $this->generateBlurHash();
-            unlink("/tmp/$this->batch_guid-$this->guid-small.jpg");
-            
+            if ($thumbnail) {
+                $this->generateBlurHash($thumbnail);
+            }
+
             if (strpos($assets['media']['type'], '/gif') !== false) {
                 $this->gif = true;
             }
