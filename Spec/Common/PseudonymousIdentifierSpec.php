@@ -3,11 +3,22 @@
 namespace Spec\Minds\Common;
 
 use Minds\Common\PseudonymousIdentifier;
+use Minds\Core\Config\Config;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 
 class PseudonymousIdentifierSpec extends ObjectBehavior
 {
+    public function let(Config $config)
+    {
+        $this->beConstructedWith(null, $config);
+
+        $config->get('sessions')
+            ->willReturn([
+                'private_key' => dirname(__FILE__) . '/spec-priv-key.pem',
+            ]);
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(PseudonymousIdentifier::class);
@@ -22,17 +33,35 @@ class PseudonymousIdentifierSpec extends ObjectBehavior
         $this
             ->setUser($user)
             ->generateWithPassword('hello-world')
-            ->shouldBe("cb0d93f3f30d315e49a1c9d4ed2c1fbe"); // echo hash_hmac('md5', '123', 'hello-world$2y$10$JWASv0VBel4cdYxe4350.OZtrgI24rWYkon7O89Mt2OXNjPmw.aGC');
+            ->shouldBe("495da9ae5495af8c7a8e");
+
+        $user->getGuid()
+            ->willReturn('456');
+        $user->get('password')
+            ->willReturn('$2y$10$C4eogYA1O4Z.mzHjjnszDOxTeYBscFGqowBDSTbzItHFpjDRHeEya');
+        $this
+            ->setUser($user)
+            ->generateWithPassword('thisisaveryweakpassword')
+            ->shouldBe("3d1e8f908d1ab8803197");
+
+        $user->getGuid()
+            ->willReturn('100000000000000063');
+        $user->get('password')
+            ->willReturn('$2y$10$FxaxEoD/gy10JgWrsIKOMO/ghRn9wnSwfynZ7wUiO/mjEPupybt8i');
+        $this
+            ->setUser($user)
+            ->generateWithPassword('Pa$$w0rd')
+            ->shouldBe("5058da52e5f35eab7329");
     }
 
     public function it_should_return_id_based_on_cookie_value(User $user)
     {
-        $_COOKIE['minds_psudeoid'] = hash_hmac('md5', '123', 'hello-world$2y$10$JWASv0VBel4cdYxe4350.OZtrgI24rWYkon7O89Mt2OXNjPmw.aGC');
+        $_COOKIE['minds_psudeoid'] = "5058da52e5f35eab7329";
 
         $user->getGuid()
             ->willReturn('123');
         $this
             ->setUser($user)
-            ->getId()->shouldBe("cb0d93f3f30d315e49a1c9d4ed2c1fbe");
+            ->getId()->shouldBe("5058da52e5f35eab7329");
     }
 }
