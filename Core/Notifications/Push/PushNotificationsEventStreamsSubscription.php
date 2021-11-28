@@ -56,7 +56,7 @@ class PushNotificationsEventStreamsSubscription implements SubscriptionInterface
      * Called when there is a new notification
      * NOTE: the topic delays the delivery
      * @param EventInterface $event
-     * @return booo
+     * @return bool
      */
     public function consume(EventInterface $event): bool
     {
@@ -77,7 +77,13 @@ class PushNotificationsEventStreamsSubscription implements SubscriptionInterface
         }
 
         $this->logger->info("{$notification->getUrn()} sending");
-        $this->manager->sendPushNotification($notification);
+        
+        try {
+            $this->manager->sendPushNotification($notification);
+        } catch (\Exception $e) {
+            $this->logger->error($e);
+            return true;
+        }
 
         return true;
     }
