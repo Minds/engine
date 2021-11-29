@@ -90,7 +90,7 @@ class Controller
             'type' => 'activity',
             'algorithm' => 'top',
             'period' => '1y',
-            'single_owner_threshold' => 0,
+            'single_owner_threshold' => 36, // after 3 scrolls
             'from_timestamp' => $nextPage,
             'nsfw' => []
         ]);
