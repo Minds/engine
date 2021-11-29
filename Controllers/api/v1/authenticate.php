@@ -16,6 +16,7 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Common\IpAddress;
+use Minds\Common\PseudonymousIdentifier;
 use Minds\Exceptions\TwoFactorRequired;
 use Minds\Core\Queue;
 use Minds\Core\Subscriptions;
@@ -94,15 +95,17 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
             $user->enable();
         }
 
+        $password = $_POST['password'];
+
         try {
             $passwordSvc = new Core\Security\Password();
-            if (!$passwordSvc->check($user, $_POST['password'])) {
+            if (!$passwordSvc->check($user, $password)) {
                 $attempts->logFailure();
                 header('HTTP/1.1 401 Unauthorized', true, 401);
                 return Factory::response(['status' => 'failed']);
             }
         } catch (Core\Security\Exceptions\PasswordRequiresHashUpgradeException $e) {
-            $user->password = Core\Security\Password::generate($user, $_POST['password']);
+            $user->password = Core\Security\Password::generate($user, $password);
             $user->override_password = true;
             $user->save();
         }
@@ -137,6 +140,11 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         // delete experiments cookie as it will contain a logged-out placeholder guid.
         Di::_()->get('Experiments\Cookie\Manager')->delete();
+
+        // Instantiate our pseudonymous identifier for analytics
+        (new PseudonymousIdentifier())
+            ->setUser($user)
+            ->generateWithPassword($password);
 
         // Record login events
         $event = new Analytics\Metrics\Event();
