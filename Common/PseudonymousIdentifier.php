@@ -68,8 +68,8 @@ class PseudonymousIdentifier
             static::COST
         );
 
-        // Ensure we only return alphanumeric ids
-        $identifier = preg_replace("/[^a-zA-Z0-9]+/", '', $this->hashAndTruncate($identifier, static::ID_LENGTH));
+        // Ensure we only return alphanumeric ids and make lower case
+        $identifier = strtolower(preg_replace("/[^a-zA-Z0-9]+/", '', $this->hashAndTruncate($identifier, static::ID_LENGTH)));
 
         $this->cookie
             ->setName(static::COOKIE_NAME)
