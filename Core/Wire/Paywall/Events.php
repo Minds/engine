@@ -196,6 +196,7 @@ class Events
             $wireThreshold['support_tier'] = array_merge($wireThreshold['support_tier'], $supportTier->export());
 
             $export['wire_threshold'] = $wireThreshold;
+            $export['paywall'] = true;
 
             if ($entity->isPayWallUnlocked()) {
                 $export['paywall_unlocked'] = true;
