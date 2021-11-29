@@ -5,6 +5,7 @@
 namespace Minds\Core\Rewards\Withdraw;
 
 use Exception;
+use Minds\Core\Session;
 use Minds\Common\Repository\Response;
 use Minds\Core\Blockchain\Services\Ethereum;
 use Minds\Core\Blockchain\Transactions\Manager as TransactionsManager;
@@ -207,7 +208,7 @@ class Manager
         $user = $this->entitiesBuilder->single($request->getUserGuid());
 
         // verify user has been authenticated prior to dispatching transaction.
-        if (!$user->isAdmin() && !$this->verifyDeferredAuthentication($secret, $user)) {
+        if (!Session::isAdmin() && !$this->verifyDeferredAuthentication($secret, $user)) {
             throw new UserErrorException('Invalid authentication secret', 403);
         }
 

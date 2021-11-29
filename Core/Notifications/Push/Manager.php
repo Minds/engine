@@ -58,6 +58,10 @@ class Manager
         /** @var User */
         $toUser = $this->getEntitiesBuilder()->single($notification->getToGuid());
 
+        if (!$toUser) {
+            return;
+        }
+
         // Only if the user allows the feature flag, should we send a push notification
         if (!$this->getFeaturesManager()->setUser($toUser)->has('notifications-v3')) {
             return;
