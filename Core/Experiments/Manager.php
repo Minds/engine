@@ -31,7 +31,7 @@ class Manager
         $this->experiments = [
             new Growthbook\Experiment("channel-gallery", ["on", "off"]),
             new Growthbook\Experiment("boost-rotator", ["on", "off"]),
-            new Growthbook\Experiment("boost-prompt", ["on", "off"]),
+            new Growthbook\Experiment("boost-prompt-2", ["on", "off"]),
             new Growthbook\Experiment("discovery-homepage", ["off", "on"]),
         ];
     }
