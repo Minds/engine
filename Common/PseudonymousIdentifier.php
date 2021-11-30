@@ -13,7 +13,7 @@ use Minds\Exceptions\ServerErrorException;
 class PseudonymousIdentifier
 {
     /** @var string */
-    const COOKIE_NAME = "minds_psudeoid";
+    const COOKIE_NAME = "minds_pseudoid";
 
     /** @var int */
     const COST = 11;
