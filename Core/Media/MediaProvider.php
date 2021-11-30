@@ -66,6 +66,12 @@ class MediaProvider extends Provider
             return new Imagick\Manager();
         }, ['useFactory' => false]);
 
+        // Blurhash
+
+        $this->di->bind('Media\BlurHash', function ($di) {
+            return new BlurHash();
+        }, ['useFactory' => true]);
+
         // ClientUpload
 
         $this->di->bind('Media\ClientUpload\Manager', function ($di) {
