@@ -56,7 +56,7 @@ class PseudonymousIdentifierSpec extends ObjectBehavior
 
     public function it_should_return_id_based_on_cookie_value(User $user)
     {
-        $_COOKIE['minds_psudeoid'] = "5058da52e5f35eab7329";
+        $_COOKIE['minds_pseudoid'] = "5058da52e5f35eab7329";
 
         $user->getGuid()
             ->willReturn('123');
