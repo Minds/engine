@@ -9,6 +9,7 @@
 namespace Minds\Controllers\api\v1;
 
 use Minds\Api\Factory;
+use Minds\Common\PseudonymousIdentifier;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
@@ -114,9 +115,11 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 return Factory::response(['status'=>'error', 'message' => "Please refresh your browser or update you app. We don't recognise your platform."]);
             }
 
+            $password = $_POST['password'];
+
             $params = [
                 'user' => $user,
-                'password' => $_POST['password'],
+                'password' => $password,
                 'friend_guid' => "",
                 'invitecode' => "",
                 'referrer' => isset($_COOKIE['referrer']) ? $_COOKIE['referrer'] : '',
@@ -131,6 +134,10 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             $sessions->setUser($user);
             $sessions->createSession();
             $sessions->save(); // Save to db and cookie
+
+            (new PseudonymousIdentifier())
+                ->setUser($user)
+                ->generateWithPassword($password);
 
             $response = [
                 'guid' => $guid,
