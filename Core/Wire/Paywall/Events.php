@@ -197,12 +197,6 @@ class Events
 
             $export['wire_threshold'] = $wireThreshold;
 
-            if ($entity->isPayWallUnlocked()) {
-                $export['paywall_unlocked'] = true;
-            } else {
-                $export['paywall'] = $entity->isPayWall();
-            }
-
             return $event->setResponse($export);
         });
 
