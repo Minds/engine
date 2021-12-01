@@ -49,7 +49,9 @@ class Events
                 return;
             }
 
-            if ($activity->isPaywall() &&
+            $export['paywall'] = $activity->isPayWall();
+
+            if ($activity->isPayWall() &&
                 $activity->getWireThreshold()['support_tier']['urn'] === Di::_()->get('Config')->plus['support_tier_urn'] &&
                 $currentUserEntity &&
                 $currentUserEntity->isPlus()
