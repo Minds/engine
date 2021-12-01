@@ -226,9 +226,9 @@ class Ethereum
     {
         $config = $this->config->get();
 
-        if (!$config['rpc_endpoints']) {
+        if (!$config['skale']['rpc_url']) {
             throw new \Exception('No RPC endpoints available');
         }
-        return $config['rpc_endpoints'][0];
+        return $config['skale']['rpc_url'];
     }
 }
