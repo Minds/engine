@@ -21,6 +21,12 @@ class Controller
     public function getUnseenTopFeed(ServerRequestInterface $request): JsonResponse
     {
         $totalEntitiesToRetrieve = $request->getQueryParams()["limit"];
-        return new JsonResponse(Exportable::_($this->manager->getUnseenTopEntities($totalEntitiesToRetrieve)));
+        $response = $this->manager->getUnseenTopEntities($totalEntitiesToRetrieve)
+
+        return new JsonResponse([
+            'status' => 'success',
+            'entities' => Exportable::_($response),
+            'load-next' => $response->getPagingToken(),
+        ], 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
     }
 }
