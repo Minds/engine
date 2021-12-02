@@ -31,7 +31,8 @@ class Manager implements ManagerInterface
     ): Response {
         $queryOptions = [
             'limit' => $totalEntitiesToRetrieve,
-            'type' => 'activities'
+            'type' => 'activities',
+            'algorithm' => 'top'
         ];
 
         $previouslySeenEntities = $this->getUserPreviouslySeenTopFeedEntitiesCacheAvailable();
