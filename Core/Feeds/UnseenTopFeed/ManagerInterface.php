@@ -2,9 +2,9 @@
 
 namespace Minds\Core\Feeds\UnseenTopFeed;
 
-use Minds\Core\Feeds\Elastic\Entities;
+use Minds\Common\Repository\Response;
 
 interface ManagerInterface
 {
-    public function getUnseenTopEntities(): Entities;
+    public function getUnseenTopEntities(int $totalEntitiesToRetrieve): Response;
 }

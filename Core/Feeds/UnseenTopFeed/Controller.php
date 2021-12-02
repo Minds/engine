@@ -2,6 +2,8 @@
 
 namespace Minds\Core\Feeds\UnseenTopFeed;
 
+use Minds\Api\Exportable;
+use Minds\Core\Di\Di;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
 
@@ -10,7 +12,15 @@ use Zend\Diactoros\Response\JsonResponse;
  */
 class Controller
 {
+    public function __construct(
+        private ?ManagerInterface $manager = null
+    ) {
+        $this->manager = $this->manager ?? Di::_()->get("Feeds\UnseenTopFeed\Manager");
+    }
+
     public function getUnseenTopFeed(ServerRequestInterface $request): JsonResponse
     {
+        $totalEntitiesToRetrieve = $request->getQueryParams()["limit"];
+        return new JsonResponse(Exportable::_($this->manager->getUnseenTopEntities($totalEntitiesToRetrieve)));
     }
 }
