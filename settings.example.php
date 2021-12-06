@@ -225,6 +225,9 @@ $CONFIG->memcache_servers = array (
 $CONFIG->queue = [
     'exchange' => '{{ queue-exchange }}',
 ];
+$CONFIG->set('rabbitmq',[
+    'host' => 'rabbitmq'
+]);
 
 /*
  * Use non-standard headers for broken MTAs.
