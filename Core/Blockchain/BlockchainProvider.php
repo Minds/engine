@@ -50,6 +50,10 @@ class BlockchainProvider extends Provider
             return new Services\BlockFinder();
         }, [ 'useFactory' => true ]);
 
+        $this->di->bind('Blockchain\Services\MindsWeb3', function () {
+            return new Services\MindsWeb3Service();
+        }, [ 'useFactory' => true ]);
+
         $this->di->bind('Blockchain\Wallets\Balance', function () {
             return new Wallets\Balance();
         });
