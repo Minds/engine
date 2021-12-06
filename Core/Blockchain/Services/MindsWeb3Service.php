@@ -45,7 +45,7 @@ class MindsWeb3Service
         $endpoint = $this->getBaseUrl().'tx/encodeFunctionData';
 
         $response = $this->httpClient->request('POST', $endpoint, [
-            'headers' => $this->buildHeaders(authenticate: false),
+            'headers' => $this->buildHeaders(),
             'json' => [
                 'functionSignature' => $functionSignature,
                 'params' => $params
@@ -75,7 +75,7 @@ class MindsWeb3Service
         $endpoint = $this->getBaseUrl().'sign/tx';
 
         $response = $this->httpClient->request('POST', $endpoint, [
-            'headers' => $this->buildHeaders(authenticate: false),
+            'headers' => $this->buildHeaders(),
             'json' => $transaction
         ]);
 
