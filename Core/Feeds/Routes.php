@@ -23,8 +23,8 @@ class Routes extends ModuleRoutes
             ->withPrefix('api/v3/newsfeed')
             ->do(function (Route $route) {
                 $route->get(
-                    'logged-out',
-                    Ref::_('Feeds\Controller', 'getLoggedOutFeed')
+                    'default-feed',
+                    Ref::_('Feeds\Controller', 'getDefaultFeed')
                 );
 
                 $route
