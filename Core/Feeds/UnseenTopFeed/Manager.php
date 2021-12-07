@@ -3,7 +3,6 @@
 namespace Minds\Core\Feeds\UnseenTopFeed;
 
 use Exception;
-use Minds\Common\Cookie;
 use Minds\Common\PseudonymousIdentifier;
 use Minds\Common\Repository\Response;
 use Minds\Core\Data\cache\Redis;
@@ -13,11 +12,13 @@ use Minds\Core\Feeds\FeedSyncEntity;
 
 class Manager implements ManagerInterface
 {
+    private const CACHE_KEY_PREFIX = "seen-entities";
+
     public function __construct(
         private ?Redis $redisClient = null,
         private ?ElasticSearchManager $elasticSearchManager = null
     ) {
-        $this->redisClient = $this->redisClient ?? (Di::_()->get("Cache\Redis"))->forReading();
+        $this->redisClient = $this->redisClient ?? Di::_()->get("Cache\Redis");
         $this->elasticSearchManager = $this->elasticSearchManager ?? Di::_()->get("Feeds\Elastic\Manager");
     }
 
@@ -31,8 +32,9 @@ class Manager implements ManagerInterface
     ): Response {
         $queryOptions = [
             'limit' => $totalEntitiesToRetrieve,
-            'type' => 'activities',
-            'algorithm' => 'top'
+            'type' => 'activity',
+            'algorithm' => 'top',
+            'period' => 'all' // legacy option
         ];
 
         $previouslySeenEntities = $this->getUserPreviouslySeenTopFeedEntitiesCacheAvailable();
@@ -55,7 +57,7 @@ class Manager implements ManagerInterface
 
     private function getCacheKey(): string
     {
-        return (new PseudonymousIdentifier())->getId() ?? $this->createUnseenTopFeedCacheKeyCookie()->getValue();
+        return self::CACHE_KEY_PREFIX . ((new PseudonymousIdentifier())->getId() ?? $this->createUnseenTopFeedCacheKeyCookie()->getValue());
     }
 
     /**
@@ -64,7 +66,9 @@ class Manager implements ManagerInterface
     private function getUserPreviouslySeenTopFeedEntitiesCacheAvailable(): array
     {
         $cacheKey = $this->getCacheKey();
-        return $this->redisClient->get($cacheKey);
+
+        $data = $this->redisClient->get($cacheKey);
+        return !$data ? [] : $data;
     }
 
     /**
