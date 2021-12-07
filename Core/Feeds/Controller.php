@@ -78,7 +78,7 @@ class Controller
     {
         $queryParams = $request->getQueryParams();
         $limit = (int) ($queryParams['limit'] ?? 12);
-        $nextPage = (int) ($queryParams['next-page'] ?? 0);
+        $fromTimestamp = (int) ($queryParams['from_timestamp'] ?? 0);
 
         $recommendationsUserGuid = $this->config->get('default_recommendations_user') ?? '100000000000000519';
         
@@ -90,8 +90,8 @@ class Controller
             'type' => 'activity',
             'algorithm' => 'top',
             'period' => '1y',
-            'single_owner_threshold' => 36, // after 3 scrolls
-            'from_timestamp' => $nextPage,
+            'single_owner_threshold' => $fromTimestamp ? 0 : 36, // after 3 scrolls
+            'from_timestamp' => $fromTimestamp,
             'nsfw' => []
         ]);
 
