@@ -16,7 +16,7 @@ use Minds\Entities\User;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Rewards\Withdraw;
-use Minds\Core\Rewards\Join;
+use Minds\Exceptions\TwoFactorRequired;
 
 class transactions implements Interfaces\Api
 {
@@ -114,12 +114,26 @@ class transactions implements Interfaces\Api
     public function post($pages)
     {
         Factory::isLoggedIn();
+        $manager = new Withdraw\Manager();
         $response = [];
 
         switch ($pages[0]) {
             case "can-withdraw":
-                $manager = new Withdraw\Manager();
                 $response['canWithdraw'] = $manager->check(Session::getLoggedinUser()->guid);
+                
+                if ($response['canWithdraw']) {
+                    try {
+                        $response['secret'] = $manager->deferAuthentication(Session::getLoggedinUser());
+                    } catch (TwoFactorRequired $e) {
+                        header('HTTP/1.1 ' . $e->getCode(), true, $e->getCode());
+                        $response['status'] = "error";
+                        $response['code'] = $e->getCode();
+                        $response['message'] = $e->getMessage();
+                        $response['errorId'] = str_replace('\\', '::', get_class($e));
+                        return Factory::response($response);
+                    }
+                }
+
                 break;
             case "withdraw":
                 $request = new Withdraw\Request();
@@ -131,48 +145,47 @@ class transactions implements Interfaces\Api
                     ->setGas($_POST['gas'])
                     ->setAmount((string) BigNumber::fromHex($_POST['amount']));
 
-                $manager = new Withdraw\Manager();
                 try {
-                    $manager->request($request);
+                    $manager->request(request: $request, secret: $_POST['secret']);
 
                     $response['done'] = true;
                     $response['entity'] = $request->export();
                 } catch (\Exception $e) {
-                    $response = ['status' => 'error', 'message' => $e->getMessage()];
+                    $response = ['status' => 'error', 'code' => $e->getCode() ?? 500, 'message' => $e->getMessage()];
                 }
                 break;
-            case 'spend':
-                if (!$_POST['type']) {
-                    return Factory::response([
-                        'status' => 'error',
-                        'message' => 'Type is required'
-                    ]);
-                }
+            // case 'spend':
+            //     if (!$_POST['type']) {
+            //         return Factory::response([
+            //             'status' => 'error',
+            //             'message' => 'Type is required'
+            //         ]);
+            //     }
 
-                $amount = BigNumber::_($_POST['amount']);
+            //     $amount = BigNumber::_($_POST['amount']);
 
-                if ($amount->lte(0)) {
-                    return Factory::response([
-                        'status' => 'error',
-                        'message' => 'Amount should be a positive number'
-                    ]);
-                }
+            //     if ($amount->lte(0)) {
+            //         return Factory::response([
+            //             'status' => 'error',
+            //             'message' => 'Amount should be a positive number'
+            //         ]);
+            //     }
 
-                /** @var Core\Blockchain\Wallets\OffChain\Transactions $transactions */
-                $transactions = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
+            //     /** @var Core\Blockchain\Wallets\OffChain\Transactions $transactions */
+            //     $transactions = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
 
-                $transactions
-                    ->setUser(Session::getLoggedinUser())
-                    ->setType($_POST['type'])
-                    ->setAmount((string) BigNumber::_($amount)->neg());
+            //     $transactions
+            //         ->setUser(Session::getLoggedinUser())
+            //         ->setType($_POST['type'])
+            //         ->setAmount((string) BigNumber::_($amount)->neg());
 
-                $transaction = $transactions->create();
+            //     $transaction = $transactions->create();
 
-                $response = [
-                    'txHash' => $transaction->getTx()
-                ];
+            //     $response = [
+            //         'txHash' => $transaction->getTx()
+            //     ];
 
-                break;
+            //     break;
         }
 
         return Factory::response($response);

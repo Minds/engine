@@ -89,4 +89,23 @@ class Repository
 
         return $response;
     }
+
+    /**
+     * Count blocks
+     * @param string $userGuid
+     * @return int
+     */
+    public function countList(string $userGuid): int
+    {
+        $statement = "SELECT COUNT(*) FROM entities_by_time WHERE key= ?";
+        $values = [ "acl:blocked:{$userGuid}" ];
+
+        $prepared = new Prepared\Custom;
+
+        $prepared->query($statement, $values);
+
+        $result = $this->db->request($prepared);
+
+        return (int) $result[0]['count'] ?? 0;
+    }
 }

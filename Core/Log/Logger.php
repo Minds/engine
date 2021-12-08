@@ -63,7 +63,7 @@ class Logger extends MonologLogger
 
         if ($isProduction) {
             // Do _NOT_ send INFO or DEBUG
-            $handlers[] = new SentryHandler(SentrySdk::getCurrentHub(), max($level, MonologLogger::WARNING));
+            $handlers[] = new SentryHandler(SentrySdk::getCurrentHub(), max($level, MonologLogger::ERROR));
         } else {
             // Extra handlers for Development Mode
 

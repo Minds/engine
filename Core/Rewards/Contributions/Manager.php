@@ -73,7 +73,7 @@ class Manager
             ->setFrom($this->from)
             ->setTo($this->to)
             ->setInterval('day')
-            ->setOnlyPlus(true);
+            ->setOnlyPlus(false);
 
         if ($this->user) {
             $this->analytics
@@ -162,12 +162,9 @@ class Manager
      */
     public function getRewardsAmount()
     {
-        //$share = BigNumber::_($this->getUserContributionScore(), 18)->div($this->getSiteContribtionScore());
-        //$pool = BigNumber::toPlain('100000000', 18)->div(15)->div(365);
-
-        //$velocity = 10;
-
-        //$pool = $pool->div($velocity);
+        if ($this->getUserContributionScore() <= 0) {
+            return "0"; // Do not issue negative tokens
+        }
         
         $tokensPerScore = BigNumber::_(pi())->mul(10 ** 18)->div(200);
         $tokens = BigNumber::_($this->getUserContributionScore())->mul($tokensPerScore);

@@ -41,6 +41,10 @@ class Events
         $this->eventsDispatcher->register('create', 'all', function ($event, $namespace, $entity) {
             $user = $this->activeSession->getUser();
 
+            if (!$user) {
+                return;
+            }
+
             if (!$user && $entity instanceof User) {
                 $user = $entity;
             }

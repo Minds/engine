@@ -2,11 +2,26 @@
 
 namespace Spec\Minds\Core\Security;
 
+use Minds\Core\Config;
+use Minds\Core\Security\XSS\TagsRule;
+use Minds\Core\Security\XSS\GenericRule;
+use Minds\Core\Security\XSS\UriSchemeRule;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 class XSSSpec extends ObjectBehavior
 {
+    public function let(Config $config)
+    {
+        $config->get('site_url')->willReturn('https://www.minds.com');
+
+        $this->beConstructedWith(
+            new TagsRule,
+            new GenericRule($config->getWrappedObject()),
+            new UriSchemeRule,
+        );
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Security\XSS');
@@ -45,7 +60,7 @@ class XSSSpec extends ObjectBehavior
     public function it_should_allow_href_on_anchor_tags()
     {
         $dirty = "<a href=\"https://www.minds.com\">take me home</a>";
-        $this->clean($dirty)->shouldReturn('<?xml encoding="utf-8" ?>'."<a href=\"https://www.minds.com\" target=\"_blank\" rel=\"noopener noreferrer nofollow ugc\">take me home</a>");
+        $this->clean($dirty)->shouldReturn('<?xml encoding="utf-8" ?>'."<a href=\"https://www.minds.com\" target=\"_blank\">take me home</a>");
     }
 
     public function it_should_not_allow_bad_url_schemes()
@@ -84,5 +99,17 @@ class XSSSpec extends ObjectBehavior
     {
         $dirty = "<p><p>";
         $this->clean($dirty)->shouldReturn('<?xml encoding="utf-8" ?>'."<p></p><p></p>");
+    }
+
+    public function it_should_not_have_rel_attribute_on_site_links()
+    {
+        $dirty = "<a href=\"https://www.minds.com\">take me home</a>";
+        $this->clean($dirty)->shouldReturn('<?xml encoding="utf-8" ?>'."<a href=\"https://www.minds.com\" target=\"_blank\">take me home</a>");
+    }
+
+    public function it_should_set_correct_rel_attributes_on_non_site_links()
+    {
+        $dirty = "<a href=\"https://www.somesite.com\">somesite</a>";
+        $this->clean($dirty)->shouldReturn('<?xml encoding="utf-8" ?>'."<a href=\"https://www.somesite.com\" target=\"_blank\" rel=\"noopener noreferrer nofollow ugc\">somesite</a>");
     }
 }

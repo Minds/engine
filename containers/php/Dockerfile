@@ -75,6 +75,23 @@ RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && apk del build-deps \
     && rm -rf $INSTALL_DIR
 
+# blurhash extension
+RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
+    && curl -fsSL 'https://gitlab.com/minds/php-ext-blurhash/-/archive/master/php_ext_blurhash-master.tar.gz' -o blurhash.tar.gz \
+    && mkdir -p blurhash \
+    && tar -xf blurhash.tar.gz -C blurhash --strip-components=1 \
+    && rm blurhash.tar.gz \
+    && ( \
+        cd blurhash \
+        && phpize \
+        && ./configure\
+        && make -j "$(nproc)" \
+        && make install \
+    ) \
+    && rm -r blurhash \
+    && docker-php-ext-enable blurhash \
+    && apk del build-deps
+
 # ZMQ extension
 ENV INSTALL_DIR /usr/src/php-zmq
 RUN apk add --no-cache --virtual build-deps \

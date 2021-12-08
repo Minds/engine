@@ -249,6 +249,50 @@ class MockSet
     }
 }
 
+class RedisMock
+{
+    public function connect()
+    {
+    }
+    public function close()
+    {
+    }
+    public function get($key)
+    {
+        return false;
+    }
+    public function mget($keys)
+    {
+        return array_fill(0, count($keys), null);
+    }
+    public function set($set, $values)
+    {
+        return false;
+    }
+    public function delete($key)
+    {
+    }
+    public function multi()
+    {
+        return $this;
+    }
+    public function incr()
+    {
+        return $this;
+    }
+    public function expire()
+    {
+        return $this;
+    }
+    public function exec()
+    {
+    }
+    public function isConnected()
+    {
+        return true;
+    }
+}
+
 if (!class_exists('Cassandra')) {
     class_alias('Mock', 'Cassandra');
     class_alias('Mock', 'Cassandra\Session');
@@ -274,4 +318,8 @@ if (!class_exists('Cassandra')) {
 
 if (!class_exists('MongoDB\BSON\UTCDateTime')) {
     class_alias('Mock', 'MongoDB\BSON\UTCDateTime');
+}
+
+if (!class_exists('Redis')) {
+    class_alias('RedisMock', 'Redis');
 }

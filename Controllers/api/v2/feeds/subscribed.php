@@ -2,6 +2,7 @@
 
 namespace Minds\Controllers\api\v2\feeds;
 
+use Composer\Semver\Comparator;
 use Minds\Api\Exportable;
 use Minds\Api\Factory;
 use Minds\Core;
@@ -107,7 +108,7 @@ class subscribed implements Interfaces\Api
             'custom_type' => $custom_type,
             'limit' => $limit,
             'type' => $type,
-            'algorithm' => 'latest',
+            'algorithm' => $_GET['algorithm'] ?? 'latest',
             'period' => '1y',
             'sync' => $sync,
             'from_timestamp' => $fromTimestamp,
@@ -119,7 +120,13 @@ class subscribed implements Interfaces\Api
         ];
 
         if ($_GET['to_timestamp'] ?? null) {
-            $opts['to_timestamp'] = (int) $_GET['to_timestamp'] * 1000;
+            // Fixes 4.17 build of app
+            if (isset($_SERVER['HTTP_APP_VERSION']) && Comparator::lessThan($_SERVER['HTTP_APP_VERSION'], '4.18.0')) {
+                $opts['from_timestamp'] = (int) $_GET['to_timestamp'];
+                $opts['to_timestamp'] = (int) $_GET['from_timestamp'];
+            } else {
+                $opts['to_timestamp'] = (int) $_GET['to_timestamp'];
+            }
         }
 
         try {

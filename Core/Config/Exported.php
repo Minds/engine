@@ -16,6 +16,7 @@ use Minds\Core\Navigation\Manager as NavigationManager;
 use Minds\Core\Rewards\Contributions\ContributionValues;
 use Minds\Core\Session;
 use Minds\Core\ThirdPartyNetworks\Manager as ThirdPartyNetworksManager;
+use Minds\Core\Experiments;
 use Minds\Entities\User;
 use Minds\Core\Wire;
 
@@ -38,6 +39,9 @@ class Exported
 
     protected $proDomain;
 
+    /** @var Experiments\Manager */
+    protected $experimentsManager;
+
     /**
      * Exported constructor.
      *
@@ -53,7 +57,8 @@ class Exported
         $i18n = null,
         $blockchain = null,
         $proDomain = null,
-        $features = null
+        $features = null,
+        $experimentsManager = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
@@ -61,6 +66,7 @@ class Exported
         $this->blockchain = $blockchain ?: Di::_()->get('Blockchain\Manager');
         $this->proDomain = $proDomain ?: Di::_()->get('Pro\Domain');
         $this->features = $features ?: Di::_()->get('Features\Manager');
+        $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
     }
 
     /**
@@ -107,6 +113,15 @@ class Exported
             'token_exchange_rate' => $this->config->get('token_exchange_rate'),
             'matrix' => [
                 'chat_url' => $this->config->get('matrix')['chat_url'] ?? null,
+            ],
+            'statuspage_io' => [
+                'url' => $this->config->get('statuspage_io')['url'] ?? null,
+            ],
+            'experiments' => $this->experimentsManager
+                ->setUser(Session::getLoggedinUser())
+                ->getExportableExperiments(),
+            'twitter' => [
+                'min_followers_for_sync' => $this->config->get('twitter')['min_followers_for_sync'] ?? 25000,
             ]
         ];
 

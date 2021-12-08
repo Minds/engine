@@ -39,18 +39,52 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
 
         /** @var Queue $queue */
         $subscriptions = Di::_()->get('Payments\Subscriptions\Iterator');
-        $subscriptions->setFrom(time())
-            ->setPaymentMethod('tokens')
+        $subscriptions
+            ->setFrom(time())
+            //->setFrom(strtotime('+2 days'))
+            ->setPaymentMethod($this->getOpt('method') ?: 'tokens')
+            //->setPaymentMethod('usd')
             ->setPlanId('wire');
 
+        $this->out($this->getOpt('method') ?: 'tokens');
+
         foreach ($subscriptions as $subscription) {
-            $this->out("Subscription:`{$subscription->getId()}`");
+            if ($subscription->getInterval() === 'once') {
+                error_log('Ooops, this should be monthly not set to once');
+                continue;
+            }
+            $this->out("Subscription:`{$subscription->getId()}`", static::OUTPUT_PRE);
             $billing = date('d-m-Y', $subscription->getNextBilling());
             
             $user_guid = $subscription->getUser()->guid;
+            $user = Di::_()->get('EntitiesBuilder')->single($user_guid);
+
+            if (!$user) {
+                $this->out("\t User not found", static::OUTPUT_INLINE);
+                continue;
+            }
+
+            // TODO move this to public api
+            if ($user->getProExpires() === 0 && $subscription->getEntity()->getGuid() == '1030390936930099216') {
+                $this->out("\t CANCELLED");
+                $manager->cancelSubscriptions($user->getGuid(), '1030390936930099216');
+                continue;
+            }
+
             $this->out("\t$billing | $user_guid");
 
-            if (!$this->getOpt('dry-run')) {
+            $canCharge = true;
+            foreach ($this->getPreviousPayments($user_guid) as $charge) {
+                $date = date('c', $charge->created);
+                $this->out("\t\t $charge->id on $date $charge->created");
+
+                if ($charge->created > strtotime('10 days ago')) {
+                    //$canCharge = false;
+                    //continue;
+                }
+            }
+
+            if (!$this->getOpt('dry-run') && $canCharge) {
                 $this->out("\t CHARGED");
                 $manager->setSubscription($subscription);
                 $manager->charge();
@@ -58,6 +92,64 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
         }
         
         $this->out("Done");
+    }
+
+    public function fixProSubscriptions()
+    {
+        error_reporting(E_ALL);
+        ini_set('display_errors', 1);
+
+        ACL::$ignore = true; // we need to save to channels
+
+        /** @var Manager $manager */
+        $manager = Di::_()->get('Payments\Subscriptions\Manager');
+
+        foreach (['usd', 'tokens'] as $method) {
+            $this->out("Syncing $method");
+            $subscriptions = Di::_()->get('Payments\Subscriptions\Iterator');
+            $subscriptions->setFrom(strtotime('+40 days'))
+                ->setPaymentMethod($method)
+                ->setPlanId('wire');
+
+            foreach ($subscriptions as $subscription) {
+                if ($subscription->getEntity()->getGuid() != '1030390936930099216') {
+                    //         $this->out("{$subscription->getEntity()->getGuid()}");
+                    continue;
+                }
+                
+                if ($subscription->getInterval() === 'once') {
+                    error_log('Ooops, this should be monthly not set to once');
+                    error_log($subscription->getEntity()->getGuid());
+                    continue;
+                }
+
+                $this->out("Subscription:`{$subscription->getId()}`");
+                $billing = date('d-m-Y', $subscription->getNextBilling());
+
+                $user_guid = $subscription->getUser()->guid;
+                $user = Di::_()->get('EntitiesBuilder')->single($user_guid);
+
+                if (!$user) {
+                    $this->out("\t User $user_guid not found!");
+                    continue;
+                }
+
+                if ($user->getProExpires() === 0) {
+                    continue;
+                }
+
+                // TODO move this to public api
+                if ($user->getProExpires() < $subscription->getLastBilling() && $subscription->getEntity()->getGuid() == '1030390936930099216') {
+                    $this->out("\t PRO subscription did not sync {$user->getProExpires()} is less than {$subscription->getLastBilling()}");
+                    Di::_()->get('Pro\Manager')
+                        ->setUser($user)
+                        ->enable($subscription->getNextBilling());
+                    continue;
+                } else {
+                    $this->out("\t subscription looks fine");
+                }
+            }
+        }
     }
 
     public function repair()
@@ -120,51 +212,56 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
     public function fixPlusWires()
     {
         ACL::$ignore = true; // we need to save to channels
-        $delegate = new \Minds\Core\Wire\Delegates\Plus;
-        $usersLastPlus = [];
-        foreach ($this->getWires(false) as $wire) {
+        $delegate = new \Minds\Core\Wire\Delegates\UpgradesDelegate;
+        $usersLastPlus = []; //730071191229833224
+        foreach ($this->getWires([1030390936930099216, 730071191229833224]) as $wire) {
             $sender_guid = $wire->getSender()->getGuid();
+            $receiverGuid = $wire->getReceiver()->getGuid();
             $friendly = date('d-m-Y', $wire->getTimestamp());
-            echo "\n$sender_guid";
-            if ($wire->getTimestamp() < $usersLastPlus[$sender_guid] ?? time()) {
+            echo "\n$sender_guid->$receiverGuid";
+            if ($wire->getTimestamp() < $usersLastPlus[$receiverGuid][$sender_guid] ?? time()) {
                 echo " $friendly already given plus to this user";
                 continue;
             }
-            $usersLastPlus[$sender_guid] = $wire->getTimestamp();
+            $usersLastPlus[$receiverGuid][$sender_guid] = $wire->getTimestamp();
             $friendly = date('d-m-Y', $wire->getTimestamp());
-            echo " $friendly sending plus update ({$wire->getAmount()})";
+            echo " $friendly running wire delegate ({$wire->getAmount()})";
 
-            if ($delegate->onWire($wire, 'offchain') || $delegate->onWire($wire, '0x6f2548b1bee178a49c8ea09be6845f6aeaf3e8da')) {
+            if ($delegate->onWire($wire, 'offchain')
+                 || $delegate->onWire($wire, '0x6f2548b1bee178a49c8ea09be6845f6aeaf3e8da')
+                 || $delegate->onWire($wire, '0x97749850000766D54f882406Adc9d47458b2C137')
+            ) {
                 echo " done";
             }
         }
     }
 
-    public function getWires($onchain = false)
+    public function getWires($userGuids = [])
     {
         $cql = \Minds\Core\Di\Di::_()->get('Database\Cassandra\Cql');
 
         $prepared = new \Minds\Core\Data\Cassandra\Prepared\Custom;
 
-        $statement = "SELECT * FROM blockchain_transactions_mainnet WHERE contract='offchain:wire' and user_guid=? ALLOW FILTERING";
-        if ($onchain) {
-            $statement = "SELECT * FROM blockchain_transactions_mainnet WHERE wallet_address=? ALLOW FILTERING";
-        } else {
-            $statement = "SELECT * FROM blockchain_transactions_mainnet WHERE user_guid=? and amount>=? ALLOW FILTERING";
-        }
+        $placeholders = implode(', ', array_fill(0, count($userGuids), '?'));
+        $statement = "SELECT * FROM blockchain_transactions_mainnet
+             WHERE user_guid IN ({$placeholders})
+                AND  amount>=?
+                AND timestamp > ?
+                ALLOW FILTERING";
 
         $offset = "";
 
         while (true) {
-            if ($onchain) {
-                $prepared->query($statement, [ '0x6f2548b1bee178a49c8ea09be6845f6aeaf3e8da' ]);
-            } else {
-                $prepared->query($statement, [ new \Cassandra\Varint(730071191229833224), new \Cassandra\Varint(5) ]);
-            }
+            $values = array_map(function ($userGuid) {
+                return new \Cassandra\Varint($userGuid);
+            }, $userGuids);
+            $values[] = new \Cassandra\Varint(5);
+            $values[] = new \Cassandra\Timestamp(strtotime('35 days ago'), 0);
+            $prepared->query($statement, $values);
 
             $prepared->setOpts([
                 'paging_state_token' => $offset,
-                'page_size' => 100,
+                'page_size' => 500,
             ]);
 
             try {
@@ -181,9 +278,9 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
             foreach ($result as $row) {
                 $data = json_decode($row['data'], true);
 
-                if ($row['timestamp']->time() < strtotime('35 days ago')) {
+                /*if ($row['timestamp']->time() < strtotime('35 days ago')) {
                     return; // Do not sync old
-                }
+                }*/
 
                 if (!$data['sender_guid']) {
                     var_dump($row);
@@ -197,6 +294,134 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
                     ->setTimestamp((int) $row['timestamp']->time());
                 yield $wire;
             }
+
+            if ($result->isLastPage()) {
+                return;
+            }
+        }
+    }
+
+    public function recharge()
+    {
+        $id = $this->getOpt('id');
+
+        $manager = Di::_()->get('Payments\Subscriptions\Manager');
+        $subscription = $manager->get($id);
+
+        $manager->setSubscription($subscription);
+        $manager->charge();
+    }
+    
+    /**
+     * Updates the annual plus subscriptions for plus
+     */
+    public function updatePlusSubscriptions()
+    {
+        /** @var Manager $manager */
+        $manager = Di::_()->get('Payments\Subscriptions\Manager');
+
+        $cql = \Minds\Core\Di\Di::_()->get('Database\Cassandra\Cql');
+
+        $prepared = new \Minds\Core\Data\Cassandra\Prepared\Custom;
+
+        $subscriptions = Di::_()->get('Payments\Subscriptions\Iterator');
+        $subscriptions->setFrom(0)
+            ->setPaymentMethod('tokens')
+            ->setPlanId('wire');
+
+        foreach ($subscriptions as $subscription) {
+            if ($subscription->getInterval() !== 'yearly') {
+                continue;
+            }
+            if ($subscription->getEntity()->getGuid() != '730071191229833224') {
+                continue;
+            }
+            $subscription->setAmount(48000000000000000000);
+            $manager->setSubscription($subscription);
+            $manager->create();
+        }
+
+        /*        $amount = new \Cassandra\Decimal(48000000000000000000);
+                $statement = "UPDATE subscriptions SET amount=?
+                    WHERE plan_id='wire'
+                        AND payment_method='tokens'
+                        AND entity_guid=?";
+                $values = [ $amount, new \Cassandra\Varint(730071191229833224) ];
+
+                $prepared->query($statement, $values);
+                try {
+                    $result = $cql->request($prepared);
+                    echo "done";
+                } catch (\Exception $e) {
+                    var_dump($e);
+                }
+         */
+    }
+
+    private function getPreviousPayments(string $userGuid): iterable
+    {
+        $customersManager = new \Minds\Core\Payments\Stripe\Customers\Manager();
+
+        $customer = $customersManager->getFromUserGuid($userGuid);
+
+        if (!$customer) {
+            return;
+        }
+
+        $instance = new \Minds\Core\Payments\Stripe\Instances\ChargeInstance();
+
+        $items = $instance->all([
+            'customer' => $customer->getId()
+        ]);
+
+        foreach ($items->autoPagingIterator() as $item) {
+            yield $item;
+        }
+    }
+
+    public function fixFailed()
+    {
+        $scroll = Di::_()->get('Database\Cassandra\Cql\Scroll');
+        $cql = Di::_()->get('Database\Cassandra\Cql');
+
+        $statement = "SELECT * FROM subscriptions WHERE status='failed' ALLOW FILTERING";
+
+        $q = new \Minds\Core\Data\Cassandra\Prepared\Custom();
+        $q->query($statement, []);
+
+        $i = 0;
+        foreach ($scroll->request($q) as $row) {
+            $nextBilling = $row['next_billing']->time();
+
+            if ($nextBilling < strtotime('3 months ago')) {
+                continue;
+            }
+
+            ++$i;
+            $date = date('c', $nextBilling);
+
+            // Patch
+            $statement = "UPDATE subscriptions SET status='active'
+                    WHERE plan_id = ? 
+                    AND payment_method = ?
+                    AND entity_guid = ?
+                    AND user_guid = ?
+                    AND subscription_id = ?";
+
+            $values = [
+                $row['plan_id'],
+                $row['payment_method'],
+                $row['entity_guid'],
+                $row['user_guid'],
+                $row['subscription_id'],
+            ];
+
+            $w = new \Minds\Core\Data\Cassandra\Prepared\Custom();
+            $w->query($statement, $values);
+
+            $cql->request($w);
+
+            $this->out("$i - $date");
         }
     }
 }

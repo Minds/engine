@@ -86,42 +86,46 @@ class Repository
                 'action.keyword' => 'subscribe',
             ];
 
-            // Remove everyone we are subscribe to already
+            if ($opts['user_guid']) {
+                // Remove everyone we are subscribe to already
+                $must_not[]['terms'] = [
+                    'entity_guid.keyword' => [
+                        'index' => 'minds-graph-subscriptions',
+                        'id' => $opts['user_guid'],
+                        'path' => 'guids',
+                    ],
+                ];
+
+                // Remove ourselves
+                $must_not[]['term'] = [
+                    'entity_guid.keyword' => $opts['user_guid'],
+                ];
+
+                // Range
+                $must[]['range'] = [
+                    '@timestamp' => [
+                        'gte' => strtotime('midnight -30 days', time()) * 1000,
+                        'lt' => strtotime('midnight', time()) * 1000,
+                    ],
+                ];
+            }
+        }
+
+        if ($opts['user_guid']) {
+            // Remove everyone we have passed
             $must_not[]['terms'] = [
                 'entity_guid.keyword' => [
-                    'index' => 'minds-graph-subscriptions',
+                    'index' => 'minds-graph-pass',
                     'id' => $opts['user_guid'],
                     'path' => 'guids',
                 ],
             ];
 
-            // Remove ourselves
+            // Remove Minds channel
             $must_not[]['term'] = [
-                'entity_guid.keyword' => $opts['user_guid'],
-            ];
-
-            // Range
-            $must[]['range'] = [
-                '@timestamp' => [
-                    'gte' => strtotime('midnight -30 days', time()) * 1000,
-                    'lt' => strtotime('midnight', time()) * 1000,
-                ],
+                'user_guid.keyword' => '100000000000000519',
             ];
         }
-
-        // Remove everyone we have passed
-        $must_not[]['terms'] = [
-            'entity_guid.keyword' => [
-                'index' => 'minds-graph-pass',
-                'id' => $opts['user_guid'],
-                'path' => 'guids',
-            ],
-        ];
-
-        // Remove Minds channel
-        $must_not[]['term'] = [
-            'user_guid.keyword' => '100000000000000519',
-        ];
 
         $query = [
             'index' => 'minds-metrics-*',

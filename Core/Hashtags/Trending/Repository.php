@@ -42,31 +42,40 @@ class Repository
             'limit' => 12,
             'from' => strtotime('-12 hours', time()),
             'languages' => [ 'en' ],
+            'wire_support_tier' => null
         ], $opts);
 
-        $body = [
-            'query' => [
-                'bool' => [
-                    'must' => [
-                        [
-                            'range' => [
-                                '@timestamp' => [
-                                    'gte' => $opts['from'] * 1000,
-                                ],
-                            ],
-                        ],
-                        [
-                            'terms' => [
-                                'language' => $opts['languages'],
-                            ],
-                        ]
+        $must= [
+            [
+                'range'=> [
+                    '@timestamp'=> [
+                        'gte'=> $opts['from'] * 1000,
                     ],
-                    'must_not' => [
-                        'bool' => [
-                            'should' => [
+                ],
+            ],
+            [
+                'terms'=> [
+                    'language'=> $opts['languages'],
+                ],
+            ],
+        ];
+
+        if ($opts['wire_support_tier']) {
+            $must[]['term'] = [
+                'wire_support_tier'=> $opts['wire_support_tier']
+            ];
+        }
+
+        $body= [
+            'query'=> [
+                'bool'=> [
+                    'must'=> $must,
+                    'must_not'=> [
+                        'bool'=> [
+                            'should'=> [
                                 [
-                                    'terms' => [
-                                        'nsfw' => [ 1, 2, 3, 4, 5, 6 ],
+                                    'terms'=> [
+                                        'nsfw'=> [ 1, 2, 3, 4, 5, 6],
                                     ],
                                 ],
                             ],
@@ -116,8 +125,12 @@ class Repository
         $rows = $result['aggregations']['tags']['buckets'];
 
         usort($rows, function ($a, $b) {
-            $a_score = $this->getConfidenceScore($a['owners']['value'], $a['counts']['value']);
-            $b_score = $this->getConfidenceScore($b['owners']['value'], $b['counts']['value']);
+            $a_count = !empty($a['counts']['value']) ? $a['counts']['value'] : 1;
+            $b_count = !empty($b['counts']['value']) ? $b['counts']['value'] : 1;
+
+            // Make sure we're not dividing by zero
+            $a_score = $this->getConfidenceScore($a['owners']['value'], $a_count);
+            $b_score = $this->getConfidenceScore($b['owners']['value'], $b_count);
 
             return $a_score < $b_score ? 1 : 0;
         });

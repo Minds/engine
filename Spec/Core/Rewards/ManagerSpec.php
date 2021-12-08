@@ -109,6 +109,8 @@ class ManagerSpec extends ObjectBehavior
         $user1 = (new User);
         $user1->guid = '123';
         $user1->setPhoneNumberHash('phone_hash');
+        $user1->setEthWallet('0xAddresss');
+
         $this->entitiesBuilder->single('123')
             ->willReturn($user1);
 

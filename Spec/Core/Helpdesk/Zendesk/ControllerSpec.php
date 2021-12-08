@@ -36,6 +36,8 @@ class ControllerSpec extends ObjectBehavior
     {
         $request->getAttribute('_user')
             ->willReturn($user);
+        
+        $request->getQueryParams()->willReturn([]);
 
         $this->manager->getJwt($user)->shouldBeCalled()->willReturn('valid_base64');
 
@@ -47,5 +49,34 @@ class ControllerSpec extends ObjectBehavior
         ]);
 
         $this->redirect($request);
+    }
+
+    public function it_should_return_url_when_requested(ServerRequest $request, User $user)
+    {
+        $request->getAttribute('_user')
+            ->willReturn($user);
+        
+        $request->getQueryParams()->willReturn([
+            'returnUrl' => 'true'
+        ]);
+
+        $this->manager->getJwt($user)->shouldBeCalled()->willReturn('valid_base64');
+
+        $this->config->get('zendesk')->shouldBeCalled()->willReturn([
+            'url' => [
+                'base' => 'https://minds.zendesk.com/',
+                'jwt_route' => 'access/jwt'
+            ]
+        ]);
+
+        $response = $this->redirect($request);
+
+        $response
+            ->getBody()
+            ->getContents()
+            ->shouldBe(json_encode([
+                'status' => 'success',
+                'url' => 'https%3A%2F%2Fminds.zendesk.com%2Faccess%2Fjwt%3Fjwt%3Dvalid_base64'
+            ]));
     }
 }

@@ -59,11 +59,11 @@ class subscribe implements Interfaces\Api
         }
         $pagingToken = (string) $users->getPagingToken();
         
-        $users = array_filter(Factory::exportable($users->toArray()), function ($user) {
-            return ($user->enabled != 'no' && $user->banned != 'yes');
+        $users = array_filter($users->toArray(), function ($user) {
+            return ($user->enabled != 'no' && $user->banned != 'yes' && $user->getUsername());
         });
 
-        $response['users'] = $users;
+        $response['users'] = array_values(Factory::exportable($users));
         $response['load-next'] = $pagingToken;
 
         return Factory::response($response);
@@ -78,24 +78,6 @@ class subscribe implements Interfaces\Api
     public function post($pages)
     {
         Factory::isLoggedIn();
-
-        if ($pages[0] === 'batch') {
-            $guids = $_POST['guids'];
-
-            //temp: captcha tests
-            if (Core\Session::getLoggedInUser()->captcha_failed) {
-                return Factory::response(['status' => 'error']);
-            }
-
-            Queue\Client::build()
-              ->setQueue('SubscriptionDispatcher')
-              ->send([
-                  'currentUser' => Core\Session::getLoggedInUser()->guid,
-                  'guids' => $guids
-              ]);
-
-            return Factory::response(['status' => 'success']);
-        }
 
         $publisher = Entities\Factory::build($pages[0]);
 

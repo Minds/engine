@@ -5,6 +5,7 @@
 namespace Minds\Core\Rewards\Withdraw;
 
 use Exception;
+use Minds\Core\Session;
 use Minds\Common\Repository\Response;
 use Minds\Core\Blockchain\Services\Ethereum;
 use Minds\Core\Blockchain\Transactions\Manager as TransactionsManager;
@@ -16,6 +17,8 @@ use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
+use Minds\Exceptions\UserErrorException;
+use Zend\Diactoros\ServerRequestFactory;
 
 class Manager
 {
@@ -46,6 +49,15 @@ class Manager
     /** @var Delegates\RequestHydrationDelegate */
     protected $requestHydrationDelegate;
 
+    /** @var Security\DeferredSecrets */
+    private $deferredSecrets;
+
+    /** @var Security\TwoFactor\Manager */
+    private $twoFactorManager;
+
+    /** @var EntitiesBuilder $entitiesBuilder */
+    private $entitiesBuilder;
+
     public function __construct(
         $txManager = null,
         $offChainTransactions = null,
@@ -55,7 +67,10 @@ class Manager
         $offChainBalance = null,
         $notificationsDelegate = null,
         $emailDelegate = null,
-        $requestHydrationDelegate = null
+        $requestHydrationDelegate = null,
+        $twoFactorManager = null,
+        $entitiesBuilder = null,
+        $deferredSecrets = null
     ) {
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
         $this->offChainTransactions = $offChainTransactions ?: Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
@@ -66,6 +81,9 @@ class Manager
         $this->notificationsDelegate = $notificationsDelegate ?: new Delegates\NotificationsDelegate();
         $this->emailDelegate = $emailDelegate ?: new Delegates\EmailDelegate();
         $this->requestHydrationDelegate = $requestHydrationDelegate ?: new Delegates\RequestHydrationDelegate();
+        $this->twoFactorManager = $twoFactorManager ?: Di::_()->get('Security\TwoFactor\Manager');
+        $this->entitiesBuilder = $entitiesBuilder ?:  Di::_()->get('EntitiesBuilder');
+        $this->deferredSecrets = $deferredSecrets ?: Di::_()->get('Security\DeferredSecrets');
     }
 
     /**
@@ -177,17 +195,22 @@ class Manager
 
     /**
      * @param Request $request
+     * @param string $secret - deferred authentication secret - nullable when called by admin.
      * @return bool
      * @throws Exception
      */
-    public function request($request): bool
+    public function request(Request $request, string $secret = ''): bool
     {
         if (!$this->check($request->getUserGuid())) {
             throw new Exception('You can only have one pending withdrawal at a time');
         }
 
-        $user = new User();
-        $user->guid = (string) $request->getUserGuid();
+        $user = $this->entitiesBuilder->single($request->getUserGuid());
+
+        // verify user has been authenticated prior to dispatching transaction.
+        if (!Session::isAdmin() && !$this->verifyDeferredAuthentication($secret, $user)) {
+            throw new UserErrorException('Invalid authentication secret', 403);
+        }
 
         // Check how much tokens the user can request
 
@@ -445,5 +468,29 @@ class Manager
         //
 
         return true;
+    }
+
+    /**
+     * Calls to check gatekeeper and returns secret that can be verified.
+     * @param User $user - user to verify.
+     * @throws TwoFactorRequired - Exception indicating TwoFactor is required.
+     */
+    public function deferAuthentication(User $user): string
+    {
+        // trigger 2fa gatekeeper
+        $this->twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
+        
+        // if no exception thrown
+        return $this->deferredSecrets->generate($user);
+    }
+
+    /**
+     * Verify authentication was previously a success using the secret value.
+     * @param string $secret - the secret a user was given to authenticate themselves.
+     * @param User $user - user to verify.
+     */
+    public function verifyDeferredAuthentication(string $secret, User $user): bool
+    {
+        return $this->deferredSecrets->verify($secret, $user);
     }
 }

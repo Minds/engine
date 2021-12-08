@@ -484,9 +484,9 @@ class Repository
         }
 
         // Load the feed between these two timestamps
-        if ($opts['to_timestamp'] && $opts['from_timestamp']) {
-            $timestampUpperBounds[] = (int) $opts['to_timestamp'];
-            $timestampLowerBounds[] = (int) $opts['from_timestamp'];
+        if ($opts['from_timestamp'] && $opts['to_timestamp']) {
+            $timestampUpperBounds[] = (int) $opts['from_timestamp'];
+            $timestampLowerBounds[] = (int) $opts['to_timestamp'];
         }
 
         if (!$opts['to_timestamp']) {
@@ -663,6 +663,14 @@ class Repository
                 return $this->index . '-' . $type;
             }, [
                 'activity',
+                'object-image',
+                'object-video',
+                'object-blog',
+            ]));
+        } elseif ($esType === 'object-*') {
+            $index = implode(',', array_map(function ($type) {
+                return $this->index . '-' . $type;
+            }, [
                 'object-image',
                 'object-video',
                 'object-blog',

@@ -99,7 +99,7 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                 $user = $this->entitiesBuilder->single($data['user_guid']);
 
                 // If no user, something went wrong, but still skip
-                if (!$user) {
+                if (!$user || !$user instanceof User) {
                     $consumer->acknowledge($message);
                     continue;
                 }

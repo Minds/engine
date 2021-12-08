@@ -63,25 +63,14 @@ class thumbnail extends Core\page implements Interfaces\page
 
             if (!$contents && $size) {
                 // Size might not exist
-                $thumbnail = $mediaThumbnails->get($pages[0], null);
+                $thumbnail = $mediaThumbnails->get($pages[0], null, ['bypassPaywall' => true]);
                 $thumbnail->open('read');
                 $contents = $thumbnail->read();
             }
 
-            // Blur the image if paywalled
-            // TODO: Consider moving this logic to a new controller
-
-            $paywallManager = Di::_()->get('Wire\Paywall\Manager');
-
-            if ($paywallManager->isPaywalled($entity) && !$entity instanceof Video) {
-                $allowed = $paywallManager
-                    ->setUser(Core\Session::getLoggedInUser())
-                    ->isAllowed($entity);
-                $unlock = $_GET['unlock_paywall'] ?? false;
-
-                if (!($unlock && $allowed)) {
-                    $contents = file_get_contents(dirname(dirname(dirname(dirname(__FILE__)))) . '/Assets/photos/paywall-blur.jpeg');
-                }
+            // if media was locked and empty return the default blurred
+            if (!$contents && $mediaThumbnails->isLocked($entity)) {
+                $contents = file_get_contents($mediaThumbnails->getDefaultBlurred());
             }
 
             try {

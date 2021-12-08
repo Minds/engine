@@ -27,7 +27,7 @@ class Events
 
             /** @var Manager */
             $manager = Di::_()->get('Wire\Manager');
-            $event->setResponse($manager->getByUrn((string) $urn));
+            $event->setResponse($manager->getByUrn((string) $urn->getUrn()));
         });
 
         // Recurring subscriptions

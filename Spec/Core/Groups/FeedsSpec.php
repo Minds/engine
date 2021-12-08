@@ -12,6 +12,8 @@ use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Spec\Minds\Mocks;
 use Minds\Core\Groups\Delegates\PropagateRejectionDelegate;
+use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Minds\Core\Notifications\Manager as NotificationsManager;
 
 class FeedsSpec extends ObjectBehavior
 {
@@ -20,13 +22,17 @@ class FeedsSpec extends ObjectBehavior
     protected $_entities;
     protected $_entitiesFactory;
     protected $_entitiesBuilder;
+    protected $_actionEventsTopic;
+    protected $_notificationsManager;
 
     public function let(
         AdminQueue $adminQueue,
         Mocks\Minds\Core\Entities $entities,
         Mocks\Minds\Core\Entities\Factory $entitiesFactory,
         Core\EntitiesBuilder $entitiesBuilder,
-        PropagateRejectionDelegate $propagateRejectionDelegate
+        PropagateRejectionDelegate $propagateRejectionDelegate,
+        ActionEventsTopic $actionEventsTopic,
+        NotificationsManager $notificationsManager
     ) {
         // AdminQueue
 
@@ -56,7 +62,12 @@ class FeedsSpec extends ObjectBehavior
 
         $this->_propagateRejectionDelegate = $propagateRejectionDelegate ?? new PropagateRejectionDelegate();
 
-        $this->beConstructedWith($entitiesBuilder, $propagateRejectionDelegate);
+
+        $this->_actionEventsTopic = $actionEventsTopic;
+
+        $this->_notificationsManager = $notificationsManager;
+
+        $this->beConstructedWith($entitiesBuilder, $propagateRejectionDelegate, $actionEventsTopic, $notificationsManager);
     }
 
     public function it_is_initializable()
@@ -329,12 +340,19 @@ class FeedsSpec extends ObjectBehavior
         $group->getGuid()->willReturn(1000);
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1000);
-        
+        $activity->get('owner_guid')->willReturn(123);
+
         $this->_propagateRejectionDelegate->onReject($activity)
             ->shouldBeCalled();
-        
+
         $this->_adminQueue->delete($group, $activity)
             ->shouldBeCalled()
+            ->willReturn(true);
+
+
+        $this->_notificationsManager->add(Argument::that(function ($notification) {
+            return true;
+        }))
             ->willReturn(true);
 
         $this

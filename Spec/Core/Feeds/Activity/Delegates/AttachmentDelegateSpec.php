@@ -360,12 +360,17 @@ class AttachmentDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $image->get('blurhash')
+            ->shouldBeCalled()
+            ->willReturn('something');
+
         $activity->setCustom('batch', [[
             'src' => 'cdn.phpspec/fs/v1/thumbnail/5000',
             'href' => 'phpspec.test/media/1000/5000',
             'mature' => true,
             'width' => 320,
             'height' => 240,
+            'blurhash' => 'something',
             'gif' => true,
         ]])
             ->shouldBeCalled()

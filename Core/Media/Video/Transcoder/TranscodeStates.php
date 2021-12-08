@@ -1,7 +1,11 @@
 <?php
 namespace Minds\Core\Media\Video\Transcoder;
 
+use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Entities\Video;
+use Minds\Core\Media\Video\CloudflareStreams;
+use Minds\Core\Security\ACL;
 
 class TranscodeStates
 {
@@ -23,21 +27,82 @@ class TranscodeStates
     /** @var Repository */
     private $repository;
 
-    public function __construct($repository = null)
+    /** @var Save */
+    private $save;
+
+    /** @var CloudflareStreams\Manager */
+    private $cloudflareStreamsManager;
+
+    /** @var ACL */
+    private $acl;
+
+    public function __construct($repository = null, $save = null, $cloudflareStreamsManager = null, $acl = null)
     {
         // NOTE: We are using repository as this is called via
         // Delegates\NotificationDelegate and it causes an infinite loop
         // with the manager
         $this->repository = $repository ?? new Repository();
+        $this->save = $save ?? new Save();
+        $this->cloudflareStreamsManager = $cloudflareStreamsManager ?? new CloudflareStreams\Manager();
+        $this->acl = $acl ?? Di::_()->get('Security\ACL');
+    }
+
+    /**
+     * Return the transcoding state of the video
+     * @param Video $video
+     * @return string
+     */
+    public function getStatus(Video $video): string
+    {
+        switch ($video->getTranscoder()) {
+            case \Minds\Core\Media\Video\Manager::TRANSCODER_CLOUDFLARE:
+                return $this->getCloudflareTranscodeStatus($video);
+            case \Minds\Core\Media\Video\Manager::TRANSCODER_MINDS:
+            default:
+                 return $this->getMindsTranscoderStatus($video);
+        }
+    }
+
+    /**
+     * get transcode status from cloudflare and handle caching
+     * @param Video $video
+     * @return string the transcode status
+     */
+    private function getCloudflareTranscodeStatus(Video $video): string
+    {
+        // if the status was completed, just return completed
+        if ($video->getTranscodingStatus() === TranscodeStates::COMPLETED) {
+            return TranscodeStates::COMPLETED;
+        }
+        
+        // get video transcode status from cloudflare and save it in db
+        $transcodeStatus = $this->cloudflareStreamsManager->getVideoTranscodeStatus($video);
+
+        // don't continue saving if video was still transcoding
+        if ($transcodeStatus->getState() === TranscodeStates::TRANSCODING) {
+            return TranscodeStates::TRANSCODING;
+        }
+
+        // only saves on failed or success statuses
+        $video->setTranscodingStatus($transcodeStatus->getState());
+        
+        // disable acl and set it back to what it was after saving
+        $ia = $this->acl->setIgnore(true);
+        $this->save
+            ->setEntity($video)
+            ->save();
+        $this->acl->setIgnore($ia);
+
+        return $transcodeStatus->getState();
     }
 
     /**
      * Return the overral transcoding status
      * MH: I don't love this function at all!
      * @param Video $video
-     * @return string
+     * @return string the transcode state
      */
-    public function getStatus(Video $video): string
+    private function getMindsTranscoderStatus(Video $video): string
     {
         $transcodes = $this->repository->getList([
             'guid' => $video->getGuid(),

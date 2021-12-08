@@ -4,66 +4,100 @@
  */
 namespace Minds\Core\Experiments;
 
-use Minds\Interfaces\ModuleInterface;
+use Minds\Entities\User;
+use Growthbook;
+use Minds\Core\Di\Di;
+use Minds\Core\Experiments\Cookie\Manager as CookieManager;
 
 class Manager
 {
-    /** @param Sampler $sampler */
-    private $sampler;
+    /** @var Growthbook\Client */
+    private $growthbook;
 
-    /** @param User $user */
-    private $user;
+    /** @var Growthbook\User */
+    private $growthbookUser;
 
-    /** @param array $experiments */
-    private $experiments = [
-        'Homepage121118' => Hypotheses\Homepage121118::class,
-        'Homepage200619' => Hypotheses\Homepage200619::class,
-        'Homepage121119' => Hypotheses\Homepage121119::class,
-    ];
+    /** @var Growthbook\Experiment[] */
+    private $experiments;
 
-    public function __construct($sampler = null)
+    /** @var CookieManager */
+    private $cookieManager;
+
+    public function __construct(Growthbook\Client $growthbook = null, CookieManager $cookieManager = null)
     {
-        $this->sampler = $sampler ?: new Sampler;
+        $this->growthbook = $growthbook ?? new Growthbook\Client();
+        $this->cookieManager = $cookieManager ?? Di::_()->get('Experiments\Cookie\Manager');
+
+        $this->experiments = [
+            new Growthbook\Experiment("channel-gallery", ["on", "off"]),
+            new Growthbook\Experiment("boost-rotator", ["on", "off"]),
+            new Growthbook\Experiment("boost-prompt-2", ["on", "off"]),
+            new Growthbook\Experiment("discovery-homepage", ["off", "on"]),
+        ];
     }
 
     /**
      * Set the user who will view experiments
-     * @param User $user
+     * @param User $user (optional)
      * @return Manager
      */
-    public function setUser($user)
+    public function setUser(User $user = null)
     {
-        $this->user = $user;
+        $this->growthbookUser = $this->growthbook->user([
+            'id' => $this->getUserId($user)
+        ]);
         return $this;
     }
 
     /**
      * Return a list of experiments
-     * @param HypothesisInterface[]
+     * @return Growthbook\TrackData<mixed>[]
      */
-    public function getExperiments()
+    public function getExperiments(): array
     {
-        return $this->experiments;
+        foreach ($this->experiments as $experiment) {
+            $this->growthbookUser->experiment($experiment);
+        }
+        return $this->growthbook->getTrackData();
     }
 
     /**
-     * Return the bucket for an experiment
-     * @param string $experimentId
-     * @return Bucket
-     * @throws \Exception
+     * @return array
      */
-    public function getBucketForExperiment($experimentId)
+    public function getExportableExperiments(): array
     {
-        if (!$this->experiments[$experimentId]) {
-            throw new \Exception("$experimentId not found");
+        return array_map(function ($trackData) {
+            return [
+                'experimentId' => $trackData->experiment->key,
+                'variationId' => $trackData->result->variationId,
+                'variations' => $trackData->experiment->variations
+            ];
+        }, $this->getExperiments());
+    }
+    
+    /**
+     * Gets User ID for experiments. Will get either the users experimentsId via cookie,
+     * their logged in user GUID, or generate a unique ID and store it in a cookie.
+     * @param User $user - user to generate / get ID for - nullable.
+     * @return string user id for experiments.
+     */
+    private function getUserId(User $user = null): string
+    {
+        // if cookie exists, return it's value as the id.
+        $experimentsIdCookie = $this->cookieManager->get();
+
+        if ($experimentsIdCookie) {
+            return $experimentsIdCookie;
         }
 
-        $hypothesis = new $this->experiments[$experimentId];
+        // else if user is logged in, use their userGuid.
+        if ($user) {
+            return $user->getGuid();
+        }
 
-        $this->sampler
-            ->setHypothesis($hypothesis)
-            ->setUser($this->user);
-
-        return $this->sampler->getBucket();
+        // else if no user - generate an ID, store it in a cookie.
+        $id = uniqid('exp-', true);
+        $this->cookieManager->set($id);
+        return $id;
     }
 }

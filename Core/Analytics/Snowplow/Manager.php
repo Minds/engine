@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Analytics\Snowplow;
 
+use Minds\Common\PseudonymousIdentifier;
 use Minds\Entities\User;
 use Minds\Core\Di\Di;
 use Snowplow\Tracker\Tracker;
@@ -18,7 +19,7 @@ class Manager
     /** @var Tracker */
     protected $tracker;
 
-    public function __construct($emitter = null, $config = null)
+    public function __construct($emitter = null, $config = null, protected ?PseudonymousIdentifier $pseudonymousIdentifier = null)
     {
         $config = $config ?? Di::_()->get('Config');
         $this->emitter = $emitter ?? new CurlEmitter($config->get('snowplow')['collector_uri'], $config->get('snowplow')['proto'] ?? 'https', "POST", 2, false);
@@ -37,9 +38,17 @@ class Manager
         $subject->setIpAddress($_SERVER['HTTP_X_FORWARDED_FOR'] ?? null);
         $subject->setPlatform($this->getPlatform());
         $subject->setUseragent($_SERVER['HTTP_USER_AGENT'] ?? null);
+        $subject->setNetworkUserId($_COOKIE['minds_sp'] ?? null);
         
         if ($user) {
-            $subject->setUserId($user->getGuid());
+            /**
+             * We do not apply the user_guid, instead we supply a pseudonymous identifier that
+             * can only be created by hashing the user_guid with their password at the point of authentication.
+             *
+             * We currently fallback to a user_guid for server side action events **ONLY** and never for observational
+             * analytics such as pageviews, which are always pseudonymised.
+             */
+            $subject->setUserId($this->pseudonymousIdentifier?->setUser($user)->getId() ?: $user->getGuid());
             $subject->setLanguage($user->getLanguage());
         }
 

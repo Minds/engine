@@ -21,8 +21,10 @@ use Minds\Helpers;
  * @property string $license
  * @property int $boost_rejection_reason
  * @property int $time_sent
+ * @property string $blurhash
  * @property array $nsfw
  * @property string $permaweb_id
+ * @property int $rating
  */
 
 class Image extends File
@@ -38,6 +40,7 @@ class Image extends File
         $this->attributes['width'] = 0;
         $this->attributes['height'] = 0;
         $this->attributes['time_sent'] = null;
+        $this->attributes['blurhash'] = null;
     }
 
     public function getUrl()
@@ -127,12 +130,19 @@ class Image extends File
         return $result;
     }
 
-    public function createThumbnails($sizes = ['small', 'medium', 'large', 'xlarge'], $filepath = null)
+    /**
+     * Creates thumbnails for the image, saves to fs, and returns the image blobgs
+     * @param string[] $sizes thumbnail sizes
+     * @param string $filepath where to save the iamges
+     * @return string xlarge image blob
+     */
+    public function createThumbnails($sizes = ['small', 'medium', 'large', 'xlarge'], $filepath = null): string
     {
         if (!$sizes) {
             $sizes = ['small', 'medium', 'large', 'xlarge'];
         }
         $master = $filepath ?: $this->getFilenameOnFilestore();
+        $thumbnail = '';
         foreach ($sizes as $size) {
             switch ($size) {
                 case 'tiny':
@@ -191,11 +201,47 @@ class Image extends File
                 ->setHeight($h)
                 ->resize();
 
+            $imageBlob = $resize->getJpeg(90);
+
+            if ($size == 'xlarge') {
+                $thumbnail = $imageBlob;
+            }
+
             $this->setFilename("image/$this->batch_guid/$this->guid/$size.jpg");
             $this->open('write');
-            $this->write($resize->getJpeg(90));
+            $this->write($imageBlob);
             $this->close();
         }
+
+        return $thumbnail;
+    }
+
+    /**
+     * generate a blurHash from an image blob and sets the $this->blurhash key
+     * @param $imageBlob the image as string
+     * @return string the blur hash
+     */
+    public function generateBlurHash(string $thumbnail): string
+    {
+        $image = new \Imagick();
+        $image->readImageBlob($thumbnail);
+
+        $resize = Core\Di\Di::_()->get('Media\Imagick\Resize');
+        $resize->setImage($image)
+            ->setUpscale(true)
+            ->setSquare(false)
+            ->setWidth(50)
+            ->setHeight(50)
+            ->resize();
+        $imageBlob = $resize->getJpeg(90);
+
+        /** @var Core\Media\Services\BlurHash $blurHashService */
+        $blurHashService = Core\Di\Di::_()->get('Media\BlurHash');
+        //
+        $blurHash = $blurHashService->getHash($imageBlob);
+        $this->blurhash = $blurHash;
+
+        return $this->blurhash;
     }
 
     public function getExportableValues()
@@ -211,6 +257,7 @@ class Image extends File
             'height',
             'gif',
             'time_sent',
+            'blurhash',
             'paywall',
             'permaweb_id',
         ]);
@@ -245,6 +292,8 @@ class Image extends File
         $export['time_sent'] = $this->getTimeSent();
 
         $export['permaweb_id'] = $this->getPermawebId();
+        $export['blurhash'] = $this->blurhash;
+
         if (!Helpers\Flags::shouldDiscloseStatus($this) && isset($export['flags']['spam'])) {
             unset($export['flags']['spam']);
         }
@@ -290,6 +339,7 @@ class Image extends File
             'container_guid' => null,
             'rating' => 2, //open by default
             'time_sent' => time(),
+            'blurhash' => null,
         ], $data);
 
         $allowed = [
@@ -305,6 +355,7 @@ class Image extends File
             'boost_rejection_reason',
             'rating',
             'time_sent',
+            'blurhash',
         ];
 
         foreach ($allowed as $field) {
@@ -338,7 +389,12 @@ class Image extends File
         }
 
         if (isset($assets['media'])) {
-            $this->createThumbnails(null, $assets['media']['file']);
+            $thumbnail = $this->createThumbnails(null, $assets['media']['file']);
+            // NOTE: it's better if we use tiny, but we aren't resizing to tiny at the moment.
+            // not sure if resizing to tiny and blurhash->encode('tiny' size) >> blurhash->encode('small' size)
+            if ($thumbnail) {
+                $this->generateBlurHash($thumbnail);
+            }
 
             if (strpos($assets['media']['type'], '/gif') !== false) {
                 $this->gif = true;

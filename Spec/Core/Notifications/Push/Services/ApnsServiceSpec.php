@@ -47,6 +47,8 @@ class ApnsServiceSpec extends ObjectBehavior
             ->willReturn('merge-key-will-be-here');
         $pushNotification->getDeviceSubscription()
             ->willReturn($deviceSubscription);
+        $pushNotification->getUserGuid()
+            ->willReturn('123');
 
         $deviceSubscription->getToken()
             ->willReturn('apple-device-token');

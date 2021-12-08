@@ -23,17 +23,23 @@ class Controller
     /** @var TwoFactor */
     protected $twoFactor;
 
+    /** @var TwoFactor\Manager */
+    protected $twoFactorManager;
+
     /**
      * Controller constructor.
      * @param null $manager
      * @param null $twoFactor
+     * @param null $twoFactorManager
      */
     public function __construct(
         $manager = null,
-        $twoFactor = null
+        $twoFactor = null,
+        $twoFactorManager = null
     ) {
         $this->manager = $manager ?? new Manager();
         $this->twoFactor = $twoFactor ?? Di::_()->get('Security\TwoFactor');
+        $this->twoFactorManager = $twoFactorManager ?? Di::_()->get('Security\TwoFactor\Manager');
     }
 
     /**
@@ -78,7 +84,10 @@ class Controller
         $secret = $body['secret'] ?? '';
         $code = (string) $body['code'] ?? '';
 
-        $codeIsValid = $this->twoFactor->verifyCode($secret, $code, 3);
+        // Require previous two factor (default email) before proceeding
+        $this->twoFactorManager->gatekeeper($user, $request);
+
+        $codeIsValid = $this->twoFactor->verifyCode($secret, $code, 10);
 
         if (!$codeIsValid) {
             throw new UserErrorException("Invalid code");

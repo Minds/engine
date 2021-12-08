@@ -30,7 +30,10 @@ class Manager
      */
     public function getUnreadCount(User $user): int
     {
-        return Counters::get($user, 'notifications:v3:count', false);
+        $count = Counters::get($user, 'notifications:v3:count', false);
+        // fixes an issue where the counter would sometimes
+        // return a negative values due to race condition
+        return $count > 0 ? $count : 0;
     }
 
     /**
@@ -73,7 +76,7 @@ class Manager
 
                 $mergeKey = $notification->getMergeKey();
 
-                if ($mergeableWith = $mergeKeysToNotification[$mergeKey]) {
+                if (isset($mergeKeysToNotification[$mergeKey]) && $mergeableWith = $mergeKeysToNotification[$mergeKey]) {
 
                     // First, check for duplication, we don't want 'sillysealion and sillysealion' vote up...
                     if ($mergeableWith->getFromGuid() === $notification->getFromGuid()) {

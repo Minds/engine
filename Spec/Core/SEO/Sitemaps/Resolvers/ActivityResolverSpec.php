@@ -22,25 +22,25 @@ class ActivityResolverSpec extends ObjectBehavior
         $this->shouldHaveType(ActivityResolver::class);
     }
 
-    public function it_should_return_iterable_of_users()
-    {
-        $this->scroll->request(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn([
-                [
-                    '_source' => [
-                        'guid' => '123',
-                        'time_created' => 1
-                    ]
-                ],
-                [
-                    '_source' => [
-                        'guid' => '456',
-                        'time_created' => 2
-                    ]
-                ]
-            ]);
+    // public function it_should_return_iterable_of_users()
+    // {
+    //     $this->scroll->request(Argument::any())
+    //         ->shouldBeCalled()
+    //         ->willReturn([
+    //             [
+    //                 '_source' => [
+    //                     'guid' => '123',
+    //                     'time_created' => 1
+    //                 ]
+    //             ],
+    //             [
+    //                 '_source' => [
+    //                     'guid' => '456',
+    //                     'time_created' => 2
+    //                 ]
+    //             ]
+    //         ]);
 
-        $this->getUrls()->shouldHaveCount(2);
-    }
+    //     $this->getUrls()->shouldHaveCount(2);
+    // }
 }

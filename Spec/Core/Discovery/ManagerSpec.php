@@ -87,7 +87,7 @@ class ManagerSpec extends ObjectBehavior
                                 'key' => 'technology',
                                 'doc_count' => 100
                             ],
-                            
+
                         ]
                     ]
                 ]
@@ -188,16 +188,6 @@ class ManagerSpec extends ObjectBehavior
             ->getTitle('goodbye world');
     }
 
-    public function it_should_throw_exception_if_no_tags()
-    {
-        $this->hashtagManager
-            ->get(Argument::any())
-            ->willReturn([]);
-
-        $this->shouldThrow("Minds\Core\Discovery\NoTagsException")
-            ->duringGetTagTrends();
-    }
-
     public function it_should_return_search()
     {
         $this->elasticFeedsManager
@@ -218,6 +208,7 @@ class ManagerSpec extends ObjectBehavior
                 'defaults' => true,
                 'trending' => true,
                 'limit' => 20,
+                'wire_support_tier' => null
             ])
             ->willReturn([
                 [
@@ -233,7 +224,7 @@ class ManagerSpec extends ObjectBehavior
         $this->hashtagManager
             ->get([
                 'defaults' => true,
-                'limit' => 20,
+                'limit' => 20
             ])
             ->willReturn([]);
 

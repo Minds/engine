@@ -170,7 +170,7 @@ class Join
             throw new VoIpPhoneException();
         }
 
-        if (!$this->user->isEmailConfirmed()) {
+        if (!$this->user->isTrusted()) {
             throw new UnverifiedEmailException();
         }
 

@@ -43,7 +43,7 @@ class SubscriptionsIteratorSpec extends ObjectBehavior
         $this->repository->getList([
             'plan_id' => 'spec',
             'payment_method' => 'tokens',
-            'limit' => 2000,
+            'limit' => 5000,
             'status' => 'active',
             'next_billing' => $timestamp
         ])

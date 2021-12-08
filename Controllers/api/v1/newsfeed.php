@@ -372,6 +372,7 @@ class newsfeed implements Interfaces\Api
                                 'mature' => $attachment instanceof Flaggable ? $attachment->getFlag('mature') : false,
                                 'width' => $attachment->width,
                                 'height' => $attachment->height,
+                                'blurhash' => $attachment->blurhash,
                                 'gif' => (bool) $attachment->gif ?? false,
                             ]])
                                 ->setFromEntity($attachment)

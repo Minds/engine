@@ -22,17 +22,15 @@ class preview implements Interfaces\Api
      */
     public function get($pages)
     {
-        $config = Core\Di\Di::_()->get('Config');
-        $iframelyConfig = $config->get('iframely');
         $url = $_GET['url'];
-        $response = [];
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "http://open.iframe.ly/api/iframely?origin=".$iframelyConfig['origin']."&api_key=".$iframelyConfig['key']."&url=".urlencode($url));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        $output = curl_exec($ch);
-        curl_close($ch);
-        $meta = json_decode($output, true);
-        $meta['meta']['description'] = html_entity_decode($meta['meta']['description'], ENT_QUOTES); //Decode HTML entities.
+        try {
+            $meta = Core\Di\Di::_()->get('Feeds\Activity\RichEmbed\Manager')->getRichEmbed($url);
+        } catch (\Exception $e) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'An unknown error has occurred'
+            ]);
+        }
         return Factory::response($meta);
     }
 

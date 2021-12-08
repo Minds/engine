@@ -7,7 +7,7 @@ $CONFIG->minds_debug = true;
 /*
  * Cassandra configuration
  */
-$CONFIG->cassandra = (object) [
+$CONFIG->cassandra = [
     'keyspace' => '{{cassandra-keyspace}}',
     'servers' => ['{{cassandra-server}}'],
     'cql_servers' => ['{{cassandra-server}}'],
@@ -264,6 +264,8 @@ $CONFIG->set('facebook', [
 $CONFIG->set('twitter', [
     'api_key' => '{{twitter-app-id}}',
     'api_secret' => '{{twitter-app-id}}',
+    'bearer_token' => '',
+    'min_followers_for_sync' => 25000,
 ]);
 
 $CONFIG->set('twilio', [
@@ -519,6 +521,9 @@ $CONFIG->set('steward_guid', '');
 $CONFIG->set('steward_autoconfirm', false);
 $CONFIG->set('development_mode', '{{development_mode}}');
 
+// load discovery content irrespective of activity levels.
+$CONFIG->set('discovery_development_mode', true);
+
 $CONFIG->set('max_video_length', 900);
 
 $CONFIG->set('max_video_length_plus', 1860);
@@ -543,10 +548,17 @@ $CONFIG->set('features', [
     'activity-modal' => false,
     'withdrawal-console' => true,
     'twilio-verify' => true,
-    'helpdesk-2021' => true
+    'helpdesk-2021' => true,
+    'discovery-default-tags' => true,
+    'skale' => true,
+    'polygon' => true,
 ]);
 
 $CONFIG->set('email', [
+    'sender' => [
+        'email' => 'no-reply@minds.com',
+        'name' => 'Minds'
+    ],
     'smtp' => [
         'host' => '',
         'username' => '',
@@ -732,3 +744,9 @@ $CONFIG->SET('zendesk', [
         'jwt_route' => 'access/jwt'
     ]
 ]);
+
+$CONFIG->set('statuspage_io', [
+    'url' => 'https://status.minds.com/'
+]);
+
+$CONFIG->set('default_recommendations_user', '100000000000000519');

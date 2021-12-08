@@ -239,6 +239,16 @@ class ManagerSpec extends ObjectBehavior
             ->shouldbeCalled()
             ->willReturn('');
 
+        $boost->getEntityGuid()
+            ->shouldbeCalled()
+            ->willReturn('456');
+
+        $boost->getOwnerGuid()
+            ->willReturn('123');
+
+        $boost->getType()
+            ->willReturn('network');
+
         $boost->setGuid(1)
             ->shouldBeCalled();
 

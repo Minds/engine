@@ -12,10 +12,12 @@ use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Security;
+use Minds\Core\Security\TwoFactor\TwoFactorRequiredException;
 use Minds\Core\SMS\Exceptions\VoIpPhoneException;
 use Minds\Helpers\FormatPhoneNumber;
 use Minds\Entities;
 use Minds\Interfaces;
+use Zend\Diactoros\ServerRequestFactory;
 
 class twofactor implements Interfaces\Api
 {
@@ -66,6 +68,18 @@ class twofactor implements Interfaces\Api
 
                     $twilioVerify->send($number, '');
                     break;
+                }
+
+                try {
+                    $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
+                    $twoFactorManager->gatekeeper(Core\Session::getLoggedinUser(), ServerRequestFactory::fromGlobals());
+                } catch (\Exception $e) {
+                    header('HTTP/1.1 ' . $e->getCode(), true, $e->getCode());
+                    $response['status'] = "error";
+                    $response['code'] = $e->getCode();
+                    $response['message'] = $e->getMessage();
+                    $response['errorId'] = str_replace('\\', '::', get_class($e));
+                    return Factory::response($response);
                 }
 
                 $secret = $twofactor->createSecret();
