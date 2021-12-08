@@ -36,6 +36,10 @@ class Routes extends ModuleRoutes
                             '',
                             Ref::_('Feeds\Controller', 'getFeed')
                         );
+                        $route->get(
+                            'feed/unseen-top',
+                            Ref::_('Feeds\UnseenTopFeed\Controller', 'getUnseenTopFeed')
+                        );
                         $route->delete(
                             ':urn',
                             Ref::_('Feeds\Activity\Controller', 'delete')
