@@ -27,6 +27,11 @@ class Routes extends ModuleRoutes
                     Ref::_('Feeds\Controller', 'getDefaultFeed')
                 );
 
+                $route->get(
+                    'logged-out', // alias
+                    Ref::_('Feeds\Controller', 'getDefaultFeed'),
+                );
+
                 $route
                     ->withMiddleware([
                         LoggedInMiddleware::class
