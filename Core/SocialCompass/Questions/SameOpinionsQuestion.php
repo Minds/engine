@@ -11,6 +11,6 @@ class SameOpinionsQuestion extends BaseQuestion
 {
     protected string $minimumStepLabel = "Disagree";
     protected string $maximumStepLabel = "Agree";
-    protected string $questionText = "I prefer to see opinions that challenge my own";
+    protected string $questionText = "I prefer to see opinions like mine";
     protected string $questionId = "SameOpinionsQuestion";
 }
