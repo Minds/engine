@@ -272,6 +272,9 @@ $CONFIG->set('twilio', [
     'account_sid' => '{{twilio-account-sid}}',
     'auth_token' => '{{twilio-auth-token}}',
     'from' => '{{twilio-from}}',
+    'verify' => [
+        'service_sid' => '{{verify-service-sid}}'
+    ]
 ]);
 
 $CONFIG->set('google', [
@@ -549,6 +552,7 @@ $CONFIG->set('features', [
     'subscriber-conversations' => true,
     'activity-modal' => false,
     'withdrawal-console' => true,
+    'twilio-verify' => true,
     'helpdesk-2021' => true,
     'discovery-default-tags' => true,
     'skale' => true,
