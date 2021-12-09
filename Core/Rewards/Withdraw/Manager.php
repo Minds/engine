@@ -403,7 +403,7 @@ class Manager
                     $request->getUserGuid(),
                     $request->getGas(),
                     $request->getAmount(),
-            );
+                );
         } else {
             $txHash = $this->eth->sendRawTransaction($this->config->get('blockchain')['contracts']['withdraw']['wallet_pkey'], [
                 'from' => $this->config->get('blockchain')['contracts']['withdraw']['wallet_address'],
