@@ -232,15 +232,6 @@ class Join
                     ->setUserPhoneNumberHash($hash)
                     ->setAction('joined')
                     ->push();
-
-                // User receives one free token automatically when they join rewards
-                $transactions = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
-                $transactions
-                    ->setUser($this->user)
-                    ->setType('joined')
-                    ->setAmount(pow(10, 18));
-
-                $transaction = $transactions->create();
             }
 
             // Validate referral and give both prospect and referrer +50 contribution score
