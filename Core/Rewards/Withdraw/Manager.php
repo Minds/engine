@@ -61,6 +61,9 @@ class Manager
     /** @var MindsWeb3Service $jsonRpc */
     protected $mindsWeb3Service;
     
+    /** @var Features */
+    protected $features;
+    
     public function __construct(
         $txManager = null,
         $offChainTransactions = null,
@@ -74,6 +77,7 @@ class Manager
         $twoFactorManager = null,
         $entitiesBuilder = null,
         $deferredSecrets = null,
+        $features = null,
         $mindsWeb3Service = null
     ) {
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
@@ -88,6 +92,7 @@ class Manager
         $this->twoFactorManager = $twoFactorManager ?: Di::_()->get('Security\TwoFactor\Manager');
         $this->entitiesBuilder = $entitiesBuilder ?:  Di::_()->get('EntitiesBuilder');
         $this->deferredSecrets = $deferredSecrets ?: Di::_()->get('Security\DeferredSecrets');
+        $this->features = $features ?: Di::_()->get('Features\Manager');
         $this->mindsWeb3Service = $mindsWeb3Service ?? Di::_()->get('Blockchain\Services\MindsWeb3');
     }
 
@@ -389,32 +394,30 @@ class Manager
         }
 
         // Send blockchain transaction
-
-        // TODO: DO NOT MERGE: New method of handling
-        $txHash = $this->mindsWeb3Service
-            ->setWalletPrivateKey($this->config->get('blockchain')['contracts']['withdraw']['wallet_pkey'])
-            ->setWalletPublicKey($this->config->get('blockchain')['contracts']['withdraw']['wallet_address'])
-            ->withdraw(
-                $request->getAddress(),
-                $request->getUserGuid(),
-                $request->getGas(),
-                $request->getAmount(),
+        if ($this->features->has('web3-service-withdrawals')) {
+            $txHash = $this->mindsWeb3Service
+                ->setWalletPrivateKey($this->config->get('blockchain')['contracts']['withdraw']['wallet_pkey'])
+                ->setWalletPublicKey($this->config->get('blockchain')['contracts']['withdraw']['wallet_address'])
+                ->withdraw(
+                    $request->getAddress(),
+                    $request->getUserGuid(),
+                    $request->getGas(),
+                    $request->getAmount(),
             );
-
-        // TODO: DO NOT MERGE: Old method - which within send raw transaction will get the signature AND encoded params from the service.
-
-        // $txHash = $this->eth->sendRawTransaction($this->config->get('blockchain')['contracts']['withdraw']['wallet_pkey'], [
-        //     'from' => $this->config->get('blockchain')['contracts']['withdraw']['wallet_address'],
-        //     'to' => $this->config->get('blockchain')['contracts']['withdraw']['contract_address'],
-        //     'gasLimit' => BigNumber::_(87204)->toHex(true),
-        //     'gasPrice' => BigNumber::_($this->config->get('blockchain')['server_gas_price'] * 1000000000)->toHex(true),
-        //     'data' => $this->eth->encodeContractMethod('complete(address,uint256,uint256,uint256)', [
-        //         $request->getAddress(),
-        //         BigNumber::_($request->getUserGuid())->toHex(true),
-        //         BigNumber::_($request->getGas())->toHex(true),
-        //         BigNumber::_($request->getAmount())->toHex(true),
-        //     ])
-        // ]);
+        } else {
+            $txHash = $this->eth->sendRawTransaction($this->config->get('blockchain')['contracts']['withdraw']['wallet_pkey'], [
+                'from' => $this->config->get('blockchain')['contracts']['withdraw']['wallet_address'],
+                'to' => $this->config->get('blockchain')['contracts']['withdraw']['contract_address'],
+                'gasLimit' => BigNumber::_(87204)->toHex(true),
+                'gasPrice' => BigNumber::_($this->config->get('blockchain')['server_gas_price'] * 1000000000)->toHex(true),
+                'data' => $this->eth->encodeContractMethod('complete(address,uint256,uint256,uint256)', [
+                    $request->getAddress(),
+                    BigNumber::_($request->getUserGuid())->toHex(true),
+                    BigNumber::_($request->getGas())->toHex(true),
+                    BigNumber::_($request->getAmount())->toHex(true),
+                ])
+            ]);
+        }
 
         // Set request status
 

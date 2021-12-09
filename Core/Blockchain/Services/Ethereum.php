@@ -45,7 +45,7 @@ class Ethereum
      * @param null|mixed $jsonRpc
      * @throws \Exception
      */
-    public function __construct($config = null, $jsonRpc = null, $sign = null, $sha3 = null, $gasPrice = null, $mindsWeb3Service = null)
+    public function __construct($config = null, $jsonRpc = null, $sign = null, $sha3 = null, $gasPrice = null)
     {
         $this->config = $config ?: new Config();
         $this->jsonRpc = $jsonRpc ?: Di::_()->get('Http\JsonRpc');
@@ -53,7 +53,6 @@ class Ethereum
         $this->sign = $sign ?: new MW3\Sign;
         $this->sha3 = $sha3 ?: new MW3\Sha3;
         $this->gasPrice = $gasPrice ?: Di::_()->get('Blockchain\GasPrice');
-        $this->mindsWeb3Service = $mindsWeb3Service ?? Di::_()->get('Blockchain\Services\MindsWeb3');
     }
 
     /**
@@ -111,32 +110,22 @@ class Ethereum
      */
     public function encodeContractMethod($contractMethodDeclaration, array $params)
     {
-        //  TODO: DO NOT MERGE: alternative way of encoding - we can call service
-        return $this->mindsWeb3Service
-            ->setWalletPrivateKey($this->config->get('blockchain')['contracts']['withdraw']['wallet_pkey'])
-            ->setWalletPublicKey($this->config->get('blockchain')['contracts']['withdraw']['wallet_address'])
-            ->getEncodedFunctionData(
-                $contractMethodDeclaration, 
-                $params
-            );
-        
-        //  TODO: DO NOT MERGE: old way on encoding
-        // // Method Signature: first 4 bytes (8 hex digits)
-        // $contractMethodSignature = substr($this->sha3($contractMethodDeclaration), 0, 8);
+        // Method Signature: first 4 bytes (8 hex digits)
+        $contractMethodSignature = substr($this->sha3($contractMethodDeclaration), 0, 8);
 
-        // $contractMethodParameters = '';
+        $contractMethodParameters = '';
 
-        // foreach ($params as $param) {
-        //     if (strpos($param, '0x') !== 0) {
-        //         // TODO: Implement parameter types, etc
-        //         throw new \Exception('Ethereum::call only supports raw hex parameters');
-        //     }
+        foreach ($params as $param) {
+            if (strpos($param, '0x') !== 0) {
+                // TODO: Implement parameter types, etc
+                throw new \Exception('Ethereum::call only supports raw hex parameters');
+            }
 
-        //     $hex = substr($param, 2);
-        //     $contractMethodParameters .= str_pad($hex, 64, '0', STR_PAD_LEFT);
-        // }
+            $hex = substr($param, 2);
+            $contractMethodParameters .= str_pad($hex, 64, '0', STR_PAD_LEFT);
+        }
 
-        // return '0x' . $contractMethodSignature . $contractMethodParameters;
+        return '0x' . $contractMethodSignature . $contractMethodParameters;
     }
 
     /**
@@ -217,16 +206,8 @@ class Ethereum
             }
             $this->nonces[$transaction['from']]++; //increase future nonces
         }
-        //  TODO: DO NOT MERGE: new way of signing using service rather than MW3
-        return $signedTx = $this->mindsWeb3Service
-            ->setWalletPrivateKey($privateKey)
-            ->setWalletPublicKey($this->config->get('blockchain')['contracts']['withdraw']['wallet_address'])
-            ->signTransaction(
-                $transaction
-            );
 
-        // TODO: DO NOT MERGE: old way of signing using MW3
-        // $signedTx = $this->sign($privateKey, $transaction);
+        $signedTx = $this->sign($privateKey, $transaction);
 
         if (!$signedTx) {
             throw new \Exception('Error signing transaction');
