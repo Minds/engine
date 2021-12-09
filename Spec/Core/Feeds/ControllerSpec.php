@@ -57,6 +57,6 @@ class ControllerSpec extends ObjectBehavior
         ])->shouldBeCalled()
           ->willReturn($response);
 
-        $this->getLoggedOutFeed($request);
+        $this->getDefaultFeed($request);
     }
 }
