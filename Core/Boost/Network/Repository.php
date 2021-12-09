@@ -185,7 +185,7 @@ class Repository
             'rating' => $boost->getRating(),
             'tags' => $boost->getTags(),
             'nsfw' => $boost->getNsfw(),
-            'rejection_reason'=> $boost->getRejectReason(),
+            'rejection_reason'=> $boost->getRejectedReason(),
             'checksum' => $boost->getChecksum(),
         ];
 

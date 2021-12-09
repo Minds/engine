@@ -23,8 +23,13 @@ class Routes extends ModuleRoutes
             ->withPrefix('api/v3/newsfeed')
             ->do(function (Route $route) {
                 $route->get(
-                    'logged-out',
-                    Ref::_('Feeds\Controller', 'getLoggedOutFeed')
+                    'default-feed',
+                    Ref::_('Feeds\Controller', 'getDefaultFeed')
+                );
+
+                $route->get(
+                    'logged-out', // alias
+                    Ref::_('Feeds\Controller', 'getDefaultFeed'),
                 );
 
                 $route
@@ -35,6 +40,10 @@ class Routes extends ModuleRoutes
                         $route->get(
                             '',
                             Ref::_('Feeds\Controller', 'getFeed')
+                        );
+                        $route->get(
+                            'feed/unseen-top',
+                            Ref::_('Feeds\UnseenTopFeed\Controller', 'getUnseenTopFeed')
                         );
                         $route->delete(
                             ':urn',

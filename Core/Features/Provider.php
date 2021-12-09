@@ -82,6 +82,7 @@ class Provider extends DiProvider
                 'cloudflare-streams',
                 'notifications-v3',
                 'withdrawal-console',
+                'twilio-verify',
                 'helpdesk-2021',
                 'plus-discovery-filter',
                 'twitter-sync',
