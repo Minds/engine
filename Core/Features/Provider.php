@@ -90,7 +90,8 @@ class Provider extends DiProvider
                 'polygon',
                 'social-compass',
                 'content-settings-modal',
-                'nav-2021'
+                'nav-2021',
+                'web3-service-withdrawals'
             ];
         });
 

@@ -174,18 +174,16 @@ class MindsWeb3Service
     }
 
     /**
-     * Get's the encoded public key of a wallet.
-     * @return string encoded public key.
+     * Get's the public key of a wallet.
+     * @return string public key.
      */
     private function getWalletPublicKey($walletName = 'withdraw'): string
     {
         $xpub = $this->config->get('blockchain')['contracts'][$walletName]['wallet_address'] ?? false;
-        $key = $this->getEncryptionKey();
-
         if (!$xpub) {
             throw new ServerErrorException('No wallet address is set');
         }
-        return base64_encode(hash_hmac('SHA256', $xpub, $key));
+        return $xpub;
     }
 
     /**
@@ -218,9 +216,9 @@ class MindsWeb3Service
      */
     private function getEncryptionKey(): string
     {
-        $key = $this->config->get('web3_service')['wallet_encryption_key'];
+        $key = $this->config->get('blockchain')['web3_service']['wallet_encryption_key'];
         if (!$key) {
-            throw new ServerErrorException('No wallet private key encryption key set');
+            throw new ServerErrorException('No encryption key set');
         }
         return $key;
     }
@@ -249,7 +247,7 @@ class MindsWeb3Service
      */
     private function getBaseUrl(): string
     {
-        $baseUrl = $this->config->get('web3_service')['base_url'] ?? false;
+        $baseUrl = $this->config->get('blockchain')['web3_service']['base_url'] ?? false;
         if (!$baseUrl) {
             throw new ServerErrorException('No Base URL is set for web3 service');
         }
