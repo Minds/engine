@@ -70,11 +70,11 @@ class Controller
     }
 
     /**
-     * Fetches a default feed for a logged out user.
+     * Fetches a default feed that can be accessed by logged out users.
      * @param ServerRequest $request - params: 'limit' and 'next-page'.
      * @return JsonResponse - JSON response containing status, entities and load-next for pagination.
      */
-    public function getLoggedOutFeed(ServerRequest $request): JsonResponse
+    public function getDefaultFeed(ServerRequest $request): JsonResponse
     {
         $queryParams = $request->getQueryParams();
         $limit = (int) ($queryParams['limit'] ?? 12);
