@@ -238,7 +238,7 @@ class Client
 
         if ($response['token'] && $response['token']['derivedETH']) {
             $ethToken = BigDecimal::of($response['token']['derivedETH']);
-        } else if($this->config->get('development_mode')) {
+        } elseif ($this->config->get('development_mode')) {
             // Tokens in development mode are not mainnet, and aren't on Uniswap.
             $ethToken = BigDecimal::of(1);
         } else {
