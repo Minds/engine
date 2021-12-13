@@ -139,28 +139,18 @@ class Image extends File
     public function createThumbnails($sizes = ['small', 'medium', 'large', 'xlarge'], $filepath = null): string
     {
         if (!$sizes) {
-            $sizes = ['small', 'medium', 'large', 'xlarge'];
+            $sizes = ['xlarge', 'large', 'medium', 'small'];
         }
         $master = $filepath ?: $this->getFilenameOnFilestore();
+        $image = new \Imagick($master);
         $thumbnail = '';
+
         foreach ($sizes as $size) {
             switch ($size) {
-                case 'tiny':
-                    $h = 25;
-                    $w = 25;
-                    $s = true;
-                    $u = true;
-                    break;
-                case 'small':
-                    $h = 100;
-                    $w = 100;
-                    $s = true;
-                    $u = true;
-                    break;
-                case 'medium':
-                    $h = 300;
-                    $w = 300;
-                    $s = true;
+                case 'xlarge':
+                    $h = 1024;
+                    $w = 1024;
+                    $s = false;
                     $u = true;
                     break;
                 case 'large':
@@ -169,10 +159,16 @@ class Image extends File
                     $s = false;
                     $u = true;
                     break;
-                case 'xlarge':
-                    $h = 1024;
-                    $w = 1024;
-                    $s = false;
+                case 'medium':
+                    $h = 300;
+                    $w = 300;
+                    $s = true;
+                    $u = true;
+                    break;
+                case 'small':
+                    $h = 100;
+                    $w = 100;
+                    $s = true;
                     $u = true;
                     break;
                 default:
@@ -184,8 +180,6 @@ class Image extends File
 
             /** @var Core\Media\Imagick\Resize $resize */
             $resize = Core\Di\Di::_()->get('Media\Imagick\Resize');
-
-            $image = new \Imagick($master);
 
             if ($image->getImageColorspace() == \Imagick::COLORSPACE_CMYK) {
                 $image->transformImageColorspace(\Imagick::COLORSPACE_SRGB);
@@ -211,6 +205,10 @@ class Image extends File
             $this->open('write');
             $this->write($imageBlob);
             $this->close();
+
+            // replace image used for next iteration with current image.
+            $image->removeImage();
+            $image->readImageBlob($imageBlob);
         }
 
         return $thumbnail;
