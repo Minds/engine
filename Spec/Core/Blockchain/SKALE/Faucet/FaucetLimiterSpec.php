@@ -46,8 +46,7 @@ class FaucetLimiterSpec extends ObjectBehavior
 
     public function it_should_throw_error_out_if_a_limit_is_exceeded(
         User $user,
-    )
-    {
+    ) {
         $user->getPhoneNumberHash()->willReturn('123');
         $user->getEthWallet()->willReturn('0x123');
         $user->getGuid()->willReturn('321');

@@ -50,7 +50,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->faucetLimiter->checkAndIncrement($user, $requestAddress)
             ->shouldBeCalled()
-            ->willReturn(true);    
+            ->willReturn(true);
         
         $this->skaleWeb3Service->requestFromSKETHFaucet($requestAddress)
             ->shouldBeCalled()
@@ -71,7 +71,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->faucetLimiter->checkAndIncrement($user, $requestAddress)
             ->shouldBeCalled()
-            ->willReturn(true);    
+            ->willReturn(true);
         
         $this->skaleWeb3Service->requestFromSKETHFaucet($requestAddress)
             ->shouldBeCalled()
@@ -86,7 +86,7 @@ class ManagerSpec extends ObjectBehavior
         $requestAddress = '0x123';
         $this->faucetLimiter->checkAndIncrement($user, $requestAddress)
             ->shouldBeCalled()
-            ->willThrow(new ServerErrorException()); 
+            ->willThrow(new ServerErrorException());
     
         $this->skaleWeb3Service->requestFromSKETHFaucet($requestAddress)
             ->shouldNotBeCalled();
