@@ -4,6 +4,7 @@ namespace Minds\Core\Blockchain\SKALE;
 use Minds\Core\Di\Di;
 use Minds\Core\Features\Manager as FeaturesManager;
 use Exception;
+use Minds\Exceptions\ServerErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 
@@ -19,8 +20,8 @@ class Controller
      * @param FeaturesManager|null $featuresManager - features manager
      */
     public function __construct(
-        protected ?Manager $manager = null,
-        protected ?FeaturesManager $featuresManager = null
+        public ?Manager $manager = null,
+        public ?FeaturesManager $featuresManager = null
     ) {
         $this->manager = $manager ?? new Manager();
         $this->featuresManager = $featuresManager ?? Di::_()->get('Features\Manager');
@@ -29,6 +30,7 @@ class Controller
     /**
      * Makes a request for more funds from a faucet
      * @param ServerRequest $request - request containing logged in user.
+     * @throws UserErrorException - address-less request.
      * @throws RateLimitException - when rate limits are exceeded.
      * @throws ServerErrorException - internal error.
      * @return JsonResponse - response containing the tx hash in 'data'.
@@ -36,7 +38,7 @@ class Controller
     public function requestFromFaucet(ServerRequest $request): JsonResponse
     {
         if (!$this->featuresManager->has('skale')) {
-            throw new Exception('SKALE network is disabled');
+            throw new ServerErrorException('SKALE network is not enabled');
         }
 
         $user = $request->getAttribute('_user');
@@ -44,9 +46,9 @@ class Controller
 
         $txHash = $this->manager->requestFromFaucet($user, $address);
 
-        return new JsonResponse(array_merge([
+        return new JsonResponse([
             'status' => 'success',
             'data' => $txHash,
-        ]));
+        ]);
     }
 }

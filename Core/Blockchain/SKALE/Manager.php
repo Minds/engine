@@ -7,6 +7,7 @@ use Minds\Core\Blockchain\SKALE\Faucet\FaucetLimiter;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
+use Minds\Exceptions\UserErrorException;
 
 /**
  * SKALE manager - handles SKALE related tasks.
@@ -35,12 +36,16 @@ class Manager
      * @param User $user - user to request for.
      * @param string $address - address to request for.
      * @throws RateLimitException - when rate limits are exceeded.
+     * @throws UserErrorException - address-less request.
      * @throws ServerErrorException - internal error.
      * @return string - tx hash.
      */
     public function requestFromFaucet(User $user, string $address = null): string
     {
         if (!$address) {
+            if (!$user->getEthWallet()) {
+                throw new UserErrorException('No address provided');
+            }
             $address = $user->getEthWallet();
         }
 
