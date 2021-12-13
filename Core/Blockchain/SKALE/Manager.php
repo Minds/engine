@@ -2,6 +2,7 @@
 namespace Minds\Core\Blockchain\SKALE;
 
 use Minds\Core\Blockchain\Services\MindsWeb3Service;
+use Minds\Core\Blockchain\Services\Web3Services\MindsSKALEWeb3Service;
 use Minds\Core\Blockchain\SKALE\Faucet\FaucetLimiter;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
@@ -15,12 +16,12 @@ class Manager
 {
     /**
      * SKALE manager constructor.
-     * @param MindsWeb3Service|null $skaleWeb3Service - web3 service.
+     * @param MindsSKALEWeb3Service|null $skaleWeb3Service - web3 service.
      * @param FaucetLimiter|null $faucetLimiter - rate limiter for faucet.
      * @param Config|null $config - global config.
      */
     public function __construct(
-        protected ?MindsWeb3Service $skaleWeb3Service = null,
+        protected ?MindsSKALEWeb3Service $skaleWeb3Service = null,
         protected ?FaucetLimiter $faucetLimiter = null,
         protected ?Config $config = null
     ) {
