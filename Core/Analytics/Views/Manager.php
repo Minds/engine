@@ -46,7 +46,7 @@ class Manager
             ->setUuid(null)
             ->setTimestamp(time());
 
-        // Mark as seen entities as seen
+        // Mark the entity as 'seen'
         $entityGuid = (new Urn($view->getEntityUrn()))->getNss();
         $this->unseenTopFeedManager->seeEntities([$entityGuid]);
 
