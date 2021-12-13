@@ -88,6 +88,7 @@ class Provider extends DiProvider
                 'twitter-sync',
                 'discovery-default-tags',
                 'skale',
+                'skale-faucet',
                 'polygon',
                 'social-compass',
                 'content-settings-modal',
