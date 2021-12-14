@@ -35,14 +35,6 @@ class ManagerSpec extends ObjectBehavior
         ElasticManager $elasticManager,
         Redis $redisClient
     ) {
-        $redisClient
-            ->get(Argument::any())
-            ->willReturn(false);
-
-        $redisClient
-            ->set(Argument::any(), Argument::any(), Argument::any())
-            ->shouldBeCalledOnce();
-
         $expectedResponse = $this->createSampleEntitiesResponseObject();
 
         $elasticManager
@@ -61,14 +53,6 @@ class ManagerSpec extends ObjectBehavior
         ElasticManager $elasticManager,
         Redis $redisClient
     ) {
-        $redisClient
-            ->get(Argument::any())
-            ->willReturn([1,2]);
-
-        $redisClient
-            ->set(Argument::any(), Argument::any(), Argument::any())
-            ->shouldBeCalledOnce();
-
         $expectedResponse = $this->createSampleEntitiesResponseObject([1,2]);
 
         $elasticManager
@@ -88,13 +72,6 @@ class ManagerSpec extends ObjectBehavior
         Redis $redisClient
     ) {
         $_COOKIE["minds_pseudoid"] = "pseudoid";
-        $redisClient
-            ->get(Argument::any())
-            ->willReturn();
-
-        $redisClient
-            ->set(Argument::any(), Argument::any(), Argument::any())
-            ->shouldBeCalledOnce();
 
         $expectedResponse = $this->createSampleEntitiesResponseObject();
 
@@ -115,13 +92,6 @@ class ManagerSpec extends ObjectBehavior
         Redis $redisClient
     ) {
         $_COOKIE["minds_pseudoid"] = "pseudoid";
-        $redisClient
-            ->get(Argument::any())
-            ->willReturn([1,2]);
-
-        $redisClient
-            ->set(Argument::any(), Argument::any(), Argument::any())
-            ->shouldBeCalledOnce();
 
         $expectedResponse = $this->createSampleEntitiesResponseObject([1,2]);
 
