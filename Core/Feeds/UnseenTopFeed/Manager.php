@@ -8,7 +8,6 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Data\cache\Redis;
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Elastic\Manager as ElasticSearchManager;
-use Minds\Core\Feeds\FeedSyncEntity;
 
 class Manager implements ManagerInterface
 {
@@ -42,12 +41,23 @@ class Manager implements ManagerInterface
             $queryOptions['exclude'] = $previouslySeenEntities;
         }
 
-        $response = $this->elasticSearchManager->getList($queryOptions);
+        return $this->elasticSearchManager->getList($queryOptions);
+    }
 
-        $entitiesGuids = $this->createArrayWithLatestEntitiesGuids($response);
-        $this->updateUserPreviousSeenTopFeedEntitiesCache($entitiesGuids);
-
-        return $response;
+    /**
+     * Marks an array of entities as seen
+     * @param string[] $entityGuids
+     * @return void
+     */
+    public function seeEntities(array $entityGuids): void
+    {
+        $this->redisClient?->set(
+            $this->getCacheKey(),
+            array_merge(
+                $this->getUserPreviouslySeenTopFeedEntitiesCacheAvailable(),
+                $entityGuids
+            )
+        );
     }
 
     private function createUnseenTopFeedCacheKeyCookie(): UnseenTopFeedCacheKeyCookie
@@ -69,38 +79,5 @@ class Manager implements ManagerInterface
 
         $data = $this->redisClient->get($cacheKey);
         return !$data ? [] : $data;
-    }
-
-    /**
-     * @param Response $entities
-     * @return string[]
-     */
-    private function createArrayWithLatestEntitiesGuids(Response $entities): array
-    {
-        $entitiesGuids = [];
-
-        /**
-         * @var FeedSyncEntity $entity
-         */
-        foreach ($entities as $entity) {
-            $entitiesGuids[] = $entity->getGuid();
-        }
-
-        return $entitiesGuids;
-    }
-
-    /**
-     * @param string[] $entitiesGuids
-     * @return void
-     */
-    private function updateUserPreviousSeenTopFeedEntitiesCache(array $entitiesGuids): void
-    {
-        $this->redisClient?->set(
-            $this->getCacheKey(),
-            array_merge(
-                $this->getUserPreviouslySeenTopFeedEntitiesCacheAvailable(),
-                $entitiesGuids
-            )
-        );
     }
 }
