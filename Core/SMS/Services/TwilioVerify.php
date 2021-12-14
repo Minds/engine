@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Minds SMS Service via Twilio
+ * Minds Twilio Verify Service
  */
 
 namespace Minds\Core\SMS\Services;
@@ -14,7 +14,7 @@ use Minds\Core\SMS\SMSServiceInterface;
 use Twilio\Rest\Client as TwilioClient;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
 
-class Twilio implements SMSServiceInterface
+class TwilioVerify implements SMSServiceInterface
 {
     /** @var TwilioClient */
     protected $client;
@@ -40,7 +40,7 @@ class Twilio implements SMSServiceInterface
     }
 
     /**
-     * Verifies the number isn't a voip line
+     * Verifies the number isn't a voip line.
      * @param $number
      * @return boolean
      * @throws InvalidPhoneException
@@ -51,7 +51,7 @@ class Twilio implements SMSServiceInterface
             $phone_number = $this->getClient()->lookups->v1->phoneNumbers($number)
                 ->fetch(["type" => "carrier"]);
 
-            return $phone_number->carrier['type'] === 'mobile';
+            return $phone_number->carrier['type'] !== 'voip';
         } catch (\Exception $e) {
             error_log("[guard] Twilio error: {$e->getMessage()}");
             throw new InvalidPhoneException('Invalid Phone Number', 0, $e);
@@ -59,14 +59,16 @@ class Twilio implements SMSServiceInterface
     }
 
     /**
-     * Send an sms
+     * Send a verification request.
+     * @param string $number - users phone number.
+     * @param string $number - depreciated.
      */
-    public function send($number, $message): bool
+    public function send($number, $message = ''): bool
     {
         $result = null;
 
-        // Only allow 5 messages sent to a number per day
-        // To prevent malicious users flooding the system
+        // // Only allow 5 messages sent to a number per day
+        // // To prevent malicious users flooding the system
         $phoneNumberHash = hash('sha256', $number . $this->config->get('phone_number_hash_salt'));
 
         $this->kvLimiter
@@ -85,22 +87,39 @@ class Twilio implements SMSServiceInterface
             ->checkAndIncrement(); // Will throw exception
 
         try {
-            $result = $this->getClient()->messages->create(
-                $number,
-                [
-                    'from' => $this->getConfig()['from'],
-                    'body' => $message,
-                ]
-            );
+            // Send SMS
+            $result = $this->getClient()->verify->v2->services($this->getConfig()['verify']['service_sid'])
+                ->verifications
+                ->create($number, "sms");
         } catch (\Exception $e) {
-            error_log("[guard] Twilio error: {$e->getMessage()}");
+            error_log("[guard] TwilioVerify error: {$e->getMessage()}");
         }
 
         return $result ? $result->sid : false;
     }
 
     /**
-     * Get the twilio client
+     * Verify a given code.
+     * @param string $code - code received by user.
+     * @param string $number - users phone number.
+     * @return bool - true if code is valid.
+     */
+    public function verifyCode(string $code, string $number): bool
+    {
+        $result = $this->getClient()->verify->v2->services(
+            $this->getConfig()['verify']['service_sid']
+        )
+            ->verificationChecks
+            ->create(
+                $code,
+                ["to" => $number]
+            );
+        
+        return $result->status === 'approved';
+    }
+
+    /**
+     * Get the Twilio client
      * @return TwilioClient
      */
     private function getClient(): TwilioClient
@@ -114,7 +133,7 @@ class Twilio implements SMSServiceInterface
     }
 
     /**
-     * Get the twilio config
+     * Get Twilio config
      * @return array
      */
     private function getConfig(): array
