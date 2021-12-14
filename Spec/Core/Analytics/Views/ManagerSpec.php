@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Analytics\Views;
 use Minds\Core\Analytics\Views\Manager;
 use Minds\Core\Analytics\Views\Repository;
 use Minds\Core\Analytics\Views\View;
+use Minds\Core\Feeds\UnseenTopFeed\Manager as UnseenTopFeedManager;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -13,11 +14,16 @@ class ManagerSpec extends ObjectBehavior
     /** @var Repository */
     protected $repository;
 
+    /** @var UnseenTopFeedManager */
+    protected $unseenTopFeedManager;
+
     public function let(
-        Repository $repository
+        Repository $repository,
+        UnseenTopFeedManager $unseenTopFeedManager,
     ) {
-        $this->beConstructedWith($repository);
+        $this->beConstructedWith($repository, null, $unseenTopFeedManager);
         $this->repository = $repository;
+        $this->unseenTopFeedManager = $unseenTopFeedManager;
     }
 
     public function it_is_initializable()
@@ -47,6 +53,13 @@ class ManagerSpec extends ObjectBehavior
         $view->setTimestamp(Argument::type('int'))
             ->shouldBeCalled()
             ->willReturn($view);
+
+        $view->getEntityUrn()
+            ->shouldBeCalled()
+            ->willReturn("urn:activity:fakeguid");
+
+        $this->unseenTopFeedManager->seeEntities(["fakeguid"])
+            ->shouldBeCalled();
 
         $this->repository->add($view)
             ->shouldBeCalled()
