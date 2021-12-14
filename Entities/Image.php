@@ -132,11 +132,10 @@ class Image extends File
 
     /**
      * Creates thumbnails for the image, saves to fs, and returns the image blobgs
-     * @param string[] $sizes thumbnail sizes
      * @param string $filepath where to save the iamges
      * @return string xlarge image blob
      */
-    public function createThumbnails($sizes = ['small', 'medium', 'large', 'xlarge'], $filepath = null): string
+    public function createThumbnails($filepath = null): string
     {
         if (!$sizes) {
             $sizes = ['xlarge', 'large', 'medium', 'small'];
@@ -387,7 +386,7 @@ class Image extends File
         }
 
         if (isset($assets['media'])) {
-            $thumbnail = $this->createThumbnails(null, $assets['media']['file']);
+            $thumbnail = $this->createThumbnails($assets['media']['file']);
             // NOTE: it's better if we use tiny, but we aren't resizing to tiny at the moment.
             // not sure if resizing to tiny and blurhash->encode('tiny' size) >> blurhash->encode('small' size)
             if ($thumbnail) {
