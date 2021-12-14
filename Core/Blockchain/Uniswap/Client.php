@@ -241,8 +241,6 @@ class Client
         } elseif ($this->config->get('development_mode')) {
             // Tokens in development mode are not mainnet, and aren't on Uniswap.
             $ethToken = BigDecimal::of(1);
-        } else {
-            throw new ServerErrorException('Unable to get token price from Uniswap');
         }
 
         $tokenUsd = $ethUsd->multipliedBy($ethToken);
