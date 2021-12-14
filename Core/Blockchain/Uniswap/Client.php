@@ -236,6 +236,8 @@ class Client
 
         $ethUsd = BigDecimal::of($response['bundle']['ethPrice']);
 
+        $ethToken = null;
+
         if ($response['token'] && $response['token']['derivedETH']) {
             $ethToken = BigDecimal::of($response['token']['derivedETH']);
         } elseif ($this->config->get('development_mode')) {
