@@ -8,6 +8,7 @@ use Minds\Core\SocialCompass\Questions\BannedMisinformationQuestion;
 use Minds\Core\SocialCompass\Questions\ChallengingOpinionsQuestion;
 use Minds\Core\SocialCompass\Questions\DebatedMisinformationQuestion;
 use Minds\Core\SocialCompass\Questions\ImprovingWorldQuestion;
+use Minds\Core\SocialCompass\Questions\MatureContentQuestion;
 use Minds\Core\SocialCompass\Questions\NeverCompromisedPersonalPrivacyQuestion;
 use Minds\Core\SocialCompass\Questions\PersonalFreedomQuestion;
 use Minds\Core\SocialCompass\Questions\PhonesAddictedPeopleQuestion;
@@ -35,6 +36,7 @@ class QuestionsManifestV1 extends QuestionsManifest
         NeverCompromisedPersonalPrivacyQuestion::class,
         AnyoneChangeTheirMindQuestion::class,
         PhonesAddictedPeopleQuestion::class,
-        ImprovingWorldQuestion::class
+        ImprovingWorldQuestion::class,
+        MatureContentQuestion::class,
     ];
 }
