@@ -1,6 +1,6 @@
 <?php
 
-namespace Minds\Core\Email\V2\Campaigns\Marketing\Updates2021_10_20;
+namespace Minds\Core\Email\V2\Campaigns\Marketing\Updates2021_12_15;
 
 use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\Mailer;

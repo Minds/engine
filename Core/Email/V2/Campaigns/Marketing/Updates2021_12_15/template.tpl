@@ -17,7 +17,7 @@
                 <li>The Minds Token Battle was launched to offer token rewards to the first users to reach major subscriber milestones (<a href="https://www.minds.com/newsfeed/1285384871786582027?<?php echo $vars['tracking']; ?>&utm_content=subscriber-contest">read more</a>)</li>
                 <li>Fortune covered the company’s recent balance sheet investment into cryptocurrency (<a href="https://www.minds.com/newsfeed/1285262923668656141?<?php echo $vars['tracking']; ?>&utm_content=crypto-balance-sheet">read more</a>)</li>
                 <li>Our first Minds Town Hall was held with the community to increase transparency, address questions and provide updates on our roadmap (<a href="https://www.minds.com/newsfeed/1292915718093803526?<?php echo $vars['tracking']; ?>&utm_content=town-hall">read more</a>)</li>
-                <li>We released a new tool called "Build Your Algorithm" to give you more control over your echo chamber and content recommendations (<a href="https://www.minds.com/minds/blog/build-your-algorithm-phase-1-1317916094152839188?<?php echo $vars['tracking']; ?>&utm_content=social-compass">read more</a>")</li>
+                <li>We released a new tool called "Build Your Algorithm" to give you more control over your echo chamber and content recommendations (<a href="https://www.minds.com/minds/blog/build-your-algorithm-phase-1-1317916094152839188?<?php echo $vars['tracking']; ?>&utm_content=social-compass">read more</a>)</li>
             </ul>
         </p>
     </td>
