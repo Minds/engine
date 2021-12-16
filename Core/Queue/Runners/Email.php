@@ -3,7 +3,7 @@ namespace Minds\Core\Queue\Runners;
 
 use Minds\Core;
 use Minds\Core\Data;
-use Minds\Core\Email\Message;
+use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Queue\Interfaces;
 use Minds\Core\Queue;
 use Minds\Core\Notification\Settings;
