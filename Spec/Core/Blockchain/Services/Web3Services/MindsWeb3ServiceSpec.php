@@ -11,7 +11,6 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Response;
 use PhpSpec\ObjectBehavior;
 
-
 class MindsWeb3ServiceSpec extends ObjectBehavior
 {
     protected $httpClient;
@@ -35,14 +34,17 @@ class MindsWeb3ServiceSpec extends ObjectBehavior
         $this->shouldHaveType(MindsWeb3Service::class);
     }
 
-    public function it_should_call_to_get_encoded_function_data() {
+    public function it_should_call_to_get_encoded_function_data()
+    {
         $functionSignature = 'balanceOf(address)';
         $params = [ '0x000000000000000000000000000000000000dead' ];
         $walletPublicKey = '0x0000000000000000000000000000000000000000';
 
         $this->preparedConfig($walletPublicKey);
 
-        $this->httpClient->request('POST', 'http://0.0.0.0:3333/tx/encodeFunctionData', 
+        $this->httpClient->request(
+            'POST',
+            'http://0.0.0.0:3333/tx/encodeFunctionData',
             Argument::that(function ($args) use ($walletPublicKey, $functionSignature, $params) {
                 return $args['headers']['X-ETH-NETWORK'] === 'rinkeby' &&
                     $args['headers']['X-AUTH-KEY'] === 'MGUwZTBkMjUyYjMxY2U0YTg4NDBjOWY3YjNmODc2YzAxZjcwNjZkOWJkZDNmYjI5MTMzY2NkYmUxMTA3ZjA4OA==' &&
@@ -62,7 +64,8 @@ class MindsWeb3ServiceSpec extends ObjectBehavior
             ->shouldReturn('0x00');
     }
 
-    public function it_should_call_to_sign_transaction() {
+    public function it_should_call_to_sign_transaction()
+    {
         $walletPublicKey = '0x0000000000000000000000000000000000000000';
 
         $transaction = [
@@ -72,7 +75,9 @@ class MindsWeb3ServiceSpec extends ObjectBehavior
 
         $this->preparedConfig($walletPublicKey);
 
-        $this->httpClient->request('POST', 'http://0.0.0.0:3333/sign/tx', 
+        $this->httpClient->request(
+            'POST',
+            'http://0.0.0.0:3333/sign/tx',
             Argument::that(function ($args) use ($walletPublicKey, $transaction) {
                 return $args['headers']['X-ETH-NETWORK'] === 'rinkeby' &&
                     $args['headers']['X-AUTH-KEY'] === 'MGUwZTBkMjUyYjMxY2U0YTg4NDBjOWY3YjNmODc2YzAxZjcwNjZkOWJkZDNmYjI5MTMzY2NkYmUxMTA3ZjA4OA==' &&
@@ -91,7 +96,8 @@ class MindsWeb3ServiceSpec extends ObjectBehavior
             ->shouldReturn('0x00');
     }
 
-    public function it_should_call_to_withdraw() {
+    public function it_should_call_to_withdraw()
+    {
         $walletPublicKey = '0x0000000000000000000000000000000000000000';
         $address = '0x000000000000000000000000000000000000dead';
         $userGuid = '123';
@@ -100,7 +106,9 @@ class MindsWeb3ServiceSpec extends ObjectBehavior
 
         $this->preparedConfig($walletPublicKey);
 
-        $this->httpClient->request('POST', 'http://0.0.0.0:3333/withdraw/complete', 
+        $this->httpClient->request(
+            'POST',
+            'http://0.0.0.0:3333/withdraw/complete',
             Argument::that(function ($args) use (
                 $walletPublicKey,
                 $address,
@@ -109,7 +117,7 @@ class MindsWeb3ServiceSpec extends ObjectBehavior
                 $amount
             ) {
                 return $args['headers']['X-ETH-NETWORK'] === 'rinkeby';// &&
-                    $args['headers']['X-AUTH-KEY'] === 'MGUwZTBkMjUyYjMxY2U0YTg4NDBjOWY3YjNmODc2YzAxZjcwNjZkOWJkZDNmYjI5MTMzY2NkYmUxMTA3ZjA4OA==' &&
+                $args['headers']['X-AUTH-KEY'] === 'MGUwZTBkMjUyYjMxY2U0YTg4NDBjOWY3YjNmODc2YzAxZjcwNjZkOWJkZDNmYjI5MTMzY2NkYmUxMTA3ZjA4OA==' &&
                     $args['headers']['X-WALLET-ADDRESS'] === $walletPublicKey &&
                     $args['json']['address'] === $address &&
                     $args['json']['userGuid'] === $userGuid &&
@@ -128,7 +136,8 @@ class MindsWeb3ServiceSpec extends ObjectBehavior
             ->shouldReturn('0x00');
     }
 
-    private function preparedConfig($walletPublicKey) {
+    private function preparedConfig($walletPublicKey)
+    {
         $this->config->get('blockchain')->shouldBeCalled()->willReturn([
             'web3_service' => [
                 'base_url' => 'http://0.0.0.0:3333/',

@@ -977,7 +977,7 @@ class ManagerSpec extends ObjectBehavior
                 BigNumber::toPlain(10, 18)
             )
             ->shouldBeCalled()
-            ->willReturn('0x0000000000000000000000000000000000000001');   
+            ->willReturn('0x0000000000000000000000000000000000000001');
 
         $request->setStatus('approved')
             ->shouldBeCalled()
