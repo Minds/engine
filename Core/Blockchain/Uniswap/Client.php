@@ -5,6 +5,8 @@ use Brick\Math\BigDecimal;
 use Minds\Core\Di\Di;
 use Minds\Core\Http;
 use Minds\Core\Blockchain\Services\BlockFinder;
+use Minds\Core\Config\Config;
+use Minds\Exceptions\ServerErrorException;
 
 class Client
 {
@@ -14,13 +16,17 @@ class Client
     /** @var BlockFinder */
     protected $blockFinder;
 
+    /** @var Config */
+    protected $config;
+
     /** @var string */
     protected $graphqlEndpoint = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2";
 
-    public function __construct($http = null, BlockFinder $blockFinder = null)
+    public function __construct($http = null, BlockFinder $blockFinder = null, ?Config $config = null)
     {
         $this->http = $http ?: Di::_()->get('Http\Json');
         $this->blockFinder = $blockFinder ?? Di::_()->get('Blockchain\Services\BlockFinder');
+        $this->config = $config ?? Di::_()->get('Config');
     }
 
     /**
@@ -229,7 +235,16 @@ class Client
         $response = $this->request($query, $variables);
 
         $ethUsd = BigDecimal::of($response['bundle']['ethPrice']);
-        $ethToken = BigDecimal::of($response['token']['derivedETH']);
+
+        $ethToken = null;
+
+        if ($response['token'] && $response['token']['derivedETH']) {
+            $ethToken = BigDecimal::of($response['token']['derivedETH']);
+        } elseif ($this->config->get('development_mode')) {
+            // Tokens in development mode are not mainnet, and aren't on Uniswap.
+            $ethToken = BigDecimal::of(1);
+        }
+
         $tokenUsd = $ethUsd->multipliedBy($ethToken);
 
         return [
