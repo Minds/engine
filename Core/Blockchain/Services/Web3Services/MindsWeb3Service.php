@@ -243,7 +243,7 @@ class MindsWeb3Service
     }
 
     /**
-     * Gets base url for service
+     * Gets base url for service.
      * @return string base url for service.
      */
     private function getBaseUrl(): string
