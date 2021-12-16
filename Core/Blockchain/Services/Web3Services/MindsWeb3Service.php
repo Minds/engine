@@ -4,9 +4,10 @@
  * Is capable of dispatching transactions, getting dispatches, getting information on transactions,
  * signing transactions, encoding parameters etc.
  */
-namespace Minds\Core\Blockchain\Services;
+namespace Minds\Core\Blockchain\Services\Web3Services;
 
 use GuzzleHttp;
+use GuzzleHttp\ClientInterface;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
@@ -24,9 +25,9 @@ class MindsWeb3Service
     protected $walletPublicKey = null;
 
     public function __construct(
-        private ?GuzzleHttp\Client $http = null,
-        private ?Logger $logger = null,
-        private ?Config $config = null,
+        public ?ClientInterface $httpClient = null,
+        public ?Logger $logger = null,
+        public ?Config $config = null,
     ) {
         $this->httpClient = $httpClient ?? new GuzzleHttp\Client();
         $this->logger = $logger ?? Di::_()->get('Logger');

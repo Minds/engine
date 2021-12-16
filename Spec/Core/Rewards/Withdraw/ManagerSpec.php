@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\Rewards\Withdraw;
 use Exception;
 use Minds\Common\Repository\Response;
 use Minds\Core\Blockchain\Services\Ethereum;
+use Minds\Core\Blockchain\Services\Web3Services\MindsWeb3Service;
 use Minds\Core\Blockchain\Transactions\Manager as TransactionsManager;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Blockchain\Wallets\OffChain\Balance as OffchainBalance;
@@ -21,6 +22,7 @@ use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Minds\Core\Security\TwoFactor\Manager as TwoFactorManager;
+use Minds\Core\Features\Manager as Features;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -60,6 +62,12 @@ class ManagerSpec extends ObjectBehavior
     /** @var EntitiesBuilder $entitiesBuilder */
     private $entitiesBuilder;
 
+    /** @var Features */
+    protected $features;
+
+    /** @var MindsWeb3Service */
+    protected $mindsWeb3Service;
+
     public function let(
         TransactionsManager $txManager,
         OffchainTransactions $offChainTransactions,
@@ -72,7 +80,9 @@ class ManagerSpec extends ObjectBehavior
         Delegates\RequestHydrationDelegate $requestHydrationDelegate,
         TwoFactorManager $twoFactorManager,
         EntitiesBuilder $entitiesBuilder,
-        DeferredSecrets $deferredSecrets
+        DeferredSecrets $deferredSecrets,
+        Features $features = null,
+        MindsWeb3Service $mindsWeb3Service = null
     ) {
         $this->beConstructedWith(
             $txManager,
@@ -86,7 +96,9 @@ class ManagerSpec extends ObjectBehavior
             $requestHydrationDelegate,
             $twoFactorManager,
             $entitiesBuilder,
-            $deferredSecrets
+            $deferredSecrets,
+            $features,
+            $mindsWeb3Service
         );
 
         $this->txManager = $txManager;
@@ -101,6 +113,8 @@ class ManagerSpec extends ObjectBehavior
         $this->twoFactorManager = $twoFactorManager;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->deferredSecrets = $deferredSecrets;
+        $this->features = $features;
+        $this->mindsWeb3Service = $mindsWeb3Service;
     }
 
     public function it_is_initializable()
@@ -867,6 +881,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(BigNumber::toPlain(1, 18));
 
+        $this->features->has('web3-service-withdrawals')
+            ->shouldBeCalled()
+            ->willReturn(false);
+        
         $this->eth->encodeContractMethod(Argument::cetera())
             ->shouldBeCalled()
             ->willReturn('~encoded_contract_method~');
@@ -880,6 +898,92 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($request);
 
         $request->setCompletedTx('0xf00847')
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $request->setCompleted(true)
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $this->repository->add($request)
+            ->shouldBeCalled();
+
+        $this->notificationsDelegate->onApprove($request)
+            ->shouldBeCalled();
+
+        $this->emailDelegate->onApprove($request)
+            ->shouldBeCalled();
+
+        $this
+            ->approve($request)
+            ->shouldReturn(true);
+    }
+
+    public function it_should_approve_using_web3_service_if_feat_enabled(
+        Request $request
+    ) {
+        $this->config->get('blockchain')
+            ->shouldBeCalled()
+            ->willReturn([
+                'server_gas_price' => 100,
+                'contracts' => [
+                    'withdraw' => [
+                        'wallet_pkey' => '0x0000000000000000000000000000000000000000',
+                        'wallet_address' => '0x000000000000000000000000000000000000dead',
+                        'contract_address' => '0x4d09aa10ec584ff102e5e2da96888ac0dc6048f2',
+                    ],
+                ],
+            ]);
+    
+        $request->getStatus()
+            ->shouldBeCalled()
+            ->willReturn('pending_approval');
+
+        $request->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $request->getAddress()
+            ->shouldBeCalled()
+            ->willReturn('0x303456');
+
+        $request->getAmount()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(10, 18));
+
+        $request->getGas()
+            ->shouldBeCalled()
+            ->willReturn(BigNumber::toPlain(1, 18));
+
+        $this->features->has('web3-service-withdrawals')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->mindsWeb3Service
+            ->setWalletPrivateKey('0x0000000000000000000000000000000000000000')
+            ->shouldBeCalled()
+            ->willReturn($this->mindsWeb3Service);
+   
+        $this->mindsWeb3Service
+            ->setWalletPublicKey('0x000000000000000000000000000000000000dead')
+            ->shouldBeCalled()
+            ->willReturn($this->mindsWeb3Service);
+        
+        $this->mindsWeb3Service
+            ->withdraw(
+                '0x303456',
+                1000,
+                BigNumber::toPlain(1, 18),
+                BigNumber::toPlain(10, 18)
+            )
+            ->shouldBeCalled()
+            ->willReturn('0x0000000000000000000000000000000000000001');   
+
+        $request->setStatus('approved')
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $request->setCompletedTx('0x0000000000000000000000000000000000000001')
             ->shouldBeCalled()
             ->willReturn($request);
 
