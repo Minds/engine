@@ -11,16 +11,16 @@ class Manager implements ManagerInterface
 {
     private LocationInterface $location;
 
-    private function createLocation($userGuid, string $location): void
+    private function createLocation(?User $user, string $location): void
     {
         $locationClass = RecommendationsLocationsMappingConfig::MAPPING[$location];
         $this->location = new $locationClass();
-        $this->location->setUser($userGuid);
+        $this->location->setUser($user);
     }
 
     public function getRecommendations(?User $user, string $location): Response
     {
-        $this->createLocation();
+        $this->createLocation($user, $location);
         $algorithm = $this->location->getLocationRecommendationsAlgorithm();
 
         return new Response([

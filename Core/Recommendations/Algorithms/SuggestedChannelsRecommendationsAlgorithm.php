@@ -17,8 +17,10 @@ class SuggestedChannelsRecommendationsAlgorithm implements RecommendationsAlgori
     private ?User $user;
 
     public function __construct(
+        private ?AlgorithmOptions $options = null,
         private ?SuggestionsManager $suggestionsManager = null
     ) {
+        $this->options = $this->options ?? new AlgorithmOptions();
         $this->suggestionsManager = $this->suggestionsManager ?? Di::_()->get("Suggestions\Manager");
     }
 
