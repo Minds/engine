@@ -13,6 +13,7 @@ use League\OAuth2\Server\Middleware\ResourceServerMiddleware;
 use League\OAuth2\Server\Grant\PasswordGrant;
 use League\OAuth2\Server\Grant\RefreshTokenGrant;
 use League\OAuth2\Server\Grant\ImplicitGrant;
+use Minds\Common\PseudonymousIdentifier;
 use OpenIDConnectServer\ClaimExtractor;
 use OpenIDConnectServer\Entities\ClaimSetEntity;
 use OpenIDConnectServer\IdTokenResponse;
@@ -107,7 +108,7 @@ class Provider extends Di\Provider
         // Password grant
         $this->di->bind('OAuth\Grants\Password', function ($di) {
             $grant = new PasswordGrant(
-                new Repositories\UserRepository(),           // instance of UserRepositoryInterface
+                new Repositories\UserRepository(null, null, null, new PseudonymousIdentifier()),           // instance of UserRepositoryInterface
                 new Repositories\RefreshTokenRepository()    // instance of RefreshTokenRepositoryInterface
             );
             $grant->setRefreshTokenTTL(new \DateInterval('P1M')); // expire after 1 month
@@ -162,7 +163,7 @@ class Provider extends Di\Provider
         }, ['useFactory' => true]);
 
         $this->di->bind('OAuth\Repositories\User', function ($di) {
-            return new Repositories\UserRepository();
+            return new Repositories\UserRepository(null, null, null, new PseudonymousIdentifier());
         }, ['useFactory' => true]);
 
         $this->di->bind('OAuth\Repositories\Client', function ($di) {

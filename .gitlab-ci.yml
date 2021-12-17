@@ -103,12 +103,14 @@ review:start:
     - echo "Setting to image ${CI_REGISTRY_IMAGE}"
     - "helm upgrade \
       --install \
+      --values ./helm-charts/minds/sandbox-values.yaml \
       --reuse-values \
       --set engine.image.repository=$CI_REGISTRY_IMAGE/fpm \
       --set-string engine.image.tag=$CI_PIPELINE_ID \
       --set domain=$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
       --set cdn_domain=$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
       --set siteUrl=https://$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN/
+      --set-string environments.sandbox.routingCookie=false
       --wait \
       $CI_BUILD_REF_SLUG \
       ./helm-charts/minds"
@@ -140,17 +142,17 @@ review:stop:
       - master
       - feat/ci-k8s
 
-# qa:manual:
-#   stage: qa
-#   script:
-#     - echo "Manually approved"
-#   when: manual
-#   only:
-#     refs:
-#       - master
-#       - production
-#       - test/gitlab-ci
-#   allow_failure: false
+qa:manual:
+  stage: qa
+  script:
+    - echo "Manually approved"
+  when: manual
+  only:
+    refs:
+      - master
+      - production
+      - test/gitlab-ci
+  allow_failure: false
 
 ################
 # Deploy Stage #

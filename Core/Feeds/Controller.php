@@ -70,15 +70,15 @@ class Controller
     }
 
     /**
-     * Fetches a default feed for a logged out user.
+     * Fetches a default feed that can be accessed by logged out users.
      * @param ServerRequest $request - params: 'limit' and 'next-page'.
      * @return JsonResponse - JSON response containing status, entities and load-next for pagination.
      */
-    public function getLoggedOutFeed(ServerRequest $request): JsonResponse
+    public function getDefaultFeed(ServerRequest $request): JsonResponse
     {
         $queryParams = $request->getQueryParams();
         $limit = (int) ($queryParams['limit'] ?? 12);
-        $nextPage = (int) ($queryParams['next-page'] ?? 0);
+        $fromTimestamp = (int) ($queryParams['from_timestamp'] ?? 0);
 
         $recommendationsUserGuid = $this->config->get('default_recommendations_user') ?? '100000000000000519';
         
@@ -90,8 +90,8 @@ class Controller
             'type' => 'activity',
             'algorithm' => 'top',
             'period' => '1y',
-            'single_owner_threshold' => 0,
-            'from_timestamp' => $nextPage,
+            'single_owner_threshold' => $fromTimestamp ? 0 : 36, // after 3 scrolls
+            'from_timestamp' => $fromTimestamp,
             'nsfw' => []
         ]);
 

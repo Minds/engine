@@ -871,26 +871,7 @@ CREATE MATERIALIZED VIEW minds.subscriptions_by_id AS
     AND read_repair_chance = 0.0
     AND speculative_retry = '99PERCENTILE';
 
-CREATE MATERIALIZED VIEW minds.subscriptions_by_user_guid AS
-    SELECT user_guid, plan_id, payment_method, entity_guid, subscription_id, amount, interval, last_billing, next_billing, status
-    FROM minds.subscriptions
-    WHERE subscription_id IS NOT NULL AND plan_id IS NOT NULL AND payment_method IS NOT NULL AND entity_guid IS NOT NULL AND user_guid IS NOT NULL AND amount IS NOT NULL AND last_billing IS NOT NULL AND next_billing IS NOT NULL AND interval IS NOT NULL AND status IS NOT NULL
-    PRIMARY KEY (user_guid, plan_id, payment_method, entity_guid, subscription_id)
-    WITH CLUSTERING ORDER BY (plan_id ASC, payment_method ASC, entity_guid ASC, subscription_id ASC)
-    AND bloom_filter_fp_chance = 0.01
-    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-    AND comment = ''
-    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-    AND crc_check_chance = 1.0
-    AND dclocal_read_repair_chance = 0.1
-    AND default_time_to_live = 0
-    AND gc_grace_seconds = 864000
-    AND max_index_interval = 2048
-    AND memtable_flush_period_in_ms = 0
-    AND min_index_interval = 128
-    AND read_repair_chance = 0.0
-    AND speculative_retry = '99PERCENTILE';
+CREATE INDEX IF NOT EXISTS subscriptions_user_guid_idx ON minds.subscriptions (user_guid);
 
 CREATE TABLE minds.translations (
     guid text,

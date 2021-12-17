@@ -51,12 +51,12 @@ class ControllerSpec extends ObjectBehavior
             'type' => 'activity',
             'algorithm' => 'top',
             'period' => '1y',
-            'single_owner_threshold' => 0,
+            'single_owner_threshold' => 36,
             'from_timestamp' => 0,
             'nsfw' => []
         ])->shouldBeCalled()
           ->willReturn($response);
 
-        $this->getLoggedOutFeed($request);
+        $this->getDefaultFeed($request);
     }
 }
