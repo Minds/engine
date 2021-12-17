@@ -137,9 +137,8 @@ class Image extends File
      */
     public function createThumbnails($filepath = null): string
     {
-        if (!$sizes) {
-            $sizes = ['xlarge', 'large', 'medium', 'small'];
-        }
+        $sizes = ['xlarge', 'large', 'medium', 'small'];
+        
         $master = $filepath ?: $this->getFilenameOnFilestore();
         $image = new \Imagick($master);
         $thumbnail = '';
