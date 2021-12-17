@@ -103,7 +103,6 @@ review:start:
     - echo "Setting to image ${CI_REGISTRY_IMAGE}"
     - "helm upgrade \
       --install \
-      --values ./helm-charts/minds/values.yaml \
       --values ./helm-charts/minds/sandbox-values.yaml \
       --reuse-values \
       --set engine.image.repository=$CI_REGISTRY_IMAGE/fpm \
