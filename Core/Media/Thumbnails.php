@@ -93,6 +93,8 @@ class Thumbnails
                     $thumbnail->setFilename("image/$entity->batch_guid/$entity->guid/$size.jpg");
                 } elseif ($entity->gif) {
                     $thumbnail->setFilename(str_replace('xlarge.jpg', 'master.jpg', $entity->filename));
+                    // TODO: reactivate when resizing for GIFs has been reactivated in Entities/Image.php
+                    // $thumbnail->setFilename("image/$entity->batch_guid/$entity->guid/$size.jpg");
                 }
                 break;
 
