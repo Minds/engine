@@ -246,6 +246,9 @@ class Image extends File
     }
 
     /**
+     * Processes image thumbnails from a master image in reverse order from largest to smallest.
+     * @param Imagick $image - image to process.
+     * @return string - image blob of the thumbnail.
      * @throws ImagickException
      * @throws IOException
      * @throws InvalidParameterException
@@ -281,6 +284,7 @@ class Image extends File
                 $thumbnail = $imageBlob;
             }
 
+            // Save the thumbnail.
             $this->setFilename("image/$this->batch_guid/$this->guid/$size.jpg");
             $this->open('write');
             $this->write($imageBlob);
@@ -290,6 +294,11 @@ class Image extends File
             $image->removeImage();
             $image->readImageBlob($imageBlob);
         }
+
+        // Set this instances filename back to xlarge as we want to save
+        // this Image instance with the xlarge thumbnail as the filename.
+        $this->setFilename("image/$this->batch_guid/$this->guid/xlarge.jpg");
+
         return $thumbnail;
     }
 
