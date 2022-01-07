@@ -216,12 +216,6 @@ production:fpm:
     url: https://www.minds.com/
   when: manual
 
-##
-# TODO: As we now have lots of runners,
-# redeploying them needs more though
-# below simply updates the container
-##
-
 production:runners:
   stage: deploy:production
   image: minds/ci:latest
@@ -235,6 +229,9 @@ production:runners:
     # Push gitlab registry
     - docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/runners:$IMAGE_LABEL
     - docker push $CI_REGISTRY_IMAGE/runners:$IMAGE_LABEL
+    # Restart all runners
+    - aws eks --region us-east-1 update-kubeconfig --name $AWS_EKS_CLUSTER_NAME --role-arn=$AWS_IAM_ROLE_ARN
+    - kubectl get deployments | grep minds-runner- | awk '{print $1}' | xargs kubectl rollout restart deployment
   only:
     refs:
       - master
