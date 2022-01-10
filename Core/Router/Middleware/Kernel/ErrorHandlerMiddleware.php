@@ -16,6 +16,7 @@ use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Exceptions\UserErrorException;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
+use Minds\Exceptions\DeprecatedException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -81,6 +82,9 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
         } catch (ServerErrorException $e) {
             $message = $e->getMessage();
             $status = ((int) $e->getCode()) ?: 500;
+        } catch (DeprecatedException $e) {
+            $message = $e->getMessage();
+            $status = ((int) $e->getCode()) ?: 410;
         } catch (Exception $e) {
             // Log
             $this->logger->critical($e, ['exception' => $e]);

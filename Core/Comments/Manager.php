@@ -18,6 +18,7 @@ use Minds\Entities\User;
 use Minds\Exceptions\BlockedUserException;
 use Minds\Exceptions\InvalidLuidException;
 use Minds\Common\Repository\Response;
+use Minds\Exceptions\DeprecatedException;
 
 class Manager
 {
@@ -145,6 +146,11 @@ class Manager
         foreach ($response as $comment) {
             try {
                 $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
+
+                if ($entity->getType() === 'group') {
+                    throw new DeprecatedException('Group conversations are deprecated');
+                }
+
                 $commentOwner = $this->entitiesBuilder->single($comment->getOwnerGuid());
                 if (!$this->acl->interact($entity, $commentOwner)) {
                     error_log("{$comment->getEntityGuid()} found comment that entity owner can not interact with. Consider deleting.");
@@ -157,6 +163,8 @@ class Manager
                     continue;
                 }
                 $filtered[] = $comment;
+            } catch (DeprecatedException $e) {
+                throw $e;
             } catch (\Exception $e) {
                 error_log("{$comment->getEntityGuid()} exception reading comment {$e->getMessage()}");
             }
