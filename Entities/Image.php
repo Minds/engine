@@ -256,6 +256,7 @@ class Image extends File
     private function createNonGifThumbnails(Imagick $image): string
     {
         $thumbnail = '';
+        $filepath = "image/$this->batch_guid/$this->guid";
 
         foreach (self::THUMBNAILS_SIZES as $size => $sizeProperties) {
             /** @var Core\Media\Imagick\Autorotate $autorotate */
@@ -285,7 +286,7 @@ class Image extends File
             }
 
             // Save the thumbnail.
-            $this->setFilename("image/$this->batch_guid/$this->guid/$size.jpg");
+            $this->setFilename("$filepath/$size.jpg");
             $this->open('write');
             $this->write($imageBlob);
             $this->close();
@@ -297,7 +298,7 @@ class Image extends File
 
         // Set this instances filename back to xlarge as we want to save
         // this Image instance with the xlarge thumbnail as the filename.
-        $this->setFilename("image/$this->batch_guid/$this->guid/xlarge.jpg");
+        $this->setFilename("$filepath/xlarge.jpg");
 
         return $thumbnail;
     }
