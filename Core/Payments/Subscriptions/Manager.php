@@ -15,6 +15,7 @@ use Minds\Core\Payments;
 use Minds\Core\Events\Dispatcher;
 use Minds\Entities\Factory;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 
 class Manager
 {
@@ -62,14 +63,26 @@ class Manager
     }
 
     /**
-     * Validates whether user can be charged based off account state
-     * banned, enabled, deleted.
-     * @return boolean true if user can be charged.
+     * Validates whether an actor can be transact based off their account state -
+     * e.g. are they banned, enabled or deleted.
+     * @param string $actorType - 'recipient' or 'sender'.
+     * @return boolean - true if actor can transact.
      */
-    public function canCharge()
+    public function canTransact(string $actorType = 'sender'): bool
     {
+        switch ($actorType) {
+            case 'sender':
+                $guid = $this->subscription->user->guid;
+                break;
+            case 'recipient':
+                $guid = $this->subscription->getEntity()->guid;
+                break;
+            default:
+                throw new ServerErrorException('Invalid transaction actor type');
+        }
+
         // reconstruct from cache to ensure values are up to date.
-        $user = $this->entitiesBuilder->single($this->subscription->user->guid, [
+        $user = $this->entitiesBuilder->single($guid, [
             'cache' => false,
         ]);
 
@@ -97,8 +110,12 @@ class Manager
     public function charge()
     {
         try {
-            if (!$this->canCharge()) {
-                throw new \Exception("Cannot charge this user - they are banned, disabled or deleted");
+            if (!$this->canTransact('sender')) {
+                throw new ServerErrorException('Cannot charge this user - they are banned, disabled or deleted');
+            }
+
+            if (!$this->canTransact('recipient')) {
+                throw new ServerErrorException("Cannot pay this user - they are banned, disabled or deleted");
             }
 
             $result = Dispatcher::trigger('subscriptions:process', $this->subscription->getPlanId(), [
