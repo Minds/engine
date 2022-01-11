@@ -48,14 +48,17 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_charge_a_subscription(Subscription $subscription)
     {
-        $user = new User(123);
-        $subscription->user = $user;
+        $sender = new User(123);
+        $subscription->user = $sender;
+
+        $recipient = new User(123);
+        $subscription->getEntity()->willReturn($recipient);
 
         $this->setSubscription($subscription);
 
         $this->entitiesBuilder->single(Argument::any(), Argument::any())
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn($sender);
         
         $subscription->getPlanId()
             ->shouldBeCalled()
@@ -97,7 +100,7 @@ class ManagerSpec extends ObjectBehavior
         $this->charge()->shouldReturn(true);
     }
 
-    public function it_should_charge_a_chargeable_user(
+    public function it_should_charge_a_chargeable_sender(
         Subscription $subscription,
         User $user
     ) {
@@ -117,10 +120,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
-        $this->canCharge()->shouldReturn(true);
+        $this->canTransact('sender')->shouldReturn(true);
     }
 
-    public function it_should_not_charge_a_disabled_user_account(
+    public function it_should_not_charge_a_disabled_sender_account(
         Subscription $subscription,
         User $user
     ) {
@@ -138,10 +141,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
-        $this->canCharge()->shouldReturn(false);
+        $this->canTransact('sender')->shouldReturn(false);
     }
 
-    public function it_should_not_charge_a_deleted_user_account(
+    public function it_should_not_charge_a_deleted_sender_account(
         Subscription $subscription,
         User $user
     ) {
@@ -162,10 +165,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
-        $this->canCharge()->shouldReturn(false);
+        $this->canTransact('sender')->shouldReturn(false);
     }
 
-    public function it_should_not_charge_a_banned_user_account(
+    public function it_should_not_charge_a_banned_sender_account(
         Subscription $subscription,
         User $user
     ) {
@@ -184,7 +187,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
-        $this->canCharge()->shouldReturn(false);
+        $this->canTransact('sender')->shouldReturn(false);
     }
 
     public function it_should_create()
