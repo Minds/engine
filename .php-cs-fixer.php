@@ -1,7 +1,7 @@
 <?php
 
 $finder = PhpCsFixer\Finder::create()
-    ->exclude(['vendor','lib','classes'])
+    ->exclude(['vendor','lib','classes','bin'])
     ->in(__DIR__);
 
 return (new PhpCsFixer\Config())

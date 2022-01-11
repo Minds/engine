@@ -199,7 +199,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                 $file->close();
 
                 $loc = $image->getFilenameOnFilestore();
-                $image->createThumbnails(null, "/tmp/{$image->guid}-master.jpg");
+                $image->createThumbnails("/tmp/{$image->guid}-master.jpg");
                 $image->save();
                 unlink("/tmp/{$image->guid}-master.jpg");
         }
