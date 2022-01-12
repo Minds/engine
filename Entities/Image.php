@@ -246,6 +246,9 @@ class Image extends File
     }
 
     /**
+     * Processes image thumbnails from a master image in reverse order from largest to smallest.
+     * @param Imagick $image - image to process.
+     * @return string - image blob of the thumbnail.
      * @throws ImagickException
      * @throws IOException
      * @throws InvalidParameterException
@@ -253,6 +256,7 @@ class Image extends File
     private function createNonGifThumbnails(Imagick $image): string
     {
         $thumbnail = '';
+        $filepath = "image/$this->batch_guid/$this->guid";
 
         foreach (self::THUMBNAILS_SIZES as $size => $sizeProperties) {
             /** @var Core\Media\Imagick\Autorotate $autorotate */
@@ -281,7 +285,8 @@ class Image extends File
                 $thumbnail = $imageBlob;
             }
 
-            $this->setFilename("image/$this->batch_guid/$this->guid/$size.jpg");
+            // Save the thumbnail.
+            $this->setFilename("$filepath/$size.jpg");
             $this->open('write');
             $this->write($imageBlob);
             $this->close();
@@ -290,6 +295,11 @@ class Image extends File
             $image->removeImage();
             $image->readImageBlob($imageBlob);
         }
+
+        // Set this instances filename back to xlarge as we want to save
+        // this Image instance with the xlarge thumbnail as the filename.
+        $this->setFilename("$filepath/xlarge.jpg");
+
         return $thumbnail;
     }
 
