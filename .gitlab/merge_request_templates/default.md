@@ -1,16 +1,35 @@
-### Summary
 
-(What is the Merge request intending to do, in plain language)
+### Ticket(s) / Related Merge Requests
 
-(Be sure to associate any related issues or merge requests)
+(Any issue cards for the merge request, and related merge requests/dependencies)
 
-### Steps to test
+### Summary of Changes
 
-(Steps to demonstrate merge achieves goal)
-(Include any platform specific directions)
+(Summarize the changes made concisely)
 
-### Estimated Regression Scope
+### Testing Considerations
 
-(What features do these changes effect in your estimation?)
+(Share which areas to focus on while testing this MR)
+
+### Regression Scope
+
+(Can this change cause another regression issue? Which areas to focus on for regression testing?)
+
+### Platform Affected (web, mobile, etc)
+
+(Which platforms are affected by this change? Web, Mobile, or Both?)
+
+### Developer Testing Completed
+
+(What has been tested already?)
+
+### Screenshots
+
+(Any extra UI screens that can be shared)
+
+### Does this impact
+- [ ] Localization
+- [ ] Dark/light mode
+- [ ] Guest mode
 
 /label mr-has-template
