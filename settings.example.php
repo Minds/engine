@@ -425,6 +425,11 @@ $CONFIG->set('blockchain', [
     ],
 
     'mw3' => '/usr/bin/env node '.__MINDS_ROOT__.'/../mw3/index.js',
+
+    'web3_service' => [
+        'wallet_encryption_key' => '',
+        'base_url' => 'http://192.168.0.16:3333/'
+    ]
 ]);
 
 $CONFIG->set('blockchain_override', [
@@ -552,6 +557,7 @@ $CONFIG->set('features', [
     'discovery-default-tags' => true,
     'skale' => true,
     'polygon' => true,
+    'web3-service-withdrawals' => false,
 ]);
 
 $CONFIG->set('email', [
