@@ -422,6 +422,14 @@ $CONFIG->set('blockchain', [
     ],
 
     'mw3' => '/usr/bin/env node '.__MINDS_ROOT__.'/../mw3/index.js',
+
+    // SKALE network config.
+    'skale' => [
+        'chain_name' => '',
+        'rpc_url' => '',
+        'chain_id_hex' => '',
+        'erc20_address' => ''
+    ],
 ]);
 
 $CONFIG->set('blockchain_override', [
