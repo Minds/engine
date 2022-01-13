@@ -51,7 +51,8 @@ class MindsSKALEWeb3Service extends MindsWeb3Service
             'headers' => $this->buildHeaders(),
             'json' => [
                 'requester' => $address
-            ]
+            ],
+            'timeout' => 30,
         ]);
 
         // reset state since we are forcing network / wallet.
