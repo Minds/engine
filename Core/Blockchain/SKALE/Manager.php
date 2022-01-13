@@ -52,7 +52,12 @@ class Manager
         // Can throw RateLimitException.
         $this->faucetLimiter->checkAndIncrement($user, $address);
 
-        $txHash = $this->skaleWeb3Service->requestFromSKETHFaucet($address);
+        try {
+            $txHash = $this->skaleWeb3Service->requestFromSKETHFaucet($address);
+        } catch (\Exception $e) {
+            $this->faucetLimiter->removeCacheKeys($user, $address);
+            throw $e;
+        }
 
         return $txHash;
     }

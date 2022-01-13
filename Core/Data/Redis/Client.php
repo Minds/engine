@@ -57,6 +57,11 @@ class Client
         return $this->redis->delete(...$args);
     }
 
+    public function unlink(...$args)
+    {
+        return $this->redis->unlink($args);
+    }
+
     public function sAdd(...$args)
     {
         return $this->redis->sAdd(...$args);

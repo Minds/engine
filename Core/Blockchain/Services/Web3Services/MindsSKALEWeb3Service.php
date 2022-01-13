@@ -6,6 +6,7 @@ use Minds\Core\Blockchain\Services\MindsWeb3Service;
 use Minds\Core\Di\Di;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Core\Features\Manager as FeaturesManager;
+use Minds\Core\Security\RateLimits\RateLimitExceededException;
 
 /**
  * Service for communicating with Minds Web3 Service on SKALE network.
@@ -60,6 +61,10 @@ class MindsSKALEWeb3Service extends MindsWeb3Service
 
         if ($responseData['status'] === 200) {
             return $responseData['data'];
+        }
+
+        if ($responseData['status'] === 429) {
+            throw new RateLimitExceededException();
         }
 
         throw new ServerErrorException($responseData['message']);

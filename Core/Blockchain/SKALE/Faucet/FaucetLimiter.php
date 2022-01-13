@@ -116,4 +116,38 @@ class FaucetLimiter
 
         return $this;
     }
+
+    /**
+     * Removes all faucet limiter cache keys for this user.
+     * @param User $user - the user to remove for.
+     * @param string $address - address of the user.
+     * @return self - chainable.
+     */
+    public function removeCacheKeys(User $user, string $address): self
+    {
+        $phoneNumberHash = $user->getPhoneNumberHash();
+
+        $phoneHashCacheKey = sprintf(self::CACHE_KEY, $phoneNumberHash);
+        $addressCacheKey = sprintf(self::CACHE_KEY, $address);
+        $userCacheKey = sprintf(self::CACHE_KEY, $user->getGuid());
+
+        if ($phoneHashCacheKey) {
+            $this->kvLimiter
+                ->setKey($phoneHashCacheKey)
+                ->setSeconds(self::SINGLE_WEEK_SECONDS)
+                ->delete();
+        }
+
+        $this->kvLimiter
+            ->setKey($addressCacheKey)
+            ->setSeconds(self::SINGLE_WEEK_SECONDS)
+            ->delete();
+        
+        $this->kvLimiter
+            ->setKey($userCacheKey)
+            ->setSeconds(self::SINGLE_WEEK_SECONDS)
+            ->delete();
+
+        return $this;
+    }
 }
