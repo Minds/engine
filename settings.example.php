@@ -426,7 +426,6 @@ $CONFIG->set('blockchain', [
 
     'mw3' => '/usr/bin/env node '.__MINDS_ROOT__.'/../mw3/index.js',
 
-<<<<<<< HEAD
     // SKALE network config.
     'skale' => [
         'chain_name' => '',
@@ -434,12 +433,10 @@ $CONFIG->set('blockchain', [
         'chain_id_hex' => '',
         'erc20_address' => ''
     ],
-=======
     'web3_service' => [
         'wallet_encryption_key' => '',
         'base_url' => 'http://192.168.0.16:3333/'
     ]
->>>>>>> 6b3177a2f311221ed50976df14af8dae7f3c54d2
 ]);
 
 $CONFIG->set('blockchain_override', [
