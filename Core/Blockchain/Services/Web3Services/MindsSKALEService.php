@@ -11,10 +11,10 @@ use Minds\Core\Security\RateLimits\RateLimitExceededException;
 /**
  * Service for communicating with Minds Web3 Service on SKALE network.
  */
-class MindsSKALEWeb3Service extends MindsWeb3Service
+class MindsSKALEService extends MindsWeb3Service
 {
     /**
-     * MindsSKALEWeb3Service constructor.
+     * MindsSKALEService constructor.
      * @param FeaturesManager|null $featuresManager
      */
     public function __construct(

@@ -28,6 +28,10 @@ class Routes extends ModuleRoutes
                     'faucet',
                     Ref::_('Blockchain\SKALE\Controller', 'requestFromFaucet')
                 );
+                $route->get(
+                    'communityPool/canExit',
+                    Ref::_('Blockchain\SKALE\CommunityPool\Controller', 'canExit')
+                );
             });
     }
 }

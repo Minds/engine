@@ -2,7 +2,7 @@
 
 namespace Spec\Minds\Core\Blockchain\SKALE;
 
-use Minds\Core\Blockchain\Services\Web3Services\MindsSKALEWeb3Service;
+use Minds\Core\Blockchain\Services\Web3Services\MindsSKALEService;
 use Minds\Core\Blockchain\SKALE\Faucet\FaucetLimiter;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\Blockchain\SKALE\Manager;
@@ -13,7 +13,7 @@ use Minds\Exceptions\UserErrorException;
 
 class ManagerSpec extends ObjectBehavior
 {
-    /** @var MindsSKALEWeb3Service */
+    /** @var MindsSKALEService */
     protected $skaleWeb3Service;
 
     /** @var FaucetLimiter */
@@ -23,7 +23,7 @@ class ManagerSpec extends ObjectBehavior
     protected $config;
 
     public function let(
-        MindsSKALEWeb3Service $skaleWeb3Service,
+        MindsSKALEService $skaleWeb3Service,
         FaucetLimiter $faucetLimiter,
         Config $config
     ) {

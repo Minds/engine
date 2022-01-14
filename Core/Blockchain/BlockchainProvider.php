@@ -54,8 +54,12 @@ class BlockchainProvider extends Provider
             return new Services\MindsWeb3Service();
         }, [ 'useFactory' => true ]);
 
-        $this->di->bind('Blockchain\Services\MindsSkaleWeb3', function () {
-            return new Services\Web3Services\MindsSKALEWeb3Service();
+        $this->di->bind('Blockchain\Services\MindsSKALEService', function () {
+            return new Services\Web3Services\MindsSKALEService();
+        }, [ 'useFactory' => true ]);
+
+        $this->di->bind('Blockchain\Services\MindsSKALEMainnetService', function () {
+            return new Services\Web3Services\MindsSKALEMainnetService();
         }, [ 'useFactory' => true ]);
 
         $this->di->bind('Blockchain\Wallets\Balance', function () {
