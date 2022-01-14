@@ -2121,6 +2121,35 @@ class SKALEContractsRinkeby
               9 =>
               [
                 'type' => 'function',
+                'name' => 'checkUserBalance',
+                'constant' => true,
+                'stateMutability' => 'view',
+                'payable' => false,
+                'inputs' =>
+                [
+                  0 =>
+                  [
+                    'type' => 'bytes32',
+                    'name' => 'schainHash',
+                  ],
+                  1 =>
+                  [
+                    'type' => 'address',
+                    'name' => 'receiver',
+                  ],
+                ],
+                'outputs' =>
+                [
+                  0 =>
+                  [
+                    'type' => 'bool',
+                    'name' => '',
+                  ],
+                ],
+              ],
+              10 =>
+              [
+                'type' => 'function',
                 'name' => 'contractManagerOfSkaleManager',
                 'constant' => true,
                 'stateMutability' => 'view',
@@ -2137,7 +2166,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              10 =>
+              11 =>
               [
                 'type' => 'function',
                 'name' => 'getBalance',
@@ -2166,7 +2195,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              11 =>
+              12 =>
               [
                 'type' => 'function',
                 'name' => 'getRoleAdmin',
@@ -2190,7 +2219,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              12 =>
+              13 =>
               [
                 'type' => 'function',
                 'name' => 'getRoleMember',
@@ -2219,7 +2248,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              13 =>
+              14 =>
               [
                 'type' => 'function',
                 'name' => 'getRoleMemberCount',
@@ -2243,7 +2272,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              14 =>
+              15 =>
               [
                 'type' => 'function',
                 'name' => 'grantRole',
@@ -2266,7 +2295,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              15 =>
+              16 =>
               [
                 'type' => 'function',
                 'name' => 'hasRole',
@@ -2295,7 +2324,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              16 =>
+              17 =>
               [
                 'type' => 'function',
                 'name' => 'hasSchainContract',
@@ -2319,7 +2348,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              17 =>
+              18 =>
               [
                 'type' => 'function',
                 'name' => 'initialize',
@@ -2342,7 +2371,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              18 =>
+              19 =>
               [
                 'type' => 'function',
                 'name' => 'initialize',
@@ -2370,7 +2399,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              19 =>
+              20 =>
               [
                 'type' => 'function',
                 'name' => 'initialize',
@@ -2388,7 +2417,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              20 =>
+              21 =>
               [
                 'type' => 'function',
                 'name' => 'isSchainOwner',
@@ -2417,7 +2446,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              21 =>
+              22 =>
               [
                 'type' => 'function',
                 'name' => 'messageProxy',
@@ -2436,7 +2465,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              22 =>
+              23 =>
               [
                 'type' => 'function',
                 'name' => 'minTransactionGas',
@@ -2455,7 +2484,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              23 =>
+              24 =>
               [
                 'type' => 'function',
                 'name' => 'rechargeUserWallet',
@@ -2479,7 +2508,40 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              24 =>
+              25 =>
+              [
+                'type' => 'function',
+                'name' => 'refundGasBySchainWallet',
+                'constant' => false,
+                'payable' => false,
+                'inputs' =>
+                [
+                  0 =>
+                  [
+                    'type' => 'bytes32',
+                    'name' => 'schainHash',
+                  ],
+                  1 =>
+                  [
+                    'type' => 'address',
+                    'name' => 'node',
+                  ],
+                  2 =>
+                  [
+                    'type' => 'uint256',
+                    'name' => 'gas',
+                  ],
+                ],
+                'outputs' =>
+                [
+                  0 =>
+                  [
+                    'type' => 'bool',
+                    'name' => '',
+                  ],
+                ],
+              ],
+              26 =>
               [
                 'type' => 'function',
                 'name' => 'refundGasByUser',
@@ -2510,9 +2572,14 @@ class SKALEContractsRinkeby
                 ],
                 'outputs' =>
                 [
+                  0 =>
+                  [
+                    'type' => 'uint256',
+                    'name' => '',
+                  ],
                 ],
               ],
-              25 =>
+              27 =>
               [
                 'type' => 'function',
                 'name' => 'removeSchainContract',
@@ -2530,7 +2597,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              26 =>
+              28 =>
               [
                 'type' => 'function',
                 'name' => 'renounceRole',
@@ -2553,7 +2620,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              27 =>
+              29 =>
               [
                 'type' => 'function',
                 'name' => 'revokeRole',
@@ -2576,7 +2643,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              28 =>
+              30 =>
               [
                 'type' => 'function',
                 'name' => 'schainLinks',
@@ -2600,7 +2667,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              29 =>
+              31 =>
               [
                 'type' => 'function',
                 'name' => 'setMinTransactionGas',
@@ -2618,7 +2685,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              30 =>
+              32 =>
               [
                 'type' => 'function',
                 'name' => 'supportsInterface',
@@ -2642,7 +2709,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              31 =>
+              33 =>
               [
                 'type' => 'function',
                 'name' => 'withdrawFunds',
@@ -2931,6 +2998,40 @@ class SKALEContractsRinkeby
               12 =>
               [
                 'type' => 'function',
+                'name' => 'gasPayer',
+                'constant' => true,
+                'stateMutability' => 'view',
+                'payable' => false,
+                'inputs' =>
+                [
+                  0 =>
+                  [
+                    'type' => 'bytes32',
+                    'name' => 'schainHash',
+                  ],
+                  1 =>
+                  [
+                    'type' => 'address',
+                    'name' => 'sender',
+                  ],
+                  2 =>
+                  [
+                    'type' => 'bytes',
+                    'name' => 'data',
+                  ],
+                ],
+                'outputs' =>
+                [
+                  0 =>
+                  [
+                    'type' => 'address',
+                    'name' => '',
+                  ],
+                ],
+              ],
+              13 =>
+              [
+                'type' => 'function',
                 'name' => 'getFunds',
                 'constant' => false,
                 'payable' => false,
@@ -2956,7 +3057,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              13 =>
+              14 =>
               [
                 'type' => 'function',
                 'name' => 'getMyEth',
@@ -2969,7 +3070,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              14 =>
+              15 =>
               [
                 'type' => 'function',
                 'name' => 'getRoleAdmin',
@@ -2993,7 +3094,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              15 =>
+              16 =>
               [
                 'type' => 'function',
                 'name' => 'getRoleMember',
@@ -3022,7 +3123,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              16 =>
+              17 =>
               [
                 'type' => 'function',
                 'name' => 'getRoleMemberCount',
@@ -3046,7 +3147,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              17 =>
+              18 =>
               [
                 'type' => 'function',
                 'name' => 'grantRole',
@@ -3069,7 +3170,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              18 =>
+              19 =>
               [
                 'type' => 'function',
                 'name' => 'hasRole',
@@ -3098,7 +3199,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              19 =>
+              20 =>
               [
                 'type' => 'function',
                 'name' => 'hasSchainContract',
@@ -3122,7 +3223,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              20 =>
+              21 =>
               [
                 'type' => 'function',
                 'name' => 'initialize',
@@ -3145,7 +3246,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              21 =>
+              22 =>
               [
                 'type' => 'function',
                 'name' => 'initialize',
@@ -3173,7 +3274,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              22 =>
+              23 =>
               [
                 'type' => 'function',
                 'name' => 'initialize',
@@ -3191,7 +3292,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              23 =>
+              24 =>
               [
                 'type' => 'function',
                 'name' => 'isSchainOwner',
@@ -3220,7 +3321,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              24 =>
+              25 =>
               [
                 'type' => 'function',
                 'name' => 'isWhitelisted',
@@ -3244,7 +3345,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              25 =>
+              26 =>
               [
                 'type' => 'function',
                 'name' => 'linker',
@@ -3263,7 +3364,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              26 =>
+              27 =>
               [
                 'type' => 'function',
                 'name' => 'messageProxy',
@@ -3282,7 +3383,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              27 =>
+              28 =>
               [
                 'type' => 'function',
                 'name' => 'postMessage',
@@ -3315,7 +3416,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              28 =>
+              29 =>
               [
                 'type' => 'function',
                 'name' => 'removeSchainContract',
@@ -3333,7 +3434,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              29 =>
+              30 =>
               [
                 'type' => 'function',
                 'name' => 'renounceRole',
@@ -3356,7 +3457,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              30 =>
+              31 =>
               [
                 'type' => 'function',
                 'name' => 'revokeRole',
@@ -3379,7 +3480,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              31 =>
+              32 =>
               [
                 'type' => 'function',
                 'name' => 'schainLinks',
@@ -3403,7 +3504,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              32 =>
+              33 =>
               [
                 'type' => 'function',
                 'name' => 'supportsInterface',
@@ -3427,7 +3528,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              33 =>
+              34 =>
               [
                 'type' => 'function',
                 'name' => 'transferredAmount',
@@ -3767,6 +3868,40 @@ class SKALEContractsRinkeby
               14 =>
               [
                 'type' => 'function',
+                'name' => 'gasPayer',
+                'constant' => true,
+                'stateMutability' => 'view',
+                'payable' => false,
+                'inputs' =>
+                [
+                  0 =>
+                  [
+                    'type' => 'bytes32',
+                    'name' => 'schainHash',
+                  ],
+                  1 =>
+                  [
+                    'type' => 'address',
+                    'name' => 'sender',
+                  ],
+                  2 =>
+                  [
+                    'type' => 'bytes',
+                    'name' => 'data',
+                  ],
+                ],
+                'outputs' =>
+                [
+                  0 =>
+                  [
+                    'type' => 'address',
+                    'name' => '',
+                  ],
+                ],
+              ],
+              15 =>
+              [
+                'type' => 'function',
                 'name' => 'getFunds',
                 'constant' => false,
                 'payable' => false,
@@ -3797,7 +3932,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              15 =>
+              16 =>
               [
                 'type' => 'function',
                 'name' => 'getRoleAdmin',
@@ -3821,7 +3956,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              16 =>
+              17 =>
               [
                 'type' => 'function',
                 'name' => 'getRoleMember',
@@ -3850,7 +3985,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              17 =>
+              18 =>
               [
                 'type' => 'function',
                 'name' => 'getRoleMemberCount',
@@ -3874,7 +4009,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              18 =>
+              19 =>
               [
                 'type' => 'function',
                 'name' => 'getSchainToERC20',
@@ -3903,7 +4038,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              19 =>
+              20 =>
               [
                 'type' => 'function',
                 'name' => 'grantRole',
@@ -3926,7 +4061,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              20 =>
+              21 =>
               [
                 'type' => 'function',
                 'name' => 'hasRole',
@@ -3955,7 +4090,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              21 =>
+              22 =>
               [
                 'type' => 'function',
                 'name' => 'hasSchainContract',
@@ -3979,7 +4114,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              22 =>
+              23 =>
               [
                 'type' => 'function',
                 'name' => 'initialize',
@@ -4002,7 +4137,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              23 =>
+              24 =>
               [
                 'type' => 'function',
                 'name' => 'initialize',
@@ -4030,7 +4165,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              24 =>
+              25 =>
               [
                 'type' => 'function',
                 'name' => 'initialize',
@@ -4048,7 +4183,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              25 =>
+              26 =>
               [
                 'type' => 'function',
                 'name' => 'isSchainOwner',
@@ -4077,7 +4212,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              26 =>
+              27 =>
               [
                 'type' => 'function',
                 'name' => 'isWhitelisted',
@@ -4101,7 +4236,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              27 =>
+              28 =>
               [
                 'type' => 'function',
                 'name' => 'linker',
@@ -4120,7 +4255,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              28 =>
+              29 =>
               [
                 'type' => 'function',
                 'name' => 'messageProxy',
@@ -4139,7 +4274,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              29 =>
+              30 =>
               [
                 'type' => 'function',
                 'name' => 'postMessage',
@@ -4172,7 +4307,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              30 =>
+              31 =>
               [
                 'type' => 'function',
                 'name' => 'removeSchainContract',
@@ -4190,7 +4325,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              31 =>
+              32 =>
               [
                 'type' => 'function',
                 'name' => 'renounceRole',
@@ -4213,7 +4348,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              32 =>
+              33 =>
               [
                 'type' => 'function',
                 'name' => 'revokeRole',
@@ -4236,7 +4371,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              33 =>
+              34 =>
               [
                 'type' => 'function',
                 'name' => 'schainLinks',
@@ -4260,7 +4395,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              34 =>
+              35 =>
               [
                 'type' => 'function',
                 'name' => 'schainToERC20',
@@ -4289,7 +4424,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              35 =>
+              36 =>
               [
                 'type' => 'function',
                 'name' => 'supportsInterface',
@@ -4313,7 +4448,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              36 =>
+              37 =>
               [
                 'type' => 'function',
                 'name' => 'transferredAmount',
@@ -4658,6 +4793,40 @@ class SKALEContractsRinkeby
               14 =>
               [
                 'type' => 'function',
+                'name' => 'gasPayer',
+                'constant' => true,
+                'stateMutability' => 'view',
+                'payable' => false,
+                'inputs' =>
+                [
+                  0 =>
+                  [
+                    'type' => 'bytes32',
+                    'name' => 'schainHash',
+                  ],
+                  1 =>
+                  [
+                    'type' => 'address',
+                    'name' => 'sender',
+                  ],
+                  2 =>
+                  [
+                    'type' => 'bytes',
+                    'name' => 'data',
+                  ],
+                ],
+                'outputs' =>
+                [
+                  0 =>
+                  [
+                    'type' => 'address',
+                    'name' => '',
+                  ],
+                ],
+              ],
+              15 =>
+              [
+                'type' => 'function',
                 'name' => 'getFunds',
                 'constant' => false,
                 'payable' => false,
@@ -4688,7 +4857,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              15 =>
+              16 =>
               [
                 'type' => 'function',
                 'name' => 'getRoleAdmin',
@@ -4712,7 +4881,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              16 =>
+              17 =>
               [
                 'type' => 'function',
                 'name' => 'getRoleMember',
@@ -4741,7 +4910,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              17 =>
+              18 =>
               [
                 'type' => 'function',
                 'name' => 'getRoleMemberCount',
@@ -4765,7 +4934,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              18 =>
+              19 =>
               [
                 'type' => 'function',
                 'name' => 'getSchainToERC721',
@@ -4794,7 +4963,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              19 =>
+              20 =>
               [
                 'type' => 'function',
                 'name' => 'grantRole',
@@ -4817,7 +4986,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              20 =>
+              21 =>
               [
                 'type' => 'function',
                 'name' => 'hasRole',
@@ -4846,7 +5015,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              21 =>
+              22 =>
               [
                 'type' => 'function',
                 'name' => 'hasSchainContract',
@@ -4870,7 +5039,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              22 =>
+              23 =>
               [
                 'type' => 'function',
                 'name' => 'initialize',
@@ -4893,7 +5062,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              23 =>
+              24 =>
               [
                 'type' => 'function',
                 'name' => 'initialize',
@@ -4921,7 +5090,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              24 =>
+              25 =>
               [
                 'type' => 'function',
                 'name' => 'initialize',
@@ -4939,7 +5108,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              25 =>
+              26 =>
               [
                 'type' => 'function',
                 'name' => 'isSchainOwner',
@@ -4968,7 +5137,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              26 =>
+              27 =>
               [
                 'type' => 'function',
                 'name' => 'isWhitelisted',
@@ -4992,7 +5161,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              27 =>
+              28 =>
               [
                 'type' => 'function',
                 'name' => 'linker',
@@ -5011,7 +5180,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              28 =>
+              29 =>
               [
                 'type' => 'function',
                 'name' => 'messageProxy',
@@ -5030,7 +5199,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              29 =>
+              30 =>
               [
                 'type' => 'function',
                 'name' => 'postMessage',
@@ -5063,7 +5232,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              30 =>
+              31 =>
               [
                 'type' => 'function',
                 'name' => 'removeSchainContract',
@@ -5081,7 +5250,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              31 =>
+              32 =>
               [
                 'type' => 'function',
                 'name' => 'renounceRole',
@@ -5104,7 +5273,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              32 =>
+              33 =>
               [
                 'type' => 'function',
                 'name' => 'revokeRole',
@@ -5127,7 +5296,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              33 =>
+              34 =>
               [
                 'type' => 'function',
                 'name' => 'schainLinks',
@@ -5151,7 +5320,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              34 =>
+              35 =>
               [
                 'type' => 'function',
                 'name' => 'schainToERC721',
@@ -5180,7 +5349,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              35 =>
+              36 =>
               [
                 'type' => 'function',
                 'name' => 'supportsInterface',
@@ -5204,7 +5373,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              36 =>
+              37 =>
               [
                 'type' => 'function',
                 'name' => 'transferredAmount',
@@ -5593,6 +5762,40 @@ class SKALEContractsRinkeby
               15 =>
               [
                 'type' => 'function',
+                'name' => 'gasPayer',
+                'constant' => true,
+                'stateMutability' => 'view',
+                'payable' => false,
+                'inputs' =>
+                [
+                  0 =>
+                  [
+                    'type' => 'bytes32',
+                    'name' => 'schainHash',
+                  ],
+                  1 =>
+                  [
+                    'type' => 'address',
+                    'name' => 'sender',
+                  ],
+                  2 =>
+                  [
+                    'type' => 'bytes',
+                    'name' => 'data',
+                  ],
+                ],
+                'outputs' =>
+                [
+                  0 =>
+                  [
+                    'type' => 'address',
+                    'name' => '',
+                  ],
+                ],
+              ],
+              16 =>
+              [
+                'type' => 'function',
                 'name' => 'getFunds',
                 'constant' => false,
                 'payable' => false,
@@ -5628,7 +5831,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              16 =>
+              17 =>
               [
                 'type' => 'function',
                 'name' => 'getRoleAdmin',
@@ -5652,7 +5855,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              17 =>
+              18 =>
               [
                 'type' => 'function',
                 'name' => 'getRoleMember',
@@ -5681,7 +5884,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              18 =>
+              19 =>
               [
                 'type' => 'function',
                 'name' => 'getRoleMemberCount',
@@ -5705,7 +5908,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              19 =>
+              20 =>
               [
                 'type' => 'function',
                 'name' => 'getSchainToERC1155',
@@ -5734,7 +5937,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              20 =>
+              21 =>
               [
                 'type' => 'function',
                 'name' => 'grantRole',
@@ -5757,7 +5960,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              21 =>
+              22 =>
               [
                 'type' => 'function',
                 'name' => 'hasRole',
@@ -5786,7 +5989,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              22 =>
+              23 =>
               [
                 'type' => 'function',
                 'name' => 'hasSchainContract',
@@ -5810,7 +6013,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              23 =>
+              24 =>
               [
                 'type' => 'function',
                 'name' => 'initialize',
@@ -5833,7 +6036,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              24 =>
+              25 =>
               [
                 'type' => 'function',
                 'name' => 'initialize',
@@ -5861,7 +6064,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              25 =>
+              26 =>
               [
                 'type' => 'function',
                 'name' => 'initialize',
@@ -5879,7 +6082,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              26 =>
+              27 =>
               [
                 'type' => 'function',
                 'name' => 'isSchainOwner',
@@ -5908,7 +6111,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              27 =>
+              28 =>
               [
                 'type' => 'function',
                 'name' => 'isWhitelisted',
@@ -5932,7 +6135,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              28 =>
+              29 =>
               [
                 'type' => 'function',
                 'name' => 'linker',
@@ -5951,7 +6154,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              29 =>
+              30 =>
               [
                 'type' => 'function',
                 'name' => 'messageProxy',
@@ -5970,7 +6173,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              30 =>
+              31 =>
               [
                 'type' => 'function',
                 'name' => 'onERC1155BatchReceived',
@@ -6014,7 +6217,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              31 =>
+              32 =>
               [
                 'type' => 'function',
                 'name' => 'onERC1155Received',
@@ -6058,7 +6261,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              32 =>
+              33 =>
               [
                 'type' => 'function',
                 'name' => 'postMessage',
@@ -6091,7 +6294,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              33 =>
+              34 =>
               [
                 'type' => 'function',
                 'name' => 'removeSchainContract',
@@ -6109,7 +6312,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              34 =>
+              35 =>
               [
                 'type' => 'function',
                 'name' => 'renounceRole',
@@ -6132,7 +6335,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              35 =>
+              36 =>
               [
                 'type' => 'function',
                 'name' => 'revokeRole',
@@ -6155,7 +6358,7 @@ class SKALEContractsRinkeby
                 [
                 ],
               ],
-              36 =>
+              37 =>
               [
                 'type' => 'function',
                 'name' => 'schainLinks',
@@ -6179,7 +6382,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              37 =>
+              38 =>
               [
                 'type' => 'function',
                 'name' => 'schainToERC1155',
@@ -6208,7 +6411,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              38 =>
+              39 =>
               [
                 'type' => 'function',
                 'name' => 'supportsInterface',
@@ -6232,7 +6435,7 @@ class SKALEContractsRinkeby
                   ],
                 ],
               ],
-              39 =>
+              40 =>
               [
                 'type' => 'function',
                 'name' => 'transferredAmount',
