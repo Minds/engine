@@ -82,6 +82,7 @@ class Provider extends DiProvider
                 'cloudflare-streams',
                 'notifications-v3',
                 'withdrawal-console',
+                'twilio-verify',
                 'helpdesk-2021',
                 'plus-discovery-filter',
                 'twitter-sync',
@@ -90,7 +91,8 @@ class Provider extends DiProvider
                 'polygon',
                 'social-compass',
                 'content-settings-modal',
-                'nav-2021'
+                'nav-2021',
+                'web3-service-withdrawals'
             ];
         });
 

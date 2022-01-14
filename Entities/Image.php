@@ -6,6 +6,10 @@
 
 namespace Minds\Entities;
 
+use Imagick;
+use ImagickException;
+use InvalidParameterException;
+use IOException;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Helpers;
@@ -21,6 +25,7 @@ use Minds\Helpers;
  * @property string $license
  * @property int $boost_rejection_reason
  * @property int $time_sent
+ * @property string $blurhash
  * @property array $nsfw
  * @property string $permaweb_id
  * @property int $rating
@@ -28,6 +33,33 @@ use Minds\Helpers;
 
 class Image extends File
 {
+    private const THUMBNAILS_SIZES = [
+        'xlarge' => [
+            'height' => 1024,
+            'width' => 1024,
+            'isSquared' => false,
+            'isUpscaled' => true
+        ],
+        'large' => [
+            'height' => 600,
+            'width' => 600,
+            'isSquared' => false,
+            'isUpscaled' => true
+        ],
+        'medium' => [
+            'height' => 300,
+            'width' => 300,
+            'isSquared' => true,
+            'isUpscaled' => true
+        ],
+        'small' => [
+            'height' => 100,
+            'width' => 100,
+            'isSquared' => true,
+            'isUpscaled' => true
+        ],
+    ];
+
     protected function initializeAttributes()
     {
         parent::initializeAttributes();
@@ -39,6 +71,7 @@ class Image extends File
         $this->attributes['width'] = 0;
         $this->attributes['height'] = 0;
         $this->attributes['time_sent'] = null;
+        $this->attributes['blurhash'] = null;
     }
 
     public function getUrl()
@@ -128,75 +161,175 @@ class Image extends File
         return $result;
     }
 
-    public function createThumbnails($sizes = ['small', 'medium', 'large', 'xlarge'], $filepath = null)
+    /**
+     * Creates thumbnails for the image, saves to fs, and returns the image blobgs
+     * @param string|null $filepath where to save the images
+     * @return string xlarge image blob
+     * @throws IOException
+     * @throws ImagickException
+     * @throws InvalidParameterException
+     */
+    public function createThumbnails(string $filepath = null): string
     {
-        if (!$sizes) {
-            $sizes = ['small', 'medium', 'large', 'xlarge'];
-        }
+        $sizes = ['xlarge', 'large', 'medium', 'small'];
+        
         $master = $filepath ?: $this->getFilenameOnFilestore();
-        foreach ($sizes as $size) {
-            switch ($size) {
-                case 'tiny':
-                    $h = 25;
-                    $w = 25;
-                    $s = true;
-                    $u = true;
-                    break;
-                case 'small':
-                    $h = 100;
-                    $w = 100;
-                    $s = true;
-                    $u = true;
-                    break;
-                case 'medium':
-                    $h = 300;
-                    $w = 300;
-                    $s = true;
-                    $u = true;
-                    break;
-                case 'large':
-                    $h = 600;
-                    $w = 600;
-                    $s = false;
-                    $u = true;
-                    break;
-                case 'xlarge':
-                    $h = 1024;
-                    $w = 1024;
-                    $s = false;
-                    $u = true;
-                    break;
-                default:
-                    continue 2;
-            }
+        $image = new Imagick($master);
 
+        if ($this->gif) {
+            return $this->createGifThumbnails($image);
+        }
+
+        return $this->createNonGifThumbnails($image);
+    }
+
+    /**
+     * @param Imagick $image
+     * @return string
+     * @throws IOException
+     * @throws ImagickException
+     * @throws InvalidParameterException
+     */
+    private function createGifThumbnails(Imagick $image): string
+    {
+        if ($image->getImageColorspace() == Imagick::COLORSPACE_CMYK) {
+            $image->transformImageColorspace(Imagick::COLORSPACE_SRGB);
+        }
+
+        $image->autoOrient();
+
+        $thumbnail = $image->getImagesBlob();
+
+        $this->setFilename("image/$this->batch_guid/$this->guid/xlarge.jpg");
+        $this->open('write');
+        $this->write($thumbnail);
+        $this->close();
+
+        // TODO: reactivate when resizing for GIFs has been reactivated in Entities/Image.php
+        // foreach (self::THUMBNAILS_SIZES as $size => $sizeProperties) {
+        //     $currentImage = $this->resizeGif($image, $sizeProperties);
+        //     $imageBlob = $currentImage->getImagesBlob();
+        //
+        //     if ($size == 'xlarge') {
+        //         $thumbnail = $imageBlob;
+        //     }
+        //
+        //     $this->setFilename("image/$this->batch_guid/$this->guid/$size.jpg");
+        //     $this->open('write');
+        //     $this->write($imageBlob);
+        //     $this->close();
+        // }
+
+        return $thumbnail;
+    }
+
+    private function resizeGif(
+        Imagick $image,
+        array $sizeProperties
+    ): Imagick {
+        // If the GIF contains more than 6 images then return the GIF without resizing.
+        if ($image->count() > 6) {
+            return $image;
+        }
+
+        foreach ($image as $frame) {
+            $frame->resizeImage(
+                $sizeProperties['width'],
+                $sizeProperties['height'],
+                Imagick::FILTER_BOX,
+                1,
+                $sizeProperties['isUpscaled']
+            );
+        }
+
+        return $image;
+    }
+
+    /**
+     * Processes image thumbnails from a master image in reverse order from largest to smallest.
+     * @param Imagick $image - image to process.
+     * @return string - image blob of the thumbnail.
+     * @throws ImagickException
+     * @throws IOException
+     * @throws InvalidParameterException
+     */
+    private function createNonGifThumbnails(Imagick $image): string
+    {
+        $thumbnail = '';
+        $filepath = "image/$this->batch_guid/$this->guid";
+
+        foreach (self::THUMBNAILS_SIZES as $size => $sizeProperties) {
             /** @var Core\Media\Imagick\Autorotate $autorotate */
             $autorotate = Core\Di\Di::_()->get('Media\Imagick\Autorotate');
 
             /** @var Core\Media\Imagick\Resize $resize */
             $resize = Core\Di\Di::_()->get('Media\Imagick\Resize');
 
-            $image = new \Imagick($master);
-
-            if ($image->getImageColorspace() == \Imagick::COLORSPACE_CMYK) {
-                $image->transformImageColorspace(\Imagick::COLORSPACE_SRGB);
+            if ($image->getImageColorspace() == Imagick::COLORSPACE_CMYK) {
+                $image->transformImageColorspace(Imagick::COLORSPACE_SRGB);
             }
 
             $autorotate->setImage($image);
             $image = $autorotate->autorotate();
 
             $resize->setImage($image)
-                ->setUpscale($u)
-                ->setSquare($s)
-                ->setWidth($w)
-                ->setHeight($h)
+                ->setUpscale($sizeProperties['isUpscaled'])
+                ->setSquare($sizeProperties['isSquared'])
+                ->setWidth($sizeProperties['width'])
+                ->setHeight($sizeProperties['height'])
                 ->resize();
 
-            $this->setFilename("image/$this->batch_guid/$this->guid/$size.jpg");
+            $imageBlob = $resize->getJpeg(90);
+
+            if ($size == 'xlarge') {
+                $thumbnail = $imageBlob;
+            }
+
+            // Save the thumbnail.
+            $this->setFilename("$filepath/$size.jpg");
             $this->open('write');
-            $this->write($resize->getJpeg(90));
+            $this->write($imageBlob);
             $this->close();
+
+            // replace image used for next iteration with current image.
+            $image->removeImage();
+            $image->readImageBlob($imageBlob);
         }
+
+        // Set this instances filename back to xlarge as we want to save
+        // this Image instance with the xlarge thumbnail as the filename.
+        $this->setFilename("$filepath/xlarge.jpg");
+
+        return $thumbnail;
+    }
+
+    /**
+     * generate a blurHash from an image blob and sets the $this->blurhash key
+     * @param string $thumbnail the image as string
+     * @return string the blur hash
+     * @throws ImagickException
+     */
+    public function generateBlurHash(string $thumbnail): string
+    {
+        $image = new Imagick();
+        $image->readImageBlob($thumbnail);
+
+        $resize = Core\Di\Di::_()->get('Media\Imagick\Resize');
+        $resize->setImage($image)
+            ->setUpscale(true)
+            ->setSquare(false)
+            ->setWidth(50)
+            ->setHeight(50)
+            ->resize();
+        $imageBlob = $resize->getJpeg(90);
+
+        /** @var Core\Media\Services\BlurHash $blurHashService */
+        $blurHashService = Core\Di\Di::_()->get('Media\BlurHash');
+        //
+        $blurHash = $blurHashService->getHash($imageBlob);
+        $this->blurhash = $blurHash;
+
+        return $this->blurhash;
     }
 
     public function getExportableValues()
@@ -212,6 +345,7 @@ class Image extends File
             'height',
             'gif',
             'time_sent',
+            'blurhash',
             'paywall',
             'permaweb_id',
         ]);
@@ -246,6 +380,8 @@ class Image extends File
         $export['time_sent'] = $this->getTimeSent();
 
         $export['permaweb_id'] = $this->getPermawebId();
+        $export['blurhash'] = $this->blurhash;
+
         if (!Helpers\Flags::shouldDiscloseStatus($this) && isset($export['flags']['spam'])) {
             unset($export['flags']['spam']);
         }
@@ -291,6 +427,7 @@ class Image extends File
             'container_guid' => null,
             'rating' => 2, //open by default
             'time_sent' => time(),
+            'blurhash' => null,
         ], $data);
 
         $allowed = [
@@ -306,6 +443,7 @@ class Image extends File
             'boost_rejection_reason',
             'rating',
             'time_sent',
+            'blurhash',
         ];
 
         foreach ($allowed as $field) {
@@ -339,10 +477,15 @@ class Image extends File
         }
 
         if (isset($assets['media'])) {
-            $this->createThumbnails(null, $assets['media']['file']);
-
             if (strpos($assets['media']['type'], '/gif') !== false) {
                 $this->gif = true;
+            }
+
+            $thumbnail = $this->createThumbnails($assets['media']['file']);
+            // NOTE: it's better if we use tiny, but we aren't resizing to tiny at the moment.
+            // not sure if resizing to tiny and blurhash->encode('tiny' size) >> blurhash->encode('small' size)
+            if ($thumbnail) {
+                $this->generateBlurHash($thumbnail);
             }
         }
 

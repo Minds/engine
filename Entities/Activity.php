@@ -43,6 +43,7 @@ use Minds\Core\Feeds\Activity\RemindIntent;
  * @property int $time_sent
  * @property string $license
  * @property string $permaweb_id
+ * @property string $blurhash
  */
 class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface
 {
@@ -91,6 +92,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             'time_sent' => null,
             'license' => '',
             'permaweb_id' => '',
+            'blurhash' => null,
             //	'node' => elgg_get_site_url()
         ]);
     }
@@ -276,7 +278,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'hide_impressions',
                 'pinned',
                 'time_sent',
-                'permaweb_id'
+                'permaweb_id',
+                'blurhash'
             ]
         );
     }
@@ -340,6 +343,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             $export['ownerObj'] = $this->getOwnerObj();
             $export['time_sent'] = $this->getTimeSent();
             $export['license'] = $this->license;
+            $export['blurhash'] = $this->blurhash;
 
             if ($this->hide_impressions) {
                 $export['hide_impressions'] = $this->hide_impressions;

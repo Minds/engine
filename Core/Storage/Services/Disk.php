@@ -23,8 +23,18 @@ class Disk implements ServiceInterface
                 break;
         }
 
+        $this->createFolderIfDoesntExist($path);
+
         $this->resource = fopen($path, $mode);
         return $this;
+    }
+
+    private function createFolderIfDoesntExist($path): void
+    {
+        $dirname = dirname($path);
+        if (!is_dir($dirname)) {
+            mkdir($dirname, 0777, true);
+        }
     }
 
     public function close()
