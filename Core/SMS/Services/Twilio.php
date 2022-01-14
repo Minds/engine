@@ -51,7 +51,7 @@ class Twilio implements SMSServiceInterface
             $phone_number = $this->getClient()->lookups->v1->phoneNumbers($number)
                 ->fetch(["type" => "carrier"]);
 
-            return $phone_number->carrier['type'] !== 'voip';
+            return $phone_number->carrier['type'] === 'mobile';
         } catch (\Exception $e) {
             error_log("[guard] Twilio error: {$e->getMessage()}");
             throw new InvalidPhoneException('Invalid Phone Number', 0, $e);

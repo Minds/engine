@@ -49,7 +49,9 @@ class Events
                 return;
             }
 
-            if ($activity->isPaywall() &&
+            $export['paywall'] = $activity->isPayWall();
+
+            if ($activity->isPayWall() &&
                 $activity->getWireThreshold()['support_tier']['urn'] === Di::_()->get('Config')->plus['support_tier_urn'] &&
                 $currentUserEntity &&
                 $currentUserEntity->isPlus()
@@ -196,11 +198,6 @@ class Events
             $wireThreshold['support_tier'] = array_merge($wireThreshold['support_tier'], $supportTier->export());
 
             $export['wire_threshold'] = $wireThreshold;
-            $export['paywall'] = $entity->isPayWall();
-
-            if ($entity->isPayWallUnlocked()) {
-                $export['paywall_unlocked'] = true;
-            }
 
             return $event->setResponse($export);
         });

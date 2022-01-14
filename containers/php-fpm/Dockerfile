@@ -1,4 +1,4 @@
-FROM minds/php:8.0
+FROM minds/php:blurhash
 
 ADD --chown=www-data . /var/www/Minds/engine
 

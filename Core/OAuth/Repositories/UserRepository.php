@@ -67,6 +67,13 @@ class UserRepository implements UserRepositoryInterface
             return false;
         }
 
+        /**
+         * If the user is banned or in a limited state
+         */
+        if ($user->isBanned() || !$user->isEnabled()) {
+            return false;
+        }
+
         $this->twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals(), enableEmail: false);
 
         $entity = new UserEntity();

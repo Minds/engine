@@ -26,8 +26,9 @@ class rewards implements Interfaces\Api
                 if (!isset($_POST['number'])) {
                     return Factory::response(['status' => 'error', 'message' => 'phone field is required']);
                 }
-                $number = $_POST['number'];
-                $resend = $_POST['retry'];
+
+                $number = filter_var($_POST['number'] ?? '', FILTER_SANITIZE_STRING);
+                $resend = filter_var($_POST['retry'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
                 try {
                     $join = new Join();
@@ -61,9 +62,10 @@ class rewards implements Interfaces\Api
                 }
                 $code = $_POST['code'];
 
-                if (!isset($_POST['secret'])) {
-                    return Factory::response(['status' => 'error', 'message' => 'code field is required']);
+                if (!Core\Di\Di::_()->get('Features\Manager')->has('twilio-verify') && !isset($_POST['secret'])) {
+                    return Factory::response(['status' => 'error', 'message' => 'secret field is required']);
                 }
+
                 $secret = $_POST['secret'];
 
                 $user = Session::getLoggedInUser();

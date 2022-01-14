@@ -272,6 +272,9 @@ $CONFIG->set('twilio', [
     'account_sid' => '{{twilio-account-sid}}',
     'auth_token' => '{{twilio-auth-token}}',
     'from' => '{{twilio-from}}',
+    'verify' => [
+        'service_sid' => '{{verify-service-sid}}'
+    ]
 ]);
 
 $CONFIG->set('google', [
@@ -423,6 +426,7 @@ $CONFIG->set('blockchain', [
 
     'mw3' => '/usr/bin/env node '.__MINDS_ROOT__.'/../mw3/index.js',
 
+<<<<<<< HEAD
     // SKALE network config.
     'skale' => [
         'chain_name' => '',
@@ -430,6 +434,12 @@ $CONFIG->set('blockchain', [
         'chain_id_hex' => '',
         'erc20_address' => ''
     ],
+=======
+    'web3_service' => [
+        'wallet_encryption_key' => '',
+        'base_url' => 'http://192.168.0.16:3333/'
+    ]
+>>>>>>> 6b3177a2f311221ed50976df14af8dae7f3c54d2
 ]);
 
 $CONFIG->set('blockchain_override', [
@@ -552,10 +562,12 @@ $CONFIG->set('features', [
     'subscriber-conversations' => true,
     'activity-modal' => false,
     'withdrawal-console' => true,
+    'twilio-verify' => true,
     'helpdesk-2021' => true,
     'discovery-default-tags' => true,
     'skale' => true,
     'polygon' => true,
+    'web3-service-withdrawals' => false,
 ]);
 
 $CONFIG->set('email', [
