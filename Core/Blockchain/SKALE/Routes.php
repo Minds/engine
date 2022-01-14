@@ -21,7 +21,7 @@ class Routes extends ModuleRoutes
         $this->route
             ->withPrefix('api/v3/blockchain/skale')
             ->withMiddleware([
-                LoggedInMiddleware::class,
+                // LoggedInMiddleware::class,
             ])
             ->do(function (Route $route) {
                 $route->post(
@@ -29,7 +29,7 @@ class Routes extends ModuleRoutes
                     Ref::_('Blockchain\SKALE\Controller', 'requestFromFaucet')
                 );
                 $route->get(
-                    'communityPool/canExit',
+                    'canExit',
                     Ref::_('Blockchain\SKALE\CommunityPool\Controller', 'canExit')
                 );
             });
