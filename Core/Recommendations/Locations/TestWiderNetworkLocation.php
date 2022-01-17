@@ -3,17 +3,21 @@
 namespace Minds\Core\Recommendations\Locations;
 
 use Minds\Core\Recommendations\Algorithms\RecommendationsAlgorithmInterface;
+use Minds\Core\Recommendations\Algorithms\WiderNetworkRecommendationsAlgorithm;
 use Minds\Entities\User;
 
 class TestWiderNetworkLocation implements LocationInterface
 {
+    private ?User $user;
+
     public function getLocationRecommendationsAlgorithm(): RecommendationsAlgorithmInterface
     {
-        // TODO: Implement getLocationRecommendationsAlgorithm() method.
+        return (new WiderNetworkRecommendationsAlgorithm())->setUser($this->user);
     }
 
     public function setUser(?User $user): LocationInterface
     {
-        // TODO: Implement setUser() method.
+        $this->user = $user;
+        return $this;
     }
 }

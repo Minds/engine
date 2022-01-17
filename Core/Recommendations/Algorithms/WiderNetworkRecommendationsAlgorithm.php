@@ -5,6 +5,7 @@ namespace Minds\Core\Recommendations\Algorithms;
 use Minds\Common\Repository\Response;
 use Minds\Core\Recommendations\Repository;
 use Minds\Core\Recommendations\RepositoryInterface;
+use Minds\Core\Recommendations\RepositoryOptions;
 use Minds\Entities\User;
 
 class WiderNetworkRecommendationsAlgorithm implements RecommendationsAlgorithmInterface
@@ -27,6 +28,8 @@ class WiderNetworkRecommendationsAlgorithm implements RecommendationsAlgorithmIn
     {
         $this->user = $user;
 
+        $this->options->setUserGuid($this->user->getGuid());
+
         return $this;
     }
 
@@ -37,6 +40,6 @@ class WiderNetworkRecommendationsAlgorithm implements RecommendationsAlgorithmIn
 
     public function getRecommendations(): Response
     {
-        return $this->repository?->getList();
+        return $this->repository?->getList($this->options->toArray());
     }
 }

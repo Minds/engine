@@ -4,6 +4,15 @@ namespace Minds\Core\Recommendations\Algorithms;
 
 use Minds\Traits\MagicAttributes;
 
+/**
+ * Represents the options for a recommendations algorithm
+ * @method int getLimit()
+ * @method int setLimit(int $limit)
+ * @method string getUserGuid()
+ * @method string setUserGuid(string $userGuid)
+ * @method string getType()
+ * @method string setType(string $type)
+ */
 class AlgorithmOptions
 {
     use MagicAttributes;
@@ -26,5 +35,10 @@ class AlgorithmOptions
         }
 
         return $this;
+    }
+
+    public function toArray(): array
+    {
+        return get_object_vars($this);
     }
 }

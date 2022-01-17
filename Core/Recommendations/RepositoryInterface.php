@@ -6,5 +6,5 @@ use Minds\Common\Repository\Response;
 
 interface RepositoryInterface
 {
-    public function getList(?RepositoryOptions $options = null): Response;
+    public function getList(?array $options = null): Response;
 }

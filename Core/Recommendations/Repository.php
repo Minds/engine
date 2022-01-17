@@ -3,23 +3,29 @@
 namespace Minds\Core\Recommendations;
 
 use Minds\Common\Repository\Response;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Client as ElasticSearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared\Search as PreparedSearchQuery;
 use Minds\Core\Di\Di;
 use Minds\Core\Suggestions\Suggestion;
+use Minds\Entities\Factory;
 
 class Repository implements RepositoryInterface
 {
     public function __construct(
         private ?ElasticSearchClient $elasticSearchClient = null,
-        private ?RepositoryOptions $options = null
+        private ?RepositoryOptions $options = null,
+        private ?Config $config = null
     ) {
         $this->elasticSearchClient = $this->elasticSearchClient ?? Di::_()->get('Database\ElasticSearch');
         $this->options = $this->options ?? new RepositoryOptions();
+        $this->config = $this->config ?? Di::_()->get("Config");
     }
 
-    public function getList(?RepositoryOptions $options = null): Response
+    public function getList(?array $options = null): Response
     {
+        $this->options->init($options);
+
         $must = $this->prepareMustPartOfQuery();
         $mustNot = $this->prepareMustNotPartOfQuery();
 
@@ -37,11 +43,11 @@ class Repository implements RepositoryInterface
         $must = [];
 
         $must[]['term'] = [
-            "action.keyword" => "vote:up"
+            "action" => "vote:up"
         ];
 
         $must[]['terms'] = [
-            "entity_guid.keyword" => [
+            "entity_owner_guid" => [
                 "index" => "minds-graph-subscriptions",
                 "id" => $this->options->getUserGuid(),
                 "path" => "guids"
@@ -57,7 +63,7 @@ class Repository implements RepositoryInterface
 
         // Remove Minds channel
         $mustNot[]['term'] = [
-            'user_guid.keyword' => '100000000000000519',
+            'entity_owner_guid' => $this->config->get("default_recommendations_user"),
         ];
 
         return $mustNot;
@@ -78,7 +84,7 @@ class Repository implements RepositoryInterface
                 'aggs' => [
                     'subscriptions' => [
                         'terms' => [
-                            'field' => 'entity_guid.keyword',
+                            'field' => 'entity_owner_guid.keyword',
                             'size' => $limit,
                             'order' => [
                                 '_count' =>  'desc',
@@ -103,7 +109,8 @@ class Repository implements RepositoryInterface
         foreach ($result['aggregations']['subscriptions']['buckets'] as $row) {
             $response[] = (new Suggestion())
                 ->setConfidenceScore($row['doc_count'])
-                ->setEntityGuid($row['key'])
+                ->setEntityGuid($row["key"])
+                ->setEntity(Factory::build($row["key"]))
                 ->setEntityType('user');
         }
 
