@@ -7,7 +7,6 @@
 namespace Minds\Core\Blockchain\Services\Web3Services;
 
 use GuzzleHttp;
-use GuzzleHttp\ClientInterface;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
@@ -25,9 +24,9 @@ class MindsWeb3Service
     protected $walletPublicKey = null;
 
     public function __construct(
-        public ?ClientInterface $httpClient = null,
-        public ?Logger $logger = null,
-        public ?Config $config = null,
+        protected ?GuzzleHttp\Client $httpClient = null,
+        protected ?Logger $logger = null,
+        protected ?Config $config = null,
     ) {
         $this->httpClient = $httpClient ?? new GuzzleHttp\Client();
         $this->logger = $logger ?? Di::_()->get('Logger');
@@ -53,6 +52,8 @@ class MindsWeb3Service
             ]
         ]);
 
+        $this->reset();
+        
         $responseData = json_decode($response->getBody()->getContents(), true);
 
         if ($responseData['status'] === 200 && $responseData['data']) {
@@ -79,6 +80,8 @@ class MindsWeb3Service
             'headers' => $this->buildHeaders(),
             'json' => $transaction
         ]);
+
+        $this->reset();
 
         $responseData = json_decode($response->getBody()->getContents(), true);
 
@@ -111,6 +114,8 @@ class MindsWeb3Service
                 'amount' => $amount
             ]
         ]);
+
+        $this->reset();
 
         $responseData = json_decode($response->getBody()->getContents(), true);
 
@@ -159,7 +164,7 @@ class MindsWeb3Service
      * @param boolean $authenticate - should authenticate.
      * @return array - headers.
      */
-    private function buildHeaders(bool $authenticate = true): array
+    protected function buildHeaders(bool $authenticate = true): array
     {
         $headers = [
             'Content-Type' => 'application/json',
@@ -180,6 +185,10 @@ class MindsWeb3Service
      */
     private function getWalletPublicKey($walletName = 'withdraw'): string
     {
+        if ($this->walletPublicKey) {
+            return $this->walletPublicKey;
+        }
+
         $xpub = $this->config->get('blockchain')['contracts'][$walletName]['wallet_address'] ?? false;
         if (!$xpub) {
             throw new ServerErrorException('No wallet address is set');
@@ -204,6 +213,10 @@ class MindsWeb3Service
      */
     private function getUnencryptedWalletPrivateKey($walletName = 'withdraw'): string
     {
+        if ($this->walletPrivateKey) {
+            return $this->walletPrivateKey;
+        }
+
         $xpriv = $this->config->get('blockchain')['contracts'][$walletName]['wallet_pkey'] ?? false;
         if (!$xpriv) {
             throw new ServerErrorException('No unencrypted wallet private key set');
@@ -243,15 +256,27 @@ class MindsWeb3Service
     }
 
     /**
-     * Gets base url for service.
+     * Gets base url for service
      * @return string base url for service.
      */
-    private function getBaseUrl(): string
+    protected function getBaseUrl(): string
     {
         $baseUrl = $this->config->get('blockchain')['web3_service']['base_url'] ?? false;
         if (!$baseUrl) {
             throw new ServerErrorException('No Base URL is set for web3 service');
         }
         return $baseUrl;
+    }
+
+    /**
+     * Reset local variables to avoid network conflicts.
+     * @return self - chainable.
+     */
+    protected function reset(): self
+    {
+        $this->setWalletPrivateKey('')
+            ->setWalletPublicKey('')
+            ->setEthereumNetwork('');
+        return $this;
     }
 }

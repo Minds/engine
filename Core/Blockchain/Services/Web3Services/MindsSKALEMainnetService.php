@@ -2,7 +2,7 @@
 
 namespace Minds\Core\Blockchain\Services\Web3Services;
 
-use Minds\Core\Blockchain\Services\MindsWeb3Service;
+use Minds\Core\Blockchain\Services\Web3Services\MindsWeb3Service;
 use Minds\Exceptions\ServerErrorException;
 
 /**
