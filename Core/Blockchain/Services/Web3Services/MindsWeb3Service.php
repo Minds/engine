@@ -7,6 +7,7 @@
 namespace Minds\Core\Blockchain\Services\Web3Services;
 
 use GuzzleHttp;
+use GuzzleHttp\ClientInterface;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
@@ -24,7 +25,7 @@ class MindsWeb3Service
     protected $walletPublicKey = null;
 
     public function __construct(
-        protected ?GuzzleHttp\Client $httpClient = null,
+        protected ?ClientInterface $httpClient = null,
         protected ?Logger $logger = null,
         protected ?Config $config = null,
     ) {
