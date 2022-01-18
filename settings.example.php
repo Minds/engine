@@ -426,6 +426,19 @@ $CONFIG->set('blockchain', [
 
     'mw3' => '/usr/bin/env node '.__MINDS_ROOT__.'/../mw3/index.js',
 
+    'skale' => [
+        'chain_name' => 'chain-name',
+        'rpc_url' => 'https://dappnet-api.skalenodes.com/v1/glamorous-syrma',
+        'chain_id_hex' => '0x00',
+        'erc20_address' => '0x00',
+        'wallet' => [
+            'wallet_pkey' => '0x00',
+            'wallet_address' => '0x00'
+        ],
+        'testnet' => true,
+        'faucet_claim_threshold_wei' => '8801000000',
+    ],
+
     'web3_service' => [
         'wallet_encryption_key' => '',
         'base_url' => 'http://192.168.0.16:3333/'
