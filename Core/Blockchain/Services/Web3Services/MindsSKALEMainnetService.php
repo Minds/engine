@@ -42,6 +42,9 @@ class MindsSKALEMainnetService extends MindsWeb3Service
             'timeout' => 30,
         ]);
 
+        // reset state since we are forcing network / wallet.
+        $this->reset();
+
         $responseData = json_decode($response->getBody()->getContents(), true);
 
         if ($responseData['status'] === 200) {

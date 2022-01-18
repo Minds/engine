@@ -21,7 +21,7 @@ class Routes extends ModuleRoutes
         $this->route
             ->withPrefix('api/v3/blockchain/skale')
             ->withMiddleware([
-                // LoggedInMiddleware::class,
+                LoggedInMiddleware::class,
             ])
             ->do(function (Route $route) {
                 $route->post(

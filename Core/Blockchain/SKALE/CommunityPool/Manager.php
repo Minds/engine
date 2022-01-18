@@ -5,6 +5,10 @@ use Minds\Core\Blockchain\Services\Web3Services\MindsSKALEMainnetService;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 
+/**
+ * SKALE CommunityPool Manager.
+ * @package Minds\Core\Blockchain\SKALE\CommunityPool
+ */
 class Manager
 {
     /**
@@ -23,8 +27,8 @@ class Manager
     /**
      * Whether a user can exit from the SKALE chain based on a contract call determining they
      * have a high enough CommunityPool balance.
-     * @param ServerRequest $request
-     * @return JsonResponse
+     * @param string $requester - the user we are checking.
+     * @return bool - true if requester can exit.
      */
     public function canExit(string $requester): bool
     {

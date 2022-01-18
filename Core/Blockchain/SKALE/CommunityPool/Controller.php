@@ -9,7 +9,7 @@ use Zend\Diactoros\ServerRequest;
 
 /**
  * SKALE CommunityPool Controller.
- * @package Minds\Core\Blockchain\SKALE
+ * @package Minds\Core\Blockchain\SKALE\CommunityPool
  */
 class Controller
 {
