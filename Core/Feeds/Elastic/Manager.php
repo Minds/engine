@@ -118,6 +118,7 @@ class Manager
             'plus' => false,
             'hide_reminds' => $hide_reminds,
             'wire_support_tier_only' => false,
+            'mixed_group_guids' => [],
         ], $opts);
 
         if (isset($opts['query']) && $opts['query']) {

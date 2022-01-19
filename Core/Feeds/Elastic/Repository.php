@@ -200,8 +200,8 @@ class Repository
             'remind_guid' => null,
             // Focus on quotes
             'quote_guid' => null,
+            'mixed_group_guids' => [],
         ], $opts);
-
         if (!$opts['type']) {
             //   throw new \Exception('Type must be provided');
         }
@@ -335,6 +335,14 @@ class Repository
                 ],
             ];
 
+            if ($opts['mixed_group_guids'] && is_array($opts['mixed_group_guids']) && count($opts['mixed_group_guids'])) {
+                $should[] = [
+                    'terms' => [
+                        'container_guid' => $opts['mixed_group_guids']
+                    ],
+                ];
+            }
+
             // Will return own posts if requested
             if ($opts['hide_own_posts']) {
                 if (!isset($body['query']['function_score']['query']['bool']['must_not'])) {
@@ -421,7 +429,7 @@ class Repository
             ];
         }
 
-        if ($type !== 'group' && $opts['access_id'] !== null) {
+        if ($type !== 'group' && $opts['access_id'] !== null && !$opts['mixed_group_guids']) {
             $body['query']['function_score']['query']['bool']['must'][] = [
                 'terms' => [
                     'access_id' => Text::buildArray($opts['access_id']),
@@ -436,6 +444,27 @@ class Repository
                         'gt' => 2,
                     ]
                 ]
+            ];
+        }
+
+        if ($opts['mixed_group_guids']  && is_array($opts['mixed_group_guids']) && count($opts['mixed_group_guids'])) {
+            $body['query']['function_score']['query']['bool']['must'][] = [
+                'bool' => [
+                    'should' => [
+                        [
+                            'range' => [
+                            'access_id' => [
+                                'gte' => 2,
+                            ],
+                            ],
+                        ],
+                        [
+                            'terms' => [
+                            'access_id' => $opts['mixed_group_guids']
+                            ],
+                        ],
+                    ],
+                ],
             ];
         }
 
