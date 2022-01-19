@@ -142,7 +142,7 @@ class group implements Interfaces\Api
         }
 
         if (isset($_POST['briefdescription'])) {
-            $sanitized_briefdescription = htmlspecialchars(trim($_POST['briefdescription']));
+            $sanitized_briefdescription = htmlspecialchars(trim($_POST['briefdescription']), ENT_QUOTES, null, false);
 
             if (strlen($sanitized_briefdescription) > 2048) {
                 $sanitized_briefdescription = substr($sanitized_briefdescription, 0, 2048);
