@@ -8,13 +8,16 @@ use Minds\Core\Recommendations\RepositoryInterface;
 use Minds\Core\Recommendations\RepositoryOptions;
 use Minds\Entities\User;
 
-class WiderNetworkRecommendationsAlgorithm implements RecommendationsAlgorithmInterface
+/**
+ * Recommendations algorithm to retrieve suggested channels for the logged-in user
+ */
+class WiderNetworkRecommendationsAlgorithm extends AbstractRecommendationsAlgorithm
 {
     /**
      * @type string
      */
-    private const FRIENDLY_ALGORITHM_NAME = "wider-network";
-    private ?User $user;
+    protected const FRIENDLY_ALGORITHM_NAME = "wider-network";
+    protected ?User $user;
 
     public function __construct(
         private ?AlgorithmOptions $options = null,
@@ -24,6 +27,11 @@ class WiderNetworkRecommendationsAlgorithm implements RecommendationsAlgorithmIn
         $this->repository = $this->repository ?? new Repository();
     }
 
+    /**
+     * Sets the user to use for the recommendations algorithm
+     * @param User|null $user
+     * @return RecommendationsAlgorithmInterface
+     */
     public function setUser(?User $user): RecommendationsAlgorithmInterface
     {
         $this->user = $user;
@@ -33,11 +41,10 @@ class WiderNetworkRecommendationsAlgorithm implements RecommendationsAlgorithmIn
         return $this;
     }
 
-    public function getFriendlyName(): string
-    {
-        return self::FRIENDLY_ALGORITHM_NAME;
-    }
-
+    /**
+     * Returns the list of recommendations based on the current recommendation's algorithm
+     * @return Response
+     */
     public function getRecommendations(): Response
     {
         return $this->repository?->getList($this->options->toArray());

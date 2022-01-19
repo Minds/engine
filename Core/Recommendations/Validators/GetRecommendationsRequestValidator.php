@@ -7,6 +7,9 @@ use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Interfaces\ValidatorInterface;
 
+/**
+ * Validator class for GetRecommendationsRequest
+ */
 class GetRecommendationsRequestValidator implements ValidatorInterface
 {
     public function __construct(
@@ -24,7 +27,7 @@ class GetRecommendationsRequestValidator implements ValidatorInterface
     }
 
     /**
-     *
+     * Checks if the 'location' parameter has been provided in the request
      * @param array $dataToValidate
      * @return bool
      */
@@ -51,6 +54,11 @@ class GetRecommendationsRequestValidator implements ValidatorInterface
         return true;
     }
 
+    /**
+     * Performs the validation of the Http request data
+     * @param array $dataToValidate
+     * @return bool
+     */
     public function validate(array $dataToValidate): bool
     {
         $this->clearErrors();
@@ -60,6 +68,10 @@ class GetRecommendationsRequestValidator implements ValidatorInterface
         return $this->errors->count() === 0;
     }
 
+    /**
+     * Returns the list of validation errors if any
+     * @return ValidationErrorCollection|null
+     */
     public function getErrors(): ?ValidationErrorCollection
     {
         return $this->errors;

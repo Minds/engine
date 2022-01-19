@@ -10,6 +10,9 @@ use Minds\Core\Di\Di;
 use Minds\Core\Suggestions\Suggestion;
 use Minds\Entities\Factory;
 
+/**
+ * Repository to interact with elasticsearch to fetch entries for the wider network recommendations algorithm
+ */
 class Repository implements RepositoryInterface
 {
     public function __construct(
@@ -22,6 +25,11 @@ class Repository implements RepositoryInterface
         $this->config = $this->config ?? Di::_()->get("Config");
     }
 
+    /**
+     * Returns a list of entities
+     * @param array|null $options
+     * @return Response
+     */
     public function getList(?array $options = null): Response
     {
         $this->options->init($options);
@@ -38,6 +46,10 @@ class Repository implements RepositoryInterface
         return $this->prepareResponse($preparedQuery);
     }
 
+    /**
+     * Prepares the 'must' part of the query to ElasticSearch
+     * @return array
+     */
     private function prepareMustPartOfQuery(): array
     {
         $must = [];
@@ -57,6 +69,10 @@ class Repository implements RepositoryInterface
         return $must;
     }
 
+    /**
+     * Prepares the 'must' part of the query to ElasticSearch
+     * @return array
+     */
     private function prepareMustNotPartOfQuery(): array
     {
         $mustNot = [];
@@ -69,6 +85,13 @@ class Repository implements RepositoryInterface
         return $mustNot;
     }
 
+    /**
+     * Generates the prepared query putting together all the different parts of the query.
+     * @param int $limit
+     * @param array $must
+     * @param array $mustNot
+     * @return PreparedSearchQuery
+     */
     private function prepareQuery(int $limit, array $must, array $mustNot): PreparedSearchQuery
     {
         $query = [
@@ -84,7 +107,7 @@ class Repository implements RepositoryInterface
                 'aggs' => [
                     'subscriptions' => [
                         'terms' => [
-                            'field' => 'entity_owner_guid.keyword',
+                            'field' => 'entity_guid.keyword',
                             'size' => $limit,
                             'order' => [
                                 '_count' =>  'desc',
@@ -100,6 +123,11 @@ class Repository implements RepositoryInterface
         return $preparedQuery;
     }
 
+    /**
+     * Processes the query response and prepares it in the format required for the 'getList' method to return
+     * @param PreparedSearchQuery $preparedQuery
+     * @return Response
+     */
     private function prepareResponse(PreparedSearchQuery $preparedQuery): Response
     {
         $result = $this->elasticSearchClient->request($preparedQuery);

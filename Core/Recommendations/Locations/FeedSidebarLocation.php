@@ -4,20 +4,18 @@ namespace Minds\Core\Recommendations\Locations;
 
 use Minds\Core\Recommendations\Algorithms\RecommendationsAlgorithmInterface;
 use Minds\Core\Recommendations\Algorithms\SuggestedChannelsRecommendationsAlgorithm;
-use Minds\Entities\User;
 
-class FeedSidebarLocation implements LocationInterface
+/**
+ * Deals with instantiating and returning the correct recommendations' algorithm to return for the feed-sidebar location
+ */
+class FeedSidebarLocation extends AbstractRecommendationsLocation
 {
-    private ?User $user;
-
+    /**
+     * Creates an instance
+     * @return RecommendationsAlgorithmInterface
+     */
     public function getLocationRecommendationsAlgorithm(): RecommendationsAlgorithmInterface
     {
         return (new SuggestedChannelsRecommendationsAlgorithm())->setUser($this->user);
-    }
-
-    public function setUser(?User $user): LocationInterface
-    {
-        $this->user = $user;
-        return $this;
     }
 }

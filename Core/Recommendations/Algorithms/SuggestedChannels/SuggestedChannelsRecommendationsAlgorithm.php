@@ -5,17 +5,12 @@ namespace Minds\Core\Recommendations\Algorithms;
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
 use Minds\Core\Suggestions\Manager as SuggestionsManager;
-use Minds\Entities\User;
 
-class SuggestedChannelsRecommendationsAlgorithm implements RecommendationsAlgorithmInterface
+/**
+ * Recommendations algorithm to retrieve suggested channels for the logged-in user
+ */
+class SuggestedChannelsRecommendationsAlgorithm extends AbstractRecommendationsAlgorithm
 {
-    /**
-     * @type string
-     */
-    private const FRIENDLY_ALGORITHM_NAME = "suggested-channels";
-
-    private ?User $user;
-
     public function __construct(
         private ?AlgorithmOptions $options = null,
         private ?SuggestionsManager $suggestionsManager = null
@@ -24,19 +19,12 @@ class SuggestedChannelsRecommendationsAlgorithm implements RecommendationsAlgori
         $this->suggestionsManager = $this->suggestionsManager ?? Di::_()->get("Suggestions\Manager");
     }
 
-    public function getFriendlyName(): string
-    {
-        return self::FRIENDLY_ALGORITHM_NAME;
-    }
-
+    /**
+     * Returns the list of recommendations based on the current recommendation's algorithm
+     * @return Response
+     */
     public function getRecommendations(): Response
     {
         return $this->suggestionsManager?->getList();
-    }
-
-    public function setUser(?User $user): RecommendationsAlgorithmInterface
-    {
-        $this->user = $user;
-        return $this;
     }
 }
