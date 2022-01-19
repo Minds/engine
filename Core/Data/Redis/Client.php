@@ -57,6 +57,11 @@ class Client
         return $this->redis->delete(...$args);
     }
 
+    /**
+     * Unlink entry - similar to a delete.
+     * @param mixed ...$args
+     * @return void
+     */
     public function unlink(...$args)
     {
         return $this->redis->unlink($args);

@@ -2,22 +2,22 @@
 namespace Minds\Core\Blockchain\SKALE\CommunityPool;
 
 use Minds\Core\Blockchain\Services\Web3Services\MindsSKALEMainnetService;
-use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 
+/**
+ * SKALE CommunityPool Manager.
+ * @package Minds\Core\Blockchain\SKALE\CommunityPool
+ */
 class Manager
 {
     /**
      * SKALE CommunityPool manager constructor.
      * @param MindsSKALEMainnetService|null $skaleWeb3MainnetService - web3 service.
-     * @param Config|null $config - global config.
      */
     public function __construct(
-        protected ?MindsSKALEMainnetService $skaleWeb3MainnetService = null,
-        protected ?Config $config = null
+        protected ?MindsSKALEMainnetService $skaleWeb3MainnetService = null
     ) {
         $this->skaleWeb3MainnetService = $skaleWeb3Service ?? Di::_()->get('Blockchain\Services\MindsSKALEMainnetService');
-        $this->config = $config ?? Di::_()->get('Config');
     }
 
     /**

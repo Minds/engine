@@ -3,7 +3,6 @@ namespace Minds\Core\Blockchain\SKALE;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Features\Manager as FeaturesManager;
-use Exception;
 use Minds\Exceptions\ServerErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;

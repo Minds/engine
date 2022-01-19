@@ -9,14 +9,14 @@ use Zend\Diactoros\ServerRequest;
 
 /**
  * SKALE CommunityPool Controller.
- * @package Minds\Core\Blockchain\SKALE
+ * @package Minds\Core\Blockchain\SKALE\CommunityPool
  */
 class Controller
 {
     /**
      * Controller constructor.
-     * @param Manager|null $manager - SKALE manager
-     * @param FeaturesManager|null $featuresManager - features manager
+     * @param Manager|null $manager - SKALE manager.
+     * @param FeaturesManager|null $featuresManager - features manager.
      */
     public function __construct(
         public ?Manager $manager = null,
