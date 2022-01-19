@@ -123,7 +123,7 @@ class subscribed implements Interfaces\Api
             ->setUser(Core\Session::getLoggedinUser())
             ->isAssignedVariation('newsfeed-group-posts', 'on');
 
-        if ($isAssignedGroupPostsExperiment) {  
+        if ($isAssignedGroupPostsExperiment) {
             $memberships = (new Core\Groups\Membership)
                 ->getGroupGuidsByMember([
                     'user_guid' => $currentUser->guid,
