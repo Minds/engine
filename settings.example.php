@@ -756,3 +756,7 @@ $CONFIG->set('statuspage_io', [
 ]);
 
 $CONFIG->set('default_recommendations_user', '100000000000000519');
+
+$CONFIG->set('growthbook', [
+    'features_endpoint' => 'https://growthbook-api.minds.com/api/features/key_c98323bd51a6b3ab',
+]);
