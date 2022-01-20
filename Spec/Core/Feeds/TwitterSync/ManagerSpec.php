@@ -11,6 +11,7 @@ use Minds\Core\Feeds\TwitterSync\Manager;
 use Minds\Core\Feeds\TwitterSync\Client;
 use Minds\Core\Feeds\TwitterSync\ConnectedAccount;
 use Minds\Core\Feeds\TwitterSync\Delegates\ChannelLinksDelegate;
+use Minds\Core\Feeds\TwitterSync\ImageExtractor;
 use Minds\Core\Feeds\TwitterSync\Repository;
 use Minds\Core\Feeds\TwitterSync\TwitterUser;
 use Minds\Core\Log\Logger;
@@ -26,6 +27,8 @@ class ManagerSpec extends ObjectBehavior
     protected $entitiesBuilder;
     protected $saveAction;
     protected $richEmbedManager;
+    protected $imageExtractor;
+    protected $logger;
 
     public function let(
         Client $client,
@@ -35,14 +38,17 @@ class ManagerSpec extends ObjectBehavior
         Save $save,
         RichEmbed\Manager $richEmbedManager,
         ChannelLinksDelegate $channelLinksDelegate,
-        Logger $logger
+        Logger $logger,
+        ImageExtractor $imageExtractor
     ) {
-        $this->beConstructedWith($client, $repository, $config, $entitiesBuilder, $save, $richEmbedManager, $channelLinksDelegate, $logger);
+        $this->beConstructedWith($client, $repository, $config, $entitiesBuilder, $save, $richEmbedManager, $channelLinksDelegate, $logger, $imageExtractor);
         $this->client = $client;
         $this->repository = $repository;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->saveAction = $save;
         $this->richEmbedManager = $richEmbedManager;
+        $this->logger = $logger;
+        $this->imageExtractor = $imageExtractor;
     }
 
     public function it_is_initializable()

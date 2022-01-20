@@ -18,6 +18,12 @@ use Minds\Helpers\Text;
 
 class Manager
 {
+    /**
+     * @var string
+     * Matches twitter photo url - can be prefixed with a space, and must be at END of text.
+     */
+    const TWITTER_PHOTO_URL_REGEX = '/\s?https:\/\/twitter\.com\/[\w\d]+\/status\/\d+\/photo\/\d$/';
+
     public function __construct(
         protected Client $client,
         protected Repository $repository,
@@ -26,7 +32,8 @@ class Manager
         protected Save $saveAction,
         protected RichEmbed\Manager $richEmbedManager,
         protected ChannelLinksDelegate $channelLinksDelegate,
-        protected Logger $logger
+        protected Logger $logger,
+        protected ImageExtractor $imageExtractor
     ) {
     }
 
@@ -125,12 +132,18 @@ class Manager
                 'referenced_tweets',
                 'entities', // This is where verify gets the urls from
             ]),
-            'media.fields' => 'url',
             'max_results' => $limit,
             'exclude' => implode(',', [
                 'retweets',
                 'replies'
             ]),
+            'expansions' => implode(',', [
+                'attachments.media_keys'
+            ]),
+            'media.fields' => implode(',', [
+                'type',
+                'url'
+            ])
         ];
 
         // if ($lastImpotedTweetId = $connectedAccount->getLastImportedTweetId()) {
@@ -163,8 +176,20 @@ class Manager
                 ->setText($tweetData['text']);
 
             if (isset($tweetData['entities']) && isset($tweetData['entities']['urls'])) {
+                $tweet->setImageUrls($this->extractImageUrls(
+                    $tweetData['attachments']['media_keys'] ?? [],
+                    $json['includes']['media'] ?? []
+                ));
+
                 foreach ($tweetData['entities']['urls'] as $url) {
-                    $tweet->setText(str_replace($url['url'], $url['expanded_url'], $tweet->getText()));
+                    $expandedUrlText = str_replace($url['url'], $url['expanded_url'], $tweet->getText());
+                    
+                    // if we have extracted image urls, strip the photo url from the end of the post.
+                    if (count($tweet->getImageUrls())) {
+                        $expandedUrlText = $this->stripPhotoUrl($expandedUrlText);
+                    }
+
+                    $tweet->setText($expandedUrlText);
                 }
 
                 $tweet->setUrls(array_map(function ($url) {
@@ -178,8 +203,7 @@ class Manager
 
     /**
      * Sync the tweets
-     * Run at regular intervald
-     *
+     * Run at regular intervals
      */
     public function syncTweets(): iterable
     {
@@ -202,8 +226,15 @@ class Manager
                 $activity->ownerObj = $owner->export();
                 //
                 $activity->setMessage($recentTweet->getText());
-                //
-                if ($recentTweet->getUrls() && isset($recentTweet->getUrls()[0])) {
+
+                if (count($recentTweet->getImageUrls())) {
+                    $activity = $this->imageExtractor->extractAndUploadToActivity(
+                        $recentTweet->getImageUrls()[0],
+                        $activity
+                    );
+                }
+
+                if ($recentTweet->getUrls() && isset($recentTweet->getUrls()[0]) && !count($recentTweet->getImageUrls())) {
                     $url = $recentTweet->getUrls()[0];
                     try {
                         $richEmbed = $this->richEmbedManager->getRichEmbed($url);
@@ -277,5 +308,65 @@ class Manager
             ->setFollowersCount($json['data']['public_metrics']['followers_count']);
 
         return $twitterUser;
+    }
+
+    /**
+     * Strips photo URL from end of tweet text - useful because for photo's, Twitter appends
+     * a link to the end of the text that is not visible on-site.
+     * @param string $text - text to strip.
+     * @return string - text without twitter photo link at end.
+     */
+    protected function stripPhotoUrl(string $text): string
+    {
+        return preg_replace(self::TWITTER_PHOTO_URL_REGEX, '', $text, 1);
+    }
+
+    /**
+     * Extracts image URLs from tweet.
+     * @param array $mediaKeys - the media keys attached to the post.
+     * @param array $includes - the extended media object returned from twitter API,
+     * should contain matching media keys.
+     * @return array - array of extracted image URLs for a given post.
+     */
+    protected function extractImageUrls(array $mediaKeys, array $includes): array
+    {
+        if (!count($mediaKeys) || !count($includes)) {
+            return [];
+        }
+
+        $urls = [];
+
+        foreach ($mediaKeys as $mediaKey) {
+            try {
+                // get connected expanded media object.
+                $extendedMediaObjectArray = array_values(array_filter(
+                    $includes,
+                    function ($media) use ($mediaKey) {
+                        return $media['media_key'] === $mediaKey;
+                    }
+                ));
+
+                // if no extended media object found, skip.
+                if (!$extendedMediaObjectArray || !$extendedMediaObjectArray[0]) {
+                    break;
+                }
+
+                $extendedMediaObject = $extendedMediaObjectArray[0];
+
+                // if extended media object type is photo, get url and push to $urls array.
+                if ($extendedMediaObject['type'] === 'photo') {
+                    $url = $extendedMediaObject['url'];
+
+                    if ($url) {
+                        array_push($urls, $url);
+                    }
+                }
+            } catch (\Exception $e) {
+                // catch error and just skip this image.
+                $this->logger->error($e);
+            }
+        }
+
+        return $urls;
     }
 }
