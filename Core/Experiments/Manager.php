@@ -101,18 +101,4 @@ class Manager
         $this->cookieManager->set($id);
         return $id;
     }
-
-    /**
-     * Determine whether the instance set user is assigned a the given experiment's variation.
-     * @param string $experimentId - id of experiment - e.g. 'channel-gallery'
-     * @param string $variationName - name of variation to check - e.g. 'on' or 'off'.
-     * @return boolean - true if user is currently assigned the given experiment variation.
-     */
-    public function isAssignedVariation(string $experimentId, string $variationName): bool
-    {
-        $experiment = array_values(array_filter($this->getExperiments(), function ($trackData) use ($experimentId) {
-            return $experimentId === $trackData->experiment->key;
-        }));
-        return $experiment[0]->result->value === $variationName;
-    }
 }

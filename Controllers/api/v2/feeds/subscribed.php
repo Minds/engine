@@ -119,19 +119,7 @@ class subscribed implements Interfaces\Api
             'hide_own_posts' => isset($_GET['hide_own_posts'])
         ];
 
-        $isAssignedGroupPostsExperiment = Di::_()->get('Experiments\Manager')
-            ->setUser(Core\Session::getLoggedinUser())
-            ->isAssignedVariation('newsfeed-group-posts', 'on');
-
-        if ($isAssignedGroupPostsExperiment) {
-            $memberships = (new Core\Groups\Membership)
-                ->getGroupGuidsByMember([
-                    'user_guid' => $currentUser->guid,
-                    'limit' => 100
-                ]) ?? [];
-
-            $opts['mixed_group_guids'] = $memberships;
-        }
+        $opts['include_group_posts'] = (bool) $_GET['include_group_posts'] ?? false;
 
         if ($_GET['to_timestamp'] ?? null) {
             // Fixes 4.17 build of app

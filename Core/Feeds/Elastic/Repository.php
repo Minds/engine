@@ -200,7 +200,7 @@ class Repository
             'remind_guid' => null,
             // Focus on quotes
             'quote_guid' => null,
-            'mixed_group_guids' => [],
+            'include_group_posts' => false,
         ], $opts);
         if (!$opts['type']) {
             //   throw new \Exception('Type must be provided');
@@ -335,11 +335,15 @@ class Repository
                 ],
             ];
 
-            if ($opts['mixed_group_guids'] && is_array($opts['mixed_group_guids']) && count($opts['mixed_group_guids'])) {
+            if ($opts['include_group_posts']) {
                 $should[] = [
                     'terms' => [
-                        'container_guid' => $opts['mixed_group_guids']
-                    ],
+                        'container_guid' => [
+                            'index' => $this->index.'-user',
+                            'id' => (string) $opts['subscriptions'],
+                            'path' => 'group_membership',
+                        ],
+                    ]
                 ];
             }
 
@@ -429,7 +433,7 @@ class Repository
             ];
         }
 
-        if ($type !== 'group' && $opts['access_id'] !== null && !$opts['mixed_group_guids']) {
+        if ($type !== 'group' && $opts['access_id'] !== null && !$opts['include_group_posts']) {
             $body['query']['function_score']['query']['bool']['must'][] = [
                 'terms' => [
                     'access_id' => Text::buildArray($opts['access_id']),
@@ -447,21 +451,25 @@ class Repository
             ];
         }
 
-        if ($opts['mixed_group_guids']  && is_array($opts['mixed_group_guids']) && count($opts['mixed_group_guids'])) {
+        if ($opts['include_group_posts']) {
             $body['query']['function_score']['query']['bool']['must'][] = [
                 'bool' => [
                     'should' => [
                         [
                             'range' => [
-                            'access_id' => [
-                                'gte' => 2,
-                            ],
+                                'access_id' => [
+                                    'gte' => 2,
+                                ],
                             ],
                         ],
                         [
                             'terms' => [
-                            'access_id' => $opts['mixed_group_guids']
-                            ],
+                                'access_id' => [
+                                    'index' => $this->index.'-user',
+                                    'id' => (string) $opts['subscriptions'],
+                                    'path' => 'group_membership',
+                                ],
+                            ]
                         ],
                     ],
                 ],
