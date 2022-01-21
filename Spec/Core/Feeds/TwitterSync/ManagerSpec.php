@@ -28,8 +28,8 @@ class ManagerSpec extends ObjectBehavior
     protected $entitiesBuilder;
     protected $saveAction;
     protected $richEmbedManager;
-    protected $imageExtractor;
     protected $logger;
+    protected $imageExtractor;
 
     public function let(
         Client $client,
@@ -212,16 +212,12 @@ class ManagerSpec extends ObjectBehavior
         $this->entitiesBuilder->single('123')
             ->willReturn($user);
 
-
-        $modifiedActivity = new Activity();
-        $modifiedActivity->container_guid = 'containerGuid';
         
         $this->imageExtractor->extractAndUploadToActivity(
             Argument::any(),
             Argument::any()
         )
-            ->shouldBeCalled()
-            ->willReturn($modifiedActivity);
+            ->shouldBeCalled();
 
         $this->richEmbedManager->getRichEmbed(Argument::any())
             ->shouldNotBeCalled();
@@ -229,7 +225,7 @@ class ManagerSpec extends ObjectBehavior
         // //
 
         $this->saveAction->setEntity(Argument::that(function ($entity) {
-            return $entity->container_guid === 'containerGuid';
+            return true;
         }))
             ->shouldBeCalled()
             ->willReturn($this->saveAction);
