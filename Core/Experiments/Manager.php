@@ -12,7 +12,7 @@ use Minds\Core\Experiments\Cookie\Manager as CookieManager;
 class Manager
 {
     /** @var Growthbook\Client */
-    public $growthbook;
+    private $growthbook;
 
     /** @var Growthbook\User */
     private $growthbookUser;
