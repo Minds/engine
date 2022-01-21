@@ -15,6 +15,7 @@ use Minds\Core\Feeds\TwitterSync\ImageExtractor;
 use Minds\Core\Feeds\TwitterSync\Repository;
 use Minds\Core\Feeds\TwitterSync\TwitterUser;
 use Minds\Core\Log\Logger;
+use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -133,6 +134,110 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         //
+
+        $connectedAccount->setLastImportedTweetId('789')
+            ->shouldBeCalled();
+
+        $connectedAccount->setLastSyncUnixTs(time())
+            ->shouldBeCalled();
+
+        $this->repository->add($connectedAccount)
+            ->shouldBeCalled();
+
+        $this->syncTweets()->shouldHaveCount(1);
+    }
+
+    public function it_should_attach_container_to_tweet_with_photos(
+        ConnectedAccount $connectedAccount,
+        TwitterUser $twitterUser,
+        User $user
+    ) {
+        //
+        $this->repository->getList()
+            ->willReturn([
+                $connectedAccount
+            ]);
+
+        //
+        $connectedAccount->getTwitterUser()
+            ->willReturn($twitterUser);
+        $connectedAccount->getLastImportedTweetId()
+            ->willReturn('456');
+        $connectedAccount->getLastSyncUnixTs()
+            ->willReturn(time());
+        $connectedAccount->getUserGuid()
+            ->willReturn('123');
+        //
+        $twitterUser->getFollowersCount()
+            ->willReturn(100000);
+        $twitterUser->getUserId()
+            ->willReturn(123);
+
+        //
+
+        $this->client->request('GET', Argument::any())
+            ->willReturn(new JsonResponse([
+                'data' => [
+                    [
+                        'id' => '789',
+                        'text' => 'this is a tweet with a link https://t.co/8t6gxbh0j8',
+                        'entities' => [
+                            'urls' => [
+                                [
+                                    'url' => 'https://t.co/8t6gxbh0j8',
+                                    'expanded_url' => 'https://pbs.twimg.com/media/abc123\photo.jpg',
+                                ]
+                            ]
+                        ],
+                        'attachments' => [
+                            'media_keys' => [
+                                'mediaKey123'
+                            ]
+                        ]
+                    ]
+                ],
+                'includes' => [
+                    'media' => [
+                        [
+                            'media_key' => 'mediaKey123',
+                            'type' => 'photo',
+                            'url' => 'https://pbs.twimg.com/media/abc123\photo.jpg'
+                        ]
+                    ]
+                ]
+            ]));
+
+        //
+
+        $this->entitiesBuilder->single('123')
+            ->willReturn($user);
+
+
+        $modifiedActivity = new Activity();
+        $modifiedActivity->container_guid = 'containerGuid';
+        
+        $this->imageExtractor->extractAndUploadToActivity(
+            Argument::any(),
+            Argument::any()
+        )
+            ->shouldBeCalled()
+            ->willReturn($modifiedActivity);
+
+        $this->richEmbedManager->getRichEmbed(Argument::any())
+            ->shouldNotBeCalled();
+
+        // //
+
+        $this->saveAction->setEntity(Argument::that(function ($entity) {
+            return $entity->container_guid === 'containerGuid';
+        }))
+            ->shouldBeCalled()
+            ->willReturn($this->saveAction);
+
+        $this->saveAction->save()
+            ->shouldBeCalled();
+
+        // //
 
         $connectedAccount->setLastImportedTweetId('789')
             ->shouldBeCalled();

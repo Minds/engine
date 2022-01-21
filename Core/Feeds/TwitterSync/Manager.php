@@ -228,7 +228,7 @@ class Manager
                 $activity->setMessage($recentTweet->getText());
 
                 if (count($recentTweet->getImageUrls())) {
-                    $activity = $this->imageExtractor->extractAndUploadToActivity(
+                    $this->imageExtractor->extractAndUploadToActivity(
                         $recentTweet->getImageUrls()[0],
                         $activity
                     );
@@ -337,33 +337,28 @@ class Manager
         $urls = [];
 
         foreach ($mediaKeys as $mediaKey) {
-            try {
-                // get connected expanded media object.
-                $extendedMediaObjectArray = array_values(array_filter(
-                    $includes,
-                    function ($media) use ($mediaKey) {
-                        return $media['media_key'] === $mediaKey;
-                    }
-                ));
-
-                // if no extended media object found, skip.
-                if (!$extendedMediaObjectArray || !$extendedMediaObjectArray[0]) {
-                    break;
+            // get connected expanded media object.
+            $extendedMediaObjectArray = array_values(array_filter(
+                $includes,
+                function ($media) use ($mediaKey) {
+                    return $media['media_key'] === $mediaKey;
                 }
+            ));
 
-                $extendedMediaObject = $extendedMediaObjectArray[0];
+            // if no extended media object found, skip.
+            if (!$extendedMediaObjectArray || !$extendedMediaObjectArray[0]) {
+                break;
+            }
 
-                // if extended media object type is photo, get url and push to $urls array.
-                if ($extendedMediaObject['type'] === 'photo') {
-                    $url = $extendedMediaObject['url'];
+            $extendedMediaObject = $extendedMediaObjectArray[0];
 
-                    if ($url) {
-                        array_push($urls, $url);
-                    }
+            // if extended media object type is photo, get url and push to $urls array.
+            if ($extendedMediaObject['type'] === 'photo') {
+                $url = $extendedMediaObject['url'];
+
+                if ($url) {
+                    array_push($urls, $url);
                 }
-            } catch (\Exception $e) {
-                // catch error and just skip this image.
-                $this->logger->error($e);
             }
         }
 

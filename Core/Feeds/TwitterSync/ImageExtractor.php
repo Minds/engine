@@ -2,13 +2,14 @@
 namespace Minds\Core\Feeds\TwitterSync;
 
 use GuzzleHttp;
+use GuzzleHttp\Client;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Feeds\Activity\Delegates\AttachmentDelegate;
 use Minds\Core\Log\Logger;
 use Minds\Entities\Activity;
 use Minds\Entities\Image;
 use Minds\Entities\User;
-use Twilio\Http\GuzzleClient;
 
 /**
  * ImageExtractor extracts photos from twitter URLs and can be used to attach them to a given activity.
@@ -24,15 +25,19 @@ class ImageExtractor
      * ImageExtractor constructor.
      * @param GuzzleHttp\Client $httpClient
      * @param Logger $logger
+     * @param AttachmentDelegate $attachmentDelegate
+     * @param Save $saveAction
      */
     public function __construct(
-        ?GuzzleClient $httpClient = null,
+        ?Client $httpClient = null,
         ?Logger $logger = null,
-        ?AttachmentDelegate $attachmentDelegate = null
+        ?AttachmentDelegate $attachmentDelegate = null,
+        ?Save $saveAction = null
     ) {
         $this->httpClient = $httpClient ?? new GuzzleHttp\Client();
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->attachmentDelegate = $attachmentDelegate ?? new AttachmentDelegate();
+        $this->saveAction = $saveAction ?? new Save();
     }
 
     /**
@@ -45,7 +50,8 @@ class ImageExtractor
     public function extractAndUploadToActivity(string $imageUrl, Activity $activity): Activity
     {
         try {
-            $owner = new User($activity['ownerObj']['guid']);
+            $owner = $activity->getOwnerEntity();
+
             $entityGuid = $this->extractAndUpload($imageUrl, $owner);
 
             if (!$entityGuid) {
@@ -56,7 +62,7 @@ class ImageExtractor
 
             $this->attachmentDelegate
                 ->setActor($owner)
-                ->onCreate($activity, (string) $entityGuid);
+                ->onCreate($activity, $entityGuid);
 
             return $activity;
         } catch (\Exception $e) {
@@ -109,21 +115,22 @@ class ImageExtractor
      * @param User $user - user to upload for.
      * @return string - entity_guid once uploaded.
      */
-    protected function upload($imageStream, $user): string
+    protected function upload(string $imageStream, User $user): string
     {
         $image = new Image();
         $image->ownerObj = $user;
         $image->owner_guid = $user->getGuid();
         $image->batch_guid = 0;
         $image->access_id = 0;
-        $guid = $image->save();
+
+        $guid = $this->saveAction->setEntity($image)->save(true);
+
         $image->filename = "/image/$image->batch_guid/$image->guid/master.jpg";
         $fp = fopen("/tmp/{$image->guid}-master.jpg", "w");
         fwrite($fp, $imageStream);
         fclose($fp);
 
         $image->createThumbnails("/tmp/{$image->guid}-master.jpg");
-        $image->save();
         unlink("/tmp/{$image->guid}-master.jpg");
 
         return $guid;
