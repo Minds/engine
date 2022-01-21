@@ -139,7 +139,7 @@ class ManagerSpec extends ObjectBehavior
                         ->setUserGuid('123')
                         ->setUserLiquidityTokens(BigDecimal::of(10)),
                 ]);
-        // We request yesterdays RewardEntry
+        // // We request yesterdays RewardEntry
         $this->repository->getList(Argument::that(function ($opts) {
             return $opts->getUserGuid() === '123'
                 && $opts->getDateTs()  === time() - 86400;
@@ -157,28 +157,6 @@ class ManagerSpec extends ObjectBehavior
             return $rewardEntry->getUserGuid() === '123'
                 && (string) $rewardEntry->getScore() === '10.054794520550'
                 && $rewardEntry->getRewardType() === 'liquidity';
-        }))->shouldBeCalled();
-
-        // Holding
-        $this->blockFinder->getBlockByTimestamp(Argument::any())
-            ->willReturn(1);
-
-        $this->uniqueOnChainManager->getAll()
-            ->willReturn(new Response([
-                (new UniqueOnChainAddress)
-                    ->setAddress('0xAddresss')
-                    ->setUserGuid('123')
-            ]));
-        
-        $this->token->fromTokenUnit("10")
-                ->willReturn(10);
-        $this->token->balanceOf('0xAddresss', 1)
-                ->willReturn("10");
-
-        $this->repository->add(Argument::that(function ($rewardEntry) {
-            return $rewardEntry->getUserGuid() === '123'
-                && (string) $rewardEntry->getScore() === "10.1095890410900"
-                && $rewardEntry->getRewardType() === 'holding';
         }))->shouldBeCalled();
 
         // Calculation of tokens
