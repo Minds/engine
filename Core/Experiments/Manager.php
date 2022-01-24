@@ -6,6 +6,9 @@ namespace Minds\Core\Experiments;
 
 use Minds\Entities\User;
 use Growthbook;
+use GuzzleHttp;
+use Minds\Core\Config\Config;
+use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Cookie\Manager as CookieManager;
 
@@ -17,62 +20,109 @@ class Manager
     /** @var Growthbook\User */
     private $growthbookUser;
 
-    /** @var Growthbook\Experiment[] */
-    private $experiments;
+    /** @var User */
+    private $user;
 
     /** @var CookieManager */
     private $cookieManager;
 
-    public function __construct(Growthbook\Client $growthbook = null, CookieManager $cookieManager = null)
-    {
+    /** @var GuzzleHttp\Client */
+    private $httpClient;
+
+    /** @var Config */
+    private $config;
+
+    /** @var PsrWrapper */
+    private $psrCache;
+
+    /** @var string */
+    const FEATURES_CACHE_KEY = 'growthbook-features';
+
+    public function __construct(
+        Growthbook\Client $growthbook = null,
+        CookieManager $cookieManager = null,
+        GuzzleHttp\Client $httpClient = null,
+        Config $config = null,
+        PsrWrapper $psrCache = null
+    ) {
         $this->growthbook = $growthbook ?? new Growthbook\Client();
         $this->cookieManager = $cookieManager ?? Di::_()->get('Experiments\Cookie\Manager');
-
-        $this->experiments = [
-            new Growthbook\Experiment("channel-gallery", ["on", "off"]),
-            new Growthbook\Experiment("boost-rotator", ["on", "off"]),
-            new Growthbook\Experiment("boost-prompt-2", ["on", "off"]),
-            new Growthbook\Experiment("discovery-homepage", ["off", "on"]),
-        ];
+        $this->httpClient = $httpClient ?? new GuzzleHttp\Client();
+        $this->config = $config ?? Di::_()->get('Config');
+        $this->psrCache = $psrCache ?? Di::_()->get('Cache\PsrWrapper');
     }
 
     /**
      * Set the user who will view experiments
+     * !! CONFUSION WARNING !!
+     * The id here is not what growthbook will use in its reporting.
+     * For reporting purposes in snowplow, anonymous users will be `network_user_id`
+     * and loggedin users will be `user_id`.
+     * If you're experiment is tracking conversion from logged out to signups, your report
+     * will want to use `network_user_id`
      * @param User $user (optional)
      * @return Manager
      */
     public function setUser(User $user = null)
     {
+        $this->user = $user;
+
+        // TODO: this will be removed soon
         $this->growthbookUser = $this->growthbook->user([
-            'id' => $this->getUserId($user)
+            'id' => $this->getUserId($user),
         ]);
         return $this;
     }
 
     /**
-     * Return a list of experiments
-     * @return Growthbook\TrackData<mixed>[]
+     * @return array
      */
-    public function getExperiments(): array
+    public function getFeatures($useCached = true): array
     {
-        foreach ($this->experiments as $experiment) {
-            $this->growthbookUser->experiment($experiment);
+        if (!$this->getGrowthbookFeaturesEndpoint()) {
+            return [];
         }
-        return $this->growthbook->getTrackData();
+        
+        // If we have a cached version use that
+        if ($useCached) {
+            $cached = $this->psrCache->get(static::FEATURES_CACHE_KEY);
+            if ($cached) {
+                return $cached;
+            }
+        }
+
+        try {
+            $json = $this->httpClient->request('GET', $this->getGrowthbookFeaturesEndpoint(), [
+                'headers' => [
+                    'Content-Type' => 'application/json'
+                ],
+            ]);
+
+            $responseData = json_decode($json->getBody()->getContents(), true);
+            $features = $responseData['features'] ?? [];
+
+            // Set the cache
+            $this->psrCache->set(static::FEATURES_CACHE_KEY, $features);
+        } catch (\Exception $e) {
+            return [];
+        }
+
+        return $features;
     }
 
     /**
+     * Returns public export of growthbook features
      * @return array
      */
-    public function getExportableExperiments(): array
+    public function getExportableConfig(): array
     {
-        return array_map(function ($trackData) {
-            return [
-                'experimentId' => $trackData->experiment->key,
-                'variationId' => $trackData->result->variationId,
-                'variations' => $trackData->experiment->variations
-            ];
-        }, $this->getExperiments());
+        return [
+            'attributes' => [
+                'id' => $this->getUserId($this->user),
+                'loggedIn' => !!$this->user,
+            ],
+            'features' => $this->getFeatures(),
+        ];
     }
     
     /**
@@ -99,5 +149,13 @@ class Manager
         $id = uniqid('exp-', true);
         $this->cookieManager->set($id);
         return $id;
+    }
+
+    /**
+     * @return string
+     */
+    private function getGrowthbookFeaturesEndpoint(): ?string
+    {
+        return $this->config->get('growthbook')['features_endpoint'] ?? null;
     }
 }
