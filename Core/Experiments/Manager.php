@@ -33,6 +33,7 @@ class Manager
             new Growthbook\Experiment("boost-rotator", ["on", "off"]),
             new Growthbook\Experiment("boost-prompt-2", ["on", "off"]),
             new Growthbook\Experiment("discovery-homepage", ["off", "on"]),
+            new Growthbook\Experiment("top-feed-2", ["on", "off"]),
         ];
     }
 
