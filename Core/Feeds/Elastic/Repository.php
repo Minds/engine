@@ -202,6 +202,7 @@ class Repository
             'quote_guid' => null,
             'include_group_posts' => false,
         ], $opts);
+
         if (!$opts['type']) {
             //   throw new \Exception('Type must be provided');
         }
