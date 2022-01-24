@@ -53,7 +53,7 @@ class group implements Interfaces\Api
 
         if (!$canRead) {
             // Restrict output if cannot read
-            $allowed = ['guid', 'name', 'membership', 'type', 'is:awaiting', 'is:invited', 'nsfw', 'nsfw_lock', 'conversationDisabled' ];
+            $allowed = ['guid', 'name', 'membership', 'type', 'is:awaiting', 'is:invited', 'nsfw', 'nsfw_lock', 'conversationDisabled', 'briefdescription' ];
             if ($response['group']['membership'] == 2) {
                 $allowed = array_merge($allowed, ['members:count', 'activity:count', 'comments:count']);
             }
@@ -142,7 +142,7 @@ class group implements Interfaces\Api
         }
 
         if (isset($_POST['briefdescription'])) {
-            $sanitized_briefdescription = htmlspecialchars(trim($_POST['briefdescription']));
+            $sanitized_briefdescription = htmlspecialchars(trim($_POST['briefdescription']), ENT_QUOTES, null, false);
 
             if (strlen($sanitized_briefdescription) > 2048) {
                 $sanitized_briefdescription = substr($sanitized_briefdescription, 0, 2048);

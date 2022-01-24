@@ -92,7 +92,8 @@ class Provider extends DiProvider
                 'social-compass',
                 'content-settings-modal',
                 'nav-2021',
-                'top-feed'
+                'top-feed',
+                'web3-service-withdrawals'
             ];
         });
 

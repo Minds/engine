@@ -125,6 +125,10 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 'referrer' => isset($_COOKIE['referrer']) ? $_COOKIE['referrer'] : '',
             ];
 
+            (new PseudonymousIdentifier())
+                ->setUser($user)
+                ->generateWithPassword($password);
+
             // TODO: Move full reguster flow to the core
             elgg_trigger_plugin_hook('register', 'user', $params, true);
             Core\Events\Dispatcher::trigger('register', 'user', $params);
@@ -134,10 +138,6 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             $sessions->setUser($user);
             $sessions->createSession();
             $sessions->save(); // Save to db and cookie
-
-            (new PseudonymousIdentifier())
-                ->setUser($user)
-                ->generateWithPassword($password);
 
             $response = [
                 'guid' => $guid,
