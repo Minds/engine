@@ -2,6 +2,8 @@
 
 namespace Spec\Minds\Core\Experiments;
 
+use GuzzleHttp\Client;
+use Minds\Core\Config\Config;
 use Minds\Core\Experiments\Manager;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -9,6 +11,7 @@ use Prophecy\Argument;
 use Minds\Core\Experiments\Sampler;
 use Minds\Core\Experiments\Bucket;
 use Minds\Core\Experiments\Hypotheses\Homepage121118;
+use Zend\Diactoros\Response\JsonResponse;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -17,9 +20,31 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_return_a_list_of_experiments()
+    public function it_should_return_a_list_of_growthbook_features(Client $httpClient, Config $config)
     {
-        $this->setUser()->getExperiments()->shouldHaveCount(5);
+        $this->beConstructedWith(null, null, $httpClient, $config);
+
+        $config->get('growthbook')
+            ->willReturn([
+                'features_endpoint' => 'https://growthbook-api.phpspec.test/api/features/key_stub',
+            ]);
+
+        $httpClient->request('GET', 'https://growthbook-api.phpspec.test/api/features/key_stub', Argument::any())
+            ->willReturn(new JsonResponse([
+                'features' => [
+                    'discovery-homepage' => [
+                        'defaultValue' => false,
+                    ]
+                ],
+            ]));
+
+        $this->getFeatures(false)
+            ->shouldBe([
+                'discovery-homepage' => [
+                    'defaultValue' => false,
+                ]
+            ]);
+        //$this->setUser()->getExperiments()->shouldHaveCount(4);
     }
 
     // public function it_should_return_bucket_for_experiment(
