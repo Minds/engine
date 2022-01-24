@@ -117,9 +117,10 @@ class Exported
             'statuspage_io' => [
                 'url' => $this->config->get('statuspage_io')['url'] ?? null,
             ],
-            'experiments' => $this->experimentsManager
+            'experiments' => [], // TODO: remove when clients support growthbook features
+            'growthbook' =>  $this->experimentsManager
                 ->setUser(Session::getLoggedinUser())
-                ->getExportableExperiments(),
+                ->getExportableConfig(),
             'twitter' => [
                 'min_followers_for_sync' => $this->config->get('twitter')['min_followers_for_sync'] ?? 25000,
             ]
