@@ -29,10 +29,10 @@ class ImageExtractor
      * @param Save $saveAction
      */
     public function __construct(
-        ?Client $httpClient = null,
-        ?Logger $logger = null,
-        ?AttachmentDelegate $attachmentDelegate = null,
-        ?Save $saveAction = null
+        protected ?Client $httpClient = null,
+        protected ?Logger $logger = null,
+        protected ?AttachmentDelegate $attachmentDelegate = null,
+        protected ?Save $saveAction = null
     ) {
         $this->httpClient = $httpClient ?? new GuzzleHttp\Client();
         $this->logger = $logger ?? Di::_()->get('Logger');
