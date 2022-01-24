@@ -139,7 +139,7 @@ class ManagerSpec extends ObjectBehavior
                         ->setUserGuid('123')
                         ->setUserLiquidityTokens(BigDecimal::of(10)),
                 ]);
-        // // We request yesterdays RewardEntry
+        // We request yesterdays RewardEntry
         $this->repository->getList(Argument::that(function ($opts) {
             return $opts->getUserGuid() === '123'
                 && $opts->getDateTs()  === time() - 86400;
