@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\Media\YouTubeImporter;
 
 use Minds\Common\Repository\Response;
 use Minds\Core\Config\Config;
+use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Data\Call;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
@@ -19,6 +20,8 @@ use Minds\Core\Media\YouTubeImporter\TranscoderBridge;
 use Minds\Core\Media\YouTubeImporter\YTVideo;
 use Minds\Core\Media\YouTubeImporter\YTClient;
 use Minds\Core\Media\YouTubeImporter\YTApi;
+use Minds\Core\Feeds\Activity\RichEmbed\Manager as RichEmbedManager;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Entities\User;
 use Minds\Entities\Video;
 use PhpSpec\ObjectBehavior;
@@ -66,6 +69,15 @@ class ManagerSpec extends ObjectBehavior
     /** @var TranscoderBridge */
     protected $transcoderBridge;
 
+    /** @var PsrWrapper */
+    protected $cache;
+
+    /** @var KeyValueLimiter */
+    protected $kvLimiter;
+
+    /** @var RichEmbedManager */
+    protected $richEmbedManager;
+
     public function let(
         Repository $repository,
         MediaRepository $mediaRepository,
@@ -78,7 +90,10 @@ class ManagerSpec extends ObjectBehavior
         VideoAssets $videoAssets,
         EntitiesBuilder $entitiesBuilder,
         Logger $logger,
-        TranscoderBridge $transcoderBridge
+        TranscoderBridge $transcoderBridge,
+        PsrWrapper $cache = null,
+        KeyValueLimiter $kvLimiter = null,
+        RichEmbedManager $richEmbedManager = null
     ) {
         $this->repository = $repository;
         $this->mediaRepository = $mediaRepository;
@@ -92,6 +107,9 @@ class ManagerSpec extends ObjectBehavior
         $this->logger = $logger;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->transcoderBridge = $transcoderBridge;
+        $this->cache = $cache;
+        $this->kvLimiter = $kvLimiter;
+        $this->richEmbedManager = $richEmbedManager;
 
         $this->beConstructedWith(
             $repository,
@@ -105,7 +123,10 @@ class ManagerSpec extends ObjectBehavior
             $videoAssets,
             $entitiesBuilder,
             $logger,
-            $transcoderBridge
+            $transcoderBridge,
+            $cache,
+            $kvLimiter,
+            $richEmbedManager
         );
     }
 
@@ -226,5 +247,56 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->onQueue($video);
+    }
+
+    public function it_should_import_a_video_and_post_as_rich_embed(
+        YTVideo $ytVideo,
+        User $user
+    ) {
+        $videoId = 'videoId';
+        $channelId = 'channelId';
+        $ownerGuid = 'ownerGuid';
+
+        $ytVideo->getOwner()->shouldBeCalled()->willReturn($user);
+        $ytVideo->getChannelId()->shouldBeCalled()->willReturn($channelId);
+
+        $user->getYouTubeChannels()->shouldBeCalled()->willReturn([
+            [
+                'id' => $channelId,
+            ],
+        ]);
+
+        $user->getGuid()->shouldBeCalled()->willReturn($ownerGuid);
+
+        $ytVideo->getOwnerGuid()->shouldBeCalled()->willReturn($ownerGuid);
+
+        $ytVideo->getVideoId()->shouldBeCalled()->willReturn($videoId);
+
+        $ytVideo->setOwnerGuid($ownerGuid)->shouldBeCalled();
+
+        $this->entitiesBuilder->single($ownerGuid)->shouldBeCalled()->willReturn($user);
+
+        $this->richEmbedManager->getRichEmbed('https://www.youtube.com/watch?v=' . $videoId)
+            ->shouldBeCalled()
+            ->willReturn([
+                'meta' => [
+                    'title' => 'title',
+                    'description' => 'description',
+                ],
+                'links' => [
+                    'thumbnail' => [
+                        0 => [ 'href' => 'thumbnail' ],
+                    ]
+                ],
+            ]);
+
+        $user->export()->shouldBeCalled()->willReturn([
+            'guid' => $ownerGuid,
+        ]);
+
+        $this->save->setEntity(Argument::any())->shouldBeCalled()->willReturn($this->save);
+        $this->save->save()->shouldBeCalled();
+            
+        $this->import($ytVideo, false);
     }
 }
