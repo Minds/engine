@@ -269,15 +269,6 @@ class Event
         /** @var User */
         $user = $this->entitiesBuilder->single($this->data['user_guid']);
 
-        /**
-         * Gather all our experiments we have been part of
-         */
-        foreach ($this->experimentsManager->setUser($user)->getExperiments() as $trackData) {
-            $context = new Snowplow\Contexts\SnowplowGrowthbookContext();
-            $context->setExperimentId($trackData->experiment->key)
-                ->setVariationId((int) $trackData->result->variationId);
-            $contexts[] = $context;
-        }
 
         $event->setContext($contexts);
 
