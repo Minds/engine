@@ -5,6 +5,7 @@ namespace Minds\Core\Feeds\UnseenTopFeed;
 use Exception;
 use Minds\Common\PseudonymousIdentifier;
 use Minds\Common\Repository\Response;
+use Minds\Core;
 use Minds\Core\Data\cache\Redis;
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Elastic\Manager as ElasticSearchManager;
@@ -22,18 +23,25 @@ class Manager implements ManagerInterface
     }
 
     /**
-     * @param int $totalEntitiesToRetrieve
+     * @param int $limit
      * @return Response
      * @throws Exception
      */
     public function getUnseenTopEntities(
-        int $totalEntitiesToRetrieve
+        int $limit
     ): Response {
+        /** @var User $user */
+        $user = Core\Session::getLoggedinUser();
+
         $queryOptions = [
-            'limit' => $totalEntitiesToRetrieve,
+            'cache_key' => $user->guid,
+            'subscriptions' => $user->guid,
+            'access_id' => 2,
+            'limit' => $limit,
             'type' => 'activity',
             'algorithm' => 'top',
-            'period' => 'all' // legacy option
+            'period' => 'all', // legacy option
+            'single_owner_threshold' => 0,
         ];
 
         $previouslySeenEntities = $this->getUserPreviouslySeenTopFeedEntitiesCacheAvailable();
