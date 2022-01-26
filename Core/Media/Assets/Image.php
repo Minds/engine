@@ -4,6 +4,7 @@ namespace Minds\Core\Media\Assets;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities;
+use PHPStan\File\CouldNotWriteFileException;
 
 class Image implements AssetsInterface
 {

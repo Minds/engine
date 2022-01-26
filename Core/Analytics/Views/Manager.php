@@ -7,6 +7,8 @@
 namespace Minds\Core\Analytics\Views;
 
 use Exception;
+use Minds\Common\Urn;
+use Minds\Core\Feeds\UnseenTopFeed\Manager as UnseenTopFeedManager;
 
 class Manager
 {
@@ -16,12 +18,17 @@ class Manager
     /** @var ElasticRepository */
     protected $elasticRepository;
 
+    /** @var UnseenTopFeedManager */
+    protected $unseenTopFeedManager;
+
     public function __construct(
         $repository = null,
-        $elasticRepository = null
+        $elasticRepository = null,
+        $unseenTopFeedManager = null,
     ) {
         $this->repository = $repository ?: new Repository();
         $this->elasticRepository = $elasticRepository ?: new ElasticRepository();
+        $this->unseenTopFeedManager = $unseenTopFeedManager ?: new UnseenTopFeedManager();
     }
 
     /**
@@ -38,6 +45,10 @@ class Manager
             ->setDay(null)
             ->setUuid(null)
             ->setTimestamp(time());
+
+        // Mark the entity as 'seen'
+        $entityGuid = (new Urn($view->getEntityUrn()))->getNss();
+        $this->unseenTopFeedManager->seeEntities([$entityGuid]);
 
         // Add to repository
         $this->repository->add($view);
