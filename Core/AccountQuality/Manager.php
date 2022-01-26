@@ -12,6 +12,11 @@ class Manager implements ManagerInterface
         $this->repository = $this->repository ?? new Repository();
     }
 
+    /**
+     * Retrieves the account quality score based on the userId provided
+     * @param string $userId
+     * @return Response
+     */
     public function getAccountQualityScore(string $userId): Response
     {
         $userQualityScore = $this->repository->getAccountQualityScore($userId);

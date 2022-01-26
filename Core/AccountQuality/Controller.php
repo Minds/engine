@@ -2,6 +2,11 @@
 
 namespace Minds\Core\AccountQuality;
 
+use Exception;
+use Minds\Common\Repository\Response;
+use Minds\Core\AccountQuality\ResponseBuilders\GetAccountQualityScoreResponseBuilder;
+use Minds\Core\AccountQuality\Validators\GetAccountQualityScoreRequestValidator;
+use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
 
@@ -16,13 +21,25 @@ class Controller
         $this->manager = $this->manager ?? new Manager();
     }
 
-    public function getAccountQualityScores(ServerRequestInterface $request): JsonResponse
-    {
-
-    }
-
+    /**
+     * Http route: api/v3/account-quality/:targetUserGuid
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     * @throws UserErrorException
+     */
     public function getAccountQualityScore(ServerRequestInterface $request): JsonResponse
     {
-        $targetUserId = $this->
+        $parameters = $request->getAttributes()["parameters"];
+        $requestValidator = new GetAccountQualityScoreRequestValidator();
+
+        $responseBuilder = new GetAccountQualityScoreResponseBuilder();
+
+        if (!$requestValidator->validate($parameters)) {
+            return $responseBuilder->buildBadRequestResponse($requestValidator->getErrors());
+        }
+
+        $results = $this->manager->getAccountQualityScore($parameters['targetUserGuid']);
+
+        return $responseBuilder->buildSuccessfulResponse($results);
     }
 }

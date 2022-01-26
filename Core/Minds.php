@@ -62,6 +62,7 @@ class Minds extends base
         Votes\Module::class,
         Helpdesk\Zendesk\Module::class,
         SocialCompass\Module::class,
+        AccountQuality\Module::class,
     ];
 
     /**

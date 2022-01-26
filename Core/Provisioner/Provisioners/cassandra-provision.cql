@@ -1716,3 +1716,10 @@ CREATE TABLE minds.social_compass_answers (
     current_value int,
     PRIMARY KEY (user_guid, question_id)
 );
+
+CREATE TABLE minds.account_quality_scores (
+    user_guid bigint,
+    last_updated_timestamp timestamp,
+    score float,
+    PRIMARY KEY ( user_guid, last_updated_timestamp )
+);

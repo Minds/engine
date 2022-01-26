@@ -4,6 +4,10 @@ namespace Minds\Core\AccountQuality;
 
 interface RepositoryInterface
 {
-    public function getAccountQualityScores(?array $userIds = null): array;
-    public function getAccountQualityScore(string $userId): int;
+    /**
+     * Retrieves the account quality score based on the userId provided
+     * @param string $userId
+     * @return float
+     */
+    public function getAccountQualityScore(string $userId): float;
 }
