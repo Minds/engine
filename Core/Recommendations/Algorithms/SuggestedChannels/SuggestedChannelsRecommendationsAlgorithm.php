@@ -1,9 +1,11 @@
 <?php
 
-namespace Minds\Core\Recommendations\Algorithms;
+namespace Minds\Core\Recommendations\Algorithms\SuggestedChannels;
 
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
+use Minds\Core\Recommendations\Algorithms\AbstractRecommendationsAlgorithm;
+use Minds\Core\Recommendations\Algorithms\AlgorithmOptions;
 use Minds\Core\Suggestions\Manager as SuggestionsManager;
 
 /**

@@ -11,9 +11,4 @@ class ManagerSpec extends ObjectBehavior
     {
         $this->shouldHaveType(Manager::class);
     }
-
-    public function it_should_return_recommendations(): void
-    {
-        $this->getRecommendations("feed-sidebar");
-    }
 }

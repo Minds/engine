@@ -1,8 +1,11 @@
 <?php
 
-namespace Minds\Core\Recommendations\Algorithms;
+namespace Minds\Core\Recommendations\Algorithms\WiderNetwork;
 
 use Minds\Common\Repository\Response;
+use Minds\Core\Recommendations\Algorithms\AbstractRecommendationsAlgorithm;
+use Minds\Core\Recommendations\Algorithms\AlgorithmOptions;
+use Minds\Core\Recommendations\Algorithms\RecommendationsAlgorithmInterface;
 use Minds\Core\Recommendations\Repository;
 use Minds\Core\Recommendations\RepositoryInterface;
 use Minds\Core\Recommendations\RepositoryOptions;
