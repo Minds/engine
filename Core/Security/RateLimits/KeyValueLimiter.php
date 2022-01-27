@@ -203,4 +203,19 @@ class KeyValueLimiter
         }
         return $this->redis;
     }
+
+    /**
+     * Triggers an unlink (equivalent of delete) for this instances rate limits.
+     * @return void
+     */
+    public function delete(): void
+    {
+        foreach ($this->getRateLimits() as $rateLimit) {
+            $this->getRedis()->unlink(
+                $this->getRecordKey(
+                    $rateLimit
+                )
+            );
+        }
+    }
 }
