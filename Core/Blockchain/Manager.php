@@ -82,6 +82,7 @@ class Manager
                 'rpc_url' => $blockchainConfig['skale']['rpc_url'] ?? '',
                 'chain_id_hex' => $blockchainConfig['skale']['chain_id_hex'] ?? '',
                 'erc20_address' => $blockchainConfig['skale']['erc20_address'] ?? '',
+                'faucet_claim_threshold_wei' => $blockchainConfig['skale']['faucet_claim_threshold_wei'] ?? '',
             ],
             'overrides' => $this->getOverrides(),
             'withdraw_limit' => $blockchainConfig['contracts']['withdraw']['limit'] ?? 1,
