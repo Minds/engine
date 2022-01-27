@@ -4,6 +4,7 @@ namespace Minds\Core\AccountQuality\Validators;
 
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
+use Minds\Helpers\UserValidator;
 use Minds\Interfaces\ValidatorInterface;
 
 class GetAccountQualityScoreRequestValidator implements ValidatorInterface
@@ -21,6 +22,10 @@ class GetAccountQualityScoreRequestValidator implements ValidatorInterface
 
         if (empty($dataToValidate['targetUserGuid'])) {
             $this->errors->add(new ValidationError("targetUserId", "The user guid must be provided."));
+        }
+
+        if (!UserValidator::isValidUserId($dataToValidate['targetUserGuid'])) {
+            $this->errors->add(new ValidationError("targetUserId", "The user guid must be a valid user id."));
         }
 
         return $this->errors->count() == 0;
