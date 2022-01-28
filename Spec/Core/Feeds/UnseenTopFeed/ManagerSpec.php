@@ -7,6 +7,7 @@ use Minds\Core\Data\cache\Redis;
 use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Feeds\UnseenTopFeed\Manager;
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -45,7 +46,7 @@ class ManagerSpec extends ObjectBehavior
         $this->beConstructedWith($redisClient, $elasticManager);
 
         $this
-            ->getUnseenTopEntities(10)
+            ->getUnseenTopEntities(new User(1), 10)
             ->shouldBeEqualTo($expectedResponse);
     }
 
@@ -63,7 +64,7 @@ class ManagerSpec extends ObjectBehavior
         $this->beConstructedWith($redisClient, $elasticManager);
 
         $this
-            ->getUnseenTopEntities(10)
+            ->getUnseenTopEntities(new User(1), 10)
             ->shouldHaveCount($expectedResponse->count());
     }
 
@@ -83,7 +84,7 @@ class ManagerSpec extends ObjectBehavior
         $this->beConstructedWith($redisClient, $elasticManager);
 
         $this
-            ->getUnseenTopEntities(10)
+            ->getUnseenTopEntities(new User(1), 10)
             ->shouldHaveCount($expectedResponse->count());
     }
 
@@ -103,7 +104,7 @@ class ManagerSpec extends ObjectBehavior
         $this->beConstructedWith($redisClient, $elasticManager);
 
         $this
-            ->getUnseenTopEntities(10)
+            ->getUnseenTopEntities(new User(1), 10)
             ->shouldHaveCount($expectedResponse->count());
     }
 }

@@ -28,6 +28,8 @@ class Controller
      */
     public function getUnseenTopFeed(ServerRequestInterface $request): JsonResponse
     {
+        $loggedInUser = $request->getAttribute('_user');
+
         $responseBuilder = new UnseenTopFeedResponseBuilder();
         $requestValidator = new UnseenTopFeedRequestValidator();
 
@@ -36,7 +38,7 @@ class Controller
         }
 
         $totalEntitiesToRetrieve = $request->getQueryParams()["limit"];
-        $response = $this->manager->getUnseenTopEntities($totalEntitiesToRetrieve);
+        $response = $this->manager->getUnseenTopEntities($loggedInUser, $totalEntitiesToRetrieve);
 
         return $responseBuilder->buildSuccessfulResponse($response);
     }
