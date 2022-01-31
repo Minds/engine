@@ -2,6 +2,7 @@
 namespace Minds\Core\Hashtags\Trending;
 
 use Minds\Common\Repository\Response;
+use Minds\Core\Config\Config as ConfigConfig;
 use Minds\Core\Di\Di;
 use Minds\Interfaces\BasicCacheInterface;
 
@@ -14,10 +15,12 @@ class Manager implements ManagerInterface
 {
     public function __construct(
         private ?Repository $repository = null,
-        private ?BasicCacheInterface $cache = null
+        private ?BasicCacheInterface $cache = null,
+        private ?ConfigConfig $config = null
     ) {
         $this->repository = $repository ?? Di::_()->get('Hashtags\Trending\Repository');
         $this->cache = $cache ?? Di::_()->get('Hashtags\Trending\Cache');
+        $this->config = $config ?? Di::_()->get('Config');
     }
 
     /**
@@ -26,7 +29,10 @@ class Manager implements ManagerInterface
      */
     public function getCurrentlyTrendingHashtags(): array
     {
-        if (count($cached = $this->cache->get())) {
+        if (
+            !$this->config->get('trending_tags_development_mode') &&
+            count($cached = $this->cache->get())
+        ) {
             return $cached;
         }
 
@@ -46,10 +52,19 @@ class Manager implements ManagerInterface
      */
     protected function getPreviouslyTrending(): array
     {
+        $from = strtotime('-48 hours', time());
+        $to = strtotime('-24 hours', time());
+
+        if ($this->config->get('trending_tags_development_mode')) {
+            $from = strtotime('-2 years', time());
+            $to = strtotime('-1 year', time());
+        }
+
         $response = $this->repository->getList([
-            'from' => strtotime('-48 hours', time()),
-            'to' => strtotime('-24 hours', time()),
+            'from' => $from,
+            'to' => $to,
         ]);
+
         return $this->getTagNameArrayFromResponse($response);
     }
 
@@ -60,10 +75,17 @@ class Manager implements ManagerInterface
      */
     protected function getDailyTrending(array $excludeTags = []): array
     {
+        $from = strtotime('-24 hours', time());
+
+        if ($this->config->get('trending_tags_development_mode')) {
+            $from = strtotime('-1 year', time());
+        }
+
         $response = $this->repository->getList([
-            'from' => strtotime('-24 hours', time()),
+            'from' => $from,
             'exclude_tags' => $excludeTags
         ]);
+
         return $response->toArray();
     }
 
