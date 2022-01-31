@@ -90,8 +90,12 @@ class Controllers
     public function getTags(ServerRequest $request): JsonResponse
     {
         $wireSupportTier = $request->getQueryParams()['wire_support_tier'] ?? null;
+        $trendingTagsV2 = $request->getQueryParams()['trending_tags_v2'] ?? false;
 
-        $tags = $this->manager->getTags(['wire_support_tier' => $wireSupportTier]);
+        $tags = $this->manager->getTags([
+            'wire_support_tier' => $wireSupportTier,
+            'trending_tags_v2' => $trendingTagsV2
+        ]);
 
         $entityGuid = $request->getQueryParams()['entity_guid'] ?? null;
 

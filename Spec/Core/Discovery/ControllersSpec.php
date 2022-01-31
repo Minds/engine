@@ -103,7 +103,10 @@ class ControllersSpec extends ObjectBehavior
 
     public function it_should_get_tags_response(ServerRequest $request)
     {
-        $opts = ['wire_support_tier' => null];
+        $opts = [
+            'wire_support_tier' => null,
+            'trending_tags_v2' => false,
+        ];
 
         $this->manager->getTags($opts)
             ->willReturn([
@@ -168,7 +171,10 @@ class ControllersSpec extends ObjectBehavior
 
     public function it_should_get_related_tags_response(ServerRequest $request)
     {
-        $opts = ['wire_support_tier' => null];
+        $opts = [
+            'wire_support_tier' => null,
+            'trending_tags_v2' => false
+        ];
 
         $this->manager->getTags($opts)
             ->willReturn([
