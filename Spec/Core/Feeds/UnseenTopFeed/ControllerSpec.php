@@ -7,6 +7,7 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Feeds\UnseenTopFeed\Controller;
 use Minds\Core\Feeds\UnseenTopFeed\Manager;
+use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -47,6 +48,7 @@ class ControllerSpec extends ObjectBehavior
     ) {
         $request = (new ServerRequest())
             ->withMethod("GET")
+            ->withAttribute("_user", new User(1))
             ->withQueryParams([
                 'limit' => 1
             ]);
@@ -56,7 +58,7 @@ class ControllerSpec extends ObjectBehavior
         ]);
 
         $manager
-            ->getUnseenTopEntities(Argument::any())
+            ->getUnseenTopEntities(Argument::type(User::class), Argument::any())
             ->shouldBeCalledOnce()
             ->willReturn($expectedEntities);
 
