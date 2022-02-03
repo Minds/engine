@@ -7,7 +7,6 @@
 namespace Minds\Core\Discovery;
 
 use Minds\Core\Di\Ref;
-use Minds\Core\Router\Middleware\LoggedInMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 
@@ -20,9 +19,6 @@ class Routes extends ModuleRoutes
     {
         $this->route
             ->withPrefix('api/v3/discovery')
-            ->withMiddleware([
-                //LoggedInMiddleware::class,
-            ])
             ->do(function (Route $route) {
                 $route->get(
                     'trends',
@@ -39,6 +35,10 @@ class Routes extends ModuleRoutes
                 $route->post(
                     'tags',
                     Ref::_('Discovery\Controllers', 'setTags')
+                );
+                $route->get(
+                    'for-you',
+                    Ref::_('Discovery\Controllers', 'getForYou')
                 );
             });
     }

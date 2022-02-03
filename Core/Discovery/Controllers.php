@@ -1,6 +1,9 @@
 <?php
 namespace Minds\Core\Discovery;
 
+use Minds\Core\Discovery\ResponseBuilders\GetDiscoveryForYouResponseBuilder;
+use Minds\Core\Discovery\Validators\GetDiscoveryForYouRequestValidator;
+use MongoDB\Driver\Server;
 use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\Response\JsonResponse;
 use Minds\Api\Exportable;
@@ -126,5 +129,19 @@ class Controllers
 
         $success = $this->manager->setTags($selected, $deselected);
         return new JsonResponse([ 'status' => $success ? 'success' : 'error', ]);
+    }
+
+    /**
+     * @param ServerRequest $request
+     * @return JsonResponse
+     */
+    public function getForYou(ServerRequest $request): JsonResponse
+    {
+        $requestValidator = new GetDiscoveryForYouRequestValidator();
+        $responseBuilder = new GetDiscoveryForYouResponseBuilder();
+
+        if (!$requestValidator->validate($request->getQueryParams())) {
+            return $responseBuilder->buildBadRequestResponse($requestValidator->getErrors());
+        }
     }
 }

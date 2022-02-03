@@ -8,7 +8,6 @@ use Minds\Core\Recommendations\Algorithms\AlgorithmOptions;
 use Minds\Core\Recommendations\Algorithms\RecommendationsAlgorithmInterface;
 use Minds\Core\Recommendations\Repository;
 use Minds\Core\Recommendations\RepositoryInterface;
-use Minds\Core\Recommendations\RepositoryOptions;
 use Minds\Entities\User;
 
 /**
@@ -45,11 +44,28 @@ class WiderNetworkRecommendationsAlgorithm extends AbstractRecommendationsAlgori
     }
 
     /**
+     * Set the options to use for the algorithm
+     * @param AlgorithmOptions $options
+     * @return $this
+     */
+    public function setOptions(AlgorithmOptions $options): self
+    {
+        $this->options = $options;
+        return $this;
+    }
+
+    /**
      * Returns the list of recommendations based on the current recommendation's algorithm
      * @return Response
      */
     public function getRecommendations(): Response
     {
         return $this->repository?->getList($this->options->toArray());
+    }
+
+    public function getDiscoveryForYouFeed(?AlgorithmOptions $options = null): Response
+    {
+        $results = $this->repository?->getList($this->options->toArray());
+        return new Response([]);
     }
 }

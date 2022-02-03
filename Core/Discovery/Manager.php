@@ -21,6 +21,8 @@ class Manager
     /** @var array */
     const GLOBAL_EXCLUDED_TAGS = [ 'minds', 'news' ];
 
+    private const SEARCH_HARD_LIMIT = 150;
+
     /** @var array */
     private $tagCloud = [];
 
@@ -730,5 +732,19 @@ class Manager
         } catch (\Exception $e) {
             return null;
         }
+    }
+
+    public function getForYouWiderNetworkEntities(?array $opts = []): Response
+    {
+        return new Response([]);
+    }
+
+    private function prepareElasticSearchWiderNetworkQueryOptions(?array $opts = []): array
+    {
+    }
+
+    private function calculateWiderNetworkElasticSearchQueryLimit(array $opts): int
+    {
+        return ($opts['offset'] + $opts['limit'] > self::SEARCH_HARD_LIMIT) ? self::SEARCH_HARD_LIMIT - $opts['offset'] : $opts['limit'];
     }
 }
