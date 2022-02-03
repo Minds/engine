@@ -2,8 +2,6 @@
 
 namespace Minds\Core\AccountQuality;
 
-use Exception;
-use Minds\Common\Repository\Response;
 use Minds\Core\AccountQuality\ResponseBuilders\GetAccountQualityScoreResponseBuilder;
 use Minds\Core\AccountQuality\Validators\GetAccountQualityScoreRequestValidator;
 use Minds\Exceptions\UserErrorException;

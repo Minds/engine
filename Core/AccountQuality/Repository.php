@@ -7,9 +7,13 @@ use Minds\Core\Data\Cassandra\Client as CassandraClient;
 use Minds\Core\Data\Cassandra\Prepared\Custom as CustomQuery;
 use Minds\Core\Di\Di;
 
+/**
+ * Responsible to fetch the data from the relevant data sources
+ */
 class Repository implements RepositoryInterface
 {
     private const TABLE_NAME = "account_quality_scores";
+
     public function __construct(
         private ?CassandraClient $cassandraClient = null
     ) {

@@ -7,6 +7,9 @@ use Minds\Entities\ValidationErrorCollection;
 use Minds\Helpers\UserValidator;
 use Minds\Interfaces\ValidatorInterface;
 
+/**
+ * Responsible to run validation of the GET /api/v3/account-quality request
+ */
 class GetAccountQualityScoreRequestValidator implements ValidatorInterface
 {
     private ?ValidationErrorCollection $errors;

@@ -4,6 +4,9 @@ namespace Minds\Core\AccountQuality;
 
 use Minds\Common\Repository\Response;
 
+/**
+ * Responsible for the business logic in order to retrieve the relevant details required to the controller
+ */
 class Manager implements ManagerInterface
 {
     public function __construct(

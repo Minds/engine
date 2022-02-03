@@ -2,7 +2,6 @@
 
 namespace Minds\Core\AccountQuality\ResponseBuilders;
 
-use Minds\Api\Exportable;
 use Minds\Common\Repository\Response;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Exceptions\UserErrorException;
