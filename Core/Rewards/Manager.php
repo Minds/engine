@@ -618,6 +618,6 @@ class Manager
      */
     protected function verifyAccountQuality(string $userGuid): bool
     {
-        return $this->getAccountQualityScore($userGuid) > $this->config->get('account_quality_rewards_threshold');
+        return $this->getAccountQualityScore($userGuid) > ($this->config->get('account_quality_rewards_threshold') ?? 0.5);
     }
 }
