@@ -3,6 +3,7 @@
 namespace Minds\Core\Analytics\Metrics;
 
 use Minds\Core;
+use Minds\Core\AccountQuality\ManagerInterface as AccountQualityManagerInterface;
 use Minds\Core\Analytics\Snowplow;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\EntitiesBuilder;
@@ -53,19 +54,23 @@ class Event
     /** @var Experiments\Manager */
     private $experimentsManager;
 
+    /** @var AccountQualityManagerInterface */
+    private $accountQualityManager;
+
     /** @var array */
     protected $data;
 
     /** @var User */
     protected $user;
 
-    public function __construct($elastic = null, $snowplowManager = null, $entitiesBuilder = null, Experiments\Manager $experimentsManager = null)
+    public function __construct($elastic = null, $snowplowManager = null, $entitiesBuilder = null, Experiments\Manager $experimentsManager = null, AccountQualityManagerInterface $accountQualityManager = null)
     {
         $this->elastic = $elastic ?: Core\Di\Di::_()->get('Database\ElasticSearch');
         $this->index = 'minds-metrics-'.date('m-Y', time());
         $this->snowplowManager = $snowplowManager ?? Di::_()->get('Analytics\Snowplow\Manager');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
+        $this->accountQualityManager = $accountQualityManager ?? Di::_()->get('AccountQuality\Manager');
     }
 
     /**
@@ -104,6 +109,10 @@ class Event
 
         if ($this->user) {
             $this->data['user_is_plus'] = (bool) $this->user->isPlus();
+
+            if ($this->data['action']) {
+                $this->data['account_quality_score'] = $this->getAccountQualityScore();
+            }
         }
 
         $this->data['user_agent'] = $this->getUserAgent();
@@ -275,5 +284,16 @@ class Event
 
         // Emit the event
         $this->snowplowManager->setSubject($user)->emit($event);
+    }
+
+    /**
+     * Gets account quality score from manager.
+     * @return float account quality score.
+     */
+    protected function getAccountQualityScore(): float
+    {
+        return $this->accountQualityManager->getAccountQualityScoreAsFloat(
+            $this->user->getGuid()
+        );
     }
 }
