@@ -53,6 +53,7 @@ class Installer
             'no-https' => false,
             'sns-secret' => '',
             'checkout_domain' => 'localhost:8081',
+            'verify-service-sid' => '',
         ];
 
         usleep(mt_rand(1, 9999));

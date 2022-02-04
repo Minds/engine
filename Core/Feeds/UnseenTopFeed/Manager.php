@@ -8,6 +8,7 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Data\cache\Redis;
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Elastic\Manager as ElasticSearchManager;
+use Minds\Entities\User;
 
 class Manager implements ManagerInterface
 {
@@ -22,17 +23,20 @@ class Manager implements ManagerInterface
     }
 
     /**
+     * @param User $targetUser
      * @param int $totalEntitiesToRetrieve
      * @return Response
      * @throws Exception
      */
     public function getUnseenTopEntities(
+        User $targetUser,
         int $totalEntitiesToRetrieve
     ): Response {
         $queryOptions = [
             'limit' => $totalEntitiesToRetrieve,
             'type' => 'activity',
             'algorithm' => 'top',
+            'subscriptions' => $targetUser->getGuid(),
             'period' => 'all' // legacy option
         ];
 
