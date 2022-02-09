@@ -12,7 +12,7 @@ abstract class AbstractRecommendationsAlgorithm implements RecommendationsAlgori
     /**
      * @type string
      */
-    protected const FRIENDLY_ALGORITHM_NAME = "suggested-channels";
+    public const FRIENDLY_ALGORITHM_NAME = "";
 
     protected ?User $user;
 
@@ -22,7 +22,7 @@ abstract class AbstractRecommendationsAlgorithm implements RecommendationsAlgori
      */
     public function getFriendlyName(): string
     {
-        return self::FRIENDLY_ALGORITHM_NAME;
+        return static::FRIENDLY_ALGORITHM_NAME;
     }
 
     /**

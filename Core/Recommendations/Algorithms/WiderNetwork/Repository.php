@@ -1,8 +1,8 @@
 <?php
 
-namespace Minds\Core\Recommendations;
+namespace Minds\Core\Recommendations\Algorithms\WiderNetwork;
 
-use Minds\Common\Repository\Response;
+use Generator;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Client as ElasticSearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared\Search as PreparedSearchQuery;
@@ -28,9 +28,9 @@ class Repository implements RepositoryInterface
     /**
      * Returns a list of entities
      * @param array|null $options
-     * @return Response
+     * @return Generator|Suggestion[]
      */
-    public function getList(?array $options = null): Response
+    public function getList(?array $options = null): Generator
     {
         $this->options->init($options);
 
@@ -69,6 +69,52 @@ class Repository implements RepositoryInterface
         return $must;
     }
 
+    private function prepareFunctionScores(): array
+    {
+        return [
+            [
+                'filter' => [
+                    'range' => [
+                        '@timestamp' => [
+                            'gte' => strtotime('-12 hours'),
+                        ]
+                    ],
+                ],
+                'weight' => 4,
+            ],
+            [
+                'filter' => [
+                    'range' => [
+                        '@timestamp' => [
+                            'lt' => strtotime('-12 hours'),
+                            'gte' => strtotime('-36 hours'),
+                        ]
+                    ],
+                ],
+                'weight' => 2,
+            ],
+            // [
+            //     'gauss' => [
+            //         '@timestamp' => [
+            //             'offset' => '12h', // Do not decay until we reach this bound
+            //             'scale' => '24h', // Peak decay will be here
+            //             'decay' => 0.9
+            //         ],
+            //     ],
+            //     'weight' => 20,
+            // ]
+        ];
+    }
+
+    private function prepareSort(): array
+    {
+        return [
+            '_score' => [
+                'order' => 'desc'
+            ]
+        ];
+    }
+
     /**
      * Prepares the 'must' part of the query to ElasticSearch
      * @return array
@@ -96,25 +142,21 @@ class Repository implements RepositoryInterface
     {
         $query = [
             'index' => 'minds-metrics-*',
-            'size' => 0,
             'body' => [
                 'query' => [
-                    'bool' => [
-                        'must' => $must,
-                        'must_not' => $mustNot,
-                    ],
-                ],
-                'aggs' => [
-                    'subscriptions' => [
-                        'terms' => [
-                            'field' => 'entity_guid.keyword',
-                            'size' => $limit,
-                            'order' => [
-                                '_count' =>  'desc',
+                    'function_score' => [
+                        'query' => [
+                            'bool' => [
+                                'must' => $must,
+                                'must_not' => $mustNot,
                             ],
                         ],
-                    ],
+                        'functions' => $this->prepareFunctionScores()
+                    ]
                 ],
+                'sort' => [
+                    $this->prepareSort()
+                ]
             ],
         ];
 
@@ -126,22 +168,19 @@ class Repository implements RepositoryInterface
     /**
      * Processes the query response and prepares it in the format required for the 'getList' method to return
      * @param PreparedSearchQuery $preparedQuery
-     * @return Response
+     * @return Generator|Suggestion[]
      */
-    private function prepareResponse(PreparedSearchQuery $preparedQuery): Response
+    private function prepareResponse(PreparedSearchQuery $preparedQuery): Generator
     {
         $result = $this->elasticSearchClient->request($preparedQuery);
 
-        $response = new Response();
-
-        foreach ($result['aggregations']['subscriptions']['buckets'] as $row) {
-            $response[] = (new Suggestion())
-                ->setConfidenceScore($row['doc_count'])
-                ->setEntityGuid($row["key"])
-                ->setEntity(Factory::build($row["key"]))
-                ->setEntityType('user');
+        foreach ($result['hits']['hits'] as $row) {
+            $entry = $row['_source'];
+            yield (new Suggestion())
+                ->setConfidenceScore($row['_score'])
+                ->setEntityGuid($entry['entity_guid'])
+                ->setEntity(Factory::build($entry["entity_guid"]))
+                ->setEntityType('activity');
         }
-
-        return $response;
     }
 }

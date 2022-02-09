@@ -2,12 +2,18 @@
 
 namespace Minds\Core\Discovery\Validators;
 
+use Minds\Entities\User;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Interfaces\ValidatorInterface;
 
 class GetDiscoveryForYouRequestValidator implements ValidatorInterface
 {
     private ?ValidationErrorCollection $errors;
+
+    public function __construct(
+        private User $loggedInUser
+    ) {
+    }
 
     private function resetErrors(): void
     {

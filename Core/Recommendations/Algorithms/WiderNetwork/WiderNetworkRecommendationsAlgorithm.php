@@ -2,12 +2,11 @@
 
 namespace Minds\Core\Recommendations\Algorithms\WiderNetwork;
 
+use Generator;
 use Minds\Common\Repository\Response;
 use Minds\Core\Recommendations\Algorithms\AbstractRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Algorithms\AlgorithmOptions;
-use Minds\Core\Recommendations\Algorithms\RecommendationsAlgorithmInterface;
-use Minds\Core\Recommendations\Repository;
-use Minds\Core\Recommendations\RepositoryInterface;
+use Minds\Core\Suggestions\Suggestion;
 use Minds\Entities\User;
 
 /**
@@ -18,7 +17,7 @@ class WiderNetworkRecommendationsAlgorithm extends AbstractRecommendationsAlgori
     /**
      * @type string
      */
-    protected const FRIENDLY_ALGORITHM_NAME = "wider-network";
+    public const FRIENDLY_ALGORITHM_NAME = "wider-network";
     protected ?User $user;
 
     public function __construct(
@@ -32,9 +31,9 @@ class WiderNetworkRecommendationsAlgorithm extends AbstractRecommendationsAlgori
     /**
      * Sets the user to use for the recommendations algorithm
      * @param User|null $user
-     * @return RecommendationsAlgorithmInterface
+     * @return WiderNetworkRecommendationsAlgorithm
      */
-    public function setUser(?User $user): RecommendationsAlgorithmInterface
+    public function setUser(?User $user): self
     {
         $this->user = $user;
 
@@ -46,7 +45,7 @@ class WiderNetworkRecommendationsAlgorithm extends AbstractRecommendationsAlgori
     /**
      * Set the options to use for the algorithm
      * @param AlgorithmOptions $options
-     * @return $this
+     * @return WiderNetworkRecommendationsAlgorithm
      */
     public function setOptions(AlgorithmOptions $options): self
     {
@@ -60,12 +59,19 @@ class WiderNetworkRecommendationsAlgorithm extends AbstractRecommendationsAlgori
      */
     public function getRecommendations(): Response
     {
-        return $this->repository?->getList($this->options->toArray());
+        return new Response(
+            iterator_to_array(
+                $this->repository?->getList($this->options->toArray()),
+                true
+            )
+        );
     }
 
-    public function getDiscoveryForYouFeed(?AlgorithmOptions $options = null): Response
+    /**
+     * @return Generator|Suggestion[]
+     */
+    public function getDiscoveryForYouFeedRecommendations(): Generator
     {
-        $results = $this->repository?->getList($this->options->toArray());
-        return new Response([]);
+        return $this->repository?->getList($this->options->toArray());
     }
 }

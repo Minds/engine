@@ -1,29 +1,34 @@
 <?php
 namespace Minds\Core\Discovery;
 
+use Exception;
 use Minds\Core\Discovery\ResponseBuilders\GetDiscoveryForYouResponseBuilder;
 use Minds\Core\Discovery\Validators\GetDiscoveryForYouRequestValidator;
-use MongoDB\Driver\Server;
+use Minds\Core\Recommendations\Manager as RecommendationsManager;
+use Minds\Entities\User;
+use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\Response\JsonResponse;
 use Minds\Api\Exportable;
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Di\Di;
 
 class Controllers
 {
     /** @var Manager */
     protected $manager;
 
-    public function __construct($manager = null)
-    {
+    public function __construct(
+        $manager = null,
+        private ?RecommendationsManager $recommendationsManager = null
+    ) {
         $this->manager = $manager ?? new Manager();
+        $this->recommendationsManager ??= new RecommendationsManager();
     }
 
     /**
      * Controller for post trends (based on tag trends)
      * @param ServerRequest $request
      * @return JsonResponse
+     * @throws NoTagsException
      */
     public function getTrends(ServerRequest $request): JsonResponse
     {
@@ -102,7 +107,7 @@ class Controllers
 
         try {
             $forYou = $this->manager->getTagTrends([ 'limit' => 12, 'plus' => false]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $forYou = null;
         }
 
@@ -134,14 +139,26 @@ class Controllers
     /**
      * @param ServerRequest $request
      * @return JsonResponse
+     * @throws UserErrorException
+     * @throws Exception
      */
     public function getForYou(ServerRequest $request): JsonResponse
     {
-        $requestValidator = new GetDiscoveryForYouRequestValidator();
+        /**
+         * @var User
+         */
+        $loggedInUser = $request->getAttribute('_user');
+        $requestValidator = new GetDiscoveryForYouRequestValidator($loggedInUser);
         $responseBuilder = new GetDiscoveryForYouResponseBuilder();
 
         if (!$requestValidator->validate($request->getQueryParams())) {
             return $responseBuilder->buildBadRequestResponse($requestValidator->getErrors());
         }
+
+        $this->manager->setUser($loggedInUser);
+
+        $results = $this->manager->getForYouWiderNetworkDiscoveryFeed($request->getQueryParams());
+
+        return $responseBuilder->buildSuccessfulResponse($results, $request->getQueryParams()['limit']);
     }
 }

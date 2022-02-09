@@ -13,6 +13,11 @@ use Minds\Core\Suggestions\Manager as SuggestionsManager;
  */
 class SuggestedChannelsRecommendationsAlgorithm extends AbstractRecommendationsAlgorithm
 {
+    /**
+     * @type string
+     */
+    public const FRIENDLY_ALGORITHM_NAME = "suggested-channels";
+
     public function __construct(
         private ?AlgorithmOptions $options = null,
         private ?SuggestionsManager $suggestionsManager = null

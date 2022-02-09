@@ -8,6 +8,8 @@ use Minds\Traits\MagicAttributes;
  * Represents the options for a recommendations algorithm
  * @method int getLimit()
  * @method int setLimit(int $limit)
+ * @method int getOffset()
+ * @method int setOffset(int $offset)
  * @method string getUserGuid()
  * @method string setUserGuid(string $userGuid)
  * @method string getType()
@@ -20,6 +22,8 @@ class AlgorithmOptions
     private int $limit = 12;
     private ?string $userGuid = null;
     private string $type = "";
+    private int $offset = 0;
+
 
     public function __construct(array $options = [])
     {

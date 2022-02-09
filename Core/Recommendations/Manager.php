@@ -3,9 +3,12 @@
 namespace Minds\Core\Recommendations;
 
 use Minds\Common\Repository\Response;
+use Minds\Core\Recommendations\Algorithms\AlgorithmOptions;
+use Minds\Core\Recommendations\Algorithms\WiderNetwork\WiderNetworkRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Config\RecommendationsLocationsMappingConfig;
 use Minds\Core\Recommendations\Locations\LocationInterface;
 use Minds\Entities\User;
+use Generator;
 
 /**
  * Recommendations manager
@@ -40,7 +43,23 @@ class Manager implements ManagerInterface
 
         return new Response([
             "algorithm" => $algorithm->getFriendlyName(),
-            "entities" => $algorithm->getRecommendations()
+            "entities" => $algorithm->getRecommendations()->toArray()
         ]);
+    }
+
+    /**
+     * @param WiderNetworkRecommendationsAlgorithm|null $algorithm
+     * @param AlgorithmOptions|null $options
+     * @return Generator|Suggestion[]
+     */
+    public function getDiscoveryForYouFeedRecommendations(
+        ?WiderNetworkRecommendationsAlgorithm $algorithm = null,
+        ?AlgorithmOptions $options = null
+    ): Generator {
+        $algorithm ??= new WiderNetworkRecommendationsAlgorithm();
+
+        return $algorithm
+            ->setOptions($options)
+            ->getDiscoveryForYouFeedRecommendations();
     }
 }

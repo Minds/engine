@@ -14,21 +14,22 @@ class GetDiscoveryForYouResponseBuilder
      * @param Response $response
      * @return JsonResponse
      */
-    public function buildSuccessfulResponse(Response $response, ): JsonResponse
+    public function buildSuccessfulResponse(Response $response, int $limit): JsonResponse
     {
         return new JsonResponse([
             'status' => 'success',
             'entities' => Exportable::_($response),
-            'load-next' =>
+            'load-next' => $limit,
+            'fallback_at' => time() - 1
         ]);
     }
 
     /**
      * @param ValidationErrorCollection|null $errors
-     * @return void
+     * @return JsonResponse
      * @throws UserErrorException
      */
-    public function buildBadRequestResponse(?ValidationErrorCollection $errors = null): void
+    public function buildBadRequestResponse(?ValidationErrorCollection $errors = null): JsonResponse
     {
         throw new UserErrorException(
             "Some errors were encountered whilst validating the request",

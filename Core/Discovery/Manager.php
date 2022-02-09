@@ -1,7 +1,12 @@
 <?php
 namespace Minds\Core\Discovery;
 
+use Exception;
 use Minds\Core\Di\Di;
+use Minds\Core\Discovery\Repositories\EntitiesRepository;
+use Minds\Core\Recommendations\Algorithms\AlgorithmOptions;
+use Minds\Core\Recommendations\Algorithms\WiderNetwork\WiderNetworkRecommendationsAlgorithm;
+use Minds\Core\Recommendations\Manager as RecommendationsManager;
 use Minds\Core\Session;
 use Minds\Core;
 use Minds\Core\EntitiesBuilder;
@@ -21,7 +26,8 @@ class Manager
     /** @var array */
     const GLOBAL_EXCLUDED_TAGS = [ 'minds', 'news' ];
 
-    private const SEARCH_HARD_LIMIT = 150;
+    private const USER_SEARCH_HARD_LIMIT = 150;
+    private const ADMIN_SEARCH_HARD_LIMIT = 5000;
 
     /** @var array */
     private $tagCloud = [];
@@ -61,7 +67,9 @@ class Manager
         $elasticFeedsManager = null,
         $user = null,
         $acl = null,
-        $features = null
+        $features = null,
+        private ?RecommendationsManager $recommendationsManager = null,
+        private ?EntitiesRepository $entitiesRepository = null
     ) {
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
@@ -72,6 +80,8 @@ class Manager
         $this->plusSupportTierUrn = $this->config->get('plus')['support_tier_urn'] ?? null;
         $this->acl = $acl ?? Di::_()->get('Security\ACL');
         $this->features = $features ?: Di::_()->get('Features\Manager');
+        $this->recommendationsManager ??= Di::_()->get('Recommendations\Manager');
+        $this->entitiesRepository ??= new EntitiesRepository();
     }
 
     /**
@@ -89,6 +99,7 @@ class Manager
      * Return the overview for discovery
      * @param array $opts (optional)
      * @return Trend[]
+     * @throws NoTagsException
      */
     public function getTagTrends(array $opts = []): array
     {
@@ -711,7 +722,7 @@ class Manager
     /**
      * Returns related tags to an entity
      * @param string $entityGuid
-     * @return Trend[]
+     * @return Trend[]|null
      */
     public function getActivityRelatedTags(string $entityGuid): ?array
     {
@@ -729,22 +740,42 @@ class Manager
                         'plus' => false,
                         'tag_cloud_override' => $entityTags
                     ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
     }
 
-    public function getForYouWiderNetworkEntities(?array $opts = []): Response
+    /**
+     * @param array|null $opts
+     * @return Response
+     * @throws Exception
+     */
+    public function getForYouWiderNetworkDiscoveryFeed(?array $opts = []): Response
     {
-        return new Response([]);
+        $options = $this->prepareElasticSearchWiderNetworkQueryOptions($opts);
+
+        $entitiesIterator = $this->recommendationsManager->getDiscoveryForYouFeedRecommendations(
+            new WiderNetworkRecommendationsAlgorithm(),
+            new AlgorithmOptions($options)
+        );
+
+        $entities = iterator_to_array($entitiesIterator, true);
+
+        return $this->entitiesRepository->getWiderNetworkEntitiesList($entities, $options);
     }
 
     private function prepareElasticSearchWiderNetworkQueryOptions(?array $opts = []): array
     {
+        $opts['limit'] = $this->calculateWiderNetworkElasticSearchQueryLimit($opts);
+        return array_merge([
+            'type' => 'all',
+            'userGuid' => $this->user->getGuid()
+        ], $opts);
     }
 
     private function calculateWiderNetworkElasticSearchQueryLimit(array $opts): int
     {
-        return ($opts['offset'] + $opts['limit'] > self::SEARCH_HARD_LIMIT) ? self::SEARCH_HARD_LIMIT - $opts['offset'] : $opts['limit'];
+        $hardLimit = $this->user->isAdmin() ? self::ADMIN_SEARCH_HARD_LIMIT : self::USER_SEARCH_HARD_LIMIT;
+        return ($opts['offset'] + $opts['limit'] > $hardLimit) ? $hardLimit - $opts['offset'] : $opts['limit'];
     }
 }
