@@ -119,6 +119,8 @@ class subscribed implements Interfaces\Api
             'hide_own_posts' => isset($_GET['hide_own_posts'])
         ];
 
+        $opts['include_group_posts'] = (bool) $_GET['include_group_posts'] ?? false;
+
         if ($_GET['to_timestamp'] ?? null) {
             // Fixes 4.17 build of app
             if (isset($_SERVER['HTTP_APP_VERSION']) && Comparator::lessThan($_SERVER['HTTP_APP_VERSION'], '4.18.0')) {
