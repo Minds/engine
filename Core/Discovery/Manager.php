@@ -13,6 +13,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Config;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Hashtags\User\Manager as HashtagManager;
+use Minds\Core\Hashtags\Trending\Manager as TrendingHashtagManager;
 use Minds\Core\Hashtags\HashtagEntity;
 use Minds\Common\Repository\Response;
 use Minds\Core\Feeds\Elastic\Manager as ElasticFeedsManager;
@@ -59,6 +60,9 @@ class Manager
     /** @var Features */
     protected $features;
 
+    /** @var TrendingHashtagManager */
+    protected $trendingHashtagManager;
+
     public function __construct(
         $es = null,
         $entitiesBuilder = null,
@@ -69,7 +73,8 @@ class Manager
         $acl = null,
         $features = null,
         private ?RecommendationsManager $recommendationsManager = null,
-        private ?EntitiesRepository $entitiesRepository = null
+        private ?EntitiesRepository $entitiesRepository = null,
+        TrendingHashtagManager $trendingHashtagManager = null
     ) {
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
@@ -82,6 +87,7 @@ class Manager
         $this->features = $features ?: Di::_()->get('Features\Manager');
         $this->recommendationsManager ??= Di::_()->get('Recommendations\Manager');
         $this->entitiesRepository ??= new EntitiesRepository();
+        $this->trendingHashtagManager = $trendingHashtagManager ?? Di::_()->get('Hashtags\Trending\Manager');
     }
 
     /**
@@ -646,6 +652,7 @@ class Manager
     {
         $opts = array_merge([
             'wire_support_tier' => null,
+            'trending_tags_v2' => false
         ], $opts);
 
         $tagsList = $this->hashtagManager
@@ -661,9 +668,16 @@ class Manager
             return $tag['type'] === 'user';
         });
 
-        $trending = array_filter($tagsList, function ($tag) {
-            return $tag['type'] === 'trending' || $tag['type'] === 'default';
-        });
+        if ($opts['trending_tags_v2']) {
+            $trending = $this->trendingHashtagManager->getCurrentlyTrendingHashtags([
+                'limit' => $opts['limit'] ?? 20,
+                'plus' => $opts['plus'] ?? false,
+            ]);
+        } else {
+            $trending = array_filter($tagsList, function ($tag) {
+                return $tag['type'] === 'trending' || $tag['type'] === 'default';
+            });
+        }
 
         $default = $this->hashtagManager
             ->setUser($this->user)
