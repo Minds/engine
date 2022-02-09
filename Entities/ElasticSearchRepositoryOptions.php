@@ -4,7 +4,6 @@ namespace Minds\Entities;
 
 use Minds\Traits\MagicAttributes;
 
-
 /**
  * Represents the options for a recommendations repository
  * @method int getLimit()
