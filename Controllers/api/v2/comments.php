@@ -53,8 +53,7 @@ class comments implements Interfaces\Api
         if ($loadNext === 'null') {
             $loadNext = null;
         }
-
-        $descending = $loadNext ? false : true;
+        $descending = isset($_GET['desc']) ? !($_GET['desc'] === "false") : true;
         $focusedUrn = $_GET['focused_urn'] ?? null;
 
         $includeOffset = isset($_GET['include_offset']) ? !($_GET['include_offset'] === "false") : true;
@@ -89,6 +88,10 @@ class comments implements Interfaces\Api
         } else {
             // if it's not the last page and it's NOT descending, return first comment guid
             $offset = count($comments) > 0 ? $comments[0]->getGuid() : '';
+        }
+
+        if (!$loadNext && !$descending) {
+            $offset = '';
         }
 
         $response['comments'] = Exportable::_($comments);
