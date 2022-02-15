@@ -16,6 +16,7 @@ use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Campaigns\MindsPlusRefunds as MindsPlusRefundsAlias;
+use Minds\Core\Security\ACL;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -103,8 +104,29 @@ class MindsPlusRefunds extends Controller implements CliControllerInterface
 
             $this->transferFunds($targetUser, $sourceUser, $amountToRefund);
 
+            $this->give1YearMindsPlus($targetUser);
+
             $this->sendRefundEmail($targetUser);
         }
+    }
+
+    private function give1YearMindsPlus(User $target): void
+    {
+        $channelsManager = Di::_()->get('Channels\Manager');
+        $channelsManager->flushCache($target);
+
+        if (!$target->guid || $target->getType() !== 'user') {
+            return;
+        }
+
+        $target->setPlusExpires(
+            strtotime("+1 year", time())
+        );
+
+        $isAllowed = ACL::_()->setIgnore(true);
+
+        $target->save();
+        ACL::_()->setIgnore($isAllowed);
     }
 
     /**
