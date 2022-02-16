@@ -12,9 +12,11 @@ class ActionsHistogram extends Aggregate
 
     public function get()
     {
-        $filter = [
-            'term' => [
-                'action' => $this->action
+        $must = [
+            [
+                'term' => [
+                    'action' => $this->action
+                ]
             ]
         ];
 
@@ -34,6 +36,11 @@ class ActionsHistogram extends Aggregate
                 'term' => [
                     'is_remind' => true,
                 ]
+            ],
+            [
+                'exist' => [
+                    'field' => 'support_tier_urn',
+                ]
             ]
         ];
 
@@ -48,6 +55,13 @@ class ActionsHistogram extends Aggregate
                 'entity_subtype' => $this->subtype
             ];
         }
+
+        // Ignore groups
+        $filter = [
+            'script' => [
+                'script' => "(doc['entity_owner_guid.keyword'] == doc['entity_container_guid.keyword'])"
+            ]
+        ];
 
         if ($this->user) {
             //nasty hack for subscribe... @todo: find a better solution
