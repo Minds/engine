@@ -1704,6 +1704,7 @@ CREATE TABLE minds.twitter_sync (
     user_guid bigint PRIMARY KEY,
     last_imported_tweet_id bigint,
     last_sync_ts timestamp,
+    connected_timestamp timestamp,
     twitter_followers_count int,
     twitter_user_id bigint,
     twitter_username text,

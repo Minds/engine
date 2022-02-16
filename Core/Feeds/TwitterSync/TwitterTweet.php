@@ -12,6 +12,8 @@ use Minds\Traits\MagicAttributes;
  * @method string getText()
  * @method self setUrls(array $urls)
  * @method string[] getUrls()
+ * @method self setImageUrls(array $urls)
+ * @method string[] getImageUrls()
  */
 class TwitterTweet
 {
@@ -28,4 +30,7 @@ class TwitterTweet
 
     /** @var string[] */
     protected $urls = [];
+
+    /** @var string[] */
+    protected $imageUrls = [];
 }
