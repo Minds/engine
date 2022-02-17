@@ -27,6 +27,6 @@ class SuggestedChannelsRecommendationsAlgorithm extends AbstractRecommendationsA
      */
     public function getRecommendations(): Response
     {
-        return $this->suggestionsManager?->getList();
+        return $this->suggestionsManager?->setUser($this->user)->getList();
     }
 }
