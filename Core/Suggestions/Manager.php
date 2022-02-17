@@ -187,7 +187,7 @@ class Manager
         $recommendationsUserGuid = $this->config->get('default_recommendations_user') ?? '100000000000000519';
 
         $users = $this->subscriptionsManager->getList([
-            'guid' => $recommendationsUserGuid,
+            'guid' => (string) $recommendationsUserGuid,
             'type' => 'subscriptions',
             'hydrate' => false,
             'limit' => 500,
