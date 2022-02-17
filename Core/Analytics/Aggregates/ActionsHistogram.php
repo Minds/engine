@@ -17,15 +17,12 @@ class ActionsHistogram extends Aggregate
                 'term' => [
                     'action' => $this->action
                 ]
-            ]
-        ];
-
-        $must = [
+            ],
             [
                 'range' => [
-                '@timestamp' => [
-                    'gte' => $this->from,
-                    'lte' => $this->to
+                    '@timestamp' => [
+                        'gte' => $this->from,
+                        'lte' => $this->to
                     ]
                 ]
             ]
