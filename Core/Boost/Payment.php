@@ -2,12 +2,13 @@
 
 namespace Minds\Core\Boost;
 
-use Exception;
 use Minds\Core;
 use Minds\Core\Blockchain\Services\RatesInterface;
 use Minds\Core\Blockchain\Services;
+use Minds\Core\Boost\Network\Boost;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\Boost\Peer;
@@ -43,7 +44,8 @@ class Payment
         $txManager = null,
         $txRepository = null,
         $config = null,
-        $locks = null
+        $locks = null,
+        private ?EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->stripePayments = $stripePayments ?: Di::_()->get('StripePayments');
         $this->eth = $eth ?: Di::_()->get('Blockchain\Services\Ethereum');
@@ -51,18 +53,23 @@ class Payment
         $this->txRepository = $txRepository ?: Di::_()->get('Blockchain\Transactions\Repository');
         $this->config = $config ?: Di::_()->get('Config');
         $this->locks = $locks ?: Di::_()->get('Database\Locks');
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
     }
 
+    /**
+     * Returns the User object representing the minds channel that receives the boost funds when request accepted by the Admin team
+     * @return User
+     */
     private function getMindsBoostWalletUser(): User
     {
-        return Di::_()->get('EntitiesBuilder')->single($this->config->get('boost')['offchain-wallet-guid']);
+        return $this->entitiesBuilder->single($this->config->get('boost')["offchain_wallet_guid"]);
     }
 
     /**
      * @param Network|Peer $boost
      * @param $payload
      * @return null
-     * @throws Exception
+     * @throws \Exception
      */
     public function pay($boost, $payload)
     {
@@ -73,7 +80,7 @@ class Payment
             case 'usd':
             case 'money':
                 if ($boost->getHandler() === 'peer') {
-                    throw new Exception('Money P2P boosts are not supported');
+                    throw new \Exception('Money P2P boosts are not supported');
                 }
 
                 $customer = (new Payments\Customer())
@@ -110,7 +117,7 @@ class Payment
                 switch ($payload['method']) {
                     case 'offchain':
                         if ($boost->getHandler() === 'peer' && !$boost->getDestination()->getPhoneNumberHash()) {
-                            throw new Exception('Boost target should participate in the Rewards program.');
+                            throw new \Exception('Boost target should participate in the Rewards program.');
                         }
 
                         /** @var Core\Blockchain\Wallets\OffChain\Cap $cap */
@@ -119,7 +126,7 @@ class Payment
                             ->setContract('boost');
 
                         if (!$cap->isAllowed($boost->getBid())) {
-                            throw new Exception('You are not allowed to spend that amount of coins.');
+                            throw new \Exception('You are not allowed to spend that amount of coins.');
                         }
 
                         $txData = [
@@ -128,29 +135,25 @@ class Payment
                             'handler' => (string) $boost->getHandler(),
                         ];
 
-                        $targetUser = $this->getMindsBoostWalletUser();
                         if ($boost->getHandler() === 'peer') {
                             $txData['sender_guid'] = (string) $boost->getOwner()->guid;
                             $txData['receiver_guid'] = (string) $boost->getDestination()->guid;
-                            $targetUser = $boost->getDestination();
-                        } else {
-                            $txData['receiver_guid'] = (string) $this->config->get('boost')['offchain-wallet-guid'];
                         }
 
                         /** @var Core\Blockchain\Wallets\OffChain\Transactions $sendersTx */
                         $sendersTx = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
-                        list($paymentReceiverTx, $paymentSenderTx) = $sendersTx
-                            ->setAmount((string) BigNumber::_($boost->getBid()))
+                        $tx = $sendersTx
+                            ->setAmount((string) BigNumber::_($boost->getBid())->neg())
                             ->setType('boost')
-                            ->setUser($targetUser)
+                            ->setUser($boost->getOwner())
                             ->setData($txData)
-                            ->transferFrom($boost->getOwner(), true);
+                            ->create();
 
-                        return $paymentSenderTx;
+                        return $tx->getTx();
 
                     case 'creditcard':
                         if ($boost->getHandler() === 'peer' && !$boost->getDestination()->getPhoneNumberHash()) {
-                            throw new Exception('Boost target should participate in the Rewards program.');
+                            throw new \Exception('Boost target should participate in the Rewards program.');
                         }
 
                         //charge the card
@@ -216,7 +219,7 @@ class Payment
 
                     case 'onchain':
                         if ($boost->getHandler() === 'peer' && !$boost->getDestination()->getEthWallet()) {
-                            throw new Exception('Boost target should participate in the Rewards program.');
+                            throw new \Exception('Boost target should participate in the Rewards program.');
                         }
 
                         $txData = [
@@ -266,9 +269,14 @@ class Payment
                 }
         }
 
-        throw new Exception('Payment Method not supported');
+        throw new \Exception('Payment Method not supported');
     }
 
+    /**
+     * @param Boost|Peer $boost
+     * @return bool
+     * @throws LockFailedException
+     */
     public function charge($boost)
     {
         $currency = method_exists($boost, 'getMethod') ?
@@ -306,18 +314,28 @@ class Payment
                         return false;
                         break;
                     case 'offchain':
+                        /** @var Core\Blockchain\Wallets\OffChain\Transactions $receiversTx */
+                        $receiversTx = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
+                        $receiversTx
+                            ->setAmount($boost->getBid())
+                            ->setType('boost');
                         if ($boost->getHandler() === 'peer') {
-                            /** @var Core\Blockchain\Wallets\OffChain\Transactions $receiversTx */
-                            $receiversTx = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
-                            $receiversTx
-                                ->setAmount($boost->getBid())
-                                ->setType('boost')
-                                ->setUser($boost->getDestination())
+                            $receiversTx->setUser($boost->getDestination())
                                 ->setData([
                                     'amount' => (string) $boost->getBid(),
                                     'guid' => (string) $boost->getGuid(),
                                     'sender_guid' => (string) $boost->getOwner()->guid,
                                     'receiver_guid' => (string) $boost->getDestination()->guid,
+                                ])
+                                ->create();
+                        } else {
+                            /** @var Core\Blockchain\Wallets\OffChain\Transactions $receiversTx */
+                            $receiversTx->setUser($this->getMindsBoostWalletUser())
+                                ->setData([
+                                    'amount' => (string) $boost->getBid(),
+                                    'guid' => (string) $boost->getGuid(),
+                                    'sender_guid' => (string) $boost->getOwner()->guid,
+                                    'receiver_guid' => (string) $this->getMindsBoostWalletUser()->guid,
                                 ])
                                 ->create();
                         }
@@ -328,14 +346,9 @@ class Payment
                 return true; // Already charged
         }
 
-        throw new Exception('Payment Method not supported');
+        throw new \Exception('Payment Method not supported');
     }
 
-    /**
-     * @param Network|Peer $boost
-     * @return null
-     * @throws Exception
-     */
     public function refund($boost)
     {
         $currency = method_exists($boost, 'getMethod') ?
@@ -429,11 +442,9 @@ class Payment
                             'guid' => (string) $boost->getGuid(),
                         ];
 
-                        $sender = $this->getMindsBoostWalletUser();
                         if ($boost->getHandler() === 'peer') {
                             $txData['sender_guid'] = (string) $boost->getOwner()->guid;
                             $txData['receiver_guid'] = (string) $boost->getDestination()->guid;
-                            $sender = $boost->getDestination();
                         }
 
                         /** @var Core\Blockchain\Wallets\OffChain\Transactions $sendersTx */
@@ -443,7 +454,7 @@ class Payment
                             ->setType('boost_refund')
                             ->setUser($boost->getOwner())
                             ->setData($txData)
-                            ->transferFrom($sender);
+                            ->create();
 
                         break;
 
@@ -459,6 +470,6 @@ class Payment
                 return true;
         }
 
-        throw new Exception('Payment Method not supported');
+        throw new \Exception('Payment Method not supported');
     }
 }
