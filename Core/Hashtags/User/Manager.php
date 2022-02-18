@@ -11,10 +11,10 @@ use Minds\Entities\User;
 
 class Manager
 {
-    /** @var User $user */
+    /** @var User */
     private $user;
 
-    /** @var Repository $repository */
+    /** @var Repository */
     private $repository;
 
     /** @var TrendingRepository */
@@ -23,15 +23,19 @@ class Manager
     /** @var abstractCacher */
     private $cacher;
 
-    /** @var Config $config */
+    /** @var Config */
     private $config;
 
-    public function __construct($repository = null, $trendingRepository = null, $cacher = null, $config = null)
+    /** @var PseudoHashtags */
+    private $pseudoHashtags;
+
+    public function __construct($repository = null, $trendingRepository = null, $cacher = null, $config = null, PseudoHashtags $pseudoHashtags = null)
     {
         $this->repository = $repository ?: new Repository;
         $this->trendingRepository = $trendingRepository ?: new TrendingRepository;
         $this->cacher = $cacher ?: Di::_()->get('Cache');
         $this->config = $config ?: Di::_()->get('Config');
+        $this->pseudoHashtags = $pseudoHashtags ?? new PseudoHashtags();
     }
 
     /**
@@ -85,7 +89,7 @@ class Manager
 
                     $this->cacher->set($this->getCacheKey(), json_encode($selected), 7 * 24 * 60 * 60); // 1 week (busted on changes)
 
-                    $this->pseudoHashtags->syncTags($response);
+                    $this->pseudoHashtags->syncTags($response->toArray());
                 }
             }
         }
@@ -188,6 +192,9 @@ class Manager
 
         if ($success) {
             $this->cacher->destroy($this->getCacheKey());
+
+            $this->pseudoHashtags->addTags($add);
+            $this->pseudoHashtags->removeTags($remove);
         }
 
         return $success;
@@ -215,7 +222,7 @@ class Manager
      */
     public function getCacheKey($extra = '')
     {
-        return "user-selected-hashtags:{$this->user->getGuid()}" . ($extra ? ":{$extra}" : '');
+        return "hashtags::user-selected::{$this->user->getGuid()}" . ($extra ? ":{$extra}" : '');
     }
 
     /**
@@ -224,6 +231,6 @@ class Manager
     public function getSharedCacheKey($key, $opts): string
     {
         $languages = implode(':', $opts['languages']);
-        return "hashtags-shared::$key::$languages";
+        return "hashtags::shared::$key::$languages";
     }
 }
