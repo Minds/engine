@@ -138,11 +138,12 @@ class Transactions
 
     /**
      * @param User $sender
-     * @return bool
+     * @param bool $returnTxIds
+     * @return bool|array
      * @throws LockFailedException
      * @throws Locks\KeyNotSetupException
      */
-    public function transferFrom(User $sender)
+    public function transferFrom(User $sender, bool $returnTxIds = false): bool|array
     {
         $receiver = $this->user;
 
@@ -253,7 +254,7 @@ class Transactions
 
             //
 
-            return true;
+            return ($returnTxIds ? [$receiverTx->getTx(), $senderTx->getTx()] : true);
         } catch (\Exception $e) {
             // Release the locks
 

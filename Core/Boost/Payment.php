@@ -129,14 +129,14 @@ class Payment
 
                         /** @var Core\Blockchain\Wallets\OffChain\Transactions $sendersTx */
                         $sendersTx = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
-                        $tx = $sendersTx
-                            ->setAmount((string) BigNumber::_($boost->getBid())->neg())
+                        list($paymentReceiverTx, $paymentSenderTx) = $sendersTx
+                            ->setAmount((string) BigNumber::_($boost->getBid()))
                             ->setType('boost')
-                            ->setUser($boost->getOwner())
+                            ->setUser($this->config->get('boost')['offchain-wallet-guid'])
                             ->setData($txData)
-                            ->create();
+                            ->transferFrom($boost->getOwner(), true);
 
-                        return $tx->getTx();
+                        return $paymentSenderTx;
 
                     case 'creditcard':
                         if ($boost->getHandler() === 'peer' && !$boost->getDestination()->getPhoneNumberHash()) {
