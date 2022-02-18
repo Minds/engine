@@ -84,6 +84,8 @@ class Manager
                     })->toArray();
 
                     $this->cacher->set($this->getCacheKey(), json_encode($selected), 7 * 24 * 60 * 60); // 1 week (busted on changes)
+
+                    $this->pseudoHashtags->syncTags($response);
                 }
             }
         }
@@ -168,6 +170,8 @@ class Manager
 
         if ($success) {
             $this->cacher->destroy($this->getCacheKey());
+
+            $this->pseudoHashtags->addTags($hashtags);
         }
 
         return $success;
@@ -199,6 +203,8 @@ class Manager
 
         if ($success) {
             $this->cacher->destroy($this->getCacheKey());
+
+            $this->pseudoHashtags->removeTags($hashtags);
         }
 
         return $success;
