@@ -25,7 +25,7 @@ class PseudoHashtags
     public function __construct($db = null, $pseudoId = null)
     {
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
-        $this->pseuodId = $pseudoId ?? new PseudonymousIdentifier();
+        $this->pseudoId = $pseudoId ?? new PseudonymousIdentifier();
     }
 
     /**
@@ -39,7 +39,7 @@ class PseudoHashtags
         foreach ($hashtags as $hashtag) {
             try {
                 $params = [
-                    $this->pseuodId->getId(),
+                    $this->pseudoId->getId(),
                     (string) $hashtag->getHashtag()
                 ];
 
@@ -78,7 +78,7 @@ class PseudoHashtags
         foreach ($hashtags as $hashtag) {
             try {
                 $params = [
-                    $this->pseuodId->getId(),
+                    $this->pseudoId->getId(),
                     (string) $hashtag->getHashtag()
                 ];
 
