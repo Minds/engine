@@ -87,30 +87,11 @@ class YTSubscriptionSpec extends ObjectBehavior
         $this->shouldHaveType(YTSubscription::class);
     }
 
-    public function it_should_not_receive_a_new_video_if_it_already_exists(YTVideo $video, Video $video2, User $user)
-    {
-        $video->getVideoId()
-            ->shouldBeCalled()
-            ->willReturn('id');
-
-        $this->repository->getList(['youtube_id' => 'id'])
-            ->shouldBeCalled()
-            ->willReturn(new Response([$video2]));
-
-        $this->kvLimiterMock();
-
-        $this->onNewVideo($video);
-    }
-
     public function it_should_not_receive_a_new_video_if_no_user_is_associated_to_that_yt_channel(YTVideo $video, User $user)
     {
         $video->getVideoId()
             ->shouldBeCalled()
             ->willReturn('id');
-
-        $this->repository->getList(['youtube_id' => 'id'])
-            ->shouldBeCalled()
-            ->willReturn(new Response());
 
         $this->kvLimiterMock();
 
@@ -130,10 +111,6 @@ class YTSubscriptionSpec extends ObjectBehavior
         $video->getVideoId()
             ->shouldBeCalled()
             ->willReturn('id');
-
-        $this->repository->getList(['youtube_id' => 'id'])
-            ->shouldBeCalled()
-            ->willReturn(new Response());
 
         $this->kvLimiterMock();
 
@@ -161,10 +138,6 @@ class YTSubscriptionSpec extends ObjectBehavior
         $video->getVideoId()
             ->shouldBeCalled()
             ->willReturn('id');
-
-        $this->repository->getList(['youtube_id' => 'id'])
-            ->shouldBeCalled()
-            ->willReturn(new Response());
 
         $this->kvLimiterMock();
 
