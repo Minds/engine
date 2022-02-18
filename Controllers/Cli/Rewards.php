@@ -8,6 +8,7 @@ use Elasticsearch\ClientBuilder;
 use Minds\Cli;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Minds;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities;
 use Minds\Helpers\Flags;

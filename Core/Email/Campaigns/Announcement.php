@@ -55,7 +55,7 @@ class Announcement extends EmailCampaign
         $this->template->set('points', 0);
 
         $this->template->setTemplate('default.tpl');
-        $this->template->setBody("./Templates/$this->templateKey.tpl");
+        $this->template->setBody("./Templates/$this->templateKey.md.tpl");
 
         $validatorHash = sha1($this->campaign . $this->topic . $this->user->guid . Config::_()->get('emails_secret'));
 
