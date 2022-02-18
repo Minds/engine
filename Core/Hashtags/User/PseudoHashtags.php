@@ -34,7 +34,7 @@ class PseudoHashtags
      */
     public function syncTags(array $hashtags): bool
     {
-        $cql = "INSERT INTO pseduo_user_hashtags (pseudo_id, hashtag) VALUES (?, ?)";
+        $cql = "INSERT INTO pseudo_user_hashtags (pseudo_id, hashtag) VALUES (?, ?)";
     
         foreach ($hashtags as $hashtag) {
             try {
@@ -73,7 +73,7 @@ class PseudoHashtags
      */
     public function removeTags(array $hashtags): bool
     {
-        $cql = "DELETE FROM pseduo_user_hashtags WHERE pseudo_id = ? AND hashtag = ?";
+        $cql = "DELETE FROM pseudo_user_hashtags WHERE pseudo_id = ? AND hashtag = ?";
     
         foreach ($hashtags as $hashtag) {
             try {
