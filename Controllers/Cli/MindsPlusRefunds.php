@@ -55,6 +55,7 @@ class MindsPlusRefunds extends Controller implements CliControllerInterface
 
         $records = $dataReader->getRecords(["source", "target", "amount", "last_billing_date", "yearly"]);
 
+        ACL::_()->setIgnore(true);
         $this->runRefundsLogic($records);
     }
 
@@ -71,11 +72,18 @@ class MindsPlusRefunds extends Controller implements CliControllerInterface
             $lastBillingDate = $record['last_billing_date'];
             $months = null;
 
-            $sourceUser = new User($sourceUserGuid);
-            $targetUser = new User($targetUserGuid);
+            $sourceUser = Di::_()->get('EntitiesBuilder')->single($sourceUserGuid);
+            $targetUser = Di::_()->get('EntitiesBuilder')->single($targetUserGuid);
+
+            if (!$targetUser) {
+                continue;
+            }
 
             if (!$isYearly) {
                 $months = $this->calculateMonths($lastBillingDate);
+                if ($months < 1) {
+                    $months = 1;
+                }
                 $amountToRefund *= $months;
             }
 
@@ -85,16 +93,17 @@ class MindsPlusRefunds extends Controller implements CliControllerInterface
                 $execute = false;
             }
 
-            if ($this->getOpt("dry-run")) {
+            if ($this->getOpt("dry-run") && $targetUserGuid !== '100000000000000063') {
                 $this->printRefundDetails(
                     $targetUserGuid,
                     $targetUser->getGuid(),
-                    $targetUser->getEmail(),
+                    $targetUser->getEmail() ?: '',
                     $isYearly,
                     $months,
                     $amountToRefund,
                     $execute
                 );
+
                 continue;
             }
 
@@ -150,12 +159,12 @@ class MindsPlusRefunds extends Controller implements CliControllerInterface
 
     private function sendRefundEmail(User $targetUser): void
     {
-        $email = (new MindsPlusRefundsAlias())
+        $email = (new \Minds\Core\Email\V2\Campaigns\Custom\Custom())
             ->setUser($targetUser)
             ->setSubject("Update regarding your Minds+ membership")
-            ->setTemplateKey("minds-plus-refunds");
+            ->setTemplate("minds-plus-refunds");
 
-        $email->canSend() ? $email->send() : $this->out("It was not possible to send email to {$targetUser->getEmail()}");
+        $email->send();
     }
 
     private function printRefundDetails(
