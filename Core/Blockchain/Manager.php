@@ -84,6 +84,15 @@ class Manager
                 'erc20_address' => $blockchainConfig['skale']['erc20_address'] ?? '',
                 'faucet_claim_threshold_wei' => $blockchainConfig['skale']['faucet_claim_threshold_wei'] ?? '',
             ],
+            'polygon' => [
+                // TODO: Switch to mainnet instead of goerli when in production mode
+                //Old Abi
+                'polygon_contracts_root_chain' => (new POLYGON\PolygonContractsGoerli())->getABIs(),
+                'polygon_contracts_child_chain' => (new POLYGON\PolygonContractsMumbai())->getABIs(), //Old Child 
+                // Only for Testing environments
+                'polygon_contracts_mumbai' => (new POLYGON\PolygonContractAddressesMumbai())->getContracts(), 
+                'polygon_contracts_mainnet' => (new POLYGON\PolygonContractAddressMainnet())->getContracts(),
+            ], 
             'overrides' => $this->getOverrides(),
             'withdraw_limit' => $blockchainConfig['contracts']['withdraw']['limit'] ?? 1,
         ], $this->contracts);
