@@ -169,8 +169,8 @@ class PushNotification
             case 'user':
                 return $this->config->get('site_url') . $entity->getUsername();
             case 'comment':
-                $isNested = $entity->parentGuidL1 !== "0";
-                return $this->config->get('site_url') . 'newsfeed/' . $entity->getEntityGuid() . $isNested ? '?focusedCommentUrn=' . $entity->getUrn() : '';
+                $isReply = $entity->parentGuidL1 !== "0";
+                return $this->config->get('site_url') . 'newsfeed/' . $entity->getEntityGuid() . $isReply ? '?focusedCommentUrn=' . $entity->getUrn() : '';
             case 'activity':
             case 'object':
                 return $this->config->get('site_url') . 'newsfeed/' . $entity->getGuid();
