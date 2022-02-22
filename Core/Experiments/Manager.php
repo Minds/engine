@@ -71,7 +71,7 @@ class Manager
      * @param User $user (optional)
      * @return Manager
      */
-    public function setUser(User $user = null)
+    public function setUser(User $user = null): self
     {
         $this->user = $user;
 
@@ -92,7 +92,7 @@ class Manager
         if (!$this->getGrowthbookFeaturesEndpoint()) {
             return [];
         }
-        
+
         // If we have a cached version use that
         if ($useCached) {
             $cached = $this->psrCache->get(static::FEATURES_CACHE_KEY);
