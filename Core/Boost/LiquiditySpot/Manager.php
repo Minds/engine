@@ -109,7 +109,7 @@ class Manager
         }, $liquidityPositions))->toFloat() / 1;
 
         // How many views have we delivered today
-        $totalViews = $this->counters->get(0, $this->getMetricsKey(), false);
+        $totalViews = $this->counters->get(0, $this->getMetricsKey(), false) ?: 1;
 
         // Find nearest eligible user
 

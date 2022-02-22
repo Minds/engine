@@ -120,7 +120,7 @@ class Manager
             }
             $earlier = $this->repository->getList(array_merge($opts, [
                 'limit' => $diff,
-                'descending' => true,
+                'descending' => !$opts['descending'],
                 'include_offset' => false,
             ]));
             

@@ -169,7 +169,7 @@ class PushNotification
             case 'user':
                 return $this->config->get('site_url') . $entity->getUsername();
             case 'comment':
-                return $this->config->get('site_url') . 'newsfeed/' . $entity->getEntityGuid();
+                return $this->config->get('site_url') . 'newsfeed/' . $entity->getEntityGuid() . $entity->getParentGuidL1() ? '?focusedCommentUrn=' . $entity->getUrn() : '';
             case 'activity':
             case 'object':
                 return $this->config->get('site_url') . 'newsfeed/' . $entity->getGuid();
