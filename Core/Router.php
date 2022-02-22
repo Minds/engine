@@ -33,12 +33,16 @@ class Router
      */
     public function __construct(
         $dispatcher = null,
+        $shutDownHandlerManager = null,
         $features = null,
         $fallback = null
     ) {
         $this->dispatcher = $dispatcher ?: Di::_()->get('Router');
         $this->features = $features ?: Di::_()->get('Features\Manager');
+        $this->shutdownHandlerManager = $shutDownHandlerManager ?? Di::_()->get('Router\Hooks\ShutdownHandlerManager');
         $this->fallback = $fallback ?: new Fallback();
+
+        $this->shutdownHandlerManager->registerAll();
     }
 
     /**

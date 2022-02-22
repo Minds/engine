@@ -14,11 +14,8 @@ use Minds\Core\Experiments\Cookie\Manager as CookieManager;
 
 class Manager
 {
-    /** @var Growthbook\Client */
+    /** @var Growthbook\Growthbook */
     private $growthbook;
-
-    /** @var Growthbook\User */
-    private $growthbookUser;
 
     /** @var User */
     private $user;
@@ -39,17 +36,28 @@ class Manager
     const FEATURES_CACHE_KEY = 'growthbook-features';
 
     public function __construct(
-        Growthbook\Client $growthbook = null,
+        Growthbook\Growthbook $growthbook = null,
         CookieManager $cookieManager = null,
         GuzzleHttp\Client $httpClient = null,
         Config $config = null,
         PsrWrapper $psrCache = null
     ) {
-        $this->growthbook = $growthbook ?? new Growthbook\Client();
         $this->cookieManager = $cookieManager ?? Di::_()->get('Experiments\Cookie\Manager');
         $this->httpClient = $httpClient ?? new GuzzleHttp\Client();
         $this->config = $config ?? Di::_()->get('Config');
         $this->psrCache = $psrCache ?? Di::_()->get('Cache\PsrWrapper');
+        $this->growthbook = $growthbook ?? Growthbook\Growthbook::create();
+
+        $this->initFeatures();
+    }
+
+    /**
+     * Getter for class level user.
+     * @return User|null - User that has been set.
+     */
+    public function getUser(): ?User
+    {
+        return $this->user;
     }
 
     /**
@@ -67,15 +75,17 @@ class Manager
     {
         $this->user = $user;
 
-        // TODO: this will be removed soon
-        $this->growthbookUser = $this->growthbook->user([
-            'id' => $this->getUserId($user),
-        ]);
+        $this->growthbook->withAttributes(array_merge(
+            $this->growthbook->getAttributes(),
+            [ 'id' => $this->getUserId() ]
+        ));
+
         return $this;
     }
 
     /**
-     * @return array
+     * Gets features from cache or growthbook
+     * @return array - features from cache or growthbook.
      */
     public function getFeatures($useCached = true): array
     {
@@ -111,38 +121,55 @@ class Manager
     }
 
     /**
-     * Returns public export of growthbook features
-     * @return array
+     * Returns public export of growthbook features.
+     * @return array - public export of growthbook features.
      */
     public function getExportableConfig(): array
     {
         return [
             'attributes' => [
-                'id' => $this->getUserId($this->user),
+                'id' => $this->getUserId(),
                 'loggedIn' => !!$this->user,
             ],
             'features' => $this->getFeatures(),
         ];
     }
-    
+
     /**
-     * Gets User ID for experiments. Will get either the users experimentsId via cookie,
-     * their logged in user GUID, or generate a unique ID and store it in a cookie.
-     * @param User $user - user to generate / get ID for - nullable.
-     * @return string user id for experiments.
+     * Whether feature / experiment is on or off.
+     * @param string $featureKey - the key of the feature.
+     * @return boolean - true if feature / experiment is on.
      */
-    private function getUserId(User $user = null): string
+    public function isOn(string $featureKey): bool
     {
+        return $this->growthbook->isOn($featureKey);
+    }
+
+    /**
+     * Get viewed experiments from Growthbook
+     * @return array - array of viewed experiments.
+     */
+    public function getViewedExperiments(): array
+    {
+        return $this->growthbook->getViewedExperiments();
+    }
+
+    /**
+     * Gets User ID for experiments. Will get either the users logged in guid, the experimentsId via cookie,
+     * or generate a unique ID and store it in a cookie.
+     * @return string - user id for experiments.
+     */
+    public function getUserId(): string
+    {
+        if ($this->getUser()) {
+            return $this->getUser()->getGuid();
+        }
+
         // if cookie exists, return it's value as the id.
         $experimentsIdCookie = $this->cookieManager->get();
 
         if ($experimentsIdCookie) {
             return $experimentsIdCookie;
-        }
-
-        // else if user is logged in, use their userGuid.
-        if ($user) {
-            return $user->getGuid();
         }
 
         // else if no user - generate an ID, store it in a cookie.
@@ -152,7 +179,48 @@ class Manager
     }
 
     /**
-     * @return string
+     * Inits growthbook by getting features, assigning them and user attributes
+     * to growthbook and checking whether each feature is on iteratively to init.
+     * @return self - instance of this.
+     */
+    private function initFeatures(): self
+    {
+        $features = $this->getFeatures(true);
+
+        $this->growthbook
+            ->withFeatures($features)
+            ->withAttributes($this->getAttributes());
+
+        // force init of state for key.
+        foreach (array_keys($features) as $experimentId) {
+            $this->isOn($experimentId);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Gets attributes for a user to be passed to growthbook.
+     * @return array - attributes for a user.
+     */
+    private function getAttributes(): array
+    {
+        $attributes=  [
+            'id' => $this->getUserId(),
+            'route' => $_SERVER['REQUEST_URI'],
+            'loggedIn' => !!$this->user,
+        ];
+
+        if ($this->user) {
+            $attributes['userAge'] = $this->user->getAge();
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * Gets the endpoint for getting features from growthbook.
+     * @return string - endpoint for growthbook features.
      */
     private function getGrowthbookFeaturesEndpoint(): ?string
     {

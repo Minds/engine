@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c4aed71d583e75934e27b98a00876151",
+    "content-hash": "d35122441be828d8d8287507f98423a4",
     "packages": [
         {
             "name": "Minds/Surge",
@@ -1609,16 +1609,16 @@
         },
         {
             "name": "growthbook/growthbook",
-            "version": "v0.3.0",
+            "version": "v1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/growthbook/growthbook-php.git",
-                "reference": "17ff324c2036f170ae6a84943f8c1924f624273e"
+                "reference": "fa4902bd62562b103ce369d29d0a8182544315de"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/growthbook/growthbook-php/zipball/17ff324c2036f170ae6a84943f8c1924f624273e",
-                "reference": "17ff324c2036f170ae6a84943f8c1924f624273e",
+                "url": "https://api.github.com/repos/growthbook/growthbook-php/zipball/fa4902bd62562b103ce369d29d0a8182544315de",
+                "reference": "fa4902bd62562b103ce369d29d0a8182544315de",
                 "shasum": ""
             },
             "require": {
@@ -1642,9 +1642,9 @@
             "description": "Library to run AB tests using the Growth Book experiment platform",
             "support": {
                 "issues": "https://github.com/growthbook/growthbook-php/issues",
-                "source": "https://github.com/growthbook/growthbook-php/tree/v0.3.0"
+                "source": "https://github.com/growthbook/growthbook-php/tree/v1.0.0"
             },
-            "time": "2021-05-13T22:21:31+00:00"
+            "time": "2022-02-12T16:54:09+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
