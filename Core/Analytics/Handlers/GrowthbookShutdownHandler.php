@@ -42,7 +42,7 @@ class GrowthbookShutdownHandler implements ShutdownHandlerInterface
 
             foreach ($impressions as $impression) {
                 $experimentId = $impression->experiment->key;
-                $variationId = $impression->result->variationId;
+                $variationId = (string) $impression->result->variationId;
                 $cacheKey = $this->getCacheKey($experimentId, $user);
                 
                 if ($this->cache->get($cacheKey) !== false) {
@@ -51,7 +51,7 @@ class GrowthbookShutdownHandler implements ShutdownHandlerInterface
 
                 $spGrowthbookContext = (new SnowplowGrowthbookContext())
                     ->setExperimentId($experimentId)
-                    ->setVariationId($variationId);
+                    ->setVariationId((string) $variationId);
 
                 $spGrowthbookEvent = (new SnowplowGrowthbookEvent())
                     ->setContext([$spGrowthbookContext])
