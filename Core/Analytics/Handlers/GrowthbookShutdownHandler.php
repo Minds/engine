@@ -43,8 +43,9 @@ class GrowthbookShutdownHandler implements ShutdownHandlerInterface
             foreach ($impressions as $impression) {
                 $experimentId = $impression->experiment->key;
                 $variationId = $impression->result->variationId;
-
-                if ($this->cache->get($this->getCacheKey($experimentId, $user))) {
+                $cacheKey = $this->getCacheKey($experimentId, $user);
+                
+                if ($this->cache->get($cacheKey) !== false) {
                     continue; // Skip as we've seen in last 24 hours.
                 }
 
@@ -59,13 +60,17 @@ class GrowthbookShutdownHandler implements ShutdownHandlerInterface
 
                 $this->snowplowManager->setSubject($user)->emit($spGrowthbookEvent);
             
-                // TODO: Cache not working??
-                // TODO: do we want to store variation or just 1 to indicate its been shown?
-                $this->cache->set($this->getCacheKey($experimentId, $user), $variationId, self::CACHE_TTL);
+                $this->cache->set($cacheKey, $variationId, self::CACHE_TTL);
             }
         });
     }
 
+    /**
+     * Gets key for cache such that it is unique to a user and the experiment being ran.
+     * @param string $experimentId - id of the experiment.
+     * @param User|null $user - user we are running experiment for.
+     * @return string - cache key.
+     */
     private function getCacheKey(string $experimentId, ?User $user = null): string
     {
         $userId = $this->experimentsManager->getUserId($user);
