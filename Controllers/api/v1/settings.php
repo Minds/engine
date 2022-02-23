@@ -105,8 +105,19 @@ class settings implements Interfaces\Api
                     return Factory::response(['status' => 'error', 'message' => "Invalid email"]);
                 }
 
-                // Force two factor
-                $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
+                // Verify email is not spam / blacklisted and is deliverable.
+                $emailVerify = Core\Di\Di::_()->get('Email\Verify\Manager');
+                if (!$emailVerify->verify($_POST['email'])) {
+                    return Factory::response([
+                        'status' => 'error',
+                        'message' => 'Please verify your email address is correct',
+                    ]);
+                }
+    
+                // If account is older than 3 hours, force two factor.
+                if ($user->getAge() > 10800) {
+                    $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
+                }
 
                 $user->setEmail(strtolower($_POST['email']));
 
