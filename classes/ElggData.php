@@ -150,10 +150,10 @@ abstract class ElggData implements
      * Gets age of data by subtracting time created from the current time. 
      * @return int - age of the data.
      */
-    public function getAge(): int
-    {
-        return time() - $this->getTimeCreated();
-    }
+	public function getAge(): int
+	{
+		return time() - $this->getTimeCreated();
+	}
 
 	/*
 	 *  SYSTEM LOG INTERFACE
