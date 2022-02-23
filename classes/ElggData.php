@@ -153,7 +153,7 @@ abstract class ElggData implements
     public function getAge(): int
     {
         return time() - $this->getTimeCreated();
-     }
+    }
 
 	/*
 	 *  SYSTEM LOG INTERFACE
