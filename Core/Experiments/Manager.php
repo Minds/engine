@@ -1,6 +1,10 @@
 <?php
+
 /**
- * Experiments manager
+ * Experiments Manager. Handles experiments and feature flags 
+ * specified within Growthbook. State of a flag can be checked by calling
+ * setUser($user) followed by isOn($flag). This will check both experiments
+ * AND features.
  */
 namespace Minds\Core\Experiments;
 
@@ -14,6 +18,9 @@ use Minds\Core\Experiments\Cookie\Manager as CookieManager;
 
 class Manager
 {
+    /** Output experiment states when user is set. */
+    const DEBUG = false;
+
     /** @var Growthbook\Growthbook */
     private $growthbook;
 
@@ -80,6 +87,17 @@ class Manager
             [ 'id' => $this->getUserId() ]
         ));
 
+        $this->forceInitExperiments(
+            array_keys($this->growthbook->getFeatures())
+        );
+
+        // Debug function to log experiment state for set user.
+        if (static::DEBUG) {
+            foreach (array_keys($this->growthbook->getFeatures()) as $experimentId) {
+                error_log($experimentId.":\t" . ($this->isOn($experimentId) ? "true" : "false"));
+            }
+        }
+
         return $this;
     }
 
@@ -129,7 +147,7 @@ class Manager
         return [
             'attributes' => [
                 'id' => $this->getUserId(),
-                'loggedIn' => !!$this->user,
+                'loggedIn' => !!$this->getUser(),
             ],
             'features' => $this->getFeatures(),
         ];
@@ -179,9 +197,9 @@ class Manager
     }
 
     /**
-     * Inits growthbook by getting features, assigning them and user attributes
-     * to growthbook and checking whether each feature is on iteratively to init.
-     * @return self - instance of this.
+     * Inits growthbook by getting features and user attributes and
+     * assigning them to growthbook.
+     * @return self - instance of $this.
      */
     private function initFeatures(): self
     {
@@ -191,8 +209,20 @@ class Manager
             ->withFeatures($features)
             ->withAttributes($this->getAttributes());
 
-        // force init of state for key.
-        foreach (array_keys($features) as $experimentId) {
+        $this->forceInitExperiments(array_keys($features));
+
+        return $this;
+    }
+
+    /**
+     * Force init of experiments by checking isOn state for all keys.
+     * @param array $keys - keys to check
+     * @return self - instance of $this.
+     */
+    private function forceInitExperiments(array $keys): self
+    {
+        // force init of state for each key.
+        foreach ($keys as $experimentId) {
             $this->isOn($experimentId);
         }
 
