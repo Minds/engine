@@ -45,7 +45,6 @@ class Router
         $this->features = $features ?: Di::_()->get('Features\Manager');
         $this->fallback = $fallback ?: new Fallback();
         $this->shutdownHandlerManager = $shutDownHandlerManager ?? Di::_()->get('Router\Hooks\ShutdownHandlerManager');
-
         $this->shutdownHandlerManager->registerAll();
     }
 
