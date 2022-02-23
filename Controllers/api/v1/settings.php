@@ -106,7 +106,7 @@ class settings implements Interfaces\Api
                 }
 
                 // If email is confirmed and account is older than 1 month and force two factor.
-                if ($user->isEmailConfirmed() && $user->getAge() > 2629746) {
+                if ($user->isEmailConfirmed() || $user->getAge() > 2629746) {
                     $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
                 }
 
