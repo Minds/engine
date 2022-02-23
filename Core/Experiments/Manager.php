@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Experiments Manager. Handles experiments and feature flags 
+ * Experiments Manager. Handles experiments and feature flags
  * specified within Growthbook. State of a flag can be checked by calling
  * setUser($user) followed by isOn($flag). This will check both experiments
  * AND features.
