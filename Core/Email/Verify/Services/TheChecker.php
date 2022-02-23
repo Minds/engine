@@ -1,8 +1,10 @@
 <?php
 namespace Minds\Core\Email\Verify\Services;
 
+use Exception;
 use Minds\Core\Di\Di;
 use Minds\Core\Config;
+use Minds\Core\Log\Logger;
 
 class TheChecker
 {
@@ -12,6 +14,9 @@ class TheChecker
     /** @var Config $config */
     private $config;
 
+    /** @var Logger $config */
+    private $logger;
+
     /** Whitelisted domains */
     private $whitelist = [
         '@icloud\.com',
@@ -20,10 +25,14 @@ class TheChecker
         '@comporium\.net,'
     ];
 
-    public function __construct($http = null, $config = null)
-    {
+    public function __construct(
+        $http = null,
+        $config = null,
+        Logger $logger = null
+    ) {
         $this->config = $config ?: Config::_();
         $this->http = $http ?: Di::_()->get('Http');
+        $this->logger = $logger ?: Di::_()->get('Logger');
     }
 
     /**
@@ -34,6 +43,7 @@ class TheChecker
     public function verify($email)
     {
         if (!$this->config->get('thechecker_secret')) {
+            $this->logger->error('No TheChecker secret set for email validity check.');
             return true;
         }
 
@@ -52,15 +62,19 @@ class TheChecker
                 ],
             ]);
         } catch (\Exception $e) {
-            error_log('TheChecker | Error communicating with provider.');
+            $this->logger->error($e);
             return true; // If provider errors out then verify
         }
 
         $response = json_decode($content, true);
 
+        if ($response['message']) {
+            // e.g. "You've provided an invalid api key.".
+            $this->logger->error($response['message']);
+        }
 
         if ($response['result'] !== 'deliverable') {
-            error_log(
+            $this->logger->info(
                 'TheChecker | not-deliverable'
                 .', result: '.$response['result']
                 .', for email: '.$response['email']
