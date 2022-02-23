@@ -1,7 +1,6 @@
 <?php
 namespace Minds\Core\Email\Verify\Services;
 
-use Exception;
 use Minds\Core\Di\Di;
 use Minds\Core\Config;
 use Minds\Core\Log\Logger;
