@@ -224,7 +224,6 @@ class Manager
         foreach ($keys as $experimentId) {
             $this->isOn($experimentId);
         }
-
         return $this;
     }
 
