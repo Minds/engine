@@ -221,7 +221,6 @@ class Manager
      */
     private function forceInitExperiments(array $keys): self
     {
-        // force init of state for each key.
         foreach ($keys as $experimentId) {
             $this->isOn($experimentId);
         }
