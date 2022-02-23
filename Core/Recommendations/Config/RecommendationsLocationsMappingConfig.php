@@ -18,5 +18,6 @@ final class RecommendationsLocationsMappingConfig
         "wider-network" => WiderNetworkLocation::class,
         "newsfeed" => NewsfeedLocation::class,
         "discovery-feed" => DiscoveryFeedLocation::class,
+        "channel" => ChannelFeedLocation::class,
     ];
 }
