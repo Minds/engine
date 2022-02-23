@@ -105,8 +105,8 @@ class settings implements Interfaces\Api
                     return Factory::response(['status' => 'error', 'message' => "Invalid email"]);
                 }
 
-                // If account is older than 3 hours, force two factor.
-                if ($user->getAge() > 10800) {
+                // If email is confirmed and account is older than 1 month and force two factor.
+                if ($user->isEmailConfirmed() && $user->getAge() > 2629746) {
                     $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
                 }
 
