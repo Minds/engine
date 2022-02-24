@@ -11,9 +11,6 @@ use Minds\Core\Email\V2\Campaigns;
 use Minds\Core\Email\V2\Campaigns\Recurring\BoostComplete\BoostComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireSent\WireSent;
-use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
-use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
-use Minds\Core\Email\V2\Campaigns\Recurring\WeMissYou\WeMissYou;
 use Minds\Core\Email\V2\Delegates\ConfirmationSender;
 use Minds\Core\Email\V2\Delegates\DigestSender;
 use Minds\Core\Reports;
@@ -40,15 +37,6 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             case 'testBoostComplete':
                 $this->out(file_get_contents(dirname(__FILE__) . '/Help/Email/testBoostComplete.txt'));
                 break;
-            case 'testWeMissYou':
-                $this->out(file_get_contents(dirname(__FILE__) . '/Help/Email/testWeMissYou.txt'));
-                break;
-            case 'testWelcomeComplete':
-                $this->out(file_get_contents(dirname(__FILE__) . '/Help/Email/testWelcomeComplete.txt'));
-                break;
-            case 'testWelcomeIncomplete':
-                $this->out(file_get_contents(dirname(__FILE__) . '/Help/Email/testWelcomeIncomplete.txt'));
-                break;
             case 'testWire':
                 $this->out(file_get_contents(dirname(__FILE__) . '/Help/Email/testWire.txt'));
                 break;
@@ -67,6 +55,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
      * How to run? Eg:
      * php cli.php Email \
      *  --campaign="Marketing\\Languages2020_06_18\\Languages2020_06_18"
+     *  --send-list="GenericSendList"
      */
     public function exec()
     {
@@ -96,7 +85,10 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 
             $campaign = clone $campaign;
             $campaign->setUser($user);
-            $campaign->send();
+
+            if (!$dry) {
+                $campaign->send();
+            }
 
             $this->out("[$i]: $user->guid ($sendList->offset) sent");
         }
@@ -107,119 +99,6 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 
     //
 
-    public function testWeMissYou()
-    {
-        $userguid = $this->getOpt('guid');
-        $output = $this->getOpt('output');
-        $send = $this->getOpt('send');
-        $user = new User($userguid);
-
-        if (!$user->guid) {
-            $this->out('User not found');
-            exit;
-        }
-
-        $manager = Di::_()->get('Suggestions\Manager');
-        $manager->setUser($user);
-        $suggestions = $manager->getList();
-
-        $campaign = (new WeMissYou())
-            ->setUser($user)
-            ->setSuggestions($suggestions);
-
-        $message = $campaign->build();
-
-        if ($send) {
-            Core\Events\Dispatcher::trigger('user_state_change', 'cold', ['user_guid' => $userguid]);
-        }
-
-        if ($output) {
-            file_put_contents($output, $message->buildHtml());
-        } else {
-            $this->out($message->buildHtml());
-        }
-    }
-
-    public function testWelcomeSender()
-    {
-        $userguid = $this->getOpt('guid');
-        $output = $this->getOpt('output');
-        $send = $this->getOpt('send');
-        $user = new User($userguid);
-
-        if (!$user->guid) {
-            $this->out('User not found');
-            exit;
-        }
-
-        if ($send) {
-            Core\Events\Dispatcher::trigger('welcome_email', 'all', ['user_guid' => $userguid]);
-        }
-    }
-
-    public function testWelcomeComplete()
-    {
-        $userguid = $this->getOpt('guid');
-        $output = $this->getOpt('output');
-        $send = $this->getOpt('send');
-        $user = new User($userguid);
-
-        if (!$user->guid) {
-            $this->out('User not found');
-            exit;
-        }
-
-        $manager = new Manager();
-        $manager2 = new Manager();
-
-        $manager->setUser($user);
-        $suggestions = $manager->getList();
-
-        $campaign = (new WelcomeComplete())
-            ->setUser($user)
-            ->setSuggestions($suggestions);
-
-        $message = $campaign->build();
-
-        if ($send) {
-            $campaign->send();
-        }
-
-        if ($output) {
-            file_put_contents($output, $message->buildHtml());
-        } else {
-            $this->out($message->buildHtml());
-        }
-    }
-
-
-    public function testWelcomeIncomplete()
-    {
-        $userguid = $this->getOpt('guid');
-        $output = $this->getOpt('output');
-        $send = $this->getOpt('send');
-        $user = new User($userguid);
-
-        if (!$user->guid) {
-            $this->out('User not found');
-            exit;
-        }
-
-        $campaign = (new WelcomeIncomplete())
-            ->setUser($user);
-
-        $message = $campaign->build();
-
-        if ($send) {
-            $campaign->send();
-        }
-
-        if ($output) {
-            file_put_contents($output, $message->buildHtml());
-        } else {
-            $this->out($message->buildHtml());
-        }
-    }
 
     public function testWire()
     {

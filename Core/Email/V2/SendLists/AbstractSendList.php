@@ -5,7 +5,7 @@ namespace Minds\Core\Email\V2\SendLists;
 
 use Minds\Core\Email\Campaigns\EmailCampaign;
 
-abstract class AbstractSendList
+abstract class AbstractSendList implements SendListInterface
 {
     /** @var CampaignInterface */
     protected $campaign;
@@ -18,7 +18,7 @@ abstract class AbstractSendList
      * @param array $cliOpts
      * @return self
      */
-    public function setCliOpts(array $cliOpts = []): self
+    public function setCliOpts(array $cliOpts = []): SendListInterface
     {
         // Doesn't do anything
         return $this;
@@ -28,14 +28,14 @@ abstract class AbstractSendList
      * @param EmailCampaign $campaign
      * @return self
      */
-    public function setCampaign(EmailCampaign $campaign): self
+    public function setCampaign(EmailCampaign $campaign): SendListInterface
     {
         $this->campaign = $campaign;
         return $this;
     }
 
 
-    public function setOffset($offset = ''): self
+    public function setOffset($offset = ''): SendListInterface
     {
         $this->offset = $offset;
         return $this;

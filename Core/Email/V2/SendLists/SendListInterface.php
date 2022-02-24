@@ -18,7 +18,6 @@ interface SendListInterface
      */
     public function setCampaign(EmailCampaign $campaign): self;
 
-
     /**
      * @param string
      * @return self
