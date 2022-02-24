@@ -27,13 +27,6 @@ class GenericSendList extends AbstractSendList implements SendListInterface
      */
     public function setCliOpts(array $cliOpts = []): self
     {
-        // foreach ($cliOpts as $k => $v) {
-        //     switch ($k) {
-        //         case "campaign":
-        //             $this->campaign
-        //     }
-        // }
-
         return $this;
     }
 
@@ -47,7 +40,7 @@ class GenericSendList extends AbstractSendList implements SendListInterface
                 'campaign' => $this->campaign->getCampaign(),
                 'topic' => $this->campaign->getTopic(),
                 'value' => true,
-                'limit' => $this->limit,
+                'limit' => 150,
                 'offset' => base64_decode($this->offset, true)
             ];
 
@@ -63,7 +56,6 @@ class GenericSendList extends AbstractSendList implements SendListInterface
                 return $item->getUserGuid();
             }, $result['data']);
 
-            $this->valid = true;
             foreach ($this->entitiesBuilder->get([
                 'guids' => $guids
             ]) as $user) {

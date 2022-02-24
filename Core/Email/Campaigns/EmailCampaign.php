@@ -27,6 +27,11 @@ abstract class EmailCampaign
      */
     protected $user;
 
+    public function __construct($manager = null)
+    {
+        $this->manager = $manager ?? new Manager();
+    }
+
     /**
      * @param User $user
      */
