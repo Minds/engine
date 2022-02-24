@@ -14,8 +14,6 @@ use Minds\Core\Email\V2\Campaigns\Recurring\WireSent\WireSent;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WeMissYou\WeMissYou;
-use Minds\Core\Email\V2\Campaigns\Recurring\Digest\Digest;
-use Minds\Core\Email\Campaigns\Recurring\WirePromotions;
 use Minds\Core\Email\V2\Delegates\ConfirmationSender;
 use Minds\Core\Email\V2\Delegates\DigestSender;
 use Minds\Core\Reports;
@@ -24,10 +22,8 @@ use Minds\Core\Blockchain\Purchase\Delegates\NewPurchaseEmail;
 use Minds\Core\Blockchain\Purchase\Purchase;
 
 use Minds\Core\Suggestions\Manager;
-use Minds\Core\Analytics\Timestamps;
 use Minds\Core\Di\Di;
-use Minds\Core\Email\Campaigns\WirePromotions as CampaignsWirePromotions;
-use Minds\Exceptions\CliException;
+use Minds\Core\Email\V2\SendLists;
 
 class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -81,26 +77,18 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 
         $offset = $this->getOpt('offset') ?: '';
         $campaign = Campaigns\Factory::build($this->getOpt('campaign'));
-
-        if ($dry) {
-            $iterator = [
-                (new User($dry))
-            ];
-        } else {
-            $iterator = new EmailSubscribersIterator();
-            $iterator->setCampaign($campaign->getCampaign())
-                ->setTopic($campaign->getTopic())
-                ->setValue(true)
-                ->setOffset($offset);
-        }
+        $sendList = SendLists\Factory::build($this->getOpt('send-list'));
+        $sendList->setCampaign($campaign);
+        $sendList->setOffset($offset);
+        $sendList->setCliOpts($this->getAllOpts());
 
         $i = 0;
-        foreach ($iterator as $user) {
+        foreach ($sendList->getList() as $user) {
             if (!$user instanceof User || !method_exists($user, 'getEmail')) {
                 continue;
             }
             if ($user->bounced && !$dry) {
-                $this->out("[$i]: $user->guid ($iterator->offset) bounced");
+                $this->out("[$i]: $user->guid ($sendList->offset) bounced");
                 continue;
             }
 
@@ -110,7 +98,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             $campaign->setUser($user);
             $campaign->send();
 
-            $this->out("[$i]: $user->guid ($iterator->offset) sent");
+            $this->out("[$i]: $user->guid ($sendList->offset) sent");
         }
 
         $this->out('Done.');
@@ -118,53 +106,6 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 
 
     //
-
-    public function topPosts()
-    {
-        $this->out('Top posts');
-        error_reporting(E_ALL);
-        ini_set('display_errors', 1);
-
-        $period = $this->getOpt('period');
-        $offset = '';
-
-        if (!$period || $period !== 'periodically' && $period !== 'daily' && $period !== 'weekly') {
-            throw new CliException('You must set a correct period (periodically, daily or weekly)');
-        }
-
-        $batch = Core\Email\Batches\Factory::build('activity');
-
-        $batch->setPeriod($period)
-            ->setOffset($offset)
-            ->run();
-        $this->out('done');
-    }
-
-    public function RetentionTips()
-    {
-        $this->out('Retention emails');
-        error_reporting(E_ALL);
-        ini_set('display_errors', 1);
-
-        $period = $this->getOpt('period');
-        $offset = '';
-
-        $batch = Core\Email\Batches\Factory::build('RetentionTips');
-
-        $batch->setPeriod($period)
-            ->setOffset($offset)
-            ->run();
-        $this->out('done');
-    }
-
-    public function unreadNotifications()
-    {
-        $offset = $this->getOpt('offset') ?: '';
-
-        $batch = Core\Email\Batches\Factory::build('notifications');
-        $batch->setOffset($offset)
-            ->run();
-    }
 
     public function testWeMissYou()
     {
@@ -251,27 +192,6 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         }
     }
 
-    public function testWirePromotion()
-    {
-        $userguid = $this->getOpt('guid');
-        $output = $this->getOpt('output');
-        $send = $this->getOpt('send');
-        $user = new User($userguid);
-
-        if (!$user->guid) {
-            $this->out('User not found');
-            exit;
-        }
-
-        $campaign = (new CampaignsWirePromotions())
-            ->setUser($user);
-
-        $message = $campaign->build();
-
-        if ($send) {
-            $campaign->send();
-        }
-    }
 
     public function testWelcomeIncomplete()
     {
