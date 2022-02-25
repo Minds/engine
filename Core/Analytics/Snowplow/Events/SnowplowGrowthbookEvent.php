@@ -14,7 +14,7 @@ class SnowplowGrowthbookEvent implements SnowplowEventInterface
     /** @var string */
     protected $experimentId;
 
-    /** @var string */
+    /** @var int */
     protected $variationId;
 
     /** @var SnowplowContextInterface[] */
@@ -83,10 +83,10 @@ class SnowplowGrowthbookEvent implements SnowplowEventInterface
 
     /**
      * Sets variation id of the event.
-     * @param string $variationId - variation id to set.
+     * @param int $variationId - variation id to set.
      * @return self - instance of $this.
      */
-    public function setVariationId(string $variationId): self
+    public function setVariationId(int $variationId): self
     {
         $this->variationId = $variationId;
         return $this;
@@ -94,9 +94,9 @@ class SnowplowGrowthbookEvent implements SnowplowEventInterface
 
     /**
      * Gets variation id of the event.
-     * @return string variation id of the event.
+     * @return int variation id of the event.
      */
-    public function getVariationId(): string
+    public function getVariationId(): int
     {
         return $this->variationId;
     }

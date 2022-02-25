@@ -1,7 +1,6 @@
 <?php
 namespace Minds\Core\Analytics\Handlers;
 
-use Minds\Core\Analytics\Snowplow\Contexts\SnowplowGrowthbookContext;
 use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Analytics\Snowplow\Manager as SnowplowManager;
@@ -25,7 +24,7 @@ class GrowthbookShutdownHandler implements ShutdownHandlerInterface
     ) {
         $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
         $this->snowplowManager = $snowplowManager ?? Di::_()->get('Analytics\Snowplow\Manager');
-        $this->cache = $cache ?? Di::_()->get('Cache\Redis');
+        $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
 
@@ -37,24 +36,19 @@ class GrowthbookShutdownHandler implements ShutdownHandlerInterface
     {
         register_shutdown_function(function () {
             $user = Session::getLoggedInUser() ?? null;
-            $this->experimentsManager->setUser($user);
             $impressions = $this->experimentsManager->getViewedExperiments();
 
             foreach ($impressions as $impression) {
                 $experimentId = $impression->experiment->key;
-                $variationId = (string) $impression->result->variationId;
+                $variationId = $impression->result->variationId;
+
                 $cacheKey = $this->getCacheKey($experimentId, $user);
                 
                 if ($this->cache->get($cacheKey) !== false) {
                     continue; // Skip as we've seen in last 24 hours.
                 }
 
-                $spGrowthbookContext = (new SnowplowGrowthbookContext())
-                    ->setExperimentId($experimentId)
-                    ->setVariationId((string) $variationId);
-
                 $spGrowthbookEvent = (new SnowplowGrowthbookEvent())
-                    ->setContext([$spGrowthbookContext])
                     ->setExperimentId($experimentId)
                     ->setVariationId($variationId);
 

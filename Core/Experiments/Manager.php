@@ -4,7 +4,8 @@
  * Experiments Manager. Handles experiments and feature flags
  * specified within Growthbook. State of a flag can be checked by calling
  * setUser($user) followed by isOn($flag). This will check both experiments
- * AND features.
+ * AND features. Also for checking experiments you can use the 
+ * hasVariation(key, val) function.
  */
 namespace Minds\Core\Experiments;
 
@@ -18,9 +19,6 @@ use Minds\Core\Experiments\Cookie\Manager as CookieManager;
 
 class Manager
 {
-    /** Output experiment states when user is set. */
-    const DEBUG = false;
-
     /** @var Growthbook\Growthbook */
     private $growthbook;
 
@@ -86,17 +84,6 @@ class Manager
             $this->growthbook->getAttributes(),
             [ 'id' => $this->getUserId() ]
         ));
-
-        $this->forceInitExperiments(
-            array_keys($this->growthbook->getFeatures())
-        );
-
-        // Debug function to log experiment state for set user.
-        if (static::DEBUG) {
-            foreach (array_keys($this->growthbook->getFeatures()) as $experimentId) {
-                error_log($experimentId.":\t" . ($this->isOn($experimentId) ? "true" : "false"));
-            }
-        }
 
         return $this;
     }
@@ -164,6 +151,18 @@ class Manager
     }
 
     /**
+     * Whether user has been put in the specified variation of an experiment.
+     * @param string $featureKey - the key of the feature.
+     * @param T $variationId - the variation label. 
+     * @return boolean - true if feature is on and experiment is active for user.
+     */
+    public function hasVariation(string $featureKey, $variation): bool
+    {
+        $defaultValue = $this->growthbook->getFeatures()[$featureKey]->defaultValue ?? false;
+        return $this->growthbook->getValue($featureKey, $defaultValue) === $variation;
+    }
+
+    /**
      * Get viewed experiments from Growthbook
      * @return array - array of viewed experiments.
      */
@@ -209,21 +208,6 @@ class Manager
             ->withFeatures($features)
             ->withAttributes($this->getAttributes());
 
-        $this->forceInitExperiments(array_keys($features));
-
-        return $this;
-    }
-
-    /**
-     * Force init of experiments by checking isOn state for all keys.
-     * @param array $keys - keys to check
-     * @return self - instance of $this.
-     */
-    private function forceInitExperiments(array $keys): self
-    {
-        foreach ($keys as $experimentId) {
-            $this->isOn($experimentId);
-        }
         return $this;
     }
 
@@ -235,8 +219,11 @@ class Manager
     {
         $attributes=  [
             'id' => $this->getUserId(),
-            'route' => $_SERVER['REQUEST_URI'],
-            'loggedIn' => !!$this->user,
+            'route' => $_SERVER['HTTP_REFERER'],
+            'api_endpoint' => $_SERVER['REQUEST_URI'],
+            'environment' => getenv('MINDS_ENV') ?: 'development'
+            // TODO: Add loggedIn - currently it would only be set if setUser is called.
+            // 'loggedIn' => !!$this->user,
         ];
 
         if ($this->user) {
