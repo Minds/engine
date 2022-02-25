@@ -1,19 +1,19 @@
 <?php
 /**
- * Welcome
+ * Bring your friends
  *
  * @author mark
  */
 
-namespace Minds\Core\Email\V2\Campaigns\Recurring\Welcome;
+namespace Minds\Core\Email\V2\Campaigns\Recurring\BringYourFriends;
 
 use Minds\Core\Email\Campaigns\EmailCampaign;
-use Minds\Core\Email\Confirmation\Url as ConfirmationUrl;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Common\Message;
+use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
 
-class Welcome extends EmailCampaign
+class BringYourFriends extends EmailCampaign
 {
     /** @var Template */
     protected $template;
@@ -47,14 +47,14 @@ class Welcome extends EmailCampaign
             '__e_ct_guid' => $this->user->getGUID(),
             'campaign' => $this->campaign,
             'topic' => $this->topic,
-            'utm_campaign' => 'welcome',
+            'utm_campaign' => 'bring_your_friends',
             'utm_medium' => 'email',
             'utm_source' => 'signups', // TODO: too generic. use SendList id?
         ];
 
         $this->template->setLocale($this->user->getLanguage());
 
-        $subject = "Welcome to Minds, @{$this->user->getUsername()}";
+        $subject = "Friends help friends get off big tech";
 
         $trackingQuery = http_build_query($tracking);
 
@@ -68,8 +68,15 @@ class Welcome extends EmailCampaign
         $this->template->set('guid', $this->user->guid);
         $this->template->set('tracking', $trackingQuery);
         $this->template->set('title', "");
-        $this->template->set('preheader', "You've taken the first step. Here's what's next.");
+        $this->template->set('preheader', "@{$this->user->username}, lead the charge to join Minds.");
 
+        $actionButton = (new ActionButton())
+            ->setLabel("Refer Your Friends")
+            ->setPath(
+                "https://www.minds.com/settings/other/referrals?$trackingQuery&utm_content=cta_button"
+            );
+
+        $this->template->set('actionButton', $actionButton->build());
 
         $message = new Message();
         $message
@@ -96,6 +103,8 @@ class Welcome extends EmailCampaign
         if (!$this->user->isEmailConfirmed()) {
             return;
         }
+
+        // TODO: check if user has already referred anyone
 
         $this->mailer->send(
             $this->build(),

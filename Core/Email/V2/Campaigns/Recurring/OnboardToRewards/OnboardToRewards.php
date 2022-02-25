@@ -1,19 +1,19 @@
 <?php
 /**
- * Welcome
+ * Onboard to rewards
  *
  * @author mark
  */
 
-namespace Minds\Core\Email\V2\Campaigns\Recurring\Welcome;
+namespace Minds\Core\Email\V2\Campaigns\Recurring\OnboardToRewards;
 
 use Minds\Core\Email\Campaigns\EmailCampaign;
-use Minds\Core\Email\Confirmation\Url as ConfirmationUrl;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Common\Message;
+use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
 
-class Welcome extends EmailCampaign
+class OnboardToRewards extends EmailCampaign
 {
     /** @var Template */
     protected $template;
@@ -47,14 +47,14 @@ class Welcome extends EmailCampaign
             '__e_ct_guid' => $this->user->getGUID(),
             'campaign' => $this->campaign,
             'topic' => $this->topic,
-            'utm_campaign' => 'welcome',
+            'utm_campaign' => 'onboard_to_rewards',
             'utm_medium' => 'email',
             'utm_source' => 'signups', // TODO: too generic. use SendList id?
         ];
 
         $this->template->setLocale($this->user->getLanguage());
 
-        $subject = "Welcome to Minds, @{$this->user->getUsername()}";
+        $subject = "Get paid for your posts on Minds";
 
         $trackingQuery = http_build_query($tracking);
 
@@ -68,8 +68,15 @@ class Welcome extends EmailCampaign
         $this->template->set('guid', $this->user->guid);
         $this->template->set('tracking', $trackingQuery);
         $this->template->set('title', "");
-        $this->template->set('preheader', "You've taken the first step. Here's what's next.");
+        $this->template->set('preheader', "Join Minds Rewards to claim your share of daily crypto payouts.");
 
+        $actionButton = (new ActionButton())
+            ->setLabel("Join Rewards")
+            ->setPath(
+                "https://www.minds.com/wallet/tokens/rewards?$trackingQuery&utm_content=cta_button"
+            );
+
+        $this->template->set('actionButton', $actionButton->build());
 
         $message = new Message();
         $message
@@ -95,6 +102,10 @@ class Welcome extends EmailCampaign
 
         if (!$this->user->isEmailConfirmed()) {
             return;
+        }
+
+        if ($this->user->getPhoneNumberHash()) {
+            return; // They are already in rewards
         }
 
         $this->mailer->send(

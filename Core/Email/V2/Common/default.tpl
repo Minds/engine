@@ -21,6 +21,12 @@
         text-align:left;
         color: #4f4f50;
       }
+      li {
+        margin-bottom: 16px !important;
+      }
+      ul {
+        padding-left: 16px !important;
+      }
       img {
         border: 0;
         height: auto;
