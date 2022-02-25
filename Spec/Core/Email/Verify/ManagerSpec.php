@@ -39,32 +39,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(false);
     }
 
-    public function it_should_check_3rd_party_service()
-    {
-        $this->spamBlocksManager->isSpam(Argument::that(function ($model) {
-            return $model->getKey() == 'email_hash'
-                && $model->getValue() == hash('sha256', 'hello@minds.com');
-        }))
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        // Call 3rd party service
-        $this->service->verify('hello@minds.com')
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        // Add spam block to avoid hitting multiple times
-        $this->spamBlocksManager->add(Argument::that(function ($model) {
-            return $model->getKey() == 'email_hash'
-                && $model->getValue() == hash('sha256', 'hello@minds.com');
-        }))
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->verify('hello@minds.com')
-            ->shouldReturn(false);
-    }
-
     public function it_should_return_true_if_not_spam()
     {
         $this->spamBlocksManager->isSpam(Argument::that(function ($model) {
@@ -74,12 +48,38 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        // Call 3rd party service
-        $this->service->verify('hello@minds.com')
-            ->shouldBeCalled()
-            ->willReturn(true);
+        // // Call 3rd party service
+        // $this->service->verify('hello@minds.com')
+        //     ->shouldBeCalled()
+        //     ->willReturn(true);
 
         $this->verify('hello@minds.com')
             ->shouldReturn(true);
     }
+
+    // public function it_should_check_3rd_party_service()
+    // {
+    //     $this->spamBlocksManager->isSpam(Argument::that(function ($model) {
+    //         return $model->getKey() == 'email_hash'
+    //             && $model->getValue() == hash('sha256', 'hello@minds.com');
+    //     }))
+    //         ->shouldBeCalled()
+    //         ->willReturn(false);
+
+    //     // Call 3rd party service
+    //     $this->service->verify('hello@minds.com')
+    //         ->shouldBeCalled()
+    //         ->willReturn(false);
+
+    //     // Add spam block to avoid hitting multiple times
+    //     $this->spamBlocksManager->add(Argument::that(function ($model) {
+    //         return $model->getKey() == 'email_hash'
+    //             && $model->getValue() == hash('sha256', 'hello@minds.com');
+    //     }))
+    //         ->shouldBeCalled()
+    //         ->willReturn(true);
+
+    //     $this->verify('hello@minds.com')
+    //         ->shouldReturn(false);
+    // }
 }
