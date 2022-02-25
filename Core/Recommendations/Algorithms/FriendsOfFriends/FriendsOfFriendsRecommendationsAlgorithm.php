@@ -38,8 +38,9 @@ class FriendsOfFriendsRecommendationsAlgorithm extends AbstractRecommendationsAl
 
         return $this;
     }
-    public function getRecommendations(): Response
+
+    public function getRecommendations(?array $options = []): Response
     {
-        // TODO: Implement getRecommendations() method.
+        return $this->repository->getList($options);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Minds\Core\Recommendations\Algorithms\FriendsOfFriends;
+namespace Minds\Core\Recommendations\Algorithms\FriendsOfFriend;
 
 use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Client as ElasticSearchClient;
@@ -31,20 +31,20 @@ class Repository implements RepositoryInterface
     }
 
     /**
+     * Sets the repository options using the provided array and validates them.
      * @throws UserErrorException
      */
-    public function setOptions(RepositoryOptions $options): self
+    private function setOptions(?array $options): void
     {
-        $this->options = $options;
+        $this->options->init($options);
         $this->validateOptions();
-
-        return $this;
     }
 
     /**
+     * Performs validation of the
      * @throws UserErrorException
      */
-    private function validateOptions(): self
+    private function validateOptions(): void
     {
         if (!$this->optionsValidator->validate($this->options->toArray())) {
             throw new UserErrorException(
@@ -53,8 +53,6 @@ class Repository implements RepositoryInterface
                 $this->optionsValidator->getErrors()
             );
         }
-
-        return $this;
     }
 
     /**
@@ -65,12 +63,10 @@ class Repository implements RepositoryInterface
      */
     public function getList(?array $options = null): Response
     {
-        $this->options->init($options);
-        if ($this->options->validate()) {
-            throw new UserErrorException("Some errors where found whist ");
-        }
+        $this->setOptions($options);
 
         $query = $this->prepareQuery();
+        return $this->prepareResponse($query);
     }
 
     /**
@@ -84,15 +80,6 @@ class Repository implements RepositoryInterface
         // action that the loggedin user's subscriptions have performed
         $must[]['term'] = [
             "action" => "subscribe"
-        ];
-
-        // list of users who are subscribed to by loggedin user's subscriptions
-        $must[]['terms'] = [
-            "user_guid" => [
-                "index" => "minds-graph-subscriptions",
-                "id" => $this->options->getTargetUserGuid(),
-                "path" => "guids"
-            ]
         ];
 
         $must[]['range'] = [

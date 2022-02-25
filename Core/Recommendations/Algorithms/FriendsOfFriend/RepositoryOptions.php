@@ -1,6 +1,6 @@
 <?php
 
-namespace Minds\Core\Recommendations\Algorithms\FriendsOfFriends;
+namespace Minds\Core\Recommendations\Algorithms\FriendsOfFriend;
 
 use Minds\Entities\ValidationError;
 use Minds\Traits\MagicAttributes;

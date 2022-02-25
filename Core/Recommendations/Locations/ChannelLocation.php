@@ -2,9 +2,12 @@
 
 namespace Minds\Core\Recommendations\Locations;
 
+use Minds\Core\Recommendations\Algorithms\FriendsOfFriend\FriendsOfFriendRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Algorithms\RecommendationsAlgorithmInterface;
-use Minds\Core\Recommendations\Algorithms\SuggestedChannels\SuggestedChannelsRecommendationsAlgorithm;
 
+/**
+ * Returns the recommendations' algorithm to be used for the channel location
+ */
 class ChannelLocation extends AbstractRecommendationsLocation
 {
     /**
@@ -13,6 +16,6 @@ class ChannelLocation extends AbstractRecommendationsLocation
      */
     public function getLocationRecommendationsAlgorithm(): RecommendationsAlgorithmInterface
     {
-        return (new SuggestedChannelsRecommendationsAlgorithm())->setUser($this->user);
+        return (new FriendsOfFriendRecommendationsAlgorithm())->setUser($this->user);
     }
 }
