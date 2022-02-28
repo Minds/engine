@@ -2,9 +2,9 @@
 
 namespace Minds\Core\Recommendations\Algorithms\FriendsOfFriends;
 
+use Minds\Common\Repository\Response;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Client as ElasticSearchClient;
-use Minds\Common\Repository\Response;
 use Minds\Core\Data\ElasticSearch\Prepared\Search as PreparedSearchQuery;
 use Minds\Core\Di\Di;
 use Minds\Core\Recommendations\Algorithms\FriendsOfFriends\Validators\RepositoryOptionsValidator;
@@ -19,9 +19,9 @@ use Minds\Exceptions\UserErrorException;
 class Repository implements RepositoryInterface
 {
     public function __construct(
-        private ?ElasticSearchClient $elasticSearchClient = null,
-        private ?RepositoryOptions $options = null,
-        private ?Config $config = null,
+        private ?ElasticSearchClient        $elasticSearchClient = null,
+        private ?RepositoryOptions          $options = null,
+        private ?Config                     $config = null,
         private ?RepositoryOptionsValidator $optionsValidator = null
     ) {
         $this->elasticSearchClient ??= Di::_()->get('Database\ElasticSearch');
@@ -71,6 +71,8 @@ class Repository implements RepositoryInterface
         }
 
         $query = $this->prepareQuery();
+
+        return $this->prepareResponse($query);
     }
 
     /**
@@ -180,7 +182,7 @@ class Repository implements RepositoryInterface
                             'field' => 'entity_guid',
                             'size' => $this->options->getLimit(),
                             'order' => [
-                                '_count' =>  'desc',
+                                '_count' => 'desc',
                             ],
                         ],
                     ],
