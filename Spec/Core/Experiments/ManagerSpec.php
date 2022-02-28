@@ -11,7 +11,6 @@ use Zend\Diactoros\Response\JsonResponse;
 use Minds\Core\Experiments\Cookie\Manager as CookieManager;
 use GuzzleHttp;
 use Minds\Core\Data\cache\PsrWrapper;
-use Minds\Entities\User;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -43,6 +42,7 @@ class ManagerSpec extends ObjectBehavior
         $this->psrCache = $psrCache;
 
         $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['HTTP_REFERER'] = '/newsfeed/subscriptions';
 
         $this->growthbook->withFeatures(Argument::any())
             ->shouldBeCalled()
@@ -55,10 +55,6 @@ class ManagerSpec extends ObjectBehavior
         $this->growthbook->withAttributes(Argument::any())
             ->shouldBeCalled()
             ->willReturn($this->growthbook);
-
-        $this->growthbook->isOn('discovery-homepage')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $this->config->get('growthbook')
             ->shouldBeCalled()

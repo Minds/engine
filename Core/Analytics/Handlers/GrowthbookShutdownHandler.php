@@ -6,10 +6,10 @@ use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Analytics\Snowplow\Manager as SnowplowManager;
 use Minds\Interfaces\ShutdownHandlerInterface;
 use Minds\Core\Analytics\Snowplow\Events\SnowplowGrowthbookEvent;
-use Minds\Core\Data\cache\Redis;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Session;
 use Minds\Entities\User;
+use Minds\Core\Data\cache\PsrWrapper;
 
 class GrowthbookShutdownHandler implements ShutdownHandlerInterface
 {
@@ -19,7 +19,7 @@ class GrowthbookShutdownHandler implements ShutdownHandlerInterface
     public function __construct(
         private ?ExperimentsManager $experimentsManager = null,
         private ?SnowplowManager $snowplowManager = null,
-        private ?Redis $cache = null,
+        private ?PsrWrapper $cache = null,
         private ?EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
