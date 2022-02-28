@@ -217,13 +217,12 @@ class Manager
      */
     private function getAttributes(): array
     {
-        $attributes=  [
+        $attributes = [
             'id' => $this->getUserId(),
+            'loggedIn' => !!$this->getUser(),
             'route' => $_SERVER['HTTP_REFERER'],
             'api_endpoint' => $_SERVER['REQUEST_URI'],
             'environment' => getenv('MINDS_ENV') ?: 'development'
-            // TODO: Add loggedIn - currently it would only be set if setUser is called.
-            // 'loggedIn' => !!$this->user,
         ];
 
         if ($this->user) {
