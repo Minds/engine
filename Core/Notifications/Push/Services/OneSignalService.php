@@ -67,6 +67,7 @@ class OneSignalService extends AbstractService implements PushServiceInterface
      */
     private function getOneSignalAppId()
     {
-        return $this->config->get('onesignal')['app_id'];
+        return "5f3f75cb-67d1-40f0-afce-f8412a9b46e1";
+        // return $this->config->get('onesignal')['app_id'];
     }
 }
