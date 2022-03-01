@@ -174,7 +174,12 @@ class Manager
                 if (!$this->fcmService) {
                     $this->fcmService = new Services\FcmService();
                 }
-                return $this->fcmService;
+                return $this->fcmService;;
+            case DeviceSubscription::SERVICE_ONESIGNAL:
+                if (!$this->oneSignalService) {
+                    $this->oneSignalService = new Services\OneSignalService();
+                }
+                return $this->oneSignalService;
         }
         throw new Exception('Invalid service');
     }

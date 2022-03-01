@@ -54,6 +54,7 @@ class Installer
             'sns-secret' => '',
             'checkout_domain' => 'localhost:8081',
             'verify-service-sid' => '',
+            'onesignal-app-id' => '',
         ];
 
         usleep(mt_rand(1, 9999));
