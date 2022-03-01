@@ -4,7 +4,7 @@
  * Experiments Manager. Handles experiments and feature flags
  * specified within Growthbook. State of a flag can be checked by calling
  * setUser($user) followed by isOn($flag). This will check both experiments
- * AND features. Also for checking experiments you can use the 
+ * AND features. Also for checking experiments you can use the
  * hasVariation(key, val) function.
  */
 namespace Minds\Core\Experiments;
@@ -153,7 +153,7 @@ class Manager
     /**
      * Whether user has been put in the specified variation of an experiment.
      * @param string $featureKey - the key of the feature.
-     * @param T $variationId - the variation label. 
+     * @param T $variationId - the variation label.
      * @return boolean - true if feature is on and experiment is active for user.
      */
     public function hasVariation(string $featureKey, $variation): bool

@@ -35,7 +35,7 @@ class GrowthbookShutdownHandler implements ShutdownHandlerInterface
     public function register(): void
     {
         register_shutdown_function(function () {
-            $user = Session::getLoggedInUser() ?? null;
+            $user = $this->experimentsManager->getUser();
             $impressions = $this->experimentsManager->getViewedExperiments();
 
             foreach ($impressions as $impression) {
