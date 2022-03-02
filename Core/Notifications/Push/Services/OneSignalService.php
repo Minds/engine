@@ -13,15 +13,15 @@ class OneSignalService extends AbstractService implements PushServiceInterface
      */
     public function send(PushNotification $pushNotification): bool
     {
-        $message = $pushNotification->getTitle() || 'Empty message';
-        $body = $pushNotification->getBody() || 'Empty body';
+        $message = $pushNotification->getTitle();
+        $body = $pushNotification->getBody();
 
         $payload = [
             'headings' => [
-                "en" => $message,
+                "en" => "$message",
             ],
             'contents' => [
-                "en" => $body,
+                "en" => "$body",
             ],
             'data' => [
                 'tag' => $pushNotification->getMergeKey(),
@@ -30,8 +30,8 @@ class OneSignalService extends AbstractService implements PushServiceInterface
             ],
             'url' => $pushNotification->getUri(),
             'big_picture' => $pushNotification->getMedia(),
-            'chrome_web_image' => $pushNotification->getIcon(),
-
+            'chrome_web_image' => $pushNotification->getMedia(),
+            'chrome_web_icon' => $pushNotification->getIcon(),
             // TODO: add other stuff from https://documentation.onesignal.com/reference/create-notification
         ];
 
