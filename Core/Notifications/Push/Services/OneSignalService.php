@@ -57,7 +57,16 @@ class OneSignalService extends AbstractService implements PushServiceInterface
         $body['app_id'] = $this->getOneSignalAppId();
         $body['include_player_ids'] = [$deviceToken];
         
-        $json = $this->client->request('POST', $uri, $body);
+        $json = $this->client->request(
+            'POST',
+            $uri,
+            [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $body,
+            ]
+        );
        
         return $json;
     }
