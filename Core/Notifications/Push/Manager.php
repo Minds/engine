@@ -34,6 +34,9 @@ class Manager
     /** @var Services\FcmService */
     protected $fcmService;
 
+    /** @var Services\OneSignalService */
+    protected $oneSignalService;
+
     public function __construct(
         Notifications\Manager $notificationsManager = null,
         DeviceSubscriptions\Manager $deviceSubscriptionsManager = null,
