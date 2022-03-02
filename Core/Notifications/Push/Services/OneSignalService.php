@@ -13,19 +13,17 @@ class OneSignalService extends AbstractService implements PushServiceInterface
      */
     public function send(PushNotification $pushNotification): bool
     {
-        $message = $pushNotification->getTitle();
-        $body = $pushNotification->getBody();
+        $message = $pushNotification->getTitle() || 'Empty message';
+        $body = $pushNotification->getBody() || 'Empty body';
 
         $payload = [
             'headings' => [
                 "en" => $message,
             ],
             'contents' => [
-                "en" => $body
+                "en" => $body,
             ],
             'data' => [
-                'title' => $pushNotification->getTitle(),
-                'body' => $pushNotification->getBody(),
                 'tag' => $pushNotification->getMergeKey(),
                 'badge' => (string) $pushNotification->getUnreadCount(), // Has to be a string
                 'user_guid' => $pushNotification->getUserGuid(),
