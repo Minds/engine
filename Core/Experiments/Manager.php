@@ -153,7 +153,7 @@ class Manager
     /**
      * Whether user has been put in the specified variation of an experiment.
      * @param string $featureKey - the key of the feature.
-     * @param T $variationId - the variation label.
+     * @param $variationId - the variation label.
      * @return boolean - true if feature is on and experiment is active for user.
      */
     public function hasVariation(string $featureKey, $variation): bool
