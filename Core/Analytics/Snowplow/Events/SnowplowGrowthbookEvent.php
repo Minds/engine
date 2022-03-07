@@ -35,10 +35,10 @@ class SnowplowGrowthbookEvent implements SnowplowEventInterface
      */
     public function getData(): array
     {
-        return array_filter([
+        return [
             'experiment_id' => $this->getExperimentId(),
             'variation_id' => $this->getVariationId()
-        ]);
+        ];
     }
 
     /**

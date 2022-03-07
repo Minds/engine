@@ -34,11 +34,11 @@ class GrowthbookShutdownHandler implements ShutdownHandlerInterface
     public function register(): void
     {
         register_shutdown_function(function () {
-            $impressions = $this->experimentsManager->getViewedExperiments();
+            $viewedExperiments = $this->experimentsManager->getViewedExperiments();
 
-            foreach ($impressions as $impression) {
-                $experimentId = $impression->experiment->key;
-                $variationId = $impression->result->variationId;
+            foreach ($viewedExperiments as $viewedExperiment) {
+                $experimentId = $viewedExperiment->experiment->key;
+                $variationId = $viewedExperiment->result->variationId;
 
                 $cacheKey = $this->getCacheKey($experimentId);
                 
