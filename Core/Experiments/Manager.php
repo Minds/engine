@@ -221,7 +221,7 @@ class Manager
             'id' => $this->getUserId(),
             'loggedIn' => !!$this->getUser(),
             'route' => $_SERVER['HTTP_REFERER'],
-            'api_endpoint' => $_SERVER['REQUEST_URI'],
+            'api_path' => strtok($_SERVER['REQUEST_URI'], '?') ?? '',
             'environment' => getenv('MINDS_ENV') ?: 'development'
         ];
 
