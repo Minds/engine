@@ -16,7 +16,7 @@ class Controller
      * Constructor for controller.
      * @param ?Manager $manager - experiments manager.
      */
-    public function __construct(?Manager $manager = null)
+    public function __construct(protected ?Manager $manager = null)
     {
         $this->manager = $manager ?? Di::_()->get('Experiments\Manager');
     }
