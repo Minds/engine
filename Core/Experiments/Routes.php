@@ -1,4 +1,4 @@
- <?php
+<?php
 namespace Minds\Core\Experiments;
 
 use Minds\Core\Di\Ref;
