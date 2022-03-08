@@ -220,7 +220,7 @@ class Manager
         $attributes = [
             'id' => $this->getUserId(),
             'loggedIn' => !!$this->getUser(),
-            'route' => $_SERVER['HTTP_REFERER'],
+            'route' => $_SERVER['HTTP_REFERER'] ?? '',
             'api_path' => strtok($_SERVER['REQUEST_URI'], '?') ?? '',
             'environment' => getenv('MINDS_ENV') ?: 'development'
         ];

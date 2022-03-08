@@ -15,6 +15,10 @@ class Provider extends DiProvider
             return new Manager;
         }, ['useFactory' => true]);
 
+        $this->di->bind('Experiments\Controller', function ($di) {
+            return new Controller;
+        }, ['useFactory' => true]);
+
         $this->di->bind('Experiments\Cookie\Manager', function ($di) {
             return new Cookie\Manager;
         }, ['useFactory' => true]);
