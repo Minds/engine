@@ -7,6 +7,7 @@
 namespace Minds\Core\Router;
 
 use Minds\Core\Di\Provider;
+use Minds\Core\Router\Hooks\ShutdownHandlerManager;
 
 class RouterProvider extends Provider
 {
@@ -18,6 +19,10 @@ class RouterProvider extends Provider
 
         $this->di->bind('Router\Registry', function ($di) {
             return Registry::_();
+        }, ['useFactory' => true]);
+
+        $this->di->bind('Router\Hooks\ShutdownHandlerManager', function ($di) {
+            return new ShutdownHandlerManager();
         }, ['useFactory' => true]);
     }
 }

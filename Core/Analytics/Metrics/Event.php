@@ -7,7 +7,6 @@ use Minds\Core\Analytics\Snowplow;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Di\Di;
-use Minds\Core\Experiments;
 use Minds\Entities\User;
 
 /**
@@ -50,22 +49,18 @@ class Event
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
-    /** @var Experiments\Manager */
-    private $experimentsManager;
-
     /** @var array */
     protected $data;
 
     /** @var User */
     protected $user;
 
-    public function __construct($elastic = null, $snowplowManager = null, $entitiesBuilder = null, Experiments\Manager $experimentsManager = null)
+    public function __construct($elastic = null, $snowplowManager = null, $entitiesBuilder = null)
     {
         $this->elastic = $elastic ?: Core\Di\Di::_()->get('Database\ElasticSearch');
         $this->index = 'minds-metrics-'.date('m-Y', time());
         $this->snowplowManager = $snowplowManager ?? Di::_()->get('Analytics\Snowplow\Manager');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
-        $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
     }
 
     /**

@@ -105,8 +105,10 @@ class settings implements Interfaces\Api
                     return Factory::response(['status' => 'error', 'message' => "Invalid email"]);
                 }
 
-                // Force two factor
-                $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
+                // If email is confirmed and account is older than 1 month and force two factor.
+                if ($user->isEmailConfirmed() || $user->getAge() > 2629746) {
+                    $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
+                }
 
                 $user->setEmail(strtolower($_POST['email']));
 
