@@ -11,6 +11,7 @@ use Minds\Core\Analytics\UserStates\UserActivityBuckets;
 
 use Minds\Core\Email\V2\Delegates\ConfirmationSender;
 use Minds\Core\Email\V2\Delegates\DigestSender;
+use Minds\Core\Email\V2\Delegates\WelcomeSender;
 use Minds\Entities\User;
 use Minds\Interfaces\SenderInterface;
 
@@ -48,7 +49,7 @@ class Events
         });
 
         Dispatcher::register('welcome_email', 'all', function ($opts) {
-            // $this->sendCampaign(new Delegates\WelcomeSender(), $opts->getParameters());
+            $this->sendCampaign(new WelcomeSender(), $opts->getParameters());
         });
 
         Dispatcher::register('confirmation_email', 'all', function ($opts) {

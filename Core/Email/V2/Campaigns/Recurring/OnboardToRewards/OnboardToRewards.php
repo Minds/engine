@@ -12,6 +12,8 @@ use Minds\Core\Email\Mailer;
 use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
+use Minds\Core\Experiments;
+use Minds\Core\Di\Di;
 
 class OnboardToRewards extends EmailCampaign
 {
@@ -21,18 +23,26 @@ class OnboardToRewards extends EmailCampaign
     /** @var Mailer */
     protected $mailer;
 
+    /** @var Experiments\Manager */
+    protected $experimentsManager;
+
     /**
      * @param Template $template
      * @param Mailer $mailer
+     * @param Experiments\Manager $experimentsManager
+     * @param Email\Manager $emailManager
      */
     public function __construct(
         $template = null,
         $mailer = null,
+        $experimentsManager = null,
+        $emailManager = null
     ) {
-        parent::__construct();
+        parent::__construct($emailManager);
 
         $this->template = $template ?: new Template();
         $this->mailer = $mailer ?: new Mailer();
+        $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
 
         $this->campaign = 'with';
         $this->topic = 'channel_improvement_tips';
@@ -106,6 +116,10 @@ class OnboardToRewards extends EmailCampaign
 
         if ($this->user->getPhoneNumberHash()) {
             return; // They are already in rewards
+        }
+
+        if (!$this->experimentsManager->setUser($this->user)->isOn('minds-2958-email')) {
+            return; // Not in experiment
         }
 
         $this->mailer->send(
