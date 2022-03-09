@@ -9,14 +9,10 @@ use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Analytics\UserStates\UserActivityBuckets;
 
-use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeComplete\WelcomeComplete;
-use Minds\Core\Email\V2\Campaigns\Recurring\WelcomeIncomplete\WelcomeIncomplete;
 use Minds\Core\Email\V2\Delegates\ConfirmationSender;
-use Minds\Core\Email\V2\Delegates\WeMissYouSender;
 use Minds\Core\Email\V2\Delegates\DigestSender;
+use Minds\Core\Email\V2\Delegates\WelcomeSender;
 use Minds\Entities\User;
-use Minds\Core\Email\Manager;
-use Minds\Core\Suggestions\Manager as SuggestionManager;
 use Minds\Interfaces\SenderInterface;
 
 class Events
@@ -53,7 +49,7 @@ class Events
         });
 
         Dispatcher::register('welcome_email', 'all', function ($opts) {
-            // $this->sendCampaign(new Delegates\WelcomeSender(), $opts->getParameters());
+            $this->sendCampaign(new WelcomeSender(), $opts->getParameters());
         });
 
         Dispatcher::register('confirmation_email', 'all', function ($opts) {
