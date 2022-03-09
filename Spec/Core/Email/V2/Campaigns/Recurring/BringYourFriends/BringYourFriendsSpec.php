@@ -15,7 +15,8 @@ class BringYourFriendsSpec extends ObjectBehavior
     private $experimentsManager;
     private $emailManager;
 
-    function let(Email\Mailer $mailer, Experiments\Manager $experimentsManager, Email\Manager $emailManager) {
+    public function let(Email\Mailer $mailer, Experiments\Manager $experimentsManager, Email\Manager $emailManager)
+    {
         $this->beConstructedWith(null, $mailer, $experimentsManager, $emailManager);
         $this->mailer = $mailer;
         $this->experimentsManager = $experimentsManager;
@@ -27,7 +28,7 @@ class BringYourFriendsSpec extends ObjectBehavior
         $this->shouldHaveType(BringYourFriends::class);
     }
 
-    function it_should_not_send_if_not_in_experiment(User $user)
+    public function it_should_not_send_if_not_in_experiment(User $user)
     {
         $this->setUser($user);
 
