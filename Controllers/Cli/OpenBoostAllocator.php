@@ -17,9 +17,9 @@ use Minds\Core\EntitiesBuilder;
 class OpenBoostAllocator extends Cli\Controller implements Interfaces\CliControllerInterface
 {
     public function __construct(
-        ?Scroll $scroll = null,
-        ?EntitiesBuilder $entitiesBuilder = null,
-        ?Save $saveAction = null
+        private ?Scroll $scroll = null,
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?Save $saveAction = null
     ) {
         $this->scroll = $scroll ?? Di::_()->get('Database\Cassandra\Cql\Scroll');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
@@ -42,6 +42,9 @@ class OpenBoostAllocator extends Cli\Controller implements Interfaces\CliControl
      */
     public function exec(): void
     {
+        $dryRun = $this->getOpt('dry-run') ?: false;
+        $this->out('Running open boost allocator...');
+
         // get ALL rows.
         $statement = "SELECT * FROM social_compass_answers";
         $prepared = new CustomQuery();
@@ -69,14 +72,27 @@ class OpenBoostAllocator extends Cli\Controller implements Interfaces\CliControl
             }
         }
 
+        $dryRunCount = 0;
+
         // iterate through all users stored from previous loop
         foreach ($users as $userGuid => $userCounts) {
             // if count is 3, they have answered 3 questions above the score threshold.
             if ($userCounts >= 3) {
+                if ($dryRun) {
+                    $dryRunCount++;
+                    $this->out("Dry run | {$userGuid} would get open boost rating with a count of {$userCounts} answers above threshold.");
+                    continue;
+                }
                 $user = $this->entitiesBuilder->single($userGuid);
                 $user->setBoostRating(2); // enabled.
                 $this->saveAction->setEntity($user)->save();
             }
         }
+
+        if ($dryRun) {
+            $this->out("Dry run | {$dryRunCount} users in total would have been allocated open boost.");
+        }
+
+        $this->out('Completed');
     }
 }
