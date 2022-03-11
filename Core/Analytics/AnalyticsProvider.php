@@ -30,9 +30,5 @@ class AnalyticsProvider extends Provider
         $this->di->bind('Analytics\Snowplow\Manager', function ($di) {
             return new Snowplow\Manager(null, null, new PseudonymousIdentifier());
         }, ['useFactory' => true]);
-
-        $this->di->bind('Analytics\Handlers\GrowthbookShutdownHandler', function ($di) {
-            return new GrowthbookShutdownHandler();
-        }, ['useFactory' => true]);
     }
 }
