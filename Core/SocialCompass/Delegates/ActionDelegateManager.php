@@ -15,12 +15,6 @@ class ActionDelegateManager
         OpenBoostDelegate::class
     ];
 
-    public function __construct(
-        private ?OpenBoostDelegate $openBoostDelegate = null
-    ) {
-        $this->openBoostDelegate = $openBoostDelegate ?? Di::_()->get('SocialCompass\Delegates\OpenBoostDelegate');
-    }
-
     /**
      * Calls all action delegates iteratively.
      * @param array $answers - array of AnswerModel objects a user has provided.
