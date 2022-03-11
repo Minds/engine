@@ -56,6 +56,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->growthbook);
 
+        $this->growthbook->withTrackingCallback(Argument::any())
+            ->willReturn($this->growthbook);
+
         $this->config->get('growthbook')
             ->shouldBeCalled()
             ->willReturn([

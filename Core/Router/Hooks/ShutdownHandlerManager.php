@@ -2,8 +2,6 @@
 
 namespace Minds\Core\Router\Hooks;
 
-use Minds\Core\Analytics\Handlers\GrowthbookShutdownHandler;
-
 /**
  * Manager for all shutdown handlers - these are functions that will run
  * after script execution.
@@ -11,9 +9,7 @@ use Minds\Core\Analytics\Handlers\GrowthbookShutdownHandler;
 class ShutdownHandlerManager implements ShutdownHandlerManagerInterface
 {
     // will run in order of registration.
-    const handlers = [
-        GrowthbookShutdownHandler::class
-    ];
+    const handlers = [ ];
 
     /**
      * Register all shutdown handlers.
