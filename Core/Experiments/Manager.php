@@ -16,9 +16,14 @@ use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Cookie\Manager as CookieManager;
+use Minds\Core\Analytics\Snowplow\Manager as SnowplowManager;
+use Minds\Core\Analytics\Snowplow\Events\SnowplowGrowthbookEvent;
 
 class Manager
 {
+    // Expire time for cache key.
+    const TRACKING_CACHE_TTL = 86400;
+
     /** @var Growthbook\Growthbook */
     private $growthbook;
 
@@ -37,6 +42,9 @@ class Manager
     /** @var PsrWrapper */
     private $psrCache;
 
+    /** @var SnowplowManager */
+    protected $snowplowManager;
+
     /** @var string */
     const FEATURES_CACHE_KEY = 'growthbook-features';
 
@@ -45,13 +53,18 @@ class Manager
         CookieManager $cookieManager = null,
         GuzzleHttp\Client $httpClient = null,
         Config $config = null,
-        PsrWrapper $psrCache = null
+        PsrWrapper $psrCache = null,
+        SnowplowManager $snowplowManager = null
     ) {
         $this->cookieManager = $cookieManager ?? Di::_()->get('Experiments\Cookie\Manager');
         $this->httpClient = $httpClient ?? new GuzzleHttp\Client();
         $this->config = $config ?? Di::_()->get('Config');
         $this->psrCache = $psrCache ?? Di::_()->get('Cache\PsrWrapper');
         $this->growthbook = $growthbook ?? Growthbook\Growthbook::create();
+        $this->snowplowManager = $snowplowManager ?? Di::_()->get('Analytics\Snowplow\Manager');
+
+        // Register the tracking callback
+        $this->growthbook->withTrackingCallback([ $this, 'onTrackingCallback' ]);
 
         $this->initFeatures();
     }
@@ -196,6 +209,43 @@ class Manager
     }
 
     /**
+     * Registers shutdown function to fire off growthbook analytics event.
+     * @return void
+     */
+    public function onTrackingCallback(Growthbook\InlineExperiment $experiment, Growthbook\ExperimentResult $result): void
+    {
+        $experimentId = $experiment->key;
+        $variationId = $result->variationId;
+
+        $cacheKey = $this->getTrackingCacheKey($experimentId);
+
+        if ($this->psrCache->get($cacheKey) !== false) {
+            return; // Skip as we've seen in last 24 hours.
+        }
+
+        $spGrowthbookEvent = (new SnowplowGrowthbookEvent())
+            ->setExperimentId($experimentId)
+            ->setVariationId($variationId);
+
+        $user = $this->getUser();
+        $this->snowplowManager->setSubject($user)->emit($spGrowthbookEvent);
+
+        $this->psrCache->set($cacheKey, $variationId, self::TRACKING_CACHE_TTL);
+    }
+
+    /**
+     * Gets key for cache such that it is unique to a user and the experiment being ran.
+     * @param string $experimentId - id of the experiment.
+     * @param User|null $user - user we are running experiment for.
+     * @return string - cache key.
+     */
+    private function getTrackingCacheKey(string $experimentId): string
+    {
+        $userId = $this->getUserId();
+        return 'growthbook-experiment-view::'.$userId.'::'.$experimentId;
+    }
+
+    /**
      * Inits growthbook by getting features and user attributes and
      * assigning them to growthbook.
      * @return self - instance of $this.
@@ -221,7 +271,7 @@ class Manager
             'id' => $this->getUserId(),
             'loggedIn' => !!$this->getUser(),
             'route' => $_SERVER['HTTP_REFERER'] ?? '',
-            'api_path' => strtok($_SERVER['REQUEST_URI'], '?') ?? '',
+            'api_path' => strtok($_SERVER['REQUEST_URI'] ?? '', '?') ?? '',
             'environment' => getenv('MINDS_ENV') ?: 'development'
         ];
 
