@@ -56,6 +56,8 @@ class Change_2022_03_15 extends EmailCampaign
         $this->template->set('campaign', $this->campaign);
         $this->template->set('topic', $this->topic);
         // $this->template->set('signoff', '');
+        $this->template->set('title', '');
+        $this->template->set('state', '');
         $this->template->set('preheader', "We are excited to share that Minds CEO Bill Ottman and advisor Daryl Davis were recently guests on The Joe Rogan Experience, and the episode is now live!");
 
         $trackingQuery = http_build_query($tracking);
