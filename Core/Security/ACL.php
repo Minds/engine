@@ -361,6 +361,7 @@ class ACL
     }
 
     /**
+     * Determines whether user is email verified.
      * @param User $user
      * @return bool
      */
