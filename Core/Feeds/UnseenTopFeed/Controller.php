@@ -39,6 +39,8 @@ class Controller
 
         $totalEntitiesToRetrieve = $request->getQueryParams()["limit"];
         $response = $this->manager->getUnseenTopEntities($loggedInUser, $totalEntitiesToRetrieve);
+        // This endpoint doesn't support pagination yet
+        $response->setPagingToken(null);
 
         return $responseBuilder->buildSuccessfulResponse($response);
     }
