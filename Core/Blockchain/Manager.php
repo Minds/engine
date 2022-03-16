@@ -92,6 +92,8 @@ class Manager
                 // Only for Testing environments
                 'polygon_contracts_mumbai' => (new POLYGON\PolygonContractAddressesMumbai())->getContracts(), 
                 'polygon_contracts_mainnet' => (new POLYGON\PolygonContractAddressMainnet())->getContracts(),
+                'polygon_rpc_provider' => (new POLYGON\PolygonRPCProvider())->getProvider(),
+                'mainnet_rpc_provider' => (new POLYGON\MainnetRPCProvider())->getProvider()
             ], 
             'overrides' => $this->getOverrides(),
             'withdraw_limit' => $blockchainConfig['contracts']['withdraw']['limit'] ?? 1,
