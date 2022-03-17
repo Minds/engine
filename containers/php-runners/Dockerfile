@@ -1,4 +1,4 @@
-FROM minds/php:8.0
+FROM minds/php:8.1
 
 # Copy our built the code
 

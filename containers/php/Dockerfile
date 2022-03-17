@@ -1,4 +1,4 @@
-FROM php:8.0-fpm-alpine3.14
+FROM php:8.1.3-fpm-alpine3.15
 
 RUN apk add --no-cache --update --virtual .php-deps make
 
@@ -60,7 +60,7 @@ ENV BUILD_DEPS \
 
 RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && apk add --no-cache libuv gmp \
-    && git clone https://github.com/nano-interactive/php-driver.git $INSTALL_DIR \
+    && git clone -b php8.1 https://github.com/nano-interactive/php-driver.git $INSTALL_DIR \
     && cd $INSTALL_DIR \
     && git submodule update --init \
     # Install CPP Driver
@@ -140,9 +140,8 @@ ENV BUILD_DEPS \
 
 RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     # PHP CPP
-    && git clone https://github.com/Minds/PHP-CPP.git \
+    && git clone --branch=php81 https://github.com/Minds/PHP-CPP.git \
     && cd PHP-CPP \
-    && git checkout php80 \
     && make -j4 \
     && make install \
     && cd .. \
