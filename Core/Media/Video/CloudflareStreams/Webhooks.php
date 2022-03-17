@@ -8,6 +8,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Di\Di;
 use Minds\Core\Config;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Entities\PropagateProperties;
 use Minds\Core\Log;
 use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Core\Security\ACL;
@@ -34,14 +35,23 @@ class Webhooks
     /** @var ACL */
     protected $acl;
 
-    public function __construct($client = null, $config = null, $entitiesBuilder = null, $save = null)
-    {
+    /** @var PropagateProperties */
+    protected $propagateProperties;
+
+    public function __construct(
+        $client = null,
+        $config = null,
+        $entitiesBuilder = null,
+        $save = null,
+        ?PropagateProperties $propagateProperties = null
+    ) {
         $this->client = $client ?? new Client();
         $this->config = $config ?? Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->save = $save ?? new Save();
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->acl = $acl ?? Di::_()->get('Security\ACL');
+        $this->propagateProperties = $propagateProperties ?? new PropagateProperties();
     }
 
     /**
@@ -102,6 +112,10 @@ class Webhooks
         $this->save
             ->setEntity($video)
             ->save();
+
+        // propagate properties from video to activity.
+        $this->propagateProperties->from($video);
+
         $this->acl->setIgnore($ia); // Set the ignore state back to what it was
     
         return new JsonResponse([ ]);
