@@ -8,7 +8,12 @@ class Manager
     /** @var SendGridListIntreface[] */
     const DEFAULT_LISTS = [
         Lists\WireUSDUsersList::class,
-        Lists\MonetizedUsersList::class
+        Lists\MonetizedUsersList::class,
+        Lists\TwitterSyncList::class,
+        Lists\YoutubeSyncList::class,
+        Lists\EthUsersList::class,
+        Lists\MembershipTierOwnerList::class,
+        Lists\Active30DayList::class,
     ];
 
     /** @var \SendGrid */
