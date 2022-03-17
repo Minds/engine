@@ -200,6 +200,7 @@ class Repository
             'remind_guid' => null,
             // Focus on quotes
             'quote_guid' => null,
+            'include_group_posts' => false,
         ], $opts);
 
         if (!$opts['type']) {
@@ -335,6 +336,18 @@ class Repository
                 ],
             ];
 
+            if ($opts['include_group_posts']) {
+                $should[] = [
+                    'terms' => [
+                        'container_guid' => [
+                            'index' => $this->index.'-user',
+                            'id' => (string) $opts['subscriptions'],
+                            'path' => 'group_membership',
+                        ],
+                    ]
+                ];
+            }
+
             // Will return own posts if requested
             if ($opts['hide_own_posts']) {
                 if (!isset($body['query']['function_score']['query']['bool']['must_not'])) {
@@ -421,7 +434,7 @@ class Repository
             ];
         }
 
-        if ($type !== 'group' && $opts['access_id'] !== null) {
+        if ($type !== 'group' && $opts['access_id'] !== null && !$opts['include_group_posts']) {
             $body['query']['function_score']['query']['bool']['must'][] = [
                 'terms' => [
                     'access_id' => Text::buildArray($opts['access_id']),
@@ -436,6 +449,31 @@ class Repository
                         'gt' => 2,
                     ]
                 ]
+            ];
+        }
+
+        if ($opts['include_group_posts']) {
+            $body['query']['function_score']['query']['bool']['must'][] = [
+                'bool' => [
+                    'should' => [
+                        [
+                            'range' => [
+                                'access_id' => [
+                                    'gte' => 2,
+                                ],
+                            ],
+                        ],
+                        [
+                            'terms' => [
+                                'access_id' => [
+                                    'index' => $this->index.'-user',
+                                    'id' => (string) $opts['subscriptions'],
+                                    'path' => 'group_membership',
+                                ],
+                            ]
+                        ],
+                    ],
+                ],
             ];
         }
 

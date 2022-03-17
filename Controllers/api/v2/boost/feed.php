@@ -52,6 +52,14 @@ class feed implements Interfaces\Api
         $quality = 0;
         $isBoostFeed = $_GET['boostfeed'] ?? false;
 
+        $showBoostsAfterX = filter_var($_GET['show_boosts_after_x'] ?? 3600, FILTER_VALIDATE_INT, [
+            'options' => [
+                'default' => 3600, // 1 day
+                'min_range' => 0,
+                'max_range' => 604800 // 1 week
+            ]
+        ]);
+
         if ($limit === 0) {
             return Factory::response([
                 'boosts' => [],
@@ -72,7 +80,7 @@ class feed implements Interfaces\Api
         if ($platform === 'ios') {
             $rating = 1; // they can only see safe content
             $quality = 90;
-        } elseif (time() - $currentUser->getTimeCreated() <= 3600) {
+        } elseif (time() - $currentUser->getTimeCreated() <= $showBoostsAfterX) {
             // No boost for first hour
             return Factory::response([
                 'boosts' => [],

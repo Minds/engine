@@ -19,5 +19,13 @@ class HashtagsProvider extends Provider
         $this->di->bind('Hashtags\Trending\Repository', function ($di) {
             return new Trending\Repository();
         });
+
+        $this->di->bind('Hashtags\Trending\Manager', function ($di) {
+            return new Trending\Manager();
+        });
+
+        $this->di->bind('Hashtags\Trending\Cache', function ($di) {
+            return new Trending\Cache();
+        });
     }
 }

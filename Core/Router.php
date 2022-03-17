@@ -9,6 +9,7 @@ namespace Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Features\Manager as Features;
 use Minds\Core\Router\Dispatcher;
+use Minds\Core\Router\Hooks\ShutdownHandlerManager;
 use Minds\Core\Router\Middleware\Kernel;
 use Minds\Core\Router\PrePsr7\Fallback;
 use Zend\Diactoros\ServerRequestFactory;
@@ -25,6 +26,9 @@ class Router
     /** @var Fallback */
     protected $fallback;
 
+    /** @var ShutdownHandlerManager */
+    protected $shutdownHandlerManager;
+
     /**
      * Router constructor.
      * @param Dispatcher $dispatcher
@@ -34,11 +38,14 @@ class Router
     public function __construct(
         $dispatcher = null,
         $features = null,
-        $fallback = null
+        $fallback = null,
+        ShutdownHandlerManager $shutDownHandlerManager = null
     ) {
         $this->dispatcher = $dispatcher ?: Di::_()->get('Router');
         $this->features = $features ?: Di::_()->get('Features\Manager');
         $this->fallback = $fallback ?: new Fallback();
+        $this->shutdownHandlerManager = $shutDownHandlerManager ?? Di::_()->get('Router\Hooks\ShutdownHandlerManager');
+        $this->shutdownHandlerManager->registerAll();
     }
 
     /**

@@ -15,7 +15,9 @@ class CirculatingSupply extends Metrics\AbstractBlockchainMetric implements Metr
         '0xef5Be346D746761DC4a400A536E50B06B8F56b09', // Gnosis safe
         '0x6f2548b1bee178a49c8ea09be6845f6aeaf3e8da', // Withdraw
         '0x1f28c6fb3ea8ba23038c70a51d8986c5d1276a8d', // Sale
-        '0x112ca67c8e9a6ac65e1a2753613d37b89ab7436b', // Boost
+        '0x14e421986c5ff2951979987cdd82fa3c0637d569', // Withdraw (legacy)
+        '0x1820ffad63fd64d7077da4355e9641dfff4dad0d', // Minds General
+        '0x85c040378d17e84d5cc21398b3bbafe08e0eae6f' // Bounties
         //plus
         //pro
     ];

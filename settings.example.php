@@ -529,6 +529,9 @@ $CONFIG->set('development_mode', '{{development_mode}}');
 // load discovery content irrespective of activity levels.
 $CONFIG->set('discovery_development_mode', true);
 
+// Show tags that are not trending in last 24h.
+$CONFIG->set('trending_tags_development_mode', true);
+
 $CONFIG->set('max_video_length', 900);
 
 $CONFIG->set('max_video_length_plus', 1860);

@@ -3,7 +3,7 @@ namespace Minds\Core\Monetization\Partners\Delegates;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Config;
-use Minds\Core\Email\Campaigns\Custom;
+use Minds\Core\Email\V2\Campaigns\Custom\Custom;
 use  Minds\Core\Monetization\Partners\EarningsPayout;
 
 class EmailDelegate

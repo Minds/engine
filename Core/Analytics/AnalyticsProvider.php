@@ -5,6 +5,7 @@ namespace Minds\Core\Analytics;
 use Minds\Common\PseudonymousIdentifier;
 use Minds\Core\Analytics\Graphs;
 use Minds\Core\Di\Provider;
+use Minds\Core\Analytics\Handlers\GrowthbookShutdownHandler;
 
 class AnalyticsProvider extends Provider
 {

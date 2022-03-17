@@ -1,1922 +1,1719 @@
-CREATE KEYSPACE minds WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '3'}
-                       AND durable_writes = true;
+CREATE KEYSPACE minds WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '3'}  AND durable_writes = true;
 
-CREATE TABLE minds.post_subscriptions
-(
+CREATE TABLE minds.post_subscriptions (
     entity_guid varint,
-    user_guid   varint,
-    following   boolean,
+    user_guid varint,
+    following boolean,
     PRIMARY KEY (entity_guid, user_guid)
 ) WITH CLUSTERING ORDER BY (user_guid ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.email_subscriptions
-(
-    campaign  text,
-    topic     text,
+CREATE TABLE minds.email_subscriptions (
+    campaign text,
+    topic text,
     user_guid varint,
-    value     text,
+    value text,
     PRIMARY KEY ((campaign, topic), user_guid)
 ) WITH CLUSTERING ORDER BY (user_guid ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.wire
-(
+CREATE TABLE minds.wire (
     receiver_guid varint,
-    method        text,
-    timestamp     timestamp,
-    entity_guid   varint,
-    wire_guid     varint,
-    amount        decimal,
-    recurring     boolean,
-    sender_guid   varint,
-    status        text,
-    wei           varint,
-    wei_amount    varint,
+    method text,
+    timestamp timestamp,
+    entity_guid varint,
+    wire_guid varint,
+    amount decimal,
+    recurring boolean,
+    sender_guid varint,
+    status text,
+    wei varint,
+    wei_amount varint,
     PRIMARY KEY (receiver_guid, method, timestamp, entity_guid, wire_guid)
 ) WITH CLUSTERING ORDER BY (method ASC, timestamp ASC, entity_guid ASC, wire_guid ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
 CREATE MATERIALIZED VIEW minds.wire_by_sender AS
-SELECT sender_guid,
-       method,
-       receiver_guid,
-       timestamp,
-       entity_guid,
-       wire_guid,
-       amount,
-       wei
-FROM minds.wire
-WHERE receiver_guid IS NOT NULL
-  AND method IS NOT NULL
-  AND timestamp IS NOT NULL
-  AND entity_guid IS NOT NULL
-  AND wire_guid IS NOT NULL
-  AND sender_guid IS NOT NULL
-PRIMARY KEY (sender_guid, method, receiver_guid, timestamp, entity_guid, wire_guid)
-WITH CLUSTERING ORDER BY (method ASC, receiver_guid ASC, timestamp ASC, entity_guid ASC, wire_guid ASC)
- AND bloom_filter_fp_chance = 0.01
- AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
- AND comment = ''
- AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
- AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
- AND crc_check_chance = 1.0
- AND dclocal_read_repair_chance = 0.1
- AND default_time_to_live = 0
- AND gc_grace_seconds = 864000
- AND max_index_interval = 2048
- AND memtable_flush_period_in_ms = 0
- AND min_index_interval = 128
- AND read_repair_chance = 0.0
- AND speculative_retry = '99PERCENTILE';
+    SELECT sender_guid, method, receiver_guid, timestamp, entity_guid, wire_guid, amount, wei
+    FROM minds.wire
+    WHERE receiver_guid IS NOT NULL AND method IS NOT NULL AND timestamp IS NOT NULL AND entity_guid IS NOT NULL AND wire_guid IS NOT NULL AND sender_guid IS NOT NULL
+    PRIMARY KEY (sender_guid, method, receiver_guid, timestamp, entity_guid, wire_guid)
+    WITH CLUSTERING ORDER BY (method ASC, receiver_guid ASC, timestamp ASC, entity_guid ASC, wire_guid ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
 CREATE MATERIALIZED VIEW minds.wire_by_entity AS
-SELECT entity_guid,
-       method,
-       sender_guid,
-       timestamp,
-       receiver_guid,
-       wire_guid,
-       amount,
-       wei
-FROM minds.wire
-WHERE receiver_guid IS NOT NULL
-  AND method IS NOT NULL
-  AND timestamp IS NOT NULL
-  AND entity_guid IS NOT NULL
-  AND wire_guid IS NOT NULL
-  AND sender_guid IS NOT NULL
-PRIMARY KEY (entity_guid, method, sender_guid, timestamp, receiver_guid, wire_guid)
-WITH CLUSTERING ORDER BY (method ASC, sender_guid ASC, timestamp ASC, receiver_guid ASC, wire_guid ASC)
- AND bloom_filter_fp_chance = 0.01
- AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
- AND comment = ''
- AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
- AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
- AND crc_check_chance = 1.0
- AND dclocal_read_repair_chance = 0.1
- AND default_time_to_live = 0
- AND gc_grace_seconds = 864000
- AND max_index_interval = 2048
- AND memtable_flush_period_in_ms = 0
- AND min_index_interval = 128
- AND read_repair_chance = 0.0
- AND speculative_retry = '99PERCENTILE';
+    SELECT entity_guid, method, sender_guid, timestamp, receiver_guid, wire_guid, amount, wei
+    FROM minds.wire
+    WHERE receiver_guid IS NOT NULL AND method IS NOT NULL AND timestamp IS NOT NULL AND entity_guid IS NOT NULL AND wire_guid IS NOT NULL AND sender_guid IS NOT NULL
+    PRIMARY KEY (entity_guid, method, sender_guid, timestamp, receiver_guid, wire_guid)
+    WITH CLUSTERING ORDER BY (method ASC, sender_guid ASC, timestamp ASC, receiver_guid ASC, wire_guid ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.token_purchases
-(
+CREATE TABLE minds.token_purchases (
     phone_number_hash text,
-    tx                text,
-    issued_amount     varint,
-    rate              varint,
-    requested_amount  varint,
-    status            text,
-    timestamp         timestamp,
-    user_guid         varint,
-    wallet_address    text,
+    tx text,
+    issued_amount varint,
+    rate varint,
+    requested_amount varint,
+    status text,
+    timestamp timestamp,
+    user_guid varint,
+    wallet_address text,
     PRIMARY KEY (phone_number_hash, tx)
 ) WITH CLUSTERING ORDER BY (tx ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.blockchain_transactions
-(
-    user_guid      varint,
-    timestamp      timestamp,
-    wallet_address text,
-    tx             text,
-    amount         varint,
-    completed      boolean,
-    contract       text,
-    data           text,
-    failed         boolean,
-    PRIMARY KEY (user_guid, timestamp, wallet_address, tx)
-) WITH CLUSTERING ORDER BY (timestamp DESC, wallet_address ASC, tx ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.1
-   AND speculative_retry = '99PERCENTILE';
-
-CREATE MATERIALIZED VIEW minds.blockchain_transactions_by_tx AS
-SELECT tx,
-       user_guid,
-       wallet_address,
-       timestamp,
-       amount,
-       completed,
-       contract,
-       data
-FROM minds.blockchain_transactions
-WHERE tx IS NOT NULL
-  AND user_guid IS NOT NULL
-  AND wallet_address IS NOT NULL
-  AND timestamp IS NOT NULL
-  AND contract IS NOT NULL
-  AND completed IS NOT NULL
-  AND amount IS NOT NULL
-  AND data IS NOT NULL
-PRIMARY KEY (tx, user_guid, wallet_address, timestamp)
-WITH CLUSTERING ORDER BY (user_guid ASC, wallet_address DESC, timestamp DESC)
- AND bloom_filter_fp_chance = 0.01
- AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
- AND comment = ''
- AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
- AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
- AND crc_check_chance = 1.0
- AND dclocal_read_repair_chance = 0.1
- AND default_time_to_live = 0
- AND gc_grace_seconds = 864000
- AND max_index_interval = 2048
- AND memtable_flush_period_in_ms = 0
- AND min_index_interval = 128
- AND read_repair_chance = 0.0
- AND speculative_retry = '99PERCENTILE';
-
-CREATE MATERIALIZED VIEW minds.blockchain_transactions_by_address AS
-SELECT wallet_address,
-       user_guid,
-       timestamp,
-       tx,
-       amount,
-       completed,
-       contract,
-       data
-FROM minds.blockchain_transactions
-WHERE user_guid IS NOT NULL
-  AND wallet_address IS NOT NULL
-  AND timestamp IS NOT NULL
-  AND tx IS NOT NULL
-PRIMARY KEY (wallet_address, user_guid, timestamp, tx)
-WITH CLUSTERING ORDER BY (user_guid DESC, timestamp DESC, tx ASC)
- AND bloom_filter_fp_chance = 0.01
- AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
- AND comment = ''
- AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
- AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
- AND crc_check_chance = 1.0
- AND dclocal_read_repair_chance = 0.1
- AND default_time_to_live = 0
- AND gc_grace_seconds = 864000
- AND max_index_interval = 2048
- AND memtable_flush_period_in_ms = 0
- AND min_index_interval = 128
- AND read_repair_chance = 0.0
- AND speculative_retry = '99PERCENTILE';
-
-CREATE TABLE minds.entities_by_time
-(
-    key     text,
-    column1 text,
-    value   text,
-    PRIMARY KEY (key, column1)
-) WITH COMPACT STORAGE
-   AND CLUSTERING ORDER BY (column1 ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'enabled': 'false'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.0
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.1
-   AND speculative_retry = '99PERCENTILE';
-
-CREATE TABLE minds.session
-(
-    key     text,
-    column1 text,
-    value   text,
-    PRIMARY KEY (key, column1)
-) WITH COMPACT STORAGE
-   AND CLUSTERING ORDER BY (column1 ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
-   AND compression = {'enabled': 'false'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.0
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
-
-CREATE TABLE minds.contributions
-(
+CREATE TABLE minds.blockchain_transactions (
     user_guid varint,
     timestamp timestamp,
-    metric    text,
-    amount    varint,
-    score     varint,
+    wallet_address text,
+    tx text,
+    amount varint,
+    completed boolean,
+    contract text,
+    data text,
+    failed boolean,
+    PRIMARY KEY (user_guid, timestamp, wallet_address, tx)
+) WITH CLUSTERING ORDER BY (timestamp DESC, wallet_address ASC, tx ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.1
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE MATERIALIZED VIEW minds.blockchain_transactions_by_tx AS
+    SELECT tx, user_guid, wallet_address, timestamp, amount, completed, contract, data
+    FROM minds.blockchain_transactions
+    WHERE tx IS NOT NULL AND user_guid IS NOT NULL AND wallet_address IS NOT NULL AND timestamp IS NOT NULL AND contract IS NOT NULL AND completed IS NOT NULL AND amount IS NOT NULL AND data IS NOT NULL
+    PRIMARY KEY (tx, user_guid, wallet_address, timestamp)
+    WITH CLUSTERING ORDER BY (user_guid ASC, wallet_address DESC, timestamp DESC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE MATERIALIZED VIEW minds.blockchain_transactions_by_address AS
+    SELECT wallet_address, user_guid, timestamp, tx, amount, completed, contract, data
+    FROM minds.blockchain_transactions
+    WHERE user_guid IS NOT NULL AND wallet_address IS NOT NULL AND timestamp IS NOT NULL AND tx IS NOT NULL
+    PRIMARY KEY (wallet_address, user_guid, timestamp, tx)
+    WITH CLUSTERING ORDER BY (user_guid DESC, timestamp DESC, tx ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE TABLE minds.entities_by_time (
+    key text,
+    column1 text,
+    value text,
+    PRIMARY KEY (key, column1)
+) WITH COMPACT STORAGE
+    AND CLUSTERING ORDER BY (column1 ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'enabled': 'false'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.0
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.1
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE TABLE minds.session (
+    key text,
+    column1 text,
+    value text,
+    PRIMARY KEY (key, column1)
+) WITH COMPACT STORAGE
+    AND CLUSTERING ORDER BY (column1 ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
+    AND compression = {'enabled': 'false'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.0
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE TABLE minds.contributions (
+    user_guid varint,
+    timestamp timestamp,
+    metric text,
+    amount varint,
+    score varint,
     PRIMARY KEY (user_guid, timestamp, metric)
 ) WITH CLUSTERING ORDER BY (timestamp DESC, metric ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
 CREATE MATERIALIZED VIEW minds.contributions_by_timestamp AS
-SELECT timestamp, user_guid, metric, amount, score
-FROM minds.contributions
-WHERE user_guid IS NOT NULL
-  AND timestamp IS NOT NULL
-  AND metric IS NOT NULL
-  AND amount IS NOT NULL
-  AND score IS NOT NULL
-PRIMARY KEY (timestamp, user_guid, metric)
-WITH CLUSTERING ORDER BY (user_guid ASC, metric ASC)
- AND bloom_filter_fp_chance = 0.01
- AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
- AND comment = ''
- AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
- AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
- AND crc_check_chance = 1.0
- AND dclocal_read_repair_chance = 0.1
- AND default_time_to_live = 0
- AND gc_grace_seconds = 864000
- AND max_index_interval = 2048
- AND memtable_flush_period_in_ms = 0
- AND min_index_interval = 128
- AND read_repair_chance = 0.0
- AND speculative_retry = '99PERCENTILE';
+    SELECT timestamp, user_guid, metric, amount, score
+    FROM minds.contributions
+    WHERE user_guid IS NOT NULL AND timestamp IS NOT NULL AND metric IS NOT NULL AND amount IS NOT NULL AND score IS NOT NULL
+    PRIMARY KEY (timestamp, user_guid, metric)
+    WITH CLUSTERING ORDER BY (user_guid ASC, metric ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.boosts
-(
-    type             text,
-    guid             varint,
-    data             text,
+CREATE TABLE minds.boosts (
+    type text,
+    guid varint,
+    data text,
     destination_guid varint,
-    mongo_id         text,
-    owner_guid       varint,
-    state            text,
+    mongo_id text,
+    owner_guid varint,
+    state text,
     PRIMARY KEY (type, guid)
 ) WITH CLUSTERING ORDER BY (guid ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.1
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.1
+    AND speculative_retry = '99PERCENTILE';
 
 CREATE MATERIALIZED VIEW minds.boosts_by_mongo_id AS
-SELECT *
-FROM minds.boosts
-WHERE type IS NOT NULL
-  AND mongo_id IS NOT NULL
-  AND guid IS NOT NULL
-PRIMARY KEY (type, mongo_id, guid)
-WITH CLUSTERING ORDER BY (mongo_id ASC, guid ASC)
- AND bloom_filter_fp_chance = 0.01
- AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
- AND comment = ''
- AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
- AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
- AND crc_check_chance = 1.0
- AND dclocal_read_repair_chance = 0.1
- AND default_time_to_live = 0
- AND gc_grace_seconds = 864000
- AND max_index_interval = 2048
- AND memtable_flush_period_in_ms = 0
- AND min_index_interval = 128
- AND read_repair_chance = 0.0
- AND speculative_retry = '99PERCENTILE';
+    SELECT *
+    FROM minds.boosts
+    WHERE type IS NOT NULL AND mongo_id IS NOT NULL AND guid IS NOT NULL
+    PRIMARY KEY (type, mongo_id, guid)
+    WITH CLUSTERING ORDER BY (mongo_id ASC, guid ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
 CREATE MATERIALIZED VIEW minds.boosts_by_destination AS
-SELECT *
-FROM minds.boosts
-WHERE type IS NOT NULL
-  AND destination_guid IS NOT NULL
-  AND guid IS NOT NULL
-PRIMARY KEY (type, destination_guid, guid)
-WITH CLUSTERING ORDER BY (destination_guid ASC, guid DESC)
- AND bloom_filter_fp_chance = 0.01
- AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
- AND comment = ''
- AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
- AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
- AND crc_check_chance = 1.0
- AND dclocal_read_repair_chance = 0.1
- AND default_time_to_live = 0
- AND gc_grace_seconds = 864000
- AND max_index_interval = 2048
- AND memtable_flush_period_in_ms = 0
- AND min_index_interval = 128
- AND read_repair_chance = 0.0
- AND speculative_retry = '99PERCENTILE';
+    SELECT *
+    FROM minds.boosts
+    WHERE type IS NOT NULL AND destination_guid IS NOT NULL AND guid IS NOT NULL
+    PRIMARY KEY (type, destination_guid, guid)
+    WITH CLUSTERING ORDER BY (destination_guid ASC, guid DESC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
 CREATE MATERIALIZED VIEW minds.boosts_by_owner AS
-SELECT *
-FROM minds.boosts
-WHERE type IS NOT NULL
-  AND owner_guid IS NOT NULL
-  AND guid IS NOT NULL
-PRIMARY KEY (type, owner_guid, guid)
-WITH CLUSTERING ORDER BY (owner_guid ASC, guid DESC)
- AND bloom_filter_fp_chance = 0.01
- AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
- AND comment = ''
- AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
- AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
- AND crc_check_chance = 1.0
- AND dclocal_read_repair_chance = 0.1
- AND default_time_to_live = 0
- AND gc_grace_seconds = 864000
- AND max_index_interval = 2048
- AND memtable_flush_period_in_ms = 0
- AND min_index_interval = 128
- AND read_repair_chance = 0.0
- AND speculative_retry = '99PERCENTILE';
+    SELECT *
+    FROM minds.boosts
+    WHERE type IS NOT NULL AND owner_guid IS NOT NULL AND guid IS NOT NULL
+    PRIMARY KEY (type, owner_guid, guid)
+    WITH CLUSTERING ORDER BY (owner_guid ASC, guid DESC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.blockchain_pending
-(
-    type        text,
-    tx_id       text,
-    data        text,
+CREATE TABLE minds.blockchain_pending (
+    type text,
+    tx_id text,
+    data text,
     sender_guid varint,
     PRIMARY KEY (type, tx_id)
 ) WITH CLUSTERING ORDER BY (tx_id ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.trending
-(
-    type  text,
+CREATE TABLE minds.trending (
+    type text,
     place int,
-    guid  varint,
+    guid varint,
     PRIMARY KEY (type, place)
 ) WITH CLUSTERING ORDER BY (place ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.jwt_sessions
-(
-    user_guid   varint,
-    id          text,
-    expires     timestamp,
+CREATE TABLE minds.jwt_sessions (
+    user_guid varint,
+    id text,
+    expires timestamp,
     last_active timestamp,
-    user_agent  text,
-    ip          text,
+    user_agent text,
+    ip text,
     PRIMARY KEY (user_guid, id)
 ) WITH CLUSTERING ORDER BY (id ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.comments
-(
-    entity_guid    varint,
+CREATE TABLE minds.comments (
+    entity_guid varint,
     parent_guid_l1 varint,
     parent_guid_l2 varint,
     parent_guid_l3 varint,
-    guid           varint,
-    access_id      varint,
-    attachments    map<text, text>,
-    body           text,
+    guid varint,
+    access_id varint,
+    attachments map<text, text>,
+    body text,
     container_guid varint,
-    flags          map<text, boolean>,
-    has_children   boolean,
-    owner_guid     varint,
-    owner_obj      text,
-    replies_count  varint,
-    score          varint,
-    time_created   timestamp,
-    time_updated   timestamp,
-    votes_down     set<varint>,
-    votes_up       set<varint>,
+    flags map<text, boolean>,
+    has_children boolean,
+    owner_guid varint,
+    owner_obj text,
+    replies_count varint,
+    score varint,
+    time_created timestamp,
+    time_updated timestamp,
+    votes_down set<varint>,
+    votes_up set<varint>,
     PRIMARY KEY (entity_guid, parent_guid_l1, parent_guid_l2, parent_guid_l3, guid)
 ) WITH CLUSTERING ORDER BY (parent_guid_l1 ASC, parent_guid_l2 ASC, parent_guid_l3 ASC, guid DESC);
 
-CREATE TABLE minds.recurring_subscriptions
-(
-    type            text,
-    payment_method  text,
-    entity_guid     varint,
-    user_guid       varint,
-    amount          decimal,
-    last_billing    timestamp,
-    next_billing    timestamp,
-    recurring       text,
-    status          text,
+CREATE TABLE minds.recurring_subscriptions (
+    type text,
+    payment_method text,
+    entity_guid varint,
+    user_guid varint,
+    amount decimal,
+    last_billing timestamp,
+    next_billing timestamp,
+    recurring text,
+    status text,
     subscription_id text,
     PRIMARY KEY (type, payment_method, entity_guid, user_guid)
 ) WITH CLUSTERING ORDER BY (payment_method ASC, entity_guid ASC, user_guid ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.entities
-(
-    key     text,
+CREATE TABLE minds.entities (
+    key text,
     column1 text,
-    value   text,
+    value text,
     PRIMARY KEY (key, column1)
 ) WITH COMPACT STORAGE
-   AND CLUSTERING ORDER BY (column1 ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
-   AND compression = {'enabled': 'false'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.0
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.1
-   AND speculative_retry = '99PERCENTILE';
+    AND CLUSTERING ORDER BY (column1 ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
+    AND compression = {'enabled': 'false'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.0
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.1
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.blockchain_transactions_mainnet
-(
-    user_guid      varint,
-    timestamp      timestamp,
-    wallet_address text,
-    tx             text,
-    amount         varint,
-    completed      boolean,
-    contract       text,
-    data           text,
-    failed         boolean,
-    PRIMARY KEY (user_guid, timestamp, wallet_address, tx)
-) WITH CLUSTERING ORDER BY (timestamp DESC, wallet_address ASC, tx ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
-
-CREATE MATERIALIZED VIEW minds.blockchain_transactions_mainnet_by_tx AS
-SELECT tx,
-       user_guid,
-       wallet_address,
-       timestamp,
-       amount,
-       completed,
-       contract,
-       data
-FROM minds.blockchain_transactions_mainnet
-WHERE tx IS NOT NULL
-  AND user_guid IS NOT NULL
-  AND wallet_address IS NOT NULL
-  AND timestamp IS NOT NULL
-  AND contract IS NOT NULL
-  AND completed IS NOT NULL
-  AND amount IS NOT NULL
-  AND data IS NOT NULL
-PRIMARY KEY (tx, user_guid, wallet_address, timestamp)
-WITH CLUSTERING ORDER BY (user_guid ASC, wallet_address DESC, timestamp DESC)
- AND bloom_filter_fp_chance = 0.01
- AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
- AND comment = ''
- AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
- AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
- AND crc_check_chance = 1.0
- AND dclocal_read_repair_chance = 0.1
- AND default_time_to_live = 0
- AND gc_grace_seconds = 864000
- AND max_index_interval = 2048
- AND memtable_flush_period_in_ms = 0
- AND min_index_interval = 128
- AND read_repair_chance = 0.0
- AND speculative_retry = '99PERCENTILE';
-
-CREATE MATERIALIZED VIEW minds.blockchain_transactions_mainnet_by_address AS
-SELECT wallet_address,
-       user_guid,
-       timestamp,
-       tx,
-       amount,
-       completed,
-       contract,
-       data
-FROM minds.blockchain_transactions_mainnet
-WHERE user_guid IS NOT NULL
-  AND wallet_address IS NOT NULL
-  AND timestamp IS NOT NULL
-  AND tx IS NOT NULL
-PRIMARY KEY (wallet_address, user_guid, timestamp, tx)
-WITH CLUSTERING ORDER BY (user_guid DESC, timestamp DESC, tx ASC)
- AND bloom_filter_fp_chance = 0.01
- AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
- AND comment = ''
- AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
- AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
- AND crc_check_chance = 1.0
- AND dclocal_read_repair_chance = 0.1
- AND default_time_to_live = 0
- AND gc_grace_seconds = 864000
- AND max_index_interval = 2048
- AND memtable_flush_period_in_ms = 0
- AND min_index_interval = 128
- AND read_repair_chance = 0.0
- AND speculative_retry = '99PERCENTILE';
-
-CREATE TABLE minds.config
-(
-    key   text PRIMARY KEY,
-    value text
-) WITH bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
-
-CREATE TABLE minds.pledges
-(
-    phone_number_hash text PRIMARY KEY,
-    amount            varint,
-    status            text,
-    timestamp         timestamp,
-    user_guid         varint,
-    wallet_address    text
-) WITH bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
-
-CREATE TABLE minds.counters
-(
-    guid   text,
-    metric text,
-    count  counter,
-    PRIMARY KEY (guid, metric)
-) WITH CLUSTERING ORDER BY (metric ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
-
-CREATE TABLE minds.relationships
-(
-    key     text,
-    column1 text,
-    value   text,
-    PRIMARY KEY (key, column1)
-) WITH COMPACT STORAGE
-   AND CLUSTERING ORDER BY (column1 ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
-   AND compression = {'enabled': 'false'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.0
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 1.0
-   AND speculative_retry = '99PERCENTILE';
-
-CREATE TABLE minds.monetization_ledger
-(
-    guid       text PRIMARY KEY,
-    amount     int,
-    end        int,
-    service_id text,
-    start      int,
-    status     text,
-    ts         int,
-    type       text,
-    user_guid  text
-) WITH bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
-
-CREATE TABLE minds.rewards
-(
+CREATE TABLE minds.blockchain_transactions_mainnet (
     user_guid varint,
     timestamp timestamp,
-    type      text,
-    amount    varint,
+    wallet_address text,
+    tx text,
+    amount varint,
+    completed boolean,
+    contract text,
+    data text,
+    failed boolean,
+    PRIMARY KEY (user_guid, timestamp, wallet_address, tx)
+) WITH CLUSTERING ORDER BY (timestamp DESC, wallet_address ASC, tx ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE MATERIALIZED VIEW minds.blockchain_transactions_mainnet_by_tx AS
+    SELECT tx, user_guid, wallet_address, timestamp, amount, completed, contract, data
+    FROM minds.blockchain_transactions_mainnet
+    WHERE tx IS NOT NULL AND user_guid IS NOT NULL AND wallet_address IS NOT NULL AND timestamp IS NOT NULL AND contract IS NOT NULL AND completed IS NOT NULL AND amount IS NOT NULL AND data IS NOT NULL
+    PRIMARY KEY (tx, user_guid, wallet_address, timestamp)
+    WITH CLUSTERING ORDER BY (user_guid ASC, wallet_address DESC, timestamp DESC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE MATERIALIZED VIEW minds.blockchain_transactions_mainnet_by_address AS
+    SELECT wallet_address, user_guid, timestamp, tx, amount, completed, contract, data
+    FROM minds.blockchain_transactions_mainnet
+    WHERE user_guid IS NOT NULL AND wallet_address IS NOT NULL AND timestamp IS NOT NULL AND tx IS NOT NULL
+    PRIMARY KEY (wallet_address, user_guid, timestamp, tx)
+    WITH CLUSTERING ORDER BY (user_guid DESC, timestamp DESC, tx ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE TABLE minds.config (
+    key text PRIMARY KEY,
+    value text
+) WITH bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE TABLE minds.pledges (
+    phone_number_hash text PRIMARY KEY,
+    amount varint,
+    status text,
+    timestamp timestamp,
+    user_guid varint,
+    wallet_address text
+) WITH bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE TABLE minds.counters (
+    guid text,
+    metric text,
+    count counter,
+    PRIMARY KEY (guid, metric)
+) WITH CLUSTERING ORDER BY (metric ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE TABLE minds.relationships (
+    key text,
+    column1 text,
+    value text,
+    PRIMARY KEY (key, column1)
+) WITH COMPACT STORAGE
+    AND CLUSTERING ORDER BY (column1 ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
+    AND compression = {'enabled': 'false'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.0
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 1.0
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE TABLE minds.monetization_ledger (
+    guid text PRIMARY KEY,
+    amount int,
+    end int,
+    service_id text,
+    start int,
+    status text,
+    ts int,
+    type text,
+    user_guid text
+) WITH bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE TABLE minds.rewards (
+    user_guid varint,
+    timestamp timestamp,
+    type text,
+    amount varint,
     PRIMARY KEY (user_guid, timestamp, type)
 ) WITH CLUSTERING ORDER BY (timestamp DESC, type ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.oauth_access_tokens
-(
-    token_id    text PRIMARY KEY,
-    client_id   text,
-    expires     timestamp,
-    last_active timestamp,
-    scopes      set<text>,
-    user_id     varint,
-    ip          text,
-) WITH bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
-
-CREATE TABLE minds.oauth_auth_codes
-(
-    code_id   text PRIMARY KEY,
+CREATE TABLE minds.oauth_access_tokens (
+    token_id text PRIMARY KEY,
     client_id text,
-    user_id   bigint,
-    expires   timestamp
+    expires timestamp,
+    last_active timestamp,
+    scopes set<text>,
+    user_id varint,
+    ip text,
+) WITH bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE TABLE minds.oauth_auth_codes (
+    code_id text PRIMARY KEY,
+    client_id text,
+    user_id bigint,
+    expires timestamp
 );
 
-CREATE TABLE minds.plans
-(
-    entity_guid     text,
-    plan            text,
-    user_guid       text,
-    amount          int,
-    expires         int,
-    status          text,
+CREATE TABLE minds.plans (
+    entity_guid text,
+    plan text,
+    user_guid text,
+    amount int,
+    expires int,
+    status text,
     subscription_id text,
     PRIMARY KEY (entity_guid, plan, user_guid)
 ) WITH CLUSTERING ORDER BY (plan ASC, user_guid ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
 CREATE MATERIALIZED VIEW minds.plans_by_subscription_id AS
-SELECT *
-FROM minds.plans
-WHERE entity_guid IS NOT NULL
-  AND plan IS NOT NULL
-  AND user_guid IS NOT NULL
-  AND status IS NOT NULL
-  AND subscription_id IS NOT NULL
-PRIMARY KEY (subscription_id, plan, user_guid, entity_guid)
-WITH CLUSTERING ORDER BY (plan ASC, user_guid ASC, entity_guid ASC)
- AND bloom_filter_fp_chance = 0.01
- AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
- AND comment = ''
- AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
- AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
- AND crc_check_chance = 1.0
- AND dclocal_read_repair_chance = 0.1
- AND default_time_to_live = 0
- AND gc_grace_seconds = 864000
- AND max_index_interval = 2048
- AND memtable_flush_period_in_ms = 0
- AND min_index_interval = 128
- AND read_repair_chance = 0.0
- AND speculative_retry = '99PERCENTILE';
+    SELECT *
+    FROM minds.plans
+    WHERE entity_guid IS NOT NULL AND plan IS NOT NULL AND user_guid IS NOT NULL AND status IS NOT NULL AND subscription_id IS NOT NULL
+    PRIMARY KEY (subscription_id, plan, user_guid, entity_guid)
+    WITH CLUSTERING ORDER BY (plan ASC, user_guid ASC, entity_guid ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
 CREATE MATERIALIZED VIEW minds.plans_by_user_guid AS
-SELECT *
-FROM minds.plans
-WHERE entity_guid IS NOT NULL
-  AND plan IS NOT NULL
-  AND user_guid IS NOT NULL
-  AND status IS NOT NULL
-PRIMARY KEY (user_guid, plan, entity_guid, status)
-WITH CLUSTERING ORDER BY (plan ASC, entity_guid ASC, status ASC)
- AND bloom_filter_fp_chance = 0.01
- AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
- AND comment = ''
- AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
- AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
- AND crc_check_chance = 1.0
- AND dclocal_read_repair_chance = 0.1
- AND default_time_to_live = 0
- AND gc_grace_seconds = 864000
- AND max_index_interval = 2048
- AND memtable_flush_period_in_ms = 0
- AND min_index_interval = 128
- AND read_repair_chance = 0.0
- AND speculative_retry = '99PERCENTILE';
+    SELECT *
+    FROM minds.plans
+    WHERE entity_guid IS NOT NULL AND plan IS NOT NULL AND user_guid IS NOT NULL AND status IS NOT NULL
+    PRIMARY KEY (user_guid, plan, entity_guid, status)
+    WITH CLUSTERING ORDER BY (plan ASC, entity_guid ASC, status ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.subscriptions
-(
-    plan_id         text,
-    payment_method  text,
-    entity_guid     varint,
-    user_guid       varint,
+CREATE TABLE minds.subscriptions (
+    plan_id text,
+    payment_method text,
+    entity_guid varint,
+    user_guid varint,
     subscription_id text,
-    amount          decimal,
-    interval        text,
-    last_billing    timestamp,
-    next_billing    timestamp,
-    status          text,
+    amount decimal,
+    interval text,
+    last_billing timestamp,
+    next_billing timestamp,
+    status text,
     PRIMARY KEY (plan_id, payment_method, entity_guid, user_guid, subscription_id)
 ) WITH CLUSTERING ORDER BY (payment_method ASC, entity_guid ASC, user_guid ASC, subscription_id ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
 CREATE MATERIALIZED VIEW minds.subscriptions_by_id AS
-SELECT subscription_id,
-       plan_id,
-       payment_method,
-       entity_guid,
-       user_guid,
-       amount,
-       interval,
-       last_billing,
-       next_billing,
-       status
-FROM minds.subscriptions
-WHERE subscription_id IS NOT NULL
-  AND plan_id IS NOT NULL
-  AND payment_method IS NOT NULL
-  AND entity_guid IS NOT NULL
-  AND user_guid IS NOT NULL
-  AND amount IS NOT NULL
-  AND last_billing IS NOT NULL
-  AND next_billing IS NOT NULL
-  AND interval IS NOT NULL
-  AND status IS NOT NULL
-PRIMARY KEY (subscription_id, plan_id, payment_method, entity_guid, user_guid)
-WITH CLUSTERING ORDER BY (plan_id ASC, payment_method ASC, entity_guid ASC, user_guid ASC)
- AND bloom_filter_fp_chance = 0.01
- AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
- AND comment = ''
- AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
- AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
- AND crc_check_chance = 1.0
- AND dclocal_read_repair_chance = 0.1
- AND default_time_to_live = 0
- AND gc_grace_seconds = 864000
- AND max_index_interval = 2048
- AND memtable_flush_period_in_ms = 0
- AND min_index_interval = 128
- AND read_repair_chance = 0.0
- AND speculative_retry = '99PERCENTILE';
+    SELECT subscription_id, plan_id, payment_method, entity_guid, user_guid, amount, interval, last_billing, next_billing, status
+    FROM minds.subscriptions
+    WHERE subscription_id IS NOT NULL AND plan_id IS NOT NULL AND payment_method IS NOT NULL AND entity_guid IS NOT NULL AND user_guid IS NOT NULL AND amount IS NOT NULL AND last_billing IS NOT NULL AND next_billing IS NOT NULL AND interval IS NOT NULL AND status IS NOT NULL
+    PRIMARY KEY (subscription_id, plan_id, payment_method, entity_guid, user_guid)
+    WITH CLUSTERING ORDER BY (plan_id ASC, payment_method ASC, entity_guid ASC, user_guid ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
 CREATE INDEX IF NOT EXISTS subscriptions_user_guid_idx ON minds.subscriptions (user_guid);
 
-CREATE TABLE minds.translations
-(
-    guid            text,
-    field           text,
-    language        text,
-    content         text,
+CREATE TABLE minds.translations (
+    guid text,
+    field text,
+    language text,
+    content text,
     source_language text,
     PRIMARY KEY (guid, field, language)
 ) WITH CLUSTERING ORDER BY (field ASC, language ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.notifications
-(
-    to_guid           bigint,
-    uuid              timeuuid,
-    type              text,
-    type_group        text,
-    from_guid         bigint,
-    entity_guid       text,
-    entity_urn        text,
+CREATE TABLE minds.notifications (
+    to_guid bigint,
+    uuid timeuuid,
+    type text,
+    type_group text,
+    from_guid bigint,
+    entity_guid text,
+    entity_urn text,
     created_timestamp timestamp,
-    read_timestamp    timestamp,
-    data              text,
+    read_timestamp timestamp,
+    data text,
     PRIMARY KEY (to_guid, uuid)
-) WITH CLUSTERING ORDER BY (uuid DESC);
+)  WITH CLUSTERING ORDER BY (uuid DESC);
 
 CREATE MATERIALIZED VIEW minds.notifications_by_type_group AS
-SELECT *
-FROM minds.notifications
-WHERE to_guid IS NOT NULL
-  AND uuid IS NOT NULL
-  AND type_group IS NOT NULL
-PRIMARY KEY (to_guid, type_group, uuid)
-WITH CLUSTERING ORDER BY (type_group DESC, uuid DESC);
+    SELECT *
+    FROM minds.notifications
+    WHERE to_guid IS NOT NULL
+    AND uuid IS NOT NULL
+    AND type_group IS NOT NULL
+    PRIMARY KEY (to_guid, type_group, uuid)
+    WITH CLUSTERING ORDER BY (type_group DESC, uuid DESC);
 
-CREATE TABLE minds.notifications_mergeable
-(
-    to_guid           bigint,
-    uuid              timeuuid,
-    type              text,
-    type_group        text,
-    from_guid         bigint,
-    entity_urn        text,
+CREATE TABLE minds.notifications_mergeable (
+    to_guid bigint,
+    uuid timeuuid,
+    type text,
+    type_group text,
+    from_guid bigint,
+    entity_urn text,
     created_timestamp timestamp,
-    read_timestamp    timestamp,
-    data              text,
+    read_timestamp timestamp,
+    data text,
     merged_from_guids set<bigint>,
-    merged_count      int,
+    merged_count int,
     PRIMARY KEY (to_guid, uuid)
-) WITH CLUSTERING ORDER BY (uuid DESC);
+)  WITH CLUSTERING ORDER BY (uuid DESC);
 
 CREATE MATERIALIZED VIEW minds.notifications_mergeable_by_type_group AS
-SELECT *
-FROM minds.notifications_mergeable
-WHERE to_guid IS NOT NULL
-  AND uuid IS NOT NULL
-  AND type_group IS NOT NULL
-PRIMARY KEY (to_guid, type_group, uuid)
-WITH CLUSTERING ORDER BY (type_group DESC, uuid DESC);
+    SELECT *
+    FROM minds.notifications_mergeable
+    WHERE to_guid IS NOT NULL
+    AND uuid IS NOT NULL
+    AND type_group IS NOT NULL
+    PRIMARY KEY (to_guid, type_group, uuid)
+    WITH CLUSTERING ORDER BY (type_group DESC, uuid DESC);
 
 
-CREATE TABLE minds.friendsof
-(
-    key     text,
+CREATE TABLE minds.friendsof (
+    key text,
     column1 text,
-    value   text,
+    value text,
     PRIMARY KEY (key, column1)
 ) WITH COMPACT STORAGE
-   AND CLUSTERING ORDER BY (column1 ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
-   AND compression = {'enabled': 'false'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.0
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 1.0
-   AND speculative_retry = '99PERCENTILE';
+    AND CLUSTERING ORDER BY (column1 ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
+    AND compression = {'enabled': 'false'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.0
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 1.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.withholdings
-(
-    user_guid      varint,
-    timestamp      timestamp,
-    tx             text,
-    amount         varint,
-    type           text,
+CREATE TABLE minds.withholdings (
+    user_guid varint,
+    timestamp timestamp,
+    tx text,
+    amount varint,
+    type text,
     wallet_address text,
     PRIMARY KEY (user_guid, timestamp, tx)
 ) WITH CLUSTERING ORDER BY (timestamp ASC, tx ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.user_index_to_guid
-(
-    key     text,
+CREATE TABLE minds.user_index_to_guid (
+    key text,
     column1 text,
-    value   text,
+    value text,
     PRIMARY KEY (key, column1)
 ) WITH COMPACT STORAGE
-   AND CLUSTERING ORDER BY (column1 ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'enabled': 'false'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.0
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.1
-   AND speculative_retry = '99PERCENTILE';
+    AND CLUSTERING ORDER BY (column1 ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'enabled': 'false'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.0
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.1
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.withdrawals
-(
-    user_guid    varint,
-    timestamp    timestamp,
-    tx           text,
-    amount       varint,
-    completed    boolean,
+CREATE TABLE minds.withdrawals (
+    user_guid varint,
+    timestamp timestamp,
+    tx text,
+    amount varint,
+    completed boolean,
     completed_tx text,
     PRIMARY KEY (user_guid, timestamp, tx)
 ) WITH CLUSTERING ORDER BY (timestamp DESC, tx ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.rewards_withdrawals
-(
-    user_guid    bigint,
-    timestamp    timestamp,
-    tx           text,
-    amount       varint,
-    completed    boolean,
+CREATE TABLE minds.rewards_withdrawals (
+    user_guid bigint,
+    timestamp timestamp,
+    tx text,
+    amount varint,
+    completed boolean,
     completed_tx text,
-    status       text,
-    address      text,
-    gas          bigint,
+    status text,
+    address text,
+    gas bigint,
     PRIMARY KEY (user_guid, timestamp, tx)
 ) WITH CLUSTERING ORDER BY (timestamp DESC, tx ASC);
 
-CREATE TABLE minds.friends
-(
-    key     text,
+CREATE TABLE minds.friends (
+    key text,
     column1 text,
-    value   text,
+    value text,
     PRIMARY KEY (key, column1)
 ) WITH COMPACT STORAGE
-   AND CLUSTERING ORDER BY (column1 ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
-   AND compression = {'enabled': 'false'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.0
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 1.0
-   AND speculative_retry = '99PERCENTILE';
+    AND CLUSTERING ORDER BY (column1 ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
+    AND compression = {'enabled': 'false'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.0
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 1.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.annotation
-(
-    key     text,
+CREATE TABLE minds.annotation (
+    key text,
     column1 text,
-    value   text,
+    value text,
     PRIMARY KEY (key, column1)
 ) WITH COMPACT STORAGE
-   AND CLUSTERING ORDER BY (column1 ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'enabled': 'false'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.0
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 1.0
-   AND speculative_retry = '99PERCENTILE';
+    AND CLUSTERING ORDER BY (column1 ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'enabled': 'false'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.0
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 1.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.categories
-(
-    type     text,
+CREATE TABLE minds.categories (
+    type text,
     category text,
-    filter   text,
-    guid     text,
+    filter text,
+    guid text,
     PRIMARY KEY (type, category, filter, guid)
 ) WITH CLUSTERING ORDER BY (category ASC, filter ASC, guid ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.blockchain_transactions2
-(
-    user_guid      varint,
-    timestamp      timestamp,
+CREATE TABLE minds.blockchain_transactions2 (
+    user_guid varint,
+    timestamp timestamp,
     wallet_address text,
-    tx             text,
-    amount         varint,
-    completed      boolean,
-    contract       text,
-    data           text,
+    tx text,
+    amount varint,
+    completed boolean,
+    contract text,
+    data text,
     PRIMARY KEY (user_guid, timestamp, wallet_address, tx)
 ) WITH CLUSTERING ORDER BY (timestamp DESC, wallet_address ASC, tx ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.locks
-(
+CREATE TABLE minds.locks (
     key text PRIMARY KEY
 ) WITH bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.reports
-(
-    guid          varint PRIMARY KEY,
-    action        text,
-    appeal_note   text,
-    entity_guid   varint,
-    entity_luid   text,
-    owner_guid    varint,
-    reason        text,
-    reason_note   text,
+CREATE TABLE minds.reports (
+    guid varint PRIMARY KEY,
+    action text,
+    appeal_note text,
+    entity_guid varint,
+    entity_luid text,
+    owner_guid varint,
+    reason text,
+    reason_note text,
     reporter_guid varint,
-    state         text,
-    time_created  timestamp
+    state text,
+    time_created timestamp
 ) WITH bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
 CREATE MATERIALIZED VIEW minds.reports_by_state AS
-SELECT *
-FROM minds.reports
-WHERE state IS NOT NULL
-  AND guid IS NOT NULL
-PRIMARY KEY (state, guid)
-WITH CLUSTERING ORDER BY (guid ASC)
- AND bloom_filter_fp_chance = 0.01
- AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
- AND comment = ''
- AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
- AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
- AND crc_check_chance = 1.0
- AND dclocal_read_repair_chance = 0.1
- AND default_time_to_live = 0
- AND gc_grace_seconds = 864000
- AND max_index_interval = 2048
- AND memtable_flush_period_in_ms = 0
- AND min_index_interval = 128
- AND read_repair_chance = 0.0
- AND speculative_retry = '99PERCENTILE';
+    SELECT *
+    FROM minds.reports
+    WHERE state IS NOT NULL AND guid IS NOT NULL
+    PRIMARY KEY (state, guid)
+    WITH CLUSTERING ORDER BY (guid ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
 CREATE MATERIALIZED VIEW minds.reports_by_owner AS
-SELECT *
-FROM minds.reports
-WHERE owner_guid IS NOT NULL
-  AND guid IS NOT NULL
-PRIMARY KEY (owner_guid, guid)
-WITH CLUSTERING ORDER BY (guid DESC)
- AND bloom_filter_fp_chance = 0.01
- AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
- AND comment = ''
- AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
- AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
- AND crc_check_chance = 1.0
- AND dclocal_read_repair_chance = 0.1
- AND default_time_to_live = 0
- AND gc_grace_seconds = 864000
- AND max_index_interval = 2048
- AND memtable_flush_period_in_ms = 0
- AND min_index_interval = 128
- AND read_repair_chance = 0.0
- AND speculative_retry = '99PERCENTILE';
+    SELECT *
+    FROM minds.reports
+    WHERE owner_guid IS NOT NULL AND guid IS NOT NULL
+    PRIMARY KEY (owner_guid, guid)
+    WITH CLUSTERING ORDER BY (guid DESC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds."token"
-(
-    "KEY"      blob PRIMARY KEY,
-    expires    varint,
+CREATE TABLE minds."token" (
+    "KEY" blob PRIMARY KEY,
+    expires varint,
     owner_guid text
 ) WITH COMPACT STORAGE
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'enabled': 'false'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.0
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 1.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'enabled': 'false'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.0
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 1.0
+    AND speculative_retry = '99PERCENTILE';
 
 CREATE INDEX token_owner_guid_idx ON minds."token" (owner_guid);
 
 CREATE INDEX token_expires_idx ON minds."token" (expires);
 
-CREATE TABLE minds.payments
-(
-    type            text,
-    user_guid       varint,
-    time_created    timestamp,
-    payment_id      text,
-    amount          decimal,
-    description     text,
-    payment_method  text,
-    status          text,
+CREATE TABLE minds.payments (
+    type text,
+    user_guid varint,
+    time_created timestamp,
+    payment_id text,
+    amount decimal,
+    description text,
+    payment_method text,
+    status text,
     subscription_id text,
     PRIMARY KEY (type, user_guid, time_created, payment_id)
 ) WITH CLUSTERING ORDER BY (user_guid ASC, time_created DESC, payment_id ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.oauth_refresh_tokens
-(
-    token_id        text PRIMARY KEY,
+CREATE TABLE minds.oauth_refresh_tokens (
+    token_id text PRIMARY KEY,
     access_token_id text,
-    expires         timestamp
+    expires timestamp
 ) WITH bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.newsfeed
-(
-    key     text,
+CREATE TABLE minds.newsfeed (
+    key text,
     column1 text,
-    value   text,
+    value text,
     PRIMARY KEY (key, column1)
 ) WITH COMPACT STORAGE
-   AND CLUSTERING ORDER BY (column1 ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'enabled': 'false'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.0
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 1.0
-   AND speculative_retry = '99PERCENTILE';
+    AND CLUSTERING ORDER BY (column1 ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'enabled': 'false'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.0
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 1.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.trending2
-(
-    type   text,
+CREATE TABLE minds.trending2 (
+    type text,
     rating tinyint,
-    place  int,
-    guid   varint,
+    place int,
+    guid varint,
     PRIMARY KEY ((type, rating), place)
 ) WITH CLUSTERING ORDER BY (place ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.user
-(
-    key     text,
+CREATE TABLE minds.user (
+    key text,
     column1 text,
-    value   text,
+    value text,
     PRIMARY KEY (key, column1)
 ) WITH COMPACT STORAGE
-   AND CLUSTERING ORDER BY (column1 ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'enabled': 'false'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.0
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 1.0
-   AND speculative_retry = '99PERCENTILE';
+    AND CLUSTERING ORDER BY (column1 ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'enabled': 'false'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.0
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 1.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.spam_blocks
-(
-    key   text,
+CREATE TABLE minds.spam_blocks (
+    key text,
     value text,
     PRIMARY KEY (key, value)
 ) WITH CLUSTERING ORDER BY (value ASC);
 
 
-CREATE TABLE minds.user_hashtags
-(
+CREATE TABLE minds.user_hashtags (
     user_guid varint,
-    hashtag   text,
+    hashtag text,
     PRIMARY KEY (user_guid, hashtag)
 ) WITH CLUSTERING ORDER BY (hashtag ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE minds.video_chat_leases
-(
-    key            text PRIMARY KEY,
-    holder_guid    varint,
+CREATE TABLE minds.video_chat_leases (
+    key text PRIMARY KEY,
+    holder_guid varint,
     last_refreshed timestamp,
-    secret         text
+    secret text
 );
 
-CREATE TABLE minds.sendwyre_accounts
-(
-    user_guid           varint,
+CREATE TABLE minds.sendwyre_accounts (
+    user_guid varint,
     sendwyre_account_id text,
     PRIMARY KEY (user_guid)
 );
 
-CREATE TABLE minds.analytics_graphs
-(
-    key         text,
-    last_synced timestamp,
-    data        text,
-    PRIMARY KEY (key)
+CREATE TABLE minds.analytics_graphs (
+  key text,
+  last_synced timestamp,
+  data text,
+  PRIMARY KEY(key)
 );
 
-CREATE TABLE minds.views
-(
-    year       int,
-    month      tinyint,
-    day        tinyint,
-    uuid       timeuuid,
+CREATE TABLE minds.views (
+    year int,
+    month tinyint,
+    day tinyint,
+    uuid timeuuid,
     entity_urn text,
     page_token text,
-    position   int,
-    platform   text,
-    source     text,
-    medium     text,
-    campaign   text,
-    delta      int,
+    position int,
+    platform text,
+    source text,
+    medium text,
+    campaign text,
+    delta int,
     PRIMARY KEY (year, month, day, uuid, entity_urn, page_token)
 );
 
-CREATE TABLE minds.update_markers
-(
-    user_guid         varint,
-    entity_type       text,
-    entity_guid       varint,
-    marker            text,
-    disabled          boolean,
-    read_timestamp    timestamp,
+CREATE TABLE minds.update_markers (
+    user_guid varint,
+    entity_type text,
+    entity_guid varint,
+    marker text,
+    disabled boolean,
+    read_timestamp timestamp,
     updated_timestamp timestamp,
     PRIMARY KEY (user_guid, entity_type, entity_guid, marker)
 );
 
-CREATE TABLE minds.hidden_hashtags
-(
-    hashtag      text,
-    admin_guid   bigint,
+CREATE TABLE minds.hidden_hashtags (
+    hashtag text,
+    admin_guid bigint,
     hidden_since timestamp,
     PRIMARY KEY (hashtag)
 );
 
-CREATE TABLE minds.referrals
-(
-    referrer_guid      bigint,
-    prospect_guid      bigint,
+CREATE TABLE minds.referrals (
+    referrer_guid bigint,
+    prospect_guid bigint,
     register_timestamp timestamp,
-    join_timestamp     timestamp,
-    ping_timestamp     timestamp,
+    join_timestamp timestamp,
+    ping_timestamp timestamp,
     PRIMARY KEY (referrer_guid, prospect_guid)
 ) WITH CLUSTERING ORDER BY (prospect_guid DESC);
 
-CREATE TABLE minds.search_dispatcher_queue
-(
+CREATE TABLE minds.search_dispatcher_queue (
     entity_urn text,
     last_retry timestamp,
-    retries    int,
+    retries int,
     PRIMARY KEY (entity_urn)
 );
 
-CREATE TABLE minds.user_snapshots
-(
-    user_guid varint,
-    type      text,
-    key       text,
-    json_data text,
-    PRIMARY KEY (user_guid, type, key)
+CREATE TABLE minds.user_snapshots (
+  user_guid varint,
+  type text,
+  key text,
+  json_data text,
+  PRIMARY KEY (user_guid, type, key)
 ) WITH CLUSTERING ORDER BY (type ASC, key ASC);
 
-CREATE TABLE minds.email_campaign_logs
-(
-    receiver_guid     varint,
-    time_sent         timestamp,
-    email_campaign_id text,
-    PRIMARY KEY (receiver_guid, time_sent)
+CREATE TABLE minds.email_campaign_logs (
+  receiver_guid varint,
+  time_sent timestamp,
+  email_campaign_id text,
+  PRIMARY KEY (receiver_guid, time_sent)
 ) WITH CLUSTERING ORDER BY (time_sent desc);
 
-CREATE TABLE minds.moderation_reports
-(
-    entity_urn        text,
-    reason_code       tinyint,
-    sub_reason_code   decimal,
-    timestamp         timestamp,
-    appeal_jury       map<bigint, boolean>,
-    appeal_note       text,
+CREATE TABLE minds.moderation_reports (
+    entity_urn text,
+    reason_code tinyint,
+    sub_reason_code decimal,
+    timestamp timestamp,
+    appeal_jury map<bigint, boolean>,
+    appeal_note text,
     entity_owner_guid bigint,
-    initial_jury      map<bigint, boolean>,
-    reports           set<bigint>,
-    state             text,
-    state_changes     map<text, timestamp>,
-    uphold            boolean,
-    user_hashes       set<text>,
+    initial_jury map<bigint, boolean>,
+    reports set<bigint>,
+    state text,
+    state_changes map<text, timestamp>,
+    uphold boolean,
+    user_hashes set<text>,
     PRIMARY KEY (entity_urn, reason_code, sub_reason_code, timestamp)
 ) WITH CLUSTERING ORDER BY (reason_code ASC, sub_reason_code ASC, timestamp DESC);
 
 CREATE MATERIALIZED VIEW minds.moderation_reports_by_entity_owner_guid AS
-SELECT *
-FROM minds.moderation_reports
-WHERE entity_owner_guid IS NOT NULL
-  AND reason_code IS NOT NULL
-  AND sub_reason_code IS NOT NULL
-  AND timestamp IS NOT NULL
-PRIMARY KEY (entity_owner_guid, timestamp, entity_urn, reason_code, sub_reason_code)
-WITH CLUSTERING ORDER BY (timestamp DESC, entity_urn ASC, reason_code ASC, sub_reason_code ASC);
+    SELECT *
+    FROM minds.moderation_reports
+    WHERE entity_owner_guid IS NOT NULL AND reason_code IS NOT NULL AND sub_reason_code IS NOT NULL AND timestamp IS NOT NULL
+    PRIMARY KEY (entity_owner_guid, timestamp, entity_urn, reason_code, sub_reason_code)
+    WITH CLUSTERING ORDER BY (timestamp DESC, entity_urn ASC, reason_code ASC, sub_reason_code ASC);
 
 CREATE MATERIALIZED VIEW minds.moderation_reports_by_state AS
-SELECT *
-FROM minds.moderation_reports
-WHERE state IS NOT NULL
-  AND reason_code IS NOT NULL
-  AND sub_reason_code IS NOT NULL
-  AND timestamp IS NOT NULL
-PRIMARY KEY (state, timestamp, entity_urn, reason_code, sub_reason_code)
-WITH CLUSTERING ORDER BY (timestamp DESC, entity_urn ASC, reason_code ASC, sub_reason_code ASC);
+    SELECT *
+    FROM minds.moderation_reports
+    WHERE state IS NOT NULL AND reason_code IS NOT NULL AND sub_reason_code IS NOT NULL AND timestamp IS NOT NULL
+    PRIMARY KEY (state, timestamp, entity_urn, reason_code, sub_reason_code)
+    WITH CLUSTERING ORDER BY (timestamp DESC, entity_urn ASC, reason_code ASC, sub_reason_code ASC);
 
-CREATE TABLE minds.moderation_strikes
-(
-    user_guid       bigint,
-    reason_code     tinyint,
+CREATE TABLE minds.moderation_strikes (
+    user_guid bigint,
+    reason_code tinyint,
     sub_reason_code decimal,
-    timestamp       timestamp,
-    report_urn      text,
+    timestamp timestamp,
+    report_urn text,
     PRIMARY KEY (user_guid, reason_code, sub_reason_code, timestamp)
 ) WITH CLUSTERING ORDER BY (reason_code ASC, sub_reason_code ASC, timestamp ASC);
 
-CREATE TABLE minds.moderation_summons
-(
+CREATE TABLE minds.moderation_summons (
     report_urn text,
-    jury_type  text,
+    jury_type text,
     juror_guid bigint,
-    expires    int,
-    status     text,
+    expires int,
+    status text,
     PRIMARY KEY (report_urn, jury_type, juror_guid)
 ) WITH CLUSTERING ORDER BY (jury_type ASC, juror_guid ASC);
 
-ALTER TABLE minds.views
-    ADD owner_guid text;
+ALTER TABLE minds.views ADD owner_guid text;
 
-CREATE TABLE minds.pro
-(
+CREATE TABLE minds.pro (
     user_guid bigint,
-    domain    text,
+    domain text,
     json_data text,
     PRIMARY KEY (user_guid)
 );
 
 CREATE MATERIALIZED VIEW minds.pro_by_domain AS
-SELECT domain, user_guid, json_data
-FROM minds.pro
-WHERE user_guid IS NOT NULL
-  AND domain IS NOT NULL
-PRIMARY KEY (domain, user_guid)
-WITH CLUSTERING ORDER BY (user_guid ASC);
+    SELECT domain, user_guid, json_data
+    FROM minds.pro
+    WHERE user_guid IS NOT NULL AND domain IS NOT NULL
+    PRIMARY KEY (domain, user_guid)
+    WITH CLUSTERING ORDER BY (user_guid ASC);
 
-CREATE TABLE minds.subscription_requests
-(
-    publisher_guid  bigint,
+CREATE TABLE minds.subscription_requests (
+    publisher_guid bigint,
     subscriber_guid bigint,
-    timestamp       timestamp,
-    declined        boolean,
+    timestamp timestamp,
+    declined boolean,
     PRIMARY KEY (publisher_guid, subscriber_guid)
 );
 
-CREATE TABLE minds.notification_batches
-(
+CREATE TABLE minds.notification_batches (
     user_guid varint,
     batch_id  text,
     primary key (user_guid, batch_id)
 );
 
-CREATE TABLE minds.experiments
-(
-    id     text,
+CREATE TABLE minds.experiments (
+    id text,
     bucket text,
-    key    text,
+    key text,
     PRIMARY KEY (id, bucket, key)
 ) WITH CLUSTERING ORDER BY (bucket ASC, key ASC)
-   AND bloom_filter_fp_chance = 0.01
-   AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
-   AND comment = ''
-   AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
-   AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-   AND crc_check_chance = 1.0
-   AND dclocal_read_repair_chance = 0.1
-   AND default_time_to_live = 0
-   AND gc_grace_seconds = 864000
-   AND max_index_interval = 2048
-   AND memtable_flush_period_in_ms = 0
-   AND min_index_interval = 128
-   AND read_repair_chance = 0.0
-   AND speculative_retry = '99PERCENTILE';
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
 
 CREATE INDEX experiments_key_idx ON minds.experiments (key);
 
-ALTER TABLE minds.withdrawals
-    ADD (status text, address text, gas varint);
+ALTER TABLE minds.withdrawals ADD (status text, address text, gas varint);
 
 CREATE MATERIALIZED VIEW minds.withdrawals_by_status AS
-SELECT *
-FROM minds.withdrawals
-WHERE status IS NOT NULL
-  AND user_guid IS NOT NULL
-  AND timestamp IS NOT NULL
-  AND tx IS NOT NULL
-PRIMARY KEY (status, timestamp, user_guid, tx)
-WITH CLUSTERING ORDER BY (timestamp ASC, user_guid ASC, tx ASC);
+    SELECT *
+    FROM minds.withdrawals
+    WHERE status IS NOT NULL AND user_guid IS NOT NULL AND timestamp IS NOT NULL AND tx IS NOT NULL
+    PRIMARY KEY (status, timestamp, user_guid, tx)
+    WITH CLUSTERING ORDER BY (timestamp ASC, user_guid ASC, tx ASC);
 
 CREATE MATERIALIZED VIEW minds.rewards_withdrawals_by_status AS
-SELECT *
-FROM minds.rewards_withdrawals
-WHERE status IS NOT NULL
-  AND user_guid IS NOT NULL
-  AND timestamp IS NOT NULL
-  AND tx IS NOT NULL
-PRIMARY KEY (status, timestamp, user_guid, tx)
-WITH CLUSTERING ORDER BY (timestamp ASC, user_guid ASC, tx ASC);
+    SELECT *
+    FROM minds.rewards_withdrawals
+    WHERE status IS NOT NULL AND user_guid IS NOT NULL AND timestamp IS NOT NULL AND tx IS NOT NULL
+    PRIMARY KEY (status, timestamp, user_guid, tx)
+    WITH CLUSTERING ORDER BY (timestamp ASC, user_guid ASC, tx ASC);
 
-CREATE TABLE minds.video_transcodes
-(
-    guid                    bigint,
-    profile_id              text,
-    progress                int,
-    status                  text,
+CREATE TABLE minds.video_transcodes (
+    guid bigint,
+    profile_id text,
+    progress int,
+    status text,
     last_event_timestamp_ms timestamp,
-    length_secs             int,
-    bytes                   int,
+    length_secs int,
+    bytes int,
     PRIMARY KEY (guid, profile_id)
 );
 
-ALTER TABLE minds.video_transcodes
-    ADD failure_reason text;
+ALTER TABLE minds.video_transcodes ADD failure_reason text;
 
-CREATE TABLE minds.feature_toggles_cache_ns
-(
-    environment  text,
+CREATE TABLE minds.feature_toggles_cache_ns (
+    environment text,
     feature_name text,
-    data         text,
-    created_at   timestamp,
-    stale_at     timestamp,
+    data text,
+    created_at timestamp,
+    stale_at timestamp,
     PRIMARY KEY (environment, feature_name)
 );
 
-CREATE TABLE minds.wire_support_tier
-(
+CREATE TABLE minds.wire_support_tier (
     entity_guid bigint,
-    guid        bigint,
-    public      boolean,
-    name        text,
+    guid bigint,
+    public boolean,
+    name text,
     description text,
-    usd         decimal,
-    has_usd     boolean,
-    has_tokens  boolean,
+    usd decimal,
+    has_usd boolean,
+    has_tokens boolean,
     PRIMARY KEY (entity_guid, guid)
 );
 
-CREATE TABLE minds.onchain_unique_addresses
-(
-    address   text PRIMARY KEY,
+CREATE TABLE minds.onchain_unique_addresses (
+    address text PRIMARY KEY,
     user_guid bigint
 );
 
-CREATE TABLE minds.token_rewards
-(
-    user_guid          bigint,
-    reward_type        text,
-    date               date,
-    multiplier         decimal,
-    score              decimal,
-    token_amount       decimal,
-    payout_tx          text,
+CREATE TABLE minds.token_rewards (
+    user_guid bigint,
+    reward_type text,
+    date date,
+    multiplier decimal,
+    score decimal,
+    token_amount decimal,
+    payout_tx text,
     tokenomics_version int,
     PRIMARY KEY (user_guid, reward_type, date)
 ) WITH CLUSTERING ORDER BY (reward_type ASC, date DESC);
 
 CREATE MATERIALIZED VIEW minds.token_rewards_by_date AS
-SELECT *
-FROM minds.token_rewards
-WHERE user_guid IS NOT NULL
-  AND reward_type IS NOT NULL
-  AND date IS NOT NULL
-PRIMARY KEY (date, reward_type, user_guid)
-WITH CLUSTERING ORDER BY (reward_type ASC, user_guid ASC);
+    SELECT *
+    FROM minds.token_rewards
+    WHERE user_guid IS NOT NULL
+        AND reward_type IS NOT NULL
+        AND date IS NOT NULL
+    PRIMARY KEY (date, reward_type, user_guid)
+    WITH CLUSTERING ORDER BY (reward_type ASC, user_guid ASC);
 
-CREATE TABLE minds.token_metrics
-(
-    metric   text,
-    date     date,
-    hour     int,
+CREATE TABLE minds.token_metrics (
+    metric text,
+    date date,
+    hour int,
     offchain decimal,
-    onchain  decimal,
+    onchain decimal,
     PRIMARY KEY (metric, date, hour)
 ) WITH CLUSTERING ORDER BY (date DESC, hour DESC);
 
-CREATE TABLE minds.totp_secrets
-(
-    user_guid     bigint,
-    device_id     text,
-    secret        text,
+CREATE TABLE minds.totp_secrets (
+    user_guid bigint,
+    device_id text,
+    secret text,
     recovery_hash text,
     PRIMARY KEY (user_guid, device_id, secret)
-) WITH CLUSTERING ORDER BY (device_id DESC, secret DESC);
+ ) WITH CLUSTERING ORDER BY (device_id DESC, secret DESC);
 
-CREATE TABLE minds.eth_blocks
-(
-    date         date,
-    timestamp    timestamp,
+CREATE TABLE minds.eth_blocks (
+    date date,
+    timestamp timestamp,
     block_number int,
     PRIMARY KEY (date, timestamp)
 ) WITH CLUSTERING ORDER BY (timestamp DESC);
 
-CREATE TABLE minds.push_notifications_device_subscriptions
-(
-    user_guid    bigint,
+CREATE TABLE minds.push_notifications_device_subscriptions (
+    user_guid bigint,
     device_token text,
-    service      text,
+    service text,
     PRIMARY KEY (user_guid, device_token)
 ) WITH CLUSTERING ORDER BY (device_token DESC);
 
-CREATE TABLE minds.push_notifications_settings
-(
-    user_guid          bigint,
+CREATE TABLE minds.push_notifications_settings (
+    user_guid bigint,
     notification_group text,
-    enabled            boolean,
+    enabled boolean,
     PRIMARY KEY (user_guid, notification_group)
 ) WITH CLUSTERING ORDER BY (notification_group DESC);
 
-CREATE TABLE minds.notification_email_digests
-(
-    year      int,
-    month     int,
-    day       int,
+CREATE TABLE minds.notification_email_digests (
+    year int,
+    month int,
+    day int,
     frequency text,
-    to_guid   bigint,
+    to_guid bigint,
     PRIMARY KEY (year, month, day, frequency, to_guid)
 ) WITH CLUSTERING ORDER BY (month DESC, day DESC);
 
-CREATE TABLE minds.twitter_sync
-(
-    user_guid               bigint PRIMARY KEY,
-    last_imported_tweet_id  bigint,
-    last_sync_ts            timestamp,
+CREATE TABLE minds.twitter_sync (
+    user_guid bigint PRIMARY KEY,
+    last_imported_tweet_id bigint,
+    last_sync_ts timestamp,
+    connected_timestamp timestamp,
     twitter_followers_count int,
-    twitter_user_id         bigint,
-    twitter_username        text,
-    discoverable            boolean
+    twitter_user_id bigint,
+    twitter_username text,
+    discoverable boolean
 );
 
-CREATE TABLE minds.social_compass_answers
-(
-    user_guid     bigint,
-    question_id   text,
+CREATE TABLE minds.social_compass_answers (
+    user_guid bigint,
+    question_id text,
     current_value int,
     PRIMARY KEY (user_guid, question_id)
 );
@@ -1928,4 +1725,4 @@ CREATE TABLE minds.user_quality_scores
     category  text,
     score     float,
     PRIMARY KEY (user_id, timestamp)
-) WITH CLUSTERING ORDER BY (timestamp DESC)
+) WITH CLUSTERING ORDER BY (timestamp DESC);
