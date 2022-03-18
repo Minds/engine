@@ -23,9 +23,9 @@ class Repository
         $this->index = $this->config?->get("elasticsearch")['indexes']['clustered_entities'];
     }
 
-    public function getList(int $clusterId, int $limit, int $offset): Generator
+    public function getList(int $clusterId, int $limit): Generator
     {
-        $preparedSearch = $this->buildQuery($clusterId, $limit, $offset);
+        $preparedSearch = $this->buildQuery($clusterId, $limit);
 
         $results = $this->elasticSearchClient?->request($preparedSearch);
 
@@ -40,7 +40,7 @@ class Repository
         }
     }
 
-    private function buildQuery(int $clusterId, int $limit, int $offset): PreparedSearch
+    private function buildQuery(int $clusterId, int $limit): PreparedSearch
     {
         $query = [
             'body' => [
@@ -60,8 +60,7 @@ class Repository
                 ]
             ],
             'index' => $this->index,
-            'size' => $limit,
-            'from' => $offset
+            'size' => $limit
         ];
 
         $preparedSearch = new PreparedSearch();

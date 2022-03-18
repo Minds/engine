@@ -194,6 +194,7 @@ $CONFIG->elasticsearch = [
         'graph' => 'minds-graph',
         'metrics' => 'minds-metrics',
         'tags' => 'minds-hashtags',
+        'clustered_entities' => 'minds-clustered-entities-feed'
     ],
     'username' => null,
     'password' => null,
