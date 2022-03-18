@@ -5,7 +5,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Email\SendGrid\SendGridContact;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Data\ElasticSearch\Client;
-use \Minds\Core\Data\ElasticSearch\Prepared\Search;
+use Minds\Core\Data\ElasticSearch\Prepared\Search;
 
 /**
  * Assembles list of users who have been active in last 30 days.
