@@ -7,12 +7,12 @@ class Manager
 {
     /** @var SendGridListInterface[] */
     const DEFAULT_LISTS = [
-        // Lists\WireUSDUsersList::class,
-        // Lists\MonetizedUsersList::class,
-        // Lists\TwitterSyncList::class,
-        // Lists\YoutubeSyncList::class,
-        // Lists\EthUsersList::class,
-        // Lists\MembershipTierOwnerList::class,
+        Lists\WireUSDUsersList::class,
+        Lists\MonetizedUsersList::class,
+        Lists\TwitterSyncList::class,
+        Lists\YoutubeSyncList::class,
+        Lists\EthUsersList::class,
+        Lists\MembershipTierOwnerList::class,
         Lists\Active30DayList::class,
     ];
 
