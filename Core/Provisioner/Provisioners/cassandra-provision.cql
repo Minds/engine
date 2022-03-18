@@ -1717,3 +1717,12 @@ CREATE TABLE minds.social_compass_answers (
     current_value int,
     PRIMARY KEY (user_guid, question_id)
 );
+
+CREATE TABLE minds.user_quality_scores
+(
+    user_id   text,
+    timestamp timestamp,
+    category  text,
+    score     float,
+    PRIMARY KEY (user_id, timestamp)
+) WITH CLUSTERING ORDER BY (timestamp DESC);
