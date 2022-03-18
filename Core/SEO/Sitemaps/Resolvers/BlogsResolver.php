@@ -56,7 +56,7 @@ class BlogsResolver extends AbstractEntitiesResolver
                 continue;
             }
             ++$i;
-            $lastModified = (new \DateTime)->setTimestamp($entity->time_created);
+            $lastModified = (new \DateTime)->setTimestamp($entity->getTimeCreated());
             $sitemapUrl = new SitemapUrl();
             $sitemapUrl->setLoc("/" . $entity->getUrl(true))
                 ->setChangeFreq('never')

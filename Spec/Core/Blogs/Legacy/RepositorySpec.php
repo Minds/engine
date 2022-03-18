@@ -79,6 +79,7 @@ class RepositorySpec extends ObjectBehavior
             ->setContainerGuid(0)
             ->setFeed('all')
             ->setGuid(5001);
+        $response->setPagingToken('');
 
         $this->feedsRepo->getList(Argument::any())
             ->shouldBeCalled()

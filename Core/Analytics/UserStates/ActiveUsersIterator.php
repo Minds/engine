@@ -229,7 +229,7 @@ class ActiveUsersIterator implements \Iterator
     /**
      * Rewind the array cursor.
      */
-    public function rewind()
+    public function rewind(): void
     {
         if ($this->cursor >= 0) {
             $this->get();
@@ -242,7 +242,7 @@ class ActiveUsersIterator implements \Iterator
      *
      * @return mixed
      */
-    public function current()
+    public function current(): mixed
     {
         return $this->data[$this->cursor];
     }
@@ -252,7 +252,7 @@ class ActiveUsersIterator implements \Iterator
      *
      * @return mixed
      */
-    public function key()
+    public function key(): mixed
     {
         return $this->cursor;
     }
@@ -260,7 +260,7 @@ class ActiveUsersIterator implements \Iterator
     /**
      * Goes to the next cursor.
      */
-    public function next()
+    public function next(): void
     {
         ++$this->cursor;
         if (!isset($this->data[$this->cursor])) {
@@ -273,7 +273,7 @@ class ActiveUsersIterator implements \Iterator
      *
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         return $this->valid && isset($this->data[$this->cursor]);
     }

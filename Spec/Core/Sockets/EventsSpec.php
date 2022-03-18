@@ -149,7 +149,7 @@ class EventsSpec extends ObjectBehavior
 
         $redis->publish('socket.io#/#', '000$PHPSPEC_PACK_MOCK$000')->shouldBeCalled();
 
-        $this->setRooms([ 'phpspec:0000', 'phpspec:0001', null, false, '' ]);
+        $this->setRooms([ 'phpspec:0000', 'phpspec:0001', false, '' ]);
         $this->emit('phpspec', '123456')->shouldReturn($this);
     }
 
@@ -189,7 +189,7 @@ class EventsSpec extends ObjectBehavior
 
         $redis->publish('socket.io#/#', '000$PHPSPEC_PACK_MOCK$000')->shouldBeCalled();
 
-        $this->setUsers([ '0000', '0001', null, false, '' ]);
+        $this->setUsers([ '0000', '0001', false, '' ]);
         $this->emit('phpspec', '123456')->shouldReturn($this);
     }
 

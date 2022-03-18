@@ -36,7 +36,7 @@ class Factory
             $canBeCached = true;
 
             $luid = new Core\Luid($value);
-            $entity = Core\Events\Dispatcher::trigger('entity:resolve', $luid->getType(), [
+            $entity = Core\Events\Dispatcher::trigger('entity:resolve', (string) $luid->getType(), [
                 'luid' => $luid
             ], null);
         } elseif (is_numeric($value)) {

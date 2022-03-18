@@ -87,10 +87,10 @@ class Settings implements JsonSerializable
     protected $domain;
 
     /** @var string */
-    protected $title;
+    protected $title ='';
 
     /** @var string */
-    protected $headline;
+    protected $headline = '';
 
     /** @var string */
     protected $textColor;

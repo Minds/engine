@@ -69,7 +69,7 @@ class SendGridContact
         return [
             'email' => $this->email,
             'first_name' => (string) $this->username,
-            'unique_name' => strtolower($this->username),
+            'unique_name' => strtolower((string) $this->username),
             'custom_fields' => $customFields,
         ];
     }

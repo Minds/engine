@@ -30,7 +30,7 @@ class RouterHooks
     public function withRouterRequest($request)
     {
         $queryParams = $request->getQueryParams();
-        $path = $request->getUri()->getPath();
+        $path = $request->getUri()->getPath() ?: '';
         $action = 'email:clicks';
         if (strpos($path, '/emails/unsubscribe') !== false) {
             $action = 'email:unsubscribe';

@@ -77,9 +77,9 @@ class ImageGenerator
         $font = __MINDS_ROOT__ . '/Assets/fonts/Roboto-Medium.ttf';
 
         $angle = rand(-6, 6);
-        $size = rand($this->height * 0.25, $this->height * 0.55);
+        $size = rand(round($this->height * 0.25), round($this->height * 0.55));
         $x = 10;
-        $y = ($this->height / 2) + ($size / 2);
+        $y = round($this->height / 2) + round($size / 2);
         $color = imagecolorallocate($image, 64, 64, 64);
 
         // Write the text to the image

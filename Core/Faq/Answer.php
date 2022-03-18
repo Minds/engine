@@ -31,7 +31,7 @@ class Answer implements \JsonSerializable
         return $this->answer;
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): string
     {
         return $this->getAnswer();
     }

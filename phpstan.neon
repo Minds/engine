@@ -4,7 +4,7 @@ parameters:
         - start.php
     paths:
         - %currentWorkingDirectory%
-    excludes_analyse:
+    excludePaths:
         - %currentWorkingDirectory%/vendor
         - %currentWorkingDirectory%/Spec
         - %currentWorkingDirectory%/lib

@@ -47,7 +47,8 @@ class Manager
         $subscriptionsManager = null,
         $interactionsLimiter = null,
         $features = null,
-        Config $config = null
+        Config $config = null,
+        $blockManager = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder();

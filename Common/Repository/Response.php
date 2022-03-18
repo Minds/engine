@@ -110,7 +110,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @return mixed Can return any type.
      * @since 5.0.0
      */
-    public function current()
+    public function current(): mixed
     {
         return current($this->data);
     }
@@ -121,7 +121,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @return void Any returned value is ignored.
      * @since 5.0.0
      */
-    public function next()
+    public function next(): void
     {
         next($this->data);
     }
@@ -132,7 +132,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @return mixed scalar on success, or null on failure.
      * @since 5.0.0
      */
-    public function key()
+    public function key(): mixed
     {
         return key($this->data);
     }
@@ -144,7 +144,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * Returns true on success or false on failure.
      * @since 5.0.0
      */
-    public function valid()
+    public function valid(): bool
     {
         return key($this->data) !== null;
     }
@@ -155,7 +155,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @return void Any returned value is ignored.
      * @since 5.0.0
      */
-    public function rewind()
+    public function rewind(): void
     {
         reset($this->data);
     }
@@ -164,7 +164,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * Rewinds the Iterator to the first element and returns its value
      * @return mixed
      */
-    public function reset()
+    public function reset(): mixed
     {
         return reset($this->data);
     }
@@ -173,7 +173,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * Sets the pointer onto the last Iterator element and returns its value
      * @return mixed
      */
-    public function end()
+    public function end(): mixed
     {
         return end($this->data);
     }
@@ -190,7 +190,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * The return value will be casted to boolean if non-boolean was returned.
      * @since 5.0.0
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->data[$offset]);
     }
@@ -204,7 +204,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @return mixed Can return all value types.
      * @since 5.0.0
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->data[$offset];
     }
@@ -221,7 +221,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @return void
      * @since 5.0.0
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         if ($offset === null) {
             $this->data[] = $value;
@@ -240,7 +240,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @return void
      * @since 5.0.0
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         unset($this->data[$offset]);
     }
@@ -254,7 +254,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * The return value is cast to an integer.
      * @since 5.1.0
      */
-    public function count()
+    public function count(): int
     {
         return count($this->data);
     }
@@ -285,7 +285,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * which is a value of any type other than a resource.
      * @since 5.4.0
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->toArray();
     }

@@ -42,7 +42,7 @@ class Repository
             'type' => '',
             'rating' => 1,
             'limit' => 12,
-            'offset' => null
+            'offset' => ''
         ], $options);
 
 

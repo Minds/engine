@@ -147,7 +147,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
     protected $headerTop;
 
     /** @var int */
-    protected $timeCreated;
+    protected $timeCreated = 0;
 
     /** @var int */
     protected $timeUpdated;

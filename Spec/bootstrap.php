@@ -19,6 +19,7 @@ $minds = new Minds\Core\Minds();
 $CONFIG = Minds\Core\Di\Di::_()->get('Config');
 $CONFIG->default_access = 2;
 $CONFIG->site_guid = 0;
+$CONFIG->site_url = 'https://phpspec.minds.io/';
 $CONFIG->cassandra = [
     'keyspace' => 'phpspec',
     'servers' => ['127.0.0.1'],
@@ -67,5 +68,7 @@ $CONFIG->redis = [
     'master' => 'phpspec',
     'slave' => 'phpspec'
 ];
+
+$CONFIG->{'sockets-jwt-secret'} = '';
 
 $minds->loadLegacy();

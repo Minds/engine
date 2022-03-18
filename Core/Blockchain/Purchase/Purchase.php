@@ -111,7 +111,7 @@ class Purchase implements \JsonSerializable
      * @since 5.4.0
      * @throws \Exception
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->export(false);
     }

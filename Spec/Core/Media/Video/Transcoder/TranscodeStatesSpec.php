@@ -175,7 +175,9 @@ class TranscodeStatesSpec extends ObjectBehavior
         $video = new Video();
         $video->set('guid', '123');
 
-        $this->repository->getList(Argument::any())->shouldBeCalled();
+        $this->repository->getList(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(new Response([]));
 
         $this->shouldNotThrow()->during('getStatus', [$video]);
     }

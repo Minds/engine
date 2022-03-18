@@ -260,8 +260,8 @@ class ACL
         /**
          * Allow plugins to extend the ACL check
          */
-        $type = property_exists($entity, 'type') ? $entity->type : 'all';
-        if (Core\Events\Dispatcher::trigger('acl:write', $entity->type, ['entity' => $entity, 'user' => $user], false) === true) {
+        // $type = property_exists($entity, 'type') ? $entity->type : 'all';
+        if (Core\Events\Dispatcher::trigger('acl:write', (string) $entity->type, ['entity' => $entity, 'user' => $user], false) === true) {
             return true;
         }
 
@@ -347,7 +347,7 @@ class ACL
         /**
          * Allow plugins to extend the ACL check
          */
-        $event = Core\Events\Dispatcher::trigger('acl:interact', $entity->type, [
+        $event = Core\Events\Dispatcher::trigger('acl:interact', (string) $entity->type, [
             'entity' => $entity,
             'user' => $user,
             'interaction' => $interaction,

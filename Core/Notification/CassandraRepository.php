@@ -39,7 +39,7 @@ class CassandraRepository
             'to_guid' => null,
             'type_group' => null,
             'uuid' => null,
-            'offset' => null,
+            'offset' => '',
             'limit' => 12,
         ], $opts);
 

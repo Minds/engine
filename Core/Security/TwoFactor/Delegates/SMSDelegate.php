@@ -43,7 +43,8 @@ class SMSDelegate implements TwoFactorDelegateInterface
         $smsService = null,
         PsrWrapper $cache = null,
         Manager $featuresManager = null,
-        TwilioVerify $twilioVerify = null
+        TwilioVerify $twilioVerify = null,
+        Log\Logger $logger = null
     ) {
         $this->twoFactorService = $twoFactorService ?? new TwoFactorService();
         $this->smsService = $smsService ?? Di::_()->get('SMS');

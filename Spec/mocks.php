@@ -206,23 +206,23 @@ class MockCollectionValues implements ArrayAccess
         return $this->values[$key];
     }
 
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         $key = md5($offset);
         return isset($this->values[$key]);
     }
 
-    public function offsetGet($offset)
+    public function offsetGet($offset): string
     {
         $key = md5($offset);
         return $this->values[$key];
     }
 
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
     }
     
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
     }
 }

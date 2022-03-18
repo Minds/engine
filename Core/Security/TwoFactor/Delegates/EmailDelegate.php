@@ -33,8 +33,13 @@ class EmailDelegate implements TwoFactorDelegateInterface
     /** @var TwoFactorEmail */
     protected $twoFactorEmail;
 
-    public function __construct(TwoFactorService $twoFactorService = null, $smsService = null, PsrWrapper $cache = null, TwoFactorEmail $twoFactorEmail = null)
-    {
+    public function __construct(
+        TwoFactorService $twoFactorService = null,
+        $smsService = null,
+        PsrWrapper $cache = null,
+        TwoFactorEmail $twoFactorEmail = null,
+        Log\Logger $logger = null
+    ) {
         $this->twoFactorService = $twoFactorService ?? new TwoFactorService();
         $this->smsService = $smsService ?? Di::_()->get('SMS');
         $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');

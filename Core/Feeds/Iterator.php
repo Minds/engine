@@ -129,7 +129,7 @@ class Iterator implements \Iterator
      * @return mixed Can return any type.
      * @since 5.0.0
      */
-    public function current()
+    public function current(): mixed
     {
         return $this->data[$this->cursor];
     }
@@ -141,7 +141,7 @@ class Iterator implements \Iterator
      * @since 5.0.0
      * @throws \Exception
      */
-    public function next()
+    public function next(): void
     {
         $this->cursor++;
 
@@ -156,7 +156,7 @@ class Iterator implements \Iterator
      * @return mixed scalar on success, or null on failure.
      * @since 5.0.0
      */
-    public function key()
+    public function key(): mixed
     {
         return $this->cursor;
     }
@@ -168,7 +168,7 @@ class Iterator implements \Iterator
      * Returns true on success or false on failure.
      * @since 5.0.0
      */
-    public function valid()
+    public function valid(): bool
     {
         return $this->valid && isset($this->data[$this->cursor]);
     }
@@ -180,7 +180,7 @@ class Iterator implements \Iterator
      * @since 5.0.0
      * @throws \Exception
      */
-    public function rewind()
+    public function rewind(): void
     {
         if (!$this->manualOffset) {
             $this->offset = '';

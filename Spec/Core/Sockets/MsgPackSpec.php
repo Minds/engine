@@ -69,7 +69,7 @@ class MsgPackSpec extends ObjectBehavior
         $this->pack(4294967300)->shouldBe(pack(
             'CNN',
             0xCF,
-            (4294967300 & 0xFFFFFFFF00000000) >> 32,
+            (4294967300 & (int) 0xFFFFFFFF00000000) >> 32,
             4294967300 & 0xFFFFFFFF
         ));
     }

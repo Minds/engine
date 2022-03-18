@@ -68,8 +68,6 @@ class RepositorySpec extends ObjectBehavior
     public function it_should_get_subscribers()
     {
         $this->client->request(Argument::that(function ($prepared) {
-            var_dump($prepared->getTemplate());
-
             return $prepared->getTemplate() === "SELECT * FROM friendsof WHERE key = ?";
         }))
             ->shouldBeCalled()

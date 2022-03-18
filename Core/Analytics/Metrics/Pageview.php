@@ -126,7 +126,7 @@ class Pageview implements AnalyticsMetric
 
         $data = [];
         foreach ($result['aggregations']['pageviews']['buckets'] as $count) {
-            $timestamp = $count['key'] / 1000;
+            $timestamp = round($count['key'] / 1000);
             $data[] = [
                 'timestamp' => $timestamp,
                 'date' => $date = date('d-m-Y', $timestamp),

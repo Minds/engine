@@ -37,8 +37,10 @@ class ControllerSpec extends ObjectBehavior
         $this->shouldHaveType(Controller::class);
     }
 
-    public function it_should_get_feed_from_manager(ServerRequest $request, Response $response)
+    public function it_should_get_feed_from_manager(ServerRequest $request)
     {
+        $response = new Response([]);
+
         $this->config->get('default_recommendations_user')
             ->shouldBeCalled()
             ->willReturn('1000');

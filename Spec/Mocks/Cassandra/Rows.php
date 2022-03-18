@@ -36,22 +36,22 @@ class Rows implements ArrayAccess, Iterator
         return $this->_pagingStateToken;
     }
 
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->_items[$offset]);
     }
 
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->_items[$offset];
     }
 
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         $this->_items[$offset] = $value;
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         unset($this->_items[$offset]);
     }
@@ -71,27 +71,27 @@ class Rows implements ArrayAccess, Iterator
         return $this->_items[0];
     }
 
-    public function current()
+    public function current(): mixed
     {
         return $this->_items[$this->position];
     }
 
-    public function next()
+    public function next(): void
     {
         $this->position++;
     }
 
-    public function key()
+    public function key(): string
     {
         return $this->position;
     }
 
-    public function valid()
+    public function valid(): bool
     {
         return isset($this->_items[$this->position]);
     }
 
-    public function rewind()
+    public function rewind(): void
     {
         $this->position = 0;
     }

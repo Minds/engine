@@ -156,7 +156,7 @@ class Exportable implements \JsonSerializable
      * which is a value of any type other than a resource.
      * @since 5.4.0
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->export();
     }

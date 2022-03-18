@@ -64,7 +64,7 @@ class Repository
         $options = array_merge([
             'key' => null,
             'limit' => 1000,
-            'token' => null
+            'token' => ''
         ], $options);
 
 

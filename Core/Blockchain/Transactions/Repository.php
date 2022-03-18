@@ -78,7 +78,7 @@ class Repository
             'tx' => null,
             'contract' => null,
             'limit' => 12,
-            'offset' => null,
+            'offset' => '',
             'allowFiltering' => false,
         ], $options);
 

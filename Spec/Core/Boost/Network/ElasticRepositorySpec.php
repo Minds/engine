@@ -26,6 +26,7 @@ class ElasticRepositorySpec extends ObjectBehavior
     public function it_should_add()
     {
         $boost = (new Boost())
+            ->setTransactionId('oc:123') // offchain
             ->setCreatedTimestamp(time() * 1000)
             ->setCompletedTimestamp(time() * 1000)
             ->setReviewedTimestamp(time() * 1000)

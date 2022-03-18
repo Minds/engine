@@ -25,5 +25,5 @@ class VoteListOpts extends AbstractRepositoryOpts
     protected $limit;
 
     /** @var string */
-    protected $pagingToken;
+    protected $pagingToken = '';
 }
