@@ -28,7 +28,8 @@ class Manager
     public function __construct(
         Transcoder\Manager $transcoderManager = null,
         VideoManager $videoManager = null,
-        GuidBuilder $guid = null
+        GuidBuilder $guid = null,
+        Features\Manager $featuresManager = null
     ) {
         $this->transcoderManager = $transcoderManager ?? Di::_()->get('Media\Video\Transcoder\Manager');
         $this->videoManager = $videoManager ?: Di::_()->get('Media\Video\Manager');

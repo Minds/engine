@@ -37,9 +37,9 @@ class Controller
         $twoFactor = null,
         $twoFactorManager = null
     ) {
-        $this->manager = $manager ?? new Manager();
-        $this->twoFactor = $twoFactor ?? Di::_()->get('Security\TwoFactor');
-        $this->twoFactorManager = $twoFactorManager ?? Di::_()->get('Security\TwoFactor\Manager');
+        $this->manager = $manager ?: new Manager();
+        $this->twoFactor = $twoFactor ?: Di::_()->get('Security\TwoFactor');
+        $this->twoFactorManager = $twoFactorManager ?: Di::_()->get('Security\TwoFactor\Manager');
     }
 
     /**

@@ -35,9 +35,9 @@ class Controller
         $featuresManager = null,
         $withdrawManager = null
     ) {
-        $this->manager = $manager ?? new Manager();
-        $this->featuresManager = $featuresManager ?? Di::_()->get('Features\Manager');
-        $this->withdrawManager = $withdrawManager ?? Di::_()->get('Rewards\Withdraw\Manager');
+        $this->manager = $manager ?: new Manager();
+        $this->featuresManager = $featuresManager ?: Di::_()->get('Features\Manager');
+        $this->withdrawManager = $withdrawManager ?: Di::_()->get('Rewards\Withdraw\Manager');
     }
 
     /**

@@ -28,8 +28,8 @@ class Controller
         $manager = null,
         $featuresManager = null
     ) {
-        $this->manager = $manager ?? new Manager();
-        $this->featuresManager = $featuresManager ?? Di::_()->get('Features\Manager');
+        $this->manager = $manager ?: new Manager();
+        $this->featuresManager = $featuresManager ?: Di::_()->get('Features\Manager');
     }
 
     /**

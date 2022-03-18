@@ -9,6 +9,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Config;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Log;
+use Minds\Core\Log\Logger;
 use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Video;
@@ -34,8 +35,14 @@ class Webhooks
     /** @var ACL */
     protected $acl;
 
-    public function __construct($client = null, $config = null, $entitiesBuilder = null, $save = null)
-    {
+    public function __construct(
+        $client = null,
+        $config = null,
+        $entitiesBuilder = null,
+        $save = null,
+        Logger $logger = null,
+        ACL $acl = null
+    ) {
         $this->client = $client ?? new Client();
         $this->config = $config ?? Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');

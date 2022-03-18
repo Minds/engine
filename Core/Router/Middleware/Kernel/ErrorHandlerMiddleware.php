@@ -37,7 +37,8 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
      * @param Logger $logger
      */
     public function __construct(
-        $logger = null
+        Logger $logger = null,
+        Config $config = null
     ) {
         $this->logger = $logger ?: Di::_()->get('Logger');
         $this->config = $config ?? Di::_()->get('Config');

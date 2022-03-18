@@ -26,12 +26,16 @@ class BlockListSync
     /** @var Logger */
     protected $logger;
 
-    public function __construct($matrixManager = null, $blockManager = null, $entitiesBuilder = null)
-    {
+    public function __construct(
+        $matrixManager = null,
+        $blockManager = null,
+        $entitiesBuilder = null,
+        Logger $logger = null
+    ) {
         $this->matrixManager = $matrixManager ?? Di::_()->get('Matrix\Manager');
         $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
-        $this->logger = $logger ?? Di::_()->get('Logger');
+        $this->logger = $logger ?: Di::_()->get('Logger');
     }
  
     /**

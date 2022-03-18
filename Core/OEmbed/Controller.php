@@ -71,7 +71,7 @@ class Controller
 
         $guid = $this->extractGuid($params['url']);
         
-        if (!filter_var($guid ?? false, FILTER_VALIDATE_INT)) {
+        if (!filter_var($guid ?: false, FILTER_VALIDATE_INT)) {
             return new JsonResponse([
                 'status' => 400,
                 'message' => 'Invalid GUID.',

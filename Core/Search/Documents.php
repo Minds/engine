@@ -176,7 +176,7 @@ class Documents
 
     public function customQuery($opts = [])
     {
-        if (!$opts || empty($opts)) {
+        if (!$opts) {
             return [];
         }
 

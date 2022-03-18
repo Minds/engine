@@ -142,10 +142,6 @@ class Exported
             $exported['upgrades']['plus']['yearly']['can_have_trial'] = $canHavePlusTrial;
         }
 
-        if ($context === 'embed') {
-            $exported['MindsEmbed'] = $embedded_entity ?? null;
-        }
-
         if ($_GET['__e_cnf_token'] ?? false) {
             $exported['from_email_confirmation'] = true;
         }

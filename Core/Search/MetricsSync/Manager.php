@@ -45,10 +45,11 @@ class Manager
      * @param Repository $repository
      */
     public function __construct(
-        $repository = null
+        $repository = null,
+        Logger $logger = null
     ) {
-        $this->repository = $repository ?? new Repository();
-        $this->logger = $logger ?? Di::_()->get('Logger');
+        $this->repository = $repository ?: new Repository();
+        $this->logger = $logger ?: Di::_()->get('Logger');
     }
 
     /**

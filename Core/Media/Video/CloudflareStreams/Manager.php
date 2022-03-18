@@ -25,11 +25,11 @@ class Manager
     /** @var PsrWrapper */
     protected $cache;
 
-    public function __construct($client = null, $config = null)
+    public function __construct($client = null, $config = null, PsrWrapper $cache = null)
     {
         $this->client = $client ?? new Client();
         $this->config = $config ?? Di::_()->get('Config');
-        $this->cache = $cacher ?? Di::_()->get('Cache');
+        $this->cache = $cache ?? Di::_()->get('Cache');
     }
 
     /**

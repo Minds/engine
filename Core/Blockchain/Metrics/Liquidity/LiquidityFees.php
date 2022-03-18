@@ -17,11 +17,11 @@ class LiquidityFees extends Metrics\AbstractBlockchainMetric implements Metrics\
     /** @var string */
     protected $format = 'usd';
 
-    public function __construct($liquidityTradedVolume = null, ...$injectables)
+    public function __construct($liquidityTradedVolume = null, $tokenPricesManager = null, ...$injectables)
     {
         parent::__construct(...$injectables);
-        $this->liquidityTradedVolume = $liquidityTradedVolume ?? new LiquidityTradedVolume();
-        $this->tokenPricesManager = $tokenPricesManager ?? new TokenPrices\Manager();
+        $this->liquidityTradedVolume = $liquidityTradedVolume ?: new LiquidityTradedVolume();
+        $this->tokenPricesManager = $tokenPricesManager ?: new TokenPrices\Manager();
     }
 
     /**

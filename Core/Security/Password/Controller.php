@@ -22,7 +22,7 @@ class Controller
     public function __construct(
         $manager = null
     ) {
-        $this->manager = $manager ?? new Manager();
+        $this->manager = $manager ?: new Manager();
     }
 
     /**

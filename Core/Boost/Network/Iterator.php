@@ -292,22 +292,22 @@ class Iterator implements \Iterator
         return $boosts;
     }
 
-    public function current()
+    public function current(): mixed
     {
         return current($this->list);
     }
 
-    public function next()
+    public function next(): void
     {
         next($this->list);
     }
 
-    public function key()
+    public function key(): mixed
     {
         return key($this->list);
     }
 
-    public function valid()
+    public function valid(): bool
     {
         if (!$this->list) {
             return false;
@@ -315,7 +315,7 @@ class Iterator implements \Iterator
         return key($this->list) !== null;
     }
 
-    public function rewind()
+    public function rewind(): void
     {
         if ($this->list) {
             reset($this->list);

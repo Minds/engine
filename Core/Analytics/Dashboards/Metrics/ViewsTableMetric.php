@@ -26,10 +26,10 @@ class ViewsTableMetric extends AbstractMetric
     /** @var array */
     protected $permissions = [ 'user', 'admin' ];
 
-    public function __construct($es = null)
+    public function __construct(Elasticsearch\Client $es = null, Resolver $entitiesResolver = null)
     {
-        $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
-        $this->entitiesResolver = $entitiesResolver ?? new Resolver();
+        $this->es = $es ?: Di::_()->get('Database\ElasticSearch');
+        $this->entitiesResolver = $entitiesResolver ?: new Resolver();
     }
 
     /**

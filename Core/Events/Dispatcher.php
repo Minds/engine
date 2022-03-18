@@ -28,7 +28,7 @@ class Dispatcher
      */
     public static function register($event, $namespace, $handler, $priority = 500)
     {
-        if (empty($namespace) || empty($event) || !is_callable($handler)) {
+        if (!$namespace || !$event || !is_callable($handler)) {
             return false;
         }
 

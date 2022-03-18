@@ -79,7 +79,7 @@ class withdrawals implements Interfaces\Api, Interfaces\ApiAdminPam
         if (!$request) {
             return Factory::response([
                 'status' => 'error',
-                'message' => $errorMessage ?? 'Missing request',
+                'message' => 'Missing request',
             ]);
         }
 
@@ -120,7 +120,7 @@ class withdrawals implements Interfaces\Api, Interfaces\ApiAdminPam
         if (!$request) {
             return Factory::response([
                 'status' => 'error',
-                'message' => $errorMessage ?? 'Missing request',
+                'message' => 'Missing request',
             ]);
         }
 

@@ -19,28 +19,29 @@ use Minds\Entities\DenormalizedEntity;
 use Minds\Entities\NormalizedEntity;
 use Minds\Core\Reports\Report;
 use Minds\Common\Repository\Response;
+use Minds\Core\Log\Logger;
 use Minds\Core\Reports\Repository as ReportsRepository;
 
 class Repository
 {
-    /** @var Data\Cassandra\Client $cql */
+    /** @var Data\Cassandra\Client */
     protected $cql;
 
-    /** @var ReportsRepository $reportsRepository */
+    /** @var ReportsRepository */
     private $reportsRepository;
 
-    /** @var Config $config */
+    /** @var Config */
     private $config;
 
-    /** @var Logger $logger */
+    /** @var Logger */
     private $logger;
 
-    public function __construct($cql = null, $reportsRepository = null, $config = null)
+    public function __construct($cql = null, $reportsRepository = null, $config = null, Logger $logger = null)
     {
         $this->cql = $cql ?: Di::_()->get('Database\Cassandra\Cql');
         $this->reportsRepository = $reportsRepository ?: new ReportsRepository;
-        $this->config = $config ?? Di::_()->get('Config');
-        $this->logger = $logger ?? Di::_()->get('Logger');
+        $this->config = $config ?: Di::_()->get('Config');
+        $this->logger = $logger ?: Di::_()->get('Logger');
     }
 
     /**

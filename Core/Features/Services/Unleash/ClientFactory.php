@@ -41,11 +41,11 @@ class ClientFactory
      */
     public function build(?string $environment): Client
     {
+        $configValues = $this->config->get('unleash');
+
         $environment = $environment ?: ($configValues['applicationName'] ?? 'development');
 
         $this->logger->info(sprintf("Building Unleash Client for %s", $environment));
-
-        $configValues = $this->config->get('unleash');
 
         $config = new Config(
             getenv('UNLEASH_API_URL') ?: ($configValues['apiUrl'] ?? null),
