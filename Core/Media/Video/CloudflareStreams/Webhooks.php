@@ -8,8 +8,8 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Di\Di;
 use Minds\Core\Config;
 use Minds\Core\Entities\Actions\Save;
-use Minds\Core\Entities\PropagateProperties;
 use Minds\Core\Log;
+use Minds\Core\Media\Feeds;
 use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Video;
@@ -35,15 +35,15 @@ class Webhooks
     /** @var ACL */
     protected $acl;
 
-    /** @var PropagateProperties */
-    protected $propagateProperties;
+    /** @var Feeds */
+    protected $feeds;
 
     public function __construct(
         $client = null,
         $config = null,
         $entitiesBuilder = null,
         $save = null,
-        ?PropagateProperties $propagateProperties = null
+        ?Feeds $feeds = null
     ) {
         $this->client = $client ?? new Client();
         $this->config = $config ?? Di::_()->get('Config');
@@ -51,7 +51,7 @@ class Webhooks
         $this->save = $save ?? new Save();
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->acl = $acl ?? Di::_()->get('Security\ACL');
-        $this->propagateProperties = $propagateProperties ?? new PropagateProperties();
+        $this->feeds = $feeds ?? Di::_()->get('Media\Feeds');
     }
 
     /**
@@ -114,7 +114,7 @@ class Webhooks
             ->save();
 
         // propagate properties from video to activity.
-        $this->propagateProperties->from($video);
+        $this->feeds->setEntity($video)->updateActivities();
 
         $this->acl->setIgnore($ia); // Set the ignore state back to what it was
     
