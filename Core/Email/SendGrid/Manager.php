@@ -5,14 +5,14 @@ use Minds\Core\Di\Di;
 
 class Manager
 {
-    /** @var SendGridListIntreface[] */
+    /** @var SendGridListInterface[] */
     const DEFAULT_LISTS = [
-        Lists\WireUSDUsersList::class,
-        Lists\MonetizedUsersList::class,
-        Lists\TwitterSyncList::class,
-        Lists\YoutubeSyncList::class,
-        Lists\EthUsersList::class,
-        Lists\MembershipTierOwnerList::class,
+        // Lists\WireUSDUsersList::class,
+        // Lists\MonetizedUsersList::class,
+        // Lists\TwitterSyncList::class,
+        // Lists\YoutubeSyncList::class,
+        // Lists\EthUsersList::class,
+        // Lists\MembershipTierOwnerList::class,
         Lists\Active30DayList::class,
     ];
 
@@ -37,7 +37,7 @@ class Manager
 
     /**
      * Syncs our lists with SendGrid
-     * @param SendGridListIntreface[] $lists
+     * @param SendGridListInterface[] $lists
      * @return void
      */
     public function syncContactLists(array $lists = []): void
