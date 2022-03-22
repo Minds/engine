@@ -767,3 +767,9 @@ $CONFIG->set('growthbook', [
 $CONFIG->set('user_quality_score', [
     'belowSpamRiskThreshold' => 0.4
 ]);
+
+$CONFIG->set('webpush_vapid_details', [
+    'public_key' => "{{webpush-vapid-public-key}}",
+    'private_key' => "{{webpush-vapid-private-key}}",
+    'email' => "{{webpush-vapid-email}}"
+]);

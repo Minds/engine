@@ -52,7 +52,7 @@ class Controller
 
         $deviceSubscription = new DeviceSubscription();
         $deviceSubscription->setUserGuid($user->getGuid())
-            ->setToken($token)
+            ->setToken(urldecode(($token)))
             ->setService($service);
 
         $this->manager->add($deviceSubscription);
