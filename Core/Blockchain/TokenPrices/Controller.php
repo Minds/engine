@@ -28,8 +28,8 @@ class Controller
         $manager = null,
         $featuresManager = null
     ) {
-        $this->manager = $manager ?? new Manager();
-        $this->featuresManager = $featuresManager ?? Di::_()->get('Features\Manager');
+        $this->manager = $manager ?: new Manager();
+        $this->featuresManager = $featuresManager ?: Di::_()->get('Features\Manager');
     }
 
     /**
@@ -43,7 +43,7 @@ class Controller
         /** @var User */
         $user = $request->getAttribute('_user');
 
-        $tokenPrices = $this->manager->getPrices();
+        $tokenPrices = $this->manager->getPrices()50
 
         return new JsonResponse(array_merge([
             'status' => 'success',
