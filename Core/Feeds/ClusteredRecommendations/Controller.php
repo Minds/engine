@@ -29,6 +29,11 @@ class Controller
         $responseBuilder = new ClusteredRecommendationsResponseBuilder();
         $requestValidator = new GetFeedRequestValidator();
         $queryParams = $request->getQueryParams();
+
+        if (!$requestValidator->validate($queryParams)) {
+            $responseBuilder->badRequestResponse($requestValidator->getErrors());
+        }
+
         $limit = (int) $queryParams['limit'] ?? 12;
 
         $results = $this->manager?->getList($limit);
