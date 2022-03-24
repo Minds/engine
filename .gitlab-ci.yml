@@ -152,7 +152,7 @@ qa:manual:
       - master
       - production
       - test/gitlab-ci
-  allow_failure: false
+  allow_failure: true
 
 ################
 # Deploy Stage #

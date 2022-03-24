@@ -4,6 +4,10 @@ namespace Minds\Core\Email\Verify\Services;
 use Minds\Core\Di\Di;
 use Minds\Core\Config;
 
+/**
+ * Service for communications with TheChecker for email validation.
+ * @deprecated no longer actively in use.
+ */
 class TheChecker
 {
     /** @var Http $http */

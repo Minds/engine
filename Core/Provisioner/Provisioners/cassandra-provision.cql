@@ -1704,6 +1704,7 @@ CREATE TABLE minds.twitter_sync (
     user_guid bigint PRIMARY KEY,
     last_imported_tweet_id bigint,
     last_sync_ts timestamp,
+    connected_timestamp timestamp,
     twitter_followers_count int,
     twitter_user_id bigint,
     twitter_username text,
@@ -1717,9 +1718,11 @@ CREATE TABLE minds.social_compass_answers (
     PRIMARY KEY (user_guid, question_id)
 );
 
-CREATE TABLE minds.account_quality_scores (
-    user_guid bigint,
-    last_updated_timestamp timestamp,
-    score float,
-    PRIMARY KEY ( user_guid, last_updated_timestamp )
-);
+CREATE TABLE minds.user_quality_scores
+(
+    user_id   text,
+    timestamp timestamp,
+    category  text,
+    score     float,
+    PRIMARY KEY (user_id, timestamp)
+) WITH CLUSTERING ORDER BY (timestamp DESC);

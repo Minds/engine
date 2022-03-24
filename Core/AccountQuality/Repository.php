@@ -2,14 +2,18 @@
 
 namespace Minds\Core\AccountQuality;
 
-use Cassandra\Bigint;
+use Minds\Core\AccountQuality\Models\UserQualityScore;
 use Minds\Core\Data\Cassandra\Client as CassandraClient;
 use Minds\Core\Data\Cassandra\Prepared\Custom as CustomQuery;
 use Minds\Core\Di\Di;
 
+/**
+ * Responsible to fetch the data from the relevant data sources
+ */
 class Repository implements RepositoryInterface
 {
-    private const TABLE_NAME = "account_quality_scores";
+    private const TABLE_NAME = "user_quality_scores";
+
     public function __construct(
         private ?CassandraClient $cassandraClient = null
     ) {
@@ -19,21 +23,24 @@ class Repository implements RepositoryInterface
     /**
      * Retrieves the account quality score based on the userId provided
      * @param string $userId
-     * @return float
+     * @return UserQualityScore
      */
-    public function getAccountQualityScore(string $userId): float
+    public function getAccountQualityScore(string $userId): UserQualityScore
     {
-        $statement = "SELECT score
+        $statement = "SELECT score, category
             FROM
                 " . self::TABLE_NAME . "
             WHERE
-                user_guid = ?
+                user_id = ?
             LIMIT 1";
 
-        $query = $this->prepareQuery($statement, [new Bigint($userId)]);
+        $query = $this->prepareQuery($statement, [$userId]);
 
         $results = $this->cassandraClient->request($query);
-        return (float) $results->first()["score"];
+        $entry = $results->first();
+        return (new UserQualityScore())
+                ->setScore((float)$entry["score"])
+                ->setCategory($entry["category"]);
     }
 
     /**

@@ -2,8 +2,7 @@
 
 namespace Minds\Core\AccountQuality\ResponseBuilders;
 
-use Minds\Api\Exportable;
-use Minds\Common\Repository\Response;
+use Minds\Core\AccountQuality\Models\UserQualityScore;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\JsonResponse;
@@ -15,14 +14,16 @@ class GetAccountQualityScoreResponseBuilder
 {
     /**
      * Builds the successful response object for the request
-     * @param Response $response
+     * @param UserQualityScore $response
      * @return JsonResponse
      */
-    public function buildSuccessfulResponse(Response $response): JsonResponse
+    public function buildSuccessfulResponse(UserQualityScore $response): JsonResponse
     {
         return new JsonResponse([
             'status' => 'success',
-            'results' => $response
+            'results' => [
+                'score' => abs($response->getScore() - 1)
+            ]
         ]);
     }
 

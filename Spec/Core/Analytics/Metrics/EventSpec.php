@@ -32,7 +32,6 @@ class EventSpec extends ObjectBehavior
             $es,
             $snowplowManager,
             $entitiesBuilder,
-            null, // $experimentsManager
             $accountQualityManager
         );
         $this->es = $es;

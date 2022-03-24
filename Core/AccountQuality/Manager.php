@@ -2,8 +2,11 @@
 
 namespace Minds\Core\AccountQuality;
 
-use Minds\Common\Repository\Response;
+use Minds\Core\AccountQuality\Models\UserQualityScore;
 
+/**
+ * Responsible for the business logic in order to retrieve the relevant details required to the controller
+ */
 class Manager implements ManagerInterface
 {
     public function __construct(
@@ -15,15 +18,11 @@ class Manager implements ManagerInterface
     /**
      * Retrieves the account quality score based on the userId provided
      * @param string $userId
-     * @return Response
+     * @return UserQualityScore
      */
-    public function getAccountQualityScore(string $userId): Response
+    public function getAccountQualityScore(string $userId): UserQualityScore
     {
-        $userQualityScore = $this->repository->getAccountQualityScore($userId);
-
-        return new Response([
-            'score' => $userQualityScore
-        ]);
+        return $this->repository->getAccountQualityScore($userId);
     }
 
     /**

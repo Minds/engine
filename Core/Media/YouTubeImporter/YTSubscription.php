@@ -137,40 +137,30 @@ class YTSubscription
             ->setMax(1) // 1 per day
             ->checkAndIncrement(); // Will throw exception
 
-        // see if we have a video like this already saved
-        $response = $this->repository->getList([
-            'youtube_id' => $ytVideo->getVideoId(),
-        ]);
+        // fetch User associated with this channelId
+        $result = $this->db->getRow("yt_channel:user:{$ytVideo->getChannelId()}");
 
-        // if the video isn't there, we'll download it
-        if ($response->count() === 0) {
-            // fetch User associated with this channelId
-            $result = $this->db->getRow("yt_channel:user:{$ytVideo->getChannelId()}");
-
-            if (count($result) === 0) {
-                // no User is associated with this youtube channel
-                return;
-            }
-
-            /** @var User $user */
-            $user = $this->entitiesBuilder->single($result[0]);
-
-            if ($user->isBanned() || $user->getDeleted()) {
-                return;
-            }
-
-            $ytVideo->setOwner($user);
-            $ytVideo->setOwnerGuid($user->getGuid());
-
-            // Bypass ACL as we are saving as another user
-            $ia = $this->acl->setIgnore(true);
-
-            // Import the new video
-            $this->manager->import($ytVideo, false);
-
-            // Re-impose previous ignore access setting
-            $this->acl->setIgnore($ia);
+        if (count($result) === 0) {
+            // no User is associated with this youtube channel
+            return;
         }
+
+        /** @var User $user */
+        $user = $this->entitiesBuilder->single($result[0]);
+
+        if ($user->isBanned() || $user->getDeleted()) {
+            return;
+        }
+
+        $ytVideo->setOwner($user);
+        $ytVideo->setOwnerGuid($user->getGuid());
+
+        // Bypass ACL as we are saving as another user
+        $ia = $this->acl->setIgnore(true);
+        // Import the new video
+        $this->manager->import($ytVideo, false);
+        // Re-impose previous ignore access setting
+        $this->acl->setIgnore($ia);
     }
 
     /**

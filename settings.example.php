@@ -54,100 +54,100 @@ $CONFIG->set('oauth', [
         ],
     ],
     'encryption_key' => '{{ jwt-secret }}',
- ]);
+]);
 
 $CONFIG->set(
     'report_reasons',
     [
-    [
-      'value' => 1,
-      'label' => 'Illegal',
-      'hasMore' => true,
-      'reasons' => [
-        ['value' => 1, 'label' => 'Terrorism'],
-        ['value' => 2, 'label' => 'Paedophilia'],
-        ['value' => 3, 'label' => 'Extortion'],
-        ['value' => 4, 'label' => 'Fraud'],
-        ['value' => 5, 'label' => 'Revenge Porn'],
-        ['value' => 6, 'label' => 'Sex trafficking'],
-      ],
-    ],
-    [
-      'value' => 2,
-      'label' => 'NSFW (not safe for work)',
-      'hasMore' => true,
-      'reasons' => [ // Explicit reasons
-        ['value' => 1, 'label' => 'Nudity'],
-        ['value' => 2, 'label' => 'Pornography'],
-        ['value' => 3, 'label' => 'Profanity'],
-        ['value' => 4, 'label' => 'Violance and Gore'],
-        ['value' => 5, 'label' => 'Race, Religion, Gender'],
-      ],
-    ],
-    [
-      'value' => 3,
-      'label' => 'Encourages or incites violence',
-      'hasMore' => false,
-    ],
-    [
-      'value' => 4,
-      'label' => 'Harassment',
-      'hasMore' => false,
-    ],
-    [
-      'value' => 5,
-      'label' => 'Personal and confidential information',
-      'hasMore' => false,
-    ],
-    [
-      'value' => 7,
-      'label' => 'Impersonates',
-      'hasMore' => false,
-    ],
-    [
-      'value' => 8,
-      'label' => 'Spam',
-      'hasMore' => false,
-    ],
-    [
-      'value' => 10,
-      'label' => 'Infringes my copyright',
-      'hasMore' => true,
-    ],
-    [
-      'value' => 12,
-      'label' => 'Incorrect use of hashtags',
-      'hasMore' => false,
-    ],
-    [
-      'value' => 13,
-      'label' => 'Malware',
-      'hasMore' => false,
-    ],
-    [
-      'value' => 15,
-      'label' => 'Trademark infringement',
-      'hasMore' => false,
-    ],
-    [
-      'value' => 16,
-      'label' => 'Token manipulation',
-      'hasMore' => false,
-    ],
-    [
-      'value' => 17,
-      'label' => 'Security',
-      'hasMore' => true,
-      'reasons' => [
-        ['value' => 1, 'label' => 'Hacked account']
-      ],
-    ],
-    ['value' => 11,
-     'label' => 'Another reason',
-     'hasMore' => true,
-    ],
+        [
+            'value' => 1,
+            'label' => 'Illegal',
+            'hasMore' => true,
+            'reasons' => [
+                ['value' => 1, 'label' => 'Terrorism'],
+                ['value' => 2, 'label' => 'Paedophilia'],
+                ['value' => 3, 'label' => 'Extortion'],
+                ['value' => 4, 'label' => 'Fraud'],
+                ['value' => 5, 'label' => 'Revenge Porn'],
+                ['value' => 6, 'label' => 'Sex trafficking'],
+            ],
+        ],
+        [
+            'value' => 2,
+            'label' => 'NSFW (not safe for work)',
+            'hasMore' => true,
+            'reasons' => [ // Explicit reasons
+                ['value' => 1, 'label' => 'Nudity'],
+                ['value' => 2, 'label' => 'Pornography'],
+                ['value' => 3, 'label' => 'Profanity'],
+                ['value' => 4, 'label' => 'Violance and Gore'],
+                ['value' => 5, 'label' => 'Race, Religion, Gender'],
+            ],
+        ],
+        [
+            'value' => 3,
+            'label' => 'Encourages or incites violence',
+            'hasMore' => false,
+        ],
+        [
+            'value' => 4,
+            'label' => 'Harassment',
+            'hasMore' => false,
+        ],
+        [
+            'value' => 5,
+            'label' => 'Personal and confidential information',
+            'hasMore' => false,
+        ],
+        [
+            'value' => 7,
+            'label' => 'Impersonates',
+            'hasMore' => false,
+        ],
+        [
+            'value' => 8,
+            'label' => 'Spam',
+            'hasMore' => false,
+        ],
+        [
+            'value' => 10,
+            'label' => 'Infringes my copyright',
+            'hasMore' => true,
+        ],
+        [
+            'value' => 12,
+            'label' => 'Incorrect use of hashtags',
+            'hasMore' => false,
+        ],
+        [
+            'value' => 13,
+            'label' => 'Malware',
+            'hasMore' => false,
+        ],
+        [
+            'value' => 15,
+            'label' => 'Trademark infringement',
+            'hasMore' => false,
+        ],
+        [
+            'value' => 16,
+            'label' => 'Token manipulation',
+            'hasMore' => false,
+        ],
+        [
+            'value' => 17,
+            'label' => 'Security',
+            'hasMore' => true,
+            'reasons' => [
+                ['value' => 1, 'label' => 'Hacked account']
+            ],
+        ],
+        ['value' => 11,
+            'label' => 'Another reason',
+            'hasMore' => true,
+        ],
 
-  ]
+    ]
 );
 
 /*
@@ -212,11 +212,11 @@ $CONFIG->elasticsearch = [
  * or higher with PECL library > 2.0.0
  */
 
- /*$CONFIG->memcache = true;
+/*$CONFIG->memcache = true;
 
 $CONFIG->memcache_servers = array (
-    array('server1', 11211),
-    array('server2', 11211)
+   array('server1', 11211),
+   array('server2', 11211)
 );*/
 
 /*
@@ -247,9 +247,9 @@ $CONFIG->broken_mta = false;
 $CONFIG->min_password_length = 6;
 
 $CONFIG->set('plugins', [
-  'Messenger',
-  'oauth2',
-  'guard',
+    'Messenger',
+    'oauth2',
+    'guard',
 ]);
 
 $CONFIG->set('sockets-jwt-secret', '{{jwt-secret}}');
@@ -283,7 +283,7 @@ $CONFIG->set('google', [
     'push' => '{{google-api-key}}',
     'analytics' => [
         'service_account' => [
-            'key_path' => __DIR__.'/.auth/analytics.json',
+            'key_path' => __DIR__ . '/.auth/analytics.json',
         ],
         'ads' => '', // get it from https://ga-dev-tools.appspot.com/account-explorer/
     ],
@@ -329,7 +329,7 @@ $CONFIG->set('payouts', [
     'retentionDays' => 40,
     'minimumAmount' => 100,
     'userPercentage' => 0.8,
- ]);
+]);
 
 $CONFIG->set('payments', [
     'stripe' => [
@@ -402,7 +402,7 @@ $CONFIG->set('blockchain', [
             'wallet_address' => '0x4CDc1C1fd1A3F4DD63231afF8c16501BcC11Df95',
             'wallet_pkey' => '',
         ],
-     ],
+    ],
 
     'eth_rate' => 2000, //1 ETH = 2,000 TOKENS
 
@@ -424,7 +424,7 @@ $CONFIG->set('blockchain', [
         'environment' => 'staging',
     ],
 
-    'mw3' => '/usr/bin/env node '.__MINDS_ROOT__.'/../mw3/index.js',
+    'mw3' => '/usr/bin/env node ' . __MINDS_ROOT__ . '/../mw3/index.js',
 
     'web3_service' => [
         'wallet_encryption_key' => '',
@@ -528,6 +528,9 @@ $CONFIG->set('development_mode', '{{development_mode}}');
 
 // load discovery content irrespective of activity levels.
 $CONFIG->set('discovery_development_mode', true);
+
+// Show tags that are not trending in last 24h.
+$CONFIG->set('trending_tags_development_mode', true);
 
 $CONFIG->set('max_video_length', 900);
 
@@ -761,5 +764,6 @@ $CONFIG->set('growthbook', [
     'features_endpoint' => 'https://growthbook-api.minds.com/api/features/key_c98323bd51a6b3ab',
 ]);
 
-// Account quality threshold for rewards.
-$CONFIG->set('account_quality_rewards_threshold', 0.5);
+$CONFIG->set('user_quality_score', [
+    'belowSpamRiskThreshold' => 0.4
+]);
