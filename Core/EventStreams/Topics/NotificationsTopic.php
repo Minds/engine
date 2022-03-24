@@ -25,7 +25,7 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
 {
     // FIXME
     /** @var int */
-    const DELAY_MS = 1; // 30 second delay
+    const DELAY_MS = 30000; // 30 second delay
 
     /** @var Notifications\Manager */
     protected $notificationsManager;
