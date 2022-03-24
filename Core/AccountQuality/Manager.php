@@ -32,6 +32,6 @@ class Manager implements ManagerInterface
      */
     public function getAccountQualityScoreAsFloat(string $userId): float
     {
-        return $this->repository->getAccountQualityScore($userId);
+        return $this->repository->getAccountQualityScore($userId)->getScore();
     }
 }
