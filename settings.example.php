@@ -769,7 +769,7 @@ $CONFIG->set('user_quality_score', [
 ]);
 
 $CONFIG->set('webpush_vapid_details', [
-    'public_key' => "{{webpush-vapid-public-key}}",
-    'private_key' => "{{webpush-vapid-private-key}}",
-    'email' => "{{webpush-vapid-email}}"
+    'public_key' => "{{webpush_vapid_public_key}}",
+    'private_key' => "{{webpush_vapid_private_key}}",
+    'email' => "{{webpush_vapid_email}}"
 ]);

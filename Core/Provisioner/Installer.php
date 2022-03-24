@@ -54,9 +54,9 @@ class Installer
             'sns-secret' => '',
             'checkout_domain' => 'localhost:8081',
             'verify-service-sid' => '',
-            'webpush-vapid-public-key' => '',
-            'webpush-vapid-private-key' => '',
-            'webpush-vapid-email' => '',
+            'webpush_vapid_public_key' => '',
+            'webpush_vapid_private_key' => '',
+            'webpush_vapid_email' => '',
         ];
 
         usleep(mt_rand(1, 9999));
