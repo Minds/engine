@@ -54,9 +54,9 @@ class Installer
             'sns-secret' => '',
             'checkout_domain' => 'localhost:8081',
             'verify-service-sid' => '',
-            'webpush-vapid-public-key' => 'BHWqvkf57CXjhgryXYYdvUan_wPAkwfPTYihEXT_cQAbsaXkfLjB_9YZfRLRJ1ofHWkL0R-c_PjPZoLu9Jo5MlU',
-            'webpush-vapid-private-key' => 'ffs3wmfKhB9ZPPJ4PF5AGnrvmDAEo2T2sEmMo1vBQDI',
-            'webpush-vapid-email' => 'mailto: <info@minds.com>',
+            'webpush-vapid-public-key' => '',
+            'webpush-vapid-private-key' => '',
+            'webpush-vapid-email' => '',
         ];
 
         usleep(mt_rand(1, 9999));

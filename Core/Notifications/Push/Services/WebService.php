@@ -10,12 +10,6 @@ use Psr\Http\Message\ResponseInterface;
 
 class WebService extends AbstractService implements PushServiceInterface
 {
-    const defaultOptions = [
-        'TTL' => 300, // defaults to 4 weeks
-        'urgency' => 'normal', // protocol defaults to "normal"
-        'topic' => 'new_event', // not defined by default,
-        'batchSize' => 200, // defaults to 1000
-    ];
     /**
      * @param PushNotification $pushNotification
      * @return bool
@@ -26,24 +20,21 @@ class WebService extends AbstractService implements PushServiceInterface
         $body = $pushNotification->getBody();
 
         $payload = [
-            'notification' => [
-                'title' => "$message",
-                'body' => "$body",
-                'tag' => $pushNotification->getMergeKey(),
-                'badge' => (string) $pushNotification->getUnreadCount(),
-                'icon' => $pushNotification->getIcon(),
-                'image' => $pushNotification->getMedia(),
-                // 'requireInteraction' => true,
-                // 'silent' => false,
-                // 'timestamp' => ,
-                // 'vibrate' => ,
-                // 'renotify' => ,
-                // 'lang' => ,
-                // 'dir' => ,
-                // 'data' => ,
-                // 'actions' => ,
-                // 'url' => $pushNotification->getUri(),
-            ]
+            'title' => "$message",
+            'body' => "$body",
+            'tag' => $pushNotification->getMergeKey(),
+            'badge' => (string) $pushNotification->getUnreadCount(),
+            'icon' => $pushNotification->getIcon(),
+            'image' => $pushNotification->getMedia(),
+            // 'requireInteraction' => true,
+            // 'silent' => false,
+            // 'timestamp' => ,
+            // 'vibrate' => ,
+            // 'renotify' => ,
+            // 'lang' => ,
+            // 'dir' => ,
+            // 'data' => ,
+            // 'actions' => ,
         ];
 
         try {
@@ -56,14 +47,15 @@ class WebService extends AbstractService implements PushServiceInterface
     
     /**
      * @param string $deviceToken
-     * @param array $body
+     * @param array $notification
      * @return MessageSentReport
      */
-    protected function sendNotification($deviceToken, array $body): MessageSentReport
+    protected function sendNotification($deviceToken, array $notification): MessageSentReport
     {
         $webPush = new WebPush([
             'VAPID' => $this->getVapidDetails(),
         ]);
+        // TODO: figure out if we should do something about padding and optimization
         // $webPush->setAutomaticPadding(false);
 
         $pushSubscription = null;
@@ -83,16 +75,16 @@ class WebService extends AbstractService implements PushServiceInterface
         */
         $report = $webPush->sendOneNotification(
             Subscription::create($pushSubscription),
-            json_encode($body),
+            json_encode(['notification' => $notification]),
             [
             //     'TTL' => 300, // defaults to 4 weeks
             //     'urgency' => 'normal', // protocol defaults to "normal"
-                'topic' => $body['notification']['tag'], // not defined by default,
-            //     'batchSize' => 200, // defaults to 1000
+                'topic' => $notification['tag'],
+            //     'batchSize' => 1000,
             ]
         );
 
-        // TODO: handle error
+        // TODO: handle error if necessary
 
         return $report;
     }
