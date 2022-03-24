@@ -26,15 +26,21 @@ class WebPushService extends AbstractService implements PushServiceInterface
             'badge' => (string) $pushNotification->getUnreadCount(),
             'icon' => $pushNotification->getIcon(),
             'image' => $pushNotification->getMedia(),
-            // 'requireInteraction' => true,
+            'renotify' => true,
+            'requireInteraction' => false,
+            'data' => [
+                'onActionClick' => [
+                    'default' => [
+                        'operation' => 'openWindow',
+                        'url' => $pushNotification->getUri()
+                    ],
+                ]
+            ],
             // 'silent' => false,
             // 'timestamp' => ,
             // 'vibrate' => ,
-            // 'renotify' => ,
             // 'lang' => ,
             // 'dir' => ,
-            // 'data' => ,
-            // 'actions' => ,
         ];
 
         try {
