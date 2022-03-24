@@ -142,7 +142,7 @@ class Transactions
      * @throws LockFailedException
      * @throws Locks\KeyNotSetupException
      */
-    public function transferFrom(User $sender)
+    public function transferFrom(User $sender): bool
     {
         $receiver = $this->user;
 

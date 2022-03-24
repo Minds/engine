@@ -24,6 +24,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Rewards\TokenomicsManifests\TokenomicsManifestInterface;
 use Minds\Core\Rewards\TokenomicsManifests\TokenomicsManifestV2;
 use Minds\Core\Log\Logger;
+use Minds\Core\AccountQuality\ManagerInterface as AccountQualityManagerInterface;
 
 class Manager
 {
@@ -79,6 +80,9 @@ class Manager
     /** @var Logger */
     protected $logger;
 
+    /** @var AccountQualityManagerInterface */
+    private $accountQualityManager;
+
     /** @var User $user */
     protected $user;
 
@@ -103,7 +107,8 @@ class Manager
         $uniqueOnChainManager = null,
         $blockFinder = null,
         $token = null,
-        $logger = null
+        $logger = null,
+        AccountQualityManagerInterface $accountQualityManager = null
     ) {
         $this->contributions = $contributions ?: new Contributions\Manager;
         $this->transactions = $transactions ?: Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
@@ -117,6 +122,7 @@ class Manager
         $this->blockFinder = $blockFinder ?? Di::_()->get('Blockchain\Services\BlockFinder');
         $this->token = $token ?? Di::_()->get('Blockchain\Token');
         $this->logger = $logger ?? Di::_()->get('Logger');
+        $this->accountQualityManager = $accountQualityManager ?? Di::_()->get('AccountQuality\Manager');
         $this->from = strtotime('-7 days') * 1000;
         $this->to = time() * 1000;
     }
@@ -168,7 +174,6 @@ class Manager
         return $rewardsSummary;
     }
 
-
     /**
      * @return void
      */
@@ -196,6 +201,11 @@ class Manager
 
             // Require phone number to be setup for uniqueness
             if (!$user->getPhoneNumberHash()) {
+                continue;
+            }
+            
+            // Verify users account quality score allows them to claim rewards.
+            if (!$this->verifyAccountQuality($user->getGuid())) {
                 continue;
             }
 
@@ -589,5 +599,25 @@ class Manager
 
         $this->txRepository->add($transaction);
         return $transaction;
+    }
+
+    /**
+     * Gets account quality score for a given user.
+     * @param string $userGuid - the guid of the user to get the quality score of.
+     * @return float - the quality score of the user as a float.
+     */
+    protected function getAccountQualityScore(string $userGuid): float
+    {
+        return $this->accountQualityManager->getAccountQualityScoreAsFloat($userGuid);
+    }
+
+    /**
+     * Verify a users account quality score grants them access to rewards relative to the threshold set in config.
+     * @param string $userGuid - the guid of the user to check
+     * @return boolean true if the account quality score grants access to rewards.
+     */
+    protected function verifyAccountQuality(string $userGuid): bool
+    {
+        return $this->getAccountQualityScore($userGuid) > ($this->config->get('account_quality_rewards_threshold') ?? 0.5);
     }
 }
