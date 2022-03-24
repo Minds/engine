@@ -56,7 +56,7 @@ class Installer
             'verify-service-sid' => '',
             'webpush_vapid_public_key' => '',
             'webpush_vapid_private_key' => '',
-            'webpush_vapid_email' => '',
+            'webpush_vapid_subject' => '',
         ];
 
         usleep(mt_rand(1, 9999));

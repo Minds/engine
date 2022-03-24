@@ -771,5 +771,5 @@ $CONFIG->set('user_quality_score', [
 $CONFIG->set('webpush_vapid_details', [
     'public_key' => "{{webpush_vapid_public_key}}",
     'private_key' => "{{webpush_vapid_private_key}}",
-    'email' => "{{webpush_vapid_email}}"
+    'subject' => "{{webpush_vapid_subject}}"
 ]);

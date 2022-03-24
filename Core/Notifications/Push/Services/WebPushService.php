@@ -97,7 +97,7 @@ class WebPushService extends AbstractService implements PushServiceInterface
         $vapidDetails = $this->config->get("webpush_vapid_details");
 
         return [
-            'subject' => $vapidDetails['email'],
+            'subject' => $vapidDetails['subject'],
             'publicKey' => $vapidDetails['public_key'],
             'privateKey' => $vapidDetails['private_key'],
         ];
