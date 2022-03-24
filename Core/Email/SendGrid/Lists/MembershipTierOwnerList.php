@@ -42,7 +42,8 @@ class MembershipTierOwnerList implements SendGridListInterface
             $contact
                 ->setUserGuid($owner->getGuid())
                 ->setUsername($owner->get('username'))
-                ->setEmail($owner->getEmail());
+                ->setEmail($owner->getEmail())
+                ->setHasMembershipTier(true);
 
             if (!$contact->getEmail()) {
                 continue;

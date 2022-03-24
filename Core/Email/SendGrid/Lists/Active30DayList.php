@@ -103,7 +103,8 @@ class Active30DayList implements SendGridListInterface
             $contact
                 ->setUserGuid($owner->getGuid())
                 ->setUsername($owner->get('username'))
-                ->setEmail($owner->getEmail());
+                ->setEmail($owner->getEmail())
+                ->setLastActive30DayTs(time());
 
             if (!$contact->getEmail()) {
                 continue;

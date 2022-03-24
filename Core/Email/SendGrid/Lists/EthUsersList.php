@@ -37,7 +37,8 @@ class EthUsersList implements SendGridListInterface
             $contact
                 ->setUserGuid($owner->getGuid())
                 ->setUsername($owner->get('username'))
-                ->setEmail($owner->getEmail());
+                ->setEmail($owner->getEmail())
+                ->setEthWallet($owner->getEthWallet());
 
             if (!$contact->getEmail()) {
                 continue;

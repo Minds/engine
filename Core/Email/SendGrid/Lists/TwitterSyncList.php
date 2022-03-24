@@ -36,7 +36,8 @@ class TwitterSyncList implements SendGridListInterface
             $contact
                 ->setUserGuid($owner->getGuid())
                 ->setUsername($owner->get('username'))
-                ->setEmail($owner->getEmail());
+                ->setEmail($owner->getEmail())
+                ->setHasTwitterSync(true);
 
             if (!$contact->getEmail()) {
                 continue;

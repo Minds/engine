@@ -38,7 +38,8 @@ class YoutubeSyncList implements SendGridListInterface
             $contact
                 ->setUserGuid($owner->getGuid())
                 ->setUsername($owner->get('username'))
-                ->setEmail($owner->getEmail());
+                ->setEmail($owner->getEmail())
+                ->setHasYouTubeSync(true);
 
             if (!$contact->getEmail()) {
                 continue;
