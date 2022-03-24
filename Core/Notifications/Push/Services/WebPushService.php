@@ -8,7 +8,7 @@ use GuzzleHttp;
 use Minishlink\WebPush\MessageSentReport;
 use Psr\Http\Message\ResponseInterface;
 
-class WebService extends AbstractService implements PushServiceInterface
+class WebPushService extends AbstractService implements PushServiceInterface
 {
     /**
      * @param PushNotification $pushNotification
