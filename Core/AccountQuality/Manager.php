@@ -24,4 +24,14 @@ class Manager implements ManagerInterface
     {
         return $this->repository->getAccountQualityScore($userId);
     }
+
+    /**
+     * Retrieves the account quality score based on the userId provided as a float.
+     * @param string $userId - id of the user to get the score for.
+     * @return float float value of account quality score.
+     */
+    public function getAccountQualityScoreAsFloat(string $userId): float
+    {
+        return $this->repository->getAccountQualityScore($userId)->getScore();
+    }
 }
