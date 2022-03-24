@@ -23,7 +23,6 @@ use Pulsar\Result;
 
 class NotificationsTopic extends AbstractTopic implements TopicInterface
 {
-    // FIXME
     /** @var int */
     const DELAY_MS = 30000; // 30 second delay
 
