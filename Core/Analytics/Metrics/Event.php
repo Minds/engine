@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Analytics\Metrics;
 
+use Minds\Common\PseudonymousIdentifier;
 use Minds\Core;
 use Minds\Core\AccountQuality\ManagerInterface as AccountQualityManagerInterface;
 use Minds\Core\Analytics\Snowplow;
@@ -59,13 +60,19 @@ class Event
     /** @var User */
     protected $user;
 
-    public function __construct($elastic = null, $snowplowManager = null, $entitiesBuilder = null, AccountQualityManagerInterface $accountQualityManager = null)
-    {
+    public function __construct(
+        $elastic = null,
+        $snowplowManager = null,
+        $entitiesBuilder = null,
+        AccountQualityManagerInterface $accountQualityManager = null,
+        protected ?PseudonymousIdentifier $pseudoId = null
+    ) {
         $this->elastic = $elastic ?: Core\Di\Di::_()->get('Database\ElasticSearch');
         $this->index = 'minds-metrics-'.date('m-Y', time());
         $this->snowplowManager = $snowplowManager ?? Di::_()->get('Analytics\Snowplow\Manager');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->accountQualityManager = $accountQualityManager ?? Di::_()->get('AccountQuality\Manager');
+        $this->pseudoId = $pseudoId ?? new PseudonymousIdentifier();
     }
 
     /**
@@ -288,7 +295,7 @@ class Event
     protected function getAccountQualityScore(): float
     {
         return $this->accountQualityManager->getAccountQualityScoreAsFloat(
-            $this->user->getGuid()
+            $this->pseudoId->getId() ?: $this->user->getGuid()
         );
     }
 }

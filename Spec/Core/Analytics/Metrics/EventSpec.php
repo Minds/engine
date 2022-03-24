@@ -38,6 +38,7 @@ class EventSpec extends ObjectBehavior
         $this->snowplowManager = $snowplowManager;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->accountQualityManager = $accountQualityManager;
+        $_COOKIE['minds_pseudoid'] = '';
     }
 
     public function it_is_initializable()
@@ -103,7 +104,7 @@ class EventSpec extends ObjectBehavior
         $this->setType('action');
         $this->setAction('vote:up');
         
-        $this->accountQualityManager->getAccountQualityScoreAsFloat('123')
+        $this->accountQualityManager->getAccountQualityScoreAsFloat("123")
             ->willReturn((float) 1);
         
         $this->snowplowManager->setSubject(Argument::any())->shouldBeCalled()
