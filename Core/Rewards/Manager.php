@@ -205,9 +205,9 @@ class Manager
             }
             
             // Verify users account quality score allows them to claim rewards.
-            if (!$this->verifyAccountQuality($user->getGuid())) {
-                continue;
-            }
+            // if (!$this->verifyAccountQuality($user->getGuid())) {
+            //     continue;
+            // }
 
             // TODO: use a getKiteState function instead...
             switch ($user->kite_state) {
