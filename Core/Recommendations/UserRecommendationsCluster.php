@@ -2,6 +2,9 @@
 
 namespace Minds\Core\Recommendations;
 
+use Minds\Core\Di\Di;
+use Minds\Core\Hashtags\User\Manager as UserHashtagsManager;
+use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
 /**
@@ -50,6 +53,8 @@ class UserRecommendationsCluster
     /**
      * Each record in `medoids` is a boolean vector of tags selected from the `tag_list` above
      * Each record represents the medoid of one of 20 clusters of user tag selections
+     *
+     * @type float[][]
      */
     private const MEDOIDS = [
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
@@ -79,6 +84,8 @@ class UserRecommendationsCluster
      * across all documents that are regressed. It is a measure of how predictive a given tag selection is of
      * engagement, and is used to compute the manhattan distance for clustering users and assigning users to
      * a cluster
+     *
+     * @type float[]
      */
     private const VARIANCES = [
         0.20502693005082365,
@@ -115,10 +122,55 @@ class UserRecommendationsCluster
         0.11789994237224764
     ];
 
-    private ?int $clusterId = null;
+    public function __construct(
+        private ?UserHashtagsManager $userHashtagsManager = null
+    ) {
+        $this->userHashtagsManager ??= Di::_()->get('Hashtags\User\Manager');
+    }
 
-    public function calculateUserRecommendationsClusterId(array $userTags): int
+    public function calculateUserRecommendationsClusterId(User $user): int
     {
-        return 0;
+        $userTags = $this->userHashtagsManager->setUser($user)->get([]);
+        $userVector = $this->getUserVector($userTags);
+
+        $distance = $this->calculateMaxDistance();
+        $clusterId = null;
+        $clusterId = -1;
+
+        foreach (self::MEDOIDS as $medoidIndex => $medoid) {
+            $currentDistance = 0;
+            
+            foreach ($userVector as $userVectorIndex => $tagStatus) {
+                if ($tagStatus != $medoid[$userVectorIndex]) {
+                    $currentDistance += self::VARIANCES[$userVectorIndex];
+                }
+            }
+
+            if ($currentDistance < $distance) {
+                $distance = $currentDistance;
+                $clusterId = $medoidIndex;
+            }
+        }
+        return $clusterId;
+    }
+
+    private function calculateMaxDistance(): float
+    {
+        return array_reduce(self::VARIANCES, function (float $a, float $b): float {
+            return $a + $b;
+        });
+    }
+
+    private function getUserVector(array $userTags): array
+    {
+        $userVector = [];
+        foreach (self::TAG_LIST as $i => $tag) {
+            $userVector[$i] = 0.0;
+            if (isset($userTags[$tag]) && $userTags[$tag]['selected'] == true) {
+                $userVector[$i] = 1.0;
+            }
+        }
+
+        return $userVector;
     }
 }
