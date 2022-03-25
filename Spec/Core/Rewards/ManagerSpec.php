@@ -8,7 +8,6 @@ use Minds\Core\Blockchain\Token;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-use Minds\Core\AccountQuality\ManagerInterface as AccountQualityManagerInterface;
 use Minds\Core\Rewards\Contributions\Manager as ContributionsManager;
 use Minds\Core\Blockchain\Transactions\Repository as TxRepository;
 use Minds\Core\Blockchain\Wallets\OffChain\Transactions;
@@ -18,7 +17,6 @@ use Minds\Core\Blockchain\LiquidityPositions\LiquidityPositionSummary;
 use Minds\Core\Blockchain\Services\BlockFinder;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain\UniqueOnChainAddress;
-use Minds\Core\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Rewards\Contributions\ContributionSummary;
 use Minds\Core\Rewards\Repository as RewardsRepository;
@@ -35,9 +33,6 @@ class ManagerSpec extends ObjectBehavior
 
     /** @var TxRepository */
     private $txRepository;
-
-    /** @var Config */
-    private $config;
 
     /** @var RewardsRepository */
     private $repository;
@@ -57,48 +52,40 @@ class ManagerSpec extends ObjectBehavior
     /** @var Token */
     private $token;
 
-    /** @var AccountQualityManagerInterface */
-    private $accountQualityManager;
-
     public function let(
         ContributionsManager $contributions,
         Transactions $transactions,
         TxRepository $txRepository,
         RewardsRepository $repository,
-        Config $config,
         EntitiesBuilder $entitiesBuilder,
         LiquidityPositions\Manager $liquidityPositionManager,
         UniqueOnChain\Manager $uniqueOnChainManager,
         BlockFinder $blockFinder,
-        Token $token,
-        AccountQualityManagerInterface $accountQualityManager
+        Token $token
     ) {
         $this->beConstructedWith(
             $contributions,
             $transactions,
             $txRepository,
             null, // $eth
-            $config, // $config
+            null, // $config
             $repository, // $repository
             $entitiesBuilder, // $entitiesBuilder
             $liquidityPositionManager, // $liquidityPositionManager
             $uniqueOnChainManager, // $uniqueOnChainManager
             $blockFinder,
             $token, // $token
-            null, // $logger
-            $accountQualityManager
+            null // $logger
         );
         $this->contributions = $contributions;
         $this->transactions = $transactions;
         $this->txRepository = $txRepository;
-        $this->config = $config;
         $this->repository = $repository;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->liquidityPositionManager = $liquidityPositionManager;
         $this->uniqueOnChainManager = $uniqueOnChainManager;
         $this->blockFinder = $blockFinder;
         $this->token = $token;
-        $this->accountQualityManager = $accountQualityManager;
     }
 
     public function it_is_initializable()
@@ -116,7 +103,7 @@ class ManagerSpec extends ObjectBehavior
         $this->add($rewardEntry);
     }
 
-    public function it_should_calculate_rewards_for_user_with_valid_account_quality_score()
+    public function it_should_calculate_rewards()
     {
         // Mock of our users
         $user1 = (new User);
@@ -126,9 +113,6 @@ class ManagerSpec extends ObjectBehavior
 
         $this->entitiesBuilder->single('123')
             ->willReturn($user1);
-
-        $this->accountQualityManager->getAccountQualityScoreAsFloat('123')
-            ->willReturn((float) 1);
 
         // Engagement
         $this->contributions->getSummaries(Argument::any())
@@ -212,103 +196,6 @@ class ManagerSpec extends ObjectBehavior
                 && $rewardEntry->getTokenAmount()->toFloat() === (float) 2000 // 50% of all available rewards in pool
                 && $rewardEntry->getRewardType() === 'engagement';
         }), ['token_amount'])->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->calculate();
-    }
-
-    public function it_should_not_calculate_engagement_rewards_for_user_with_invalid_account_quality_score()
-    {
-        // Mock of our users
-        $user1 = (new User);
-        $user1->guid = '123';
-        $user1->setPhoneNumberHash('phone_hash');
-        $user1->setEthWallet('0xAddresss');
-
-        $this->entitiesBuilder->single('123')
-            ->willReturn($user1);
-
-        // Engagement.
-        $this->contributions->getSummaries(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn([
-                (new ContributionSummary)
-                    ->setUserGuid('123')
-                    ->setScore(10)
-                    ->setAmount(2),
-            ]);
-
-        $this->accountQualityManager->getAccountQualityScoreAsFloat('123')
-            ->willReturn((float) 0.1);
-
-        $this->config->get('account_quality_rewards_threshold')->shouldBeCalled()
-            ->willReturn(0.5);
-            
-        // Liquidity
-        $this->liquidityPositionManager->setDateTs(Argument::any())
-                ->willReturn($this->liquidityPositionManager);
-
-        $this->liquidityPositionManager->getAllProvidersSummaries()
-                ->willReturn([
-                    (new LiquidityPositionSummary())
-                        ->setUserGuid('123')
-                        ->setUserLiquidityTokens(BigDecimal::of(10)),
-                ]);
-        // We request yesterdays RewardEntry
-        $this->repository->getList(Argument::that(function ($opts) {
-            return $opts->getUserGuid() === '123'
-                && $opts->getDateTs()  === time() - 86400;
-        }))
-            ->willReturn(new Response([
-                (new RewardEntry())
-                    ->setRewardType('liquidity')
-                    ->setMultiplier(BigDecimal::of(1)),
-                (new RewardEntry())
-                    ->setRewardType('holding')
-                    ->setMultiplier(BigDecimal::of('1.0054794520540')),
-            ]));
-        // Add to the repository
-        $this->repository->add(Argument::that(function ($rewardEntry) {
-            return $rewardEntry->getUserGuid() === '123'
-                && (string) $rewardEntry->getScore() === '10.054794520550'
-                && $rewardEntry->getRewardType() === 'liquidity';
-        }))->shouldBeCalled();
-
-        // Holding
-        $this->blockFinder->getBlockByTimestamp(Argument::any())
-            ->willReturn(1);
-
-        $this->uniqueOnChainManager->getAll()
-            ->willReturn(new Response([
-                (new UniqueOnChainAddress)
-                    ->setAddress('0xAddresss')
-                    ->setUserGuid('123')
-            ]));
-        
-        $this->token->fromTokenUnit("10")
-                ->willReturn(10);
-        $this->token->balanceOf('0xAddresss', 1)
-                ->willReturn("10");
-
-        $this->repository->add(Argument::that(function ($rewardEntry) {
-            return $rewardEntry->getUserGuid() === '123'
-                && (string) $rewardEntry->getScore() === "10.1095890410900"
-                && $rewardEntry->getRewardType() === 'holding';
-        }))->shouldBeCalled();
-
-        // Calculation of tokens
-        $this->repository->getIterator(Argument::any())
-                ->willReturn([
-                    (new RewardEntry())
-                        ->setUserGuid('123')
-                        ->setRewardType('holding')
-                        ->setScore(BigDecimal::of(25))
-                        ->setSharePct((float) 1),
-                ]);
-
-        $this->uniqueOnChainManager->isUnique(Argument::any())->shouldBeCalled()->willReturn(true);
-
-        $this->repository->update(Argument::any(), ['token_amount'])->shouldBeCalled()
             ->willReturn(true);
 
         $this->calculate();
