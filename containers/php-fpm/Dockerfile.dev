@@ -5,13 +5,14 @@ RUN echo 'zend_extension=opcache.so' > /usr/local/etc/php/conf.d/opcache.ini \
     && mkdir --parents --mode=0777 /data/
 
 # Install xdebug
-
 RUN apk add --no-cache $PHPIZE_DEPS \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug
 
-# Copy config
+# gmp is needed by minishlink/web-push
+RUN apk add gmp-dev && docker-php-ext-install -j$(nproc) gmp
 
+# Copy config
 COPY containers/php-fpm/php.ini /usr/local/etc/php/
 COPY containers/php-fpm/opcache-dev.ini /usr/local/etc/php/conf.d/opcache-recommended.ini
 COPY containers/php-fpm/apcu.ini /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
