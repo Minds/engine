@@ -45,6 +45,7 @@ class Minds extends base
         Channels\Groups\Module::class,
         Media\YouTubeImporter\Module::class,
         DismissibleWidgets\Module::class,
+        DismissibleNotices\Module::class,
         Wire\SupportTiers\Module::class,
         Wire\Paywall\Module::class,
         I18n\Module::class,

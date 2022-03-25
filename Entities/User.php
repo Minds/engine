@@ -60,6 +60,7 @@ use Minds\Helpers;
  * @property int $allow_unsubscribed_contact
  * @property bool $hide_share_buttons
  * @property array $dismissed_widgets
+ * @property array $dismissed_notices
  * @property int $partner_rpm
  * @property int $liquidity_spot_opt_out
  * @property string $public_dob
@@ -138,6 +139,7 @@ class User extends \ElggUser
         $this->attributes['yt_channels'] = [];
         $this->attributes['public_dob'] = 0;
         $this->attributes['dismissed_widgets'] = [];
+        $this->attributes['dismissed_notices'] = [];
         $this->attributes['liquidity_spot_opt_out'] = 0;
 
         parent::initializeAttributes();
@@ -1121,6 +1123,7 @@ class User extends \ElggUser
         $export['allow_unsubscribed_contact'] = $this->getAllowUnsubscribedContact();
         $export['disable_autoplay_videos'] = $this->getDisableAutoplayVideos();
         $export['dismissed_widgets'] = $this->getDismissedWidgets();
+        $export['dismissed_notices'] = $this->getDismissedNotices();
 
         $export['yt_channels'] = $this->getYouTubeChannels();
 
@@ -1799,6 +1802,26 @@ class User extends \ElggUser
     public function setDismissedWidgets(array $dismissedWidgets = []): self
     {
         $this->dismissed_widgets = $dismissedWidgets;
+        return $this;
+    }
+
+    /**
+     * Gets dismissed notices - will contain objects with id, and timestamp_ms.
+     * @return array|null - dismissed notices.
+     */
+    public function getDismissedNotices(): ?array
+    {
+        return $this->dismissed_notices;
+    }
+
+    /**
+     * Gets dismissed notices - should contain objects with id, and timestamp_ms.
+     * @param array|null - dismissed notices.
+     * @return self - chainable.
+     */
+    public function setDismissedNotices(array $dismissedNotices = []): self
+    {
+        $this->dismissed_notices = $dismissedNotices;
         return $this;
     }
 
