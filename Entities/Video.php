@@ -223,6 +223,11 @@ class Video extends MindsObject
         ];
         $export['play:count'] = Helpers\Counters::get($this->guid, 'plays');
         $export['description'] = (new Core\Security\XSS())->clean($this->description); //videos need to be able to export html.. sanitize soon!
+        
+        if (isset($export['description']) && strlen($export['description']) > 30000) {
+            $export['description'] = substr($export['description'], 0, 30000).'...';
+        }
+
         $export['rating'] = $this->getRating();
         $export['time_sent'] = $this->getTimeSent();
 

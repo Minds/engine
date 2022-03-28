@@ -371,6 +371,11 @@ class Image extends File
         $export['thumbnail_src'] = $this->getIconUrl('xlarge');
         $export['thumbnail'] = $export['thumbnail_src'];
         $export['description'] = $this->description; //videos need to be able to export html.. sanitize soon!
+
+        if (isset($export['description']) && strlen($export['description']) > 30000) {
+            $export['description'] = substr($export['description'], 0, 30000).'...';
+        }
+
         $export['mature'] = $this->mature ?: $this->getFlag('mature');
         $export['rating'] = $this->getRating();
         $export['width'] = $this->width ?: 0;
