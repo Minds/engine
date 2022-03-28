@@ -4,26 +4,19 @@ namespace Minds\Core\Blockchain\TokenPrices;
 use Minds\Core\Blockchain\Uniswap;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
-use Minds\Entities\User;
-use Brick\Math\BigDecimal;
-use Brick\Math\RoundingMode;
-use Brick\Math\Exception\DivisionByZeroException;
-use Minds\Core\EntitiesBuilder;
+
+use Minds\Core\Data\cache\PsrWrapper;
 
 class Manager
 {
-    /** @var Uniswap\Client */
-    protected $uniswapClient;
-    
-    /** @var Config */
-    protected $config;
-
     public function __construct(
-        Uniswap\Client $uniswapClient = null,
-        Config $config = null
+        protected ?Uniswap\Client $uniswapClient = null,
+        protected ?Config $config = null,
+        protected ?PsrWrapper $cache = null
     ) {
-        $this->uniswapClient = $uniswapClient ?? Di::_()->get('Blockchain\Uniswap\Client');
-        $this->config = $config ?? Di::_()->get('Config');
+        $this->uniswapClient = $uniswapClient ?: Di::_()->get('Blockchain\Uniswap\Client');
+        $this->config = $config ?: Di::_()->get('Config');
+        $this->cache = $cache ?: Di::_()->get('Cache\PsrWrapper');
     }
 
     /**
@@ -33,7 +26,15 @@ class Manager
     public function getPrices(): array
     {
         $tokenAddress = $this->config->get('blockchain')['token_address'];
-        $prices = $this->uniswapClient->getTokenUsdPrices($tokenAddress);
+
+        $cacheKey = "blockchain::token-balance::$tokenAddress";
+
+        if ($cached = $this->cache->get($cacheKey)) {
+            $prices = unserialize($cached);
+        } else {
+            $prices = $this->uniswapClient->getTokenUsdPrices($tokenAddress);
+            $this->cache->set($cacheKey, serialize($prices), 300); // 5 mins
+        }
 
         return [
             'eth' => $prices['eth'],
