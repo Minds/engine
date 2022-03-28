@@ -1,6 +1,7 @@
 <?php
 
 use Minds\Entities\EntityInterface;
+use Minds\Helpers\StringLengthValidator;
 
 /**
  * The parent class for all Elgg Entities.
@@ -1445,12 +1446,11 @@ abstract class ElggEntity extends ElggData implements
         $export['urn'] = $this->getUrn();
         $export['allow_comments'] = $this->getAllowComments();
 
-        if (isset($export['message']) && strlen($export['message']) > 30000) {
-            $export['message'] = substr($export['message'], 0, 30000).'...';
+        if (isset($export['title'])) {
+            $export['title'] = StringLengthValidator::validateMaxAndTrim('title', $export['title']);
         }
-
-        if (isset($export['title']) && strlen($export['title']) > 2000) {
-            $export['title'] = substr($export['title'], 0, 2000).'...';
+        if (isset($export['message'])) {
+            $export['message'] = StringLengthValidator::validateMaxAndTrim('message', $export['message']);
         }
 
         return $export;

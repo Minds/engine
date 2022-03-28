@@ -13,6 +13,7 @@ use Minds\Core\Media\Services\Factory as ServiceFactory;
 use Minds\Core\Di\Di;
 use cinemr;
 use Minds\Helpers;
+use Minds\Helpers\StringLengthValidator;
 
 /**
  * Class Video
@@ -223,10 +224,7 @@ class Video extends MindsObject
         ];
         $export['play:count'] = Helpers\Counters::get($this->guid, 'plays');
         $export['description'] = (new Core\Security\XSS())->clean($this->description); //videos need to be able to export html.. sanitize soon!
-        
-        if (isset($export['description']) && strlen($export['description']) > 30000) {
-            $export['description'] = substr($export['description'], 0, 30000).'...';
-        }
+        $export['description'] = StringLengthValidator::validateMaxAndTrim('description', $export['description']);
 
         $export['rating'] = $this->getRating();
         $export['time_sent'] = $this->getTimeSent();

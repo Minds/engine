@@ -13,6 +13,7 @@ use IOException;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Helpers;
+use Minds\Helpers\StringLengthValidator;
 
 /**
  * @property string $super_subtype
@@ -372,9 +373,7 @@ class Image extends File
         $export['thumbnail'] = $export['thumbnail_src'];
         $export['description'] = $this->description; //videos need to be able to export html.. sanitize soon!
 
-        if (isset($export['description']) && strlen($export['description']) > 30000) {
-            $export['description'] = substr($export['description'], 0, 30000).'...';
-        }
+        $export['description'] = StringLengthValidator::validateMaxAndTrim('description', $export['description']);
 
         $export['mature'] = $this->mature ?: $this->getFlag('mature');
         $export['rating'] = $this->getRating();

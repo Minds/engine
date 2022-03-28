@@ -13,6 +13,7 @@ use Minds\Common\PseudonymousIdentifier;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
+use Minds\Helpers\StringLengthValidator;
 use Minds\Interfaces;
 
 class register implements Interfaces\Api, Interfaces\ApiIgnorePam
@@ -45,8 +46,8 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             return Factory::response(['status' => 'error', 'message' => "Please fill out all the fields"]);
         }
 
-        if (strlen($_POST['username']) > 50) {
-            return Factory::response(['status' => 'error', 'message' => "Username cannot be more than 50 characters long."]);
+        if (!StringLengthValidator::validate('username', $_POST['username'])) {
+            return Factory::response(['status' => 'error', 'message' => "Invalid username length."]);
         }
 
         try {
