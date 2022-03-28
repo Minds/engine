@@ -46,7 +46,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         if (strlen($_POST['username']) > 50) {
-            return Factory::response(['status' => 'error', 'message' => "Username cannot be more than 50 characters long."]);    
+            return Factory::response(['status' => 'error', 'message' => "Username cannot be more than 50 characters long."]);
         }
 
         try {

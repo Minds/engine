@@ -357,6 +357,10 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             }
         }
 
+        if (strlen($export['message']) > 30000) {
+            $export['message'] = substr($export['message'], 0, 30000).'...';
+        }
+
         // If remind deleted or remind invalid, remove from export
         if ($export['remind_object'] && !$export['remind_object']['type']) {
             $export['remind_object'] = null;
