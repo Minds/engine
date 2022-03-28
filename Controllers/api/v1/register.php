@@ -45,6 +45,10 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             return Factory::response(['status' => 'error', 'message' => "Please fill out all the fields"]);
         }
 
+        if (strlen($_POST['username']) > 50) {
+            return Factory::response(['status' => 'error', 'message' => "Username cannot be more than 50 characters long."]);    
+        }
+
         try {
             $captcha = Core\Di\Di::_()->get('Captcha\Manager');
             
