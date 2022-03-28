@@ -120,6 +120,10 @@ class PushNotification
             $fromString .= " and {$this->notification->getMergedCount()} others";
         }
 
+        if (!$pronoun) {
+            return "$fromString $verb $noun";
+        }
+
         return "$fromString $verb $pronoun $noun";
     }
 
