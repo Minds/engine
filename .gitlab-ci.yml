@@ -98,7 +98,7 @@ review:start:
   image: minds/aws-helm:latest
   script:
     - aws eks --region us-east-1 update-kubeconfig --name sandbox --role-arn=$AWS_IAM_ROLE_ARN
-    - git clone --branch=master https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/minds/helm-charts.git
+    - git clone --branch=feat/pwa https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/minds/helm-charts.git
     - echo "Upgrading helm for pipeline ${CI_PIPELINE_ID}"
     - echo "Setting to image ${CI_REGISTRY_IMAGE}"
     - "helm upgrade \
