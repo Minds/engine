@@ -46,9 +46,8 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             return Factory::response(['status' => 'error', 'message' => "Please fill out all the fields"]);
         }
 
-        if (!StringLengthValidator::validate('username', $_POST['username'])) {
-            return Factory::response(['status' => 'error', 'message' => "Invalid username length. " . StringLengthValidator::limitsToString('username')]);
-        }
+        // @throws StringLengthException
+        StringLengthValidator::validate('username', $_POST['username']); 
 
         try {
             $captcha = Core\Di\Di::_()->get('Captcha\Manager');

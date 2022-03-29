@@ -2,6 +2,8 @@
 
 namespace Minds\Helpers;
 
+use Minds\Exceptions\StringLengthException;
+
 /**
  * Central validator for various string length checks.
  * Usage Examples:
@@ -43,12 +45,16 @@ class StringLengthValidator
      * Validates a string is above or equal to the min and below or equal to the max bounds for length.
      * @param string $key - name of key for input field.
      * @param string $target - target string to check.
+     * @throws StringLengthException - if string length is determined to be invalid.
      * @return boolean - true if string is within defined bounds.
      */
     public static function validate(string $key, string $target = ''): bool
     {
         $stringLength = strlen($target);
-        return $stringLength <= self::getMax($key) && $stringLength >= self::getMin($key);
+        if (!($stringLength <= self::getMax($key) && $stringLength >= self::getMin($key))) {
+            throw new StringLengthException(self::limitsToString($key));
+        }
+        return true;
     }
 
     /**

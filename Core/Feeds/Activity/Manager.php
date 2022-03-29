@@ -18,6 +18,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Common\Urn;
+use Minds\Exceptions\StringLengthException;
 use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\StringLengthValidator;
 
@@ -276,13 +277,17 @@ class Manager
      * @return boolean true if the string lengths are within valid bounds.
      */
     private function validateStringLengths(Activity $activity): bool
-    {
-        if (!StringLengthValidator::validate('message', $activity->getMessage() ?? '')) {
-            throw new UserErrorException('Invalid post length. ' . StringLengthValidator::limitsToString('message'));
+    {   
+        try {
+            StringLengthValidator::validate('message', $_POST['message'] ?? ''); 
+        } catch (StringLengthException $e) {
+            throw new UserErrorException('Invalid post length. ' . $e->getMessage());
         }
 
-        if (!StringLengthValidator::validate('title', $activity->getTitle() ?? '')) {
-            throw new UserErrorException('Invalid title length. ' . StringLengthValidator::limitsToString('title'));
+        try {
+            StringLengthValidator::validate('title', $_POST['title'] ?? ''); 
+        } catch (StringLengthException $e) {
+            throw new UserErrorException('Invalid title length. ' . $e->getMessage());
         }
 
         return true;
