@@ -64,4 +64,21 @@ class StringLengthValidatorSpec extends ObjectBehavior
 
         $this->validateMaxAndTrim('username', '01234567890')->shouldReturn('01234567890');
     }
+
+    public function it_should_get_max_bound()
+    {
+        $this->getMax('username')->shouldReturn(50);
+    }
+
+    public function it_should_get_min_bound()
+    {
+        $this->getMin('username')->shouldReturn(4);
+    }
+
+    public function it_should_limits_as_string()
+    {
+        $this->limitsToString('username')->shouldReturn(
+            "Must be between 4 and 50 characters."
+        );
+    }
 }

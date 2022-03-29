@@ -16,6 +16,8 @@ use Minds\Common\ChannelMode;
 use Minds\Core\Di\Di;
 use Minds\Core\Security\Block\BlockEntry;
 use ElggFile;
+use Minds\Exceptions\UserErrorException;
+use Minds\Helpers\StringLengthValidator;
 
 class channel implements Interfaces\Api
 {
@@ -296,6 +298,10 @@ class channel implements Interfaces\Api
                         $update[$field] = $_POST[$field];
                         $owner->$field = $_POST[$field];
                     }
+                }
+
+                if (isset($_POST['briefdescription']) && !StringLengthValidator::validate('briefdescription', $_POST['briefdescription'] ?? '')) {
+                    throw new UserErrorException('Invalid bio length. ' . StringLengthValidator::limitsToString('briefdescription'));
                 }
 
                 if (isset($_POST['name'])) {

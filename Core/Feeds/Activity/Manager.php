@@ -18,6 +18,8 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Common\Urn;
+use Minds\Exceptions\UserErrorException;
+use Minds\Helpers\StringLengthValidator;
 
 class Manager
 {
@@ -92,6 +94,8 @@ class Manager
      */
     public function add(Activity $activity): bool
     {
+        $this->validateStringLengths($activity);
+
         // Ensure reminds & quoted posts inherit the NSFW settings
         // NOTE: this is not fool proof. If the original entity changes, we still
         // need to create a feature that will propogate these settings to its child derivatives.
@@ -155,6 +159,8 @@ class Manager
     public function update(EntityMutation $activityMutation): void
     {
         $activity = $activityMutation->getMutatedEntity();
+
+        $this->validateStringLengths($activity);
 
         if ($activity->type !== 'activity' && in_array($activity->subtype, [
             'video', 'image'
@@ -261,5 +267,24 @@ class Manager
     public function getByGuid(string $guid): ?Activity
     {
         return null;
+    }
+
+    /**
+     * Assert that the string lengths are within valid bounds.
+     * @param Activity $activity - activity to check.
+     * @throws UserErrorException - if the string lengths are invalid.
+     * @return boolean true if the string lengths are within valid bounds.
+     */
+    private function validateStringLengths(Activity $activity): bool
+    {
+        if (!StringLengthValidator::validate('message', $activity->getMessage() ?? '')) {
+            throw new UserErrorException('Invalid post length. ' . StringLengthValidator::limitsToString('message'));
+        }
+
+        if (!StringLengthValidator::validate('title', $activity->getTitle() ?? '')) {
+            throw new UserErrorException('Invalid title length. ' . StringLengthValidator::limitsToString('title'));
+        }
+
+        return true;
     }
 }
