@@ -24,7 +24,7 @@ class WebPushService extends AbstractService implements PushServiceInterface
             'body' => "$body",
             'tag' => $pushNotification->getMergeKey(),
             'badge' => (string) $pushNotification->getUnreadCount(),
-            'icon' => $pushNotification->getIcon(),
+            'icon' => $pushNotification->getMedia(),
             'image' => $pushNotification->getMedia(),
             'renotify' => true,
             'requireInteraction' => false,
