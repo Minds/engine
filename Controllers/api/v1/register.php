@@ -47,7 +47,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         if (!StringLengthValidator::validate('username', $_POST['username'])) {
-            return Factory::response(['status' => 'error', 'message' => "Invalid username length."]);
+            return Factory::response(['status' => 'error', 'message' => "Invalid username length. " . StringLengthValidator::limitsToString('username')]);
         }
 
         try {
