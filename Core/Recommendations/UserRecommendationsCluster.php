@@ -2,12 +2,13 @@
 
 namespace Minds\Core\Recommendations;
 
+use Exception;
 use Minds\Core\Di\Di;
 use Minds\Core\Hashtags\User\Manager as UserHashtagsManager;
 use Minds\Entities\User;
 
 /**
- *
+ * Performs calculations to retrieve the recommendations cluster id for a user
  */
 class UserRecommendationsCluster
 {
@@ -124,6 +125,12 @@ class UserRecommendationsCluster
         $this->userHashtagsManager ??= Di::_()->get('Hashtags\User\Manager');
     }
 
+    /**
+     * Calculated the recommendations cluster id for the provided user
+     * @param User $user
+     * @return int
+     * @throws Exception
+     */
     public function calculateUserRecommendationsClusterId(User $user): int
     {
         $this->userHashtagsManager->setUser($user);
@@ -157,6 +164,11 @@ class UserRecommendationsCluster
         }, 0);
     }
 
+    /**
+     * Transforms the user tags from DB to the vector to be used for the recommendations cluster calculation
+     * @param array $userTags
+     * @return array
+     */
     private function getUserVector(array $userTags): array
     {
         $userVector = [];
