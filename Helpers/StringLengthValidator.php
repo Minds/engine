@@ -40,7 +40,7 @@ class StringLengthValidator
             'max' => 5000
         ],
     ];
-    
+
     /**
      * Validates a string is above or equal to the min and below or equal to the max bounds for length.
      * @param string $key - name of key for input field.
