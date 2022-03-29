@@ -301,11 +301,11 @@ class channel implements Interfaces\Api
                     }
                 }
 
-                try {
-                    StringLengthValidator::validate('briefdescription', $_POST['briefdescription'] ?? ''); 
-                } catch (StringLengthException $e) {
-                    throw new UserErrorException('Invalid bio length. ' . $e->getMessage());
-                }
+                StringLengthValidator::validate(
+                    'briefdescription',
+                    $_POST['briefdescription'] ?? '',
+                    nameOverride: 'bio'
+                );
 
                 if (isset($_POST['name'])) {
                     $maxLength = Di::_()->get('Config')->max_name_length ?? 50;

@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Helpers;
 
+use Minds\Exceptions\StringLengthException;
 use PhpSpec\ObjectBehavior;
 
 class StringLengthValidatorSpec extends ObjectBehavior
@@ -23,17 +24,26 @@ class StringLengthValidatorSpec extends ObjectBehavior
         $this->validate('username', 'MindsMindsMindsMindsMindsMinds')->shouldReturn(true);
     }
 
-    public function it_should_NOT_validate_an_INVALID_string()
+    public function it_should_validate_a_null_string_when_min_is_0()
     {
-        // min 4 chars
-        $this->validate('username', 'Min')->shouldReturn(false);
-        $this->validate('username', 'Mi')->shouldReturn(false);
-        $this->validate('username', 'M')->shouldReturn(false);
-        $this->validate('username', '')->shouldReturn(false);
-        
+        $this->validate('briefdescription', null)->shouldReturn(true);
+    }
+
+    public function it_should_validate_an_empty_string_when_min_is_0()
+    {
+        $this->validate('briefdescription', '')->shouldReturn(true);
+    }
+
+    public function it_should_NOT_validate_an_INVALID_string_when_under_limit()
+    {
+        // min 4 chars.
+        $this->shouldThrow(StringLengthException::class)->duringValidate('username', 'Min');
+    }
+
+    public function it_should_NOT_validate_an_INVALID_string_when_over_limit()
+    {
         // max exceeded - 51 chars +
-        $this->validate('username', '01234567890123456789012345678901234567890123456789t')->shouldReturn(false);
-        $this->validate('username', '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789')->shouldReturn(false);
+        $this->shouldThrow(StringLengthException::class)->duringValidate('username', '01234567890123456789012345678901234567890123456789t');
     }
 
     public function it_should_trim_a_string_to_a_max_length_when_max_length_exceeded()
@@ -75,10 +85,17 @@ class StringLengthValidatorSpec extends ObjectBehavior
         $this->getMin('username')->shouldReturn(4);
     }
 
-    public function it_should_limits_as_string()
+    public function it_should_give_limits_as_string()
     {
         $this->limitsToString('username')->shouldReturn(
-            "Must be between 4 and 50 characters."
+            "Invalid username. Must be between 4 and 50 characters."
+        );
+    }
+
+    public function it_should_give_limits_as_string_when_name_override_provided()
+    {
+        $this->limitsToString('username', 'name')->shouldReturn(
+            "Invalid name. Must be between 4 and 50 characters."
         );
     }
 }

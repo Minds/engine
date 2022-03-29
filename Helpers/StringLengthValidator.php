@@ -45,14 +45,15 @@ class StringLengthValidator
      * Validates a string is above or equal to the min and below or equal to the max bounds for length.
      * @param string $key - name of key for input field.
      * @param string $target - target string to check.
+     * @param string $target - overrides name in thrown error message - by default key name will be used.
      * @throws StringLengthException - if string length is determined to be invalid.
      * @return boolean - true if string is within defined bounds.
      */
-    public static function validate(string $key, string $target = ''): bool
+    public static function validate(string $key, ?string $target = '', $nameOverride = ''): bool
     {
         $stringLength = strlen($target);
         if (!($stringLength <= self::getMax($key) && $stringLength >= self::getMin($key))) {
-            throw new StringLengthException(self::limitsToString($key));
+            throw new StringLengthException(self::limitsToString($key, $nameOverride));
         }
         return true;
     }
@@ -76,11 +77,13 @@ class StringLengthValidator
      * Outputs a string containing the limits for a given key, for consumption in user facing
      * error messages, for example: "Must be between 4 and 50 characters.".
      * @param string $key - key to get limits for.
+     * @param string $nameOverride - overrides the key name in the returned string.
      * @return string - contains limits as a string for consumption in error messages.
      */
-    public static function limitsToString(string $key): string
+    public static function limitsToString(string $key, string $nameOverride = null): string
     {
-        return "Must be between ". self::getMin($key) ." and ". self::getMax($key) ." characters.";
+        $name = $nameOverride ? $nameOverride : $key;
+        return "Invalid " . $name .". Must be between ". self::getMin($key) ." and ". self::getMax($key) ." characters.";
     }
 
     /**
@@ -100,6 +103,6 @@ class StringLengthValidator
      */
     public static function getMin(string $key): int
     {
-        return self::LENGTHS[$key]['min'];
+        return self::LENGTHS[$key]['min'] ?? 0;
     }
 }

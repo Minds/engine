@@ -47,7 +47,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         // @throws StringLengthException
-        StringLengthValidator::validate('username', $_POST['username']); 
+        StringLengthValidator::validate('username', $_POST['username']);
 
         try {
             $captcha = Core\Di\Di::_()->get('Captcha\Manager');
