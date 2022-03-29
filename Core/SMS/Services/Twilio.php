@@ -51,7 +51,13 @@ class Twilio implements SMSServiceInterface
             $phone_number = $this->getClient()->lookups->v1->phoneNumbers($number)
                 ->fetch(["type" => "carrier"]);
 
+            if ($phone_number->carrier['error_code'] === 60601) {
+                throw new InvalidPhoneException('Canadian phone numbers are currently not supported');
+            }
+
             return $phone_number->carrier['type'] === 'mobile';
+        } catch (InvalidPhoneException $e) {
+            throw $e;
         } catch (\Exception $e) {
             error_log("[guard] Twilio error: {$e->getMessage()}");
             throw new InvalidPhoneException('Invalid Phone Number', 0, $e);

@@ -68,7 +68,7 @@ class Confirmation extends EmailCampaign
 
         $translator = $this->template->getTranslator();
 
-        $subject = $translator->trans('Welcome to Minds. Time to verify.');
+        $subject = $translator->trans('Verify your email address');
 
         /** @var Pro\Settings */
         $proSettings = $this->proDomain->lookup($_SERVER['HTTP_HOST'] ?? '');
@@ -86,7 +86,8 @@ class Confirmation extends EmailCampaign
         $this->template->set('email', $this->user->getEmail());
         $this->template->set('guid', $this->user->guid);
         $this->template->set('tracking', $trackingQuery);
-        $this->template->set('title', $proSettings ? 'Welcome to ' . $proSettings->getTitle() : $translator->trans('Welcome to Minds'));
+        // $this->template->set('title', $proSettings ? 'Welcome to ' . $proSettings->getTitle() : $translator->trans('Welcome to Minds'));
+        $this->template->set('title', '');
         $this->template->set('preheader', $subject);
         $this->template->set('isPro', !!$proSettings);
 

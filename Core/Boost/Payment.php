@@ -5,8 +5,10 @@ namespace Minds\Core\Boost;
 use Minds\Core;
 use Minds\Core\Blockchain\Services\RatesInterface;
 use Minds\Core\Blockchain\Services;
+use Minds\Core\Boost\Network\Boost;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\Boost\Peer;
@@ -42,7 +44,8 @@ class Payment
         $txManager = null,
         $txRepository = null,
         $config = null,
-        $locks = null
+        $locks = null,
+        private ?EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->stripePayments = $stripePayments ?: Di::_()->get('StripePayments');
         $this->eth = $eth ?: Di::_()->get('Blockchain\Services\Ethereum');
@@ -50,6 +53,16 @@ class Payment
         $this->txRepository = $txRepository ?: Di::_()->get('Blockchain\Transactions\Repository');
         $this->config = $config ?: Di::_()->get('Config');
         $this->locks = $locks ?: Di::_()->get('Database\Locks');
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+    }
+
+    /**
+     * Returns the User object representing the minds channel that receives the boost funds when request accepted by the Admin team
+     * @return User
+     */
+    private function getMindsBoostWalletUser(): User
+    {
+        return $this->entitiesBuilder->single($this->config->get('boost')["offchain_wallet_guid"]);
     }
 
     /**
@@ -259,6 +272,11 @@ class Payment
         throw new \Exception('Payment Method not supported');
     }
 
+    /**
+     * @param Boost|Peer $boost
+     * @return bool
+     * @throws LockFailedException
+     */
     public function charge($boost)
     {
         $currency = method_exists($boost, 'getMethod') ?
@@ -296,18 +314,28 @@ class Payment
                         return false;
                         break;
                     case 'offchain':
+                        /** @var Core\Blockchain\Wallets\OffChain\Transactions $receiversTx */
+                        $receiversTx = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
+                        $receiversTx
+                            ->setAmount($boost->getBid())
+                            ->setType('boost');
                         if ($boost->getHandler() === 'peer') {
-                            /** @var Core\Blockchain\Wallets\OffChain\Transactions $receiversTx */
-                            $receiversTx = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
-                            $receiversTx
-                                ->setAmount($boost->getBid())
-                                ->setType('boost')
-                                ->setUser($boost->getDestination())
+                            $receiversTx->setUser($boost->getDestination())
                                 ->setData([
                                     'amount' => (string) $boost->getBid(),
                                     'guid' => (string) $boost->getGuid(),
                                     'sender_guid' => (string) $boost->getOwner()->guid,
                                     'receiver_guid' => (string) $boost->getDestination()->guid,
+                                ])
+                                ->create();
+                        } else {
+                            /** @var Core\Blockchain\Wallets\OffChain\Transactions $receiversTx */
+                            $receiversTx->setUser($this->getMindsBoostWalletUser())
+                                ->setData([
+                                    'amount' => (string) $boost->getBid(),
+                                    'guid' => (string) $boost->getGuid(),
+                                    'sender_guid' => (string) $boost->getOwner()->guid,
+                                    'receiver_guid' => (string) $this->getMindsBoostWalletUser()->guid,
                                 ])
                                 ->create();
                         }

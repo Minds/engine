@@ -9,6 +9,8 @@ use Minds\Core\Analytics\Snowplow;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Data\ElasticSearch\Prepared\Index;
+use Minds\Core\AccountQuality\ManagerInterface as AccountQualityManagerInterface;
+use Minds\Entities\User;
 
 class EventSpec extends ObjectBehavior
 {
@@ -21,12 +23,22 @@ class EventSpec extends ObjectBehavior
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    public function let(Client $es, EntitiesBuilder $entitiesBuilder, Snowplow\Manager $snowplowManager)
+    /** @var AccountQualityManagerInterface */
+    private $accountQualityManager;
+
+    public function let(Client $es, EntitiesBuilder $entitiesBuilder, Snowplow\Manager $snowplowManager, AccountQualityManagerInterface $accountQualityManager)
     {
-        $this->beConstructedWith($es, $snowplowManager, $entitiesBuilder);
+        $this->beConstructedWith(
+            $es,
+            $snowplowManager,
+            $entitiesBuilder,
+            $accountQualityManager
+        );
         $this->es = $es;
         $this->snowplowManager = $snowplowManager;
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->accountQualityManager = $accountQualityManager;
+        $_COOKIE['minds_pseudoid'] = '';
     }
 
     public function it_is_initializable()
@@ -75,6 +87,34 @@ class EventSpec extends ObjectBehavior
         $this->setType('action');
         $this->push()->shouldBe(true);
         $this->getData()->shouldHaveKey('@timestamp');
+    }
+
+    public function it_should_push_with_account_quality_score(User $user)
+    {
+        $userGuid = '123';
+
+        $this->es->request(Argument::type('Minds\Core\Data\ElasticSearch\Prepared\Index'))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $user->isPlus()->shouldBeCalled()->willReturn(true);
+        $user->getGuid()->shouldBeCalled()->willReturn($userGuid);
+
+        $this->setUser($user);
+        $this->setType('action');
+        $this->setAction('vote:up');
+        
+        $this->accountQualityManager->getAccountQualityScoreAsFloat("123")
+            ->willReturn((float) 1);
+        
+        $this->snowplowManager->setSubject(Argument::any())->shouldBeCalled()
+            ->willReturn($this->snowplowManager);
+
+        $this->snowplowManager->emit(Argument::any())->shouldBeCalled();
+
+        $this->push()->shouldBe(true);
+        $this->getData()->shouldHaveKey('@timestamp');
+        $this->getData()->shouldHaveKey('account_quality_score');
     }
 
     public function it_should_post_action_to_snowplow()

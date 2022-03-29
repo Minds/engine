@@ -112,16 +112,27 @@ class Manager
 
         $opts['limit'] = $opts['limit'] * 3; // To prevent removed channels or closed groups
 
+        // if user set
         if ($this->user) {
             $opts['user_guid'] = $this->user->getGuid();
 
+            // if user has more than 1 subscription.
             if ($this->subscriptionsManager->setSubscriber($this->user)
-                ->getSubscriptionsCount() > 1) {
+                ->getSubscriptionsCount() > 1
+            ) {
                 $response = $this->repository->getList($opts);
+
+                // fallback incase no users come back.
+                if ($response->count() < 1) {
+                    $response = $this->getFallbackSuggested($opts);
+                }
             } else {
+                // else if a user has 1 or less subscriptions.
+                $opts['user_guid'] = null; // unset user_guid so we can recommend defaults.
                 $response = $this->getFallbackSuggested($opts);
             }
         } else {
+            // if no user set - use fallback.
             $response = $this->getFallbackSuggested($opts);
         }
 
