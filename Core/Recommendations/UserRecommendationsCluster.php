@@ -5,16 +5,12 @@ namespace Minds\Core\Recommendations;
 use Minds\Core\Di\Di;
 use Minds\Core\Hashtags\User\Manager as UserHashtagsManager;
 use Minds\Entities\User;
-use Minds\Traits\MagicAttributes;
 
 /**
- * @method int|null getClusterId()
- * @method setClusterId(int $clusterId)
+ *
  */
 class UserRecommendationsCluster
 {
-    use MagicAttributes;
-
     private const TAG_LIST = [
         'art',
         'blockchain',
@@ -130,11 +126,11 @@ class UserRecommendationsCluster
 
     public function calculateUserRecommendationsClusterId(User $user): int
     {
-        $userTags = $this->userHashtagsManager->setUser($user)->get([]);
+        $this->userHashtagsManager->setUser($user);
+        $userTags = $this->userHashtagsManager->get([]);
         $userVector = $this->getUserVector($userTags);
 
         $distance = $this->calculateMaxDistance();
-        $clusterId = null;
         $clusterId = -1;
 
         foreach (self::MEDOIDS as $medoidIndex => $medoid) {
@@ -158,7 +154,7 @@ class UserRecommendationsCluster
     {
         return array_reduce(self::VARIANCES, function (float $a, float $b): float {
             return $a + $b;
-        });
+        }, 0);
     }
 
     private function getUserVector(array $userTags): array
