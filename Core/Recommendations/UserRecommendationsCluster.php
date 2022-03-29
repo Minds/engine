@@ -12,6 +12,9 @@ use Minds\Entities\User;
  */
 class UserRecommendationsCluster
 {
+    /**
+     * @var string[]
+     */
     private const TAG_LIST = [
         'art',
         'blockchain',
@@ -51,7 +54,7 @@ class UserRecommendationsCluster
      * Each record in `medoids` is a boolean vector of tags selected from the `tag_list` above
      * Each record represents the medoid of one of 20 clusters of user tag selections
      *
-     * @type float[][]
+     * @var float[][]
      */
     private const MEDOIDS = [
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
@@ -82,7 +85,7 @@ class UserRecommendationsCluster
      * engagement, and is used to compute the manhattan distance for clustering users and assigning users to
      * a cluster
      *
-     * @type float[]
+     * @var float[]
      */
     private const VARIANCES = [
         0.20502693005082365,
@@ -157,6 +160,10 @@ class UserRecommendationsCluster
         return $clusterId;
     }
 
+    /**
+     * Sums up all the variances to calculate the possible max distance of a set of tags from the medoids
+     * @return float
+     */
     private function calculateMaxDistance(): float
     {
         return array_reduce(self::VARIANCES, function (float $a, float $b): float {
