@@ -173,7 +173,7 @@ class Repository implements RepositoryInterface
                 'aggs' => [
                     'channels' => [
                         'terms' => [
-                            'field' => 'entity_guid',
+                            'field' => 'entity_guid.keyword',
                             'size' => $this->options->getLimit(),
                             'order' => [
                                 '_count' =>  'desc',

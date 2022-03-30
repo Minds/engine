@@ -46,7 +46,7 @@ class RepositoryOptionsValidator implements ValidatorInterface
             ));
         }
 
-        if ($dataToValidate['currentChannelUserGuid'] && !is_numeric($dataToValidate['currentChannelUserGuid'])) {
+        if (!$dataToValidate['currentChannelUserGuid'] || !is_numeric($dataToValidate['currentChannelUserGuid'])) {
             $this->errors->add(new ValidationError(
                 "currentChannelUserGuid",
                 "You must provide a valid guid for the current channel's user guid"
