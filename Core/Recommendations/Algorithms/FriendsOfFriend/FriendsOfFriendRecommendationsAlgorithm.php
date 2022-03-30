@@ -35,6 +35,8 @@ class FriendsOfFriendRecommendationsAlgorithm extends AbstractRecommendationsAlg
      */
     public function getRecommendations(?array $options = []): Response
     {
+        $options['targetUserGuid'] ??= $this->user->getGuid();
+
         $result = $this->repository->getList($options);
         
         if ($result->count() == 0) {

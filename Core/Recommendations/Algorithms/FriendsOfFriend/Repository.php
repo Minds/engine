@@ -2,9 +2,9 @@
 
 namespace Minds\Core\Recommendations\Algorithms\FriendsOfFriend;
 
+use Minds\Common\Repository\Response;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Client as ElasticSearchClient;
-use Minds\Common\Repository\Response;
 use Minds\Core\Data\ElasticSearch\Prepared\Search as PreparedSearchQuery;
 use Minds\Core\Di\Di;
 use Minds\Core\Recommendations\Algorithms\FriendsOfFriends\Validators\RepositoryOptionsValidator;
@@ -106,7 +106,7 @@ class Repository implements RepositoryInterface
         // Include most recent logged-in user's subscription
         // as it might not be already available in the graph subscriptions index
         $should["bool"]["must"][]['term'] = [
-            "user_guid" => $this->options->getMostRecentSubscriptionUserGuid()
+            "user_guid" => $this->options->getCurrentChannelUserGuid()
         ];
 
         return $should;
@@ -126,12 +126,21 @@ class Repository implements RepositoryInterface
             "entity_guid" => $this->options->getTargetUserGuid()
         ];
 
-        if (!empty($this->options->getMostRecentSubscriptionUserGuid())) {
+        if (!empty($this->options->getCurrentChannelUserGuid())) {
             // excluding the most recent logged-in user's subscription from the list of subscriptions
             // as it might not be already available in the graph subscriptions index,
             // and we don't want to see it in the  list of recommendations
             $mustNot[]['term'] = [
-                "entity_guid" => $this->options->getMostRecentSubscriptionUserGuid()
+                "entity_guid" => $this->options->getCurrentChannelUserGuid()
+            ];
+        }
+
+        if (!empty($this->options->getMostRecentSubscriptions())) {
+            // excluding the most recent subscriptions from the list of subscriptions
+            // as they might not be already available in the graph subscriptions index,
+            // and we don't want to see it in the  list of recommendations
+            $mustNot[]['terms'] = [
+                "entity_guid" => $this->options->getMostRecentSubscriptions()
             ];
         }
 
