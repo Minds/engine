@@ -58,6 +58,10 @@ class Provider extends DiProvider
             return new Confirmation\Url();
         }, ['useFactory' => true]);
 
+        $this->di->bind('Email\Confirmation\TokenCache', function ($di) {
+            return new Confirmation\TokenCache();
+        }, ['useFactory' => true]);
+
         // SendGrid
         $this->di->bind('SendGrid\Manager', function ($di) {
             return new SendGrid\Manager();

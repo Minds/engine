@@ -74,7 +74,8 @@ class Manager
         $userFactory = null,
         $resolver = null,
         $eventsDispatcher = null,
-        $kvLimiter = null
+        $kvLimiter = null,
+        private ?TokenCache $tokenCache = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->jwt = $jwt ?: new Jwt();
@@ -84,6 +85,7 @@ class Manager
         $this->resolver = $resolver ?: new Resolver();
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
+        $this->tokenCache = $tokenCache ?? Di::_()->get('Email\Confirmation\TokenCache');
     }
 
     /**
@@ -117,21 +119,7 @@ class Manager
             ->setMax(self::RATE_LIMIT_MAX)
             ->checkAndIncrement();
 
-        $config = $this->config->get('email_confirmation');
-
-        $now = time();
-        $expires = $now + $config['expiration'];
-
-        $token = $this->jwt
-            ->setKey($config['signing_key'])
-            ->encode([
-                'user_guid' => (string) $this->user->guid,
-                'code' => $this->jwt->randomString(),
-            ], $expires, $now);
-
-        $this->user
-            ->setEmailConfirmationToken($token)
-            ->save();
+        $this->generateConfirmationToken();
 
         $this->eventsDispatcher->trigger('confirmation_email', 'all', [
             'user_guid' => (string) $this->user->guid,
@@ -280,5 +268,38 @@ class Manager
         }
 
         return $users;
+    }
+
+    /**
+     * Generates an email confirmation token and saves it to instance member user
+     * or returns an existing cached token.
+     * @return self
+     */
+    private function generateConfirmationToken(): self
+    {
+        // we don't need to generate a token if one already exists in the cache.
+        if ($this->tokenCache->setUser($this->user)->get()) {
+            return $this;
+        }
+
+        $config = $this->config->get('email_confirmation');
+
+        $now = time();
+        $expires = $now + $config['expiration'];
+
+        $token = $this->jwt
+            ->setKey($config['signing_key'])
+            ->encode([
+                'user_guid' => (string) $this->user->guid,
+                'code' => $this->jwt->randomString(),
+            ], $expires, $now);
+
+        $this->user
+            ->setEmailConfirmationToken($token)
+            ->save();
+
+        $this->tokenCache->setUser($this->user)->set($token);
+
+        return $this;
     }
 }
