@@ -15,8 +15,6 @@ use cinemr;
 use Minds\Helpers;
 use Minds\Helpers\StringLengthValidators\DescriptionLengthValidator;
 
-// use Minds\Helpers\StringLengthValidator;
-
 /**
  * Class Video
  * @package Minds\Entities

@@ -299,6 +299,7 @@ class channel implements Interfaces\Api
                     }
                 }
 
+                // @throws StringLengthException
                 (new BriefDescriptionLengthValidator())->validate(
                     $_POST['briefdescription'] ?? '',
                     nameOverride: 'bio'

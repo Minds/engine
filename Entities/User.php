@@ -7,8 +7,6 @@ use Minds\Core;
 use Minds\Helpers;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
 
-// use Minds\Helpers\StringLengthValidator;
-
 /**
  * User Entity.
  *
