@@ -7,6 +7,7 @@ use Minds\Common\Jwt;
 use Minds\Core\Config;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Email\Confirmation\Manager;
+use Minds\Core\Email\Confirmation\TokenCache;
 use Minds\Core\Entities\Resolver;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Queue\Interfaces\QueueClient;
@@ -38,6 +39,9 @@ class ManagerSpec extends ObjectBehavior
     /** @var EventsDispatcher */
     protected $eventsDispatcher;
 
+    /** @var TokenCache */
+    protected $tokenCache;
+
     public function let(
         Config $config,
         Jwt $jwt,
@@ -45,7 +49,8 @@ class ManagerSpec extends ObjectBehavior
         Client $es,
         UserFactory $userFactory,
         Resolver $resolver,
-        EventsDispatcher $eventsDispatcher
+        EventsDispatcher $eventsDispatcher,
+        TokenCache $tokenCache
     ) {
         $this->config = $config;
         $this->jwt = $jwt;
@@ -54,6 +59,7 @@ class ManagerSpec extends ObjectBehavior
         $this->userFactory = $userFactory;
         $this->resolver = $resolver;
         $this->eventsDispatcher = $eventsDispatcher;
+        $this->tokenCache = $tokenCache;
 
         $this->config->get('email_confirmation')
             ->willReturn([
@@ -68,8 +74,7 @@ class ManagerSpec extends ObjectBehavior
                 ]
             ]);
 
-
-        $this->beConstructedWith($config, $jwt, $queue, $es, $userFactory, $resolver, $eventsDispatcher);
+        $this->beConstructedWith($config, $jwt, $queue, $es, $userFactory, $resolver, $eventsDispatcher, null, $tokenCache);
     }
 
     public function it_is_initializable()
@@ -110,9 +115,55 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
+        $this->tokenCache->setUser(Argument::any())
+            ->shouldBeCalledTimes(2)
+            ->willReturn($this->tokenCache);
+
+        $this->tokenCache->get()
+            ->shouldBeCalled()
+            ->willReturn(false);
+        
+        $this->tokenCache->set('~token~')
+            ->shouldBeCalled();
+        
         $user->save()
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->eventsDispatcher->trigger('confirmation_email', 'all', [
+            'user_guid' => '1000',
+            'cache' => false,
+        ])
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this
+            ->setUser($user)
+            ->shouldNotThrow(Exception::class)
+            ->duringSendEmail();
+    }
+
+    public function it_should_send_email_with_cached_key(
+        User $user
+    ) {
+        $user->isEmailConfirmed()
+            ->shouldBeCalled()
+            ->willReturn(false);
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $user->get('guid')
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $this->tokenCache->setUser(Argument::any())
+            ->shouldBeCalledTimes(1)
+            ->willReturn($this->tokenCache);
+
+        $this->tokenCache->get()
+            ->shouldBeCalled()
+            ->willReturn('~token2~');
 
         $this->eventsDispatcher->trigger('confirmation_email', 'all', [
             'user_guid' => '1000',

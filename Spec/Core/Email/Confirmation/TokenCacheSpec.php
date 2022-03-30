@@ -25,7 +25,8 @@ class TokenCacheSpec extends ObjectBehavior
         $this->shouldHaveType(TokenCache::class);
     }
 
-    public function it_should_get_a_token() {
+    public function it_should_get_a_token()
+    {
         $user = new User();
         $user->guid = '123';
         $this->setUser($user);
@@ -33,12 +34,14 @@ class TokenCacheSpec extends ObjectBehavior
         $this->get();
     }
 
-    public function it_should_throw_on_get_if_no_user_set() {
+    public function it_should_throw_on_get_if_no_user_set()
+    {
         $this->shouldThrow(ServerErrorException::class)->duringGet();
     }
 
 
-    public function it_should_set_a_token() {
+    public function it_should_set_a_token()
+    {
         $user = new User();
         $user->guid = '123';
         $this->setUser($user);
@@ -52,7 +55,8 @@ class TokenCacheSpec extends ObjectBehavior
         $this->set('ey123');
     }
 
-    public function it_should_throw_on_set_if_no_user_set() {
+    public function it_should_throw_on_set_if_no_user_set()
+    {
         $this->shouldThrow(ServerErrorException::class)->duringSet('123');
     }
 
