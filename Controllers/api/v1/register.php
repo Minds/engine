@@ -13,7 +13,7 @@ use Minds\Common\PseudonymousIdentifier;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
-use Minds\Helpers\StringLengthValidator;
+use Minds\Helpers\StringLengthValidators\UsernameLengthValidator;
 use Minds\Interfaces;
 
 class register implements Interfaces\Api, Interfaces\ApiIgnorePam
@@ -47,7 +47,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         // @throws StringLengthException
-        StringLengthValidator::validate('username', $_POST['username']);
+        (new UsernameLengthValidator())->validate($_POST['username']);
 
         try {
             $captcha = Core\Di\Di::_()->get('Captcha\Manager');

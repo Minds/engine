@@ -5,7 +5,9 @@ namespace Minds\Entities;
 use Minds\Common\ChannelMode;
 use Minds\Core;
 use Minds\Helpers;
-use Minds\Helpers\StringLengthValidator;
+use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
+
+// use Minds\Helpers\StringLengthValidator;
 
 /**
  * User Entity.
@@ -1092,7 +1094,7 @@ class User extends \ElggUser
         $export['toaster_notifications'] = $this->getToasterNotifications();
         $export['mode'] = $this->getMode();
 
-        $export['briefdescription'] = StringLengthValidator::validateMaxAndTrim('briefdescription', $export['briefdescription']);
+        $export['briefdescription'] = (new BriefDescriptionLengthValidator)->validateMaxAndTrim($export['briefdescription']);
 
         if (is_string($export['social_profiles'])) {
             $export['social_profiles'] = json_decode($export['social_profiles']);

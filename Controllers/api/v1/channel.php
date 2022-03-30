@@ -16,9 +16,7 @@ use Minds\Common\ChannelMode;
 use Minds\Core\Di\Di;
 use Minds\Core\Security\Block\BlockEntry;
 use ElggFile;
-use Minds\Exceptions\StringLengthException;
-use Minds\Exceptions\UserErrorException;
-use Minds\Helpers\StringLengthValidator;
+use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
 
 class channel implements Interfaces\Api
 {
@@ -301,8 +299,7 @@ class channel implements Interfaces\Api
                     }
                 }
 
-                StringLengthValidator::validate(
-                    'briefdescription',
+                (new BriefDescriptionLengthValidator())->validate(
                     $_POST['briefdescription'] ?? '',
                     nameOverride: 'bio'
                 );

@@ -18,7 +18,8 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Common\Urn;
-use Minds\Helpers\StringLengthValidator;
+use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
+use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
 
 class Manager
 {
@@ -70,7 +71,9 @@ class Manager
         $paywallDelegate = null,
         $metricsDelegate = null,
         $notificationsDelegate = null,
-        $entitiesBuilder = null
+        $entitiesBuilder = null,
+        private ?MessageLengthValidator $messageLengthValidator = null,
+        private ?TitleLengthValidator $titleLengthValidator = null
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -84,6 +87,8 @@ class Manager
         $this->metricsDelegate = $metricsDelegate ?? new Delegates\MetricsDelegate();
         $this->notificationsDelegate = $notificationsDelegate ?? new Delegates\NotificationsDelegate();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->messageLengthValidator = $messageLengthValidator ?? new MessageLengthValidator();
+        $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
     }
 
     /**
@@ -277,8 +282,8 @@ class Manager
     private function validateStringLengths(Activity $activity): bool
     {
         // @throws StringLengthException
-        StringLengthValidator::validate('message', $activity->getMessage() ?? '', nameOverride: 'post');
-        StringLengthValidator::validate('title', $activity->getTitle() ?? '');
+        $this->messageLengthValidator->validate($activity->getMessage() ?? '', nameOverride: 'post');
+        $this->titleLengthValidator->validate($activity->getTitle() ?? '');
         return true;
     }
 }
