@@ -311,6 +311,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn([
                 'user_guid' => '1000',
                 'code' => 'phpspec',
+                'exp' => new \DateTimeImmutable('+1 day')
             ]);
 
         $this->userFactory->build('1000', false)
@@ -393,6 +394,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn([
                 'user_guid' => '1000',
                 'code' => 'phpspec',
+                'exp' => new \DateTimeImmutable('+1 day')
             ]);
 
         $this->userFactory->build('1000', false)
@@ -420,6 +422,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn([
                 'user_guid' => '1000',
                 'code' => 'phpspec',
+                'exp' => new \DateTimeImmutable('+1 day')
             ]);
 
         $this->userFactory->build('1000', false)
@@ -451,6 +454,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn([
                 'user_guid' => '1000',
                 'code' => 'phpspec',
+                'exp' => new \DateTimeImmutable('+1 day')
             ]);
 
         $this->userFactory->build('1000', false)
