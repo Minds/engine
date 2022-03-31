@@ -75,7 +75,6 @@ class Manager
         $resolver = null,
         $eventsDispatcher = null,
         $kvLimiter = null,
-        private ?TokenCache $tokenCache = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->jwt = $jwt ?: new Jwt();
@@ -85,7 +84,6 @@ class Manager
         $this->resolver = $resolver ?: new Resolver();
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
-        $this->tokenCache = $tokenCache ?? Di::_()->get('Email\Confirmation\TokenCache');
     }
 
     /**
@@ -277,8 +275,10 @@ class Manager
      */
     private function generateConfirmationToken(): self
     {
-        // we don't need to generate a token if one already exists in the cache.
-        if ($this->tokenCache->setUser($this->user)->get()) {
+        $existingToken = $this->user->getEmailConfirmationToken();
+
+        // if existing token is valid, we do not need to generate a new one.
+        if ($existingToken && $this->isTokenValid($existingToken)) {
             return $this;
         }
 
@@ -298,8 +298,35 @@ class Manager
             ->setEmailConfirmationToken($token)
             ->save();
 
-        $this->tokenCache->setUser($this->user)->set($token);
-
         return $this;
+    }
+
+    /**
+     * Determine whether email confirmation token is valid.
+     * @param string $jwt - jwt string to check validity of.
+     * @return boolean true if token is valid.
+     */
+    private function isTokenValid(string $jwt): bool
+    {
+        try {
+            $config = $this->config->get('email_confirmation');
+
+            // @throws Exception if invalid jwt.
+            $confirmation = $this->jwt
+                ->setKey($config['signing_key'])
+                ->decode($jwt);
+
+            if (
+                !$confirmation ||
+                !$confirmation['user_guid'] ||
+                !$confirmation['code']
+            ) {
+                throw new Exception('Invalid JWT');
+            }
+
+            return $confirmation['exp'] > new \DateTime();
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }
