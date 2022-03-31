@@ -7,17 +7,33 @@ use Generator;
 use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Feeds\Elastic\ScoredGuid;
 use Minds\Core\Feeds\FeedSyncEntity;
+use Minds\Core\Recommendations\UserRecommendationsCluster;
+use Minds\Entities\User;
 
 class Manager
 {
+    private User $user;
+
     public function __construct(
         private ?Repository $repository = null,
-        private ?EntitiesBuilder $entitiesBuilder = null
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?UserRecommendationsCluster $userRecommendationsCluster = null
     ) {
         $this->repository ??= new Repository();
         $this->entitiesBuilder ??= new EntitiesBuilder();
+        $this->userRecommendationsCluster ??= new UserRecommendationsCluster();
+    }
+
+    /**
+     * Sets the user to
+     * @param User $user
+     * @return $this
+     */
+    public function setUser(User $user): self
+    {
+        $this->user = $user;
+        return $this;
     }
 
     /**
@@ -27,8 +43,7 @@ class Manager
      */
     public function getList(int $limit): Response
     {
-        // TODO: replace with call to calculate user's cluster_id
-        $clusterId = 1;
+        $clusterId = $this->userRecommendationsCluster->calculateUserRecommendationsClusterId($this->user);
 
         $entries = $this->repository->getList($clusterId, $limit);
         $feedSyncEntities = $this->prepareFeedSyncEntities($entries);
@@ -43,7 +58,7 @@ class Manager
     }
 
     /**
-     * @param Generator|ScoredGuid[] $entries
+     * @param Generator $entries
      * @return array
      * @throws Exception
      */

@@ -36,6 +36,8 @@ class Controller
 
         $limit = (int) $queryParams['limit'] ?? 12;
 
+        $this->manager->setUser($request->getAttribute('_user'));
+
         $results = $this->manager?->getList($limit);
 
         return $responseBuilder->successfulResponse($results);

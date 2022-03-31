@@ -16,7 +16,7 @@ class UserRecommendationsCluster
      * @var string[]
      */
     private const TAG_LIST = [
-        'art',
+        'art', // true
         'blockchain',
         'blog',
         'comedy',
@@ -33,13 +33,13 @@ class UserRecommendationsCluster
         'memes',
         'minds',
         'mindsth',
-        'music',
+        'music', // true
         'myphoto',
         'nature',
         'news',
         'nutrition',
         'outdoors',
-        'photography',
+        'photography', // true
         'poetry',
         'politics',
         'science',
@@ -181,7 +181,11 @@ class UserRecommendationsCluster
         $userVector = [];
         foreach (self::TAG_LIST as $i => $tag) {
             $userVector[$i] = 0.0;
-            if (isset($userTags[$tag]) && $userTags[$tag]['selected'] == true) {
+
+            $matchedEl = array_filter($userTags, function (array $tagEl, int $key) use ($tag): bool {
+                return $tagEl['value'] == $tag && $tagEl['selected'];
+            }, ARRAY_FILTER_USE_BOTH);
+            if (count($matchedEl)) {
                 $userVector[$i] = 1.0;
             }
         }
