@@ -74,7 +74,7 @@ class Manager
         $userFactory = null,
         $resolver = null,
         $eventsDispatcher = null,
-        $kvLimiter = null,
+        $kvLimiter = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->jwt = $jwt ?: new Jwt();
