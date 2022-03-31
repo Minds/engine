@@ -168,6 +168,10 @@ class Manager
             throw new Exception('Invalid JWT');
         }
 
+        if ($confirmation['exp'] < new \DateTime()) {
+            throw new Exception('Confirmation token expired');
+        }
+
         $user = $this->userFactory->build($confirmation['user_guid'], false);
 
         if (!$user || !$user->guid) {
