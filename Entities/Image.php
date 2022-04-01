@@ -13,6 +13,7 @@ use IOException;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Helpers;
+use Minds\Helpers\StringLengthValidators\DescriptionLengthValidator;
 
 /**
  * @property string $super_subtype
@@ -371,6 +372,8 @@ class Image extends File
         $export['thumbnail_src'] = $this->getIconUrl('xlarge');
         $export['thumbnail'] = $export['thumbnail_src'];
         $export['description'] = $this->description; //videos need to be able to export html.. sanitize soon!
+        $export['description'] = (new DescriptionLengthValidator())->validateMaxAndTrim($export['description']);
+
         $export['mature'] = $this->mature ?: $this->getFlag('mature');
         $export['rating'] = $this->getRating();
         $export['width'] = $this->width ?: 0;
