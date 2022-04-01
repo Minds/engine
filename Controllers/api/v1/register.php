@@ -13,6 +13,7 @@ use Minds\Common\PseudonymousIdentifier;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
+use Minds\Helpers\StringLengthValidators\UsernameLengthValidator;
 use Minds\Interfaces;
 
 class register implements Interfaces\Api, Interfaces\ApiIgnorePam
@@ -44,6 +45,9 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
         if (!$_POST['username'] || !$_POST['password'] || !$_POST['username'] || !$_POST['email']) {
             return Factory::response(['status' => 'error', 'message' => "Please fill out all the fields"]);
         }
+
+        // @throws StringLengthException
+        (new UsernameLengthValidator())->validate($_POST['username']);
 
         try {
             $captcha = Core\Di\Di::_()->get('Captcha\Manager');

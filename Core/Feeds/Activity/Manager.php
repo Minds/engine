@@ -18,6 +18,8 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Common\Urn;
+use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
+use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
 
 class Manager
 {
@@ -69,7 +71,9 @@ class Manager
         $paywallDelegate = null,
         $metricsDelegate = null,
         $notificationsDelegate = null,
-        $entitiesBuilder = null
+        $entitiesBuilder = null,
+        private ?MessageLengthValidator $messageLengthValidator = null,
+        private ?TitleLengthValidator $titleLengthValidator = null
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -83,6 +87,8 @@ class Manager
         $this->metricsDelegate = $metricsDelegate ?? new Delegates\MetricsDelegate();
         $this->notificationsDelegate = $notificationsDelegate ?? new Delegates\NotificationsDelegate();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->messageLengthValidator = $messageLengthValidator ?? new MessageLengthValidator();
+        $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
     }
 
     /**
@@ -92,6 +98,8 @@ class Manager
      */
     public function add(Activity $activity): bool
     {
+        $this->validateStringLengths($activity);
+
         // Ensure reminds & quoted posts inherit the NSFW settings
         // NOTE: this is not fool proof. If the original entity changes, we still
         // need to create a feature that will propogate these settings to its child derivatives.
@@ -155,6 +163,8 @@ class Manager
     public function update(EntityMutation $activityMutation): void
     {
         $activity = $activityMutation->getMutatedEntity();
+
+        $this->validateStringLengths($activity);
 
         if ($activity->type !== 'activity' && in_array($activity->subtype, [
             'video', 'image'
@@ -261,5 +271,19 @@ class Manager
     public function getByGuid(string $guid): ?Activity
     {
         return null;
+    }
+
+    /**
+     * Assert that the string lengths are within valid bounds.
+     * @param Activity $activity - activity to check.
+     * @throws StringLengthValidator - if the string lengths are invalid.
+     * @return boolean true if the string lengths are within valid bounds.
+     */
+    private function validateStringLengths(Activity $activity): bool
+    {
+        // @throws StringLengthException
+        $this->messageLengthValidator->validate($activity->getMessage() ?? '', nameOverride: 'post');
+        $this->titleLengthValidator->validate($activity->getTitle() ?? '');
+        return true;
     }
 }
