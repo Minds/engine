@@ -71,11 +71,11 @@ abstract class AbstractLengthValidator
      * @param string $target - target string to check / truncate.
      * @return string truncated string if required, or the original string if within the defined bounds.
      */
-    public function validateMaxAndTrim(string $target = ''): string
+    public function validateMaxAndTrim(?string $target = ''): string
     {
         return strlen($target) > $this->getMax() ?
             substr($target, 0, $this->getMax()).'...' :
-            $target;
+            $target ?? '';
     }
 
     /**
