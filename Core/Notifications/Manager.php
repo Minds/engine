@@ -5,6 +5,8 @@ use Minds\Entities\User;
 use Minds\Helpers\Counters;
 use Minds\Core\Comments;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Security\ACL;
 
 class Manager
 {
@@ -17,11 +19,18 @@ class Manager
     /** @var Delegates\NotificationsDelegateInterface[] */
     protected $delegates = [];
 
-    public function __construct(Repository $repository = null, Comments\Manager $commentsManager = null, array $delegates = [])
-    {
+    public function __construct(
+        Repository $repository = null,
+        Comments\Manager $commentsManager = null,
+        array $delegates = [],
+        private ?ACL $acl = null,
+        private ?EntitiesBuilder $entitiesBuilder = null
+    ) {
         $this->repository = $repository ?? new Repository();
         $this->commentsManager = $commentsManager ?? Di::_()->get('Comments\Manager');
         $this->delegates = $delegates;
+        $this->acl = $acl ?? Di::_()->get('Security\ACL');
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -69,6 +78,10 @@ class Manager
         foreach ($this->repository->getList($opts) as $tuple) {
             /** @var Notification */
             $notification = $tuple[0];
+
+            if (!$this->canShow($notification)) {
+                continue;
+            }
 
             if ($opts->getMerge()) {
                 // Was there a groupable notification above?
@@ -199,5 +212,19 @@ class Manager
             ];
         }
         return $this->delegates;
+    }
+
+    /**
+     * Determine whether notification can be shown based on whether an 
+     * ACL read on the sender is permitted.
+     * @param Notification $notification - notification to check.
+     * @return boolean - true if notification can be shown.
+     */
+    protected function canShow(?Notification $notification = null): bool
+    {
+        $sender = $this->entitiesBuilder->single(
+            $notification->getFromGuid()
+        );
+        return $sender && $this->acl->read($sender);
     }
 }
