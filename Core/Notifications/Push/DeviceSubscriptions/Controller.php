@@ -56,8 +56,10 @@ class Controller
             ->setService($service);
 
         $this->manager->add($deviceSubscription);
-        
-        return new JsonResponse([], 200);
+
+        return new JsonResponse([
+            'status' => 'success',
+        ], 200);
     }
 
     /**
@@ -82,6 +84,8 @@ class Controller
 
         $this->manager->delete($deviceSubscription);
 
-        return new JsonResponse([], 200);
+        return new JsonResponse([
+            'status' => 'success',
+        ], 200);
     }
 }
