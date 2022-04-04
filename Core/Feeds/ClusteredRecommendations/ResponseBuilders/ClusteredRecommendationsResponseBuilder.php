@@ -8,8 +8,16 @@ use Minds\Entities\ValidationErrorCollection;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 
+/**
+ * Class responsible to build responses for endpoint 'ap/v3/newsfeed/feed/clustered-recommendations'
+ */
 class ClusteredRecommendationsResponseBuilder
 {
+    /**
+     * Builds a successful response JSON object to return to the FE
+     * @param Response $results
+     * @return JsonResponse
+     */
     public function successfulResponse(Response $results): JsonResponse
     {
         return new JsonResponse([
@@ -20,6 +28,7 @@ class ClusteredRecommendationsResponseBuilder
     }
 
     /**
+     * Throws a Bad Request exception if request validation errors were found
      * @throws UserErrorException
      */
     public function throwBadRequestResponse(ValidationErrorCollection $errors): void
