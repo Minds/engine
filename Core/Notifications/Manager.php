@@ -215,7 +215,7 @@ class Manager
     }
 
     /**
-     * Determine whether notification can be shown based on whether an 
+     * Determine whether notification can be shown based on whether an
      * ACL read on the sender is permitted.
      * @param Notification $notification - notification to check.
      * @return boolean - true if notification can be shown.
