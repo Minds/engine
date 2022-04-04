@@ -11,6 +11,9 @@ use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Recommendations\UserRecommendationsCluster;
 use Minds\Entities\User;
 
+/**
+ *  Manager class to handle clustered recommendations feed's logic
+ */
 class Manager
 {
     private User $user;
@@ -26,7 +29,7 @@ class Manager
     }
 
     /**
-     * Sets the user to
+     * Sets the user
      * @param User $user
      * @return $this
      */
@@ -37,6 +40,7 @@ class Manager
     }
 
     /**
+     * Gets the list of entities based on the clustered recommendations ES index
      * @param int $limit
      * @return Response
      * @throws Exception
@@ -58,8 +62,9 @@ class Manager
     }
 
     /**
+     * Parses response from repository and return an array of FeedSyncEntities
      * @param Generator $entries
-     * @return array
+     * @return FeedSyncEntity[]
      * @throws Exception
      */
     private function prepareFeedSyncEntities(Generator $entries): array
@@ -87,8 +92,9 @@ class Manager
     }
 
     /**
+     * Prepares final array, hydrating the top 12 entities
      * @param FeedSyncEntity[] $feedSyncEntities
-     * @return array
+     * @return FeedSyncEntity[]
      */
     private function prepareEntities(array $feedSyncEntities): array
     {
@@ -119,6 +125,11 @@ class Manager
         return $entities;
     }
 
+    /**
+     * Gets the pagination token to return with the list of entities so that the FE knows if it should fetch more rows
+     * @param array $feedSyncEntities
+     * @return string
+     */
     private function getPaginationToken(array $feedSyncEntities): string
     {
         return (string) (

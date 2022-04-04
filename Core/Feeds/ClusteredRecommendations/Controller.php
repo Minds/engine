@@ -20,6 +20,7 @@ class Controller
     }
 
     /**
+     * Returns the feed entities, 404 Bad request otherwise
      * @param ServerRequestInterface $request
      * @return JsonResponse
      * @throws Exception
@@ -31,14 +32,14 @@ class Controller
         $queryParams = $request->getQueryParams();
 
         if (!$requestValidator->validate($queryParams)) {
-            $responseBuilder->badRequestResponse($requestValidator->getErrors());
+            $responseBuilder->throwBadRequestResponse($requestValidator->getErrors());
         }
 
         $limit = (int) $queryParams['limit'] ?? 12;
 
         $this->manager->setUser($request->getAttribute('_user'));
 
-        $results = $this->manager?->getList($limit);
+        $results = $this->manager->getList($limit);
 
         return $responseBuilder->successfulResponse($results);
     }

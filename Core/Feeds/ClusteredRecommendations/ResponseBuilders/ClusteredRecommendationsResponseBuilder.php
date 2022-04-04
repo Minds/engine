@@ -22,7 +22,7 @@ class ClusteredRecommendationsResponseBuilder
     /**
      * @throws UserErrorException
      */
-    public function badRequestResponse(ValidationErrorCollection $errors): void
+    public function throwBadRequestResponse(ValidationErrorCollection $errors): void
     {
         throw new UserErrorException(
             "Errors were encountered during the request validation",
