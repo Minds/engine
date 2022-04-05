@@ -24,6 +24,10 @@ class FeedsProvider extends Provider
             return new UnseenTopFeed\Manager();
         });
 
+        $this->di->bind('Feeds\ClusteredRecommendations\Manager', function ($di) {
+            return new ClusteredRecommendations\Manager();
+        });
+
         //
 
         $this->di->bind('Feeds\Controller', function ($di) {
@@ -40,6 +44,10 @@ class FeedsProvider extends Provider
 
         $this->di->bind('Feeds\UnseenTopFeed\Controller', function ($di) {
             return new UnseenTopFeed\Controller();
+        });
+
+        $this->di->bind('Feeds\ClusteredRecommendations\Controller', function ($di) {
+            return new ClusteredRecommendations\Controller();
         });
     }
 }
