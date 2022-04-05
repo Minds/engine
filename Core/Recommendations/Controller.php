@@ -37,7 +37,7 @@ class Controller
             return $responseBuilder->buildBadRequestResponse($requestValidator->getErrors());
         }
 
-        $response = $this->manager->getRecommendations($user, $request->getQueryParams()["location"]);
+        $response = $this->manager->getRecommendations($user, $request->getQueryParams()["location"], $request->getQueryParams());
 
         return $responseBuilder->buildSuccessfulResponse($response);
     }

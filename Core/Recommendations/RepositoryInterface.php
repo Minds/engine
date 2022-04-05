@@ -3,6 +3,7 @@
 namespace Minds\Core\Recommendations;
 
 use Minds\Common\Repository\Response;
+use Minds\Exceptions\UserErrorException;
 
 interface RepositoryInterface
 {
