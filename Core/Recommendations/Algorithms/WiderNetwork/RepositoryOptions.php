@@ -1,6 +1,6 @@
 <?php
 
-namespace Minds\Core\Recommendations;
+namespace Minds\Core\Recommendations\Algorithms\WiderNetwork;
 
 use Minds\Traits\MagicAttributes;
 
