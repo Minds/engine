@@ -32,16 +32,20 @@ class UserRecommendationsClusterSpec extends ObjectBehavior
             ->get(Argument::type("array"))
             ->shouldBeCalledOnce()
             ->willReturn([
-                "minds" => [
+                [
+                    'value' => "minds",
                     'selected' => true
                 ],
-                "news" => [
+                [
+                    'value' => "news",
                     'selected' => true
                 ],
-                "photography" => [
+                [
+                    'value' => "photography",
                     'selected' => true
                 ],
-                "technology" => [
+                [
+                    'value' => "technology",
                     'selected' => true
                 ]
             ]);
