@@ -22,7 +22,7 @@ abstract class AbstractRecommendationsAlgorithm implements RecommendationsAlgori
      */
     public function getFriendlyName(): string
     {
-        return self::FRIENDLY_ALGORITHM_NAME;
+        return static::FRIENDLY_ALGORITHM_NAME;
     }
 
     /**

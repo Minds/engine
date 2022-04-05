@@ -46,10 +46,17 @@ class RepositoryOptionsValidator implements ValidatorInterface
             ));
         }
 
-        if ($dataToValidate['mostRecentSubscriptionUserGuid'] && !is_numeric($dataToValidate['mostRecentSubscriptionUserGuid'])) {
+        if (!$dataToValidate['currentChannelUserGuid'] || !is_numeric($dataToValidate['currentChannelUserGuid'])) {
+            $this->errors->add(new ValidationError(
+                "currentChannelUserGuid",
+                "You must provide a valid guid for the current channel's user guid"
+            ));
+        }
+
+        if ($dataToValidate['mostRecentSubscriptions'] && !is_array($dataToValidate['mostRecentSubscriptions'])) {
             $this->errors->add(new ValidationError(
                 "mostRecentSubscriptionUserGuid",
-                "You must provide a valid guid for the most recent subscription's user guid"
+                "You must provide a valid list of guid representing the most recent subscriptions for the target user"
             ));
         }
 

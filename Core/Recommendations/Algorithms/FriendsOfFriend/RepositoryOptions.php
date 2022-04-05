@@ -2,17 +2,18 @@
 
 namespace Minds\Core\Recommendations\Algorithms\FriendsOfFriend;
 
-use Minds\Entities\ValidationError;
 use Minds\Traits\MagicAttributes;
 
 /**
  * Represents the options for a recommendations repository
  * @method int getLimit()
- * @method int setLimit(int $limit)
+ * @method self setLimit(int $limit)
  * @method string getTargetUserGuid()
- * @method string setTargetUserGuid(string $targetUserGuid)
- * @method string getMostRecentSubscriptionUserGuid()
- * @method string setMostRecentSubscriptionUserGuid(string $targetUserGuid)
+ * @method self setTargetUserGuid(string $targetUserGuid)
+ * @method string getCurrentChannelUserGuid()
+ * @method self setCurrentChannelUserGuid(string $currentChannelUserGuid)
+ * @method array getMostRecentSubscriptions()
+ * @method self setMostRecentSubscriptions(string[] $mostRecentSubscriptions)
  */
 class RepositoryOptions
 {
@@ -34,9 +35,14 @@ class RepositoryOptions
     private string $targetUserGuid;
 
     /**
-     * @var string|null User guid of the latest subscription made by the target user
+     * @var string|null User guid of the channel currently visited by the target user
      */
-    private ?string $mostRecentSubscriptionUserGuid = null;
+    private ?string $currentChannelUserGuid = null;
+
+    /**
+     * @var string[]|null User guids of the most recent subscriptions made by the target user
+     */
+    private ?array $mostRecentSubscriptions = null;
 
     public function __construct(array $options = [])
     {
