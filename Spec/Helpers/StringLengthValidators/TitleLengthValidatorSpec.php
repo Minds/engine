@@ -62,6 +62,28 @@ class TitleLengthValidatorSpec extends ObjectBehavior
         );
     }
 
+    public function it_should_NOT_trim_an_empty_string()
+    {
+        $testString = '';
+
+        $this->validateMaxAndTrim(
+            $testString
+        )->shouldReturn(
+            $testString
+        );
+    }
+
+    public function it_should_NOT_trim_a_null_string()
+    {
+        $testString = null;
+
+        $this->validateMaxAndTrim(
+            $testString
+        )->shouldReturn(
+            ''
+        );
+    }
+
     public function it_should_get_max_bound()
     {
         $this->getMax()->shouldReturn(2000);
