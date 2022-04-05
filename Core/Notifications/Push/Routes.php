@@ -2,9 +2,10 @@
 namespace Minds\Core\Notifications\Push;
 
 use Minds\Core\Di\Ref;
+use Minds\Core\Router\Middleware\AdminMiddleware;
+use Minds\Core\Router\Middleware\LoggedInMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
-use Minds\Core\Router\Middleware\LoggedInMiddleware;
 
 /**
  * Notifications Routes
@@ -39,6 +40,19 @@ class Routes extends ModuleRoutes
                 $route->post(
                     'settings/:notificationGroup',
                     Ref::_('Notifications\Push\Settings\Controller', 'toggle')
+                );
+            })
+            ->withMiddleware([
+                AdminMiddleware::class
+            ])
+            ->do(function (Route $route) {
+                $route->put(
+                    'system',
+                    Ref::_('Notifications\Push\System\Controller', 'schedule')
+                );
+                $route->get(
+                    'system',
+                    Ref::_('Notifications\Push\System\Controller', 'getHistory')
                 );
             });
     }

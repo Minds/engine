@@ -1726,3 +1726,15 @@ CREATE TABLE minds.user_quality_scores
     score     float,
     PRIMARY KEY (user_id, timestamp)
 ) WITH CLUSTERING ORDER BY (timestamp DESC);
+
+CREATE TABLE minds.system_push_notifications
+(
+    author_guid bigint,
+    timestamp timestamp,
+    title text,
+    message text,
+    url text,
+    counter int,
+    status int,
+    PRIMARY KEY ( author_guid, timestamp )
+) WITH CLUSTERING ORDER BY (timestamp DESC);
