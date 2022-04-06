@@ -24,7 +24,7 @@ use Minds\Traits\MagicAttributes;
  * @method string getUrn()
  * @method FeedSyncEntity setUrn(string $urn)
  * @method Entity getEntity()
- * @method void setEntity(Entity $entity)
+ * @method FeedSyncEntity setEntity(Entity $entity)
  */
 class FeedSyncEntity implements JsonSerializable
 {

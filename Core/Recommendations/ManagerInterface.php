@@ -11,7 +11,8 @@ interface ManagerInterface
      * Retrieves the recommendations based on the location provided
      * @param User|null $user
      * @param string $location
+     * @param array|null $options
      * @return Response
      */
-    public function getRecommendations(?User $user, string $location): Response;
+    public function getRecommendations(?User $user, string $location, ?array $options = []): Response;
 }
