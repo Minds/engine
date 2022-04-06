@@ -50,11 +50,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
         (new UsernameLengthValidator())->validate($_POST['username']);
 
         try {
-            $captcha = Core\Di\Di::_()->get('Captcha\Manager');
-            
-            if (isset($_POST['captcha']) && !$captcha->verifyFromClientJson($_POST['captcha'])) {
-                throw new \Exception('Captcha failed');
-            }
+            $this->checkCaptcha($_POST['captcha']);
 
             $ipHashVerify = Core\Di\Di::_()->get('Security\SpamBlocks\IPHash');
             if (!$ipHashVerify->isValid($_SERVER['HTTP_X_FORWARDED_FOR'])) {
@@ -168,5 +164,28 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
 
     public function delete($pages)
     {
+    }
+
+    /**
+     * Check CAPTCHA code is valid.
+     * @throws Exception - if FriendlyCaptcha is not enabled and CAPTCHA invalid.
+     * @throws SolutionAlreadySeenException - If FriendlyCaptcha is enabled and individual solution has already been seen.
+     * @throws PuzzleReusedException - If FriendlyCaptcha is enabled and if proposed puzzle solution has been reused.
+     * @throws InvalidSolutionException - If FriendlyCaptcha is enabled and if solution is invalid.
+     * @param string $captcha - captcha to check.
+     * @return bool - true if captcha is valid. Will throw if invalid.
+     */
+    private function checkCaptcha(string $captcha): bool
+    {
+        if (Di::_()->get('Experiments\Manager')->isOn('friendly-captcha')) {
+            $friendlyCaptchaManager = Di::_()->get('FriendlyCaptcha\Manager');
+            return $friendlyCaptchaManager->verify($captcha);
+        }
+        $captcha = Core\Di\Di::_()->get('Captcha\Manager');
+        
+        if (isset($_POST['captcha']) && !$captcha->verifyFromClientJson($_POST['captcha'])) {
+            throw new \Exception('Captcha failed');
+        }
+        return true;
     }
 }
