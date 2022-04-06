@@ -177,7 +177,7 @@ class Manager
                 if (!$this->fcmService) {
                     $this->fcmService = new Services\FcmService();
                 }
-                return $this->fcmService;;
+                return $this->fcmService;
             case DeviceSubscription::SERVICE_WEBPUSH:
                 if (!$this->webPushService) {
                     $this->webPushService = new Services\WebPushService();
