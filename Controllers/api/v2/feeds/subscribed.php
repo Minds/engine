@@ -70,9 +70,9 @@ class subscribed implements Interfaces\Api
             ]);
         }
 
-        //
-
         $sync = (bool) ($_GET['sync'] ?? false);
+
+        $countOnly = (bool) ($_GET['count'] ?? false);
 
         $fromTimestamp = $_GET['from_timestamp'] ?? 0;
 
@@ -116,7 +116,8 @@ class subscribed implements Interfaces\Api
             'nsfw' => $nsfw,
             'single_owner_threshold' => 0,
             'portrait' => isset($_GET['portrait']),
-            'hide_own_posts' => isset($_GET['hide_own_posts'])
+            'hide_own_posts' => isset($_GET['hide_own_posts']),
+            'reverse_sort' => $countOnly,
         ];
 
         $opts['include_group_posts'] = (bool) $_GET['include_group_posts'] ?? false;
@@ -132,6 +133,15 @@ class subscribed implements Interfaces\Api
         }
 
         try {
+            if ($countOnly) {
+                $count = $manager->getCount($opts);
+
+                return Factory::response([
+                    'status' => 'success',
+                    'count' => $count
+                ]);
+            }
+
             $result = $manager->getList($opts);
 
             if (!$sync) {
