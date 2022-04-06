@@ -53,7 +53,7 @@ class RepositoryOptionsValidator implements ValidatorInterface
             ));
         }
 
-        if ($dataToValidate['mostRecentSubscriptions'] && !is_array($dataToValidate['mostRecentSubscriptions'])) {
+        if (!empty($dataToValidate['mostRecentSubscriptions']) && !is_array($dataToValidate['mostRecentSubscriptions'])) {
             $this->errors->add(new ValidationError(
                 "mostRecentSubscriptionUserGuid",
                 "You must provide a valid list of guid representing the most recent subscriptions for the target user"

@@ -58,6 +58,9 @@ class RepositoryOptions
     {
         foreach ($options as $option => $value) {
             if (property_exists($this, $option)) {
+                if ($option == "mostRecentSubscriptions" && empty($value)) {
+                    $value = [];
+                }
                 $this->{$option} = $value;
             }
         }
