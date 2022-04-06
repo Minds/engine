@@ -63,7 +63,7 @@ class Repository
             return null;
         }
 
-        $statement = "SELECT * FROM moderation_reports_by_state
+        $statement = "SELECT * FROM moderation_reports
             WHERE state = ?";
 
         $values = [
@@ -184,7 +184,7 @@ class Repository
             'juryType' => 'reported',
         ], $opts);
 
-        $statement = "SELECT COUNT(*) FROM moderation_reports_by_state
+        $statement = "SELECT COUNT(*) FROM moderation_reports
             WHERE state = ?";
 
         $values = [

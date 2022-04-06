@@ -1492,6 +1492,8 @@ CREATE TABLE minds.moderation_reports (
     PRIMARY KEY (entity_urn, reason_code, sub_reason_code, timestamp)
 ) WITH CLUSTERING ORDER BY (reason_code ASC, sub_reason_code ASC, timestamp DESC);
 
+CREATE INDEX moderation_reports_state_idx ON minds.moderation_reports (state);
+
 CREATE MATERIALIZED VIEW minds.moderation_reports_by_entity_owner_guid AS
     SELECT *
     FROM minds.moderation_reports
