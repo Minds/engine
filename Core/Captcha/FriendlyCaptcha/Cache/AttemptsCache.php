@@ -12,8 +12,8 @@ class AttemptsCache
     // Base for cache key.
     const CACHE_KEY_BASE = 'friendly-captcha-attempts:%s';
 
-    // Storage time in whole seconds - 5 minutes.
-    const CACHE_TIME_SECONDS = 300;
+    // Storage time in whole seconds - 1 hour.
+    const CACHE_TIME_SECONDS = 3600;
 
     /**
      * Constructor.

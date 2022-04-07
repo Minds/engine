@@ -169,10 +169,9 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
 
     /**
      * Check CAPTCHA code is valid.
-     * @throws Exception - if FriendlyCaptcha is not enabled and CAPTCHA invalid.
      * @throws SolutionAlreadySeenException - If FriendlyCaptcha is enabled and individual solution has already been seen.
      * @throws PuzzleReusedException - If FriendlyCaptcha is enabled and if proposed puzzle solution has been reused.
-     * @throws InvalidSolutionException - If FriendlyCaptcha is enabled and if solution is invalid.
+     * @throws InvalidSolutionException - If solution is invalid.
      * @param string $captcha - captcha to check.
      * @return bool - true if captcha is valid. Will throw if invalid.
      */

@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Captcha\FriendlyCaptcha;
 
+use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\InvalidSolutionException;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\ServerRequest;
@@ -67,6 +68,6 @@ class Controller
             ]);
         }
 
-        throw new UserErrorException('Invalid CAPTCHA solution');
+        throw new InvalidSolutionException();
     }
 }

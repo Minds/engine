@@ -24,7 +24,7 @@ class PuzzleSolution
      * PuzzleSolution constructor.
      * @param $solution - proposed solution to puzzle.
      * @param ?PuzzleSigner $puzzleSigner - signer for puzzle.
-     * @throws InvalidSolutionException - if proposed encrypted solution string
+     * @throws InvalidSolutionException - if proposed encrypted solution string.
      * does cannot be parsed to yield puzzle and solutions.
      */
     public function __construct(
