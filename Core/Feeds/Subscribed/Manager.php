@@ -5,13 +5,13 @@ namespace Minds\Core\Feeds\Subscribed;
 use Exception;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Feeds\Elastic\Manager as ElasticSearchManager;
+use Minds\Core\Feeds\Elastic;
 use Minds\Entities\User;
 
 class Manager
 {
     public function __construct(
-        private ?ElasticSearchManager $elasticSearchManager = null
+        private ?Elastic\Manager $feedsElasticManager = null
     ) {
         $this->feedsElasticManager = $this->feedsElasticManager ?? Di::_()->get("Feeds\Elastic\Manager");
     }
