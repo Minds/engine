@@ -6,7 +6,9 @@ use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\MisconfigurationException;
 use Minds\Traits\MagicAttributes;
 
 /**
- * DifficultyLevel - used to calculate difficulty level of puzzle.
+ * DifficultyLevel - used to calculate the difficulty level of puzzle.
+ * Can be scaled using the DIFFICULTY_SCALING such that the more attempts
+ * made, the harder the puzzle gets to solve.
  * @method int getSolutions()
  * @method DifficultyLevel setSolutions(int $solutions)
  * @method int getDifficulty()
