@@ -42,6 +42,8 @@ class subscribed implements Interfaces\Api
                 break;
         }
 
+        //
+
         $hardLimit = 5000;
         $offset = 0;
 
@@ -70,7 +72,7 @@ class subscribed implements Interfaces\Api
 
         $sync = (bool) ($_GET['sync'] ?? false);
 
-        $justCount = (bool) ($_GET['count'] ?? false);
+        $countOnly = (bool) ($_GET['count'] ?? false);
 
         $fromTimestamp = $_GET['from_timestamp'] ?? 0;
 
@@ -115,7 +117,7 @@ class subscribed implements Interfaces\Api
             'single_owner_threshold' => 0,
             'portrait' => isset($_GET['portrait']),
             'hide_own_posts' => isset($_GET['hide_own_posts']),
-            'reverse_sort' => $justCount,
+            'reverse_sort' => $countOnly,
         ];
 
         $opts['include_group_posts'] = (bool) $_GET['include_group_posts'] ?? false;
@@ -131,14 +133,12 @@ class subscribed implements Interfaces\Api
         }
 
         try {
-            if ($justCount) {
+            if ($countOnly) {
                 $count = $manager->getCount($opts);
 
                 return Factory::response([
                     'status' => 'success',
-                    'count' => $count,
-                    'entities' => [],
-                    'load-next' => null,
+                    'count' => $count
                 ]);
             }
 
@@ -157,7 +157,6 @@ class subscribed implements Interfaces\Api
 
             return Factory::response([
                 'status' => 'success',
-                'count' => null,
                 'entities' => Exportable::_($result),
                 'load-next' => $result->getPagingToken(),
             ]);
