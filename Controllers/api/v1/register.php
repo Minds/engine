@@ -185,9 +185,9 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             }
             return true;
         }
-        $captcha = Core\Di\Di::_()->get('Captcha\Manager');
+        $captchaManager = Core\Di\Di::_()->get('Captcha\Manager');
         
-        if (!$captcha->verifyFromClientJson($captcha)) {
+        if (!$captchaManager->verifyFromClientJson($captcha)) {
             throw new InvalidSolutionException('Captcha failed');
         }
         return true;
