@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Captcha\FriendlyCaptcha;
 
+use Minds\Core\Captcha\BypassManager;
 use Minds\Core\Di\Di;
 use Minds\Core\Captcha\FriendlyCaptcha\Cache\AttemptsCache;
 use Minds\Core\Captcha\FriendlyCaptcha\Cache\PuzzleCache;
@@ -26,10 +27,12 @@ class Manager
         private ?AttemptsCache $attemptsCache = null,
         private ?PuzzleCache $puzzleCache = null,
         private ?PuzzleSigner $puzzleSigner = null,
+        private ?BypassManager $bypassManager = null
     ) {
         $this->attemptsCache ??= Di::_()->get('FriendlyCaptcha\AttemptsCache');
         $this->puzzleCache ??= Di::_()->get('FriendlyCaptcha\PuzzleCache');
         $this->puzzleSigner ??= new PuzzleSigner();
+        $this->bypassManager ??= new BypassManager();
     }
 
     /**
@@ -62,6 +65,10 @@ class Manager
      */
     public function verify(string $solution): bool
     {
+        if (isset($_COOKIE['captcha_bypass'])) {
+            return $this->bypassManager->verify($solution);
+        }
+
         $puzzleSolution = new PuzzleSolution($solution);
 
         $puzzle = $puzzleSolution->getPuzzle();

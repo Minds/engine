@@ -11,6 +11,7 @@ namespace Minds\Controllers\api\v1;
 use Minds\Api\Factory;
 use Minds\Common\PseudonymousIdentifier;
 use Minds\Core;
+use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\InvalidSolutionException;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Helpers\StringLengthValidators\UsernameLengthValidator;
@@ -177,14 +178,17 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     private function checkCaptcha(string $captcha): bool
     {
-        if (Di::_()->get('Experiments\Manager')->isOn('friendly-captcha')) {
+        if ($captcha === 'friendly_captcha_bypass' && Di::_()->get('Experiments\Manager')->isOn('friendly-captcha')) {
             $friendlyCaptchaManager = Di::_()->get('FriendlyCaptcha\Manager');
-            return $friendlyCaptchaManager->verify($captcha);
+            if ($friendlyCaptchaManager->verify($captcha)) {
+                throw new InvalidSolutionException('Captcha failed');
+            }
+            return true;
         }
         $captcha = Core\Di\Di::_()->get('Captcha\Manager');
         
-        if (isset($_POST['captcha']) && !$captcha->verifyFromClientJson($_POST['captcha'])) {
-            throw new \Exception('Captcha failed');
+        if (!$captcha->verifyFromClientJson($captcha)) {
+            throw new InvalidSolutionException('Captcha failed');
         }
         return true;
     }
