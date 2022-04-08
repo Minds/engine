@@ -19,6 +19,12 @@ class DifficultyLevel
 {
     use MagicAttributes;
 
+    /** @var int amount of solutions */
+    private $solutions;
+
+    /** @var int difficulty as int */
+    private $difficulty;
+
     // scaling for puzzle difficulty in format 'attempts => [int solutions, int difficulty]'.
     const DIFFICULTY_SCALING = [
         0 => ['solutions' => 51, 'difficulty' => 122],
@@ -44,7 +50,7 @@ class DifficultyLevel
     private function init(): void
     {
         foreach (array_reverse(self::DIFFICULTY_SCALING, true) as $attemptsThreshold => $scale) {
-            if ($this->attempts > $attemptsThreshold) {
+            if ($this->attempts >= $attemptsThreshold) {
                 $this->setSolutions($scale['solutions']);
                 $this->setDifficulty($scale['difficulty']);
                 break;

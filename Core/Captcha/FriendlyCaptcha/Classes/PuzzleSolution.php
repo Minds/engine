@@ -9,7 +9,6 @@ use Minds\Traits\MagicAttributes;
 /**
  * PuzzleSolution - holds a solution to a puzzle.
  * @method Puzzle getPuzzle()
- * @method self setPuzzle(Puzzle $puzzle)
  * @method self setExtractedSolutions(string $solutions)
  * @method self setDiagnostics(string $diagnostics)
  * @method string getDiagnostics()
@@ -30,12 +29,15 @@ class PuzzleSolution
     public function __construct(
         $solution = null,
         private ?PuzzleSigner $puzzleSigner = null,
+        private ?Puzzle $puzzle = null,
     ) {
         $this->puzzleSigner ??= new PuzzleSigner();
+        $this->puzzle ??= new Puzzle();
 
         [$signature, $buffer, $solutions, $diagnostics] = explode('.', $solution);
 
-        $this->setPuzzle(Puzzle::fromSolution($signature, $buffer));
+        $this->puzzle->initFromSolution($signature, $buffer);
+
         $this->setExtractedSolutions($solutions);
 
         if ($diagnostics) {
@@ -43,7 +45,7 @@ class PuzzleSolution
         }
     
         if (
-            !$this->getPuzzle() ||
+            !$this->puzzle ||
             !$this->extractedSolutions
         ) {
             throw new InvalidSolutionException('Unable to parse solution');
@@ -72,7 +74,7 @@ class PuzzleSolution
      */
     public function countSolutions(): int
     {
-        return hexdec(Helpers::extractHexBytes($this->getPuzzle()->as('hex'), 14, 1));
+        return hexdec(Helpers::extractHexBytes($this->puzzle->as('hex'), 14, 1));
     }
 
     /**
@@ -86,7 +88,7 @@ class PuzzleSolution
         /** @throws SignatureMismatchException **/
         $this->puzzleSigner->verify($this);
 
-        $puzzle = $this->getPuzzle();
+        $puzzle = $this->puzzle;
         $puzzleHex = $puzzle->as('hex');
 
         $puzzle->checkHasExpired($puzzleHex);

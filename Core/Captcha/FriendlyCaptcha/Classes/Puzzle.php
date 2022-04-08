@@ -53,19 +53,16 @@ class Puzzle
     }
 
     /**
-     * Statically construct a puzzle from a solutions signature and buffer.
+     * Construct a puzzle from a solutions signature and buffer.
      * @param string $signature - signature of puzzle.
      * @param string $buffer - buffer of puzzle.
-     * @return self
+     * @return void
      */
-    public static function fromSolution(string $signature, string $buffer): self
+    public function initFromSolution(string $signature, string $buffer): self
     {
-        $puzzle = new self();
-
-        $puzzle->setSignature($signature);
-        $puzzle->setBuffer(base64_decode($buffer, true));
-
-        return $puzzle;
+        $this->setSignature($signature);
+        $this->setBuffer(base64_decode($buffer, true));
+        return $this;
     }
 
     /**
@@ -132,7 +129,7 @@ class Puzzle
      * @throws PuzzleExpiredException - exception thrown if puzzle has expired.
      * @return self
      */
-    private function checkHasExpired(string $puzzleHex): self
+    public function checkHasExpired(string $puzzleHex): self
     {
         $time = hexdec(Helpers::extractHexBytes($puzzleHex, 0, 4));
         $expiry = hexdec(Helpers::extractHexBytes($puzzleHex, 13, 1));
