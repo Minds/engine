@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Captcha\FriendlyCaptcha\Cache;
 
+use Minds\Common\IpAddress;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 
@@ -12,17 +13,20 @@ class AttemptsCache
     // Base for cache key.
     const CACHE_KEY_BASE = 'friendly-captcha-attempts:%s';
 
-    // Storage time in whole seconds - 1 hour.
-    const CACHE_TIME_SECONDS = 3600;
+    // Storage time in whole seconds - 1 day.
+    const CACHE_TIME_SECONDS = 86400;
 
     /**
      * Constructor.
      * @param ?PsrWrapper $cache - PsrWrapper around cache.
+     * @param ?IpAddress $ipAddress - Helper used to get IP hash.
      */
     public function __construct(
         private ?PsrWrapper $cache = null,
+        private ?IpAddress $ipAddress = null
     ) {
-        $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
+        $this->cache ??= Di::_()->get('Cache\PsrWrapper');
+        $this->ipAddress ??= new IpAddress();
     }
 
     /**
@@ -43,7 +47,7 @@ class AttemptsCache
     public function increment(): self
     {
         $cacheKey = $this->getCacheKey();
-        $count = $this->cache->get($cacheKey);
+        $count = $this->getCount();
 
         if ($count > 0) {
             $this->cache->set(
@@ -68,29 +72,6 @@ class AttemptsCache
      */
     private function getCacheKey(): string
     {
-        return sprintf(self::CACHE_KEY_BASE, $this->getIpHash());
-    }
-
-    /**
-     * Gets IP hash from server super-global.
-     * @return string - hash of ip.
-     */
-    private function getIpHash(): string
-    {
-        $ip = null;
-
-        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-            $ip = $_SERVER['HTTP_CLIENT_IP'];
-        }
-        //whether ip is from proxy
-        elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        }
-        //whether ip is from remote address
-        else {
-            $ip = $_SERVER['REMOTE_ADDR'];
-        }
-
-        return hash('sha256', $ip);
+        return sprintf(self::CACHE_KEY_BASE, $this->ipAddress->getHash());
     }
 }

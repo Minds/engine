@@ -13,8 +13,9 @@ class PuzzleCache
     // Base for cache key.
     const CACHE_KEY_BASE = 'friendly-captcha-puzzle:%s';
 
-    // Storage time in whole seconds - 6 months.
-    const CACHE_TIME_SECONDS = 15778476;
+    // Storage time in whole seconds - 2 weeks.
+    const CACHE_TIME_SECONDS = 1209600;
+
     /**
      * Constructor.
      * @param ?PsrWrapper $cache - PsrWrapper around cache.
@@ -46,7 +47,8 @@ class PuzzleCache
     {
         $this->cache->set(
             $this->getCacheKey($puzzle),
-            1
+            1,
+            self::CACHE_TIME_SECONDS
         );
         return $this;
     }

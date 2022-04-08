@@ -12,7 +12,8 @@ use Zend\Diactoros\Response\JsonResponse;
  */
 class Controller
 {
-    const DEBUG = false; // TODO: Disable
+    /** @var boolean */
+    const DEBUG = false; // TODO: Keep disabled
 
     /**
      * Controller constructor.

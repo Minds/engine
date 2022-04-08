@@ -177,7 +177,8 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     private function checkCaptcha(string $captcha): bool
     {
-        if (Di::_()->get('Experiments\Manager')->isOn('friendly-captcha')) {
+        // will exclude mobile.
+        if (!isset($_SERVER['HTTP_APP_VERSION']) && Di::_()->get('Experiments\Manager')->isOn('friendly-captcha')) {
             $friendlyCaptchaManager = Di::_()->get('FriendlyCaptcha\Manager');
             if (!$friendlyCaptchaManager->verify($captcha)) {
                 throw new InvalidSolutionException('Captcha failed');
