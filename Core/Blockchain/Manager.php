@@ -93,7 +93,8 @@ class Manager
                 'polygon_contracts_mumbai' => (new POLYGON\PolygonContractAddressesMumbai())->getContracts(), 
                 'polygon_contracts_mainnet' => (new POLYGON\PolygonContractAddressMainnet())->getContracts(),
                 'polygon_rpc_provider' => (new POLYGON\PolygonRPCProvider())->getProvider(),
-                'mainnet_rpc_provider' => (new POLYGON\MainnetRPCProvider())->getProvider()
+                'mainnet_rpc_provider' => (new POLYGON\MainnetRPCProvider())->getProvider(),
+                'constants' => (new POLYGON\PolygonServiceConstants())->getConstants()
             ], 
             'overrides' => $this->getOverrides(),
             'withdraw_limit' => $blockchainConfig['contracts']['withdraw']['limit'] ?? 1,
