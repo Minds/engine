@@ -144,7 +144,7 @@ class Controller
         }
 
         $exportedList = array_values(array_filter(Exportable::_($notifications)->export(), function ($notification) {
-            if (!isset($notification['entity'])) {
+            if (!isset($notification['entity']) && $notification['type'] !== 'wire_received') {
                 return false; // TODO: Delete this notification as the entity is invalid
             }
             if (!isset($notification['from'])) {

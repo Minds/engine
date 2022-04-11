@@ -181,8 +181,8 @@ class Repository
             'receiver_guid' => $receiverGuid,
             'method' => $method,
             'timestamp' => [
-                'gte' => floor($timestamp / 1000),
-                'lte' => ceil($timestamp / 1000)
+                'gte' => $timestamp,
+                'lte' => $timestamp
             ],
         ]);
 
