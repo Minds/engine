@@ -36,6 +36,7 @@ class Manager
             'algorithm' => 'latest',
             'period' => '1y',
             'reverse_sort' => true,
+            'hide_own_posts' => true,
             // 'sync' => $sync,
             // 'custom_type' => $custom_type,
             // 'query' => $query ?? null,
@@ -43,7 +44,6 @@ class Manager
             // 'single_owner_threshold' => 0,
             // 'portrait' => isset($_GET['portrait']),
             // 'include_group_posts' => isset($_GET['include_group_posts']),
-            // 'hide_own_posts' => isset($_GET['hide_own_posts']),
         ];
 
         return $this->feedsElasticManager->getCount($opts);
