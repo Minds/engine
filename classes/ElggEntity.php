@@ -1,6 +1,8 @@
 <?php
 
 use Minds\Entities\EntityInterface;
+use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
+use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
 
 /**
  * The parent class for all Elgg Entities.
@@ -1444,6 +1446,14 @@ abstract class ElggEntity extends ElggData implements
         $export['nsfw_lock'] = $this->getNsfwLock();
         $export['urn'] = $this->getUrn();
         $export['allow_comments'] = $this->getAllowComments();
+
+        if (isset($export['title'])) {
+            $export['title'] = (new TitleLengthValidator())->validateMaxAndTrim($export['title']);
+        }
+        if (isset($export['message'])) {
+            $export['message'] = (new MessageLengthValidator())->validateMaxAndTrim($export['message']);
+        }
+
         return $export;
     }
 

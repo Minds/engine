@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\SocialCompass;
 
+use Minds\Core\SocialCompass\Delegates\ActionDelegateManager;
 use Minds\Core\SocialCompass\Manager;
 use Minds\Core\SocialCompass\Questions\BannedMisinformationQuestion;
 use Minds\Core\SocialCompass\RepositoryInterface;
@@ -24,7 +25,8 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_retrieve_social_compass_questions_with_active_user(
         RepositoryInterface $repository,
-        User $targetUserMock
+        User $targetUserMock,
+        ActionDelegateManager $actionDelegateManager
     ) {
         $targetUserMock
             ->getGuid()
@@ -36,7 +38,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([]);
 
-        $this->beConstructedWith($repository, $targetUserMock);
+        $this->beConstructedWith($repository, $targetUserMock, $actionDelegateManager);
 
         $this
             ->retrieveSocialCompassQuestions()["questions"]
@@ -59,7 +61,8 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_store_social_compass_answers(
         RepositoryInterface $repository,
-        User $targetUserMock
+        User $targetUserMock,
+        ActionDelegateManager $actionDelegateManager
     ) {
         $targetUserMock
             ->getGuid()
@@ -70,7 +73,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->beConstructedWith($repository, $targetUserMock);
+        $this->beConstructedWith($repository, $targetUserMock, $actionDelegateManager);
 
         $this
             ->storeSocialCompassAnswers([])
@@ -79,7 +82,8 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_update_social_compass_answers(
         RepositoryInterface $repository,
-        User $targetUserMock
+        User $targetUserMock,
+        ActionDelegateManager $actionDelegateManager
     ) {
         $targetUserMock
             ->getGuid()
@@ -90,7 +94,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->beConstructedWith($repository, $targetUserMock);
+        $this->beConstructedWith($repository, $targetUserMock, $actionDelegateManager);
 
         $this
             ->updateSocialCompassAnswers([])
