@@ -54,7 +54,7 @@ class Manager
                 $export = $contact->export();
                 $export['custom_fields'] = $this->patchCustomFields($export['custom_fields']);
                 $this->pendingContacts[] =  $export;
-                $this->logger->info("$i: {$export['first_name']}");
+                $this->logger->info("$i: (" . get_class($list) . ") {$export['first_name']}");
 
                 if (count($this->pendingContacts) > 1000) {
                     $this->bulkContacts();

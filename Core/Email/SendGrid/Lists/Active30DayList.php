@@ -6,6 +6,7 @@ use Minds\Core\Email\SendGrid\SendGridContact;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Data\ElasticSearch\Prepared\Search;
+use Minds\Entities\User;
 
 /**
  * Assembles list of users who have been active in last 30 days.
@@ -81,21 +82,10 @@ class Active30DayList implements SendGridListInterface
 
         $result = $this->client->request($prepared);
 
-        // if no we're not out of hits in the buckets.
-        if (!empty($result["aggregations"]["unique_users"]["buckets"])) {
-            // set after key again.
-            $this->setAfterKey(
-                $result["aggregations"]["unique_users"]["after_key"] ?? null
-            );
-
-            // recursively yield.
-            yield from $this->getContacts();
-        }
-
         foreach ($result["aggregations"]["unique_users"]["buckets"] as $hit) {
             $owner = $this->entitiesBuilder->single($hit['key']['user_guid']);
 
-            if (!$owner) {
+            if (!$owner instanceof User) {
                 continue;
             }
 
@@ -111,6 +101,17 @@ class Active30DayList implements SendGridListInterface
             }
 
             yield $contact;
+        }
+
+        // if no we're not out of hits in the buckets.
+        if (!empty($result["aggregations"]["unique_users"]["buckets"])) {
+            // set after key again.
+            $this->setAfterKey(
+                $result["aggregations"]["unique_users"]["after_key"] ?? null
+            );
+
+            // recursively yield.
+            yield from $this->getContacts();
         }
     }
 
