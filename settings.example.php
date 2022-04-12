@@ -715,7 +715,9 @@ $CONFIG->set('unleash', [
 $CONFIG->set('captcha', [
     'jwt_secret' => '{{site-secret}}',
     'bypass_key' => '{{site-secret}}',
-    'friendly_captcha_secret' => '{{site-secret}}',
+    'friendly_captcha' => [
+        'signing_secret' => '{{site-secret}}',
+    ]
 ]);
 
 $CONFIG->set('cypress', [

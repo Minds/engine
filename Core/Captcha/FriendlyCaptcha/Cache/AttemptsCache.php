@@ -10,10 +10,10 @@ use Minds\Core\Di\Di;
  */
 class AttemptsCache
 {
-    // Base for cache key.
+    /** @var string Base for cache key. */
     const CACHE_KEY_BASE = 'friendly-captcha-attempts:%s';
 
-    // Storage time in whole seconds - 1 day.
+    /** @var int Storage time in whole seconds - 1 day. */
     const CACHE_TIME_SECONDS = 86400;
 
     /**

@@ -17,6 +17,7 @@ class PuzzleSolution
 {
     use MagicAttributes;
 
+    /** @var string extracted sub-solutions from proposed puzzle solution */
     private string $extractedSolutions;
 
     /**

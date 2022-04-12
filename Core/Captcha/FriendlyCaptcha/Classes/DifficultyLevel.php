@@ -25,7 +25,7 @@ class DifficultyLevel
     /** @var int difficulty as int */
     private $difficulty;
 
-    // scaling for puzzle difficulty in format 'attempts => [int solutions, int difficulty]'.
+    /** @var array scaling for puzzle difficulty in format 'attempts => [int solutions, int difficulty]'. */
     const DIFFICULTY_SCALING = [
         0 => ['solutions' => 51, 'difficulty' => 122],
         4 => ['solutions' => 51, 'difficulty' => 130],
@@ -35,7 +35,7 @@ class DifficultyLevel
 
     /**
      * Amount of attempts made already - used to init the difficulty.
-     * @param integer|null $attempts - attempts made already.
+     * @param ?integer $attempts - attempts made already.
      */
     public function __construct(
         private ?int $attempts = 0,

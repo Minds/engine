@@ -12,7 +12,7 @@ use Minds\Core\Di\Di;
  */
 class PuzzleSigner
 {
-    // secret for signing.
+    /** @var string secret for signing. */
     private string $secret = '';
  
     /**
@@ -25,7 +25,7 @@ class PuzzleSigner
     ) {
         $config ??= Di::_()->get('Config');
 
-        if (!$this->secret = $config->get('captcha')['friendly_captcha_secret'] ?? false) {
+        if (!$this->secret = $config->get('captcha')['friendly_captcha']['signing_secret'] ?? false) {
             throw new MisconfigurationException('FriendlyCaptcha secret not set');
         }
     }

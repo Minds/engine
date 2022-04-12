@@ -18,28 +18,28 @@ class Puzzle
 {
     use MagicAttributes;
 
-    // instance puzzle string.
+    /** @var string instance puzzle string. */
     private string $puzzle = '';
 
-    // difficulty level of puzzle.
+    /** @var DifficultyLevel difficulty level of puzzle. */
     private DifficultyLevel $difficultyLevel;
 
-    // signature of puzzle.
+    /** @var string signature of puzzle. */
     private string $signature = '';
 
-    // unsigned puzzle buffer.
+    /** @var string unsigned puzzle buffer. */
     private string $buffer = '';
 
-    // time for puzzle expiry.
+    /** @var int time for puzzle expiry. */
     const EXPIRE_TIME = 60;
     
-    // account id.
+    /** @var int account id. */
     const ACCOUNT_ID = 1;
 
-    // app id.
+    /** @var int app id. */
     const APP_ID = 1;
 
-    // puzzle version.
+    /** @var int puzzle version. */
     const PUZZLE_VERSION = 1;
 
     /**

@@ -19,7 +19,11 @@ class PuzzleSignerSpec extends ObjectBehavior
         $this->config = $config;
         $this->config->get('captcha')
             ->shouldBeCalled()
-            ->willReturn(['friendly_captcha_secret' => 'secret']);
+            ->willReturn([
+                'friendly_captcha' => [
+                        'signing_secret' => 'secret'
+                ]
+            ]);
 
         $this->beConstructedWith($config);
     }

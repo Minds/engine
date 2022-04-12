@@ -179,8 +179,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
     {
         if (
             isset($_POST['friendly_captcha_enabled']) &&
-            $_POST['friendly_captcha_enabled'] &&
-            Di::_()->get('Experiments\Manager')->isOn('friendly-captcha')
+            $_POST['friendly_captcha_enabled']
         ) {
             $friendlyCaptchaManager = Di::_()->get('FriendlyCaptcha\Manager');
             if (!$friendlyCaptchaManager->verify($captcha)) {

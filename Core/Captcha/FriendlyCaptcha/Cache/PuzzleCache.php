@@ -10,10 +10,10 @@ use Minds\Core\Di\Di;
  */
 class PuzzleCache
 {
-    // Base for cache key.
+    /** @var string Base for cache key. */
     const CACHE_KEY_BASE = 'friendly-captcha-puzzle:%s';
 
-    // Storage time in whole seconds - 2 weeks.
+    /** @var int Storage time in whole seconds - 2 weeks. */
     const CACHE_TIME_SECONDS = 1209600;
 
     /**
