@@ -143,6 +143,9 @@ class Repository
         });
 
         foreach ($rows as $row) {
+            if ($row['key'] === '') {
+                continue;
+            }
             $response[] = [
                 'tag' => $row['key'],
                 'posts' => $row['doc_count'],
