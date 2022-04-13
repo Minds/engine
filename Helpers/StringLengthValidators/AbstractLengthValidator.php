@@ -58,7 +58,7 @@ abstract class AbstractLengthValidator
      */
     public function validate(?string $target = '', $nameOverride = ''): bool
     {
-        $stringLength = strlen($target);
+        $stringLength = mb_strlen($target);
         if (!($stringLength <= $this->getMax() && $stringLength >= $this->getMin())) {
             throw new StringLengthException(self::limitsToString($nameOverride));
         }
@@ -73,8 +73,8 @@ abstract class AbstractLengthValidator
      */
     public function validateMaxAndTrim(?string $target = ''): string
     {
-        return strlen($target) > $this->getMax() ?
-            substr($target, 0, $this->getMax()).'...' :
+        return mb_strlen($target) > $this->getMax() ?
+            mb_substr($target, 0, $this->getMax()).'...' :
             $target ?? '';
     }
 
