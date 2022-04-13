@@ -8,6 +8,9 @@ use Zend\Diactoros\Response\JsonResponse;
 
 class SubscribedLatestCountResponseBuilder
 {
+    /**
+     * creates a successful response
+     */
     public function buildSuccessfulResponse(int $count): JsonResponse
     {
         return new JsonResponse(
@@ -15,11 +18,11 @@ class SubscribedLatestCountResponseBuilder
                 'status' => 'success',
                 'count' => $count,
             ],
-            200,
         );
     }
 
     /**
+     * creates a bad request response
      * @throws UserErrorException
      */
     public function buildBadRequestResponse(?ValidationErrorCollection $errors): JsonResponse
