@@ -3,6 +3,7 @@
 namespace Minds\Core\SocialCompass;
 
 use Minds\Core\Di\Di;
+use Minds\Core\SocialCompass\Delegates\ActionDelegateManager;
 use Minds\Core\SocialCompass\Entities\AnswerModel;
 use Minds\Core\SocialCompass\Questions\Manifests\QuestionsManifest;
 use Minds\Entities\User;
@@ -13,11 +14,13 @@ class Manager implements ManagerInterface
 
     public function __construct(
         private ?RepositoryInterface $repository = null,
-        private ?User $targetUser = null
+        private ?User $targetUser = null,
+        private ?ActionDelegateManager $actionDelegateManager = null
     ) {
         $this->repository = $this->repository ?? new Repository();
 
         $this->targetUser = $this->targetUser ?? $this->getLoggedInUser();
+        $this->actionDelegateManager = $this->actionDelegateManager ?? Di::_()->get('SocialCompass\Delegates\ActionDelegateManager');
     }
 
     private function getLoggedInUser(): ?User
@@ -92,7 +95,13 @@ class Manager implements ManagerInterface
      */
     public function storeSocialCompassAnswers(array $answers): bool
     {
-        return $this->repository->storeAnswers($answers);
+        $success = $this->repository->storeAnswers($answers);
+    
+        if ($success) {
+            $this->actionDelegateManager->onAnswersProvided($answers);
+        }
+
+        return $success;
     }
 
     /**
@@ -101,7 +110,13 @@ class Manager implements ManagerInterface
      */
     public function updateSocialCompassAnswers(array $answers): bool
     {
-        return $this->repository->storeAnswers($answers);
+        $success = $this->repository->storeAnswers($answers);
+        
+        if ($success) {
+            $this->actionDelegateManager->onAnswersProvided($answers);
+        }
+
+        return $success;
     }
 
     private function getUserId(): int

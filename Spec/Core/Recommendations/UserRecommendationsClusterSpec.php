@@ -54,6 +54,6 @@ class UserRecommendationsClusterSpec extends ObjectBehavior
 
         $this
             ->calculateUserRecommendationsClusterId($mockUser)
-            ->shouldBe(0);
+            ->shouldBe(12);
     }
 }
