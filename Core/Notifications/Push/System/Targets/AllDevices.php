@@ -2,21 +2,37 @@
 
 namespace Minds\Core\Notifications\Push\System\Targets;
 
+use Exception;
 use Generator;
-use Minds\Core\Data\Cassandra\Client as CassandraClient;
 use Minds\Core\Data\Cassandra\Prepared\Custom as PreparedStatement;
+use Minds\Core\Data\Cassandra\Scroll as CassandraClient;
 use Minds\Core\Di\Di;
+use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 
+/**
+ * Responsible to retrieve all the device subscriptions currently registered on Minds
+ */
 class AllDevices implements SystemPushNotificationTargetInterface
 {
     public function __construct(
         private ?CassandraClient $cassandraClient = null
     ) {
-        $this->cassandraClient ??= Di::_()->get('Database\Cassandra\Cql');
+        $this->cassandraClient ??= Di::_()->get('Database\Cassandra\Scroll');
     }
 
+    /**
+     * @throws Exception
+     */
     public function getList(): Generator
     {
+        $query = $this->buildQuery();
+
+        foreach ($this->cassandraClient->request($query) as $deviceSubscription) {
+            yield (new DeviceSubscription())
+                ->setUserGuid($deviceSubscription['user_guid'])
+                ->setToken($deviceSubscription['token'])
+                ->setService($deviceSubscription['service']);
+        }
     }
 
     private function buildQuery(): PreparedStatement

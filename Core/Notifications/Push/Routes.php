@@ -46,7 +46,7 @@ class Routes extends ModuleRoutes
                 AdminMiddleware::class
             ])
             ->do(function (Route $route) {
-                $route->put(
+                $route->post(
                     'system',
                     Ref::_('Notifications\Push\System\Controller', 'schedule')
                 );

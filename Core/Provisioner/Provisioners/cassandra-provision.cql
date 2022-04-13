@@ -1730,11 +1730,13 @@ CREATE TABLE minds.user_quality_scores
 CREATE TABLE minds.system_push_notifications
 (
     author_guid bigint,
-    timestamp timestamp,
+    created_on timestamp,
+    started_on timestamp,
+    completed_on timestamp,
     title text,
     message text,
     url text,
     counter int,
     status int,
-    PRIMARY KEY ( author_guid, timestamp )
-) WITH CLUSTERING ORDER BY (timestamp DESC);
+    PRIMARY KEY ( author_guid, created_on )
+) WITH CLUSTERING ORDER BY (created_on DESC);
