@@ -91,7 +91,23 @@ class Manager
             || ($entity instanceof PaywallEntityInterface && $entity->isPayWall())
         ) {
             $uri = $this->config->get('site_url') . $path;
-            $uri = $this->signUri($uri);
+
+            $shouldSign = false;
+
+            if ($entity instanceof PaywallEntityInterface && $entity->isPayWall()) {
+                if ($entity->isPayWallUnlocked()) {
+                    // We are signing because: this IS a paywalled post that we have permission to view as it is unlocked.
+                    $shouldSign = true;
+                }
+            } else {
+                // We are signing because: this is not a paywalled post, it is NOT public
+                // and we DO have permission to view it.
+                $shouldSign = true;
+            }
+
+            if ($shouldSign) {
+                $uri = $this->signUri($uri);
+            }
 
             // TODO: move this over to paywall manager via a hook (or something?)
             $loggedInUser = Session::getLoggedInUser();

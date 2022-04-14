@@ -41,7 +41,8 @@ class Thumbnails
     public function get($entity, $size, $opts = [])
     {
         $opts = array_merge([
-            'bypassPaywall' => false,
+            'bypassPaywall' => false, // Bypasses payment amount check.
+            'unlockPaywall' => false // Stops blurred image being set.
         ], $opts);
 
         if (is_numeric($entity)) {
