@@ -53,7 +53,7 @@ class SubscribedLatestCountRequestValidator
      */
     private function isValidTimestamp(int $timestamp)
     {
-        return ($timestamp <= PHP_INT_MAX) && ($timestamp >= ~PHP_INT_MAX);
+        return $timestamp > strtotime('-1 years') && $timestamp <= PHP_INT_MAX;
     }
 
     /**
