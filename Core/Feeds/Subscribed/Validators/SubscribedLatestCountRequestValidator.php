@@ -31,7 +31,7 @@ class SubscribedLatestCountRequestValidator
             ));
         }
 
-        if (!$this->isValidTimestamp($dataToValidate['from_timestamp'])) {
+        if (isset($dataToValidate['from_timestamp']) && !$this->isValidTimestamp($dataToValidate['from_timestamp'])) {
             $this->errors->add(new ValidationError(
                 'from_timestamp',
                 "The property 'from_timestamp' must be a valid timestamp."
