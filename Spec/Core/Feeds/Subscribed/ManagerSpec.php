@@ -15,7 +15,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_retrieve_unseen_entities_with_no_pre_existing_cache_and_no_pseudo_id(
+    public function it_should_retrieve_subscribed_feed_count_using_a_timestamp(
         ElasticManager $elasticManager,
     ) {
         $expectedResponse = 1;
