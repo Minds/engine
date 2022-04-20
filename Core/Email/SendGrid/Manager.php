@@ -13,7 +13,7 @@ class Manager
         Lists\YoutubeSyncList::class,
         Lists\EthUsersList::class,
         Lists\MembershipTierOwnerList::class,
-        Lists\Active30DayList::class,
+        // Lists\Active30DayList::class,
     ];
 
     /** @var \SendGrid */
