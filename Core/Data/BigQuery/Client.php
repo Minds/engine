@@ -11,7 +11,7 @@ use Minds\Exceptions\ServerErrorException;
 
 /**
  * BigQuery client - used to get results from BigQuery.
- * Must be configured with BigQuery project ID and path to json authentication file in settings.php.
+ * Must be configured with BigQuery project ID and path to JSON authentication file in settings.php.
  *
  * See https://cloud.google.com/bigquery/docs/quickstarts/quickstart-client-libraries#client-libraries-usage-php
  * for additional setup details.
