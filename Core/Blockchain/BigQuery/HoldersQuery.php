@@ -51,29 +51,35 @@ class HoldersQuery implements BigQueryInterface
      */
     protected function buildQuery(): string
     {
-        return "SELECT
-                    Txs.addr,
-                    SUM(COALESCE(
-                        Txs.value,
-                        0
-                    )) / 1e18 as balance
-                FROM
-                    (
-                        SELECT
-                            to_address as addr,
-                            SUM(COALESCE(CAST(value AS numeric), 0)) as value
-                        FROM
-                            `bigquery-public-data.crypto_ethereum.token_transfers`
-                        WHERE
-                            token_address = LOWER('$this->tokenAddress')
-                        GROUP BY 1
-                        union all 
-                        SELECTUndocumented function
-                            token_address = LOWER('$this->tokenAddress')
-                        GROUP BY 1
-                    ) as Txs
-                GROUP BY
-                    Txs.addr
-            ";
+        return <<<ENDSQL
+            SELECT
+                Txs.addr,
+                SUM(COALESCE(
+                    Txs.value,
+                    0
+                )) / 1e18 as balance
+            FROM
+                (
+                    SELECT
+                        to_address as addr,
+                        SUM(COALESCE(CAST(value AS numeric), 0)) as value
+                    FROM
+                        `bigquery-public-data.crypto_ethereum.token_transfers`
+                    WHERE
+                        token_address = LOWER('0xB26631c6dda06aD89B93C71400D25692de89c068')
+                    GROUP BY 1
+                    union all 
+                    SELECT
+                        from_address as addr,
+                        -SUM(COALESCE(CAST(value AS numeric), 0)) as value
+                    FROM
+                        `bigquery-public-data.crypto_ethereum.token_transfers`
+                    WHERE
+                        token_address = LOWER('0xB26631c6dda06aD89B93C71400D25692de89c068')
+                    GROUP BY 1
+                ) as Txs
+            GROUP BY
+                Txs.addr
+        ENDSQL;
     }
 }

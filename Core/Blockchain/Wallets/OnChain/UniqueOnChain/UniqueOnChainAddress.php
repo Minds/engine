@@ -43,8 +43,7 @@ class UniqueOnChainAddress
     {
         return [
             'address' => $this->address,
-            'user_guid' => $this->userGuid,
-            'token_balance' => $this->tokenBalance
+            'user_guid' => $this->userGuid
         ];
     }
 }

@@ -2,8 +2,6 @@
 namespace Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain;
 
 use Minds\Entities\User;
-use Minds\Core\Di\Di;
-use Minds\Core\Features;
 use Exception;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain\UniqueOnChainAddress;
 use Minds\Exceptions\UserErrorException;
@@ -19,19 +17,13 @@ class Controller
     /** @var Manager */
     protected $manager;
 
-    /** @var Features\Manager */
-    protected $featuresManager;
-
     /**
      * Controller constructor.
      * @param null $manager
      */
-    public function __construct(
-        $manager = null,
-        $featuresManager = null
-    ) {
+    public function __construct($manager = null)
+    {
         $this->manager = $manager ?? new Manager();
-        $this->featuresManager = $featuresManager ?? Di::_()->get('Features\Manager');
     }
 
     /**

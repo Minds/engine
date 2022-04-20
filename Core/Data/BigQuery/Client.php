@@ -11,11 +11,10 @@ use Minds\Exceptions\ServerErrorException;
 
 /**
  * BigQuery client - used to get results from BigQuery.
- * Must be configured with BigQuery project ID in settings.php
- * and credentials pathed to via an environmental variable.
+ * Must be configured with BigQuery project ID and path to json authentication file in settings.php.
  *
  * See https://cloud.google.com/bigquery/docs/quickstarts/quickstart-client-libraries#client-libraries-usage-php
- * for additional setup information.
+ * for additional setup details.
  */
 class Client
 {
@@ -32,14 +31,7 @@ class Client
     ) {
         $this->config ??= Di::_()->get('Config');
         $this->logger ??= Di::_()->get('Logger');
-
-        if (!$projectId = $this->config->get('google')['bigquery']['project_id'] ?? false) {
-            $this->logger->error('BigQuery is not properly configured');
-        }
-
-        $this->client ??= new BigQueryClient([
-            'projectId' => $projectId
-        ]);
+        $this->initBigQuery();
     }
 
     /**
@@ -57,5 +49,25 @@ class Client
         } else {
             throw new ServerErrorException('The query failed to complete');
         }
+    }
+
+    /**
+     * Initialize BigQuery client. Requires config to be set or will return
+     * without initializing client.
+     * @return void
+     */
+    private function initBigQuery(): void
+    {
+        $bigQueryConfig = $this->config->get('google')['bigquery'] ?? false;
+
+        if (!$bigQueryConfig || !isset($bigQueryConfig['project_id']) || !isset($bigQueryConfig['key_file_path'])) {
+            $this->logger->error('BigQuery is not properly configured');
+            return;
+        }
+
+        $this->client ??= new BigQueryClient([
+            'projectId' => $bigQueryConfig['project_id'],
+            'keyFilePath' => $bigQueryConfig['key_file_path'],
+        ]);
     }
 }
