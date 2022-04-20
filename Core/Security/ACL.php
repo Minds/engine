@@ -361,13 +361,19 @@ class ACL
     }
 
     /**
-     * Determines whether user is email verified.
      * @param User $user
      * @return bool
      */
     protected function isEmailVerified(User $user): bool
     {
-        return $user->isTrusted();
+        $isMobile = isset($_SERVER['HTTP_APP_VERSION']);
+        if ($isMobile) {
+            return true;
+        }
+        if ($user->isTrusted()) {
+            return true;
+        }
+        return false;
     }
 
     public static function _()
