@@ -66,7 +66,7 @@ class HoldersQuery implements BigQueryInterface
                     FROM
                         `bigquery-public-data.crypto_ethereum.token_transfers`
                     WHERE
-                        token_address = LOWER('0xB26631c6dda06aD89B93C71400D25692de89c068')
+                        token_address = LOWER('$this->tokenAddress')
                     GROUP BY 1
                     union all 
                     SELECT
@@ -75,7 +75,7 @@ class HoldersQuery implements BigQueryInterface
                     FROM
                         `bigquery-public-data.crypto_ethereum.token_transfers`
                     WHERE
-                        token_address = LOWER('0xB26631c6dda06aD89B93C71400D25692de89c068')
+                        token_address = LOWER('$this->tokenAddress')
                     GROUP BY 1
                 ) as Txs
             GROUP BY
