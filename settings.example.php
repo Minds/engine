@@ -295,7 +295,7 @@ $CONFIG->set('google', [
     ],
     'bigquery' => [
         'project_id' => '',
-        'key_file_path' =>  __DIR__ . '/.auth/melodic-wonder-347213-5ddf2b6507c8.json'
+        'key_file_path' =>  __DIR__ . '/.auth/bigquery.json'
     ],
 ]);
 
