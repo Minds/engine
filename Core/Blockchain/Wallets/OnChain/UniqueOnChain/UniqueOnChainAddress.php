@@ -43,7 +43,7 @@ class UniqueOnChainAddress
     {
         return [
             'address' => $this->address,
-            'user_guid' => $this->userGuid
+            'user_guid' => $this->userGuid,
         ];
     }
 }
