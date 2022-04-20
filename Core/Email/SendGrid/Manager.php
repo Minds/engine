@@ -5,10 +5,15 @@ use Minds\Core\Di\Di;
 
 class Manager
 {
-    /** @var SendGridListIntreface[] */
+    /** @var SendGridListInterface[] */
     const DEFAULT_LISTS = [
         Lists\WireUSDUsersList::class,
-        Lists\MonetizedUsersList::class
+        Lists\MonetizedUsersList::class,
+        Lists\TwitterSyncList::class,
+        Lists\YoutubeSyncList::class,
+        Lists\EthUsersList::class,
+        Lists\MembershipTierOwnerList::class,
+        // Lists\Active30DayList::class,
     ];
 
     /** @var \SendGrid */
@@ -32,7 +37,7 @@ class Manager
 
     /**
      * Syncs our lists with SendGrid
-     * @param SendGridListIntreface[] $lists
+     * @param SendGridListInterface[] $lists
      * @return void
      */
     public function syncContactLists(array $lists = []): void
@@ -49,7 +54,7 @@ class Manager
                 $export = $contact->export();
                 $export['custom_fields'] = $this->patchCustomFields($export['custom_fields']);
                 $this->pendingContacts[] =  $export;
-                $this->logger->info("$i: {$export['first_name']}");
+                $this->logger->info("$i: (" . get_class($list) . ") {$export['first_name']}");
 
                 if (count($this->pendingContacts) > 1000) {
                     $this->bulkContacts();
