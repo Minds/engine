@@ -2,6 +2,8 @@
 
 namespace Minds\Core\Notifications\Push\System;
 
+use Minds\Core\Notifications\Push\System\ResponseBuilders\GetHistoryResponseBuilder;
+use Minds\Core\Notifications\Push\System\ResponseBuilders\ScheduleResponseBuilder;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
 
@@ -18,35 +20,28 @@ class Controller
 
     public function schedule(ServerRequestInterface $request): JsonResponse
     {
-        return new JsonResponse([
-            'status' => 'success'
-        ]);
+        $loggedInUser = $request->getAttribute('_user');
+        $requestBody = $request->getParsedBody();
+
+        $responseBuilder = new ScheduleResponseBuilder();
+
+        $this->manager->setUser($loggedInUser);
+
+        $response = $this->manager->add($requestBody);
+
+        return $responseBuilder->successfulResponse($response);
     }
 
     public function getHistory(ServerRequestInterface $request): JsonResponse
     {
-        return new JsonResponse([
-            'status' => 'success',
-            'notifications' => [
-                [
-                    'title' => "Sample Title 1",
-                    'message' => "Sample Message 1",
-                    'link' => "Sample Link 1",
-                    'timestamp' => strtotime("now")*1000,
-                ],
-                [
-                    'title' => "Sample Title 2",
-                    'message' => "Sample Message 2",
-                    'link' => "Sample Link 2",
-                    'timestamp' => strtotime("now")*1000,
-                ],
-                [
-                    'title' => "Sample Title 3",
-                    'message' => "Sample Message 3",
-                    'link' => "Sample Link 3",
-                    'timestamp' => strtotime("now")*1000,
-                ],
-            ]
-        ]);
+        $loggedInUser = $request->getAttribute('_user');
+
+        $responseBuilder = new GetHistoryResponseBuilder();
+
+        $this->manager->setUser($loggedInUser);
+
+        $response = $this->manager->getCompletedRequests();
+
+        return $responseBuilder->successfulResponse($response);
     }
 }

@@ -17,10 +17,11 @@ class AllDevices implements SystemPushNotificationTargetInterface
     public function __construct(
         private ?CassandraClient $cassandraClient = null
     ) {
-        $this->cassandraClient ??= Di::_()->get('Database\Cassandra\Scroll');
+        $this->cassandraClient ??= Di::_()->get('Database\Cassandra\Cql\Scroll');
     }
 
     /**
+     * @returns Generator<DeviceSubscription>
      * @throws Exception
      */
     public function getList(): Generator

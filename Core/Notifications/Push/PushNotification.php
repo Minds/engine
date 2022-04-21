@@ -10,7 +10,7 @@ use Minds\Entities\User;
 
 /**
  */
-class PushNotification
+class PushNotification implements PushNotificationInterface
 {
     /** @var Notification */
     protected $notification;

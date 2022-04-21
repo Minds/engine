@@ -3,10 +3,12 @@
 namespace Minds\Core\Notifications\Push\System;
 
 use Cassandra\Bigint;
+use Cassandra\Timestamp;
+use Cassandra\Uuid;
 use Minds\Core\Data\Cassandra\Client as CassandraClient;
 use Minds\Core\Data\Cassandra\Prepared\Custom as PreparedStatement;
 use Minds\Core\Di\Di;
-use Minds\Core\Notifications\Push\PushNotificationInterface;
+use Minds\Core\Notifications\Push\System\Models\AdminPushNotificationRequest;
 use Minds\Entities\User;
 
 class Repository
@@ -16,7 +18,7 @@ class Repository
     public function __construct(
         private ?CassandraClient $cassandraClient = null
     ) {
-        $this->cassandraClient ??= Di::_()->get('Database\Cassandra\Client');
+        $this->cassandraClient ??= Di::_()->get('Database\Cassandra\Cql');
     }
 
     public function setUser(User $user): self
@@ -26,29 +28,119 @@ class Repository
     }
 
     public function add(
-        PushNotificationInterface $notification
+        AdminPushNotificationRequest $notification
     ): void {
         $query = $this->buildAddQuery($notification);
         $this->cassandraClient->request($query);
     }
 
-    private function buildAddQuery(PushNotificationInterface $notification): PreparedStatement
+    private function buildAddQuery(AdminPushNotificationRequest $notification): PreparedStatement
     {
         $query = new PreparedStatement();
         return $query->query(
-            "INSERT INTO " .
-            "system_push_notifications " .
-            "(author_guid, created_on, title, message, link, status)" .
-            "VALUES " .
-            "(?, ?, ?, ?, ?, ?);",
+            "INSERT INTO
+                system_push_notifications
+                (request_id, author_guid, created_on, title, message, url, status)
+            VALUES 
+                (?, ?, ?, ?, ?, ?, ?);",
             [
+                $notification->getRequestId(),
                 new Bigint($this->user->getGuid()),
-                time(),
+                new Timestamp(time(), 0),
                 $notification->getTitle(),
                 $notification->getMessage(),
                 $notification->getLink(),
-                NotificationStatus::PENDING
+                AdminPushNotificationRequestStatus::PENDING
             ]
         );
+    }
+
+    /**
+     * @return AdminPushNotificationRequest[]
+     */
+    public function getCompletedRequests(): array
+    {
+        $query = $this->buildFetchCompletedRequests();
+        $notifications = [];
+
+        foreach ($this->cassandraClient->request($query) as $notification) {
+            $notifications[] = (new AdminPushNotificationRequest())
+                ->setTitle($notification['title'])
+                ->setMessage($notification['message'])
+                ->setLink($notification['message'])
+                ->setRequestId(new Uuid($notification['request_id']))
+                ->setAuthorId($notification['author_guid'])
+                ->setCreatedOn(strtotime($notification['createdOn']))
+                ->setStatus($notification['status'])
+                ->setCounter($notification['counter'])
+                ->setTarget($notification['target']);
+        }
+
+        return $notifications;
+    }
+
+    private function buildFetchCompletedRequests(): PreparedStatement
+    {
+        return (new PreparedStatement())
+            ->query(
+                "SELECT *
+                FROM
+                    system_push_notifications
+                WHERE
+                    status = ?
+                LIMIT 12
+                ALLOW FILTERING;",
+                [AdminPushNotificationRequestStatus::DONE]
+            );
+    }
+
+    public function updateRequestStartedOnDate(Uuid $requestId): void
+    {
+        $query = (new PreparedStatement())
+            ->query(
+                "UPDATE system_push_notifications SET startedOn = ? AND status = ? WHERE request_id = ?;",
+                [
+                    new Timestamp(time(), 0),
+                    AdminPushNotificationRequestStatus::IN_PROGRESS,
+                    $requestId
+                ]
+            );
+
+        $this->cassandraClient->request($query);
+    }
+
+    public function updateRequestCompletedOnDate(Uuid $requestId, int $status): void
+    {
+        $query = (new PreparedStatement())
+            ->query(
+                "UPDATE system_push_notifications SET completedOn = ? AND status = ? WHERE request_id = ?;",
+                [
+                    new Timestamp(time(), 0),
+                    $status,
+                    $requestId
+                ]
+            );
+
+        $this->cassandraClient->request($query);
+    }
+
+    public function getByRequestId(string $requestId): AdminPushNotificationRequest
+    {
+        $query = (new PreparedStatement())
+            ->query(
+                "SELECT
+                        *
+                    FROM
+                        system_push_notifications
+                    WHERE
+                        request_id = ?
+                    LIMIT 1;",
+                [
+                    new Uuid($requestId)
+                ]
+            );
+
+        $row = $this->cassandraClient->request($query)->first();
+        return AdminPushNotificationRequest::fromArray($row);
     }
 }

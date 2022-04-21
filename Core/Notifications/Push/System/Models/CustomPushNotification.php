@@ -8,8 +8,8 @@ use Minds\Traits\MagicAttributes;
 
 /**
  * @method self setTitle(string $title)
- * @method self setMessage(string $title)
- * @method self setLink(string $link)
+ * @method self setBody(string $body)
+ * @method self setUri(string $uri)
  * @method self setIcon(string $icon)
  * @method self setMedia(string $media)
  * @method self setDeviceSubscription(DeviceSubscription $deviceSubscription)
@@ -18,12 +18,21 @@ class CustomPushNotification implements PushNotificationInterface
 {
     use MagicAttributes;
 
+    private string $userGuid;
     private string $title;
-    private ?string $message;
-    private ?string $link;
+    private ?string $body;
+    private ?string $uri;
     private ?string $icon;
     private ?string $media;
     private DeviceSubscription $deviceSubscription;
+
+    /**
+     * @return string
+     */
+    public function getUserGuid(): string
+    {
+        return $this->deviceSubscription->getUserGuid();
+    }
 
     /**
      * @return string
@@ -36,17 +45,17 @@ class CustomPushNotification implements PushNotificationInterface
     /**
      * @return string|null
      */
-    public function getMessage(): ?string
+    public function getBody(): ?string
     {
-        return $this->message;
+        return $this->body;
     }
 
     /**
      * @return string|null
      */
-    public function getLink(): ?string
+    public function getUri(): ?string
     {
-        return $this->link;
+        return $this->uri;
     }
 
     /**
@@ -54,7 +63,7 @@ class CustomPushNotification implements PushNotificationInterface
      */
     public function getIcon(): ?string
     {
-        return $this->icon
+        return $this->icon;
     }
 
     /**
@@ -71,5 +80,20 @@ class CustomPushNotification implements PushNotificationInterface
     public function getDeviceSubscription(): DeviceSubscription
     {
         return $this->deviceSubscription;
+    }
+
+    public function getGroup(): string
+    {
+        return md5($this->getTitle());
+    }
+
+    public function getMergeKey(): string
+    {
+        return $this->getGroup();
+    }
+
+    public function getUnreadCount(): int
+    {
+        return 1;
     }
 }

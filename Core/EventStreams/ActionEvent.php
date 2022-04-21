@@ -86,6 +86,11 @@ class ActionEvent implements EventInterface
     /** @var array */
     const ACTION_NSFW_LOCK = 'nsfw_lock';
 
+    /**
+     * @var string
+     */
+    const ACTION_SYSTEM_PUSH_NOTIFICATION = 'system_push_notification';
+
     /** @var string */
     protected $action;
 
@@ -164,7 +169,7 @@ class ActionEvent implements EventInterface
             case self::ACTION_GROUP_QUEUE_REJECT:
                 $allowedKeys = [ 'group_urn' ];
                 break;
-           case self::ACTION_WIRE_SENT:
+            case self::ACTION_WIRE_SENT:
                 $allowedKeys = [ 'wire_amount' ];
                 break;
             case self::ACTION_BLOCK:
@@ -172,6 +177,11 @@ class ActionEvent implements EventInterface
                 break;
             case self::ACTION_NSFW_LOCK:
                 $allowedKeys = [ 'nsfw_lock' ];
+                break;
+            case self::ACTION_SYSTEM_PUSH_NOTIFICATION:
+                $allowedKeys = [
+
+                ];
                 break;
             default:
                 throw new \Exception("Invalid action set. Ensure allowedKeys are set in ActionEvent model");

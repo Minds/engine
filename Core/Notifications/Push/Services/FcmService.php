@@ -1,9 +1,9 @@
 <?php
 namespace Minds\Core\Notifications\Push\Services;
 
-use Minds\Core\Notifications\Push\PushNotification;
 use Google_Client;
-use GuzzleHttp;
+use Minds\Core\Notifications\Push\PushNotification;
+use Minds\Core\Notifications\Push\PushNotificationInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class FcmService extends AbstractService implements PushServiceInterface
@@ -20,7 +20,7 @@ class FcmService extends AbstractService implements PushServiceInterface
      * @param PushNotification $pushNotification
      * @return bool
      */
-    public function send(PushNotification $pushNotification): bool
+    public function send(PushNotificationInterface $pushNotification): bool
     {
         $body = [
             'message' => [
