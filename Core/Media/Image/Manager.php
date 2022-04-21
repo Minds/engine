@@ -103,7 +103,7 @@ class Manager
                 }
             } else {
                 // We are signing because; this is not a paywalled post, it is NOT public
-                // and we DO have permission to view it. We know we have permission to view it 
+                // and we DO have permission to view it. We know we have permission to view it
                 // because prior to this function an ACL check will have been made on entity export
                 // or a decision will have been made to manually override the check, for example for use in Jury.
                 $shouldSign = true;
