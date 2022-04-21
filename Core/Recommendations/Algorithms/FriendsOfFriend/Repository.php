@@ -202,7 +202,7 @@ class Repository implements RepositoryInterface
 
         foreach ($result['aggregations']['channels']['buckets'] as $i => $row) {
             $entity = null;
-            if ($i < 20) {
+            if ($i < 12) {
                 $entity = Factory::build($row['key']);
             }
 
