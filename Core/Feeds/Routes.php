@@ -49,6 +49,10 @@ class Routes extends ModuleRoutes
                             'feed/clustered-recommendations',
                             Ref::_('Feeds\ClusteredRecommendations\Controller', 'getFeed')
                         );
+                        $route->get(
+                            'subscribed/latest/count',
+                            Ref::_('Feeds\Subscribed\Controller', 'getLatestCount')
+                        );
                         $route->delete(
                             ':urn',
                             Ref::_('Feeds\Activity\Controller', 'delete')

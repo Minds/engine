@@ -44,6 +44,21 @@ class SendGridContact
     /** @var int */
     protected $lastWire;
 
+    /** @var string */
+    protected $ethWallet;
+
+    /** @var bool */
+    protected $hasMembershipTier;
+
+    /** @var bool */
+    protected $hasTwitterSync;
+
+    /** @var bool */
+    protected $hasYouTubeSync;
+
+    /** @var int */
+    protected $lastActive30DayTs;
+
     /**
      * Export the sendgrid contact
      * @param array $extras
@@ -64,8 +79,25 @@ class SendGridContact
         if ($this->lastWire) {
             $customFields['last_wire'] = date('c', $this->lastWire);
         }
+        if ($this->lastActive30DayTs) {
+            $customFields['last_active_30_day_ts'] = date('c', $this->lastActive30DayTs);
+        }
+        if ($this->hasMembershipTier) {
+            $customFields['has_membership_tier'] = 1;
+        }
+        if ($this->ethWallet) {
+            $customFields['eth_wallet'] = $this->ethWallet;
+        }
+        if ($this->hasTwitterSync) {
+            $customFields['has_twitter_sync'] = 1;
+        }
+        if ($this->hasYouTubeSync) {
+            $customFields['has_youtube_sync'] = 1;
+        }
+
         $customFields['username'] = $this->username;
         $customField['user_guid'] = (string) $this->userGuid;
+
         return [
             'email' => $this->email,
             'first_name' => (string) $this->username,

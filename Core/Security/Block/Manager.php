@@ -13,9 +13,6 @@ class Manager
     /** @var PsrWrapper */
     protected $cache;
 
-    /** @var Delegates\EventStreamsDelegate */
-    protected $eventStreamsDelegate;
-
     /** @var int */
     const CACHE_TTL = 86400; // 1 day
 
@@ -23,11 +20,16 @@ class Manager
     /** @var int */
     const BLOCK_LIMIT = 1000;
 
-    public function __construct(Repository $repository = null, PsrWrapper $cache = null, Delegates\EventStreamsDelegate $eventStreamsDelegate = null)
-    {
+    public function __construct(
+        Repository $repository = null,
+        PsrWrapper $cache = null,
+        protected ?Delegates\EventStreamsDelegate $eventStreamsDelegate = null,
+        protected ?Delegates\AnalyticsDelegate $analyticsDelegate = null
+    ) {
         $this->repository = $repository ?? new Repository();
         $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
-        $this->eventStreamsDelegate = $eventStreamsDelegate ?? new Delegates\EventStreamsDelegate();
+        $this->eventStreamsDelegate ??= new Delegates\EventStreamsDelegate();
+        $this->analyticsDelegate ??= new Delegates\AnalyticsDelegate();
     }
 
     /**
@@ -93,6 +95,9 @@ class Manager
         // Add to event stream
         $this->eventStreamsDelegate->onAdd($block);
 
+        // Add to analytics
+        $this->analyticsDelegate->onAdd($block);
+
         return true;
     }
 
@@ -117,6 +122,9 @@ class Manager
 
         // Add to event stream
         $this->eventStreamsDelegate->onDelete($block);
+
+        // Add to analytics
+        $this->analyticsDelegate->onDelete($block);
 
         return true;
     }
