@@ -51,7 +51,8 @@
         "steverhoades/oauth2-openid-connect-server": "@dev",
         "kornrunner/keccak": "^1.1",
         "growthbook/growthbook": "1.0.0",
-        "league/csv": "^9.8"
+        "league/csv": "^9.8",
+        "google/cloud-bigquery": "^1.23"
     },
     "repositories": [
         {
