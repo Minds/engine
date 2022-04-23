@@ -2,9 +2,11 @@
 
 namespace Minds\Core\Recommendations\Config;
 
-use Minds\Core\Recommendations\Algorithms\WiderNetworkRecommendationsAlgorithm;
+use Minds\Core\Recommendations\Locations\ChannelLocation;
 use Minds\Core\Recommendations\Locations\FeedSidebarLocation;
 use Minds\Core\Recommendations\Locations\WiderNetworkLocation;
+use Minds\Core\Recommendations\Locations\DiscoveryFeedLocation;
+use Minds\Core\Recommendations\Locations\NewsfeedLocation;
 
 final class RecommendationsLocationsMappingConfig
 {
@@ -14,6 +16,9 @@ final class RecommendationsLocationsMappingConfig
      */
     public const MAPPING = [
         "feed-sidebar" => FeedSidebarLocation::class,
-        "wider-network" => WiderNetworkLocation::class
+        "wider-network" => WiderNetworkLocation::class,
+        "newsfeed" => NewsfeedLocation::class,
+        "discovery-feed" => DiscoveryFeedLocation::class,
+        "channel" => ChannelLocation::class,
     ];
 }

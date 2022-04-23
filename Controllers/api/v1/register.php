@@ -13,6 +13,7 @@ use Minds\Common\PseudonymousIdentifier;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
+use Minds\Helpers\StringLengthValidators\UsernameLengthValidator;
 use Minds\Interfaces;
 
 class register implements Interfaces\Api, Interfaces\ApiIgnorePam
@@ -44,6 +45,9 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
         if (!$_POST['username'] || !$_POST['password'] || !$_POST['username'] || !$_POST['email']) {
             return Factory::response(['status' => 'error', 'message' => "Please fill out all the fields"]);
         }
+
+        // @throws StringLengthException
+        (new UsernameLengthValidator())->validate($_POST['username']);
 
         try {
             $captcha = Core\Di\Di::_()->get('Captcha\Manager');
@@ -125,6 +129,10 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 'referrer' => isset($_COOKIE['referrer']) ? $_COOKIE['referrer'] : '',
             ];
 
+            (new PseudonymousIdentifier())
+                ->setUser($user)
+                ->generateWithPassword($password);
+
             // TODO: Move full reguster flow to the core
             elgg_trigger_plugin_hook('register', 'user', $params, true);
             Core\Events\Dispatcher::trigger('register', 'user', $params);
@@ -134,10 +142,6 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             $sessions->setUser($user);
             $sessions->createSession();
             $sessions->save(); // Save to db and cookie
-
-            (new PseudonymousIdentifier())
-                ->setUser($user)
-                ->generateWithPassword($password);
 
             $response = [
                 'guid' => $guid,

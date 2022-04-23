@@ -23,10 +23,11 @@ class SuggestedChannelsRecommendationsAlgorithm extends AbstractRecommendationsA
 
     /**
      * Returns the list of recommendations based on the current recommendation's algorithm
+     * @param array|null $options
      * @return Response
      */
-    public function getRecommendations(): Response
+    public function getRecommendations(?array $options = []): Response
     {
-        return $this->suggestionsManager?->getList();
+        return $this->suggestionsManager?->setUser($this->user)->getList();
     }
 }

@@ -10,7 +10,9 @@ namespace Minds\Controllers\api\v2\boost;
 
 use Minds\Api\Factory;
 use Minds\Core\Boost\Checksum;
+use Minds\Core\Di\Di;
 use Minds\Core\Guid;
+use Minds\Exceptions\UserErrorException;
 use Minds\Interfaces;
 
 class prepare implements Interfaces\Api
@@ -29,10 +31,16 @@ class prepare implements Interfaces\Api
             ]);
         }
 
+        $entity = Di::_()->get('EntitiesBuilder')->single($pages[0]);
+
+        if ($entity->getNsfw() || $entity->getNsfwLock()) {
+            throw new UserErrorException('NSFW content cannot be boosted.');
+        }
+
         $guid = Guid::build();
         $checksum = (new Checksum())
             ->setGuid($guid)
-            ->setEntity($pages[0])
+            ->setEntity($entity)
             ->generate();
 
         return Factory::response([

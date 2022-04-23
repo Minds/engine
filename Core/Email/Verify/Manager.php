@@ -88,10 +88,10 @@ class Manager
             return false;
         }
 
-        if (!$this->service->verify($email)) {
-            $this->spamBlocksManager->add($spamBlock);
-            return false;
-        }
+        // if (!$this->service->verify($email)) {
+        //     $this->spamBlocksManager->add($spamBlock);
+        //     return false;
+        // }
 
         return true;
     }

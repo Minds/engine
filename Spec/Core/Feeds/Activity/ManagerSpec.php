@@ -110,6 +110,12 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $activity->getMessage()
+            ->willReturn('Hello World');
+
+        $activity->getTitle()
+            ->willReturn('');
+
         $activity->getGuid()
             ->willReturn(123);
 

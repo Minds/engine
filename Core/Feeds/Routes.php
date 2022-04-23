@@ -45,6 +45,14 @@ class Routes extends ModuleRoutes
                             'feed/unseen-top',
                             Ref::_('Feeds\UnseenTopFeed\Controller', 'getUnseenTopFeed')
                         );
+                        $route->get(
+                            'feed/clustered-recommendations',
+                            Ref::_('Feeds\ClusteredRecommendations\Controller', 'getFeed')
+                        );
+                        $route->get(
+                            'subscribed/latest/count',
+                            Ref::_('Feeds\Subscribed\Controller', 'getLatestCount')
+                        );
                         $route->delete(
                             ':urn',
                             Ref::_('Feeds\Activity\Controller', 'delete')

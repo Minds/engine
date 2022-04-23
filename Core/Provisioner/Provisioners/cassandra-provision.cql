@@ -1492,6 +1492,8 @@ CREATE TABLE minds.moderation_reports (
     PRIMARY KEY (entity_urn, reason_code, sub_reason_code, timestamp)
 ) WITH CLUSTERING ORDER BY (reason_code ASC, sub_reason_code ASC, timestamp DESC);
 
+CREATE INDEX moderation_reports_state_idx ON minds.moderation_reports (state);
+
 CREATE MATERIALIZED VIEW minds.moderation_reports_by_entity_owner_guid AS
     SELECT *
     FROM minds.moderation_reports
@@ -1704,6 +1706,7 @@ CREATE TABLE minds.twitter_sync (
     user_guid bigint PRIMARY KEY,
     last_imported_tweet_id bigint,
     last_sync_ts timestamp,
+    connected_timestamp timestamp,
     twitter_followers_count int,
     twitter_user_id bigint,
     twitter_username text,
@@ -1716,3 +1719,12 @@ CREATE TABLE minds.social_compass_answers (
     current_value int,
     PRIMARY KEY (user_guid, question_id)
 );
+
+CREATE TABLE minds.user_quality_scores
+(
+    user_id   text,
+    timestamp timestamp,
+    category  text,
+    score     float,
+    PRIMARY KEY (user_id, timestamp)
+) WITH CLUSTERING ORDER BY (timestamp DESC);

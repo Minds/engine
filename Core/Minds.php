@@ -63,6 +63,8 @@ class Minds extends base
         Helpdesk\Zendesk\Module::class,
         SocialCompass\Module::class,
         Blockchain\SKALE\Module::class,
+        AccountQuality\Module::class,
+        Recommendations\Module::class
     ];
 
     /**

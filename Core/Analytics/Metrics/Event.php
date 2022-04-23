@@ -2,12 +2,13 @@
 
 namespace Minds\Core\Analytics\Metrics;
 
+use Minds\Common\PseudonymousIdentifier;
 use Minds\Core;
+use Minds\Core\AccountQuality\ManagerInterface as AccountQualityManagerInterface;
 use Minds\Core\Analytics\Snowplow;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Di\Di;
-use Minds\Core\Experiments;
 use Minds\Entities\User;
 
 /**
@@ -50,8 +51,8 @@ class Event
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
-    /** @var Experiments\Manager */
-    private $experimentsManager;
+    /** @var AccountQualityManagerInterface */
+    private $accountQualityManager;
 
     /** @var array */
     protected $data;
@@ -59,13 +60,19 @@ class Event
     /** @var User */
     protected $user;
 
-    public function __construct($elastic = null, $snowplowManager = null, $entitiesBuilder = null, Experiments\Manager $experimentsManager = null)
-    {
+    public function __construct(
+        $elastic = null,
+        $snowplowManager = null,
+        $entitiesBuilder = null,
+        AccountQualityManagerInterface $accountQualityManager = null,
+        protected ?PseudonymousIdentifier $pseudoId = null
+    ) {
         $this->elastic = $elastic ?: Core\Di\Di::_()->get('Database\ElasticSearch');
         $this->index = 'minds-metrics-'.date('m-Y', time());
         $this->snowplowManager = $snowplowManager ?? Di::_()->get('Analytics\Snowplow\Manager');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
-        $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
+        $this->accountQualityManager = $accountQualityManager ?? Di::_()->get('AccountQuality\Manager');
+        $this->pseudoId = $pseudoId ?? new PseudonymousIdentifier();
     }
 
     /**
@@ -104,6 +111,10 @@ class Event
 
         if ($this->user) {
             $this->data['user_is_plus'] = (bool) $this->user->isPlus();
+
+            if ($this->data['action']) {
+                $this->data['account_quality_score'] = $this->getAccountQualityScore();
+            }
         }
 
         $this->data['user_agent'] = $this->getUserAgent();
@@ -269,20 +280,22 @@ class Event
         /** @var User */
         $user = $this->entitiesBuilder->single($this->data['user_guid']);
 
-        /**
-         * Gather all our experiments we have been part of
-         */
-        foreach ($this->experimentsManager->setUser($user)->getExperiments() as $trackData) {
-            $context = new Snowplow\Contexts\SnowplowGrowthbookContext();
-            $context->setExperimentId($trackData->experiment->key)
-                ->setVariationId((int) $trackData->result->variationId);
-            $contexts[] = $context;
-        }
 
         $event->setContext($contexts);
 
 
         // Emit the event
         $this->snowplowManager->setSubject($user)->emit($event);
+    }
+
+    /**
+     * Gets account quality score from manager.
+     * @return float account quality score.
+     */
+    protected function getAccountQualityScore(): float
+    {
+        return $this->accountQualityManager->getAccountQualityScoreAsFloat(
+            $this->pseudoId->getId() ?: $this->user->getGuid()
+        );
     }
 }

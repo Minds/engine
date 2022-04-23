@@ -14,6 +14,7 @@ use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
+use Zend\Diactoros\ServerRequestFactory;
 
 class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
@@ -143,6 +144,12 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
               $response['message'] = "Password must have more than 8 characters. Including uppercase, numbers, special characters (ie. !,#,@), and cannot have spaces.";
               break;
           }
+
+          Di::_()->get('Security\TwoFactor\Manager')->gatekeeper(
+              $user,
+              ServerRequestFactory::fromGlobals(),
+              enableEmail: false
+          );
 
           //$user->salt = Core\Security\Password::salt();
           $user->password = Core\Security\Password::generate($user, $_POST['password']);

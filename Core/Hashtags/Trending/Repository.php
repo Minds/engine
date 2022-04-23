@@ -41,15 +41,18 @@ class Repository
         $opts = array_merge([
             'limit' => 12,
             'from' => strtotime('-12 hours', time()),
+            'to' => null,
             'languages' => [ 'en' ],
-            'wire_support_tier' => null
+            'wire_support_tier' => null,
+            'exclude_tags' => [], // tags to exclude.
         ], $opts);
 
         $must= [
             [
                 'range'=> [
                     '@timestamp'=> [
-                        'gte'=> $opts['from'] * 1000,
+                        'gte' => $opts['from'] * 1000,
+                        'lte' => $opts['to'] ? $opts['to'] * 1000 : null
                     ],
                 ],
             ],
@@ -88,7 +91,11 @@ class Repository
                     'terms' => [
                         'field' => 'tags',
                         'size' => $opts['limit'],
-                        'exclude' => array_merge($this->config->get('tags'), array_column($this->getHidden(), 'hashtag')),
+                        'exclude' => array_merge(
+                            $this->config->get('tags'),
+                            array_column($this->getHidden(), 'hashtag'),
+                            $opts['exclude_tags']
+                        ),
                         'order' => [
                             'owners' => 'desc',
                         ],
@@ -136,6 +143,9 @@ class Repository
         });
 
         foreach ($rows as $row) {
+            if ($row['key'] === '') {
+                continue;
+            }
             $response[] = [
                 'tag' => $row['key'],
                 'posts' => $row['doc_count'],

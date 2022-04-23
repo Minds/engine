@@ -23,6 +23,8 @@ use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Minds\Core\Data\cache\PsrWrapper;
 use Zend\Diactoros\Response\JsonResponse;
+use Minds\Core\Feeds\Activity\RichEmbed\Manager as RichEmbedManager;
+use Minds\Entities\Activity;
 
 /**
  * YouTube Importer Manager
@@ -74,6 +76,9 @@ class Manager
     /** @var KeyValueLimiter */
     protected $kvLimiter;
 
+    /** @var RichEmbedManager */
+    protected $richEmbedManager;
+
     public function __construct(
         $repository = null,
         $mediaRepository = null,
@@ -88,7 +93,8 @@ class Manager
         $logger = null,
         $transcoderBridge = null,
         $cache = null,
-        $kvLimiter = null
+        $kvLimiter = null,
+        RichEmbedManager $richEmbedManager = null
     ) {
         $this->repository = $repository ?: Di::_()->get('Media\YouTubeImporter\Repository');
         $this->mediaRepository = $mediaRepository ?: Di::_()->get('Media\Repository');
@@ -104,6 +110,7 @@ class Manager
         $this->transcoderBridge = $transcoderBridge ?? new TranscoderBridge();
         $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
         $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
+        $this->richEmbedManager = $richEmbedManager ?? Di::_()->get('Feeds\Activity\RichEmbed\Manager');
     }
 
     /**
@@ -224,6 +231,7 @@ class Manager
         }
 
         $ytVideos = [$ytVideo];
+        $ownerGuid = $ytVideo->getOwnerGuid();
 
         // if video ID is "all", we need to get all youtube videos
         if ($ytVideo->getVideoId() === 'all') {
@@ -235,17 +243,8 @@ class Manager
         }
 
         foreach ($ytVideos as $ytVideo) {
-            // try to find it in our db
-            $response = $this->repository->getList([
-                'youtube_id' => $ytVideo->getVideoId(),
-                'limit' => 1,
-            ])->toArray();
-
-            // only import it if it's not been imported already
-            if (count($response) === 0) {
-                $ytVideo->setOwner($ytVideo->getOwner());
-                $this->importVideo($ytVideo);
-            }
+            $ytVideo->setOwnerGuid($ownerGuid);
+            $this->postVideo($ytVideo);
         }
     }
 
@@ -539,10 +538,52 @@ class Manager
     }
 
     /**
+     * Post a video a rich embed within an activity.
+     * @param YTVideo $ytVideo - video to post.
+     * @return void
+     */
+    private function postVideo(YTVideo $ytVideo): void
+    {
+        if (!$videoId = $ytVideo->getVideoId()) {
+            $this->logger->error('No video ID found for video');
+            return;
+        }
+        if (!$ownerGuid = $ytVideo->getOwnerGuid()) {
+            $this->logger->error('No owner guid set');
+            return;
+        }
+
+        $owner = $this->entitiesBuilder->single($ownerGuid);
+
+        $url = 'https://www.youtube.com/watch?v='.$videoId;
+
+        try {
+            $richEmbed = $this->richEmbedManager->getRichEmbed($url);
+        } catch (\Exception $e) {
+            $this->logger->error($e);
+            return;
+        }
+
+        $activity = new Activity();
+        $activity->container_guid = $owner->getGuid();
+        $activity->owner_guid = $owner->getGuid();
+        $activity->ownerObj = $owner->export();
+
+        $activity->setOwner($ownerGuid)
+            ->setTitle($richEmbed['meta']['title'])
+            ->setBlurb($richEmbed['meta']['description'])
+            ->setURL($url)
+            ->setThumbnail($richEmbed['links']['thumbnail'][0]['href']);
+
+        $this->save->setEntity($activity)->save();
+    }
+
+    /**
      * Imports a YouTube video
      * @param YTVideo $ytVideo
      * @return void
      * @throws \Exception
+     * @deprecated we now post videos as rich embeds via the postVideo function instead.
      */
     private function importVideo(YTVideo $ytVideo): void
     {

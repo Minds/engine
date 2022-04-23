@@ -54,7 +54,7 @@ class Repository
             $must[]['terms'] = [
                 'user_guid.keyword' => $opts['user_guids'],
             ];
-        } else { // Terms lookup against minds-graph:subscrpitions
+        } elseif ($opts['user_guid']) { // Terms lookup against minds-graph:subscrpitions
             $must[]['terms'] = [
                 'user_guid.keyword' => [
                     'index' => 'minds-graph-subscriptions',
