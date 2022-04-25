@@ -154,7 +154,7 @@ class Repository
             $wire->setGuid($row['wire_guid']->value())
                 ->setSender($this->entitiesBuilder->single((string) $row['sender_guid']))
                 ->setReceiver($this->entitiesBuilder->single((string) $row['receiver_guid']))
-                ->setTimestamp($row['timestamp'])
+                ->setTimestamp($row['timestamp']->time())
                 ->setEntity($entity)
                 ->setRecurring($row['recurring'])
                 ->setMethod($row['method'])
@@ -181,8 +181,8 @@ class Repository
             'receiver_guid' => $receiverGuid,
             'method' => $method,
             'timestamp' => [
-                'gte' => floor($timestamp / 1000),
-                'lte' => ceil($timestamp / 1000)
+                'gte' => $timestamp,
+                'lte' => $timestamp
             ],
         ]);
 
