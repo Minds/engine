@@ -18,6 +18,33 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
+    public function it_should_return_root_id(Config $config)
+    {
+        $this->beConstructedWith($config);
+
+        $config->get('did')
+            ->willReturn([
+                'domain' => 'minds.local'
+            ]);
+
+        $this->getId()->shouldBe('did:web:minds.local');
+    }
+
+    public function it_should_return_user_id(Config $config, User $user)
+    {
+        $this->beConstructedWith($config);
+
+        $config->get('did')
+            ->willReturn([
+                'domain' => 'minds.local'
+            ]);
+
+        $user->getUsername()
+            ->willReturn('phpspec');
+
+        $this->getId($user)->shouldBe('did:web:minds.local:phpspec');
+    }
+
     public function it_should_return_a_root_document(Config $config)
     {
         $this->beConstructedWith($config);

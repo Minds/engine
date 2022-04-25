@@ -4,6 +4,7 @@ namespace Minds\Core\DID;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 
 class Manager
@@ -16,6 +17,25 @@ class Manager
         $this->config ??= Di::_()->get('Config');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->keypairsManager ??= new Keypairs\Manager();
+    }
+
+    /**
+     * Returns a DID id
+     * @param User $user (optional)
+     * @return string
+     */
+    public function getId(?User $user = null): string
+    {
+        $domain = $this->getDomain();
+
+        $id = "did:web:$domain";
+
+        if ($user) {
+            $username = $user->getUsername();
+            return "$id:$username";
+        } else {
+            return $id;
+        }
     }
 
     /**
