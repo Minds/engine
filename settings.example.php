@@ -194,6 +194,7 @@ $CONFIG->elasticsearch = [
         'graph' => 'minds-graph',
         'metrics' => 'minds-metrics',
         'tags' => 'minds-hashtags',
+        'clustered_entities' => 'minds-clustered-entities-feed'
     ],
     'username' => null,
     'password' => null,
@@ -291,6 +292,10 @@ $CONFIG->set('google', [
     'youtube' => [
         'api_key' => '{{yt-api-key}}',
         'max_daily_imports' => 10,
+    ],
+    'bigquery' => [
+        'project_id' => '',
+        'key_file_path' =>  __DIR__ . '/.auth/bigquery.json'
     ],
 ]);
 

@@ -15,6 +15,7 @@ use Minds\Core\Blockchain\LiquidityPositions;
 use Minds\Core\Blockchain\Services\BlockFinder;
 use Minds\Core\Blockchain\Token;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain;
+use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain\UniqueOnChainAddress;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Core\Guid;
@@ -280,9 +281,7 @@ class Manager
                 continue;
             }
 
-            $tokenBalance = $this->token->fromTokenUnit(
-                $this->token->balanceOf($uniqueOnChain->getAddress(), $blockNumber)
-            );
+            $tokenBalance = $this->getTokenBalance($uniqueOnChain, $blockNumber);
 
             $rewardEntry = new RewardEntry();
             $rewardEntry->setUserGuid($user->getGuid())
@@ -589,5 +588,24 @@ class Manager
 
         $this->txRepository->add($transaction);
         return $transaction;
+    }
+
+    /**
+     * Gets token balance if one is not already set.
+     * @param UniqueOnChainAddress $uniqueOnChainAddress - unique onchain address object.
+     * @param integer $blockNumber - block number to check for.
+     * @return string - balance as string.
+     */
+    private function getTokenBalance(UniqueOnChainAddress $uniqueOnChainAddress, int $blockNumber): string
+    {
+        // if already set, just return the set value.
+        if ($tokenBalance = $uniqueOnChainAddress->getTokenBalance()) {
+            return $tokenBalance;
+        }
+
+        // else lookup the token balance via RPC.
+        return $this->token->fromTokenUnit(
+            $this->token->balanceOf($uniqueOnChainAddress->getAddress(), $blockNumber)
+        );
     }
 }

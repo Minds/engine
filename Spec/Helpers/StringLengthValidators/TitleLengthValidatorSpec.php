@@ -40,6 +40,33 @@ class TitleLengthValidatorSpec extends ObjectBehavior
         $this->shouldThrow(StringLengthException::class)->duringValidate(str_repeat("a", 2001));
     }
 
+    public function it_should_NOT_validate_an_INVALID_string_with_multi_byte_characters()
+    {
+        // no mb variant for str repeat
+        $testString = "A".str_repeat("❤️", 1000); // 2001 mb chars
+        $this->shouldThrow(StringLengthException::class)->duringValidate($testString);
+    }
+
+    public function it_should_validate_an_valid_string_with_multi_byte_characters()
+    {
+        // no mb variant for str repeat
+        $testString = str_repeat("❤️", 1000); // 2000 mb chars
+        $this->validate($testString)->shouldBe(true);
+    }
+
+    public function it_should_correctly_validate_and_trim_multi_byte_strings()
+    {
+        // no mb variant for str repeat
+        $testString = str_repeat("❤️", 1001); // 2002 mb chars
+        $resultString = str_repeat("❤️", 1000).'...'; // 2000 mb chars
+        
+        $this->validateMaxAndTrim(
+            $testString
+        )->shouldReturn(
+            $resultString
+        );
+    }
+
     public function it_should_trim_a_string_to_a_max_length_when_max_length_exceeded()
     {
         $testString = str_repeat("a", 2001);

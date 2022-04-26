@@ -14,5 +14,11 @@ class Provider extends DiProvider
         $this->di->bind('SocialCompass\Controller', function ($di) {
             return new Controller();
         });
+        $this->di->bind('SocialCompass\Delegates\OpenBoostDelegate', function ($di) {
+            return new Delegates\OpenBoostDelegate();
+        });
+        $this->di->bind('SocialCompass\Delegates\ActionDelegateManager', function ($di) {
+            return new Delegates\ActionDelegateManager();
+        });
     }
 }

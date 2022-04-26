@@ -24,5 +24,5 @@ interface RecommendationsAlgorithmInterface
      * Returns the list of recommendations based on the current recommendation's algorithm
      * @return Response
      */
-    public function getRecommendations(): Response;
+    public function getRecommendations(?array $options = []): Response;
 }

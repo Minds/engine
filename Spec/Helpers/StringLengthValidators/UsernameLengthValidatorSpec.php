@@ -40,6 +40,33 @@ class UsernameLengthValidatorSpec extends ObjectBehavior
         $this->shouldThrow(StringLengthException::class)->duringValidate('01234567890123456789012345678901234567890123456789t');
     }
 
+    public function it_should_NOT_validate_an_INVALID_string_with_multi_byte_characters()
+    {
+        // no mb variant for str repeat
+        $testString = "A".str_repeat("❤️", 30); // 60 mb chars
+        $this->shouldThrow(StringLengthException::class)->duringValidate($testString);
+    }
+
+    public function it_should_validate_an_valid_string_with_multi_byte_characters()
+    {
+        // no mb variant for str repeat
+        $testString = str_repeat("❤️", 25); // 50 mb chars
+        $this->validate($testString)->shouldBe(true);
+    }
+
+    public function it_should_correctly_validate_and_trim_multi_byte_strings()
+    {
+        // no mb variant for str repeat
+        $testString = str_repeat("❤️", 30); // 60 mb chars
+        $resultString = str_repeat("❤️", 25).'...'; // 53 mb chars
+        
+        $this->validateMaxAndTrim(
+            $testString
+        )->shouldReturn(
+            $resultString
+        );
+    }
+
     public function it_should_trim_a_string_to_a_max_length_when_max_length_exceeded()
     {
         $this->validateMaxAndTrim(
@@ -115,5 +142,12 @@ class UsernameLengthValidatorSpec extends ObjectBehavior
         $this->limitsToString('name')->shouldReturn(
             "Invalid name. Must be between 1 and 50 characters."
         );
+    }
+
+    public function it_should_correctly_validate_multi_byte_strings()
+    {
+        // no mb variant for str repeat
+        $testString = str_repeat("❤️", 25); // 60 mb chars
+        $this->validate($testString)->shouldReturn(true);
     }
 }
