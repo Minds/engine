@@ -60,18 +60,43 @@ class Repository
         $query = [
             'body' => [
                 'query' => [
-                    'bool' => [
-                        'must' => [
-                            [
-                                'term' => [
-                                    'cluster_id' => $clusterId
+                    'function_score' => [
+                        'query' => [
+                            'bool' => [
+                                'must' => [
+                                    [
+                                        'term' => [
+                                            'cluster_id' => $clusterId
+                                        ]
+                                    ]
                                 ]
                             ]
+                        ],
+                        'score_mode' => 'multiply',
+                        'functions' => [
+                            [
+                                'field_value_factor' => [
+                                    'field' => 'score',
+                                    'factor' => 1,
+                                    'modifier' => 'log1p',
+                                    'missing' => 0,
+                                ],
+                            ],
+                            [
+                                'gauss' => [
+                                    '@time_created' => [
+                                        'offset' => '24h', // Do not decay until we reach this bound
+                                        'scale' => '7d', // Peak decay will be here
+                                        'decay' => 0.5
+                                    ],
+                                ],
+                            ],
                         ]
-                    ]
+                    
+                    ],
                 ],
                 'sort' => [
-                    'score' => 'desc'
+                    '_score' => 'desc'
                 ]
             ],
             'index' => $this->index,

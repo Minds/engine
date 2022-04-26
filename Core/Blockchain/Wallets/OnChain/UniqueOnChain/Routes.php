@@ -2,6 +2,7 @@
 namespace Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain;
 
 use Minds\Core\Di\Ref;
+use Minds\Core\Router\Middleware\AdminMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 use Minds\Core\Router\Middleware\LoggedInMiddleware;
@@ -28,10 +29,6 @@ class Routes extends ModuleRoutes
                     '',
                     Ref::_('Blockchain\UniqueOnChain\Controller', 'get')
                 );
-                $route->get(
-                    'all',
-                    Ref::_('Blockchain\UniqueOnChain\Controller', 'getAll')
-                );
                 $route->post(
                     'validate',
                     Ref::_('Blockchain\UniqueOnChain\Controller', 'validate')
@@ -40,6 +37,16 @@ class Routes extends ModuleRoutes
                     'validate',
                     Ref::_('Blockchain\UniqueOnChain\Controller', 'unValidate')
                 );
+                $route
+                    ->withMiddleware([
+                        AdminMiddleware::class
+                    ])
+                    ->do(function (Route $route) {
+                        $route->get(
+                            'all',
+                            Ref::_('Blockchain\UniqueOnChain\Controller', 'getAll')
+                        );
+                    });
             });
     }
 }

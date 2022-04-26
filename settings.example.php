@@ -293,6 +293,10 @@ $CONFIG->set('google', [
         'api_key' => '{{yt-api-key}}',
         'max_daily_imports' => 10,
     ],
+    'bigquery' => [
+        'project_id' => '',
+        'key_file_path' =>  __DIR__ . '/.auth/bigquery.json'
+    ],
 ]);
 
 $CONFIG->set('apple', [
