@@ -1729,15 +1729,17 @@ CREATE TABLE minds.user_quality_scores
 
 CREATE TABLE minds.system_push_notifications
 (
-    request_id uuid PRIMARY KEY,
+    request_id timeuuid PRIMARY KEY,
     author_guid bigint,
-    created_on timestamp,
-    started_on timestamp,
-    completed_on timestamp,
+    created_at timestamp,
+    started_at timestamp,
+    completed_at timestamp,
     title text,
     message text,
     url text,
     target text,
     counter int,
     status int
-) WITH CLUSTERING ORDER BY (created_on DESC);
+) WITH CLUSTERING ORDER BY (created_at DESC);
+
+CREATE INDEX spn_status_idx ON minds."system_push_notifications" (status);
