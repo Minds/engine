@@ -22,6 +22,9 @@ class DeviceSubscription
     const SERVICE_FCM = 'fcm';
 
     /** @var string */
+    const SERVICE_WEBPUSH = 'webpush';
+
+    /** @var string */
     protected $userGuid;
 
     /** @var string */
@@ -36,7 +39,7 @@ class DeviceSubscription
      */
     public function setService(string $service): self
     {
-        if (!in_array($service, [ self::SERVICE_APNS, self::SERVICE_FCM ], true)) {
+        if (!in_array($service, [ self::SERVICE_APNS, self::SERVICE_FCM, self::SERVICE_WEBPUSH ], true)) {
             throw new \Exception('Invalid service');
         }
         $this->service = $service;
