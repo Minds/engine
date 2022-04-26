@@ -772,3 +772,7 @@ $CONFIG->set('growthbook', [
 $CONFIG->set('user_quality_score', [
     'belowSpamRiskThreshold' => 0.4
 ]);
+
+$CONFIG->set('did', [
+    'domain' => 'localhost:8080',
+]);
