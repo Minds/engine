@@ -12,6 +12,8 @@ use Minds\Traits\MagicAttributes;
  * @method self setSignature(string $signature)
  * @method string getPayload()
  * @method self setPayload(string $payload)
+ * @method string getTokenBalance()
+ * @method self setTokenBalance(string $balance)
  */
 class UniqueOnChainAddress
 {
@@ -28,6 +30,9 @@ class UniqueOnChainAddress
 
     /** @var string */
     protected $payload;
+
+    /** @var string */
+    protected $tokenBalance;
 
     /**
      * Public export for address

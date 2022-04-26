@@ -1,12 +1,13 @@
 <?php
 
-namespace Minds\Core\Recommendations;
+namespace Minds\Core\Recommendations\Algorithms\WiderNetwork;
 
 use Minds\Common\Repository\Response;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Client as ElasticSearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared\Search as PreparedSearchQuery;
 use Minds\Core\Di\Di;
+use Minds\Core\Recommendations\RepositoryInterface;
 use Minds\Core\Suggestions\Suggestion;
 use Minds\Entities\Factory;
 

@@ -379,6 +379,8 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 
     public function sync_sendgrid_lists(): void
     {
+        Di::_()->get('Config')->set('min_log_level', 'INFO');
+
         $sendGridManager = Di::_()->get('SendGrid\Manager');
         $sendGridManager->syncContactLists();
     }

@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Email\Confirmation;
 
+use DateTime;
 use Exception;
 use Minds\Common\Jwt;
 use Minds\Core\Config;
@@ -80,9 +81,129 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_send_email(
         User $user
     ) {
+        $user->getEmailConfirmationToken()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $user->isEmailConfirmed()
             ->shouldBeCalled()
             ->willReturn(false);
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+        
+        $this->jwt->setKey('~key~')
+            ->shouldBeCalled()
+            ->willReturn($this->jwt);
+
+        $user->get('guid')
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $this->jwt->randomString()
+            ->shouldBeCalled()
+            ->willReturn('~random~');
+
+        $this->jwt->encode([
+            'user_guid' => '1000',
+            'code' => '~random~',
+        ], Argument::type('int'), Argument::type('int'))
+            ->shouldBeCalled()
+            ->willReturn('~token~');
+
+        $user->setEmailConfirmationToken('~token~')
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $user->save()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->eventsDispatcher->trigger('confirmation_email', 'all', [
+            'user_guid' => '1000',
+            'cache' => false,
+        ])
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this
+            ->setUser($user)
+            ->shouldNotThrow(Exception::class)
+            ->duringSendEmail();
+    }
+
+    public function it_should_send_email_with_existing_token_if_one_exists(
+        User $user
+    ) {
+        $user->getEmailConfirmationToken()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $expTime = new DateTime('+1 day');
+
+        $this->jwt->decode('123')
+            ->shouldBeCalled()
+            ->willReturn([
+                'user_guid' => '1000',
+                'code' => '~random~',
+                'exp' => $expTime,
+            ]);
+            
+        $user->isEmailConfirmed()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+        
+        $this->jwt->setKey('~key~')
+            ->shouldBeCalled()
+            ->willReturn($this->jwt);
+
+        $user->get('guid')
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $this->eventsDispatcher->trigger('confirmation_email', 'all', [
+            'user_guid' => '1000',
+            'cache' => false,
+        ])
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this
+            ->setUser($user)
+            ->shouldNotThrow(Exception::class)
+            ->duringSendEmail();
+    }
+
+
+    public function it_should_send_email_with_new_token_if_a_token_exists_but_is_expired(
+        User $user
+    ) {
+        $user->getEmailConfirmationToken()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $this->jwt->setKey('~key~')
+            ->shouldBeCalled()
+            ->willReturn($this->jwt);
+        
+        $expTime = new DateTime('-1 day');
+
+        $this->jwt->decode('123')
+            ->shouldBeCalled()
+            ->willReturn([
+                'user_guid' => '1000',
+                'code' => '~random~',
+                'exp' => $expTime,
+            ]);
+
+        $user->isEmailConfirmed()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $user->getGuid()
             ->shouldBeCalled()
             ->willReturn('123');
@@ -190,6 +311,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn([
                 'user_guid' => '1000',
                 'code' => 'phpspec',
+                'exp' => new \DateTimeImmutable('+1 day')
             ]);
 
         $this->userFactory->build('1000', false)
@@ -272,6 +394,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn([
                 'user_guid' => '1000',
                 'code' => 'phpspec',
+                'exp' => new \DateTimeImmutable('+1 day')
             ]);
 
         $this->userFactory->build('1000', false)
@@ -299,6 +422,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn([
                 'user_guid' => '1000',
                 'code' => 'phpspec',
+                'exp' => new \DateTimeImmutable('+1 day')
             ]);
 
         $this->userFactory->build('1000', false)
@@ -330,6 +454,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn([
                 'user_guid' => '1000',
                 'code' => 'phpspec',
+                'exp' => new \DateTimeImmutable('+1 day')
             ]);
 
         $this->userFactory->build('1000', false)

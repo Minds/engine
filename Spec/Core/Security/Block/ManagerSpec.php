@@ -20,9 +20,13 @@ class ManagerSpec extends ObjectBehavior
     /** @var PsrWrapper */
     protected $cache;
 
-    public function let(Repository $repository, PsrWrapper $cache, Delegates\EventStreamsDelegate $eventStreamsDelegate)
-    {
-        $this->beConstructedWith($repository, $cache, $eventStreamsDelegate);
+    public function let(
+        Repository $repository,
+        PsrWrapper $cache,
+        Delegates\EventStreamsDelegate $eventStreamsDelegate,
+        Delegates\AnalyticsDelegate $analyticsDelegate
+    ) {
+        $this->beConstructedWith($repository, $cache, $eventStreamsDelegate, $analyticsDelegate);
         $this->repository = $repository;
         $this->cache = $cache;
     }

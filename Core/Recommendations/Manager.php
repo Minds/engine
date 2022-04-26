@@ -31,16 +31,20 @@ class Manager implements ManagerInterface
      * Retrieves the recommendations based on the location provided
      * @param User|null $user
      * @param string $location
+     * @param array|null $options
      * @return Response
      */
-    public function getRecommendations(?User $user, string $location): Response
-    {
+    public function getRecommendations(
+        ?User $user,
+        string $location,
+        ?array $options = []
+    ): Response {
         $this->createLocation($user, $location);
         $algorithm = $this->location->getLocationRecommendationsAlgorithm();
 
         return new Response([
             "algorithm" => $algorithm->getFriendlyName(),
-            "entities" => $algorithm->getRecommendations()
+            "entities" => $algorithm->getRecommendations($options)
         ]);
     }
 }

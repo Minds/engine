@@ -128,5 +128,9 @@ class DataProvider extends Provider
         $this->di->bind('Prepared\MonetizationLedger', function ($di) {
             return new Cassandra\Prepared\MonetizationLedger();
         });
+
+        $this->di->bind('BigQuery', function ($di) {
+            return new BigQuery\Client();
+        }, ['useFactory'=>true]);
     }
 }

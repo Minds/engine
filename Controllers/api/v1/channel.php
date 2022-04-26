@@ -16,6 +16,7 @@ use Minds\Common\ChannelMode;
 use Minds\Core\Di\Di;
 use Minds\Core\Security\Block\BlockEntry;
 use ElggFile;
+use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
 
 class channel implements Interfaces\Api
 {
@@ -297,6 +298,12 @@ class channel implements Interfaces\Api
                         $owner->$field = $_POST[$field];
                     }
                 }
+
+                // @throws StringLengthException
+                (new BriefDescriptionLengthValidator())->validate(
+                    $_POST['briefdescription'] ?? '',
+                    nameOverride: 'bio'
+                );
 
                 if (isset($_POST['name'])) {
                     $maxLength = Di::_()->get('Config')->max_name_length ?? 50;

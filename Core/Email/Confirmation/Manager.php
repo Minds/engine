@@ -117,21 +117,7 @@ class Manager
             ->setMax(self::RATE_LIMIT_MAX)
             ->checkAndIncrement();
 
-        $config = $this->config->get('email_confirmation');
-
-        $now = time();
-        $expires = $now + $config['expiration'];
-
-        $token = $this->jwt
-            ->setKey($config['signing_key'])
-            ->encode([
-                'user_guid' => (string) $this->user->guid,
-                'code' => $this->jwt->randomString(),
-            ], $expires, $now);
-
-        $this->user
-            ->setEmailConfirmationToken($token)
-            ->save();
+        $this->generateConfirmationToken();
 
         $this->eventsDispatcher->trigger('confirmation_email', 'all', [
             'user_guid' => (string) $this->user->guid,
@@ -180,6 +166,10 @@ class Manager
             !$confirmation['code']
         ) {
             throw new Exception('Invalid JWT');
+        }
+
+        if ($confirmation['exp'] < new \DateTime()) {
+            throw new Exception('Confirmation token expired');
         }
 
         $user = $this->userFactory->build($confirmation['user_guid'], false);
@@ -280,5 +270,67 @@ class Manager
         }
 
         return $users;
+    }
+
+    /**
+     * Generates an email confirmation token and saves it to instance member user
+     * or returns an existing cached token.
+     * @return self
+     */
+    private function generateConfirmationToken(): self
+    {
+        $existingToken = $this->user->getEmailConfirmationToken();
+
+        // if existing token is valid, we do not need to generate a new one.
+        if ($existingToken && $this->isTokenValid($existingToken)) {
+            return $this;
+        }
+
+        $config = $this->config->get('email_confirmation');
+
+        $now = time();
+        $expires = $now + $config['expiration'];
+
+        $token = $this->jwt
+            ->setKey($config['signing_key'])
+            ->encode([
+                'user_guid' => (string) $this->user->guid,
+                'code' => $this->jwt->randomString(),
+            ], $expires, $now);
+
+        $this->user
+            ->setEmailConfirmationToken($token)
+            ->save();
+
+        return $this;
+    }
+
+    /**
+     * Determine whether email confirmation token is valid.
+     * @param string $jwt - jwt string to check validity of.
+     * @return boolean true if token is valid.
+     */
+    private function isTokenValid(string $jwt): bool
+    {
+        try {
+            $config = $this->config->get('email_confirmation');
+
+            // @throws Exception if invalid jwt.
+            $confirmation = $this->jwt
+                ->setKey($config['signing_key'])
+                ->decode($jwt);
+
+            if (
+                !$confirmation ||
+                !$confirmation['user_guid'] ||
+                !$confirmation['code']
+            ) {
+                throw new Exception('Invalid JWT');
+            }
+
+            return $confirmation['exp'] > new \DateTime();
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }

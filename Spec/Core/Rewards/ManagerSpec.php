@@ -201,6 +201,108 @@ class ManagerSpec extends ObjectBehavior
         $this->calculate();
     }
 
+    public function it_should_calculate_holding_rewards_when_balance_already_populated(
+        UniqueOnChainAddress $address1
+    ) {
+        // Mock of our users
+        $user1 = (new User);
+        $user1->guid = '123';
+        $user1->setPhoneNumberHash('phone_hash');
+        $user1->setEthWallet('0xAddresss');
+
+        $this->entitiesBuilder->single('123')
+            ->willReturn($user1);
+
+        // Engagement
+        $this->contributions->getSummaries(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn([
+                (new ContributionSummary)
+                    ->setUserGuid('123')
+                    ->setScore(10)
+                    ->setAmount(2),
+            ]);
+        $this->repository->add(Argument::that(function ($rewardEntry) {
+            return $rewardEntry->getUserGuid() === '123'
+                && $rewardEntry->getScore()->toFloat() === (float) 10
+                && $rewardEntry->getRewardType() === 'engagement';
+        }))->shouldBeCalled();
+
+        // Liquidity
+        $this->liquidityPositionManager->setDateTs(Argument::any())
+                ->willReturn($this->liquidityPositionManager);
+
+        $this->liquidityPositionManager->getAllProvidersSummaries()
+                ->willReturn([
+                    (new LiquidityPositionSummary())
+                        ->setUserGuid('123')
+                        ->setUserLiquidityTokens(BigDecimal::of(10)),
+                ]);
+        // We request yesterdays RewardEntry
+        $this->repository->getList(Argument::that(function ($opts) {
+            return $opts->getUserGuid() === '123'
+                && $opts->getDateTs()  === time() - 86400;
+        }))
+            ->willReturn(new Response([
+                (new RewardEntry())
+                    ->setRewardType('liquidity')
+                    ->setMultiplier(BigDecimal::of(1)),
+                (new RewardEntry())
+                    ->setRewardType('holding')
+                    ->setMultiplier(BigDecimal::of('1.0054794520540')),
+            ]));
+        // Add to the repository
+        $this->repository->add(Argument::that(function ($rewardEntry) {
+            return $rewardEntry->getUserGuid() === '123'
+                && (string) $rewardEntry->getScore() === '10.054794520550'
+                && $rewardEntry->getRewardType() === 'liquidity';
+        }))->shouldBeCalled();
+
+        // Holding
+        $this->blockFinder->getBlockByTimestamp(Argument::any())
+            ->willReturn(1);
+
+        $address1->getAddress()->willReturn('0xAddresss');
+        $address1->getUserGuid()->willReturn('123');
+        $address1->getTokenBalance()->willReturn('10');
+
+        $this->uniqueOnChainManager->getAll()
+            ->willReturn([
+                $address1
+            ]);
+        
+        $this->token->fromTokenUnit("10")
+            ->shouldNotBeCalled();
+
+        $this->token->balanceOf('0xAddresss', 1)
+            ->shouldNotBeCalled();
+
+        $this->repository->add(Argument::that(function ($rewardEntry) {
+            return $rewardEntry->getUserGuid() === '123'
+                && (string) $rewardEntry->getScore() === "10.1095890410900"
+                && $rewardEntry->getRewardType() === 'holding';
+        }))->shouldBeCalled();
+
+        // Calculation of tokens
+        $this->repository->getIterator(Argument::any())
+                ->willReturn([
+                    (new RewardEntry())
+                        ->setUserGuid('123')
+                        ->setRewardType('engagement')
+                        ->setScore(BigDecimal::of(25))
+                        ->setSharePct(0.5),
+                ]);
+        $this->repository->update(Argument::that(function ($rewardEntry) {
+            return $rewardEntry->getUserGuid() === '123'
+                && $rewardEntry->getTokenAmount()
+                && $rewardEntry->getTokenAmount()->toFloat() === (float) 2000 // 50% of all available rewards in pool
+                && $rewardEntry->getRewardType() === 'engagement';
+        }), ['token_amount'])->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->calculate();
+    }
+
     public function it_should_allow_max_multiplier_of_3_in_365_days()
     {
         $rewardEntry = new RewardEntry();
