@@ -4,13 +4,17 @@ namespace Minds\Core\Notifications\Push\System;
 
 use Cassandra\Bigint;
 use Cassandra\Timestamp;
-use Cassandra\Uuid;
+use Cassandra\Timeuuid;
 use Minds\Core\Data\Cassandra\Client as CassandraClient;
 use Minds\Core\Data\Cassandra\Prepared\Custom as PreparedStatement;
 use Minds\Core\Di\Di;
 use Minds\Core\Notifications\Push\System\Models\AdminPushNotificationRequest;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 
+/**
+ *
+ */
 class Repository
 {
     private User $user;
@@ -44,7 +48,7 @@ class Repository
             VALUES 
                 (?, ?, ?, ?, ?, ?, ?);",
             [
-                $notification->getRequestId(),
+                new Timeuuid($notification->getRequestId()),
                 new Bigint($this->user->getGuid()),
                 new Timestamp(time(), 0),
                 $notification->getTitle(),
@@ -68,9 +72,9 @@ class Repository
                 ->setTitle($notification['title'])
                 ->setMessage($notification['message'])
                 ->setLink($notification['message'])
-                ->setRequestId(new Uuid($notification['request_id']))
+                ->setRequestId($notification['request_id'])
                 ->setAuthorId($notification['author_guid'])
-                ->setCreatedOn(strtotime($notification['createdOn']))
+                ->setCreatedAt(strtotime($notification['createdOn']))
                 ->setStatus($notification['status'])
                 ->setCounter($notification['counter'])
                 ->setTarget($notification['target']);
@@ -94,7 +98,7 @@ class Repository
             );
     }
 
-    public function updateRequestStartedOnDate(Uuid $requestId): void
+    public function updateRequestStartedOnDate(string $requestId): void
     {
         $query = (new PreparedStatement())
             ->query(
@@ -102,14 +106,14 @@ class Repository
                 [
                     new Timestamp(time(), 0),
                     AdminPushNotificationRequestStatus::IN_PROGRESS,
-                    $requestId
+                    new Timeuuid($requestId)
                 ]
             );
 
         $this->cassandraClient->request($query);
     }
 
-    public function updateRequestCompletedOnDate(Uuid $requestId, int $status): void
+    public function updateRequestCompletedOnDate(string $requestId, int $status): void
     {
         $query = (new PreparedStatement())
             ->query(
@@ -117,13 +121,16 @@ class Repository
                 [
                     new Timestamp(time(), 0),
                     $status,
-                    $requestId
+                    new Timeuuid($requestId)
                 ]
             );
 
         $this->cassandraClient->request($query);
     }
 
+    /**
+     * @throws ServerErrorException
+     */
     public function getByRequestId(string $requestId): AdminPushNotificationRequest
     {
         $query = (new PreparedStatement())
@@ -136,7 +143,7 @@ class Repository
                         request_id = ?
                     LIMIT 1;",
                 [
-                    new Uuid($requestId)
+                    new Timeuuid($requestId)
                 ]
             );
 

@@ -2,7 +2,6 @@
 
 namespace Minds\Core\Notifications\Push\System\Models;
 
-use Cassandra\Uuid;
 use Minds\Core\Notifications\Push\System\AdminPushNotificationRequestStatus;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\ExportableInterface;
@@ -10,8 +9,8 @@ use Minds\Exceptions\ServerErrorException;
 use Minds\Traits\MagicAttributes;
 
 /**
- * @method self setRequestId(Uuid $requestId)
- * @method Uuid getRequestId()
+ * @method self setRequestId(string $requestId)
+ * @method string getRequestId()
  * @method self setAuthorId(string $authorId)
  * @method string getAuthorId()
  * @method self setTitle(string $title)
@@ -25,18 +24,18 @@ use Minds\Traits\MagicAttributes;
  * @method self setCounter(int $counter)
  * @method int getCounter()
  * @method self setStatus(int $status)
- * @method self setCreatedOn(string $createdOn)
- * @method string getCreatedOn()
- * @method self setStartedOn(string $startedOn)
- * @method string getStartedOn()
- * @method self setCompletedOn(string $completedOn)
- * @method string getCompletedOn()
+ * @method self setCreatedAt(string $createdAt)
+ * @method string getCreatedAt()
+ * @method self setStartedAt(string $startedAt)
+ * @method string getStartedAt()
+ * @method self setCompletedAt(string $completedAt)
+ * @method string getCompletedAt()
  */
 class AdminPushNotificationRequest implements ExportableInterface, EntityInterface
 {
     use MagicAttributes;
 
-    private Uuid $requestId;
+    private string $requestId;
     private ?string $authorGuid;
     private string $title;
     private ?string $message;
@@ -44,9 +43,9 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
     private string $target;
     private ?int $counter;
     private int $status;
-    private string $createdOn;
-    private ?string $startedOn;
-    private ?string $completedOn;
+    private string $createdAt;
+    private ?string $startedAt;
+    private ?string $completedAt;
 
     /**
      * @throws ServerErrorException
@@ -57,9 +56,6 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
 
         if (!isset($data['request_id'])) {
             throw new ServerErrorException("Missing property 'request_id' in System Push Notification event");
-        }
-        if (is_string($data['request_id'])) {
-            $data['request_id'] = new Uuid($data['request_id']);
         }
         $notificationData->setRequestId($data['request_id']);
 
@@ -86,7 +82,7 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
         if (!isset($data['timestamp'])) {
             throw new ServerErrorException("Missing property 'timestamp' in System Push Notification event");
         }
-        $notificationData->setCreatedOn($data['timestamp']);
+        $notificationData->setCreatedAt($data['timestamp']);
 
         if (!isset($data['target'])) {
             throw new ServerErrorException("Missing property 'target' in System Push Notification event");
@@ -134,7 +130,7 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
             'title' => $this->getTitle(),
             'message' => $this->getMessage(),
             'link' => $this->getLink(),
-            'timestamp' => $this->getCreatedOn(),
+            'timestamp' => $this->getCreatedAt(),
             'target' => $this->getTarget(),
             'counter' => $this->getCounter(),
             'urn' => $this->getUrn()

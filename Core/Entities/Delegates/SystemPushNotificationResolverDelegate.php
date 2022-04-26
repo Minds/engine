@@ -56,10 +56,7 @@ class SystemPushNotificationResolverDelegate implements ResolverDelegate
      */
     public function asUrn($entity): ?string
     {
-        if (!$entity) {
-            return null;
-        }
+        return $entity?->getUrn();
 
-        return $entity->getUrn();
     }
 }

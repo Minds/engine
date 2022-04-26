@@ -15,7 +15,6 @@ use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
 use Minds\Core\Notifications\Push\System\Targets\SystemPushNotificationTargetsList;
 use Minds\Core\Notifications\Push\UndeliverableException;
 use Minds\Entities\User;
-use Minds\Exceptions\ServerErrorException;
 
 /**
  *
@@ -62,7 +61,7 @@ class Manager
             ->setTitle($requestNotificationDetails['notificationTitle'])
             ->setMessage($requestNotificationDetails['notificationMessage'])
             ->setLink($requestNotificationDetails['notificationLink'])
-            ->setCreatedOn(time())
+            ->setCreatedAt(time())
             ->setCounter(0)
             ->setTarget($requestNotificationDetails['notificationTarget']);
     }
@@ -75,10 +74,10 @@ class Manager
     }
 
     /**
-     * @throws ServerErrorException
      * @throws UndeliverableException
+     * @throws Exception
      */
-    public function sendNotification(CustomPushNotification $notificationDetails): void
+    public function sendNotification(AdminPushNotificationRequest $notificationDetails): void
     {
         $notificationTargetHandler = SystemPushNotificationTargetsList::getTargetHandlerFromShortName($notificationDetails->getTarget());
 
