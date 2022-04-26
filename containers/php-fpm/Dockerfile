@@ -1,4 +1,4 @@
-FROM minds/php:blurhash
+FROM minds/php:8.0
 
 ADD --chown=www-data . /var/www/Minds/engine
 
@@ -6,9 +6,6 @@ RUN rm -f /var/www/Minds/engine/settings.php \
     && mkdir --parents --mode=0777 /tmp/minds-cache/ \
     && mkdir --parents --mode=0777 /data/ \
     && echo 'zend_extension=opcache.so' > /usr/local/etc/php/conf.d/opcache.ini
-
-# gmp is needed by minishlink/web-push
-RUN apk add gmp-dev && docker-php-ext-install -j$(nproc) gmp
 
 COPY containers/php-fpm/pull-secrets.sh pull-secrets.sh
 COPY containers/php-fpm/php.ini /usr/local/etc/php/
