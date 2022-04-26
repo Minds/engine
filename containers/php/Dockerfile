@@ -62,7 +62,7 @@ ENV BUILD_DEPS \
 
 RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && apk add --no-cache libuv gmp \
-    && git clone https://github.com/nano-interactive/php-driver.git $INSTALL_DIR \
+    && git clone --branch=php8.0 https://github.com/nano-interactive/php-driver.git $INSTALL_DIR \
     && cd $INSTALL_DIR \
     && git submodule update --init \
     # Install CPP Driver
