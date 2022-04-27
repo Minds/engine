@@ -776,3 +776,9 @@ $CONFIG->set('user_quality_score', [
 $CONFIG->set('did', [
     'domain' => 'localhost:8080',
 ]);
+
+$CONFIG->set('webpush_vapid_details', [
+    'public_key' => "{{webpush_vapid_public_key}}",
+    'private_key' => "{{webpush_vapid_private_key}}",
+    'subject' => "{{webpush_vapid_subject}}"
+]);

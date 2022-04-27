@@ -1,4 +1,4 @@
-FROM php:8.0-fpm-alpine3.14
+FROM php:8.0-fpm-alpine3.15
 
 RUN apk add --no-cache --update --virtual .php-deps make
 
@@ -17,6 +17,7 @@ RUN apk add --no-cache --virtual build-deps \
     npm \
     ffmpeg \
     icu-dev \
+    gmp-dev \
     && docker-php-ext-install -j$(nproc) bcmath \
     && docker-php-ext-install -j$(nproc) zip \
     && docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/ \
@@ -24,6 +25,7 @@ RUN apk add --no-cache --virtual build-deps \
     && docker-php-ext-install -j$(nproc) exif \
     && docker-php-ext-install -j$(nproc) sockets \
     && docker-php-ext-install -j$(nproc) intl \
+    && docker-php-ext-install -j$(nproc) gmp \
     && apk del build-deps
 
 # PECL Extensions
@@ -60,7 +62,7 @@ ENV BUILD_DEPS \
 
 RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && apk add --no-cache libuv gmp \
-    && git clone https://github.com/nano-interactive/php-driver.git $INSTALL_DIR \
+    && git clone --branch=php8.0 https://github.com/nano-interactive/php-driver.git $INSTALL_DIR \
     && cd $INSTALL_DIR \
     && git submodule update --init \
     # Install CPP Driver
