@@ -18,6 +18,9 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Common\Urn;
+use Minds\Core\Boost\Network\ElasticRepository as BoostElasticRepository;
+use Minds\Entities\MutatableEntityInterface;
+use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
 use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
 
@@ -73,7 +76,8 @@ class Manager
         $notificationsDelegate = null,
         $entitiesBuilder = null,
         private ?MessageLengthValidator $messageLengthValidator = null,
-        private ?TitleLengthValidator $titleLengthValidator = null
+        private ?TitleLengthValidator $titleLengthValidator = null,
+        private ?BoostElasticRepository $boostRepository = null
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -89,6 +93,7 @@ class Manager
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->messageLengthValidator = $messageLengthValidator ?? new MessageLengthValidator();
         $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
+        $this->boostRepository = $boostRepository ?? new BoostElasticRepository();
     }
 
     /**
@@ -165,6 +170,10 @@ class Manager
         $activity = $activityMutation->getMutatedEntity();
 
         $this->validateStringLengths($activity);
+
+        if ($this->isActivelyBoostedEntity($activityMutation->getOriginalEntity())) {
+            throw new UserErrorException('Sorry, you can not edit a post with a Boost in progress.');
+        }
 
         if ($activity->type !== 'activity' && in_array($activity->subtype, [
             'video', 'image'
@@ -285,5 +294,19 @@ class Manager
         $this->messageLengthValidator->validate($activity->getMessage() ?? '', nameOverride: 'post');
         $this->titleLengthValidator->validate($activity->getTitle() ?? '');
         return true;
+    }
+
+    /**
+     * Checks whether an entity is currently actively boosted.
+     * @param MutatableEntityInterface $entity - entity to check.
+     * @return boolean - true if the entity has an actively boosted state.
+     */
+    private function isActivelyBoostedEntity(MutatableEntityInterface $entity): bool
+    {
+        $results = $this->boostRepository->getList([
+            'entity_guid' => $entity['guid'],
+            'state' => 'active'
+        ]);
+        return $results && count($results) > 0;
     }
 }

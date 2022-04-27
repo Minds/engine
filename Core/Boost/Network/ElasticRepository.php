@@ -44,11 +44,13 @@ class ElasticRepository
             ],
         ];
 
-        $must[] = [
-            'term' => [
-                'type' => $opts['type'],
-            ],
-        ];
+        if (isset($opts['type'])) {
+            $must[] = [
+                'term' => [
+                    'type' => $opts['type'],
+                ],
+            ];
+        }
 
         $must_not[] = [
             'term' => [
