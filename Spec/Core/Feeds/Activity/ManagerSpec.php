@@ -159,7 +159,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->boostRepository->getList([
             'entity_guid' => null,
-            'state' => 'active'
+            'state' => 'approved'
         ])->shouldBeCalled()
             ->willReturn([]);
     
@@ -196,7 +196,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->boostRepository->getList([
             'entity_guid' => null,
-            'state' => 'active'
+            'state' => 'approved'
         ])->shouldBeCalled()
             ->willReturn([]);
 
@@ -230,7 +230,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->boostRepository->getList([
                 'entity_guid' => null,
-                'state' => 'active'
+                'state' => 'approved'
             ])->shouldBeCalled()
                 ->willReturn([]);
 
@@ -265,7 +265,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->boostRepository->getList([
             'entity_guid' => 123,
-            'state' => 'active'
+            'state' => 'approved'
         ])->shouldBeCalled()
             ->willReturn([
                 1

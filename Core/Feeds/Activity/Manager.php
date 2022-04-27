@@ -163,7 +163,9 @@ class Manager
     }
 
     /**
-     * Update the activity entity
+     * Update the activity entity.
+     * @throws UserErrorException
+     * @throws \Exception
      */
     public function update(EntityMutation $activityMutation): void
     {
@@ -305,7 +307,7 @@ class Manager
     {
         $results = $this->boostRepository->getList([
             'entity_guid' => $entity['guid'],
-            'state' => 'active'
+            'state' => 'approved'
         ]);
         return $results && count($results) > 0;
     }
