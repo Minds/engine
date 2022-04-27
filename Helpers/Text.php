@@ -127,4 +127,18 @@ class Text
 
         return $matches[2] ?? [];
     }
+
+    /**
+     * Truncate a string
+     * @param string $str - the input
+     * @param int $maxLength - the max length of your output
+     * @return string
+     */
+    public static function truncate(string $str, int $maxLength = 140): string
+    {
+        if (strlen($str) > $maxLength) {
+            return substr($str, 0, $maxLength - 3) . "...";
+        }
+        return $str;
+    }
 }
