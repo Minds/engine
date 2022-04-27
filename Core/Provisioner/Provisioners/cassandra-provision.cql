@@ -1728,3 +1728,9 @@ CREATE TABLE minds.user_quality_scores
     score     float,
     PRIMARY KEY (user_id, timestamp)
 ) WITH CLUSTERING ORDER BY (timestamp DESC);
+
+CREATE TABLE minds.did_keypairs
+(
+    user_guid bigint PRIMARY KEY,
+    keypair text,
+);

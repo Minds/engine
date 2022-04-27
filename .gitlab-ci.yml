@@ -98,12 +98,21 @@ review:start:
   image: minds/aws-helm:latest
   script:
     - aws eks --region us-east-1 update-kubeconfig --name sandbox --role-arn=$AWS_IAM_ROLE_ARN
-    - git clone --branch=master https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/minds/helm-charts.git
+    # Download repo, use same branch name if exists
+    - HELM_GIT_REPO=https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/minds/helm-charts.git
+    - git clone --branch=master $HELM_GIT_REPO
+    - BRANCH_EXISTS=$(git ls-remote --heads $HELM_GIT_REPO $CI_BUILD_REF_NAME | wc -l)
+    - cd ./helm-charts
+    - if [ $BRANCH_EXISTS == "1" ] ; then
+    -    echo "Matching branch exists, checking out $CI_BUILD_REF_NAME..."
+    -    git checkout $CI_BUILD_REF_NAME 2>/dev/null
+    - fi;
+    #
     - echo "Upgrading helm for pipeline ${CI_PIPELINE_ID}"
     - echo "Setting to image ${CI_REGISTRY_IMAGE}"
     - "helm upgrade \
       --install \
-      --values ./helm-charts/minds/sandbox-values.yaml \
+      --values ./minds/sandbox-values.yaml \
       --reuse-values \
       --set engine.image.repository=$CI_REGISTRY_IMAGE/fpm \
       --set-string engine.image.tag=$CI_PIPELINE_ID \
@@ -113,7 +122,7 @@ review:start:
       --set-string environments.sandbox.routingCookie=false
       --wait \
       $CI_BUILD_REF_SLUG \
-      ./helm-charts/minds"
+      ./minds"
     - sentry-cli releases deploys $CI_PIPELINE_ID new -e review-$CI_COMMIT_REF_SLUG
   environment:
     name: review/$CI_COMMIT_REF_NAME
