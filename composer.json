@@ -52,7 +52,8 @@
         "kornrunner/keccak": "^1.1",
         "growthbook/growthbook": "1.0.0",
         "league/csv": "^9.8",
-        "google/cloud-bigquery": "^1.23"
+        "google/cloud-bigquery": "^1.23",
+        "ext-bcmath": "*"
     },
     "repositories": [
         {

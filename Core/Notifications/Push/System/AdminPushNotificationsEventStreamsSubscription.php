@@ -12,7 +12,6 @@ use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
 use Minds\Core\Notifications\Push\UndeliverableException;
-use Minds\Exceptions\ServerErrorException;
 
 class PushNotificationsEventStreamsSubscription implements SubscriptionInterface
 {
@@ -54,7 +53,6 @@ class PushNotificationsEventStreamsSubscription implements SubscriptionInterface
      * @param EventInterface $event
      * @return bool
      * @throws UndeliverableException
-     * @throws ServerErrorException
      */
     public function consume(EventInterface $event): bool
     {

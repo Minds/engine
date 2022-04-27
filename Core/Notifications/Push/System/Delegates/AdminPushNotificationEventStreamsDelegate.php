@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Notifications\Push\System\Delegates;
 
+use Exception;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
@@ -12,15 +13,18 @@ use Minds\Entities\User;
  */
 class AdminPushNotificationEventStreamsDelegate
 {
+    private ?ActionEventsTopic $actionEventsTopic;
+
     public function __construct(
-        private ?ActionEventsTopic $actionEventsTopic = null
+        ?ActionEventsTopic $actionEventsTopic = null
     ) {
-        $this->actionEventsTopic ??= new ActionEventsTopic();
+        $this->actionEventsTopic = $actionEventsTopic;
     }
 
     /**
      * @param AdminPushNotificationRequest $notification
      * @return void
+     * @throws Exception
      */
     public function onAdd(AdminPushNotificationRequest $notification): void
     {
@@ -45,6 +49,10 @@ class AdminPushNotificationEventStreamsDelegate
      */
     protected function getTopic(): ActionEventsTopic
     {
+        if (!$this->actionEventsTopic) {
+            $this->actionEventsTopic = new ActionEventsTopic();
+        }
+        
         return $this->actionEventsTopic;
     }
 }

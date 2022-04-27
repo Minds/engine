@@ -42,6 +42,11 @@ class Manager
         return $this;
     }
 
+    /**
+     * @param array $requestNotificationDetails
+     * @return Response
+     * @throws Exception
+     */
     public function add(array $requestNotificationDetails): Response
     {
         $notificationDetails = $this->prepareNotificationDetails($requestNotificationDetails);
