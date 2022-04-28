@@ -123,7 +123,8 @@ class Exported
                 ->getExportableConfig(),
             'twitter' => [
                 'min_followers_for_sync' => $this->config->get('twitter')['min_followers_for_sync'] ?? 25000,
-            ]
+            ],
+            'vapid_key' => $this->config->get("webpush_vapid_details")['public_key']
         ];
 
         if (Session::isLoggedIn()) {
