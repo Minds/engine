@@ -15,7 +15,6 @@ class SystemPushNotificationResolverDelegate implements ResolverDelegate
     public function __construct(
         private ?Manager $manager = null
     ) {
-        $this->manager ??= new Manager();
     }
 
     /**
@@ -35,6 +34,7 @@ class SystemPushNotificationResolverDelegate implements ResolverDelegate
     {
         $entities = [];
 
+        $this->getManager();
         foreach ($urns as $urn) {
             $entities[] = $this->manager->getRequestByUrn($urn);
         }
@@ -57,5 +57,16 @@ class SystemPushNotificationResolverDelegate implements ResolverDelegate
     public function asUrn($entity): ?string
     {
         return $entity?->getUrn();
+    }
+
+    /**
+     * @return Manager
+     */
+    public function getManager(): Manager
+    {
+        if (!$this->manager) {
+            $this->manager = new Manager();
+        }
+        return $this->manager;
     }
 }
