@@ -87,14 +87,14 @@ class Manager
             'polygon' => [
                 // TODO: Switch to mainnet instead of goerli when in production mode
                 //Old Abi
-                'polygon_contracts_root_chain' => (new POLYGON\PolygonContractsGoerli())->getABIs(),
-                'polygon_contracts_child_chain' => (new POLYGON\PolygonContractsMumbai())->getABIs(), //Old Child 
+                'polygon_contracts_root_chain' => (new Polygon\PolygonContractsGoerli())->getABIs(),
+                'polygon_contracts_child_chain' => (new Polygon\PolygonContractsMumbai())->getABIs(), //Old Child 
                 // Only for Testing environments
-                'polygon_contracts_mumbai' => (new POLYGON\PolygonContractAddressesMumbai())->getContracts(), 
-                'polygon_contracts_mainnet' => (new POLYGON\PolygonContractAddressMainnet())->getContracts(),
-                'polygon_rpc_provider' => (new POLYGON\PolygonRPCProvider())->getProvider(),
-                'mainnet_rpc_provider' => (new POLYGON\MainnetRPCProvider())->getProvider(),
-                'constants' => (new POLYGON\PolygonServiceConstants())->getConstants()
+                'polygon_contracts_mumbai' => (new Polygon\PolygonContractAddressesMumbai())->getContracts(), 
+                'polygon_contracts_mainnet' => (new Polygon\PolygonContractAddressMainnet())->getContracts(),
+                'polygon_rpc_provider' => (new Polygon\PolygonRPCProvider())->getProvider(),
+                'mainnet_rpc_provider' => (new Polygon\MainnetRPCProvider())->getProvider(),
+                'constants' => (new Polygon\PolygonServiceConstants())->getConstants()
             ], 
             'overrides' => $this->getOverrides(),
             'withdraw_limit' => $blockchainConfig['contracts']['withdraw']['limit'] ?? 1,
