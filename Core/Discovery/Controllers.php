@@ -82,6 +82,32 @@ class Controllers
         ], 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
     }
 
+
+    /**
+     * Controller for search requests
+     * @param ServerRequest $request
+     * @return JsonResponse
+     */
+    public function getSearchCount(ServerRequest $request): JsonResponse
+    {
+        $queryParams = $request->getQueryParams();
+        $query = $queryParams['q'] ?? null;
+        $filter = $queryParams['algorithm'] ?? 'latest';
+        $type = $queryParams['type'] ?? '';
+        $plus = filter_var($queryParams['plus'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $nsfw = array_filter(explode(',', $queryParams['nsfw'] ?? '') ?: [], 'strlen');
+
+        $count = $this->manager->getSearchCount($query, $filter, $type, [
+            'plus' => $plus,
+            'nsfw' => $nsfw,
+        ]);
+
+        return new JsonResponse([
+            'status' => 'success',
+            'count' => $count,
+        ]);
+    }
+
     /**
      * Controller for getting tags
      * @param ServerRequest $request
