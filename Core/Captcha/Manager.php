@@ -33,7 +33,8 @@ class Manager
         $jwt = null,
         $config = null,
         $logger = null,
-        $keyValueLimiter = null
+        $keyValueLimiter = null,
+        private ?BypassManager $bypassManager = null,
     ) {
         $this->imageGenerator = $imageGenerator ?? new ImageGenerator;
         $this->jwt = $jwt ?? new Jwt();
@@ -42,6 +43,7 @@ class Manager
         $this->jwt->setKey($this->secret);
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->keyValueLimiter = $keyValueLimiter ?? Di::_()->get('Security\RateLimits\KeyValueLimiter');
+        $this->bypassManager ??= new BypassManager();
     }
 
     /**
@@ -66,7 +68,7 @@ class Manager
     public function verify(Captcha $captcha): bool
     {
         if (isset($_COOKIE['captcha_bypass'])) {
-            return $this->verifyBypass($captcha);
+            return $this->bypassManager->verify($captcha->getClientText());
         }
 
         $jwtToken = $captcha->getJwtToken();
@@ -93,31 +95,6 @@ class Manager
         $clientHash = $this->buildCaptchaHash($clientText, $salt);
 
         return $clientHash === $hash;
-    }
-
-    /**
-     * This is used for testing purposes and for e2e to bypass
-     * the captvha
-     * @param Captcha $captcha
-     * @return bool
-     */
-    protected function verifyBypass(Captcha $captcha): bool
-    {
-        if (!isset($_COOKIE['captcha_bypass'])) {
-            return false;
-        }
-
-        $bypassKey = $this->config->get('captcha')['bypass_key'];
-
-        $decoded = $this->jwt
-            ->setKey($bypassKey)
-            ->decode($_COOKIE['captcha_bypass']);
-
-        $inputted = (int) $decoded['data'];
-
-        $this->logger->warn('[Captcha]: Bypass cookie was used');
-
-        return $inputted == $captcha->getClientText();
     }
 
     /**

@@ -82,6 +82,9 @@ class UnreadNotifications extends EmailCampaign
         $this->template->set('campaign', $this->campaign);
         $this->template->set('topic', $this->topic);
         $this->template->set('tracking', $trackingQuery);
+        $this->template->set('truncate', function ($text) {
+            return \Minds\Helpers\Text::truncate($text);
+        });
 
         //
 
@@ -102,7 +105,7 @@ class UnreadNotifications extends EmailCampaign
             ->setLimit(12);
 
         $notifications = array_filter(iterator_to_array($this->notificationManager->getList($opts)), function ($item) {
-            return $item[0]->getReadTimestamp() === null;
+            return $item[0]->getReadTimestamp() === null && $item[0]->getEntity();
         });
 
         // Of the above notifications, map to Push notifications so we can reuse their language

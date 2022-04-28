@@ -26,6 +26,7 @@ class RepositorySpec extends ObjectBehavior
         Config $config,
         EntitiesBuilder $entitiesBuilder
     ) {
+        $timestamp = time();
         $cassandra->request(Argument::type('\Minds\Core\Data\Cassandra\Prepared\Custom'))
             ->shouldBeCalled()
             ->willReturn(new Mocks\Cassandra\Rows([
@@ -33,7 +34,7 @@ class RepositorySpec extends ObjectBehavior
                  'wire_guid' => new Varint(12345),
                  'sender_guid' => 123,
                  'receiver_guid' => 1234,
-                 'timestamp' => '2017-05-03',
+                 'timestamp' => new Cassandra\Timestamp($timestamp, 0),
                  'entity_guid' => 1337,
                  'recurring' => true,
                  'amount' => null,
@@ -67,7 +68,7 @@ class RepositorySpec extends ObjectBehavior
         $wire->setGuid(12345)
             ->setSender($sender)
             ->setReceiver($receiver)
-            ->setTimestamp('2017-05-03')
+            ->setTimestamp($timestamp)
             ->setEntity($entity)
             ->setRecurring(true)
             ->setAmount('10')
@@ -79,6 +80,7 @@ class RepositorySpec extends ObjectBehavior
 
         $result['wires'][0]->shouldBeAnInstanceOf('Minds\Core\Wire\Wire');
         $result['wires'][0]->shouldBeLike($wire);
+        $result['wires'][0]->getTimestamp()->shouldBe($timestamp);
     }
 
     public function it_should_use_send_table_if_sender_guid(Client $cassandra, Config $config)

@@ -125,5 +125,9 @@ class BlockchainProvider extends Provider
         $this->di->bind('Blockchain\Uniswap\Client', function () {
             return new Uniswap\Client();
         });
+
+        $this->di->bind('Blockchain\BigQuery\HoldersQuery', function () {
+            return new BigQuery\HoldersQuery();
+        });
     }
 }

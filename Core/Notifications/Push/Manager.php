@@ -34,6 +34,9 @@ class Manager
     /** @var Services\FcmService */
     protected $fcmService;
 
+    /** @var Services\WebPushService */
+    protected $webPushService;
+
     public function __construct(
         Notifications\Manager $notificationsManager = null,
         DeviceSubscriptions\Manager $deviceSubscriptionsManager = null,
@@ -175,6 +178,11 @@ class Manager
                     $this->fcmService = new Services\FcmService();
                 }
                 return $this->fcmService;
+            case DeviceSubscription::SERVICE_WEBPUSH:
+                if (!$this->webPushService) {
+                    $this->webPushService = new Services\WebPushService();
+                }
+                return $this->webPushService;
         }
         throw new Exception('Invalid service');
     }

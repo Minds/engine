@@ -293,6 +293,10 @@ $CONFIG->set('google', [
         'api_key' => '{{yt-api-key}}',
         'max_daily_imports' => 10,
     ],
+    'bigquery' => [
+        'project_id' => '',
+        'key_file_path' =>  __DIR__ . '/.auth/bigquery.json'
+    ],
 ]);
 
 $CONFIG->set('apple', [
@@ -728,6 +732,9 @@ $CONFIG->set('unleash', [
 $CONFIG->set('captcha', [
     'jwt_secret' => '{{site-secret}}',
     'bypass_key' => '{{site-secret}}',
+    'friendly_captcha' => [
+        'signing_secret' => '{{site-secret}}',
+    ]
 ]);
 
 $CONFIG->set('cypress', [
@@ -780,4 +787,14 @@ $CONFIG->set('growthbook', [
 
 $CONFIG->set('user_quality_score', [
     'belowSpamRiskThreshold' => 0.4
+]);
+
+$CONFIG->set('did', [
+    'domain' => 'localhost:8080',
+]);
+
+$CONFIG->set('webpush_vapid_details', [
+    'public_key' => "{{webpush_vapid_public_key}}",
+    'private_key' => "{{webpush_vapid_private_key}}",
+    'subject' => "{{webpush_vapid_subject}}"
 ]);

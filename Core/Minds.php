@@ -64,7 +64,9 @@ class Minds extends base
         SocialCompass\Module::class,
         Blockchain\SKALE\Module::class,
         AccountQuality\Module::class,
-        Recommendations\Module::class
+        Recommendations\Module::class,
+        Captcha\FriendlyCaptcha\Module::class,
+        DID\Module::class,
     ];
 
     /**
