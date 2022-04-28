@@ -32,21 +32,25 @@
 
 <tr>
     <td>
-        <table
-            border="0"
-            cellpadding="20"
-            cellspacing="0"
-            <?php echo $emailStyles->getStyles('m-unreadNotifications__previews'); ?>
-            >
-            <?php foreach ($vars['unreadPushNotifications'] as $pushNotification) { ?>
-            <tr <?php echo $emailStyles->getStyles('m-unreadNotifications__preview'); ?>>
-                <td <?php echo $emailStyles->getStyles('m-unreadNotifications__col'); ?>>
-                    <?php $body = $pushNotification->getBody(); ?>
-                    <?php echo $pushNotification->getTitle(); ?><?php if ($body) { ?>:<?php } ?> <?php echo $body; ?> 
-                </td>
-            </tr>
-            <?php } ?>
-        </table>
+        <a href="<?php echo $vars['site_url']; ?>notifications/v3?<?php echo $vars['tracking']; ?>"
+          <?php echo $emailStyles->getStyles('m-fonts', 'm-unreadNotificationsCount__text', 'm-textColor--primary'); ?>
+        >
+            <table
+                border="0"
+                cellpadding="20"
+                cellspacing="0"
+                <?php echo $emailStyles->getStyles('m-unreadNotifications__previews'); ?>
+                >
+                <?php foreach ($vars['unreadPushNotifications'] as $pushNotification) { ?>
+                <tr <?php echo $emailStyles->getStyles('m-unreadNotifications__preview'); ?>>
+                    <td <?php echo $emailStyles->getStyles('m-unreadNotifications__col'); ?>>
+                        <?php $body = $vars['truncate']($pushNotification->getBody()); ?>
+                        <b><?php echo $pushNotification->getTitle(); ?></b><?php if ($body) { ?>:<?php } ?> <?php echo $body; ?> 
+                    </td>
+                </tr>
+                <?php } ?>
+            </table>
+        </a>
     </td>
 </tr>
 

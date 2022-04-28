@@ -1745,3 +1745,9 @@ CREATE TABLE minds.system_push_notifications
 ) WITH CLUSTERING ORDER BY (created_at DESC);
 
 CREATE INDEX spn_status_idx ON minds."system_push_notifications" (status);
+
+CREATE TABLE minds.did_keypairs
+(
+    user_guid bigint PRIMARY KEY,
+    keypair text,
+);

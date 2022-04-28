@@ -54,7 +54,8 @@ class Events
                     ->setUser($params['entity']);
 
                 if ($keystore->getPrivateKey()) {
-                    $export = [ 'chat' => true ];
+                    $export = $event->response() ?: [];
+                    $export['chat'] = true;
                     $event->setResponse($export);
                 }
             }
