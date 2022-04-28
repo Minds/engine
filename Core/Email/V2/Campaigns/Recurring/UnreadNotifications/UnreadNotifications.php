@@ -83,7 +83,7 @@ class UnreadNotifications extends EmailCampaign
         $this->template->set('topic', $this->topic);
         $this->template->set('tracking', $trackingQuery);
         $this->template->set('truncate', function ($text) {
-            return \Minds\Helpers\Text::truncate($text);
+            return \Minds\Helpers\Text::truncate($text ?: '');
         });
 
         //
