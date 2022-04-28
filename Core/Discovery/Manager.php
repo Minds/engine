@@ -591,7 +591,10 @@ class Manager
      */
     public function getSearchCount(string $query, string $filter, string $type = 'activity', array $opts = []): int
     {
-        return $this->elasticFeedsManager->getCount($this->getSearchOpts($query, $filter, $type, $opts));
+        return $this->elasticFeedsManager->getCount($this->getSearchOpts($query, $filter, $type, array_merge([
+            'hide_own_posts' => true,
+            'reverse_sort' => true,
+        ], $opts)));
     }
     
     /**
@@ -606,6 +609,9 @@ class Manager
         $algorithm = 'latest';
         $opts = array_merge([
             'plus' => false,
+            'hide_own_posts' => false,
+            'from_timestamp' => null,
+            'reverse_sort' => null,
             'nsfw' => [],
         ], $opts);
 
@@ -647,7 +653,10 @@ class Manager
             'period' => '1y',
             'query' => $query,
             'plus' => $opts['plus'],
-            'single_owner_threshold' => $filter === 'latest' ? 0 : 24
+            'single_owner_threshold' => $filter === 'latest' ? 0 : 24,
+            'hide_own_posts' => $opts['hide_own_posts'],
+            'from_timestamp' => $opts['from_timestamp'],
+            'reverse_sort' => $opts['reverse_sort'],
         ]);
     }
 

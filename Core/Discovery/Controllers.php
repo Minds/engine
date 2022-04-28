@@ -4,8 +4,8 @@ namespace Minds\Core\Discovery;
 use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\Response\JsonResponse;
 use Minds\Api\Exportable;
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Di\Di;
+use Minds\Core\Discovery\Validators\SearchCountRequestValidator;
+use Minds\Exceptions\UserErrorException;
 
 class Controllers
 {
@@ -91,6 +91,17 @@ class Controllers
     public function getSearchCount(ServerRequest $request): JsonResponse
     {
         $queryParams = $request->getQueryParams();
+
+        $requestValidator = new SearchCountRequestValidator();
+
+        if (!$requestValidator->validate($request->getQueryParams())) {
+            throw new UserErrorException(
+                "There were some errors validating the request properties.",
+                400,
+                $requestValidator->getErrors()
+            );
+        }
+
         $query = $queryParams['q'] ?? null;
         $filter = $queryParams['algorithm'] ?? 'latest';
         $type = $queryParams['type'] ?? '';
@@ -100,6 +111,7 @@ class Controllers
         $count = $this->manager->getSearchCount($query, $filter, $type, [
             'plus' => $plus,
             'nsfw' => $nsfw,
+            'from_timestamp' => (int) $queryParams['from_timestamp'],
         ]);
 
         return new JsonResponse([
