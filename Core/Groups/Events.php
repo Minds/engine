@@ -33,6 +33,10 @@ class Events
             $access_id = $entity->access_id;
             $user = $params['user'];
 
+            if (!method_exists($entity, 'getContainerEntity')) {
+                return;
+            }
+
             $group = $entity->getContainerEntity();
 
             if ($group instanceof GroupEntity) {
