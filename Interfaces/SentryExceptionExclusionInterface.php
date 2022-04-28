@@ -7,5 +7,4 @@ namespace Minds\Interfaces;
  */
 interface SentryExceptionExclusionInterface
 {
-
 }
