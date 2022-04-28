@@ -84,14 +84,13 @@ class Controllers
 
 
     /**
-     * Controller for search requests
+     * Controller for counting search requests
      * @param ServerRequest $request
      * @return JsonResponse
      */
     public function getSearchCount(ServerRequest $request): JsonResponse
     {
         $queryParams = $request->getQueryParams();
-
         $requestValidator = new SearchCountRequestValidator();
 
         if (!$requestValidator->validate($request->getQueryParams())) {

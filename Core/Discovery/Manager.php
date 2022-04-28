@@ -609,10 +609,10 @@ class Manager
         $algorithm = 'latest';
         $opts = array_merge([
             'plus' => false,
+            'nsfw' => [],
             'hide_own_posts' => false,
             'from_timestamp' => null,
             'reverse_sort' => null,
-            'nsfw' => [],
         ], $opts);
 
         switch ($type) {
