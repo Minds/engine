@@ -3,6 +3,7 @@
  * Bootstraps Minds engine
  */
 
+use Minds\Interfaces\SentryExceptionExclusionInterface;
 use Stripe\Exception\RateLimitException;
 
 /**
@@ -28,8 +29,17 @@ Sentry\init([
     'environment' => getenv('MINDS_ENV') ?: 'development',
     'send_default_pii' => false,
     'before_send' => function (\Sentry\Event $event, ?\Sentry\EventHint $hint): ?\Sentry\Event {
-        if ($hint !== null && $hint->exception instanceof RateLimitException) {
-            return null;
+        $exclusions = [
+            RateLimitException::class,
+            SentryExceptionExclusionInterface::class
+        ];
+
+        if ($hint !== null) {
+            if (array_filter($exclusions, function (string $value, int $key) use ($hint) {
+                return $hint->exception instanceof $value;
+            }, ARRAY_FILTER_USE_BOTH)) {
+                return null;
+            }
         }
         return $event;
     },
