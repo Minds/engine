@@ -17,10 +17,10 @@ use Minds\Exceptions\ServerErrorException;
  */
 class Repository
 {
-    private User $user;
+    protected User $user;
 
     public function __construct(
-        private ?CassandraClient $cassandraClient = null
+        protected ?CassandraClient $cassandraClient = null
     ) {
         $this->cassandraClient ??= Di::_()->get('Database\Cassandra\Cql');
     }
@@ -92,8 +92,7 @@ class Repository
                     system_push_notifications
                 WHERE
                     status = ?
-                LIMIT 12
-                ALLOW FILTERING;",
+                LIMIT 12;",
                 [AdminPushNotificationRequestStatus::DONE]
             );
     }

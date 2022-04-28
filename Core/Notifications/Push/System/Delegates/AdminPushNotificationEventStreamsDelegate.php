@@ -14,11 +14,13 @@ use Minds\Entities\User;
 class AdminPushNotificationEventStreamsDelegate
 {
     private ?ActionEventsTopic $actionEventsTopic;
+    private EntitiesBuilder $entitiesBuilder;
 
     public function __construct(
         ?ActionEventsTopic $actionEventsTopic = null
     ) {
         $this->actionEventsTopic = $actionEventsTopic;
+        $this->entitiesBuilder = new EntitiesBuilder();
     }
 
     /**
@@ -33,7 +35,7 @@ class AdminPushNotificationEventStreamsDelegate
         /**
          * @var User
          */
-        $user = (new EntitiesBuilder())->single($notification->getAuthorId());
+        $user = $this->entitiesBuilder->single($notification->getAuthorId());
 
         $notificationEvent
             ->setAction(ActionEvent::ACTION_SYSTEM_PUSH_NOTIFICATION)
