@@ -97,9 +97,15 @@ class Repository implements RepositoryInterface
             ]
         ];
 
+        // Include most recent logged-in user's subscription
+        // as it might not be already available in the graph subscriptions index
+        $must[]['term'] = [
+            "user_guid" => $this->options->getMostRecentSubscriptionUserGuid()
+        ];
+
         $must[]['range'] = [
             '@timestamp' => [
-                'gte' => strtotime("-90 days")
+                'gte' => strtotime("-90 days") * 1000
             ]
         ];
 
@@ -112,19 +118,11 @@ class Repository implements RepositoryInterface
      */
     private function prepareQueryShouldSection(): array
     {
-        $should = [
+        return [
             "bool" => [
                 "must" => []
             ]
         ];
-
-        // Include most recent logged-in user's subscription
-        // as it might not be already available in the graph subscriptions index
-        $should["bool"]["must"][]['term'] = [
-            "user_guid" => $this->options->getMostRecentSubscriptionUserGuid()
-        ];
-
-        return $should;
     }
 
     /**
