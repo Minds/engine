@@ -6,6 +6,7 @@ namespace Minds\Core\Reports;
 
 use Minds\Core\Reports\Jury\Decision;
 use Minds\Core\Reports\UserReports\UserReport;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Entities\Entity;
 use Minds\Traits\MagicAttributes;
 
@@ -125,6 +126,11 @@ class Report
      */
     public function export()
     {
+        if ($this->entity instanceof PaywallEntityInterface) {
+            $this->entity->setPayWall(true);
+            $this->entity->setPaywallUnlocked(true);
+        }
+    
         $export = [
             'urn' => $this->getUrn(),
             'entity_urn' => $this->entityUrn,
