@@ -65,11 +65,11 @@ $CONFIG->set(
             'hasMore' => true,
             'reasons' => [
                 ['value' => 1, 'label' => 'Terrorism'],
-                ['value' => 2, 'label' => 'Paedophilia'],
+                ['value' => 2, 'label' => 'Sexualization of minors'],
                 ['value' => 3, 'label' => 'Extortion'],
                 ['value' => 4, 'label' => 'Fraud'],
                 ['value' => 5, 'label' => 'Revenge Porn'],
-                ['value' => 6, 'label' => 'Sex trafficking'],
+                ['value' => 6, 'label' => 'Trafficking'],
             ],
         ],
         [
@@ -86,7 +86,7 @@ $CONFIG->set(
         ],
         [
             'value' => 3,
-            'label' => 'Encourages or incites violence',
+            'label' => 'Incitement to violence',
             'hasMore' => false,
         ],
         [
@@ -101,7 +101,7 @@ $CONFIG->set(
         ],
         [
             'value' => 7,
-            'label' => 'Impersonates',
+            'label' => 'Impersonation',
             'hasMore' => false,
         ],
         [
@@ -111,13 +111,8 @@ $CONFIG->set(
         ],
         [
             'value' => 10,
-            'label' => 'Infringes my copyright',
+            'label' => 'Intellectual Property violation',
             'hasMore' => true,
-        ],
-        [
-            'value' => 12,
-            'label' => 'Incorrect use of hashtags',
-            'hasMore' => false,
         ],
         [
             'value' => 13,
@@ -125,13 +120,8 @@ $CONFIG->set(
             'hasMore' => false,
         ],
         [
-            'value' => 15,
-            'label' => 'Trademark infringement',
-            'hasMore' => false,
-        ],
-        [
             'value' => 16,
-            'label' => 'Token manipulation',
+            'label' => 'Inauthentic engagement',
             'hasMore' => false,
         ],
         [
@@ -146,7 +136,6 @@ $CONFIG->set(
             'label' => 'Another reason',
             'hasMore' => true,
         ],
-
     ]
 );
 
