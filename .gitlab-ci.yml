@@ -120,6 +120,7 @@ review:start:
       --set cdn_domain=$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
       --set siteUrl=https://$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN/
       --set-string environments.sandbox.routingCookie=false
+      --timeout 800s \
       --wait \
       $CI_BUILD_REF_SLUG \
       ./minds"
