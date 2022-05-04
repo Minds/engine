@@ -240,4 +240,14 @@ class ManagerSpec extends ObjectBehavior
             'tag' => 'beatles',
         ]);
     }
+
+    public function it_shoud_return_search_count()
+    {
+        $this->elasticFeedsManager
+            ->getCount(Argument::any())
+            ->willReturn(5);
+
+        $entities = $this->getSearchCount('test search count', 'latest');
+        $entities->shouldBe(5);
+    }
 }

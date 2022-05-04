@@ -565,10 +565,54 @@ class Manager
      */
     public function getSearch(string $query, string $filter, string $type = 'activity', array $opts = []): Response
     {
+        $rows = $this->elasticFeedsManager->getList($this->getSearchOpts($query, $filter, $type, $opts));
+
+        $entities = new Response();
+        $entities = $entities->pushArray($rows->toArray());
+
+        if ($type === 'user') {
+            foreach ($entities as $feedItem) {
+                $entity = $feedItem->getEntity();
+                if ($entity && $entity instanceof User) {
+                    $entity->exportCounts = true;
+                }
+            }
+        }
+
+        return $entities;
+    }
+
+    /**
+     * Returns count of entities for a search query and filter
+     * @param string $query
+     * @param string $filter
+     * @param array $opts
+     * @return int
+     */
+    public function getSearchCount(string $query, string $filter, string $type = 'activity', array $opts = []): int
+    {
+        return $this->elasticFeedsManager->getCount($this->getSearchOpts($query, $filter, $type, array_merge([
+            'hide_own_posts' => true,
+            'reverse_sort' => true,
+        ], $opts)));
+    }
+    
+    /**
+     * Returns options for search list and count queries
+     * @param string $query
+     * @param string $filter
+     * @param array $opts
+     * @return array
+     */
+    private function getSearchOpts(string $query, string $filter, string $type = 'activity', array $opts = []): array
+    {
         $algorithm = 'latest';
         $opts = array_merge([
             'plus' => false,
             'nsfw' => [],
+            'hide_own_posts' => false,
+            'from_timestamp' => null,
+            'reverse_sort' => null,
         ], $opts);
 
         switch ($type) {
@@ -598,9 +642,7 @@ class Manager
                 break;
         }
 
-        $elasticEntities = new Core\Feeds\Elastic\Entities();
-
-        $opts = array_merge([
+        return array_merge([
             'cache_key' => $this->user ? $this->user->getGuid() : null,
             'access_id' => 2,
             'limit' => 300,
@@ -611,24 +653,11 @@ class Manager
             'period' => '1y',
             'query' => $query,
             'plus' => $opts['plus'],
-            'single_owner_threshold' => $filter === 'latest' ? 0 : 24
+            'single_owner_threshold' => $filter === 'latest' ? 0 : 24,
+            'hide_own_posts' => $opts['hide_own_posts'],
+            'from_timestamp' => $opts['from_timestamp'],
+            'reverse_sort' => $opts['reverse_sort'],
         ]);
-
-        $rows = $this->elasticFeedsManager->getList($opts);
-
-        $entities = new Response();
-        $entities = $entities->pushArray($rows->toArray());
-
-        if ($type === 'user') {
-            foreach ($entities as $feedItem) {
-                $entity = $feedItem->getEntity();
-                if ($entity && $entity instanceof User) {
-                    $entity->exportCounts = true;
-                }
-            }
-        }
-
-        return $entities;
     }
 
     /**
