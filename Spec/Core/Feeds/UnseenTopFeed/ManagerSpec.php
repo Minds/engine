@@ -3,7 +3,7 @@
 namespace Spec\Minds\Core\Feeds\UnseenTopFeed;
 
 use Minds\Common\Repository\Response;
-use Minds\Core\Data\cache\Redis;
+use Minds\Core\Data\Redis;
 use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Feeds\UnseenTopFeed\Manager;
@@ -34,7 +34,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_retrieve_unseen_entities_with_no_pre_existing_cache_and_no_pseudo_id(
         ElasticManager $elasticManager,
-        Redis $redisClient
+        Redis\Client $redisClient
     ) {
         $expectedResponse = $this->createSampleEntitiesResponseObject();
 
@@ -52,7 +52,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_retrieve_unseen_entities_with_pre_existing_cache_and_no_pseudo_id(
         ElasticManager $elasticManager,
-        Redis $redisClient
+        Redis\Client $redisClient
     ) {
         $expectedResponse = $this->createSampleEntitiesResponseObject([1,2]);
 
@@ -70,7 +70,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_retrieve_unseen_entities_with_no_pre_existing_cache_and_pseudo_id(
         ElasticManager $elasticManager,
-        Redis $redisClient
+        Redis\Client $redisClient
     ) {
         $_COOKIE["minds_pseudoid"] = "pseudoid";
 
@@ -90,7 +90,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_retrieve_unseen_entities_with_pre_existing_cache_and_pseudo_id(
         ElasticManager $elasticManager,
-        Redis $redisClient
+        Redis\Client $redisClient
     ) {
         $_COOKIE["minds_pseudoid"] = "pseudoid";
 
