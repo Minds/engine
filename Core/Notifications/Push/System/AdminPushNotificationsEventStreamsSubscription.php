@@ -47,7 +47,7 @@ class AdminPushNotificationsEventStreamsSubscription implements SubscriptionInte
      */
     public function getTopicRegex(): string
     {
-        return 'system-push-notification';
+        return ActionEvent::ACTION_SYSTEM_PUSH_NOTIFICATION;
     }
 
     /**

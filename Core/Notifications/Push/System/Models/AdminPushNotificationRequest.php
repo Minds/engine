@@ -9,8 +9,8 @@ use Minds\Exceptions\ServerErrorException;
 use Minds\Traits\MagicAttributes;
 
 /**
- * @method self setRequestId(string $requestId)
- * @method string getRequestId()
+ * @method self setRequestUuid(string $requestUuid)
+ * @method string getRequestUuid()
  * @method self setAuthorGuid(string $authorGuid)
  * @method string getAuthorGuid()
  * @method self setTitle(string $title)
@@ -35,7 +35,10 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
 {
     use MagicAttributes;
 
-    private string $requestId;
+    public const URN_METHOD = 'system-push-notification';
+
+    private string $type = 'admin';
+    private string $requestUuid;
     private ?string $authorGuid;
     private string $title;
     private ?string $message;
@@ -54,10 +57,10 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
     {
         $notificationData = new self;
 
-        if (!isset($data['request_id'])) {
-            throw new ServerErrorException("Missing property 'request_id' in System Push Notification event");
+        if (!isset($data['request_uuid'])) {
+            throw new ServerErrorException("Missing property 'request_uuid' in System Push Notification event");
         }
-        $notificationData->setRequestId($data['request_id']);
+        $notificationData->setRequestUuid($data['request_uuid']);
 
         if (!isset($data['author_guid'])) {
             throw new ServerErrorException("Missing property 'author_guid' in System Push Notification event");
@@ -113,8 +116,9 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
     {
         return implode(':', [
             'urn',
-            'system-push-notification',
-            $this->getRequestId()
+            self::URN_METHOD,
+            $this->getType(),
+            $this->getRequestUuid()
         ]);
     }
 
@@ -125,7 +129,7 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
     public function export(array $extras = []): array
     {
         return [
-            'request_id' => $this->getRequestId(),
+            'request_id' => $this->getRequestUuid(),
             'author_guid' => $this->getAuthorGuid(),
             'title' => $this->getTitle(),
             'message' => $this->getMessage(),
@@ -149,7 +153,7 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
 
     public function getType(): string
     {
-        return 'system-push-notification';
+        return $this->type;
     }
 
     public function getSubtype(): ?string

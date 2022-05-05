@@ -31,7 +31,7 @@ class AllDevices implements SystemPushNotificationTargetInterface
         foreach ($this->cassandraClient->request($query) as $deviceSubscription) {
             yield (new DeviceSubscription())
                 ->setUserGuid($deviceSubscription['user_guid'])
-                ->setToken($deviceSubscription['token'])
+                ->setToken($deviceSubscription['device_token'])
                 ->setService($deviceSubscription['service']);
         }
     }

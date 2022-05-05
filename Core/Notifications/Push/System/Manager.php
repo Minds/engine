@@ -6,6 +6,8 @@ use Exception;
 use Minds\Api\Exportable;
 use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
+use Minds\Core\Di\Di;
+use Minds\Core\Log\Logger;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\Services\ApnsService;
 use Minds\Core\Notifications\Push\Services\FcmService;
@@ -24,6 +26,7 @@ use Minds\Exceptions\ServerErrorException;
 class Manager
 {
     private User $user;
+    private Logger $logger;
 
     public function __construct(
         private ?Repository $repository = null,
@@ -35,6 +38,7 @@ class Manager
         $this->delegate ??= new AdminPushNotificationEventStreamsDelegate();
         $this->apnsService ??= new ApnsService();
         $this->fcmService ??= new FcmService();
+        $this->logger = Di::_()->get("Logger");
     }
 
     public function setUser(User $user): self
@@ -96,7 +100,7 @@ class Manager
 
         $deviceSubscriptions = $notificationTargetHandler->getList();
 
-        $this->repository->updateRequestStartedOnDate($notificationDetails->getRequestId());
+        $this->repository->updateRequestStartedOnDate($notificationDetails->getType(), $notificationDetails->getRequestUuid());
 
         /**
          * @var DeviceSubscription $deviceSubscription
@@ -111,15 +115,13 @@ class Manager
             try {
                 $this->sendNotification($notification);
             } catch (UndeliverableException $e) {
-                $this->repository->updateRequestCompletedOnDate(
-                    $notificationDetails->getRequestId(),
-                    AdminPushNotificationRequestStatus::FAILED
-                );
+                continue;
             }
         }
 
         $this->repository->updateRequestCompletedOnDate(
-            $notificationDetails->getRequestId(),
+            $notificationDetails->getType(),
+            $notificationDetails->getRequestUuid(),
             AdminPushNotificationRequestStatus::DONE
         );
     }
@@ -135,14 +137,6 @@ class Manager
         if (!$this->getService($deviceSubscription->getService())->send($notification)) {
             throw new UndeliverableException("Could not deliver system push notification to device " . $deviceSubscription->getToken() . " of user " . $deviceSubscription->getUserGuid());
         }
-    }
-
-    private function updateNotificationRequestStatus(string $requestId, int $status): void
-    {
-        $this->repository->updateRequestCompletedOnDate(
-            $requestId,
-            AdminPushNotificationRequestStatus::tryFromValue($status)
-        );
     }
 
     /**
@@ -169,8 +163,8 @@ class Manager
         if (is_string($urn)) {
             $urn = new Urn($urn);
         }
-        $requestId = explode(':', $urn->getNss())[0];
+        $identifier = explode(':', $urn->getNss());
 
-        return $this->repository->getByRequestId($requestId);
+        return $this->repository->getByRequestId($identifier[0], $identifier[1]);
     }
 }

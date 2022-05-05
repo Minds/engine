@@ -8,7 +8,9 @@ use Cassandra\Timeuuid;
 use Minds\Core\Data\Cassandra\Client as CassandraClient;
 use Minds\Core\Data\Cassandra\Prepared\Custom as PreparedStatement;
 use Minds\Core\Di\Di;
+use Minds\Core\Log\Logger;
 use Minds\Core\Notifications\Push\System\Models\AdminPushNotificationRequest;
+use Minds\Core\Notifications\Push\UndeliverableException;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 
@@ -18,11 +20,13 @@ use Minds\Exceptions\ServerErrorException;
 class Repository
 {
     protected User $user;
+    private Logger $logger;
 
     public function __construct(
         protected ?CassandraClient $cassandraClient = null
     ) {
         $this->cassandraClient ??= Di::_()->get('Database\Cassandra\Cql');
+        $this->logger = Di::_()->get("Logger");
     }
 
     public function setUser(User $user): self
@@ -42,14 +46,15 @@ class Repository
     {
         $query = new PreparedStatement();
         $requestId = new Timeuuid(time());
-        $notification->setRequestId($requestId->uuid());
+        $notification->setRequestUuid($requestId->uuid());
         return $query->query(
             "INSERT INTO
                 system_push_notifications
-                (request_id, author_guid, created_at, title, message, url, target, counter, status)
+                (type, request_uuid, author_guid, created_at, title, message, url, target, counter, status)
             VALUES 
-                (?, ?, ?, ?, ?, ?, ?, ?, ?);",
+                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
             [
+                $notification->getType(),
                 $requestId,
                 new Bigint($this->user->getGuid()),
                 new Timestamp(time(), 0),
@@ -93,30 +98,32 @@ class Repository
             );
     }
 
-    public function updateRequestStartedOnDate(string $requestId): void
+    public function updateRequestStartedOnDate(string $type, string $requestUuid): void
     {
         $query = (new PreparedStatement())
             ->query(
-                "UPDATE system_push_notifications SET startedOn = ? AND status = ? WHERE request_id = ?;",
+                "UPDATE system_push_notifications SET started_at = ?, status = ? WHERE type = ? AND request_uuid = ?;",
                 [
                     new Timestamp(time(), 0),
                     AdminPushNotificationRequestStatus::IN_PROGRESS,
-                    $requestId
+                    $type,
+                    new Timeuuid($requestUuid)
                 ]
             );
 
         $this->cassandraClient->request($query);
     }
 
-    public function updateRequestCompletedOnDate(string $requestId, int $status): void
+    public function updateRequestCompletedOnDate(string $type, string $requestUuid, int $status): void
     {
         $query = (new PreparedStatement())
             ->query(
-                "UPDATE system_push_notifications SET completedOn = ? AND status = ? WHERE request_id = ?;",
+                "UPDATE system_push_notifications SET completed_at = ?, status = ? WHERE type = ? AND request_uuid = ?;",
                 [
                     new Timestamp(time(), 0),
                     $status,
-                    $requestId
+                    $type,
+                    new Timeuuid($requestUuid)
                 ]
             );
 
@@ -124,9 +131,13 @@ class Repository
     }
 
     /**
+     * @param string $type
+     * @param string $requestUuid
+     * @return AdminPushNotificationRequest
      * @throws ServerErrorException
+     * @throws UndeliverableException
      */
-    public function getByRequestId(string $requestId): AdminPushNotificationRequest
+    public function getByRequestId(string $type, string $requestUuid): AdminPushNotificationRequest
     {
         $query = (new PreparedStatement())
             ->query(
@@ -135,12 +146,21 @@ class Repository
                     FROM
                         system_push_notifications
                     WHERE
-                        request_id = ?
+                        type = ? AND request_uuid = ?
                     LIMIT 1;",
                 [
-                    $requestId
+                    $type,
+                    new Timeuuid($requestUuid)
                 ]
             );
+
+        $this->logger->addWarning("Fetching request by Uuid");
+
+        $rows = $this->cassandraClient->request($query);
+
+        if (!$rows) {
+            throw new UndeliverableException("No request was found");
+        }
 
         $row = $this->cassandraClient->request($query)->first();
         return AdminPushNotificationRequest::fromArray($row);

@@ -22,7 +22,7 @@ class SystemPushNotificationResolverDelegate implements ResolverDelegate
      */
     public function shouldResolve(Urn $urn): bool
     {
-        return $urn->getNid() === 'system-push-notification';
+        return $urn->getNid() === AdminPushNotificationRequest::URN_METHOD;
     }
 
     /**
