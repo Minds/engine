@@ -39,7 +39,9 @@ class Manager
     }
 
     /**
-     * Return a public asset uri for entity type
+     * Return a public asset uri for entity type.
+     * ! THIS FUNCTION SHOULD ONLY BE CALLED IF WHEN CONFIDENT THE USER HAS PERMISSION TO VIEW THE ENTITY !
+     * Typically an ACL check for permission will happen already on entity export.
      * @param Entity $entity
      * @param string $size
      * @return string
@@ -91,7 +93,25 @@ class Manager
             || ($entity instanceof PaywallEntityInterface && $entity->isPayWall())
         ) {
             $uri = $this->config->get('site_url') . $path;
-            $uri = $this->signUri($uri);
+
+            $shouldSign = false;
+
+            if ($entity instanceof PaywallEntityInterface && $entity->isPayWall()) {
+                if ($entity->isPayWallUnlocked()) {
+                    // We are signing because: this IS a paywalled post that we have permission to view as it is unlocked.
+                    $shouldSign = true;
+                }
+            } else {
+                // We are signing because; this is not a paywalled post, it is NOT public
+                // and we DO have permission to view it. We know we have permission to view it
+                // because prior to this function an ACL check will have been made on entity export
+                // or a decision will have been made to manually override the check, for example for use in Jury.
+                $shouldSign = true;
+            }
+
+            if ($shouldSign) {
+                $uri = $this->signUri($uri);
+            }
 
             // TODO: move this over to paywall manager via a hook (or something?)
             $loggedInUser = Session::getLoggedInUser();

@@ -5,7 +5,9 @@
 
 namespace Minds\Core\Router\Exceptions;
 
-class UnverifiedEmailException extends \Exception
+use Minds\Interfaces\SentryExceptionExclusionInterface;
+
+class UnverifiedEmailException extends \Exception implements SentryExceptionExclusionInterface
 {
     public function __construct()
     {

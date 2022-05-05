@@ -84,8 +84,14 @@ class Repository implements RepositoryInterface
 
         $must[]['range'] = [
             '@timestamp' => [
-                'gte' => strtotime("-90 days")
+                'gte' => strtotime("-90 days") * 1000
             ]
+        ];
+
+        // Include most recent logged-in user's subscription
+        // as it might not be already available in the graph subscriptions index
+        $must[]['term'] = [
+            "user_guid" => $this->options->getCurrentChannelUserGuid()
         ];
 
         return $must;
@@ -101,12 +107,6 @@ class Repository implements RepositoryInterface
             "bool" => [
                 "must" => []
             ]
-        ];
-
-        // Include most recent logged-in user's subscription
-        // as it might not be already available in the graph subscriptions index
-        $should["bool"]["must"][]['term'] = [
-            "user_guid" => $this->options->getCurrentChannelUserGuid()
         ];
 
         return $should;
