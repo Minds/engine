@@ -155,7 +155,7 @@ class Repository
                 ]
             );
 
-        $this->logger->addWarning("Fetching request by Uuid");
+        $this->logger->addWarning("Fetching request by Uuid: " . $requestUuid);
 
         $rows = $this->cassandraClient->request($query);
 
@@ -163,7 +163,7 @@ class Repository
             throw new UndeliverableException("No request was found");
         }
 
-        $row = $this->cassandraClient->request($query)->first();
+        $row = $rows->first();
         return AdminPushNotificationRequest::fromArray($row);
     }
 }
