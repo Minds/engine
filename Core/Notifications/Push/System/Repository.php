@@ -41,7 +41,8 @@ class Repository
     private function buildAddQuery(AdminPushNotificationRequest $notification): PreparedStatement
     {
         $query = new PreparedStatement();
-        $notification->setRequestId(new Timeuuid());
+        $requestId = new Timeuuid(time());
+        $notification->setRequestId($requestId->uuid());
         return $query->query(
             "INSERT INTO
                 system_push_notifications
@@ -49,7 +50,7 @@ class Repository
             VALUES 
                 (?, ?, ?, ?, ?, ?, ?, ?, ?);",
             [
-                new Timeuuid($notification->getRequestId()),
+                $requestId,
                 new Bigint($this->user->getGuid()),
                 new Timestamp(time(), 0),
                 $notification->getTitle(),
@@ -100,7 +101,7 @@ class Repository
                 [
                     new Timestamp(time(), 0),
                     AdminPushNotificationRequestStatus::IN_PROGRESS,
-                    new Timeuuid($requestId)
+                    $requestId
                 ]
             );
 
@@ -115,7 +116,7 @@ class Repository
                 [
                     new Timestamp(time(), 0),
                     $status,
-                    new Timeuuid($requestId)
+                    $requestId
                 ]
             );
 
@@ -137,7 +138,7 @@ class Repository
                         request_id = ?
                     LIMIT 1;",
                 [
-                    new Timeuuid($requestId)
+                    $requestId
                 ]
             );
 

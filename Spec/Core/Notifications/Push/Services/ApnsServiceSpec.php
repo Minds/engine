@@ -63,7 +63,7 @@ class ApnsServiceSpec extends ObjectBehavior
             ]);
 
         $this->client->request('POST', 'https://api.push.apple.com/3/device/apple-device-token', Argument::that(function ($payload) {
-§            return $payload['headers']['apns-collapse-id'] === 'merge-key-will-be-here'
+            return $payload['headers']['apns-collapse-id'] === 'merge-key-will-be-here'
                 && $payload['cert'] === '/path/to/cert'
                 && $payload['json']['aps']['alert']['body'] === 'This is the title line: This is the body line'
                 && $payload['json']['uri'] === 'uri-here'

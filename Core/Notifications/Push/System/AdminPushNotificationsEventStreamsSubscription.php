@@ -5,6 +5,7 @@
 namespace Minds\Core\Notifications\Push\System;
 
 use Minds\Core\Di\Di;
+use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;

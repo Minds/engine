@@ -179,17 +179,6 @@ class ActionEvent implements EventInterface
                 $allowedKeys = [ 'nsfw_lock' ];
                 break;
             case self::ACTION_SYSTEM_PUSH_NOTIFICATION:
-                $allowedKeys = [
-                    "request_id",
-                    "author_guid",
-                    "title",
-                    "message",
-                    "link",
-                    "timestamp",
-                    "target",
-                    "counter",
-                    "urn"
-                ];
                 break;
             default:
                 throw new \Exception("Invalid action set. Ensure allowedKeys are set in ActionEvent model");

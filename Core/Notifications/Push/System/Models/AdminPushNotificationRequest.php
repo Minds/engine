@@ -69,12 +69,12 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
         }
         $notificationData->setTitle($data['title']);
 
-        if (!isset($data['message'])) {
+        if (!key_exists('message', $data)) {
             throw new ServerErrorException("Missing property 'message' in System Push Notification event");
         }
         $notificationData->setMessage($data['message']);
 
-        if (!isset($data['url'])) {
+        if (!key_exists('url', $data)) {
             throw new ServerErrorException("Missing property 'url' in System Push Notification event");
         }
         $notificationData->setLink($data['url']);

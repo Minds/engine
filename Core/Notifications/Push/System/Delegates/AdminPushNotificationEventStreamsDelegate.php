@@ -39,7 +39,6 @@ class AdminPushNotificationEventStreamsDelegate
 
         $notificationEvent
             ->setAction(ActionEvent::ACTION_SYSTEM_PUSH_NOTIFICATION)
-            ->setActionData($notification->export())
             ->setEntity($notification)
             ->setUser($user);
 
