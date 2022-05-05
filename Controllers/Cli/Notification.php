@@ -5,13 +5,13 @@ namespace Minds\Controllers\Cli;
 use Cassandra\Bigint;
 use Minds\Cli;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
-use Minds\Core\Events\Dispatcher;
-use Minds\Core\Notifications\Push\System\Manager;
-use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
-use Minds\Interfaces;
 use Minds\Core\Di\Di;
 use Minds\Core\Notifications\EmailDigests\EmailDigestMarker;
 use Minds\Core\Notifications\EmailDigests\EmailDigestOpts;
+use Minds\Core\Notifications\Push\System\Manager;
+use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
+use Minds\Core\Notifications\Push\UndeliverableException;
+use Minds\Interfaces;
 
 class Notification extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -82,6 +82,7 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
 
     /**
      * Send a push notification to all devices
+     * @throws UndeliverableException
      */
     public function sendPush()
     {

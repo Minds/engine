@@ -2,7 +2,6 @@
 
 namespace Minds\Core\Notifications\Push\System\ResponseBuilders;
 
-use Minds\Api\Exportable;
 use Minds\Common\Repository\Response;
 use Zend\Diactoros\Response\JsonResponse;
 
@@ -15,7 +14,7 @@ class GetHistoryResponseBuilder
     {
         $data = array_merge([
             'status' => 'success',
-        ], Exportable::_($response)->export());
+        ], $response->toArray());
 
         return new JsonResponse($data);
     }

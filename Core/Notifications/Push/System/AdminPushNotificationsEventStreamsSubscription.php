@@ -5,7 +5,6 @@
 namespace Minds\Core\Notifications\Push\System;
 
 use Minds\Core\Di\Di;
-use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
@@ -13,7 +12,10 @@ use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
 use Minds\Core\Notifications\Push\UndeliverableException;
 
-class PushNotificationsEventStreamsSubscription implements SubscriptionInterface
+/**
+ *
+ */
+class AdminPushNotificationsEventStreamsSubscription implements SubscriptionInterface
 {
     public function __construct(
         private ?Manager $manager = null,
@@ -28,7 +30,7 @@ class PushNotificationsEventStreamsSubscription implements SubscriptionInterface
      */
     public function getSubscriptionId(): string
     {
-        return 'push-notifications';
+        return 'system-push-notifications';
     }
 
     /**
@@ -59,12 +61,12 @@ class PushNotificationsEventStreamsSubscription implements SubscriptionInterface
         if (!$event instanceof ActionEvent) {
             return false;
         }
-        
-        if (!$event->getAction() == ActionEvent::ACTION_SYSTEM_PUSH_NOTIFICATION) {
+
+        if ($event->getAction() != ActionEvent::ACTION_SYSTEM_PUSH_NOTIFICATION) {
             return false;
         }
 
-        $this->manager->sendNotification($event->getEntity());
+        $this->manager->sendRequestNotifications($event->getEntity());
 
         return true;
     }

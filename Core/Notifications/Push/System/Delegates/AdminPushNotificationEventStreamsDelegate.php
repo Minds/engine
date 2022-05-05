@@ -35,7 +35,7 @@ class AdminPushNotificationEventStreamsDelegate
         /**
          * @var User
          */
-        $user = $this->entitiesBuilder->single($notification->getAuthorId());
+        $user = $this->entitiesBuilder->single($notification->getAuthorGuid());
 
         $notificationEvent
             ->setAction(ActionEvent::ACTION_SYSTEM_PUSH_NOTIFICATION)

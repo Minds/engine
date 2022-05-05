@@ -11,8 +11,8 @@ use Minds\Traits\MagicAttributes;
 /**
  * @method self setRequestId(string $requestId)
  * @method string getRequestId()
- * @method self setAuthorId(string $authorId)
- * @method string getAuthorId()
+ * @method self setAuthorGuid(string $authorGuid)
+ * @method string getAuthorGuid()
  * @method self setTitle(string $title)
  * @method string getTitle()
  * @method self setMessage(string $title)
@@ -62,7 +62,7 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
         if (!isset($data['author_guid'])) {
             throw new ServerErrorException("Missing property 'author_guid' in System Push Notification event");
         }
-        $notificationData->setTitle($data['author_guid']);
+        $notificationData->setAuthorGuid($data['author_guid']);
 
         if (!isset($data['title'])) {
             throw new ServerErrorException("Missing property 'title' in System Push Notification event");
@@ -74,15 +74,15 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
         }
         $notificationData->setMessage($data['message']);
 
-        if (!isset($data['link'])) {
-            throw new ServerErrorException("Missing property 'link' in System Push Notification event");
+        if (!isset($data['url'])) {
+            throw new ServerErrorException("Missing property 'url' in System Push Notification event");
         }
-        $notificationData->setLink($data['link']);
+        $notificationData->setLink($data['url']);
 
-        if (!isset($data['timestamp'])) {
-            throw new ServerErrorException("Missing property 'timestamp' in System Push Notification event");
+        if (!isset($data['created_at'])) {
+            throw new ServerErrorException("Missing property 'created_at' in System Push Notification event");
         }
-        $notificationData->setCreatedAt($data['timestamp']);
+        $notificationData->setCreatedAt($data['created_at']);
 
         if (!isset($data['target'])) {
             throw new ServerErrorException("Missing property 'target' in System Push Notification event");
@@ -102,7 +102,7 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
      */
     public function getStatus(): string
     {
-        return AdminPushNotificationRequestStatus::fromValue($this->status);
+        return AdminPushNotificationRequestStatus::statusLabelFromValue($this->status);
     }
 
     /**
@@ -126,7 +126,7 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
     {
         return [
             'request_id' => $this->getRequestId(),
-            'author_guid' => $this->getAuthorId(),
+            'author_guid' => $this->getAuthorGuid(),
             'title' => $this->getTitle(),
             'message' => $this->getMessage(),
             'link' => $this->getLink(),
@@ -139,12 +139,12 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
 
     public function getGuid(): ?string
     {
-        return $this->getAuthorId();
+        return $this->getAuthorGuid();
     }
 
     public function getOwnerGuid(): ?string
     {
-        return $this->getAuthorId();
+        return $this->getAuthorGuid();
     }
 
     public function getType(): string

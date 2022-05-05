@@ -41,12 +41,13 @@ class Repository
     private function buildAddQuery(AdminPushNotificationRequest $notification): PreparedStatement
     {
         $query = new PreparedStatement();
+        $notification->setRequestId(new Timeuuid());
         return $query->query(
             "INSERT INTO
                 system_push_notifications
-                (request_id, author_guid, created_on, title, message, url, status)
+                (request_id, author_guid, created_at, title, message, url, target, counter, status)
             VALUES 
-                (?, ?, ?, ?, ?, ?, ?);",
+                (?, ?, ?, ?, ?, ?, ?, ?, ?);",
             [
                 new Timeuuid($notification->getRequestId()),
                 new Bigint($this->user->getGuid()),
@@ -54,6 +55,8 @@ class Repository
                 $notification->getTitle(),
                 $notification->getMessage(),
                 $notification->getLink(),
+                $notification->getTarget(),
+                $notification->getCounter(),
                 AdminPushNotificationRequestStatus::PENDING
             ]
         );
@@ -61,6 +64,7 @@ class Repository
 
     /**
      * @return AdminPushNotificationRequest[]
+     * @throws ServerErrorException
      */
     public function getCompletedRequests(): array
     {
@@ -68,16 +72,7 @@ class Repository
         $notifications = [];
 
         foreach ($this->cassandraClient->request($query) as $notification) {
-            $notifications[] = (new AdminPushNotificationRequest())
-                ->setTitle($notification['title'])
-                ->setMessage($notification['message'])
-                ->setLink($notification['message'])
-                ->setRequestId($notification['request_id'])
-                ->setAuthorId($notification['author_guid'])
-                ->setCreatedAt(strtotime($notification['createdOn']))
-                ->setStatus($notification['status'])
-                ->setCounter($notification['counter'])
-                ->setTarget($notification['target']);
+            $notifications[] = AdminPushNotificationRequest::fromArray($notification);
         }
 
         return $notifications;

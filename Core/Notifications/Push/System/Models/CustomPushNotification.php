@@ -63,7 +63,7 @@ class CustomPushNotification implements PushNotificationInterface
      */
     public function getIcon(): ?string
     {
-        return $this->icon;
+        return $this->icon ?? '';
     }
 
     /**
@@ -71,7 +71,7 @@ class CustomPushNotification implements PushNotificationInterface
      */
     public function getMedia(): ?string
     {
-        return $this->media;
+        return $this->media ?? '';
     }
 
     /**

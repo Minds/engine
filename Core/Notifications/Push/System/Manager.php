@@ -3,6 +3,7 @@
 namespace Minds\Core\Notifications\Push\System;
 
 use Exception;
+use Minds\Api\Exportable;
 use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
@@ -15,6 +16,7 @@ use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
 use Minds\Core\Notifications\Push\System\Targets\SystemPushNotificationTargetsList;
 use Minds\Core\Notifications\Push\UndeliverableException;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 
 /**
  *
@@ -63,6 +65,7 @@ class Manager
     private function prepareNotificationDetails(array $requestNotificationDetails): AdminPushNotificationRequest
     {
         return (new AdminPushNotificationRequest())
+            ->setAuthorGuid($this->user->getGuid())
             ->setTitle($requestNotificationDetails['notificationTitle'])
             ->setMessage($requestNotificationDetails['notificationMessage'])
             ->setLink($requestNotificationDetails['notificationLink'])
@@ -71,18 +74,23 @@ class Manager
             ->setTarget($requestNotificationDetails['notificationTarget']);
     }
 
+    /**
+     * @return Response
+     * @throws ServerErrorException
+     */
     public function getCompletedRequests(): Response
     {
         return new Response([
-            'notifications' => $this->repository->getCompletedRequests()
+            'notifications' => Exportable::_($this->repository->getCompletedRequests())
         ]);
     }
 
     /**
+     * @param AdminPushNotificationRequest $notificationDetails
      * @throws UndeliverableException
      * @throws Exception
      */
-    public function sendNotification(AdminPushNotificationRequest $notificationDetails): void
+    public function sendRequestNotifications(AdminPushNotificationRequest $notificationDetails): void
     {
         $notificationTargetHandler = SystemPushNotificationTargetsList::getTargetHandlerFromShortName($notificationDetails->getTarget());
 
@@ -100,18 +108,40 @@ class Manager
                 ->setUri($notificationDetails->getLink())
                 ->setDeviceSubscription($deviceSubscription);
 
-            if (!$this->getService($deviceSubscription->getService())->send($notification)) {
+            try {
+                $this->sendNotification($notification);
+            } catch (UndeliverableException $e) {
                 $this->repository->updateRequestCompletedOnDate(
                     $notificationDetails->getRequestId(),
                     AdminPushNotificationRequestStatus::FAILED
                 );
-                throw new UndeliverableException("Could not deliver system push notification to device " . $deviceSubscription->getToken() . " of user " . $deviceSubscription->getUserGuid());
             }
         }
 
         $this->repository->updateRequestCompletedOnDate(
             $notificationDetails->getRequestId(),
             AdminPushNotificationRequestStatus::DONE
+        );
+    }
+
+    /**
+     * @param CustomPushNotification $notification
+     * @throws UndeliverableException
+     * @throws Exception
+     */
+    public function sendNotification(CustomPushNotification $notification): void
+    {
+        $deviceSubscription = $notification->getDeviceSubscription();
+        if (!$this->getService($deviceSubscription->getService())->send($notification)) {
+            throw new UndeliverableException("Could not deliver system push notification to device " . $deviceSubscription->getToken() . " of user " . $deviceSubscription->getUserGuid());
+        }
+    }
+
+    private function updateNotificationRequestStatus(string $requestId, int $status): void
+    {
+        $this->repository->updateRequestCompletedOnDate(
+            $requestId,
+            AdminPushNotificationRequestStatus::tryFromValue($status)
         );
     }
 

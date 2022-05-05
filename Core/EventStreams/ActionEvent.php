@@ -180,7 +180,15 @@ class ActionEvent implements EventInterface
                 break;
             case self::ACTION_SYSTEM_PUSH_NOTIFICATION:
                 $allowedKeys = [
-
+                    "request_id",
+                    "author_guid",
+                    "title",
+                    "message",
+                    "link",
+                    "timestamp",
+                    "target",
+                    "counter",
+                    "urn"
                 ];
                 break;
             default:
