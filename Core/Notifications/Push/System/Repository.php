@@ -146,11 +146,12 @@ class Repository
                     FROM
                         system_push_notifications
                     WHERE
-                        type = ? AND request_uuid = ?
+                        type = ? AND request_uuid = ? AND status = ?
                     LIMIT 1;",
                 [
                     $type,
-                    new Timeuuid($requestUuid)
+                    new Timeuuid($requestUuid),
+                    AdminPushNotificationRequestStatus::PENDING
                 ]
             );
 
