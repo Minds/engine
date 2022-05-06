@@ -62,6 +62,8 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([$entity1, $entity2]);
 
+        $this->seenManager->listSeenEntities()->shouldNotBeCalled()->willReturn(['fakeGuid']);
+
         $response = $this
             ->getList([
                 'cache_key' => 'phpspec',
@@ -88,6 +90,8 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([$entity1, $entity2]);
 
+        $this->seenManager->listSeenEntities()->shouldNotBeCalled()->willReturn(['fakeGuid']);
+
         $response = $this
             ->getList([
                 'query' => 'Activity with #hashtags',
@@ -105,8 +109,6 @@ class ManagerSpec extends ObjectBehavior
         Entity $entity1,
         Entity $entity2,
     ) {
-        $this->seenManager->listSeenEntities()->shouldBeCalledOnce()->willReturn(['fakeGuid']);
-
         $this->mockScoredEntities($scoredGuid1, $scoredGuid2, $entity1, $entity2);
 
         $this->repository->getList(Argument::withEntry('exclude', ['fakeGuid']))
@@ -116,6 +118,8 @@ class ManagerSpec extends ObjectBehavior
         $this->entitiesBuilder->get(['guids' => [5000, 5001]])
             ->shouldBeCalled()
             ->willReturn([$entity1, $entity2]);
+
+        $this->seenManager->listSeenEntities()->shouldBeCalledOnce()->willReturn(['fakeGuid']);
 
         $response = $this
             ->getList([
