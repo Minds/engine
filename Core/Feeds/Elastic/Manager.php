@@ -52,9 +52,9 @@ class Manager
         $entitiesBuilder = null,
         $entities = null,
         $search = null,
+        $seenManager = null,
         $eventsDispatcher = null,
-        $acl = null,
-        $seenManager = null
+        $acl = null
     ) {
         $this->repository = $repository ?: new Repository;
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder;
@@ -142,7 +142,7 @@ class Manager
         if (isset($opts['unseen']) && $opts['unseen']) {
             $seenEntities = $this->seenManager->listSeenEntities();
             if (count($seenEntities) > 0) {
-                $opts['exclude'] = array_merge($opts['exclude'], $seenEntities);
+                $opts['exclude'] = array_merge($opts['exclude'] ?? [], $seenEntities);
             }
         }
 
