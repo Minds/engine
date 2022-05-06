@@ -4,6 +4,7 @@ namespace Minds\Core\EventStreams;
 class ActionEvent implements EventInterface
 {
     use EntityEventTrait;
+    use AcknowledgmentEventTrait;
 
     /** @var string */
     const ACTION_CREATE = 'create';

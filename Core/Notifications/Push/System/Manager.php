@@ -91,10 +91,10 @@ class Manager
 
     /**
      * @param AdminPushNotificationRequest $notificationDetails
-     * @throws UndeliverableException
+     * @return bool
      * @throws Exception
      */
-    public function sendRequestNotifications(AdminPushNotificationRequest $notificationDetails): void
+    public function sendRequestNotifications(AdminPushNotificationRequest $notificationDetails): bool
     {
         $notificationTargetHandler = SystemPushNotificationTargetsList::getTargetHandlerFromShortName($notificationDetails->getTarget());
 
@@ -124,6 +124,8 @@ class Manager
             $notificationDetails->getRequestUuid(),
             AdminPushNotificationRequestStatus::DONE
         );
+
+        return true;
     }
 
     /**

@@ -4,6 +4,7 @@
  */
 namespace Minds\Core\Notifications\Push\System;
 
+use Exception;
 use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\EventInterface;
@@ -56,6 +57,7 @@ class AdminPushNotificationsEventStreamsSubscription implements SubscriptionInte
      * @param EventInterface $event
      * @return bool
      * @throws UndeliverableException
+     * @throws Exception
      */
     public function consume(EventInterface $event): bool
     {
@@ -67,8 +69,9 @@ class AdminPushNotificationsEventStreamsSubscription implements SubscriptionInte
             return false;
         }
 
-        $this->manager->sendRequestNotifications($event->getEntity());
+        // immediately acknowledge message to avoid broker picking it up again after acknowledgement timeout
+        $event->forceAcknowledge();
 
-        return true;
+        return $this->manager->sendRequestNotifications($event->getEntity());
     }
 }

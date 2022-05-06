@@ -159,7 +159,7 @@ class Repository
 
         $rows = $this->cassandraClient->request($query);
 
-        if (!$rows) {
+        if ($rows->count() == 0) {
             throw new UndeliverableException("No request was found");
         }
 

@@ -36,7 +36,11 @@ class SystemPushNotificationResolverDelegate implements ResolverDelegate
 
         $this->getManager();
         foreach ($urns as $urn) {
-            $entities[] = $this->manager->getRequestByUrn($urn);
+            try {
+                $entities[] = $this->manager->getRequestByUrn($urn);
+            } catch (Exception $e) {
+                continue;
+            }
         }
 
         return $entities;
