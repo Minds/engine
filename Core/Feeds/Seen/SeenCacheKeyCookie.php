@@ -1,12 +1,12 @@
 <?php
 
-namespace Minds\Core\Feeds\UnseenTopFeed;
+namespace Minds\Core\Feeds\Seen;
 
 use Minds\Common\Cookie;
 
-class UnseenTopFeedCacheKeyCookie
+class SeenCacheKeyCookie
 {
-    private const COOKIE_NAME = "top-feed-unseen";
+    private const COOKIE_NAME = "seen-entities";
     private string $cookieValue;
 
     public function __construct()

@@ -7,6 +7,7 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Feeds\UnseenTopFeed\Controller;
 use Minds\Core\Feeds\UnseenTopFeed\Manager;
+use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
@@ -44,7 +45,7 @@ class ControllerSpec extends ObjectBehavior
         ];
     }
     public function it_should_return_successful_response(
-        Manager $manager
+        ElasticManager $elasticManager
     ) {
         $request = (new ServerRequest())
             ->withMethod("GET")
@@ -57,12 +58,12 @@ class ControllerSpec extends ObjectBehavior
             (new FeedSyncEntity())->setGuid(1)
         ]);
 
-        $manager
-            ->getUnseenTopEntities(Argument::type(User::class), Argument::any())
+        $elasticManager
+            ->getList(Argument::type("array"))
             ->shouldBeCalledOnce()
             ->willReturn($expectedEntities);
 
-        $this->beConstructedWith($manager);
+        $this->beConstructedWith($elasticManager);
 
         $response = $this
             ->getUnseenTopFeed($request)
