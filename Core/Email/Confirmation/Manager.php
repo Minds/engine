@@ -191,6 +191,19 @@ class Manager
             throw new Exception('Invalid confirmation token data');
         }
 
+        $this->approveConfirmation($user);
+
+        return true;
+    }
+
+    /**
+     * Approve confirmation for a user. To be called only after validating a user
+     * is trustworthy, e.g. by validating their email.
+     * @param User $user - user to approve confirmation for.
+     * @return void
+     */
+    public function approveConfirmation(User $user)
+    {
         $user
             ->setEmailConfirmationToken('')
             ->setEmailConfirmedAt(time())
@@ -207,8 +220,6 @@ class Manager
             ->send([
                 'user_guid' => (string) $user->guid,
             ]);
-
-        return true;
     }
 
     /**
