@@ -3,10 +3,11 @@
 namespace Spec\Minds\Core\Feeds\Seen;
 
 use Minds\Common\Repository\Response;
-use Minds\Core\Data\Redis;
+use Minds\Core\Data\cache\Redis;
 use Minds\Core\Feeds\Seen\Manager;
 use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Core\Feeds\FeedSyncEntity;
+use Minds\Core\Feeds\Seen\SeenCacheKeyCookie;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -17,94 +18,40 @@ class ManagerSpec extends ObjectBehavior
     {
         $this->shouldHaveType(Manager::class);
     }
+    
+    public function it_should_mark_entities_as_seen_correctly(
+        Redis $redisClient
+    ) {
+        $redisClient->get(Argument::type("string"))->shouldBeCalledOnce()->willReturn(['anotherFakeGuid']);
+        $redisClient->set(Argument::type("string"), ['anotherFakeGuid', 'fakeGuid'])->shouldBeCalledOnce();
 
-    // private function createSampleEntitiesResponseObject(array $entitiesGuidsToExclude = []): Response
-    // {
-    //     $entities = [];
+        $this->beConstructedWith($redisClient);
 
-    //     for ($i = 0; $i < 10; $i++) {
-    //         if (in_array($i, $entitiesGuidsToExclude, true)) {
-    //             continue;
-    //         }
-    //         $entities[] = (new FeedSyncEntity())->setGuid($i+1);
-    //     }
+        $this->seeEntities(['fakeGuid']);
+    }
+    
+    public function it_should_list_seen_entities_correctly_with_pseudo_id(
+        Redis $redisClient
+    ) {
+        $_COOKIE["minds_pseudoid"] = "pseudoid";
+        $redisClient->get('seen-entities:pseudoid')->shouldBeCalledOnce()->willReturn(['fakeGuid']);
 
-    //     return new Response($entities);
-    // }
+        $this->beConstructedWith($redisClient);
 
-    // public function it_should_retrieve_unseen_entities_with_no_pre_existing_cache_and_no_pseudo_id(
-    //     ElasticManager $elasticManager,
-    //     Redis\Client $redisClient
-    // ) {
-    //     $expectedResponse = $this->createSampleEntitiesResponseObject();
+        $this->listSeenEntities()->shouldReturn(['fakeGuid']);
+    }
+    
+    public function it_should_list_seen_entities_correctly_without_pseudo_id(
+        Redis $redisClient,
+        SeenCacheKeyCookie $seenCacheKeyCookie,
+    ) {
+        $_COOKIE["minds_pseudoid"] = null;
+        $redisClient->get('seen-entities:fakeRandomNumber')->shouldBeCalledOnce()->willReturn(['fakeGuid']);
+        $seenCacheKeyCookie->getValue()->willReturn('fakeRandomNumber');
+        $seenCacheKeyCookie->createCookie()->willReturn($seenCacheKeyCookie);
 
-    //     $elasticManager
-    //         ->getList(Argument::type("array"))
-    //         ->shouldBeCalledOnce()
-    //         ->willReturn($expectedResponse);
+        $this->beConstructedWith($redisClient, $seenCacheKeyCookie);
 
-    //     $this->beConstructedWith($redisClient, $elasticManager);
-
-    //     $this
-    //         ->getUnseenTopEntities(new User(1), 10)
-    //         ->shouldBeEqualTo($expectedResponse);
-    // }
-
-    // public function it_should_retrieve_unseen_entities_with_pre_existing_cache_and_no_pseudo_id(
-    //     ElasticManager $elasticManager,
-    //     Redis\Client $redisClient
-    // ) {
-    //     $expectedResponse = $this->createSampleEntitiesResponseObject([1,2]);
-
-    //     $elasticManager
-    //         ->getList(Argument::type("array"))
-    //         ->shouldBeCalledOnce()
-    //         ->willReturn($expectedResponse);
-
-    //     $this->beConstructedWith($redisClient, $elasticManager);
-
-    //     $this
-    //         ->getUnseenTopEntities(new User(1), 10)
-    //         ->shouldHaveCount($expectedResponse->count());
-    // }
-
-    // public function it_should_retrieve_unseen_entities_with_no_pre_existing_cache_and_pseudo_id(
-    //     ElasticManager $elasticManager,
-    //     Redis\Client $redisClient
-    // ) {
-    //     $_COOKIE["minds_pseudoid"] = "pseudoid";
-
-    //     $expectedResponse = $this->createSampleEntitiesResponseObject();
-
-    //     $elasticManager
-    //         ->getList(Argument::type("array"))
-    //         ->shouldBeCalledOnce()
-    //         ->willReturn($expectedResponse);
-
-    //     $this->beConstructedWith($redisClient, $elasticManager);
-
-    //     $this
-    //         ->getUnseenTopEntities(new User(1), 10)
-    //         ->shouldHaveCount($expectedResponse->count());
-    // }
-
-    // public function it_should_retrieve_unseen_entities_with_pre_existing_cache_and_pseudo_id(
-    //     ElasticManager $elasticManager,
-    //     Redis\Client $redisClient
-    // ) {
-    //     $_COOKIE["minds_pseudoid"] = "pseudoid";
-
-    //     $expectedResponse = $this->createSampleEntitiesResponseObject([1,2]);
-
-    //     $elasticManager
-    //         ->getList(Argument::type("array"))
-    //         ->shouldBeCalledOnce()
-    //         ->willReturn($expectedResponse);
-
-    //     $this->beConstructedWith($redisClient, $elasticManager);
-
-    //     $this
-    //         ->getUnseenTopEntities(new User(1), 10)
-    //         ->shouldHaveCount($expectedResponse->count());
-    // }
+        $this->listSeenEntities()->shouldReturn(['fakeGuid']);
+    }
 }

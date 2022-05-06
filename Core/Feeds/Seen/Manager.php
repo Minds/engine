@@ -12,8 +12,10 @@ class Manager
 
     public function __construct(
         private ?Redis $redisClient = null,
+        private ?SeenCacheKeyCookie $seenCacheKeyCookie = null,
     ) {
         $this->redisClient = $this->redisClient ?? Di::_()->get("Cache\Redis");
+        $this->seenCacheKeyCookie = $this->seenCacheKeyCookie ?? new SeenCacheKeyCookie();
     }
 
     /**
@@ -46,11 +48,14 @@ class Manager
 
     private function createSeenCacheKeyCookie(): SeenCacheKeyCookie
     {
-        return (new SeenCacheKeyCookie())->createCookie();
+        return $this->seenCacheKeyCookie->createCookie();
     }
 
     private function getCacheKey(): string
     {
-        return self::CACHE_KEY_PREFIX . ((new PseudonymousIdentifier())->getId() ?? $this->createSeenCacheKeyCookie()->getValue());
+        $pseudoId = (new PseudonymousIdentifier())->getId();
+        $uniqueGeneratedCacheKey = $this->createSeenCacheKeyCookie()->getValue();
+
+        return self::CACHE_KEY_PREFIX . ':' . ($pseudoId ?? $uniqueGeneratedCacheKey);
     }
 }
