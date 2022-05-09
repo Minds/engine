@@ -18,19 +18,19 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_mark_entities_as_seen_correctly(
         Redis\Client $redisClient
     ) {
-        $redisClient->get(Argument::type("string"))->shouldBeCalledOnce()->willReturn(['anotherFakeGuid']);
-        $redisClient->set(Argument::type("string"), ['anotherFakeGuid', 'fakeGuid'])->shouldBeCalledOnce();
+        $redisClient->sAdd(Argument::type("string"), 'fakeGuid', 'fakeGuid2')->shouldBeCalledOnce();
+        $redisClient->expire(Argument::any(), Argument::any())->shouldBeCalledOnce();
 
         $this->beConstructedWith($redisClient);
 
-        $this->seeEntities(['fakeGuid']);
+        $this->seeEntities(['fakeGuid', 'fakeGuid2']);
     }
     
     public function it_should_list_seen_entities_correctly_with_pseudo_id(
         Redis\Client $redisClient
     ) {
         $_COOKIE["minds_pseudoid"] = "pseudoid";
-        $redisClient->get('seen-entities:pseudoid')->shouldBeCalledOnce()->willReturn(['fakeGuid']);
+        $redisClient->sScan('seen-entities::pseudoid', Argument::any(), Argument::any(), Argument::any())->shouldBeCalledOnce()->willReturn(['fakeGuid']);
 
         $this->beConstructedWith($redisClient);
 
@@ -42,7 +42,7 @@ class ManagerSpec extends ObjectBehavior
         SeenCacheKeyCookie $seenCacheKeyCookie,
     ) {
         $_COOKIE["minds_pseudoid"] = null;
-        $redisClient->get('seen-entities:fakeRandomNumber')->shouldBeCalledOnce()->willReturn(['fakeGuid']);
+        $redisClient->sScan('seen-entities::fakeRandomNumber', Argument::any(), Argument::any(), Argument::any())->shouldBeCalledOnce()->willReturn(['fakeGuid']);
         $seenCacheKeyCookie->getValue()->willReturn('fakeRandomNumber');
         $seenCacheKeyCookie->createCookie()->willReturn($seenCacheKeyCookie);
 
