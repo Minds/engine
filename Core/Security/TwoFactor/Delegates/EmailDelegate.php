@@ -11,7 +11,6 @@ use Minds\Core\Log;
 use Minds\Core\Security\TwoFactor as TwoFactorService;
 use Minds\Core\Security\TwoFactor\TwoFactorInvalidCodeException;
 use Minds\Core\Security\TwoFactor\TwoFactorRequiredException;
-use Minds\Core\SMS;
 use Minds\Entities\User;
 use Zend\Diactoros\ServerRequestFactory;
 use Minds\Core\Email\Confirmation\Manager as EmailConfirmationManager;
@@ -21,9 +20,6 @@ class EmailDelegate implements TwoFactorDelegateInterface
 {
     /** @var TwoFactorService */
     protected $twoFactorService;
-
-    /** @var SMS\Services\Twilio */
-    protected $smsService;
 
     /** @var PsrWrapper */
     protected $cache;
@@ -36,14 +32,12 @@ class EmailDelegate implements TwoFactorDelegateInterface
 
     public function __construct(
         TwoFactorService $twoFactorService = null,
-        $smsService = null,
         PsrWrapper $cache = null,
         TwoFactorEmail $twoFactorEmail = null,
         private ?TwoFactorSecretStore $twoFactorSecretStore = null,
         private ?EmailConfirmationManager $emailConfirmation = null
     ) {
         $this->twoFactorService = $twoFactorService ?? new TwoFactorService();
-        $this->smsService = $smsService ?? Di::_()->get('SMS');
         $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->twoFactorEmail = $twoFactorEmail ?? new TwoFactorEmail();
@@ -102,7 +96,7 @@ class EmailDelegate implements TwoFactorDelegateInterface
     public function onAuthenticateTwoFactor(User $user, string $code): void
     {
         $request = ServerRequestFactory::fromGlobals();
-        $key = $request->getHeader('X-MINDS-EMAIL-2FA-KEY')[0];
+        $key = $request->getHeader('X-MINDS-EMAIL-2FA-KEY')[0] ?? '';
         
         /** @var TwoFactorSecret */
         $storedSecretObject = $this->twoFactorSecretStore->getByKey($key);
@@ -157,7 +151,7 @@ class EmailDelegate implements TwoFactorDelegateInterface
     {
         $headerName = 'X-Minds-Email-2fa-Resend';
         $headers = getallheaders();
-        return $headers[$headerName] === '1' ? true : false;
+        return $headers && $headers[$headerName] === '1' ? true : false;
     }
 
     /**
