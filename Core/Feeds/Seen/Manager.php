@@ -3,18 +3,22 @@
 namespace Minds\Core\Feeds\Seen;
 
 use Minds\Common\PseudonymousIdentifier;
-use Minds\Core\Data\cache\Redis;
+use Minds\Core\Data\Redis;
 use Minds\Core\Di\Di;
 
 class Manager
 {
+    /** @var string */
     private const CACHE_KEY_PREFIX = "seen-entities";
 
+    /** @var int */
+    private const CACHE_TTL = 3600; // 1 hour
+
     public function __construct(
-        private ?Redis $redisClient = null,
+        private ?Redis\Client $redisClient = null,
         private ?SeenCacheKeyCookie $seenCacheKeyCookie = null,
     ) {
-        $this->redisClient = $this->redisClient ?? Di::_()->get("Cache\Redis");
+        $this->redisClient = $this->redisClient ?? Di::_()->get("Redis");
         $this->seenCacheKeyCookie = $this->seenCacheKeyCookie ?? new SeenCacheKeyCookie();
     }
 
@@ -25,24 +29,22 @@ class Manager
      */
     public function seeEntities(array $entityGuids): void
     {
-        $this->redisClient?->set(
+        $this->redisClient?->sAdd(
             $this->getCacheKey(),
-            array_merge(
-                $this->listSeenEntities(),
-                $entityGuids
-            )
+            ...$entityGuids
         );
+        $this->redisClient?->expire($this->getCacheKey(), self::CACHE_TTL); // Expire the entire set
     }
 
     /**
      * Returns seen entities
      * @return string[]
      */
-    public function listSeenEntities(): array
+    public function listSeenEntities(int $limit = 100): array
     {
         $cacheKey = $this->getCacheKey();
-
-        $data = $this->redisClient->get($cacheKey);
+        $cursor = null;
+        $data = $this->redisClient->sScan($cacheKey, $cursor, null, $limit);
         return !$data ? [] : $data;
     }
 
@@ -54,8 +56,7 @@ class Manager
     private function getCacheKey(): string
     {
         $pseudoId = (new PseudonymousIdentifier())->getId();
-        $uniqueGeneratedCacheKey = $this->createSeenCacheKeyCookie()->getValue();
-
-        return self::CACHE_KEY_PREFIX . ':' . ($pseudoId ?? $uniqueGeneratedCacheKey);
+        $generatedCacheKey = $this->createSeenCacheKeyCookie()->getValue();
+        return self::CACHE_KEY_PREFIX . '::' . ($pseudoId ?? $generatedCacheKey);
     }
 }
