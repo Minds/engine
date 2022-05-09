@@ -59,7 +59,7 @@ class ControllerSpec extends ObjectBehavior
         ]);
 
         $elasticManager
-            ->getList(Argument::type("array"))
+            ->getList(Argument::withEntry('unseen', true))
             ->shouldBeCalledOnce()
             ->willReturn($expectedEntities);
 

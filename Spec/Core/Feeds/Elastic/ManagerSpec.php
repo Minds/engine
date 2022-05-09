@@ -58,12 +58,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([$scoredGuid1, $scoredGuid2]);
 
-        $this->entitiesBuilder->get(['guids' => [5000, 5001]])
-            ->shouldBeCalled()
-            ->willReturn([$entity1, $entity2]);
-
-        $this->seenManager->listSeenEntities()->shouldNotBeCalled()->willReturn(['fakeGuid']);
-
         $response = $this
             ->getList([
                 'cache_key' => 'phpspec',
@@ -86,12 +80,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([$scoredGuid1, $scoredGuid2]);
 
-        $this->entitiesBuilder->get(['guids' => [5000, 5001]])
-            ->shouldBeCalled()
-            ->willReturn([$entity1, $entity2]);
-
-        $this->seenManager->listSeenEntities()->shouldNotBeCalled()->willReturn(['fakeGuid']);
-
         $response = $this
             ->getList([
                 'query' => 'Activity with #hashtags',
@@ -103,7 +91,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe('urn:activity:5001');
     }
 
-    public function it_should_get_list_by_unseen_query(
+    public function it_should_get_unseen_list(
         ScoredGuid $scoredGuid1,
         ScoredGuid $scoredGuid2,
         Entity $entity1,
@@ -111,19 +99,67 @@ class ManagerSpec extends ObjectBehavior
     ) {
         $this->mockScoredEntities($scoredGuid1, $scoredGuid2, $entity1, $entity2);
 
-        $this->repository->getList(Argument::withEntry('exclude', ['fakeGuid']))
+        $this->seenManager->listSeenEntities()->shouldBeCalledOnce()->willReturn(['fakeSeenGuid']);
+
+        $this->repository->getList(Argument::withEntry('exclude', ['fakeSeenGuid']))
             ->shouldBeCalled()
             ->willReturn([$scoredGuid1, $scoredGuid2]);
-
-        $this->entitiesBuilder->get(['guids' => [5000, 5001]])
-            ->shouldBeCalled()
-            ->willReturn([$entity1, $entity2]);
-
-        $this->seenManager->listSeenEntities()->shouldBeCalledOnce()->willReturn(['fakeGuid']);
 
         $response = $this
             ->getList([
                 'unseen' => true,
+            ]);
+
+        $response[0]->getUrn()
+            ->shouldBe('urn:image:500');
+        $response[1]->getUrn()
+            ->shouldBe('urn:activity:5001');
+    }
+
+    public function it_should_get_unseen_list_with_additional_exclude(
+        ScoredGuid $scoredGuid1,
+        ScoredGuid $scoredGuid2,
+        Entity $entity1,
+        Entity $entity2,
+    ) {
+        $this->mockScoredEntities($scoredGuid1, $scoredGuid2, $entity1, $entity2);
+
+        $this->seenManager->listSeenEntities()->shouldBeCalledOnce()->willReturn(['fakeSeenGuid']);
+
+        $this->repository->getList(Argument::withEntry('exclude', ['fakeExcludedGuid', 'fakeSeenGuid']))
+            ->shouldBeCalled()
+            ->willReturn([$scoredGuid1, $scoredGuid2]);
+
+        $response = $this
+            ->getList([
+                'unseen' => true,
+                'exclude' => ['fakeExcludedGuid']
+            ]);
+
+        $response[0]->getUrn()
+            ->shouldBe('urn:image:500');
+        $response[1]->getUrn()
+            ->shouldBe('urn:activity:5001');
+    }
+
+
+    public function it_should_not_get_unseen_if_not_given(
+        ScoredGuid $scoredGuid1,
+        ScoredGuid $scoredGuid2,
+        Entity $entity1,
+        Entity $entity2,
+    ) {
+        $this->mockScoredEntities($scoredGuid1, $scoredGuid2, $entity1, $entity2);
+
+        $this->seenManager->listSeenEntities()->shouldNotBeCalled();
+
+        $this->repository->getList(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn([$scoredGuid1, $scoredGuid2]);
+
+        $response = $this
+            ->getList([
+                'unseen' => false,
             ]);
 
         $response[0]->getUrn()
@@ -216,5 +252,9 @@ class ManagerSpec extends ObjectBehavior
         $entity2->getUrn()
             ->shouldBeCalled()
             ->willReturn("urn:activity:5001");
+        
+        $this->entitiesBuilder->get(['guids' => [5000, 5001]])
+            ->shouldBeCalled()
+            ->willReturn([$entity1, $entity2]);
     }
 }
