@@ -129,8 +129,9 @@ class EmailDelegate implements TwoFactorDelegateInterface
         // Trust a user if they have given a valid two-factor code.
         if (!$user->isTrusted()) {
             $this->emailConfirmation->approveConfirmation($user);
-            $this->twoFactorSecretStore->delete($key);
         }
+
+        $this->twoFactorSecretStore->delete($key);
     }
 
     /**
