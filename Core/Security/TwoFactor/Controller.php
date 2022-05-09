@@ -38,7 +38,7 @@ class Controller
         $this->manager->gatekeeper($user, ServerRequestFactory::fromGlobals());
 
         return new JsonResponse([
-            'success' => true
+            'status' => 'success'
         ]);
     }
 }

@@ -202,7 +202,7 @@ class Manager
      * @param User $user - user to approve confirmation for.
      * @return void
      */
-    public function approveConfirmation(User $user)
+    public function approveConfirmation(User $user): void
     {
         $user
             ->setEmailConfirmationToken('')
