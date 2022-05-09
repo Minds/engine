@@ -151,7 +151,7 @@ class EmailDelegate implements TwoFactorDelegateInterface
     {
         $headerName = 'X-Minds-Email-2fa-Resend';
         $headers = getallheaders();
-        return $headers && $headers[$headerName] === '1' ? true : false;
+        return $headers && $headers[$headerName] === '1';
     }
 
     /**
