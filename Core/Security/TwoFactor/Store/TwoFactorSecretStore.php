@@ -45,7 +45,12 @@ class TwoFactorSecretStore
     public function getByKey(string $key): ?TwoFactorSecret
     {
         $storedJson = $this->cache->get($key);
-        $storedObject = json_decode($storedJson, true);
+        
+        try {
+            $storedObject = json_decode($storedJson, true);
+        } catch (\Exception $e) {
+            return null;
+        }
 
         if (!$storedJson) {
             return null;
@@ -78,6 +83,7 @@ class TwoFactorSecretStore
             $storedSecretJson,
             $this->getTtl($user)
         );
+
         return $key;
     }
 
@@ -114,8 +120,8 @@ class TwoFactorSecretStore
     /**
      * Gets TTL for store. If not trusted, we are doing email confirmation, thus the ttl is 1 day.
      * For all other actions it is 15 minutes.
-     * @param User $user -
-     * @return integer
+     * @param User $user - user to get TTL for.
+     * @return int - seconds for TTL.
      */
     public function getTtl(User $user): int
     {
