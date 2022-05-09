@@ -33,6 +33,10 @@ class Routes extends ModuleRoutes
                     Ref::_('Discovery\Controllers', 'getSearch')
                 );
                 $route->get(
+                    'search/count',
+                    Ref::_('Discovery\Controllers', 'getSearchCount')
+                );
+                $route->get(
                     'tags',
                     Ref::_('Discovery\Controllers', 'getTags')
                 );

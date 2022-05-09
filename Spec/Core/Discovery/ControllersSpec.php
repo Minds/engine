@@ -101,6 +101,29 @@ class ControllersSpec extends ObjectBehavior
         ]));
     }
 
+
+
+    public function it_should_get_search_count_response(
+        ServerRequest $request
+    ) {
+        $request->getQueryParams()
+            ->willReturn([
+                'q' => 'hello world',
+                'algorithm' => 'latest',
+                'from_timestamp' => '1651152940243',
+            ]);
+
+        $this->manager->getSearchCount(Argument::any(), Argument::any(), Argument::any(), Argument::any())->willReturn(5);
+
+        $response = $this->getSearchCount($request);
+        $json = $response->getBody()->getContents();
+
+        $json->shouldBe(json_encode([
+            'status' => 'success',
+            'count' => 5
+        ]));
+    }
+
     public function it_should_get_tags_response(ServerRequest $request)
     {
         $opts = [

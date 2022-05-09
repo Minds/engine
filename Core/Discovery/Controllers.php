@@ -4,8 +4,8 @@ namespace Minds\Core\Discovery;
 use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\Response\JsonResponse;
 use Minds\Api\Exportable;
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Di\Di;
+use Minds\Core\Discovery\Validators\SearchCountRequestValidator;
+use Minds\Exceptions\UserErrorException;
 
 class Controllers
 {
@@ -80,6 +80,43 @@ class Controllers
             'status' => 'success',
             'entities' => Exportable::_($entities),
         ], 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
+    }
+
+
+    /**
+     * Controller for counting search requests
+     * @param ServerRequest $request
+     * @return JsonResponse
+     */
+    public function getSearchCount(ServerRequest $request): JsonResponse
+    {
+        $queryParams = $request->getQueryParams();
+        $requestValidator = new SearchCountRequestValidator();
+
+        if (!$requestValidator->validate($request->getQueryParams())) {
+            throw new UserErrorException(
+                "There were some errors validating the request properties.",
+                400,
+                $requestValidator->getErrors()
+            );
+        }
+
+        $query = $queryParams['q'] ?? null;
+        $filter = $queryParams['algorithm'] ?? 'latest';
+        $type = $queryParams['type'] ?? '';
+        $plus = filter_var($queryParams['plus'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $nsfw = array_filter(explode(',', $queryParams['nsfw'] ?? '') ?: [], 'strlen');
+
+        $count = $this->manager->getSearchCount($query, $filter, $type, [
+            'plus' => $plus,
+            'nsfw' => $nsfw,
+            'from_timestamp' => (int) $queryParams['from_timestamp'],
+        ]);
+
+        return new JsonResponse([
+            'status' => 'success',
+            'count' => $count,
+        ]);
     }
 
     /**
