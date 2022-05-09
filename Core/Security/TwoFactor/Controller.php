@@ -27,8 +27,10 @@ class Controller
     /**
      * Called when confirming email - will pass authentication request to gatekeeper
      * which will handle giving the user trusted state if they pass MFA.
-     * @param ServerRequest $request
-     * @return JsonResponse
+     * @param ServerRequest $request - server request object.
+     * @throws TwoFactorRequiredException - If two-factor is required to confirm.
+     * @throws TwoFactorInvalidCodeException - If code is invalid.
+     * @return JsonResponse - contains status success on success.
      */
     public function confirmEmail(ServerRequest $request): JsonResponse
     {

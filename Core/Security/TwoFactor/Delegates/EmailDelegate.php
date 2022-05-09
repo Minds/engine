@@ -135,7 +135,7 @@ class EmailDelegate implements TwoFactorDelegateInterface
     }
 
     /**
-     * Gets TTL for entry in cache.
+     * Gets TTL for entry in store.
      * @param User $user - user to get TTL for.
      * @return int - ttl in seconds.
      */

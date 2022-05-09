@@ -283,6 +283,9 @@ class EmailDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->twoFactorSecretStore->delete('')
+            ->shouldBeCalled();
+
         $this->shouldNotThrow(TwoFactorInvalidCodeException::class)
             ->during('onAuthenticateTwoFactor', [ $user, '~code~']);
     }

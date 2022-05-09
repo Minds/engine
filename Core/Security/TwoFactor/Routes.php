@@ -6,10 +6,15 @@ use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 use Minds\Core\Router\Middleware\LoggedInMiddleware;
 
+/**
+ * TwoFactor Routes.
+ */
 class Routes extends ModuleRoutes
 {
     /**
+     * Register routes.
      * @inheritDoc
+     * @return void
      */
     public function register(): void
     {

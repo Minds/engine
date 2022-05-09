@@ -90,7 +90,7 @@ class TwoFactorSecretStore
     /**
      * Delete an entry by key.
      * @param string $key - key to delete by.
-     * @return TwoFactorSecretStore
+     * @return self
      */
     public function delete(string $key): self
     {

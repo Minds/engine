@@ -28,7 +28,7 @@ class TwoFactorSecret
 
     /**
      * Instance held values as a JSON object ready for insertion into store.
-     * @return void
+     * @return string - class object as JSON for store insertion.
      */
     public function toJson(): string
     {
