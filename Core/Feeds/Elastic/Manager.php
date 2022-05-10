@@ -6,6 +6,7 @@ use Composer\Semver\Comparator;
 use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
 use Minds\Core\Feeds\FeedSyncEntity;
+use Minds\Core\Feeds\Seen\Manager as SeenManager;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Search;
@@ -32,6 +33,9 @@ class Manager
     /** @var ACL */
     protected $acl;
 
+    /** @var SeenManager */
+    protected $seenManager;
+
     /** @var Entities */
     protected $entities;
 
@@ -48,6 +52,7 @@ class Manager
         $entitiesBuilder = null,
         $entities = null,
         $search = null,
+        $seenManager = null,
         $eventsDispatcher = null,
         $acl = null
     ) {
@@ -57,6 +62,7 @@ class Manager
         $this->search = $search ?: Di::_()->get('Search\Search');
         $this->eventsDispatcher = $eventsDispatcher ?? Di::_()->get('EventsDispatcher');
         $this->acl = $acl ?? Di::_()->get('Security\ACL');
+        $this->seenManager = $seenManager ?? Di::_()->get('Feeds\Seen\Manager');
 
         $this->from = strtotime('-7 days') * 1000;
         $this->to = time() * 1000;
@@ -119,6 +125,7 @@ class Manager
             'hide_reminds' => $hide_reminds,
             'wire_support_tier_only' => false,
             'include_group_posts' => false,
+            'unseen' => false,
         ], $opts);
 
         if (isset($opts['query']) && $opts['query']) {
@@ -130,6 +137,13 @@ class Manager
 
             $response = new Response($result);
             return $response;
+        }
+
+        if (isset($opts['unseen']) && $opts['unseen']) {
+            $seenEntities = $this->seenManager->listSeenEntities();
+            if (count($seenEntities) > 0) {
+                $opts['exclude'] = array_merge($opts['exclude'] ?? [], $seenEntities);
+            }
         }
 
         $feedSyncEntities = [];
