@@ -12,13 +12,17 @@ class TwoFactorSecretSpec extends ObjectBehavior
         $this->shouldHaveType(TwoFactorSecret::class);
     }
 
-    public function it_should_output_values_as_json()
+    public function it_should_output_json_serializable_object()
     {
         $this->setGuid('~guid~');
         $this->setTimestamp('~timestamp~');
         $this->setSecret('~secret~');
 
-        $this->toJson()
-            ->shouldBe('{"_guid":"~guid~","ts":"~timestamp~","secret":"~secret~"}');
+        $serializableObj = $this->jsonSerialize();
+        $serializableObj->shouldBe([
+            '_guid' => "~guid~",
+            'ts' => "~timestamp~",
+            'secret' => "~secret~"
+        ]);
     }
 }

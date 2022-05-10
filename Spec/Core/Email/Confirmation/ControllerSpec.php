@@ -1,9 +1,9 @@
 <?php
 
-namespace Spec\Minds\Core\Security\TwoFactor;
+namespace Spec\Minds\Core\Email\Confirmation;
 
 use PhpSpec\ObjectBehavior;
-use Minds\Core\Security\TwoFactor\Controller;
+use Minds\Core\Email\Confirmation\Controller;
 use Minds\Core\Security\TwoFactor\Manager;
 use Minds\Core\Security\TwoFactor\TwoFactorRequiredException;
 use Minds\Entities\User;
