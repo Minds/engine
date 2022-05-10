@@ -20,8 +20,8 @@ class ConfirmationSender implements SenderInterface
 {
     /**
      * Constructor.
-     * @param ConfirmationEmail
-     * @param Experiments
+     * @param ?ConfirmationEmail $confirmation - confirmation email class
+     * @param ?ExperimentsManager $experiments - experiments manager.
      */
     public function __construct(
         private ?ConfirmationEmail $confirmation = null,

@@ -9,13 +9,15 @@ use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\Response\JsonResponse;
 
 /**
- * TwoFactor Controller
+ * Email Confirmation Controller. Handles confirmation of email addresses
+ * when confirmEmail is called, by delegating responsibility to the
+ * TwoFactor managers gatekeeper. - which on success will verify email.
  */
 class Controller
 {
     /**
      * Constructor.
-     * @param ?Manager $manager
+     * @param ?Manager $manager - TwoFactor manager.
      */
     public function __construct(
         private ?Manager $manager = null

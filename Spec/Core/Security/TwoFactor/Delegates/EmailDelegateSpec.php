@@ -7,6 +7,7 @@ use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Email\V2\Campaigns\Recurring\TwoFactor\TwoFactor as TwoFactorEmail;
 use Minds\Core\Security\TwoFactor as TwoFactorService;
 use Minds\Core\Email\Confirmation\Manager as EmailConfirmationManager;
+use Minds\Core\Log\Logger;
 use Minds\Core\Security\TwoFactor\Delegates\EmailDelegate;
 use Minds\Core\Security\TwoFactor\Store\TwoFactorSecret;
 use Minds\Core\Security\TwoFactor\Store\TwoFactorSecretStore;
@@ -20,8 +21,8 @@ class EmailDelegateSpec extends ObjectBehavior
     /** @var TwoFactorService */
     protected $twoFactorService;
 
-    /** @var PsrWrapper */
-    protected $cache;
+    /** @var Logger */
+    protected $logger;
 
     /** @var TwoFactorEmail */
     protected $twoFactorEmail;
@@ -34,21 +35,21 @@ class EmailDelegateSpec extends ObjectBehavior
 
     public function let(
         TwoFactorService $twoFactorService,
-        PsrWrapper $cache,
+        Logger $logger,
         TwoFactorEmail $twoFactorEmail,
         TwoFactorSecretStore $twoFactorSecretStore,
         EmailConfirmationManager $emailConfirmation
     ) {
         $this->beConstructedWith(
             $twoFactorService,
-            $cache,
+            $logger,
             $twoFactorEmail,
             $twoFactorSecretStore,
             $emailConfirmation
         );
 
         $this->twoFactorService = $twoFactorService;
-        $this->cache = $cache;
+        $this->logger = $logger;
         $this->twoFactorEmail = $twoFactorEmail;
         $this->twoFactorSecretStore = $twoFactorSecretStore;
         $this->emailConfirmation = $emailConfirmation;

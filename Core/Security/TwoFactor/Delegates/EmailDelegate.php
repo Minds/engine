@@ -1,46 +1,41 @@
 <?php
-/**
- * TwoFactor SMS Delegate
- */
+
 namespace Minds\Core\Security\TwoFactor\Delegates;
 
-use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\V2\Campaigns\Recurring\TwoFactor\TwoFactor as TwoFactorEmail;
-use Minds\Core\Log;
 use Minds\Core\Security\TwoFactor as TwoFactorService;
 use Minds\Core\Security\TwoFactor\TwoFactorInvalidCodeException;
 use Minds\Core\Security\TwoFactor\TwoFactorRequiredException;
 use Minds\Entities\User;
 use Zend\Diactoros\ServerRequestFactory;
 use Minds\Core\Email\Confirmation\Manager as EmailConfirmationManager;
+use Minds\Core\Log\Logger;
 use Minds\Core\Security\TwoFactor\Store\TwoFactorSecretStore;
 
+/**
+ * TwoFactor Email Delegate
+ */
 class EmailDelegate implements TwoFactorDelegateInterface
 {
-    /** @var TwoFactorService */
-    protected $twoFactorService;
-
-    /** @var PsrWrapper */
-    protected $cache;
-
-    /** @var Log\Logger */
-    protected $logger;
-
-    /** @var TwoFactorEmail */
-    protected $twoFactorEmail;
-
+    /**
+     * Constructor
+     * @param ?TwoFactorService $twoFactorService - service handling two-factor.
+     * @param ?Logger $logger - logger class.
+     * @param ?TwoFactorEmail $twoFactorEmail - responsible for sending emails.
+     * @param ?TwoFactorSecretStore $twoFactorSecretStore - handles storage of secrets.
+     * @param ?EmailConfirmationManager $emailConfirmation - handles confirmation of email address.
+     */
     public function __construct(
-        TwoFactorService $twoFactorService = null,
-        PsrWrapper $cache = null,
-        TwoFactorEmail $twoFactorEmail = null,
+        private ?TwoFactorService $twoFactorService = null,
+        private ?Logger $logger = null,
+        private ?TwoFactorEmail $twoFactorEmail = null,
         private ?TwoFactorSecretStore $twoFactorSecretStore = null,
         private ?EmailConfirmationManager $emailConfirmation = null
     ) {
-        $this->twoFactorService = $twoFactorService ?? new TwoFactorService();
-        $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
-        $this->logger = $logger ?? Di::_()->get('Logger');
-        $this->twoFactorEmail = $twoFactorEmail ?? new TwoFactorEmail();
+        $this->twoFactorService ??= new TwoFactorService();
+        $this->logger ??= Di::_()->get('Logger');
+        $this->twoFactorEmail ??= new TwoFactorEmail();
         $this->twoFactorSecretStore ??= new TwoFactorSecretStore();
         $this->emailConfirmation ??= Di::_()->get('Email\Confirmation');
     }
@@ -105,7 +100,7 @@ class EmailDelegate implements TwoFactorDelegateInterface
             throw new TwoFactorInvalidCodeException();
         }
 
-        // we allow for 300 seconds (5 mins) after we send a code
+        // we allow for 900 seconds for email confirmed users (15 mins) after we send a code.
         if ($storedSecretObject->getGuid()
             && $storedSecretObject->getTimestamp() > (time() - $this->getTtl($user))
             && $user->getGuid() === (string) $storedSecretObject->getGuid()
