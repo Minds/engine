@@ -150,13 +150,9 @@ class EmailDelegate implements TwoFactorDelegateInterface
      */
     private function hasResendHeader(): bool
     {
-        $headerName = 'X-Minds-Email-2fa-Resend';
-        $headers = getallheaders();
-        return (
-            $headers &&
-            isset($headers[$headerName]) &&
-            $headers[$headerName] === '1'
-        );
+        $request = ServerRequestFactory::fromGlobals();
+        $header = $request->getHeader('X-MINDS-EMAIL-2FA-RESEND')[0];
+        return $header === '1';
     }
 
     /**

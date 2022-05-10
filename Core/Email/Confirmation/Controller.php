@@ -1,12 +1,11 @@
 <?php
 
-namespace Minds\Core\Security\TwoFactor;
+namespace Minds\Core\Email\Confirmation;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Security\TwoFactor\Manager;
 use Minds\Entities\User;
 use Zend\Diactoros\ServerRequest;
-use Zend\Diactoros\ServerRequestFactory;
 use Zend\Diactoros\Response\JsonResponse;
 
 /**
@@ -37,7 +36,7 @@ class Controller
         /** @var User */
         $user = $request->getAttribute('_user');
 
-        $this->manager->gatekeeper($user, ServerRequestFactory::fromGlobals());
+        $this->manager->gatekeeper($user, $request);
 
         return new JsonResponse([
             'status' => 'success'
