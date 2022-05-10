@@ -2,13 +2,13 @@
 
 namespace Minds\Core\Feeds\UnseenTopFeed;
 
-use Minds\Api\Exportable;
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds\UnseenTopFeed\ResponseBuilders\UnseenTopFeedResponseBuilder;
 use Minds\Core\Feeds\UnseenTopFeed\Validators\UnseenTopFeedRequestValidator;
 use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
+use Minds\Core\Feeds\Elastic\Manager as ElasticSearchManager;
 
 /**
  * The controller to handle the requests related to the feed for unseen top posts
@@ -16,9 +16,9 @@ use Zend\Diactoros\Response\JsonResponse;
 class Controller
 {
     public function __construct(
-        private ?ManagerInterface $manager = null
+        private ?ElasticSearchManager $elasticSearchManager = null
     ) {
-        $this->manager = $this->manager ?? Di::_()->get("Feeds\UnseenTopFeed\Manager");
+        $this->elasticSearchManager = $this->elasticSearchManager ?? Di::_()->get("Feeds\Elastic\Manager");
     }
 
     /**
@@ -38,7 +38,14 @@ class Controller
         }
 
         $totalEntitiesToRetrieve = $request->getQueryParams()["limit"];
-        $response = $this->manager->getUnseenTopEntities($loggedInUser, $totalEntitiesToRetrieve);
+        $response = $this->elasticSearchManager->getList([
+            'limit' => $totalEntitiesToRetrieve,
+            'type' => 'activity',
+            'algorithm' => 'top',
+            'subscriptions' => $loggedInUser->getGuid(),
+            'period' => 'all', // legacy option
+            'unseen' => true,
+        ]);
         // This endpoint doesn't support pagination yet
         $response->setPagingToken(null);
 

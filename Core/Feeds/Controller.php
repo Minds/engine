@@ -79,6 +79,7 @@ class Controller
         $queryParams = $request->getQueryParams();
         $limit = (int) ($queryParams['limit'] ?? 12);
         $fromTimestamp = (int) ($queryParams['from_timestamp'] ?? 0);
+        $unseen = (bool) ($queryParams['unseen'] ?? false);
 
         $recommendationsUserGuid = $this->config->get('default_recommendations_user') ?? '100000000000000519';
         
@@ -92,7 +93,8 @@ class Controller
             'period' => '1y',
             'single_owner_threshold' => $fromTimestamp ? 0 : 36, // after 3 scrolls
             'from_timestamp' => $fromTimestamp,
-            'nsfw' => []
+            'nsfw' => [],
+            'unseen' => $unseen,
         ]);
 
         return new JsonResponse([
