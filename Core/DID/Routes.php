@@ -25,5 +25,13 @@ class Routes extends ModuleRoutes
                     Ref::_('DID\Controller', 'getDIDDocument')
                 );
             });
+        $this->route
+            ->withPrefix('api/v3/did/uniresolver')
+            ->do(function (Route $route) {
+                $route->get(
+                    ':did',
+                    Ref::_('DID\UniResolver\Controller', 'resolve')
+                );
+            });
     }
 }

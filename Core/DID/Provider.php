@@ -14,5 +14,12 @@ class Provider extends Di\Provider
         $this->di->bind('DID\Controller', function ($di) {
             return new Controller();
         });
+        //
+        $this->di->bind('DID\UniResolver\Manager', function ($di) {
+            return new UniResolver\Manager();
+        });
+        $this->di->bind('DID\UniResolver\Controller', function ($di) {
+            return new UniResolver\Controller();
+        });
     }
 }

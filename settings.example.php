@@ -778,6 +778,9 @@ $CONFIG->set('user_quality_score', [
 
 $CONFIG->set('did', [
     'domain' => 'localhost:8080',
+    'uniresolver' => [
+        'base_url' => 'https://dev.uniresolver.io/',
+    ]
 ]);
 
 $CONFIG->set('webpush_vapid_details', [
