@@ -72,11 +72,12 @@ class TwoFactorSecretStore
     {
         $key = $this->getKey($user);
 
-        $storedSecretJson = (new TwoFactorSecret())
-            ->setGuid($user->guid)
-            ->setTimestamp(time())
-            ->setSecret($secret)
-            ->toJson();
+        $storedSecretJson = json_encode(
+            (new TwoFactorSecret())
+                ->setGuid($user->guid)
+                ->setTimestamp(time())
+                ->setSecret($secret)
+        );
 
         $this->cache->set(
             $key,

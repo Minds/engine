@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Security\TwoFactor\Store;
 
+use JsonSerializable;
 use Minds\Traits\MagicAttributes;
 
 /**
@@ -13,7 +14,7 @@ use Minds\Traits\MagicAttributes;
  * @method string getSecret()
  * @method self setSecret(string $secret)
  */
-class TwoFactorSecret
+class TwoFactorSecret implements JsonSerializable
 {
     use MagicAttributes;
 
@@ -27,15 +28,18 @@ class TwoFactorSecret
     private $secret;
 
     /**
-     * Instance held values as a JSON object ready for insertion into store.
-     * @return string - class object as JSON for store insertion.
+     * Specify data which should be serialized to JSON
+     * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
+     * @return mixed data which can be serialized by <b>json_encode</b>,
+     * which is a value of any type other than a resource.
+     * @since 5.4.0
      */
-    public function toJson(): string
+    public function jsonSerialize(): mixed
     {
-        return json_encode([
+        return [
             '_guid' => $this->getGuid(),
             'ts' => $this->getTimestamp(),
             'secret' => $this->getSecret()
-        ]);
+        ];
     }
 }
