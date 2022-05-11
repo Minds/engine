@@ -12,6 +12,7 @@ use Zend\Diactoros\ServerRequestFactory;
 use Minds\Core\Email\Confirmation\Manager as EmailConfirmationManager;
 use Minds\Core\Log\Logger;
 use Minds\Core\Security\TwoFactor\Store\TwoFactorSecretStore;
+use Minds\Core\Security\TwoFactor\BypassManager;
 
 /**
  * TwoFactor Email Delegate
@@ -25,19 +26,22 @@ class EmailDelegate implements TwoFactorDelegateInterface
      * @param ?TwoFactorEmail $twoFactorEmail - responsible for sending emails.
      * @param ?TwoFactorSecretStore $twoFactorSecretStore - handles storage of secrets.
      * @param ?EmailConfirmationManager $emailConfirmation - handles confirmation of email address.
+     * @param ?BypassManager $bypassManager - bypass MFA.
      */
     public function __construct(
         private ?TwoFactorService $twoFactorService = null,
         private ?Logger $logger = null,
         private ?TwoFactorEmail $twoFactorEmail = null,
         private ?TwoFactorSecretStore $twoFactorSecretStore = null,
-        private ?EmailConfirmationManager $emailConfirmation = null
+        private ?EmailConfirmationManager $emailConfirmation = null,
+        private ?BypassManager $bypassManager = null
     ) {
         $this->twoFactorService ??= new TwoFactorService();
         $this->logger ??= Di::_()->get('Logger');
         $this->twoFactorEmail ??= new TwoFactorEmail();
         $this->twoFactorSecretStore ??= new TwoFactorSecretStore();
         $this->emailConfirmation ??= Di::_()->get('Email\Confirmation');
+        $this->bypassManager ??= new BypassManager();
     }
 
     /**
@@ -92,7 +96,14 @@ class EmailDelegate implements TwoFactorDelegateInterface
     {
         $request = ServerRequestFactory::fromGlobals();
         $key = $request->getHeader('X-MINDS-EMAIL-2FA-KEY')[0] ?? '';
-        
+     
+        // Trust a user if valid bypass used.
+        if ($this->bypassManager->verify($code)) {
+            $this->confirmEmail($user);
+            $this->twoFactorSecretStore->delete($key);
+            return;
+        }
+
         /** @var TwoFactorSecret */
         $storedSecretObject = $this->twoFactorSecretStore->getByKey($key);
 
@@ -122,9 +133,7 @@ class EmailDelegate implements TwoFactorDelegateInterface
         }
 
         // Trust a user if they have given a valid two-factor code.
-        if (!$user->isTrusted()) {
-            $this->emailConfirmation->approveConfirmation($user);
-        }
+        $this->confirmEmail($user);
 
         $this->twoFactorSecretStore->delete($key);
     }
@@ -161,5 +170,17 @@ class EmailDelegate implements TwoFactorDelegateInterface
         $this->twoFactorEmail->setUser($user);
         $this->twoFactorEmail->setCode($code);
         $this->twoFactorEmail->send();
+    }
+
+    /**
+     * Confirm an email address if user is not already trusted.
+     * @param User $user - user to confirm for.
+     * @return void
+     */
+    private function confirmEmail(User $user)
+    {
+        if (!$user->isTrusted()) {
+            $this->emailConfirmation->approveConfirmation($user);
+        }
     }
 }
