@@ -20,6 +20,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Common\Urn;
 use Minds\Core\Boost\Network\ElasticRepository as BoostElasticRepository;
+use Minds\Entities\Entity;
 use Minds\Entities\MutatableEntityInterface;
 use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
@@ -303,25 +304,43 @@ class Manager
 
     /**
      * Checks whether an entity is currently actively boosted.
-     * @param MutatableEntityInterface $entity - entity to check.
+     * @param Entity $entity - entity to check.
      * @return boolean - true if the entity has an actively boosted state.
      */
-    private function isActivelyBoostedEntity(MutatableEntityInterface $entity): bool
+    private function isActivelyBoostedEntity(Entity $entity): bool
     {
-        $entityGuid = (int) $entity['guid'];
+        $originalGuid = (int) $entity->getGuid();
 
-        if ($linkedGuid = $this->guidLinkResolver->resolve($entityGuid)) {
+        if ($linkedGuid = $this->getLinkedGuid($entity)) {
             $entityGuidArray = [
-                $entityGuid,
-                $linkedGuid
+                $originalGuid,
+                $linkedGuid,
             ];
         }
 
         $results = $this->boostRepository->getList([
-            'entity_guid' => $entityGuidArray ?? $entityGuid,
+            // can pass an array to do a terms query with multiple guids.
+            'entity_guid' => $entityGuidArray ?? $originalGuid,
             'state' => 'approved'
         ]);
 
         return $results && count($results) > 0;
+    }
+
+    /**
+     * Gets a linked GUID for an entity. Passing an activity will
+     * give you the entity guid and vice-versa.
+     * @param Entity|Activity $entity - the entity to get the linked guid for.
+     * @return ?int - linked guid.
+     */
+    private function getLinkedGuid(Entity|Activity $entity): ?int
+    {
+        $originalGuid = (int) $entity->getGuid();
+        $entityGuid = (int) $entity->getEntityGuid() ?? false;
+
+        if ($entityGuid && $originalGuid !== $entityGuid) {
+            return $entityGuid;
+        }
+        return $this->guidLinkResolver->resolve($originalGuid);
     }
 }

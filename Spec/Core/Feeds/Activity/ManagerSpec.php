@@ -270,8 +270,12 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($activity);
 
+        $this->guidLinkResolver->resolve(123)
+            ->shouldBeCalled()
+            ->willReturn(321);
+
         $this->boostRepository->getList([
-            'entity_guid' => 123,
+            'entity_guid' => [123, 321],
             'state' => 'approved'
         ])->shouldBeCalled()
             ->willReturn([
@@ -286,7 +290,9 @@ class ManagerSpec extends ObjectBehavior
         EntityMutation $activityMutation
     ) {
         $activity = new Activity();
-        $activity['guid'] = 123;
+
+        $activity->guid = 123;
+        $activity->entity_guid = 321;
 
         $activityMutation->getMutatedEntity()
             ->shouldBeCalled()
@@ -297,8 +303,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($activity);
 
         $this->guidLinkResolver->resolve(123)
-            ->shouldBeCalled()
-            ->willReturn(321);
+            ->shouldNotBeCalled();
 
         $this->boostRepository->getList([
             'entity_guid' => [123, 321],
