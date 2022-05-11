@@ -20,8 +20,8 @@ class FeedsProvider extends Provider
             return new Firehose\Manager();
         });
 
-        $this->di->bind('Feeds\UnseenTopFeed\Manager', function ($di) {
-            return new UnseenTopFeed\Manager();
+        $this->di->bind('Feeds\Seen\Manager', function ($di) {
+            return new Seen\Manager();
         });
 
         $this->di->bind('Feeds\ClusteredRecommendations\Manager', function ($di) {

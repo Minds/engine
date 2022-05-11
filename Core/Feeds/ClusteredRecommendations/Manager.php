@@ -6,10 +6,12 @@ use Exception;
 use Generator;
 use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
+use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Recommendations\UserRecommendationsCluster;
 use Minds\Entities\User;
+use Minds\Core\Feeds\Seen\Manager as SeenManager;
 
 /**
  *  Manager class to handle clustered recommendations feed's logic
@@ -21,11 +23,13 @@ class Manager
     public function __construct(
         private ?Repository $repository = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?UserRecommendationsCluster $userRecommendationsCluster = null
+        private ?UserRecommendationsCluster $userRecommendationsCluster = null,
+        private ?SeenManager $seenManager = null,
     ) {
         $this->repository ??= new Repository();
         $this->entitiesBuilder ??= new EntitiesBuilder();
         $this->userRecommendationsCluster ??= new UserRecommendationsCluster();
+        $this->seenManager = $seenManager ?? Di::_()->get('Feeds\Seen\Manager');
     }
 
     /**
@@ -45,11 +49,10 @@ class Manager
      * @return Response
      * @throws Exception
      */
-    public function getList(int $limit): Response
+    public function getList(int $limit, bool $unseen = false): Response
     {
         $clusterId = $this->userRecommendationsCluster->calculateUserRecommendationsClusterId($this->user);
-
-        $entries = $this->repository->getList($clusterId, $limit);
+        $entries = $this->repository->getList($clusterId, $limit, $unseen ? $this->seenManager->listSeenEntities() : []);
         $feedSyncEntities = $this->prepareFeedSyncEntities($entries);
         $preparedEntities = $this->prepareEntities($feedSyncEntities);
 

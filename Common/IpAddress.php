@@ -40,4 +40,13 @@ class IpAddress
         }
         return $ip;
     }
+
+    /**
+     * Get IP address as hash.
+     * @return string hash of IP.
+     */
+    public function getHash(): string
+    {
+        return hash('sha256', $this->get());
+    }
 }

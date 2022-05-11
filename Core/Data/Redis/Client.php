@@ -77,6 +77,10 @@ class Client
         return $this->redis->exec(...$args);
     }
 
+    public function sScan(...$args)
+    {
+        return $this->redis->sScan(...$args);
+    }
 
     public function __call($function, $arguments)
     {

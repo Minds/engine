@@ -223,7 +223,6 @@ class Video extends MindsObject
             '720.mp4' => $this->getSourceUrl('720.mp4'),
         ];
         $export['play:count'] = Helpers\Counters::get($this->guid, 'plays');
-        $export['description'] = (new Core\Security\XSS())->clean($this->description); //videos need to be able to export html.. sanitize soon!
         $export['description'] = (new DescriptionLengthValidator())->validateMaxAndTrim($export['description']);
 
         $export['rating'] = $this->getRating();

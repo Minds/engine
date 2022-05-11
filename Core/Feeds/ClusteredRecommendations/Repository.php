@@ -8,6 +8,7 @@ use Minds\Core\Data\ElasticSearch\Client as ElasticSearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared\Search as PreparedSearch;
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Elastic\ScoredGuid;
+use Minds\Helpers\Text;
 
 /**
  * Repository class to fetch data from clustered recommendations index in ES
@@ -32,10 +33,9 @@ class Repository
      * @param int $limit
      * @return Generator
      */
-    public function getList(int $clusterId, int $limit): Generator
+    public function getList(int $clusterId, int $limit, array $exclude = []): Generator
     {
-        $preparedSearch = $this->buildQuery($clusterId, $limit);
-
+        $preparedSearch = $this->buildQuery($clusterId, $limit, $exclude);
         $results = $this->elasticSearchClient->request($preparedSearch);
 
         foreach ($results['hits']['hits'] as $doc) {
@@ -55,7 +55,7 @@ class Repository
      * @param int $limit
      * @return PreparedSearch
      */
-    private function buildQuery(int $clusterId, int $limit): PreparedSearch
+    private function buildQuery(int $clusterId, int $limit, array $exclude = []): PreparedSearch
     {
         $query = [
             'body' => [
@@ -67,6 +67,13 @@ class Repository
                                     [
                                         'term' => [
                                             'cluster_id' => $clusterId
+                                        ]
+                                    ]
+                                ],
+                                'must_not' => [
+                                    [
+                                        'terms' => [
+                                            'entity_guid' => $exclude
                                         ]
                                     ]
                                 ]
