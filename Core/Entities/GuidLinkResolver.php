@@ -16,7 +16,7 @@ class GuidLinkResolver
     /**
      * Constructor.
      * @param ?EntitiesBuilder $entitiesBuilder - to build entities.
-     * @param ?Call $db - db call
+     * @param ?Call $db - db call.
      */
     public function __construct(
         private ?EntitiesBuilder $entitiesBuilder = null,
