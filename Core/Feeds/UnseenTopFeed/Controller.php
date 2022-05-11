@@ -3,12 +3,12 @@
 namespace Minds\Core\Feeds\UnseenTopFeed;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Feeds\Elastic\Manager as ElasticSearchManager;
 use Minds\Core\Feeds\UnseenTopFeed\ResponseBuilders\UnseenTopFeedResponseBuilder;
 use Minds\Core\Feeds\UnseenTopFeed\Validators\UnseenTopFeedRequestValidator;
 use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
-use Minds\Core\Feeds\Elastic\Manager as ElasticSearchManager;
 
 /**
  * The controller to handle the requests related to the feed for unseen top posts
@@ -44,7 +44,8 @@ class Controller
             'algorithm' => 'top',
             'subscriptions' => $loggedInUser->getGuid(),
             'period' => 'all', // legacy option
-            'unseen' => true,
+            'unseen' => false,
+            'demote' => false
         ]);
         // This endpoint doesn't support pagination yet
         $response->setPagingToken(null);

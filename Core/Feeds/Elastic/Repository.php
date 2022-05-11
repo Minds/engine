@@ -601,11 +601,25 @@ class Repository
         }
 
         if ($opts['exclude']) {
-            $body['query']['function_score']['query']['bool']['must_not'][] = [
-                'terms' => [
-                    'guid' => Text::buildArray($opts['exclude']),
-                ],
-            ];
+            if ($opts['demoted']) {
+                // if (!isset($body['query']['function_score']['functions'])) {
+                //     $body['query']['function_score']['functions'] = [];
+                // }
+                // $body['query']['function_score']['functions'][] = [
+                //     'filter' => [
+                //         'terms' => [
+                //             'guid' => Text::buildArray($opts['exclude'])
+                //         ]
+                //     ],
+                //     'weight' => 0.5
+                // ];
+            } else {
+                $body['query']['function_score']['query']['bool']['must_not'][] = [
+                    'terms' => [
+                        'guid' => Text::buildArray($opts['exclude']),
+                    ],
+                ];
+            }
         }
 
 
