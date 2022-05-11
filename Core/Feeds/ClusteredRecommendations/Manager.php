@@ -6,6 +6,7 @@ use Exception;
 use Generator;
 use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
+use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Recommendations\UserRecommendationsCluster;
