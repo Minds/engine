@@ -53,7 +53,8 @@ class ControllerSpec extends ObjectBehavior
             'period' => '1y',
             'single_owner_threshold' => 36,
             'from_timestamp' => 0,
-            'nsfw' => []
+            'nsfw' => [],
+            'unseen' => false
         ])->shouldBeCalled()
           ->willReturn($response);
 

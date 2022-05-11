@@ -36,10 +36,11 @@ class Controller
         }
 
         $limit = (int) $queryParams['limit'] ?? 12;
+        $unseen = (bool) $queryParams['unseen'] ?? false;
 
         $this->manager->setUser($request->getAttribute('_user'));
 
-        $results = $this->manager->getList($limit);
+        $results = $this->manager->getList($limit, $unseen);
 
         return $responseBuilder->successfulResponse($results);
     }
