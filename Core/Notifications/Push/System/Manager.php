@@ -12,6 +12,7 @@ use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\Services\ApnsService;
 use Minds\Core\Notifications\Push\Services\FcmService;
 use Minds\Core\Notifications\Push\Services\PushServiceInterface;
+use Minds\Core\Notifications\Push\Services\WebPushService;
 use Minds\Core\Notifications\Push\System\Delegates\AdminPushNotificationEventStreamsDelegate;
 use Minds\Core\Notifications\Push\System\Models\AdminPushNotificationRequest;
 use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
@@ -32,12 +33,14 @@ class Manager
         private ?Repository $repository = null,
         private ?AdminPushNotificationEventStreamsDelegate $delegate = null,
         private ?ApnsService $apnsService = null,
-        private ?FcmService $fcmService = null
+        private ?FcmService $fcmService = null,
+        private ?WebPushService $webPushService = null
     ) {
         $this->repository ??= new Repository();
         $this->delegate ??= new AdminPushNotificationEventStreamsDelegate();
         $this->apnsService ??= new ApnsService();
         $this->fcmService ??= new FcmService();
+        $this->webPushService ??= new WebPushService();
         $this->logger = Di::_()->get("Logger");
     }
 
@@ -151,6 +154,7 @@ class Manager
         return match ($service) {
             DeviceSubscription::SERVICE_APNS => $this->apnsService,
             DeviceSubscription::SERVICE_FCM => $this->fcmService,
+            DeviceSubscription::SERVICE_WEBPUSH => $this->webPushService,
             default => throw new Exception('Invalid service'),
         };
     }
