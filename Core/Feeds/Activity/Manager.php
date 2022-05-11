@@ -21,7 +21,6 @@ use Minds\Core\Session;
 use Minds\Common\Urn;
 use Minds\Core\Boost\Network\ElasticRepository as BoostElasticRepository;
 use Minds\Entities\Entity;
-use Minds\Entities\MutatableEntityInterface;
 use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
 use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
