@@ -95,7 +95,7 @@ class Manager
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->messageLengthValidator = $messageLengthValidator ?? new MessageLengthValidator();
         $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
-        $this->boostRepository = $boostRepository ?? new BoostElasticRepository();
+        $this->boostRepository ??= new BoostElasticRepository();
         $this->guidLinkResolver ??= new GuidLinkResolver();
     }
 
