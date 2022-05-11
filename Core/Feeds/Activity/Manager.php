@@ -14,6 +14,7 @@ use Minds\Common\EntityMutation;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Entities\Actions\Delete;
 use Minds\Core\Entities\PropagateProperties;
+use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
@@ -77,7 +78,8 @@ class Manager
         $entitiesBuilder = null,
         private ?MessageLengthValidator $messageLengthValidator = null,
         private ?TitleLengthValidator $titleLengthValidator = null,
-        private ?BoostElasticRepository $boostRepository = null
+        private ?BoostElasticRepository $boostRepository = null,
+        private ?GuidLinkResolver $guidLinkResolver = null
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -94,6 +96,7 @@ class Manager
         $this->messageLengthValidator = $messageLengthValidator ?? new MessageLengthValidator();
         $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
         $this->boostRepository = $boostRepository ?? new BoostElasticRepository();
+        $this->guidLinkResolver ??= new GuidLinkResolver();
     }
 
     /**
@@ -305,10 +308,20 @@ class Manager
      */
     private function isActivelyBoostedEntity(MutatableEntityInterface $entity): bool
     {
+        $entityGuid = (int) $entity['guid'];
+
+        if ($linkedGuid = $this->guidLinkResolver->resolve($entityGuid)) {
+            $entityGuidArray = [
+                $entityGuid,
+                $linkedGuid
+            ];
+        }
+
         $results = $this->boostRepository->getList([
-            'entity_guid' => $entity['guid'],
+            'entity_guid' => $entityGuidArray ?? $entityGuid,
             'state' => 'approved'
         ]);
+
         return $results && count($results) > 0;
     }
 }
