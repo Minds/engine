@@ -46,13 +46,13 @@ class Repository
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
 
-        $this->config = $config ?: Di::_()->get('Config');
+        $this->config = $config ?? Di::_()->get('Config');
 
         $this->features = $features ?: Di::_()->get('Features\Manager');
 
         $this->index = $this->config->get('elasticsearch')['indexes']['search_prefix'];
 
-        $this->plusSupportTierUrn = $config->get('plus')['support_tier_urn'] ?? null;
+        $this->plusSupportTierUrn = $this->config->get('plus')['support_tier_urn'] ?? null;
     }
 
     /**
