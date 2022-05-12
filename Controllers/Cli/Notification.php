@@ -2,12 +2,16 @@
 
 namespace Minds\Controllers\Cli;
 
+use Cassandra\Bigint;
 use Minds\Cli;
-use Minds\Core\Events\Dispatcher;
-use Minds\Interfaces;
+use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
 use Minds\Core\Notifications\EmailDigests\EmailDigestMarker;
 use Minds\Core\Notifications\EmailDigests\EmailDigestOpts;
+use Minds\Core\Notifications\Push\System\Manager;
+use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
+use Minds\Core\Notifications\Push\UndeliverableException;
+use Minds\Interfaces;
 
 class Notification extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -73,6 +77,53 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
 
         foreach ($emailDigestsManager->sendBulk($opts) as $item) {
             $this->out($item->getEntity()->getToGuid());
+        }
+    }
+
+    /**
+     * Send a push notification to all devices
+     * @throws UndeliverableException
+     */
+    public function sendPush()
+    {
+        $dryRun = $this->getOpt('dry-run') ?? false;
+        $testUserGuid = $this->getOpt('user-guid');
+        $scroll = Di::_()->get('Database\Cassandra\Cql\Scroll');
+
+        $statement = "SELECT * FROM push_notifications_device_subscriptions";
+        $values = [];
+
+        if ($testUserGuid) {
+            $statement .= " WHERE user_guid = ?";
+            $values[] = new Bigint($testUserGuid);
+        }
+
+        $prepared = new Custom();
+        $prepared->query($statement, $values);
+
+        $i = 0;
+        $pushManager = new Manager();
+        foreach ($scroll->request($prepared) as $row) {
+            $userGuid = $row['user_guid'];
+
+            $deviceSubscription = new \Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription();
+            $deviceSubscription->setUserGuid((string) $row['user_guid'])
+                ->setToken($row['device_token'])
+                ->setService($row['service']);
+
+            $this->out("$i: $userGuid");
+
+            if (!$dryRun) {
+                $pushNotification = new CustomPushNotification();
+                $pushNotification
+                    ->setDeviceSubscription($deviceSubscription)
+                    ->setTitle('💡 Watch Minds on Joe Rogan Experience 💡')
+                    ->setBody('Joe Rogan interviews Minds CEO Bill Ottman and Daryl Davis')
+                    ->setUri('https://www.minds.com/newsfeed/1350517575166988298');
+
+                $pushManager->sendNotification($pushNotification);
+                //send
+            }
         }
     }
 }
