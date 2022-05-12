@@ -12,8 +12,9 @@ use Minds\Core\Entities\Delegates\BoostGuidResolverDelegate;
 use Minds\Core\Entities\Delegates\CommentGuidResolverDelegate;
 use Minds\Core\Entities\Delegates\EntityGuidResolverDelegate;
 use Minds\Core\Entities\Delegates\EventsResolverDelegate;
-use Minds\Core\Entities\Delegates\ResolverDelegate;
 use Minds\Core\Entities\Delegates\FilterEntitiesDelegate;
+use Minds\Core\Entities\Delegates\ResolverDelegate;
+use Minds\Core\Entities\Delegates\SystemPushNotificationResolverDelegate;
 use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 
@@ -46,6 +47,7 @@ class Resolver
             EntityGuidResolverDelegate::class => new EntityGuidResolverDelegate(),
             BoostGuidResolverDelegate::class => new BoostGuidResolverDelegate(),
             CommentGuidResolverDelegate::class => new CommentGuidResolverDelegate(),
+            SystemPushNotificationResolverDelegate::class => new SystemPushNotificationResolverDelegate(),
         ];
 
         $this->acl = $acl ?: ACL::_();

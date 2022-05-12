@@ -5,7 +5,7 @@ namespace Spec\Minds\Core\Notifications\Push\Services;
 use GuzzleHttp;
 use Minds\Core\Config\Config;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
-use Minds\Core\Notifications\Push\PushNotification;
+use Minds\Core\Notifications\Push\PushNotificationInterface;
 use Minds\Core\Notifications\Push\Services\ApnsService;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -31,7 +31,7 @@ class ApnsServiceSpec extends ObjectBehavior
         $this->shouldHaveType(ApnsService::class);
     }
 
-    public function it_should_send_an_apns_push_notification(PushNotification $pushNotification, DeviceSubscription $deviceSubscription)
+    public function it_should_send_an_apns_push_notification(PushNotificationInterface $pushNotification, DeviceSubscription $deviceSubscription)
     {
         $pushNotification->getTitle()
             ->willReturn('This is the title line');
@@ -52,6 +52,9 @@ class ApnsServiceSpec extends ObjectBehavior
 
         $deviceSubscription->getToken()
             ->willReturn('apple-device-token');
+
+        $deviceSubscription->getUserGuid()
+            ->willReturn('123');
 
         $this->config->get('apple')
             ->willReturn([
