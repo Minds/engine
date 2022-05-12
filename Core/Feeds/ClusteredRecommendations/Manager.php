@@ -6,11 +6,12 @@ use Exception;
 use Generator;
 use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
+use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\FeedSyncEntity;
+use Minds\Core\Feeds\Seen\Manager as SeenManager;
 use Minds\Core\Recommendations\UserRecommendationsCluster;
 use Minds\Entities\User;
-use Minds\Core\Feeds\Seen\Manager as SeenManager;
 
 /**
  *  Manager class to handle clustered recommendations feed's logic
