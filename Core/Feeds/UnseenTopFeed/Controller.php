@@ -44,8 +44,8 @@ class Controller
             'algorithm' => 'top',
             'subscriptions' => $loggedInUser->getGuid(),
             'period' => 'all', // legacy option
-            'unseen' => false,
-            'demote' => false
+            'unseen' => true,
+            'demoted' => true
         ]);
         // This endpoint doesn't support pagination yet
         $response->setPagingToken(null);
