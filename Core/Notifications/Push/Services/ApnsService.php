@@ -1,33 +1,39 @@
 <?php
 namespace Minds\Core\Notifications\Push\Services;
 
-use Minds\Core\Notifications\Push\PushNotification;
-use GuzzleHttp;
+use GuzzleHttp\Exception\GuzzleException;
+use Minds\Core\Notifications\Push\PushNotificationInterface;
+use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
 use Psr\Http\Message\ResponseInterface;
 
 class ApnsService extends AbstractService implements PushServiceInterface
 {
     /**
-     * @param PushNotification $pushNotification
+     * @param PushNotificationInterface $pushNotification
      * @return bool
+     * @throws GuzzleException
      */
-    public function send(PushNotification $pushNotification): bool
+    public function send(PushNotificationInterface $pushNotification): bool
     {
-        $message = $pushNotification->getTitle();
-        if ($body = $pushNotification->getBody()) {
-            $message .= ": $body";
+        $alert = [
+            'title' => $pushNotification->getTitle(),
+            'body' => $pushNotification->getBody()
+        ];
+
+        if (!($pushNotification instanceof CustomPushNotification)) {
+            $alert = [
+                'body' => $pushNotification->getTitle() . ($pushNotification->getBody() ? ": {$pushNotification->getBody()}" : "")
+            ];
         }
 
         $payload = [
             'aps' => [
                 "mutable-content" => 1,
-                'alert' => [
-                    'body' => $message,
-                ],
+                'alert' => $alert,
                 'badge' => $pushNotification->getUnreadCount(),
             ],
             'uri' => $pushNotification->getUri(),
-            'user_guid' => $pushNotification->getUserGuid(),
+            'user_guid' => $pushNotification->getDeviceSubscription()->getUserGuid(),
             'largeIcon' => $pushNotification->getIcon(),
         ];
 
@@ -43,11 +49,13 @@ class ApnsService extends AbstractService implements PushServiceInterface
         }
         return true;
     }
-    
+
     /**
      * @param string $deviceToken
+     * @param array $headers
      * @param array $body
      * @return ResponseInterface
+     * @throws GuzzleException
      */
     protected function request($deviceToken, array $headers, array $body): ResponseInterface
     {
