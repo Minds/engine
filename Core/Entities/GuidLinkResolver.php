@@ -30,10 +30,10 @@ class GuidLinkResolver
      * Gets linked GUID for entity. For example if given an Activity guid, should
      * return an entity_guid. Else if given an entity_guid, should return a linked
      * Activity guid.
-     * @param integer $guid - guid to get linked entity guid for.
-     * @return ?integer - linked entity guid.
+     * @param string $guid - guid to get linked entity guid for.
+     * @return ?string - linked entity guid.
      */
-    public function resolve(int $guid): ?int
+    public function resolve(string $guid): ?string
     {
         // Lookup entity link so an entity guid should return a linked Activity guid.
         $linkedActivities = $this->db->getRow("activity:entitylink:{$guid}");

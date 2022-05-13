@@ -334,8 +334,8 @@ class Manager
      */
     private function getLinkedGuid(Entity|Activity $entity): ?int
     {
-        $originalGuid = (int) $entity->getGuid();
-        $entityGuid = (int) $entity->getEntityGuid() ?? false;
+        $originalGuid = (string) $entity->getGuid();
+        $entityGuid = (string) $entity->getEntityGuid() ?? false;
 
         if ($entityGuid && $originalGuid !== $entityGuid) {
             return $entityGuid;
