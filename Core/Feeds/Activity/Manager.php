@@ -308,7 +308,7 @@ class Manager
      */
     private function isActivelyBoostedEntity(Entity $entity): bool
     {
-        $originalGuid = (int) $entity->getGuid();
+        $originalGuid = (string) $entity->getGuid();
 
         if ($linkedGuid = $this->getLinkedGuid($entity)) {
             $entityGuidArray = [
@@ -330,9 +330,9 @@ class Manager
      * Gets a linked GUID for an entity. Passing an activity will
      * give you the entity guid and vice-versa.
      * @param Entity|Activity $entity - the entity to get the linked guid for.
-     * @return ?int - linked guid.
+     * @return ?string - linked guid.
      */
-    private function getLinkedGuid(Entity|Activity $entity): ?int
+    private function getLinkedGuid(Entity|Activity $entity): ?string
     {
         $originalGuid = (string) $entity->getGuid();
         $entityGuid = (string) $entity->getEntityGuid() ?? false;
