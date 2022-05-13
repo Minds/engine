@@ -611,7 +611,7 @@ class Repository
                             'guid' => Text::buildArray($opts['exclude'])
                         ]
                     ],
-                    'weight' => $this->config->get('seen-entities-weight')
+                    'weight' => $this->config->get('seen-entities-weight') ?? 0.01
                 ];
             } else {
                 $body['query']['function_score']['query']['bool']['must_not'][] = [
