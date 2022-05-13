@@ -3,7 +3,6 @@
 namespace Minds\Core\SocialCompass;
 
 use Cassandra\Bigint;
-use Minds\Core\Di\Di;
 use Minds\Core\SocialCompass\Entities\AnswerModel;
 use Minds\Core\SocialCompass\ResponseBuilders\GetQuestionsResponseBuilder;
 use Minds\Core\SocialCompass\ResponseBuilders\StoreAnswersResponseBuilder;
@@ -26,9 +25,6 @@ class Controller
         private ?ManagerInterface $manager = null
     ) {
         $this->manager = $this->manager ?? new Manager();
-
-        $activeSession = Di::_()->get("Sessions\ActiveSession");
-        $this->loggedInUser = $activeSession->getUser();
     }
 
     /**
@@ -40,9 +36,10 @@ class Controller
      */
     public function getQuestions(ServerRequestInterface $request): JsonResponse
     {
+        $this->loggedInUser = $request->getAttribute('_user');
         $result = $this->manager->retrieveSocialCompassQuestions();
         $responseBuilder = new GetQuestionsResponseBuilder();
-        return $responseBuilder->build($result);
+        return $responseBuilder->build($result, $this->loggedInUser != null);
     }
 
     /**
@@ -54,6 +51,8 @@ class Controller
      */
     public function storeAnswers(ServerRequestInterface $request): JsonResponse
     {
+        $this->loggedInUser = $request->getAttribute('_user');
+
         $answers = $this->getAnswersArrayFromRequestBody($request);
 
         $this->validateAnswers($answers);
@@ -72,6 +71,8 @@ class Controller
      */
     private function getAnswersArrayFromRequestBody(ServerRequestInterface $request): array
     {
+        $this->loggedInUser = $request->getAttribute('_user');
+
         $requestBody = json_decode($request->getBody()->getContents(), true);
 
         if (empty($requestBody["social-compass-answers"])) {
@@ -111,6 +112,8 @@ class Controller
      */
     public function updateAnswers(ServerRequestInterface $request): JsonResponse
     {
+        $this->loggedInUser = $request->getAttribute('_user');
+        
         $answers = $this->getAnswersArrayFromRequestBody($request);
 
         $this->validateAnswers($answers);

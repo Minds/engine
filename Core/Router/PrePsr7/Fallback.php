@@ -34,6 +34,7 @@ class Fallback
         '/not-supported',
         '/apple-app-site-association',
         '/.well-known/apple-app-site-association',
+        '/.well-known/assetlinks.json',
     ];
 
     /** @var Config */

@@ -7,15 +7,15 @@ namespace Minds\Core\EventStreams\Topics;
 use Minds\Common\Urn;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\EventInterface;
-use Minds\Entities\User;
 use Minds\Entities\Entity;
+use Minds\Entities\User;
 use Minds\Helpers\MagicAttributes;
+use Pulsar\Consumer;
+use Pulsar\ConsumerConfiguration;
 use Pulsar\MessageBuilder;
 use Pulsar\ProducerConfiguration;
-use Pulsar\ConsumerConfiguration;
-use Pulsar\Consumer;
-use Pulsar\SchemaType;
 use Pulsar\Result;
+use Pulsar\SchemaType;
 
 class ActionEventsTopic extends AbstractTopic implements TopicInterface
 {
@@ -121,6 +121,10 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                     ->setAction($data['action'])
                     ->setActionData($data['action_data'])
                     ->setTimestamp($message->getEventTimestamp());
+
+                $event->onForceAcknowledge(function () use ($consumer, $message) {
+                    $consumer->acknowledge($message);
+                });
 
                 if (call_user_func($callback, $event, $message) === true) {
                     $consumer->acknowledge($message);

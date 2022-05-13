@@ -125,7 +125,9 @@ class Text
 
         preg_match_all($htRe, $fullText, $matches);
 
-        return $matches[2] ?? [];
+        return array_filter($matches[2] ?? [], function ($tag) {
+            return is_string($tag);
+        });
     }
 
     /**
