@@ -44,9 +44,13 @@ class Defaults
         });
 
         // Decode special characters and strip tags.
-        Dispatcher::register('export:extender', 'activity', function ($event) {
+        Dispatcher::register('export:extender', 'all', function ($event) {
             $export = $event->response() ?: [];
             $params = $event->getParameters();
+
+            if ($params['entity'] instanceof Core\Blogs\Blog) {
+                return; // do not sanitize for blogs
+            }
 
             $allowedTags = '';
             if ($this->features->has('code-highlight')) {
@@ -56,6 +60,13 @@ class Defaults
             if (isset($export['message'])) {
                 $export['message'] = strip_tags(
                     htmlspecialchars_decode($export['message']),
+                    $allowedTags
+                );
+            }
+
+            if (isset($export['description'])) {
+                $export['description'] = strip_tags(
+                    htmlspecialchars_decode($export['description']),
                     $allowedTags
                 );
             }
