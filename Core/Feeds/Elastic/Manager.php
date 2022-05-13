@@ -112,7 +112,7 @@ class Manager
             'reverse_sort' => null,
             'query' => null,
             'nsfw' => null,
-            'single_owner_threshold' => 6,
+            'single_owner_threshold' => 36,
             'filter_hashtags' => false,
             'pinned_guids' => null,
             'as_activities' => false,

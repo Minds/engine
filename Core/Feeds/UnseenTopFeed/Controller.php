@@ -43,6 +43,7 @@ class Controller
             'type' => 'activity',
             'algorithm' => 'top',
             'subscriptions' => $loggedInUser->getGuid(),
+            'single_owner_threshold' => 6,
             'period' => 'all', // legacy option
             'unseen' => true,
             'demoted' => true
