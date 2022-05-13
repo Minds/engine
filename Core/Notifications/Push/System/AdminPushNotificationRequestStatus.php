@@ -16,7 +16,7 @@ class AdminPushNotificationRequestStatus
         return match ($status) {
             self::PENDING => "Pending",
             self::IN_PROGRESS => "In Progress",
-            self::DONE => "Done",
+            self::DONE => "Completed",
             self::FAILED => "Failed",
             default => throw new UnexpectedValueException(),
         };
