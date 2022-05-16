@@ -43,7 +43,8 @@ class Webhooks
         $config = null,
         $entitiesBuilder = null,
         $save = null,
-        ?Feeds $feeds = null
+        ?Feeds $feeds = null,
+        ?ACL $acl = null
     ) {
         $this->client = $client ?? new Client();
         $this->config = $config ?? Di::_()->get('Config');
