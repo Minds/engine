@@ -7,6 +7,7 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Media\Video\CloudflareStreams\Client;
 use Minds\Core\Media\Video\CloudflareStreams\Webhooks;
+use Minds\Core\Security\ACL;
 use Minds\Entities\Video;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -27,13 +28,22 @@ class WebhooksSpec extends ObjectBehavior
     /** @var Save */
     protected $save;
 
-    public function let(Client $client, Config $config, EntitiesBuilder $entitiesBuilder, Save $save)
-    {
-        $this->beConstructedWith($client, $config, $entitiesBuilder, $save);
+    /** @var ACL */
+    protected $acl;
+
+    public function let(
+        Client $client,
+        Config $config,
+        EntitiesBuilder $entitiesBuilder,
+        Save $save,
+        ACL $acl
+    ) {
+        $this->beConstructedWith($client, $config, $entitiesBuilder, $save, null, $acl);
         $this->client = $client;
         $this->config = $config;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->save = $save;
+        $this->acl = $acl;
     }
 
     public function it_is_initializable()
@@ -94,6 +104,8 @@ class WebhooksSpec extends ObjectBehavior
 
         $this->save->save()->shouldBeCalled();
 
+        $this->acl->setIgnore(true)->shouldBeCalled();
+        $this->acl->setIgnore(null)->shouldBeCalled();
 
         $this->onWebhook($request);
     }
