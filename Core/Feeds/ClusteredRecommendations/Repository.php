@@ -8,7 +8,6 @@ use Minds\Core\Data\ElasticSearch\Client as ElasticSearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared\Search as PreparedSearch;
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Elastic\ScoredGuid;
-use Minds\Helpers\Text;
 
 /**
  * Repository class to fetch data from clustered recommendations index in ES
@@ -33,9 +32,9 @@ class Repository
      * @param int $limit
      * @return Generator
      */
-    public function getList(int $clusterId, int $limit, array $exclude = []): Generator
+    public function getList(int $clusterId, int $limit, array $exclude = [], bool $demote = false): Generator
     {
-        $preparedSearch = $this->buildQuery($clusterId, $limit, $exclude);
+        $preparedSearch = $this->buildQuery($clusterId, $limit, $exclude, $demote);
         $results = $this->elasticSearchClient->request($preparedSearch);
 
         foreach ($results['hits']['hits'] as $doc) {
@@ -55,7 +54,7 @@ class Repository
      * @param int $limit
      * @return PreparedSearch
      */
-    private function buildQuery(int $clusterId, int $limit, array $exclude = []): PreparedSearch
+    private function buildQuery(int $clusterId, int $limit, array $exclude = [], bool $demote = false): PreparedSearch
     {
         $query = [
             'body' => [
@@ -109,6 +108,17 @@ class Repository
             'index' => $this->index,
             'size' => $limit
         ];
+
+        if ($exclude && $demote) {
+            $query['body']['query']['function_score']['functions'][] = [
+                'filter' => [
+                    'terms' => [
+                        'guid' => $exclude
+                    ]
+                ],
+                'weight' => $this->config->get('seen-entities-weight') ?? 0.01
+            ];
+        }
 
         $preparedSearch = new PreparedSearch();
         $preparedSearch->query($query);

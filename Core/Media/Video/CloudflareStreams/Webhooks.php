@@ -2,18 +2,18 @@
 namespace Minds\Core\Media\Video\CloudflareStreams;
 
 use GuzzleHttp\Exception\ClientException;
-use Zend\Diactoros\ServerRequest;
-use Zend\Diactoros\Response\JsonResponse;
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Di\Di;
 use Minds\Core\Config;
+use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log;
 use Minds\Core\Media\Feeds;
 use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Video;
 use Minds\Exceptions\UserErrorException;
+use Zend\Diactoros\Response\JsonResponse;
+use Zend\Diactoros\ServerRequest;
 
 class Webhooks
 {
@@ -43,7 +43,8 @@ class Webhooks
         $config = null,
         $entitiesBuilder = null,
         $save = null,
-        ?Feeds $feeds = null
+        ?Feeds $feeds = null,
+        ?ACL $acl = null
     ) {
         $this->client = $client ?? new Client();
         $this->config = $config ?? Di::_()->get('Config');
@@ -92,6 +93,8 @@ class Webhooks
 
         $this->logger->info('CloudflareWebhook - Video ' . $guid);
 
+        $ia = $this->acl->setIgnore(true);
+
         /** @var Video */
         $video = $this->entitiesBuilder->single($guid);
 
@@ -107,8 +110,6 @@ class Webhooks
         $video->setTranscodingStatus($transcodingState === 'ready' ? TranscodeStates::COMPLETED : TranscodeStates::FAILED);
 
         $this->logger->info("Cloudflare webhook - height: $video->height width: $video->width transcodingState: $transcodingState");
-
-        $ia = $this->acl->setIgnore(true);
         $this->save
             ->setEntity($video)
             ->save();

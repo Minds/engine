@@ -9,9 +9,9 @@ use Minds\Common\Urn;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\FeedSyncEntity;
+use Minds\Core\Feeds\Seen\Manager as SeenManager;
 use Minds\Core\Recommendations\UserRecommendationsCluster;
 use Minds\Entities\User;
-use Minds\Core\Feeds\Seen\Manager as SeenManager;
 
 /**
  *  Manager class to handle clustered recommendations feed's logic
@@ -52,7 +52,7 @@ class Manager
     public function getList(int $limit, bool $unseen = false): Response
     {
         $clusterId = $this->userRecommendationsCluster->calculateUserRecommendationsClusterId($this->user);
-        $entries = $this->repository->getList($clusterId, $limit, $unseen ? $this->seenManager->listSeenEntities() : []);
+        $entries = $this->repository->getList($clusterId, $limit, $unseen ? $this->seenManager->listSeenEntities() : [], $unseen);
         $feedSyncEntities = $this->prepareFeedSyncEntities($entries);
         $preparedEntities = $this->prepareEntities($feedSyncEntities);
 

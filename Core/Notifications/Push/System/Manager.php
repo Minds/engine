@@ -99,16 +99,22 @@ class Manager
      */
     public function sendRequestNotifications(AdminPushNotificationRequest $notificationDetails): bool
     {
+        $logPrefix = "[SystemPush]: {$notificationDetails->getType()}:{$notificationDetails->getRequestUuid()}";
+        $this->logger->info("$logPrefix: starting send");
+
         $notificationTargetHandler = SystemPushNotificationTargetsList::getTargetHandlerFromShortName($notificationDetails->getTarget());
 
         $deviceSubscriptions = $notificationTargetHandler->getList();
 
         $this->repository->updateRequestStartedOnDate($notificationDetails->getType(), $notificationDetails->getRequestUuid());
 
+        $i = 0;
         /**
          * @var DeviceSubscription $deviceSubscription
          */
         foreach ($deviceSubscriptions as $deviceSubscription) {
+            ++$i;
+
             $notification = (new CustomPushNotification())
                 ->setTitle($notificationDetails->getTitle())
                 ->setBody($notificationDetails->getMessage())
@@ -117,7 +123,9 @@ class Manager
 
             try {
                 $this->sendNotification($notification);
+                $this->logger->info("$logPrefix: sending ($i) - {$deviceSubscription->getUserGuid()}");
             } catch (UndeliverableException $e) {
+                $this->logger->error("$logPrefix: sending ($i) - {$deviceSubscription->getUserGuid()} - failed {$e->getMessage()}");
                 continue;
             }
         }
@@ -127,6 +135,8 @@ class Manager
             $notificationDetails->getRequestUuid(),
             AdminPushNotificationRequestStatus::DONE
         );
+
+        $this->logger->info("$logPrefix: completed");
 
         return true;
     }
