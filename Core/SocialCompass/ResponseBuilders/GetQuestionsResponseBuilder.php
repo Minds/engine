@@ -3,7 +3,6 @@
 namespace Minds\Core\SocialCompass\ResponseBuilders;
 
 use Minds\Api\Exportable;
-use Minds\Core\SocialCompass\Questions\BaseQuestion;
 use Zend\Diactoros\Response\JsonResponse;
 
 /**
@@ -17,15 +16,18 @@ class GetQuestionsResponseBuilder
      *
      *              [
      *                  "questions": BaseQuestion[],
-     *                  "answerProvided": bool
+     *                  "answerProvided": bool,
+     *                  "isLoggedIn": bool
      *              ]
      *
+     * @param bool $isLoggedIn
      * @return JsonResponse
      */
-    public function build(array $questions): JsonResponse
+    public function build(array $questions, bool $isLoggedIn): JsonResponse
     {
         $response = [
-            "status" => "success"
+            "status" => "success",
+            "isLoggedIn" => $isLoggedIn
         ];
         $questions["questions"] = Exportable::_($questions["questions"]);
         $response = array_merge($response, $questions);

@@ -1,20 +1,19 @@
 <?php
 namespace Minds\Core\Notifications\Push\Services;
 
-use Minishlink\WebPush\WebPush;
-use Minishlink\WebPush\Subscription;
-use Minds\Core\Notifications\Push\PushNotification;
-use GuzzleHttp;
+use ErrorException;
+use Minds\Core\Notifications\Push\PushNotificationInterface;
 use Minishlink\WebPush\MessageSentReport;
-use Psr\Http\Message\ResponseInterface;
+use Minishlink\WebPush\Subscription;
+use Minishlink\WebPush\WebPush;
 
 class WebPushService extends AbstractService implements PushServiceInterface
 {
     /**
-     * @param PushNotification $pushNotification
+     * @param PushNotificationInterface $pushNotification
      * @return bool
      */
-    public function send(PushNotification $pushNotification): bool
+    public function send(PushNotificationInterface $pushNotification): bool
     {
         $message = $pushNotification->getTitle();
         $body = $pushNotification->getBody();
@@ -50,13 +49,14 @@ class WebPushService extends AbstractService implements PushServiceInterface
         }
         return true;
     }
-    
+
     /**
      * @param string $deviceToken
      * @param array $notification
-     * @return MessageSentReport
+     * @return MessageSentReport|null
+     * @throws ErrorException
      */
-    protected function sendNotification($deviceToken, array $notification): MessageSentReport
+    protected function sendNotification($deviceToken, array $notification): ?MessageSentReport
     {
         $webPush = new WebPush([
             'VAPID' => $this->getVapidDetails(),
@@ -77,7 +77,6 @@ class WebPushService extends AbstractService implements PushServiceInterface
 
         /**
         * send one notification and flush directly
-        * @var MessageSentReport $report
         */
         $report = $webPush->sendOneNotification(
             Subscription::create($pushSubscription),
@@ -96,9 +95,9 @@ class WebPushService extends AbstractService implements PushServiceInterface
     }
 
     /**
-     * @return string vapid details
+     * @return array vapid details
      */
-    private function getVapidDetails()
+    private function getVapidDetails(): array
     {
         $vapidDetails = $this->config->get("webpush_vapid_details");
 

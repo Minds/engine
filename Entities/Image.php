@@ -371,7 +371,6 @@ class Image extends File
         $export = parent::export();
         $export['thumbnail_src'] = $this->getIconUrl('xlarge');
         $export['thumbnail'] = $export['thumbnail_src'];
-        $export['description'] = $this->description; //videos need to be able to export html.. sanitize soon!
         $export['description'] = (new DescriptionLengthValidator())->validateMaxAndTrim($export['description']);
 
         $export['mature'] = $this->mature ?: $this->getFlag('mature');

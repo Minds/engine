@@ -37,6 +37,7 @@ class Router
         '/emails/unsubscribe' => 'Minds\\Controllers\\emails\\unsubscribe',
         '/apple-app-site-association' => '\\Minds\\Controllers\\deeplinks',
         '/.well-known/apple-app-site-association' => '\\Minds\\Controllers\\deeplinks',
+        '/.well-known/assetlinks.json' => '\\Minds\\Controllers\\deeplinksAndroid',
         '/checkout' => '\\Minds\\Controllers\\checkout',
     ];
 

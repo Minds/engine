@@ -71,8 +71,10 @@ class Repository
                                     ]
                                 ],
                                 'must_not' => [
-                                    'terms' => [
-                                        'guid' => Text::buildArray($exclude)
+                                    [
+                                        'terms' => [
+                                            'entity_guid' => $exclude
+                                        ]
                                     ]
                                 ]
                             ]
