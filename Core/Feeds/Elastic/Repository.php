@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Feeds\Elastic;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Client as ElasticsearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Di\Di;
@@ -39,17 +40,19 @@ class Repository
     /** @var string */
     private $plusSupportTierUrn;
 
+    private Config $config;
+
     public function __construct($client = null, $config = null, $features = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
 
-        $config = $config ?: Di::_()->get('Config');
+        $this->config = $config ?? Di::_()->get('Config');
 
         $this->features = $features ?: Di::_()->get('Features\Manager');
 
-        $this->index = $config->get('elasticsearch')['indexes']['search_prefix'];
+        $this->index = $this->config->get('elasticsearch')['indexes']['search_prefix'];
 
-        $this->plusSupportTierUrn = $config->get('plus')['support_tier_urn'] ?? null;
+        $this->plusSupportTierUrn = $this->config->get('plus')['support_tier_urn'] ?? null;
     }
 
     /**
@@ -601,11 +604,22 @@ class Repository
         }
 
         if ($opts['exclude']) {
-            $body['query']['function_score']['query']['bool']['must_not'][] = [
-                'terms' => [
-                    'guid' => Text::buildArray($opts['exclude']),
-                ],
-            ];
+            if ($opts['demoted']) {
+                $body['query']['function_score']['functions'][] = [
+                    'filter' => [
+                        'terms' => [
+                            'guid' => Text::buildArray($opts['exclude'])
+                        ]
+                    ],
+                    'weight' => $this->config->get('seen-entities-weight') ?? 0.01
+                ];
+            } else {
+                $body['query']['function_score']['query']['bool']['must_not'][] = [
+                    'terms' => [
+                        'guid' => Text::buildArray($opts['exclude']),
+                    ],
+                ];
+            }
         }
 
 
