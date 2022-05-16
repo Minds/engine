@@ -97,6 +97,11 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
         }
         $notificationData->setCounter($data['counter']);
 
+        if (!isset($data['status'])) {
+            throw new ServerErrorException("Missing property 'status' in System Push Notification event");
+        }
+        $notificationData->setStatus($data['status']);
+
         return $notificationData;
     }
 
@@ -137,6 +142,7 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
             'timestamp' => $this->getCreatedAt(),
             'target' => $this->getTarget(),
             'counter' => $this->getCounter(),
+            'status' => $this->getStatus(),
             'urn' => $this->getUrn()
         ];
     }
