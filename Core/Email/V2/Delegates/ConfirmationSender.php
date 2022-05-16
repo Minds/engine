@@ -53,7 +53,7 @@ class ConfirmationSender implements SenderInterface
     private function isEmailCodeExperimentActive(User $user): bool
     {
         return $this->experiments->setUser($user)
-            ->isOn('minds-3055-email-codes') && 
+            ->isOn('minds-3055-email-codes') &&
             !isset($_SERVER['HTTP_APP_VERSION']);
     }
 }
