@@ -91,10 +91,7 @@ class Repository
                 "SELECT *
                 FROM
                     system_push_notifications
-                WHERE
-                    status = ?
-                LIMIT 12;",
-                [AdminPushNotificationRequestStatus::DONE]
+                LIMIT 12;"
             );
     }
 
