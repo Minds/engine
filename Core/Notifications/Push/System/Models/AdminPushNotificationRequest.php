@@ -45,7 +45,7 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
     private ?string $link;
     private string $target;
     private ?int $counter;
-    private int $status;
+    private int $status = 0;
     private string $createdAt;
     private ?string $startedAt;
     private ?string $completedAt;
