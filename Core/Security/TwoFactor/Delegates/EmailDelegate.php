@@ -3,15 +3,17 @@
 namespace Minds\Core\Security\TwoFactor\Delegates;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Email\Confirmation\Manager as EmailConfirmationManager;
 use Minds\Core\Email\V2\Campaigns\Recurring\TwoFactor\TwoFactor as TwoFactorEmail;
+use Minds\Core\Log\Logger;
 use Minds\Core\Security\TwoFactor as TwoFactorService;
+use Minds\Core\Security\TwoFactor\Store\Cassandra\TwoFactorSecretCassandraStore;
+use Minds\Core\Security\TwoFactor\Store\TwoFactorSecret;
+use Minds\Core\Security\TwoFactor\Store\TwoFactoSecretStoreInterface;
 use Minds\Core\Security\TwoFactor\TwoFactorInvalidCodeException;
 use Minds\Core\Security\TwoFactor\TwoFactorRequiredException;
 use Minds\Entities\User;
 use Zend\Diactoros\ServerRequestFactory;
-use Minds\Core\Email\Confirmation\Manager as EmailConfirmationManager;
-use Minds\Core\Log\Logger;
-use Minds\Core\Security\TwoFactor\Store\TwoFactorSecretStore;
 
 /**
  * TwoFactor Email Delegate
@@ -20,23 +22,23 @@ class EmailDelegate implements TwoFactorDelegateInterface
 {
     /**
      * Constructor
-     * @param ?TwoFactorService $twoFactorService - service handling two-factor.
-     * @param ?Logger $logger - logger class.
-     * @param ?TwoFactorEmail $twoFactorEmail - responsible for sending emails.
-     * @param ?TwoFactorSecretStore $twoFactorSecretStore - handles storage of secrets.
-     * @param ?EmailConfirmationManager $emailConfirmation - handles confirmation of email address.
+     * @param TwoFactorService|null $twoFactorService - service handling two-factor.
+     * @param Logger|null $logger - logger class.
+     * @param TwoFactorEmail|null $twoFactorEmail - responsible for sending emails.
+     * @param TwoFactoSecretStoreInterface|null $twoFactorSecretStore - handles storage of secrets.
+     * @param EmailConfirmationManager|null $emailConfirmation - handles confirmation of email address.
      */
     public function __construct(
-        private ?TwoFactorService $twoFactorService = null,
-        private ?Logger $logger = null,
-        private ?TwoFactorEmail $twoFactorEmail = null,
-        private ?TwoFactorSecretStore $twoFactorSecretStore = null,
-        private ?EmailConfirmationManager $emailConfirmation = null
+        private ?TwoFactorService             $twoFactorService = null,
+        private ?Logger                       $logger = null,
+        private ?TwoFactorEmail               $twoFactorEmail = null,
+        private ?TwoFactoSecretStoreInterface $twoFactorSecretStore = null,
+        private ?EmailConfirmationManager     $emailConfirmation = null
     ) {
         $this->twoFactorService ??= new TwoFactorService();
         $this->logger ??= Di::_()->get('Logger');
         $this->twoFactorEmail ??= new TwoFactorEmail();
-        $this->twoFactorSecretStore ??= new TwoFactorSecretStore();
+        $this->twoFactorSecretStore ??= new TwoFactorSecretCassandraStore();
         $this->emailConfirmation ??= Di::_()->get('Email\Confirmation');
     }
 

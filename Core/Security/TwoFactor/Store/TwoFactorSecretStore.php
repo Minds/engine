@@ -4,7 +4,6 @@ namespace Minds\Core\Security\TwoFactor\Store;
 
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
-use Minds\Core\Security\TwoFactor\Store\TwoFactorSecret;
 use Minds\Entities\User;
 
 /**
@@ -15,7 +14,7 @@ use Minds\Entities\User;
  * so that if a user exits their session and comes back, they don't have to immediately
  * generate a new code / email.
  */
-class TwoFactorSecretStore
+class TwoFactorSecretStore extends AbstractTwoFactorSecretStore
 {
     /**
      * Constructor.
@@ -97,35 +96,5 @@ class TwoFactorSecretStore
     {
         $this->cache->delete($key);
         return $this;
-    }
-
-    /**
-     * Derives key by sha512 hashing the username, salt.
-     * - if trusted, also hashes random bytes.
-     * - if NOT trusted, does NOT add random bytes, because this would mean a user has not
-     *   confirmed their email, thus the only action they can take is TO confirm their email.
-     *   The random bytes would be lost if the user were to leave email confirmation and try
-     *   to come back later, leaving them having to generate a new code / key.
-     * @param User $user - user to get key for.
-     * @return string key.
-     */
-    public function getKey(User $user): string
-    {
-        if ($user->isTrusted()) {
-            $bytes = openssl_random_pseudo_bytes(128);
-            return hash('sha512', $user->username . $user->salt . $bytes);
-        }
-        return hash('sha512', $user->username . $user->salt);
-    }
-
-    /**
-     * Gets TTL for store. If not trusted, we are doing email confirmation, thus the ttl is 1 day.
-     * For all other actions it is 15 minutes.
-     * @param User $user - user to get TTL for.
-     * @return int - seconds for TTL.
-     */
-    public function getTtl(User $user): int
-    {
-        return $user->isTrusted() ? 900 : 86400;
     }
 }
