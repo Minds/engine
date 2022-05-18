@@ -53,7 +53,7 @@ class TwoFactorSecretRepository
             throw new Exception("No two factor secret found.");
         }
 
-        $data = json_decode($response->first()['data']);
+        $data = json_decode($response->first()['data'], true);
 
         return (new TwoFactorSecret())
             ->setGuid($data["_guid"])

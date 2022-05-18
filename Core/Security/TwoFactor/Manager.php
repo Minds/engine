@@ -5,6 +5,7 @@
 namespace Minds\Core\Security\TwoFactor;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security\TOTP;
 use Minds\Entities\User;
 use Zend\Diactoros\ServerRequest;
@@ -58,8 +59,11 @@ class Manager
      * @param User $user
      * @param ServerRequest $request
      * @param bool $enableEmail - defaults to true. Disable to bypass email 2fa
+     * @throws TwoFactorInvalidCodeException
+     * @throws TwoFactorRequiredException
+     * @throws UnauthorizedException
      */
-    public function gatekeeper(User $user, ServerRequest $request, $enableEmail = true): void
+    public function gatekeeper(User $user, ServerRequest $request, bool $enableEmail = true): void
     {
         // First of all, do we evern need 2fa?
         if (!$this->isTwoFactorEnabled($user) && !$enableEmail) {
@@ -80,16 +84,23 @@ class Manager
 
     /**
      * @param User $user
-     * @throws TwoFactorRequired
+     * @throws TwoFactorRequiredException
      */
     public function requireTwoFactor(User $user): void
     {
-        if ($this->totpManager->isRegistered($user)) {
-            $this->totpDelegate->onRequireTwoFactor($user);
-        }
+        /**
+         * The isTrusted call below is required to allow users who are new to the platform
+         * or have changed their provided email in order to be able to confirm the email address
+         * via the authentication code sent to their inbox.
+         */
+        if ($user->isTrusted()) {
+            if ($this->totpManager->isRegistered($user)) {
+                $this->totpDelegate->onRequireTwoFactor($user);
+            }
 
-        if ($user->getTwoFactor()) {
-            $this->smsDelegate->onRequireTwoFactor($user);
+            if ($user->getTwoFactor()) {
+                $this->smsDelegate->onRequireTwoFactor($user);
+            }
         }
 
         $this->emailDelegate->onRequireTwoFactor($user);
@@ -98,19 +109,28 @@ class Manager
     /**
      * Called by authenticators, throws exception if fails
      * @param User $user
-     * @param int $code
+     * @param string $code
      * @return void
+     * @throws TwoFactorInvalidCodeException
+     * @throws UnauthorizedException
      */
     public function authenticateTwoFactor(User $user, string $code): void
     {
-        if ($this->totpManager->isRegistered($user)) {
-            $this->totpDelegate->onAuthenticateTwoFactor($user, $code);
-            return;
-        }
+        /**
+         * The isTrusted call below is required to allow users who are new to the platform
+         * or have changed their provided email in order to be able to confirm the email address
+         * via the authentication code sent to their inbox.
+         */
+        if ($user->isTrusted()) {
+            if ($this->totpManager->isRegistered($user)) {
+                $this->totpDelegate->onAuthenticateTwoFactor($user, $code);
+                return;
+            }
 
-        if ($user->getTwoFactor()) {
-            $this->smsDelegate->onAuthenticateTwoFactor($user, $code);
-            return;
+            if ($user->getTwoFactor()) {
+                $this->smsDelegate->onAuthenticateTwoFactor($user, $code);
+                return;
+            }
         }
 
         $this->emailDelegate->onAuthenticateTwoFactor($user, $code);

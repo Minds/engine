@@ -104,7 +104,6 @@ class EmailDelegate implements TwoFactorDelegateInterface
 
         // we allow for 900 seconds for email confirmed users (15 mins) after we send a code.
         if ($storedSecretObject->getGuid()
-            && $storedSecretObject->getTimestamp() > (time() - $this->getTtl($user))
             && $user->getGuid() === (string) $storedSecretObject->getGuid()
         ) {
             $secret = $storedSecretObject->getSecret();
