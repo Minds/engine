@@ -21,7 +21,9 @@ class BlockEntry
      */
     public function setActor($actor): self
     {
-        if ($actor instanceof User) {
+        if (is_string($actor)) {
+            $this->actorGuid = $actor;
+        } elseif ($actor instanceof User) {
             $this->actorGuid = (string) $actor->getGuid();
         } else {
             // If this isn't a user, then assume its a standard entity
@@ -38,7 +40,9 @@ class BlockEntry
      */
     public function setSubject($subject): self
     {
-        if ($subject instanceof User) {
+        if (is_string($subject)) {
+            $this->subjectGuid = $subject;
+        } elseif ($subject instanceof User) {
             $this->subjectGuid = (string) $subject->getGuid();
         } else {
             // If this isn't a user, then assume its a standard entity
