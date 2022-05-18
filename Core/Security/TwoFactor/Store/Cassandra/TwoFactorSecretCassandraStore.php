@@ -43,6 +43,8 @@ class TwoFactorSecretCassandraStore extends AbstractTwoFactorSecretStore
      */
     public function set(User $user, string $secret): string
     {
+        $this->repository->setUser($user);
+        
         $key = $this->getKey($user);
 
         $secretJson = json_encode(
