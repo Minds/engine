@@ -208,7 +208,7 @@ class Repository implements RepositoryInterface
 
             $blockEntry = (new Block\BlockEntry())
                 ->setActor($this->options->getTargetUserGuid())
-                ->setSubject($this->options->getCurrentChannelUserGuid());
+                ->setSubject($row['key']);
 
             if ($this->blockManager->hasBlocked($blockEntry) || $this->blockManager->isBlocked($blockEntry)) {
                 return null;
