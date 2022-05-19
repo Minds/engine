@@ -80,6 +80,7 @@ class DailyDigestPushNotificationBuilder implements EntityPushNotificationBuilde
      */
     protected function buildBody(Entity|Blog|Image|Video $entity): ?string
     {
+        $body = '';
         switch ($entity->getType()) {
             case 'activity':
                 $body = $entity->getMessage();
@@ -111,7 +112,7 @@ class DailyDigestPushNotificationBuilder implements EntityPushNotificationBuilde
                 return '';
         }
 
-        if (mb_strlen($body) > 175) {
+        if (mb_strlen($body) > 173) {
             $body = mb_substr($body, 0, 170).'...';
         }
 
