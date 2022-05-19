@@ -788,3 +788,5 @@ $CONFIG->set('webpush_vapid_details', [
     'private_key' => "{{webpush_vapid_private_key}}",
     'subject' => "{{webpush_vapid_subject}}"
 ]);
+
+$CONFIG->set('seen-entities-weight', 0.5);

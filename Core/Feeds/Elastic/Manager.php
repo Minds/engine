@@ -5,14 +5,11 @@ namespace Minds\Core\Feeds\Elastic;
 use Composer\Semver\Comparator;
 use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
+use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Feeds\Seen\Manager as SeenManager;
-use Minds\Core\Di\Di;
-use Minds\Core\Events\Dispatcher;
 use Minds\Core\Search;
-use Minds\Entities\Entity;
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Trending\Aggregates;
 use Minds\Core\Security\ACL;
 use Minds\Helpers\Flags;
 
@@ -126,6 +123,7 @@ class Manager
             'wire_support_tier_only' => false,
             'include_group_posts' => false,
             'unseen' => false,
+            'demoted' => false,
         ], $opts);
 
         if (isset($opts['query']) && $opts['query']) {

@@ -2,12 +2,13 @@
 
 namespace Spec\Minds\Core\Feeds\UnseenTopFeed;
 
+use Exception;
 use Minds\Api\Exportable;
 use Minds\Common\Repository\Response;
+use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Feeds\UnseenTopFeed\Controller;
 use Minds\Core\Feeds\UnseenTopFeed\Manager;
-use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
@@ -44,6 +45,11 @@ class ControllerSpec extends ObjectBehavior
             }
         ];
     }
+
+    /**
+     * @throws UserErrorException
+     * @throws Exception
+     */
     public function it_should_return_successful_response(
         ElasticManager $elasticManager
     ) {
@@ -59,7 +65,11 @@ class ControllerSpec extends ObjectBehavior
         ]);
 
         $elasticManager
-            ->getList(Argument::withEntry('unseen', true))
+            ->getList(Argument::allOf(
+                Argument::withEntry('unseen', true),
+                Argument::withEntry('demoted', true),
+                Argument::withEntry('single_owner_threshold', 6),
+            ))
             ->shouldBeCalledOnce()
             ->willReturn($expectedEntities);
 
