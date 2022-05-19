@@ -8,6 +8,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Entities\Entity;
 use Minds\Entities\Image;
+use Minds\Entities\Video;
 
 /**
  * Notification builder for daily digest notifications. Used to get a
@@ -29,13 +30,13 @@ class DailyDigestPushNotificationBuilder implements EntityPushNotificationBuilde
      * @param Entity|Blog|Image $entity - entity to build for.
      * @return CustomPushNotification - populated CustomPushNotification.
      */
-    public function build(Entity|Blog|Image $entity): CustomPushNotification
+    public function build(Entity|Blog|Image|Video $entity): CustomPushNotification
     {
         if ($entity->getType() === 'activity' && $entity->getEntity()) {
             $entity = $entity->getEntity();
         }
         return (new CustomPushNotification())
-            ->setTitle($this->buildTitle($entity))
+            ->setTitle($this->buildTitle($entity), 0, 65)
             ->setBody($this->buildBody($entity))
             ->setUri($this->buildUri($entity))
             ->setMedia($this->buildMediaUrl($entity));
@@ -46,7 +47,7 @@ class DailyDigestPushNotificationBuilder implements EntityPushNotificationBuilde
      * @param Entity|Blog|Image $entity - entity to build title for.
      * @return ?string - title for push notification.
      */
-    protected function buildTitle(Entity|Blog|Image $entity): string
+    protected function buildTitle(Entity|Blog|Image|Video $entity): string
     {
         $usernameString = $this->getOwnerUsernameString($entity);
 
@@ -66,6 +67,7 @@ class DailyDigestPushNotificationBuilder implements EntityPushNotificationBuilde
                         }
                         return $usernameString . ' posted a video';
                 }
+                // no break
             default:
                 return $usernameString . ' posted';
         }
@@ -73,42 +75,55 @@ class DailyDigestPushNotificationBuilder implements EntityPushNotificationBuilde
 
     /**
      * Builds body.
-     * @param Entity|Blog|Image $entity - entity to build body for.
+     * @param Entity|Blog|Image|Video $entity - entity to build body for.
      * @return ?string - body for push notification.
      */
-    protected function buildBody(Entity|Blog|Image $entity): ?string
+    protected function buildBody(Entity|Blog|Image|Video $entity): ?string
     {
         switch ($entity->getType()) {
             case 'activity':
-                return $entity->getMessage();
+                $body = $entity->getMessage();
+                break;
             case 'object':
                 $usernameString = $this->getOwnerUsernameString($entity);
 
                 switch ($entity->getSubtype()) {
                     case 'blog':
-                        return $entity->getTitle();
+                        $body = $entity->getTitle();
+                        break;
                     case 'image':
                         if (!$entity->getTitle() && !$entity->getDescription()) {
-                            return $usernameString . ' posted an image';
+                            $body = $usernameString . ' posted an image';
+                            break;
                         }
-                        return $entity->getTitle() ? $entity->getTitle() : $entity->getDescription();
+                        $body = $entity->getTitle() ? $entity->getTitle() : $entity->getDescription();
+                        break;
                     case 'video':
                         if (!$entity->getTitle() && !$entity->getDescription()) {
-                            return $usernameString . ' posted a video';
+                            $body = $usernameString . ' posted a video';
+                            break;
                         }
-                        return $entity->getTitle() ? $entity->getTitle() : $entity->getDescription();
+                        $body = $entity->getTitle() ? $entity->getTitle() : $entity->getDescription();
+                        break;
                 }
+                break;
             default:
                 return '';
         }
+
+        if (mb_strlen($body) > 175) {
+            $body = mb_substr($body, 0, 170).'...';
+        }
+
+        return $body;
     }
 
     /**
      * Builds URI to serve as the push notification link.
-     * @param Entity|Blog|Image $entity - entity to build URI for.
+     * @param Entity|Blog|Image|Video $entity - entity to build URI for.
      * @return ?string - URI for push notification.
      */
-    protected function buildUri(Entity|Blog|Image $entity): ?string
+    protected function buildUri(Entity|Blog|Image|Video $entity): ?string
     {
         switch ($entity->getType()) {
             case 'object':
@@ -118,6 +133,7 @@ class DailyDigestPushNotificationBuilder implements EntityPushNotificationBuilde
                     default:
                         return $this->config->get('site_url') . 'newsfeed/' . $entity->getGuid();
                 }
+                // no break
             default:
                 return $this->config->get('site_url') . 'newsfeed/' . $entity->getGuid();
         }
@@ -125,10 +141,10 @@ class DailyDigestPushNotificationBuilder implements EntityPushNotificationBuilde
 
     /**
      * Builds media URL.
-     * @param Entity|Blog|Image $entity - entity to build media URL for.
+     * @param Entity|Blog|Image|Video $entity - entity to build media URL for.
      * @return ?string - media URL for push notification.
      */
-    protected function buildMediaUrl(Entity|Blog|Image $entity): ?string
+    protected function buildMediaUrl(Entity|Blog|Image|Video $entity): ?string
     {
         switch ($entity->getType()) {
             case 'object':
@@ -140,11 +156,15 @@ class DailyDigestPushNotificationBuilder implements EntityPushNotificationBuilde
 
     /**
      * Gets username string.
-     * @param Entity|Blog|Image $entity - entity to get username string for.
+     * @param Entity|Blog|Image|Video $entity - entity to get username string for.
      * @return string - username string (@username).
      */
-    protected function getOwnerUsernameString(Entity|Blog|Image $entity): string
+    protected function getOwnerUsernameString(Entity|Blog|Image|Video $entity): string
     {
-        return '@' . $entity->getOwnerEntity()->getUsername();
+        $username = $entity->getOwnerEntity()->getUsername();
+        if (mb_strlen($username) > 45) {
+            return '@' . mb_substr($username, 0, 45).'...';
+        }
+        return '@' . $username;
     }
 }

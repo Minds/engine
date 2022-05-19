@@ -5,7 +5,6 @@ namespace Spec\Minds\Core\Feeds\UnseenTopFeed;
 use Exception;
 use Minds\Api\Exportable;
 use Minds\Common\Repository\Response;
-use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Feeds\UnseenTopFeed\Controller;
 use Minds\Core\Feeds\UnseenTopFeed\Manager;
