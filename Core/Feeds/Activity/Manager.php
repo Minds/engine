@@ -14,10 +14,14 @@ use Minds\Common\EntityMutation;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Entities\Actions\Delete;
 use Minds\Core\Entities\PropagateProperties;
+use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Common\Urn;
+use Minds\Core\Boost\Network\ElasticRepository as BoostElasticRepository;
+use Minds\Entities\Entity;
+use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
 use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
 
@@ -73,7 +77,9 @@ class Manager
         $notificationsDelegate = null,
         $entitiesBuilder = null,
         private ?MessageLengthValidator $messageLengthValidator = null,
-        private ?TitleLengthValidator $titleLengthValidator = null
+        private ?TitleLengthValidator $titleLengthValidator = null,
+        private ?BoostElasticRepository $boostRepository = null,
+        private ?GuidLinkResolver $guidLinkResolver = null
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -89,6 +95,8 @@ class Manager
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->messageLengthValidator = $messageLengthValidator ?? new MessageLengthValidator();
         $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
+        $this->boostRepository ??= new BoostElasticRepository();
+        $this->guidLinkResolver ??= new GuidLinkResolver();
     }
 
     /**
@@ -158,13 +166,19 @@ class Manager
     }
 
     /**
-     * Update the activity entity
+     * Update the activity entity.
+     * @throws UserErrorException
+     * @throws \Exception
      */
     public function update(EntityMutation $activityMutation): void
     {
         $activity = $activityMutation->getMutatedEntity();
 
         $this->validateStringLengths($activity);
+
+        if ($this->isActivelyBoostedEntity($activityMutation->getOriginalEntity())) {
+            throw new UserErrorException('Sorry, you can not edit a post with a Boost in progress.');
+        }
 
         if ($activity->type !== 'activity' && in_array($activity->subtype, [
             'video', 'image'
@@ -285,5 +299,47 @@ class Manager
         $this->messageLengthValidator->validate($activity->getMessage() ?? '', nameOverride: 'post');
         $this->titleLengthValidator->validate($activity->getTitle() ?? '');
         return true;
+    }
+
+    /**
+     * Checks whether an entity is currently actively boosted.
+     * @param Entity $entity - entity to check.
+     * @return boolean - true if the entity has an actively boosted state.
+     */
+    private function isActivelyBoostedEntity(Entity $entity): bool
+    {
+        $originalGuid = (string) $entity->getGuid();
+
+        if ($linkedGuid = $this->getLinkedGuid($entity)) {
+            $entityGuidArray = [
+                $originalGuid,
+                $linkedGuid,
+            ];
+        }
+
+        $results = $this->boostRepository->getList([
+            // can pass an array to do a terms query with multiple guids.
+            'entity_guid' => $entityGuidArray ?? $originalGuid,
+            'state' => 'approved'
+        ]);
+
+        return $results && count($results) > 0;
+    }
+
+    /**
+     * Gets a linked GUID for an entity. Passing an activity will
+     * give you the entity guid and vice-versa.
+     * @param Entity|Activity $entity - the entity to get the linked guid for.
+     * @return ?string - linked guid.
+     */
+    private function getLinkedGuid(Entity|Activity $entity): ?string
+    {
+        $originalGuid = (string) $entity->getGuid();
+        $entityGuid = (string) $entity->getEntityGuid() ?? false;
+
+        if ($entityGuid && $originalGuid !== $entityGuid) {
+            return $entityGuid;
+        }
+        return $this->guidLinkResolver->resolve($originalGuid);
     }
 }
