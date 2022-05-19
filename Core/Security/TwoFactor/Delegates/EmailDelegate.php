@@ -7,8 +7,8 @@ use Minds\Core\Email\Confirmation\Manager as EmailConfirmationManager;
 use Minds\Core\Email\V2\Campaigns\Recurring\TwoFactor\TwoFactor as TwoFactorEmail;
 use Minds\Core\Log\Logger;
 use Minds\Core\Security\TwoFactor as TwoFactorService;
-use Minds\Core\Security\TwoFactor\Store\Cassandra\TwoFactorSecretCassandraStore;
 use Minds\Core\Security\TwoFactor\Store\TwoFactorSecret;
+use Minds\Core\Security\TwoFactor\Store\TwoFactorSecretStore;
 use Minds\Core\Security\TwoFactor\Store\TwoFactoSecretStoreInterface;
 use Minds\Core\Security\TwoFactor\TwoFactorInvalidCodeException;
 use Minds\Core\Security\TwoFactor\TwoFactorRequiredException;
@@ -38,7 +38,7 @@ class EmailDelegate implements TwoFactorDelegateInterface
         $this->twoFactorService ??= new TwoFactorService();
         $this->logger ??= Di::_()->get('Logger');
         $this->twoFactorEmail ??= new TwoFactorEmail();
-        $this->twoFactorSecretStore ??= new TwoFactorSecretCassandraStore();
+        $this->twoFactorSecretStore ??= new TwoFactorSecretStore();
         $this->emailConfirmation ??= Di::_()->get('Email\Confirmation');
     }
 

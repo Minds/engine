@@ -2,9 +2,11 @@
 
 namespace Minds\Core\Security\TwoFactor\Store;
 
-use Minds\Core\Data\cache\PsrWrapper;
+use Exception;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
+use Psr\SimpleCache\CacheInterface;
+use Psr\SimpleCache\InvalidArgumentException;
 
 /**
  * Store for MFA secrets.
@@ -18,18 +20,19 @@ class TwoFactorSecretStore extends AbstractTwoFactorSecretStore
 {
     /**
      * Constructor.
-     * @param ?PsrWrapper $cache - PsrWrapper around cache.
+     * @param ?CacheInterface $cache - PsrWrapper around cache.
      */
     public function __construct(
-        private ?PsrWrapper $cache = null,
+        private ?CacheInterface $cache = null,
     ) {
-        $this->cache ??= Di::_()->get('Cache\PsrWrapper');
+        $this->cache ??= Di::_()->get('Cache\Cassandra');
     }
 
     /**
      * Get secret from store.
      * @param User $user - user for the entry we want to try to retrieve.
      * @return ?TwoFactorSecret - object containing secret.
+     * @throws InvalidArgumentException
      */
     public function get(User $user): ?TwoFactorSecret
     {
@@ -40,6 +43,7 @@ class TwoFactorSecretStore extends AbstractTwoFactorSecretStore
      * Gets entry by key.
      * @param string $key - key to get entry by.
      * @return ?TwoFactorSecret - object containing secret.
+     * @throws InvalidArgumentException
      */
     public function getByKey(string $key): ?TwoFactorSecret
     {
@@ -47,7 +51,7 @@ class TwoFactorSecretStore extends AbstractTwoFactorSecretStore
         
         try {
             $storedObject = json_decode($storedJson, true);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
 
@@ -66,6 +70,7 @@ class TwoFactorSecretStore extends AbstractTwoFactorSecretStore
      * @param User $user - user we are setting entry for.
      * @param string $secret - secret we are setting.
      * @return string key - returns the key used to store.
+     * @throws InvalidArgumentException
      */
     public function set(User $user, string $secret): string
     {
@@ -91,6 +96,7 @@ class TwoFactorSecretStore extends AbstractTwoFactorSecretStore
      * Delete an entry by key.
      * @param string $key - key to delete by.
      * @return TwoFactorSecretStore
+     * @throws InvalidArgumentException
      */
     public function delete(string $key): self
     {
