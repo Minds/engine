@@ -50,6 +50,10 @@ class FeedsProvider extends Provider
             return new UnseenTopFeed\Controller();
         });
 
+        $this->di->bind('Feeds\UnseenTopFeed\Manager', function ($di) {
+            return new UnseenTopFeed\Manager();
+        });
+
         $this->di->bind('Feeds\ClusteredRecommendations\Controller', function ($di) {
             return new ClusteredRecommendations\Controller();
         });

@@ -51,7 +51,7 @@ class ControllerSpec extends ObjectBehavior
      * @throws Exception
      */
     public function it_should_return_successful_response(
-        ElasticManager $elasticManager
+        Manager $manager
     ) {
         $request = (new ServerRequest())
             ->withMethod("GET")
@@ -64,16 +64,11 @@ class ControllerSpec extends ObjectBehavior
             (new FeedSyncEntity())->setGuid(1)
         ]);
 
-        $elasticManager
-            ->getList(Argument::allOf(
-                Argument::withEntry('unseen', true),
-                Argument::withEntry('demoted', true),
-                Argument::withEntry('single_owner_threshold', 6),
-            ))
-            ->shouldBeCalledOnce()
+        $manager->getList(Argument::any(), Argument::any())
+            ->shouldBeCalled()
             ->willReturn($expectedEntities);
 
-        $this->beConstructedWith($elasticManager);
+        $this->beConstructedWith($manager);
 
         $response = $this
             ->getUnseenTopFeed($request)
