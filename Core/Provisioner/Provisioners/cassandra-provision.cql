@@ -1754,7 +1754,7 @@ CREATE TABLE minds.did_keypairs
     keypair text,
 );
 
-CREATE TABLE minds.two_factor_codes
+CREATE TABLE minds.cache
 (
     key text PRIMARY KEY,
     data text

@@ -10,6 +10,16 @@ use Minds\Entities\User;
 abstract class AbstractTwoFactorSecretStore implements TwoFactoSecretStoreInterface
 {
     /**
+     * @const int
+     */
+    private const TRUSTED_USER_KEY_TTL = 900;
+
+    /**
+     * @const int
+     */
+    private const UNTRUSTED_USER_KEY_TTL = 86400;
+
+    /**
      * Derives key by sha512 hashing the username, salt.
      * - if trusted, also hashes random bytes.
      * - if NOT trusted, does NOT add random bytes, because this would mean a user has not
@@ -36,6 +46,6 @@ abstract class AbstractTwoFactorSecretStore implements TwoFactoSecretStoreInterf
      */
     public function getTtl(User $user): int
     {
-        return $user->isTrusted() ? 900 : 86400;
+        return $user->isTrusted() ? self::TRUSTED_USER_KEY_TTL : self::UNTRUSTED_USER_KEY_TTL;
     }
 }
