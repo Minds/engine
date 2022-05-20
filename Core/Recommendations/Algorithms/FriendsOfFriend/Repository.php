@@ -207,8 +207,8 @@ class Repository implements RepositoryInterface
             $entity = null;
 
             $blockEntry = (new Block\BlockEntry())
-                ->setActor($this->options->getTargetUserGuid())
-                ->setSubject($row['key']);
+                ->setActorGuid($this->options->getTargetUserGuid())
+                ->setSubjectGuid($row['key']);
 
             if ($this->blockManager->hasBlocked($blockEntry) || $this->blockManager->isBlocked($blockEntry)) {
                 continue;
