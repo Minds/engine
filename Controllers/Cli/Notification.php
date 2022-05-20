@@ -134,7 +134,7 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
      * @throws ServerErrorException - when a server error occurs such as when unable to get
      * an unseen top post.
      * @example usage:
-     * - php cli.php Notification sendDailyDigestPush --user_guid=1285556899399340038 --target_list=AllDevices
+     * - php cli.php Notification sendDailyDigestPush --user_guid=1285556899399340038 --target_list=AllAndroidAppDevices
      */
     public function sendDailyDigestPush()
     {
@@ -157,9 +157,10 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
             }
             try {
                 $dailyDigestPushManager->sendSingle($deviceSubscription);
+                $this->out('[DailyDigest CLI] Success: dispatched to ' . $deviceSubscription->getUserGuid());
             } catch (\Exception $e) {
                 $this->out(
-                    '[DailyDigest CLI Error]: user_guid: ' .
+                    '[DailyDigest CLI] Error: user_guid: ' .
                     $deviceSubscription->getUserGuid() .
                     ', message: ' .
                     $e->getMessage()

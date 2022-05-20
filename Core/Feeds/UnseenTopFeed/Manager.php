@@ -34,7 +34,7 @@ class Manager
         $response = $this->elasticSearchManager->getList([
             'limit' => $limit,
             'type' => 'activity',
-            'algorithm' => 'top',
+            'algorithm' => 'latest',
             'subscriptions' => $userGuid,
             'single_owner_threshold' => 6,
             'period' => 'all', // legacy option
