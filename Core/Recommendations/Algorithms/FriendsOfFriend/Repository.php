@@ -7,6 +7,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Client as ElasticSearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared\Search as PreparedSearchQuery;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Recommendations\Algorithms\FriendsOfFriends\Validators\RepositoryOptionsValidator;
 use Minds\Core\Recommendations\RepositoryInterface;
 use Minds\Core\Suggestions\Suggestion;
@@ -25,12 +26,14 @@ class Repository implements RepositoryInterface
         private ?Config $config = null,
         private ?RepositoryOptionsValidator $optionsValidator = null,
         private ?Block\Manager $blockManager = null,
+        private ?EntitiesBuilder $entitiesBuilder = null,
     ) {
         $this->elasticSearchClient ??= Di::_()->get('Database\ElasticSearch');
         $this->options ??= new RepositoryOptions();
         $this->config ??= Di::_()->get('Config');
         $this->optionsValidator ??= new RepositoryOptionsValidator();
         $this->blockManager ??= Di::_()->get('Security\Block\Manager');
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -215,7 +218,7 @@ class Repository implements RepositoryInterface
             }
 
             if ($response->count() < 12) {
-                $entity = Factory::build($row['key']);
+                $entity = $this->entitiesBuilder->single(($row['key']));
             }
 
             $response[] = (new Suggestion())
