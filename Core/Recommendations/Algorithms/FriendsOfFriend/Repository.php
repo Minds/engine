@@ -214,7 +214,7 @@ class Repository implements RepositoryInterface
                 continue;
             }
 
-            if ($response->count() < 12) {
+            if ($response->count() <= 12) {
                 $entity = Factory::build($row['key']);
             }
 
