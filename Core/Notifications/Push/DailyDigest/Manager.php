@@ -33,20 +33,23 @@ class Manager
 
     /**
      * Send a single notification to a given user guid and device subscription.
-     * @param string $userGuid - user guid to get unseen post for.
      * @param DeviceSubscription $deviceSubscription - device subscription to send to.
      * @return void
      */
-    public function sendSingle(string $userGuid, DeviceSubscription $deviceSubscription): void
+    public function sendSingle(DeviceSubscription $deviceSubscription): void
     {
-        $entityResponse = $this->unseenTopFeedManager->getList($userGuid, 1);
+        $entityResponse = $this->unseenTopFeedManager->getList(
+            userGuid: $deviceSubscription->getUserGuid(),
+            limit: 1
+        );
 
         if (!$entityResponse->first() || !$entityResponse->first()->getEntity()) {
             throw new ServerErrorException('Unable to find post for this user');
         }
 
         $pushNotification = $this->notificationBuilder
-            ->build($entityResponse->first()->getEntity())
+            ->withEntity($entityResponse->first()->getEntity())
+            ->build()
             ->setDeviceSubscription($deviceSubscription);
 
         $this->pushManager->sendNotification($pushNotification);

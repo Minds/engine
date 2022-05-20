@@ -55,6 +55,10 @@ class ManagerSpec extends ObjectBehavior
     ) {
         $userGuid = '123';
 
+        $deviceSubscription->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
         $feedSyncEntity->getEntity()
             ->shouldBeCalled()
             ->willReturn($activity);
@@ -71,24 +75,30 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($customPushNotification);
 
-        $this->notificationBuilder->build($activity)
+        $this->notificationBuilder->withEntity($activity)
+            ->shouldBeCalled()
+            ->willReturn($this->notificationBuilder);
+
+        $this->notificationBuilder->build()
             ->shouldBeCalled()
             ->willReturn($customPushNotification);
 
         $this->pushManager->sendNotification($customPushNotification)
             ->shouldBeCalled();
 
-        $this->sendSingle($userGuid, $deviceSubscription);
+        $this->sendSingle($deviceSubscription);
     }
 
     public function it_should_throw_an_exception_if_no_unseen_post_found_for_notification(
         DeviceSubscription $deviceSubscription,
-        FeedSyncEntity $feedSyncEntity,
         Activity $activity,
         Response $response,
-        CustomPushNotification $customPushNotification
     ) {
         $userGuid = '123';
+
+        $deviceSubscription->getUserGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
 
         $response->first()
             ->shouldBeCalled()
@@ -102,6 +112,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldNotBeCalled();
 
         $this->shouldThrow(ServerErrorException::class)
-            ->during('sendSingle', [$userGuid, $deviceSubscription]);
+            ->during('sendSingle', [$deviceSubscription]);
     }
 }

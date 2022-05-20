@@ -11,6 +11,7 @@ use Minds\Core\Notifications\EmailDigests\EmailDigestOpts;
 use Minds\Core\Notifications\Push\System\Manager;
 use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
+use Minds\Core\Notifications\Push\System\Targets\SystemPushNotificationTargetsList;
 use Minds\Core\Notifications\Push\UndeliverableException;
 use Minds\Interfaces;
 
@@ -133,37 +134,37 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
      * @throws UndeliverableException - when notification is undeliverable.
      * @throws ServerErrorException - when a server error occurs such as when unable to get
      * an unseen top post.
+     * @example usage:
+     * - php cli.php Notification sendDailyDigestPush --user_guid=1285556899399340038 --target_list=AllDevices
      */
     public function sendDailyDigestPush()
     {
-        $testUserGuid = $this->getOpt('user-guid');
-        $scroll = Di::_()->get('Database\Cassandra\Cql\Scroll');
+        $singleUserGuid = $this->getOpt('user_guid') ?? null;
+        $targetListClassName = $this->getOpt('target_list') ?? 'AllDevices';
 
-        $statement = "SELECT * FROM push_notifications_device_subscriptions";
-        $values = [];
-
-        if ($testUserGuid) {
-            $statement .= " WHERE user_guid = ?";
-            $values[] = new Bigint($testUserGuid);
-        }
-
+        /** @var DailyDigest\Manager */
         $dailyDigestPushManager = Di::_()->get('Notifications\Push\DailyDigest\Manager');
-        
-        $prepared = new Custom();
-        $prepared->query($statement, $values);
 
-        foreach ($scroll->request($prepared) as $row) {
-            $userGuid = $row['user_guid'];
+        $notificationTargetHandler = SystemPushNotificationTargetsList::getTargetHandlerFromClassName(
+            $targetListClassName
+        );
 
-            $deviceSubscription = new DeviceSubscription();
-            $deviceSubscription->setUserGuid((string) $row['user_guid'])
-                ->setToken($row['device_token'])
-                ->setService($row['service']);
+        $deviceSubscriptions = $notificationTargetHandler->getList();
 
+        foreach ($deviceSubscriptions as $deviceSubscription) {
+            // skip over if we're only sending to a single user.
+            if ($singleUserGuid && $singleUserGuid !== (string) $deviceSubscription->getUserGuid()) {
+                continue;
+            }
             try {
-                $dailyDigestPushManager->sendSingle($userGuid, $deviceSubscription);
+                $dailyDigestPushManager->sendSingle($deviceSubscription);
             } catch (\Exception $e) {
-                $this->out($e);
+                $this->out(
+                    '[DailyDigest CLI Error]: user_guid: ' .
+                    $deviceSubscription->getUserGuid() .
+                    ', message: ' .
+                    $e->getMessage()
+                );
             }
         }
     }

@@ -1686,6 +1686,8 @@ CREATE TABLE minds.push_notifications_device_subscriptions (
     PRIMARY KEY (user_guid, device_token)
 ) WITH CLUSTERING ORDER BY (device_token DESC);
 
+CREATE INDEX push_notifications_device_subscriptions_service_idx ON minds."push_notifications_device_subscriptions" (service);
+
 CREATE TABLE minds.push_notifications_settings (
     user_guid bigint,
     notification_group text,

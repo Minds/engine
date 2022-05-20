@@ -36,10 +36,6 @@ class DailyDigestPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('activity');
 
-        $activity->getEntity()
-            ->shouldBeCalledOnce()
-            ->willReturn(false);
-
         $user->getUsername()
             ->shouldBeCalled()
             ->willReturn('test');
@@ -55,6 +51,8 @@ class DailyDigestPushNotificationBuilderSpec extends ObjectBehavior
         $activity->getGuid()
             ->shouldBeCalled()
             ->willReturn('123');
+
+        $this->entity = $activity;
 
         $builtNotification = $this->build($activity);
 
@@ -96,6 +94,8 @@ class DailyDigestPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('icon-url');
 
+        $this->entity = $blog;
+
         $builtNotification = $this->build($blog);
 
         $builtNotification->getTitle()->shouldBe('@test posted a blog');
@@ -135,6 +135,8 @@ class DailyDigestPushNotificationBuilderSpec extends ObjectBehavior
         $image->getIconUrl('large')
             ->shouldBeCalled()
             ->willReturn('image-url');
+
+        $this->entity = $image;
 
         $builtNotification = $this->build($image);
 
@@ -180,6 +182,9 @@ class DailyDigestPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('image-url');
 
+
+        $this->entity = $image;
+
         $builtNotification = $this->build($image);
 
         $builtNotification->getTitle()->shouldBe('@test posted an image');
@@ -219,6 +224,8 @@ class DailyDigestPushNotificationBuilderSpec extends ObjectBehavior
         $image->getIconUrl('large')
             ->shouldBeCalled()
             ->willReturn('image-url');
+
+        $this->entity = $image;
 
         $builtNotification = $this->build($image);
 
@@ -264,6 +271,8 @@ class DailyDigestPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('image-url');
 
+        $this->entity = $image;
+
         $builtNotification = $this->build($image);
 
         $builtNotification->getTitle()->shouldBe(' ');
@@ -303,6 +312,8 @@ class DailyDigestPushNotificationBuilderSpec extends ObjectBehavior
         $video->getIconUrl('large')
             ->shouldBeCalled()
             ->willReturn('video-thumbnail-url');
+
+        $this->entity = $video;
 
         $builtNotification = $this->build($video);
 
@@ -349,6 +360,8 @@ class DailyDigestPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('video-thumbnail-url');
 
+        $this->entity = $video;
+
         $builtNotification = $this->build($video);
 
         $builtNotification->getTitle()->shouldBe('@test posted a video');
@@ -388,6 +401,8 @@ class DailyDigestPushNotificationBuilderSpec extends ObjectBehavior
         $video->getIconUrl('large')
             ->shouldBeCalled()
             ->willReturn('image-url');
+
+        $this->entity = $video;
 
         $builtNotification = $this->build($video);
 
@@ -433,6 +448,8 @@ class DailyDigestPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('image-url');
 
+        $this->entity = $video;
+
         $builtNotification = $this->build($video);
 
         $builtNotification->getTitle()->shouldBe(' ');
@@ -473,6 +490,8 @@ class DailyDigestPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('icon-url');
 
+        $this->entity = $blog;
+
         $builtNotification = $this->build($blog);
 
         $builtNotification->getTitle()->shouldBe('@'.str_repeat("a", 45).'... posted a blog');
@@ -489,10 +508,6 @@ class DailyDigestPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('activity');
 
-        $activity->getEntity()
-            ->shouldBeCalledOnce()
-            ->willReturn(false);
-
         $user->getUsername()
             ->shouldBeCalled()
             ->willReturn('test');
@@ -508,6 +523,8 @@ class DailyDigestPushNotificationBuilderSpec extends ObjectBehavior
         $activity->getGuid()
             ->shouldBeCalled()
             ->willReturn('123');
+
+        $this->entity = $activity;
 
         $builtNotification = $this->build($activity);
 
