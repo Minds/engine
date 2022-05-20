@@ -86,7 +86,7 @@ class TwoFactorSecretStore extends AbstractTwoFactorSecretStore
         $this->cache->set(
             $key,
             $storedSecretJson,
-            $this->getTtl($user)
+            $this->getTTL($user)
         );
 
         return $key;

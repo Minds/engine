@@ -61,5 +61,5 @@ interface TwoFactoSecretStoreInterface
      * @param User $user - user to get TTL for.
      * @return int - seconds for TTL.
      */
-    // public function getTTL(User $user): int;
+    public function getTTL(User $user): int;
 }

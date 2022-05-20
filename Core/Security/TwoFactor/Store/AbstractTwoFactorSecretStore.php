@@ -44,7 +44,7 @@ abstract class AbstractTwoFactorSecretStore implements TwoFactoSecretStoreInterf
      * @param User $user - user to get TTL for.
      * @return int - seconds for TTL.
      */
-    public function getTtl(User $user): int
+    public function getTTL(User $user): int
     {
         return $user->isTrusted() ? self::TRUSTED_USER_KEY_TTL : self::UNTRUSTED_USER_KEY_TTL;
     }

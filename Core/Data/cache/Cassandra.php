@@ -28,7 +28,7 @@ class Cassandra implements CacheInterface
      * @inheritDoc
      * @throws Exception
      */
-    public function get($key, $default = null): ?array
+    public function get($key, $default = null): ?string
     {
         $query = (new PreparedStatement())
             ->query(
