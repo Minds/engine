@@ -32,7 +32,7 @@ class Manager
     }
 
     /**
-     * Send a single notification to a given user guid and device subscription.
+     * Send a single notification to a given device subscription.
      * @param DeviceSubscription $deviceSubscription - device subscription to send to.
      * @return void
      */

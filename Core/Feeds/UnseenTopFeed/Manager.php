@@ -41,8 +41,8 @@ class Manager
             'unseen' => true,
             'demoted' => true
         ]);
-        // This endpoint doesn't support pagination yet
-        $response->setPagingToken(null);
+
+        $response->setPagingToken(null); // This endpoint doesn't support pagination yet.
 
         return $response;
     }

@@ -66,7 +66,7 @@ class DailyDigestPushNotificationBuilder implements EntityPushNotificationBuilde
 
     /**
      * Builds title.
-     * @return ?string - title for push notification.
+     * @return string - title for push notification.
      */
     protected function buildTitle(): string
     {
@@ -88,7 +88,7 @@ class DailyDigestPushNotificationBuilder implements EntityPushNotificationBuilde
                         }
                         return $usernameString . ' posted a video';
                 }
-                // no break
+                break;
             default:
                 return $usernameString . ' posted';
         }
@@ -141,9 +141,9 @@ class DailyDigestPushNotificationBuilder implements EntityPushNotificationBuilde
 
     /**
      * Builds URI to serve as the push notification link.
-     * @return ?string - URI for push notification.
+     * @return string - URI for push notification.
      */
-    protected function buildUri(): ?string
+    protected function buildUri(): string
     {
         switch ($this->entity->getType()) {
             case 'object':

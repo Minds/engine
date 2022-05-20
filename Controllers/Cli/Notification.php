@@ -10,7 +10,6 @@ use Minds\Core\Notifications\EmailDigests\EmailDigestMarker;
 use Minds\Core\Notifications\EmailDigests\EmailDigestOpts;
 use Minds\Core\Notifications\Push\System\Manager;
 use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
-use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\System\Targets\SystemPushNotificationTargetsList;
 use Minds\Core\Notifications\Push\UndeliverableException;
 use Minds\Interfaces;
