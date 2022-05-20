@@ -9,7 +9,6 @@ use Minds\Core\Di\Di;
 use Minds\Entities\Entity;
 use Minds\Entities\Image;
 use Minds\Entities\Video;
-use Minds\Exceptions\UserErrorException;
 
 /**
  * Notification builder for daily digest notifications. Used to get a
