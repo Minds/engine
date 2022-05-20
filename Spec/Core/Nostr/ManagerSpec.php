@@ -9,6 +9,7 @@ use Minds\Core\Nostr\NostrEvent;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -113,6 +114,9 @@ class ManagerSpec extends ObjectBehavior
             ->setPubkey("4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715")
             ->setSig("9aafd37d5312426c34c4f16d9d837167260c1000b6cb7d111b9a0966692ee04a4c93af15767c521eab9b660ee4169b489f8023f836403388f970ad52bbbaf995")
             ->setContent('Hello nostr. This is Minds calling');
+
+        $wsClient->text(Argument::any())
+                ->shouldBeCalled();
 
         $this->emitEvent($nostrEvent);
     }

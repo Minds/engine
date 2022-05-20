@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Nostr;
 
+use Minds\Core\Di\Di;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\ServerRequest;
@@ -13,7 +14,7 @@ class Controller
     public function __construct(
         protected ?Manager $manager = null
     ) {
-        $this->manager ??= new Manager();
+        $this->manager ??= Di::_()->get('Nostr\Manager');
     }
 
     /**

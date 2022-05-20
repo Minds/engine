@@ -24,7 +24,7 @@ class Manager
         $this->config ??= Di::_()->get('Config');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->keys ??= new Keys();
-        $this->clients ??= $clients;
+        $this->clients = $clients;
     }
 
     /**
@@ -150,7 +150,7 @@ class Manager
                 //echo $client->receive(); // Do we care?
                 //$client->close();
             } catch (\WebSocket\ConnectionException $e) {
-                var_dump($jsonPayload);
+                //var_dump($jsonPayload);
             }
         }
     }
