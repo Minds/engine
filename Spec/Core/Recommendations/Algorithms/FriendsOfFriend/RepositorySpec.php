@@ -35,13 +35,12 @@ class RepositorySpec extends ObjectBehavior
         $this->beConstructedWith($elasticsearch, null, null, null, $blockManager, $entitiesBuilder);
     }
 
-
     public function it_is_initializable(): void
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    public function it_should_filter_out_banned_channels(Activity $activity, Video $video)
+    public function it_should_filter_out_channels_that_have_blocked_us(Activity $activity, Video $video)
     {
         $targetGuid = '1232323';
         $buckets = $this->generateFakeBuckets();
@@ -57,7 +56,6 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn((new Activity)
             ->set('guid', 123));
-
 
         $blockEntry = (new Block\BlockEntry())
             ->setActorGuid($targetGuid)
@@ -75,7 +73,7 @@ class RepositorySpec extends ObjectBehavior
         ])->shouldHaveCount(9);
     }
 
-    public function it_should_filter_out_channels_that_have_banned_us()
+    public function it_should_filter_out_channels_we_have_blocked()
     {
         $targetGuid = '1232323';
         $buckets = $this->generateFakeBuckets();

@@ -218,7 +218,7 @@ class Repository implements RepositoryInterface
             }
 
             if ($response->count() < 12) {
-                $entity = $this->entitiesBuilder->single(($row['key']));
+                $entity = $this->entitiesBuilder->single($row['key']);
             }
 
             $response[] = (new Suggestion())
