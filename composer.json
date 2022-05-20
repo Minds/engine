@@ -53,7 +53,8 @@
         "growthbook/growthbook": "1.0.0",
         "league/csv": "^9.8",
         "google/cloud-bigquery": "^1.23",
-        "minishlink/web-push": "^6.0"
+        "minishlink/web-push": "^6.0",
+        "textalk/websocket": "^1.5"
     },
     "repositories": [
         {
