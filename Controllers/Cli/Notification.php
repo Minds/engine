@@ -167,5 +167,7 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
                 );
             }
         }
+
+        $this->out('[DailyDigest CLI] Done.');
     }
 }
