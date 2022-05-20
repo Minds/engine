@@ -211,7 +211,7 @@ class Repository implements RepositoryInterface
                 ->setSubject($row['key']);
 
             if ($this->blockManager->hasBlocked($blockEntry) || $this->blockManager->isBlocked($blockEntry)) {
-                return null;
+                continue;
             }
 
             if ($response->count() < 12) {
