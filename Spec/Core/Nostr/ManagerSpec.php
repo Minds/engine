@@ -56,11 +56,10 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_build_a_nostr_event_for_user()
     {
         $user = new User();
-        $user->name = 'phpspec';
+        $user->username = 'phpspec';
         $user->briefdescription = 'dont feel like saying much';
         $user->time_created = 1653047334;
         $user->icontime = 1653047334;
-        $user->last_updated = 1653047334;
     
         $this->keys->withUser($user)
             ->willReturn($this->keys);
@@ -70,10 +69,10 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(pack('H*', "51931a1fffbb7e408099d615b283c5a8615a23695b0e46e943e74f404c95042a"));
 
         $nostrEvent = $this->buildNostrEvent($user);
-        $nostrEvent->getId()->shouldBe('30fee6a2cc5871baf78022ce7618af8b1b58f8640d4145bb42cc96e7ac3edd5c');
+        $nostrEvent->getId()->shouldBe('9a6632c7bd77040c167241bc9796836914532bc669e7f56170d37a7c91f4a1a2');
         $nostrEvent->getKind()->shouldBe(0);
         $nostrEvent->getPubkey()->shouldBe("4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715");
-        $nostrEvent->getSig()->shouldBe("02f7adb8b4390bf3d5298441dd1884b3dec9501531f6abb0d5305895c0e9747e377a5e11b643b76a215cb8029cb34a701e891c0e0c4a47ecafb1310a058b20e9");
+        $nostrEvent->getSig()->shouldBe("4711a52137e39ab65e9e5cd0bc9932d50b03bc239cf7bd810bee6ba42355a6f795c8ea247f2515f323c65db18787b609bfe42406ade659548425b1dea21761b0");
     }
 
     public function it_should_build_a_nostr_event_for_activity(Activity $activity, User $user)
@@ -84,6 +83,8 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(1653047334);
         $activity->getMessage()
             ->willReturn('Hello nostr. This is Minds calling');
+        $activity->getEntityGuid()
+            ->willReturn(null);
 
         $this->entitiesBuilder->single("123")
             ->willReturn($user);

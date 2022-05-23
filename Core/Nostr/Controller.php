@@ -33,10 +33,16 @@ class Controller
 
         $publicKey = $this->manager->getPublicKeyFromUsername($name);
 
-        return new JsonResponse([
-            "names" => [
-                $name => $publicKey,
+        return new JsonResponse(
+            [
+                "names" => [
+                    $name => $publicKey,
+                ]
+            ],
+            200,
+            [
+                'Access-Control-Allow-Origin' => '*',
             ]
-        ]);
+        );
     }
 }

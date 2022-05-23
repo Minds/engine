@@ -78,18 +78,23 @@ class Manager
             /** @var Activity */
             $activity = $entity;
             $content = (string) $activity->getMessage();
+
+            if ($activity->getEntityGuid()) {
+                $content .= ' ' . $activity->getURL();
+            }
+
             $createdAt = $activity->getTimeCreated();
         } elseif ($entity instanceof User) {
             /** @var User */
             $user = $entity;
             $kind = 0; // set_metadata
             $content = json_encode([
-                    'name' => $user->getName(),
+                    'name' => $user->getUsername() . '@' . $this->getDomain(),
                     'about' => (string) $user->briefdescription,
                     'picture' => $user->getIconURL('medium'),
                 ], JSON_UNESCAPED_SLASHES);
-            //$createdAt = $user->getTimeCreated();
-            $createdAt = $user->last_updated;
+            // $createdAt = $user->getTimeCreated();
+            $createdAt = $user->icontime;
         } else {
             throw new ServerErrorException("Unsupported entity type " . get_class($entity));
         }
@@ -176,7 +181,7 @@ class Manager
         if ($this->clients) {
             return $this->clients;
         }
-        $relays = [
+        $relays = $this->config->get('nostr')['relays'] ?? [
             'wss://nostr-relay.untethr.me',
             'wss://nostr.bitcoiner.social',
             'wss://nostr-relay.wlvs.space',
@@ -216,5 +221,13 @@ class Manager
         );
 
         return (bool) $result;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getDomain(): string
+    {
+        return urlencode($this->config->get('nostr')['domain'] ?? '');
     }
 }
