@@ -1,17 +1,17 @@
 <?php
 
-namespace Spec\Minds\Core\Notifications\Push\DailyDigest;
+namespace Spec\Minds\Core\Notifications\Push\TopPost;
 
 use Minds\Common\Repository\Response;
 use Minds\Core\Feeds\FeedSyncEntity;
 use PhpSpec\ObjectBehavior;
 use Minds\Entities\Activity;
 use Minds\Exceptions\ServerErrorException;
-use Minds\Core\Notifications\Push\DailyDigest\Manager;
+use Minds\Core\Notifications\Push\TopPost\Manager;
 use Minds\Core\Feeds\UnseenTopFeed\Manager as UnseenTopFeedManager;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\System\Manager as PushManager;
-use Minds\Core\Notifications\Push\System\Builders\DailyDigestPushNotificationBuilder;
+use Minds\Core\Notifications\Push\System\Builders\TopPostPushNotificationBuilder;
 use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
 
 class ManagerSpec extends ObjectBehavior
@@ -22,13 +22,13 @@ class ManagerSpec extends ObjectBehavior
     /** @var PushManager */
     protected $pushManager;
 
-    /** @var DailyDigestPushNotificationBuilder */
+    /** @var TopPostPushNotificationBuilder */
     protected $notificationBuilder;
 
     public function let(
         UnseenTopFeedManager $unseenTopFeedManager,
         PushManager $pushManager,
-        DailyDigestPushNotificationBuilder $notificationBuilder
+        TopPostPushNotificationBuilder $notificationBuilder
     ) {
         $this->unseenTopFeedManager = $unseenTopFeedManager;
         $this->pushManager = $pushManager;

@@ -5,13 +5,13 @@ namespace Spec\Minds\Core\Notifications\Push\System\Builders;
 use Minds\Core\Config;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\Blogs\Blog;
-use Minds\Core\Notifications\Push\System\Builders\DailyDigestPushNotificationBuilder;
+use Minds\Core\Notifications\Push\System\Builders\TopPostPushNotificationBuilder;
 use Minds\Entities\Activity;
 use Minds\Entities\Image;
 use Minds\Entities\User;
 use Minds\Entities\Video;
 
-class DailyDigestPushNotificationBuilderSpec extends ObjectBehavior
+class TopPostPushNotificationBuilderSpec extends ObjectBehavior
 {
     /** @var Config */
     protected $config;
@@ -25,7 +25,7 @@ class DailyDigestPushNotificationBuilderSpec extends ObjectBehavior
 
     public function it_is_initializable()
     {
-        $this->shouldHaveType(DailyDigestPushNotificationBuilder::class);
+        $this->shouldHaveType(TopPostPushNotificationBuilder::class);
     }
 
     public function it_should_build_a_text_activity_notification(

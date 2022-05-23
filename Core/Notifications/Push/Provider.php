@@ -30,8 +30,8 @@ class Provider extends DiProvider
         $this->di->bind('Notifications\Push\System\Manager', function ($di) {
             return new System\Manager();
         }, ['useFactory' => false]);
-        $this->di->bind('Notifications\Push\DailyDigest\Manager', function ($di) {
-            return new DailyDigest\Manager();
+        $this->di->bind('Notifications\Push\TopPost\Manager', function ($di) {
+            return new TopPost\Manager();
         }, ['useFactory' => false]);
     }
 }

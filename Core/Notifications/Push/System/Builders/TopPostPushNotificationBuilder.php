@@ -11,15 +11,15 @@ use Minds\Entities\Image;
 use Minds\Entities\Video;
 
 /**
- * Notification builder for daily digest notifications. Used to get a
- * CustomPushNotification populated with information for daily digest.
+ * Notification builder for top post notifications. Used to get a
+ * CustomPushNotification populated with information for an unseen top post.
  *
  * @example usage:
- * - $pushNotification = $this->dailyDigestPushNotificationBuilder
+ * - $pushNotification = $this->topPostPushNotificationBuilder
  *       ->withEntity($entityResponse->first()->getEntity())
  *       ->build();
  */
-class DailyDigestPushNotificationBuilder implements EntityPushNotificationBuilderInterface
+class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInterface
 {
     // instance entity.
     public $entity = null;
@@ -36,7 +36,7 @@ class DailyDigestPushNotificationBuilder implements EntityPushNotificationBuilde
     /**
      * Create new cloned instance with class-level variable $this->entity.
      * @param Entity|Blog|Image|Video $entity - entity to construct new instance with.
-     * @return DailyDigestPushNotificationBuilder - cloned instance of $this.
+     * @return self - cloned instance of $this.
      */
     public function withEntity(Entity|Blog|Image|Video $entity): self
     {
@@ -51,7 +51,7 @@ class DailyDigestPushNotificationBuilder implements EntityPushNotificationBuilde
     }
 
     /**
-     * Build a daily digest CustomPushNotification.
+     * Build a top post CustomPushNotification.
      * @return CustomPushNotification - populated CustomPushNotification.
      */
     public function build(): CustomPushNotification
@@ -88,9 +88,9 @@ class DailyDigestPushNotificationBuilder implements EntityPushNotificationBuilde
                         return $usernameString . ' posted a video';
                 }
                 break;
-            default:
-                return $usernameString . ' posted';
         }
+
+        return $usernameString . ' posted';
     }
 
     /**

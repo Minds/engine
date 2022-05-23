@@ -1,16 +1,16 @@
 <?php
 
-namespace Minds\Core\Notifications\Push\DailyDigest;
+namespace Minds\Core\Notifications\Push\TopPost;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds\UnseenTopFeed\Manager as UnseenTopFeedManager;
 use Minds\Core\Notifications\Push\System\Manager as PushManager;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
-use Minds\Core\Notifications\Push\System\Builders\DailyDigestPushNotificationBuilder;
+use Minds\Core\Notifications\Push\System\Builders\TopPostPushNotificationBuilder;
 use Minds\Exceptions\ServerErrorException;
 
 /**
- * Manager for Daily Digest push notification - a notification containing
+ * Manager for top post push notification - a notification containing
  * information from a single post from the users unseen top feed.
  */
 class Manager
@@ -19,16 +19,16 @@ class Manager
      * Constructor
      * @param ?UnseenTopFeedManager $unseenTopFeedManager - used to get an unseen post.
      * @param ?PushManager $pushManager - used to send the notification.
-     * @param ?DailyDigestPushNotificationBuilder $notificationBuilder - notification builder class.
+     * @param ?TopPostPushNotificationBuilder $notificationBuilder - notification builder class.
      */
     public function __construct(
         private ?UnseenTopFeedManager $unseenTopFeedManager = null,
         private ?PushManager $pushManager = null,
-        private ?DailyDigestPushNotificationBuilder $notificationBuilder = null
+        private ?TopPostPushNotificationBuilder $notificationBuilder = null
     ) {
         $this->unseenTopFeedManager ??= Di::_()->get('Feeds\UnseenTopFeed\Manager');
         $this->pushManager ??= Di::_()->get('Notifications\Push\System\Manager');
-        $this->notificationBuilder ??= new DailyDigestPushNotificationBuilder();
+        $this->notificationBuilder ??= new TopPostPushNotificationBuilder();
     }
 
     /**

@@ -129,20 +129,20 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
     }
 
     /**
-     * Send push notification(s) for daily digest.
+     * Send push notification(s) for a top unseen post.
      * @throws UndeliverableException - when notification is undeliverable.
      * @throws ServerErrorException - when a server error occurs such as when unable to get
      * an unseen top post.
      * @example usage:
-     * - php cli.php Notification sendDailyDigestPush --user_guid=1285556899399340038 --target_list=AllAndroidAppDevices
+     * - php cli.php Notification sendTopPostPush --user_guid=1285556899399340038 --target_list=AllAndroidAppDevices
      */
-    public function sendDailyDigestPush()
+    public function sendTopPostPush()
     {
         $singleUserGuid = $this->getOpt('user_guid') ?? null;
         $targetListClassName = $this->getOpt('target_list') ?? 'AllDevices';
 
-        /** @var DailyDigest\Manager */
-        $dailyDigestPushManager = Di::_()->get('Notifications\Push\DailyDigest\Manager');
+        /** @var TopPOst\Manager */
+        $topPostPushManager = Di::_()->get('Notifications\Push\TopPost\Manager');
 
         $notificationTargetHandler = SystemPushNotificationTargetsList::getTargetHandlerFromClassName(
             $targetListClassName
@@ -156,11 +156,11 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
                 continue;
             }
             try {
-                $dailyDigestPushManager->sendSingle($deviceSubscription);
-                $this->out('[DailyDigest CLI] Success: dispatched to ' . $deviceSubscription->getUserGuid());
+                $topPostPushManager->sendSingle($deviceSubscription);
+                $this->out('[TopPost CLI] Success: dispatched to ' . $deviceSubscription->getUserGuid());
             } catch (\Exception $e) {
                 $this->out(
-                    '[DailyDigest CLI] Error: user_guid: ' .
+                    '[TopPost CLI] Error: user_guid: ' .
                     $deviceSubscription->getUserGuid() .
                     ', message: ' .
                     $e->getMessage()
@@ -168,6 +168,6 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
             }
         }
 
-        $this->out('[DailyDigest CLI] Done.');
+        $this->out('[TopPost CLI] Done.');
     }
 }
