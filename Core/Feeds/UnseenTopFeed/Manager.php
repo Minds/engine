@@ -53,12 +53,13 @@ class Manager
     }
 
     /**
-     * Gets algorithm for unseen top feed - defaults to `top` as it should be 
-     * for production but can be overridden to use different algorithms 
+     * Gets algorithm for unseen top feed - defaults to `top` as it should be
+     * for production but can be overridden to use different algorithms
      * for testing purposes.
      * @return string algorithm to search for.
      */
-    private function getAlgorithm(): string {
+    private function getAlgorithm(): string
+    {
         return $this->config->get('unseen_top_algorithm') ?? 'top';
     }
 }
