@@ -12,9 +12,11 @@ use Ratchet\Server\IoServer;
 class Controller
 {
     public function __construct(
-        protected ?Manager $manager = null
+        protected ?Manager $manager = null,
+        protected ?PocSync $pocSync = null
     ) {
         $this->manager ??= Di::_()->get('Nostr\Manager');
+        $this->pocSync ??= Di::_()->get('Nostr\PocSync');
     }
 
     /**
@@ -44,5 +46,24 @@ class Controller
                 'Access-Control-Allow-Origin' => '*',
             ]
         );
+    }
+
+    /**
+     * /api/v3/nostr/sync
+     * @param ServerRequest $request
+     * @return JsonResponse
+     * @throws NotFoundException
+     */
+    public function sync(ServerRequest $request): JsonResponse
+    {
+        $username = $request->getQueryParams()['username'] ?? null;
+
+        if (!$username) {
+            throw new UserErrorException("?name must be provided");
+        }
+
+        $this->pocSync->syncChannel($username);
+
+        return new JsonResponse([]);
     }
 }

@@ -14,5 +14,8 @@ class Provider extends Di\Provider
         $this->di->bind('Nostr\Controller', function ($di) {
             return new Controller();
         });
+        $this->di->bind('Nostr\PocSync', function ($di) {
+            return new PocSync();
+        });
     }
 }

@@ -85,6 +85,10 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('Hello nostr. This is Minds calling');
         $activity->getEntityGuid()
             ->willReturn(null);
+        $activity->isRemind()
+            ->willReturn(false);
+        $activity->isQuotedPost()
+            ->willReturn(false);
 
         $this->entitiesBuilder->single("123")
             ->willReturn($user);

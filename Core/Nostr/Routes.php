@@ -29,8 +29,8 @@ class Routes extends ModuleRoutes
             ->withPrefix('api/v3/nostr')
             ->do(function (Route $route) {
                 $route->get(
-                    'relay',
-                    Ref::_('Nostr\Controller', 'wsRelay')
+                    'sync',
+                    Ref::_('Nostr\Controller', 'sync')
                 );
             });
     }

@@ -29,37 +29,7 @@ class Nostr extends Cli\Controller implements Interfaces\CliControllerInterface
     {
         $username = $this->getOpt('username');
 
-        /** @var Core\EntitiesBuilder */
-        $entitiesBuilder = Di::_()->get('EntitiesBuilder');
-    
-        $user = $entitiesBuilder->getByUserByIndex($username);
-
-        /** @var Core\Nostr\Manager */
-        $nostrManager = Di::_()->get('Nostr\Manager');
-
-        $nostrEvent = $nostrManager->buildNostrEvent($user);
-        $nostrManager->emitEvent($nostrEvent);
-
-        // Sync feed?
-        /** @var Core\Feeds\Elastic\Manager */
-        $feedsManager = Di::_()->get('Feeds\Elastic\Manager');
-        foreach ($feedsManager->getList([
-            'type' => 'activity',
-            'container_guid' => $user->getGuid(),
-            'algorithm' => 'latest',
-            'period' => 'all',
-            'single_owner_threshold' => 0,
-        ]) as $item) {
-            $activity = $entitiesBuilder->single($item->getGuid());
-
-            if (!$activity instanceof Activity) {
-                continue;
-            }
-
-            $nostrEvent = $nostrManager->buildNostrEvent($activity);
-            $nostrManager->emitEvent($nostrEvent);
-            $this->out('Sync post: ' . $activity->getGuid() . ' ' . $nostrEvent->getId());
-        };
+        Di::_()->get('Nostr\PocSync')->syncChannel($username);
     }
 
     

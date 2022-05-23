@@ -79,7 +79,11 @@ class Manager
             $activity = $entity;
             $content = (string) $activity->getMessage();
 
-            if ($activity->getEntityGuid()) {
+            if (
+                $activity->getEntityGuid()
+                || $activity->isRemind()
+                || $activity->isQuotedPost()
+            ) {
                 $content .= ' ' . $activity->getURL();
             }
 
@@ -167,7 +171,10 @@ class Manager
     {
         if ($this->clients) {
             foreach ($this->clients as $client) {
-                $client->close();
+                try {
+                    $client->close();
+                } catch (\WebSocket\ConnectionException $e) {
+                }
             }
         }
     }
