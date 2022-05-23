@@ -2,16 +2,9 @@
 
 namespace Minds\Controllers\Cli;
 
-use Minds\Core;
 use Minds\Cli;
 use Minds\Core\Di\Di;
-use Minds\Core\Media\YouTubeImporter\YTSubscription;
-use Minds\Core\Media\YouTubeImporter\YTVideo;
-use Minds\Entities\Activity;
-use Minds\Entities\Video;
 use Minds\Interfaces;
-use Minds\Exceptions;
-use Minds\Exceptions\ProvisionException;
 
 class Nostr extends Cli\Controller implements Interfaces\CliControllerInterface
 {
