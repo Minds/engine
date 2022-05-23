@@ -20,6 +20,7 @@ class Controller
     }
 
     /**
+     * https://github.com/nostr-protocol/nips/blob/master/05.md
      * ie. /.well-known/nostr.json?name=mark
      * @param ServerRequest $request
      * @return JsonResponse
