@@ -205,7 +205,7 @@ class NotificationTypes
 
     /**
      * *******************************************
-     * Daily Digest
+     * Top Posts
      */
 
     /** @var string */
