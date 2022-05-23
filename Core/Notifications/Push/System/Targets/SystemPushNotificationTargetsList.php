@@ -2,6 +2,8 @@
 
 namespace Minds\Core\Notifications\Push\System\Targets;
 
+use Minds\Exceptions\UserErrorException;
+
 /**
  *
  */
@@ -33,6 +35,6 @@ class SystemPushNotificationTargetsList
                 return $class;
             }
         }
-        throw new \Exception("Target list not found");
+        throw new UserErrorException("Target list not found"); // SEE?
     }
 }

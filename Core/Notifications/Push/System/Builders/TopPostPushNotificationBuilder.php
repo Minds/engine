@@ -57,7 +57,7 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
     public function build(): CustomPushNotification
     {
         return (new CustomPushNotification())
-            ->setTitle($this->buildTitle(), 0, 65)
+            ->setTitle($this->buildTitle())
             ->setBody($this->buildBody())
             ->setUri($this->buildUri())
             ->setMedia($this->buildMediaUrl());

@@ -141,7 +141,7 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
         $singleUserGuid = $this->getOpt('user_guid') ?? null;
         $targetListClassName = $this->getOpt('target_list') ?? 'AllDevices';
 
-        /** @var TopPOst\Manager */
+        /** @var TopPost\Manager */
         $topPostPushManager = Di::_()->get('Notifications\Push\TopPost\Manager');
 
         $notificationTargetHandler = SystemPushNotificationTargetsList::getTargetHandlerFromClassName(
