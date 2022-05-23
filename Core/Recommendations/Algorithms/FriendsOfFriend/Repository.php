@@ -205,6 +205,7 @@ class Repository implements RepositoryInterface
         $result = $this->elasticSearchClient->request($preparedQuery);
 
         $response = new Response();
+        $count = 0;
 
         foreach ($result['aggregations']['channels']['buckets'] as $i => $row) {
             $entity = null;
@@ -217,7 +218,7 @@ class Repository implements RepositoryInterface
                 continue;
             }
 
-            if ($response->count() < 12) {
+            if (++$count <= 12) {
                 $entity = $this->entitiesBuilder->single($row['key']);
             }
 
