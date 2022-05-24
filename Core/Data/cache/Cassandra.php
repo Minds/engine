@@ -78,6 +78,8 @@ class Cassandra implements CacheInterface
         if (!$response) {
             throw new Exception("An error occurred while storing the 2factor code.");
         }
+
+        return true;
     }
 
     /**
@@ -97,6 +99,8 @@ class Cassandra implements CacheInterface
         if (!$response) {
             throw new Exception("An error occurred while deleting stored 2factor code.");
         }
+
+        return true;
     }
 
     /**
