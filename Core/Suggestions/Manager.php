@@ -164,7 +164,7 @@ class Manager
             $blockEntry = (new Block\BlockEntry())
                 ->setActor($this->user)
                 ->setSubject($entity);
-            if ($this->blockManager->hasBlocked($blockEntry)) {
+            if ($this->blockManager->hasBlocked($blockEntry) || $this->blockManager->isBlocked($blockEntry)) {
                 return null;
             }
 
