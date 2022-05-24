@@ -1741,6 +1741,9 @@ CREATE TABLE minds.system_push_notifications
     url text,
     target text,
     counter int,
+    successful_counter int,
+    failed_counter int,
+    skipped_counter int,
     status int
 ) WITH CLUSTERING ORDER BY (created_at DESC);
 

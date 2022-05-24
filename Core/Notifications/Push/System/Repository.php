@@ -130,6 +130,39 @@ class Repository
     /**
      * @param string $type
      * @param string $requestUuid
+     * @param int $totalNotifications
+     * @param int $successfulNotifications
+     * @param int $failedNotifications
+     * @param int $skippedNotifications
+     * @return void
+     */
+    public function updateRequestCounters(
+        string $type,
+        string $requestUuid,
+        int $totalNotifications,
+        int $successfulNotifications,
+        int $failedNotifications,
+        int $skippedNotifications
+    ): void {
+        $query = (new PreparedStatement())
+            ->query(
+                "UPDATE system_push_notifications SET counter = ?, successful_counter = ?, failed_counter = ?, skipped_counter = ? WHERE type = ? AND request_uuid = ?;",
+                [
+                    $totalNotifications,
+                    $successfulNotifications,
+                    $failedNotifications,
+                    $skippedNotifications,
+                    $type,
+                    new Timeuuid($requestUuid)
+                ]
+            );
+
+        $this->cassandraClient->request($query);
+    }
+
+    /**
+     * @param string $type
+     * @param string $requestUuid
      * @return AdminPushNotificationRequest
      * @throws ServerErrorException
      * @throws UndeliverableException
@@ -156,7 +189,7 @@ class Repository
 
         $rows = $this->cassandraClient->request($query);
 
-        if ($rows->count() == 0) {
+        if (!$rows || $rows->count() == 0) {
             throw new UndeliverableException("No request was found");
         }
 

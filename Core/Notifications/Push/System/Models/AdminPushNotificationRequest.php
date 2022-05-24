@@ -23,6 +23,12 @@ use Minds\Traits\MagicAttributes;
  * @method string getTarget()
  * @method self setCounter(int $counter)
  * @method int getCounter()
+ * @method self setSuccessfulCounter(int $successfulCounter)
+ * @method int getSuccessfulCounter()
+ * @method self setFailedCounter(int $failedCounter)
+ * @method int getFailedCounter()
+ * @method self setSkippedCounter(int $skippedCounter)
+ * @method int getSkippedCounter()
  * @method self setStatus(int $status)
  * @method self setCreatedAt(string $createdAt)
  * @method string getCreatedAt()
@@ -45,6 +51,9 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
     private ?string $link;
     private string $target;
     private ?int $counter;
+    private ?int $successfulCounter;
+    private ?int $failedCounter;
+    private ?int $skippedCounter;
     private int $status = 0;
     private string $createdAt;
     private ?string $startedAt;
@@ -56,7 +65,7 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
     public static function fromArray(array $data): self
     {
         $notificationData = new self;
-
+        
         if (!isset($data['request_uuid'])) {
             throw new ServerErrorException("Missing property 'request_uuid' in System Push Notification event");
         }
@@ -96,6 +105,20 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
             throw new ServerErrorException("Missing property 'counter' in System Push Notification event");
         }
         $notificationData->setCounter($data['counter']);
+
+        if (!key_exists('successful_counter', $data)) {
+            throw new ServerErrorException("Missing property 'successful_counter' in System Push Notification event");
+        }
+        $notificationData->setSuccessfulCounter($data['successful_counter']);
+
+        if (!key_exists('failed_counter', $data)) {
+            throw new ServerErrorException("Missing property 'failed_counter' in System Push Notification event");
+        }
+
+        if (!key_exists('skipped_counter', $data)) {
+            throw new ServerErrorException("Missing property 'skipped_counter' in System Push Notification event");
+        }
+        $notificationData->setSkippedCounter($data['skipped_counter']);
 
         if (!isset($data['status'])) {
             throw new ServerErrorException("Missing property 'status' in System Push Notification event");
@@ -142,6 +165,9 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
             'timestamp' => $this->getCreatedAt(),
             'target' => $this->getTarget(),
             'counter' => $this->getCounter(),
+            'successful_counter' => $this->getSuccessfulCounter(),
+            'failed_counter' => $this->getFailedCounter(),
+            'skipped_counter' => $this->getSkippedCounter(),
             'status' => $this->getStatus(),
             'urn' => $this->getUrn()
         ];
