@@ -39,7 +39,7 @@ class Keys
         $didKeypair = $this->didKeypairsManager->getKeypair($this->user);
 
         if (!$didKeypair) {
-            $didKeypair = $this->keypairsManager->createKeypair($this->user);
+            $didKeypair = $this->didKeypairsManager->createKeypair($this->user);
             $this->didKeypairsManager->add($didKeypair);
         }
 
