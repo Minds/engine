@@ -87,8 +87,9 @@ class EmailDelegate implements TwoFactorDelegateInterface
     /**
      * Called upon authentication when the twofactor code has been provided
      * @param User $user
-     * @param int $code
+     * @param string $code
      * @return void
+     * @throws TwoFactorInvalidCodeException
      */
     public function onAuthenticateTwoFactor(User $user, string $code): void
     {

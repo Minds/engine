@@ -1,4 +1,4 @@
-image: minds/php:8.0
+image: minds/php:8.0-secp256k1
 
 stages:
   - build
@@ -23,19 +23,16 @@ build:
 
 test:
   stage: test
-  image: minds/php:8.0
   script:
     - php -n -c Spec/php-test.ini bin/phpspec run
 
 lint:
   stage: test
-  image: minds/php:8.0
   script:
     - bin/php-cs-fixer fix --allow-risky=yes --verbose --dry-run
 
 static-analysis:
   stage: test
-  image: minds/php:8.0
   script:
     - mv settings.example.php settings.php
     - bin/phpstan analyse --memory-limit=1G

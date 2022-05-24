@@ -44,11 +44,13 @@ class ElasticRepository
             ],
         ];
 
-        $must[] = [
-            'term' => [
-                'type' => $opts['type'],
-            ],
-        ];
+        if (isset($opts['type'])) {
+            $must[] = [
+                'term' => [
+                    'type' => $opts['type'],
+                ],
+            ];
+        }
 
         $must_not[] = [
             'term' => [
@@ -67,11 +69,20 @@ class ElasticRepository
         }
 
         if (isset($opts['entity_guid'])) {
-            $must[] = [
-                'term' => [
-                    'entity_guid' => $opts['entity_guid'],
-                ],
-            ];
+            $entityGuid = $opts['entity_guid'];
+            if (is_array($entityGuid) && count($entityGuid) > 1) {
+                $must[] = [
+                    'terms' => [
+                        'entity_guid' => $entityGuid,
+                    ],
+                ];
+            } else {
+                $must[] = [
+                    'term' => [
+                        'entity_guid' => $entityGuid,
+                    ],
+                ];
+            }
         }
 
         if (isset($opts['owner_guid'])) {

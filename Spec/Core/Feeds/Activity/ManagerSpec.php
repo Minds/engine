@@ -9,8 +9,11 @@ use Minds\Entities\User;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Entities\PropagateProperties;
+use Minds\Core\Boost\Network\ElasticRepository as BoostElasticRepository;
+use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\Session;
 use Minds\Core\Feeds\Activity\Delegates;
+use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -34,6 +37,12 @@ class ManagerSpec extends ObjectBehavior
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
+    /** @var BoostElasticRepository */
+    private $boostRepository;
+
+    /** @var GuidLinkResolver */
+    private $guidLinkResolver;
+
     public function let(
         Delegates\ForeignEntityDelegate $foreignEntityDelegate,
         Save $save,
@@ -41,7 +50,9 @@ class ManagerSpec extends ObjectBehavior
         Delegates\PaywallDelegate $paywallDelegate,
         Delegates\MetricsDelegate $metricsDelegate,
         Delegates\NotificationsDelegate $notificationsDelegate,
-        EntitiesBuilder $entitiesBuilder
+        EntitiesBuilder $entitiesBuilder,
+        BoostElasticRepository $boostRepository,
+        GuidLinkResolver $guidLinkResolver
     ) {
         $this->beConstructedWith(
             $foreignEntityDelegate,
@@ -55,7 +66,11 @@ class ManagerSpec extends ObjectBehavior
             $paywallDelegate,
             $metricsDelegate,
             $notificationsDelegate,
-            $entitiesBuilder
+            $entitiesBuilder,
+            null,
+            null,
+            $boostRepository,
+            $guidLinkResolver
         );
         $this->foreignEntityDelegate = $foreignEntityDelegate;
 
@@ -64,6 +79,8 @@ class ManagerSpec extends ObjectBehavior
         $this->paywallDelegate = $paywallDelegate;
         $this->metricsDelegate = $metricsDelegate;
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->boostRepository = $boostRepository;
+        $this->guidLinkResolver = $guidLinkResolver;
 
         Session::setUser((new User())->set('guid', 123)->set('username', 'test'));
     }
@@ -147,6 +164,12 @@ class ManagerSpec extends ObjectBehavior
         $this->save->save()
             ->shouldBeCalled();
 
+        $this->boostRepository->getList([
+            'entity_guid' => null,
+            'state' => 'approved'
+        ])->shouldBeCalled()
+            ->willReturn([]);
+    
         $activity = new Activity();
         $activity->owner_guid = 123;
 
@@ -178,6 +201,12 @@ class ManagerSpec extends ObjectBehavior
     {
         $this->foreignEntityDelegate->onUpdate(Argument::type(Activity::class), Argument::type(EntityMutation::class));
 
+        $this->boostRepository->getList([
+            'entity_guid' => null,
+            'state' => 'approved'
+        ])->shouldBeCalled()
+            ->willReturn([]);
+
         $activity = new Activity();
         $activity->owner_guid = 123;
         $activity->type = 'object';
@@ -206,6 +235,12 @@ class ManagerSpec extends ObjectBehavior
         $this->save->save()
             ->shouldBeCalled();
 
+        $this->boostRepository->getList([
+                'entity_guid' => null,
+                'state' => 'approved'
+            ])->shouldBeCalled()
+                ->willReturn([]);
+
         $activity = new Activity();
         $activity->owner_guid = 123;
 
@@ -219,5 +254,66 @@ class ManagerSpec extends ObjectBehavior
         $activityMutation->setPaywall(true);
 
         $this->update($activityMutation);
+    }
+
+    public function it_should_not_update_an_actively_boosted_activity(
+        EntityMutation $activityMutation
+    ) {
+        $activity = new Activity();
+        $activity['guid'] = 123;
+
+        $activityMutation->getMutatedEntity()
+            ->shouldBeCalled()
+            ->willReturn($activity);
+
+        $activityMutation->getOriginalEntity()
+            ->shouldBeCalled()
+            ->willReturn($activity);
+
+        $this->guidLinkResolver->resolve(123)
+            ->shouldBeCalled()
+            ->willReturn(321);
+
+        $this->boostRepository->getList([
+            'entity_guid' => [123, 321],
+            'state' => 'approved'
+        ])->shouldBeCalled()
+            ->willReturn([
+                1
+            ]);
+
+        $this->shouldThrow(UserErrorException::class)
+            ->during("update", [$activityMutation]);
+    }
+
+    public function it_should_not_update_an_actively_boosted_activity_with_a_linked_entity(
+        EntityMutation $activityMutation
+    ) {
+        $activity = new Activity();
+
+        $activity->guid = 123;
+        $activity->entity_guid = 321;
+
+        $activityMutation->getMutatedEntity()
+            ->shouldBeCalled()
+            ->willReturn($activity);
+
+        $activityMutation->getOriginalEntity()
+            ->shouldBeCalled()
+            ->willReturn($activity);
+
+        $this->guidLinkResolver->resolve(123)
+            ->shouldNotBeCalled();
+
+        $this->boostRepository->getList([
+            'entity_guid' => [123, 321],
+            'state' => 'approved'
+        ])->shouldBeCalled()
+            ->willReturn([
+                1
+            ]);
+
+        $this->shouldThrow(UserErrorException::class)
+            ->during("update", [$activityMutation]);
     }
 }

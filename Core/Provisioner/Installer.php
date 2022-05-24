@@ -54,9 +54,9 @@ class Installer
             'sns-secret' => '',
             'checkout_domain' => 'localhost:8081',
             'verify-service-sid' => '',
-            'webpush_vapid_public_key' => '',
-            'webpush_vapid_private_key' => '',
-            'webpush_vapid_subject' => '',
+            'webpush_vapid_public_key' => 'BDaU09kzvn5IR2_iAXCDmYJQaeLN-szxBiCHnizLVausDr8Ci4sF-GQk7x6zYKq9mRAIyJn-14VrN2jwQ5i2K8E',
+            'webpush_vapid_private_key' => 'bkR6jwvawSIIt2V94Oq2We5PQxOsM6PjA4pzASmUyaY',
+            'webpush_vapid_subject' => 'mailto: <test@minds.com>',
         ];
 
         usleep(mt_rand(1, 9999));
