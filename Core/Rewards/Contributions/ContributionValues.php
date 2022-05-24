@@ -7,7 +7,7 @@ class ContributionValues
         //'comments' => 2,
         //'reminds' => 4,
         'votes' => 1,
-        'downvotes' => -1,
+        // 'downvotes' => -1,
         //'subscribers' => 4,
         //'referrals' => 10,
         //'referrals_welcome' => 1,
@@ -30,8 +30,8 @@ class ContributionValues
             //     return static::$multipliers['reminds'];
             case 'vote:up':
                 return static::$multipliers['votes'];
-            case 'vote:down':
-                return static::$multipliers['downvotes'];
+            // case 'vote:down':
+            //     return static::$multipliers['downvotes'];
             // case 'subscribers':
             //     return static::$multipliers['subscribe'];
             default:
