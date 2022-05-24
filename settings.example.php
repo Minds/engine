@@ -790,8 +790,3 @@ $CONFIG->set('webpush_vapid_details', [
 ]);
 
 $CONFIG->set('seen-entities-weight', 0.01);
-
-$CONFIG->set('two-factor-ttl', [
-    'trusted' => 900,
-    'untrusted' => 86400
-]);

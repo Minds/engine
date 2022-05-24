@@ -12,7 +12,7 @@ use NotImplementedException;
 use Psr\SimpleCache\CacheInterface;
 
 /**
- *
+ * Cassandra implementation of cache
  */
 class Cassandra implements CacheInterface
 {
@@ -25,6 +25,7 @@ class Cassandra implements CacheInterface
     }
 
     /**
+     * Get a key from the cache table
      * @inheritDoc
      * @throws Exception
      */
@@ -50,10 +51,11 @@ class Cassandra implements CacheInterface
     }
 
     /**
+     * Set a key in the cache table
      * @inheritDoc
      * @throws Exception
      */
-    public function set($key, $value, $ttl = null)
+    public function set($key, $value, $ttl = null): bool
     {
         $query = (new PreparedStatement())
             ->query(
@@ -83,10 +85,11 @@ class Cassandra implements CacheInterface
     }
 
     /**
+     * Removes a key from the cache table
      * @inheritDoc
      * @throws Exception
      */
-    public function delete($key)
+    public function delete($key): bool
     {
         $query = (new PreparedStatement())
             ->query(
@@ -113,6 +116,7 @@ class Cassandra implements CacheInterface
     }
 
     /**
+     * Retrieves multiple keys at once from the cache table
      * @inheritDoc
      */
     public function getMultiple($keys, $default = null): array
@@ -127,6 +131,7 @@ class Cassandra implements CacheInterface
     }
 
     /**
+     * Set multiple keys at once in the cache table
      * @inheritDoc
      */
     public function setMultiple($values, $ttl = null): bool
@@ -139,6 +144,7 @@ class Cassandra implements CacheInterface
     }
 
     /**
+     * Delete multiple keys at once from the cache table
      * @inheritDoc
      */
     public function deleteMultiple($keys): bool
@@ -151,6 +157,7 @@ class Cassandra implements CacheInterface
     }
 
     /**
+     * Check if a keu exists within the cache table
      * @inheritDoc
      */
     public function has($key): bool

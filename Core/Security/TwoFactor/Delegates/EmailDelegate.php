@@ -29,11 +29,11 @@ class EmailDelegate implements TwoFactorDelegateInterface
      * @param EmailConfirmationManager|null $emailConfirmation - handles confirmation of email address.
      */
     public function __construct(
-        private ?TwoFactorService             $twoFactorService = null,
-        private ?Logger                       $logger = null,
-        private ?TwoFactorEmail               $twoFactorEmail = null,
+        private ?TwoFactorService $twoFactorService = null,
+        private ?Logger $logger = null,
+        private ?TwoFactorEmail $twoFactorEmail = null,
         private ?TwoFactoSecretStoreInterface $twoFactorSecretStore = null,
-        private ?EmailConfirmationManager     $emailConfirmation = null
+        private ?EmailConfirmationManager $emailConfirmation = null
     ) {
         $this->twoFactorService ??= new TwoFactorService();
         $this->logger ??= Di::_()->get('Logger');
