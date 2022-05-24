@@ -19,5 +19,8 @@ class Module implements ModuleInterface
 
         $events = new Events();
         $events->register();
+
+        $routes = new Routes();
+        $routes->register();
     }
 }

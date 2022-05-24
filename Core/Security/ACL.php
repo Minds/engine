@@ -9,7 +9,6 @@ use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
-use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Minds\Entities;
 use Minds\Entities\Entity;
 use Minds\Entities\RepositoryEntity;
@@ -17,6 +16,8 @@ use Minds\Entities\User;
 use Minds\Exceptions\StopEventException;
 use Minds\Helpers\Flags;
 use Minds\Helpers\MagicAttributes;
+use Minds\Core\Security\TwoFactor\Manager as TwoFactorManager;
+use Zend\Diactoros\ServerRequestFactory;
 
 class ACL
 {
@@ -32,8 +33,12 @@ class ACL
     /** @var bool */
     private $normalizeEntities;
 
-    public function __construct($entitiesBuilder = null, $logger = null, $config = null)
-    {
+    public function __construct(
+        $entitiesBuilder = null,
+        $logger = null,
+        $config = null,
+        private ?TwoFactorManager $twoFactorManager = null
+    ) {
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->logger = $logger ?? Di::_()->get('Logger');
         $config = $config ?? Di::_()->get('Config');
@@ -225,6 +230,8 @@ class ACL
          * If the user hasn't verified the email
          */
         if (!$this->isEmailVerified($user) && $user->getGUID() !== $entity->getGUID()) {
+            // TODO: add experiment after figuring out how to handle outer catch loops on many actions catching MFA errors.
+            // $this->getTwoFactorManager()->gatekeeper($user, ServerRequestFactory::fromGlobals());
             throw new UnverifiedEmailException();
         }
 
@@ -323,6 +330,8 @@ class ACL
          * If the user hasn't verified the email
          */
         if (!$this->isEmailVerified($user)) {
+            // TODO: add experiment after figuring out how to handle outer catch loops on many actions catching MFA errors.
+            // $this->getTwoFactorManager()->gatekeeper($user, ServerRequestFactory::fromGlobals());
             throw new UnverifiedEmailException();
         }
 
@@ -366,14 +375,17 @@ class ACL
      */
     protected function isEmailVerified(User $user): bool
     {
-        $isMobile = isset($_SERVER['HTTP_APP_VERSION']);
-        if ($isMobile) {
-            return true;
-        }
-        if ($user->isTrusted()) {
-            return true;
-        }
-        return false;
+        return $user->isTrusted();
+    }
+
+    /**
+     * Gets TwoFactorManager - this is not provided in the constructor
+     * to avoid a circular dependency loop.
+     * @return TwoFactorManager - manager.
+     */
+    protected function getTwoFactorManager(): TwoFactorManager
+    {
+        return $this->twoFactorManager ?? Di::_()->get('Security\TwoFactor\Manager');
     }
 
     public static function _()
