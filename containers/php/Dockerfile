@@ -62,7 +62,7 @@ ENV BUILD_DEPS \
 
 RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && apk add --no-cache libuv gmp \
-    && git clone --branch=php8.0 https://github.com/nano-interactive/php-driver.git $INSTALL_DIR \
+    && git clone --branch=v1.3.x https://github.com/nano-interactive/php-driver.git $INSTALL_DIR \
     && cd $INSTALL_DIR \
     && git submodule update --init \
     # Install CPP Driver
@@ -163,7 +163,30 @@ RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && rm -rf PHP-CPP pulsar pulsar-php-client \
     && apk del build-deps
 
-RUN apk add protobuf-dev
+RUN apk add protobuf-dev automake
+
+
+RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
+    # libsecp256kq
+    && git clone https://github.com/bitcoin-core/secp256k1.git \
+    && cd secp256k1 \
+        && git checkout efad3506a8937162e8010f5839fdf3771dfcf516 \
+    && ./autogen.sh \
+    && ./configure --enable-tests=no --enable-benchmark=no --enable-experimental --enable-module-ecdh --enable-module-recovery --enable-module-schnorrsig --enable-module-extrakeys \
+    && make \
+    && make install \
+    && cd .. \
+    # secp256k1-php
+    && git clone https://github.com/Minds/secp256k1-php.git --branch fix-php8-schnorrsig \
+    && cd secp256k1-php/secp256k1 \
+    && phpize \
+    && ./configure --with-secp256k1-config --with-module-recovery --with-module-ecdh --with-module-schnorrsig --with-module-extrakeys \
+    && make \
+    && make install \
+    && docker-php-ext-enable secp256k1 \
+    && cd ../../ \
+    && rm -rf secp256k1 secp256k1-php \
+    && apk del build-deps
 
 # PHP INI
 COPY php.ini /usr/local/etc/php/
