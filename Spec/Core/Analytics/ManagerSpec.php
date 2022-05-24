@@ -2,10 +2,9 @@
 
 namespace Spec\Minds\Core\Analytics;
 
+use Minds\Core\Data\ElasticSearch\Client;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-
-use Minds\Core\Data\ElasticSearch\Client;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -56,7 +55,7 @@ class ManagerSpec extends ObjectBehavior
                 // 'comments' => 62,
                 // 'reminds' => 62,
                 'votes' => 62,
-                'downvotes' => 62
+                // 'downvotes' => 62
                 // 'referrals' => 62,
             ],
             1511654400000 => [
@@ -64,7 +63,7 @@ class ManagerSpec extends ObjectBehavior
                 // 'comments' => 102,
                 // 'reminds' => 102,
                 'votes' => 102,
-                'downvotes' => 102
+                // 'downvotes' => 102
                 // 'referrals' => 102,
             ]
         ]);

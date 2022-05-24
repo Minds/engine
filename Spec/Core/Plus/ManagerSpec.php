@@ -2,13 +2,13 @@
 
 namespace Spec\Minds\Core\Plus;
 
-use Minds\Core\Plus\Manager;
 use Minds\Core\Config;
-use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Data\Cassandra;
-use Spec\Minds\Mocks\Cassandra\Rows;
+use Minds\Core\Data\ElasticSearch;
+use Minds\Core\Plus\Manager;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Spec\Minds\Mocks\Cassandra\Rows;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -198,20 +198,22 @@ class ManagerSpec extends ObjectBehavior
             ]);
 
         $response = $this->getScores($asOfTs);
-        $response->current()->shouldBe([
+        $current = $response->current();
+
+        $current->shouldBe([
             'user_guid' => "123",
-            'total' => 50,
-            'count' => 45,
-            'sharePct' => 0.9
+            'total' => 60,
+            'count' => 55,
+            'sharePct' => 0.9166666666666666
         ]);
 
         //
         $response->next();
         $response->current()->shouldBe([
             'user_guid' => "456",
-            'total' => 50,
+            'total' => 60,
             'count' => 5,
-            'sharePct' => 0.1
+            'sharePct' => 0.08333333333333333
         ]);
     }
 }

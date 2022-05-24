@@ -2,15 +2,13 @@
 
 namespace Spec\Minds\Core\Rewards\Contributions;
 
-use Minds\Core\Util\BigNumber;
+use Minds\Core\Analytics\Manager;
+use Minds\Core\Rewards\Contributions\Contribution;
+use Minds\Core\Rewards\Contributions\Repository;
+use Minds\Core\Rewards\Contributions\Sums;
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-
-use Minds\Core\Rewards\Contributions\Repository;
-use Minds\Core\Rewards\Contributions\Contribution;
-use Minds\Core\Rewards\Contributions\Sums;
-use Minds\Core\Analytics\Manager;
-use Minds\Entities\User;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -41,15 +39,12 @@ class ManagerSpec extends ObjectBehavior
         $analytics->getCounts()->shouldBeCalled()->willReturn([
             $dayAgo => [
                 'votes' => 24,
-                'downvotes' => 10,
             ],
             $twoDaysAgo => [
                 'votes' => 40,
-                'downvotes' => 20,
             ],
             $threeDaysAgo => [
                 'votes' => 2,
-                'downvotes' => 1,
             ]
         ]);
 
@@ -60,12 +55,6 @@ class ManagerSpec extends ObjectBehavior
                 ->setTimestamp($dayAgo)
                 ->setScore(24)
                 ->setAmount(24),
-            (new Contribution)
-                ->setMetric('downvotes')
-                ->setUser($user)
-                ->setTimestamp($dayAgo)
-                ->setScore(-10)
-                ->setAmount(10),
 
             (new Contribution)
                 ->setMetric('votes')
@@ -73,12 +62,6 @@ class ManagerSpec extends ObjectBehavior
                 ->setTimestamp($twoDaysAgo)
                 ->setScore(40)
                 ->setAmount(40),
-            (new Contribution)
-                ->setMetric('downvotes')
-                ->setUser($user)
-                ->setTimestamp($twoDaysAgo)
-                ->setScore(-20)
-                ->setAmount(20),
             
             (new Contribution)
                 ->setMetric('votes')
@@ -86,12 +69,6 @@ class ManagerSpec extends ObjectBehavior
                 ->setTimestamp($threeDaysAgo)
                 ->setScore(2)
                 ->setAmount(2),
-            (new Contribution)
-                ->setMetric('downvotes')
-                ->setUser($user)
-                ->setTimestamp($threeDaysAgo)
-                ->setScore(-1)
-                ->setAmount(1),
         ];
 
         $repository->add($contributions)->shouldBeCalled();
