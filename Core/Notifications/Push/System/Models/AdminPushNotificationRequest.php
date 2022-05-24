@@ -114,6 +114,7 @@ class AdminPushNotificationRequest implements ExportableInterface, EntityInterfa
         if (!key_exists('failed_counter', $data)) {
             throw new ServerErrorException("Missing property 'failed_counter' in System Push Notification event");
         }
+        $notificationData->setFailedCounter($data['failed_counter']);
 
         if (!key_exists('skipped_counter', $data)) {
             throw new ServerErrorException("Missing property 'skipped_counter' in System Push Notification event");
