@@ -1742,9 +1742,6 @@ CREATE TABLE minds.system_push_notifications
     url text,
     target text,
     counter int,
-    successful_counter int,
-    failed_counter int,
-    skipped_counter int,
     status int,
     PRIMARY KEY (type, request_uuid)
 ) WITH CLUSTERING ORDER BY (request_uuid DESC);
@@ -1762,3 +1759,12 @@ CREATE TABLE minds.cache
     key text PRIMARY KEY,
     data text
 );
+
+ALTER TABLE minds.system_push_notifications
+    ADD successful_counter int;
+
+ALTER TABLE minds.system_push_notifications
+    ADD failed_counter int;
+
+ALTER TABLE minds.system_push_notifications
+    ADD skipped_counter int;
