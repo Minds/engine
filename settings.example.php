@@ -789,4 +789,4 @@ $CONFIG->set('webpush_vapid_details', [
     'subject' => "{{webpush_vapid_subject}}"
 ]);
 
-$CONFIG->set('seen-entities-weight', 0.5);
+$CONFIG->set('seen-entities-weight', 0.01);
