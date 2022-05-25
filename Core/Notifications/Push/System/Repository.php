@@ -10,6 +10,7 @@ use Minds\Core\Data\Cassandra\Prepared\Custom as PreparedStatement;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Core\Notifications\Push\System\Models\AdminPushNotificationRequest;
+use Minds\Core\Notifications\Push\System\Models\AdminPushNotificationRequestCounters;
 use Minds\Core\Notifications\Push\UndeliverableException;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -130,28 +131,22 @@ class Repository
     /**
      * @param string $type
      * @param string $requestUuid
-     * @param int $totalNotifications
-     * @param int $successfulNotifications
-     * @param int $failedNotifications
-     * @param int $skippedNotifications
+     * @param AdminPushNotificationRequestCounters $requestCounters
      * @return void
      */
     public function updateRequestCounters(
         string $type,
         string $requestUuid,
-        int $totalNotifications,
-        int $successfulNotifications,
-        int $failedNotifications,
-        int $skippedNotifications
+        AdminPushNotificationRequestCounters $requestCounters
     ): void {
         $query = (new PreparedStatement())
             ->query(
                 "UPDATE system_push_notifications SET counter = ?, successful_counter = ?, failed_counter = ?, skipped_counter = ? WHERE type = ? AND request_uuid = ?;",
                 [
-                    $totalNotifications,
-                    $successfulNotifications,
-                    $failedNotifications,
-                    $skippedNotifications,
+                    $requestCounters->getTotalNotifications(),
+                    $requestCounters->getSuccessfulNotifications(),
+                    $requestCounters->getFailedNotifications(),
+                    $requestCounters->getSkippedNotifications(),
                     $type,
                     new Timeuuid($requestUuid)
                 ]
