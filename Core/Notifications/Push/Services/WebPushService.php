@@ -46,6 +46,7 @@ class WebPushService extends AbstractService implements PushServiceInterface
             $this->sendNotification($pushNotification->getDeviceSubscription()->getToken(), $payload);
         } catch (\Exception $e) {
             error_log($e->getMessage());
+            return false;
         }
         return true;
     }
