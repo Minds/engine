@@ -66,6 +66,7 @@ class Minds extends base
         Recommendations\Module::class,
         Captcha\FriendlyCaptcha\Module::class,
         DID\Module::class,
+        Nostr\Module::class,
     ];
 
     /**

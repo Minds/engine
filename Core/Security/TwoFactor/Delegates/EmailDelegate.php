@@ -1,45 +1,43 @@
 <?php
-/**
- * TwoFactor SMS Delegate
- */
+
 namespace Minds\Core\Security\TwoFactor\Delegates;
 
-use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\V2\Campaigns\Recurring\TwoFactor\TwoFactor as TwoFactorEmail;
-use Minds\Core\Log;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security\TwoFactor as TwoFactorService;
 use Minds\Core\Security\TwoFactor\TwoFactorInvalidCodeException;
 use Minds\Core\Security\TwoFactor\TwoFactorRequiredException;
-use Minds\Core\SMS;
 use Minds\Entities\User;
 use Zend\Diactoros\ServerRequestFactory;
+use Minds\Core\Email\Confirmation\Manager as EmailConfirmationManager;
+use Minds\Core\Log\Logger;
+use Minds\Core\Security\TwoFactor\Store\TwoFactorSecretStore;
 
+/**
+ * TwoFactor Email Delegate
+ */
 class EmailDelegate implements TwoFactorDelegateInterface
 {
-    /** @var TwoFactorService */
-    protected $twoFactorService;
-
-    /** @var SMS\Services\Twilio */
-    protected $smsService;
-
-    /** @var PsrWrapper */
-    protected $cache;
-
-    /** @var Log\Logger */
-    protected $logger;
-
-    /** @var TwoFactorEmail */
-    protected $twoFactorEmail;
-
-    public function __construct(TwoFactorService $twoFactorService = null, $smsService = null, PsrWrapper $cache = null, TwoFactorEmail $twoFactorEmail = null)
-    {
-        $this->twoFactorService = $twoFactorService ?? new TwoFactorService();
-        $this->smsService = $smsService ?? Di::_()->get('SMS');
-        $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
-        $this->logger = $logger ?? Di::_()->get('Logger');
-        $this->twoFactorEmail = $twoFactorEmail ?? new TwoFactorEmail();
+    /**
+     * Constructor
+     * @param ?TwoFactorService $twoFactorService - service handling two-factor.
+     * @param ?Logger $logger - logger class.
+     * @param ?TwoFactorEmail $twoFactorEmail - responsible for sending emails.
+     * @param ?TwoFactorSecretStore $twoFactorSecretStore - handles storage of secrets.
+     * @param ?EmailConfirmationManager $emailConfirmation - handles confirmation of email address.
+     */
+    public function __construct(
+        private ?TwoFactorService $twoFactorService = null,
+        private ?Logger $logger = null,
+        private ?TwoFactorEmail $twoFactorEmail = null,
+        private ?TwoFactorSecretStore $twoFactorSecretStore = null,
+        private ?EmailConfirmationManager $emailConfirmation = null
+    ) {
+        $this->twoFactorService ??= new TwoFactorService();
+        $this->logger ??= Di::_()->get('Logger');
+        $this->twoFactorEmail ??= new TwoFactorEmail();
+        $this->twoFactorSecretStore ??= new TwoFactorSecretStore();
+        $this->emailConfirmation ??= Di::_()->get('Email\Confirmation');
     }
 
     /**
@@ -49,30 +47,34 @@ class EmailDelegate implements TwoFactorDelegateInterface
      */
     public function onRequireTwoFactor(User $user): void
     {
-        // Rate limit here
+        $hasResendHeader = $this->hasResendHeader();
 
-        $secret = $this->twoFactorService->createSecret(); //we have a new secret for each request
+        /** @var TwoFactorSecret */
+        $storedSecretObject = $this->twoFactorSecretStore->get($user);
+        $secret = $storedSecretObject && $storedSecretObject->getSecret() ? $storedSecretObject->getSecret() : '';
 
-        $this->logger->info('2fa - sending Email to ' . $user->getGuid());
+        // TODO: Rate limit here.
+        if (!$secret || $hasResendHeader) {
+            // Unless we are resending, generate a new secret.
+            if (!$hasResendHeader) {
+                $secret = $this->twoFactorService->createSecret();
+            }
 
-        $code = $this->twoFactorService->getCode($secret);
+            $this->logger->info('2fa - sending Email to ' . $user->getGuid());
 
-        // Send email here
-        $this->twoFactorEmail->setUser($user);
-        $this->twoFactorEmail->setCode($code);
-        $this->twoFactorEmail->send();
+            $code = $this->twoFactorService->getCode(
+                secret: $secret,
+                timeSlice: 1
+            );
 
-        // create a lookup of a random key. The user can then use this key along side their twofactor code
-        // to login. This temporary code should be removed within 5 minutes.
-        $bytes = openssl_random_pseudo_bytes(128);
-        $key = hash('sha512', $user->username . $user->salt . $bytes);
+            $this->sendEmail($user, $code);
 
-        $this->cache->set($key, json_encode([
-            '_guid' => $user->guid,
-            'ts' => time(),
-            'secret' => $secret
-        ]), 300); // Expire after 5 mins
-
+            // create a lookup of a random key. The user can then use this key along side their two-factor code to login.
+            $key = $this->twoFactorSecretStore->set($user, $secret);
+        } else {
+            $key = $this->twoFactorSecretStore->getKey($user);
+        }
+        
         // Set a header with the 2fa request id
         @header("X-MINDS-EMAIL-2FA-KEY: $key", true);
 
@@ -89,27 +91,75 @@ class EmailDelegate implements TwoFactorDelegateInterface
     public function onAuthenticateTwoFactor(User $user, string $code): void
     {
         $request = ServerRequestFactory::fromGlobals();
-        $key = $request->getHeader('X-MINDS-EMAIL-2FA-KEY')[0];
-        $payload = $this->cache->get($key);
+        $key = $request->getHeader('X-MINDS-EMAIL-2FA-KEY')[0] ?? '';
+        
+        /** @var TwoFactorSecret */
+        $storedSecretObject = $this->twoFactorSecretStore->getByKey($key);
 
-        if (!$payload) {
+        if (!$storedSecretObject) {
             throw new TwoFactorInvalidCodeException();
         }
 
-        $payload = json_decode($payload, true);
-
-        // we allow for 300 seconds (5 mins) after we send a code
-        if ($payload['_guid']
-            && $payload['ts'] > time() - 300
-            && $user->getGuid() === (string) $payload['_guid']
+        // we allow for 900 seconds for email confirmed users (15 mins) after we send a code.
+        if ($storedSecretObject->getGuid()
+            && $storedSecretObject->getTimestamp() > (time() - $this->getTtl($user))
+            && $user->getGuid() === (string) $storedSecretObject->getGuid()
         ) {
-            $secret = $payload['secret'];
+            $secret = $storedSecretObject->getSecret();
         } else {
             throw new TwoFactorInvalidCodeException();
         }
 
-        if (!$this->twoFactorService->verifyCode($secret, $code, 10)) {
+        if (!$this->twoFactorService->verifyCode(
+            secret: $secret,
+            code: $code,
+            discrepancy: 1, // 30 second interval.
+            // set current slice to 1 as code library isn't designed to handle
+            // codes that expire after a day. Code expiry handled above.
+            currentTimeSlice: 1
+        )) {
             throw new TwoFactorInvalidCodeException();
         }
+
+        // Trust a user if they have given a valid two-factor code.
+        if (!$user->isTrusted()) {
+            $this->emailConfirmation->approveConfirmation($user);
+        }
+
+        $this->twoFactorSecretStore->delete($key);
+    }
+
+    /**
+     * Gets TTL for entry in store.
+     * @param User $user - user to get TTL for.
+     * @return int - ttl in seconds.
+     */
+    private function getTtl(User $user): int
+    {
+        return $this->twoFactorSecretStore->getTtl($user);
+    }
+
+    /**
+     * Whether a resend is being requested by header.
+     * @return bool true if resend it being requested.
+     */
+    private function hasResendHeader(): bool
+    {
+        $request = ServerRequestFactory::fromGlobals();
+        $header = $request->getHeader('X-MINDS-EMAIL-2FA-RESEND')[0] ?? '';
+        return $header === '1';
+    }
+
+    /**
+     * Sends an email with code.
+     * @param User $user - user to send to.
+     * @param string $code - code to send.
+     * @return void
+     */
+    private function sendEmail(User $user, string $code): void
+    {
+        $this->twoFactorEmail->setUser($user);
+        $this->twoFactorEmail->setCode($code);
+        $this->twoFactorEmail->send();
     }
 }

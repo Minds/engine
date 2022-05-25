@@ -4,7 +4,6 @@ namespace Minds\Core\Analytics;
 
 use Minds\Core\Analytics\Aggregates\ActionsHistogram;
 use Minds\Core\Analytics\Aggregates\TopActions;
-use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Di\Di;
 
 class Manager
@@ -24,7 +23,7 @@ class Manager
         //'comments' => 'comment',
         //'reminds' => 'remind',
         'votes' => 'vote:up',
-        'downvotes' => 'vote:down',
+        // 'downvotes' => 'vote:down',
         //'referrals' => 'referral',
     ];
 

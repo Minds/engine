@@ -7,11 +7,13 @@ use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Client as ElasticSearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared\Search as PreparedSearchQuery;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Recommendations\Algorithms\FriendsOfFriends\Validators\RepositoryOptionsValidator;
 use Minds\Core\Recommendations\RepositoryInterface;
 use Minds\Core\Suggestions\Suggestion;
 use Minds\Entities\Factory;
 use Minds\Exceptions\UserErrorException;
+use Minds\Core\Security\Block;
 
 /**
  * Responsible for fetching the relevant entities from ElasticSearch for the FriendsOfFriends algorithm
@@ -22,12 +24,16 @@ class Repository implements RepositoryInterface
         private ?ElasticSearchClient $elasticSearchClient = null,
         private ?RepositoryOptions $options = null,
         private ?Config $config = null,
-        private ?RepositoryOptionsValidator $optionsValidator = null
+        private ?RepositoryOptionsValidator $optionsValidator = null,
+        private ?Block\Manager $blockManager = null,
+        private ?EntitiesBuilder $entitiesBuilder = null,
     ) {
         $this->elasticSearchClient ??= Di::_()->get('Database\ElasticSearch');
         $this->options ??= new RepositoryOptions();
         $this->config ??= Di::_()->get('Config');
         $this->optionsValidator ??= new RepositoryOptionsValidator();
+        $this->blockManager ??= Di::_()->get('Security\Block\Manager');
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -199,11 +205,21 @@ class Repository implements RepositoryInterface
         $result = $this->elasticSearchClient->request($preparedQuery);
 
         $response = new Response();
+        $count = 0;
 
         foreach ($result['aggregations']['channels']['buckets'] as $i => $row) {
             $entity = null;
-            if ($i < 12) {
-                $entity = Factory::build($row['key']);
+
+            $blockEntry = (new Block\BlockEntry())
+                ->setActorGuid($this->options->getTargetUserGuid())
+                ->setSubjectGuid($row['key']);
+
+            if ($this->blockManager->hasBlocked($blockEntry) || $this->blockManager->isBlocked($blockEntry)) {
+                continue;
+            }
+
+            if (++$count <= 12) {
+                $entity = $this->entitiesBuilder->single($row['key']);
             }
 
             $response[] = (new Suggestion())
