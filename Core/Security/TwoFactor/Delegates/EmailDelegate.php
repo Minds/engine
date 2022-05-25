@@ -49,35 +49,35 @@ class EmailDelegate implements TwoFactorDelegateInterface
      */
     public function onRequireTwoFactor(User $user): void
     {
-        $hasResendHeader = $this->hasResendHeader();
-
-        /** @var TwoFactorSecret */
-        $storedSecretObject = $this->twoFactorSecretStore->get($user);
-        $secret = $storedSecretObject && $storedSecretObject->getSecret() ? $storedSecretObject->getSecret() : '';
-
-        // TODO: Rate limit here.
-        if (!$secret || $hasResendHeader) {
-            // Unless we are resending, generate a new secret.
-            if (!$hasResendHeader) {
-                $secret = $this->twoFactorService->createSecret();
-            }
-
-            $this->logger->info('2fa - sending Email to ' . $user->getGuid());
-
-            $code = $this->twoFactorService->getCode(
-                secret: $secret,
-                timeSlice: 1
-            );
-
-            $this->sendEmail($user, $code);
-
-            // create a lookup of a random key. The user can then use this key along side their two-factor code to login.
-            $key = $this->twoFactorSecretStore->set($user, $secret);
+        $key = $this->get2FAKeyHeader();
+        if ($key) {
+            $storedSecretObject = $this->twoFactorSecretStore->getByKey($key);
         } else {
-            $key = $this->twoFactorSecretStore->getKey($user);
+            $storedSecretObject = $this->twoFactorSecretStore->get($user);
+            $key = $storedSecretObject ? $this->twoFactorSecretStore->getKey($user) : '';
         }
-        
-        // Set a header with the 2fa request id
+
+        $secret = ($storedSecretObject && $storedSecretObject->getSecret()) ? $storedSecretObject->getSecret() : '';
+
+        $storeEntry = false;
+        if (!$secret) {
+            $storeEntry = true;
+            $secret = $this->twoFactorService->createSecret();
+        }
+
+        $this->logger->info('2fa - sending Email to ' . $user->getGuid());
+
+        $code = $this->twoFactorService->getCode(
+            secret: $secret,
+            timeSlice: 1
+        );
+
+        $this->sendEmail($user, $code);
+
+        if ($storeEntry) {
+            $key = $this->twoFactorSecretStore->set($user, $secret);
+        }
+
         @header("X-MINDS-EMAIL-2FA-KEY: $key", true);
 
         //forward to the twofactor page
@@ -143,14 +143,13 @@ class EmailDelegate implements TwoFactorDelegateInterface
     }
 
     /**
-     * Whether a resend is being requested by header.
-     * @return bool true if resend it being requested.
+     * Gets 2FA key header if present.
+     * @return string - 2fa key header.
      */
-    private function hasResendHeader(): bool
+    private function get2FAKeyHeader(): string
     {
         $request = ServerRequestFactory::fromGlobals();
-        $header = $request->getHeader('X-MINDS-EMAIL-2FA-RESEND')[0] ?? '';
-        return $header === '1';
+        return $request->getHeader('X-MINDS-EMAIL-2FA-KEY')[0] ?? '';
     }
 
     /**
