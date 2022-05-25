@@ -15,11 +15,13 @@ use Minds\Core\Notifications\Push\Services\PushServiceInterface;
 use Minds\Core\Notifications\Push\Services\WebPushService;
 use Minds\Core\Notifications\Push\System\Delegates\AdminPushNotificationEventStreamsDelegate;
 use Minds\Core\Notifications\Push\System\Models\AdminPushNotificationRequest;
+use Minds\Core\Notifications\Push\System\Models\AdminPushNotificationRequestCounters;
 use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
 use Minds\Core\Notifications\Push\System\Targets\SystemPushNotificationTargetsList;
 use Minds\Core\Notifications\Push\UndeliverableException;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
+use PhpSpec\Exception\Example\SkippingException;
 
 /**
  *
@@ -78,6 +80,9 @@ class Manager
             ->setLink($requestNotificationDetails['notificationLink'])
             ->setCreatedAt(time())
             ->setCounter(0)
+            ->setSuccessfulCounter(0)
+            ->setFailedCounter(0)
+            ->setSkippedCounter(0)
             ->setTarget($requestNotificationDetails['notificationTarget']);
     }
 
@@ -106,14 +111,16 @@ class Manager
 
         $deviceSubscriptions = $notificationTargetHandler->getList();
 
+        $this->logger->info("$logPrefix: notifications target handler created");
+
         $this->repository->updateRequestStartedOnDate($notificationDetails->getType(), $notificationDetails->getRequestUuid());
 
-        $i = 0;
+        $requestCounters = new AdminPushNotificationRequestCounters();
         /**
          * @var DeviceSubscription $deviceSubscription
          */
         foreach ($deviceSubscriptions as $deviceSubscription) {
-            ++$i;
+            $requestCounters->increaseTotalNotifications();
 
             $notification = (new CustomPushNotification())
                 ->setTitle($notificationDetails->getTitle())
@@ -123,10 +130,23 @@ class Manager
 
             try {
                 $this->sendNotification($notification);
-                $this->logger->info("$logPrefix: sending ($i) - {$deviceSubscription->getUserGuid()}");
+                $this->logger->info("$logPrefix: sending ({$requestCounters->getTotalNotifications()}) - {$deviceSubscription->getUserGuid()}");
+                $requestCounters->increaseSuccessfulNotifications();
             } catch (UndeliverableException $e) {
-                $this->logger->error("$logPrefix: sending ($i) - {$deviceSubscription->getUserGuid()} - failed {$e->getMessage()}");
+                $this->logger->error("$logPrefix: sending ({$requestCounters->getTotalNotifications()}) - {$deviceSubscription->getUserGuid()} - failed {$e->getMessage()}");
+                $requestCounters->increaseFailedNotifications();
                 continue;
+            } catch (SkippingException $e) {
+                $this->logger->error("$logPrefix: sending ({$requestCounters->getTotalNotifications()}) - {$deviceSubscription->getUserGuid()} - skipped {$e->getMessage()}");
+                $requestCounters->increaseSkippedNotifications();
+            }
+
+            if ($requestCounters->getTotalNotifications() % 200 == 0) {
+                $this->repository->updateRequestCounters(
+                    $notificationDetails->getType(),
+                    $notificationDetails->getRequestUuid(),
+                    $requestCounters
+                );
             }
         }
 
@@ -134,6 +154,12 @@ class Manager
             $notificationDetails->getType(),
             $notificationDetails->getRequestUuid(),
             AdminPushNotificationRequestStatus::DONE
+        );
+
+        $this->repository->updateRequestCounters(
+            $notificationDetails->getType(),
+            $notificationDetails->getRequestUuid(),
+            $requestCounters
         );
 
         $this->logger->info("$logPrefix: completed");

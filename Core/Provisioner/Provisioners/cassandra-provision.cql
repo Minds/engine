@@ -1759,3 +1759,12 @@ CREATE TABLE minds.cache
     key text PRIMARY KEY,
     data text
 );
+
+ALTER TABLE minds.system_push_notifications
+    ADD successful_counter int;
+
+ALTER TABLE minds.system_push_notifications
+    ADD failed_counter int;
+
+ALTER TABLE minds.system_push_notifications
+    ADD skipped_counter int;
