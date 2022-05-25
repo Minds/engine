@@ -133,16 +133,6 @@ class EmailDelegate implements TwoFactorDelegateInterface
     }
 
     /**
-     * Gets TTL for entry in store.
-     * @param User $user - user to get TTL for.
-     * @return int - ttl in seconds.
-     */
-    private function getTtl(User $user): int
-    {
-        return $this->twoFactorSecretStore->getTtl($user);
-    }
-
-    /**
      * Gets 2FA key header if present.
      * @return string - 2fa key header.
      */
