@@ -8,16 +8,12 @@
 namespace Minds\Controllers\api\v1;
 
 use Minds\Api\Factory;
-use Minds\Common\IpAddress;
 use Minds\Core;
-use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Confirmation\Manager as EmailConfirmation;
-use Minds\Core\Queue\Client as Queue;
 use Minds\Entities;
-use Minds\Interfaces;
-use Minds\Core\I18n\Manager;
 use Minds\Exceptions\TwoFactorRequired;
+use Minds\Interfaces;
 use Zend\Diactoros\ServerRequestFactory;
 
 class settings implements Interfaces\Api
@@ -110,11 +106,11 @@ class settings implements Interfaces\Api
                     $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
                 }
 
-                $user->setEmail(strtolower($_POST['email']));
-
                 if (strtolower($_POST['email']) !== strtolower($user->getEmail())) {
                     $emailChange = true;
                 }
+
+                $user->setEmail(strtolower($_POST['email']));
             }
 
             if (isset($_POST['boost_rating'])) {

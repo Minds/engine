@@ -99,11 +99,13 @@ class EmailDelegateSpec extends ObjectBehavior
         User $user,
         TwoFactorSecret $twoFactorSecret
     ) {
+        $_SERVER['HTTP_X_MINDS_EMAIL_2FA_KEY'] = '~2faKey~';
+
         $twoFactorSecret->getSecret()
             ->shouldBeCalled()
             ->willReturn('~secret~');
 
-        $this->twoFactorSecretStore->get($user)
+        $this->twoFactorSecretStore->getByKey('~2faKey~')
             ->shouldBeCalled()
             ->willReturn($twoFactorSecret);
 
@@ -111,15 +113,26 @@ class EmailDelegateSpec extends ObjectBehavior
             ->shouldNotBeCalled()
             ->willReturn('~secret~');
 
-        $this->twoFactorEmail->send()
-            ->shouldNotBeCalled();
-
-        $this->twoFactorSecretStore->getKey($user)
+        $this->twoFactorService->getCode(
+            secret: '~secret~',
+            timeSlice: 1
+        )
             ->shouldBeCalled()
-            ->willReturn('~secret~');
+            ->willReturn('~code~');
+
+        $this->twoFactorEmail->setUser($user)
+            ->shouldBeCalled();
+
+        $this->twoFactorEmail->setCode('~code~')
+            ->shouldBeCalled();
+
+        $this->twoFactorEmail->send()
+            ->shouldBeCalled();
 
         $this->shouldThrow(TwoFactorRequiredException::class)
             ->during('onRequireTwoFactor', [ $user ]);
+
+        unset($_SERVER['HTTP_X_MINDS_EMAIL_2FA_KEY']);
     }
 
     public function it_should_NOT_authenticate_a_two_factor_code_with_no_matching_stored_object(
