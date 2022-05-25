@@ -1731,7 +1731,8 @@ CREATE TABLE minds.user_quality_scores
 
 CREATE TABLE minds.system_push_notifications
 (
-    request_id timeuuid PRIMARY KEY,
+    type text,
+    request_uuid timeuuid,
     author_guid bigint,
     created_at timestamp,
     started_at timestamp,
@@ -1741,8 +1742,9 @@ CREATE TABLE minds.system_push_notifications
     url text,
     target text,
     counter int,
-    status int
-) WITH CLUSTERING ORDER BY (created_at DESC);
+    status int,
+    PRIMARY KEY (type, request_uuid)
+) WITH CLUSTERING ORDER BY (request_uuid DESC);
 
 CREATE INDEX spn_status_idx ON minds."system_push_notifications" (status);
 
@@ -1750,4 +1752,10 @@ CREATE TABLE minds.did_keypairs
 (
     user_guid bigint PRIMARY KEY,
     keypair text,
+);
+
+CREATE TABLE minds.cache
+(
+    key text PRIMARY KEY,
+    data text
 );
