@@ -10,6 +10,7 @@ use Minds\Core\Notifications\EmailDigests\EmailDigestMarker;
 use Minds\Core\Notifications\EmailDigests\EmailDigestOpts;
 use Minds\Core\Notifications\Push\System\Manager;
 use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
+use Minds\Core\Notifications\Push\System\Targets\SystemPushNotificationTargetsList;
 use Minds\Core\Notifications\Push\UndeliverableException;
 use Minds\Interfaces;
 
@@ -125,5 +126,48 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
                 //send
             }
         }
+    }
+
+    /**
+     * Send push notification(s) for a top unseen post.
+     * @throws UndeliverableException - when notification is undeliverable.
+     * @throws ServerErrorException - when a server error occurs such as when unable to get
+     * an unseen top post.
+     * @example usage:
+     * - php cli.php Notification sendTopPostPush --user_guid=1285556899399340038 --target_list=AllAndroidAppDevices
+     */
+    public function sendTopPostPush()
+    {
+        $singleUserGuid = $this->getOpt('user_guid') ?? null;
+        $targetListClassName = $this->getOpt('target_list') ?? 'AllDevices';
+
+        /** @var TopPost\Manager */
+        $topPostPushManager = Di::_()->get('Notifications\Push\TopPost\Manager');
+
+        $notificationTargetHandler = SystemPushNotificationTargetsList::getTargetHandlerFromClassName(
+            $targetListClassName
+        );
+
+        $deviceSubscriptions = $notificationTargetHandler->getList();
+
+        foreach ($deviceSubscriptions as $deviceSubscription) {
+            // skip over if we're only sending to a single user.
+            if ($singleUserGuid && $singleUserGuid !== (string) $deviceSubscription->getUserGuid()) {
+                continue;
+            }
+            try {
+                $topPostPushManager->sendSingle($deviceSubscription);
+                $this->out('[TopPost CLI] Success: dispatched to ' . $deviceSubscription->getUserGuid());
+            } catch (\Exception $e) {
+                $this->out(
+                    '[TopPost CLI] Error: user_guid: ' .
+                    $deviceSubscription->getUserGuid() .
+                    ', message: ' .
+                    $e->getMessage()
+                );
+            }
+        }
+
+        $this->out('[TopPost CLI] Done.');
     }
 }

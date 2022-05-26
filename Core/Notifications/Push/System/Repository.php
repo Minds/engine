@@ -10,6 +10,7 @@ use Minds\Core\Data\Cassandra\Prepared\Custom as PreparedStatement;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Core\Notifications\Push\System\Models\AdminPushNotificationRequest;
+use Minds\Core\Notifications\Push\System\Models\AdminPushNotificationRequestCounters;
 use Minds\Core\Notifications\Push\UndeliverableException;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -130,6 +131,33 @@ class Repository
     /**
      * @param string $type
      * @param string $requestUuid
+     * @param AdminPushNotificationRequestCounters $requestCounters
+     * @return void
+     */
+    public function updateRequestCounters(
+        string $type,
+        string $requestUuid,
+        AdminPushNotificationRequestCounters $requestCounters
+    ): void {
+        $query = (new PreparedStatement())
+            ->query(
+                "UPDATE system_push_notifications SET counter = ?, successful_counter = ?, failed_counter = ?, skipped_counter = ? WHERE type = ? AND request_uuid = ?;",
+                [
+                    $requestCounters->getTotalNotifications(),
+                    $requestCounters->getSuccessfulNotifications(),
+                    $requestCounters->getFailedNotifications(),
+                    $requestCounters->getSkippedNotifications(),
+                    $type,
+                    new Timeuuid($requestUuid)
+                ]
+            );
+
+        $this->cassandraClient->request($query);
+    }
+
+    /**
+     * @param string $type
+     * @param string $requestUuid
      * @return AdminPushNotificationRequest
      * @throws ServerErrorException
      * @throws UndeliverableException
@@ -156,7 +184,7 @@ class Repository
 
         $rows = $this->cassandraClient->request($query);
 
-        if ($rows->count() == 0) {
+        if (!$rows || $rows->count() == 0) {
             throw new UndeliverableException("No request was found");
         }
 
