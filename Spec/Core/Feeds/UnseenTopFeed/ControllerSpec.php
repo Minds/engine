@@ -5,7 +5,6 @@ namespace Spec\Minds\Core\Feeds\UnseenTopFeed;
 use Exception;
 use Minds\Api\Exportable;
 use Minds\Common\Repository\Response;
-use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Feeds\UnseenTopFeed\Controller;
 use Minds\Core\Feeds\UnseenTopFeed\Manager;
@@ -51,7 +50,7 @@ class ControllerSpec extends ObjectBehavior
      * @throws Exception
      */
     public function it_should_return_successful_response(
-        ElasticManager $elasticManager
+        Manager $manager
     ) {
         $request = (new ServerRequest())
             ->withMethod("GET")
@@ -64,16 +63,11 @@ class ControllerSpec extends ObjectBehavior
             (new FeedSyncEntity())->setGuid(1)
         ]);
 
-        $elasticManager
-            ->getList(Argument::allOf(
-                Argument::withEntry('unseen', true),
-                Argument::withEntry('demoted', true),
-                Argument::withEntry('single_owner_threshold', 6),
-            ))
-            ->shouldBeCalledOnce()
+        $manager->getList(Argument::any(), Argument::any())
+            ->shouldBeCalled()
             ->willReturn($expectedEntities);
 
-        $this->beConstructedWith($elasticManager);
+        $this->beConstructedWith($manager);
 
         $response = $this
             ->getUnseenTopFeed($request)
