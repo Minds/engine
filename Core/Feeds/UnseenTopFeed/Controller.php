@@ -3,9 +3,9 @@
 namespace Minds\Core\Feeds\UnseenTopFeed;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Feeds\Elastic\Manager as ElasticSearchManager;
 use Minds\Core\Feeds\UnseenTopFeed\ResponseBuilders\UnseenTopFeedResponseBuilder;
 use Minds\Core\Feeds\UnseenTopFeed\Validators\UnseenTopFeedRequestValidator;
+use Minds\Core\Feeds\UnseenTopFeed\Manager;
 use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
@@ -15,10 +15,9 @@ use Zend\Diactoros\Response\JsonResponse;
  */
 class Controller
 {
-    public function __construct(
-        private ?ElasticSearchManager $elasticSearchManager = null
-    ) {
-        $this->elasticSearchManager = $this->elasticSearchManager ?? Di::_()->get("Feeds\Elastic\Manager");
+    public function __construct(private ?Manager $manager = null)
+    {
+        $this->manager ??= Di::_()->get("Feeds\UnseenTopFeed\Manager");
     }
 
     /**
@@ -38,18 +37,8 @@ class Controller
         }
 
         $totalEntitiesToRetrieve = $request->getQueryParams()["limit"];
-        $response = $this->elasticSearchManager->getList([
-            'limit' => $totalEntitiesToRetrieve,
-            'type' => 'activity',
-            'algorithm' => 'top',
-            'subscriptions' => $loggedInUser->getGuid(),
-            'single_owner_threshold' => 6,
-            'period' => 'all', // legacy option
-            'unseen' => true,
-            'demoted' => true
-        ]);
-        // This endpoint doesn't support pagination yet
-        $response->setPagingToken(null);
+
+        $response = $this->manager->getList($loggedInUser->getGuid(), $totalEntitiesToRetrieve);
 
         return $responseBuilder->buildSuccessfulResponse($response);
     }
