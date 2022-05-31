@@ -4,8 +4,11 @@
  */
 namespace Minds\Core\Reports;
 
+use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Reports\Jury\Decision;
 use Minds\Core\Reports\UserReports\UserReport;
+use Minds\Core\Session;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Entities\Entity;
 use Minds\Traits\MagicAttributes;
@@ -48,7 +51,7 @@ class Report
     /** @var int $timestamp */
     private $timestamp;
 
-    /** @var array<UserReport> $reports */
+    /** @var array<UserReport> $reports - reporting users */
     private $reports = [];
 
     /** @var array<Decisions> $initialJuryDecisions */
@@ -83,6 +86,15 @@ class Report
     
     /** @var $state */
     private $state;
+
+    /**
+     * Constructor.
+     * @param ?EntitiesBuilder $entitiesBuilder - used to build entities.
+     */
+    public function __construct(private ?EntitiesBuilder $entitiesBuilder = null)
+    {
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+    }
 
     /**
      * Return the state of the report from the state changes
@@ -131,13 +143,18 @@ class Report
             $this->entity->setPaywallUnlocked(true);
         }
     
+        $reportingUsers = [];
+
+        if (Session::isAdmin()) {
+            $reportingUsers = $this->getReportingUsers();
+        }
+
         $export = [
             'urn' => $this->getUrn(),
             'entity_urn' => $this->entityUrn,
             'entity' => $this->entity ? $this->entity->export() : null,
-            /*'reports' => $this->reports ? array_map(function($report){
-                return $report->export();
-             }, $this->reports) : [],*/
+            'reporting_users' => $reportingUsers,
+            'reporting_users_count' => count($this->reports),
             'is_appeal' => (bool) $this->isAppeal(),
             'appeal_note' => $this->getAppealNote(),
             'reason_code' => (int) $this->getReasonCode(),
@@ -147,5 +164,26 @@ class Report
         ];
 
         return $export;
+    }
+
+    /**
+     * Gets a array of the reporting users for this report ('$this->reports').
+     * @return array<User> array of reporting users.
+     */
+    protected function getReportingUsers(int $maxAmount = 5): array
+    {
+        $hydratedReportingUsers = [];
+
+        foreach (array_slice($this->reports, 0, $maxAmount) as $reportingUser) {
+            $hydratedReportingUser = $this->entitiesBuilder->single(
+                $reportingUser->getReporterGuid()
+            )->export();
+
+            if ($hydratedReportingUser) {
+                array_push($hydratedReportingUsers, $hydratedReportingUser);
+            }
+        }
+
+        return $hydratedReportingUsers;
     }
 }
