@@ -335,7 +335,7 @@
                         <tr>
                             <td align="center" valign="top" style="padding:30px 0 0;">
                                 <!--light mode logo image-->
-                                <a href="<?php echo $vars['site_url']; ?>?utm_medium=email&utm_source=verify&utm_content=logo"
+                                <a href="<?php echo $vars['site_url']; ?>?utm_medium=email&utm_source=verify&utm_content=logo&__e_ct_guid=<?= $vars['guid']?>"
                                    target="_blank"><img class="light-img" src="<?php echo $vars['cdn_assets_url']; ?>/assets/logos/logo-light-mode.png" width="130" height="50"
                                                         alt="Minds"
                                                         style="color: #4a4a4a; font-family: 'Inter', Arial, sans-serif; text-align:center; font-weight:bold; font-size:24px; line-height:28x; text-decoration: none; padding: 0;">

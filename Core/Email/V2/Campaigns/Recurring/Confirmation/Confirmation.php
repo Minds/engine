@@ -14,7 +14,6 @@ use Minds\Core\Email\Mailer;
 use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Partials\ActionButtonV2\ActionButtonV2;
-use Minds\Core\Email\V2\Partials\ProHeader\ProHeader;
 use Minds\Core\Pro;
 
 class Confirmation extends EmailCampaign
@@ -91,12 +90,12 @@ class Confirmation extends EmailCampaign
         $this->template->set('preheader', $subject);
         $this->template->set('isPro', !!$proSettings);
 
-        if ($proSettings) {
-            $proHeader = (new ProHeader())
-                ->set('tracking', $trackingQuery)
-                ->setProSettings($proSettings);
-            $this->template->set('custom_header', $proHeader->build());
-        }
+        // if ($proSettings) {
+        //     $proHeader = (new ProHeader())
+        //         ->set('tracking', $trackingQuery)
+        //         ->setProSettings($proSettings);
+        //     $this->template->set('custom_header', $proHeader->build());
+        // }
 
         $actionButton = (new ActionButtonV2())
             ->setLabel($translator->trans('Verify Address'))
