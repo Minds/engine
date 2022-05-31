@@ -366,13 +366,19 @@
                            style="color: #0a080b; text-decoration: underline;">
                             <?= $vars['translator']->trans('Manage email settings') ?>
                         </a>
-                        &nbsp;&nbsp;|&nbsp;&nbsp;
-                        <a href="<?php echo $vars['site_url']; ?>emails/unsubscribe/<?= $vars['guid']?>/<?= urlencode($vars['email'])?>/<?= $vars['campaign']?><?= '/' . $vars['topic']?>?__e_ct_guid=<?= $vars['guid']?>&campaign=<?= $vars['campaign'] ?>&topic=<?= $vars['topic'] ?>&state=<?= $vars['state']?>"
-                           class="link"
-                           target="_blank"
-                           style="color: #0a080b; text-decoration: underline;">
-                            <?= $vars['translator']->trans('Unsubscribe') ?>
-                        </a>
+                        <?php
+                        if (isset($vars['campaign'])) {
+                            ?>
+                            &nbsp;&nbsp;|&nbsp;&nbsp;
+                            <a href="<?php echo $vars['site_url']; ?>emails/unsubscribe/<?= $vars['guid']?>/<?= urlencode($vars['email'])?>/<?= $vars['campaign']?><?= '/' . $vars['topic']?>?__e_ct_guid=<?= $vars['guid']?>&campaign=<?= $vars['campaign'] ?>&topic=<?= $vars['topic'] ?>&state=<?= $vars['state']?>"
+                               class="link"
+                               target="_blank"
+                               style="color: #0a080b; text-decoration: underline;">
+                                <?= $vars['translator']->trans('Unsubscribe') ?>
+                            </a>
+                            <?php
+                        }
+                        ?>
                     </p>
                 </td>
             </tr>
