@@ -7,14 +7,11 @@
 
 namespace Minds\Core\Email\V2\Campaigns\Recurring\TwoFactor;
 
-use Minds\Core\Di\Di;
 use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\Confirmation\Url as ConfirmationUrl;
 use Minds\Core\Email\Mailer;
-use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Common\Message;
-use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
-use Minds\Core\Email\V2\Partials\ProHeader\ProHeader;
+use Minds\Core\Email\V2\Common\Template;
 
 class TwoFactor extends EmailCampaign
 {
@@ -70,8 +67,12 @@ class TwoFactor extends EmailCampaign
 
         $trackingQuery = http_build_query($tracking);
 
-        $this->template->setTemplate('default.tpl');
-        $this->template->setBody('./template.tpl');
+        $this->template->setTemplate('default.v2.tpl');
+        if ($this->user->isTrusted()) {
+            $this->template->setBody('./template.v2.2fa.tpl');
+        } else {
+            $this->template->setBody('./template.v2.verify.tpl');
+        }
         $this->template->set('user', $this->user);
         $this->template->set('username', $this->user->username);
         $this->template->set('email', $this->user->getEmail());
