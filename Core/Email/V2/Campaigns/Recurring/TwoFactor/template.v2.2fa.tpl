@@ -1,8 +1,6 @@
 <!--headline-->
 <h1 style="font-family: 'Inter', Arial, sans-serif; margin: 20px 20px 40px 20px;font-size: 42px; line-height: 52px; text-align: center; color: #0a080b; font-weight: 700;">
-    <a href="https://www.example.com/***utm***" target="_blank" style="color: #0a080b; text-decoration: none;">
-        Verify your action with the Two-Factor code below
-    </a>
+    Verify your action with the Two-Factor code below
 </h1>
 
 <!--subhead-->
