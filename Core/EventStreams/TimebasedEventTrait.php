@@ -1,9 +1,6 @@
 <?php
 namespace Minds\Core\EventStreams;
 
-use Minds\Entities\EntityInterface;
-use Minds\Entities\User;
-
 trait TimebasedEventTrait
 {
     protected int $timestamp = 0;
@@ -13,7 +10,7 @@ trait TimebasedEventTrait
      * @param int $timestamp
      * @return self
      */
-    public function setTimestamp(int $timestamp): EventInterface
+    public function setTimestamp(int $timestamp): self
     {
         $this->timestamp = $timestamp;
         return $this;
