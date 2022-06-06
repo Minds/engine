@@ -186,6 +186,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
+        $blog->getUrn()
+            ->willReturn('urn:blog:123');
+
         $this->slug->generate($blog)
             ->shouldBeCalled()
             ->willReturn(null);
@@ -237,6 +240,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($blog);
 
+        $blog->getUrn()
+            ->willReturn('urn:blog:123');
+
         $this->slug->generate($blog)
             ->shouldBeCalled()
             ->willReturn(null);
@@ -261,6 +267,9 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_delete(Blog $blog)
     {
+        $blog->getUrn()
+            ->willReturn('urn:blog:123');
+
         $this->repository->delete($blog)
             ->shouldBeCalled()
             ->willReturn(true);
