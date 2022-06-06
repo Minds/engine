@@ -10,6 +10,7 @@ use Minds\Core\Comments\Delegates\ThreadNotifications;
 use Minds\Core\Comments\Legacy\Repository as LegacyRepository;
 use Minds\Core\Comments\Repository;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Luid;
 use Minds\Core\Security\ACL;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
@@ -62,7 +63,8 @@ class ManagerSpec extends ObjectBehavior
         CountCache $countCache,
         EntitiesBuilder $entitiesBuilder,
         Spam $spam,
-        KeyValueLimiter $kvLimiter
+        KeyValueLimiter $kvLimiter,
+        EventsDispatcher $eventsDispatcher,
     ) {
         $this->beConstructedWith(
             $repository,
@@ -75,6 +77,7 @@ class ManagerSpec extends ObjectBehavior
             $entitiesBuilder,
             $spam,
             $kvLimiter,
+            $eventsDispatcher
         );
 
         $this->repository = $repository;
@@ -116,6 +119,9 @@ class ManagerSpec extends ObjectBehavior
 
         $comment->getParentGuidL1()
             ->willReturn(null);
+
+        $comment->getUrn()
+            ->willReturn('urn:comment:fake');
 
         $this->entitiesBuilder->single(5000)
             ->shouldBeCalled()
@@ -246,6 +252,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(['body']);
 
+        $comment->getUrn()
+            ->willReturn('urn:comment:fake');
+
         $this->legacyRepository->isFallbackEnabled()
             ->shouldBeCalled()
             ->wilLReturn(true);
@@ -343,6 +352,9 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_delete(
         Comment $comment
     ) {
+        $comment->getUrn()
+            ->willReturn('urn:comment:fake');
+
         $this->acl->write($comment)
             ->shouldBeCalled()
             ->willReturn(true);

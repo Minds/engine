@@ -5,6 +5,7 @@ class ActionEvent implements EventInterface
 {
     use EntityEventTrait;
     use AcknowledgmentEventTrait;
+    use TimebasedEventTrait;
 
     /** @var string */
     const ACTION_CREATE = 'create';
@@ -97,9 +98,6 @@ class ActionEvent implements EventInterface
 
     /** @var string[] */
     protected $actionData = [];
-
-    /** @var int */
-    protected $timestamp = 0;
 
     /**
      * @param string $action
@@ -201,24 +199,5 @@ class ActionEvent implements EventInterface
     public function getActionData(): array
     {
         return $this->actionData;
-    }
-
-    /**
-     * The event timestamp
-     * @param int $timestamp
-     * @return self
-     */
-    public function setTimestamp(int $timestamp): EventInterface
-    {
-        $this->timestamp = $timestamp;
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getTimestamp(): int
-    {
-        return $this->timestamp;
     }
 }

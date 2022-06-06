@@ -5,11 +5,10 @@ use Minds\Core\Notifications\Notification;
 
 class NotificationEvent implements EventInterface
 {
+    use TimebasedEventTrait;
+
     /** @var Notification */
     protected $notification;
-
-    /** @var int */
-    protected $timestamp = 0;
 
     /**
      * @param Notification $notification
@@ -27,24 +26,5 @@ class NotificationEvent implements EventInterface
     public function getNotification(): Notification
     {
         return $this->notification;
-    }
-
-    /**
-     * The event timestamp
-     * @param int $timestamp
-     * @return self
-     */
-    public function setTimestamp(int $timestamp): EventInterface
-    {
-        $this->timestamp = $timestamp;
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getTimestamp(): int
-    {
-        return $this->timestamp;
     }
 }

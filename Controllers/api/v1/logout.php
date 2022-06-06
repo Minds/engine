@@ -30,10 +30,6 @@ class logout implements Interfaces\Api
      */
     public function post($pages)
     {
-        error_log("logout request received");
-        $db = new Core\Data\Call('entities');
-        $db->removeAttributes(Core\Session::getLoggedinUser()->guid, ['surge_token']);
-
         return Factory::response([]);
     }
 
