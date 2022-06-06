@@ -229,7 +229,7 @@ class Manager
             $this->countCache->destroy($comment);
 
             $this->eventsDispatcher->trigger('entities-ops', 'create', [
-                'urn' => $comment->getUrn(),
+                'entityUrn' => $comment->getUrn(),
             ]);
         }
 
@@ -249,10 +249,9 @@ class Manager
 
         $updated = $this->repository->update($comment, $comment->getDirtyAttributes());
 
-        // TODO entities-ops
         if ($updated) {
             $this->eventsDispatcher->trigger('entities-ops', 'update', [
-                'urn' => $comment->getUrn(),
+                'entityUrn' => $comment->getUrn(),
             ]);
         }
 
@@ -318,7 +317,7 @@ class Manager
             $this->countCache->destroy($comment);
 
             $this->eventsDispatcher->trigger('entities-ops', 'delete', [
-                'urn' => $comment->getUrn(),
+                'entityUrn' => $comment->getUrn(),
             ]);
         }
 
