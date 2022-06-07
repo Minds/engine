@@ -18,7 +18,7 @@ class EmailStylesV2
             "text-align:center;",
             "font-weight:bold;",
             "font-size:24px;",
-            "line-height:28x;",
+            "line-height:28px;",
             "text-decoration: none;",
             "padding: 0;"
         ],
@@ -117,12 +117,17 @@ class EmailStylesV2
 
     /**
      * Returns the string representing the inline style requested
-     * @param array ...$keys
+     * @param string[] $keys
      * @return string
      */
-    public function getStyles(array ...$keys): string
+    public function getStyles(array $keys): string
     {
         $styles = array_intersect_key($this->getMergedStyleDefinitions(), array_flip($keys));
+
+        array_walk($styles, function (&$currentStyles, $key) {
+            $currentStyles = implode("", $currentStyles);
+        });
+
         return 'style="' . implode('', $styles) . '"';
     }
 }

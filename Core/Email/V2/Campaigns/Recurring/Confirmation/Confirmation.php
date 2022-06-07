@@ -68,12 +68,14 @@ class Confirmation extends EmailCampaign
         $translator = $this->template->getTranslator();
 
         $subject = $translator->trans('Verify your email address');
+        $previewText = $translator->trans('One click to verify your email on Minds.');
 
         /** @var Pro\Settings */
         $proSettings = $this->proDomain->lookup($_SERVER['HTTP_HOST'] ?? '');
 
         if ($proSettings) {
             $subject = 'Welcome to ' . $proSettings->getTitle() . '. Time to verify.';
+            $previewText = 'One click to verify your email on ' . $proSettings->getTitle() . '.';
         }
 
         $trackingQuery = http_build_query($tracking);
@@ -87,7 +89,7 @@ class Confirmation extends EmailCampaign
         $this->template->set('tracking', $trackingQuery);
         // $this->template->set('title', $proSettings ? 'Welcome to ' . $proSettings->getTitle() : $translator->trans('Welcome to Minds'));
         $this->template->set('title', '');
-        $this->template->set('preheader', $subject);
+        $this->template->set('preheader', $previewText);
         $this->template->set('isPro', !!$proSettings);
 
         // if ($proSettings) {
@@ -98,7 +100,7 @@ class Confirmation extends EmailCampaign
         // }
 
         $actionButton = (new ActionButtonV2())
-            ->setLabel($translator->trans('Verify Address'))
+            ->setLabel($translator->trans('Verify'))
             ->setPath(
                 $this->confirmationUrl
                     ->setUser($this->user)

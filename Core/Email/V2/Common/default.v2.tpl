@@ -314,22 +314,21 @@
         if ($vars['preheader']) {
             ?>
             <!--hidden preheader with preh-header spacer hack-->
-            <div class="litmus-builder-preview-text" <?= $emailStylesV2->getStyles(['m-preheader']); ?>>
+            <div class="litmus-builder-preview-text" style="display: none;">
                 <?php echo $vars['preheader']; ?>
             </div>
             <?php
         }
         ?>
         <!--start of email-->
-        <table class="darkmode" bgcolor="#eeeeee" cellpadding="0" cellspacing="0" border="0" role="presentation"
-               <?php echo $emailStylesV2->getStyles(["m-table"]); ?> >
+        <table class="darkmode" bgcolor="#eeeeee" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 100%;" >
 
 
             <!--main content area-->
             <tr>
                 <td class="tPad-0" align="center" valign="top" style="padding-top: 20px;">
                     <table class="wFull darkmode2" cellpadding="0" cellspacing="0" border="0" role="presentation"
-                           <?= $emailStylesV2->getStyles(['m-mainContent']) ?> >
+                           <?php echo $emailStylesV2->getStyles(['m-mainContent']); ?> >
 
                         <!--header-->
                         <tr>

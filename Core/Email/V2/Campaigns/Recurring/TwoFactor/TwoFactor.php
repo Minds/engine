@@ -63,13 +63,15 @@ class TwoFactor extends EmailCampaign
 
         $translator = $this->template->getTranslator();
 
-        $subject = 'Minds '.$translator->trans('Two-Factor Code').': '.$this->code;
+        $subject = $this->code . ' is your verification code for Minds';
+        $previewText = 'Verify your email address with Minds';
 
         $trackingQuery = http_build_query($tracking);
 
         $this->template->setTemplate('default.v2.tpl');
         if ($this->user->isTrusted()) {
             $this->template->setBody('./template.v2.2fa.tpl');
+            $previewText = "Verify your action with Minds";
         } else {
             $this->template->setBody('./template.v2.verify.tpl');
         }
@@ -78,7 +80,7 @@ class TwoFactor extends EmailCampaign
         $this->template->set('email', $this->user->getEmail());
         $this->template->set('guid', $this->user->guid);
         $this->template->set('tracking', $trackingQuery);
-        $this->template->set('preheader', $subject);
+        $this->template->set('preheader', $previewText);
         $this->template->set('title', $subject);
 
         $this->template->set('code', $this->code);
