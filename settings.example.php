@@ -31,6 +31,7 @@ $CONFIG->set('pulsar', [
     'host' => 'pulsar',
     'port' => 6650,
     'ssl' => false,
+    'ssl_skip_verify' => true,
     //'ssl_cert_path' => '',
 ]);
 
