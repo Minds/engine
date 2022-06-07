@@ -4,15 +4,16 @@ namespace Spec\Minds\Core\Notifications\Push\TopPost;
 
 use Minds\Common\Repository\Response;
 use Minds\Core\Feeds\FeedSyncEntity;
-use PhpSpec\ObjectBehavior;
+use Minds\Core\Feeds\UnseenTopFeed\Manager as UnseenTopFeedManager;
+use Minds\Core\Notifications\NotificationTypes;
+use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
+use Minds\Core\Notifications\Push\System\Builders\TopPostPushNotificationBuilder;
+use Minds\Core\Notifications\Push\System\Manager as PushManager;
+use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
+use Minds\Core\Notifications\Push\TopPost\Manager;
 use Minds\Entities\Activity;
 use Minds\Exceptions\ServerErrorException;
-use Minds\Core\Notifications\Push\TopPost\Manager;
-use Minds\Core\Feeds\UnseenTopFeed\Manager as UnseenTopFeedManager;
-use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
-use Minds\Core\Notifications\Push\System\Manager as PushManager;
-use Minds\Core\Notifications\Push\System\Builders\TopPostPushNotificationBuilder;
-use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
+use PhpSpec\ObjectBehavior;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -83,7 +84,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($customPushNotification);
 
-        $this->pushManager->sendNotification($customPushNotification)
+        $this->pushManager->sendNotification($customPushNotification, NotificationTypes::GROUPING_TYPE_TOP_POSTS)
             ->shouldBeCalled();
 
         $this->sendSingle($deviceSubscription);
