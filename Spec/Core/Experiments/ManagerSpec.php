@@ -11,6 +11,8 @@ use Zend\Diactoros\Response\JsonResponse;
 use Minds\Core\Experiments\Cookie\Manager as CookieManager;
 use GuzzleHttp;
 use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\Analytics\Snowplow\Manager as SnowplowManager;
+use Minds\Core\Features\Services\Cypress;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -19,20 +21,26 @@ class ManagerSpec extends ObjectBehavior
     protected $httpClient;
     protected $config;
     protected $psrCache;
+    protected $snowplowManager;
+    protected $cypress;
 
     public function let(
         Growthbook\Growthbook $growthbook,
         CookieManager $cookieManager,
         GuzzleHttp\Client $httpClient,
         Config $config,
-        PsrWrapper $psrCache
+        PsrWrapper $psrCache,
+        SnowplowManager $snowplowManager,
+        Cypress $cypress
     ) {
         $this->beConstructedWith(
             $growthbook,
             $cookieManager,
             $httpClient,
             $config,
-            $psrCache
+            $psrCache,
+            $snowplowManager,
+            $cypress
         );
 
         $this->growthbook = $growthbook;
@@ -40,9 +48,19 @@ class ManagerSpec extends ObjectBehavior
         $this->httpClient = $httpClient;
         $this->config = $config;
         $this->psrCache = $psrCache;
+        $this->snowplowManager = $snowplowManager;
+        $this->cypress = $cypress;
 
         $_SERVER['REQUEST_URI'] = '/';
         $_SERVER['HTTP_REFERER'] = '/newsfeed/subscriptions';
+
+        $this->cypress->fetch([])
+            ->shouldBeCalled()
+            ->willReturn([]);
+
+        $this->growthbook->withForcedVariations(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn($this->growthbook);
 
         $this->growthbook->withFeatures(Argument::any())
             ->shouldBeCalled()
@@ -74,6 +92,10 @@ class ManagerSpec extends ObjectBehavior
                     ]
                 ],
             ]));
+
+        $this->growthbook->getForcedVariations(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn([]);
     }
 
     public function it_is_initializable()

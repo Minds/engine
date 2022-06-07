@@ -18,6 +18,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Cookie\Manager as CookieManager;
 use Minds\Core\Analytics\Snowplow\Manager as SnowplowManager;
 use Minds\Core\Analytics\Snowplow\Events\SnowplowGrowthbookEvent;
+use Minds\Core\Features\Services\Cypress;
 
 class Manager
 {
@@ -54,7 +55,8 @@ class Manager
         GuzzleHttp\Client $httpClient = null,
         Config $config = null,
         PsrWrapper $psrCache = null,
-        SnowplowManager $snowplowManager = null
+        SnowplowManager $snowplowManager = null,
+        private ?Cypress $cypress = null
     ) {
         $this->cookieManager = $cookieManager ?? Di::_()->get('Experiments\Cookie\Manager');
         $this->httpClient = $httpClient ?? new GuzzleHttp\Client();
@@ -62,7 +64,7 @@ class Manager
         $this->psrCache = $psrCache ?? Di::_()->get('Cache\PsrWrapper');
         $this->growthbook = $growthbook ?? Growthbook\Growthbook::create();
         $this->snowplowManager = $snowplowManager ?? Di::_()->get('Analytics\Snowplow\Manager');
-
+        $this->cypress ??= new Cypress();
         // Register the tracking callback
         $this->growthbook->withTrackingCallback([ $this, 'onTrackingCallback' ]);
 
@@ -115,7 +117,7 @@ class Manager
         if ($useCached) {
             $cached = $this->psrCache->get(static::FEATURES_CACHE_KEY);
             if ($cached) {
-                return $cached;
+                return $this->patchForcedVariations($cached);
             }
         }
 
@@ -135,7 +137,7 @@ class Manager
             return [];
         }
 
-        return $features;
+        return $this->patchForcedVariations($features);
     }
 
     /**
@@ -246,16 +248,19 @@ class Manager
     }
 
     /**
-     * Inits growthbook by getting features and user attributes and
-     * assigning them to growthbook.
+     * Inits growthbook by getting features, user attributes and
+     * forced variations, then assigning them to growthbook.
      * @return self - instance of $this.
      */
     private function initFeatures(): self
     {
-        $features = $this->getFeatures(true);
-
+        /**
+         * withForcedVariations MUST be called first so that when we
+         * get features, it takes into account any forced variations / states.
+         */
         $this->growthbook
-            ->withFeatures($features)
+            ->withForcedVariations($this->cypress->fetch([]))
+            ->withFeatures($this->getFeatures(true))
             ->withAttributes($this->getAttributes());
 
         return $this;
@@ -280,6 +285,26 @@ class Manager
         }
 
         return $attributes;
+    }
+
+    /**
+     * Patches over a features array with forced experiment variations,
+     * removing rules  and setting default values to equal the forced value.
+     * @param array $features - array of features.
+     * @return array - patched array of features.
+     */
+    private function patchForcedVariations(array $features = []): array
+    {
+        $forcedVariations = $this->growthbook->getForcedVariations();
+
+        foreach ($forcedVariations as $forcedVariationKey => $forcedVariationValue) {
+            if ($features[$forcedVariationKey]) {
+                $features[$forcedVariationKey]['defaultValue'] = $forcedVariationValue;
+                unset($features[$forcedVariationKey]['rules']);
+            }
+        }
+
+        return $features;
     }
 
     /**

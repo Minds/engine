@@ -1,7 +1,6 @@
 <?php
 /**
- * FeatureFlags via signed cookies via cypress
- *
+ * Features and experiments via signed cookies via cypress
  * @author mark
  */
 
@@ -9,21 +8,24 @@ namespace Minds\Core\Features\Services;
 
 use Minds\Core\Di\Di;
 use Minds\Common\Jwt;
+use Minds\Core\Config\Config;
+use Minds\Core\Log\Logger;
 
 /**
- * Setting feature flags via signed jwt cookies via cypress
+ * Setting feature flags and experiments via signed jwt cookies via cypress
  * @package Minds\Core\Features\Services
  */
 class Cypress extends BaseService
 {
-    /* @var Jwt */
-    protected $jwt;
-
-    public function __construct($jwt = null, $config = null)
-    {
-        $config = $config ?? Di::_()->get('Config');
-        $this->jwt = $jwt ?? new Jwt();
-        $this->jwt->setKey($config->get('cypress')['shared_key']);
+    public function __construct(
+        private ?Jwt $jwt = null,
+        private ?Logger $logger = null,
+        private ?Config $config = null
+    ) {
+        $this->config ??= Di::_()->get('Config');
+        $this->logger ??= Di::_()->get('Logger');
+        $this->jwt ??= new Jwt();
+        $this->jwt->setKey($this->config->get('cypress')['shared_key']);
     }
 
     /**
@@ -50,13 +52,19 @@ class Cypress extends BaseService
     {
         $output = [];
 
-        $jwtToken = $_COOKIE['feature_flags_override'] ?? null;
+        $jwtToken = $_COOKIE['force_experiment_variations'] ?? null;
         
         if (!$jwtToken) {
             return $output;
         }
 
-        $jwtTokenDecoded = $this->jwt->decode($jwtToken);
+        try {
+            $jwtTokenDecoded = $this->jwt->decode($jwtToken);
+        } catch (\Exception $e) {
+            $this->logger->error($e);
+            return [];
+        }
+
         $keys = $jwtTokenDecoded['data'];
         
         foreach ($keys as $key => $value) {
