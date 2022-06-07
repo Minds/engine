@@ -211,6 +211,10 @@ class ElggUser extends ElggEntity implements Friendable
                 $db->insert(strtolower($this->phone_number_hash), $data);
             }
         }
+
+        \Minds\Core\Events\Dispatcher::trigger('entities-ops', !$new ? 'update' : 'create', [
+            'entityUrn' => $this->getUrn()
+        ]);
             
         return $this->guid;
     }

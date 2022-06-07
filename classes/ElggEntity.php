@@ -1112,10 +1112,12 @@ abstract class ElggEntity extends ElggData implements
      */
     public function save($timebased = true)
     {
+        $isUpdate = false;
         if ($this->guid) {
             if (!$this->canEdit()) {
                 return false;
             }
+            $isUpdate = true;
             $this->time_updated = time();
             elgg_trigger_event('update', $this->type, $this);
             //@todo review... memecache actually make us slower anyway.. do we need it?
@@ -1141,6 +1143,11 @@ abstract class ElggEntity extends ElggData implements
                 $db->insert($index, $data);
             }
         }
+
+        \Minds\Core\Events\Dispatcher::trigger('entities-ops', $isUpdate ? 'update' : 'create', [
+            'entityUrn' => $this->getUrn()
+        ]);
+
         return $this->guid;
     }
 
@@ -1285,14 +1292,9 @@ abstract class ElggEntity extends ElggData implements
                 $db->removeAttributes($rowkey, [$this->guid], false);
             }
 
-            Minds\Core\Queue\Client::build()->setQueue("FeedCleanup")
-            ->send([
-                "guid" => $this->guid,
-                "owner_guid" => $this->owner_guid,
-                                "type" => $this->type,
-                                "subtype" => $this->subtype,
-                                "super_subtype" => $this->super_subtype
-                ]);
+            \Minds\Core\Events\Dispatcher::trigger('entities-ops', 'delete', [
+                'entityUrn' => $this->getUrn()
+            ]);
 
             return true;
         }
