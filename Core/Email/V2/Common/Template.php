@@ -3,9 +3,9 @@
 namespace Minds\Core\Email\V2\Common;
 
 use Minds\Core\Config;
+use Minds\Core\Di\Di;
 use Minds\Core\I18n\Translator;
 use Minds\Core\Markdown\Markdown;
-use Minds\Core\Di\Di;
 
 class Template
 {
@@ -34,10 +34,16 @@ class Template
      * @param EmailStyles $emailStyles
      * @param Translator $translator
      */
-    public function __construct($markdown = null, $config = null, $emailStyles = null, $translator = null)
-    {
+    public function __construct(
+        $markdown = null,
+        $config = null,
+        $emailStyles = null,
+        $translator = null,
+        private ?EmailStylesV2 $emailStylesV2 = null
+    ) {
         $this->markdown = $markdown ?: new Markdown();
         $this->emailStyles = $emailStyles ?: Di::_()->get('Email\V2\Common\EmailStyles');
+        $this->emailStylesV2 ??= Di::_()->get('Email\V2\Common\EmailStylesV2');
         $this->config = $config ?: Di::_()->get('Config');
         $this->data['site_url'] = $this->config->get('site_url') ?: 'https://www.minds.com/';
         $this->data['cdn_assets_url'] = $this->config->get('cdn_assets_url') ?: 'https://cdn-assets.minds.com/front/dist/';
@@ -204,6 +210,7 @@ class Template
     {
         $vars = array_merge($this->data, $vars);
         $emailStyles = $this->emailStyles;
+        $emailStylesV2 = $this->emailStylesV2;
 
         ob_start();
 

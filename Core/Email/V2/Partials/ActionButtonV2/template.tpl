@@ -8,7 +8,7 @@
         <center>
     <![endif]-->
     <a href="<?php echo "{$vars['href']}"?>"
-       style="background-color:#1B85D6;border-radius:50px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:22px;font-family: 'Inter', Arial, sans-serif; font-weight:800;line-height:40px;text-align:center;text-decoration:none;width:200px;-webkit-text-size-adjust:none; padding: 10px 25px;">
+        <?php echo $emailStylesV2->getStyles(['m-button']); ?> >
         <?php echo "{$vars['label']}"?>
     </a>
     <!--[if mso]>

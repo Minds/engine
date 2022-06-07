@@ -314,7 +314,7 @@
         if ($vars['preheader']) {
             ?>
             <!--hidden preheader with preh-header spacer hack-->
-            <div class="litmus-builder-preview-text" style="display:none;">
+            <div class="litmus-builder-preview-text" <?= $emailStylesV2->getStyles(['m-preheader']); ?>>
                 <?php echo $vars['preheader']; ?>
             </div>
             <?php
@@ -322,32 +322,33 @@
         ?>
         <!--start of email-->
         <table class="darkmode" bgcolor="#eeeeee" cellpadding="0" cellspacing="0" border="0" role="presentation"
-               style="width:100%;">
+               <?php echo $emailStylesV2->getStyles(["m-table"]); ?> >
 
 
             <!--main content area-->
             <tr>
                 <td class="tPad-0" align="center" valign="top" style="padding-top: 20px;">
                     <table class="wFull darkmode2" cellpadding="0" cellspacing="0" border="0" role="presentation"
-                           style="width:600px; background-color: #ffffff;">
+                           <?= $emailStylesV2->getStyles(['m-mainContent']) ?> >
 
                         <!--header-->
                         <tr>
-                            <td align="center" valign="top" style="padding:30px 0 0;">
+                            <td align="center" valign="top" <?= $emailStylesV2->getStyles(['m-mainContent__header']) ?>>
                                 <!--light mode logo image-->
                                 <a href="<?php echo $vars['site_url']; ?>?utm_medium=email&utm_source=verify&utm_content=logo&__e_ct_guid=<?= $vars['guid']?>"
-                                   target="_blank"><img class="light-img" src="<?php echo $vars['cdn_assets_url']; ?>/assets/logos/logo-light-mode.png" width="130" height="50"
-                                                        alt="Minds"
-                                                        style="color: #4a4a4a; font-family: 'Inter', Arial, sans-serif; text-align:center; font-weight:bold; font-size:24px; line-height:28x; text-decoration: none; padding: 0;">
+                                   target="_blank">
+                                   <img class="light-img" src="<?php echo $vars['cdn_assets_url']; ?>/assets/logos/logo-light-mode.png" width="130" height="50"
+                                        alt="Minds"
+                                        <?= $emailStylesV2->getStyles(['m-mainContent__imageAltText']) ?> >
 
                                     <!--dark mode logo image-->
                                     <!--[if !mso]><! -->
                                     <div class="dark-img"
-                                         style="display:none; overflow:hidden; width:0px; max-height:0px; max-width:0px; line-height:0px; visibility:hidden;"
+                                         <?= $emailStylesV2->getStyles(['dark-img']) ?> 
                                          align="center">
                                         <img src="<?php echo $vars['cdn_assets_url']; ?>/assets/logos/logo-dark-mode.png" width="130" height="50" alt="Minds"
-                                             style="color: #4a4a4a; font-family: 'Inter', Arial, sans-serif; text-align:center; font-weight:bold; font-size:24px; line-height:28px; text-decoration: none; padding: 0;"
-                                             border="0"/>
+                                            <?= $emailStylesV2->getStyles(['m-mainContent__imageAltText']) ?>
+                                            border="0"/>
                                     </div>
                                     <!--<![endif]--></a>
                             </td>
@@ -355,7 +356,7 @@
 
                         <!-- Start Main Article -->
                         <tr>
-                            <td class="darkmode2" align="center" valign="top" style="padding:30px 0 50px;">
+                            <td class="darkmode2" align="center" valign="top" <?= $emailStylesV2->getStyles(['m-mainContent__mainArticle']) ?> >
                                 <?= $vars['body'] ?>
                             </td>
                         </tr>
@@ -365,11 +366,11 @@
 
             <!--footer-->
             <tr>
-                <td class="footer" align="center" valign="top" style="padding:50px 0;">
-                    <p style="font-family: 'Inter', Arial, sans-serif;font-size:14px;line-height:24px;mso-line-height-rule:exactly;color:#0a080b;margin-bottom:20px;">
+                <td class="footer" align="center" valign="top" <?= $emailStylesV2->getStyles(['m-footer']) ?> >
+                    <p <?= $emailStylesV2->getStyles(['m-footer__paragraph']) ?>>
                         Minds Inc © 2021 - PO Box 7681, Wilton, CT 06897<br><br>
                         <a href="<?php echo $vars['site_url']; ?>settings/canary/account/email-notifications" class="link" target="_blank"
-                           style="color: #0a080b; text-decoration: underline;">
+                           <?= $emailStylesV2->getStyles(['m-footer__link']) ?>>
                             <?= $vars['translator']->trans('Manage email settings') ?>
                         </a>
                         <?php
@@ -379,7 +380,7 @@
                             <a href="<?php echo $vars['site_url']; ?>emails/unsubscribe/<?= $vars['guid']?>/<?= urlencode($vars['email'])?>/<?= $vars['campaign']?><?= '/' . $vars['topic']?>?__e_ct_guid=<?= $vars['guid']?>&campaign=<?= $vars['campaign'] ?>&topic=<?= $vars['topic'] ?>&state=<?= $vars['state']?>"
                                class="link"
                                target="_blank"
-                               style="color: #0a080b; text-decoration: underline;">
+                               <?= $emailStylesV2->getStyles(['m-footer__link']) ?>>
                                 <?= $vars['translator']->trans('Unsubscribe') ?>
                             </a>
                             <?php
