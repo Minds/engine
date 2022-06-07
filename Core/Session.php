@@ -50,7 +50,7 @@ class Session extends base
             'guid' => (string) $session->getUserGuid(),
             'expires' => $expires,
             'sessionId' => $session->getId(),
-        ], Config::_()->get('sockets-jwt-secret'));
+        ], Config::_()->get('sockets')['jwt_secret']);
 
         $cookie = new Cookie();
         $cookie
@@ -58,7 +58,7 @@ class Session extends base
             ->setValue($jwt)
             ->setExpire($expires)
             ->setPath('/')
-            ->setDomain(Config::_()->get('sockets-jwt-domain') ?: 'minds.com')
+            ->setDomain(Config::_()->get('sockets')['jwt_domain'] ?: 'minds.com')
             ->create();
     }
 

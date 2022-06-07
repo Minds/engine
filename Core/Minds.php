@@ -67,6 +67,7 @@ class Minds extends base
         Captcha\FriendlyCaptcha\Module::class,
         DID\Module::class,
         Nostr\Module::class,
+        Entities\Ops\Module::class,
     ];
 
     /**

@@ -14,6 +14,7 @@ use Minds\Core\Security\ACL;
 use Minds\Core\Security\Spam;
 use Minds\Core\Security\SignedUri;
 use Minds\Core\Config;
+use Minds\Core\Events\EventsDispatcher;
 
 class Manager
 {
@@ -64,7 +65,8 @@ class Manager
         $search = null,
         PropagateProperties $propagateProperties = null,
         $signedUri = null,
-        $config = null
+        $config = null,
+        protected ?EventsDispatcher $eventsDispatcher = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->paywallReview = $paywallReview ?: new Delegates\PaywallReview();
@@ -75,6 +77,7 @@ class Manager
         $this->propagateProperties = $propagateProperties ?? Di::_()->get('PropagateProperties');
         $this->signedUri = $signedUri ?? new SignedUri;
         $this->config = $config ?? Di::_()->get('Config');
+        $this->eventsDispatcher ??= Di::_()->get('EventsDispatcher');
     }
 
     /**
@@ -152,6 +155,10 @@ class Manager
 
             $this->paywallReview->queue($blog);
             $this->propagateProperties->from($blog);
+
+            $this->eventsDispatcher->trigger('entities-ops', 'create', [
+                'entityUrn' => $blog->getUrn(),
+            ]);
         }
 
         return $saved;
@@ -192,6 +199,10 @@ class Manager
 
             $this->paywallReview->queue($blog);
             $this->propagateProperties->from($blog);
+
+            $this->eventsDispatcher->trigger('entities-ops', 'update', [
+                'entityUrn' => $blog->getUrn(),
+            ]);
         }
 
         return $saved;
@@ -210,6 +221,10 @@ class Manager
         if ($deleted) {
             $this->feeds->remove($blog);
             $this->search->prune($blog);
+
+            $this->eventsDispatcher->trigger('entities-ops', 'delete', [
+                'entityUrn' => $blog->getUrn(),
+            ]);
         }
 
         return $deleted;
