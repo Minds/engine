@@ -37,7 +37,7 @@ class Repository implements RepositoryInterface
         $query = $this->prepareQuery($statement, [$userId]);
 
         $results = $this->cassandraClient->request($query);
-        $entry = $results->first();
+        $entry = $results ? $results->first() : [];
         return (new UserQualityScore())
                 ->setScore((float) ($entry["score"] ?? 0))
                 ->setCategory($entry["category"] ?? 'Unknown');
