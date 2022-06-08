@@ -175,11 +175,12 @@ class Report
         $hydratedReportingUsers = [];
 
         foreach (array_slice($this->reports, 0, $maxAmount) as $reportingUser) {
-            $hydratedReportingUser = $this->entitiesBuilder->single(
+            $reportingUser = $hydratedReportingUser = $this->entitiesBuilder->single(
                 $reportingUser->getReporterGuid()
-            )->export();
+            );
 
-            if ($hydratedReportingUser) {
+            if ($reportingUser) {
+                $hydratedReportingUser = $reportingUser->export();
                 array_push($hydratedReportingUsers, $hydratedReportingUser);
             }
         }
