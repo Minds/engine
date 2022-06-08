@@ -181,7 +181,10 @@ class Report
 
             if ($reportingUser) {
                 $hydratedReportingUser = $reportingUser->export();
-                array_push($hydratedReportingUsers, $hydratedReportingUser);
+                
+                if ($hydratedReportingUser) {
+                    array_push($hydratedReportingUsers, $hydratedReportingUser);
+                }
             }
         }
 
