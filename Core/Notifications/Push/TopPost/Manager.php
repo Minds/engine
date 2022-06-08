@@ -2,12 +2,17 @@
 
 namespace Minds\Core\Notifications\Push\TopPost;
 
+use Exception;
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds\UnseenTopFeed\Manager as UnseenTopFeedManager;
-use Minds\Core\Notifications\Push\System\Manager as PushManager;
+use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\System\Builders\TopPostPushNotificationBuilder;
+use Minds\Core\Notifications\Push\System\Manager as PushManager;
+use Minds\Core\Notifications\Push\UndeliverableException;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\SkippingException;
+use Minds\Exceptions\UserErrorException;
 
 /**
  * Manager for top post push notification - a notification containing
@@ -35,6 +40,10 @@ class Manager
      * Send a single notification to a given device subscription.
      * @param DeviceSubscription $deviceSubscription - device subscription to send to.
      * @return void
+     * @throws ServerErrorException
+     * @throws UndeliverableException
+     * @throws SkippingException
+     * @throws UserErrorException
      */
     public function sendSingle(DeviceSubscription $deviceSubscription): void
     {
@@ -52,6 +61,10 @@ class Manager
             ->build()
             ->setDeviceSubscription($deviceSubscription);
 
-        $this->pushManager->sendNotification($pushNotification);
+        try {
+            $this->pushManager->sendNotification($pushNotification, NotificationTypes::GROUPING_TYPE_TOP_POSTS);
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+        }
     }
 }

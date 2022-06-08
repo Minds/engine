@@ -8,6 +8,8 @@ use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
 use Minds\Core\Notifications\EmailDigests\EmailDigestMarker;
 use Minds\Core\Notifications\EmailDigests\EmailDigestOpts;
+use Minds\Core\Notifications\NotificationTypes;
+use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\System\Manager;
 use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
 use Minds\Core\Notifications\Push\System\Targets\SystemPushNotificationTargetsList;
@@ -107,7 +109,7 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
         foreach ($scroll->request($prepared) as $row) {
             $userGuid = $row['user_guid'];
 
-            $deviceSubscription = new \Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription();
+            $deviceSubscription = new DeviceSubscription();
             $deviceSubscription->setUserGuid((string) $row['user_guid'])
                 ->setToken($row['device_token'])
                 ->setService($row['service']);
@@ -122,7 +124,7 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
                     ->setBody('Joe Rogan interviews Minds CEO Bill Ottman and Daryl Davis')
                     ->setUri('https://www.minds.com/newsfeed/1350517575166988298');
 
-                $pushManager->sendNotification($pushNotification);
+                $pushManager->sendNotification($pushNotification, NotificationTypes::GROUPING_TYPE_COMMUNITY_UPDATES);
                 //send
             }
         }
