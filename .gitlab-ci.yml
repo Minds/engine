@@ -117,6 +117,7 @@ review:start:
       --set cdn_domain=$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
       --set siteUrl=https://$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN/
       --set-string environments.sandbox.routingCookie=false
+      --set-string sockets.serverUri=$CI_BUILD_REF_SLUG-sockets.$KUBE_INGRESS_BASE_DOMAIN
       --wait \
       $CI_BUILD_REF_SLUG \
       ./minds"

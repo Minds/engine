@@ -254,9 +254,11 @@ $CONFIG->set('plugins', [
     'guard',
 ]);
 
-$CONFIG->set('sockets-jwt-secret', '{{jwt-secret}}');
-$CONFIG->set('sockets-jwt-domain', '{{jwt-domain}}');
-$CONFIG->set('sockets-server-uri', '{{socket-server-uri}}');
+$CONFIG->set('sockets', [
+    'jwt_secret' => '{{jwt-secret}}',
+    'jwt_domain' => '{{jwt-domain}}',
+    'server_uri' => '{{socket-server-uri}}'
+]);
 
 $CONFIG->set('facebook', [
     'app_id' => '{{facebook-app-id}}',

@@ -18,6 +18,7 @@ use Minds\Entities\User;
 use Minds\Exceptions\BlockedUserException;
 use Minds\Exceptions\InvalidLuidException;
 use Minds\Common\Repository\Response;
+use Minds\Core\Events\EventsDispatcher;
 
 class Manager
 {
@@ -74,7 +75,8 @@ class Manager
         $countCache = null,
         $entitiesBuilder = null,
         $spam = null,
-        $kvLimiter = null
+        $kvLimiter = null,
+        protected ?EventsDispatcher $eventsDispatcher = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->legacyRepository = $legacyRepository ?: new Legacy\Repository();
@@ -86,6 +88,7 @@ class Manager
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->spam = $spam ?: Di::_()->get('Security\Spam');
         $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
+        $this->eventsDispatcher ??= Di::_()->get('EventsDispatcher');
     }
 
     public function get($entity_guid, $parent_path, $guid)
@@ -224,6 +227,10 @@ class Manager
             $this->createEventDispatcher->dispatch($comment);
 
             $this->countCache->destroy($comment);
+
+            $this->eventsDispatcher->trigger('entities-ops', 'create', [
+                'entityUrn' => $comment->getUrn(),
+            ]);
         }
 
         return $success;
@@ -240,7 +247,15 @@ class Manager
             $this->legacyRepository->add($comment, $comment->getDirtyAttributes(), true);
         }
 
-        return $this->repository->update($comment, $comment->getDirtyAttributes());
+        $updated = $this->repository->update($comment, $comment->getDirtyAttributes());
+
+        if ($updated) {
+            $this->eventsDispatcher->trigger('entities-ops', 'update', [
+                'entityUrn' => $comment->getUrn(),
+            ]);
+        }
+
+        return $updated;
     }
 
 
@@ -300,6 +315,10 @@ class Manager
 
         if ($success) {
             $this->countCache->destroy($comment);
+
+            $this->eventsDispatcher->trigger('entities-ops', 'delete', [
+                'entityUrn' => $comment->getUrn(),
+            ]);
         }
 
         return $success;

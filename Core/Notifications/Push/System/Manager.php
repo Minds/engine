@@ -8,11 +8,15 @@ use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
+use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\Services\ApnsService;
 use Minds\Core\Notifications\Push\Services\FcmService;
 use Minds\Core\Notifications\Push\Services\PushServiceInterface;
 use Minds\Core\Notifications\Push\Services\WebPushService;
+use Minds\Core\Notifications\Push\Settings\Manager as SettingsManager;
+use Minds\Core\Notifications\Push\Settings\PushSetting;
+use Minds\Core\Notifications\Push\Settings\SettingsListOpts;
 use Minds\Core\Notifications\Push\System\Delegates\AdminPushNotificationEventStreamsDelegate;
 use Minds\Core\Notifications\Push\System\Models\AdminPushNotificationRequest;
 use Minds\Core\Notifications\Push\System\Models\AdminPushNotificationRequestCounters;
@@ -21,7 +25,7 @@ use Minds\Core\Notifications\Push\System\Targets\SystemPushNotificationTargetsLi
 use Minds\Core\Notifications\Push\UndeliverableException;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
-use PhpSpec\Exception\Example\SkippingException;
+use Minds\Exceptions\SkippingException;
 
 /**
  *
@@ -36,13 +40,15 @@ class Manager
         private ?AdminPushNotificationEventStreamsDelegate $delegate = null,
         private ?ApnsService $apnsService = null,
         private ?FcmService $fcmService = null,
-        private ?WebPushService $webPushService = null
+        private ?WebPushService $webPushService = null,
+        private ?SettingsManager $pushSettingsManager = null
     ) {
         $this->repository ??= new Repository();
         $this->delegate ??= new AdminPushNotificationEventStreamsDelegate();
         $this->apnsService ??= new ApnsService();
         $this->fcmService ??= new FcmService();
         $this->webPushService ??= new WebPushService();
+        $this->pushSettingsManager ??= new SettingsManager();
         $this->logger = Di::_()->get("Logger");
     }
 
@@ -129,7 +135,7 @@ class Manager
                 ->setDeviceSubscription($deviceSubscription);
 
             try {
-                $this->sendNotification($notification);
+                $this->sendNotification($notification, NotificationTypes::GROUPING_TYPE_COMMUNITY_UPDATES);
                 $this->logger->info("$logPrefix: sending ({$requestCounters->getTotalNotifications()}) - {$deviceSubscription->getUserGuid()}");
                 $requestCounters->increaseSuccessfulNotifications();
             } catch (UndeliverableException $e) {
@@ -169,15 +175,35 @@ class Manager
 
     /**
      * @param CustomPushNotification $notification
+     * @param string $notificationGroupToCheck
+     * @throws SkippingException
      * @throws UndeliverableException
-     * @throws Exception
      */
-    public function sendNotification(CustomPushNotification $notification): void
+    public function sendNotification(CustomPushNotification $notification, string $notificationGroupToCheck): void
     {
         $deviceSubscription = $notification->getDeviceSubscription();
+
+        if (!$this->isNotificationTypeSettingActive($deviceSubscription->getUserGuid(), $notificationGroupToCheck)) {
+            throw new SkippingException("Notification setting is not active. Skipping delivery of system push notification to device " . $deviceSubscription->getToken() . " of user " . $deviceSubscription->getUserGuid());
+        }
+
         if (!$this->getService($deviceSubscription->getService())->send($notification)) {
             throw new UndeliverableException("Could not deliver system push notification to device " . $deviceSubscription->getToken() . " of user " . $deviceSubscription->getUserGuid());
         }
+    }
+
+    private function isNotificationTypeSettingActive(string $userGuid, string $notificationGroupToCheck): bool
+    {
+        $notificationSettings = $this->pushSettingsManager->getList(
+            (new SettingsListOpts())
+                ->setUserGuid($userGuid)
+        );
+
+        $notificationGroupToCheckStatus = array_filter($notificationSettings, function (PushSetting $setting, int $key) use ($notificationGroupToCheck): bool {
+            return $setting->getNotificationGroup() == $notificationGroupToCheck && $setting->getEnabled();
+        }, ARRAY_FILTER_USE_BOTH);
+
+        return count($notificationGroupToCheckStatus);
     }
 
     /**

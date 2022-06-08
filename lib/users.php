@@ -33,65 +33,6 @@ function get_user_entity_as_row($guid)
 }
 
 /**
- * Create or update the entities table for a given user.
- * Call create_entity first.
- *
- * @param int    $guid     The user's GUID
- * @param string $name     The user's display name
- * @param string $username The username
- * @param string $password The password
- * @param string $salt     A salt for the password
- * @param string $email    The user's email address
- * @param string $language The user's default language
- * @param string $code     A code
- *
- * @return bool
- * @access private
- */
-function create_user_entity(array $options = [])
-{
-    global $CONFIG;
-
-
-    $defaults = [	'type' => 'user',
-
-                'guid' => 0,
-
-                'name' => '',
-                'username' => '',
-                'password' => '',
-                'salt' => '',
-                'email' => '',
-                'language' => '',
-                'code' => '',
-
-                'time_created' => time()
-            ];
-
-    $options = array_merge($defaults, $options);
-
-    $options = array_filter($options, 'strlen');//remove null values
-
-    $options['username'] = strtolower($options['username']);
-
-    $db = new Minds\Core\Data\Call('entities');
-    $result = $db->insert($options['guid'], $options);
-
-    return $result;
-
-    if ($result !== false) {
-        $entity = get_entity($result, 'user');
-        //if (elgg_trigger_event('create', $entity->type, $entity)) {
-        return $guid;
-        //} else {
-        //	$entity->delete();
-        //}
-    }
-
-    return false;
-}
-
-/**
  * Disables all of a user's entities
  *
  * @param int $owner_guid The owner GUID
@@ -402,8 +343,7 @@ function get_user_friends(
     $limit = 10,
     $offset = "",
     $output = 'entities'
-)
-{
+) {
     static $cache;
     if (!$cache) {
         $cache = new ElggStaticVariableCache('friends');
@@ -439,8 +379,7 @@ function get_user_friends_of(
     $limit = 10,
     $offset = "",
     $output = 'entities'
-)
-{
+) {
     if (!$user_guid) {
         return false;
     }
@@ -481,8 +420,7 @@ function get_user_friends_objects(
     $offset = 0,
     $timelower = 0,
     $timeupper = 0
-)
-{
+) {
     if ($friends = get_user_friends($user_guid, null, 999999, 0)) {
         $friendguids = [];
         foreach ($friends as $friend) {
@@ -517,8 +455,7 @@ function count_user_friends_objects(
     $subtype = ELGG_ENTITIES_ANY_VALUE,
     $timelower = 0,
     $timeupper = 0
-)
-{
+) {
     if ($friends = get_user_friends($user_guid, ELGG_ENTITIES_ANY_VALUE, 999999, 0)) {
         $friendguids = [];
         foreach ($friends as $friend) {
@@ -562,8 +499,7 @@ function list_user_friends_objects(
     $pagination = true,
     $timelower = 0,
     $timeupper = 0
-)
-{
+) {
     $offset = (int)get_input('offset');
     $limit = (int)$limit;
     $count = (int)count_user_friends_objects($user_guid, $subtype, $timelower, $timeupper);
@@ -1089,8 +1025,7 @@ function register_user(
     $allow_multiple_emails = false,
     $friend_guid = 0,
     $invitecode = ''
-)
-{
+) {
 
     // no need to trim password.
     $username = strtolower(trim($username));

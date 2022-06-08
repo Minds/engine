@@ -246,7 +246,7 @@ class Etherscan
      */
     protected function request($endpoint)
     {
-        $response = $this->http->get("http://api.etherscan.io/api?{$endpoint}");
+        $response = $this->http->get("https://api.etherscan.io/api?{$endpoint}");
 
         if (!is_array($response)) {
             throw new \Exception('Invalid response');

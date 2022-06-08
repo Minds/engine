@@ -382,6 +382,10 @@ class channel implements Interfaces\Api
                 $db->insert($owner->guid, $update);
        }
 
+        Core\Events\Dispatcher::trigger('entities-ops', 'update', [
+            'entityUrn' => $owner->getUrn()
+        ]);
+
         return Factory::response($response);
     }
 

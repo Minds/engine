@@ -68,4 +68,10 @@ $CONFIG->redis = [
     'slave' => 'phpspec'
 ];
 
+$CONFIG->set('sockets', [
+    'jwt_secret' => 'secret',
+    'jwt_domain' => 'localhost:8080',
+    'server_uri' => 'localhost:8010'
+]);
+
 $minds->loadLegacy();
