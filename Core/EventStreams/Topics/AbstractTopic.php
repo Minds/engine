@@ -53,7 +53,7 @@ abstract class AbstractTopic
         if ($pulsarConfig['ssl'] ?? true) {
             $clientConfig->setUseTls(true)
                 ->setTlsAllowInsecureConnection($pulsarConfig['ssl_skip_verify'] ?? false)
-                ->setTlsTrustCertsFilePath($pulsarConfig['ssl_cert_path'] ?? '/var/secure/pulsar.crt');
+                ->setTlsTrustCertsFilePath($pulsarConfig['ssl_cert_path'] ?? '/var/secure/tls/ca.crt');
         }
 
         if ($this->client) {
