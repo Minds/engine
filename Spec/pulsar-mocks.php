@@ -49,6 +49,11 @@ class PulsarClientConfigurationMock
     {
         return $this;
     }
+
+    public function setTlsAllowInsecureConnection(bool $allow): self
+    {
+        return $this;
+    }
 }
 class PulsarProducerMock
 {
