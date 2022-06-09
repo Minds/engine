@@ -6,20 +6,25 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Nostr\Keys;
 use Minds\Core\Nostr\Manager;
 use Minds\Core\Nostr\NostrEvent;
+use Minds\Core\Nostr\Repository;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
+use Minds\Exceptions\ServerErrorException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
     private $entitiesBuilder;
+    private $repository;
     private $keys;
 
-    public function let(EntitiesBuilder $entitiesBuilder, Keys $keys)
+    public function let(EntitiesBuilder $entitiesBuilder, Keys $keys, Repository $repository)
     {
-        $this->beConstructedWith(null, $entitiesBuilder, $keys);
+        $this->beConstructedWith(null, $entitiesBuilder, $keys, [], $repository);
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->repository = $repository;
         $this->keys = $keys;
     }
 
@@ -124,5 +129,19 @@ class ManagerSpec extends ObjectBehavior
                 ->shouldBeCalled();
 
         $this->emitEvent($nostrEvent);
+    }
+
+    /**
+     * @return void
+     * @throws NotFoundException
+     * @throws ServerErrorException
+     */
+    public function it_should_return_entity_nostr_event_from_nostr_hash(): void
+    {
+        $this->repository->getEntityGuidByNostrHash(Argument::type("string"))
+            ->shouldBeCalledOnce()
+            ->willReturn("123");
+
+        $this->getEntityNostrEventFromNostrHash("123");
     }
 }
