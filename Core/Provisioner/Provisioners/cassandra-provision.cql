@@ -1770,3 +1770,9 @@ ALTER TABLE minds.system_push_notifications
 
 ALTER TABLE minds.system_push_notifications
     ADD skipped_counter int;
+
+CREATE TABLE minds.nostr_hashes_to_entities
+(
+    hash text PRIMARY KEY,
+    entity_urn text
+);

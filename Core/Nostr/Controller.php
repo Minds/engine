@@ -2,12 +2,16 @@
 
 namespace Minds\Core\Nostr;
 
+use Minds\Api\Exportable;
 use Minds\Core\Di\Di;
+use Minds\Core\Nostr\RequestValidators\GetEntityRequestValidator;
 use Minds\Exceptions\NotFoundException;
+use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
-use Zend\Diactoros\ServerRequest;
-use Zend\Diactoros\Response\JsonResponse;
+use Psr\Http\Message\ServerRequestInterface;
 use Ratchet\Server\IoServer;
+use Zend\Diactoros\Response\JsonResponse;
+use Zend\Diactoros\ServerRequest;
 
 class Controller
 {
@@ -66,5 +70,27 @@ class Controller
         $this->pocSync->syncChannel($username);
 
         return new JsonResponse([]);
+    }
+
+    /**
+     * GET /api/v3/nostr/minds-entity
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     * @throws NotFoundException
+     * @throws UserErrorException
+     * @throws ServerErrorException
+     */
+    public function getEntity(ServerRequestInterface $request): JsonResponse
+    {
+        $requestValidator = new GetEntityRequestValidator();
+        $queryParams = $request->getQueryParams();
+
+        if (!$requestValidator->validate($queryParams)) {
+            throw new UserErrorException("Some errors where encountered whilst validating the request", errors: $requestValidator->getErrors());
+        }
+
+        $nostrEvent = $this->manager->getEntityNostrEventFromNostrHash($queryParams['hash']);
+
+        return new JsonResponse(Exportable::_([$nostrEvent]));
     }
 }

@@ -20,11 +20,13 @@ class Manager
         protected ?EntitiesBuilder $entitiesBuilder = null,
         protected ?Keys $keys = null,
         array $clients = [],
+        private ?Repository $repository = null
     ) {
         $this->config ??= Di::_()->get('Config');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->keys ??= new Keys();
         $this->clients = $clients;
+        $this->repository ??= new Repository();
     }
 
     /**
@@ -236,5 +238,20 @@ class Manager
     protected function getDomain(): string
     {
         return urlencode($this->config->get('nostr')['domain'] ?? '');
+    }
+
+    /**
+     * @param string $hash
+     * @return NostrEvent
+     * @throws NotFoundException
+     * @throws ServerErrorException
+     */
+    public function getEntityNostrEventFromNostrHash(string $hash): NostrEvent
+    {
+        $entityGuid = $this->repository->getEntityGuidByNostrHash($hash);
+
+        $entity = $this->entitiesBuilder->single($entityGuid);
+
+        return $this->buildNostrEvent($entity);
     }
 }
