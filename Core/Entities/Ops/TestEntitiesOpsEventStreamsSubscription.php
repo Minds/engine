@@ -6,8 +6,6 @@
  */
 namespace Minds\Core\Entities\Ops;
 
-use Minds\Core\Entities\Ops\EntitiesOpsEvent;
-use Minds\Core\Entities\Ops\EntitiesOpsTopic;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\TopicInterface;
@@ -41,7 +39,7 @@ class TestEntitiesOpsEventStreamsSubscription implements SubscriptionInterface
     /**
      * Called when there is a new event
      * @param EventInterface $event
-     * @return booo
+     * @return bool
      */
     public function consume(EventInterface $event): bool
     {

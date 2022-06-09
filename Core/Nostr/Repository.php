@@ -41,6 +41,17 @@ class Repository
 
         $entityUrn = new Urn($rows->first()['entity_urn']);
 
-        return $entityUrn->getNid();
+        return $entityUrn->getNss();
+    }
+
+    public function addNewCorrelation(string $nostrHash, string $urn): void
+    {
+        $query = (new PreparedQuery())
+            ->query(
+                "INSERT INTO nostr_hashes_to_entities (hash, entity_urn) VALUES (?, ?)",
+                [$nostrHash, $urn]
+            );
+
+        $this->cassandraClient->request($query);
     }
 }

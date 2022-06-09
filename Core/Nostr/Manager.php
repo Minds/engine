@@ -1,9 +1,12 @@
 <?php
 namespace Minds\Core\Nostr;
 
+use Exception;
+use Minds\Common\Urn;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
@@ -14,6 +17,7 @@ class Manager
 {
     /** @var \WebSocket\Client[] */
     protected array $clients = [];
+    private Logger $logger;
 
     public function __construct(
         protected ?Config $config = null,
@@ -27,6 +31,7 @@ class Manager
         $this->keys ??= new Keys();
         $this->clients = $clients;
         $this->repository ??= new Repository();
+        $this->logger = Di::_()->get("Logger");
     }
 
     /**
@@ -253,5 +258,27 @@ class Manager
         $entity = $this->entitiesBuilder->single($entityGuid);
 
         return $this->buildNostrEvent($entity);
+    }
+
+    /**
+     * @param Urn $entityUrn
+     * @return void
+     */
+    public function addNostrHashLinkToEntity(Urn $entityUrn): void
+    {
+        $entity = $this->entitiesBuilder->single($entityUrn->getNss(), ["cache"=>false]);
+
+        try {
+            $nostrHash = ($this->buildNostrEvent($entity))->getId();
+        } catch (Exception $e) {
+            $this->logger->addWarning("Entity {$entityUrn->getUrn()} is not a supported entity type");
+            return;
+        }
+        
+        $this->logger->addInfo("Nostr hash for entity {$entityUrn->getUrn()} is {$nostrHash}");
+
+        $this->repository->addNewCorrelation($nostrHash, $entityUrn->getUrn());
+
+        $this->logger->addInfo("Nostr hash {$nostrHash} correctly linked to entity {$entityUrn->getUrn()}");
     }
 }
