@@ -24,7 +24,6 @@ class PriorityEmail implements Interfaces\QueueRunner
                 $data = $data->getData();
 
                 $message = unserialize($data['message']);
-                print_r($message);
 
                 $mailer->send($message);
 

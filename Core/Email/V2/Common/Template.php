@@ -230,7 +230,7 @@ class Template
     public function __sleep()
     {
         $this->set('translator', null);
-        return [ 'template', 'template_path', 'emailStyles', 'data', 'body', 'loadFromFile', 'useMarkdown' ];
+        return [ 'template', 'template_path', 'emailStyles', 'data', 'body', 'loadFromFile', 'useMarkdown', 'emailStylesV2' ];
     }
 
     public function __wakeup()
