@@ -56,6 +56,10 @@ class UpdateTagsNotice extends AbstractNotice
             ->setUser($user)
             ->get(['limit' => 1]);
         
-        return $userHashtags && count($userHashtags) > 0 && $userHashtags[0]['selected'];
+        return !(
+            $userHashtags &&
+            count($userHashtags) > 0 &&
+            $userHashtags[0]['selected']
+        );
     }
 }
