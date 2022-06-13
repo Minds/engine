@@ -85,7 +85,6 @@ class Manager
         return true;
     }
 
-
     /**
      * @param PushSetting $pushSetting
      * @return bool
