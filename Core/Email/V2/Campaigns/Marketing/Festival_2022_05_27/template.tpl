@@ -1,101 +1,13 @@
-<?php
+<tr>
+    <td>
+        <img src="https://cdn.minds.com/fs/v1/banners/1371588535462662152/0/" style="max-width: 100%"/>
+    </td>
+</tr>
 
-namespace Minds\Core\Email\V2\Campaigns\Marketing\Festival_2022_05_27;
-
-use Minds\Core\Email\Campaigns\EmailCampaign;
-use Minds\Core\Email\Mailer;
-use Minds\Core\Email\V2\Common\Message;
-use Minds\Core\Email\V2\Common\Template;
-use Minds\Core\Email\Manager;
-use Minds\Traits\MagicAttributes;
-use Minds\Core\Di\Di;
-use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
-
-class Festival_2022_05_27 extends EmailCampaign
-{
-    use MagicAttributes;
-    /** @var Template */
-    protected $template;
-
-    /** @var Mailer */
-    protected $mailer;
-
-    /** @var Manager */
-    protected $manager;
-
-    public function __construct(Template $template = null, Mailer $mailer = null, Manager $manager = null)
-    {
-        $this->template = $template ?: new Template();
-        $this->mailer = $mailer ?: new Mailer();
-        $this->manager = $manager ?: Di::_()->get('Email\Manager');
-
-        $this->campaign = 'global';
-        $this->topic = 'minds_news';
-    }
-
-    public function build(): Message
-    {
-        $tracking = [
-            '__e_ct_guid' => $this->user->getGUID(),
-            'campaign' => $this->campaign,
-            'topic' => $this->topic,
-            'utm_medium' => 'email',
-            'utm_campaign' => 'change-2022-03-15',
-            'utm_source' => 'manual',
-        ];
-
-        $subject = "Tickets Live For Minds Festival Feat. Timcast, Cornel West and More...";
-
-        $this->template->setTemplate('default.tpl');
-        $this->template->setBody('./template.tpl');
-        $this->template->toggleMarkdown(true);
-        $this->template->set('user', $this->user);
-        $this->template->set('username', $this->user->username);
-        $this->template->set('email', $this->user->getEmail());
-        $this->template->set('guid', $this->user->getGUID());
-        $this->template->set('campaign', $this->campaign);
-        $this->template->set('topic', $this->topic);
-        // $this->template->set('signoff', '');
-        $this->template->set('title', '');
-        $this->template->set('state', '');
-        $this->template->set('preheader', "We are excited to announce that we will be hosting our first Minds Festival of Ideas at The Beacon Theatre in NYC on June 25, 2022, and we wanted to formally invite you to be a part of this historic event.");
-
-        $trackingQuery = http_build_query($tracking);
-        $this->template->set('tracking', $trackingQuery);
-
-        $actionButton = (new ActionButton())
-            ->setLabel("Buy Tickets Now")
-            ->setPath(
-                "https://www.ticketmaster.com/event/3B005CB2CF161F8D"
-            );
-
-        $this->template->set('actionButton', $actionButton->build());
-
-        $message = new Message();
-        $message->setTo($this->user)
-            ->setMessageId(implode(
-                '-',
-                [$this->user->guid, sha1($this->user->getEmail()), sha1($this->campaign.$this->topic.time())]
-            ))
-            ->setSubject($subject)
-            ->setHtml($this->template);
-
-        return $message;
-    }
-
-    public function send(): void
-    {
-        if ($this->canSend()) {
-            $this->mailer->send($this->build());
-        }
-    }
-}
-
-root@ip-10-0-3-218:/var/www/eggman/engine# cat Core/Email/V2/Campaigns/Marketing/Festival_2022_05_27/template.tpl
 <tr>
     <td>
         <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
-            We are excited to announce that we will be hosting our first Minds Festival of Ideas at The Beacon Theatre in NYC on June 25, 2022, and we wanted to formally invite you to be a part of this historic event.
+            You are invited to our live event @ The Beacon Theatre NYC Saturday June, 25!
         </p>
     </td>
 </tr>
@@ -103,27 +15,7 @@ root@ip-10-0-3-218:/var/www/eggman/engine# cat Core/Email/V2/Campaigns/Marketing
 <tr>
     <td>
         <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
-            The purpose of the event is to bring people together from across the social and political spectrum to facilitate real conversations, human connection and the evolution of ideas.
-        </p>
-    </td>
-</tr>
-
-<tr>
-    <td>
-        <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
-            Speakers include Tim Pool, Dr. Cornel West, James O'Keefe (Project Veritas), Coleman Hughes, Daryl Davis, Chrissie Mayr, Seth Dillon (Babylon Bee), Destiny, Ben Burgis, Libby Emmons, Maajid Nawaz, Bill Ottman, Ian Crossland, Nick Gillespie (Reason), and ZUBY.
-        </p>
-    </td>
-</tr>
-
-
-<?php echo $vars['actionButton']; ?>
-
-
-<tr>
-    <td>
-        <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
-           If you cannot make it in person, we also will be selling tickets to a live stream of the event.
+            Minds is bringing people together IRL from across the social and political spectrum to facilitate real conversations, human connection and the evolution of ideas. MINDS: Festival of Ideas will feature prominent voices who will come together to have civil dialogue on the important topics of the day.
         </p>
     </td>
 </tr>
@@ -132,7 +24,11 @@ root@ip-10-0-3-218:/var/www/eggman/engine# cat Core/Email/V2/Campaigns/Marketing
 <tr>
     <td>
         <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
-            <a href="https://www.liveone.com/live-events/event/minds-festival-of-ideas">Buy Live Stream Tickets Now</a>
+            <b>SPEAKERS</b>
+        </p>
+        <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
+            The event will feature the following speakers: <br/>
+            Tulsi Gabbard - Tim Pool - Coleman Hughes - Maajid Nawaz - James O'Keefe - Cornel West - Bill Ottman - Nick Gillespie - Zuby Udezue - Ian Crossland - Seth Dillon - Destiny - Ben Burgis - Chrissie Mayr - Libby Emmons - Blaire White - Margaret Kimberley - Daryl Davis
         </p>
     </td>
 </tr>
@@ -140,7 +36,57 @@ root@ip-10-0-3-218:/var/www/eggman/engine# cat Core/Email/V2/Campaigns/Marketing
 <tr>
     <td>
         <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
-            For more information, please visit our <a href="https://www.minds.com/minds/blog/minds-the-beacon-theatre-june-25-2022-1371588535462662152?<?php echo $vars['tracking']; ?>&utm_content=event-landing-page">event landing page</a>. This will hopefully be the first of many more events across the world. We hope to see you there!
+            <b>TICKETS</b>
+        </p>
+        <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
+            We’d like to offer you a discount for the live show. Use promo code MINDS for 25% off of live tickets. This promo code will also apply to the Meet and Greet VIP Tickets.
+        </p>
+        <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
+           <a href="https://www.ticketmaster.com/event/3B005CB2CF161F8D">BUY TICKETS</a>
+        </p>
+        <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
+            You can also enter for your chance to win a FREE ticket. Fill out this short form to be entered to win a free ticket to the event:
+        </p>
+        <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
+           <a href="https://mindsdotcom.typeform.com/mindsfestival">REQUEST A FREE TICKET</a>
+        </p>
+    </td>
+</tr>
+
+<tr>
+    <td>
+        <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
+            <b>LIVE STREAM</b>
+        </p>
+        <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
+            Can’t make it to the Beacon Theatre on June 25th? We will also be streaming the entire event! You can purchase access to the livestream here:
+        </p>
+        <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
+           <a href="https://www.liveone.com/live-events/event/minds-festival-of-ideas">BUY LIVESTREAM TICKETS</a>
+        </p>
+    </td>
+</tr>
+
+
+<tr>
+    <td>
+        <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
+            <b>FULL SCHEDULE</b>
+        </p>
+        <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
+            You can view the full schedule for the Minds Festival of Ideas here:
+        </p>
+        <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
+           <a href="https://www.minds.com/minds/blog/minds-the-beacon-theatre-june-25-2022-1371588535462662152?<?php echo $vars['tracking']; ?>&utm_content=schedule">SCHEDULE</a>
+        </p>
+    </td>
+</tr>
+
+
+<tr>
+    <td>
+        <p <?php echo $emailStyles->getStyles('m-copy'); ?>>
+           We hope to see you all there!
         </p>
     </td>
 </tr>

@@ -30,7 +30,7 @@ class Festival_2022_05_27 extends EmailCampaign
         $this->manager = $manager ?: Di::_()->get('Email\Manager');
 
         $this->campaign = 'global';
-        $this->topic = 'minds_news';
+        $this->topic = 'exclusive_promotions';
     }
 
     public function build(): Message
@@ -40,11 +40,11 @@ class Festival_2022_05_27 extends EmailCampaign
             'campaign' => $this->campaign,
             'topic' => $this->topic,
             'utm_medium' => 'email',
-            'utm_campaign' => 'change-2022-03-15',
+            'utm_campaign' => 'festival-2022-2',
             'utm_source' => 'manual',
         ];
 
-        $subject = "Tickets Live For Minds Festival Feat. Timcast, Cornel West and More...";
+        $subject = "Minds Festival June 25 NYC - Tickets, Livestream, Lottery";
 
         $this->template->setTemplate('default.tpl');
         $this->template->setBody('./template.tpl');
@@ -58,18 +58,10 @@ class Festival_2022_05_27 extends EmailCampaign
         // $this->template->set('signoff', '');
         $this->template->set('title', '');
         $this->template->set('state', '');
-        $this->template->set('preheader', "We are excited to announce that we will be hosting our first Minds Festival of Ideas at The Beacon Theatre in NYC on June 25, 2022, and we wanted to formally invite you to be a part of this historic event.");
+        $this->template->set('preheader', "You are invited to our live event @ The Beacon Theatre NYC Saturday June, 25!");
 
         $trackingQuery = http_build_query($tracking);
         $this->template->set('tracking', $trackingQuery);
-
-        $actionButton = (new ActionButton())
-            ->setLabel("Buy Tickets Now")
-            ->setPath(
-                "https://www.ticketmaster.com/event/3B005CB2CF161F8D"
-            );
-
-        $this->template->set('actionButton', $actionButton->build());
 
         $message = new Message();
         $message->setTo($this->user)
