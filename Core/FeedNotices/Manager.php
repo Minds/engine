@@ -2,9 +2,12 @@
 
 namespace Minds\Core\FeedNotices;
 
+use Minds\Core\FeedNotices\Notices\VerifyEmailNotice;
+use Minds\Core\FeedNotices\Notices\ConnectWalletNotice;
+use Minds\Core\FeedNotices\Notices\SetupChannelNotice;
+use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
 use Minds\Core\FeedNotices\Notices\BuildYourAlgorithmNotice;
 use Minds\Core\FeedNotices\Notices\UpdateTagsNotice;
-use Minds\Core\FeedNotices\Notices\VerifyEmailNotice;
 use Minds\Core\FeedNotices\Notices\EnablePushNotificationsNotice;
 use Minds\Entities\User;
 
@@ -19,6 +22,9 @@ class Manager
      */
     const NOTICES = [
         VerifyEmailNotice::class,
+        SetupChannelNotice::class,
+        VerifyUniquenessNotice::class,
+        ConnectWalletNotice::class,
         BuildYourAlgorithmNotice::class,
         UpdateTagsNotice::class,
         EnablePushNotificationsNotice::class,
