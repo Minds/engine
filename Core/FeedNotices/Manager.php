@@ -22,11 +22,11 @@ class Manager
      */
     const NOTICES = [
         VerifyEmailNotice::class,
+        BuildYourAlgorithmNotice::class,
+        UpdateTagsNotice::class,
         SetupChannelNotice::class,
         VerifyUniquenessNotice::class,
         ConnectWalletNotice::class,
-        BuildYourAlgorithmNotice::class,
-        UpdateTagsNotice::class,
         EnablePushNotificationsNotice::class,
     ];
 
