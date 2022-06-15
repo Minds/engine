@@ -55,6 +55,10 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
+
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -70,6 +74,10 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
+
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);
     }
@@ -80,6 +88,10 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
         $user->getEthWallet()
             ->shouldBeCalled()
             ->willReturn('123');
+
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
 
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
@@ -99,6 +111,10 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
         $user->getEthWallet()
             ->shouldBeCalled()
             ->willReturn(null);
+
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
 
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
@@ -123,6 +139,10 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
         $user->getEthWallet()
             ->shouldBeCalled()
             ->willReturn(null);
+
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
 
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()

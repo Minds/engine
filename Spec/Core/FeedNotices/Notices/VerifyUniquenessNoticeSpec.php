@@ -83,6 +83,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(1);
 
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
+
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -112,6 +116,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_NOT_show_when_experiment_is_off(
         User $user,
     ) {
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
+
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
             ->willReturn(false);
@@ -126,6 +134,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
         $user->getPhoneNumberHash()
             ->shouldBeCalled()
             ->willReturn('123');
+
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
 
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
@@ -146,6 +158,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
+        
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -168,6 +184,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
         $user->getPhoneNumberHash()
             ->shouldBeCalled()
             ->willReturn(null);
+
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
 
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
                 ->shouldBeCalled()
@@ -200,6 +220,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
         $response->count()
             ->shouldBeCalled()
             ->willReturn(0);
+
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
 
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
@@ -242,6 +266,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
         $response->count()
             ->shouldBeCalled()
             ->willReturn(1);
+
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
 
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
@@ -289,6 +317,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(1);
 
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
+
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -324,6 +356,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
     public function it_should_export(User $user)
     {
         $this->setUser($user);
+
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
 
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()

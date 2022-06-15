@@ -48,7 +48,7 @@ class SetupChannelNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return $this->experimentsManager->isOn('minds-3131-onboarding-notices') &&
+        return $this->experimentsManager->setUser($user)->isOn('minds-3131-onboarding-notices') &&
             !($user->getName() && $user->briefdescription);
     }
 }

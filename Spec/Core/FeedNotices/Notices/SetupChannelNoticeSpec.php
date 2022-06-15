@@ -41,6 +41,10 @@ class SetupChannelNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('');
 
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
+
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -55,6 +59,10 @@ class SetupChannelNoticeSpec extends ObjectBehavior
         $user->getName()
             ->shouldBeCalled()
             ->willReturn('123');
+
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
 
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
@@ -79,6 +87,10 @@ class SetupChannelNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('321');
 
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
+
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -96,6 +108,10 @@ class SetupChannelNoticeSpec extends ObjectBehavior
     public function it_should_export(User $user)
     {
         $this->setUser($user);
+
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
 
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
