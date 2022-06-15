@@ -3,6 +3,8 @@
 namespace Minds\Core\FeedNotices\Notices;
 
 use Minds\Entities\User;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Di\Di;
 
 /**
  * Feed notice to prompt a user to connect their wallet.
@@ -16,9 +18,11 @@ class ConnectWalletNotice extends AbstractNotice
     private const KEY = 'connect-wallet';
 
     public function __construct(
-        private ?VerifyUniquenessNotice $verifyUniquenessNotice = null
+        private ?VerifyUniquenessNotice $verifyUniquenessNotice = null,
+        private ?ExperimentsManager $experimentsManager = null
     ) {
         $this->verifyUniquenessNotice ??= new VerifyUniquenessNotice();
+        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 
     /**
@@ -47,7 +51,8 @@ class ConnectWalletNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return !$user->getEthWallet() &&
+        return $this->experimentsManager->isOn('minds-3131-onboarding-notices') &&
+            !$user->getEthWallet() &&
             $this->verifyUniquenessNotice->meetsPrerequisites($user);
     }
 }

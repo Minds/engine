@@ -7,33 +7,40 @@ use Minds\Core\FeedNotices\Notices\SetupChannelNotice;
 use Minds\Core\FeedNotices\Notices\UpdateTagsNotice;
 use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
 use Minds\Core\Feeds\Elastic\Manager as FeedsManager;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 
 class VerifyUniquenessNoticeSpec extends ObjectBehavior
 {
-    /** @var FeedsManager */ 
+    /** @var FeedsManager */
     protected $feedsManager;
 
-    /** @var UpdateTagsNotice */ 
+    /** @var UpdateTagsNotice */
     protected $updateTagsNotice;
 
-    /** @var SetupChannelNotice */ 
+    /** @var SetupChannelNotice */
     protected $setupChannelNotice;
+
+    /** @var ExperimentsManager */
+    protected $experimentsManager;
 
     public function let(
         FeedsManager $feedsManager,
         UpdateTagsNotice $updateTagsNotice,
-        SetupChannelNotice $setupChannelNotice
+        SetupChannelNotice $setupChannelNotice,
+        ExperimentsManager $experimentsManager
     ) {
         $this->feedsManager = $feedsManager;
         $this->updateTagsNotice = $updateTagsNotice;
         $this->setupChannelNotice = $setupChannelNotice;
+        $this->experimentsManager = $experimentsManager;
 
         $this->beConstructedWith(
             $feedsManager,
             $updateTagsNotice,
-            $setupChannelNotice
+            $setupChannelNotice,
+            $experimentsManager
         );
     }
 
@@ -76,6 +83,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(1);
 
+        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->feedsManager->getList([
             'container_guid' => 123,
             'limit' => 1,
@@ -98,12 +109,27 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
+    public function it_should_determine_if_notice_should_NOT_show_when_experiment_is_off(
+        User $user,
+    ) {
+        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->callOnWrappedObject('shouldShow', [$user])
+            ->shouldBe(false);
+    }
+
     public function it_should_determine_if_notice_should_NOT_show_when_no_user_phone_hash(
         User $user,
     ) {
         $user->getPhoneNumberHash()
             ->shouldBeCalled()
             ->willReturn('123');
+
+        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);
@@ -120,13 +146,16 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
+        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);
     }
 
     public function it_should_determine_if_notice_should_NOT_show_because_user_not_3_days_old(
-        User $user,
-        Response $response
+        User $user
     ) {
         $user->isTrusted()
             ->shouldBeCalled()
@@ -139,6 +168,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
         $user->getPhoneNumberHash()
             ->shouldBeCalled()
             ->willReturn(null);
+
+        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
+                ->shouldBeCalled()
+                ->willReturn(true);
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);
@@ -167,6 +200,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
         $response->count()
             ->shouldBeCalled()
             ->willReturn(0);
+
+        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->feedsManager->getList([
             'container_guid' => 123,
@@ -205,6 +242,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
         $response->count()
             ->shouldBeCalled()
             ->willReturn(1);
+
+        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->feedsManager->getList([
             'container_guid' => 123,
@@ -248,6 +289,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(1);
 
+        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->feedsManager->getList([
             'container_guid' => 123,
             'limit' => 1,
@@ -278,11 +323,11 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
 
     public function it_should_export(User $user)
     {
-        $user->getPhoneNumberHash()
-            ->shouldBeCalled()
-            ->willReturn('123');
-
         $this->setUser($user);
+
+        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $this->export()->shouldBe([
             'key' => 'verify-uniqueness',

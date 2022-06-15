@@ -5,6 +5,7 @@ namespace Minds\Core\FeedNotices\Notices;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Core\Feeds\Elastic\Manager as FeedsManager;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 
 /**
  * Feed notice to prompt a user to join rewards and verify their uniqueness.
@@ -22,11 +23,13 @@ class VerifyUniquenessNotice extends AbstractNotice
     public function __construct(
         private ?FeedsManager $feedManager = null,
         private ?UpdateTagsNotice $updateTagsNotice = null,
-        private ?SetupChannelNotice $setupChannelNotice = null
+        private ?SetupChannelNotice $setupChannelNotice = null,
+        private ?ExperimentsManager $experimentsManager = null
     ) {
         $this->feedManager ??= Di::_()->get('Feeds\Elastic\Manager');
         $this->updateTagsNotice ??= new UpdateTagsNotice();
         $this->setupChannelNotice ??= new SetupChannelNotice();
+        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 
     /**
@@ -55,7 +58,8 @@ class VerifyUniquenessNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return !$user->getPhoneNumberHash() &&
+        return $this->experimentsManager->isOn('minds-3131-onboarding-notices') &&
+            !$user->getPhoneNumberHash() &&
             $this->meetsPrerequisites($user);
     }
 
@@ -79,7 +83,8 @@ class VerifyUniquenessNotice extends AbstractNotice
      * @param User $user - user to check.
      * @return boolean - true if user has previously made a post.
      */
-    private function hasMadePosts(User $user) {
+    private function hasMadePosts(User $user)
+    {
         $opts = [
             'container_guid' => $user->getGuid(),
             'limit' => 1,

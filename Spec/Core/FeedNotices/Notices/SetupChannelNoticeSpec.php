@@ -3,11 +3,22 @@
 namespace Spec\Minds\Core\FeedNotices\Notices;
 
 use Minds\Core\FeedNotices\Notices\SetupChannelNotice;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 
 class SetupChannelNoticeSpec extends ObjectBehavior
 {
+    /** @var ExperimentsManager */
+    protected $experimentsManager;
+    
+    public function let(
+        ExperimentsManager $experimentsManager
+    ) {
+        $this->experimentsManager = $experimentsManager;
+        $this->beConstructedWith($experimentsManager);
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(SetupChannelNotice::class);
@@ -30,6 +41,10 @@ class SetupChannelNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('');
 
+        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(true);
     }
@@ -40,7 +55,10 @@ class SetupChannelNoticeSpec extends ObjectBehavior
         $user->getName()
             ->shouldBeCalled()
             ->willReturn('123');
-        
+
+        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $user->get('briefdescription')
             ->shouldBeCalled()
@@ -61,6 +79,10 @@ class SetupChannelNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('321');
 
+        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
+            ->shouldBeCalled()
+            ->willReturn(true);
+    
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);
     }
@@ -73,15 +95,11 @@ class SetupChannelNoticeSpec extends ObjectBehavior
 
     public function it_should_export(User $user)
     {
-        $user->getName()
-            ->shouldBeCalled()
-            ->willReturn('123');
-    
-        $user->get('briefdescription')
-            ->shouldBeCalled()
-            ->willReturn('321');
-
         $this->setUser($user);
+
+        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $this->export()->shouldBe([
             'key' => 'setup-channel',
