@@ -309,7 +309,7 @@
 </head>
 
 <body id="body" class="darkmode body body-fix" bgcolor="#ffffff" style="background-color:#ffffff;">
-    <div role="article" aria-roledescription="email" aria-label="Email from Wonderblum" xml:lang="en" lang="en">
+    <div role="article" aria-roledescription="email" aria-label="Email from Minds" xml:lang="en" lang="en">
         <?php
         if ($vars['preheader']) {
             ?>
