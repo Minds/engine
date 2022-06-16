@@ -33,7 +33,7 @@ class Routes extends ModuleRoutes
                     Ref::_('Nostr\Controller', 'sync')
                 );
                 $route->get(
-                    'minds-entity',
+                    'fetch-entity',
                     Ref::_('Nostr\Controller', 'getEntity')
                 );
             });

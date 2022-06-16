@@ -132,15 +132,51 @@ class ManagerSpec extends ObjectBehavior
     }
 
     /**
+     * @param Activity $activity
+     * @param User $userMock
      * @return void
      * @throws NotFoundException
      * @throws ServerErrorException
      */
-    public function it_should_return_entity_nostr_event_from_nostr_hash(): void
-    {
-        $this->repository->getEntityGuidByNostrHash(Argument::type("string"))
+    public function it_should_return_entity_nostr_event_from_nostr_hash(
+        Activity $activity,
+        User $userMock
+    ): void {
+        $this->repository->getEntityGuidByNostrHash("123")
             ->shouldBeCalledOnce()
-            ->willReturn("123");
+            ->willReturn($userMock);
+
+        $this->entitiesBuilder->single("user_123")
+            ->shouldBeCalledOnce()
+            ->willReturn($userMock);
+
+        $activity->getOwnerGuid()
+            ->willReturn("user_123");
+        $activity->getTimeCreated()
+            ->willReturn(1653047334);
+        $activity->getMessage()
+            ->willReturn('Hello nostr. This is Minds calling');
+        $activity->getEntityGuid()
+            ->willReturn("entity_123");
+        $activity->isRemind()
+            ->willReturn(false);
+        $activity->isQuotedPost()
+            ->willReturn(false);
+
+        $this->keys->withUser($userMock)
+            ->willReturn($this->keys);
+        $this->keys->getSecp256k1PublicKey()
+            ->willReturn('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
+        $this->keys->getSecp256k1PrivateKey()
+            ->willReturn(pack('H*', "51931a1fffbb7e408099d615b283c5a8615a23695b0e46e943e74f404c95042a"));
+
+        $this
+            ->buildNostrEvent($activity)
+            ->willReturn(new NostrEvent());
+
+        $this->entitiesBuilder->single("entity_123")
+            ->shouldBeCalledOnce()
+            ->willReturn($activity);
 
         $this->getEntityNostrEventFromNostrHash("123");
     }

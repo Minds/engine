@@ -266,6 +266,11 @@ class Manager
      */
     public function addNostrHashLinkToEntity(Urn $entityUrn): void
     {
+        if (!in_array($entityUrn->getNid(), ['activity', 'user'], true)) {
+            $this->logger->addWarning("Entity {$entityUrn->getUrn()} is not a supported entity type");
+            return;
+        }
+
         $entity = $this->entitiesBuilder->single($entityUrn->getNss(), ["cache"=>false]);
 
         try {

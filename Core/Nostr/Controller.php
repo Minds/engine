@@ -73,7 +73,7 @@ class Controller
     }
 
     /**
-     * GET /api/v3/nostr/minds-entity
+     * GET /api/v3/nostr/fetch-entity
      * @param ServerRequestInterface $request
      * @return JsonResponse
      * @throws NotFoundException
