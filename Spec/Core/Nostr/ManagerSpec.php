@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Nostr;
 
+use Minds\Common\Urn;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Nostr\Keys;
 use Minds\Core\Nostr\Manager;
@@ -139,45 +140,128 @@ class ManagerSpec extends ObjectBehavior
      * @throws ServerErrorException
      */
     public function it_should_return_entity_nostr_event_from_nostr_hash(
-        Activity $activity,
+        Activity $activityMock,
         User $userMock
     ): void {
+        /**
+         * Set up repository mock
+         */
         $this->repository->getEntityGuidByNostrHash("123")
             ->shouldBeCalledOnce()
-            ->willReturn($userMock);
-
-        $this->entitiesBuilder->single("user_123")
-            ->shouldBeCalledOnce()
-            ->willReturn($userMock);
-
-        $activity->getOwnerGuid()
-            ->willReturn("user_123");
-        $activity->getTimeCreated()
-            ->willReturn(1653047334);
-        $activity->getMessage()
-            ->willReturn('Hello nostr. This is Minds calling');
-        $activity->getEntityGuid()
             ->willReturn("entity_123");
-        $activity->isRemind()
+
+        /**
+         * Set up entities builder mock
+         */
+        $this->entitiesBuilder->single("user_123")
+            ->willReturn($userMock);
+
+        /**
+         * Set up mock entity
+         */
+        $activityMock->getOwnerGuid()
+            ->willReturn("user_123");
+        $activityMock->getTimeCreated()
+            ->willReturn(1653047334);
+        $activityMock->getMessage()
+            ->willReturn('Hello nostr. This is Minds calling');
+        $activityMock->getEntityGuid()
+            ->willReturn(null);
+        $activityMock->isRemind()
             ->willReturn(false);
-        $activity->isQuotedPost()
+        $activityMock->isQuotedPost()
             ->willReturn(false);
 
+        /**
+         * Set up Nostr keys class
+         */
+        $this->setupKeysMock($userMock);
+
+        $this
+            ->buildNostrEvent($activityMock)
+            ->willReturn(new NostrEvent());
+
+        $this->entitiesBuilder->single("entity_123")
+            ->willReturn($activityMock);
+
+        $this->getEntityNostrEventFromNostrHash("123")
+            ->shouldHaveType(NostrEvent::class);
+    }
+
+    /**
+     * @param Activity $activityMock
+     * @param User $userMock
+     * @param Urn $entityUrn
+     * @return void
+     * @throws ServerErrorException
+     */
+    public function it_should_add_nostr_hash_link_to_entity(
+        Activity $activityMock,
+        User $userMock,
+        Urn $entityUrn
+    ): void {
+        /**
+         * Set up entity urn mock
+         */
+        $entityUrn->getNid()
+            ->shouldBeCalledOnce()
+            ->willReturn('activity');
+        $entityUrn->getNss()
+            ->shouldBeCalledOnce()
+            ->willReturn('entity_123');
+        $entityUrn->getUrn()
+            ->willReturn("entity_urn");
+
+        /**
+         * Set up entity mock
+         */
+        $activityMock->getOwnerGuid()
+            ->willReturn("user_123");
+        $activityMock->getTimeCreated()
+            ->willReturn(1653047334);
+        $activityMock->getMessage()
+            ->willReturn('Hello nostr. This is Minds calling');
+        $activityMock->getEntityGuid()
+            ->willReturn(null);
+        $activityMock->isRemind()
+            ->willReturn(false);
+        $activityMock->isQuotedPost()
+            ->willReturn(false);
+
+        /**
+         * Set up entities builder mock
+         */
+        $this->entitiesBuilder->single("user_123")
+            ->willReturn($userMock);
+        $this->entitiesBuilder->single(Argument::any(), ["cache"=>false])
+            ->willReturn($activityMock);
+
+        /**
+         * Set up Nostr keys mock
+         */
+        $this->setupKeysMock($userMock);
+
+        $this->buildNostrEvent($activityMock)
+            ->willReturn(new NostrEvent());
+
+        $this->addNostrHashLinkToEntity($entityUrn);
+    }
+
+    /**
+     * @param User $userMock
+     * @return void
+     * @throws ServerErrorException
+     */
+    private function setupKeysMock(User $userMock): void
+    {
+        /**
+         * Set up Nostr keys class
+         */
         $this->keys->withUser($userMock)
             ->willReturn($this->keys);
         $this->keys->getSecp256k1PublicKey()
             ->willReturn('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
         $this->keys->getSecp256k1PrivateKey()
             ->willReturn(pack('H*', "51931a1fffbb7e408099d615b283c5a8615a23695b0e46e943e74f404c95042a"));
-
-        $this
-            ->buildNostrEvent($activity)
-            ->willReturn(new NostrEvent());
-
-        $this->entitiesBuilder->single("entity_123")
-            ->shouldBeCalledOnce()
-            ->willReturn($activity);
-
-        $this->getEntityNostrEventFromNostrHash("123");
     }
 }
