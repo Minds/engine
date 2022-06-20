@@ -96,7 +96,7 @@ prepare:all:sentry:
     - sentry-cli releases finalize $CI_PIPELINE_ID
     - echo "Finalized release for $CI_PIPELINE_ID"
 
-container_scanning:engine:
+container_scanning:
   stage: scan
   variables:
     DOCKER_IMAGE: $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
