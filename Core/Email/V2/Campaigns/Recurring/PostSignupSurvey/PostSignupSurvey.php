@@ -66,6 +66,7 @@ class PostSignupSurvey extends EmailCampaign
         $surveyLink = $this->config->get('survey_links')['post_signup'] ?? false;
 
         if (!$surveyLink) {
+            $this->logger->warn('PostSignupSurvey survey link not set in config.');
             return null;
         }
 
