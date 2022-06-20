@@ -210,7 +210,7 @@ class Template
     {
         $vars = array_merge($this->data, $vars);
         $emailStyles = $this->emailStyles;
-        $emailStylesV2 = $this->emailStylesV2 ?? new EmailStylesV2();
+        $emailStylesV2 = $this->emailStylesV2 ?? Di::_()->get('Email\V2\Common\EmailStylesV2');
 
         ob_start();
 
