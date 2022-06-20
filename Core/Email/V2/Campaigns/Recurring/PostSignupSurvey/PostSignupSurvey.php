@@ -84,11 +84,13 @@ class PostSignupSurvey extends EmailCampaign
 
         $this->template->set('user', $this->user);
         $this->template->set('username', $this->user->username);
+        $this->template->set('email', $this->user->getEmail());
         $this->template->set('campaign', $this->campaign);
         $this->template->set('topic', $this->topic);
         $this->template->set('guid', $this->user->guid);
         $this->template->set('tracking', $trackingQuery);
-        $this->template->set('title', "");
+        $this->template->set('title', '');
+        $this->template->set('state', '');
         $this->template->set('preheader', $previewText);
 
         $actionButton = (new ActionButtonV2())
