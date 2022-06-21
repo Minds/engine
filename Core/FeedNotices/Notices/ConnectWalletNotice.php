@@ -54,7 +54,7 @@ class ConnectWalletNotice extends AbstractNotice
     {
         return $this->experimentsManager->setUser($user)->isOn('minds-3131-onboarding-notices') &&
             !$user->getEthWallet() &&
-            $this->canRegisterForRewards($user);
+            $this->isEligibleForRewards($user);
     }
 
     /**
@@ -62,9 +62,9 @@ class ConnectWalletNotice extends AbstractNotice
      * @param User $user - user to check.
      * @return boolean true if user is eligible to register for rewards.
      */
-    private function canRegisterForRewards(User $user): bool
+    private function isEligibleForRewards(User $user): bool
     {
         return $this->eligibilityManager->setUser($user)
-            ->canRegister();
+            ->isEligible();
     }
 }

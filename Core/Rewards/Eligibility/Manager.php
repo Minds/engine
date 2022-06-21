@@ -49,7 +49,7 @@ class Manager
      * @throws ServerErrorException - if no user is set.
      * @return boolean - true if user can register.
      */
-    public function canRegister(): bool
+    public function isEligible(): bool
     {
         if (!$this->user) {
             throw new ServerErrorException('No user set for Eligibility Manager');
@@ -57,9 +57,9 @@ class Manager
 
         return $this->user->isTrusted() &&
             $this->user->getAge() > self::MINIMUM_ACCOUNT_AGE &&
-            $this->hasMadePosts() &&
             $this->user->getName() &&
             $this->user->briefdescription &&
+            $this->hasMadePosts() &&
             $this->hasSetHashtags();
     }
 

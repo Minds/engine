@@ -5,26 +5,27 @@ namespace Spec\Minds\Core\FeedNotices\Notices;
 use Minds\Core\FeedNotices\Notices\ConnectWalletNotice;
 use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Rewards\Eligibility\Manager as EligibilityManager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 
 class ConnectWalletNoticeSpec extends ObjectBehavior
 {
-    /** @var VerifyUniquenessNotice */
-    protected $verifyUniquenessNotice;
+    /** @var EligibilityManager */
+    protected $eligibilityManager;
 
     /** @var ExperimentsManager */
     protected $experimentsManager;
 
     public function let(
-        VerifyUniquenessNotice $verifyUniquenessNotice,
+        EligibilityManager $eligibilityManager,
         ExperimentsManager $experimentsManager
     ) {
-        $this->verifyUniquenessNotice = $verifyUniquenessNotice;
+        $this->eligibilityManager = $eligibilityManager;
         $this->experimentsManager = $experimentsManager;
 
         $this->beConstructedWith(
-            $verifyUniquenessNotice,
+            $eligibilityManager,
             $experimentsManager
         );
     }
@@ -47,19 +48,23 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_show(
         User $user,
     ) {
-        $user->getEthWallet()
-            ->shouldBeCalled()
-            ->willReturn(null);
-
-        $this->verifyUniquenessNotice->meetsPrerequisites($user)
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this->experimentsManager->setUser($user)
             ->shouldBeCalled()
             ->willReturn($this->experimentsManager);
 
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $user->getEthWallet()
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->eligibilityManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->eligibilityManager);
+
+        $this->eligibilityManager->isEligible()
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -82,7 +87,7 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
             ->shouldBe(false);
     }
 
-    public function it_should_determine_if_notice_should_NOT_show_because_user_has_eth_wallet(
+    public function it_should_determine_if_notice_should_NOT_show_because_user_has_no_eth_wallet(
         User $user,
     ) {
         $user->getEthWallet()
@@ -97,20 +102,16 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->verifyUniquenessNotice->meetsPrerequisites($user)
-            ->shouldNotBeCalled()
-            ->willReturn(true);
-
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);
     }
 
-    public function it_should_determine_if_notice_should_NOT_show_because_user_has_not_met_prerequisites(
+    public function it_should_determine_if_notice_should_NOT_show_because_user_is_not_eligible_for_rewards(
         User $user,
     ) {
         $user->getEthWallet()
             ->shouldBeCalled()
-            ->willReturn(null);
+            ->willReturn();
 
         $this->experimentsManager->setUser($user)
             ->shouldBeCalled()
@@ -120,7 +121,11 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->verifyUniquenessNotice->meetsPrerequisites($user)
+        $this->eligibilityManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->eligibilityManager);
+
+        $this->eligibilityManager->isEligible()
             ->shouldBeCalled()
             ->willReturn(false);
 
@@ -138,7 +143,7 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
     {
         $user->getEthWallet()
             ->shouldBeCalled()
-            ->willReturn(null);
+            ->willReturn();
 
         $this->experimentsManager->setUser($user)
             ->shouldBeCalled()
@@ -148,7 +153,11 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->verifyUniquenessNotice->meetsPrerequisites($user)
+        $this->eligibilityManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->eligibilityManager);
+
+        $this->eligibilityManager->isEligible()
             ->shouldBeCalled()
             ->willReturn(true);
 

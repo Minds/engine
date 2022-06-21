@@ -2,44 +2,29 @@
 
 namespace Spec\Minds\Core\FeedNotices\Notices;
 
-use Minds\Common\Repository\Response;
-use Minds\Core\FeedNotices\Notices\SetupChannelNotice;
-use Minds\Core\FeedNotices\Notices\UpdateTagsNotice;
 use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
-use Minds\Core\Feeds\Elastic\Manager as FeedsManager;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Rewards\Eligibility\Manager as EligibilityManager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 
 class VerifyUniquenessNoticeSpec extends ObjectBehavior
 {
-    /** @var FeedsManager */
-    protected $feedsManager;
-
-    /** @var UpdateTagsNotice */
-    protected $updateTagsNotice;
-
-    /** @var SetupChannelNotice */
-    protected $setupChannelNotice;
+    /** @var EligibilityManager */
+    protected $eligibilityManager;
 
     /** @var ExperimentsManager */
     protected $experimentsManager;
 
     public function let(
-        FeedsManager $feedsManager,
-        UpdateTagsNotice $updateTagsNotice,
-        SetupChannelNotice $setupChannelNotice,
+        EligibilityManager $eligibilityManager,
         ExperimentsManager $experimentsManager
     ) {
-        $this->feedsManager = $feedsManager;
-        $this->updateTagsNotice = $updateTagsNotice;
-        $this->setupChannelNotice = $setupChannelNotice;
+        $this->eligibilityManager = $eligibilityManager;
         $this->experimentsManager = $experimentsManager;
 
         $this->beConstructedWith(
-            $feedsManager,
-            $updateTagsNotice,
-            $setupChannelNotice,
+            $eligibilityManager,
             $experimentsManager
         );
     }
@@ -60,28 +45,19 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
     }
 
     public function it_should_determine_if_notice_should_show(
-        User $user,
-        Response $response
+        User $user
     ) {
-        $user->isTrusted()
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $user->getAge()
-            ->shouldBeCalled()
-            ->willReturn(259201);
-    
-        $user->getGuid()
-            ->shouldBeCalled()
-            ->willReturn(123);
-
         $user->getPhoneNumberHash()
             ->shouldBeCalled()
             ->willReturn(null);
-
-        $response->count()
+        
+        $this->eligibilityManager->setUser($user)
             ->shouldBeCalled()
-            ->willReturn(1);
+            ->willReturn($this->eligibilityManager);
+
+        $this->eligibilityManager->isEligible()
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->experimentsManager->setUser($user)
             ->shouldBeCalled()
@@ -90,24 +66,6 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
             ->willReturn(true);
-
-        $this->feedsManager->getList([
-            'container_guid' => 123,
-            'limit' => 1,
-            'algorithm' => 'latest',
-            'period' => '1y',
-            'type' => 'activity'
-        ])
-            ->shouldBeCalled()
-            ->willReturn($response);
-
-        $this->setupChannelNotice->shouldShow($user)
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $this->updateTagsNotice->shouldShow($user)
-            ->shouldBeCalled()
-            ->willReturn(false);
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(true);
@@ -147,17 +105,24 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
             ->shouldBe(false);
     }
 
-    public function it_should_determine_if_notice_should_NOT_show_because_user_not_trusted(
+    public function it_should_determine_if_notice_should_NOT_show_because_experiment_is_off(
         User $user
     ) {
-        $user->isTrusted()
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
+        
+        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $user->getPhoneNumberHash()
-            ->shouldBeCalled()
-            ->willReturn(null);
+        $this->callOnWrappedObject('shouldShow', [$user])
+            ->shouldBe(false);
+    }
 
+    public function it_should_determine_if_notice_should_NOT_show_because_user_is_not_eligible_for_rewards(
+        User $user
+    ) {
         $this->experimentsManager->setUser($user)
             ->shouldBeCalled()
             ->willReturn($this->experimentsManager);
@@ -166,182 +131,36 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $user->getPhoneNumberHash()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);
     }
 
-    public function it_should_determine_if_notice_should_NOT_show_because_user_not_3_days_old(
+    public function it_should_determine_if_notice_should_NOT_show_because_user_already_has_a_phone_hash_set(
         User $user
     ) {
-        $user->isTrusted()
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $user->getAge()
-            ->shouldBeCalled()
-            ->willReturn(259199);
-
-        $user->getPhoneNumberHash()
-            ->shouldBeCalled()
-            ->willReturn(null);
-
         $this->experimentsManager->setUser($user)
             ->shouldBeCalled()
             ->willReturn($this->experimentsManager);
-
-        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
-                ->shouldBeCalled()
-                ->willReturn(true);
-
-        $this->callOnWrappedObject('shouldShow', [$user])
-            ->shouldBe(false);
-    }
-
-    public function it_should_determine_if_notice_should_NOT_show_because_user_has_not_made_posts(
-        User $user,
-        Response $response
-    ) {
-        $user->isTrusted()
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $user->getAge()
-            ->shouldBeCalled()
-            ->willReturn(259201);
-    
-        $user->getGuid()
-            ->shouldBeCalled()
-            ->willReturn(123);
-
-        $user->getPhoneNumberHash()
-            ->shouldBeCalled()
-            ->willReturn(null);
-
-        $response->count()
-            ->shouldBeCalled()
-            ->willReturn(0);
-
-        $this->experimentsManager->setUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->experimentsManager);
-
+        
         $this->experimentsManager->isOn('minds-3131-onboarding-notices')
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->feedsManager->getList([
-            'container_guid' => 123,
-            'limit' => 1,
-            'algorithm' => 'latest',
-            'period' => '1y',
-            'type' => 'activity'
-        ])
-            ->shouldBeCalled()
-            ->willReturn($response);
-
-        $this->callOnWrappedObject('shouldShow', [$user])
-            ->shouldBe(false);
-    }
-
-    public function it_should_determine_if_notice_should_NOT_show_because_setup_channel_notice_should_show(
-        User $user,
-        Response $response
-    ) {
-        $user->isTrusted()
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $user->getAge()
-            ->shouldBeCalled()
-            ->willReturn(259201);
-    
-        $user->getGuid()
-            ->shouldBeCalled()
-            ->willReturn(123);
-
         $user->getPhoneNumberHash()
             ->shouldBeCalled()
-            ->willReturn(null);
+            ->willReturn('');
 
-        $response->count()
+        $this->eligibilityManager->setUser($user)
             ->shouldBeCalled()
-            ->willReturn(1);
+            ->willReturn($this->eligibilityManager);
 
-        $this->experimentsManager->setUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->experimentsManager);
-
-        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->feedsManager->getList([
-            'container_guid' => 123,
-            'limit' => 1,
-            'algorithm' => 'latest',
-            'period' => '1y',
-            'type' => 'activity'
-        ])
-            ->shouldBeCalled()
-            ->willReturn($response);
-
-        $this->setupChannelNotice->shouldShow($user)
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->callOnWrappedObject('shouldShow', [$user])
-            ->shouldBe(false);
-    }
-
-    public function it_should_determine_if_notice_should_NOT_show_because_update_tags_notice_should_show(
-        User $user,
-        Response $response
-    ) {
-        $user->isTrusted()
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $user->getAge()
-            ->shouldBeCalled()
-            ->willReturn(259201);
-    
-        $user->getGuid()
-            ->shouldBeCalled()
-            ->willReturn(123);
-
-        $user->getPhoneNumberHash()
-            ->shouldBeCalled()
-            ->willReturn(null);
-
-        $response->count()
-            ->shouldBeCalled()
-            ->willReturn(1);
-
-        $this->experimentsManager->setUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->experimentsManager);
-
-        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->feedsManager->getList([
-            'container_guid' => 123,
-            'limit' => 1,
-            'algorithm' => 'latest',
-            'period' => '1y',
-            'type' => 'activity'
-        ])
-            ->shouldBeCalled()
-            ->willReturn($response);
-
-        $this->setupChannelNotice->shouldShow($user)
+        $this->eligibilityManager->isEligible()
             ->shouldBeCalled()
             ->willReturn(false);
-
-        $this->updateTagsNotice->shouldShow($user)
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);

@@ -41,16 +41,9 @@ class UpdateTagsNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->userHashtagsManager);
 
-        $this->userHashtagsManager->get([
-            'limit' => 1
-        ])
+        $this->userHashtagsManager->hasSetHashtags()
             ->shouldBeCalled()
-            ->willReturn([
-                [
-                    'value' => 'tag',
-                    'selected' => true
-                ]
-            ]);
+            ->willReturn(true);
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);
@@ -63,16 +56,9 @@ class UpdateTagsNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->userHashtagsManager);
 
-        $this->userHashtagsManager->get([
-            'limit' => 1
-        ])
+        $this->userHashtagsManager->hasSetHashtags()
             ->shouldBeCalled()
-            ->willReturn([
-                [
-                    'value' => 'tag',
-                    'selected' => false
-                ]
-            ]);
+            ->willReturn(false);
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(true);
@@ -90,23 +76,16 @@ class UpdateTagsNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->userHashtagsManager);
 
-        $this->userHashtagsManager->get([
-            'limit' => 1
-        ])
+        $this->userHashtagsManager->hasSetHashtags()
             ->shouldBeCalled()
-            ->willReturn([
-                [
-                    'value' => 'tag',
-                    'selected' => false
-                ]
-            ]);
+            ->willReturn(true);
 
         $this->setUser($user);
 
         $this->export()->shouldBe([
             'key' => 'update-tags',
             'location' => 'inline',
-            'should_show' => true
+            'should_show' => false
         ]);
     }
 }
