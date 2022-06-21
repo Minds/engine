@@ -170,13 +170,14 @@ class Client
      * Returns mints in descending order
      * TODO: add time params
      * @param array $paidIds
+     * @param int $skip - to use when iterating. function calls itself.
      * @return UniswapMintEntity[]
      */
-    public function getMintsByPairIds(array $pairIds = []): array
+    public function getMintsByPairIds(array $pairIds = [], int $skip = 0): array
     {
         $query = '
-            query($ids: [String!]) {
-                mints(where: { pair_in: $ids }, orderBy: timestamp, orderDirection: desc, first: 1000) {
+            query($ids: [String!], $skip: Int!) {
+                mints(where: { pair_in: $ids }, orderBy: timestamp, orderDirection: desc, first: 1000, skip: $skip) {
                     id
                     to
                     amount0
@@ -197,6 +198,7 @@ class Client
             'ids' => array_map(function ($id) {
                 return strtolower($id);
             }, $pairIds),
+            'skip' => $skip,
         ];
 
         $response = $this->request($query, $variables);
@@ -205,6 +207,10 @@ class Client
 
         foreach ($response['mints'] as $mint) {
             $mints[] = UniswapMintEntity::build($mint);
+        }
+
+        if (count($mints) >= 1000) {
+            array_push($mints, ...$this->getMintsByPairIds($pairIds, count($mints)));
         }
 
         return $mints;
