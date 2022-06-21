@@ -5,6 +5,7 @@ use Exception;
 use Minds\Common\Urn;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Entities\Activity;
@@ -24,13 +25,15 @@ class Manager
         protected ?EntitiesBuilder $entitiesBuilder = null,
         protected ?Keys $keys = null,
         array $clients = [],
-        private ?Repository $repository = null
+        private ?Repository $repository = null,
+        private ?EntitiesResolver $entitiesResolver = null
     ) {
         $this->config ??= Di::_()->get('Config');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->keys ??= new Keys();
         $this->clients = $clients;
         $this->repository ??= new Repository();
+        $this->entitiesResolver ??= new EntitiesResolver();
         $this->logger = Di::_()->get("Logger");
     }
 
@@ -262,28 +265,33 @@ class Manager
 
     /**
      * @param Urn $entityUrn
-     * @return void
+     * @return bool
      */
-    public function addNostrHashLinkToEntity(Urn $entityUrn): void
+    public function addNostrHashLinkToEntity(Urn $entityUrn): bool
     {
-        if (!in_array($entityUrn->getNid(), ['activity', 'user'], true)) {
-            $this->logger->addWarning("Entity {$entityUrn->getUrn()} is not a supported entity type");
-            return;
-        }
+        $entity = $this->entitiesResolver?->setOpts(['cache' => false])
+            ->single($entityUrn);
 
-        $entity = $this->entitiesBuilder->single($entityUrn->getNss(), ["cache"=>false]);
+        if (!in_array($entity->getType(), ['activity', 'user'], true)) {
+            $this->logger->addWarning("Entity {$entityUrn->getUrn()} is not a supported entity type");
+            return false;
+        }
 
         try {
             $nostrHash = ($this->buildNostrEvent($entity))->getId();
         } catch (Exception $e) {
             $this->logger->addWarning("Entity {$entityUrn->getUrn()} is not a supported entity type");
-            return;
+            return false;
         }
         
         $this->logger->addInfo("Nostr hash for entity {$entityUrn->getUrn()} is {$nostrHash}");
 
-        $this->repository->addNewCorrelation($nostrHash, $entityUrn->getUrn());
+        $result = $this->repository->addNewCorrelation($nostrHash, $entityUrn->getUrn());
 
-        $this->logger->addInfo("Nostr hash {$nostrHash} correctly linked to entity {$entityUrn->getUrn()}");
+        $result
+            ? $this->logger->addInfo("Nostr hash {$nostrHash} correctly linked to entity {$entityUrn->getUrn()}")
+            : $this->logger->addError("Nostr hash {$nostrHash} failed to be linked to entity {$entityUrn->getUrn()}");
+
+        return $result;
     }
 }

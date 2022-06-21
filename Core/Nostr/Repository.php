@@ -44,7 +44,13 @@ class Repository
         return $entityUrn->getNss();
     }
 
-    public function addNewCorrelation(string $nostrHash, string $urn): void
+    /**
+     * Adds a new entry in the table that links a nostr hash to a Minds Entity via URN
+     * @param string $nostrHash
+     * @param string $urn
+     * @return bool
+     */
+    public function addNewCorrelation(string $nostrHash, string $urn): bool
     {
         $query = (new PreparedQuery())
             ->query(
@@ -52,6 +58,6 @@ class Repository
                 [$nostrHash, $urn]
             );
 
-        $this->cassandraClient->request($query);
+        return $this->cassandraClient->request($query);
     }
 }

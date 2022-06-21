@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Nostr;
 
 use Minds\Common\Urn;
+use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Nostr\Keys;
 use Minds\Core\Nostr\Manager;
@@ -18,14 +19,16 @@ use Prophecy\Argument;
 class ManagerSpec extends ObjectBehavior
 {
     private $entitiesBuilder;
+    private $entitiesResolver;
     private $repository;
     private $keys;
 
-    public function let(EntitiesBuilder $entitiesBuilder, Keys $keys, Repository $repository)
+    public function let(EntitiesBuilder $entitiesBuilder, Keys $keys, Repository $repository, EntitiesResolver $entitiesResolver)
     {
-        $this->beConstructedWith(null, $entitiesBuilder, $keys, [], $repository);
+        $this->beConstructedWith(null, $entitiesBuilder, $keys, [], $repository, $entitiesResolver);
         $this->entitiesBuilder = $entitiesBuilder;
         $this->repository = $repository;
+        $this->entitiesResolver = $entitiesResolver;
         $this->keys = $keys;
     }
 
@@ -203,12 +206,6 @@ class ManagerSpec extends ObjectBehavior
         /**
          * Set up entity urn mock
          */
-        $entityUrn->getNid()
-            ->shouldBeCalledOnce()
-            ->willReturn('activity');
-        $entityUrn->getNss()
-            ->shouldBeCalledOnce()
-            ->willReturn('entity_123');
         $entityUrn->getUrn()
             ->willReturn("entity_urn");
 
@@ -227,14 +224,31 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(false);
         $activityMock->isQuotedPost()
             ->willReturn(false);
+        $activityMock->getType()
+            ->willReturn('activity');
 
         /**
          * Set up entities builder mock
          */
         $this->entitiesBuilder->single("user_123")
             ->willReturn($userMock);
-        $this->entitiesBuilder->single(Argument::any(), ["cache"=>false])
+
+        /**
+         * Set up entity resolver mock
+         */
+        $this->entitiesResolver->setOpts(Argument::type('array'))
+            ->willReturn($this->entitiesResolver);
+
+        $this->entitiesResolver->single($entityUrn)
+            ->shouldBeCalledOnce()
             ->willReturn($activityMock);
+
+        /**
+         * Set up repository mock
+         */
+        $this->repository->addNewCorrelation(Argument::type("string"), Argument::type("string"))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
 
         /**
          * Set up Nostr keys mock
