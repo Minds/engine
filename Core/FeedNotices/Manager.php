@@ -20,7 +20,7 @@ class Manager
      * The priority that notices will show in is determined by
      * the order of Notices in this array.
      */
-    const NOTICES = [
+    private const NOTICES = [
         VerifyEmailNotice::class,
         BuildYourAlgorithmNotice::class,
         UpdateTagsNotice::class,
@@ -39,8 +39,8 @@ class Manager
     {
         $notices = [];
 
-        for ($i = 0; $i < count(self::NOTICES); $i++) {
-            $notice = (new (self::NOTICES[$i])())
+        foreach (self::NOTICES as $noticeClass) {
+            $notice = (new $noticeClass())
                 ->setUser($user);
             array_push($notices, $notice->export());
         }
