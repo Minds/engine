@@ -14,7 +14,7 @@ class Routes extends ModuleRoutes
     public function register(): void
     {
         $this->route
-            ->withPrefix('api/v3/metrics')
+            ->withPrefix('metrics')
             ->do(function (Route $route) {
                 $route->get(
                     '',
