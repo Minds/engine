@@ -52,14 +52,6 @@ class UpdateTagsNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        $userHashtags = $this->userHashtagsManager
-            ->setUser($user)
-            ->get(['limit' => 1]);
-        
-        return !(
-            $userHashtags &&
-            count($userHashtags) > 0 &&
-            $userHashtags[0]['selected']
-        );
+        return !($this->userHashtagsManager->setUser($user)->hasSetHashtags());
     }
 }

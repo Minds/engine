@@ -2,9 +2,10 @@
 
 namespace Minds\Core\FeedNotices\Notices;
 
+use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
-use Minds\Core\Di\Di;
+use Minds\Core\Rewards\Eligibility\Manager as EligibilityManager;
 
 /**
  * Feed notice to prompt a user to connect their wallet.
@@ -18,10 +19,10 @@ class ConnectWalletNotice extends AbstractNotice
     private const KEY = 'connect-wallet';
 
     public function __construct(
-        private ?VerifyUniquenessNotice $verifyUniquenessNotice = null,
+        private ?EligibilityManager $eligibilityManager = null,
         private ?ExperimentsManager $experimentsManager = null
     ) {
-        $this->verifyUniquenessNotice ??= new VerifyUniquenessNotice();
+        $this->eligibilityManager ??= Di::_()->get('Rewards\Eligibility\Manager');
         $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 
@@ -53,6 +54,17 @@ class ConnectWalletNotice extends AbstractNotice
     {
         return $this->experimentsManager->setUser($user)->isOn('minds-3131-onboarding-notices') &&
             !$user->getEthWallet() &&
-            $this->verifyUniquenessNotice->meetsPrerequisites($user);
+            $this->canRegisterForRewards($user);
+    }
+
+    /**
+     * Whether user is eligible to register for rewards.
+     * @param User $user - user to check.
+     * @return boolean true if user is eligible to register for rewards.
+     */
+    private function canRegisterForRewards(User $user): bool
+    {
+        return $this->eligibilityManager->setUser($user)
+            ->canRegister();
     }
 }

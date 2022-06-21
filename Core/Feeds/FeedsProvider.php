@@ -61,5 +61,9 @@ class FeedsProvider extends Provider
         $this->di->bind('Feeds\Subscribed\Controller', function ($di) {
             return new Subscribed\Controller();
         });
+
+        $this->di->bind('Feeds\User\Manager', function ($di) {
+            return new User\Manager();
+        });
     }
 }
