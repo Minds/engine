@@ -120,13 +120,13 @@ class Manager implements ManagerInterface
     }
 
     /**
-     * Gets answers for compass for instance $targetUser.
-     * @return array - array of answers.
+     * Count answers for compass for instance $targetUser.
+     * @return array - count of answers.
      */
-    public function getAnswers(): array
+    public function countAnswers(): int
     {
-        return $this->repository->getAnswers(
-            $this->targetUser->getGuid()
+        return $this->repository->countAnswers(
+            $this->getUserId()
         );
     }
 

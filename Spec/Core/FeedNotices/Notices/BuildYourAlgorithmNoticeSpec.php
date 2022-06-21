@@ -41,9 +41,9 @@ class BuildYourAlgorithmNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->socialCompassManager);
 
-        $this->socialCompassManager->getAnswers()
+        $this->socialCompassManager->countAnswers()
             ->shouldBeCalled()
-            ->willReturn([]);
+            ->willReturn(0);
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(true);
@@ -56,9 +56,9 @@ class BuildYourAlgorithmNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->socialCompassManager);
 
-        $this->socialCompassManager->getAnswers()
+        $this->socialCompassManager->countAnswers()
             ->shouldBeCalled()
-            ->willReturn([1]);
+            ->willReturn(1);
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);
@@ -76,9 +76,9 @@ class BuildYourAlgorithmNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->socialCompassManager);
 
-        $this->socialCompassManager->getAnswers()
+        $this->socialCompassManager->countAnswers()
             ->shouldBeCalled()
-            ->willReturn([]);
+            ->willReturn(0);
 
         $this->setUser($user);
 

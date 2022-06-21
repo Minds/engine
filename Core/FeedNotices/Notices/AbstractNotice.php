@@ -10,7 +10,7 @@ use Minds\Entities\User;
 abstract class AbstractNotice
 {
     // instance user.
-    protected $user = null;
+    protected ?User $user = null;
 
     /**
      * Get location of notice in feed.

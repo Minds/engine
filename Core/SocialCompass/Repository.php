@@ -43,6 +43,29 @@ class Repository implements RepositoryInterface
     }
 
     /**
+     * Count answers to Social Compass questions provided by a specific user.
+     * @param int $userGuid - guid of target user.
+     * @return int - count of answers.
+     * @throws ServerErrorException
+     */
+    public function countAnswers(int $userGuid): int
+    {
+        $statement = "SELECT Count(*)
+            FROM
+                social_compass_answers
+            WHERE
+                user_guid = ?";
+        
+        $values = [new Bigint($userGuid)];
+
+        $query = $this->prepareQuery($statement, $values);
+
+        $result = $this->cql->request($query);
+
+        return $result[0]['count']->value() ?? 0;
+    }
+
+    /**
      * @param int $userGuid
      * @param string $questionId
      * @return AnswerModel

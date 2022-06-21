@@ -53,10 +53,10 @@ class BuildYourAlgorithmNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        $answers = $this->socialCompassManager
+        $count = $this->socialCompassManager
             ->setUser($user)
-            ->getAnswers();
+            ->countAnswers();
 
-        return count($answers) < 1;
+        return $count < 1;
     }
 }
