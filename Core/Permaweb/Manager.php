@@ -114,6 +114,13 @@ class Manager
         }
     }
 
+    public function checkHealth()
+    {
+        $baseUrl = $this->buildUrl($this->config->get('arweave'));
+        $response = json_decode($this->http->get($baseUrl));
+        return $response->status === 200;
+    }
+
     private function buildUrl($arweaveConfig): string
     {
         return 'http://'.$arweaveConfig['host'].':'.$arweaveConfig['port'].'/';

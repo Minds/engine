@@ -154,6 +154,15 @@ class MindsWeb3Service
         return $this;
     }
 
+    public function checkHealth(): bool
+    {
+        $response = $this->httpClient->request('GET', $this->getBaseUrl(), [
+            'headers' => $this->buildHeaders()
+        ]);
+        $responseData = json_decode($response->getBody()->getContents(), true);
+        return $responseData['status'] && $responseData['status'] === 200;
+    }
+
     /**
      * Build headers for request
      * @param boolean $authenticate - should authenticate.

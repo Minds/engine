@@ -68,6 +68,7 @@ class Minds extends base
         DID\Module::class,
         Nostr\Module::class,
         Entities\Ops\Module::class,
+        Metrics\Module::class,
     ];
 
     /**
