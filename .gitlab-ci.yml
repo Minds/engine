@@ -109,6 +109,9 @@ container_scanning_runners:
   variables:
     DOCKER_IMAGE: $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
 
+dependency_scanning:
+  stage: scan
+
 review:start:
   stage: review
   image: minds/aws-helm:latest
