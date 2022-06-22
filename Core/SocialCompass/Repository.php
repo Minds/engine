@@ -62,6 +62,10 @@ class Repository implements RepositoryInterface
 
         $result = $this->cql->request($query);
 
+        if (!$result || !isset($result[0]['count'])) {
+            throw new ServerErrorException("Unable to count SocialCompass answers for user: $userGuid");
+        }
+
         return $result[0]['count']->value() ?? 0;
     }
 

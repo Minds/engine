@@ -2,6 +2,7 @@
 
 namespace Minds\Core\FeedNotices;
 
+use Minds\Core\Di\Di;
 use Minds\Core\FeedNotices\Notices\VerifyEmailNotice;
 use Minds\Core\FeedNotices\Notices\ConnectWalletNotice;
 use Minds\Core\FeedNotices\Notices\SetupChannelNotice;
@@ -9,6 +10,7 @@ use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
 use Minds\Core\FeedNotices\Notices\BuildYourAlgorithmNotice;
 use Minds\Core\FeedNotices\Notices\UpdateTagsNotice;
 use Minds\Core\FeedNotices\Notices\EnablePushNotificationsNotice;
+use Minds\Core\Log\Logger;
 use Minds\Entities\User;
 
 /**
@@ -16,6 +18,15 @@ use Minds\Entities\User;
  */
 class Manager
 {
+    /**
+     * Constructor.
+     * @param Logger|null - logger class.
+     */
+    public function __construct(private ?Logger $logger = null)
+    {
+        $this->logger ??= Di::_()->get('Logger');
+    }
+
     /**
      * The priority that notices will show in is determined by
      * the order of Notices in this array.
@@ -40,9 +51,14 @@ class Manager
         $notices = [];
 
         foreach (self::NOTICES as $noticeClass) {
-            $notice = (new $noticeClass())
-                ->setUser($user);
-            array_push($notices, $notice->export());
+            try {
+                $notice = (new $noticeClass())
+                    ->setUser($user);
+                array_push($notices, $notice->export());
+            } catch (\Exception $e) {
+                // log error and skip over this notice.
+                $this->logger->error($e);
+            }
         }
 
         return $notices;
