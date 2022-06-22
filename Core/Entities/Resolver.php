@@ -86,7 +86,7 @@ class Resolver
     /**
      * @return array
      */
-    public function fetch()
+    public function fetch(): array
     {
         // Setup batches for bulk operations on some resolvers
         $batches = [];
@@ -145,7 +145,12 @@ class Resolver
         return $sorted;
     }
 
-    public function single($urn)
+    /**
+     * Gets an entity URN and returns the Entity object
+     * @param $urn
+     * @return mixed
+     */
+    public function single($urn): mixed
     {
         $this->urns = [$urn];
         $entities = $this->fetch();
