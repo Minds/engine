@@ -103,6 +103,13 @@ container_scanning:
   variables:
     DOCKER_IMAGE: $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
 
+
+container_scanning_runners:
+  extends: container_scanning
+  stage: scan
+  variables:
+    DOCKER_IMAGE: $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
+
 review:start:
   stage: review
   image: minds/aws-helm:latest
