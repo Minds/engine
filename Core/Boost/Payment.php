@@ -389,43 +389,7 @@ class Payment
 
                 switch ($method) {
                     case 'onchain':
-                        if ($boost->getHandler() === 'peer') {
-                            // Already refunded
-                            return true;
-                        }
-
-                        //get the transaction
-                        $boostTransaction = $this->txRepository->get($boost->getOwner()->guid, $boost->getTransactionId());
-
-                        //send the tokens back to the booster
-                        $txHash = $this->eth->sendRawTransaction($this->config->get('blockchain')['boost_wallet_pkey'], [
-                            'from' => $this->config->get('blockchain')['boost_wallet_address'],
-                            'to' => $this->config->get('blockchain')['boost_address'],
-                            'gasLimit' => BigNumber::_(200000)->toHex(true),
-                            'data' => $this->eth->encodeContractMethod('reject(uint256)', [
-                                BigNumber::_($boost->getGuid())->toHex(true)
-                            ])
-                        ]);
-
-                        $refundTransaction = new Core\Blockchain\Transactions\Transaction();
-                        $refundTransaction
-                            ->setUserGuid($boost->getOwner()->guid)
-                            ->setWalletAddress($boostTransaction->getWalletAddress())
-                            ->setContract('boost')
-                            ->setTx($txHash)
-                            ->setAmount((string) BigNumber::_($boostTransaction->getAmount())->neg())
-                            ->setTimestamp(time())
-                            ->setCompleted(false)
-                            ->setData([
-                                'amount' => (string) $boost->getBid(),
-                                'guid' => (string) $boost->getGuid(),
-                                'handler' => (string) $boost->getHandler(),
-                                'refund' => true,
-                            ]);
-
-                        $this->txManager->add($refundTransaction);
                         break;
-
                     case 'offchain':
 
                         $this->locks->setKey("boost:refund:{$boost->getGuid()}");

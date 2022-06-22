@@ -13,6 +13,7 @@ use Minds\Core\Boost\Delegates;
 use Minds\Core\Boost\Delegates\OnchainBadgeDelegate;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Minds\Core\Log\Logger;
 use Minds\Core\Sessions\ActiveSession;
 use MongoDB\BSON;
 
@@ -44,13 +45,15 @@ class Review implements BoostReviewInterface
         $analytics = null,
         $onchainBadge = null,
         ActionEventsTopic $actionEventsTopic = null,
-        ActiveSession $activeSession = null
+        ActiveSession $activeSession = null,
+        private ?Logger $logger = null
     ) {
         $this->manager = $manager ?: new Manager;
         $this->analytics = $analytics ?: new Analytics;
         $this->onchainBadge = $onchainBadge ?: new OnchainBadgeDelegate;
         $this->actionEventsTopic = $actionEventsTopic ?? Di::_()->get('EventStreams\Topics\ActionEventsTopic');
         $this->activeSession = $activeSession ?? Di::_()->get('Sessions\ActiveSession');
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -102,7 +105,7 @@ class Review implements BoostReviewInterface
 
             return $this->manager->update($this->boost);
         }
-        throw new \Exception('error while accepting the boost');
+        throw new \Exception('Failed to charge for boost');
     }
 
     /**
@@ -125,34 +128,31 @@ class Review implements BoostReviewInterface
 
         $dirty = $this->enableBoostRejectionReasonFlag($entity, $reason);
 
-        try {
-            Core\Events\Dispatcher::trigger('notification', 'boost', [
-                'to' => [$this->boost->getOwner()->guid],
-                'from' => 100000000000000519,
-                'entity' => $this->boost->getEntity(),
-                'params' => [
-                    'reason' => $this->boost->getRejectedReason(),
-                    'title' => $this->boost->getEntity()->title ?: $this->boost->getEntity()->message
-                ],
-                'notification_view' => 'boost_rejected',
-            ]);
+        Core\Events\Dispatcher::trigger('notification', 'boost', [
+            'to' => [$this->boost->getOwner()->guid],
+            'from' => 100000000000000519,
+            'entity' => $this->boost->getEntity(),
+            'params' => [
+                'reason' => $this->boost->getRejectedReason(),
+                'title' => $this->boost->getEntity()->title ?: $this->boost->getEntity()->message
+            ],
+            'notification_view' => 'boost_rejected',
+        ]);
 
-            //
-            $actionEvent = new ActionEvent();
-            $actionEvent
-                ->setAction(ActionEvent::ACTION_BOOST_REJECTED)
-                ->setActionData([
-                    'boost_reject_reason' => $this->boost->getRejectedReason(),
-                ])
-                ->setEntity($this->boost)
-                ->setUser($this->activeSession->getUser());
+        //
+        $actionEvent = new ActionEvent();
+        $actionEvent
+            ->setAction(ActionEvent::ACTION_BOOST_REJECTED)
+            ->setActionData([
+                'boost_reject_reason' => $this->boost->getRejectedReason(),
+            ])
+            ->setEntity($this->boost)
+            ->setUser($this->activeSession->getUser());
 
-            $this->actionEventsTopic->send($actionEvent);
+        $this->actionEventsTopic->send($actionEvent);
 
-            //
+        if (stripos($this->boost->getTransactionId(), '0x') !== 0) {
             Core\Di\Di::_()->get('Boost\Payment')->refund($this->boost);
-        } catch (\Exception $e) {
-            throw new \Exception('error while rejecting the boost');
         }
 
         if ($dirty) {
