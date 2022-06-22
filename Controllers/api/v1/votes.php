@@ -7,18 +7,29 @@
 
 namespace Minds\Controllers\api\v1;
 
+use Exception;
+use Minds\Api\Factory;
 use Minds\Core\Di\Di;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
-use Minds\Core\Security\ACL;
 use Minds\Core\Session;
 use Minds\Core\Votes\Counters;
 use Minds\Core\Votes\Manager;
 use Minds\Core\Votes\Vote;
+use Minds\Entities\ValidationError;
+use Minds\Entities\ValidationErrorCollection;
+use Minds\Exceptions\UserErrorException;
 use Minds\Interfaces;
-use Minds\Api\Factory;
+use Zend\Diactoros\ServerRequestFactory;
 
 class votes implements Interfaces\Api
 {
+    public function __construct(
+        private ?ExperimentsManager $experimentsManager = null
+    ) {
+        $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
+    }
+
     /**
      * Equivalent to HTTP GET method
      * @param array $pages
@@ -40,7 +51,7 @@ class votes implements Interfaces\Api
             /** @var Counters $counters */
             $counters = Di::_()->get('Votes\Counters');
             $count = $counters->get($pages[0], $direction);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return Factory::response([
                 'status' => 'error',
                 'message' => $e->getMessage(),
@@ -66,6 +77,8 @@ class votes implements Interfaces\Api
      * Equivalent to HTTP PUT method
      * @param array $pages
      * @return mixed|null
+     * @throws UnverifiedEmailException
+     * @throws Exception
      */
     public function put($pages)
     {
@@ -78,18 +91,39 @@ class votes implements Interfaces\Api
 
         $direction = isset($pages[1]) ? $pages[1] : 'up';
 
-        try {
-            $vote = new Vote();
-            $vote->setEntity($pages[0])
-                ->setDirection($direction)
-                ->setActor(Session::getLoggedinUser());
+        $vote = new Vote();
 
+        $vote->setEntity($pages[0])
+            ->setDirection($direction)
+            ->setActor(Session::getLoggedinUser());
+
+        $options = [];
+
+        $request = ServerRequestFactory::fromGlobals();
+        $requestBody = json_decode($request->getBody()->getContents(), true);
+
+        $this->experimentsManager->setUser($request->getAttribute("_user"));
+        if ($this->experimentsManager->isOn("minds-3119-captcha-for-engagement")) {
+            $puzzleSolution = (isset($requestBody['puzzle_solution']) && !empty($requestBody['puzzle_solution']))
+                ? $requestBody['puzzle_solution']
+                : throw new UserErrorException(
+                    "An error occurred whilst validating the request.",
+                    400,
+                    (new ValidationErrorCollection())
+                        ->add(
+                            new ValidationError("puzzle_solution", "A string value must be provided.")
+                        )
+                );
+            $options['puzzleSolution'] = $puzzleSolution;
+        }
+
+        try {
             /** @var Manager $manager */
             $manager = Di::_()->get('Votes\Manager');
-            $manager->toggle($vote);
+            $manager->toggle($vote, $options);
         } catch (UnverifiedEmailException $e) {
             throw $e;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return Factory::response([
                 'status' => 'error',
                 'message' => $e->getMessage(),
@@ -126,7 +160,7 @@ class votes implements Interfaces\Api
             $manager->cancel($vote);
         } catch (UnverifiedEmailException $e) {
             throw $e;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return Factory::response([
                 'status' => 'error',
                 'message' => $e->getMessage(),

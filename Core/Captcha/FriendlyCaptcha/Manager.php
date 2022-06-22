@@ -2,7 +2,6 @@
 namespace Minds\Core\Captcha\FriendlyCaptcha;
 
 use Minds\Core\Captcha\BypassManager;
-use Minds\Core\Di\Di;
 use Minds\Core\Captcha\FriendlyCaptcha\Cache\AttemptsCache;
 use Minds\Core\Captcha\FriendlyCaptcha\Cache\PuzzleCache;
 use Minds\Core\Captcha\FriendlyCaptcha\Classes\DifficultyLevel;
@@ -10,6 +9,7 @@ use Minds\Core\Captcha\FriendlyCaptcha\Classes\Puzzle;
 use Minds\Core\Captcha\FriendlyCaptcha\Classes\PuzzleSigner;
 use Minds\Core\Captcha\FriendlyCaptcha\Classes\PuzzleSolution;
 use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\PuzzleReusedException;
+use Minds\Core\Di\Di;
 
 /**
  * Manager than handles the orchestration of business logic for FriendlyCaptcha
@@ -37,19 +37,22 @@ class Manager
 
     /**
      * Generates puzzle and returns it for consumption by widget.
-     * @throws MisconfigurationException - if server misconfigured.
+     * @param string $puzzleOrigin
      * @return string generated puzzle.
+     * @throws Exceptions\MisconfigurationException
      */
-    public function generatePuzzle(): string
+    public function generatePuzzle(string $puzzleOrigin): string
     {
         $this->attemptsCache->increment();
 
         $difficultyLevel = new DifficultyLevel(
-            $this->attemptsCache->getCount()
+            $this->attemptsCache->getCount(),
+            $puzzleOrigin
         );
 
         $puzzle = (new Puzzle())
             ->setDifficultyLevel($difficultyLevel)
+            ->setOrigin($puzzleOrigin)
             ->generate();
 
         return $puzzle;
@@ -58,12 +61,16 @@ class Manager
     /**
      * Verify a proposed solution string.
      * @param string $solution - proposed solution string.
-     * @throws SolutionAlreadySeenException - if individual solution has already been seen.
+     * @param string|null $expectedPuzzleOrigin
+     * @return bool - true if solution is valid..
+     * @throws Exceptions\InvalidSolutionException
+     * @throws Exceptions\PuzzleExpiredException
+     * @throws Exceptions\SignatureMismatchException
+     * @throws Exceptions\SolutionAlreadySeenException
      * @throws PuzzleReusedException - if proposed puzzle solution has been reused.
-     * @throws InvalidSolutionException - if solution is invalid.
-     * @return PuzzleSolution - true if solution is valid..
+     * @throws \SodiumException
      */
-    public function verify(string $solution): bool
+    public function verify(string $solution, ?string $expectedPuzzleOrigin = null): bool
     {
         if (isset($_COOKIE['captcha_bypass'])) {
             return $this->bypassManager->verify($solution);
@@ -80,6 +87,6 @@ class Manager
 
         $this->puzzleCache->set($puzzleHex);
 
-        return $puzzleSolution->verify();
+        return $puzzleSolution->verify($expectedPuzzleOrigin);
     }
 }
