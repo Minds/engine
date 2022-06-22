@@ -125,7 +125,7 @@ class boosts implements Interfaces\Api, Interfaces\ApiAdminPam
                     ->setBoostQuality($quality)
                     ->push();
             } catch (\Exception $e) {
-                $this->logger->error($e);
+                $logger->error($e);
                 $response['status'] = 'error';
                 $response['message'] = $e->getMessage();
             }
@@ -138,7 +138,7 @@ class boosts implements Interfaces\Api, Interfaces\ApiAdminPam
                     ->setBoostRejectReason($reason)
                     ->push();
             } catch (\Exception $e) {
-                $this->logger->error($e);
+                $logger->error($e);
                 $response['status'] = 'error';
                 $response['message'] = $e->getMessage();
             }
