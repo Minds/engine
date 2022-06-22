@@ -175,6 +175,7 @@ class ReviewSpec extends ObjectBehavior
             ->during('reject', [1]);
     }
 
+
     public function it_should_reject_a_boost(Payment $payment, Boost $boost)
     {
         Di::_()->bind('Boost\Payment', function ($di) use ($payment) {
@@ -201,55 +202,6 @@ class ReviewSpec extends ObjectBehavior
             ->willReturn($boost);
         $boost->getRejectedReason()
             ->willReturn(3);
-        $boost->getTransactionId()
-            ->shouldBeCalled()
-            ->willReturn('oc:0x1');
-
-        $entity = new Activity();
-        $entity->title = 'title';
-        $boost->getEntity()
-            ->willReturn($entity);
-
-        $this->activeSession->getUser()
-            ->willReturn(new User());
-
-        $this->actionEventsTopic->send(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->setBoost($boost);
-        $this->reject(3);
-    }
-
-    public function it_should_reject_an_onchain_boost_without_refund(Payment $payment, Boost $boost)
-    {
-        Di::_()->bind('Boost\Payment', function ($di) use ($payment) {
-            return $payment->getWrappedObject();
-        });
-
-        $payment->refund(Argument::any())
-            ->shouldNotBeCalled();
-
-        $this->manager->update($boost)
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $owner = new User();
-        $owner->guid = '123';
-        $boost->getOwner()
-            ->willReturn($owner);
-        $boost->setReviewedTimestamp(Argument::any())
-            ->shouldBeCalled();
-        $boost->setRejectedTimestamp(Argument::any())
-            ->shouldBeCalled();
-        $boost->setRejectedReason(3)
-            ->shouldBeCalled()
-            ->willReturn($boost);
-        $boost->getRejectedReason()
-            ->willReturn(3);
-        $boost->getTransactionId()
-            ->shouldBeCalled()
-            ->willReturn('0x000000000');
 
         $entity = new Activity();
         $entity->title = 'title';
@@ -340,9 +292,6 @@ class ReviewSpec extends ObjectBehavior
             ->shouldBeCalled();
         $boost->getRejectedReason()
             ->willReturn(4);
-        $boost->getTransactionId()
-            ->shouldBeCalled()
-            ->willReturn('oc:0x1');
 
         $this->activeSession->getUser()
             ->willReturn(new User());

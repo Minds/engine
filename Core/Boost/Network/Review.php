@@ -13,7 +13,6 @@ use Minds\Core\Boost\Delegates;
 use Minds\Core\Boost\Delegates\OnchainBadgeDelegate;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
-use Minds\Core\Log\Logger;
 use Minds\Core\Sessions\ActiveSession;
 use MongoDB\BSON;
 
@@ -45,15 +44,13 @@ class Review implements BoostReviewInterface
         $analytics = null,
         $onchainBadge = null,
         ActionEventsTopic $actionEventsTopic = null,
-        ActiveSession $activeSession = null,
-        private ?Logger $logger = null
+        ActiveSession $activeSession = null
     ) {
         $this->manager = $manager ?: new Manager;
         $this->analytics = $analytics ?: new Analytics;
         $this->onchainBadge = $onchainBadge ?: new OnchainBadgeDelegate;
         $this->actionEventsTopic = $actionEventsTopic ?? Di::_()->get('EventStreams\Topics\ActionEventsTopic');
         $this->activeSession = $activeSession ?? Di::_()->get('Sessions\ActiveSession');
-        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -151,9 +148,7 @@ class Review implements BoostReviewInterface
 
         $this->actionEventsTopic->send($actionEvent);
 
-        if (stripos($this->boost->getTransactionId(), '0x') !== 0) {
-            Core\Di\Di::_()->get('Boost\Payment')->refund($this->boost);
-        }
+        Core\Di\Di::_()->get('Boost\Payment')->refund($this->boost);
 
         if ($dirty) {
             $entity->save();
