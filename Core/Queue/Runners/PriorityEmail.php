@@ -20,6 +20,7 @@ class PriorityEmail implements Interfaces\QueueRunner
             ->receive(function ($data) use ($mailer) {
                 echo "[email]: Received a priority email \n";
 
+
                 $data = $data->getData();
 
                 $message = unserialize($data['message']);

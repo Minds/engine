@@ -11,10 +11,9 @@ use Minds\Core\Di\Di;
 use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\Confirmation\Url as ConfirmationUrl;
 use Minds\Core\Email\Mailer;
-use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Common\Message;
-use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
-use Minds\Core\Email\V2\Partials\ProHeader\ProHeader;
+use Minds\Core\Email\V2\Common\Template;
+use Minds\Core\Email\V2\Partials\ActionButtonV2\ActionButtonV2;
 use Minds\Core\Pro;
 
 class Confirmation extends EmailCampaign
@@ -69,18 +68,20 @@ class Confirmation extends EmailCampaign
         $translator = $this->template->getTranslator();
 
         $subject = $translator->trans('Verify your email address');
+        $previewText = $translator->trans('One click to verify your email on Minds.');
 
         /** @var Pro\Settings */
         $proSettings = $this->proDomain->lookup($_SERVER['HTTP_HOST'] ?? '');
 
         if ($proSettings) {
             $subject = 'Welcome to ' . $proSettings->getTitle() . '. Time to verify.';
+            $previewText = 'One click to verify your email on ' . $proSettings->getTitle() . '.';
         }
 
         $trackingQuery = http_build_query($tracking);
 
-        $this->template->setTemplate('default.tpl');
-        $this->template->setBody('./template.tpl');
+        $this->template->setTemplate('default.v2.tpl');
+        $this->template->setBody('./template.v2.link.tpl');
         $this->template->set('user', $this->user);
         $this->template->set('username', $this->user->username);
         $this->template->set('email', $this->user->getEmail());
@@ -88,18 +89,18 @@ class Confirmation extends EmailCampaign
         $this->template->set('tracking', $trackingQuery);
         // $this->template->set('title', $proSettings ? 'Welcome to ' . $proSettings->getTitle() : $translator->trans('Welcome to Minds'));
         $this->template->set('title', '');
-        $this->template->set('preheader', $subject);
+        $this->template->set('preheader', $previewText);
         $this->template->set('isPro', !!$proSettings);
 
-        if ($proSettings) {
-            $proHeader = (new ProHeader())
-                ->set('tracking', $trackingQuery)
-                ->setProSettings($proSettings);
-            $this->template->set('custom_header', $proHeader->build());
-        }
+        // if ($proSettings) {
+        //     $proHeader = (new ProHeader())
+        //         ->set('tracking', $trackingQuery)
+        //         ->setProSettings($proSettings);
+        //     $this->template->set('custom_header', $proHeader->build());
+        // }
 
-        $actionButton = (new ActionButton())
-            ->setLabel($translator->trans('Verify Address'))
+        $actionButton = (new ActionButtonV2())
+            ->setLabel($translator->trans('Verify'))
             ->setPath(
                 $this->confirmationUrl
                     ->setUser($this->user)

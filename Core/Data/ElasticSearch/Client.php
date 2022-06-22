@@ -65,4 +65,19 @@ class Client implements Interfaces\ClientInterface
     {
         return $this->elasticsearch;
     }
+
+    public function health(): array
+    {
+        /*
+        $params['local']          = (bool) Return local information, do not retrieve the state from master node (default: false)
+               ['master_timeout'] = (time) Explicit operation timeout for connection to master node
+               ['h']              = (list) Comma-separated list of column names to display
+               ['help']           = (bool) Return help information
+               ['v']              = (bool) Verbose mode. Display column headers
+               ['ts']             = (bool) Set to false to disable timestamping
+               ['body']  = (array) Request body
+        */
+        $params = [];
+        return $this->elasticsearch->cat()->health($params)[0];
+    }
 }

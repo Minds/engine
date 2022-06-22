@@ -93,6 +93,20 @@ class Client implements Interfaces\ClientInterface
         return Config::_()->get('multi')['prefix'];
     }
 
+
+    /**
+     * Get performance and diagnostic metrics.
+     * @return array Performance/Diagnostic metrics.
+     */
+    public function metrics(): array | null
+    {
+        try {
+            return $this->getSession()?->metrics();
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
     /**
      * Returns the session for the cassandra connection
      * @return Driver

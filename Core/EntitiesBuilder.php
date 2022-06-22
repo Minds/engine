@@ -3,10 +3,11 @@
 
 namespace Minds\Core;
 
-use Minds\Entities\Factory;
-use Minds\Entities\User;
 use Minds\Core\Data;
 use Minds\Core\Di\Di;
+use Minds\Entities\Entity;
+use Minds\Entities\Factory;
+use Minds\Entities\User;
 
 class EntitiesBuilder
 {
