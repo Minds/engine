@@ -5,6 +5,9 @@ use JsonSerializable;
 use Minds\Entities\ExportableInterface;
 use Minds\Traits\MagicAttributes;
 
+/**
+ * @method string getId();
+ */
 class NostrEvent implements ExportableInterface, JsonSerializable
 {
     use MagicAttributes;
