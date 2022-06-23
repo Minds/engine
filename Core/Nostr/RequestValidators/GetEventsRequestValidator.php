@@ -4,8 +4,12 @@ namespace Minds\Core\Nostr\RequestValidators;
 
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
+use Minds\Interfaces\ValidatorInterface;
 
-class GetEntityRequestValidator implements \Minds\Interfaces\ValidatorInterface
+/**
+ *
+ */
+class GetEventsRequestValidator implements ValidatorInterface
 {
     private ?ValidationErrorCollection $errors;
 
@@ -21,11 +25,11 @@ class GetEntityRequestValidator implements \Minds\Interfaces\ValidatorInterface
     {
         $this->resetErrors();
 
-        if (!$dataToValidate['hash']) {
+        if (!$dataToValidate['authors']) {
             $this->errors->add(
                 new ValidationError(
-                    "hash",
-                    "A value for the 'hash' parameter must be provided."
+                    "authors",
+                    "A list of authors must be provided for the 'authors' parameter."
                 )
             );
         }

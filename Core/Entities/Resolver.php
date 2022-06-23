@@ -18,6 +18,9 @@ use Minds\Core\Entities\Delegates\SystemPushNotificationResolverDelegate;
 use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 
+/**
+ *
+ */
 class Resolver
 {
     /** @var ResolverDelegate[] $entitiesBuilder */

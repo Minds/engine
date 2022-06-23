@@ -32,6 +32,21 @@ class ManagerSpec extends ObjectBehavior
         $this->keys = $keys;
     }
 
+    public function getMatchers(): array
+    {
+        return  [
+            'containValueLike' => function ($subject, $value) {
+                foreach ($subject as $item) {
+                    print_r($item);
+                    if ($item == $value) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        ];
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
@@ -80,7 +95,7 @@ class ManagerSpec extends ObjectBehavior
         $nostrEvent = $this->buildNostrEvent($user);
         $nostrEvent->getId()->shouldBe('9a6632c7bd77040c167241bc9796836914532bc669e7f56170d37a7c91f4a1a2');
         $nostrEvent->getKind()->shouldBe(0);
-        $nostrEvent->getPubkey()->shouldBe("4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715");
+        $nostrEvent->getPubKey()->shouldBe("4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715");
         $nostrEvent->getSig()->shouldBe("4711a52137e39ab65e9e5cd0bc9932d50b03bc239cf7bd810bee6ba42355a6f795c8ea247f2515f323c65db18787b609bfe42406ade659548425b1dea21761b0");
     }
 
@@ -112,7 +127,7 @@ class ManagerSpec extends ObjectBehavior
         $nostrEvent = $this->buildNostrEvent($activity);
         $nostrEvent->getId()->shouldBe('c7462cd60b3278e59cf863a512971b2c35da77aabd6761eb76d1e42083da9038');
         $nostrEvent->getKind()->shouldBe(1);
-        $nostrEvent->getPubkey()->shouldBe("4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715");
+        $nostrEvent->getPubKey()->shouldBe("4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715");
         $nostrEvent->getSig()->shouldBe("9aafd37d5312426c34c4f16d9d837167260c1000b6cb7d111b9a0966692ee04a4c93af15767c521eab9b660ee4169b489f8023f836403388f970ad52bbbaf995");
         $nostrEvent->getContent()->shouldBe('Hello nostr. This is Minds calling');
     }
@@ -125,7 +140,7 @@ class ManagerSpec extends ObjectBehavior
         $nostrEvent->setId("c7462cd60b3278e59cf863a512971b2c35da77aabd6761eb76d1e42083da9038")
             ->setKind(1)
             ->setCreated_at(1653047334)
-            ->setPubkey("4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715")
+            ->setPubKey("4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715")
             ->setSig("9aafd37d5312426c34c4f16d9d837167260c1000b6cb7d111b9a0966692ee04a4c93af15767c521eab9b660ee4169b489f8023f836403388f970ad52bbbaf995")
             ->setContent('Hello nostr. This is Minds calling');
 
@@ -136,29 +151,16 @@ class ManagerSpec extends ObjectBehavior
     }
 
     /**
-     * @param Activity $activity
+     * @param Activity $activityMock
      * @param User $userMock
      * @return void
      * @throws NotFoundException
      * @throws ServerErrorException
      */
-    public function it_should_return_entity_nostr_event_from_nostr_hash(
+    public function it_should_return_nostr_events_from_nostr_authors(
         Activity $activityMock,
         User $userMock
     ): void {
-        /**
-         * Set up repository mock
-         */
-        $this->repository->getEntityGuidByNostrHash("123")
-            ->shouldBeCalledOnce()
-            ->willReturn("entity_123");
-
-        /**
-         * Set up entities builder mock
-         */
-        $this->entitiesBuilder->single("user_123")
-            ->willReturn($userMock);
-
         /**
          * Set up mock entity
          */
@@ -174,21 +176,33 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(false);
         $activityMock->isQuotedPost()
             ->willReturn(false);
+        $activityMock->getType()
+            ->willReturn('activity');
 
         /**
-         * Set up Nostr keys class
+         * Set up repository mock
          */
+        $this->repository->getEntitiesByNostrAuthors(["123"])
+            ->willYield([$activityMock->getWrappedObject()]);
+
         $this->setupKeysMock($userMock);
 
-        $this
-            ->buildNostrEvent($activityMock)
-            ->willReturn(new NostrEvent());
+        $this->entitiesBuilder->single("user_123")
+            ->willReturn($userMock);
 
-        $this->entitiesBuilder->single("entity_123")
-            ->willReturn($activityMock);
+        $nostrEventMock = (new NostrEvent())
+            ->setId("c7462cd60b3278e59cf863a512971b2c35da77aabd6761eb76d1e42083da9038")
+            ->setKind(1)
+            ->setCreated_at(1653047334)
+            ->setPubKey("4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715")
+            ->setSig("9aafd37d5312426c34c4f16d9d837167260c1000b6cb7d111b9a0966692ee04a4c93af15767c521eab9b660ee4169b489f8023f836403388f970ad52bbbaf995")
+            ->setContent('Hello nostr. This is Minds calling');
 
-        $this->getEntityNostrEventFromNostrHash("123")
-            ->shouldHaveType(NostrEvent::class);
+        $this->buildNostrEvent($activityMock->getWrappedObject())
+            ->willReturn($nostrEventMock);
+
+        $response = $this->getNostrEventsForAuthors(["123"]);
+        $response->shouldContainValueLike($nostrEventMock);
     }
 
     /**
@@ -246,7 +260,7 @@ class ManagerSpec extends ObjectBehavior
         /**
          * Set up repository mock
          */
-        $this->repository->addNewCorrelation(Argument::type("string"), Argument::type("string"))
+        $this->repository->addNewCorrelation(Argument::type("string"), Argument::type("string"), Argument::type("string"))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 

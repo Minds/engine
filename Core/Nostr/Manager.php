@@ -134,7 +134,7 @@ class Manager
 
         $nostrEvent = new NostrEvent();
         $nostrEvent->setId($id)
-            ->setPubkey($publicKey)
+            ->setPubKey($publicKey)
             ->setCreated_at($createdAt)
             ->setKind($kind)
             ->setTags([])
@@ -249,18 +249,18 @@ class Manager
     }
 
     /**
-     * @param string $hash
-     * @return NostrEvent
+     * @param array $authors
+     * @return NostrEvent[]
      * @throws NotFoundException
      * @throws ServerErrorException
      */
-    public function getEntityNostrEventFromNostrHash(string $hash): NostrEvent
+    public function getNostrEventsForAuthors(array $authors): array
     {
-        $entityGuid = $this->repository->getEntityGuidByNostrHash($hash);
-
-        $entity = $this->entitiesBuilder->single($entityGuid);
-
-        return $this->buildNostrEvent($entity);
+        $events = [];
+        foreach ($this->repository->getEntitiesByNostrAuthors($authors) as $entity) {
+            $events[] = $this->buildNostrEvent($entity);
+        }
+        return $events;
     }
 
     /**
@@ -278,19 +278,19 @@ class Manager
         }
 
         try {
-            $nostrHash = ($this->buildNostrEvent($entity))->getId();
+            $nostrEvent = $this->buildNostrEvent($entity);
         } catch (Exception $e) {
             $this->logger->addWarning("Entity {$entityUrn->getUrn()} is not a supported entity type");
             return false;
         }
         
-        $this->logger->addInfo("Nostr hash for entity {$entityUrn->getUrn()} is {$nostrHash}");
+        $this->logger->addInfo("Nostr hash for entity {$entityUrn->getUrn()} is {$nostrEvent->getId()}");
 
-        $result = $this->repository->addNewCorrelation($nostrHash, $entityUrn->getUrn());
+        $result = $this->repository->addNewCorrelation($nostrEvent->getId(), $entityUrn->getUrn(), $nostrEvent->getPubKey());
 
         $result
-            ? $this->logger->addInfo("Nostr hash {$nostrHash} correctly linked to entity {$entityUrn->getUrn()}")
-            : $this->logger->addError("Nostr hash {$nostrHash} failed to be linked to entity {$entityUrn->getUrn()}");
+            ? $this->logger->addInfo("Nostr hash {$nostrEvent->getId()} correctly linked to entity {$entityUrn->getUrn()}")
+            : $this->logger->addError("Nostr hash {$nostrEvent->getId()} failed to be linked to entity {$entityUrn->getUrn()}");
 
         return $result;
     }
