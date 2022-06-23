@@ -78,12 +78,12 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
                         return $usernameString . ' posted a blog';
                     case 'image':
                         if (!$this->entity->getTitle() && !$this->entity->getDescription()) {
-                            return ' '; // can't be blank, so insert a space char
+                            return '';
                         }
                         return $usernameString . ' posted an image';
                     case 'video':
                         if (!$this->entity->getTitle() && !$this->entity->getDescription()) {
-                            return ' '; // can't be blank, so insert a space char
+                            return '';
                         }
                         return $usernameString . ' posted a video';
                 }
