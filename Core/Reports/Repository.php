@@ -147,9 +147,9 @@ class Repository
 
         $entityUrn = substr($parts[0], 1, -1); // Remove the parenthases
         $reasonCode = $parts[1];
-        $subReasonCode = $parts[2] ?? 0;
-        $timestamp = $parts[3];
-        
+        // in the event sub-reason code is a negative number this will handle it correctly.
+        $subReasonCode = isset($parts[4]) ? "-$parts[3]" : ($parts[2] ?? 0);
+        $timestamp = isset($parts[4]) ? $parts[4] : $parts[3];
 
         $response = $this->getList([
             'entity_urn' => $entityUrn,
