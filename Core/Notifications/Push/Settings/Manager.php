@@ -65,6 +65,27 @@ class Manager
     }
 
     /**
+     * Whether all push has been enabled for a given user GUID.
+     * @param string $userGuid - user GUID to check for.
+     * @return boolean - true if all push are enabled for user.
+     */
+    public function hasEnabledAll(string $userGuid): bool
+    {
+        $opts = (new SettingsListOpts())
+            ->setUserGuid($userGuid);
+
+        $pushSettings = $this->getList($opts);
+
+        foreach ($pushSettings as $pushSetting) {
+            if ($pushSetting->getNotificationGroup() === PushSetting::ALL && $pushSetting->getEnabled() === false) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * @param PushSetting $pushSetting
      * @return bool
      */
