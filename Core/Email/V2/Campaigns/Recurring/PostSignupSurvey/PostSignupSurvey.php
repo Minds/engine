@@ -66,7 +66,7 @@ class PostSignupSurvey extends EmailCampaign
         $surveyLink = $this->config->get('survey_links')['post_signup'] ?? false;
 
         if (!$surveyLink) {
-            $this->logger->warn('PostSignupSurvey | Survey link not set in config.');
+            $this->logger->warn('PostSignupSurvey survey link not set in config.');
             return null;
         }
 
@@ -118,25 +118,19 @@ class PostSignupSurvey extends EmailCampaign
      */
     public function send(): void
     {
-        $this->logger->warn('PostSignupSurvey | Checking if we can send email to: ' . $this->user->getGuid());
-
         if (!$this->canSend()) {
-            $this->logger->warn('PostSignupSurvey | cannot send for user: ' . $this->user->getGuid());
             return;
         }
 
         if (!$this->user->isEmailConfirmed()) {
-            $this->logger->warn('PostSignupSurvey | Email is not confirmed for user ' . $this->user->getGuid());
             return;
         }
 
         // Feature off.
         if (!$this->experimentsManager->setUser($this->user)->isOn('minds-3132-post-signups')) {
-            $this->logger->warn('PostSignupSurvey | Email not sent as experiment is off.');
+            $this->logger->warn('PostSignupSurvey email not sent as experiment is off.');
             return;
         }
-
-        $this->logger->warn('PostSignupSurvey | Sending email to: ' . $this->user->getGuid());
 
         $this->mailer->send(
             $this->build(),

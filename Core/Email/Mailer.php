@@ -19,7 +19,7 @@ class Mailer
     /** @var SpamFilter */
     private $filter;
 
-    public function __construct($mailer = null, $queue = null, $filter = null, $logger = null)
+    public function __construct($mailer = null, $queue = null, $filter = null)
     {
         $this->mailer = $mailer ?: new PHPMailer();
         if (isset(Core\Config::_()->email['smtp'])) {
@@ -31,7 +31,6 @@ class Mailer
         ];
         $this->queue = $queue ?: Queue::build();
         $this->filter = $filter ?: Di::_()->get('Email\SpamFilter');
-        $this->logger ??= Di::_()->get('Logger');
     }
 
     private function setup()
@@ -85,10 +84,8 @@ class Mailer
         $this->mailer->CharSet = 'utf-8';
 
         if ($this->mailer->Send()) {
-            $this->logger->warn('EMAIL SENT');
             $this->stats['sent']++;
         } else {
-            $this->logger->error($this->mailer->ErrorInfo);
             $this->stats['failed']++;
         }
 
