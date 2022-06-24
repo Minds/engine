@@ -1,9 +1,12 @@
-image: minds/php:8.0-secp256k1
+include:
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+  - template: Security/Container-Scanning.gitlab-ci.yml
 
 stages:
   - build
   - test
   - prepare
+  - scan
   - review
   - deploy:staging
   - qa
@@ -12,6 +15,7 @@ stages:
 
 build:
   stage: build
+  image: minds/php:8.0-secp256k1
   script:
     - apk add --no-cache git
     - sh tools/setup.sh production
@@ -23,16 +27,19 @@ build:
 
 test:
   stage: test
+  image: minds/php:8.0-secp256k1
   script:
     - php -n -c Spec/php-test.ini bin/phpspec run
 
 lint:
   stage: test
+  image: minds/php:8.0-secp256k1
   script:
     - bin/php-cs-fixer fix --allow-risky=yes --verbose --dry-run
 
 static-analysis:
   stage: test
+  image: minds/php:8.0-secp256k1
   script:
     - mv settings.example.php settings.php
     - bin/phpstan analyse --memory-limit=1G
@@ -89,6 +96,21 @@ prepare:all:sentry:
     - sentry-cli releases set-commits --auto $CI_PIPELINE_ID
     - sentry-cli releases finalize $CI_PIPELINE_ID
     - echo "Finalized release for $CI_PIPELINE_ID"
+
+container_scanning:
+  stage: scan
+  variables:
+    DOCKER_IMAGE: $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
+
+
+container_scanning_runners:
+  extends: container_scanning
+  stage: scan
+  variables:
+    DOCKER_IMAGE: $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
+
+dependency_scanning:
+  stage: scan
 
 review:start:
   stage: review

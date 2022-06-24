@@ -65,6 +65,16 @@ class Manager
     }
 
     /**
+     * Checks whether the service is accessible
+     * @return bool
+     */
+    public function checkAvailability(): bool
+    {
+        $response = $this->sendGrid->client->marketing()->field_definitions()->get();
+        return $response->statusCode() === 200;
+    }
+
+    /**
      * Bulk insert the contacts
      * @return void
      */

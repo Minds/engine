@@ -60,5 +60,9 @@ class Provider extends Di\Provider
         $this->di->bind('Rewards\Withdraw\Admin\Manager', function ($di) {
             return new AdminManager();
         }, [ 'useFactory' => false]);
+
+        $this->di->bind('Rewards\Eligibility\Manager', function ($di) {
+            return new Eligibility\Manager();
+        }, [ 'useFactory' => false]);
     }
 }
