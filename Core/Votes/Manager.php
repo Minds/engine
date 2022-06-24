@@ -54,7 +54,7 @@ class Manager
         $this->acl = $acl ?: ACL::_();
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->friendlyCaptchaManager ??= Di::_()->get('FriendlyCaptcha\Manager');
-        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
+        $this->experimentsManager ??= new ExperimentsManager();
     }
 
     public function setUser(User $user): self

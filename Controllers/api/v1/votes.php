@@ -9,6 +9,7 @@ namespace Minds\Controllers\api\v1;
 
 use Exception;
 use Minds\Api\Factory;
+use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\InvalidSolutionException;
 use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
@@ -27,7 +28,7 @@ class votes implements Interfaces\Api
     public function __construct(
         private ?ExperimentsManager $experimentsManager = null
     ) {
-        $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
+        // $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
     }
 
     /**
@@ -91,19 +92,29 @@ class votes implements Interfaces\Api
 
         $direction = isset($pages[1]) ? $pages[1] : 'up';
 
+        $loggedInUser = Session::getLoggedinUser();
+
+
+        /** @var Manager $manager */
+        $manager = new Manager();
+        $manager
+            ->setUser($loggedInUser);
+
         $vote = new Vote();
 
         $vote->setEntity($pages[0])
             ->setDirection($direction)
-            ->setActor(Session::getLoggedinUser());
+            ->setActor($loggedInUser);
 
         $options = [];
 
         $request = ServerRequestFactory::fromGlobals();
         $requestBody = json_decode($request->getBody()->getContents(), true);
 
-        $this->experimentsManager->setUser($request->getAttribute("_user"));
-        if ($this->experimentsManager->isOn("minds-3119-captcha-for-engagement")) {
+        $experimentsManager = (new ExperimentsManager())
+            ->setUser($loggedInUser);
+
+        if ($experimentsManager->isOn("minds-3119-captcha-for-engagement") && !$manager->has($vote)) {
             $puzzleSolution = (isset($requestBody['puzzle_solution']) && !empty($requestBody['puzzle_solution']))
                 ? $requestBody['puzzle_solution']
                 : throw new UserErrorException(
@@ -118,11 +129,14 @@ class votes implements Interfaces\Api
         }
 
         try {
-            /** @var Manager $manager */
-            $manager = Di::_()->get('Votes\Manager');
             $manager->toggle($vote, $options);
         } catch (UnverifiedEmailException $e) {
             throw $e;
+        } catch (InvalidSolutionException $e) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => "This engagement looks like spam",
+            ]);
         } catch (Exception $e) {
             return Factory::response([
                 'status' => 'error',
