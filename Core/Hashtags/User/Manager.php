@@ -233,4 +233,18 @@ class Manager
         $languages = implode(':', $opts['languages']);
         return "hashtags::shared::$key::$languages";
     }
+
+    /**
+     * Whether a user has set hashtags.
+     * @param User $user - user to check for.
+     * @return boolean - true if user has set hashtags.
+     */
+    public function hasSetHashtags(): bool
+    {
+        $userHashtags = $this->get(['limit' => 1]);
+        
+        return $userHashtags &&
+            count($userHashtags) > 0 &&
+            $userHashtags[0]['selected'];
+    }
 }
