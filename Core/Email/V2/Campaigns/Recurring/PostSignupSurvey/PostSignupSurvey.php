@@ -119,10 +119,12 @@ class PostSignupSurvey extends EmailCampaign
     public function send(): void
     {
         if (!$this->canSend()) {
+            $this->logger->warn('PostSignupSurvey cannot send for user: ' . $this->user->getGuid());
             return;
         }
 
         if (!$this->user->isEmailConfirmed()) {
+            $this->logger->warn('User email is not confirmed for user ' . $this->user->getGuid());
             return;
         }
 
