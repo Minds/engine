@@ -102,7 +102,7 @@ class Review implements BoostReviewInterface
 
             return $this->manager->update($this->boost);
         }
-        throw new \Exception('error while accepting the boost');
+        throw new \Exception('Failed to charge for boost');
     }
 
     /**
@@ -125,35 +125,30 @@ class Review implements BoostReviewInterface
 
         $dirty = $this->enableBoostRejectionReasonFlag($entity, $reason);
 
-        try {
-            Core\Events\Dispatcher::trigger('notification', 'boost', [
-                'to' => [$this->boost->getOwner()->guid],
-                'from' => 100000000000000519,
-                'entity' => $this->boost->getEntity(),
-                'params' => [
-                    'reason' => $this->boost->getRejectedReason(),
-                    'title' => $this->boost->getEntity()->title ?: $this->boost->getEntity()->message
-                ],
-                'notification_view' => 'boost_rejected',
-            ]);
+        Core\Events\Dispatcher::trigger('notification', 'boost', [
+            'to' => [$this->boost->getOwner()->guid],
+            'from' => 100000000000000519,
+            'entity' => $this->boost->getEntity(),
+            'params' => [
+                'reason' => $this->boost->getRejectedReason(),
+                'title' => $this->boost->getEntity()->title ?: $this->boost->getEntity()->message
+            ],
+            'notification_view' => 'boost_rejected',
+        ]);
 
-            //
-            $actionEvent = new ActionEvent();
-            $actionEvent
-                ->setAction(ActionEvent::ACTION_BOOST_REJECTED)
-                ->setActionData([
-                    'boost_reject_reason' => $this->boost->getRejectedReason(),
-                ])
-                ->setEntity($this->boost)
-                ->setUser($this->activeSession->getUser());
+        //
+        $actionEvent = new ActionEvent();
+        $actionEvent
+            ->setAction(ActionEvent::ACTION_BOOST_REJECTED)
+            ->setActionData([
+                'boost_reject_reason' => $this->boost->getRejectedReason(),
+            ])
+            ->setEntity($this->boost)
+            ->setUser($this->activeSession->getUser());
 
-            $this->actionEventsTopic->send($actionEvent);
+        $this->actionEventsTopic->send($actionEvent);
 
-            //
-            Core\Di\Di::_()->get('Boost\Payment')->refund($this->boost);
-        } catch (\Exception $e) {
-            throw new \Exception('error while rejecting the boost');
-        }
+        Core\Di\Di::_()->get('Boost\Payment')->refund($this->boost);
 
         if ($dirty) {
             $entity->save();

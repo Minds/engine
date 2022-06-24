@@ -110,6 +110,8 @@ class boosts implements Interfaces\Api, Interfaces\ApiAdminPam
             $dirty = $this->enableMatureFlag($entity);
         }
 
+        $logger = Di::_()->get('Logger');
+
         if ($action == 'accept') {
             $boost->setRating($rating);
             $boost->setQuality($quality);
@@ -123,6 +125,7 @@ class boosts implements Interfaces\Api, Interfaces\ApiAdminPam
                     ->setBoostQuality($quality)
                     ->push();
             } catch (\Exception $e) {
+                $logger->error($e);
                 $response['status'] = 'error';
                 $response['message'] = $e->getMessage();
             }
@@ -135,6 +138,7 @@ class boosts implements Interfaces\Api, Interfaces\ApiAdminPam
                     ->setBoostRejectReason($reason)
                     ->push();
             } catch (\Exception $e) {
+                $logger->error($e);
                 $response['status'] = 'error';
                 $response['message'] = $e->getMessage();
             }

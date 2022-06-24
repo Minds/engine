@@ -61,7 +61,7 @@ class ReviewSpec extends ObjectBehavior
             ->shouldNotBeCalled();
 
         $this->setBoost($boost);
-        $this->shouldThrow(new \Exception('error while accepting the boost'))
+        $this->shouldThrow(new \Exception('Failed to charge for boost'))
             ->during('accept');
     }
 
