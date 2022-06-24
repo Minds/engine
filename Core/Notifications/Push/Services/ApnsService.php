@@ -15,11 +15,9 @@ class ApnsService extends AbstractService implements PushServiceInterface
      */
     public function send(PushNotificationInterface $pushNotification): bool
     {
-        $title = $pushNotification->getTitle();
-        $body = $pushNotification->getBody();
         $alert = array_filter([
-            'title' => $title,
-            'body' => $body,
+            'title' => $pushNotification->getTitle(),
+            'body' => $pushNotification->getBody(),
         ]);
         
         if (!($pushNotification instanceof CustomPushNotification)) {
