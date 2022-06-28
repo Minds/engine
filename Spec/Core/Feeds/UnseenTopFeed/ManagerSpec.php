@@ -50,7 +50,8 @@ class ManagerSpec extends ObjectBehavior
             'single_owner_threshold' => 6,
             'period' => 'all', // legacy option
             'unseen' => true,
-            'demoted' => true
+            'demoted' => true,
+            'from_timestamp' => null,
         ])
             ->shouldBeCalled()
             ->willReturn($response);
@@ -79,7 +80,8 @@ class ManagerSpec extends ObjectBehavior
             'single_owner_threshold' => 6,
             'period' => 'all', // legacy option
             'unseen' => true,
-            'demoted' => true
+            'demoted' => true,
+            'from_timestamp' => null,
         ])
             ->shouldBeCalled()
             ->willReturn($response);
