@@ -79,7 +79,7 @@ class Repository
      * @param $userGuid - eg. yourself
      * @param $subscribedToGuid - eg. your friend
      * @param $limit - how many results you want
-     * @return iterable<string>
+     * @return iterable<User>
      */
     public function getSubscriptionsThatSubscribeTo(
         string $userGuid,

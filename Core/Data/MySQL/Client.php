@@ -25,11 +25,12 @@ class Client
     public function getPDO(): PDO
     {
         if (!$this->pdo) {
-            $host = 'mysql';
-            $db = 'minds';
+            $config = $this->config->get('mysql') ?? [];
+            $host = $config['host'] ?? 'mysql';
+            $db = $config['db'] ?? 'minds';
             $charset = 'utf8mb4';
-            $user = 'root';
-            $pass = 'password';
+            $user =  $config['user'] ?? 'root';
+            $pass = $config['password'] ?? 'password'; // always set via a config variable and never in settings.php
             $options = [];
             $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
             $this->pdo = new PDO($dsn, $user, $pass, $options);
