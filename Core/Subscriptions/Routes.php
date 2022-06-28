@@ -25,8 +25,8 @@ class Routes extends ModuleRoutes
             ])
             ->do(function (Route $route) {
                 $route->get(
-                    'mutual',
-                    Ref::_('Subscriptions\Relational\Controller', 'getMutual')
+                    'also-subscribe-to',
+                    Ref::_('Subscriptions\Relational\Controller', 'getSubscriptionsThatSubscribeTo')
                 );
             });
 

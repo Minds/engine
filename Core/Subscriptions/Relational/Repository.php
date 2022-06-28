@@ -79,7 +79,7 @@ class Repository
      * @param $userGuid - eg. yourself
      * @param $subscribedToGuid - eg. your friend
      * @param $limit - how many results you want
-     * @return iterable<User>
+     * @return iterable<User>|void
      */
     public function getSubscriptionsThatSubscribeTo(
         string $userGuid,
@@ -109,11 +109,11 @@ class Repository
 
         foreach ($prepared as $row) {
             $user = $this->entitiesBuilder->single($row['friend_guid']);
-            if ($user instanceof User) {
-                yield $user;
-            } else {
+            if (!$user instanceof User) {
                 // We may want to log this as you shouldn't be subscribed to a blocked or non-existant user
+                continue;
             }
+            yield $user;
         }
     }
 
