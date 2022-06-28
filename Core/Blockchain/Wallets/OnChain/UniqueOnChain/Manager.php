@@ -6,7 +6,6 @@ use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use Minds\Core\Blockchain\BigQuery\HoldersQuery;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 
 class Manager
 {
@@ -22,13 +21,11 @@ class Manager
     public function __construct(
         Repository $repository = null,
         Ethereum $ethereum = null,
-        private ?HoldersQuery $holdersQuery = null,
-        private ?ExperimentsManager $experiments = null
+        private ?HoldersQuery $holdersQuery = null
     ) {
         $this->repository = $repository ?? new Repository();
         $this->ethereum = $ethereum ?? Di::_()->get('Blockchain\Services\Ethereum');
         $this->holdersQuery ??= Di::_()->get('Blockchain\BigQuery\HoldersQuery');
-        $this->experiments ??= Di::_()->get('Experiments\Manager');
     }
 
     /**
@@ -80,7 +77,7 @@ class Manager
         }
 
         $removed = $this->repository->delete($address);
-        
+
         if ($removeAddress && $user && $removed) {
             $user->setEthWallet('');
             $user->save();
@@ -121,12 +118,8 @@ class Manager
      */
     public function getAll(): iterable
     {
-        if ($this->experiments->isOn('engine-2966-holding-rewards')) {
-            $results = $this->getAllBigQuery();
-            return $results;
-        }
-
-        return $this->repository->getList([]);
+        $results = $this->getAllBigQuery();
+        return $results;
     }
 
     /**
