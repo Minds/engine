@@ -7,7 +7,6 @@ use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain\Manager;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain\Repository;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain\UniqueOnChainAddress;
 use Minds\Core\Blockchain\Services\Ethereum;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Blockchain\BigQuery\HoldersQuery;
 use Minds\Entities\User;
 use PhpSpec\Exception\Example\FailureException;
@@ -24,25 +23,19 @@ class ManagerSpec extends ObjectBehavior
     /** @var HoldersQuery */
     protected $holdersQuery;
 
-    /** @var ExperimentsManager */
-    protected $experiments;
-
     public function let(
         Repository $repository,
         Ethereum $ethereum,
         HoldersQuery $holdersQuery,
-        ExperimentsManager $experiments
     ) {
         $this->beConstructedWith(
             $repository,
             $ethereum,
             $holdersQuery,
-            $experiments
         );
         $this->repository = $repository;
         $this->ethereum = $ethereum;
         $this->holdersQuery = $holdersQuery;
-        $this->experiments = $experiments;
     }
 
     public function it_is_initializable()
@@ -126,15 +119,11 @@ class ManagerSpec extends ObjectBehavior
         $this->getByAddress('0xADDR')->shouldBe($address);
     }
 
-    public function it_should_get_all_via_bigquery_if_experiment_on(
+    public function it_should_get_all_via_bigquery(
         UniqueOnChainAddress $address1,
         UniqueOnChainAddress $address2,
         UniqueOnChainAddress $address3
     ) {
-        $this->experiments->isOn('engine-2966-holding-rewards')
-            ->shouldBeCalled()
-            ->willReturn(true);
-        
         $this->holdersQuery->get()
             ->shouldBeCalled()
             ->willReturn([
@@ -155,7 +144,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->get('0x1')
             ->shouldBeCalled()
             ->willReturn($address1);
-  
+
         $this->repository->get('0x2')
             ->shouldBeCalled()
             ->willReturn($address2);
@@ -171,14 +160,10 @@ class ManagerSpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_get_all_via_bigquery_if_experiment_on_without_balanceless_addresses(
+    public function it_should_get_all_via_bigquery_without_balanceless_addresses(
         UniqueOnChainAddress $address1,
         UniqueOnChainAddress $address3
     ) {
-        $this->experiments->isOn('engine-2966-holding-rewards')
-            ->shouldBeCalled()
-            ->willReturn(true);
-        
         $this->holdersQuery->get()
             ->shouldBeCalled()
             ->willReturn([
@@ -199,7 +184,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->get('0x1')
             ->shouldBeCalled()
             ->willReturn($address1);
-  
+
         $this->repository->get('0x2')
             ->shouldNotBeCalled();
 
@@ -213,14 +198,10 @@ class ManagerSpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_get_all_via_bigquery_if_experiment_on_without_addresses_not_in_our_system(
+    public function it_should_get_all_via_bigquery_without_addresses_not_in_our_system(
         UniqueOnChainAddress $address1,
         UniqueOnChainAddress $address3
     ) {
-        $this->experiments->isOn('engine-2966-holding-rewards')
-            ->shouldBeCalled()
-            ->willReturn(true);
-        
         $this->holdersQuery->get()
             ->shouldBeCalled()
             ->willReturn([
@@ -241,7 +222,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->get('0x1')
             ->shouldBeCalled()
             ->willReturn($address1);
-  
+
         $this->repository->get('0x2')
             ->shouldBeCalled()
             ->willReturn(null);
@@ -254,19 +235,6 @@ class ManagerSpec extends ObjectBehavior
             $address1,
             $address3
         ]);
-    }
-
-    public function it_should_use_legacy_repository_to_get_all_if_feat_off()
-    {
-        $this->experiments->isOn('engine-2966-holding-rewards')
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $this->repository->getList([])
-            ->shouldBeCalled()
-            ->willReturn([]);
-
-        $this->getAll()->shouldReturn([]);
     }
 
     public function getMatchers(): array
