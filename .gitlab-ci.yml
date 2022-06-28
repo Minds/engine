@@ -15,7 +15,7 @@ stages:
 
 build:
   stage: build
-  image: minds/php:8.0-secp256k1
+  image: minds/php:pdo
   script:
     - apk add --no-cache git
     - sh tools/setup.sh production
@@ -27,19 +27,19 @@ build:
 
 test:
   stage: test
-  image: minds/php:8.0-secp256k1
+  image: minds/php:pdo
   script:
     - php -n -c Spec/php-test.ini bin/phpspec run
 
 lint:
   stage: test
-  image: minds/php:8.0-secp256k1
+  image: minds/php:pdo
   script:
     - bin/php-cs-fixer fix --allow-risky=yes --verbose --dry-run
 
 static-analysis:
   stage: test
-  image: minds/php:8.0-secp256k1
+  image: minds/php:pdo
   script:
     - mv settings.example.php settings.php
     - bin/phpstan analyse --memory-limit=1G

@@ -46,6 +46,7 @@ class Manager
         $cacheDelegate = null,
         $eventsDelegate = null,
         $feedsDelegate = null,
+        protected ?Relational\Repository $relationalRepository = null
     ) {
         $this->repository = $repository ?: new Repository;
         $this->copyToElasticSearchDelegate = $copyToElasticSearchDelegate ?: new Delegates\CopyToElasticSearchDelegate;
@@ -53,6 +54,7 @@ class Manager
         $this->cacheDelegate = $cacheDelegate ?: new Delegates\CacheDelegate;
         $this->eventsDelegate = $eventsDelegate ?: new Delegates\EventsDelegate;
         $this->feedsDelegate = $feedsDelegate ?: new Delegates\FeedsDelegate;
+        $this->relationalRepository ??= new Relational\Repository();
     }
 
     /**
@@ -134,6 +136,9 @@ class Manager
         $this->copyToElasticSearchDelegate->copy($subscription);
         $this->cacheDelegate->cache($subscription);
 
+        // Copy this over to relational too
+        $this->relationalRepository->add($subscription);
+
         if ($this->sendEvents) {
             $this->sendNotificationDelegate->send($subscription);
         }
@@ -159,6 +164,9 @@ class Manager
         $this->feedsDelegate->remove($subscription);
         $this->copyToElasticSearchDelegate->remove($subscription);
         $this->cacheDelegate->cache($subscription);
+
+        // Copy this over to relational too
+        $this->relationalRepository->delete($subscription);
 
         return $subscription;
     }
