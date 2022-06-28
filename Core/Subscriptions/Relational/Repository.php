@@ -25,7 +25,7 @@ class Repository
      */
     public function add(Subscription $subscription): bool
     {
-        $statement = "INERT INTO friends (user_guid, friend_guid, timestamp) VALUES (:user_guid, :friend_guid, CURRENT_TIMESTAMP())";
+        $statement = "INSERT INTO friends (user_guid, friend_guid, timestamp) VALUES (:user_guid, :friend_guid, CURRENT_TIMESTAMP())";
         
         $prepared = $this->client->getPDO()->prepare($statement);
         
@@ -132,7 +132,15 @@ class Repository
     }
 
     /**
-     LOAD DATA INFILE '/var/lib/mysql-files/friends.csv'
+     * COPY minds.friends TO 'friends.csv' WITH DELIMITER='|';
+     */
+
+    /**
+     * SHOW VARIABLES LIKE "secure_file_priv";
+     */
+
+    /**
+     LOAD DATA INFILE '/vt/vtdataroot/vt_0720777458/tmp/friends.csv'
      IGNORE INTO TABLE friends
      FIELDS TERMINATED BY '|'
      LINES TERMINATED BY '\n'
