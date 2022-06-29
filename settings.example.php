@@ -793,3 +793,7 @@ $CONFIG->set('webpush_vapid_details', [
 ]);
 
 $CONFIG->set('seen-entities-weight', 0.01);
+
+$CONFIG->set('survey_links', [
+    'post_signup' => '',
+]);

@@ -94,7 +94,7 @@
         "friends-of-phpspec/phpspec-expect": "^4.0",
         "symfony/process": "^5.0",
         "friendsofphp/php-cs-fixer": "^3.0",
-        "phpstan/phpstan": "^0.12.92"
+        "phpstan/phpstan": "^1.7"
     },
     "provide": {
         "symfony/translation-contracts": "2.0.1"

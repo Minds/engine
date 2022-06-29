@@ -4,15 +4,31 @@ parameters:
         - start.php
     paths:
         - %currentWorkingDirectory%
-    excludes_analyse:
+    excludePaths:
         - %currentWorkingDirectory%/vendor
         - %currentWorkingDirectory%/Spec
         - %currentWorkingDirectory%/lib
         - %currentWorkingDirectory%/classes
         - %currentWorkingDirectory%/Core/Torrent
+        # Pulsar seems to have issues. Results in "Some parallel worker jobs have not finished." errors. 
+        - %currentWorkingDirectory%/Controllers/Cli/Pulsar.php
+        - %currentWorkingDirectory%/Core/Entities/Ops
+        - %currentWorkingDirectory%/Core/EventStreams
+        # Nostr also has "Some parallel worker jobs have not finished." errors, due to the websocket library
+        - %currentWorkingDirectory%/Core/Nostr/Manager.php
+        # Should this be removed? Not sure if used
+        - %currentWorkingDirectory%/Core/encrypt.php
     ignoreErrors:
         ## If you are running into Cassandra errors, ensure you are using the minds/php-tests docker container
         -
             message: '#Result of static method Surge\\Messages\\Factory::build\(\) \(void\) is used.#'
             path: %currentWorkingDirectory%
-
+        -
+            message: '#Variable \$[a-zA-Z]+ on left side of \?\? is never defined.#'
+            path: %currentWorkingDirectory%
+        -
+            message: '#Variable \$[a-zA-Z]+ on left side of \?\? always exists and is always null.#'
+            path: %currentWorkingDirectory%
+        -
+            message: '#Variable \$[a-zA-Z]+ on left side of \?\? always exists and is not [a-zA-Z]+.#'
+            path: %currentWorkingDirectory%
