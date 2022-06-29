@@ -149,7 +149,7 @@ class EtherscanTransactionsByDate
             $moreData = $this->fetch($lastBlockNumber + 1, $lastBlockNumber + 10001);
             $lastBlockNumber += 10001;
             // we stop if there is no more data
-            if (!$moreData || empty($moreData)) {
+            if (!$moreData) {
                 $noDataCount++;
                 if ($noDataCount < 10) {
                     continue;
