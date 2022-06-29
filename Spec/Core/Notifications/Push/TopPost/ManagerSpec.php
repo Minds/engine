@@ -14,6 +14,7 @@ use Minds\Core\Notifications\Push\TopPost\Manager;
 use Minds\Entities\Activity;
 use Minds\Exceptions\ServerErrorException;
 use PhpSpec\ObjectBehavior;
+use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -68,7 +69,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($feedSyncEntity);
 
-        $this->unseenTopFeedManager->getList($userGuid, 1)
+        $this->unseenTopFeedManager->getList($userGuid, 1, Argument::type('int'))
             ->shouldBeCalled()
             ->willReturn($response);
 
@@ -105,7 +106,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $this->unseenTopFeedManager->getList($userGuid, 1)
+        $this->unseenTopFeedManager->getList($userGuid, 1, Argument::type('int'))
             ->shouldBeCalled()
             ->willReturn($response);
 

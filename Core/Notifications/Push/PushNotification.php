@@ -219,7 +219,7 @@ class PushNotification implements PushNotificationInterface
      */
     public function getGroup(): string
     {
-        return $this->notification->getType();
+        return $this->notification->getGroupingType();
     }
 
     /**
