@@ -206,5 +206,7 @@ class Indexes
             $vote->setEntity($entity);
             yield new IterableEntity($vote, base64_encode($pagingToken));
         }
+
+        return;
     }
 }
