@@ -17,6 +17,15 @@ interface RepositoryInterface
      */
     public function getAnswers(int $userGuid): array;
 
+
+    /**
+     * Count answers to Social Compass questions provided by a specific user.
+     * @param int $userGuid - guid of target user.
+     * @return int - count of answers.
+     * @throws ServerErrorException
+     */
+    public function countAnswers(int $userGuid): int;
+
     /**
      * Returns the answer object for a specific questionId if it exists
      * @param int $userGuid

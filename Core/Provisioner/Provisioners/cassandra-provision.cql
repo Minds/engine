@@ -1774,7 +1774,5 @@ ALTER TABLE minds.system_push_notifications
 CREATE TABLE minds.nostr_hashes_to_entities
 (
     hash text PRIMARY KEY,
-    public_key text,
     entity_urn text
 );
-CREATE INDEX nostr_pub_key_idx ON minds."nostr_hashes_to_entities" (public_key);
