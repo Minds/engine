@@ -793,3 +793,12 @@ $CONFIG->set('webpush_vapid_details', [
 ]);
 
 $CONFIG->set('seen-entities-weight', 0.01);
+
+$CONFIG->set('survey_links', [
+    'post_signup' => '',
+]);
+
+$CONFIG->set('metascraper', [
+    'base_url' => 'localhost:3333/',
+    'bypass_cache' => true
+]);
