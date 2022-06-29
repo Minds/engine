@@ -97,7 +97,7 @@ class PropagateProperties
     {
         $this->changed = false;
         $attachment = $this->entitiesBuilder->single($activity->get('entity_guid'));
-        if (empty($attachment)) {
+        if (!$attachment) {
             return;
         }
 

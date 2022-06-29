@@ -295,7 +295,7 @@ class Manager
         return $this->repository->getBalance((string) $user->getGuid(), $asOfTs);
     }
 
-    /*
+    /**
      * @param array $opts
      * @return iterable
      */
@@ -362,6 +362,8 @@ class Manager
 
             yield $earningsPayout;
         }
+
+        return;
     }
 
     /**
