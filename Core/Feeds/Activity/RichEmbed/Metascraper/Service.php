@@ -14,6 +14,9 @@ use Minds\Exceptions\ServerErrorException;
  */
 class Service
 {
+    /** @var int timeout for requests in seconds */
+    private $requestTimeoutSeconds = 30;
+
     /**
      * Constructor.
      * @param ClientInterface|null $httpClient
@@ -31,6 +34,10 @@ class Service
         $this->logger ??= Di::_()->get('Logger');
         $this->config ??= Di::_()->get('Config');
         $this->cache ??= new Cache();
+
+        if ($requestTimeoutSeconds = $this->config->get('metascraper')['request_timeout'] ?? false) {
+            $this->requestTimeoutSeconds = $requestTimeoutSeconds;
+        }
     }
 
     /**
@@ -63,7 +70,8 @@ class Service
                 ],
                 'query' => [
                     'targetUrl' => $url
-                ]
+                ],
+                'timeout' => $this->requestTimeoutSeconds
             ]);
 
             $responseData = json_decode($response->getBody()->getContents(), true);
@@ -91,7 +99,8 @@ class Service
     public function isHealthy(): bool
     {
         $response = $this->httpClient->request('GET', $this->getBaseUrl(), [
-            'headers' => ['Content-Type' => 'application/json']
+            'headers' => ['Content-Type' => 'application/json'],
+            'timeout' => $this->requestTimeoutSeconds
         ]);
         $responseData = json_decode($response->getBody()->getContents(), true);
         return $responseData['status'] && $responseData['status'] === 200;

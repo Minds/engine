@@ -799,6 +799,8 @@ $CONFIG->set('survey_links', [
 ]);
 
 $CONFIG->set('metascraper', [
-    'base_url' => 'localhost:3333/',
+    'base_url' => 'metascraper:3334/',
+    'ttl_seconds' => 86400,
+    'request_timeout' => 30,
     'bypass_cache' => true
 ]);

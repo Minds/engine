@@ -57,10 +57,10 @@ class ServiceSpec extends ObjectBehavior
         $url = 'https://www.minds.com/';
 
         $this->config->get('metascraper')
-            ->shouldBeCalledTimes(2)
+            ->shouldBeCalledTimes(3)
             ->willReturn([
                 'base_url' => 'localhost:3333/',
-                'bypass_cache' => false
+                'bypass_cache' => false,
             ]);
 
         $this->cache->getExported($url)
@@ -97,13 +97,12 @@ class ServiceSpec extends ObjectBehavior
         $this->scrape($url);
     }
 
-    public function it_should_return_scraped_data_from_cache_if_present(
-        StreamInterface $streamInterface
-    ) {
+    public function it_should_return_scraped_data_from_cache_if_present()
+    {
         $url = 'https://www.minds.com/';
 
         $this->config->get('metascraper')
-            ->shouldBeCalledTimes(2)
+            ->shouldBeCalledTimes(3)
             ->willReturn([
                 'base_url' => 'localhost:3333/',
                 'bypass_cache' => false
@@ -132,7 +131,7 @@ class ServiceSpec extends ObjectBehavior
         $url = 'https://www.minds.com/';
 
         $this->config->get('metascraper')
-            ->shouldBeCalledTimes(2)
+            ->shouldBeCalledTimes(3)
             ->willReturn([
                 'base_url' => 'localhost:3333/',
                 'bypass_cache' => true
@@ -176,7 +175,7 @@ class ServiceSpec extends ObjectBehavior
         StreamInterface $streamInterface
     ) {
         $this->config->get('metascraper')
-        ->shouldBeCalledTimes(1)
+        ->shouldBeCalledTimes(2)
         ->willReturn([
             'base_url' => 'localhost:3333/',
         ]);
