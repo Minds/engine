@@ -77,14 +77,8 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
                     case 'blog':
                         return $usernameString . ' posted a blog';
                     case 'image':
-                        if (!$this->entity->getTitle() && !$this->entity->getDescription()) {
-                            return '';
-                        }
                         return $usernameString . ' posted an image';
                     case 'video':
-                        if (!$this->entity->getTitle() && !$this->entity->getDescription()) {
-                            return '';
-                        }
                         return $usernameString . ' posted a video';
                 }
                 break;
@@ -105,25 +99,15 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
                 $body = $this->entity->getMessage();
                 break;
             case 'object':
-                $usernameString = $this->getOwnerUsernameString();
-
                 switch ($this->entity->getSubtype()) {
                     case 'blog':
                         $body = $this->entity->getTitle();
                         break;
                     case 'image':
-                        if (!$this->entity->getTitle() && !$this->entity->getDescription()) {
-                            $body = $usernameString . ' posted an image';
-                            break;
-                        }
-                        $body = $this->entity->getTitle() ? $this->entity->getTitle() : $this->entity->getDescription();
+                        $body = $this->entity->getTitle() ?: $this->entity->getDescription() ?: '';
                         break;
                     case 'video':
-                        if (!$this->entity->getTitle() && !$this->entity->getDescription()) {
-                            $body = $usernameString . ' posted a video';
-                            break;
-                        }
-                        $body = $this->entity->getTitle() ? $this->entity->getTitle() : $this->entity->getDescription();
+                        $body = $this->entity->getTitle() ?: $this->entity->getDescription() ?: '';
                         break;
                 }
                 break;
