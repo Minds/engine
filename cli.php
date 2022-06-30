@@ -22,6 +22,13 @@ array_shift($argv);
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
+try {
+    $vaultDotenv = Dotenv\Dotenv::createImmutable('/vault/secrets', 'env');
+    $vaultDotenv->load();
+} catch (\Exception $e) {
+    echo "Couldn't find vault secret envs, skipping..." . PHP_EOL;
+}
+
 if (isset($argv[0]) && $argv[0] == 'help') {
     $help = true;
     array_shift($argv);
