@@ -8,7 +8,7 @@
         <center>
     <![endif]-->
     <a href="<?php echo "{$vars['href']}"?>"
-        <?php echo $emailStylesV2->getStyles(['m-button']); ?> >
+        <?php echo $emailStylesV2->getStyles(['m-button']); ?>
         <?php echo "{$vars['label']}"?>
     </a>
     <!--[if mso]>
