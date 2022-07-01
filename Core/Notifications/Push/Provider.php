@@ -21,6 +21,9 @@ class Provider extends DiProvider
         $this->di->bind('Notifications\Push\DeviceSubscriptions\Controller', function ($di) {
             return new DeviceSubscriptions\Controller();
         }, ['useFactory' => false]);
+        $this->di->bind('Notifications\Push\Settings\Manager', function ($di) {
+            return new Settings\Manager();
+        }, ['useFactory' => false]);
         $this->di->bind('Notifications\Push\Settings\Controller', function ($di) {
             return new Settings\Controller();
         }, ['useFactory' => false]);

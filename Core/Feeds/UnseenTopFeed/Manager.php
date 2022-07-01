@@ -31,10 +31,11 @@ class Manager
      * Get unseen top feed.
      * @param User $user - user to get for.
      * @param int $limit - defaults to 12.
+     * @param int $fromTimestamp
      * @return Response - response from request.
      * @throws UserErrorException
      */
-    public function getList(string $userGuid, int $limit = 12): Response
+    public function getList(string $userGuid, int $limit = 12, int $fromTimestamp = null): Response
     {
         $response = $this->elasticSearchManager->getList([
             'limit' => $limit,
@@ -44,7 +45,8 @@ class Manager
             'single_owner_threshold' => 6,
             'period' => 'all', // legacy option
             'unseen' => true,
-            'demoted' => true
+            'demoted' => true,
+            'from_timestamp' => $fromTimestamp,
         ]);
 
         $response->setPagingToken(null); // This endpoint doesn't support pagination yet.
