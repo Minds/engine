@@ -380,6 +380,7 @@ class newsfeed implements Interfaces\Api
         }
 
         // Remind
+        $remind = null;
 
         if (isset($_POST['remind_guid'])) {
             // Fetch the remind
@@ -414,8 +415,15 @@ class newsfeed implements Interfaces\Api
         // Wire/Paywall
 
         if (isset($_POST['wire_threshold']) && $_POST['wire_threshold']) {
-            $activity->setWireThreshold($_POST['wire_threshold']);
+            // don't allow paywalling a paywalled remind
+            if ($remind?->getPaywall()) {
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => 'You cannot monetize a remind',
+                ]);
+            }
 
+            $activity->setWireThreshold($_POST['wire_threshold']);
             $paywallDelegate = new Core\Feeds\Activity\Delegates\PaywallDelegate();
             $paywallDelegate->onAdd($activity);
         }
