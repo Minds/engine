@@ -31,7 +31,10 @@ class Client
             $charset = 'utf8mb4';
             $user =  $config['user'] ?? 'root';
             $pass = $config['password'] ?? 'password'; // always set via a config variable and never in settings.php
-            $options = [];
+            $options = [
+                PDO::MYSQL_ATTR_SSL_CA => $config['ssl_cert_path'] ?? null,
+                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => !($config['ssl_skip_verify'] ?? false),
+            ];
             $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
             $this->pdo = new PDO($dsn, $user, $pass, $options);
         }
