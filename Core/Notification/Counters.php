@@ -30,7 +30,7 @@ class Counters
         $this->features = $features ?: new FeaturesManager;
 
         if (!$this->features->has('cassandra-notifications')) {
-            $this->sql = $sql ?: Di::_()->get('Database\PDO');
+            $this->sql = $sql ?: Di::_()->get('Database\MySQL');
         }
     }
 

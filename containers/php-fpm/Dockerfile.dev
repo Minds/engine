@@ -1,4 +1,4 @@
-FROM minds/php:8.0-secp256k1
+FROM minds/php:pdo
 
 RUN echo 'zend_extension=opcache.so' > /usr/local/etc/php/conf.d/opcache.ini \
     && mkdir --parents --mode=0777 /tmp/minds-cache/ \
