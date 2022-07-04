@@ -41,7 +41,7 @@ class Wire implements EntityInterface
     use MagicAttributes;
 
     /** @var int */
-    private $guid;
+    public $guid;
 
     /** @var User */
     private $receiver;
