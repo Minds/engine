@@ -188,6 +188,9 @@ RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && rm -rf secp256k1 secp256k1-php \
     && apk del build-deps
 
+# Install PDO
+RUN docker-php-ext-install pdo pdo_mysql
+
 # PHP INI
 COPY php.ini /usr/local/etc/php/
 COPY opcache.ini /usr/local/etc/php/conf.d/opcache-recommended.ini
