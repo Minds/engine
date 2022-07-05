@@ -255,8 +255,8 @@ class newsfeed implements Interfaces\Api
             // here we are updating message field. Propose fixing this at Object/Image level
             // vs patching on activity
             if (!$activity instanceof Activity) {
-                $subtype = $activity->subtype;
-                $type = $activity->type;
+                $subtype = $activity->getSubtype();
+                $type = $activity->getType();
                 $activity = $manager->createFromEntity($activity);
                 $activity->guid = $pages[0]; // createFromEntity makes a new entity
                 $activity->subtype = $subtype;

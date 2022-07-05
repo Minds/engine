@@ -27,6 +27,10 @@ class PropagateProperties extends Properties
             $to->setNsfwLock($from->getNsfwLock());
         }
 
+        if ($this->valueHasChanged($from->tags, $to->getTags())) {
+            $to->setTags($from->tags);
+        }
+
         return $to;
     }
 
@@ -44,6 +48,10 @@ class PropagateProperties extends Properties
 
         if ($this->valueHasChanged($from->getNsfwLock(), $to->getNsfwLock())) {
             $to->setNsfwLock($from->getNsfwLock());
+        }
+
+        if ($this->valueHasChanged($from->tags, $to->getTags())) {
+            $to->setTags($from->tags);
         }
 
         return $to;
