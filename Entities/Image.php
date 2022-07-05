@@ -631,9 +631,9 @@ class Image extends File
     /**
      * Sets `license`
      * @param string $license
-     * @return Activity
+     * @return self
      */
-    public function setLicense(string $license): Image
+    public function setLicense(string $license): self
     {
         $this->license = $license;
         return $this;

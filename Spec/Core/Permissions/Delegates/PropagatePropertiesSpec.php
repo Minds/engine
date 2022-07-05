@@ -3,18 +3,18 @@
 namespace Spec\Minds\Core\Permissions\Delegates;
 
 use Minds\Entities\Activity;
-use Minds\Entities\Entity;
+use Minds\Entities\Image;
 use PhpSpec\ObjectBehavior;
 
 class PropagatePropertiesSpec extends ObjectBehavior
 {
-    /** @var Entity */
+    /** @var Image */
     protected $entity;
     /** @var Activity */
     protected $activity;
 
     public function let(
-        Entity $entity,
+        Image $entity,
         Activity $activity
     ) {
         $this->entity = $entity;
