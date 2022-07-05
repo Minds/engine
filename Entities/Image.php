@@ -72,6 +72,7 @@ class Image extends File
         $this->attributes['width'] = 0;
         $this->attributes['height'] = 0;
         $this->attributes['time_sent'] = null;
+        $this->attributes['license'] = null;
         $this->attributes['blurhash'] = null;
     }
 
@@ -346,9 +347,10 @@ class Image extends File
             'height',
             'gif',
             'time_sent',
+            'license',
             'blurhash',
             'paywall',
-            'permaweb_id',
+            'permaweb_id'
         ]);
     }
 
@@ -380,6 +382,7 @@ class Image extends File
         $export['gif'] = (bool) $this->gif;
         $export['urn'] = $this->getUrn();
         $export['time_sent'] = $this->getTimeSent();
+        $export['license'] = $this->license;
 
         $export['permaweb_id'] = $this->getPermawebId();
         $export['blurhash'] = $this->blurhash;
@@ -623,5 +626,25 @@ class Image extends File
     public function getPermawebId(): string
     {
         return $this->permaweb_id;
+    }
+
+    /**
+     * Sets `license`
+     * @param string $license
+     * @return Activity
+     */
+    public function setLicense(string $license): Image
+    {
+        $this->license = $license;
+        return $this;
+    }
+
+    /**
+     * Gets `license`
+     * @return string
+     */
+    public function getLicense(): string
+    {
+        return $this->license;
     }
 }

@@ -31,6 +31,10 @@ class PropagateProperties extends Properties
             $to->setTags($from->tags);
         }
 
+        if ($this->valueHasChanged($from->license, $to->getLicense())) {
+            $to->setLicense($from->license);
+        }
+
         return $to;
     }
 
@@ -52,6 +56,10 @@ class PropagateProperties extends Properties
 
         if ($this->valueHasChanged($from->tags, $to->getTags())) {
             $to->setTags($from->tags);
+        }
+
+        if ($this->valueHasChanged($from->getLicense(), $to->license)) {
+            $to->license = $from->getLicense();
         }
 
         return $to;
