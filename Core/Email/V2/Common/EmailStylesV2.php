@@ -81,6 +81,11 @@ class EmailStylesV2
             "width:200px;",
             "-webkit-text-size-adjust:none;",
             "padding: 10px 25px;"
+        ],
+        "m-button-outlook" => [
+            "height:60px;",
+            "v-text-anchor:middle;",
+            "width:200px;"
         ]
     ];
 
