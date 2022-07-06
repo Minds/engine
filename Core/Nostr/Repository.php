@@ -9,6 +9,7 @@ use Minds\Core\Data\Cassandra\Client as CassandraClient;
 use Minds\Core\Data\Cassandra\Prepared\Custom as PreparedQuery;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
+use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 
 /**
@@ -25,15 +26,15 @@ class Repository
     }
 
     /**
-     * Fetches the entity guid from associated to a Nostr hash
+     * Fetches the users associated to a Nostr public key
      * @param array $authors
-     * @return Generator
+     * @return User[]
      * @throws NotFoundException
      * @throws Exception
      */
-    public function getEntitiesByNostrAuthors(array $authors): Generator
+    public function getUserGuidsFromAuthors(array $authors): Generator
     {
-        $queryString = "SELECT * FROM nostr_hashes_to_entities WHERE public_key IN (";
+        $queryString = "SELECT * FROM nostr_hashes_to_entities WHERE hash IN (";
         $queryValues = [];
 
         foreach ($authors as $author) {

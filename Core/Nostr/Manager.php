@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\Nostr;
 
 use Exception;
@@ -7,6 +8,8 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Feeds\Elastic\Manager as ElasticSearchManager;
+use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Log\Logger;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
@@ -21,19 +24,22 @@ class Manager
     private Logger $logger;
 
     public function __construct(
-        protected ?Config $config = null,
-        protected ?EntitiesBuilder $entitiesBuilder = null,
-        protected ?Keys $keys = null,
-        array $clients = [],
-        private ?Repository $repository = null,
-        private ?EntitiesResolver $entitiesResolver = null
-    ) {
+        protected ?Config             $config = null,
+        protected ?EntitiesBuilder    $entitiesBuilder = null,
+        protected ?Keys               $keys = null,
+        array                         $clients = [],
+        private ?Repository           $repository = null,
+        private ?EntitiesResolver     $entitiesResolver = null,
+        private ?ElasticSearchManager $elasticSearchManager = null
+    )
+    {
         $this->config ??= Di::_()->get('Config');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->keys ??= new Keys();
         $this->clients = $clients;
         $this->repository ??= new Repository();
         $this->entitiesResolver ??= new EntitiesResolver();
+        $this->elasticSearchManager ??= Di::_()->get("Feeds\Elastic\Manager");
         $this->logger = Di::_()->get("Logger");
     }
 
@@ -75,7 +81,7 @@ class Manager
             throw new ServerErrorException("Entity with no owner passed. We can not sign this");
         }
         $publicKey = $this->keys->withUser($owner)->getSecp256k1PublicKey();
-        
+
         $kind = 1; // Text_note
         $content = '';
         $createdAt = 0;
@@ -83,11 +89,11 @@ class Manager
         // Want to use a switch but php spec doesn't pass through the correct class name
         // and we want to use instanceof...
         // switch (get_class($entity)) {
-        
+
         if ($entity instanceof Activity) {
             /** @var Activity */
             $activity = $entity;
-            $content = (string) $activity->getMessage();
+            $content = (string)$activity->getMessage();
 
             if (
                 $activity->getEntityGuid()
@@ -103,10 +109,10 @@ class Manager
             $user = $entity;
             $kind = 0; // set_metadata
             $content = json_encode([
-                    'name' => $user->getUsername() . '@' . $this->getDomain(),
-                    'about' => (string) $user->briefdescription,
-                    'picture' => $user->getIconURL('medium'),
-                ], JSON_UNESCAPED_SLASHES);
+                'name' => $user->getUsername() . '@' . $this->getDomain(),
+                'about' => (string)$user->briefdescription,
+                'picture' => $user->getIconURL('medium'),
+            ], JSON_UNESCAPED_SLASHES);
             // $createdAt = $user->getTimeCreated();
             $createdAt = $user->icontime;
         } else {
@@ -114,13 +120,13 @@ class Manager
         }
 
         $id = hash('sha256', json_encode([// sha256 hash
-                0,
-                strtolower($publicKey), // <pubkey, as a (lowercase) hex string>,
-                $createdAt, //  <created_at, as a number>,
-                $kind, // kind
-                [], // <tags, as an array of arrays of strings>,
-                $content, // <content, as a string>
-            ], JSON_UNESCAPED_SLASHES));
+            0,
+            strtolower($publicKey), // <pubkey, as a (lowercase) hex string>,
+            $createdAt, //  <created_at, as a number>,
+            $kind, // kind
+            [], // <tags, as an array of arrays of strings>,
+            $content, // <content, as a string>
+        ], JSON_UNESCAPED_SLASHES));
 
         $ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
 
@@ -139,7 +145,7 @@ class Manager
             ->setKind($kind)
             ->setTags([])
             ->setContent($content)
-            ->setSig(unpack("H*", (string) $sig64)[1]);
+            ->setSig(unpack("H*", (string)$sig64)[1]);
 
         return $nostrEvent;
     }
@@ -199,14 +205,14 @@ class Manager
             return $this->clients;
         }
         $relays = $this->config->get('nostr')['relays'] ?? [
-            'wss://nostr-relay.untethr.me',
-            'wss://nostr.bitcoiner.social',
-            'wss://nostr-relay.wlvs.space',
-            'wss://nostr-pub.wellorder.net'
-        ];
+                'wss://nostr-relay.untethr.me',
+                'wss://nostr.bitcoiner.social',
+                'wss://nostr-relay.wlvs.space',
+                'wss://nostr-pub.wellorder.net'
+            ];
 
         $this->clients = [];
-        
+
         foreach ($relays as $relay) {
             $this->clients[] = new \WebSocket\Client($relay, [
                 'headers' => [
@@ -237,7 +243,7 @@ class Manager
             $xonlyPubKey
         );
 
-        return (bool) $result;
+        return (bool)$result;
     }
 
     /**
@@ -253,13 +259,39 @@ class Manager
      * @return NostrEvent[]
      * @throws NotFoundException
      * @throws ServerErrorException
+     * @throws Exception
      */
     public function getNostrEventsForAuthors(array $authors): array
     {
-        $events = [];
-        foreach ($this->repository->getEntitiesByNostrAuthors($authors) as $entity) {
-            $events[] = $this->buildNostrEvent($entity);
+        $userGuids = [];
+        /**
+         * @var User $user
+         */
+        foreach ($this->repository->getUserGuidsFromAuthors($authors) as $user) {
+            if ($user) {
+                $userGuids[] = $user->getGuid();
+            }
         }
+        $events = [];
+
+        $activities = $this->elasticSearchManager->getList([
+            'container_guid' => $userGuids,
+            'period' => 'all',
+            'algorithm' => 'latest',
+            'type' => 'activity',
+            'limit' => 12,
+            'single_owner_threshold' => 0,
+            'access_id' => 2,
+            'as_activities' => true
+        ]);
+
+        /**
+         * @var FeedSyncEntity $activity
+         */
+        foreach ($activities as $activity) {
+            $events[] = $this->buildNostrEvent($activity->getEntity());
+        }
+
         return $events;
     }
 
@@ -283,7 +315,7 @@ class Manager
             $this->logger->addWarning("Entity {$entityUrn->getUrn()} is not a supported entity type");
             return false;
         }
-        
+
         $this->logger->addInfo("Nostr hash for entity {$entityUrn->getUrn()} is {$nostrEvent->getId()}");
 
         $result = $this->repository->addNewCorrelation($nostrEvent->getId(), $entityUrn->getUrn(), $nostrEvent->getPubKey());
