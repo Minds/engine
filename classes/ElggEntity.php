@@ -837,6 +837,16 @@ abstract class ElggEntity extends ElggData implements
     }
 
     /**
+     * Setter for access_id.
+     * @return self instance of this.
+     */
+    public function setAccessId(string $accessId): self
+    {
+        $this->access_id = $accessId;
+        return $this;
+    }
+
+    /**
      * Returns the guid.
      *
      * @return int|null GUID
