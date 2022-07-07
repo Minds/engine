@@ -2,6 +2,7 @@
 namespace Minds\Core\Subscriptions;
 
 use Minds\Core\Di\Ref;
+use Minds\Core\Router\Middleware\LoggedInMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 use Minds\Exceptions\UserErrorException;
@@ -17,6 +18,18 @@ class Routes extends ModuleRoutes
      */
     public function register(): void
     {
+        $this->route
+            ->withPrefix('api/v3/subscriptions/relational')
+            ->withMiddleware([
+                LoggedInMiddleware::class,
+            ])
+            ->do(function (Route $route) {
+                $route->get(
+                    'also-subscribe-to',
+                    Ref::_('Subscriptions\Relational\Controller', 'getSubscriptionsThatSubscribeTo')
+                );
+            });
+
         $this->route
             ->withPrefix('api/v3/subscriptions/graph')
             ->do(function (Route $route) {

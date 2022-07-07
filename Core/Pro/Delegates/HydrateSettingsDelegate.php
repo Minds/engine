@@ -82,7 +82,7 @@ class HydrateSettingsDelegate
             if ($user->getPinnedPosts()) {
                 $pinnedPosts = $this->entitiesBuilder->get(['guids' => Text::buildArray($user->getPinnedPosts())]);
 
-                if (!$pinnedPosts || empty($pinnedPosts)) {
+                if (!$pinnedPosts) {
                     throw new UserErrorException("No pinned posts");
                 }
 

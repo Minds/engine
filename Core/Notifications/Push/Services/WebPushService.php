@@ -15,11 +15,11 @@ class WebPushService extends AbstractService implements PushServiceInterface
      */
     public function send(PushNotificationInterface $pushNotification): bool
     {
-        $message = $pushNotification->getTitle();
+        $title = $pushNotification->getTitle() ?: ' '; // can't be blank, so insert a space char
         $body = $pushNotification->getBody();
 
         $payload = [
-            'title' => "$message",
+            'title' => "$title",
             'body' => "$body",
             'tag' => $pushNotification->getMergeKey(),
             'badge' => (string) $pushNotification->getUnreadCount(),
