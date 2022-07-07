@@ -445,6 +445,7 @@ $CONFIG->set('blockchain', [
             'https://testnet-proxy.skalenodes.com/v1/whispering-turais'
         ],
         'minds_token_address' => '0x4E8792878Bd0CC7a19d2a5Bb345Ab18a6624c866',
+        'gas_price_wei' => 100000,
         'default_sfuel_distribution_amount_wei' => 220000000000
     ],
 ]);
