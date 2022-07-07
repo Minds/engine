@@ -318,7 +318,7 @@ class Manager
 
         $this->logger->addInfo("Nostr hash for entity {$entityUrn->getUrn()} is {$nostrEvent->getId()}");
 
-        $result = $this->repository->addNewCorrelation($nostrEvent->getPubKey(), $entityUrn->getUrn()));
+        $result = $this->repository->addNewCorrelation($nostrEvent->getPubKey(), $entityUrn->getUrn());
 
         $result
             ? $this->logger->addInfo("Nostr hash {$nostrEvent->getId()} correctly linked to entity {$entityUrn->getUrn()}")
