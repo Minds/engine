@@ -549,4 +549,25 @@ class Video extends MindsObject
     {
         return $this->permaweb_id;
     }
+
+
+    /**
+     * Sets `license`
+     * @param string $license
+     * @return self
+     */
+    public function setLicense(string $license): self
+    {
+        $this->license = $license;
+        return $this;
+    }
+
+    /**
+     * Gets `license`
+     * @return string
+     */
+    public function getLicense(): string
+    {
+        return $this->license;
+    }
 }

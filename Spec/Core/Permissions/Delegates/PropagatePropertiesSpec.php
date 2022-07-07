@@ -3,18 +3,18 @@
 namespace Spec\Minds\Core\Permissions\Delegates;
 
 use Minds\Entities\Activity;
-use Minds\Entities\Entity;
+use Minds\Entities\Image;
 use PhpSpec\ObjectBehavior;
 
 class PropagatePropertiesSpec extends ObjectBehavior
 {
-    /** @var Entity */
+    /** @var Image */
     protected $entity;
     /** @var Activity */
     protected $activity;
 
     public function let(
-        Entity $entity,
+        Image $entity,
         Activity $activity
     ) {
         $this->entity = $entity;
@@ -31,6 +31,10 @@ class PropagatePropertiesSpec extends ObjectBehavior
         $this->entity->getAllowComments()->shouldBeCalled()->willReturn(true);
         $this->activity->getAllowComments()->shouldBeCalled()->willReturn(false);
         $this->activity->setAllowComments(true)->shouldBeCalled();
+    
+        $this->entity->getAccessId()->shouldBeCalled()->willReturn('1');
+        $this->activity->getAccessId()->shouldBeCalled()->willReturn('');
+        $this->activity->setAccessId('1')->shouldBeCalled();
 
         $this->toActivity($this->entity, $this->activity);
     }
@@ -40,6 +44,10 @@ class PropagatePropertiesSpec extends ObjectBehavior
         $this->activity->getAllowComments()->shouldBeCalled()->willReturn(true);
         $this->entity->getAllowComments()->shouldBeCalled()->willReturn(false);
         $this->entity->setAllowComments(true)->shouldBeCalled();
+
+        $this->activity->getAccessId()->shouldBeCalled()->willReturn('1');
+        $this->entity->getAccessId()->shouldBeCalled()->willReturn('');
+        $this->entity->setAccessId('1')->shouldBeCalled();
 
         $this->fromActivity($this->activity, $this->entity);
     }
