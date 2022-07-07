@@ -437,7 +437,15 @@ $CONFIG->set('blockchain', [
     'web3_service' => [
         'wallet_encryption_key' => '',
         'base_url' => 'http://192.168.0.16:3333/'
-    ]
+    ],
+
+    'skale' => [
+        'development_mode' => true,
+        'rpc_endpoints' => [
+            'https://testnet-proxy.skalenodes.com/v1/whispering-turais'
+        ],
+        'mind_token_address' => '0x4E8792878Bd0CC7a19d2a5Bb345Ab18a6624c866'
+    ],
 ]);
 
 $CONFIG->set('blockchain_override', [
