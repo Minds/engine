@@ -144,7 +144,7 @@ class Exported
         }
 
         if ($context === 'embed') {
-            $exported['MindsEmbed'] = $embedded_entity ?? null;
+            $exported['MindsEmbed'] = null;
         }
 
         if ($_GET['__e_cnf_token'] ?? false) {

@@ -32,6 +32,10 @@ class Routes extends ModuleRoutes
                     'sync',
                     Ref::_('Nostr\Controller', 'sync')
                 );
+                $route->get(
+                    'fetch-entity',
+                    Ref::_('Nostr\Controller', 'getEntity')
+                );
             });
     }
 }

@@ -1,4 +1,4 @@
-FROM minds/php:8.0-secp256k1
+FROM minds/php:pdo
 
 ADD --chown=www-data . /var/www/Minds/engine
 

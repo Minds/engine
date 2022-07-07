@@ -40,4 +40,10 @@ interface ManagerInterface
      * @return bool True if the answers have successfully been stored, false otherwise
      */
     public function updateSocialCompassAnswers(array $answers): bool;
+
+    /**
+     * Count answers for compass for instance $targetUser.
+     * @return array - count of answers.
+     */
+    public function countAnswers(): int;
 }

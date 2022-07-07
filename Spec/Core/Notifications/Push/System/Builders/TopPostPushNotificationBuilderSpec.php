@@ -275,8 +275,8 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
 
         $builtNotification = $this->build($image);
 
-        $builtNotification->getTitle()->shouldBe(' ');
-        $builtNotification->getBody()->shouldBe('@test posted an image');
+        $builtNotification->getTitle()->shouldBe('@test posted an image');
+        $builtNotification->getBody()->shouldBe('');
         $builtNotification->getUri()->shouldBe('newsfeed/123');
         $builtNotification->getMedia()->shouldBe('image-url');
     }
@@ -452,8 +452,8 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
 
         $builtNotification = $this->build($video);
 
-        $builtNotification->getTitle()->shouldBe(' ');
-        $builtNotification->getBody()->shouldBe('@test posted a video');
+        $builtNotification->getTitle()->shouldBe('@test posted a video');
+        $builtNotification->getBody()->shouldBe('');
         $builtNotification->getUri()->shouldBe('newsfeed/123');
         $builtNotification->getMedia()->shouldBe('image-url');
     }
