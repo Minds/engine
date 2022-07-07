@@ -31,8 +31,7 @@ class Manager
         private ?Repository           $repository = null,
         private ?EntitiesResolver     $entitiesResolver = null,
         private ?ElasticSearchManager $elasticSearchManager = null
-    )
-    {
+    ) {
         $this->config ??= Di::_()->get('Config');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->keys ??= new Keys();
