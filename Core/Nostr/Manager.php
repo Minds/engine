@@ -31,7 +31,8 @@ class Manager
         private ?Repository           $repository = null,
         private ?EntitiesResolver     $entitiesResolver = null,
         private ?ElasticSearchManager $elasticSearchManager = null
-    ) {
+    )
+    {
         $this->config ??= Di::_()->get('Config');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->keys ??= new Keys();
@@ -303,9 +304,9 @@ class Manager
         $entity = $this->entitiesResolver?->setOpts(['cache' => false])
             ->single($entityUrn);
 
-        if ($entity->getType() !== 'user') {
+        if ($entity?->getType() !== 'user') {
             $this->logger->addWarning("Entity {$entityUrn->getUrn()} is not a supported entity type");
-            return false;
+            return true;
         }
 
         try {
