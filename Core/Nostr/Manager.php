@@ -304,7 +304,7 @@ class Manager
         $entity = $this->entitiesResolver?->setOpts(['cache' => false])
             ->single($entityUrn);
 
-        if (!in_array($entity->getType(), ['activity', 'user'], true)) {
+        if ($entity->getType() !== 'user') {
             $this->logger->addWarning("Entity {$entityUrn->getUrn()} is not a supported entity type");
             return false;
         }
@@ -318,7 +318,7 @@ class Manager
 
         $this->logger->addInfo("Nostr hash for entity {$entityUrn->getUrn()} is {$nostrEvent->getId()}");
 
-        $result = $this->repository->addNewCorrelation($nostrEvent->getId(), $entityUrn->getUrn(), $nostrEvent->getPubKey());
+        $result = $this->repository->addNewCorrelation($nostrEvent->getPubKey(), $entityUrn->getUrn()));
 
         $result
             ? $this->logger->addInfo("Nostr hash {$nostrEvent->getId()} correctly linked to entity {$entityUrn->getUrn()}")

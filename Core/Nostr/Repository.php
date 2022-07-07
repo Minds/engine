@@ -18,9 +18,10 @@ use Minds\Exceptions\NotFoundException;
 class Repository
 {
     public function __construct(
-        private ?CassandraClient $cassandraClient = null,
+        private ?CassandraClient  $cassandraClient = null,
         private ?EntitiesResolver $entitiesResolver = null
-    ) {
+    )
+    {
         $this->cassandraClient ??= Di::_()->get('Database\Cassandra\Cql');
         $this->entitiesResolver ??= new EntitiesResolver();
     }
@@ -43,7 +44,7 @@ class Repository
         }
 
         $queryString = rtrim($queryString, ', ') . ")";
-        
+
         $query = (new PreparedQuery())
             ->query(
                 $queryString,
@@ -62,18 +63,17 @@ class Repository
     }
 
     /**
-     * Adds a new entry in the table that links a nostr hash to a Minds Entity via URN
-     * @param string $nostrHash
-     * @param string $urn
+     * Adds a new entry in the table that links a Nostr public key to a Minds Entity via URN
      * @param string $publicKey
+     * @param string $urn
      * @return bool
      */
-    public function addNewCorrelation(string $nostrHash, string $urn, string $publicKey): bool
+    public function addNewCorrelation(string $publicKey, string $urn): bool
     {
         $query = (new PreparedQuery())
             ->query(
-                "INSERT INTO nostr_hashes_to_entities (hash, public_key, entity_urn) VALUES (?, ?, ?)",
-                [$nostrHash, $publicKey, $urn]
+                "INSERT INTO nostr_hashes_to_entities (hash, entity_urn) VALUES (?, ?)",
+                [$publicKey, $urn]
             );
 
         return $this->cassandraClient->request($query) !== false;
