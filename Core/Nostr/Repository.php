@@ -20,8 +20,7 @@ class Repository
     public function __construct(
         private ?CassandraClient  $cassandraClient = null,
         private ?EntitiesResolver $entitiesResolver = null
-    )
-    {
+    ) {
         $this->cassandraClient ??= Di::_()->get('Database\Cassandra\Cql');
         $this->entitiesResolver ??= new EntitiesResolver();
     }
