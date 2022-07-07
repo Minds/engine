@@ -1,5 +1,5 @@
 <?php
-namespace Minds\Core\Blockchain\Wallets\Skale\Minds;
+namespace Minds\Core\Blockchain\Wallets\Skale;
 
 use Minds\Core\Blockchain\Skale\Token;
 use Minds\Core\Data\cache\PsrWrapper;
@@ -25,12 +25,12 @@ class Balance
     }
 
     /**
-     * Return balance in wei for a given address.
-     * @param string $address - address to give balance in wei for.
+     * Return token balance in wei for a given address.
+     * @param string $address - address to give token balance in wei for.
      * @param bool $useCache - whether cache should be used.
-     * @return string|null - balance in wei, or null.
+     * @return string|null - token balance in wei, or null.
      */
-    public function get(string $address, bool $useCache = true): ?string
+    public function getTokenBalance(string $address, bool $useCache = true): ?string
     {
         $cacheKey = "skale:minds:balance:{$address}";
 
@@ -43,6 +43,38 @@ class Balance
         }
 
         $balance = $this->token->balanceOf($address);
+
+        if ($balance === null) {
+            return null;
+        }
+        
+        if ($useCache) {
+            $this->cache->set($cacheKey, serialize($balance), 60);
+        }
+
+        return $balance;
+    }
+
+    /**
+     * Return sFuel (equivalent of Ether on SKALE network) balance in wei
+     * for a given address.
+     * @param string $address - address to give sFuel balance in wei for.
+     * @param bool $useCache - whether cache should be used.
+     * @return string|null - sFuel balance in wei, or null.
+     */
+    public function getSFuelBalance(string $address, bool $useCache = true): ?string
+    {
+        $cacheKey = "skale:sfuel:balance:{$address}";
+
+        if ($useCache) {
+            $balance = $this->cache->get($cacheKey);
+
+            if ($balance) {
+                return unserialize($balance);
+            }
+        }
+
+        $balance = $this->token->sFuelBalanceOf($address);
 
         if ($balance === null) {
             return null;

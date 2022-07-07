@@ -6,8 +6,11 @@ use Minds\Cli;
 use Minds\Core\Di\Di;
 use Minds\Interfaces;
 use Minds\Core\Blockchain\Skale\Keys as SkaleKeys;
-use Minds\Core\Blockchain\Wallets\Skale\Minds\Balance;
+use Minds\Core\Blockchain\Wallets\Skale\Balance;
 
+/**
+ * SKALE CLI - check balance and interact with custodial wallets via CLI.
+ */
 class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
 {
     /**
@@ -68,27 +71,46 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
     }
 
     /**
-     * Gets balance for a given address or username, without cache.
-     * @example php cli.php Skale getBalance --username=testuser
+     * Gets token balance for a given address or username, without cache.
+     * If no address is manually passed in, will get balance for a users custodial wallet.
+     * @example php cli.php Skale getTokenBalance --username=testuser
      * @return void
      */
-    public function getBalance(): void
+    public function getTokenBalance(): void
     {
-        $username = $this->getOpt('username');
-        $address = $this->getOpt('address');
+        $address = $this->getWalletAddress(); // parses --username and --address opts.
 
-        if (!$username && !$address) {
+        if (!$address) {
             $this->out('You must provide a username or address');
             return;
         }
 
-        if ($username) {
-            $user = Di::_()->get('EntitiesBuilder')->getByUserByIndex($username);
-            $keys = (new SkaleKeys())->withUser($user);
-            $address = $keys->getWalletAddress();
+        $balance = (new Balance())->getTokenBalance(
+            address: $address,
+            useCache: false
+        );
+
+        $this->out("address:\t" . $address);
+        $this->out("balance:\t" . $balance . " wei");
+    }
+
+    /**
+     * Gets sFuel balance (equivalent of Ether on the network) for a given address
+     * or username, without cache. If no address is manually passed in, will get balance
+     * for a users custodial wallet.
+     * @example php cli.php Skale getSFuelBalance --username=testuser
+     * @return void
+     */
+    public function getSFuelBalance()
+    {
+        $address = $this->getWalletAddress(); // parses --username and --address opts.
+
+        if (!$address) {
+            $this->out('You must provide a username or address');
+            return;
         }
 
-        $balance = (new Balance())->get(
+        $balance = (new Balance())->getSFuelBalance(
             address: $address,
             useCache: false
         );
@@ -102,4 +124,43 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
 
     // Should take wallet addresses or user guids.
     // public function sendTokens() {}
+
+    /**
+     * Parses opts to get wallet address - if a username is passed in
+     * hydrates user and gets custodial SKALE wallet address.
+     * To check a non-custodial wallet, pass an address.
+     * @return string|null - wallet address or null if there is no address.
+     */
+    private function getWalletAddress(): ?string
+    {
+        $address = $this->getOpt('address');
+        
+        if ($address) {
+            return $address;
+        }
+
+        $username = $this->getOpt('username');
+
+        if (!$username && !$address) {
+            return null;
+        }
+
+        if (!$address && $username) {
+            return $this->getCustodialWalletAddressByUsername($username);
+        }
+
+        return null;
+    }
+
+    /**
+     * Gets custodial SKALE wallet address by username.
+     * @param string|null $username - username to get wallet address for.
+     * @return string|null - SKALE wallet address for a user.
+     */
+    private function getCustodialWalletAddressByUsername(string $username): ?string
+    {
+        $user = Di::_()->get('EntitiesBuilder')->getByUserByIndex($username);
+        $keys = (new SkaleKeys())->withUser($user);
+        return $keys->getWalletAddress();
+    }
 }
