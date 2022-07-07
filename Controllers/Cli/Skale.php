@@ -6,6 +6,7 @@ use Minds\Cli;
 use Minds\Core\Di\Di;
 use Minds\Interfaces;
 use Minds\Core\Blockchain\Skale\Keys as SkaleKeys;
+use Minds\Core\Blockchain\Skale\Transaction\Manager as TransactionManager;
 use Minds\Core\Blockchain\Wallets\Skale\Balance;
 
 /**
@@ -101,7 +102,7 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
      * @example php cli.php Skale getSFuelBalance --username=testuser
      * @return void
      */
-    public function getSFuelBalance()
+    public function getSFuelBalance(): void
     {
         $address = $this->getWalletAddress(); // parses --username and --address opts.
 
@@ -119,8 +120,56 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->out("balance:\t" . $balance . " wei");
     }
 
-    // Should be tied into token sending in future.
-    // public function sendSfuel() {}
+    /**
+     * Send sFuel (SKALE network Ether) from a custodial wallet to either
+     * another custodial wallet, or an external Ether address.
+     * @example
+     * - php cli.php Skale sendSFuel --senderUsername=minds --receiverAddress=0x00000...
+     * - php cli.php Skale sendSFuel --senderUsername=minds --receiverUsername=testuser
+     * @return void
+     */
+    public function sendSFuel(): void
+    {
+        // get opts.
+        $senderUsername = $this->getOpt('senderUsername') ?? false;
+        $receiverUsername = $this->getOpt('receiverUsername') ?? false;
+        $receiverAddress = $this->getOpt('receiverAddress') ?? false;
+
+        // validate required opts were passed in.
+        if (!$senderUsername && (!$receiverAddress || !$receiverUsername)) {
+            $this->out('You must set a sender and either a receiverAddress or receiverUsername');
+            return;
+        }
+
+        // build sender and if no receiverAddress was passed in, receiver too.
+        /** @var EntitiesBuilder */
+        $entitiesBuilder = Di::_()->get('EntitiesBuilder');
+        $sender = $entitiesBuilder->getByUserByIndex($senderUsername);
+        $receiver = null;
+
+        if (!$receiverAddress) {
+            $receiver = $entitiesBuilder->getByUserByIndex($receiverUsername);
+        }
+
+        if (!$sender || (!isset($receiver) && !$receiver && !$receiverAddress)) {
+            $this->out('Unable to construct both sender and receiver, or missing receiver address');
+            return;
+        }
+    
+        // prepare and send transaction.
+        /** @var TransactionManager */
+        $transactionManager = new TransactionManager();
+
+        if ($receiverAddress) {
+            $transactionManager->setReceiverAddress($receiverAddress);
+        } else {
+            $transactionManager->setReceiver($receiver);
+        }
+
+        $txHash = $transactionManager->setSender($sender)->sendSFuel();
+        $this->out('Sent with tx hash '. $txHash);
+    }
+    
 
     // Should take wallet addresses or user guids.
     // public function sendTokens() {}

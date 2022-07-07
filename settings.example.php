@@ -444,7 +444,8 @@ $CONFIG->set('blockchain', [
         'rpc_endpoints' => [
             'https://testnet-proxy.skalenodes.com/v1/whispering-turais'
         ],
-        'mind_token_address' => '0x4E8792878Bd0CC7a19d2a5Bb345Ab18a6624c866'
+        'minds_token_address' => '0x4E8792878Bd0CC7a19d2a5Bb345Ab18a6624c866',
+        'default_sfuel_distribution_amount_wei' => 220000000000
     ],
 ]);
 

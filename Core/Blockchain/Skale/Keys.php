@@ -20,6 +20,19 @@ class Keys extends NostrKeys
     }
 
     /**
+     * Get private key as hex - prefixed with 0x.
+     * @return ?string - private key in hex format.
+     */
+    public function getSecp256k1PrivateKeyAsHex(): ?string
+    {
+        $privateKey = bin2hex($this->getSecp256k1PrivateKey());
+        if (stripos($privateKey, '0x') !== 0) {
+            return "0x$privateKey";
+        }
+        return $privateKey;
+    }
+
+    /**
      * Get UNCOMPRESSED Secp256k1 public key.
      * Modified version of https://github.com/Bit-Wasp/secp256k1-php/blob/v0.2/examples/create_public_key.php
      * @return string uncompressed Secp256k1 public key.

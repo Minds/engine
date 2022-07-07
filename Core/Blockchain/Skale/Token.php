@@ -6,7 +6,7 @@ use Exception;
 use Minds\Core\Blockchain\Services\Skale as SkaleClient;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
-                                                                                use Minds\Core\Log\Logger;
+use Minds\Core\Log\Logger;
 use Minds\Core\Util\BigNumber;
 
 /**
@@ -35,11 +35,11 @@ class Token
 
         $skaleConfig = $this->config->get('blockchain')['skale'] ?? false;
 
-        if (!$skaleConfig || !isset($skaleConfig['mind_token_address'])) {
+        if (!$skaleConfig || !isset($skaleConfig['minds_token_address'])) {
             throw new Exception('SKALE MINDS token address not configured');
         }
 
-        $this->tokenAddress = $skaleConfig['mind_token_address'];
+        $this->tokenAddress = $skaleConfig['minds_token_address'];
     }
 
     /**
