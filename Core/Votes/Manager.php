@@ -48,9 +48,10 @@ class Manager
         $eventsDispatcher = null,
         private ?FriendlyCaptchaManager $friendlyCaptchaManager = null,
         private ?ExperimentsManager $experimentsManager = null
-    ) {
-        $this->counters = $counters ?:  Di::_()->get('Votes\Counters');
-        $this->indexes =  $indexes ?: Di::_()->get('Votes\Indexes');
+    )
+    {
+        $this->counters = $counters ?: Di::_()->get('Votes\Counters');
+        $this->indexes = $indexes ?: Di::_()->get('Votes\Indexes');
         $this->acl = $acl ?: ACL::_();
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->friendlyCaptchaManager ??= Di::_()->get('FriendlyCaptcha\Manager');
@@ -103,15 +104,24 @@ class Manager
             'vote' => $vote
         ];
         if ($vote->getDirection() === "up" && $this->experimentsManager->isOn("minds-3119-captcha-for-engagement")) {
-            $isPuzzleValid = $this->friendlyCaptchaManager->verify(
-                $options['puzzleSolution'],
-                DifficultyScalingType::DIFFICULTY_SCALING_VOTE_UP
-            );
+            $isPuzzleValid = false;
+            try {
+                $isPuzzleValid = $this->friendlyCaptchaManager->verify(
+                    $options['puzzleSolution'],
+                    DifficultyScalingType::DIFFICULTY_SCALING_VOTE_UP
+                );
+            } catch (InvalidSolutionException $e) {
+            }
+
             $eventOptions['isFriendlyCaptchaPuzzleValid'] = $isPuzzleValid;
         }
 
         if ($done && $options['events']) {
             $this->eventsDispatcher->trigger('vote', $vote->getDirection(), $eventOptions);
+
+            if (!$eventOptions['isFriendlyCaptchaPuzzleValid']) {
+                throw new InvalidSolutionException();
+            }
         }
 
         return $done;

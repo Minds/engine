@@ -17,9 +17,6 @@ use Minds\Core\Session;
 use Minds\Core\Votes\Counters;
 use Minds\Core\Votes\Manager;
 use Minds\Core\Votes\Vote;
-use Minds\Entities\ValidationError;
-use Minds\Entities\ValidationErrorCollection;
-use Minds\Exceptions\UserErrorException;
 use Minds\Interfaces;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -27,7 +24,8 @@ class votes implements Interfaces\Api
 {
     public function __construct(
         private ?ExperimentsManager $experimentsManager = null
-    ) {
+    )
+    {
         // $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
     }
 
@@ -106,7 +104,9 @@ class votes implements Interfaces\Api
             ->setDirection($direction)
             ->setActor($loggedInUser);
 
-        $options = [];
+        $options = [
+            'puzzleSolution' => ''
+        ];
 
         $request = ServerRequestFactory::fromGlobals();
         $requestBody = json_decode($request->getBody()->getContents(), true);
@@ -115,16 +115,7 @@ class votes implements Interfaces\Api
             ->setUser($loggedInUser);
 
         if ($experimentsManager->isOn("minds-3119-captcha-for-engagement") && !$manager->has($vote)) {
-            $puzzleSolution = (isset($requestBody['puzzle_solution']) && !empty($requestBody['puzzle_solution']))
-                ? $requestBody['puzzle_solution']
-                : throw new UserErrorException(
-                    "An error occurred whilst validating the request.",
-                    400,
-                    (new ValidationErrorCollection())
-                        ->add(
-                            new ValidationError("puzzle_solution", "A string value must be provided.")
-                        )
-                );
+            $puzzleSolution = $requestBody['puzzle_solution'] ?? '';
             $options['puzzleSolution'] = $puzzleSolution;
         }
 
