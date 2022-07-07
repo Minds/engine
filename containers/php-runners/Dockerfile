@@ -1,4 +1,4 @@
-FROM minds/php:8.0
+FROM minds/php:pdo
 
 # Copy our built the code
 
