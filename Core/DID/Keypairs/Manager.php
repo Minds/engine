@@ -70,7 +70,7 @@ class Manager
 
         if (!$didKeypair) {
             $didKeypair = $this->createKeypair($user);
-            $this->didKeypairsManager->add($didKeypair);
+            $this->add($didKeypair);
         }
 
         $privateKey = pack("H*", hash('sha256', $this->getPrivateKey($didKeypair)));

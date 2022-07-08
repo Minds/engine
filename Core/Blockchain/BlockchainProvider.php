@@ -74,6 +74,10 @@ class BlockchainProvider extends Provider
             return new Wallets\OffChain\TestnetBalance();
         });
 
+        $this->di->bind('Blockchain\Wallets\Skale\Balance', function () {
+            return new Wallets\Skale\Balance();
+        });
+
         $this->di->bind('Blockchain\Wallets\OffChain\Transactions', function () {
             return new Wallets\OffChain\Transactions();
         }, [ 'useFactory' => false ]);
@@ -128,6 +132,18 @@ class BlockchainProvider extends Provider
 
         $this->di->bind('Blockchain\BigQuery\HoldersQuery', function () {
             return new BigQuery\HoldersQuery();
+        });
+
+        $this->di->bind('Blockchain\Skale\Transaction\Manager', function () {
+            return new Skale\Transaction\Manager();
+        });
+
+        $this->di->bind('Blockchain\Skale\Tools', function () {
+            return new Skale\Tools();
+        });
+
+        $this->di->bind('Blockchain\Skale\Keys', function () {
+            return new Skale\Keys();
         });
     }
 }

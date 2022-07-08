@@ -43,7 +43,7 @@ class Manager
         private ?Config $config = null
     ) {
         $this->skaleClient ??= Di::_()->get('Blockchain\Services\Skale');
-        $this->keys ??= new Keys();
+        $this->keys ??= Di::_()->get('Blockchain\Skale\Keys');
         $this->config ??= Di::_()->get('Config');
 
         if ($defaultDistributionAmountWei = $this->config->get('blockchain')['skale']['default_sfuel_distribution_amount_wei'] ?? false) {
@@ -92,9 +92,9 @@ class Manager
      * Send MINDS tokens on SKALE network from receiver to sender.
      * @param int $amountWei - amount to send in wei.
      * @throws ServerErrorException - on error.
-     * @return void
+     * @return ?string - tx hash.
      */
-    public function sendTokens(int $amountWei = null)
+    public function sendTokens(int $amountWei = null): ?string
     {
         if (!$amountWei || !$this->receiverAddress || !$this->sender) {
             throw new ServerErrorException('Cannot send MINDS on SKALE with null sender or receiver');
