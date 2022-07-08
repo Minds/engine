@@ -45,6 +45,8 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
         Di::_()->get('Nostr\PocSync')->syncChannel($username);
     }
 
+    // TODO: Core/Blockchain/SkaleTools
+
     /**
      * Prints public key and address for a given username. If the skale development mode
      * is enabled, will also print private key.
@@ -159,14 +161,19 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
         // prepare and send transaction.
         /** @var TransactionManager */
         $transactionManager = new TransactionManager();
-
+        $txHash = null;
         if ($receiverAddress) {
-            $transactionManager->setReceiverAddress($receiverAddress);
+            $txHash = $transactionManager->withUsers(
+                sender: $sender,
+                receiverAddress: $receiverAddress
+            )->sendSFuel();
         } else {
-            $transactionManager->setReceiver($receiver);
+            $txHash = $transactionManager->withUsers(
+                sender: $sender,
+                receiver: $receiver
+            )->sendSFuel();
         }
 
-        $txHash = $transactionManager->setSender($sender)->sendSFuel();
         $this->out('Sent with tx hash '. $txHash);
     }
     
@@ -211,15 +218,18 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
         // prepare and send transaction.
         /** @var TransactionManager */
         $transactionManager = new TransactionManager();
-
+        $txHash = null;
         if ($receiverAddress) {
-            $transactionManager->setReceiverAddress($receiverAddress);
+            $txHash = $transactionManager->withUsers(
+                sender: $sender,
+                receiverAddress: $receiverAddress
+            )->sendTokens($amountWei);
         } else {
-            $transactionManager->setReceiver($receiver);
+            $txHash = $transactionManager->withUsers(
+                sender: $sender,
+                receiver: $receiver
+            )->sendTokens($amountWei);
         }
-
-        $txHash = $transactionManager->setSender($sender)->sendTokens($amountWei);
-
         $this->out('Sent with tx hash '. $txHash);
     }
 

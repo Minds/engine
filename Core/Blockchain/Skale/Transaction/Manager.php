@@ -62,38 +62,30 @@ class Manager
     }
 
     /**
-     * Set sender user
-     * @param User $sender - user to set as sender.
-     * @return self
+     * Construct new instance with passed in users.
+     * Must pass in a sender, and either a receiver OR receiver address.
+     * @param User $sender - sending user
+     * @param User|null $receiver - receiving user
+     * @param string|null $receiverAddress - receiving address
+     * @return self - new instance.
      */
-    public function setSender(User $sender): self
-    {
-        $this->sender = $sender;
-        return $this;
-    }
+    public function withUsers(
+        User $sender,
+        ?User $receiver = null,
+        ?string $receiverAddress = null
+    ): self {
+        if (!($receiver xor $receiverAddress)) {
+            throw new ServerErrorException('Must set ONE of receiverAddress and receiver');
+        }
 
-    /**
-     * Set receiver address directly - allows for sending outside of custodial wallets.
-     * @param string $address - receiver address.
-     * @return self
-     */
-    public function setReceiverAddress(string $address): self
-    {
-        $this->receiverAddress = $address;
-        return $this;
-    }
+        if ($receiver) {
+            $receiverAddress = $this->getWalletAddress($receiver);
+        }
 
-    /**
-     * Set receiver - if you don't know the receiving address, you
-     * can pass a user object and $receiverAddress will be set accordingly.
-     * @param User $receiver - receiving user.
-     * @return self
-     */
-    public function setReceiver(User $receiver): self
-    {
-        return $this->setReceiverAddress(
-            $this->getWalletAddress($receiver)
-        );
+        $instance = clone $this;
+        $instance->sender = $sender;
+        $instance->receiverAddress = $receiverAddress;
+        return $instance;
     }
 
     /**

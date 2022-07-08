@@ -2,21 +2,39 @@
 namespace Minds\Core\Blockchain\Skale;
 
 use kornrunner\Keccak;
-use Minds\Core\Nostr\Keys as NostrKeys;
+use Minds\Core\Di\Di;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Core\DID\Keypairs\Manager as DidKeypairsManager;
+use Minds\Entities\User;
 
 /**
  * Keys for SKALE - extends NostrKeys using the same private key.
  * Unlike Nostr, uncompressed public keys are needed for address generation.
  */
-class Keys extends NostrKeys
+class Keys
 {
+    /** @var User $user - instance user */
+    protected ?User $user = null;
+
     /**
      * Constructor.
+     * @param DidKeypairsManager|null $didKeypairsManager - keypair manager.
      */
-    public function __construct()
+    public function __construct(protected ?DidKeypairsManager $didKeypairsManager = null)
     {
-        parent::__construct();
+        $this->didKeypairsManager ??= Di::_()->get('DID\Keypairs\Manager');
+    }
+
+    /**
+     * Construct a new instance with user.
+     * @param User $user
+     * @return static
+     */
+    public function withUser(User $user): Keys
+    {
+        $instance = clone $this;
+        $instance->user = $user;
+        return $instance;
     }
 
     /**
@@ -30,6 +48,18 @@ class Keys extends NostrKeys
             return "0x$privateKey";
         }
         return $privateKey;
+    }
+
+
+    /**
+     * Get Secp256k1 compatible private key.
+     * @return ?string - private key in binary format.
+     */
+    public function getSecp256k1PrivateKey(): ?string
+    {
+        return $this->didKeypairsManager->getSecp256k1PrivateKey(
+            $this->user
+        );
     }
 
     /**
@@ -69,7 +99,6 @@ class Keys extends NostrKeys
     {
         $publicKey = $this->getSecp256k1PublicKey();
         $publicKeyTrimmed = substr($publicKey, 2);
-
         $keccakHashedPublicKey = Keccak::hash(hex2bin($publicKeyTrimmed), 256);
         return '0x' . substr($keccakHashedPublicKey, -40);
     }
