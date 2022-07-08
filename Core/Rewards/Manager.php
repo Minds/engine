@@ -317,9 +317,6 @@ class Manager
         ////
 
         foreach ($this->repository->getIterator($opts) as $i => $rewardEntry) {
-            if ($rewardEntry->getSharePct() === (float) 0) {
-                continue;
-            }
 
             // Confirm the wallet address is still connected
             if (in_array($rewardEntry->getRewardType(), [static::REWARD_TYPE_LIQUIDITY, static::REWARD_TYPE_HOLDING], false)) {
@@ -344,7 +341,11 @@ class Manager
             $tokenomicsManifest = $this->getTokenomicsManifest($rewardEntry->getTokenomicsVersion());
             $tokenPool = BigDecimal::of($tokenomicsManifest->getDailyPools()[$rewardEntry->getRewardType()]);
 
-            $tokenAmount = $tokenPool->multipliedBy($rewardEntry->getSharePct(), 18, RoundingMode::FLOOR);
+            if ($rewardEntry->getSharePct() === (float) 0) {
+                $tokenAmount = BigDecimal::of(0); // If share % 0 then reset token amount
+            } else {
+                $tokenAmount = $tokenPool->multipliedBy($rewardEntry->getSharePct(), 18, RoundingMode::FLOOR);
+            }
 
             // Do not allow negative rewards to be issued
             if ($tokenAmount->isLessThanOrEqualTo(0)) {
