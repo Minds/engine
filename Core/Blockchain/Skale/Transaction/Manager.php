@@ -19,12 +19,18 @@ class Manager
     /** @var int amount of sFuel to be distributed. - configurable in constructor */
     private int $defaultDistributionAmountWei = 220000000000;
 
+    /** @var int gas limit of standard transfer. - configurable in constructor */
+    private int $transferGasLimit = 51280;
+
+    /** @var string address of MINDS token on SKALE network - configurable in constructor */
+    private ?string $tokenAddress = null;
+    
     /** @var User|null sender of the transaction */
     private ?User $sender = null;
 
     /** @var string|null address on the receiving end of transaction */
     private ?string $receiverAddress = null;
-    
+
     /**
      * Constructor.
      * @param Skale|null $skaleClient - client for communication with skale network.
@@ -42,6 +48,16 @@ class Manager
 
         if ($defaultDistributionAmountWei = $this->config->get('blockchain')['skale']['default_sfuel_distribution_amount_wei'] ?? false) {
             $this->defaultDistributionAmountWei = $defaultDistributionAmountWei;
+        }
+
+        if ($transferGasLimit = $this->config->get('blockchain')['skale']['transfer_gas_limit'] ?? false) {
+            $this->transferGasLimit = $transferGasLimit;
+        }
+
+        if ($tokenAddress = $this->config->get('blockchain')['skale']['minds_token_address'] ?? false) {
+            $this->tokenAddress = $tokenAddress;
+        } else {
+            throw new ServerErrorException('No SKALE Minds token address set in config');
         }
     }
 
@@ -81,13 +97,38 @@ class Manager
     }
 
     /**
-     * TODO: Build send token functionality.
+     * Send MINDS tokens on SKALE network from receiver to sender.
      * @param int $amountWei - amount to send in wei.
+     * @throws ServerErrorException - on error.
      * @return void
      */
     public function sendTokens(int $amountWei = null)
     {
-        // NoOp
+        if (!$amountWei || !$this->receiverAddress || !$this->sender) {
+            throw new ServerErrorException('Cannot send MINDS on SKALE with null sender or receiver');
+        }
+
+        $privateKey = $this->getPrivateKey($this->sender);
+
+        try {
+            return $this->skaleClient->sendRawTransaction($privateKey, [
+                'from' => $this->getWalletAddress($this->sender),
+                'to' => $this->tokenAddress,
+                'gasLimit' => BigNumber::_($this->transferGasLimit)->toHex(true),
+                'data' => $this->skaleClient->encodeContractMethod('transfer(address,uint256)', [
+                    $this->receiverAddress,
+                    BigNumber::_($amountWei)->toHex(true),
+                ])
+            ]);
+        } catch (\Exception $e) {
+            throw new ServerErrorException(
+                $e->getMessage() .
+                ' ' .
+                $this->sender->getUsername() .
+                ' => ' .
+                $this->receiverAddress
+            );
+        }
     }
 
     /**
