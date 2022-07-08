@@ -263,16 +263,17 @@ class Manager
     public function getNostrEventsForAuthors(array $authors): array
     {
         $userGuids = [];
+        $events = [];
         /**
          * @var User $user
          */
         foreach ($this->repository->getUserGuidsFromAuthors($authors) as $user) {
             if ($user) {
                 $userGuids[] = $user->getGuid();
+                $events[] = $this->buildNostrEvent($user);
             }
         }
-        $events = [];
-
+        
         $activities = $this->elasticSearchManager->getList([
             'container_guid' => $userGuids,
             'period' => 'all',
