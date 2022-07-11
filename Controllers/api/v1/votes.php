@@ -24,8 +24,7 @@ class votes implements Interfaces\Api
 {
     public function __construct(
         private ?ExperimentsManager $experimentsManager = null
-    )
-    {
+    ) {
         // $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
     }
 
@@ -124,10 +123,10 @@ class votes implements Interfaces\Api
         } catch (UnverifiedEmailException $e) {
             throw $e;
         } catch (InvalidSolutionException $e) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => "This engagement looks like spam",
-            ]);
+            // return Factory::response([
+            //     'status' => 'error',
+            //     'message' => "This engagement looks like spam",
+            // ]);
         } catch (Exception $e) {
             return Factory::response([
                 'status' => 'error',

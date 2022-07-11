@@ -3,6 +3,7 @@
 namespace Minds\Core\Captcha\FriendlyCaptcha\Classes;
 
 use Exception;
+use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\InvalidSolutionException;
 use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\MisconfigurationException;
 use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\PuzzleExpiredException;
 use Minds\Traits\MagicAttributes;
@@ -59,12 +60,16 @@ class Puzzle
 
     /**
      * Construct a puzzle from a solutions signature and buffer.
-     * @param string $signature - signature of puzzle.
-     * @param string $buffer - buffer of puzzle.
+     * @param string|null $signature - signature of puzzle.
+     * @param string|null $buffer - buffer of puzzle.
      * @return Puzzle
+     * @throws InvalidSolutionException
      */
-    public function initFromSolution(string $signature, string $buffer): self
+    public function initFromSolution(?string $signature, ?string $buffer): self
     {
+        if (!$signature || !$buffer) {
+            throw new InvalidSolutionException();
+        }
         $this->setSignature($signature);
         $this->setBuffer(base64_decode($buffer, true));
         $this->setOrigin($this->getOriginFromBuffer());

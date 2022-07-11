@@ -48,8 +48,7 @@ class Manager
         $eventsDispatcher = null,
         private ?FriendlyCaptchaManager $friendlyCaptchaManager = null,
         private ?ExperimentsManager $experimentsManager = null
-    )
-    {
+    ) {
         $this->counters = $counters ?: Di::_()->get('Votes\Counters');
         $this->indexes = $indexes ?: Di::_()->get('Votes\Indexes');
         $this->acl = $acl ?: ACL::_();

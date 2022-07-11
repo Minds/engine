@@ -99,7 +99,7 @@ class Events
             $direction = $event->getNamespace();
 
             $vote = $params['vote'];
-            $proofOfWork = $params['isPuzzleValid'];
+            $proofOfWork = $params['isFriendlyCaptchaPuzzleValid'] ?? false;
             $entity = $vote->getEntity();
             $actor = $vote->getActor();
 
