@@ -122,6 +122,7 @@ review:start:
     - git clone --branch=master $HELM_GIT_REPO
     - BRANCH_EXISTS=$(git ls-remote --heads $HELM_GIT_REPO $CI_BUILD_REF_NAME | wc -l)
     - cd ./helm-charts
+    - git pull
     - if [ $BRANCH_EXISTS == "1" ] ; then
     -    echo "Matching branch exists, checking out $CI_BUILD_REF_NAME..."
     -    git checkout $CI_BUILD_REF_NAME 2>/dev/null
