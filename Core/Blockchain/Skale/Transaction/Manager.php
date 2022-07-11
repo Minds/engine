@@ -16,8 +16,8 @@ use Minds\Core\Di\Di;
  */
 class Manager
 {
-    /** @var int amount of sFuel to be distributed. - configurable in constructor */
-    private int $defaultDistributionAmountWei = 220000000000;
+    /** @var string amount of sFuel to be distributed. - configurable in constructor */
+    private string $defaultDistributionAmountWei = '220000000000';
 
     /** @var int gas limit of standard transfer. - configurable in constructor */
     private int $transferGasLimit = 51280;
@@ -89,6 +89,24 @@ class Manager
     }
 
     /**
+     * Gets instance sender.
+     * @return ?User sender.
+     */
+    public function getSender(): ?User
+    {
+        return $this->sender;
+    }
+
+    /**
+     * Gets instance receiver address.
+     * @return ?string receiver address.
+     */
+    public function getReceiverAddress(): ?string
+    {
+        return $this->receiverAddress;
+    }
+
+    /**
      * Send MINDS tokens on SKALE network from receiver to sender.
      * @param string $amountWei - amount to send in wei.
      * @throws ServerErrorException - on error.
@@ -116,7 +134,7 @@ class Manager
             throw new ServerErrorException(
                 $e->getMessage() .
                 ' ' .
-                $this->sender->getUsername() .
+                $this->sender->getUsername() ?? 'unknown' .
                 ' => ' .
                 $this->receiverAddress
             );

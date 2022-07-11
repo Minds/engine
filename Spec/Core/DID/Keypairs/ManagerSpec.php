@@ -81,8 +81,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe('m'.$base64);
     }
 
-    public function it_should_return_a_private_key(  
-        User $user, DIDKeypair $DIDKeypair
+    public function it_should_return_a_private_key(
+        User $user,
+        DIDKeypair $DIDKeypair
     ) {
         $user->getGuid()
             ->shouldBeCalled()
