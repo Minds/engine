@@ -90,11 +90,11 @@ class Manager
 
     /**
      * Send MINDS tokens on SKALE network from receiver to sender.
-     * @param int $amountWei - amount to send in wei.
+     * @param string $amountWei - amount to send in wei.
      * @throws ServerErrorException - on error.
      * @return ?string - tx hash.
      */
-    public function sendTokens(int $amountWei = null): ?string
+    public function sendTokens(string $amountWei = null): ?string
     {
         if (!$amountWei || !$this->receiverAddress || !$this->sender) {
             throw new ServerErrorException('Cannot send MINDS on SKALE with null sender or receiver');
@@ -125,11 +125,11 @@ class Manager
 
     /**
      * Send fuel from receiver to sender.
-     * @param int|null $amountWei - amount to send in wei - will default to default distribution amount if not provided.
+     * @param string|null $amountWei - amount to send in wei - will default to default distribution amount if not provided.
      * @throws ServerErrorException - on error.
      * @return string|null - tx hash.
      */
-    public function sendSFuel(?int $amountWei = null): ?string
+    public function sendSFuel(?string $amountWei = null): ?string
     {
         if (!$this->receiverAddress || !$this->sender) {
             throw new ServerErrorException('Cannot send sFuel with null sender or receiver');

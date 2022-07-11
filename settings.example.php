@@ -446,8 +446,12 @@ $CONFIG->set('blockchain', [
         ],
         'minds_token_address' => '0x4E8792878Bd0CC7a19d2a5Bb345Ab18a6624c866',
         'gas_price_wei' => 100000,
+        'default_sfuel_distributor_guid' => '1285556080390180877',
         'default_sfuel_distribution_amount_wei' => 220000000000,
-        'transfer_gas_limit' => 51280
+        'sfuel_low_threshold' => 8801000000,
+        'transfer_gas_limit' => 51280,
+        'confirmation_timeout_seconds' => 60,
+        'confirmation_polling_gap_seconds' => 5
     ],
 ]);
 
