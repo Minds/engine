@@ -27,7 +27,7 @@ class Repository
     {
         $statement = "INSERT INTO friends (user_guid, friend_guid, timestamp) VALUES (:user_guid, :friend_guid, CURRENT_TIMESTAMP())";
         
-        $prepared = $this->client->getPDO()->prepare($statement);
+        $prepared = $this->client->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
         
         return $prepared->execute([
             'user_guid' => $subscription->getSubscriberGuid(),
@@ -44,7 +44,7 @@ class Repository
     {
         $statement = "DELETE FROM friends
                         WHERE user_guid = :user_guid and friend_guid = :friend_guid";
-        $prepared = $this->client->getPDO()->prepare($statement);
+        $prepared = $this->client->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
 
         return $prepared->execute([
             'user_guid' => $subscription->getSubscriberGuid(),
@@ -64,7 +64,7 @@ class Repository
     ): int {
         $statement = "SELECT count(*) as c " . $this->getSubscriptionsThatSubscribeToStatement();
     
-        $prepared = $this->client->getPDO()->prepare($statement);
+        $prepared = $this->client->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
 
         $prepared->execute([
             'user_guid' => $userGuid,
@@ -100,7 +100,7 @@ class Repository
             . " ORDER BY wider_mutual_count DESC"
             . " LIMIT $limit";
 
-        $prepared = $this->client->getPDO()->prepare($statement);
+        $prepared = $this->client->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
 
         $prepared->execute([
             'user_guid' => $userGuid,

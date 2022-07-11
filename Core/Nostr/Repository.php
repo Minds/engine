@@ -2,10 +2,14 @@
 
 namespace Minds\Core\Nostr;
 
+use Exception;
+use Generator;
 use Minds\Common\Urn;
 use Minds\Core\Data\Cassandra\Client as CassandraClient;
 use Minds\Core\Data\Cassandra\Prepared\Custom as PreparedQuery;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Resolver as EntitiesResolver;
+use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 
 /**
@@ -14,23 +18,36 @@ use Minds\Exceptions\NotFoundException;
 class Repository
 {
     public function __construct(
-        private ?CassandraClient $cassandraClient = null
+        private ?CassandraClient  $cassandraClient = null,
+        private ?EntitiesResolver $entitiesResolver = null
     ) {
         $this->cassandraClient ??= Di::_()->get('Database\Cassandra\Cql');
+        $this->entitiesResolver ??= new EntitiesResolver();
     }
 
     /**
-     * Fetches the entity guid from associated to a Nostr hash
-     * @param string $hash
-     * @return string
+     * Fetches the users associated to a Nostr public key
+     * @param array $authors
+     * @return User[]
      * @throws NotFoundException
+     * @throws Exception
      */
-    public function getEntityGuidByNostrHash(string $hash): string
+    public function getUserGuidsFromAuthors(array $authors): Generator
     {
+        $queryString = "SELECT * FROM nostr_hashes_to_entities WHERE hash IN (";
+        $queryValues = [];
+
+        foreach ($authors as $author) {
+            $queryString .= "?, ";
+            $queryValues[] = $author;
+        }
+
+        $queryString = rtrim($queryString, ', ') . ")";
+
         $query = (new PreparedQuery())
             ->query(
-                "SELECT * FROM nostr_hashes_to_entities WHERE hash = ?",
-                [$hash]
+                $queryString,
+                $queryValues
             );
 
         $rows = $this->cassandraClient->request($query);
@@ -39,25 +56,25 @@ class Repository
             throw new NotFoundException("No entries were found for the provided hash");
         }
 
-        $entityUrn = new Urn($rows->first()['entity_urn']);
-
-        return $entityUrn->getNss();
+        foreach ($rows as $row) {
+            yield $this->entitiesResolver->single(new Urn($row['entity_urn']));
+        }
     }
 
     /**
-     * Adds a new entry in the table that links a nostr hash to a Minds Entity via URN
-     * @param string $nostrHash
+     * Adds a new entry in the table that links a Nostr public key to a Minds Entity via URN
+     * @param string $publicKey
      * @param string $urn
      * @return bool
      */
-    public function addNewCorrelation(string $nostrHash, string $urn): bool
+    public function addNewCorrelation(string $publicKey, string $urn): bool
     {
         $query = (new PreparedQuery())
             ->query(
                 "INSERT INTO nostr_hashes_to_entities (hash, entity_urn) VALUES (?, ?)",
-                [$nostrHash, $urn]
+                [$publicKey, $urn]
             );
 
-        return $this->cassandraClient->request($query);
+        return $this->cassandraClient->request($query) !== false;
     }
 }

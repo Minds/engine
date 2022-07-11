@@ -26,7 +26,7 @@ class RepositorySpec extends ObjectBehavior
         $this->entitiesBuilderMock = $entitiesBuilder;
         $this->pdoMock = $pdoMock;
 
-        $client->getPDO()
+        $client->getConnection(Argument::any())
             ->willReturn($pdoMock);
     }
 
