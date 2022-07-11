@@ -80,4 +80,25 @@ class ManagerSpec extends ObjectBehavior
         $this->getMultibase('this is a string')
             ->shouldBe('m'.$base64);
     }
+
+    public function it_should_return_a_private_key(  
+        User $user, DIDKeypair $DIDKeypair
+    ) {
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('~user_guid~');
+
+        $this->repository->get('~user_guid~')
+            ->willReturn($DIDKeypair);
+
+        $keypair = sodium_crypto_sign_keypair();
+        $privKey = sodium_crypto_sign_secretkey($keypair);
+
+        $DIDKeypair->getKeypair()
+            ->shouldBeCalledTimes(1)
+            ->willReturn($keypair);
+
+        $privKey = $this->getSecp256k1PrivateKey($user);
+        $privKey->shouldBe(pack("H*", hash('sha256', sodium_crypto_sign_secretkey($keypair))));
+    }
 }
