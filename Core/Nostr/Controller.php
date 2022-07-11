@@ -4,7 +4,7 @@ namespace Minds\Core\Nostr;
 
 use Minds\Api\Exportable;
 use Minds\Core\Di\Di;
-use Minds\Core\Nostr\RequestValidators\GetEntityRequestValidator;
+use Minds\Core\Nostr\RequestValidators\GetEventsRequestValidator;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
@@ -73,24 +73,24 @@ class Controller
     }
 
     /**
-     * GET /api/v3/nostr/fetch-entity
+     * GET /api/v3/nostr/events
      * @param ServerRequestInterface $request
      * @return JsonResponse
      * @throws NotFoundException
      * @throws UserErrorException
      * @throws ServerErrorException
      */
-    public function getEntity(ServerRequestInterface $request): JsonResponse
+    public function getNostrEvents(ServerRequestInterface $request): JsonResponse
     {
-        $requestValidator = new GetEntityRequestValidator();
-        $queryParams = $request->getQueryParams();
+        $requestValidator = new GetEventsRequestValidator();
+        $requestBody = $request->getParsedBody();
 
-        if (!$requestValidator->validate($queryParams)) {
+        if (!$requestValidator->validate($requestBody)) {
             throw new UserErrorException("Some errors where encountered whilst validating the request", errors: $requestValidator->getErrors());
         }
 
-        $nostrEvent = $this->manager->getEntityNostrEventFromNostrHash($queryParams['hash']);
+        $nostrEvents = $this->manager->getNostrEventsForAuthors($requestBody['authors']);
 
-        return new JsonResponse(Exportable::_([$nostrEvent]));
+        return new JsonResponse(Exportable::_($nostrEvents));
     }
 }
