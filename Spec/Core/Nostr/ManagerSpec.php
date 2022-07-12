@@ -62,6 +62,16 @@ class ManagerSpec extends ObjectBehavior
         $this->keys->getSecp256k1PublicKey()
             ->willReturn('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
 
+        //
+
+        $user->getUrn()
+            ->willReturn('urn:user:123');
+
+        $this->repository->addNewCorrelation('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715', 'urn:user:123')
+            ->shouldBeCalled();
+
+        //
+
         $this->getPublicKeyFromUsername('phpspec')
             ->shouldBe('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
     }
@@ -72,6 +82,16 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($this->keys);
         $this->keys->getSecp256k1PublicKey()
             ->willReturn('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
+
+        //
+
+        $user->getUrn()
+            ->willReturn('urn:user:123');
+
+        $this->repository->addNewCorrelation('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715', 'urn:user:123')
+            ->shouldBeCalled();
+
+        //
 
         $this->getPublicKeyFromUser($user)
             ->shouldBe('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
