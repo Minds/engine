@@ -11,6 +11,6 @@ class UnverifiedEmailException extends \Exception implements SentryExceptionExcl
 {
     public function __construct()
     {
-        $this->message = 'You must verify your account';
+        $this->message = 'You must confirm your email address';
     }
 }
