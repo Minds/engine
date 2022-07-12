@@ -2,6 +2,7 @@
 namespace Minds\Core\Blockchain\Wallets\Skale;
 
 use Minds\Core\Blockchain\Skale\Token;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 
@@ -11,6 +12,9 @@ use Minds\Core\Di\Di;
  */
 class Balance
 {
+    /** @var int - ttl of cache entries for balance */
+    private int $cacheTtlSeconds = 60;
+
     /**
      * Constructor.
      * @param Token|null $token - Minds token on SKALE network.
@@ -18,10 +22,16 @@ class Balance
      */
     public function __construct(
         private ?Token $token = null,
-        private ?PsrWrapper $cache = null
+        private ?PsrWrapper $cache = null,
+        private ?Config $config = null
     ) {
         $this->token ??= Di::_()->get('Blockchain\Skale\Token');
         $this->cache ??= Di::_()->get('Cache\PsrWrapper');
+        $this->config ??= Di::_()->get('Config');
+
+        if ($cacheTtlSeconds = $this->config->get('blockchain')['skale']['balance_cache_ttl_seconds'] ?? false) {
+            $this->cacheTtlSeconds = $cacheTtlSeconds;
+        }
     }
 
     /**
@@ -49,7 +59,7 @@ class Balance
         }
         
         if ($useCache) {
-            $this->cache->set($cacheKey, serialize($balance), 60);
+            $this->cache->set($cacheKey, serialize($balance), $this->cacheTtlSeconds);
         }
 
         return $balance;
@@ -81,7 +91,7 @@ class Balance
         }
         
         if ($useCache) {
-            $this->cache->set($cacheKey, serialize($balance), 60);
+            $this->cache->set($cacheKey, serialize($balance), $this->cacheTtlSeconds);
         }
 
         return $balance;

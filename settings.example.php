@@ -451,7 +451,8 @@ $CONFIG->set('blockchain', [
         'sfuel_low_threshold' => 8801000000,
         'transfer_gas_limit' => 51280,
         'confirmation_timeout_seconds' => 60,
-        'confirmation_polling_gap_seconds' => 5
+        'confirmation_polling_gap_seconds' => 5,
+        'balance_cache_ttl_seconds' => 60
     ],
 ]);
 

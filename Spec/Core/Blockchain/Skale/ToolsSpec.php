@@ -203,10 +203,6 @@ class ToolsSpec extends ObjectBehavior
                     'sfuel_low_threshold' => '1'
                 ]
             ]);
-        
-        $this->entitiesBuilder->single($defaultDistibutorGuid)
-            ->shouldBeCalled()
-            ->willReturn($sender);
 
         $this->keys->withUser($sender)
             ->shouldBeCalled()
@@ -274,10 +270,6 @@ class ToolsSpec extends ObjectBehavior
                     'sfuel_low_threshold' => '1'
                 ]
             ]);
-        
-        $this->entitiesBuilder->single($defaultDistibutorGuid)
-            ->shouldBeCalled()
-            ->willReturn($sender);
 
         $this->keys->withUser($sender)
             ->shouldBeCalled()
