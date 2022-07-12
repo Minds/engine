@@ -64,6 +64,10 @@ class Manager
     public function getPublicKeyFromUser(User $user): string
     {
         $publicKey = $this->keys->withUser($user)->getSecp256k1PublicKey();
+
+        // MH: lets index on the fly so we don't need to rely on reverse indexing job
+        $this->repository->addNewCorrelation($publicKey, $user->getUrn());
+
         return $publicKey;
     }
 
@@ -113,7 +117,7 @@ class Manager
                 'picture' => $user->getIconURL('medium'),
             ], JSON_UNESCAPED_SLASHES);
             // $createdAt = $user->getTimeCreated();
-            $createdAt = $user->icontime;
+            $createdAt = (int) $user->icontime;
         } else {
             throw new ServerErrorException("Unsupported entity type " . get_class($entity));
         }
