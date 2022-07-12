@@ -113,7 +113,7 @@ class Manager
                 'picture' => $user->getIconURL('medium'),
             ], JSON_UNESCAPED_SLASHES);
             // $createdAt = $user->getTimeCreated();
-            $createdAt = $user->icontime;
+            $createdAt = (int) $user->icontime;
         } else {
             throw new ServerErrorException("Unsupported entity type " . get_class($entity));
         }
