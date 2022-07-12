@@ -22,9 +22,9 @@ class Tools
      * @param Keys|null $keys - skale keys.
      * @param Balance|null $balance - used to get balances.
      * @param TransactionManager|null $transactionManager - used to send transactions.
-     * @param Skale - skale client for RPC.
-     * @param EntitiesBuilder - build entities by username / guid.
-     * @param Config - configuration.
+     * @param Skale|null - skale client for RPC.
+     * @param EntitiesBuilder|null - build entities by username / guid.
+     * @param Config|null - configuration.
      */
     public function __construct(
         private ?Keys $keys = null,
@@ -98,10 +98,11 @@ class Tools
 
     /**
      * Send SFuel to a given user or address. Either user or address must be provided (but not both).
-     * @param User - sending user.
-     * @param User|null - receiving user.
-     * @param string|null - receiving address.
-     * @param string|null - amount in wei - if null transaction manager will send default amount.
+     * Will wait for transaction confirmation before returning.
+     * @param User $sender - sending user.
+     * @param User|null $receiver - receiving user.
+     * @param string|null $receiverAddress - receiving address.
+     * @param string|null $amountWei - amount in wei - if null transaction manager will send default amount.
      * @throws ServerErrorException|Exception - on error.
      * @return string|null - transaction hash.
      */
@@ -135,10 +136,11 @@ class Tools
 
     /**
      * Send tokens to a given user or address. Either user or address must be provided (but not both).
-     * @param User - sending user.
-     * @param User|null - receiving user.
-     * @param string|null - receiving address.
-     * @param string - amount to send in wei.
+     * Will wait for transaction confirmation before returning.
+     * @param User $sender - sending user.
+     * @param User|null $receiver - receiving user.
+     * @param string|null $receiverAddress - receiving address.
+     * @param string $amountWei - amount to send in wei.
      * @throws ServerErrorException|Exception - on error.
      * @return string|null - transaction hash.
      */
@@ -153,6 +155,7 @@ class Tools
         }
 
         // If sender does not enough sfuel, send sfuel first.
+        // Will wait for confirmation before proceeding.
         $this->checkSFuel($sender);
 
         $txHash = null;
@@ -178,18 +181,18 @@ class Tools
      * based on a configured "minimum" value. If the sender does not have enough,
      * will send sFuel and wait for transaction confirmation.
      * @param User $sender - sender to check / distribute to.
-     * @return string|null txhash for sending sfuel if needed, null if not.
+     * @return string|null txhash for sending sFuel if needed, null if not.
      */
     public function checkSFuel(User $sender): ?string
     {
-        $distributorGuid = $this->config->get('blockchain')['skale']['default_sfuel_distributor_guid'] ?? '100000000000000519';
-        $distributor = $this->entitiesBuilder->single($distributorGuid);
-
-        if (!$distributor || !$distributor instanceof User) {
-            throw new ServerErrorException('sFuel distributor not found');
-        }
-
         if (!$this->hasEnoughSFuel($sender)) {
+            $distributorGuid = $this->config->get('blockchain')['skale']['default_sfuel_distributor_guid'] ?? '100000000000000519';
+            $distributor = $this->entitiesBuilder->single($distributorGuid);
+
+            if (!$distributor || !$distributor instanceof User) {
+                throw new ServerErrorException('sFuel distributor not found');
+            }
+
             $txHash = $this->sendSFuel(
                 sender: $distributor,
                 receiver: $sender,
@@ -197,7 +200,6 @@ class Tools
 
             $this->waitForConfirmation($txHash);
         }
-
         return null;
     }
 

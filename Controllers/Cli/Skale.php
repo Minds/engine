@@ -3,7 +3,6 @@
 namespace Minds\Controllers\Cli;
 
 use Minds\Cli;
-use Minds\Core\Blockchain\Listeners\TransactionConfirmationListener;
 use Minds\Core\Di\Di;
 use Minds\Interfaces;
 use Minds\Core\Blockchain\Skale\Keys as SkaleKeys;

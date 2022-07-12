@@ -16,13 +16,13 @@ use Minds\Core\Di\Di;
  */
 class Manager
 {
-    /** @var string amount of sFuel to be distributed. - configurable in constructor */
+    /** @var string default amount of sFuel to be distributed. - configurable in constructor */
     private string $defaultDistributionAmountWei = '220000000000';
 
     /** @var int gas limit of standard transfer. - configurable in constructor */
     private int $transferGasLimit = 51280;
 
-    /** @var string address of MINDS token on SKALE network - configurable in constructor */
+    /** @var string|null address of MINDS token on SKALE network - configurable in constructor */
     private ?string $tokenAddress = null;
     
     /** @var User|null sender of the transaction */
@@ -65,8 +65,8 @@ class Manager
      * Construct new instance with passed in users.
      * Must pass in a sender, and either a receiver OR receiver address.
      * @param User $sender - sending user
-     * @param User|null $receiver - receiving user
-     * @param string|null $receiverAddress - receiving address
+     * @param User|null $receiver - receiving user.
+     * @param string|null $receiverAddress - receiving address.
      * @return self - new instance.
      */
     public function withUsers(
@@ -107,7 +107,7 @@ class Manager
     }
 
     /**
-     * Send MINDS tokens on SKALE network from receiver to sender.
+     * Send MINDS tokens on SKALE network from sender to receiver.
      * @param string $amountWei - amount to send in wei.
      * @throws ServerErrorException - on error.
      * @return ?string - tx hash.
@@ -142,7 +142,7 @@ class Manager
     }
 
     /**
-     * Send fuel from receiver to sender.
+     * Send sFuel from sender to receiver.
      * @param string|null $amountWei - amount to send in wei - will default to default distribution amount if not provided.
      * @throws ServerErrorException - on error.
      * @return string|null - tx hash.

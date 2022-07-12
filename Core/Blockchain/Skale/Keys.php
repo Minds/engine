@@ -8,8 +8,8 @@ use Minds\Core\DID\Keypairs\Manager as DidKeypairsManager;
 use Minds\Entities\User;
 
 /**
- * Keys for SKALE - extends NostrKeys using the same private key.
- * Unlike Nostr, uncompressed public keys are needed for address generation.
+ * Keys for SKALE network - uses DID keypair.
+ * Note - Uncompressed public keys are needed for address generation.
  */
 class Keys
 {

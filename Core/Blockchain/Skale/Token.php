@@ -52,7 +52,6 @@ class Token
     {
         try {
             $result = $this->client->call($this->tokenAddress, 'balanceOf(address)', [$account], $blockNumber);
-
             return (string) BigNumber::fromHex($result);
         } catch (\Exception $e) {
             $this->logger->error($e);
@@ -61,7 +60,7 @@ class Token
     }
 
     /**
-     * Gets an account's sFuel balance (network equivalent of Ether).
+     * Gets an account's sFuel balance (network equivalent of Ether) in wei.
      * @param $account - address of the account to check.
      * @return string - balance as string, in wei.
      */
