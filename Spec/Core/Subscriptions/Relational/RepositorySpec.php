@@ -122,6 +122,9 @@ class RepositorySpec extends ObjectBehavior
         $this->entitiesBuilderMock->single('789')
             ->willReturn($user1Mock);
 
+        $user1Mock->isEnabled()
+            ->willReturn(true);
+
         $this->getSubscriptionsThatSubscribeTo('123', '456')
             ->shouldYield(new ArrayIterator([
                 $user1Mock->getWrappedObject()
