@@ -86,7 +86,7 @@ class Template
      */
     public function setLocale(string $locale)
     {
-        $this->translator->setLocale($locale);
+        $this->translator->setLocale($locale ?? "en");
 
         return $this;
     }
