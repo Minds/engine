@@ -11,6 +11,7 @@ use Minds\Core;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Di\Di;
 
 class preview implements Interfaces\Api
 {
@@ -22,9 +23,8 @@ class preview implements Interfaces\Api
      */
     public function get($pages)
     {
-        $url = $_GET['url'];
         try {
-            $meta = Core\Di\Di::_()->get('Feeds\Activity\RichEmbed\Manager')->getRichEmbed($url);
+            $meta = $this->getMetadata($_GET['url']);
         } catch (\Exception $e) {
             return Factory::response([
                 'status' => 'error',
@@ -47,5 +47,18 @@ class preview implements Interfaces\Api
     public function delete($pages)
     {
         return Factory::response([]);
+    }
+
+    /**
+     * Get Metadata from either metascraper or iframely.
+     * @param string $url - url to get metadata for.
+     * @return array - response ready array.
+     */
+    private function getMetadata(string $url): array
+    {
+        if (Di::_()->get('Experiments\Manager')->isOn('front-5392-metascraper-previews')) {
+            return Di::_()->get('Metascraper\Service')->scrape($url);
+        }
+        return Di::_()->get('Feeds\Activity\RichEmbed\Manager')->getRichEmbed($url);
     }
 }
