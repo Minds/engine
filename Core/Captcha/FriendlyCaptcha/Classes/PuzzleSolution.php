@@ -3,8 +3,6 @@
 namespace Minds\Core\Captcha\FriendlyCaptcha\Classes;
 
 use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\InvalidSolutionException;
-use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\PuzzleExpiredException;
-use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\SignatureMismatchException;
 use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\SolutionAlreadySeenException;
 use Minds\Traits\MagicAttributes;
 
@@ -22,8 +20,6 @@ class PuzzleSolution
     /** @var string extracted sub-solutions from proposed puzzle solution */
     private string $extractedSolutions;
 
-    private string $diagnostics;
-
     /**
      * PuzzleSolution constructor.
      * @param $solution - proposed solution to puzzle.
@@ -34,7 +30,7 @@ class PuzzleSolution
     public function __construct(
         $solution = null,
         private ?PuzzleSigner $puzzleSigner = null,
-        private ?Puzzle $puzzle = null
+        private ?Puzzle $puzzle = null,
     ) {
         $this->puzzleSigner ??= new PuzzleSigner();
         $this->puzzle ??= new Puzzle();
@@ -64,10 +60,13 @@ class PuzzleSolution
      */
     public function getExtractedSolutions(?string $format = null): string
     {
-        return match ($format) {
-            'hex' => bin2hex(base64_decode($this->extractedSolutions, true)),
-            default => $this->extractedSolutions,
-        };
+        switch ($format) {
+            case 'hex':
+                return bin2hex(base64_decode($this->extractedSolutions, true));
+                break;
+            default:
+                return $this->extractedSolutions;
+        }
     }
 
     /**
@@ -76,33 +75,19 @@ class PuzzleSolution
      */
     public function countSolutions(): int
     {
-        return hexdec(
-            Helpers::extractHexBytes(
-                $this->puzzle->as('hex'),
-                14,
-                1
-            )
-        );
+        return hexdec(Helpers::extractHexBytes($this->puzzle->as('hex'), 14, 1));
     }
 
     /**
      * Verify a puzzle solution.
-     * @param string|null $expectedPuzzleOrigin
-     * @return boolean - true if solution is valid. Will throw if invalid.
-     * @throws InvalidSolutionException - if solution is invalid.
-     * @throws PuzzleExpiredException
-     * @throws SignatureMismatchException
      * @throws SolutionAlreadySeenException - if solution has already been seen.
-     * @throws \SodiumException
+     * @throws InvalidSolutionException - if solution is invalid.
+     * @return boolean - true if solution is valid. Will throw if invalid.
      */
-    public function verify(?string $expectedPuzzleOrigin = null): bool
+    public function verify(): bool
     {
         /** @throws SignatureMismatchException **/
         $this->puzzleSigner->verify($this);
-
-        if ($expectedPuzzleOrigin !== $this->puzzle->getOrigin()) {
-            throw new InvalidSolutionException("Expected: " . var_export($expectedPuzzleOrigin, true) . " - Actual: " . $this->puzzle->getOrigin());
-        }
 
         $puzzle = $this->puzzle;
         $puzzleHex = $puzzle->as('hex');

@@ -2,8 +2,6 @@
 
 namespace Minds\Core\Captcha\FriendlyCaptcha\Classes;
 
-use Exception;
-use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\InvalidSolutionException;
 use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\MisconfigurationException;
 use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\PuzzleExpiredException;
 use Minds\Traits\MagicAttributes;
@@ -15,8 +13,6 @@ use Minds\Traits\MagicAttributes;
  * @method string getBuffer()
  * @method self setBuffer(string $buffer)
  * @method self setDifficultyLevel(DifficultyLevel $difficultyLevel)
- * @method self setOrigin(string|null $origin)
- * @method string|null getOrigin()
  */
 class Puzzle
 {
@@ -25,8 +21,8 @@ class Puzzle
     /** @var string instance puzzle string. */
     private string $puzzle = '';
 
-    /** @var DifficultyLevel|null difficulty level of puzzle. */
-    private ?DifficultyLevel $difficultyLevel;
+    /** @var DifficultyLevel difficulty level of puzzle. */
+    private DifficultyLevel $difficultyLevel;
 
     /** @var string signature of puzzle. */
     private string $signature = '';
@@ -46,8 +42,6 @@ class Puzzle
     /** @var int puzzle version. */
     const PUZZLE_VERSION = 1;
 
-    private ?string $origin = "";
-
     /**
      * Puzzle constructor.
      * @param ?PuzzleSigner $puzzleSigner - signer class for puzzles.
@@ -60,27 +54,20 @@ class Puzzle
 
     /**
      * Construct a puzzle from a solutions signature and buffer.
-     * @param string|null $signature - signature of puzzle.
-     * @param string|null $buffer - buffer of puzzle.
-     * @return Puzzle
-     * @throws InvalidSolutionException
+     * @param string $signature - signature of puzzle.
+     * @param string $buffer - buffer of puzzle.
+     * @return void
      */
-    public function initFromSolution(?string $signature, ?string $buffer): self
+    public function initFromSolution(string $signature, string $buffer): self
     {
-        if (!$signature || !$buffer) {
-            throw new InvalidSolutionException();
-        }
         $this->setSignature($signature);
         $this->setBuffer(base64_decode($buffer, true));
-        $this->setOrigin($this->getOriginFromBuffer());
         return $this;
     }
 
     /**
      * Generate a solvable puzzle - store in $this->puzzle.
      * @return string returns generated puzzle.
-     * @throws MisconfigurationException
-     * @throws Exception
      */
     public function generate(): string
     {
@@ -100,19 +87,8 @@ class Puzzle
         $puzzleDifficultyHex = Helpers::padHex(dechex($this->difficultyLevel->getDifficulty()), 1);
         $reservedHex = Helpers::padHex('', 8);
         $puzzleNonceHex = Helpers::padHex(bin2hex($nonce), 8);
-        $puzzleOriginHex = Helpers::padHex(bin2hex($this->origin), 32);
         
-        $bufferHex =
-            Helpers::padHex($timeHex, 4) .
-            $accountIdHex .
-            $appIdHex .
-            $puzzleVersionHex .
-            $puzzleExpiryHex .
-            $numberOfSolutionsHex .
-            $puzzleDifficultyHex .
-            $reservedHex .
-            $puzzleNonceHex .
-            $puzzleOriginHex;
+        $bufferHex = Helpers::padHex($timeHex, 4) . $accountIdHex . $appIdHex . $puzzleVersionHex . $puzzleExpiryHex . $numberOfSolutionsHex . $puzzleDifficultyHex . $reservedHex . $puzzleNonceHex;
         
         $this->buffer = hex2bin($bufferHex);
         $this->signature = $this->puzzleSigner->sign($this->buffer);
@@ -163,21 +139,5 @@ class Puzzle
             }
         }
         return $this;
-    }
-
-    private function getOriginFromBuffer(): ?string
-    {
-        $origin = hex2bin(
-            ltrim(
-                Helpers::extractHexBytes(
-                    $this->as("hex"),
-                    32,
-                    32
-                ),
-                '0'
-            )
-        );
-
-        return $origin === "null" ? null : $origin;
     }
 }

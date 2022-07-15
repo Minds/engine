@@ -2,9 +2,7 @@
 
 namespace Spec\Minds\Core\Votes;
 
-use Minds\Core\Captcha\FriendlyCaptcha\Manager as FriendlyCaptchaManager;
 use Minds\Core\Events\EventsDispatcher;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Votes\Counters;
@@ -26,25 +24,18 @@ class ManagerSpec extends ObjectBehavior
     /** @var EventsDispatcher */
     protected $dispatcher;
 
-    private $friendlyCaptchaManager;
-    private $experimentsManager;
-
     public function let(
         ACL $acl,
         Counters $counters,
         Indexes $indexes,
-        EventsDispatcher $dispatcher,
-        FriendlyCaptchaManager $friendlyCaptchaManager,
-        ExperimentsManager $experimentsManager
+        EventsDispatcher $dispatcher
     ) {
         $this->acl = $acl;
         $this->counters = $counters;
         $this->indexes = $indexes;
         $this->dispatcher = $dispatcher;
-        $this->friendlyCaptchaManager = $friendlyCaptchaManager;
-        $this->experimentsManager = $experimentsManager;
 
-        $this->beConstructedWith($counters, $indexes, $acl, $dispatcher, $this->friendlyCaptchaManager, $this->experimentsManager);
+        $this->beConstructedWith($counters, $indexes, $acl, $dispatcher);
     }
 
     public function it_is_initializable()
@@ -61,19 +52,6 @@ class ManagerSpec extends ObjectBehavior
         $vote->getActor()->willReturn($user);
         $vote->getDirection()->willReturn('up');
 
-        $this->setUser($user);
-
-        $this->experimentsManager->setUser($user)
-            ->willReturn($this->experimentsManager);
-
-        $this->experimentsManager->isOn(Argument::type("string"))
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
-
-        $this->friendlyCaptchaManager->verify(Argument::type("string"), Argument::type("string"))
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
-
         $this->acl->interact($entity, $user, 'voteup')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -86,7 +64,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->cast($vote, ['events' => false, 'puzzleSolution' => 'puzzle'])
+        $this->cast($vote, ['events' => false])
             ->shouldReturn(true);
     }
 
@@ -99,19 +77,6 @@ class ManagerSpec extends ObjectBehavior
         $vote->getActor()->willReturn($user);
         $vote->getDirection()->willReturn('up');
 
-        $this->setUser($user);
-
-        $this->experimentsManager->setUser($user)
-            ->willReturn($this->experimentsManager);
-
-        $this->experimentsManager->isOn(Argument::type("string"))
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
-
-        $this->friendlyCaptchaManager->verify(Argument::type("string"), Argument::type("string"))
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
-
         $this->acl->interact($entity, $user, 'voteup')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -120,11 +85,11 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->dispatcher->trigger('vote', 'up', ['vote' => $vote, 'isFriendlyCaptchaPuzzleValid' => true])
+        $this->dispatcher->trigger('vote', 'up', ['vote' => $vote])
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->cast($vote, ['events' => true, 'puzzleSolution' => 'puzzle'])
+        $this->cast($vote, ['events' => true])
             ->shouldReturn(true);
     }
 
@@ -257,19 +222,6 @@ class ManagerSpec extends ObjectBehavior
         $vote->getActor()->willReturn($user);
         $vote->getDirection()->willReturn('up');
 
-        $this->setUser($user);
-
-        $this->experimentsManager->setUser($user)
-            ->willReturn($this->experimentsManager);
-
-        $this->experimentsManager->isOn(Argument::type("string"))
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
-
-        $this->friendlyCaptchaManager->verify(Argument::type("string"), Argument::type("string"))
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
-
         $this->acl->interact($entity, $user, 'voteup')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -286,7 +238,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->toggle($vote, ['events' => false, 'puzzleSolution' => 'puzzle'])
+        $this->toggle($vote, ['events' => false])
             ->shouldReturn(true);
     }
 

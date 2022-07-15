@@ -7,8 +7,8 @@ use Minds\Core;
 use Minds\Core\AccountQuality\ManagerInterface as AccountQualityManagerInterface;
 use Minds\Core\Analytics\Snowplow;
 use Minds\Core\Data\ElasticSearch;
-use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Di\Di;
 use Minds\Entities\User;
 
 /**
@@ -36,7 +36,6 @@ use Minds\Entities\User;
  * @method Event setReferrerGuid($referrerGuid)
  * @method Event setProReferrer(bool $proReferrer)
  * @method Event setIsRemind(bool $isRemind)
- * @method Event setProofOfWork(bool $proofOfWork)
  */
 class Event
 {
@@ -229,8 +228,7 @@ class Event
 
         $entityContext = new Snowplow\Contexts\SnowplowEntityContext();
         $sessionContext = new Snowplow\Contexts\SnowplowSessionContext();
-        $proofOfWorkContext = new Snowplow\Contexts\SnowplowProofOfWorkContext();
-        $contexts = [ $entityContext, $sessionContext, $proofOfWorkContext ];
+        $contexts = [ $entityContext, $sessionContext ];
 
         $event = new Snowplow\Events\SnowplowActionEvent();
 
@@ -276,9 +274,6 @@ class Event
             $sessionContext->setUserPhoneNumberHash($this->data['user_phone_number_hash']);
         }
 
-        if ($this->data['proofOfWork'] ?? null) {
-            $proofOfWorkContext->setSuccessful($this->data['proofOfWork']);
-        }
 
         // Rebuild the user, as we need the full entity
         

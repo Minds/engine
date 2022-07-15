@@ -255,8 +255,12 @@ class newsfeed implements Interfaces\Api
             // here we are updating message field. Propose fixing this at Object/Image level
             // vs patching on activity
             if (!$activity instanceof Activity) {
+                $subtype = $activity->getSubtype();
+                $type = $activity->getType();
                 $activity = $manager->createFromEntity($activity);
                 $activity->guid = $pages[0]; // createFromEntity makes a new entity
+                $activity->subtype = $subtype;
+                $activity->type = $type;
             }
 
             $activityMutation = new EntityMutation($activity);
@@ -380,6 +384,7 @@ class newsfeed implements Interfaces\Api
         }
 
         // Remind
+        $remind = null;
 
         if (isset($_POST['remind_guid'])) {
             // Fetch the remind
@@ -414,8 +419,15 @@ class newsfeed implements Interfaces\Api
         // Wire/Paywall
 
         if (isset($_POST['wire_threshold']) && $_POST['wire_threshold']) {
-            $activity->setWireThreshold($_POST['wire_threshold']);
+            // don't allow paywalling a paywalled remind
+            if ($remind?->getPaywall()) {
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => 'You cannot monetize a remind',
+                ]);
+            }
 
+            $activity->setWireThreshold($_POST['wire_threshold']);
             $paywallDelegate = new Core\Feeds\Activity\Delegates\PaywallDelegate();
             $paywallDelegate->onAdd($activity);
         }

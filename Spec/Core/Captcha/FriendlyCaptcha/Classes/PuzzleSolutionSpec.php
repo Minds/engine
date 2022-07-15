@@ -2,7 +2,6 @@
 
 namespace Spec\Minds\Core\Captcha\FriendlyCaptcha\Classes;
 
-use Minds\Core\Captcha\FriendlyCaptcha\Classes\DifficultyScalingType;
 use Minds\Core\Captcha\FriendlyCaptcha\Classes\Puzzle;
 use Minds\Core\Captcha\FriendlyCaptcha\Classes\PuzzleSigner;
 use Minds\Core\Captcha\FriendlyCaptcha\Classes\PuzzleSolution;
@@ -18,8 +17,7 @@ class PuzzleSolutionSpec extends ObjectBehavior
     /** @var Puzzle */
     private $puzzle;
 
-
-    public $testSolution = '4ef0b4fe5f5310e15b7e1ca0a99a5a8610020621e2bc9ee379f42d73d0079110.Yrn6jAAAAAEAAAABAQUzegAAAAAAAAAAXX8S03HhG2MAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdm90ZV91cA==.AAAAALw8AAABAAAAMfUBAAIAAAD1eQEAAwAAADGAAAAEAAAAwBgAAAUAAAAVMwAABgAAAOJYAAAHAAAAsMAAAAgAAABjFQEACQAAAP+TAAAKAAAAwHAAAAsAAAAidQAADAAAALXBAAANAAAAe8sAAA4AAADNVAAADwAAAN97AAAQAAAAPzkAABEAAAB0RQAAEgAAAMU2AAATAAAAg08AABQAAAD6LQAAFQAAALgRAAAWAAAA1SQAABcAAADfAgAAGAAAAKrWAAAZAAAANJoBABoAAAB5kAAAGwAAAKGFAAAcAAAAEJ4AAB0AAADTFQAAHgAAAOgnAAAfAAAAtpoAACAAAADfgwAAIQAAADLMAAAiAAAA+AgAACMAAACebgAAJAAAAPyBAQAlAAAAc0wAACYAAABXYQEAJwAAAByGAQAoAAAA8qEAACkAAADTRgAAKgAAAANJAAArAAAAyOEAACwAAAB/UgEALQAAAK4PAAAuAAAA13UAAC8AAADMUwAAMAAAAMALAAAxAAAAYRIAADIAAAADMQEA.AgAB"';
+    public $testSolution = 'b8a95e2d33038668b3d88f38685dad54a0690b0136502e6e85d085bd40adcd65.YlBKogAAAAEAAAABAQUtlQAAAAAAAAAA5xykMYhG+UA=.AAAAANwIDQABAAAAcZUHAAIAAADgMwwAAwAAAD6jBwAEAAAAl/8JAAUAAAB4ugkABgAAAL8CAwAHAAAAM9wAAAgAAACTLAMACQAAAJOqMgAKAAAASwgiAAsAAADT4gAADAAAAPMdIQANAAAASgQEAA4AAAALcgIADwAAACJZCwAQAAAA4r4YABEAAAA6BQAAEgAAAA3kAAATAAAAB1wDABQAAACVpQEAFQAAAMzHAAAWAAAAFlEQABcAAACi2BIAGAAAAB98AgAZAAAAjnsEABoAAAAeXgUAGwAAAKo+BgAcAAAA+n0FAB0AAACmhhcAHgAAAN1xCwAfAAAAssUAACAAAADpBwMAIQAAABJtAwAiAAAA7poAACMAAABJ+QUAJAAAAFC+AwAlAAAAozAAACYAAAAkvgIAJwAAANwNDgAoAAAAb0AWACkAAADSfwAAKgAAANq+BgArAAAA95UCACwAAADZbgAA.AgAD';
     
     public function let(
         PuzzleSigner $puzzleSigner,
@@ -82,14 +80,11 @@ class PuzzleSolutionSpec extends ObjectBehavior
             ->shouldBeCalledTimes(2)
             ->willReturn(bin2hex($buffer));
 
-        $this->puzzle->getOrigin()
-            ->willReturn(DifficultyScalingType::DIFFICULTY_SCALING_VOTE_UP);
-
         $this->puzzle->checkHasExpired(Argument::any())
             ->shouldBeCalled()
             ->willReturn($this->puzzle);
 
         $this->shouldThrow(InvalidSolutionException::class)
-            ->duringVerify(DifficultyScalingType::DIFFICULTY_SCALING_VOTE_UP);
+            ->duringVerify();
     }
 }
