@@ -12,8 +12,8 @@ use Minds\Traits\MagicAttributes;
  * @method string getText()
  * @method self setUrls(array $urls)
  * @method string[] getUrls()
- * @method self setImageUrls(array $urls)
- * @method string[] getImageUrls()
+ * @method self setMediaData(MediaData[] $mediaData)
+ * @method MediaData[] getMediaData()
  */
 class TwitterTweet
 {
@@ -31,6 +31,17 @@ class TwitterTweet
     /** @var string[] */
     protected $urls = [];
 
-    /** @var string[] */
-    protected $imageUrls = [];
+    /** @var MediaData[] - array of MediaData */
+    protected $mediaData = [];
+
+    /**
+     * Get media data filtered by photos.
+     * @return array - MediaData[] array of MediaData for photos.
+     */
+    public function getPhotosData(): array
+    {
+        return array_filter($this->getMediaData(), function ($media) {
+            return $media->getType() === 'photo';
+        }) ?? [];
+    }
 }

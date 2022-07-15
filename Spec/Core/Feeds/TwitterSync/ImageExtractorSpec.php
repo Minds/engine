@@ -4,9 +4,7 @@ namespace Spec\Minds\Core\Feeds\TwitterSync;
 
 use GuzzleHttp\Client;
 use Minds\Core\Feeds\Activity\Delegates\AttachmentDelegate;
-use Minds\Core\Feeds\TwitterSync\ConnectedAccount;
 use Minds\Core\Feeds\TwitterSync\ImageExtractor;
-use Minds\Core\Feeds\TwitterSync\TwitterUser;
 use Minds\Core\Log\Logger;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
@@ -14,7 +12,7 @@ use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Zend\Diactoros\Response\JsonResponse;
 use Minds\Core\Entities\Actions\Save;
-use Minds\Entities\Image;
+use Minds\Core\Feeds\TwitterSync\MediaData;
 
 class ImageExtractorSpec extends ObjectBehavior
 {
@@ -41,14 +39,31 @@ class ImageExtractorSpec extends ObjectBehavior
         $this->shouldHaveType(ImageExtractor::class);
     }
 
-    public function it_should_extract_and_upload_and_save_an_image(Activity $activity, User $user)
-    {
+    public function it_should_extract_and_upload_and_save_an_image(
+        Activity $activity,
+        User $user,
+        MediaData $mediaData
+    ) {
+        $width = 200;
+        $height = 100;
+        $url = 'https://pbs.twimg.com/media/abc123photo.jpg';
+
         $user->guid = 123;
         $activity->getOwnerEntity()->shouldBeCalled()->willReturn($user);
 
-        $imageUrl = 'https://pbs.twimg.com/media/abc123photo.jpg';
+        $mediaData->getUrl()
+            ->shouldBeCalled()
+            ->willReturn($url);
 
-        $this->httpClient->request('GET', $imageUrl, [
+        $mediaData->getWidth()
+            ->shouldBeCalled()
+            ->willReturn($width);
+
+        $mediaData->getHeight()
+            ->shouldBeCalled()
+            ->willReturn($height);
+
+        $this->httpClient->request('GET', $url, [
             'stream' => true
         ])
             ->shouldBeCalled()
@@ -63,6 +78,6 @@ class ImageExtractorSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('123');
 
-        $this->extractAndUploadToActivity($imageUrl, $activity)->shouldReturn($activity);
+        $this->extractAndUploadToActivity($mediaData, $activity)->shouldReturn($activity);
     }
 }

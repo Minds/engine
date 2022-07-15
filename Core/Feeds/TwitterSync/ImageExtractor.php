@@ -43,16 +43,16 @@ class ImageExtractor
     /**
      * Extracts a photo from Twitter, uploads them to our site and attaches the new Image Entity
      * to a given Activity.
-     * @param string $imageUrl - the URL of the image to get.
+     * @param MediaData $mediaData - media data object containing ONLY photo media data.
      * @param Activity $activity - activity to attach the image to.
      * @return Activity - activity with attached image.
      */
-    public function extractAndUploadToActivity(string $imageUrl, Activity $activity): Activity
+    public function extractAndUploadToActivity(MediaData $mediaData, Activity $activity): Activity
     {
         try {
             $owner = $activity->getOwnerEntity();
 
-            $entityGuid = $this->extractAndUpload($imageUrl, $owner);
+            $entityGuid = $this->extractAndUpload($mediaData, $owner);
 
             if (!$entityGuid) {
                 return $activity;
@@ -73,28 +73,30 @@ class ImageExtractor
 
     /**
      * Extracts from twitter and uploads to our server.
-     * @param string $imageUrl - the URL of the image to get.
+     * @param MediaData $mediaData - the media data object of the photo.
      * @param User $owner - the owner user.
      * @return string - entity guid after uploading.
      */
-    protected function extractAndUpload(string $imageUrl, User $owner): string
+    protected function extractAndUpload(MediaData $mediaData, User $owner): string
     {
-        $imageStream = $this->extract($imageUrl);
+        $imageStream = $this->extract($mediaData);
 
         if (!$imageStream) {
             return '';
         }
 
-        return $this->upload($imageStream, $owner);
+        return $this->upload($mediaData, $imageStream, $owner);
     }
 
     /**
-     * Extracts an image from Twitter.
-     * @param string $imageUrl - the URL of the image to extract.
+     * Extracts a photo from Twitter.
+     * @param MediaData $mediaData - the media data object of the photo.
      * @return string stream of the image.
      */
-    protected function extract(string $imageUrl): string
+    protected function extract(MediaData $mediaData): string
     {
+        $imageUrl = $mediaData->getUrl();
+
         if (!$this->isWhiteListedUrl($imageUrl)) {
             $this->logger->error("Attempted to parse not whitelisted URL from Twitter: $imageUrl");
             return '';
@@ -111,17 +113,20 @@ class ImageExtractor
 
     /**
      * Upload an image stream to our server.
+     * @param MediaData $mediaData - the media data object of the photo.
      * @param string $imageStream - stream of image as string.
      * @param User $user - user to upload for.
      * @return string - entity_guid once uploaded.
      */
-    protected function upload(string $imageStream, User $user): string
+    protected function upload(MediaData $mediaData, string $imageStream, User $user): string
     {
         $image = new Image();
         $image->ownerObj = $user;
         $image->owner_guid = $user->getGuid();
         $image->batch_guid = 0;
         $image->access_id = 0;
+        $image->width = $mediaData->getWidth() ?? null;
+        $image->height = $mediaData->getHeight() ?? null;
 
         $guid = $this->saveAction->setEntity($image)->save(true);
 
