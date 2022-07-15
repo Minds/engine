@@ -37,7 +37,7 @@ class EntitiesBuilder
      */
     public function getByUserByIndex(string $key): ?User
     {
-        $values = $this->lookup->get($key);
+        $values = $this->lookup->get(strtolower($key));
 
         $userGuid = key($values);
         $user = $this->single($userGuid);

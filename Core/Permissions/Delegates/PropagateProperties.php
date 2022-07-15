@@ -23,6 +23,10 @@ class PropagateProperties extends Properties
             $to->setAllowComments($from->getAllowComments());
         }
 
+        if ($this->valueHasChanged($from->getAccessId(), $to->getAccessId())) {
+            $to->setAccessId($from->getAccessId());
+        }
+
         return $to;
     }
 
@@ -36,6 +40,10 @@ class PropagateProperties extends Properties
     {
         if ($this->valueHasChanged($from->getAllowComments(), $to->getAllowComments())) {
             $to->setAllowComments($from->getAllowComments());
+        }
+
+        if ($this->valueHasChanged($from->getAccessId(), $to->getAccessId())) {
+            $to->setAccessId($from->getAccessId());
         }
 
         return $to;

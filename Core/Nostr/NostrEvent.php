@@ -7,13 +7,14 @@ use Minds\Traits\MagicAttributes;
 
 /**
  * @method string getId();
+ * @method string getPubKey();
  */
 class NostrEvent implements ExportableInterface, JsonSerializable
 {
     use MagicAttributes;
 
     protected string $id;
-    protected string $pubkey;
+    protected string $pubKey;
     protected int $created_at;
     protected int $kind;
     protected array $tags = [];
@@ -27,7 +28,7 @@ class NostrEvent implements ExportableInterface, JsonSerializable
     {
         return  [
             'id' => $this->id,
-            'pubkey' => $this->pubkey,
+            'pubkey' => $this->pubKey,
             'created_at' => $this->created_at,
             'kind' => $this->kind,
             'tags' => $this->tags,

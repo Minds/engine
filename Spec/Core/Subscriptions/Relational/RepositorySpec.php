@@ -26,7 +26,7 @@ class RepositorySpec extends ObjectBehavior
         $this->entitiesBuilderMock = $entitiesBuilder;
         $this->pdoMock = $pdoMock;
 
-        $client->getPDO()
+        $client->getConnection(Argument::any())
             ->willReturn($pdoMock);
     }
 
@@ -121,6 +121,9 @@ class RepositorySpec extends ObjectBehavior
 
         $this->entitiesBuilderMock->single('789')
             ->willReturn($user1Mock);
+
+        $user1Mock->isEnabled()
+            ->willReturn(true);
 
         $this->getSubscriptionsThatSubscribeTo('123', '456')
             ->shouldYield(new ArrayIterator([

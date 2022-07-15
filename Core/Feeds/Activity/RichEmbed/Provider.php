@@ -15,5 +15,9 @@ class Provider extends Di\Provider
         $this->di->bind('Feeds\Activity\RichEmbed\Iframely', function ($di) {
             return new Iframely(new \GuzzleHttp\Client(), $di->get('Config'));
         });
+
+        $this->di->bind('Metascraper\Service', function ($di) {
+            return new Metascraper\Service();
+        });
     }
 }

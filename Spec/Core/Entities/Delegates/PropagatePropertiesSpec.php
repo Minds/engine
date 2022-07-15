@@ -32,6 +32,14 @@ class PropagatePropertiesSpec extends ObjectBehavior
         $this->activity->getNsfw()->shouldBeCalled()->willReturn([]);
         $this->activity->setNsfw([1])->shouldBeCalled();
 
+        $this->blog->getTags()->shouldBeCalled()->willReturn([1, 2]);
+        $this->activity->getTags()->shouldBeCalled()->willReturn([]);
+        $this->activity->setTags([1, 2])->shouldBeCalled()->willReturn($this->activity);
+
+        $this->blog->getLicense()->shouldBeCalled()->willReturn('~lic~');
+        $this->activity->getLicense()->shouldBeCalled()->willReturn('');
+        $this->activity->setLicense('~lic~')->shouldBeCalled()->willReturn($this->activity);
+
         $this->blog->getNsfwLock()->shouldBeCalled()->willReturn([1]);
         $this->activity->getNsfwLock()->shouldBeCalled()->willReturn([]);
         $this->activity->setNsfwLock([1])->shouldBeCalled();
@@ -49,6 +57,14 @@ class PropagatePropertiesSpec extends ObjectBehavior
         $this->blog->getNsfwLock()->shouldBeCalled()->willReturn([]);
         $this->blog->setNsfwLock([1])->shouldBeCalled();
 
+        $this->activity->getTags()->shouldBeCalled()->willReturn([1, 2]);
+        $this->blog->getTags()->shouldBeCalled()->willReturn([]);
+        $this->blog->setTags([1, 2])->shouldBeCalled()->willReturn($this->activity);
+
+        $this->activity->getLicense()->shouldBeCalled()->willReturn('~lic~');
+        $this->blog->getLicense()->shouldBeCalled()->willReturn('');
+        $this->blog->setLicense('~lic~')->shouldBeCalled()->willReturn($this->activity);
+    
         $this->fromActivity($this->activity, $this->blog);
     }
 }
