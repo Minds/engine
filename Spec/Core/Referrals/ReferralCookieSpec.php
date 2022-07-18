@@ -32,8 +32,7 @@ class ReferralCookieSpec extends ObjectBehavior
     {
         $_COOKIE['referrer'] = 'bill';
         $request = (new ServerRequest())
-            ->withCookieParams(['referrer' => 'bill'])
-            ->withQueryParams(['referrer' => 'mark']);
+            ->withCookieParams(['referrer' => 'mark']);
         $this->withRouterRequest($request);
         $this->create();
 
@@ -98,6 +97,21 @@ class ReferralCookieSpec extends ObjectBehavior
         ;
         $this->withRouterRequest($request);
         $this->setEntity($activity);
+        $this->create();
+
+        expect($_COOKIE['referrer'])
+            ->toBe('mark');
+    }
+    
+    public function it_should_prefer_param_to_cookie()
+    {
+        $_COOKIE['referrer'] = 'bill';
+
+        $request = (new ServerRequest())
+            ->withQueryParams(['referrer' => 'mark'])
+            ->withCookieParams(['referrer' => 'bill']);
+        ;
+        $this->withRouterRequest($request);
         $this->create();
 
         expect($_COOKIE['referrer'])
