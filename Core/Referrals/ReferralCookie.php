@@ -51,16 +51,12 @@ class ReferralCookie
 
         $cookies = $this->request->getCookieParams();
         $params = $this->request->getQueryParams();
-
-        if (isset($cookies['referrer'])) {
-            return; // Do not override previosuly set cookie
-        }
-
         $referrerGuid = null;
 
-        if (isset($params['referrer'])) { // Is a referrer param set in the request?
+        // always prefer the refererr in the param to the cookie we already have
+        if (isset($params['referrer'])) {
             $referrerGuid = $params['referrer'];
-        } elseif ($this->entity) { // Was an entity set?
+        } elseif (!isset($cookies['referrer']) && $this->entity) {
             switch (get_class($this->entity)) {
                 case User::class:
                     $referrerGuid = $this->entity->getGuid();
