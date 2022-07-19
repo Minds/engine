@@ -68,6 +68,7 @@ use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
  * @property string $surge_token
  * @property int $disable_autoplay_videos
  * @property string $twofactor
+ * @property string $briefdescription
  */
 class User extends \ElggUser
 {
