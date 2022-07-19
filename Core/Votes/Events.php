@@ -14,13 +14,22 @@ use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
-use Minds\Helpers;
 use Minds\Entities;
 use Minds\Entities\Activity;
+use Minds\Helpers;
+use Psr\Http\Message\ServerRequestInterface;
+use Zend\Diactoros\ServerRequestFactory;
 
 class Events
 {
+    public function __construct(
+        private ?ExperimentsManager $experimentsManager = null
+    ) {
+        $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
+    }
+
     public function register()
     {
         // Notification stream event
@@ -83,12 +92,14 @@ class Events
         });
 
         // Analytics events
-
-        Dispatcher::register('vote', 'all', function (Event $event) {
+        $request = $this->retrieveServerRequest();
+        $experimentsManager = $this->experimentsManager->setUser($request->getAttribute('_user'));
+        Dispatcher::register('vote', 'all', function (Event $event) use ($experimentsManager) {
             $params = $event->getParameters();
             $direction = $event->getNamespace();
 
             $vote = $params['vote'];
+            $proofOfWork = $params['isFriendlyCaptchaPuzzleValid'] ?? false;
             $entity = $vote->getEntity();
             $actor = $vote->getActor();
 
@@ -120,6 +131,10 @@ class Events
                     ->setEntitySubtype($subtype)
                     ->setEntityOwnerGuid((string) $entity->owner_guid)
                     ->setAction("vote:{$direction}");
+
+                if ($experimentsManager->isOn("minds-3119-captcha-for-engagement")) {
+                    $event->setProofOfWork($proofOfWork);
+                }
 
                 if ($entity instanceof PaywallEntityInterface) {
                     $wireThreshold = $entity->getWireThreshold();
@@ -235,5 +250,10 @@ class Events
 
             $event->setResponse($export);
         });
+    }
+
+    private function retrieveServerRequest(): ServerRequestInterface
+    {
+        return ServerRequestFactory::fromGlobals();
     }
 }
