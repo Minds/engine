@@ -2,8 +2,9 @@
 
 namespace Spec\Minds\Core\Captcha\FriendlyCaptcha;
 
-use Minds\Core\Captcha\FriendlyCaptcha\Manager;
+use Minds\Core\Captcha\FriendlyCaptcha\Classes\DifficultyScalingType;
 use Minds\Core\Captcha\FriendlyCaptcha\Controller;
+use Minds\Core\Captcha\FriendlyCaptcha\Manager;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use PhpSpec\ObjectBehavior;
 use Zend\Diactoros\ServerRequest;
@@ -26,13 +27,18 @@ class ControllerSpec extends ObjectBehavior
 
     public function it_should_call_to_generate_puzzle()
     {
+        $serverRequest = (new ServerRequest())
+            ->withQueryParams([
+                'origin' => DifficultyScalingType::DIFFICULTY_SCALING_VOTE_UP
+            ]);
+
         $puzzle = 'puzzle';
 
-        $this->manager->generatePuzzle()
+        $this->manager->generatePuzzle(DifficultyScalingType::DIFFICULTY_SCALING_VOTE_UP)
             ->shouldBeCalled()
             ->willReturn($puzzle);
 
-        $response = $this->generatePuzzle();
+        $response = $this->generatePuzzle($serverRequest);
         $json = $response->getBody()->getContents();
         $json->shouldBe(json_encode([
             'status' => 'success',
