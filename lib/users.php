@@ -1049,7 +1049,7 @@ function register_user(
         throw new RegistrationException("Invalid email");
     }
 
-    if (!(validate_password($password) && $validatePassword)) {
+    if ($validatePassword && !validate_password($password)) {
         throw new RegistrationException("Invalid password");
     }
 
