@@ -79,26 +79,22 @@ class Repository
      * @param $userGuid - eg. yourself
      * @param $subscribedToGuid - eg. your friend
      * @param $limit - how many results you want
+     * @param $randomize - if true (default) will return results in a random order
      * @return iterable<User>|void
      */
     public function getSubscriptionsThatSubscribeTo(
         string $userGuid,
         string $subscribedToGuid,
-        int $limit = 12
+        int $limit = 12,
+        bool $randomize = true,
     ): iterable {
-        $statement = "SELECT own.friend_guid, "
-            // Below we will do a subquery so that we can order the list by
-            // how many other subscriptions we share. This can probably be improved
-            // at a later date to be ordered by common interactions.
-            . "( 
-                SELECT count(*) FROM friends as own2
-                    INNER JOIN friends others2 USING (friend_guid)
-                WHERE own2.user_guid = :user_guid
-                    AND others2.user_guid = others.user_guid
-                ) as wider_mutual_count "
-            . $this->getSubscriptionsThatSubscribeToStatement()
-            . " ORDER BY wider_mutual_count DESC"
-            . " LIMIT $limit";
+        $statement = "SELECT own.friend_guid " . $this->getSubscriptionsThatSubscribeToStatement();
+
+        if ($randomize) {
+            $statement . " ORDER BY RAND()";
+        }
+
+        $statement .= " LIMIT $limit";
 
         $prepared = $this->client->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
 
@@ -109,7 +105,7 @@ class Repository
 
         foreach ($prepared as $row) {
             $user = $this->entitiesBuilder->single($row['friend_guid']);
-            if (!$user instanceof User) {
+            if (!$user instanceof User || !$user->isEnabled()) {
                 // We may want to log this as you shouldn't be subscribed to a blocked or non-existant user
                 continue;
             }
@@ -130,7 +126,8 @@ class Repository
             INNER JOIN friends others 
                 ON own.friend_guid = others.user_guid
             WHERE own.user_guid = :user_guid 
-                AND others.friend_guid = :friend_guid";
+                AND others.friend_guid = :friend_guid
+                AND own.friend_guid != :user_guid";
     }
 
     /**

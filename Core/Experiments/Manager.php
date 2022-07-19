@@ -148,6 +148,7 @@ class Manager
             'attributes' => [
                 'id' => $this->getUserId(),
                 'loggedIn' => !!$this->getUser(),
+                'environment' => getenv('MINDS_ENV') ?: 'development',
             ],
             'features' => $this->getFeatures(),
         ];
