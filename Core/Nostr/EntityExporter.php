@@ -23,6 +23,12 @@ class EntityExporter
         $this->manager ??= new Manager();
     }
 
+    /**
+     * Will return NostrEvents by filters
+     * TODO: support more filters. Currently on ids and authors
+     * @param array $filters
+     * @return iterable<NostrEvent>
+     */
     public function getNostrReq(array $filters = []): iterable
     {
         $filters = array_merge([
