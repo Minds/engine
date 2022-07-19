@@ -298,14 +298,12 @@ class Manager
     }
 
     /**
-     * Returns NostrEvents from a list of ids
-     * @param string[] $ids
+     * Returns NostrEvents from filters
+     * @param array $filters
      * @return iterable<NostrEvent>
      */
-    public function getNostrEventFromIds(array $ids): iterable
+    public function getNostrEvents(array $filters = []): iterable
     {
-        return $this->repository->getEvents([
-            'filters' => $ids,
-        ]);
+        return $this->repository->getEvents($filters);
     }
 }

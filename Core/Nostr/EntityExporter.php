@@ -40,8 +40,8 @@ class EntityExporter
             'limit' => 12,
         ], $filters);
 
-        // Are ids being requested? If so, query `nostr_events` directly
-        foreach ($this->manager->getNostrEventFromIds($filters['ids']) as $nostrEvent) {
+        // Query all nostr events based off filters
+        foreach ($this->manager->getNostrEvents($filters) as $nostrEvent) {
             yield $nostrEvent;
         }
 
