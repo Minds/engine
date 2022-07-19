@@ -163,6 +163,28 @@ class User extends \ElggUser
     }
 
     /**
+     * Set the name
+     * @param string $name
+     * @return self
+     */
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+        return $this;
+    }
+
+    /**
+     * Set the briefdescription
+     * @param string $briefdescription
+     * @return self
+     */
+    public function setBriefDescription(string $briefdescription): self
+    {
+        $this->briefdescription = $briefdescription;
+        return $this;
+    }
+
+    /**
      * Gets `tags`.
      *
      * @return mixed

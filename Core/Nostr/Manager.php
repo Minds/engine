@@ -3,7 +3,6 @@
 namespace Minds\Core\Nostr;
 
 use Exception;
-use Minds\Common\Urn;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
@@ -19,15 +18,12 @@ use Minds\Exceptions\ServerErrorException;
 
 class Manager
 {
-    /** @var \WebSocket\Client[] */
-    protected array $clients = [];
     private Logger $logger;
 
     public function __construct(
         protected ?Config             $config = null,
         protected ?EntitiesBuilder    $entitiesBuilder = null,
         protected ?Keys               $keys = null,
-        array                         $clients = [],
         private ?Repository           $repository = null,
         private ?EntitiesResolver     $entitiesResolver = null,
         private ?ElasticSearchManager $elasticSearchManager = null
@@ -35,11 +31,31 @@ class Manager
         $this->config ??= Di::_()->get('Config');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->keys ??= new Keys();
-        $this->clients = $clients;
         $this->repository ??= new Repository();
         $this->entitiesResolver ??= new EntitiesResolver();
         $this->elasticSearchManager ??= Di::_()->get("Feeds\Elastic\Manager");
         $this->logger = Di::_()->get("Logger");
+    }
+
+    /**
+     * Ask a Minds developer if you want to be added to this list.
+     * @param string $pubKey
+     * @return bool
+     */
+    public function addToWhitelist(string $pubKey): bool
+    {
+        return $this->repository->addToWhitelist($pubKey);
+    }
+
+    /**
+     * Whitelist of who is allowed to post from nostr to Minds
+     * Ask a Minds developer if you want to be added to this list.
+     * @param string $pubKey
+     * @return bool
+     */
+    public function isOnWhitelist(string $pubKey): bool
+    {
+        return $this->repository->isOnWhitelist($pubKey);
     }
 
     /**
@@ -66,9 +82,19 @@ class Manager
         $publicKey = $this->keys->withUser($user)->getSecp256k1PublicKey();
 
         // MH: lets index on the fly so we don't need to rely on reverse indexing job
-        $this->repository->addNewCorrelation($publicKey, $user->getUrn());
+        $this->repository->addNostrUser($user, $publicKey);
 
         return $publicKey;
+    }
+
+    /**
+     * Will return a Minds Users from a nostr public key
+     * @param string $pubKey
+     * @return User|null
+     */
+    public function getUserByPublicKey(string $pubKey): ?User
+    {
+        return $this->repository->getUserFromNostrPublicKey($pubKey);
     }
 
     /**
@@ -153,85 +179,13 @@ class Manager
         return $nostrEvent;
     }
 
-    /**
-     * Emit event to nostr
-     * @param NostrEvent $nostrEvent
-     * @return void
-     */
-    public function emitEvent(NostrEvent $nostrEvent): void
-    {
-        $jsonPayload = json_encode(
-            [
-                "EVENT",
-                $nostrEvent->export(),
-            ],
-            JSON_UNESCAPED_SLASHES
-        );
-
-        if (!$this->verifyEvent($jsonPayload)) {
-            throw new ServerErrorException("Error in signing event");
-        }
-
-        foreach ($this->getClients() as $client) {
-            try {
-                $client->text($jsonPayload);
-                //echo $client->receive(); // Do we care?
-                //$client->close();
-            } catch (\WebSocket\ConnectionException $e) {
-                //var_dump($jsonPayload);
-            }
-        }
-    }
-
-    /**
-     * Unsubscribes from clients
-     */
-    public function __destruct()
-    {
-        if ($this->clients) {
-            foreach ($this->clients as $client) {
-                try {
-                    $client->close();
-                } catch (\WebSocket\ConnectionException $e) {
-                }
-            }
-        }
-    }
-
-    /**
-     * Returns the clients, constructs them if empty
-     * @return \WebSocket\Client[]
-     */
-    protected function getClients(): array
-    {
-        if ($this->clients) {
-            return $this->clients;
-        }
-        $relays = $this->config->get('nostr')['relays'] ?? [
-                'wss://nostr-relay.untethr.me',
-                'wss://nostr.bitcoiner.social',
-                'wss://nostr-relay.wlvs.space',
-                'wss://nostr-pub.wellorder.net'
-            ];
-
-        $this->clients = [];
-
-        foreach ($relays as $relay) {
-            $this->clients[] = new \WebSocket\Client($relay, [
-                'headers' => [
-                    'Host' => ltrim($relay, 'wss://'),
-                ]
-            ]);
-        }
-        return $this->clients;
-    }
 
     /**
      * Verifies than an event is correctly signed
      * @param string $jsonPayload
      * @return bool
      */
-    protected function verifyEvent(string $jsonPayload): bool
+    public function verifyEvent(string $jsonPayload): bool
     {
         $event = json_decode($jsonPayload, true);
 
@@ -258,21 +212,23 @@ class Manager
     }
 
     /**
+     * Returns events for Minds 'custodial' nostr accounts. ie. Minds channels, not source=nostr
      * @param array $authors
      * @return NostrEvent[]
      * @throws NotFoundException
      * @throws ServerErrorException
      * @throws Exception
      */
-    public function getNostrEventsForAuthors(array $authors): array
+    public function getElasticNostrEventsForAuthors(array $authors): array
     {
         $userGuids = [];
         $events = [];
+
         /**
          * @var User $user
          */
-        foreach ($this->repository->getUserGuidsFromAuthors($authors) as $user) {
-            if ($user) {
+        foreach ($this->repository->getUserFromNostrPublicKeys($authors) as $user) {
+            if ($user && $user->getSource() !== 'nostr') {
                 $userGuids[] = $user->getGuid();
                 $events[] = $this->buildNostrEvent($user);
             }
@@ -300,34 +256,56 @@ class Manager
     }
 
     /**
-     * @param Urn $entityUrn
+     * Add raw Nostr Events to our database
+     * @param NostrEvent $nostrEvent
      * @return bool
      */
-    public function addNostrHashLinkToEntity(Urn $entityUrn): bool
+    public function addEvent(NostrEvent $nostrEvent): bool
     {
-        $entity = $this->entitiesResolver?->setOpts(['cache' => false])
-            ->single($entityUrn);
+        return $this->repository->addEvent($nostrEvent);
+    }
 
-        if ($entity?->getType() !== 'user') {
-            $this->logger->addWarning("Entity {$entityUrn->getUrn()} is not a supported entity type");
-            return true;
-        }
+    /**
+     * Pair a Minds User with a Nostr public key
+     * @param User $user
+     * @param string $nostrPublicKey
+     * @return bool
+     */
+    public function addNostrUser(User $user, string $nostrPublicKey): bool
+    {
+        return $this->repository->addNostrUser($user, $nostrPublicKey);
+    }
 
-        try {
-            $nostrEvent = $this->buildNostrEvent($entity);
-        } catch (Exception $e) {
-            $this->logger->addWarning("Entity {$entityUrn->getUrn()} is not a supported entity type");
-            return false;
-        }
+    /**
+     * Return Activity entity from a NostrId
+     * @param string $nostrId
+     * @return Activity
+     */
+    public function getActivityFromNostrId($nostrId): ?EntityInterface
+    {
+        return $this->repository->getActivityFromNostrId($nostrId);
+    }
 
-        $this->logger->addInfo("Nostr hash for entity {$entityUrn->getUrn()} is {$nostrEvent->getId()}");
+    /**
+     * Effectively indexes a Minds Activity posts to a Nostr ID
+     * @param Activity $activity
+     * @param string $nostrId
+     * @return bool
+     */
+    public function addActivityToNostrId(Activity $activity, string $nostrId): bool
+    {
+        return $this->repository->addActivityToNostrId($activity, $nostrId);
+    }
 
-        $result = $this->repository->addNewCorrelation($nostrEvent->getPubKey(), $entityUrn->getUrn());
-
-        $result
-            ? $this->logger->addInfo("Nostr hash {$nostrEvent->getId()} correctly linked to entity {$entityUrn->getUrn()}")
-            : $this->logger->addError("Nostr hash {$nostrEvent->getId()} failed to be linked to entity {$entityUrn->getUrn()}");
-
-        return $result;
+    /**
+     * Returns NostrEvents from a list of ids
+     * @param string[] $ids
+     * @return iterable<NostrEvent>
+     */
+    public function getNostrEventFromIds(array $ids): iterable
+    {
+        return $this->repository->getEvents([
+            'filters' => $ids,
+        ]);
     }
 }

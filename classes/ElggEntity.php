@@ -1769,4 +1769,24 @@ abstract class ElggEntity extends ElggData implements
     {
         return (bool) $this->allow_comments;
     }
+
+    /**
+     * Set the source if externally imported
+     * @param string $source - eg. nostr
+     * @return self
+     */
+    public function setSource(string $source): self
+    {
+        $this->source = $source;
+        return $this;
+    }
+
+    /**
+     * Returns the origin/source, eg. nostr
+     * @return string
+     */
+    public function getSource(): string
+    {
+        return $this->source;
+    }
 }
