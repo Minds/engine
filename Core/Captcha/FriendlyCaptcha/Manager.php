@@ -37,11 +37,11 @@ class Manager
 
     /**
      * Generates puzzle and returns it for consumption by widget.
-     * @param string|null $puzzleOrigin
+     * @param string $puzzleOrigin
      * @return string generated puzzle.
      * @throws Exceptions\MisconfigurationException
      */
-    public function generatePuzzle(?string $puzzleOrigin): string
+    public function generatePuzzle(string $puzzleOrigin): string
     {
         $this->attemptsCache->increment();
 

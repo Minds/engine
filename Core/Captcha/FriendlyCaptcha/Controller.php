@@ -30,10 +30,11 @@ class Controller
      * Generate a puzzle and return it for consumption by widget.
      * @param ServerRequestInterface $request
      * @return JsonResponse - response for consumption by widget object.
+     * @throws Exceptions\MisconfigurationException
      */
     public function generatePuzzle(ServerRequestInterface $request): JsonResponse
     {
-        $puzzleOrigin = $request->getQueryParams()['origin'];
+        $puzzleOrigin = $request->getQueryParams()['origin'] ?? "";
         $puzzle = $this->manager->generatePuzzle($puzzleOrigin);
 
         return new JsonResponse([
