@@ -2,7 +2,6 @@
 
 namespace Minds\Core\Nostr;
 
-use Minds\Core\Data\Cassandra\Client as CassandraClient;
 use Minds\Core\Data\MySQL;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
@@ -16,11 +15,9 @@ use PDOStatement;
 class Repository
 {
     public function __construct(
-        private ?CassandraClient  $cassandraClient = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?MySQL\Client $mysqlClient = null,
     ) {
-        $this->cassandraClient ??= Di::_()->get('Database\Cassandra\Cql');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->mysqlClient ??= Di::_()->get('Database\MySQL\Client');
     }
@@ -38,7 +35,7 @@ class Repository
            $pubKey
         ];
 
-        $prepared = $this->mysqlClient->getConnection('master')->prepare($statement);
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
         return $prepared->execute($values);
     }
 
@@ -55,7 +52,7 @@ class Repository
             $pubKey,
         ];
 
-        $prepared = $this->mysqlClient->getConnection('replica')->prepare($statement);
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_REPLICA)->prepare($statement);
         $prepared->execute($values);
 
         $rows = $prepared->fetchAll();
@@ -94,7 +91,7 @@ class Repository
             $nostrEvent->getSig(),
         ];
 
-        $prepared = $this->mysqlClient->getConnection('master')->prepare($statement);
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
         return $prepared->execute($values);
     }
 
@@ -197,7 +194,7 @@ class Repository
             $statement .= " WHERE " . implode(' AND ', $where);
         }
 
-        $prepared = $this->mysqlClient->getConnection('replica')->prepare($statement);
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_REPLICA)->prepare($statement);
 
         $prepared->execute($values);
 
@@ -228,7 +225,7 @@ class Repository
             $activity->getSource() === 'nostr',
         ];
 
-        $prepared = $this->mysqlClient->getConnection('master')->prepare($statement);
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
         return $prepared->execute($values);
     }
 
@@ -255,7 +252,7 @@ class Repository
             $user->getSource() === 'nostr',
         ];
 
-        $prepared = $this->mysqlClient->getConnection('master')->prepare($statement);
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
         return $prepared->execute($values);
     }
 
@@ -272,7 +269,7 @@ class Repository
             $nostrPublicKey,
         ];
 
-        $prepared = $this->mysqlClient->getConnection('replica')->prepare($statement);
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_REPLICA)->prepare($statement);
         $prepared->execute($values);
 
         $rows = $prepared->fetchAll();
@@ -304,13 +301,13 @@ class Repository
             ...$nostrPublicKeys,
         ];
 
-        $prepared = $this->mysqlClient->getConnection('replica')->prepare($statement);
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_REPLICA)->prepare($statement);
         $prepared->execute($values);
 
         /** @var User[] */
         $users = [];
 
-        foreach ($prepared as $row) {
+        foreach ($prepared->fetchAll() as $row) {
             $userGuid = $row['user_guid'];
             $user = $this->entitiesBuilder->single($userGuid);
 

@@ -236,76 +236,61 @@ class ManagerSpec extends ObjectBehavior
 //        $response->shouldContainValueLike($nostrEventMock);
 //    }
 
-    /**
-     * TODO: Fix spec tests once code is merged.
-     * @param Activity $activityMock
-     * @param User $userMock
-     * @param Urn $entityUrn
-     * @return void
-     * @throws ServerErrorException
-     */
-//    public function it_should_add_nostr_hash_link_to_entity(
-//        Activity $activityMock,
-//        User $userMock,
-//        Urn $entityUrn
-//    ): void {
-//        /**
-//         * Set up entity urn mock
-//         */
-//        $entityUrn->getUrn()
-//            ->willReturn("entity_urn");
-//
-//        /**
-//         * Set up entity mock
-//         */
-//        $activityMock->getOwnerGuid()
-//            ->willReturn("user_123");
-//        $activityMock->getTimeCreated()
-//            ->willReturn(1653047334);
-//        $activityMock->getMessage()
-//            ->willReturn('Hello nostr. This is Minds calling');
-//        $activityMock->getEntityGuid()
-//            ->willReturn(null);
-//        $activityMock->isRemind()
-//            ->willReturn(false);
-//        $activityMock->isQuotedPost()
-//            ->willReturn(false);
-//        $activityMock->getType()
-//            ->willReturn('activity');
-//
-//        /**
-//         * Set up entities builder mock
-//         */
-//        $this->entitiesBuilder->single("user_123")
-//            ->willReturn($userMock);
-//
-//        /**
-//         * Set up entity resolver mock
-//         */
-//        $this->entitiesResolver->setOpts(Argument::type('array'))
-//            ->willReturn($this->entitiesResolver);
-//
-//        $this->entitiesResolver->single($entityUrn)
-//            ->shouldBeCalledOnce()
-//            ->willReturn($activityMock);
-//
-//        /**
-//         * Set up repository mock
-//         */
-//        $this->repository->addNewCorrelation(Argument::type("string"), Argument::type("string"), Argument::type("string"))
-//            ->shouldBeCalledOnce()
-//            ->willReturn(true);
-//
-//        /**
-//         * Set up Nostr keys mock
-//         */
-//        $this->setupKeysMock($userMock);
-//
-//        $this->buildNostrEvent($activityMock)
-//            ->willReturn(new NostrEvent());
-//
-//        $this->addNostrHashLinkToEntity($entityUrn);
-//    }
+    public function it_should_add_event(NostrEvent $nostrEvent)
+    {
+        $this->repository->addEvent($nostrEvent)
+            ->willReturn(true);
+    
+        $this->addEvent($nostrEvent)
+            ->shouldBe(true);
+    }
+
+    public function it_should_add_nostr_user_link(User $user)
+    {
+        $this->repository->addNostrUser($user, '4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715')
+            ->willReturn(true);
+    
+        $this->addNostrUser($user, '4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715')
+            ->shouldBe(true);
+    }
+
+    public function it_should_fetch_activity_from_id()
+    {
+        $activity = new Activity();
+        $activity->guid = '123';
+
+        $this->repository->getActivityFromNostrId('c7462cd60b3278e59cf863a512971b2c35da77aabd6761eb76d1e42083da9038')
+            ->willReturn($activity);
+
+        $this->getActivityFromNostrId('c7462cd60b3278e59cf863a512971b2c35da77aabd6761eb76d1e42083da9038')
+            ->getGuid()
+                ->shouldBe('123');
+    }
+
+    public function it_should_add_activity_nostr_id_link(Activity $activity)
+    {
+        $this->repository->addActivityToNostrId($activity, 'c7462cd60b3278e59cf863a512971b2c35da77aabd6761eb76d1e42083da9038')
+            ->willReturn(true);
+
+        $this->addActivityToNostrId($activity, 'c7462cd60b3278e59cf863a512971b2c35da77aabd6761eb76d1e42083da9038')
+            ->shouldBe(true);
+    }
+
+    public function it_should_query_nostr_events()
+    {
+        $filters = [];
+        $nostrEvent = new NostrEvent();
+
+        $this->repository->getEvents($filters)
+            ->willReturn([
+                $nostrEvent
+            ]);
+     
+        $this->getNostrEvents($filters)
+            ->shouldYieldLike(new \ArrayIterator([
+                $nostrEvent
+            ]));
+    }
 
     /**
      * @param User $userMock
