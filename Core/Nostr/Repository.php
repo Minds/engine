@@ -252,8 +252,7 @@ class Repository
         $values = [
             $nostrPublicKey,
             $user->getGuid(),
-            $user->getSource() ?? '' === 'nostr',
-            // $user->getSource() === 'nostr',
+            $user->getSource() === 'nostr',
         ];
 
         $prepared = $this->mysqlClient->getConnection('master')->prepare($statement);
