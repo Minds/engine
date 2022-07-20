@@ -29,7 +29,7 @@ class Repository
      */
     public function addToWhitelist(string $pubKey): bool
     {
-        $statement = "INSERT IGNORE nostr_pubkey_whitelist (pubkey) VALUES (?)";
+        $statement = "INSERT nostr_pubkey_whitelist (pubkey) VALUES (?) ON DUPLICATE KEY UPDATE pubkey=pubkey";
 
         $values = [
            $pubKey
@@ -71,7 +71,7 @@ class Repository
      */
     public function addEvent(NostrEvent $nostrEvent): bool
     {
-        $statement = "INSERT IGNORE nostr_events 
+        $statement = "INSERT nostr_events 
         (
             id,
             pubkey,
@@ -80,7 +80,8 @@ class Repository
             content,
             sig
         )
-        VALUES (?,?,?,?,?,?)";
+        VALUES (?,?,?,?,?,?)
+        ON DUPLICATE KEY UPDATE id=id";
 
         $values = [
             $nostrEvent->getId(),
@@ -244,7 +245,9 @@ class Repository
             user_guid,
             is_external
         )
-        VALUES (?,?,?)";
+        VALUES (?,?,?)
+        ON DUPLICATE KEY UPDATE pubkey=pubkey
+        ";
 
         $values = [
             $nostrPublicKey,
