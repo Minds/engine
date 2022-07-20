@@ -225,10 +225,10 @@ class Repository
         $prepared->bindParam(1, $nostrId, PDO::PARAM_STR);
 
         $activityGuid = $activity->getGuid();
-        $prepared->bindParam(2, $activityGuid, PDO::PARAM_INT);
+        $prepared->bindParam(2, $activityGuid, PDO::PARAM_STR);
 
         $ownerGuid = $activity->getOwnerGuid();
-        $prepared->bindParam(3, $ownerGuid, PDO::PARAM_INT);
+        $prepared->bindParam(3, $ownerGuid, PDO::PARAM_STR);
         
         $isExternal = $activity->getSource() === 'nostr';
         $prepared->bindParam(4, $isExternal, PDO::PARAM_BOOL);
@@ -260,7 +260,7 @@ class Repository
         $prepared->bindParam(1, $nostrPublicKey, PDO::PARAM_STR);
 
         $userGuid = $user->getGuid();
-        $prepared->bindParam(2, $userGuid, PDO::PARAM_INT);
+        $prepared->bindParam(2, $userGuid, PDO::PARAM_STR); // Bigint
 
         $isExternal = $user->getSource() === 'nostr';
         $prepared->bindParam(3, $isExternal, PDO::PARAM_BOOL);

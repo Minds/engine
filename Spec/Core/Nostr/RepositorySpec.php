@@ -201,9 +201,9 @@ class RepositorySpec extends ObjectBehavior
 
         $pdoStatementMock->bindParam(1, 'af5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c', PDO::PARAM_STR)
             ->shouldBeCalled(); // id
-        $pdoStatementMock->bindParam(2, '123', PDO::PARAM_INT)
+        $pdoStatementMock->bindParam(2, '123', PDO::PARAM_STR)
             ->shouldBeCalled(); // guid
-        $pdoStatementMock->bindParam(3, '456', PDO::PARAM_INT)
+        $pdoStatementMock->bindParam(3, '456', PDO::PARAM_STR)
             ->shouldBeCalled(); // owner_guid
         $pdoStatementMock->bindParam(4, true, PDO::PARAM_BOOL)
             ->shouldBeCalled(); // is_external
@@ -236,7 +236,7 @@ class RepositorySpec extends ObjectBehavior
         $pdoStatementMock->bindParam(1, '36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b', PDO::PARAM_STR)
             ->shouldBeCalled(); // pubkey
 
-        $pdoStatementMock->bindParam(2, '123', PDO::PARAM_INT)
+        $pdoStatementMock->bindParam(2, '123', PDO::PARAM_STR)
             ->shouldBeCalled(); // guid
 
         $pdoStatementMock->bindParam(3, true, PDO::PARAM_BOOL)
