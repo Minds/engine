@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
+use PDO;
 use PDOStatement;
 
 /**
@@ -219,15 +220,20 @@ class Repository
         )
         VALUES (?,?,?,?)";
 
-        $values = [
-            $nostrId,
-            $activity->getGuid(),
-            $activity->getOwnerGuid(),
-            $activity->getSource() === 'nostr',
-        ];
-
         $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
-        return $prepared->execute($values);
+
+        $prepared->bindParam(1, $nostrId, PDO::PARAM_STR);
+
+        $activityGuid = $activity->getGuid();
+        $prepared->bindParam(2, $activityGuid, PDO::PARAM_INT);
+
+        $ownerGuid = $activity->getOwnerGuid();
+        $prepared->bindParam(3, $ownerGuid, PDO::PARAM_INT);
+        
+        $isExternal = $activity->getSource() === 'nostr';
+        $prepared->bindParam(4, $isExternal, PDO::PARAM_BOOL);
+
+        return $prepared->execute();
     }
 
 
@@ -249,14 +255,17 @@ class Repository
         ON DUPLICATE KEY UPDATE pubkey=pubkey
         ";
 
-        $values = [
-            $nostrPublicKey,
-            $user->getGuid(),
-            $user->getSource() === 'nostr',
-        ];
-
         $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
-        return $prepared->execute($values);
+
+        $prepared->bindParam(1, $nostrPublicKey, PDO::PARAM_STR);
+
+        $userGuid = $user->getGuid();
+        $prepared->bindParam(2, $userGuid, PDO::PARAM_INT);
+
+        $isExternal = $user->getSource() === 'nostr';
+        $prepared->bindParam(3, $isExternal, PDO::PARAM_BOOL);
+
+        return $prepared->execute();
     }
 
     /**
