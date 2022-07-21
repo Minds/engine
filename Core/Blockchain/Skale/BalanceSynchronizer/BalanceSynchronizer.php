@@ -2,7 +2,7 @@
 
 namespace Minds\Core\Blockchain\Skale\BalanceSynchronizer;
 
-use Minds\Core\Blockchain\Wallets\Offchain\Balance as OffchainBalance;
+use Minds\Core\Blockchain\Wallets\OffChain\Balance as OffchainBalance;
 use Minds\Core\Blockchain\Skale\Tools as SkaleTools;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
@@ -19,6 +19,9 @@ use Minds\Exceptions\ServerErrorException;
  */
 class BalanceSynchronizer
 {
+    /** @var User|null $user - instance user */
+    public ?User $user = null;
+
     /**
      * Constructor.
      * @param SkaleTools|null $skaleTools - tools for interacting with skale chain.
@@ -65,6 +68,8 @@ class BalanceSynchronizer
         if ($balanceDifference->eq(0)) {
             return null;
         }
+
+        $txHash = '';
 
         if ($balanceDifference->lt(0)) {
             $txHash = $this->skaleTools->sendTokens(

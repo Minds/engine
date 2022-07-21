@@ -6,7 +6,11 @@ use Minds\Core\Util\BigNumber;
 use Minds\Traits\MagicAttributes;
 
 /**
- * Calculator to calculate the difference between offchain and skale token balances.
+ * Calculator to calculate the difference between offchain and SKALE MINDS token balances.
+ * @method string|null getOffchainBalance()
+ * @method DifferenceCalculator setOffchainBalance(?string $offchainBalance)
+ * @method string|null getSkaleTokenBalance()
+ * @method DifferenceCalculator setSkaleTokenBalance(?string $skaleTokenBalance)
  */
 class DifferenceCalculator
 {
